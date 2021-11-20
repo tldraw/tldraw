@@ -119,6 +119,12 @@
 				"title": "Zoom Out",
 				"category": "tldraw",
 				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"command": "tldraw.tldr.zoomReset",
+				"title": "Zoom Reset",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
 			}
 		]
 	},
