@@ -1,7 +1,7 @@
 import * as React from 'react'
 import type { IShapeTreeNode, TLShape } from '~types'
 import { Shape } from './shape'
-import type { TLShapeUtilsMap } from '~shape-utils'
+import type { TLShapeUtilsMap } from '~TLShapeUtil'
 
 interface ShapeNodeProps<T extends TLShape> extends IShapeTreeNode<T> {
   utils: TLShapeUtilsMap<TLShape>

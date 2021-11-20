@@ -1,3 +1,10 @@
+## 1.1.0
+
+- Adds text styles (alignment and font family)
+- Fixes zoom shortcuts on VS Code extension
+- Adds zoom shortcuts for numpad
+- Fixes delete keyboard shortcuts on PC
+
 ## 1.0.4
 
 - Fixes bug in selected styles menu

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { TDShapeType } from '~types'
+import { AlignStyle, TDShapeType } from '~types'
 import { useFileSystemHandlers, useTldrawApp } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
@@ -97,7 +97,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Dark Mode
 
   useHotkeys(
-    'ctrl+shift+d,command+shift+d',
+    'ctrl+shift+d,⌘+shift+d',
     (e) => {
       if (!canHandleEvent()) return
       app.toggleDarkMode()
@@ -110,7 +110,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Focus Mode
 
   useHotkeys(
-    'ctrl+.,command+.',
+    'ctrl+.,⌘+.',
     () => {
       if (!canHandleEvent()) return
       app.toggleFocusMode()
@@ -124,7 +124,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   useHotkeys(
-    'ctrl+n,command+n',
+    'ctrl+n,⌘+n',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -134,7 +134,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
   useHotkeys(
-    'ctrl+s,command+s',
+    'ctrl+s,⌘+s',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -145,7 +145,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+shift+s,command+shift+s',
+    'ctrl+shift+s,⌘+shift+s',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -155,7 +155,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
   useHotkeys(
-    'ctrl+o,command+o',
+    'ctrl+o,⌘+o',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -168,9 +168,11 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Undo Redo
 
   useHotkeys(
-    'command+z,ctrl+z',
+    '⌘+z,ctrl+z',
     () => {
       if (!canHandleEvent()) return
+
+      console.log('Hello')
 
       if (app.session) {
         app.cancelSession()
@@ -183,7 +185,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+shift-z,command+shift+z',
+    'ctrl+shift-z,⌘+shift+z',
     () => {
       if (!canHandleEvent()) return
 
@@ -200,7 +202,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Undo Redo
 
   useHotkeys(
-    'command+u,ctrl+u',
+    '⌘+u,ctrl+u',
     () => {
       if (!canHandleEvent()) return
       app.undoSelect()
@@ -210,7 +212,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+shift-u,command+shift+u',
+    'ctrl+shift-u,⌘+shift+u',
     () => {
       if (!canHandleEvent()) return
       app.redoSelect()
@@ -224,10 +226,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Camera
 
   useHotkeys(
-    'ctrl+=,command+=',
+    'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
     (e) => {
       if (!canHandleEvent()) return
-
       app.zoomIn()
       e.preventDefault()
     },
@@ -236,12 +237,22 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+-,command+-',
+    'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
     (e) => {
       if (!canHandleEvent()) return
 
       app.zoomOut()
       e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'shift+0,ctrl+numpad_0,⌘+numpad_0',
+    () => {
+      if (!canHandleEvent()) return
+      app.resetZoom()
     },
     undefined,
     [app]
@@ -267,20 +278,10 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
-  useHotkeys(
-    'shift+0',
-    () => {
-      if (!canHandleEvent()) return
-      app.resetZoom()
-    },
-    undefined,
-    [app]
-  )
-
   // Duplicate
 
   useHotkeys(
-    'ctrl+d,command+d',
+    'ctrl+d,⌘+d',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -341,7 +342,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Select All
 
   useHotkeys(
-    'command+a,ctrl+a',
+    '⌘+a,ctrl+a',
     () => {
       if (!canHandleEvent()) return
       app.selectAll()
@@ -433,7 +434,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'command+shift+l,ctrl+shift+l',
+    '⌘+shift+l,ctrl+shift+l',
     () => {
       if (!canHandleEvent()) return
       app.toggleLocked()
@@ -445,7 +446,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Copy, Cut & Paste
 
   useHotkeys(
-    'command+c,ctrl+c',
+    '⌘+c,ctrl+c',
     () => {
       if (!canHandleEvent()) return
       app.copy()
@@ -455,7 +456,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'command+x,ctrl+x',
+    '⌘+x,ctrl+x',
     () => {
       if (!canHandleEvent()) return
       app.cut()
@@ -465,7 +466,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'command+v,ctrl+v',
+    '⌘+v,ctrl+v',
     () => {
       if (!canHandleEvent()) return
       app.paste()
@@ -477,7 +478,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Group & Ungroup
 
   useHotkeys(
-    'command+g,ctrl+g',
+    '⌘+g,ctrl+g',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -489,7 +490,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'command+shift+g,ctrl+shift+g',
+    '⌘+shift+g,ctrl+shift+g',
     (e) => {
       if (!canHandleEvent()) return
 
@@ -543,12 +544,47 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'command+shift+backspace',
+    'ctrl+shift+backspace,⌘+shift+backspace',
     (e) => {
       if (!canHandleEvent()) return
       if (app.settings.isDebugMode) {
         app.resetDocument()
       }
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  // Text Align
+
+  useHotkeys(
+    'alt+command+l,alt+ctrl+l',
+    (e) => {
+      if (!canHandleEvent()) return
+      app.style({ textAlign: AlignStyle.Start })
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'alt+command+t,alt+ctrl+t',
+    (e) => {
+      if (!canHandleEvent()) return
+      app.style({ textAlign: AlignStyle.Middle })
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'alt+command+r,alt+ctrl+r',
+    (e) => {
+      if (!canHandleEvent()) return
+      app.style({ textAlign: AlignStyle.End })
       e.preventDefault()
     },
     undefined,

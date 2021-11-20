@@ -1,7 +1,7 @@
-import { useTLContext } from '~hooks'
+import { useTLContext } from '../hooks'
 import * as React from 'react'
-import { Utils } from '~utils'
-import type { TLBounds } from '~types'
+import { Utils } from '../utils'
+import type { TLBounds } from '../types'
 
 export function useResizeObserver<T extends Element>(
   ref: React.RefObject<T>,

@@ -14,6 +14,7 @@ import { getEllipseIndicatorPathTDSnapshot, getEllipsePath } from './ellipseHelp
 
 type T = EllipseShape
 type E = SVGSVGElement
+type M = TDMeta
 
 export class EllipseUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Ellipse as const
@@ -128,7 +129,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     }
   )
 
-  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T, M>(({ shape }) => {
     return <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
   })
 

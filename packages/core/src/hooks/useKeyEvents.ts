@@ -1,4 +1,4 @@
-import { useTLContext } from '~hooks'
+import { useTLContext } from '../hooks'
 import * as React from 'react'
 
 export function useKeyEvents() {
