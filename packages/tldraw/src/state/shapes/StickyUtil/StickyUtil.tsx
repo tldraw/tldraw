@@ -2,12 +2,12 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultTextStyle } from '../shared/shape-styles'
-import { StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
+import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
-import Vec from '@tldraw/vec'
+import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 
@@ -165,7 +165,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
             style={{ backgroundColor: fill, ...style }}
           >
-            <StyledText ref={rText} isEditing={isEditing}>
+            <StyledText ref={rText} isEditing={isEditing} alignment={shape.style.textAlign}>
               {shape.text}&#8203;
             </StyledText>
             {isEditing && (
@@ -184,6 +184,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoSave="false"
                 autoFocus
                 spellCheck={false}
+                alignment={shape.style.textAlign}
               />
             )}
           </StyledStickyContainer>
@@ -291,6 +292,20 @@ const StyledText = styled('div', {
         opacity: 1,
       },
     },
+    alignment: {
+      [AlignStyle.Start]: {
+        textAlign: 'left',
+      },
+      [AlignStyle.Middle]: {
+        textAlign: 'center',
+      },
+      [AlignStyle.End]: {
+        textAlign: 'right',
+      },
+      [AlignStyle.Justify]: {
+        textAlign: 'justify',
+      },
+    },
   },
   ...commonTextWrapping,
 })
@@ -310,4 +325,20 @@ const StyledTextArea = styled('textarea', {
   resize: 'none',
   caretColor: 'black',
   ...commonTextWrapping,
+  variants: {
+    alignment: {
+      [AlignStyle.Start]: {
+        textAlign: 'left',
+      },
+      [AlignStyle.Middle]: {
+        textAlign: 'center',
+      },
+      [AlignStyle.End]: {
+        textAlign: 'right',
+      },
+      [AlignStyle.Justify]: {
+        textAlign: 'justify',
+      },
+    },
+  },
 })
