@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { renderWithContext } from '~test'
 import { Handles } from './handles'
-import { boxShape } from '~shape-utils/TLShapeUtil.spec'
+import { boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 import { screen } from '@testing-library/react'
 
 describe('handles', () => {

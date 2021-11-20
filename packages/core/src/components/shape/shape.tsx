@@ -7,7 +7,7 @@ import { RenderedShape } from './rendered-shape'
 import { Container } from '~components/container'
 import { useTLContext } from '~hooks'
 import { useForceUpdate } from '~hooks/useForceUpdate'
-import type { TLShapeUtil } from '~shape-utils'
+import type { TLShapeUtil } from '~TLShapeUtil'
 
 interface ShapeProps<T extends TLShape, M> extends IShapeTreeNode<T, M> {
   utils: TLShapeUtil<T>

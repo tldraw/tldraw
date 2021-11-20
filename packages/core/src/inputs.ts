@@ -1,8 +1,7 @@
 import type React from 'react'
-import type { TLKeyboardInfo, TLPointerInfo } from './types'
+import type { TLBounds, TLKeyboardInfo, TLPointerInfo } from './types'
 import { Utils } from './utils'
 import { Vec } from '@tldraw/vec'
-import type { TLBounds } from '~index'
 
 const DOUBLE_CLICK_DURATION = 250
 
@@ -32,12 +31,16 @@ export class Inputs {
 
   pointerIsValid(e: TouchEvent | React.TouchEvent | PointerEvent | React.PointerEvent) {
     if ('pointerId' in e) {
-      if (this.activePointer && this.activePointer !== e.pointerId) return false
+      if (this.activePointer && this.activePointer !== e.pointerId) {
+        return false
+      }
     }
 
     if ('touches' in e) {
       const touch = e.changedTouches[0]
-      if (this.activePointer && this.activePointer !== touch.identifier) return false
+      if (this.activePointer && this.activePointer !== touch.identifier) {
+        return false
+      }
     }
 
     return true

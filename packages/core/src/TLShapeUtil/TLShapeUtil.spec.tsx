@@ -2,11 +2,11 @@
 import * as React from 'react'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { TLShape, TLBounds, TLComponentProps } from '~types'
+import type { TLShape, TLBounds, TLComponentProps } from '../types'
 import { TLShapeUtil } from './TLShapeUtil'
 import { render } from '@testing-library/react'
 import { SVGContainer } from '~components'
-import Utils from '~utils'
+import Utils from '../utils'
 
 export interface BoxShape extends TLShape {
   type: 'box'

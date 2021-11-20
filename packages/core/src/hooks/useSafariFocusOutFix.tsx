@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import Utils from '~utils'
+import Utils from '../utils'
 import { useTLContext } from './useTLContext'
 
 // Send event on iOS when a user presses the "Done" key while editing a text element.
