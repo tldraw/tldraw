@@ -2,7 +2,7 @@ import type { TldrawCommand, TDShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '../../internal'
 
-export function update(
+export function updateShapes(
   app: TldrawApp,
   updates: ({ id: string } & Partial<TDShape>)[],
   pageId: string

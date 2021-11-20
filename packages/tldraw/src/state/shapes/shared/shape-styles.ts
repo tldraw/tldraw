@@ -1,5 +1,5 @@
 import { Utils } from '@tldraw/core'
-import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle } from '~types'
+import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle, FontStyle, AlignStyle } from '~types'
 
 const canvasLight = '#fafafa'
 
@@ -84,6 +84,20 @@ const fontSizes = {
   auto: 'auto',
 }
 
+const fontFaces = {
+  [FontStyle.Script]: '"Caveat Brush"',
+  [FontStyle.Sans]: '"Source Sans Pro", sans-serif',
+  [FontStyle.Serif]: '"Source Serif Pro", serif',
+  [FontStyle.Mono]: '"Source Code Pro", monospace',
+}
+
+const fontSizeModifiers = {
+  [FontStyle.Script]: 1,
+  [FontStyle.Sans]: 1,
+  [FontStyle.Serif]: 1,
+  [FontStyle.Mono]: 1,
+}
+
 const stickyFontSizes = {
   [SizeStyle.Small]: 24,
   [SizeStyle.Medium]: 36,
@@ -95,8 +109,12 @@ export function getStrokeWidth(size: SizeStyle): number {
   return strokeWidths[size]
 }
 
-export function getFontSize(size: SizeStyle): number {
-  return fontSizes[size]
+export function getFontSize(size: SizeStyle, fontStyle: FontStyle = FontStyle.Script): number {
+  return fontSizes[size] * fontSizeModifiers[fontStyle]
+}
+
+export function getFontFace(font: FontStyle = FontStyle.Script): string {
+  return fontFaces[font]
 }
 
 export function getStickyFontSize(size: SizeStyle): number {
@@ -104,17 +122,19 @@ export function getStickyFontSize(size: SizeStyle): number {
 }
 
 export function getFontStyle(style: ShapeStyles): string {
-  const fontSize = getFontSize(style.size)
+  const fontSize = getFontSize(style.size, style.font)
+  const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 "Caveat Brush"`
+  return `${fontSize * scale}px/1.3 ${fontFace}`
 }
 
 export function getStickyFontStyle(style: ShapeStyles): string {
   const fontSize = getStickyFontSize(style.size)
+  const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 "Caveat Brush"`
+  return `${fontSize * scale}px/1.3 ${fontFace}`
 }
 
 export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
@@ -157,4 +177,10 @@ export const defaultStyle: ShapeStyles = {
   isFilled: false,
   dash: DashStyle.Draw,
   scale: 1,
+}
+
+export const defaultTextStyle: ShapeStyles = {
+  ...defaultStyle,
+  font: FontStyle.Script,
+  textAlign: AlignStyle.Start,
 }

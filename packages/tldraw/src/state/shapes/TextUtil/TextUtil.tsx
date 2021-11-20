@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
-import { TextShape, TDMeta, TDShapeType, TransformInfo } from '~types'
+import { defaultTextStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
+import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
-import Vec from '@tldraw/vec'
+import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
+import { getTextAlign } from '../shared/getTextAlign'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -33,7 +34,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
         point: [0, 0],
         rotation: 0,
         text: ' ',
-        style: defaultStyle,
+        style: defaultTextStyle,
       },
       props
     )
@@ -50,7 +51,39 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
+          let delta = [0, 0]
+
+          const currentBounds = this.getBounds(shape)
+
+          switch (shape.style.textAlign) {
+            case AlignStyle.Start: {
+              break
+            }
+            case AlignStyle.Middle: {
+              const nextBounds = this.getBounds({
+                ...shape,
+                text: TLDR.normalizeText(e.currentTarget.value),
+              })
+
+              delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
+              break
+            }
+            case AlignStyle.End: {
+              const nextBounds = this.getBounds({
+                ...shape,
+                text: TLDR.normalizeText(e.currentTarget.value),
+              })
+
+              delta = [nextBounds.width - currentBounds.width, 0]
+              break
+            }
+          }
+
+          onShapeChange?.({
+            ...shape,
+            point: Vec.sub(shape.point, delta),
+            text: TLDR.normalizeText(e.currentTarget.value),
+          })
         },
         [shape]
       )
@@ -126,6 +159,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
               style={{
                 font,
                 color: styles.stroke,
+                textAlign: getTextAlign(style.textAlign),
               }}
             >
               {isBinding && (
@@ -147,6 +181,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   style={{
                     font,
                     color: styles.stroke,
+                    textAlign: 'inherit',
                   }}
                   name="text"
                   defaultValue={text}
