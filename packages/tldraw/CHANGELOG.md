@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Adds shift modifier to snap arrows to a 15 degree angle.
+
 ## 1.1.0
 
 - Adds text styles (alignment and font family)
