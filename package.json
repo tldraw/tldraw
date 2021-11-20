@@ -30,7 +30,7 @@
     "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
-    "publish:patch": "yarn test && yarn build:packages && lerna publish patch --ignore tldraw-vscode",
+    "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
     "fix:style": "yarn run prettier ./packages/tldraw/src --write",
     "lerna": "lerna",
     "test": "lerna run test --stream",

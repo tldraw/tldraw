@@ -94,7 +94,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               </DMItem>
             )}
             {app.callbacks.onSaveProjectAs && (
-              <DMItem onClick={onSaveProjectAs} kbd="⇧#S">
+              <DMItem onClick={onSaveProjectAs} kbd="#⇧S">
                 Save As...
               </DMItem>
             )}
