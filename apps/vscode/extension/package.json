@@ -81,5 +81,8 @@
 		"typescript": "^4.4.3",
 		"vsce": "^2.2.0"
 	},
-	"gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9"
+	"gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9",
+	"dependencies": {
+		"pretty": "^2.0.0"
+	}
 }
