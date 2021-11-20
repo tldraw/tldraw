@@ -1,4 +1,4 @@
-## 1.0.5
+## 1.1.0
 
 - Adds text styles (alignment and font family)
 - Fixes zoom shortcuts on VS Code extension
