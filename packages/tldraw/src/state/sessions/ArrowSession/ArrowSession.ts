@@ -85,17 +85,16 @@ export class ArrowSession extends BaseSession {
     if (!handles[handleId].canBind) return
 
     // First update the handle's next point
-
     let delta = Vec.sub(currentPoint, handles[handleId].point)
 
-    // if (shiftKey) {
-    //   const A = handles[handleId === 'start' ? 'end' : 'start'].point
-    //   const B = handles[handleId].point
-    //   const C = Vec.add(B, delta)
-    //   const angle = Vec.angle(A, C)
-    //   const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
-    //   delta = Vec.add(delta, Vec.sub(adjusted, C))
-    // }
+    if (shiftKey) {
+      const A = handles[handleId === 'start' ? 'end' : 'start'].point
+      const B = handles[handleId].point
+      const C = Vec.round(Vec.sub(Vec.add(B, delta), shape.point))
+      const angle = Vec.angle(A, C)
+      const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
+      delta = Vec.add(delta, Vec.sub(adjusted, C))
+    }
 
     const handle = {
       ...handles[handleId],
@@ -105,13 +104,9 @@ export class ArrowSession extends BaseSession {
 
     const utils = shapeUtils[TDShapeType.Arrow]
 
-    const change = utils.onHandleChange?.(
-      shape,
-      {
-        [handleId]: handle,
-      },
-      { delta, shiftKey, altKey, metaKey }
-    )
+    const change = utils.onHandleChange?.(shape, {
+      [handleId]: handle,
+    })
 
     // If the handle changed produced no change, bail here
     if (!change) return

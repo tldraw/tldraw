@@ -511,39 +511,17 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       }
     }
 
-    return this.onHandleChange(
-      shape,
-      {
-        [handle.id]: {
-          ...handle,
-          point: Vec.round(handlePoint),
-        },
+    return this.onHandleChange(shape, {
+      [handle.id]: {
+        ...handle,
+        point: Vec.round(handlePoint),
       },
-      { shiftKey: false }
-    )
+    })
   }
 
-  onHandleChange = (
-    shape: T,
-    handles: Partial<T['handles']>,
-    { shiftKey }: Partial<TLPointerInfo>
-  ): Partial<T> | void => {
+  onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
-
-    // If the user is holding shift, we want to snap the handles to angles
-    Object.values(nextHandles).forEach((handle) => {
-      if (!handle) return
-
-      if ((handle.id === 'start' || handle.id === 'end') && shiftKey) {
-        const point = handle.point
-        const other = handle.id === 'start' ? shape.handles.end : shape.handles.start
-        const angle = Vec.angle(other.point, point)
-        const distance = Vec.dist(other.point, point)
-        const newAngle = Utils.snapAngleToSegments(angle, 24)
-        handle.point = Vec.nudgeAtAngle(other.point, newAngle, distance)
-      }
-    })
 
     nextHandles = {
       ...nextHandles,
