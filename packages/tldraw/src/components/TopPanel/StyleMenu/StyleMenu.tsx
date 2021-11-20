@@ -189,7 +189,13 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
             ))}
           </ColorGrid>
         </StyledRow>
-        <Divider />
+        <DMCheckboxItem
+          variant="styleMenu"
+          checked={!!displayedStyle.isFilled}
+          onCheckedChange={handleToggleFilled}
+        >
+          Fill
+        </DMCheckboxItem>
         <StyledRow>
           Dash
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
@@ -206,7 +212,6 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
             ))}
           </StyledGroup>
         </StyledRow>
-        <Divider />
         <StyledRow>
           Size
           <StyledGroup dir="ltr" value={displayedStyle.size} onValueChange={handleSizeChange}>
@@ -223,10 +228,6 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
             ))}
           </StyledGroup>
         </StyledRow>
-        <Divider />
-        <DMCheckboxItem checked={!!displayedStyle.isFilled} onCheckedChange={handleToggleFilled}>
-          Fill
-        </DMCheckboxItem>
         {showTextStyles && (
           <>
             <Divider />
@@ -312,7 +313,7 @@ export const StyledRow = styled('div', {
   fontFamily: '$ui',
   fontWeight: 400,
   fontSize: '$1',
-  padding: '$1 0 $1 $3',
+  padding: '$2 0 $2 $3',
   borderRadius: 4,
   userSelect: 'none',
   margin: 0,
@@ -325,6 +326,7 @@ export const StyledRow = styled('div', {
     variant: {
       tall: {
         alignItems: 'flex-start',
+        padding: '0 0 0 $3',
         '& > span': {
           paddingTop: '$4',
         },
