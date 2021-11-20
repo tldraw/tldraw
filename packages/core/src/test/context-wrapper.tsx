@@ -5,7 +5,7 @@ import { mockUtils } from './mockUtils'
 import { useTLTheme, TLContext, TLContextType } from '../hooks'
 import { Inputs } from '~inputs'
 import type { TLShape } from '~index'
-import type { BoxShape } from '~shape-utils/TLShapeUtil.spec'
+import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 
 export const ContextWrapper: React.FC = ({ children }) => {
   useTLTheme()

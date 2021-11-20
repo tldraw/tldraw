@@ -331,7 +331,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Delete
 
   useHotkeys(
-    'backspace',
+    'backspace,del',
     () => {
       if (!canHandleEvent()) return
       app.delete()

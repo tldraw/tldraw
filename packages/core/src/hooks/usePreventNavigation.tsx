@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import * as React from 'react'
-import { useTLContext } from '~hooks'
+import { useTLContext } from './useTLContext'
 
 export function usePreventNavigation(rCanvas: React.RefObject<HTMLDivElement>): void {
   const { bounds } = useTLContext()

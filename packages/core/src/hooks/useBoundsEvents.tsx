@@ -28,6 +28,9 @@ export function useBoundsEvents() {
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
+
+      inputs.activePointer = undefined
+
       if (!inputs.pointerIsValid(e)) return
       e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
