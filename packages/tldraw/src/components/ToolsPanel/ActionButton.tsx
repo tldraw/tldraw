@@ -27,6 +27,7 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
   BoxIcon,
+  AngleIcon,
 } from '@radix-ui/react-icons'
 import { DMContent } from '~components/Primitives/DropdownMenu'
 import { Divider } from '~components/Primitives/Divider'
@@ -127,8 +128,8 @@ export function ActionButton(): JSX.Element {
     app.moveToFront()
   }, [app])
 
-  const handleDelete = React.useCallback(() => {
-    app.delete()
+  const handleResetAngle = React.useCallback(() => {
+    app.setShapeProps({ rotation: 0 })
   }, [app])
 
   const alignTop = React.useCallback(() => {
@@ -231,9 +232,9 @@ export function ActionButton(): JSX.Element {
                 <PinTopIcon />
               </Tooltip>
             </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleDelete}>
-              <Tooltip label="Delete" kbd="⌫">
-                <TrashIcon />
+            <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
+              <Tooltip label="Reset Angle">
+                <AngleIcon />
               </Tooltip>
             </ToolButton>
           </ButtonsRow>
