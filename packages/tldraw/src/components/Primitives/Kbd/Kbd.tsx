@@ -17,12 +17,9 @@ export function Kbd({
 }): JSX.Element | null {
   return (
     <StyledKbd variant={variant}>
-      {children
-        .replaceAll('#', commandKey())
-        .split('')
-        .map((k, i) => (
-          <span key={i}>{k}</span>
-        ))}
+      {children.split('').map((k, i) => {
+        return <span key={i}>{k.replace('#', commandKey())}</span>
+      })}
     </StyledKbd>
   )
 }

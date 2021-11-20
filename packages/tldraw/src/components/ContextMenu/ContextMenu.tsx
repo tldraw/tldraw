@@ -180,7 +180,7 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
               <CMRowButton onClick={handleCopy} kbd="#C">
                 Copy
               </CMRowButton>
-              <CMRowButton onClick={handleCopySvg} kbd="⇧#C">
+              <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
                 Copy as SVG
               </CMRowButton>
               {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
