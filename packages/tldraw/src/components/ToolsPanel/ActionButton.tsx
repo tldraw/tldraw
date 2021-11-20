@@ -193,12 +193,12 @@ export function ActionButton(): JSX.Element {
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
-              <Tooltip label="Toogle Locked" kbd={`#L`}>
+              <Tooltip label="Toggle Locked" kbd={`#L`}>
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
-              <Tooltip label="Toogle Aspect Ratio Lock">
+              <Tooltip label="Toggle Aspect Ratio Lock">
                 {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
               </Tooltip>
             </ToolButton>
