@@ -31,6 +31,18 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       )
     })
 
+    vscode.commands.registerCommand('tldraw.tldr.zoomIn', () => {
+      // Noop
+    })
+
+    vscode.commands.registerCommand('tldraw.tldr.zoomOut', () => {
+      // Noop
+    })
+
+    vscode.commands.registerCommand('tldraw.tldr.resetZoom', () => {
+      // Noop
+    })
+
     // Register our editor provider, indicating to VS Code that we can
     // handle files with the .tldr extension.
     return vscode.window.registerCustomEditorProvider(

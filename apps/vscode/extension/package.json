@@ -51,10 +51,47 @@
 				]
 			}
 		],
+		"keybindings": [
+			{
+				"key": "cmd+numpad_add",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+=",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad_subtract",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+-",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad0",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.resetZoom",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			}
+		],
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "New tldraw File",
+				"title": "New File",
 				"category": "tldraw"
 			}
 		]
