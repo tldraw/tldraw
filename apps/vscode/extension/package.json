@@ -83,7 +83,7 @@
 			{
 				"key": "cmd+numpad0",
 				"title": "Zoom Out",
-				"command": "tldraw.tldr.zoomReset",
+				"command": "tldraw.tldr.resetZoom",
 				"category": "tldraw",
 				"enablement": "resourceExtname == .tldr"
 			}
@@ -93,24 +93,6 @@
 				"command": "tldraw.tldr.new",
 				"title": "New File",
 				"category": "tldraw"
-			},
-			{
-				"command": "tldraw.tldr.zoomIn",
-				"title": "Zoom In",
-				"category": "tldraw",
-				"enablement": "resourceExtname == .tldr"
-			},
-			{
-				"command": "tldraw.tldr.zoomOut",
-				"title": "Zoom Out",
-				"category": "tldraw",
-				"enablement": "resourceExtname == .tldr"
-			},
-			{
-				"command": "tldraw.tldr.zoomReset",
-				"title": "Zoom Reset",
-				"category": "tldraw",
-				"enablement": "resourceExtname == .tldr"
 			}
 		]
 	},
