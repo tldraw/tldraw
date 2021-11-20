@@ -94,7 +94,6 @@ export interface TDSnapshot {
   appState: {
     currentStyle: ShapeStyles
     currentPageId: string
-    pages: Pick<TLPage<TDShape, TDBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
     activeTool: TDToolType
     isToolLocked: boolean
@@ -401,10 +400,26 @@ export enum FontSize {
   ExtraLarge = 'extraLarge',
 }
 
+export enum AlignStyle {
+  Start = 'start',
+  Middle = 'middle',
+  End = 'end',
+  Justify = 'justify',
+}
+
+export enum FontStyle {
+  Script = 'script',
+  Sans = 'sans',
+  Serif = 'erif',
+  Mono = 'mono',
+}
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
   dash: DashStyle
+  font?: FontStyle
+  textAlign?: AlignStyle
   isFilled?: boolean
   scale?: number
 }

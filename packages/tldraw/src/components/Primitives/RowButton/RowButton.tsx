@@ -11,7 +11,7 @@ export interface RowButtonProps {
   children: React.ReactNode
   disabled?: boolean
   kbd?: string
-  variant?: 'wide'
+  variant?: 'wide' | 'styleMenu'
   isSponsor?: boolean
   isActive?: boolean
   isWarning?: boolean
@@ -130,6 +130,9 @@ export const StyledRowButton = styled('button', {
       small: {},
     },
     variant: {
+      styleMenu: {
+        margin: '$1 0 $1 0',
+      },
       wide: {
         gridColumn: '1 / span 4',
       },

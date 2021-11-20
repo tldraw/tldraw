@@ -4,7 +4,7 @@ const styles = new Map<string, HTMLStyleElement>()
 
 const UID = `Tldraw-fonts`
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap')
+@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Source+Serif+Pro&display=swap');
 `
 
 export function useStylesheet() {
