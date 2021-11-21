@@ -15,10 +15,16 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
   private static readonly viewType = 'tldraw.tldr'
 
   public static register = (context: vscode.ExtensionContext): vscode.Disposable => {
-    // Register the 'Create new Tldraw file' command, which creates
-    // a temporary .tldr file and opens it in the editor.
-    vscode.commands.registerCommand('tldraw.tldr.new', () => {
-      const id = TldrawEditorProvider.newTDFileId++
+    // Several commands exist only to prevent the default keyboard shortcuts
+    const noopCmds = ['zoomIn', 'zoomOut', 'resetZoom', 'toggleDarkMode']
+    noopCmds.forEach((name) =>
+      vscode.commands.registerCommand(`${this.viewType}.${name}`, () => null)
+    )
+
+    // Register the 'Create New File' command, which creates a temporary
+    // .tldr file and opens it in the editor.
+    vscode.commands.registerCommand(`${this.viewType}.new`, () => {
+      const id = this.newTDFileId++
       const name = id > 1 ? `New Document ${id}.tldr` : `New Document.tldr`
 
       const workspaceFolders = vscode.workspace.workspaceFolders
@@ -27,34 +33,17 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       vscode.commands.executeCommand(
         'vscode.openWith',
         vscode.Uri.joinPath(path, name).with({ scheme: 'untitled' }),
-        TldrawEditorProvider.viewType
+        this.viewType
       )
-    })
-
-    vscode.commands.registerCommand('tldraw.tldr.zoomIn', () => {
-      // Noop
-    })
-
-    vscode.commands.registerCommand('tldraw.tldr.zoomOut', () => {
-      // Noop
-    })
-
-    vscode.commands.registerCommand('tldraw.tldr.resetZoom', () => {
-      // Noop
     })
 
     // Register our editor provider, indicating to VS Code that we can
     // handle files with the .tldr extension.
     return vscode.window.registerCustomEditorProvider(
-      TldrawEditorProvider.viewType,
+      this.viewType,
       new TldrawEditorProvider(context),
       {
-        webviewOptions: {
-          // See https://code.visualstudio.com/api/extension-guides/webview#retaincontextwhenhidden
-          retainContextWhenHidden: true,
-        },
-
-        // See https://code.visualstudio.com/api/extension-guides/custom-editors#custom-editor-lifecycle
+        webviewOptions: { retainContextWhenHidden: true },
         supportsMultipleEditorsPerDocument: true,
       }
     )

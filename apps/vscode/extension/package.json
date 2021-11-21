@@ -53,6 +53,13 @@
 		],
 		"keybindings": [
 			{
+				"key": "cmd+shift+d",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.toggleDarkMode",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
 				"key": "cmd+numpad_add",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
