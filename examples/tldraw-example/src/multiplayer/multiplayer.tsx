@@ -23,9 +23,11 @@ export function Multiplayer() {
 }
 
 function Editor({ roomId }: { roomId: string }) {
-  const { error, ...events } = useMultiplayerState(roomId)
+  const { error, loading, ...events } = useMultiplayerState(roomId)
 
   if (error) return <div>Error: {error.message}</div>
+
+  if (loading) return <div>Loading...</div>
 
   return (
     <div className="tldraw">

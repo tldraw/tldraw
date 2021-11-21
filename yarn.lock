@@ -1999,25 +1999,15 @@
     npmlog "^4.1.2"
     write-file-atomic "^2.3.0"
 
-"@liveblocks/client@^0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.12.3.tgz#03b957ccc7a6a5dc7474d224fe12c32e065e9c9c"
-  integrity sha512-n82Ymngpvt4EiZEU3LWnEq7EjDmcd2wb2kjGz4m/4L7wYEd4RygAYi7bp7w5JOD1rt3Srhrwbq9Rz7TikbUheg==
-
 "@liveblocks/client@^0.13.0-beta.1":
   version "0.13.0-beta.1"
   resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.13.0-beta.1.tgz#baee31dbefb7c40c954ab61b8c421562a85f729e"
   integrity sha512-LW1CygndCQeITYFsnaEZgbe2qqIZKo4iVH/qGYEXVLptc/1PP0nzEi8Hr2lfw4JOUw003FTeQ+BSI/raP22mgg==
 
-"@liveblocks/react@0.13.0-beta.1":
+"@liveblocks/react@0.13.0-beta.1", "@liveblocks/react@^0.13.0-beta.1":
   version "0.13.0-beta.1"
   resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.13.0-beta.1.tgz#e71bc47511480967c2a11042aa920399674b5c3d"
   integrity sha512-odOO5WCVfV3B70Yy8k/11XFY/5dVSBpIPKnx+ZDxZkw/yzrA39NqS+GH7go/RvVAGSeHbg9phknOtg4X9gziAQ==
-
-"@liveblocks/react@^0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.12.3.tgz#82d93a9a3a96401258f6c87c1150026dd9d63504"
-  integrity sha512-3mHRiEwZ/s1lbGS4/bblUpLCNCBFMzEiUHHfBH3zO9+IKrH40lVdky0OujgF5zEacYcqUnVW7jT4ZvHCchvsYA==
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
