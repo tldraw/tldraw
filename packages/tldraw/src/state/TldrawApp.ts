@@ -1839,9 +1839,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.addToSelectHistory(this.selectedIds)
 
-    if (this.appState.activeTool !== 'select') {
-      this.selectTool('select')
-    }
+    this.selectTool('select')
 
     return this
   }
@@ -2730,6 +2728,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (Date.now() - this.editingStartTime < 50) return
 
     const { editingId } = this.pageState
+    const { isToolLocked } = this.getAppState()
 
     if (editingId) {
       // If we're editing text, then delete the text if it's empty
@@ -2738,7 +2737,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       if (shape.type === TDShapeType.Text) {
         if (shape.text.trim().length <= 0) {
           this.patchState(Commands.deleteShapes(this, [editingId]).after, 'delete_empty_text')
-        } else {
+        } else if (!isToolLocked) {
           this.select(editingId)
         }
       }
