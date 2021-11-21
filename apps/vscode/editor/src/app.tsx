@@ -4,7 +4,7 @@ import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'
-import pretty from "pretty"
+import {toSVG, fromSVG} from "./utils/svgEmbedder";
 
 // Will be placed in global scope by extension
 declare let currentFile: TDFile
@@ -22,17 +22,8 @@ export default function App(): JSX.Element {
 
   // When the editor's document changes, post the stringified document to the vscode extension.
   const handlePersist = React.useCallback((state: TldrawApp) => {
-    const prettySVG = pretty(state.copySvg());
-    const embeddedSVG = prettySVG.replace("</svg", 
-`<!-- svg-source:tldraw -->
-<!-- payload-type:application/vnd.tldraw+json --><!-- payload-version:2 --><!-- payload-start -->
-${JSON.stringify(state.document, null, "  ")}
-<!-- payload-end -->
-</svg>`);
-
-    console.log(embeddedSVG);
-
     
+    console.log(fromSVG(toSVG(state)));
 
     vscode.postMessage({
       type: 'editorUpdated',
