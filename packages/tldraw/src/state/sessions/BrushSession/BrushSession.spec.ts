@@ -53,13 +53,24 @@ describe('Brush session', () => {
     const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
-      .loadDocument(mockDocument)
-      .selectNone()
       .movePointer([-10, -10])
       .startSession(SessionType.Brush)
       .movePointer({ x: 10, y: 10, shiftKey: false, altKey: false, ctrlKey: true })
       .completeSession()
 
     expect(app.selectedIds.length).toBe(0)
+  })
+
+  it('selects groups rather than grouped shapes', () => {
+    const app = new TldrawTestApp()
+      .loadDocument(mockDocument)
+      .selectAll()
+      .group()
+      .movePointer([-10, -10])
+      .startSession(SessionType.Brush)
+      .movePointer({ x: 100, y: 100 })
+      .stopPointing()
+
+    expect(app.selectedIds.length).toBe(1)
   })
 })
