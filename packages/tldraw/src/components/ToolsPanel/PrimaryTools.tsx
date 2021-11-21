@@ -87,6 +87,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         kbd={'7'}
         label={TDShapeType.Text}
         onClick={selectTextTool}
+        isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Text}
       >
         <TextIcon />
