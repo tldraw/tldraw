@@ -1,4 +1,4 @@
-import type { Patch } from './types'
+import type { Patch } from '../../types'
 
 /**
  * Recursively merge an object with a deep partial of the same type.
@@ -13,9 +13,7 @@ export function merge<T>(target: T, patch: Patch<T>): T {
 
   for (const [key, value] of entries)
     result[key] =
-      value === Object(value) && !Array.isArray(value)
-        ? merge(result[key], value)
-        : value
+      value === Object(value) && !Array.isArray(value) ? merge(result[key], value) : value
 
   return result
 }

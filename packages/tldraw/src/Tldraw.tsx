@@ -116,7 +116,7 @@ export interface TldrawProps extends TDCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TldrawApp, user: TDUser) => void
+  onChangePresence?: (state: TldrawApp, user: TDUser) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
@@ -161,7 +161,7 @@ export function Tldraw({
   showSponsorLink = false,
   onMount,
   onChange,
-  onUserChange,
+  onChangePresence,
   onNewProject,
   onSaveProject,
   onSaveProjectAs,
@@ -183,7 +183,7 @@ export function Tldraw({
       new TldrawApp(id, {
         onMount,
         onChange,
-        onUserChange,
+        onChangePresence,
         onNewProject,
         onSaveProject,
         onSaveProjectAs,
@@ -206,7 +206,7 @@ export function Tldraw({
     const newApp = new TldrawApp(id, {
       onMount,
       onChange,
-      onUserChange,
+      onChangePresence,
       onNewProject,
       onSaveProject,
       onSaveProjectAs,
@@ -261,7 +261,7 @@ export function Tldraw({
     app.callbacks = {
       onMount,
       onChange,
-      onUserChange,
+      onChangePresence,
       onNewProject,
       onSaveProject,
       onSaveProjectAs,
@@ -278,7 +278,7 @@ export function Tldraw({
   }, [
     onMount,
     onChange,
-    onUserChange,
+    onChangePresence,
     onNewProject,
     onSaveProject,
     onSaveProjectAs,

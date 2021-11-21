@@ -11,6 +11,9 @@ import {
   useBatch,
   useRedo,
   useUndo,
+  useRoom,
+  useOthers,
+  useEventListener,
 } from '@liveblocks/react'
 import { Utils } from '@tldraw/core'
 
@@ -31,13 +34,13 @@ export function Multiplayer() {
   return (
     <LiveblocksProvider client={client}>
       <RoomProvider id={roomId}>
-        <Editor roomId={roomId} />
+        <Editor />
       </RoomProvider>
     </LiveblocksProvider>
   )
 }
 
-function Editor({ roomId }: { roomId: string }) {
+function Editor() {
   const [uuid] = React.useState(() => Utils.uniqueId())
   const [app, setApp] = React.useState<TldrawApp>()
   const [error, setError] = React.useState<Error>()
@@ -48,6 +51,7 @@ function Editor({ roomId }: { roomId: string }) {
   const undo = useUndo()
   const redo = useRedo()
   const batch = useBatch()
+  const others = useOthers()
 
   // Put the state into the window, for debugging.
   const handleMount = React.useCallback((app: TldrawApp) => {
@@ -81,12 +85,65 @@ function Editor({ roomId }: { roomId: string }) {
     app.replacePageShapes(Object.fromEntries(lShapes.entries()))
   }, [lShapes?.values(), lShapes, lMeta, app])
 
+  const room = useRoom()
+
+  // Manage room events
+  React.useEffect(() => {
+    if (!room) return
+    if (!app) return
+
+    // Load in an empty room
+    app.loadRoom(roomId)
+
+    // When the user closes the tab, broadcast an "exit" event after exiting
+    function handleExit() {
+      if (!app?.room) return
+      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
+    }
+
+    window.addEventListener('beforeunload', handleExit)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleExit)
+    }
+  }, [app, roomId])
+
+  // When the "exit" event occurs, remove the user from the room.
+  useEventListener<{ name: string; userId: string }>(({ event }) => {
+    if (!app) return
+    if (event.name === 'exit') {
+      app.removeUser(event.userId)
+    }
+  })
+
+  // Handle presence updates when the user's pointer / selection changes
+  const handlePresenceChange = React.useCallback(
+    (app: TldrawApp, user: TDUser) => {
+      const room = client.getRoom(roomId)
+      room?.updatePresence({ id: app.room?.userId, user })
+    },
+    [roomId]
+  )
+
+  // When the other users change, update the app's users
+  React.useEffect(() => {
+    if (!app) return
+    app.updateUsers(
+      others
+        .toArray()
+        .filter((other) => other.presence)
+        .map((other) => other.presence!.user)
+        .filter(Boolean)
+    )
+  }, [app, others])
+
   if (error) return <div>Error: {error.message}</div>
 
   return (
     <div className="tldraw">
       <Tldraw
         onMount={handleMount}
+        onChangePresence={handlePresenceChange}
         onChangeShapes={handleShapesChange}
         showPages={false}
         onUndo={undo}

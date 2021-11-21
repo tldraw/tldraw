@@ -95,10 +95,6 @@ export interface TDCallbacks {
    */
   onSignOut?: (state: TldrawApp) => void
   /**
-   * (optional) A callback to run when the user creates a new project.
-   */
-  onUserChange?: (state: TldrawApp, user: TDUser) => void
-  /**
    * (optional) A callback to run when the state is patched.
    */
   onPatch?: (state: TldrawApp, reason?: string) => void
@@ -118,8 +114,14 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
-
+  /**
+   * (optional) A callback to run when the user changes the current page's shapes.
+   */
   onChangeShapes?: (app: TldrawApp, shapes: Record<string, TDShape | undefined>) => void
+  /**
+   * (optional) A callback to run when the user creates a new project.
+   */
+  onChangePresence?: (state: TldrawApp, user: TDUser) => void
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -1793,7 +1795,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.state.room) {
       const { users, userId } = this.state.room
 
-      this.callbacks.onUserChange?.(this, {
+      this.callbacks.onChangePresence?.(this, {
         ...users[userId],
         selectedIds: nextIds,
       })
@@ -2576,7 +2578,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.state.room) {
       const { users, userId } = this.state.room
 
-      this.callbacks.onUserChange?.(this, {
+      this.callbacks.onChangePresence?.(this, {
         ...users[userId],
         point: this.getPagePoint(info.point),
       })
