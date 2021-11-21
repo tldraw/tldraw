@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { StateManager } from 'rko'
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -58,6 +57,7 @@ import { EllipseTool } from './tools/EllipseTool'
 import { RectangleTool } from './tools/RectangleTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
+import { StateManager } from './StateManager'
 
 const uuid = Utils.uniqueId()
 
@@ -118,6 +118,8 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
+
+  onChangeShapes?: (app: TldrawApp, shapes: Record<string, TDShape | undefined>) => void
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -262,6 +264,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         const prevPage = prev.document.pages[pageId]
 
+        const changedShapes: Record<string, TDShape | undefined> = {}
+
         if (!prevPage || page.shapes !== prevPage.shapes || page.bindings !== prevPage.bindings) {
           page.shapes = { ...page.shapes }
           page.bindings = { ...page.bindings }
@@ -273,10 +277,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             let parentId: string
 
             if (!shape) {
-              parentId = prevPage.shapes[id]?.parentId
+              parentId = prevPage?.shapes[id]?.parentId
               delete page.shapes[id]
             } else {
               parentId = shape.parentId
+            }
+
+            if (page.id === next.appState.currentPageId) {
+              if (prevPage?.shapes[id] !== shape) {
+                changedShapes[id] = shape
+              }
             }
 
             // If the shape is the child of a group, then update the group
@@ -296,15 +306,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
           })
 
-          // Find which shapes have changed
-          const changedShapeIds = Object.values(page.shapes)
-            .filter((shape) => prevPage?.shapes[shape.id] !== shape)
-            .map((shape) => shape.id)
-
           next.document.pages[pageId] = page
 
+          // Find which shapes have changed
+          // const changedShapes = Object.entries(page.shapes).filter(
+          //   ([id, shape]) => prevPage?.shapes[shape.id] !== shape
+          // )
+
           // Get bindings related to the changed shapes
-          const bindingsToUpdate = TLDR.getRelatedBindings(next, changedShapeIds, pageId)
+          const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(changedShapes), pageId)
 
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
@@ -450,8 +460,27 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.callbacks.onRedo?.(this)
   }
 
+  prevShapes = this.page.shapes
+
   onPersist = () => {
+    const visited = new Set<string>()
+    const changedShapes: Record<string, TDShape | undefined> = {}
+
+    this.shapes.forEach((shape) => {
+      visited.add(shape.id)
+      if (this.prevShapes[shape.id] !== shape) {
+        changedShapes[shape.id] = shape
+      }
+    })
+
+    Object.keys(this.prevShapes).forEach((id) => {
+      if (visited.has(id)) return
+      changedShapes[id] = undefined
+    })
+
+    this.callbacks.onChangeShapes?.(this, changedShapes)
     this.callbacks.onPersist?.(this)
+    this.prevShapes = this.page.shapes
   }
 
   /**
@@ -2068,14 +2097,42 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param shapes An array of shape partials, containing the changes to be made to each shape.
    * @command
    */
-  patchShapes = (...shapes: ({ id: string } & Partial<TDShape>)[]): this => {
-    const pageShapes = this.document.pages[this.currentPageId].shapes
-    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
-    if (shapesToUpdate.length === 0) return this
-    return this.patchState(
-      Commands.updateShapes(this, shapesToUpdate, this.currentPageId).after,
-      'updated_shapes'
-    )
+  replacePageShapes = (shapes: Record<string, TDShape>, pageId = this.currentPageId): this => {
+    this.useStore.setState((state) => {
+      const page = state.document.pages[pageId]
+      const pageState = state.document.pageStates[pageId]
+      const next = {
+        document: {
+          ...state.document,
+          pages: {
+            ...state.document.pages,
+            [pageId]: {
+              ...page,
+              shapes,
+            },
+          },
+          pageStates: {
+            ...state.document.pageStates,
+            [pageId]: {
+              ...pageState,
+              selectedIds: pageState.selectedIds.filter((id) => shapes[id] !== undefined),
+              hoveredId: pageState.hoveredId
+                ? shapes[pageState.hoveredId] === undefined
+                  ? undefined
+                  : pageState.hoveredId
+                : undefined,
+            },
+          },
+        },
+      }
+
+      this.prevShapes = next.document.pages[this.currentPageId].shapes
+      this.state.document = next.document
+
+      return next
+    })
+
+    return this
   }
 
   createTextShapeAtPoint(point: number[], id?: string): this {

@@ -1,7 +1,6 @@
-import { ShapeStyles, TldrawCommand, TDShape, TDShapeType, TextShape } from '~types'
+import { Patch, ShapeStyles, TldrawCommand, TDShape, TDShapeType, TextShape } from '~types'
 import { TLDR } from '~state/TLDR'
-import Vec from '@tldraw/vec'
-import type { Patch } from 'rko'
+import { Vec } from '@tldraw/vec'
 import type { TldrawApp } from '../../internal'
 
 export function styleShapes(

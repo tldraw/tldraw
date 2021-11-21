@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDStatus, TDUser } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -141,6 +141,8 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
+
+  onChangeShapes?: (app: TldrawApp, shapes: Record<string, TDShape | undefined>) => void
 }
 
 export function Tldraw({
@@ -171,6 +173,7 @@ export function Tldraw({
   onPersist,
   onPatch,
   onCommand,
+  onChangeShapes,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -189,9 +192,10 @@ export function Tldraw({
         onSignIn,
         onUndo,
         onRedo,
+        onPersist,
         onPatch,
         onCommand,
-        onPersist,
+        onChangeShapes,
       })
   )
 
@@ -211,9 +215,10 @@ export function Tldraw({
       onSignIn,
       onUndo,
       onRedo,
+      onPersist,
       onPatch,
       onCommand,
-      onPersist,
+      onChangeShapes,
     })
 
     setSId(id)
@@ -265,12 +270,12 @@ export function Tldraw({
       onSignIn,
       onUndo,
       onRedo,
+      onPersist,
       onPatch,
       onCommand,
-      onPersist,
+      onChangeShapes,
     }
   }, [
-    app,
     onMount,
     onChange,
     onUserChange,
@@ -282,9 +287,10 @@ export function Tldraw({
     onSignIn,
     onUndo,
     onRedo,
+    onPersist,
     onPatch,
     onCommand,
-    onPersist,
+    onChangeShapes,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes

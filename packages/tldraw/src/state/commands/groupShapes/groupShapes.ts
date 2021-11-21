@@ -1,7 +1,6 @@
 import { TDShape, TDShapeType } from '~types'
 import { Utils } from '@tldraw/core'
-import type { TDSnapshot, TldrawCommand, TDBinding } from '~types'
-import type { Patch } from 'rko'
+import type { Patch, TldrawCommand, TDBinding } from '~types'
 import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 
