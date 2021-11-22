@@ -1448,15 +1448,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const shapes = ids.map((id) => this.getShape(id, pageId))
 
     function getSvgElementForShape(shape: TDShape) {
-      const elm = document.getElementById(shape.id + '_svg')
+      const util = TLDR.getShapeUtil(shape)
+      const element = util.getSvgElement(shape)
+      const bounds = util.getBounds(shape)
 
-      if (!elm) return
-
-      // TODO: Create SVG elements for text
-
-      const element = elm?.cloneNode(true) as SVGElement
-
-      const bounds = TLDR.getShapeUtil(shape).getBounds(shape)
+      if (!element) return
 
       element.setAttribute(
         'transform',
