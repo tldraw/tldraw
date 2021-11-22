@@ -3,13 +3,14 @@ import { useHandleEvents } from '~hooks'
 import { Container } from '~components/container'
 import Utils from '~utils'
 import { SVGContainer } from '~components/svg-container'
+import { observer } from 'mobx-react-lite'
 
 interface HandleProps {
   id: string
   point: number[]
 }
 
-export const Handle = React.memo(function Handle({ id, point }: HandleProps) {
+export const Handle = observer(function Handle({ id, point }: HandleProps) {
   const events = useHandleEvents(id)
 
   return (

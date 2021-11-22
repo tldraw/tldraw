@@ -1,3 +1,4 @@
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import { TLBoundsCorner, TLBounds } from '~types'
@@ -17,7 +18,7 @@ interface CornerHandleProps {
   isHidden?: boolean
 }
 
-export const CornerHandle = React.memo(function CornerHandle({
+export const CornerHandle = observer(function CornerHandle({
   size,
   targetSize,
   isHidden,

@@ -78,13 +78,13 @@ export const Page = function Page<T extends TLShape, M extends Record<string, un
         ))}
         {!hideIndicators &&
          selectedShapes.map((shape) => (
-           <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta} isSelected/>
+           <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta as any} isSelected/>
          ))}
         {!hideIndicators && hoveredId && (
           <ShapeIndicator
             key={'hovered_' + hoveredId}
             shape={page.shapes[hoveredId]}
-            meta={meta}
+            meta={meta as any}
             isHovered
           />
         )}

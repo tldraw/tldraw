@@ -1,3 +1,4 @@
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 import { Vec } from '@tldraw/vec'
 import type { TLHandle, TLShape } from '~types'
@@ -8,7 +9,7 @@ interface HandlesProps {
   zoom: number
 }
 
-export const Handles = React.memo(function Handles({
+export const Handles = observer(function Handles({
   shape,
   zoom,
 }: HandlesProps): JSX.Element | null {

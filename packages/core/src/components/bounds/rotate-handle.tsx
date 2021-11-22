@@ -1,3 +1,4 @@
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import type { TLBounds } from '~types'
@@ -9,12 +10,12 @@ interface RotateHandleProps {
   isHidden: boolean
 }
 
-export const RotateHandle = React.memo(function RotateHandle({
+export const RotateHandle = observer<RotateHandleProps>(function RotateHandle({
   bounds,
   targetSize,
   size,
   isHidden,
-}: RotateHandleProps): JSX.Element {
+}): JSX.Element {
   const events = useBoundsHandleEvents('rotate')
 
   return (

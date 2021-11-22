@@ -1,3 +1,4 @@
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import { TLBoundsEdge, TLBounds } from '~types'
@@ -17,7 +18,7 @@ interface EdgeHandleProps {
   isHidden: boolean
 }
 
-export const EdgeHandle = React.memo(function EdgeHandle({
+export const EdgeHandle = observer<EdgeHandleProps>(function EdgeHandle({
   size,
   isHidden,
   bounds,

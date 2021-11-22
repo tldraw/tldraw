@@ -25,8 +25,6 @@ export const Shape = function Shape<T extends TLShape, M>({
     const bounds = utils.getBounds(shape)
     const events = useShapeEvents(shape.id)
 
-    useForceUpdate()
-
     return (
       <Container id={shape.id} bounds={bounds} rotation={shape.rotation}>
         <RenderedShape

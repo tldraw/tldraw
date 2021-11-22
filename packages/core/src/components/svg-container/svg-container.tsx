@@ -1,10 +1,11 @@
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 
 interface SvgContainerProps extends React.SVGProps<SVGSVGElement> {
   children: React.ReactNode
 }
 
-export const SVGContainer = React.memo(
+export const SVGContainer = observer(
   React.forwardRef<SVGSVGElement, SvgContainerProps>(function SVGContainer(
     { id, children, ...rest },
     ref

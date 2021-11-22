@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLShape, TLUser } from '~types'
 import { usePosition, useTLContext } from '~hooks'
@@ -11,7 +12,7 @@ interface IndicatorProps<T extends TLShape, M = any> {
   user?: TLUser<T>
 }
 
-export const ShapeIndicator = React.memo(function ShapeIndicator<T extends TLShape, M = any>({
+export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape, M = any>({
   isHovered = false,
   isSelected = false,
   shape,
