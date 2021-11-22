@@ -1,11 +1,10 @@
 import type { TLBounds } from '@tldraw/core'
 import { AlignStyle, StickyShape, TextShape } from '~types'
-import { getFontSize, getFontStyle } from '.'
+import { getFontFace, getFontSize } from './shape-styles'
 import { getTextAlign } from './getTextAlign'
 
 export function getTextSvgElement(shape: TextShape | StickyShape, bounds: TLBounds) {
   const { text, style } = shape
-  const font = getFontStyle(shape.style)
   const fontSize = getFontSize(shape.style.size, shape.style.font)
 
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
@@ -15,7 +14,7 @@ export function getTextSvgElement(shape: TextShape | StickyShape, bounds: TLBoun
   const textLines = text.split('\n').map((line, i) => {
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
-    textElm.setAttribute('font', font)
+    textElm.setAttribute('font-family', getFontFace(style.font))
     textElm.setAttribute('font-size', fontSize + 'px')
     textElm.setAttribute('text-anchor', 'start')
     textElm.setAttribute('alignment-baseline', 'central')

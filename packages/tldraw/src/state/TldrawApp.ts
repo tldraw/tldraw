@@ -1561,7 +1561,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     const padding = 16
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Source+Serif+Pro&display=swap');`
+    defs.appendChild(style)
+    svg.appendChild(defs)
 
     function getSvgElementForShape(shape: TDShape) {
       const util = TLDR.getShapeUtil(shape)
