@@ -1,8 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLPageState, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { TDShape, TDStatus, SessionType, TDShapeType, TldrawPatch, TldrawCommand } from '~types'
-import type { Patch } from 'rko'
+import {
+  Patch,
+  TDShape,
+  TDStatus,
+  SessionType,
+  TDShapeType,
+  TldrawPatch,
+  TldrawCommand,
+} from '~types'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
 

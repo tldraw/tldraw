@@ -75,7 +75,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       </ToolButtonWithTooltip>
       <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
       <ToolButtonWithTooltip
-        kbd={'6'}
+        kbd={'7'}
         label={TDShapeType.Arrow}
         onClick={selectArrowTool}
         isLocked={isToolLocked}
@@ -84,15 +84,16 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         <ArrowTopRightIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
-        kbd={'7'}
+        kbd={'8'}
         label={TDShapeType.Text}
         onClick={selectTextTool}
+        isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Text}
       >
         <TextIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
-        kbd={'8'}
+        kbd={'9'}
         label={TDShapeType.Sticky}
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}

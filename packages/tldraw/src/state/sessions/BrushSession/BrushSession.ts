@@ -15,6 +15,7 @@ export class BrushSession extends BaseSession {
 
   constructor(app: TldrawApp) {
     super(app)
+    const { currentPageId } = app
     this.initialSelectedIds = new Set(this.app.selectedIds)
     this.shapesToTest = this.app.shapes
       .filter(
@@ -22,7 +23,7 @@ export class BrushSession extends BaseSession {
           !(
             shape.isLocked ||
             shape.isHidden ||
-            shape.children !== undefined ||
+            shape.parentId !== currentPageId ||
             this.initialSelectedIds.has(shape.id) ||
             this.initialSelectedIds.has(shape.parentId)
           )
@@ -52,8 +53,6 @@ export class BrushSession extends BaseSession {
     const selectedIds = new Set(initialSelectedIds)
 
     shapesToTest.forEach(({ id, selectId }) => {
-      if (selectedIds.has(id)) return
-
       const { metaKey } = this.app
 
       const shape = this.app.getShape(id)

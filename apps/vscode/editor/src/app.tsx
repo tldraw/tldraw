@@ -37,25 +37,23 @@ export default function App(): JSX.Element {
   )
 
   // When the editor mounts, save the state instance in a ref.
-  const handleMount = React.useCallback((state: TldrawApp) => {
-    rTldrawApp.current = state
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    rTldrawApp.current = app
   }, [])
 
   // When the editor's document changes, post the stringified document to the vscode extension.
-  const handlePersist = React.useCallback((state: TldrawApp) => {
+  const handlePersist = React.useCallback((app: TldrawApp) => {
     
     let text:string;
     if(svgEmbedded === false){
       text = JSON.stringify({
         ...currentFile,
-        document: state.document,
+        document: app.document,
         assets: {},
       })
     } else {
-      text = toSVG(state, currentFile);
-      console.log(text);
+      text = toSVG(app, currentFile);
     }
-    console.log(text)
 
     vscode.postMessage({
       type: 'editorUpdated',
@@ -69,8 +67,9 @@ export default function App(): JSX.Element {
       if (data.type === 'openedFile') {
         try {
           const { document } = parseFile(data.text);
-          const state = rTldrawApp.current!
-          state.updateDocument(document)
+          const app = rTldrawApp.current!
+          app.updateDocument(document)
+          app.zoomToFit()
         } catch (e) {
           console.warn('Failed to parse file:', data.text)
         }

@@ -75,9 +75,9 @@ export interface TLComponentProps<T extends TLShape, E = any, M = any> {
   isSelected: boolean
   isGhost?: boolean
   isChildOfSelected?: boolean
-  meta: M extends any ? M : never
-  onShapeChange?: TLCallbacks<T>['onShapeChange']
-  onShapeBlur?: TLCallbacks<T>['onShapeBlur']
+  meta: M
+  onShapeChange?: TLShapeChangeHandler<T, any>
+  onShapeBlur?: TLShapeBlurHandler<any>
   events: {
     onPointerDown: (e: React.PointerEvent<E>) => void
     onPointerUp: (e: React.PointerEvent<E>) => void

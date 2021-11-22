@@ -26,7 +26,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      isUser: session?.user,
+      isUser: session?.user ? true : false,
       isSponsor: session?.user ? true : false,
     },
   }

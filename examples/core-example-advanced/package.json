@@ -1,5 +1,5 @@
 {
-  "version": "0.1.21",
+  "version": "1.1.2",
   "name": "@tldraw/core-example-advanced",
   "description": "An advanced example project for @tldraw/core.",
   "author": "@steveruizok",
@@ -16,8 +16,9 @@
   },
   "files": [],
   "devDependencies": {
+    "@state-designer/react": "3.0.0",
     "@stitches/react": "^1.2.5",
-    "@tldraw/core": "^0.1.21",
+    "@tldraw/core": "^1.1.2",
     "@tldraw/intersect": "latest",
     "@tldraw/vec": "latest",
     "@types/node": "^14.14.35",
@@ -31,14 +32,12 @@
     "immer": "^9.0.6",
     "lodash": "^4.17.21",
     "nanoid": "^3.1.30",
+    "perfect-freehand": "^1.0.16",
     "react": ">=16.8",
     "react-dom": "^16.8 || ^17.0",
     "react-feather": "^2.0.9",
     "rimraf": "3.0.2",
-    "typescript": "4.2.3",
-    "@state-designer/react": "3.0.0",
-    "perfect-freehand": "^1.0.16"
+    "typescript": "4.2.3"
   },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6",
-  "dependencies": {}
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

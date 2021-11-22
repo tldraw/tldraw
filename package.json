@@ -20,18 +20,17 @@
     "examples/core-example-advanced"
   ],
   "scripts": {
-    "build": "lerna run build --stream",
+    "build": "yarn build:packages && lerna run build --stream",
     "build:www": "yarn build:packages && cd apps/www && yarn build",
     "build:core": "lerna run build:core",
     "build:packages": "lerna run build:packages --stream",
     "build:apps": "lerna run build:apps",
-    "start": "lerna run start --stream --parallel",
+    "start": "yarn build:packages && lerna run start --stream --parallel",
     "start:core": "lerna run start:core --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
-    "publish:patch": "yarn test && yarn build:packages && lerna publish patch --ignore tldraw-vscode",
-    "publish:vscode": "cd vscode/extension && yarn package && vsce publish",
+    "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
     "fix:style": "yarn run prettier ./packages/tldraw/src --write",
     "lerna": "lerna",
     "test": "lerna run test --stream",
@@ -39,7 +38,7 @@
     "test:watch": "lerna run test:watch --stream",
     "docs": "lerna run typedoc",
     "docs:watch": "lerna run typedoc --watch",
-    "postinstall": "husky install"
+    "postinstall": "husky install & yarn build:packages"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.3.3",

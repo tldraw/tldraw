@@ -1,3 +1,24 @@
+## 1.1.1
+
+- Adds shift modifier to snap arrows to a 15 degree angle.
+
+## 1.1.0
+
+- Adds text styles (alignment and font family)
+- Fixes zoom shortcuts on VS Code extension
+- Adds zoom shortcuts for numpad
+- Fixes delete keyboard shortcuts on PC
+
+## 1.0.4
+
+- Fixes bug in selected styles menu
+- Fixes page options dialog for page rename / delete
+- Fixes bug in arrow -> elipse intersections
+- Fixes sign in / sign out buttons both appearing
+- Fixes line breaks for sticky notes
+- Improves performance (related to menu bug above)
+- Sets default behavior of copyJson and copySvg when no shapes are selected
+
 ## 1.0.3
 
 - Improves compatibility with Create React App.

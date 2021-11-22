@@ -2,7 +2,7 @@
 	"name": "tldraw-vscode",
 	"displayName": "tldraw",
 	"description": "The tldraw Extension for VS Code.",
-	"version": "1.0.3",
+	"version": "1.1.2",
 	"license": "MIT",
 	"publisher": "tldraw-org",
 	"repository": {
@@ -54,10 +54,54 @@
 				]
 			}
 		],
+		"keybindings": [
+			{
+				"key": "cmd+shift+d",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.toggleDarkMode",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad_add",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+=",
+				"title": "Zoom In",
+				"command": "tldraw.tldr.zoomIn",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad_subtract",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+-",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.zoomOut",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			},
+			{
+				"key": "cmd+numpad0",
+				"title": "Zoom Out",
+				"command": "tldraw.tldr.resetZoom",
+				"category": "tldraw",
+				"enablement": "resourceExtname == .tldr"
+			}
+		],
 		"commands": [
 			{
 				"command": "tldraw.tldr.new",
-				"title": "New tldraw File",
+				"title": "New File",
 				"category": "tldraw"
 			}
 		]
@@ -70,6 +114,9 @@
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
 		"publish": "yarn package && vsce publish",
 		"lint": "eslint src --ext ts"
+	},
+	"dependencies": {
+		"pretty": "^2.0.0"
 	},
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
@@ -84,8 +131,5 @@
 		"typescript": "^4.4.3",
 		"vsce": "^2.2.0"
 	},
-	"gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9",
-	"dependencies": {
-		"pretty": "^2.0.0"
-	}
+	"gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9"
 }

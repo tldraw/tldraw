@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
 import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
-import type { Command, Patch } from 'rko'
 import type { FileSystemHandle } from '~state/data/browser-fs-access'
 import type {
   TLBinding,
@@ -94,7 +93,6 @@ export interface TDSnapshot {
   appState: {
     currentStyle: ShapeStyles
     currentPageId: string
-    pages: Pick<TLPage<TDShape, TDBinding>, 'id' | 'name' | 'childIndex'>[]
     hoveredId?: string
     activeTool: TDToolType
     isToolLocked: boolean
@@ -206,6 +204,7 @@ export type TDToolType =
   | TDShapeType.Draw
   | TDShapeType.Ellipse
   | TDShapeType.Rectangle
+  | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
 
@@ -271,6 +270,7 @@ export enum TDShapeType {
   Rectangle = 'rectangle',
   Draw = 'draw',
   Arrow = 'arrow',
+  Line = 'line',
   Text = 'text',
   Group = 'group',
 }
@@ -401,10 +401,26 @@ export enum FontSize {
   ExtraLarge = 'extraLarge',
 }
 
+export enum AlignStyle {
+  Start = 'start',
+  Middle = 'middle',
+  End = 'end',
+  Justify = 'justify',
+}
+
+export enum FontStyle {
+  Script = 'script',
+  Sans = 'sans',
+  Serif = 'erif',
+  Mono = 'mono',
+}
+
 export type ShapeStyles = {
   color: ColorStyle
   size: SizeStyle
   dash: DashStyle
+  font?: FontStyle
+  textAlign?: AlignStyle
   isFilled?: boolean
   scale?: number
 }
@@ -446,3 +462,11 @@ export type MappedByType<U extends string, T extends { type: U }> = {
 }
 
 export type ShapesWithProp<U> = MembersWithRequiredKey<MappedByType<TDShapeType, TDShape>, U>
+
+export type Patch<T> = Partial<{ [P in keyof T]: Patch<T[P]> }>
+
+export interface Command<T extends { [key: string]: any }> {
+  id?: string
+  before: Patch<T>
+  after: Patch<T>
+}
