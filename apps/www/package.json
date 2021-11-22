@@ -18,8 +18,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@liveblocks/client": "^0.12.3",
-    "@liveblocks/react": "^0.12.3",
+    "@liveblocks/client": "^0.13.0-beta.1",
+    "@liveblocks/react": "^0.13.0-beta.1",
     "@sentry/integrations": "^6.13.2",
     "@sentry/node": "^6.13.2",
     "@sentry/react": "^6.13.2",

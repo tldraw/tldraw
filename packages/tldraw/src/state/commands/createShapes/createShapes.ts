@@ -1,5 +1,4 @@
-import type { Patch } from 'rko'
-import type { TDShape, TldrawCommand, TDBinding } from '~types'
+import type { Patch, TDShape, TldrawCommand, TDBinding } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function createShapes(

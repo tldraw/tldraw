@@ -7,6 +7,7 @@ import {
   TldrawCommand,
   TDStatus,
   ArrowShape,
+  Patch,
   GroupShape,
   SessionType,
   ArrowBinding,
@@ -14,7 +15,6 @@ import {
 } from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
-import type { Patch } from 'rko'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
 
