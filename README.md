@@ -38,6 +38,7 @@ This repository is a monorepo containing two packages:
 - [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tldraw/core`.
 - [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tldraw/tldraw`.
 
+### Repo Map
 <img src="apps/vscode/extension/examples/repo-map.tldr.svg"/>
 
 ## Discussion
