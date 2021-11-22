@@ -6,10 +6,19 @@ import pretty from "pretty"
 export function toSVG(app: TldrawApp, currentFile: TDFile){
     let prettySVG; 
 
-    if(app.page.shapes.length){
-        prettySVG = pretty(app.copySvg(Object.keys(app.page.shapes), app.page.id));
+    const shapeKeys = Object.keys(app.page.shapes);
+    if(shapeKeys.length){
+        console.log('multiple shapes');
+        prettySVG = pretty(app.copySvg(shapeKeys), app.page.id);
     } else {
+        console.log('single shape');
         prettySVG = pretty(app.copySvg());
+        // Work around as this function returns an empty string when the file is empty, this instead uses a string representing 
+        // an empty svg file.
+        if(prettySVG===""){
+            prettySVG = `<svg xmlns="http://www.w3.org/2000/svg">
+</svg>`
+        }
     }
     
     const svgText = prettySVG.replace("</svg>", 

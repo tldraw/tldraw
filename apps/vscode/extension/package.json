@@ -43,7 +43,7 @@
 		"customEditors": [
 			{
 				"viewType": "tldraw.tldr",
-				"displayName": "tldraw",
+				"displayName": "Tldraw",
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
