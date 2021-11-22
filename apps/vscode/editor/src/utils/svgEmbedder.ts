@@ -3,12 +3,13 @@ import pretty from "pretty"
 
 
 // Create the text content of an SVG file that also embeds the Tldraw file content
-export function toSVG(tldr: TldrawApp, currentFile: TDFile){
-    const prettySVG = pretty(tldr.copySvg());
+export function toSVG(app: TldrawApp, currentFile: TDFile){
+    const prettySVG = pretty(app.copySvg(Object.keys(app.page.shapes), app.page.id));
+    
     const svgText = prettySVG.replace("</svg>", 
 `<!-- svg-source:tldraw -->
 <!-- payload-type:application/vnd.tldraw+json --><!-- payload-version:2 --><!-- payload-start -->\n
-${JSON.stringify({ ...currentFile, document: tldr.document, assets: {} }, null, "  ")}
+${JSON.stringify({ ...currentFile, document: app.document, assets: {} }, null, "  ")}
 <!-- payload-end -->
 </svg>`);
 
