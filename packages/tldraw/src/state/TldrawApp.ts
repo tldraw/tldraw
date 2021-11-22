@@ -1557,6 +1557,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
+    if (ids.length === 0) return
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
@@ -1643,6 +1644,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
+    if (ids.length === 0) return
+
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const json = JSON.stringify(shapes, null, 2)
     TLDR.copyStringToClipboard(json)
