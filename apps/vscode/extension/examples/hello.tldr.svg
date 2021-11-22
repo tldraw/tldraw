@@ -49,7 +49,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "large",
               "isFilled": false,
               "dash": "draw",
@@ -866,7 +866,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "large",
               "isFilled": false,
               "dash": "draw",
@@ -938,7 +938,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "large",
               "isFilled": false,
               "dash": "draw",
@@ -959,7 +959,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "small",
               "isFilled": false,
               "dash": "draw",
@@ -980,7 +980,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "small",
               "isFilled": false,
               "dash": "draw",
@@ -1001,7 +1001,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "indigo",
               "size": "small",
               "isFilled": false,
               "dash": "draw",
@@ -1132,7 +1132,8 @@
             0
           ],
           "zoom": 1
-        }
+        },
+        "editingId": null
       }
     }
   },
