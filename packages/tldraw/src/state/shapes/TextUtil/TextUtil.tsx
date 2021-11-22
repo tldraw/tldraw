@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultTextStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
+import {
+  defaultTextStyle,
+  getShapeStyle,
+  getFontFace,
+  getFontSize,
+  getFontStyle,
+} from '../shared/shape-styles'
 import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
 import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
@@ -152,10 +158,20 @@ export class TextUtil extends TDShapeUtil<T, E> {
         }
       }, [isEditing])
 
+      const rInnerWrapper = React.useRef<HTMLDivElement>(null)
+
+      React.useEffect(() => {
+        const element = this.getSvgElement(shape)
+        if (element) {
+          rInnerWrapper.current?.appendChild(element)
+        }
+      }, [rInnerWrapper, shape])
+
       return (
         <HTMLContainer ref={ref} {...events}>
           <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
             <InnerWrapper
+              ref={rInnerWrapper}
               style={{
                 font,
                 color: styles.stroke,
@@ -311,6 +327,48 @@ export class TextUtil extends TDShapeUtil<T, E> {
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   }
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    const { text, style } = shape
+    const bounds = this.getBounds(shape)
+    const font = getFontStyle(shape.style)
+    const fontSize = getFontSize(shape.style.size, shape.style.font)
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
+    const LINE_HEIGHT = fontSize * 1.3
+
+    const textLines = text.split('\n').map((line, i) => {
+      const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      textElm.textContent = line
+      textElm.setAttribute('font', font)
+      textElm.setAttribute('font-size', fontSize + 'px')
+      textElm.setAttribute('text-anchor', 'start')
+      textElm.setAttribute('alignment-baseline', 'central')
+      textElm.setAttribute('fill', style.color)
+      textElm.setAttribute('text-align', getTextAlign(style.textAlign))
+      textElm.setAttribute('y', LINE_HEIGHT * (0.5 + i) + '')
+      g.appendChild(textElm)
+
+      return textElm
+    })
+
+    if (style.textAlign === AlignStyle.Middle) {
+      textLines.forEach((textElm) => {
+        textElm.setAttribute('x', bounds.width / 2 + '')
+        textElm.setAttribute('text-align', 'center')
+        textElm.setAttribute('text-anchor', 'middle')
+      })
+    } else if (style.textAlign === AlignStyle.End) {
+      textLines.forEach((textElm) => {
+        textElm.setAttribute('x', bounds.width + '')
+        textElm.setAttribute('text-align', 'right')
+        textElm.setAttribute('text-anchor', 'end')
+      })
+    }
+
+    return g
+  }
 }
 
 /* -------------------------------------------------- */
@@ -332,7 +390,7 @@ function getMeasurementDiv() {
   Object.assign(pre.style, {
     whiteSpace: 'pre',
     width: 'auto',
-    border: '1px solid red',
+    border: '1px solid transparent',
     padding: '4px',
     margin: '0px',
     letterSpacing: `${LETTER_SPACING}px`,
