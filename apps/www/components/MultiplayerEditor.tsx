@@ -43,11 +43,9 @@ function Editor({
 }) {
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
-  const { error, loading, ...events } = useMultiplayerState(roomId)
+  const { error, ...events } = useMultiplayerState(roomId)
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
-
-  if (loading) return <LoadingScreen>Loading...</LoadingScreen>
 
   return (
     <div className="tldraw">
