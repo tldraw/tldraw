@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -142,7 +142,11 @@ export interface TldrawProps extends TDCallbacks {
    */
   onRedo?: (state: TldrawApp) => void
 
-  onChangeShapes?: (app: TldrawApp, shapes: Record<string, TDShape | undefined>) => void
+  onChangePage?: (
+    app: TldrawApp,
+    shapes: Record<string, TDShape | undefined>,
+    bindings: Record<string, TDBinding | undefined>
+  ) => void
 }
 
 export function Tldraw({
@@ -173,7 +177,7 @@ export function Tldraw({
   onPersist,
   onPatch,
   onCommand,
-  onChangeShapes,
+  onChangePage,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -195,7 +199,7 @@ export function Tldraw({
         onPersist,
         onPatch,
         onCommand,
-        onChangeShapes,
+        onChangePage,
       })
   )
 
@@ -218,7 +222,7 @@ export function Tldraw({
       onPersist,
       onPatch,
       onCommand,
-      onChangeShapes,
+      onChangePage,
     })
 
     setSId(id)
@@ -273,7 +277,7 @@ export function Tldraw({
       onPersist,
       onPatch,
       onCommand,
-      onChangeShapes,
+      onChangePage,
     }
   }, [
     onMount,
@@ -290,7 +294,7 @@ export function Tldraw({
     onPersist,
     onPatch,
     onCommand,
-    onChangeShapes,
+    onChangePage,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes

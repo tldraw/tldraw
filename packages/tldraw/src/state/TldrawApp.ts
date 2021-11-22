@@ -34,6 +34,7 @@ import {
   TDUser,
   SessionType,
   TDToolType,
+  PagePartial,
 } from '~types'
 import {
   migrate,
@@ -58,6 +59,7 @@ import { RectangleTool } from './tools/RectangleTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { merge } from './StateManager/merge'
 
 const uuid = Utils.uniqueId()
 
@@ -117,7 +119,11 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user changes the current page's shapes.
    */
-  onChangeShapes?: (app: TldrawApp, shapes: Record<string, TDShape | undefined>) => void
+  onChangePage?: (
+    app: TldrawApp,
+    shapes: Record<string, TDShape | undefined>,
+    bindings: Record<string, TDBinding | undefined>
+  ) => void
   /**
    * (optional) A callback to run when the user creates a new project.
    */
@@ -462,28 +468,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.callbacks.onRedo?.(this)
   }
 
-  prevShapes = this.page.shapes
-
   onPersist = () => {
-    const visited = new Set<string>()
-    const changedShapes: Record<string, TDShape | undefined> = {}
-
-    this.shapes.forEach((shape) => {
-      visited.add(shape.id)
-      if (this.prevShapes[shape.id] !== shape) {
-        changedShapes[shape.id] = shape
-      }
-    })
-
-    Object.keys(this.prevShapes).forEach((id) => {
-      if (visited.has(id)) return
-      changedShapes[id] = undefined
-    })
-
-    this.callbacks.onChangeShapes?.(this, changedShapes)
-    this.callbacks.onPersist?.(this)
-    this.prevShapes = this.page.shapes
+    this.broadcastPageChanges()
   }
+
+  private prevSelectedIds = this.selectedIds
 
   /**
    * Clear the selection history after each new command, undo or redo.
@@ -492,21 +481,113 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   protected onStateDidChange = (_state: TDSnapshot, id?: string): void => {
     this.callbacks.onChange?.(this, id)
+
+    if (this.room && this.selectedIds !== this.prevSelectedIds) {
+      this.callbacks.onChangePresence?.(this, {
+        ...this.room.users[this.room.userId],
+        selectedIds: this.selectedIds,
+      })
+      this.prevSelectedIds = this.selectedIds
+    }
   }
 
-  // if (id && !id.startsWith('patch')) {
-  //   if (!id.startsWith('replace')) {
-  //     // If we've changed the undo stack, then the file is out of
-  //     // sync with any saved version on the file system.
-  //     this.isDirty = true
-  //   }
-  //   this.clearSelectHistory()
-  // }
-  // if (id.startsWith('undo') || id.startsWith('redo')) {
-  //   Session.cache.selectedIds = [...this.selectedIds]
-  // }
-  // this.onChange?.(this, id)
-  // }
+  /* ----------- Managing Multiplayer State ----------- */
+
+  private prevShapes = this.page.shapes
+  private prevBindings = this.page.bindings
+
+  private broadcastPageChanges = () => {
+    const visited = new Set<string>()
+
+    const changedShapes: Record<string, TDShape | undefined> = {}
+    const changedBindings: Record<string, TDBinding | undefined> = {}
+
+    this.shapes.forEach((shape) => {
+      visited.add(shape.id)
+      if (this.prevShapes[shape.id] !== shape) {
+        changedShapes[shape.id] = shape
+      }
+    })
+
+    Object.keys(this.prevShapes)
+      .filter((id) => !visited.has(id))
+      .forEach((id) => {
+        changedShapes[id] = undefined
+      })
+
+    this.bindings.forEach((binding) => {
+      visited.add(binding.id)
+      if (this.prevBindings[binding.id] !== binding) {
+        changedBindings[binding.id] = binding
+      }
+    })
+
+    Object.keys(this.prevShapes)
+      .filter((id) => !visited.has(id))
+      .forEach((id) => {
+        changedBindings[id] = undefined
+      })
+
+    this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
+
+    this.callbacks.onPersist?.(this)
+    this.prevShapes = this.page.shapes
+    this.prevBindings = this.page.bindings
+  }
+
+  /**
+   * Manually patch a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   */
+  public replacePageContent = (
+    shapes: Record<string, TDShape>,
+    bindings: Record<string, TDBinding>,
+    pageId = this.currentPageId
+  ): this => {
+    this.useStore.setState((current) => {
+      const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
+
+      const next = merge<TDSnapshot>(current, {
+        document: {
+          pages: {
+            [pageId]: {
+              shapes,
+              bindings,
+            },
+          },
+          pageStates: {
+            [pageId]: {
+              selectedIds: selectedIds.filter((id) => shapes[id] !== undefined),
+              hoveredId: hoveredId
+                ? shapes[hoveredId] === undefined
+                  ? undefined
+                  : hoveredId
+                : undefined,
+              editingId: editingId
+                ? shapes[editingId] === undefined
+                  ? undefined
+                  : hoveredId
+                : undefined,
+              bindingId: bindingId
+                ? bindings[bindingId] === undefined
+                  ? undefined
+                  : bindingId
+                : undefined,
+            },
+          },
+        },
+      })
+
+      this.state.document = next.document
+      this.prevShapes = next.document.pages[this.currentPageId].shapes
+      this.prevBindings = next.document.pages[this.currentPageId].bindings
+
+      return next
+    }, true)
+
+    return this
+  }
 
   /**
    * Set the current status.
@@ -1792,15 +1873,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   private setSelectedIds = (ids: string[], push = false): this => {
     const nextIds = push ? [...this.pageState.selectedIds, ...ids] : [...ids]
 
-    if (this.state.room) {
-      const { users, userId } = this.state.room
-
-      this.callbacks.onChangePresence?.(this, {
-        ...users[userId],
-        selectedIds: nextIds,
-      })
-    }
-
     return this.patchState(
       {
         appState: {
@@ -2092,49 +2164,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       Commands.updateShapes(this, shapesToUpdate, this.currentPageId),
       'updated_shapes'
     )
-  }
-
-  /**
-   * Manually patch a set of shapes.
-   * @param shapes An array of shape partials, containing the changes to be made to each shape.
-   * @command
-   */
-  replacePageShapes = (shapes: Record<string, TDShape>, pageId = this.currentPageId): this => {
-    this.useStore.setState((state) => {
-      const page = state.document.pages[pageId]
-      const pageState = state.document.pageStates[pageId]
-      const next = {
-        document: {
-          ...state.document,
-          pages: {
-            ...state.document.pages,
-            [pageId]: {
-              ...page,
-              shapes,
-            },
-          },
-          pageStates: {
-            ...state.document.pageStates,
-            [pageId]: {
-              ...pageState,
-              selectedIds: pageState.selectedIds.filter((id) => shapes[id] !== undefined),
-              hoveredId: pageState.hoveredId
-                ? shapes[pageState.hoveredId] === undefined
-                  ? undefined
-                  : pageState.hoveredId
-                : undefined,
-            },
-          },
-        },
-      }
-
-      this.prevShapes = next.document.pages[this.currentPageId].shapes
-      this.state.document = next.document
-
-      return next
-    })
-
-    return this
   }
 
   createTextShapeAtPoint(point: number[], id?: string): this {
