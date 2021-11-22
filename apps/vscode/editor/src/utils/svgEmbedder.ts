@@ -4,7 +4,13 @@ import pretty from "pretty"
 
 // Create the text content of an SVG file that also embeds the Tldraw file content
 export function toSVG(app: TldrawApp, currentFile: TDFile){
-    const prettySVG = pretty(app.copySvg(Object.keys(app.page.shapes), app.page.id));
+    let prettySVG; 
+
+    if(app.page.shapes.length){
+        prettySVG = pretty(app.copySvg(Object.keys(app.page.shapes), app.page.id));
+    } else {
+        prettySVG = pretty(app.copySvg());
+    }
     
     const svgText = prettySVG.replace("</svg>", 
 `<!-- svg-source:tldraw -->
