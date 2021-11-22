@@ -205,6 +205,7 @@ export type TDToolType =
   | TDShapeType.Draw
   | TDShapeType.Ellipse
   | TDShapeType.Rectangle
+  | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
 
@@ -270,6 +271,7 @@ export enum TDShapeType {
   Rectangle = 'rectangle',
   Draw = 'draw',
   Arrow = 'arrow',
+  Line = 'line',
   Text = 'text',
   Group = 'group',
 }

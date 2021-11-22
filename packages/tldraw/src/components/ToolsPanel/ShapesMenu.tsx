@@ -6,17 +6,19 @@ import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
+import { LineIcon } from '~components/Primitives/icons'
 
 interface ShapesMenuProps {
   activeTool: TDToolType
   isToolLocked: boolean
 }
 
-type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse
-const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse]
+type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse | TDShapeType.Line
+const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse, TDShapeType.Line]
 const shapeShapeIcons = {
   [TDShapeType.Rectangle]: <SquareIcon />,
   [TDShapeType.Ellipse]: <CircleIcon />,
+  [TDShapeType.Line]: <LineIcon />,
 }
 
 export const ShapesMenu = React.memo(function ShapesMenu({
