@@ -34,7 +34,6 @@ import {
   TDUser,
   SessionType,
   TDToolType,
-  PagePartial,
 } from '~types'
 import {
   migrate,
@@ -60,7 +59,6 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
-import { merge } from './StateManager/merge'
 
 const uuid = Utils.uniqueId()
 
@@ -550,16 +548,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.useStore.setState((current) => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
-      const next = merge<TDSnapshot>(current, {
+      const next = {
+        ...current,
         document: {
+          ...current.document,
           pages: {
             [pageId]: {
+              ...current.document.pages[pageId],
               shapes,
               bindings,
             },
           },
           pageStates: {
+            ...current.document.pageStates,
             [pageId]: {
+              ...current.document.pageStates[pageId],
               selectedIds: selectedIds.filter((id) => shapes[id] !== undefined),
               hoveredId: hoveredId
                 ? shapes[hoveredId] === undefined
@@ -579,7 +582,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             },
           },
         },
-      })
+      }
 
       this.state.document = next.document
       this.prevShapes = next.document.pages[this.currentPageId].shapes

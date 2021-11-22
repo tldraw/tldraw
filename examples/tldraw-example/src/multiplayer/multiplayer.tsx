@@ -10,7 +10,7 @@ const client = createClient({
   throttle: 100,
 })
 
-const roomId = 'mp-test-7'
+const roomId = 'mp-test-8'
 
 export function Multiplayer() {
   return (
@@ -23,7 +23,7 @@ export function Multiplayer() {
 }
 
 function Editor({ roomId }: { roomId: string }) {
-  const { error, loading, ...events } = useMultiplayerState(roomId)
+  const { error, ...events } = useMultiplayerState(roomId)
 
   if (error) return <div>Error: {error.message}</div>
 
