@@ -393,6 +393,14 @@ const InnerTldraw = React.memo(function InnerTldraw({
     return {}
   }, [settings.isDarkMode])
 
+  const grids = React.useMemo(
+    () => [
+      { color: 'rgba(0, 0, 0, 0.1)', size: 80 },
+      { color: 'rgba(0, 0, 0, 0.05)', size: 8 },
+    ],
+    []
+  )
+
   // When the context menu is blurred, close the menu by sending pointer events
   // to the context menu's ref. This is a hack around the fact that certain shapes
   // stop event propagation, which causes the menu to stay open even when blurred.
@@ -414,6 +422,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
+          grids={grids}
           snapLines={appState.snapLines}
           users={room?.users}
           userId={room?.userId}
@@ -426,6 +435,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideBindingHandles={!settings.showBindingHandles}
           hideCloneHandles={!settings.showCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
+          hideGrid={!settings.showGrid}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
           onPinch={app.onPinch}

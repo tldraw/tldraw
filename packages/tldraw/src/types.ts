@@ -90,6 +90,7 @@ export interface TDSnapshot {
     showRotateHandles: boolean
     showBindingHandles: boolean
     showCloneHandles: boolean
+    showGrid: boolean
   }
   appState: {
     currentStyle: ShapeStyles

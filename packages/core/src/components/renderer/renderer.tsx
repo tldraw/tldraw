@@ -9,6 +9,7 @@ import type {
   TLBounds,
   TLBinding,
   TLSnapLine,
+  TLGrid,
   TLUsers,
 } from '../../types'
 import { Canvas } from '../canvas'
@@ -50,6 +51,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   snapLines?: TLSnapLine[]
   /**
+   * (optional) The current grids to render.
+   */
+  grids?: TLGrid[]
+  /**
    * (optional) The current user's id, used to identify the user.
    */
   userId?: string
@@ -87,6 +92,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   hideIndicators?: boolean
   /**
+   * (optional) When true, the renderer will not show the grid.
+   */
+  hideGrid?: boolean
+  /**
    * (optional) A callback that receives the renderer's inputs manager.
    */
   onMount?: (inputs: Inputs) => void
@@ -114,6 +123,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   theme,
   meta,
   snapLines,
+  grids,
   containerRef,
   hideHandles = false,
   hideIndicators = false,
@@ -122,6 +132,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideResizeHandles = false,
   hideRotateHandles = false,
   hideBounds = false,
+  hideGrid = false,
   ...rest
 }: RendererProps<T, M>): JSX.Element {
   useTLTheme(theme, '#' + id)
@@ -164,6 +175,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
         page={page}
         pageState={pageState}
         snapLines={snapLines}
+        grids={grids}
         users={users}
         userId={userId}
         externalContainerRef={containerRef}
@@ -174,6 +186,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
         hideBindingHandles={hideBindingHandles}
         hideRotateHandle={hideRotateHandles}
         hideResizeHandles={hideResizeHandles}
+        hideGrid={hideGrid}
         onBoundsChange={onBoundsChange}
         meta={meta}
       />

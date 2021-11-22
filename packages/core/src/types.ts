@@ -44,6 +44,11 @@ export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record
 
 export type TLSnapLine = number[][]
 
+export interface TLGrid {
+  color: string
+  size: number
+}
+
 export interface TLHandle {
   id: string
   index: number
