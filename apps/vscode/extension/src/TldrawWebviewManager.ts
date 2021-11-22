@@ -80,24 +80,24 @@ export class TldrawWebviewManager {
     switch (e.type) {
       case 'editorUpdated': {
         // The event will contain the new TDFile as JSON.
-        const nextFile = JSON.parse(e.text) as TDFile
+        // const nextFile = JSON.parse(e.text) as TDFile
 
-        if (document.getText()) {
-          try {
-            // Parse the contents of the current document.
-            const currentFile = JSON.parse(document.getText()) as TDFile
+        // if (document.getText()) {
+        //   try {
+        //     // Parse the contents of the current document.
+        //     const currentFile = JSON.parse(document.getText()) as TDFile
 
-            // Ensure that the current file's pageStates are preserved
-            // in the next file, unless the associated pages have been deleted.
-            Object.values(currentFile.document.pageStates).forEach((pageState) => {
-              if (nextFile.document.pages[pageState.id] !== undefined) {
-                nextFile.document.pageStates[pageState.id] = pageState
-              }
-            })
-          } catch (e) {
-            console.error('Could not parse the current file to JSON.')
-          }
-        }
+        //     // Ensure that the current file's pageStates are preserved
+        //     // in the next file, unless the associated pages have been deleted.
+        //     Object.values(currentFile.document.pageStates).forEach((pageState) => {
+        //       if (nextFile.document.pages[pageState.id] !== undefined) {
+        //         nextFile.document.pageStates[pageState.id] = pageState
+        //       }
+        //     })
+        //   } catch (e) {
+        //     console.error('Could not parse the current file to JSON.')
+        //   }
+        // }
 
         // Create an edit that replaces the document's current text
         // content (a serialized TDFile) with the next file.
@@ -106,7 +106,7 @@ export class TldrawWebviewManager {
         edit.replace(
           document.uri,
           new vscode.Range(0, 0, document.lineCount, 0),
-          JSON.stringify(nextFile, null, 2)
+          e.text
         )
 
         vscode.workspace.applyEdit(edit)
@@ -123,17 +123,6 @@ export class TldrawWebviewManager {
     let cssUrl: string | vscode.Uri
     let jsUrl: string | vscode.Uri
 
-    try {
-      JSON.parse(document.getText())
-      documentContent = document.getText()
-    } catch (error) {
-      // For now we're going to tread badly formed .tldr files as freshly created files.
-      // This will happen if say a user creates a new .tldr file using New File or if they
-      // have a bad auto-merge that messes up the json of an existing .tldr file
-      // We pass null as the initialDocument value if we can't parse as json.
-      documentContent = 'null'
-    }
-
     if (process.env.NODE_ENV === 'production') {
       cssUrl = webviewPanel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.css')
@@ -147,6 +136,11 @@ export class TldrawWebviewManager {
       jsUrl = `${localhost}index.js`
     }
 
+    // Detect if the file is a .tldr file embedded in an SVG file.
+    // Ie. does it have a .tldr.svg extension?
+    const svgExtension = ".tldr.svg";
+    const svgEmbedded = document.fileName.search(".tldr.svg")===(document.fileName.length-".tldr.svg".length);
+    
     return `
       <!DOCTYPE html>
       <html lang="en">
@@ -159,7 +153,10 @@ export class TldrawWebviewManager {
         <body>
           <div id="root"></div>
           <noscript>You need to enable JavaScript to run this app.</noscript>
-          <script>var currentFile = ${documentContent};</script>
+          <script>
+            let svgEmbedded = ${svgEmbedded};
+            let initialFileContent = \`${document.getText()}\`;
+          </script>
           <script src="${jsUrl}"></script>
         </body>
       </html>

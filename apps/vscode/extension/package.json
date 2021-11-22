@@ -47,6 +47,9 @@
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
+					},
+					{
+						"filenamePattern": "*.tldr.svg"
 					}
 				]
 			}
