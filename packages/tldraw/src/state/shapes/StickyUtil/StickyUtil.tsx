@@ -10,6 +10,7 @@ import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -231,6 +232,24 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   transformSingle = (shape: T): Partial<T> => {
     return shape
+  }
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    const bounds = this.getBounds(shape)
+    const textElm = getTextSvgElement(shape, bounds)
+    const style = getStickyShapeStyle(shape.style)
+    textElm.setAttribute('fill', style.color)
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    rect.setAttribute('width', bounds.width + '')
+    rect.setAttribute('height', bounds.height + '')
+    rect.setAttribute('fill', style.fill)
+
+    g.appendChild(rect)
+    g.appendChild(textElm)
+
+    return g
   }
 }
 

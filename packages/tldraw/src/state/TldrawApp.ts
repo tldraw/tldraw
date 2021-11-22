@@ -1558,26 +1558,32 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
     const shapes = ids.map((id) => this.getShape(id, pageId))
+    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
+    const padding = 16
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Source+Serif+Pro&display=swap');`
+    defs.appendChild(style)
+    svg.appendChild(defs)
 
     function getSvgElementForShape(shape: TDShape) {
-      const elm = document.getElementById(shape.id + '_svg')
+      const util = TLDR.getShapeUtil(shape)
+      const element = util.getSvgElement(shape)
+      const bounds = util.getBounds(shape)
 
-      if (!elm) return
-
-      // TODO: Create SVG elements for text
-
-      const element = elm?.cloneNode(true) as SVGElement
-
-      const bounds = TLDR.getShapeUtil(shape).getBounds(shape)
+      if (!element) return
 
       element.setAttribute(
         'transform',
-        `translate(${shape.point[0]}, ${shape.point[1]}) rotate(${
-          ((shape.rotation || 0) * 180) / Math.PI
-        }, ${bounds.width / 2}, ${bounds.height / 2})`
+        `translate(${padding + shape.point[0] - commonBounds.minX}, ${
+          padding + shape.point[1] - commonBounds.minY
+        }) rotate(${((shape.rotation || 0) * 180) / Math.PI}, ${bounds.width / 2}, ${
+          bounds.height / 2
+        })`
       )
 
       return element
@@ -1608,23 +1614,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
-    const bounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
-    const padding = 16
-
     // Resize the element to the bounding box
     svg.setAttribute(
       'viewBox',
-      [
-        bounds.minX - padding,
-        bounds.minY - padding,
-        bounds.width + padding * 2,
-        bounds.height + padding * 2,
-      ].join(' ')
+      [0, 0, commonBounds.width + padding * 2, commonBounds.height + padding * 2].join(' ')
     )
 
-    svg.setAttribute('width', String(bounds.width))
-
-    svg.setAttribute('height', String(bounds.height))
+    svg.setAttribute('width', String(commonBounds.width))
+    svg.setAttribute('height', String(commonBounds.height))
 
     const s = new XMLSerializer()
 

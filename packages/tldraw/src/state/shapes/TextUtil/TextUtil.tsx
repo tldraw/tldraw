@@ -10,6 +10,7 @@ import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
 import { getTextAlign } from '../shared/getTextAlign'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -311,6 +312,13 @@ export class TextUtil extends TDShapeUtil<T, E> {
       point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   }
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    const bounds = this.getBounds(shape)
+    const elm = getTextSvgElement(shape, bounds)
+    elm.setAttribute('fill', getShapeStyle(shape.style).stroke)
+    return elm
+  }
 }
 
 /* -------------------------------------------------- */
@@ -332,7 +340,7 @@ function getMeasurementDiv() {
   Object.assign(pre.style, {
     whiteSpace: 'pre',
     width: 'auto',
-    border: '1px solid red',
+    border: '1px solid transparent',
     padding: '4px',
     margin: '0px',
     letterSpacing: `${LETTER_SPACING}px`,

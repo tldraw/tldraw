@@ -551,6 +551,7 @@ export class SelectTool extends BaseTool<Status> {
 
   onRightPointShape: TLPointerEventHandler = (info) => {
     if (!this.app.isSelected(info.target)) {
+      console.log(info.target)
       this.app.select(info.target)
     }
   }
