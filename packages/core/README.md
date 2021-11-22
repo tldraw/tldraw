@@ -295,7 +295,7 @@ export interface BoxShape extends TLShape {
 
 ### Component
 
-Next, use `TLShapeUtil.Indicator` to create a second component for your shape's `Component`. The `Renderer` will use this component to display the shape on the canvas.
+Next, use `TLShapeUtil.Component` to create a second component for your shape's `Component`. The `Renderer` will use this component to display the shape on the canvas.
 
 ```tsx
 // BoxComponent.ts
