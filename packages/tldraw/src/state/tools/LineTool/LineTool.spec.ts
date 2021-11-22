@@ -1,7 +1,7 @@
 import { TldrawApp } from '~state'
 import { LineTool } from '.'
 
-describe('ArrowTool', () => {
+describe('LineTool', () => {
   it('creates tool', () => {
     const app = new TldrawApp()
     new LineTool(app)
