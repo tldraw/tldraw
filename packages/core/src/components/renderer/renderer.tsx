@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {useObserver} from 'mobx-react-lite'
 import * as React from 'react'
 import type {
   TLShape,
@@ -124,59 +125,61 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideBounds = false,
   ...rest
 }: RendererProps<T, M>): JSX.Element {
-  useTLTheme(theme, '#' + id)
+  return useObserver(() => {
+    useTLTheme(theme, '#' + id)
 
-  const rSelectionBounds = React.useRef<TLBounds>(null)
+    const rSelectionBounds = React.useRef<TLBounds>(null)
 
-  const rPageState = React.useRef<TLPageState>(pageState)
+    const rPageState = React.useRef<TLPageState>(pageState)
 
-  React.useEffect(() => {
-    rPageState.current = pageState
-  }, [pageState])
+    React.useEffect(() => {
+      rPageState.current = pageState
+    }, [pageState])
 
-  const [context, setContext] = React.useState<TLContextType<T>>(() => ({
-    callbacks: rest,
-    shapeUtils,
-    rSelectionBounds,
-    rPageState,
-    bounds: {
-      minX: 0,
-      minY: 0,
-      maxX: Infinity,
-      maxY: Infinity,
-      width: Infinity,
-      height: Infinity,
-    },
-    inputs: new Inputs(),
-  }))
-
-  const onBoundsChange = React.useCallback((bounds: TLBounds) => {
-    setContext((context) => ({
-      ...context,
-      bounds,
+    const [context, setContext] = React.useState<TLContextType<T>>(() => ({
+      callbacks: rest,
+      shapeUtils,
+      rSelectionBounds,
+      rPageState,
+      bounds: {
+        minX: 0,
+        minY: 0,
+        maxX: Infinity,
+        maxY: Infinity,
+        width: Infinity,
+        height: Infinity,
+      },
+      inputs: new Inputs(),
     }))
-  }, [])
 
-  return (
-    <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
-      <Canvas
-        id={id}
-        page={page}
-        pageState={pageState}
-        snapLines={snapLines}
-        users={users}
-        userId={userId}
-        externalContainerRef={containerRef}
-        hideBounds={hideBounds}
-        hideIndicators={hideIndicators}
-        hideHandles={hideHandles}
-        hideCloneHandles={hideCloneHandles}
-        hideBindingHandles={hideBindingHandles}
-        hideRotateHandle={hideRotateHandles}
-        hideResizeHandles={hideResizeHandles}
-        onBoundsChange={onBoundsChange}
-        meta={meta}
-      />
-    </TLContext.Provider>
-  )
+    const onBoundsChange = React.useCallback((bounds: TLBounds) => {
+      setContext((context) => ({
+        ...context,
+        bounds,
+      }))
+    }, [])
+
+    return (
+      <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
+        <Canvas
+          id={id}
+          page={page}
+          pageState={pageState}
+          snapLines={snapLines}
+          users={users}
+          userId={userId}
+          externalContainerRef={containerRef}
+          hideBounds={hideBounds}
+          hideIndicators={hideIndicators}
+          hideHandles={hideHandles}
+          hideCloneHandles={hideCloneHandles}
+          hideBindingHandles={hideBindingHandles}
+          hideRotateHandle={hideRotateHandles}
+          hideResizeHandles={hideResizeHandles}
+          onBoundsChange={onBoundsChange}
+          meta={meta}
+        />
+      </TLContext.Provider>
+    )
+  })
 }

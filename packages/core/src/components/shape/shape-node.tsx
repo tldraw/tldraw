@@ -1,3 +1,4 @@
+import {useObserver} from 'mobx-react-lite'
 import * as React from 'react'
 import type { IShapeTreeNode, TLShape } from '~types'
 import { Shape } from './shape'
@@ -7,14 +8,14 @@ interface ShapeNodeProps<T extends TLShape> extends IShapeTreeNode<T> {
   utils: TLShapeUtilsMap<TLShape>
 }
 
-export const ShapeNode = React.memo(function ShapeNode<T extends TLShape>({
+export const ShapeNode = function ShapeNode<T extends TLShape>({
   shape,
   utils,
   meta,
   children,
   ...rest
 }: ShapeNodeProps<T>) {
-  return (
+  return useObserver(() => (
     <>
       <Shape shape={shape} utils={utils[shape.type as T['type']]} meta={meta} {...rest} />
       {children &&
@@ -22,5 +23,5 @@ export const ShapeNode = React.memo(function ShapeNode<T extends TLShape>({
           <ShapeNode key={childNode.shape.id} utils={utils} {...childNode} />
         ))}
     </>
-  )
-})
+  ))
+}

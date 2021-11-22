@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {useObserver} from 'mobx-react-lite'
 import * as React from 'react'
 import {
   usePreventNavigation,
@@ -61,54 +62,56 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   hideRotateHandle,
   onBoundsChange,
 }: CanvasProps<T, M>): JSX.Element {
-  const rCanvas = React.useRef<HTMLDivElement>(null)
-  const rContainer = React.useRef<HTMLDivElement>(null)
-  const rLayer = React.useRef<HTMLDivElement>(null)
+  return useObserver(() => {
+    const rCanvas = React.useRef<HTMLDivElement>(null)
+    const rContainer = React.useRef<HTMLDivElement>(null)
+    const rLayer = React.useRef<HTMLDivElement>(null)
 
-  inputs.zoom = pageState.camera.zoom
+    inputs.zoom = pageState.camera.zoom
 
-  useResizeObserver(rCanvas, onBoundsChange)
+    useResizeObserver(rCanvas, onBoundsChange)
 
-  useZoomEvents(pageState.camera.zoom, externalContainerRef || rCanvas)
+    useZoomEvents(pageState.camera.zoom, externalContainerRef || rCanvas)
 
-  useSafariFocusOutFix()
+    useSafariFocusOutFix()
 
-  usePreventNavigation(rCanvas)
+    usePreventNavigation(rCanvas)
 
-  useCameraCss(rLayer, rContainer, pageState)
+    useCameraCss(rLayer, rContainer, pageState)
 
-  useKeyEvents()
+    useKeyEvents()
 
-  const events = useCanvasEvents()
+    const events = useCanvasEvents()
 
-  return (
-    <div id={id} className="tl-container" ref={rContainer}>
-      <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
-        <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
-          <div ref={rLayer} className="tl-absolute tl-layer">
-            <Page
-              page={page}
-              pageState={pageState}
-              hideBounds={hideBounds}
-              hideIndicators={hideIndicators}
-              hideHandles={hideHandles}
-              hideBindingHandles={hideBindingHandles}
-              hideCloneHandles={hideCloneHandles}
-              hideResizeHandles={hideResizeHandles}
-              hideRotateHandle={hideRotateHandle}
-              meta={meta}
-            />
-            {users && userId && (
-              <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
-            )}
-            {pageState.brush && <Brush brush={pageState.brush} />}
-            {users && <Users userId={userId} users={users} />}
-          </div>
-        </ErrorBoundary>
-        <Overlay camera={pageState.camera}>
-          {snapLines && <SnapLines snapLines={snapLines} />}
-        </Overlay>
+    return (
+      <div id={id} className="tl-container" ref={rContainer}>
+        <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
+          <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
+            <div ref={rLayer} className="tl-absolute tl-layer">
+              <Page
+                page={page}
+                pageState={pageState}
+                hideBounds={hideBounds}
+                hideIndicators={hideIndicators}
+                hideHandles={hideHandles}
+                hideBindingHandles={hideBindingHandles}
+                hideCloneHandles={hideCloneHandles}
+                hideResizeHandles={hideResizeHandles}
+                hideRotateHandle={hideRotateHandle}
+                meta={meta}
+              />
+              {users && userId && (
+                <UsersIndicators userId={userId} users={users} page={page} meta={meta}/>
+              )}
+              {pageState.brush && <Brush brush={pageState.brush}/>}
+              {users && <Users userId={userId} users={users}/>}
+            </div>
+          </ErrorBoundary>
+          <Overlay camera={pageState.camera}>
+            {snapLines && <SnapLines snapLines={snapLines}/>}
+          </Overlay>
+        </div>
       </div>
-    </div>
-  )
+    )
+  })
 }
