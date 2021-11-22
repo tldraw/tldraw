@@ -14,8 +14,8 @@ export function useMultiplayerState(roomId: string) {
   const rExpectingUpdate = React.useRef(false)
 
   const room = useRoom()
-  const undo = useUndo()
-  const redo = useRedo()
+  const onUndo = useUndo()
+  const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
   // Document Changes --------
@@ -206,8 +206,8 @@ export function useMultiplayerState(roomId: string) {
   )
 
   return {
-    undo,
-    redo,
+    onUndo,
+    onRedo,
     onMount,
     onChangePage,
     onChangePresence,
