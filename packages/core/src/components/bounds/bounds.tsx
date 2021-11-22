@@ -9,6 +9,7 @@ import { CloneButtons } from './clone-buttons'
 import { Container } from '~components/container'
 import { SVGContainer } from '~components/svg-container'
 import { LinkHandle } from './link-handle'
+import { observer } from 'mobx-react-lite'
 
 interface BoundsProps {
   zoom: number
@@ -24,7 +25,7 @@ interface BoundsProps {
   children?: React.ReactNode
 }
 
-export const Bounds = React.memo(function Bounds({
+export const Bounds = observer<BoundsProps>(function Bounds({
   zoom,
   bounds,
   viewportWidth,

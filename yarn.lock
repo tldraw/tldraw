@@ -10479,6 +10479,16 @@ mkdirp@^0.5.1, mkdirp@^0.5.4, mkdirp@^0.5.5:
   dependencies:
     minimist "^1.2.5"
 
+mobx-react-lite@2.2.2:
+  version "2.2.2"
+  resolved "https://centricsoftware.jfrog.io/centricsoftware/api/npm/npm/mobx-react-lite/-/mobx-react-lite-2.2.2.tgz#87c217dc72b4e47b22493daf155daf3759f868a6"
+  integrity sha1-h8IX3HK05HsiST2vFV2vN1n4aKY=
+
+mobx@5.15.5:
+  version "5.15.5"
+  resolved "https://centricsoftware.jfrog.io/centricsoftware/api/npm/npm/mobx/-/mobx-5.15.5.tgz#69715dc8662f64d153309bfe95169b8df4b4be4b"
+  integrity sha1-aXFdyGYvZNFTMJv+lRabjfS0vks=
+
 mocha@^9.1.1:
   version "9.1.3"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-9.1.3.tgz#8a623be6b323810493d8c8f6f7667440fa469fdb"

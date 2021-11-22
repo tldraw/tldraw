@@ -1,13 +1,13 @@
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 
-export function Overlay({
-  camera,
-  children,
-}: {
+type MyProps = {
   camera: { point: number[]; zoom: number }
   children: React.ReactNode
-}) {
-  const l = 2.5 / camera.zoom
+}
+
+export const Overlay = observer<MyProps>(function Overlay({camera: {zoom, point}, children}) {
+  const l = 2.5 / zoom
   return (
     <svg className="tl-overlay">
       <defs>
@@ -18,7 +18,7 @@ export function Overlay({
           />
         </g>
       </defs>
-      <g transform={`scale(${camera.zoom}) translate(${camera.point})`}>{children}</g>
+      <g transform={`scale(${zoom}) translate(${point})`}>{children}</g>
     </svg>
   )
-}
+})

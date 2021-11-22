@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {observer} from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLBounds } from '~types'
 import { useBoundsEvents } from '~hooks'
@@ -11,11 +12,11 @@ interface BoundsBgProps {
   isHidden: boolean
 }
 
-export const BoundsBg = React.memo(function BoundsBg({
+export const BoundsBg = observer<BoundsBgProps>(function BoundsBg({
   bounds,
   rotation,
   isHidden,
-}: BoundsBgProps): JSX.Element {
+}): JSX.Element {
   const events = useBoundsEvents()
 
   return (

@@ -39,7 +39,9 @@
   "dependencies": {
     "@tldraw/intersect": "latest",
     "@tldraw/vec": "latest",
-    "@use-gesture/react": "^10.1.3"
+    "@use-gesture/react": "^10.1.3",
+    "mobx-react-lite": "2.2.2",
+    "mobx": "5.15.5"
   },
   "peerDependencies": {
     "react": ">=16.8",
