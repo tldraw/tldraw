@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
@@ -25,7 +25,7 @@
     "@sentry/react": "^6.13.2",
     "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.2.5",
-    "@tldraw/tldraw": "^1.1.3",
+    "@tldraw/tldraw": "^1.1.4",
     "@types/next-auth": "^3.15.0",
     "next": "^12.0.1",
     "next-auth": "^3.29.0",
