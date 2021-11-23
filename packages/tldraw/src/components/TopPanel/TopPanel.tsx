@@ -80,10 +80,10 @@ const MobileOnly = styled('div', {
   flexDirection: 'row',
   variants: {
     bp: {
-      mobile: {
+      small: {
         display: 'inherit',
       },
-      small: {
+      medium: {
         display: 'none',
       },
     },
