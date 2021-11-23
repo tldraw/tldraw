@@ -6,9 +6,9 @@ import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { ArrowLeftIcon, ArrowRightIcon } from '@radix-ui/react-icons'
 import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
 import { breakpoints } from '~components/breakpoints'
+import { useTldrawApp } from '~hooks'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -27,6 +27,8 @@ export function TopPanel({
   showZoom,
   showSponsorLink,
 }: TopPanelProps) {
+  const app = useTldrawApp()
+
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
@@ -41,10 +43,10 @@ export function TopPanel({
           {showStyles && !readOnly && <StyleMenu />}
           <MobileOnly bp={breakpoints}>
             <ToolButton>
-              <UndoIcon />
+              <UndoIcon onClick={app.undo} />
             </ToolButton>
             <ToolButton>
-              <RedoIcon />
+              <RedoIcon onClick={app.redo} />
             </ToolButton>
           </MobileOnly>
           {showZoom && <ZoomMenu />}
