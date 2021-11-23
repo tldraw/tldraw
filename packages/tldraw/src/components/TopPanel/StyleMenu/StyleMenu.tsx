@@ -38,6 +38,7 @@ import {
   TextAlignLeftIcon,
   TextAlignRightIcon,
 } from '@radix-ui/react-icons'
+import { RowButton } from '~components/Primitives/RowButton'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -149,22 +150,25 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon>
-        <OverlapIcons
-          style={{
-            color: strokes[theme][displayedStyle.color as ColorStyle],
-          }}
-        >
-          {displayedStyle.isFilled && (
-            <CircleIcon
-              size={16}
-              stroke="none"
-              fill={fills[theme][displayedStyle.color as ColorStyle]}
-            />
-          )}
-          {DASH_ICONS[displayedStyle.dash]}
-        </OverlapIcons>
-      </DMTriggerIcon>
+      <DropdownMenu.Trigger asChild>
+        <ToolButton variant="text">
+          Styles
+          <OverlapIcons
+            style={{
+              color: strokes[theme][displayedStyle.color as ColorStyle],
+            }}
+          >
+            {displayedStyle.isFilled && (
+              <CircleIcon
+                size={16}
+                stroke="none"
+                fill={fills[theme][displayedStyle.color as ColorStyle]}
+              />
+            )}
+            {DASH_ICONS[displayedStyle.dash]}
+          </OverlapIcons>
+        </ToolButton>
+      </DropdownMenu.Trigger>
       <DMContent>
         <StyledRow variant="tall">
           <span>Color</span>

@@ -5,6 +5,10 @@ import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { ArrowLeftIcon, ArrowRightIcon } from '@radix-ui/react-icons'
+import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import { breakpoints } from '~components/breakpoints'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -35,6 +39,14 @@ export function TopPanel({
       {(showStyles || showZoom) && (
         <Panel side="right">
           {showStyles && !readOnly && <StyleMenu />}
+          <MobileOnly bp={breakpoints}>
+            <ToolButton>
+              <UndoIcon />
+            </ToolButton>
+            <ToolButton>
+              <RedoIcon />
+            </ToolButton>
+          </MobileOnly>
           {showZoom && <ZoomMenu />}
         </Panel>
       )}
@@ -59,4 +71,19 @@ const StyledTopPanel = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
+})
+
+const MobileOnly = styled('div', {
+  display: 'flex',
+  flexDirection: 'row',
+  variants: {
+    bp: {
+      mobile: {
+        display: 'inherit',
+      },
+      small: {
+        display: 'none',
+      },
+    },
+  },
 })
