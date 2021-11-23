@@ -77,6 +77,7 @@ const { styled, createTheme } = createStitches({
     micro: '(max-width: 370px)',
     sm: '(min-width: 640px)',
     md: '(min-width: 768px)',
+    lg: '(min-width: 1024px)',
   },
   utils: {
     zStrokeWidth: () => (value: number | number[]) => {

@@ -83,7 +83,7 @@ const MobileOnly = styled('div', {
       small: {
         display: 'inherit',
       },
-      medium: {
+      large: {
         display: 'none',
       },
     },
