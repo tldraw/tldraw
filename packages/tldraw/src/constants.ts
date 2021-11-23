@@ -8,6 +8,7 @@ export const SLOW_SPEED = 10
 export const VERY_SLOW_SPEED = 2.5
 export const GHOSTED_OPACITY = 0.3
 export const DEAD_ZONE = 3
+export const LETTER_SPACING = -1.5
 
 import type { Easing } from '~types'
 
