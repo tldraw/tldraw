@@ -1,4 +1,8 @@
-## 1.1.2
+## 1.1.4
+
+- Adds undo and redo buttons at smaller breakpoints.
+
+## 1.1.3
 
 - Adds ability to copying text / sticky notes.
 - Adds line tool (an arrow without decorations).
