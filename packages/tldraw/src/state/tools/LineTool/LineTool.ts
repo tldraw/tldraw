@@ -9,6 +9,8 @@ export class LineTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.status !== Status.Idle) return
+
     const {
       currentPoint,
       appState: { currentPageId, currentStyle },
