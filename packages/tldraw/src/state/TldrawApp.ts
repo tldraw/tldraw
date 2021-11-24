@@ -1437,8 +1437,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         .map((shape) => {
           const parentShapeId = idsMap[shape.parentId]
 
-          console.log(shape)
-
           const copy = {
             ...shape,
             id: idsMap[shape.id],
@@ -2500,6 +2498,36 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     switch (e.key) {
+      case '.': {
+        if (this.status === 'idle') {
+          const { shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
+
+          this.onPointerDown(
+            {
+              target: 'canvas',
+              pointerId: 0,
+              origin: info.point,
+              point: info.point,
+              delta: [0, 0],
+              pressure: 0.5,
+              shiftKey,
+              ctrlKey,
+              metaKey,
+              altKey,
+              spaceKey,
+            },
+            {
+              shiftKey,
+              altKey,
+              ctrlKey,
+              pointerId: 0,
+              clientX: info.point[0],
+              clientY: info.point[1],
+            } as unknown as React.PointerEvent<HTMLDivElement>
+          )
+        }
+        break
+      }
       case 'Escape': {
         this.cancel()
         break
@@ -2531,6 +2559,34 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!info) return
 
     switch (e.key) {
+      case '.': {
+        const { currentPoint, shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
+
+        this.onPointerUp(
+          {
+            target: 'canvas',
+            pointerId: 0,
+            origin: currentPoint,
+            point: currentPoint,
+            delta: [0, 0],
+            pressure: 0.5,
+            shiftKey,
+            ctrlKey,
+            metaKey,
+            altKey,
+            spaceKey,
+          },
+          {
+            shiftKey,
+            altKey,
+            ctrlKey,
+            pointerId: 0,
+            clientX: currentPoint[0],
+            clientY: currentPoint[1],
+          } as unknown as React.PointerEvent<HTMLDivElement>
+        )
+        break
+      }
       case 'Meta': {
         this.metaKey = false
         break
