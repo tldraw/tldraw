@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, TLBounds, TLPointerInfo, SVGContainer } from '@tldraw/core'
+import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {
@@ -47,45 +47,47 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   pathCache = new WeakMap<T, string>()
 
   getShape = (props: Partial<T>): T => {
-    return Utils.deepMerge<T>(
-      {
-        id: 'id',
-        type: TDShapeType.Arrow,
-        name: 'Arrow',
-        parentId: 'page',
-        childIndex: 1,
-        point: [0, 0],
-        rotation: 0,
-        bend: 0,
-        handles: {
-          start: {
-            id: 'start',
-            index: 0,
-            point: [0, 0],
-            canBind: true,
-          },
-          end: {
-            id: 'end',
-            index: 1,
-            point: [1, 1],
-            canBind: true,
-          },
-          bend: {
-            id: 'bend',
-            index: 2,
-            point: [0.5, 0.5],
-          },
+    return {
+      id: 'id',
+      type: TDShapeType.Arrow,
+      name: 'Arrow',
+      parentId: 'page',
+      childIndex: 1,
+      point: [0, 0],
+      rotation: 0,
+      bend: 0,
+      handles: {
+        start: {
+          id: 'start',
+          index: 0,
+          point: [0, 0],
+          canBind: true,
+          ...props.handles?.start,
         },
-        decorations: {
-          end: Decoration.Arrow,
+        end: {
+          id: 'end',
+          index: 1,
+          point: [1, 1],
+          canBind: true,
+          ...props.handles?.end,
         },
-        style: {
-          ...defaultStyle,
-          isFilled: false,
+        bend: {
+          id: 'bend',
+          index: 2,
+          point: [0.5, 0.5],
+          ...props.handles?.bend,
         },
       },
-      props
-    )
+      decorations: props.decorations ?? {
+        end: Decoration.Arrow,
+      },
+      style: {
+        ...defaultStyle,
+        isFilled: false,
+        ...props.style,
+      },
+      ...props,
+    }
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, isGhost, meta, events }, ref) => {

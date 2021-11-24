@@ -1437,6 +1437,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         .map((shape) => {
           const parentShapeId = idsMap[shape.parentId]
 
+          console.log(shape)
+
           const copy = {
             ...shape,
             id: idsMap[shape.id],

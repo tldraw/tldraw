@@ -23,7 +23,10 @@ export class LineTool extends BaseTool {
       parentId: currentPageId,
       childIndex,
       point: currentPoint,
-      decorations: undefined,
+      decorations: {
+        start: undefined,
+        end: undefined,
+      },
       style: { ...currentStyle },
     })
 
