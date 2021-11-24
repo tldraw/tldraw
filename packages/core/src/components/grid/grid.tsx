@@ -25,7 +25,7 @@ export function Grid({ grid = 8, camera }: { camera: TLPageState['camera']; grid
             >
               <g opacity={opacity}>
                 <line
-                  className={`tl-grid-minor`}
+                  className={`tl-grid-stroke`}
                   x1={gxo}
                   y1={0}
                   x2={gxo}
@@ -34,7 +34,7 @@ export function Grid({ grid = 8, camera }: { camera: TLPageState['camera']; grid
                   strokeWidth={1}
                 />
                 <line
-                  className={`tl-grid-minor`}
+                  className={`tl-grid-stroke`}
                   x1={0}
                   y1={gyo}
                   x2={s}
