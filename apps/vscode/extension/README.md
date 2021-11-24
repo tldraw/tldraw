@@ -23,7 +23,7 @@ tldraw extends VS Code with support for [tldraw](https://tldraw.com) files.
 
 ### Support
 
-Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) for support.
+Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new/choose) for support.
 
 ### Discussion
 
