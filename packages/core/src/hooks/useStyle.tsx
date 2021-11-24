@@ -73,6 +73,8 @@ const defaultTheme: TLTheme = {
   selectFill: 'rgba(65, 132, 244, 0.05)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
+  gridMajor: 'rgba(144, 144, 144, .5)',
+  gridMinor: 'rgba(144, 144, 144, .15)',
 }
 
 const tlcss = css`
@@ -148,6 +150,7 @@ const tlcss = css`
     height: 100%;
     touch-action: none;
     pointer-events: none;
+    user-select: none;
   }
 
   .tl-snap-line {
@@ -401,6 +404,14 @@ const tlcss = css`
     fill: none;
     stroke: var(--tl-selectStroke);
     stroke-width: calc(2px * var(--tl-scale));
+  }
+
+  .tl-grid-minor {
+    stroke: var(--tl-gridMinor);
+  }
+
+  .tl-grid-major {
+    stroke: var(--tl-gridMajor);
   }
 `
 

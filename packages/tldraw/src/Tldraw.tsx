@@ -8,9 +8,9 @@ import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
-import { FocusButton } from '~components/FocusButton/FocusButton'
+import { FocusButton } from '~components/FocusButton'
+import { TLDR } from '~state/TLDR'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -403,14 +403,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
     return {}
   }, [settings.isDarkMode])
 
-  const grids = React.useMemo(
-    () => [
-      { color: 'rgba(0, 0, 0, 0.1)', size: 80 },
-      { color: 'rgba(0, 0, 0, 0.05)', size: 8 },
-    ],
-    []
-  )
-
   // When the context menu is blurred, close the menu by sending pointer events
   // to the context menu's ref. This is a hack around the fact that certain shapes
   // stop event propagation, which causes the menu to stay open even when blurred.
@@ -432,7 +424,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
           shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
-          grids={grids}
           snapLines={appState.snapLines}
           users={room?.users}
           userId={room?.userId}

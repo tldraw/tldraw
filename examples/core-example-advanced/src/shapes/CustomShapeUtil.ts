@@ -8,6 +8,8 @@ export abstract class CustomShapeUtil<
 
   canBind = false
 
+  hideBounds = false
+
   abstract getCenter: (shape: T) => number[]
 
   abstract getShape: (shape: Partial<T>) => T

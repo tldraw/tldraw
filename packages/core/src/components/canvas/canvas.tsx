@@ -8,16 +8,7 @@ import {
   useCameraCss,
   useKeyEvents,
 } from '~hooks'
-import type {
-  TLBinding,
-  TLBounds,
-  TLGrid,
-  TLPage,
-  TLPageState,
-  TLShape,
-  TLSnapLine,
-  TLUsers,
-} from '~types'
+import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape, TLSnapLine, TLUsers } from '~types'
 import { ErrorFallback } from '~components/error-fallback'
 import { ErrorBoundary } from '~components/error-boundary'
 import { Brush } from '~components/brush'
@@ -27,7 +18,7 @@ import { useResizeObserver } from '~hooks/useResizeObserver'
 import { inputs } from '~inputs'
 import { UsersIndicators } from '~components/users-indicators'
 import { SnapLines } from '~components/snap-lines/snap-lines'
-import { GridOverlay, Grids } from '~components/grid'
+import { Grid } from '~components/grid'
 import { Overlay } from '~components/overlay'
 
 function resetError() {
@@ -38,7 +29,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   snapLines?: TLSnapLine[]
-  grids?: TLGrid[]
+  grid?: number
   users?: TLUsers<T>
   userId?: string
   hideBounds: boolean
@@ -60,7 +51,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   snapLines,
-  grids,
+  grid,
   users,
   userId,
   meta,
@@ -99,6 +90,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
+          {!hideGrid && <Grid grid={grid} camera={pageState.camera} />}
           <div ref={rLayer} className="tl-absolute tl-layer">
             <Page
               page={page}
@@ -122,9 +114,6 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
         <Overlay camera={pageState.camera}>
           {snapLines && <SnapLines snapLines={snapLines} />}
         </Overlay>
-        <GridOverlay>
-          {!hideGrid && grids && <Grids camera={pageState.camera} grids={grids} />}
-        </GridOverlay>
       </div>
     </div>
   )
