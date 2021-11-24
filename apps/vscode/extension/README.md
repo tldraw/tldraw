@@ -19,10 +19,6 @@ tldraw extends VS Code with support for [tldraw](https://tldraw.com) files.
 - To view an existing tldraw file, open a file with the `.tldr` extension in VS Code.
 - To create a new tldraw file, use the provided command: "tldraw: New tldraw File".
 
-## Release Notes
-
-For full release notes, see the [changelog](https://github.com/tldraw/tldraw).
-
 ## Community
 
 ### Support
