@@ -2570,9 +2570,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.pan(delta)
 
-    // onPan is called by onPointerMove when spaceKey is pressed,
+    // onPan is called by onPointerMove when spaceKey & middle wheel button is pressed,
     // so we shouldn't call this again.
-    if (!info.spaceKey) {
+    if (!info.spaceKey && !(e.buttons === 4)) {
       this.onPointerMove(info, e as unknown as React.PointerEvent)
     }
   }

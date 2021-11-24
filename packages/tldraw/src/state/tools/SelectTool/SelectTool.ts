@@ -33,6 +33,7 @@ enum Status {
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
   SpacePanning = 'spacePanning',
+  MiddleWheelPanning = 'middleWheelPanning',
 }
 
 export class SelectTool extends BaseTool<Status> {
@@ -236,7 +237,7 @@ export class SelectTool extends BaseTool<Status> {
   onPointerMove: TLPointerEventHandler = (info, e) => {
     const { originPoint, currentPoint } = this.app
 
-    if (this.status === Status.SpacePanning && e.buttons === 1) {
+    if ((this.status === Status.SpacePanning && e.buttons === 1) || (this.status === Status.MiddleWheelPanning && e.buttons === 4)) {
       this.app.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
       return
     }
@@ -336,13 +337,21 @@ export class SelectTool extends BaseTool<Status> {
     return
   }
 
-  onPointerDown: TLPointerEventHandler = () => {
+  onPointerDown: TLPointerEventHandler = (info, e) => {
     if (this.app.appState.isStyleOpen) {
       this.app.toggleStylePanel()
     }
+    if (e.buttons === 4) {
+      this.setStatus(Status.MiddleWheelPanning)
+    }
   }
 
-  onPointerUp: TLPointerEventHandler = (info) => {
+  onPointerUp: TLPointerEventHandler = (info, e) => {
+    if (this.status === Status.MiddleWheelPanning) {
+      this.setStatus(Status.Idle)
+      return
+    }
+
     if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
       if (this.pointedId) {
         this.app.completeSession()
