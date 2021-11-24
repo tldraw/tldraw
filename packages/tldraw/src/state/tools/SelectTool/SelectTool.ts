@@ -33,6 +33,7 @@ enum Status {
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
   SpacePanning = 'spacePanning',
+  MiddleWheelPanning = 'middleWheelPanning',
 }
 
 export class SelectTool extends BaseTool<Status> {
@@ -236,7 +237,10 @@ export class SelectTool extends BaseTool<Status> {
   onPointerMove: TLPointerEventHandler = (info, e) => {
     const { originPoint, currentPoint } = this.app
 
-    if (this.status === Status.SpacePanning && e.buttons === 1) {
+    if (
+      (this.status === Status.SpacePanning && e.buttons === 1) ||
+      (this.status === Status.MiddleWheelPanning && e.buttons === 4)
+    ) {
       this.app.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
       return
     }
@@ -336,13 +340,47 @@ export class SelectTool extends BaseTool<Status> {
     return
   }
 
-  onPointerDown: TLPointerEventHandler = () => {
+  onPointerDown: TLPointerEventHandler = (info, e) => {
     if (this.app.appState.isStyleOpen) {
       this.app.toggleStylePanel()
     }
+    if (e.buttons === 4) {
+      this.setStatus(Status.MiddleWheelPanning)
+    }
+
+    if (info.target === 'canvas' && this.status === Status.Idle) {
+      const { currentPoint } = this.app
+
+      if (info.spaceKey && e.buttons === 1) return
+
+      if (this.status === Status.Idle && info.altKey && info.shiftKey) {
+        this.setStatus(Status.ClonePainting)
+        this.clonePaint(currentPoint)
+        return
+      }
+
+      // Unless the user is holding shift or meta, clear the current selection
+      if (!info.shiftKey) {
+        this.app.onShapeBlur()
+
+        if (info.altKey && this.app.selectedIds.length > 0) {
+          this.app.duplicate(this.app.selectedIds, currentPoint)
+          return
+        }
+
+        this.selectNone()
+      }
+
+      this.setStatus(Status.PointingCanvas)
+    }
   }
 
-  onPointerUp: TLPointerEventHandler = (info) => {
+  onPointerUp: TLPointerEventHandler = (info, e) => {
+    if (this.status === Status.MiddleWheelPanning) {
+      this.setStatus(Status.Idle)
+      return
+    }
+
     if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
       if (this.pointedId) {
         this.app.completeSession()
@@ -393,32 +431,6 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   // Canvas
-
-  onPointCanvas: TLCanvasEventHandler = (info, e) => {
-    const { currentPoint } = this.app
-
-    if (info.spaceKey && e.buttons === 1) return
-
-    if (this.status === Status.Idle && info.altKey && info.shiftKey) {
-      this.setStatus(Status.ClonePainting)
-      this.clonePaint(currentPoint)
-      return
-    }
-
-    // Unless the user is holding shift or meta, clear the current selection
-    if (!info.shiftKey) {
-      this.app.onShapeBlur()
-
-      if (info.altKey && this.app.selectedIds.length > 0) {
-        this.app.duplicate(this.app.selectedIds, currentPoint)
-        return
-      }
-
-      this.selectNone()
-    }
-
-    this.setStatus(Status.PointingCanvas)
-  }
 
   onDoubleClickCanvas: TLCanvasEventHandler = () => {
     // Needs debugging

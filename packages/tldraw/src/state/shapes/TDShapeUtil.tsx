@@ -179,4 +179,8 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
   onDoubleClickBoundsHandle?: (shape: T) => Partial<T> | void
 
   onSessionComplete?: (shape: T) => Partial<T> | void
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    return document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
+  }
 }

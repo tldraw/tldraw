@@ -1,7 +1,6 @@
 import { TLDR } from '~state/TLDR'
-import type { GroupShape, TDBinding, TDShape } from '~types'
+import type { Patch, GroupShape, TDBinding, TDShape } from '~types'
 import type { TldrawCommand } from '~types'
-import type { Patch } from 'rko'
 import type { TldrawApp } from '../../internal'
 
 export function ungroupShapes(

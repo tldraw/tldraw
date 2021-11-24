@@ -1,3 +1,15 @@
+## 1.1.4
+
+- Adds undo and redo buttons at smaller breakpoints.
+
+## 1.1.3
+
+- Adds ability to copying text / sticky notes.
+- Adds line tool (an arrow without decorations).
+- Fixes bad README links.
+- Fixes keyboard shortcuts for tools.
+- Adds `onChangePresence` and `onChangePage` for multiplayer.
+
 ## 1.1.1
 
 - Adds shift modifier to snap arrows to a 15 degree angle.

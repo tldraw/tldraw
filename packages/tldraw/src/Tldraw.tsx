@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -116,7 +116,7 @@ export interface TldrawProps extends TDCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onUserChange?: (state: TldrawApp, user: TDUser) => void
+  onChangePresence?: (state: TldrawApp, user: TDUser) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
@@ -141,6 +141,12 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
+
+  onChangePage?: (
+    app: TldrawApp,
+    shapes: Record<string, TDShape | undefined>,
+    bindings: Record<string, TDBinding | undefined>
+  ) => void
 }
 
 export function Tldraw({
@@ -159,7 +165,7 @@ export function Tldraw({
   showSponsorLink = false,
   onMount,
   onChange,
-  onUserChange,
+  onChangePresence,
   onNewProject,
   onSaveProject,
   onSaveProjectAs,
@@ -171,6 +177,7 @@ export function Tldraw({
   onPersist,
   onPatch,
   onCommand,
+  onChangePage,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -180,7 +187,7 @@ export function Tldraw({
       new TldrawApp(id, {
         onMount,
         onChange,
-        onUserChange,
+        onChangePresence,
         onNewProject,
         onSaveProject,
         onSaveProjectAs,
@@ -189,9 +196,10 @@ export function Tldraw({
         onSignIn,
         onUndo,
         onRedo,
+        onPersist,
         onPatch,
         onCommand,
-        onPersist,
+        onChangePage,
       })
   )
 
@@ -202,7 +210,7 @@ export function Tldraw({
     const newApp = new TldrawApp(id, {
       onMount,
       onChange,
-      onUserChange,
+      onChangePresence,
       onNewProject,
       onSaveProject,
       onSaveProjectAs,
@@ -211,9 +219,10 @@ export function Tldraw({
       onSignIn,
       onUndo,
       onRedo,
+      onPersist,
       onPatch,
       onCommand,
-      onPersist,
+      onChangePage,
     })
 
     setSId(id)
@@ -256,7 +265,7 @@ export function Tldraw({
     app.callbacks = {
       onMount,
       onChange,
-      onUserChange,
+      onChangePresence,
       onNewProject,
       onSaveProject,
       onSaveProjectAs,
@@ -265,15 +274,15 @@ export function Tldraw({
       onSignIn,
       onUndo,
       onRedo,
+      onPersist,
       onPatch,
       onCommand,
-      onPersist,
+      onChangePage,
     }
   }, [
-    app,
     onMount,
     onChange,
-    onUserChange,
+    onChangePresence,
     onNewProject,
     onSaveProject,
     onSaveProjectAs,
@@ -282,9 +291,10 @@ export function Tldraw({
     onSignIn,
     onUndo,
     onRedo,
+    onPersist,
     onPatch,
     onCommand,
-    onPersist,
+    onChangePage,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes

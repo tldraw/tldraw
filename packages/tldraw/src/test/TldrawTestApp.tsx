@@ -73,22 +73,23 @@ export class TldrawTestApp extends TldrawApp {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     return this
   }
 
   doubleClickBoundHandle = (id: TLBoundsHandle, options?: PointerOptions | number[]) => {
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     this.onDoubleClickBoundsHandle(
+      inputs.pointerUp(this.getPoint(options), id),
+      {} as React.PointerEvent
+    )
+    this.onReleaseBoundsHandle?.(
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
+    this.onPointerUp?.(inputs.pointerUp(this.getPoint(options), id), {} as React.PointerEvent)
     return this
   }
 

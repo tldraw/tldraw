@@ -9,7 +9,7 @@ export function useBoundsEvents() {
       if (!inputs.pointerIsValid(e)) return
 
       if (e.button === 2) {
-        callbacks.onRightPointShape?.(inputs.pointerDown(e, 'bounds'), e)
+        callbacks.onRightPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
         return
       }
 

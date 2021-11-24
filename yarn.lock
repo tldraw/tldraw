@@ -1999,15 +1999,15 @@
     npmlog "^4.1.2"
     write-file-atomic "^2.3.0"
 
-"@liveblocks/client@^0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.12.3.tgz#03b957ccc7a6a5dc7474d224fe12c32e065e9c9c"
-  integrity sha512-n82Ymngpvt4EiZEU3LWnEq7EjDmcd2wb2kjGz4m/4L7wYEd4RygAYi7bp7w5JOD1rt3Srhrwbq9Rz7TikbUheg==
+"@liveblocks/client@^0.13.0-beta.1":
+  version "0.13.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.13.0-beta.1.tgz#baee31dbefb7c40c954ab61b8c421562a85f729e"
+  integrity sha512-LW1CygndCQeITYFsnaEZgbe2qqIZKo4iVH/qGYEXVLptc/1PP0nzEi8Hr2lfw4JOUw003FTeQ+BSI/raP22mgg==
 
-"@liveblocks/react@^0.12.3":
-  version "0.12.3"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.12.3.tgz#82d93a9a3a96401258f6c87c1150026dd9d63504"
-  integrity sha512-3mHRiEwZ/s1lbGS4/bblUpLCNCBFMzEiUHHfBH3zO9+IKrH40lVdky0OujgF5zEacYcqUnVW7jT4ZvHCchvsYA==
+"@liveblocks/react@0.13.0-beta.1", "@liveblocks/react@^0.13.0-beta.1":
+  version "0.13.0-beta.1"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.13.0-beta.1.tgz#e71bc47511480967c2a11042aa920399674b5c3d"
+  integrity sha512-odOO5WCVfV3B70Yy8k/11XFY/5dVSBpIPKnx+ZDxZkw/yzrA39NqS+GH7go/RvVAGSeHbg9phknOtg4X9gziAQ==
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
@@ -12677,14 +12677,6 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rko@^0.6.5:
-  version "0.6.5"
-  resolved "https://registry.yarnpkg.com/rko/-/rko-0.6.5.tgz#48069a97bc3ae96c86da2502e909247c6c25f861"
-  integrity sha512-0cYMs8iYJY2J7IuxSzGxWoelxkghvvvT3fWCwi/942uy6ORAYaJpQ73s7DIRR87W6jHNJvtcCzyZVfmtkoQzmg==
-  dependencies:
-    idb-keyval "^6.0.3"
-    zustand "^3.6.4"
-
 roarr@^2.15.3:
   version "2.15.4"
   resolved "https://registry.yarnpkg.com/roarr/-/roarr-2.15.4.tgz#f5fe795b7b838ccfe35dc608e0282b9eba2e7afd"
@@ -15204,7 +15196,7 @@ zen-observable@0.8.15:
   resolved "https://registry.yarnpkg.com/zen-observable/-/zen-observable-0.8.15.tgz#96415c512d8e3ffd920afd3889604e30b9eaac15"
   integrity sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==
 
-zustand@^3.6.4:
+zustand@^3.6.5:
   version "3.6.5"
   resolved "https://registry.yarnpkg.com/zustand/-/zustand-3.6.5.tgz#42a459397907d6bf0e2375351394733b2f83ee44"
   integrity sha512-/WfLJuXiEJimt61KGMHebrFBwckkCHGhAgVXTgPQHl6IMzjqm6MREb1OnDSnCRiSmRdhgdFCctceg6tSm79hiw==

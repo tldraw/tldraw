@@ -5,6 +5,10 @@ import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import { breakpoints } from '~components/breakpoints'
+import { useTldrawApp } from '~hooks'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -23,6 +27,8 @@ export function TopPanel({
   showZoom,
   showSponsorLink,
 }: TopPanelProps) {
+  const app = useTldrawApp()
+
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
@@ -35,6 +41,14 @@ export function TopPanel({
       {(showStyles || showZoom) && (
         <Panel side="right">
           {showStyles && !readOnly && <StyleMenu />}
+          <MobileOnly bp={breakpoints}>
+            <ToolButton>
+              <UndoIcon onClick={app.undo} />
+            </ToolButton>
+            <ToolButton>
+              <RedoIcon onClick={app.redo} />
+            </ToolButton>
+          </MobileOnly>
           {showZoom && <ZoomMenu />}
         </Panel>
       )}
@@ -59,4 +73,19 @@ const StyledTopPanel = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
+})
+
+const MobileOnly = styled('div', {
+  display: 'flex',
+  flexDirection: 'row',
+  variants: {
+    bp: {
+      small: {
+        display: 'inherit',
+      },
+      large: {
+        display: 'none',
+      },
+    },
+  },
 })
