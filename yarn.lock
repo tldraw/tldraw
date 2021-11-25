@@ -10481,12 +10481,12 @@ mkdirp@^0.5.1, mkdirp@^0.5.4, mkdirp@^0.5.5:
 
 mobx-react-lite@2.2.2:
   version "2.2.2"
-  resolved "https://centricsoftware.jfrog.io/centricsoftware/api/npm/npm/mobx-react-lite/-/mobx-react-lite-2.2.2.tgz#87c217dc72b4e47b22493daf155daf3759f868a6"
+  resolved "https://registry.yarnpkg.com/mobx-react-lite/-/mobx-react-lite-2.2.2.tgz#87c217dc72b4e47b22493daf155daf3759f868a6"
   integrity sha1-h8IX3HK05HsiST2vFV2vN1n4aKY=
 
 mobx@5.15.5:
   version "5.15.5"
-  resolved "https://centricsoftware.jfrog.io/centricsoftware/api/npm/npm/mobx/-/mobx-5.15.5.tgz#69715dc8662f64d153309bfe95169b8df4b4be4b"
+  resolved "https://registry.yarnpkg.com/mobx/-/mobx-5.15.5.tgz#69715dc8662f64d153309bfe95169b8df4b4be4b"
   integrity sha1-aXFdyGYvZNFTMJv+lRabjfS0vks=
 
 mocha@^9.1.1:
