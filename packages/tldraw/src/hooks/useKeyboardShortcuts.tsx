@@ -130,7 +130,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+g,⌘+g',
+    'ctrl+shift+g,⌘+shift+g',
     () => {
       if (!canHandleEvent()) return
       app.toggleGrid()

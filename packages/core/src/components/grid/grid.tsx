@@ -1,19 +1,25 @@
 import * as React from 'react'
 import type { TLPageState } from '~types'
+import Utils from '~utils'
 
-const FRACTIONS = [1, 8, 16, 32, 64]
+const STEPS = [
+  [-1, 0.15, 64],
+  [0.05, 0.375, 16],
+  [0.15, 1, 4],
+  [0.7, 2.5, 1],
+]
 
-export function Grid({ grid = 8, camera }: { camera: TLPageState['camera']; grid?: number }) {
+export function Grid({ grid, camera }: { camera: TLPageState['camera']; grid: number }) {
   return (
     <svg className="tl-grid">
       <defs>
-        {FRACTIONS.map((size, i) => {
+        {STEPS.map(([min, mid, size], i) => {
           const s = size * grid * camera.zoom
           const xo = camera.point[0] * camera.zoom
           const yo = camera.point[1] * camera.zoom
           const gxo = xo > 0 ? xo % s : s + (xo % s)
           const gyo = yo > 0 ? yo % s : s + (yo % s)
-          const opacity = s / (grid * 4) - 0.05
+          const opacity = camera.zoom < mid ? Utils.modulate(camera.zoom, [min, mid], [0, 1]) : 1
 
           return (
             <pattern
@@ -23,32 +29,13 @@ export function Grid({ grid = 8, camera }: { camera: TLPageState['camera']; grid
               height={s}
               patternUnits="userSpaceOnUse"
             >
-              <g opacity={opacity}>
-                <line
-                  className={`tl-grid-stroke`}
-                  x1={gxo}
-                  y1={0}
-                  x2={gxo}
-                  y2={s}
-                  fill="none"
-                  strokeWidth={1}
-                />
-                <line
-                  className={`tl-grid-stroke`}
-                  x1={0}
-                  y1={gyo}
-                  x2={s}
-                  y2={gyo}
-                  fill="none"
-                  strokeWidth={1}
-                />
-              </g>
+              <circle className={`tl-grid-dot`} cx={gxo} cy={gyo} opacity={opacity} />
             </pattern>
           )
         })}
       </defs>
-      {FRACTIONS.map((_, i) => (
-        <rect key={`grid-${i}`} width="100%" height="100%" fill={`url(#grid-${i})`} />
+      {STEPS.map((_, i) => (
+        <rect key={`grid-rect-${i}`} width="100%" height="100%" fill={`url(#grid-${i})`} />
       ))}
     </svg>
   )

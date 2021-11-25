@@ -360,7 +360,7 @@ export class Inputs {
       target: 'pinch',
       origin,
       delta: delta,
-      point: Vec.sub(Vec.round(point), [this.bounds.minX, this.bounds.minY]),
+      point: Vec.sub(Vec.toFixed(point), [this.bounds.minX, this.bounds.minY]),
       pressure: 0.5,
       shiftKey,
       ctrlKey,

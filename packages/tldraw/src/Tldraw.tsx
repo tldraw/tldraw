@@ -11,6 +11,7 @@ import { TopPanel } from '~components/TopPanel'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
+import { GRID_SIZE } from '~constants'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -425,6 +426,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           page={page}
           pageState={pageState}
           snapLines={appState.snapLines}
+          grid={GRID_SIZE}
           users={room?.users}
           userId={room?.userId}
           theme={theme}

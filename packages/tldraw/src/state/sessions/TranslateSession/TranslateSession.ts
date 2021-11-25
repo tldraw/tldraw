@@ -13,7 +13,7 @@ import {
   ArrowBinding,
   TldrawPatch,
 } from '~types'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
+import { GRID_SIZE, SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
@@ -24,6 +24,7 @@ type CloneInfo =
     }
   | {
       state: 'ready'
+      cloneMap: Record<string, string>
       clones: TDShape[]
       clonedBindings: ArrowBinding[]
     }
@@ -172,7 +173,7 @@ export class TranslateSession extends BaseSession {
       bindingsToDelete,
       app: {
         pageState: { camera },
-        settings: { isSnapping },
+        settings: { isSnapping, showGrid },
         currentPageId,
         viewport,
         selectedIds,
@@ -259,8 +260,6 @@ export class TranslateSession extends BaseSession {
     // The "movement" is the actual change of position between this
     // computed position and the previous computed position.
 
-    const movement = Vec.sub(delta, this.prev)
-
     this.prev = delta
 
     // If cloning...
@@ -287,7 +286,7 @@ export class TranslateSession extends BaseSession {
 
         // Add the clones to the page
         clones.forEach((clone) => {
-          nextShapes[clone.id] = { ...clone, point: Vec.round(Vec.add(clone.point, delta)) }
+          nextShapes[clone.id] = { ...clone }
 
           // Add clones to non-selected parents
           if (clone.parentId !== currentPageId && !selectedIds.includes(clone.parentId)) {
@@ -313,13 +312,9 @@ export class TranslateSession extends BaseSession {
 
         // Either way, move the clones
         clones.forEach((clone) => {
-          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
-
-          if (!current.point) throw Error('No point on that clone!')
-
           nextShapes[clone.id] = {
             ...clone,
-            point: Vec.round(Vec.add(current.point, movement)),
+            point: Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
       } else {
@@ -329,12 +324,10 @@ export class TranslateSession extends BaseSession {
 
         // Either way, move the clones
         clones.forEach((clone) => {
-          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
-
-          if (!current.point) throw Error('No point on that clone!')
-
           nextShapes[clone.id] = {
-            point: Vec.round(Vec.add(current.point, movement)),
+            point: showGrid
+              ? Vec.snap(Vec.add(clone.point, delta))
+              : Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
       }
@@ -369,7 +362,9 @@ export class TranslateSession extends BaseSession {
         // Move the original shapes back to the cursor position
         initialShapes.forEach((shape) => {
           nextShapes[shape.id] = {
-            point: Vec.round(Vec.add(shape.point, delta)),
+            point: showGrid
+              ? Vec.snap(Vec.add(shape.point, delta))
+              : Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
 
@@ -380,18 +375,18 @@ export class TranslateSession extends BaseSession {
 
         // Set selected ids
         nextPageState.selectedIds = initialShapes.map((shape) => shape.id)
+      } else {
+        // Move the shapes by the delta
+        initialShapes.forEach((shape) => {
+          // const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
+
+          nextShapes[shape.id] = {
+            point: showGrid
+              ? Vec.snap(Vec.add(shape.point, delta))
+              : Vec.toFixed(Vec.add(shape.point, delta)),
+          }
+        })
       }
-
-      // Move the shapes by the delta
-      initialShapes.forEach((shape) => {
-        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
-
-        if (!current.point) throw Error('No point on that clone!')
-
-        nextShapes[shape.id] = {
-          point: Vec.round(Vec.add(current.point, movement)),
-        }
-      })
     }
 
     return {
@@ -696,6 +691,7 @@ export class TranslateSession extends BaseSession {
     this.cloneInfo = {
       state: 'ready',
       clones,
+      cloneMap,
       clonedBindings,
     }
   }

@@ -73,7 +73,7 @@ const defaultTheme: TLTheme = {
   selectFill: 'rgba(65, 132, 244, 0.05)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
-  gridStroke: 'rgba(144, 144, 144, .16)',
+  grid: 'rgba(144, 144, 144, .16)',
 }
 
 const tlcss = css`
@@ -405,8 +405,10 @@ const tlcss = css`
     stroke-width: calc(2px * var(--tl-scale));
   }
 
-  .tl-grid-stroke {
-    stroke: var(--tl-gridStroke);
+  .tl-grid-dot {
+    r: 1;
+    stroke-width: 0
+    fill: var(--tl-grid);
   }
 `
 

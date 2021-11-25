@@ -108,7 +108,7 @@ export interface TLTheme {
   selectStroke?: string
   background?: string
   foreground?: string
-  gridStroke?: string
+  grid?: string
 }
 
 export type TLWheelEventHandler = (

@@ -7,7 +7,9 @@
     "rootDir": "src",
     "baseUrl": "src",
     "paths": {
-      "~*": ["./*"]
+      "~*": ["./*"],
+      "@tldraw/vec": ["../vec"],
+      "@tldraw/intersect": ["../intersect"]
     }
   },
   "typedocOptions": {

@@ -1482,11 +1482,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
 
-      let center = Vec.round(this.getPagePoint(point || this.centerPoint))
+      let center = Vec.toFixed(this.getPagePoint(point || this.centerPoint))
 
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
-        Vec.dist(center, Vec.round(Utils.getBoundsCenter(commonBounds))) < 2
+        Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
       ) {
         center = Vec.add(center, this.pasteInfo.offset)
         this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
@@ -1509,7 +1509,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         shapesToPaste.map((shape) =>
           TLDR.getShapeUtil(shape.type).create({
             ...shape,
-            point: Vec.round(Vec.add(shape.point, delta)),
+            point: Vec.toFixed(Vec.add(shape.point, delta)),
             parentId: shape.parentId || this.currentPageId,
           })
         ),
@@ -1701,7 +1701,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   pan = (delta: number[]): this => {
     const { camera } = this.pageState
-    return this.setCamera(Vec.round(Vec.sub(camera.point, delta)), camera.zoom, `panned`)
+    return this.setCamera(Vec.toFixed(Vec.sub(camera.point, delta)), camera.zoom, `panned`)
   }
 
   /**
@@ -1716,7 +1716,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const nextZoom = zoom
     const p0 = Vec.sub(Vec.div(point, camera.zoom), nextPoint)
     const p1 = Vec.sub(Vec.div(point, nextZoom), nextPoint)
-    return this.setCamera(Vec.round(Vec.add(nextPoint, Vec.sub(p1, p0))), nextZoom, `pinch_zoomed`)
+    return this.setCamera(
+      Vec.toFixed(Vec.add(nextPoint, Vec.sub(p1, p0))),
+      nextZoom,
+      `pinch_zoomed`
+    )
   }
 
   /**
@@ -1728,7 +1732,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const { zoom, point } = this.pageState.camera
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
-    return this.setCamera(Vec.round(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
+    return this.setCamera(Vec.toFixed(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
   }
 
   /**
@@ -1777,7 +1781,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const my = (rendererBounds.height - commonBounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
-      Vec.round(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
+      Vec.toFixed(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
       zoom,
       `zoomed_to_fit`
     )
@@ -1808,7 +1812,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const my = (rendererBounds.height - selectedBounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
-      Vec.round(Vec.sub([mx, my], [selectedBounds.minX, selectedBounds.minY])),
+      Vec.toFixed(Vec.sub([mx, my], [selectedBounds.minX, selectedBounds.minY])),
       zoom,
       `zoomed_to_selection`
     )
@@ -1831,7 +1835,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const my = (rendererBounds.height - commonBounds.height * zoom) / 2 / zoom
 
     return this.setCamera(
-      Vec.round(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
+      Vec.toFixed(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
       this.pageState.camera.zoom,
       `zoomed_to_content`
     )
@@ -2508,7 +2512,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     switch (e.key) {
-      case '.': {
+      case '/': {
         if (this.status === 'idle') {
           const { shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
 
@@ -2569,7 +2573,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!info) return
 
     switch (e.key) {
-      case '.': {
+      case '/': {
         const { currentPoint, shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
 
         this.onPointerUp(
@@ -2960,7 +2964,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   // The center of the component (in screen space)
   get centerPoint() {
     const { width, height } = this.rendererBounds
-    return Vec.round([width / 2, height / 2])
+    return Vec.toFixed([width / 2, height / 2])
   }
 
   getShapeUtil = TLDR.getShapeUtil

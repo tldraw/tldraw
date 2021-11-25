@@ -90,7 +90,7 @@ export class ArrowSession extends BaseSession {
     if (shiftKey) {
       const A = handles[handleId === 'start' ? 'end' : 'start'].point
       const B = handles[handleId].point
-      const C = Vec.round(Vec.sub(Vec.add(B, delta), shape.point))
+      const C = Vec.toFixed(Vec.sub(Vec.add(B, delta), shape.point))
       const angle = Vec.angle(A, C)
       const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
       delta = Vec.add(delta, Vec.sub(adjusted, C))
@@ -98,7 +98,7 @@ export class ArrowSession extends BaseSession {
 
     const handle = {
       ...handles[handleId],
-      point: Vec.round(Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)),
+      point: Vec.toFixed(Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)),
       bindingId: undefined,
     }
 
@@ -441,7 +441,7 @@ export class ArrowSession extends BaseSession {
       fromId: shape.id,
       toId: target.id,
       handleId: handleId,
-      point: Vec.round(bindingPoint.point),
+      point: Vec.toFixed(bindingPoint.point),
       distance: bindingPoint.distance,
     }
   }
