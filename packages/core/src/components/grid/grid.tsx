@@ -10,7 +10,6 @@ const STEPS = [
 ]
 
 export function Grid({ grid, camera }: { camera: TLPageState['camera']; grid: number }) {
-  console.log('url(http://192.168.0.214:5420/#/develop#grid-' + 0 + ')')
   return (
     <svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
