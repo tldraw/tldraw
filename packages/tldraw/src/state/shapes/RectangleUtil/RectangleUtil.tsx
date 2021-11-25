@@ -21,6 +21,10 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
   canBind = true
 
+  canClone = true
+
+  showCloneHandles = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
