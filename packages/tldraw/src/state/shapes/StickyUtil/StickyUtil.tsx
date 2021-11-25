@@ -24,10 +24,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   hideResizeHandles = true
 
-  canClone = true
-
-  showCloneHandles = true
-
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
