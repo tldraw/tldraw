@@ -10,8 +10,9 @@ const STEPS = [
 ]
 
 export function Grid({ grid, camera }: { camera: TLPageState['camera']; grid: number }) {
+  console.log('url(http://192.168.0.214:5420/#/develop#grid-' + 0 + ')')
   return (
-    <svg className="tl-grid">
+    <svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
         {STEPS.map(([min, mid, size], i) => {
           const s = size * grid * camera.zoom
@@ -23,7 +24,7 @@ export function Grid({ grid, camera }: { camera: TLPageState['camera']; grid: nu
 
           return (
             <pattern
-              key={`pattern-${i}`}
+              key={`grid-pattern-${i}`}
               id={`grid-${i}`}
               width={s}
               height={s}
