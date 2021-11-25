@@ -5,6 +5,8 @@ import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'
 import {toSVG, fromSVG} from "./utils/svgEmbedder";
+import { throttle } from 'throttle-debounce';
+import type { MessageFromWebview } from '../types'
 
 // Will be placed in global scope by extension
 declare let svgEmbedded:boolean;
@@ -26,6 +28,12 @@ function parseFile(fileContent):TDFile{
     return null;
   }
 }
+
+const postMessage = throttle(50, (options) => {
+  vscode.postMessage(options as MessageFromWebview)
+});
+
+
 
 currentFile = parseFile(initialFileContent);
 
@@ -55,10 +63,10 @@ export default function App(): JSX.Element {
       text = toSVG(app, currentFile);
     }
 
-    vscode.postMessage({
+    postMessage({
       type: 'editorUpdated',
       text,
-    } as MessageFromWebview)
+    });
   }, [])
 
   // When the file changes from VS Code's side, update the editor's document.
@@ -89,7 +97,8 @@ export default function App(): JSX.Element {
         id={rInitialDocument.current.id}
         document={rInitialDocument.current}
         onMount={handleMount}
-        onPersist={handlePersist}
+        // onPersist={handlePersist}
+        onChange={handlePersist}
         autofocus
       />
     </div>

@@ -138,8 +138,8 @@ export class TldrawWebviewManager {
 
     // Detect if the file is a .tldr file embedded in an SVG file.
     // Ie. does it have a .tldr.svg extension?
-    const svgExtension = ".tldr.svg";
-    const svgEmbedded = document.fileName.search(".tldr.svg")===(document.fileName.length-".tldr.svg".length);
+    const svgExtension = ".svg";
+    const svgEmbedded = document.fileName.search(svgExtension)===(document.fileName.length-svgExtension.length);
     
     return `
       <!DOCTYPE html>

@@ -50,6 +50,12 @@
 					},
 					{
 						"filenamePattern": "*.tldr.svg"
+					},
+					{
+						"filenamePattern": "*.svg"
+					},
+					{
+						"filenamePattern": "*.tldr.json"
 					}
 				]
 			}
