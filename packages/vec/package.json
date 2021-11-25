@@ -22,7 +22,9 @@
   "types": "./dist/types/index.d.ts",
   "scripts": {
     "start:packages": "yarn start",
+    "start:core": "yarn start",
     "start": "node scripts/dev & yarn types:dev",
+    "build:core": "yarn build",
     "build:packages": "yarn build",
     "build": "node scripts/build && yarn types:build",
     "types:dev": "tsc -w --p tsconfig.build.json",
