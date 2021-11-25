@@ -386,7 +386,7 @@ export class Vec {
    * ```
    */
   static snap(a: number[], step = 1) {
-    return [Math.ceil(a[0] / step) * step, Math.ceil(a[1] / step) * step]
+    return [Math.round(a[0] / step) * step, Math.round(a[1] / step) * step]
   }
 
   /**

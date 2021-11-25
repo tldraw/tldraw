@@ -48,7 +48,7 @@ import { defaultStyle } from '~state/shapes/shared/shape-styles'
 import * as Commands from './commands'
 import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
 import type { BaseTool } from './tools/BaseTool'
-import { USER_COLORS, FIT_TO_SCREEN_PADDING } from '~constants'
+import { USER_COLORS, FIT_TO_SCREEN_PADDING, GRID_SIZE } from '~constants'
 import { SelectTool } from './tools/SelectTool'
 import { EraseTool } from './tools/EraseTool'
 import { TextTool } from './tools/TextTool'
@@ -2965,6 +2965,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   get centerPoint() {
     const { width, height } = this.rendererBounds
     return Vec.toFixed([width / 2, height / 2])
+  }
+
+  get currentGrid() {
+    const { zoom } = this.pageState.camera
+    if (zoom < 0.15) {
+      return GRID_SIZE * 16
+    } else if (zoom < 1) {
+      return GRID_SIZE * 4
+    } else {
+      return GRID_SIZE * 1
+    }
   }
 
   getShapeUtil = TLDR.getShapeUtil

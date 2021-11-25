@@ -70,13 +70,14 @@ export class TransformSingleSession extends BaseSession {
       initialShape,
       initialShapeBounds,
       app: {
-        settings: { isSnapping },
+        settings: { isSnapping, showGrid },
         currentPageId,
         pageState: { camera },
         viewport,
         currentPoint,
         previousPoint,
         originPoint,
+        currentGrid,
         shiftKey,
         altKey,
         metaKey,
@@ -85,11 +86,11 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return void null
 
-    const delta = altKey
-      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
-      : Vec.sub(currentPoint, originPoint)
-
     const shapes = {} as Record<string, Partial<TDShape>>
+
+    const A = showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint
+    const B = showGrid ? Vec.snap(originPoint, currentGrid) : originPoint
+    const delta = altKey ? Vec.mul(Vec.sub(A, B), 2) : Vec.sub(A, B)
 
     const shape = this.app.getShape(initialShape.id)
 

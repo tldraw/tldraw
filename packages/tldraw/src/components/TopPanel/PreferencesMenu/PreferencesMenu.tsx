@@ -66,7 +66,7 @@ export function PreferencesMenu() {
       <DMCheckboxItem checked={settings.showCloneHandles} onCheckedChange={toggleCloneControls}>
         Clone Handles
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.showGrid} onCheckedChange={toggleGrid} kbd="#G">
+      <DMCheckboxItem checked={settings.showGrid} onCheckedChange={toggleGrid} kbd="#⇧G">
         Grid
       </DMCheckboxItem>
       <DMCheckboxItem checked={settings.isSnapping} onCheckedChange={toggleisSnapping}>

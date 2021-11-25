@@ -183,16 +183,17 @@ export class TranslateSession extends BaseSession {
         altKey,
         shiftKey,
         metaKey,
+        currentGrid,
       },
     } = this
 
     const nextBindings: Patch<Record<string, TDBinding>> = {}
-
     const nextShapes: Patch<Record<string, TDShape>> = {}
-
     const nextPageState: Patch<TLPageState> = {}
 
-    let delta = Vec.sub(currentPoint, originPoint)
+    const A = showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint
+    const B = showGrid ? Vec.snap(originPoint, currentGrid) : originPoint
+    let delta = Vec.sub(A, B)
 
     let didChangeCloning = false
 
@@ -325,9 +326,7 @@ export class TranslateSession extends BaseSession {
         // Either way, move the clones
         clones.forEach((clone) => {
           nextShapes[clone.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.add(clone.point, delta))
-              : Vec.toFixed(Vec.add(clone.point, delta)),
+            point: Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
       }
@@ -362,9 +361,7 @@ export class TranslateSession extends BaseSession {
         // Move the original shapes back to the cursor position
         initialShapes.forEach((shape) => {
           nextShapes[shape.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.add(shape.point, delta))
-              : Vec.toFixed(Vec.add(shape.point, delta)),
+            point: Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
 
@@ -381,9 +378,7 @@ export class TranslateSession extends BaseSession {
           // const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
 
           nextShapes[shape.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.add(shape.point, delta))
-              : Vec.toFixed(Vec.add(shape.point, delta)),
+            point: Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
       }

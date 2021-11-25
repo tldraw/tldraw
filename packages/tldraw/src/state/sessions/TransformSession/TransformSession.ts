@@ -113,15 +113,16 @@ export class TransformSession extends BaseSession {
         shiftKey,
         altKey,
         metaKey,
-        settings: { isSnapping },
+        currentGrid,
+        settings: { isSnapping, showGrid },
       },
     } = this
 
     const shapes = {} as Record<string, TDShape>
 
-    const delta = altKey
-      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
-      : Vec.sub(currentPoint, originPoint)
+    const A = showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint
+    const B = showGrid ? Vec.snap(originPoint, currentGrid) : originPoint
+    const delta = altKey ? Vec.mul(Vec.sub(A, B), 2) : Vec.sub(A, B)
 
     let newBounds = Utils.getTransformedBoundingBox(
       initialCommonBounds,
