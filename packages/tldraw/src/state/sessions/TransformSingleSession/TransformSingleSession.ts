@@ -88,9 +88,9 @@ export class TransformSingleSession extends BaseSession {
 
     const shapes = {} as Record<string, Partial<TDShape>>
 
-    const A = showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint
-    const B = showGrid ? Vec.snap(originPoint, currentGrid) : originPoint
-    const delta = altKey ? Vec.mul(Vec.sub(A, B), 2) : Vec.sub(A, B)
+    const delta = altKey
+      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
+      : Vec.sub(currentPoint, originPoint)
 
     const shape = this.app.getShape(initialShape.id)
 
@@ -108,6 +108,13 @@ export class TransformSingleSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialShapeBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -158,6 +165,10 @@ export class TransformSingleSession extends BaseSession {
 
     if (afterShape) {
       shapes[shape.id] = afterShape
+    }
+
+    if (showGrid && afterShape?.point) {
+      afterShape.point = Vec.snap(afterShape.point, currentGrid)
     }
 
     return {

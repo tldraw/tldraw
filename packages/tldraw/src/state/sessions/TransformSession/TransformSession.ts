@@ -120,9 +120,9 @@ export class TransformSession extends BaseSession {
 
     const shapes = {} as Record<string, TDShape>
 
-    const A = showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint
-    const B = showGrid ? Vec.snap(originPoint, currentGrid) : originPoint
-    const delta = altKey ? Vec.mul(Vec.sub(A, B), 2) : Vec.sub(A, B)
+    const delta = altKey
+      ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
+      : Vec.sub(currentPoint, originPoint)
 
     let newBounds = Utils.getTransformedBoundingBox(
       initialCommonBounds,
@@ -136,6 +136,13 @@ export class TransformSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialCommonBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -181,7 +188,7 @@ export class TransformSession extends BaseSession {
     this.scaleY = newBounds.scaleY
 
     shapeBounds.forEach(({ initialShape, initialShapeBounds, transformOrigin }) => {
-      const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
+      let newShapeBounds = Utils.getRelativeTransformedBoundingBox(
         newBounds,
         initialCommonBounds,
         initialShapeBounds,
@@ -189,13 +196,19 @@ export class TransformSession extends BaseSession {
         this.scaleY < 0
       )
 
-      shapes[initialShape.id] = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
+      if (showGrid) {
+        newShapeBounds = Utils.snapBoundsToGrid(newShapeBounds, currentGrid)
+      }
+
+      const afterShape = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
         scaleY: this.scaleY,
         transformOrigin,
       })
+
+      shapes[initialShape.id] = afterShape
     })
 
     return {

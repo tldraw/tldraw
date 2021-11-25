@@ -1489,10 +1489,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
       ) {
         center = Vec.add(center, this.pasteInfo.offset)
-        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [
-          this.settings.nudgeDistanceLarge,
-          this.settings.nudgeDistanceLarge,
-        ])
+        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [GRID_SIZE, GRID_SIZE])
       } else {
         this.pasteInfo.center = center
         this.pasteInfo.offset = [0, 0]
@@ -2373,7 +2370,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   nudge = (delta: number[], isMajor = false, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
-    return this.setState(Commands.translateShapes(this, ids, Vec.mul(delta, isMajor ? 10 : 1)))
+    const size = isMajor
+      ? this.settings.showGrid
+        ? this.currentGrid * 4
+        : 10
+      : this.settings.showGrid
+      ? this.currentGrid
+      : 1
+
+    return this.setState(Commands.translateShapes(this, ids, Vec.mul(delta, size)))
   }
 
   /**
