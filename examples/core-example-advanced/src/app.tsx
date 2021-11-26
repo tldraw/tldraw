@@ -189,6 +189,13 @@ export default function App({ onMount }: AppProps): JSX.Element {
 
   // const hideBounds = appState.isInAny('transformingSelection', 'translating', 'creating')
 
+  const firstShapeId = appState.data.pageState.selectedIds[0]
+  const firstShape = firstShapeId ? appState.data.page.shapes[firstShapeId] : null
+  const hideResizeHandles = firstShape
+    ? appState.data.pageState.selectedIds.length === 1 &&
+      shapeUtils[firstShape.type].hideResizeHandles
+    : false
+
   return (
     <AppContainer>
       <Renderer
@@ -216,6 +223,7 @@ export default function App({ onMount }: AppProps): JSX.Element {
         onKeyUp={onKeyUp}
         hideBounds={hideBounds}
         hideHandles={hideBounds}
+        hideResizeHandles={hideResizeHandles}
         hideIndicators={hideBounds}
         hideBindingHandles={true}
       />

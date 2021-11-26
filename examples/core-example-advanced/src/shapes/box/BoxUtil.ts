@@ -14,6 +14,8 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
 
   Indicator = BoxIndicator
 
+  hideResizeHandles = false
+
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
