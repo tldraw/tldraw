@@ -26,6 +26,7 @@ export const Container = observer<ContainerProps>(function Container({
       ref={rPositioned}
       className={isGhost ? 'tl-positioned tl-ghost' : 'tl-positioned'}
       aria-label="container"
+      data-testid="container"
     >
       {children}
     </div>

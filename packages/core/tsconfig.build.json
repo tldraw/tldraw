@@ -15,6 +15,7 @@
     "incremental": false,
     "declaration": true,
     "declarationMap": true,
+    "useDefineForClassFields": true,
     "sourceMap": true
   },
   "references": [{ "path": "../vec" }, { "path": "../intersect" }]
