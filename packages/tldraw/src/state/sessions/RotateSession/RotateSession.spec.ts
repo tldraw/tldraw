@@ -106,7 +106,7 @@ describe('Rotate session', () => {
     it('keeps the center', () => {
       app.loadDocument(mockDocument).select('rect1', 'rect2')
 
-      const centerBefore = Vec.round(
+      const centerBefore = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -114,7 +114,7 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterA = Vec.round(
+      const centerAfterA = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -122,7 +122,7 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 100, y: 0 }).movePointer([50, 0]).completeSession()
 
-      const centerAfterB = Vec.round(
+      const centerAfterB = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -142,7 +142,7 @@ describe('Rotate session', () => {
     it('changes the center after nudging', () => {
       const app = new TldrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
 
-      const centerBefore = Vec.round(
+      const centerBefore = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -150,7 +150,7 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterA = Vec.round(
+      const centerAfterA = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -163,7 +163,7 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterB = Vec.round(
+      const centerAfterB = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )

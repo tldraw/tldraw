@@ -81,7 +81,7 @@ export class DrawSession extends BaseSession {
     }
 
     // The new adjusted point
-    const newAdjustedPoint = Vec.round(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
+    const newAdjustedPoint = Vec.toFixed(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
 
     // Don't add duplicate points.
     if (Vec.isEqual(this.lastAdjustedPoint, newAdjustedPoint)) return
@@ -112,7 +112,7 @@ export class DrawSession extends BaseSession {
       // offset between the new top left and the original top left.
 
       points = this.points.map((pt) => {
-        return Vec.round(Vec.sub(pt, delta)).concat(pt[2])
+        return Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2])
       })
     } else {
       // If the new top left is the same as the previous top left,
@@ -197,8 +197,8 @@ export class DrawSession extends BaseSession {
               shapes: {
                 [shapeId]: {
                   ...shape,
-                  point: Vec.round(shape.point),
-                  points: shape.points.map((pt) => Vec.round(pt)),
+                  point: Vec.toFixed(shape.point),
+                  points: shape.points.map((pt) => Vec.toFixed(pt)),
                   isComplete: true,
                 },
               },

@@ -13,8 +13,10 @@
   "compilerOptions": {
     "composite": false,
     "incremental": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "emitDeclarationOnly": true
-  }
+    "declaration": true,
+    "declarationMap": true,
+    "useDefineForClassFields": true,
+    "sourceMap": true
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }]
 }

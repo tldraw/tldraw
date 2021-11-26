@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useObserver} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '~types'
 import { useSelection, useShapeTree, useTLContext } from '~hooks'
@@ -26,7 +26,7 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
 /**
  * The Page component renders the current page.
  */
-export const Page = function Page<T extends TLShape, M extends Record<string, unknown>>({
+export const Page = observer(function _Page<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   hideBounds,
@@ -38,72 +38,75 @@ export const Page = function Page<T extends TLShape, M extends Record<string, un
   hideResizeHandles,
   meta,
 }: PageProps<T, M>): JSX.Element {
-  return useObserver(() => {
-    const {bounds: rendererBounds, shapeUtils} = useTLContext()
+  const { bounds: rendererBounds, shapeUtils } = useTLContext()
 
-    const shapeTree = useShapeTree(page, pageState, meta)
+  const shapeTree = useShapeTree(page, pageState, meta)
 
-    const {bounds, isLinked, isLocked, rotation} = useSelection(page, pageState, shapeUtils)
+  const { bounds, isLinked, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
-    const {
-      selectedIds,
-      hoveredId,
-      camera: {zoom},
-    } = pageState
+  const {
+    selectedIds,
+    hoveredId,
+    camera: { zoom },
+  } = pageState
 
-    let _hideCloneHandles = true
+  let _hideCloneHandles = true
 
-    // Does the selected shape have handles?
-    let shapeWithHandles: TLShape | undefined = undefined
+  // Does the selected shape have handles?
+  let shapeWithHandles: TLShape | undefined = undefined
 
-    const selectedShapes = selectedIds.map((id) => page.shapes[id])
+  const selectedShapes = selectedIds.map((id) => page.shapes[id])
 
-    if (selectedShapes.length === 1) {
-      const shape = selectedShapes[0]
+  if (selectedShapes.length === 1) {
+    const shape = selectedShapes[0]
 
-      const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
+    const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
 
-      _hideCloneHandles = hideCloneHandles || !utils.showCloneHandles
+    _hideCloneHandles = hideCloneHandles || !utils.showCloneHandles
 
-      if (shape.handles !== undefined) {
-        shapeWithHandles = shape
-      }
+    if (shape.handles !== undefined) {
+      shapeWithHandles = shape
     }
+  }
 
-    return (
-      <>
-        {bounds && <BoundsBg bounds={bounds} rotation={rotation} isHidden={hideBounds}/>}
-        {shapeTree.map((node) => (
-          <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
-        ))}
-        {!hideIndicators &&
-         selectedShapes.map((shape) => (
-           <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta as any} isSelected/>
-         ))}
-        {!hideIndicators && hoveredId && (
+  return (
+    <>
+      {bounds && <BoundsBg bounds={bounds} rotation={rotation} isHidden={hideBounds} />}
+      {shapeTree.map((node) => (
+        <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
+      ))}
+      {!hideIndicators &&
+        selectedShapes.map((shape) => (
           <ShapeIndicator
-            key={'hovered_' + hoveredId}
-            shape={page.shapes[hoveredId]}
+            key={'selected_' + shape.id}
+            shape={shape}
             meta={meta as any}
-            isHovered
+            isSelected
           />
-        )}
-        {bounds && (
-          <Bounds
-            zoom={zoom}
-            bounds={bounds}
-            viewportWidth={rendererBounds.width}
-            isLocked={isLocked}
-            rotation={rotation}
-            isHidden={hideBounds}
-            hideRotateHandle={hideRotateHandle}
-            hideResizeHandles={hideResizeHandles}
-            hideBindingHandles={hideBindingHandles || !isLinked}
-            hideCloneHandles={_hideCloneHandles}
-          />
-        )}
-        {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom}/>}
-      </>
-    )
-  })
-}
+        ))}
+      {!hideIndicators && hoveredId && (
+        <ShapeIndicator
+          key={'hovered_' + hoveredId}
+          shape={page.shapes[hoveredId]}
+          meta={meta as any}
+          isHovered
+        />
+      )}
+      {bounds && (
+        <Bounds
+          zoom={zoom}
+          bounds={bounds}
+          viewportWidth={rendererBounds.width}
+          isLocked={isLocked}
+          rotation={rotation}
+          isHidden={hideBounds}
+          hideRotateHandle={hideRotateHandle}
+          hideResizeHandles={hideResizeHandles}
+          hideBindingHandles={hideBindingHandles || !isLinked}
+          hideCloneHandles={_hideCloneHandles}
+        />
+      )}
+      {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
+    </>
+  )
+})

@@ -1,4 +1,4 @@
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 
 type MyProps = {
@@ -6,7 +6,7 @@ type MyProps = {
   children: React.ReactNode
 }
 
-export const Overlay = observer<MyProps>(function Overlay({camera: {zoom, point}, children}) {
+export const Overlay = observer<MyProps>(function Overlay({ camera: { zoom, point }, children }) {
   const l = 2.5 / zoom
   return (
     <svg className="tl-overlay">

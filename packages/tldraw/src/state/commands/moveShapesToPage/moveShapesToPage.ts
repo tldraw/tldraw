@@ -170,7 +170,7 @@ export function moveShapesToPage(
   const mx = (viewportBounds.width - bounds.width * zoom) / 2 / zoom
   const my = (viewportBounds.height - bounds.height * zoom) / 2 / zoom
 
-  const point = Vec.round(Vec.add([-bounds.minX, -bounds.minY], [mx, my]))
+  const point = Vec.toFixed(Vec.add([-bounds.minX, -bounds.minY], [mx, my]))
 
   return {
     id: 'move_to_page',

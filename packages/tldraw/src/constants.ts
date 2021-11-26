@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+export const GRID_SIZE = 8
 export const BINDING_DISTANCE = 24
 export const CLONING_DISTANCE = 32
 export const FIT_TO_SCREEN_PADDING = 128

@@ -1,4 +1,4 @@
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLSnapLine } from '~types'
 import Utils from '~utils'

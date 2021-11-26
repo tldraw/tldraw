@@ -2,12 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { useTldrawApp } from '~hooks'
-import {
-  DMCheckboxItem,
-  DMContent,
-  DMRadioItem,
-  DMTriggerIcon,
-} from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -38,6 +33,7 @@ import {
   TextAlignLeftIcon,
   TextAlignRightIcon,
 } from '@radix-ui/react-icons'
+import { RowButton } from '~components/Primitives/RowButton'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -68,9 +64,13 @@ const ALIGN_ICONS = {
 const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
 
 const showTextStylesSelector = (s: TDSnapshot) => {
-  const pageId = s.appState.currentPageId
+  const { activeTool, currentPageId: pageId } = s.appState
   const page = s.document.pages[pageId]
-  return s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+
+  return (
+    activeTool === 'text' ||
+    s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+  )
 }
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
@@ -149,22 +149,25 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon>
-        <OverlapIcons
-          style={{
-            color: strokes[theme][displayedStyle.color as ColorStyle],
-          }}
-        >
-          {displayedStyle.isFilled && (
-            <CircleIcon
-              size={16}
-              stroke="none"
-              fill={fills[theme][displayedStyle.color as ColorStyle]}
-            />
-          )}
-          {DASH_ICONS[displayedStyle.dash]}
-        </OverlapIcons>
-      </DMTriggerIcon>
+      <DropdownMenu.Trigger asChild>
+        <ToolButton variant="text">
+          Styles
+          <OverlapIcons
+            style={{
+              color: strokes[theme][displayedStyle.color as ColorStyle],
+            }}
+          >
+            {displayedStyle.isFilled && (
+              <CircleIcon
+                size={16}
+                stroke="none"
+                fill={fills[theme][displayedStyle.color as ColorStyle]}
+              />
+            )}
+            {DASH_ICONS[displayedStyle.dash]}
+          </OverlapIcons>
+        </ToolButton>
+      </DropdownMenu.Trigger>
       <DMContent>
         <StyledRow variant="tall">
           <span>Color</span>

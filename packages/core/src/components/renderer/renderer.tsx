@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useObserver} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type {
   TLShape,
@@ -88,6 +88,14 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   hideIndicators?: boolean
   /**
+   * (optional) When true, the renderer will not show the grid.
+   */
+  hideGrid?: boolean
+  /**
+   * (optional) The size of the grid step.
+   */
+  grid?: number
+  /**
    * (optional) A callback that receives the renderer's inputs manager.
    */
   onMount?: (inputs: Inputs) => void
@@ -105,7 +113,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
  * @param props
  * @returns
  */
-export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
+export const Renderer = observer(function _Renderer<
+  T extends TLShape,
+  M extends Record<string, unknown>
+>({
   id = 'tl',
   shapeUtils,
   page,
@@ -115,6 +126,7 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   theme,
   meta,
   snapLines,
+  grid,
   containerRef,
   hideHandles = false,
   hideIndicators = false,
@@ -123,63 +135,64 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideResizeHandles = false,
   hideRotateHandles = false,
   hideBounds = false,
+  hideGrid = true,
   ...rest
 }: RendererProps<T, M>): JSX.Element {
-  return useObserver(() => {
-    useTLTheme(theme, '#' + id)
+  useTLTheme(theme, '#' + id)
 
-    const rSelectionBounds = React.useRef<TLBounds>(null)
+  const rSelectionBounds = React.useRef<TLBounds>(null)
 
-    const rPageState = React.useRef<TLPageState>(pageState)
+  const rPageState = React.useRef<TLPageState>(pageState)
 
-    React.useEffect(() => {
-      rPageState.current = pageState
-    }, [pageState])
+  React.useEffect(() => {
+    rPageState.current = pageState
+  }, [pageState])
 
-    const [context, setContext] = React.useState<TLContextType<T>>(() => ({
-      callbacks: rest,
-      shapeUtils,
-      rSelectionBounds,
-      rPageState,
-      bounds: {
-        minX: 0,
-        minY: 0,
-        maxX: Infinity,
-        maxY: Infinity,
-        width: Infinity,
-        height: Infinity,
-      },
-      inputs: new Inputs(),
+  const [context, setContext] = React.useState<TLContextType<T>>(() => ({
+    callbacks: rest,
+    shapeUtils,
+    rSelectionBounds,
+    rPageState,
+    bounds: {
+      minX: 0,
+      minY: 0,
+      maxX: Infinity,
+      maxY: Infinity,
+      width: Infinity,
+      height: Infinity,
+    },
+    inputs: new Inputs(),
+  }))
+
+  const onBoundsChange = React.useCallback((bounds: TLBounds) => {
+    setContext((context) => ({
+      ...context,
+      bounds,
     }))
+  }, [])
 
-    const onBoundsChange = React.useCallback((bounds: TLBounds) => {
-      setContext((context) => ({
-        ...context,
-        bounds,
-      }))
-    }, [])
-
-    return (
-      <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
-        <Canvas
-          id={id}
-          page={page}
-          pageState={pageState}
-          snapLines={snapLines}
-          users={users}
-          userId={userId}
-          externalContainerRef={containerRef}
-          hideBounds={hideBounds}
-          hideIndicators={hideIndicators}
-          hideHandles={hideHandles}
-          hideCloneHandles={hideCloneHandles}
-          hideBindingHandles={hideBindingHandles}
-          hideRotateHandle={hideRotateHandles}
-          hideResizeHandles={hideResizeHandles}
-          onBoundsChange={onBoundsChange}
-          meta={meta}
-        />
-      </TLContext.Provider>
-    )
-  })
-}
+  return (
+    <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
+      <Canvas
+        id={id}
+        page={page}
+        pageState={pageState}
+        snapLines={snapLines}
+        grid={grid}
+        users={users}
+        userId={userId}
+        externalContainerRef={containerRef}
+        hideBounds={hideBounds}
+        hideIndicators={hideIndicators}
+        hideHandles={hideHandles}
+        hideCloneHandles={hideCloneHandles}
+        hideBindingHandles={hideBindingHandles}
+        hideRotateHandle={hideRotateHandles}
+        hideResizeHandles={hideResizeHandles}
+        hideGrid={hideGrid}
+        onBoundsChange={onBoundsChange}
+        meta={meta}
+      />
+    </TLContext.Provider>
+  )
+})

@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "declaration": true,
-    "declarationMap": true,
     "composite": true,
-    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": false,
+    "sourceMap": false,
     "emitDeclarationOnly": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,

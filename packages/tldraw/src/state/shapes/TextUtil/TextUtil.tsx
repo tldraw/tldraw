@@ -24,6 +24,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
   canBind = true
 
+  canClone = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
@@ -285,7 +287,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
     } = initialShape
 
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
       style: {
         ...initialShape.style,
         scale: scale * Math.max(Math.abs(scaleY), Math.abs(scaleX)),
@@ -309,7 +311,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
         ...shape.style,
         scale: 1,
       },
-      point: Vec.round(Vec.add(shape.point, Vec.sub(center, newCenter))),
+      point: Vec.toFixed(Vec.add(shape.point, Vec.sub(center, newCenter))),
     }
   }
 

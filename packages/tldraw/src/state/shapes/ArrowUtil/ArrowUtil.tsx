@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, TLBounds, TLPointerInfo, SVGContainer } from '@tldraw/core'
+import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {
@@ -47,45 +47,47 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   pathCache = new WeakMap<T, string>()
 
   getShape = (props: Partial<T>): T => {
-    return Utils.deepMerge<T>(
-      {
-        id: 'id',
-        type: TDShapeType.Arrow,
-        name: 'Arrow',
-        parentId: 'page',
-        childIndex: 1,
-        point: [0, 0],
-        rotation: 0,
-        bend: 0,
-        handles: {
-          start: {
-            id: 'start',
-            index: 0,
-            point: [0, 0],
-            canBind: true,
-          },
-          end: {
-            id: 'end',
-            index: 1,
-            point: [1, 1],
-            canBind: true,
-          },
-          bend: {
-            id: 'bend',
-            index: 2,
-            point: [0.5, 0.5],
-          },
+    return {
+      id: 'id',
+      type: TDShapeType.Arrow,
+      name: 'Arrow',
+      parentId: 'page',
+      childIndex: 1,
+      point: [0, 0],
+      rotation: 0,
+      bend: 0,
+      handles: {
+        start: {
+          id: 'start',
+          index: 0,
+          point: [0, 0],
+          canBind: true,
+          ...props.handles?.start,
         },
-        decorations: {
-          end: Decoration.Arrow,
+        end: {
+          id: 'end',
+          index: 1,
+          point: [1, 1],
+          canBind: true,
+          ...props.handles?.end,
         },
-        style: {
-          ...defaultStyle,
-          isFilled: false,
+        bend: {
+          id: 'bend',
+          index: 2,
+          point: [0.5, 0.5],
+          ...props.handles?.bend,
         },
       },
-      props
-    )
+      decorations: props.decorations ?? {
+        end: Decoration.Arrow,
+      },
+      style: {
+        ...defaultStyle,
+        isFilled: false,
+        ...props.style,
+      },
+      ...props,
+    }
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, isGhost, meta, events }, ref) => {
@@ -97,7 +99,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     const isDraw = style.dash === DashStyle.Draw
 
-    const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+    const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 
@@ -120,7 +122,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     if (isStraightLine) {
       const path = isDraw
         ? renderFreehandArrowShaft(shape)
-        : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
+        : 'M' + Vec.toFixed(start.point) + 'L' + Vec.toFixed(end.point)
 
       const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         arrowDist,
@@ -396,11 +398,11 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     nextHandles['bend'] = {
       ...bend,
-      point: Vec.round(Math.abs(bendDist) < 10 ? midPoint : point),
+      point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
     }
 
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
       handles: nextHandles,
     }
   }
@@ -514,7 +516,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return this.onHandleChange(shape, {
       [handle.id]: {
         ...handle,
-        point: Vec.round(handlePoint),
+        point: Vec.toFixed(handlePoint),
       },
     })
   }
@@ -527,11 +529,11 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       ...nextHandles,
       start: {
         ...nextHandles.start,
-        point: Vec.round(nextHandles.start.point),
+        point: Vec.toFixed(nextHandles.start.point),
       },
       end: {
         ...nextHandles.end,
-        point: Vec.round(nextHandles.end.point),
+        point: Vec.toFixed(nextHandles.end.point),
       },
     }
 
@@ -599,10 +601,10 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
-        handle.point = Vec.round(Vec.sub(handle.point, offset))
+        handle.point = Vec.toFixed(Vec.sub(handle.point, offset))
       })
 
-      nextShape.point = Vec.round(Vec.add(nextShape.point, offset))
+      nextShape.point = Vec.toFixed(Vec.add(nextShape.point, offset))
     }
 
     return nextShape

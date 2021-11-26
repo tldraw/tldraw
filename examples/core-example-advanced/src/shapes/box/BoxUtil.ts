@@ -14,6 +14,8 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
 
   Indicator = BoxIndicator
 
+  hideResizeHandles = false
+
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const [width, height] = shape.size
@@ -46,6 +48,10 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
       childIndex: 1,
       ...props,
     }
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size
   }
 
   getCenter = (shape: T) => {

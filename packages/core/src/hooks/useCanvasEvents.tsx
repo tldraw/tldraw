@@ -6,13 +6,13 @@ export function useCanvasEvents() {
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
+      if (e.button !== 0 && e.button !== 1) return
       if (!inputs.pointerIsValid(e)) return
       e.currentTarget.setPointerCapture(e.pointerId)
 
       const info = inputs.pointerDown(e, 'canvas')
 
-      if (e.button === 0) {
+      if (e.button === 0 || e.button === 1) {
         callbacks.onPointCanvas?.(info, e)
         callbacks.onPointerDown?.(info, e)
       }
@@ -36,7 +36,7 @@ export function useCanvasEvents() {
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
+      if (e.button !== 0 && e.button !== 1) return
 
       inputs.activePointer = undefined
 

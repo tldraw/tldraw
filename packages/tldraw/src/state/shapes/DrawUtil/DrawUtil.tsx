@@ -31,6 +31,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
 
   pointCache: Record<string, number[]> = {}
 
+  canClone = true
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {

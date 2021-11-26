@@ -14,7 +14,7 @@ export function useCameraCss(
 
   React.useLayoutEffect(() => {
     return autorun(() => {
-      const {zoom, point} = pageState.camera
+      const { zoom, point } = pageState.camera
 
       const didZoom = zoom !== rZoom.current
       const didPan = point !== rPoint.current
@@ -44,4 +44,5 @@ export function useCameraCss(
         }
       }
     })
-  }, [pageState])}
+  }, [pageState])
+}

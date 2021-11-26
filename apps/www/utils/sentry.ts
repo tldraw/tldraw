@@ -13,11 +13,11 @@ export function init(): void {
     integrations.push(
       new RewriteFrames({
         iteratee: (frame) => {
-          frame.filename = frame.filename.replace(
-            process.env.NEXT_PUBLIC_SENTRY_SERVER_ROOT_DIR,
+          frame.filename = frame?.filename?.replace(
+            process.env.NEXT_PUBLIC_SENTRY_SERVER_ROOT_DIR as string,
             'app:///'
           )
-          frame.filename = frame.filename.replace('.next', '_next')
+          frame.filename = frame?.filename?.replace('.next', '_next')
           return frame
         },
       })
