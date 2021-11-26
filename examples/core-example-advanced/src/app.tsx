@@ -16,6 +16,8 @@ import './styles.css'
 import styled from 'stitches.config'
 import { Api } from 'state/api'
 
+declare const window: Window & { api: Api }
+
 const onHoverShape: TLPointerEventHandler = (info, e) => {
   machine.send('HOVERED_SHAPE', info)
 }
@@ -181,7 +183,6 @@ export default function App({ onMount }: AppProps): JSX.Element {
   React.useEffect(() => {
     const api = new Api(appState)
     onMount?.(api)
-    // @ts-ignore
     window['api'] = api
   }, [])
 
