@@ -236,14 +236,12 @@ export class TranslateSession extends BaseSession {
       this.speed * camera.zoom < SLOW_SPEED &&
       this.snapInfo.state === 'ready'
     ) {
-      let bounds = showGrid
-        ? Utils.snapBoundsToGrid(Utils.translateBounds(initialCommonBounds, delta), currentGrid)
-        : Utils.translateBounds(initialCommonBounds, delta)
-
-      bounds = Utils.getBoundsWithCenter(bounds)
-
       const snapResult = Utils.getSnapPoints(
-        bounds,
+        Utils.getBoundsWithCenter(
+          showGrid
+            ? Utils.snapBoundsToGrid(Utils.translateBounds(initialCommonBounds, delta), currentGrid)
+            : Utils.translateBounds(initialCommonBounds, delta)
+        ),
         (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter(
           (bounds) => Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
         ),
