@@ -129,6 +129,16 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
+  useHotkeys(
+    'ctrl+shift+g,⌘+shift+g',
+    () => {
+      if (!canHandleEvent()) return
+      app.toggleGrid()
+    },
+    undefined,
+    [app]
+  )
+
   // File System
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()

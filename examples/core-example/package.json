@@ -1,5 +1,5 @@
 {
-  "version": "1.1.3",
+  "version": "1.1.5",
   "name": "@tldraw/core-example-simple",
   "description": "A simple example project for @tldraw/core.",
   "author": "@steveruizok",
@@ -15,8 +15,8 @@
   },
   "files": [],
   "devDependencies": {
-    "@tldraw/core": "^1.1.3",
-    "@tldraw/vec": "^0.0.130",
+    "@tldraw/core": "^1.1.5",
+    "@tldraw/vec": "^1.1.5",
     "@types/node": "^14.14.35",
     "@types/react": "^16.9.55",
     "@types/react-dom": "^16.9.9",

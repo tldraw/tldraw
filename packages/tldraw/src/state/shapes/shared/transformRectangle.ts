@@ -13,9 +13,11 @@ export function transformRectangle<T extends TLShape & { size: number[] }>(
   { initialShape, transformOrigin, scaleX, scaleY }: TLTransformInfo<T>
 ) {
   if (shape.rotation || initialShape.isAspectRatioLocked) {
-    const size = Vec.round(Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY))))
+    const size = Vec.toFixed(
+      Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
+    )
 
-    const point = Vec.round([
+    const point = Vec.toFixed([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
       bounds.minY +
@@ -37,8 +39,8 @@ export function transformRectangle<T extends TLShape & { size: number[] }>(
     }
   } else {
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
-      size: Vec.round([bounds.width, bounds.height]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
+      size: Vec.toFixed([bounds.width, bounds.height]),
     }
   }
 }

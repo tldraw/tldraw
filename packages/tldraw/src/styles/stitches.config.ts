@@ -32,7 +32,8 @@ const { styled, createTheme } = createStitches({
       key: '1px 1px rgba(0,0,0,1)',
       panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
         0px 0px 16px -8px rgba(0, 0, 0, 0.05), 
-        0px 0px 16px -12px rgba(0, 0, 0, 0.12)`,
+        0px 0px 16px -12px rgba(0, 0, 0, 0.12),
+        0px 0px 2px 0px rgba(0, 0, 0, 0.08)`,
     },
     space: {
       0: '2px',
@@ -76,6 +77,7 @@ const { styled, createTheme } = createStitches({
     micro: '(max-width: 370px)',
     sm: '(min-width: 640px)',
     md: '(min-width: 768px)',
+    lg: '(min-width: 1024px)',
   },
   utils: {
     zStrokeWidth: () => (value: number | number[]) => {

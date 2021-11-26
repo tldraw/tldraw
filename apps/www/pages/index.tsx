@@ -1,9 +1,9 @@
 import dynamic from 'next/dynamic'
-import { GetServerSideProps } from 'next'
+import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import Head from 'next/head'
 
-const Editor = dynamic(() => import('-components/Editor'), { ssr: false })
+const Editor = dynamic(() => import('components/Editor'), { ssr: false })
 
 interface PageProps {
   isUser: boolean

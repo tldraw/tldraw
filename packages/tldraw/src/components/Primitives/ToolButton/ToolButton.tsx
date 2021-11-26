@@ -141,6 +141,7 @@ export const StyledToolButton = styled('button', {
         [`& ${StyledToolButtonInner}`]: {
           fontSize: '$1',
           padding: '0 $3',
+          gap: '$3',
         },
       },
       circle: {

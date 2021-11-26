@@ -672,7 +672,7 @@ export class TLDR {
     const rotatedCenter = Vec.rotWith(center, origin, delta)
 
     // Get the top left point relative to the rotated center
-    const nextPoint = Vec.round(Vec.sub(rotatedCenter, relativeCenter))
+    const nextPoint = Vec.toFixed(Vec.sub(rotatedCenter, relativeCenter))
 
     // If the shape has handles, we need to rotate the handles instead
     // of rotating the shape. Shapes with handles should never be rotated,
@@ -685,7 +685,7 @@ export class TLDR {
           Object.entries(shape.handles).map(([handleId, handle]) => {
             // Rotate each handle's point around the shape's center
             // (in relative shape space, as the handle's point will be).
-            const point = Vec.round(Vec.rotWith(handle.point, relativeCenter, delta))
+            const point = Vec.toFixed(Vec.rotWith(handle.point, relativeCenter, delta))
             return [handleId, { ...handle, point }]
           })
         ) as T['handles'],

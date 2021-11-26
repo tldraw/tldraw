@@ -18,6 +18,8 @@ export class EraseTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.status !== Status.Idle) return
+
     this.setStatus(Status.Pointing)
   }
 

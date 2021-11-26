@@ -70,13 +70,14 @@ export class TransformSingleSession extends BaseSession {
       initialShape,
       initialShapeBounds,
       app: {
-        settings: { isSnapping },
+        settings: { isSnapping, showGrid },
         currentPageId,
         pageState: { camera },
         viewport,
         currentPoint,
         previousPoint,
         originPoint,
+        currentGrid,
         shiftKey,
         altKey,
         metaKey,
@@ -85,11 +86,11 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return void null
 
+    const shapes = {} as Record<string, Partial<TDShape>>
+
     const delta = altKey
       ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
       : Vec.sub(currentPoint, originPoint)
-
-    const shapes = {} as Record<string, Partial<TDShape>>
 
     const shape = this.app.getShape(initialShape.id)
 
@@ -107,6 +108,13 @@ export class TransformSingleSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialShapeBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -157,6 +165,10 @@ export class TransformSingleSession extends BaseSession {
 
     if (afterShape) {
       shapes[shape.id] = afterShape
+    }
+
+    if (showGrid && afterShape && afterShape.point) {
+      afterShape.point = Vec.snap(afterShape.point, currentGrid)
     }
 
     return {

@@ -73,22 +73,23 @@ export class TldrawTestApp extends TldrawApp {
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     return this
   }
 
   doubleClickBoundHandle = (id: TLBoundsHandle, options?: PointerOptions | number[]) => {
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), id), {} as React.PointerEvent)
+    this.onPointerDown(inputs.pointerDown(this.getPoint(options), id), {} as React.PointerEvent)
     this.onDoubleClickBoundsHandle(
+      inputs.pointerUp(this.getPoint(options), id),
+      {} as React.PointerEvent
+    )
+    this.onReleaseBoundsHandle?.(
       inputs.pointerDown(this.getPoint(options), id),
       {} as React.PointerEvent
     )
-    this.onPointerDown(
-      inputs.pointerDown(this.getPoint(options), 'canvas'),
-      {} as React.PointerEvent
-    )
+    this.onPointerUp?.(inputs.pointerUp(this.getPoint(options), id), {} as React.PointerEvent)
     return this
   }
 
@@ -159,6 +160,18 @@ export class TldrawTestApp extends TldrawApp {
         expect(shape[key as keyof T]).toEqual(value)
       })
     })
+    return this
+  }
+
+  pressKey = (key: string) => {
+    const e = { key } as KeyboardEvent
+    this.onKeyDown(key, inputs.keydown(e), e)
+    return this
+  }
+
+  releaseKey = (key: string) => {
+    const e = { key } as KeyboardEvent
+    this.onKeyUp(key, inputs.keyup(e), e)
     return this
   }
 }

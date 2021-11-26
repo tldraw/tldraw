@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Vec } from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { AlignType, TldrawCommand, TDShapeType } from '~types'
-import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
-import Vec from '@tldraw/vec'
 import type { TldrawApp } from '../../internal'
 
 export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): TldrawCommand {

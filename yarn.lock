@@ -3135,23 +3135,6 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
-"@tldraw/intersect@latest":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@tldraw/intersect/-/intersect-0.1.4.tgz#390d76a0a24f625dfb9bb08f7f6a24e4a02007a1"
-  integrity sha512-pxNMyUD9BMy0JqUSik4RXhf/meRA1TwJ3zESLebQ3EB3kThd9zICIUH5U8RmosvBx0c7dLMTvVzA1yVRbQBslQ==
-  dependencies:
-    "@tldraw/vec" "^0.1.3"
-
-"@tldraw/vec@^0.0.130":
-  version "0.0.130"
-  resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.0.130.tgz#49be3dfabf9281c8361d0c3648e94c11f3a5ae83"
-  integrity sha512-0vUa2asaUrxqDiu+1sseC1NSVN+IdSEK/gfrdyG7ZlrQPWECu8nhbanbKfbLkYafJuFsZnc6TZXnLs12T/+22g==
-
-"@tldraw/vec@^0.1.3", "@tldraw/vec@latest":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@tldraw/vec/-/vec-0.1.3.tgz#9c2ea9592058dd1458b49dbd817690a0c74e5473"
-  integrity sha512-QIQu6xHWqYBarfCR2Cd55pb+HECCEFI3RlU0VEueztzGe2k5Mwcv1EuuIdPTZ1tg5o95Deo7mYgZKeZTcUCIxA==
-
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -14030,6 +14013,15 @@ tsconfig-paths@^3.11.0, tsconfig-paths@^3.9.0:
     minimist "^1.2.0"
     strip-bom "^3.0.0"
 
+tsconfig-replace-paths@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.11.tgz#0059a5ba5b6c156b00038ce46842e3d4d801a33b"
+  integrity sha512-BX10vOJL/kTZExQwj22FJgxCpneNYKfXvujBKGFpnvaKWl4/9Cpd678ZvKF+CX5NdxbKphscwtc8QzFA7zhVsA==
+  dependencies:
+    commander "^3.0.2"
+    globby "^10.0.1"
+    json5 "^2.2.0"
+
 tsconfig-replace-paths@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.5.tgz#a9bf058604c50de5cab285c0eb0ed9b7d944d5ac"
@@ -14223,7 +14215,7 @@ typescript@^3.9.7:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
 
-typescript@^4.4.2, typescript@^4.4.3:
+typescript@^4.4.3, typescript@^4.5.2:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==

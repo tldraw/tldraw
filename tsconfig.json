@@ -1,14 +1,4 @@
 {
-  "composite": true,
   "extends": "./tsconfig.base.json",
-  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"],
-  "files": [],
-  "references": [{ "path": "./packages/tldraw" }, { "path": "./packages/core" }],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@tldraw/core": ["./packages/core"],
-      "@tldraw/tldraw": ["./packages/tldraw"]
-    }
-  }
+  "exclude": ["node_modules", "**/*.test.ts", "**/*.spec.ts"]
 }

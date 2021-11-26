@@ -19,6 +19,7 @@ import { useResizeObserver } from '~hooks/useResizeObserver'
 import { inputs } from '~inputs'
 import { UsersIndicators } from '~components/users-indicators'
 import { SnapLines } from '~components/snap-lines/snap-lines'
+import { Grid } from '~components/grid'
 import { Overlay } from '~components/overlay'
 
 function resetError() {
@@ -29,6 +30,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   snapLines?: TLSnapLine[]
+  grid?: number
   users?: TLUsers<T>
   userId?: string
   hideBounds: boolean
@@ -38,6 +40,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideCloneHandles: boolean
   hideResizeHandles: boolean
   hideRotateHandle: boolean
+  hideGrid: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   meta?: M
   id?: string
@@ -49,6 +52,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   snapLines,
+  grid,
   users,
   userId,
   meta,
@@ -60,6 +64,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
   hideCloneHandles,
   hideResizeHandles,
   hideRotateHandle,
+  hideGrid,
   onBoundsChange,
 }: CanvasProps<T, M>): JSX.Element {
   return useObserver(() => {
