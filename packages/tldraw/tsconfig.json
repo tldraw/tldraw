@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "exclude": ["node_modules", "dist", "docs"],
+  "include": ["src"],
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
@@ -12,6 +13,7 @@
       "@tldraw/core": ["../core/src"]
     }
   },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"

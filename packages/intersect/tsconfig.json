@@ -9,6 +9,7 @@
       "@tldraw/vec": ["../vec/src"]
     }
   },
+  "references": [{ "path": "../vec" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"

@@ -13,8 +13,8 @@
   "compilerOptions": {
     "composite": false,
     "incremental": false,
+    "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "emitDeclarationOnly": true
+    "sourceMap": true
   }
 }

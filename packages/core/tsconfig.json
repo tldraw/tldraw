@@ -11,6 +11,7 @@
       "@tldraw/intersect": ["../intersect/src"]
     }
   },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }],
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],
     "out": "docs"
