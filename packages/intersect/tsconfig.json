@@ -1,14 +1,12 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "paths": {
-      "~*": ["./*"],
-      "@tldraw/vec": ["../vec"]
+      "@tldraw/vec": ["../vec/src"]
     }
   },
   "typedocOptions": {

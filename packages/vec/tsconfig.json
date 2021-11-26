@@ -5,10 +5,7 @@
   "compilerOptions": {
     "outDir": "./dist/types",
     "rootDir": "src",
-    "baseUrl": "src",
-    "paths": {
-      "~*": ["./*"]
-    }
+    "baseUrl": "."
   },
   "typedocOptions": {
     "entryPoints": ["src/index.ts"],

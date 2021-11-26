@@ -11,18 +11,16 @@
     "docs"
   ],
   "compilerOptions": {
-    "rootDir": "src",
-    "baseUrl": "src",
     "composite": false,
     "incremental": false,
-    "declarationMap": false,
-    "sourceMap": false,
+    "declarationMap": true,
+    "sourceMap": true,
     "emitDeclarationOnly": true,
     "paths": {
-      "~*": ["./*"],
-      "@tldraw/core": ["../core"],
+      "~*": ["./src/*"],
       "@tldraw/vec": ["../vec"],
-      "@tldraw/intersect": ["../intersect"]
+      "@tldraw/intersect": ["../intersect"],
+      "@tldraw/core": ["../core"]
     }
   }
 }

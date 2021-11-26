@@ -10,12 +10,12 @@ import {
   TldrawCommand,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import { BINDING_DISTANCE } from '~constants'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
+import { Utils } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow

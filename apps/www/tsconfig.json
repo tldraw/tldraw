@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "composite": true,
     "target": "es6",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -16,9 +15,11 @@
     "baseUrl": ".",
     "rootDir": ".",
     "paths": {
-      "-*": ["./*"],
+      "~*": ["./*"],
+      "@tldraw/tldraw": ["../../packages/tldraw"],
       "@tldraw/core": ["../../packages/core"],
-      "@tldraw/tldraw": ["../../packages/tldraw"]
+      "@tldraw/intersect": ["../../packages/intersect"],
+      "@tldraw/vec": ["../../packages/vec"]
     },
     "incremental": true,
     "resolveJsonModule": true

@@ -13,11 +13,13 @@
   "compilerOptions": {
     "composite": false,
     "incremental": false,
-    "declarationMap": false,
-    "sourceMap": false,
+    "declarationMap": true,
+    "sourceMap": true,
     "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "baseUrl": ".",
     "paths": {
-      "~*": ["./*"],
+      "~*": ["./src/*"],
       "@tldraw/vec": ["../vec"],
       "@tldraw/intersect": ["../intersect"]
     }

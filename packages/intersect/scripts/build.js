@@ -22,7 +22,8 @@ async function main() {
       format: 'cjs',
       target: 'es6',
       tsconfig: './tsconfig.build.json',
-      metafile: false,
+      external: Object.keys(pkg.dependencies),
+      metafile: true,
       sourcemap: true,
     })
 
@@ -34,6 +35,7 @@ async function main() {
       format: 'esm',
       target: 'es6',
       tsconfig: './tsconfig.build.json',
+      external: Object.keys(pkg.dependencies),
       metafile: true,
       sourcemap: true,
     })

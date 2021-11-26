@@ -1,7 +1,7 @@
 import '../styles/globals.css'
-import { init } from '-utils/sentry'
+import { init } from '~utils/sentry'
 import Head from 'next/head'
-import useGtag from '-utils/useGtag'
+import useGtag from '~utils/useGtag'
 
 init()
 

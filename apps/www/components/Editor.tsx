@@ -1,7 +1,7 @@
 import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
-import * as gtag from '-utils/gtag'
+import * as gtag from '~utils/gtag'
 import React from 'react'
-import { useAccountHandlers } from '-hooks/useAccountHandlers'
+import { useAccountHandlers } from '~hooks/useAccountHandlers'
 
 declare const window: Window & { app: TldrawApp }
 
