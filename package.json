@@ -22,7 +22,7 @@
     "examples/core-example-advanced"
   ],
   "scripts": {
-    "build": "yarn build:packages && lerna run build --stream",
+    "build": "lerna run build --stream",
     "build:www": "yarn build:packages && cd apps/www && yarn build",
     "build:core": "lerna run build:core",
     "build:packages": "lerna run build:packages --stream",
