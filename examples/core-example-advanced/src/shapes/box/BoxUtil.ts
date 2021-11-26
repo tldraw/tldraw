@@ -48,6 +48,10 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
     }
   }
 
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size
+  }
+
   getCenter = (shape: T) => {
     return Utils.getBoundsCenter(this.getBounds(shape))
   }

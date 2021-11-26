@@ -7,7 +7,6 @@ export const PencilComponent = TLShapeUtil.Component<PencilShape, SVGSVGElement>
   ({ shape, events, isGhost, meta }, ref) => {
     const color = meta.isDarkMode ? 'white' : 'black'
     const pathData = getComponentSvgPath(shape.points)
-    console.log('hi')
     return (
       <SVGContainer ref={ref} {...events}>
         <path d={pathData} stroke="transparent" strokeWidth={6} opacity={0} pointerEvents="all" />
