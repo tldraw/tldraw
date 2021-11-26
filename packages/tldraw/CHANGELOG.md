@@ -1,3 +1,11 @@
+## 1.1.6
+
+- Fixes bugs in VS Code extension.
+
+## 1.1.5
+
+- Adds grid, clone handles.
+
 ## 1.1.4
 
 - Adds undo and redo buttons at smaller breakpoints.
