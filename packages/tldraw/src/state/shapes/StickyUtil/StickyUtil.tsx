@@ -188,7 +188,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoCorrect="false"
                 autoSave="false"
                 autoFocus
-                spellCheck={false}
+                spellCheck={true}
                 alignment={shape.style.textAlign}
               />
             )}

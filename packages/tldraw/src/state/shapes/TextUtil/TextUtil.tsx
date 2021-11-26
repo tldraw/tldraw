@@ -201,6 +201,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   onKeyDown={handleKeyDown}
                   onBlur={handleBlur}
                   onPointerDown={handlePointerDown}
+                  spellCheck="true"
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
