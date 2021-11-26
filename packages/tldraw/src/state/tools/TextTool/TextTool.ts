@@ -1,4 +1,5 @@
 import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
 
@@ -32,8 +33,13 @@ export class TextTool extends BaseTool {
     }
 
     if (this.status === Status.Idle) {
-      const { currentPoint } = this.app
-      this.app.createTextShapeAtPoint(currentPoint)
+      const {
+        currentPoint,
+        currentGrid,
+        settings: { showGrid },
+      } = this.app
+
+      this.app.createTextShapeAtPoint(showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint)
       this.setStatus(Status.Creating)
       return
     }

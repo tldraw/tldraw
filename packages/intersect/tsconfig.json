@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "exclude": ["node_modules", "dist", "docs"],
+  "compilerOptions": {
+    "outDir": "./dist/types",
+    "rootDir": "src",
+    "baseUrl": "."
+  },
+  "references": [{ "path": "../vec" }],
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
+}

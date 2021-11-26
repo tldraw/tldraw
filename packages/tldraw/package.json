@@ -49,9 +49,9 @@
     "@radix-ui/react-radio-group": "^0.1.1",
     "@radix-ui/react-tooltip": "^0.1.1",
     "@stitches/react": "^1.2.5",
-    "@tldraw/core": "^1.1.3",
-    "@tldraw/intersect": "latest",
-    "@tldraw/vec": "latest",
+    "@tldraw/core": "^1.1.4",
+    "@tldraw/intersect": "^1.1.4",
+    "@tldraw/vec": "^1.1.4",
     "idb-keyval": "^6.0.3",
     "perfect-freehand": "^1.0.16",
     "react-hotkeys-hook": "^3.4.0",
@@ -62,7 +62,7 @@
     "@swc-node/jest": "^1.3.3",
     "@testing-library/jest-dom": "^5.14.1",
     "@testing-library/react": "^12.0.0",
-    "tsconfig-replace-paths": "^0.0.5"
+    "tsconfig-replace-paths": "^0.0.11"
   },
   "jest": {
     "setupFilesAfterEnv": [

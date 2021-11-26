@@ -26,6 +26,8 @@ export class StickyTool extends BaseTool {
     if (this.status === Status.Idle) {
       const {
         currentPoint,
+        currentGrid,
+        settings: { showGrid },
         appState: { currentPageId, currentStyle },
       } = this.app
 
@@ -39,7 +41,7 @@ export class StickyTool extends BaseTool {
         id,
         parentId: currentPageId,
         childIndex,
-        point: currentPoint,
+        point: showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
         style: { ...currentStyle },
       })
 

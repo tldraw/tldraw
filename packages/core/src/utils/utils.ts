@@ -1090,6 +1090,26 @@ export class Utils {
   }
 
   /**
+   * Snap a bounding box to a grid size.
+   * @param bounds
+   * @param gridSize
+   */
+  static snapBoundsToGrid(bounds: TLBounds, gridSize: number): TLBounds {
+    const minX = Math.round(bounds.minX / gridSize) * gridSize
+    const minY = Math.round(bounds.minY / gridSize) * gridSize
+    const maxX = Math.round(bounds.maxX / gridSize) * gridSize
+    const maxY = Math.round(bounds.maxY / gridSize) * gridSize
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+    }
+  }
+
+  /**
    * Move a bounding box without recalculating it.
    * @param bounds
    * @param delta
@@ -1509,12 +1529,10 @@ left past the initial left edge) then swap points on that axis.
       (isFlippedX
         ? initialBounds.maxX - initialShapeBounds.maxX
         : initialShapeBounds.minX - initialBounds.minX) / initialBounds.width
-
     const ny =
       (isFlippedY
         ? initialBounds.maxY - initialShapeBounds.maxY
         : initialShapeBounds.minY - initialBounds.minY) / initialBounds.height
-
     const nw = initialShapeBounds.width / initialBounds.width
     const nh = initialShapeBounds.height / initialBounds.height
 
@@ -1562,7 +1580,7 @@ left past the initial left edge) then swap points on that axis.
    * Get a bounding box with a midX and midY.
    * @param bounds
    */
-  static getBoundsWithCenter(bounds: TLBounds): TLBounds & { midX: number; midY: number } {
+  static getBoundsWithCenter(bounds: TLBounds): TLBoundsWithCenter {
     const center = Utils.getBoundsCenter(bounds)
     return {
       ...bounds,

@@ -57,7 +57,7 @@ export class EraseSession extends BaseSession {
       }
     }
 
-    const newPoint = Vec.round(Vec.add(originPoint, Vec.sub(currentPoint, originPoint)))
+    const newPoint = Vec.toFixed(Vec.add(originPoint, Vec.sub(currentPoint, originPoint)))
 
     const deletedShapeIds = new Set<string>([])
 

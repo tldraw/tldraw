@@ -35,7 +35,7 @@ export function styleShapes(
 
       if (shape.type === TDShapeType.Text) {
         beforeShapes[shape.id].point = shape.point
-        afterShapes[shape.id].point = Vec.round(
+        afterShapes[shape.id].point = Vec.toFixed(
           Vec.add(
             shape.point,
             Vec.sub(
