@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLComponentProps, TLShape } from '~types'
 import type { TLShapeUtil } from '~TLShapeUtil'
@@ -10,13 +10,14 @@ interface RenderedShapeProps<T extends TLShape, E extends Element, M>
   utils: TLShapeUtil<T, E, M>
 }
 
-export const RenderedShape = observer(
-  function RenderedShape<T extends TLShape, E extends Element, M>(
-    props: RenderedShapeProps<T, E, M>
-  ) {
-    const ref = props.utils.getRef(props.shape)
-    return <props.utils.Component ref={ref} {...props} />
-  });
+export const RenderedShape = observer(function RenderedShape<
+  T extends TLShape,
+  E extends Element,
+  M
+>(props: RenderedShapeProps<T, E, M>) {
+  const ref = props.utils.getRef(props.shape)
+  return <props.utils.Component ref={ref} {...props} />
+})
 
 /*,
   (prev, next) => {

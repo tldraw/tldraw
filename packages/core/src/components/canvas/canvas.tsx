@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useObserver} from 'mobx-react-lite'
+import { useObserver } from 'mobx-react-lite'
 import * as React from 'react'
 import {
   usePreventNavigation,
@@ -101,14 +101,14 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
                 meta={meta}
               />
               {users && userId && (
-                <UsersIndicators userId={userId} users={users} page={page} meta={meta}/>
+                <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
               )}
-              {pageState.brush && <Brush brush={pageState.brush}/>}
-              {users && <Users userId={userId} users={users}/>}
+              {pageState.brush && <Brush brush={pageState.brush} />}
+              {users && <Users userId={userId} users={users} />}
             </div>
           </ErrorBoundary>
           <Overlay camera={pageState.camera}>
-            {snapLines && <SnapLines snapLines={snapLines}/>}
+            {snapLines && <SnapLines snapLines={snapLines} />}
           </Overlay>
         </div>
       </div>

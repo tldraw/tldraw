@@ -1,4 +1,4 @@
-import {useObserver} from 'mobx-react-lite'
+import { useObserver } from 'mobx-react-lite'
 import * as React from 'react'
 import type { IShapeTreeNode, TLShape } from '~types'
 import { Shape } from './shape'

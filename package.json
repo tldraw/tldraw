@@ -31,7 +31,7 @@
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
     "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
-    "fix:style": "yarn run prettier ./packages/tldraw/src --write",
+    "fix:style": "yarn run prettier ./packages/core/src --write && yarn run prettier ./packages/tldraw/src --write",
     "lerna": "lerna",
     "test": "lerna run test --stream",
     "test:ci": "lerna run test:ci --stream",

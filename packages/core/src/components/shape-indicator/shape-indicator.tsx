@@ -1,18 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {useObserver} from 'mobx-react-lite'
+import { useObserver } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLShape, TLUser } from '~types'
 import { usePosition, useTLContext } from '~hooks'
 
-interface IndicatorProps<T extends TLShape, M = any> {
+interface IndicatorProps<T extends TLShape, M = unknown> {
   shape: T
-  meta: M extends any ? M : undefined
+  meta: M extends unknown ? M : undefined
   isSelected?: boolean
   isHovered?: boolean
   user?: TLUser<T>
 }
 
-export const ShapeIndicator = function ShapeIndicator<T extends TLShape, M = any>({
+export const ShapeIndicator = function ShapeIndicator<T extends TLShape, M>({
   isHovered = false,
   isSelected = false,
   shape,
@@ -20,7 +19,7 @@ export const ShapeIndicator = function ShapeIndicator<T extends TLShape, M = any
   meta,
 }: IndicatorProps<T, M>) {
   return useObserver(() => {
-    const {shapeUtils} = useTLContext()
+    const { shapeUtils } = useTLContext()
     const utils = shapeUtils[shape.type]
     const bounds = utils.getBounds(shape)
     const rPositioned = usePosition(bounds, shape.rotation)

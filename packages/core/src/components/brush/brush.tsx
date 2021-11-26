@@ -1,4 +1,4 @@
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import { Container } from '~components/container'
 import type { TLBounds } from '~types'

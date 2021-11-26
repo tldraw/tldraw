@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {useObserver} from 'mobx-react-lite'
+import { useObserver } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLBinding, TLPage, TLPageState, TLShape } from '~types'
 import { useSelection, useShapeTree, useTLContext } from '~hooks'
@@ -39,16 +39,16 @@ export const Page = function Page<T extends TLShape, M extends Record<string, un
   meta,
 }: PageProps<T, M>): JSX.Element {
   return useObserver(() => {
-    const {bounds: rendererBounds, shapeUtils} = useTLContext()
+    const { bounds: rendererBounds, shapeUtils } = useTLContext()
 
     const shapeTree = useShapeTree(page, pageState, meta)
 
-    const {bounds, isLinked, isLocked, rotation} = useSelection(page, pageState, shapeUtils)
+    const { bounds, isLinked, isLocked, rotation } = useSelection(page, pageState, shapeUtils)
 
     const {
       selectedIds,
       hoveredId,
-      camera: {zoom},
+      camera: { zoom },
     } = pageState
 
     let _hideCloneHandles = true
@@ -72,14 +72,19 @@ export const Page = function Page<T extends TLShape, M extends Record<string, un
 
     return (
       <>
-        {bounds && <BoundsBg bounds={bounds} rotation={rotation} isHidden={hideBounds}/>}
+        {bounds && <BoundsBg bounds={bounds} rotation={rotation} isHidden={hideBounds} />}
         {shapeTree.map((node) => (
           <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
         ))}
         {!hideIndicators &&
-         selectedShapes.map((shape) => (
-           <ShapeIndicator key={'selected_' + shape.id} shape={shape} meta={meta as any} isSelected/>
-         ))}
+          selectedShapes.map((shape) => (
+            <ShapeIndicator
+              key={'selected_' + shape.id}
+              shape={shape}
+              meta={meta as any}
+              isSelected
+            />
+          ))}
         {!hideIndicators && hoveredId && (
           <ShapeIndicator
             key={'hovered_' + hoveredId}
@@ -102,7 +107,7 @@ export const Page = function Page<T extends TLShape, M extends Record<string, un
             hideCloneHandles={_hideCloneHandles}
           />
         )}
-        {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom}/>}
+        {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
       </>
     )
   })

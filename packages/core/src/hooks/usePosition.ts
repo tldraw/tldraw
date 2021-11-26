@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {autorun} from 'mobx'
+import { autorun } from 'mobx'
 import * as React from 'react'
 import type { TLBounds } from '../types'
 
@@ -20,7 +20,10 @@ export function usePosition(bounds: TLBounds, rotation = 0) {
 
       elm.style.setProperty('transform', transform)
 
-      elm.style.setProperty('width', `calc(${Math.floor(bounds.width)}px + (var(--tl-padding) * 2))`)
+      elm.style.setProperty(
+        'width',
+        `calc(${Math.floor(bounds.width)}px + (var(--tl-padding) * 2))`
+      )
 
       elm.style.setProperty(
         'height',

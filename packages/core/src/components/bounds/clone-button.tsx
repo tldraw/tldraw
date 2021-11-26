@@ -1,4 +1,4 @@
-import {observer} from 'mobx-react-lite'
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useTLContext } from '~hooks'
 import type { TLBounds } from '~types'
@@ -21,7 +21,12 @@ export interface CloneButtonProps {
   side: 'top' | 'right' | 'bottom' | 'left' | 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight'
 }
 
-export const CloneButton = observer<CloneButtonProps>(function CloneButton({ bounds, side, targetSize, size }: CloneButtonProps) {
+export const CloneButton = observer<CloneButtonProps>(function CloneButton({
+  bounds,
+  side,
+  targetSize,
+  size,
+}: CloneButtonProps) {
   const x = {
     left: -44,
     topLeft: -44,

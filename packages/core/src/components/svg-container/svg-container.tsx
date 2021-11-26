@@ -1,14 +1,12 @@
-import {observer, useObserver} from 'mobx-react-lite'
+import { useObserver } from 'mobx-react-lite'
 import * as React from 'react'
 
 interface SvgContainerProps extends React.SVGProps<SVGSVGElement> {
   children: React.ReactNode
 }
 
-export const SVGContainer = React.forwardRef<SVGSVGElement, SvgContainerProps>(function SVGContainer(
-    { id, children, ...rest },
-    ref
-  ) {
+export const SVGContainer = React.forwardRef<SVGSVGElement, SvgContainerProps>(
+  function SVGContainer({ id, children, ...rest }, ref) {
     return useObserver(() => {
       return (
         <svg ref={ref} className="tl-positioned-svg" {...rest}>
@@ -18,4 +16,5 @@ export const SVGContainer = React.forwardRef<SVGSVGElement, SvgContainerProps>(f
         </svg>
       )
     })
-  })
+  }
+)
