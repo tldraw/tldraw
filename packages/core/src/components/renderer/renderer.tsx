@@ -169,28 +169,29 @@ export function Renderer<T extends TLShape, M extends Record<string, unknown>>({
       }))
     }, [])
 
-  return (
-    <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
-      <Canvas
-        id={id}
-        page={page}
-        pageState={pageState}
-        snapLines={snapLines}
-        grid={grid}
-        users={users}
-        userId={userId}
-        externalContainerRef={containerRef}
-        hideBounds={hideBounds}
-        hideIndicators={hideIndicators}
-        hideHandles={hideHandles}
-        hideCloneHandles={hideCloneHandles}
-        hideBindingHandles={hideBindingHandles}
-        hideRotateHandle={hideRotateHandles}
-        hideResizeHandles={hideResizeHandles}
-        hideGrid={hideGrid}
-        onBoundsChange={onBoundsChange}
-        meta={meta}
-      />
-    </TLContext.Provider>
-  )
-})
+    return (
+      <TLContext.Provider value={context as unknown as TLContextType<TLShape>}>
+        <Canvas
+          id={id}
+          page={page}
+          pageState={pageState}
+          snapLines={snapLines}
+          grid={grid}
+          users={users}
+          userId={userId}
+          externalContainerRef={containerRef}
+          hideBounds={hideBounds}
+          hideIndicators={hideIndicators}
+          hideHandles={hideHandles}
+          hideCloneHandles={hideCloneHandles}
+          hideBindingHandles={hideBindingHandles}
+          hideRotateHandle={hideRotateHandles}
+          hideResizeHandles={hideResizeHandles}
+          hideGrid={hideGrid}
+          onBoundsChange={onBoundsChange}
+          meta={meta}
+        />
+      </TLContext.Provider>
+    )
+  })
+}
