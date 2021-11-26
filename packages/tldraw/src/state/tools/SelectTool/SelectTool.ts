@@ -191,15 +191,15 @@ export class SelectTool extends BaseTool<Status> {
     if (key === 'Tab') {
       if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
         const [selectedId] = this.app.selectedIds
-
         const clonedShape = this.getShapeClone(selectedId, 'right')
 
         if (clonedShape) {
           this.app.createShapes(clonedShape)
-
           this.setStatus(Status.Idle)
-          this.app.setEditingId(clonedShape.id)
-          this.app.select(clonedShape.id)
+          if (clonedShape.type === TDShapeType.Sticky) {
+            this.app.select(clonedShape.id)
+            this.app.setEditingId(clonedShape.id)
+          }
         }
       }
 

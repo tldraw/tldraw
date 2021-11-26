@@ -2,12 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { useTldrawApp } from '~hooks'
-import {
-  DMCheckboxItem,
-  DMContent,
-  DMRadioItem,
-  DMTriggerIcon,
-} from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -69,9 +64,13 @@ const ALIGN_ICONS = {
 const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
 
 const showTextStylesSelector = (s: TDSnapshot) => {
-  const pageId = s.appState.currentPageId
+  const { activeTool, currentPageId: pageId } = s.appState
   const page = s.document.pages[pageId]
-  return s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+
+  return (
+    activeTool === 'text' ||
+    s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+  )
 }
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {

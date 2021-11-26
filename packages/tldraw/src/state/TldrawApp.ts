@@ -2917,7 +2917,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.currentTool.onShapeBlur?.()
   }
 
-  onShapeClone: TLShapeCloneHandler = (info, e) => this.currentTool.onShapeClone?.(info, e)
+  onShapeClone: TLShapeCloneHandler = (info, e) => {
+    this.originPoint = this.getPagePoint(info.point)
+    this.updateInputs(info, e)
+    this.currentTool.onShapeClone?.(info, e)
+  }
 
   onRenderCountChange = (ids: string[]) => {
     const appState = this.getAppState()
