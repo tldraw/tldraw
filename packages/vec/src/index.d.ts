@@ -308,3 +308,4 @@ export declare class Vec {
     static pointsBetween: (A: number[], B: number[], steps?: number) => number[][];
 }
 export default Vec;
+//# sourceMappingURL=index.d.ts.map

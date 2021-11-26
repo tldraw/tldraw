@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-types */
-import type { FileSystemHandle } from '~state/data/browser-fs-access'
 import type {
   TLPage,
   TLUser,
@@ -472,4 +471,30 @@ export interface Command<T extends { [key: string]: any }> {
   id?: string
   before: Patch<T>
   after: Patch<T>
+}
+
+export interface FileWithHandle extends File {
+  handle?: FileSystemHandle
+}
+
+export interface FileWithDirectoryHandle extends File {
+  directoryHandle?: FileSystemHandle
+}
+
+// The following typings implement the relevant parts of the File System Access
+// API. This can be removed once the specification reaches the Candidate phase
+// and is implemented as part of microsoft/TSJS-lib-generator.
+
+export interface FileSystemHandlePermissionDescriptor {
+  mode?: 'read' | 'readwrite'
+}
+
+export interface FileSystemHandle {
+  readonly kind: 'file' | 'directory'
+  readonly name: string
+
+  isSameEntry: (other: FileSystemHandle) => Promise<boolean>
+
+  queryPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>
+  requestPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>
 }

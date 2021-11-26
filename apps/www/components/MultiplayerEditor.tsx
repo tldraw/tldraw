@@ -3,9 +3,9 @@ import * as React from 'react'
 import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
-import { useAccountHandlers } from '~hooks/useAccountHandlers'
-import { styled } from '~styles'
-import { useMultiplayerState } from '~hooks/useMultiplayerState'
+import { useAccountHandlers } from 'hooks/useAccountHandlers'
+import { styled } from 'styles'
+import { useMultiplayerState } from 'hooks/useMultiplayerState'
 
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',

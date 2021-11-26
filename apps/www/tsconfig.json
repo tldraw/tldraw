@@ -1,29 +1,37 @@
 {
   "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "resolveJsonModule": true,
     "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": ["dom", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
+    "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
     "isolatedModules": true,
     "jsx": "preserve",
-    "baseUrl": ".",
     "rootDir": ".",
+    "baseUrl": ".",
     "paths": {
-      "~*": ["./*"],
-      "@tldraw/tldraw": ["../../packages/tldraw"],
-      "@tldraw/core": ["../../packages/core"],
-      "@tldraw/intersect": ["../../packages/intersect"],
-      "@tldraw/vec": ["../../packages/vec"]
-    },
-    "incremental": true,
-    "resolveJsonModule": true
+      "*": ["./*"],
+      "@tldraw/tldraw": ["./packages/tldraw"],
+      "@tldraw/core": ["./packages/core"],
+      "@tldraw/intersect": ["./packages/intersect"],
+      "@tldraw/vec": ["./packages/vec"]
+    }
   },
+  "references": [
+    { "path": "../../packages/vec" },
+    { "path": "../../packages/intersect" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/tldraw" }
+  ],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

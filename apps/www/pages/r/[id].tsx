@@ -2,7 +2,7 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/client'
 import dynamic from 'next/dynamic'
-const MultiplayerEditor = dynamic(() => import('~components/MultiplayerEditor'), { ssr: false })
+const MultiplayerEditor = dynamic(() => import('components/MultiplayerEditor'), { ssr: false })
 
 interface RoomProps {
   id: string

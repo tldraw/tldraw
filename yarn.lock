@@ -3513,6 +3513,16 @@
   resolved "https://registry.yarnpkg.com/@ungap/promise-all-settled/-/promise-all-settled-1.1.2.tgz#aa58042711d6e3275dd37dc597e5d31e8c290a44"
   integrity sha512-sL/cEvJWAnClXw0wHk85/2L0G6Sj8UB0Ctc1TEMbKSsmpRosqhwj9gWgFRZSrBr2f9tiXISwNhCPmlfqUqyb9Q==
 
+"@uqt/ts-path-replace@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@uqt/ts-path-replace/-/ts-path-replace-1.1.1.tgz#c753fe92aa55575e7249c9defc908e311e37b93d"
+  integrity sha512-6OBpyAJRDAeneM1m8drI4e7P71kyoACdPVN5OMjsTmzT9becSZz95KVSRRQyljdDSCUPhdGzxOi5iBGp/eBYPQ==
+  dependencies:
+    lodash.merge "^4.6.2"
+    minimist "^1.2.5"
+    node-watch "^0.7.1"
+    replace-in-file "^6.1.0"
+
 "@use-gesture/core@10.1.5":
   version "10.1.5"
   resolved "https://registry.yarnpkg.com/@use-gesture/core/-/core-10.1.5.tgz#4b956bc8aa6354c20c668930c5cacb16fe4415e4"
@@ -4735,7 +4745,7 @@ chalk@^3.0.0:
     ansi-styles "^4.1.0"
     supports-color "^7.1.0"
 
-chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1:
+chalk@^4.0.0, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
   integrity sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==
@@ -10839,6 +10849,11 @@ node-source-walk@^4.0.0, node-source-walk@^4.2.0:
   dependencies:
     "@babel/parser" "^7.0.0"
 
+node-watch@^0.7.1:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/node-watch/-/node-watch-0.7.2.tgz#545f057da8500487eb8287adcb4cb5a7338d7e21"
+  integrity sha512-g53VjSARRv1JdST0LZRIg8RiuLr1TaBbVPsVvxh0/0Ymvi0xYUjDuoqQQAWtHJQUXhiShowPT/aXKNeHBcyQsw==
+
 nodemailer@^6.4.16:
   version "6.7.1"
   resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-6.7.1.tgz#09f72f8b375f7b259291757007bcd902c0174c6e"
@@ -12445,6 +12460,15 @@ repeating@^2.0.0:
   dependencies:
     is-finite "^1.0.0"
 
+replace-in-file@^6.1.0:
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/replace-in-file/-/replace-in-file-6.3.2.tgz#0f19835137177c89932f45df319f3539a019484f"
+  integrity sha512-Dbt5pXKvFVPL3WAaEB3ZX+95yP0CeAtIPJDwYzHbPP5EAHn+0UoegH/Wg3HKflU9dYBH8UnBC2NvY3P+9EZtTg==
+  dependencies:
+    chalk "^4.1.2"
+    glob "^7.2.0"
+    yargs "^17.2.1"
+
 request@^2.88.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
@@ -14003,6 +14027,15 @@ tsconfig-paths@^3.11.0, tsconfig-paths@^3.9.0:
     minimist "^1.2.0"
     strip-bom "^3.0.0"
 
+tsconfig-replace-paths@^0.0.11:
+  version "0.0.11"
+  resolved "https://registry.yarnpkg.com/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.11.tgz#0059a5ba5b6c156b00038ce46842e3d4d801a33b"
+  integrity sha512-BX10vOJL/kTZExQwj22FJgxCpneNYKfXvujBKGFpnvaKWl4/9Cpd678ZvKF+CX5NdxbKphscwtc8QzFA7zhVsA==
+  dependencies:
+    commander "^3.0.2"
+    globby "^10.0.1"
+    json5 "^2.2.0"
+
 tsconfig-replace-paths@^0.0.5:
   version "0.0.5"
   resolved "https://registry.yarnpkg.com/tsconfig-replace-paths/-/tsconfig-replace-paths-0.0.5.tgz#a9bf058604c50de5cab285c0eb0ed9b7d944d5ac"
@@ -14196,7 +14229,7 @@ typescript@^3.9.7:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
 
-typescript@^4.4.2, typescript@^4.4.3:
+typescript@^4.4.3, typescript@^4.5.2:
   version "4.5.2"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.2.tgz#8ac1fba9f52256fdb06fb89e4122fa6a346c2998"
   integrity sha512-5BlMof9H1yGt0P8/WF+wPNw6GfctgGjXp5hkblpyT+8rkASSmkUKMXrxR0Xg8ThVCi/JnHQiKXeBaEwCeQwMFw==
@@ -15128,7 +15161,7 @@ yargs@^14.2.2:
     y18n "^4.0.0"
     yargs-parser "^15.0.1"
 
-yargs@^17.0.1:
+yargs@^17.0.1, yargs@^17.2.1:
   version "17.2.1"
   resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.2.1.tgz#e2c95b9796a0e1f7f3bf4427863b42e0418191ea"
   integrity sha512-XfR8du6ua4K6uLGm5S6fA+FIJom/MdJcFNVY8geLlp2v8GYbOXD4EB1tPNZsRn4vBzKGMgb5DRZMeWuFc2GO8Q==

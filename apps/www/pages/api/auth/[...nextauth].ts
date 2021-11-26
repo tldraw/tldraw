@@ -1,5 +1,5 @@
-import { isSponsoringMe } from '~utils/isSponsoringMe'
-import { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
+import { isSponsoringMe } from 'utils/isSponsoringMe'
+import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
 import Providers from 'next-auth/providers'
 
@@ -20,13 +20,15 @@ export default function Auth(
         return baseUrl
       },
       async signIn(user, account, profile: { login?: string }) {
-        const canLogin = await isSponsoringMe(profile?.login)
+        if (profile?.login) {
+          const canLogin = await isSponsoringMe(profile.login)
 
-        if (canLogin) {
-          return canLogin
-        } else {
-          return '/sponsorware'
+          if (canLogin) {
+            return canLogin
+          }
         }
+
+        return '/'
       },
     },
   })

@@ -167,7 +167,7 @@ export class TransformSingleSession extends BaseSession {
       shapes[shape.id] = afterShape
     }
 
-    if (showGrid && afterShape?.point) {
+    if (showGrid && afterShape && afterShape.point) {
       afterShape.point = Vec.snap(afterShape.point, currentGrid)
     }
 

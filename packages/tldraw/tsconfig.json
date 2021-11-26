@@ -7,10 +7,7 @@
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
-      "~*": ["./src/*"],
-      "@tldraw/vec": ["../vec/src"],
-      "@tldraw/intersect": ["../intersect/src"],
-      "@tldraw/core": ["../core/src"]
+      "~*": ["./src/*"]
     }
   },
   "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }],

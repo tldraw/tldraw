@@ -15,9 +15,7 @@
     "incremental": false,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true,
-    "paths": {
-      "@tldraw/vec": ["../vec"]
-    }
-  }
+    "sourceMap": true
+  },
+  "references": [{ "path": "../vec" }]
 }

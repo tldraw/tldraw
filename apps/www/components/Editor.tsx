@@ -1,7 +1,7 @@
 import React from 'react'
-import * as gtag from '~utils/gtag'
+import * as gtag from 'utils/gtag'
 import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
-import { useAccountHandlers } from '~hooks/useAccountHandlers'
+import { useAccountHandlers } from 'hooks/useAccountHandlers'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -19,9 +19,9 @@ export default function Editor({ id = 'home', isUser = false, isSponsor = false 
   // Send events to gtag as actions.
   const handlePersist = React.useCallback((_app: TldrawApp, reason?: string) => {
     gtag.event({
-      action: reason,
+      action: reason ?? '',
       category: 'editor',
-      label: reason || 'persist',
+      label: reason ?? 'persist',
       value: 0,
     })
   }, [])
