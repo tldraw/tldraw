@@ -1,4 +1,5 @@
 import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { Arrow } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'
@@ -13,6 +14,8 @@ export class LineTool extends BaseTool {
 
     const {
       currentPoint,
+      currentGrid,
+      settings: { showGrid },
       appState: { currentPageId, currentStyle },
     } = this.app
 
@@ -24,7 +27,7 @@ export class LineTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: currentPoint,
+      point: showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
       decorations: {
         start: undefined,
         end: undefined,

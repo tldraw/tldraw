@@ -26,6 +26,10 @@ export function PreferencesMenu() {
     app.setSetting('showRotateHandles', (v) => !v)
   }, [app])
 
+  const toggleGrid = React.useCallback(() => {
+    app.setSetting('showGrid', (v) => !v)
+  }, [app])
+
   const toggleBoundShapesHandle = React.useCallback(() => {
     app.setSetting('showBindingHandles', (v) => !v)
   }, [app])
@@ -61,6 +65,9 @@ export function PreferencesMenu() {
       </DMCheckboxItem>
       <DMCheckboxItem checked={settings.showCloneHandles} onCheckedChange={toggleCloneControls}>
         Clone Handles
+      </DMCheckboxItem>
+      <DMCheckboxItem checked={settings.showGrid} onCheckedChange={toggleGrid} kbd="#⇧G">
+        Grid
       </DMCheckboxItem>
       <DMCheckboxItem checked={settings.isSnapping} onCheckedChange={toggleisSnapping}>
         Always Show Snaps

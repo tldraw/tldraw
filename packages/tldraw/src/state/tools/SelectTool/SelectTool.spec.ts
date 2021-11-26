@@ -65,9 +65,14 @@ describe('When double clicking link controls', () => {
     const app = new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
-      .pointBoundsHandle('center', { x: 0, y: 0 })
+      .pointBoundsHandle('center', [100, 100])
+      .expectShapesToBeAtPoints({
+        rect1: [0, 0],
+        rect2: [100, 0],
+        rect3: [200, 0],
+      })
 
-    app.movePointer({ x: 100, y: 100 }).expectShapesToBeAtPoints({
+    app.movePointer([200, 200]).expectShapesToBeAtPoints({
       rect1: [100, 100],
       rect2: [200, 100],
       rect3: [300, 100],

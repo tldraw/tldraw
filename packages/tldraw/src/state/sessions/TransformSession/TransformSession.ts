@@ -113,7 +113,8 @@ export class TransformSession extends BaseSession {
         shiftKey,
         altKey,
         metaKey,
-        settings: { isSnapping },
+        currentGrid,
+        settings: { isSnapping, showGrid },
       },
     } = this
 
@@ -135,6 +136,13 @@ export class TransformSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialCommonBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -180,7 +188,7 @@ export class TransformSession extends BaseSession {
     this.scaleY = newBounds.scaleY
 
     shapeBounds.forEach(({ initialShape, initialShapeBounds, transformOrigin }) => {
-      const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
+      let newShapeBounds = Utils.getRelativeTransformedBoundingBox(
         newBounds,
         initialCommonBounds,
         initialShapeBounds,
@@ -188,13 +196,19 @@ export class TransformSession extends BaseSession {
         this.scaleY < 0
       )
 
-      shapes[initialShape.id] = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
+      if (showGrid) {
+        newShapeBounds = Utils.snapBoundsToGrid(newShapeBounds, currentGrid)
+      }
+
+      const afterShape = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
         scaleY: this.scaleY,
         transformOrigin,
       })
+
+      shapes[initialShape.id] = afterShape
     })
 
     return {

@@ -8,9 +8,10 @@ import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { TLDR } from '~state/TLDR'
 import { ContextMenu } from '~components/ContextMenu'
-import { FocusButton } from '~components/FocusButton/FocusButton'
+import { FocusButton } from '~components/FocusButton'
+import { TLDR } from '~state/TLDR'
+import { GRID_SIZE } from '~constants'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -425,6 +426,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           page={page}
           pageState={pageState}
           snapLines={appState.snapLines}
+          grid={GRID_SIZE}
           users={room?.users}
           userId={room?.userId}
           theme={theme}
@@ -436,6 +438,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideBindingHandles={!settings.showBindingHandles}
           hideCloneHandles={!settings.showCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
+          hideGrid={!settings.showGrid}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
           onPinch={app.onPinch}

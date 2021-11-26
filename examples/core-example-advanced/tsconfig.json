@@ -4,10 +4,11 @@
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
     "outDir": "./dist/types",
+    "baseUrl": ".",
     "rootDir": "src",
-    "baseUrl": "src",
     "emitDeclarationOnly": false,
     "paths": {
+      "*": ["src/*"],
       "@tldraw/core": ["../../packages/core"]
     }
   },

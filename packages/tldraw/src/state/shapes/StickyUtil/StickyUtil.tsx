@@ -217,7 +217,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     bounds: TLBounds,
     { scaleX, scaleY, transformOrigin }: TransformInfo<T>
   ): Partial<T> => {
-    const point = Vec.round([
+    const point = Vec.toFixed([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
       bounds.minY +

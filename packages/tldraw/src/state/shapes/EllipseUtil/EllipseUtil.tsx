@@ -331,7 +331,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
 
   transformSingle = (shape: T, bounds: TLBounds): Partial<T> => {
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
       radius: Vec.div([bounds.width, bounds.height], 2),
     }
   }

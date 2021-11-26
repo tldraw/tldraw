@@ -162,4 +162,16 @@ export class TldrawTestApp extends TldrawApp {
     })
     return this
   }
+
+  pressKey = (key: string) => {
+    const e = { key } as KeyboardEvent
+    this.onKeyDown(key, inputs.keydown(e), e)
+    return this
+  }
+
+  releaseKey = (key: string) => {
+    const e = { key } as KeyboardEvent
+    this.onKeyUp(key, inputs.keyup(e), e)
+    return this
+  }
 }
