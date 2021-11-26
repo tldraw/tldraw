@@ -108,7 +108,7 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
             </div>
           </ErrorBoundary>
           <Overlay camera={pageState.camera}>
-            {snapLines && <SnapLines snapLines={snapLines}/>}
+            {snapLines && <SnapLines snapLines={snapLines.slice()}/>}
           </Overlay>
         </div>
       </div>

@@ -9,6 +9,7 @@ import { Container } from '~components/container'
 import { useTLContext } from '~hooks'
 import { useForceUpdate } from '~hooks/useForceUpdate'
 import type { TLShapeUtil } from '~TLShapeUtil'
+import { trace } from 'mobx'
 
 interface ShapeProps<T extends TLShape, M> extends IShapeTreeNode<T, M> {
   utils: TLShapeUtil<T>
@@ -20,10 +21,10 @@ export const Shape = function Shape<T extends TLShape, M>({
   meta,
   ...rest
 }: ShapeProps<T, M>) {
-  return useObserver(() => {
-    const {callbacks} = useTLContext()
-    const bounds = utils.getBounds(shape)
-    const events = useShapeEvents(shape.id)
+  return useObserver(function Shape() {
+    const {callbacks} = useTLContext(),
+      bounds = utils.getBounds(shape),
+      events = useShapeEvents(shape.id)
 
     return (
       <Container id={shape.id} bounds={bounds} rotation={shape.rotation}>
@@ -38,5 +39,5 @@ export const Shape = function Shape<T extends TLShape, M>({
         />
       </Container>
     )
-  })
+  }, 'Shape')
 }

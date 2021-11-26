@@ -15,13 +15,15 @@ export const ShapeNode = function ShapeNode<T extends TLShape>({
   children,
   ...rest
 }: ShapeNodeProps<T>) {
-  return useObserver(() => (
-    <>
-      <Shape shape={shape} utils={utils[shape.type as T['type']]} meta={meta} {...rest} />
-      {children &&
-        children.map((childNode) => (
-          <ShapeNode key={childNode.shape.id} utils={utils} {...childNode} />
-        ))}
-    </>
-  ))
+  return useObserver(() => {
+    return (
+      <>
+        <Shape shape={shape} utils={utils[shape.type as T['type']]} meta={meta} {...rest} />
+        {children &&
+         children.map((childNode) => (
+           <ShapeNode key={childNode.shape.id} utils={utils} {...childNode} />
+         ))}
+      </>
+    )
+  })
 }

@@ -16,7 +16,7 @@ export const RenderedShape = observer(
   ) {
     const ref = props.utils.getRef(props.shape)
     return <props.utils.Component ref={ref} {...props} />
-  });
+  })
 
 /*,
   (prev, next) => {
