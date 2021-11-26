@@ -70,7 +70,14 @@ export class ArrowSession extends BaseSession {
 
   update = (): TldrawPatch | undefined => {
     const { initialShape } = this
-    const { currentPoint, shiftKey, altKey, metaKey } = this.app
+    const {
+      currentPoint,
+      shiftKey,
+      altKey,
+      metaKey,
+      currentGrid,
+      settings: { showGrid },
+    } = this.app
 
     const shape = this.app.getShape<ArrowShape>(initialShape.id)
 
@@ -96,9 +103,12 @@ export class ArrowSession extends BaseSession {
       delta = Vec.add(delta, Vec.sub(adjusted, C))
     }
 
+    const nextPoint = Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)
+
     const handle = {
       ...handles[handleId],
-      point: Vec.toFixed(Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)),
+      point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
+
       bindingId: undefined,
     }
 
@@ -340,13 +350,19 @@ export class ArrowSession extends BaseSession {
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
+    const currentShape = TLDR.onSessionComplete(this.app.page.shapes[initialShape.id]) as ArrowShape
+    const currentBindingId = currentShape.handles[handleId].bindingId
+
+    if (
+      !(currentBindingId || initialBinding) &&
+      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) > 2
+    ) {
+      return this.cancel()
+    }
+
     const beforeBindings: Partial<Record<string, TDBinding>> = {}
 
     const afterBindings: Partial<Record<string, TDBinding>> = {}
-
-    let afterShape = this.app.page.shapes[initialShape.id] as ArrowShape
-
-    const currentBindingId = afterShape.handles[handleId].bindingId
 
     if (initialBinding) {
       beforeBindings[initialBinding.id] = this.isCreate ? undefined : initialBinding
@@ -362,8 +378,6 @@ export class ArrowSession extends BaseSession {
       beforeBindings[newStartBindingId] = undefined
       afterBindings[newStartBindingId] = this.app.page.bindings[newStartBindingId]
     }
-
-    afterShape = TLDR.onSessionComplete(afterShape)
 
     return {
       id: 'arrow',
@@ -392,7 +406,7 @@ export class ArrowSession extends BaseSession {
           pages: {
             [this.app.currentPageId]: {
               shapes: {
-                [initialShape.id]: afterShape,
+                [initialShape.id]: currentShape,
               },
               bindings: afterBindings,
             },

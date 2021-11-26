@@ -141,7 +141,7 @@ export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
   const { color } = style
 
   const theme: Theme = isDarkMode ? 'dark' : 'light'
-  const adjustedColor = color === ColorStyle.Black ? ColorStyle.Yellow : color
+  const adjustedColor = color === ColorStyle.White ? ColorStyle.Yellow : color
 
   return {
     fill: stickyFills[theme][adjustedColor],

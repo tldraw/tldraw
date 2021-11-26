@@ -15,6 +15,7 @@
     "incremental": false,
     "declaration": true,
     "declarationMap": true,
+    "emitDeclarationOnly": true,
     "sourceMap": true,
     "paths": {
       "~*": ["./src/*"],

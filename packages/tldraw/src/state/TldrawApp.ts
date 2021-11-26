@@ -2130,6 +2130,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             status: TDStatus.Idle,
           },
           document: {
+            ...result.document,
             pageStates: {
               [this.currentPageId]: {
                 ...result.document?.pageStates?.[this.currentPageId],
