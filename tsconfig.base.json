@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "composite": true,
-    "declaration": false,
+    "declaration": true,
     "declarationMap": false,
     "sourceMap": false,
     "emitDeclarationOnly": true,
