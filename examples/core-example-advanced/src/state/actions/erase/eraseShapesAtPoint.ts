@@ -10,6 +10,10 @@ export const eraseShapesAtPoint: Action = (data, payload: TLPointerInfo) => {
   Object.values(data.page.shapes).forEach((shape) => {
     if (getShapeUtils(shape).hitTestPoint(shape, currentPoint)) {
       delete data.page.shapes[shape.id]
+      const removedShapeIdIdx = data.pageState.selectedIds.indexOf(shape.id);
+      if (removedShapeIdIdx > -1) {
+        data.pageState.selectedIds.splice(removedShapeIdIdx, 1)
+      }
     }
   })
 }
