@@ -118,32 +118,32 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
-              {hasSelection ? (
-                <>
-                  <DMItem onSelect={preventEvent} onClick={handleCut} kbd="#X">
-                    Cut
-                  </DMItem>
-                  <DMItem onSelect={preventEvent} onClick={handleCopy} kbd="#C">
-                    Copy
-                  </DMItem>
-                  <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
-                    Paste
-                  </DMItem>
-                  <DMDivider dir="ltr" />
-                  <DMItem onSelect={preventEvent} onClick={handleCopySvg} kbd="#⇧C">
-                    Copy as SVG
-                  </DMItem>
-                  <DMItem onSelect={preventEvent} onClick={handleCopyJson}>
-                    Copy as JSON
-                  </DMItem>
-                </>
-              ) : (
-                <>
-                  <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
-                    Paste
-                  </DMItem>
-                </>
-              )}
+              <DMItem onSelect={preventEvent} disabled={!hasSelection} onClick={handleCut} kbd="#X">
+                Cut
+              </DMItem>
+              <DMItem
+                onSelect={preventEvent}
+                disabled={!hasSelection}
+                onClick={handleCopy}
+                kbd="#C"
+              >
+                Copy
+              </DMItem>
+              <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
+                Paste
+              </DMItem>
+              <DMDivider dir="ltr" />
+              <DMItem
+                onSelect={preventEvent}
+                disabled={!hasSelection}
+                onClick={handleCopySvg}
+                kbd="#⇧C"
+              >
+                Copy as SVG
+              </DMItem>
+              <DMItem onSelect={preventEvent} disabled={!hasSelection} onClick={handleCopyJson}>
+                Copy as JSON
+              </DMItem>
               <DMDivider dir="ltr" />
               <DMItem onSelect={preventEvent} onClick={handleSelectAll} kbd="#A">
                 Select All
