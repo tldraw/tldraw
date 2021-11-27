@@ -355,7 +355,7 @@ export class ArrowSession extends BaseSession {
 
     if (
       !(currentBindingId || initialBinding) &&
-      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) > 2
+      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) < 4
     ) {
       return this.cancel()
     }
