@@ -1,3 +1,7 @@
+## 1.1.7
+
+- Updates READMEs.
+
 ## 1.1.6
 
 - Fixes bugs in VS Code extension.
