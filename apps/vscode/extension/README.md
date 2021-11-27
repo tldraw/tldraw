@@ -2,11 +2,11 @@
 
 Create and edit diagrams using the [tldraw](https://tldraw.com/) editor, all inside of VS Code.
 
-![A recording of tldraw in VS Code](./assets/recording.gif)
+![A screenshot of tldraw in VS Code](./assets/screenshot.png)
 
 [tldraw](https://tldraw.com) is a free drawing and diagramming tool with a hand-drawn style and convenient features such as smart arrows, snapping, and sticky notes. With the tldraw extension for VS Code, your tldraw files can be version controlled alongside your code.
 
-![A screenshot of tldraw in VS Code](./assets/screenshot.png)
+![A recording of tldraw in VS Code](./assets/recording.gif)
 
 > **Tip:** The files you create or edit here can also be opened in the tldraw [web app](https://tldraw.com).
 
