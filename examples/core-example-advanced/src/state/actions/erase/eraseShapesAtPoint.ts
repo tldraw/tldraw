@@ -1,19 +1,26 @@
 import type { Action } from 'state/constants'
-import type { TLPointerInfo } from '@tldraw/core'
-import { getPagePoint } from 'state/helpers'
 import { getShapeUtils } from 'shapes'
 import { mutables } from 'state/mutables'
 
-export const eraseShapesAtPoint: Action = (data, payload: TLPointerInfo) => {
+export const eraseShapesAtPoint: Action = (data) => {
   const { currentPoint } = mutables
 
   Object.values(data.page.shapes).forEach((shape) => {
     if (getShapeUtils(shape).hitTestPoint(shape, currentPoint)) {
       delete data.page.shapes[shape.id]
-      const removedShapeIdIdx = data.pageState.selectedIds.indexOf(shape.id);
-      if (removedShapeIdIdx > -1) {
-        data.pageState.selectedIds.splice(removedShapeIdIdx, 1)
-      }
     }
   })
+
+  const { shapes } = data.page
+  const { selectedIds, hoveredId } = data.pageState
+
+  // Filter out any deleted shapes
+  data.pageState.selectedIds = selectedIds.filter((id) => {
+    return shapes[id] !== undefined
+  })
+
+  // Remove hovered id if it's been deleted
+  if (hoveredId && !shapes[hoveredId]) {
+    data.pageState.hoveredId = undefined
+  }
 }
