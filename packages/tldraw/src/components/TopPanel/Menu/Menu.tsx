@@ -15,14 +15,20 @@ import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
+import type { TDSnapshot } from '~types'
 
 interface MenuProps {
   showSponsorLink: boolean
   readOnly: boolean
 }
 
+const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
+  return s.document.pageStates[s.appState.currentPageId].selectedIds.length
+}
+
 export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
   const app = useTldrawApp()
+  const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
@@ -70,6 +76,8 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
 
+  const hasSelection = numberOfSelectedIds > 0
+
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon isSponsor={showSponsorLink}>
@@ -110,22 +118,32 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={preventEvent} onClick={handleCut} kbd="#X">
-                Cut
-              </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handleCopy} kbd="#C">
-                Copy
-              </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
-                Paste
-              </DMItem>
-              <DMDivider dir="ltr" />
-              <DMItem onSelect={preventEvent} onClick={handleCopySvg} kbd="#⇧C">
-                Copy as SVG
-              </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handleCopyJson}>
-                Copy as JSON
-              </DMItem>
+              {hasSelection ? (
+                <>
+                  <DMItem onSelect={preventEvent} onClick={handleCut} kbd="#X">
+                    Cut
+                  </DMItem>
+                  <DMItem onSelect={preventEvent} onClick={handleCopy} kbd="#C">
+                    Copy
+                  </DMItem>
+                  <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
+                    Paste
+                  </DMItem>
+                  <DMDivider dir="ltr" />
+                  <DMItem onSelect={preventEvent} onClick={handleCopySvg} kbd="#⇧C">
+                    Copy as SVG
+                  </DMItem>
+                  <DMItem onSelect={preventEvent} onClick={handleCopyJson}>
+                    Copy as JSON
+                  </DMItem>
+                </>
+              ) : (
+                <>
+                  <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
+                    Paste
+                  </DMItem>
+                </>
+              )}
               <DMDivider dir="ltr" />
               <DMItem onSelect={preventEvent} onClick={handleSelectAll} kbd="#A">
                 Select All
