@@ -68,11 +68,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "test && lint-staged"
+      "pre-push": "fix:style && eslint && test"
     }
-  },
-  "lint-staged": {
-    "*": "fix:style && eslint"
   }
 }

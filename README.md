@@ -2,7 +2,9 @@
   <img src="./assets/tldraw.png"/>
 </div>
 
-Welcome to the [tldraw](https://tldraw.com) monorepo. Here you'll find the source code for [@tldraw/tldraw](https://www.npmjs.com/package/@tldraw/tldraw), [@tldraw/core](https://www.npmjs.com/package/@tldraw/core), and the tldraw.com website.
+![A screenshot of the tldraw web app](./assets/screenshot.png)
+
+Welcome to the [tldraw](https://tldraw.com) monorepo.
 
 🙌 Questions? Join the [Discord channel](https://discord.gg/SBBEVCA4PG) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
 
@@ -15,7 +17,6 @@ Thanks to our corporate sponsors:
 <a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
 
 ...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
-
 
 <!-- sponsors --><!-- sponsors -->
 
