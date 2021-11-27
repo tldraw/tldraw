@@ -238,3 +238,73 @@ describe('When creating with an arrow session', () => {
     expect(arrow.handles.end.bindingId).not.toBe(undefined)
   })
 })
+
+describe('When drawing an arrow', () => {
+  it('does not create an arrow less than 4 points long', () => {
+    const app = new TldrawTestApp()
+      .selectTool(TDShapeType.Arrow)
+      .pointCanvas([100, 100])
+      .movePointer([100, 103])
+      .stopPointing()
+
+    expect(app.shapes.length).toBe(0)
+  })
+
+  it('creates an arrow 4 points long or more', () => {
+    const app = new TldrawTestApp()
+      .selectTool(TDShapeType.Arrow)
+      .pointCanvas([100, 100])
+      .movePointer([100, 104])
+      .stopPointing()
+
+    expect(app.shapes.length).toBe(1)
+  })
+
+  it('creates a short arrow if at least one handle is bound to a shape', () => {
+    const app = new TldrawTestApp()
+      .createShapes({
+        type: TDShapeType.Rectangle,
+        id: 'rect1',
+        point: [100, 100],
+        size: [200, 200],
+      })
+      .selectTool(TDShapeType.Arrow)
+      .pointCanvas([75, 100])
+      .movePointer([76, 100]) // One pixel right, into binding area
+      .stopPointing()
+
+    expect(app.shapes.length).toBe(2)
+  })
+
+  it('does not create a short arrow if no handles are bound', () => {
+    const app = new TldrawTestApp()
+      .createShapes({
+        type: TDShapeType.Rectangle,
+        id: 'rect1',
+        point: [100, 100],
+        size: [200, 200],
+      })
+      .selectTool(TDShapeType.Arrow)
+      .pointCanvas([75, 100])
+      .movePointer([74, 100]) // One pixel left, not in binding area
+      .stopPointing()
+
+    expect(app.shapes.length).toBe(1)
+  })
+
+  it('creates a short arrow if start handle is bound', () => {
+    const app = new TldrawTestApp()
+      .createShapes({
+        type: TDShapeType.Rectangle,
+        id: 'rect1',
+        point: [100, 100],
+        size: [200, 200],
+      })
+      .selectTool(TDShapeType.Arrow)
+      .pointCanvas([101, 100]) // Inside of shape
+      .movePointer([100, 100])
+      .stopPointing()
+
+    expect(app.shapes.length).toBe(2)
+  })
+})
