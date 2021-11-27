@@ -26,7 +26,7 @@ For full release notes, see the [changelog](https://github.com/tldraw/tldraw).
 
 ### Support
 
-Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) for support.
+Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new/choose) for support.
 
 ### Discussion
 
