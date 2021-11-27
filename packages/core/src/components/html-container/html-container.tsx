@@ -7,11 +7,11 @@ interface HTMLContainerProps extends React.HTMLProps<HTMLDivElement> {
 
 export const HTMLContainer = observer(
   React.forwardRef<HTMLDivElement, HTMLContainerProps>(function HTMLContainer(
-    { children, ...rest },
+    { children, className = '', ...rest },
     ref
   ) {
     return (
-      <div ref={ref} className="tl-positioned-div" {...rest}>
+      <div ref={ref} className={`tl-positioned-div ${className}`} {...rest}>
         {children}
       </div>
     )
