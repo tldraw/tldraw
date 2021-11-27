@@ -84,7 +84,8 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             return
           }
 
-          e.stopPropagation()
+          // Don't prevent 
+          //e.stopPropagation()
 
           if (e.key === 'Tab') {
             e.preventDefault()
@@ -126,6 +127,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
       // Resize to fit text
       React.useEffect(() => {
+        console.log('hi!');
         const text = rText.current!
 
         const { size } = shape
