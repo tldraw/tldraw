@@ -1,9 +1,10 @@
 import { observer } from 'mobx-react-lite'
+import type {HTMLProps} from 'react'
 import * as React from 'react'
 import type { TLBounds } from '~types'
 import { usePosition } from '~hooks'
 
-interface ContainerProps {
+interface ContainerProps extends HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLBounds
   isGhost?: boolean
@@ -17,6 +18,7 @@ export const Container = observer<ContainerProps>(function Container({
   rotation = 0,
   isGhost = false,
   children,
+  ...props
 }) {
   const rPositioned = usePosition(bounds, rotation)
 
@@ -27,6 +29,7 @@ export const Container = observer<ContainerProps>(function Container({
       className={isGhost ? 'tl-positioned tl-ghost' : 'tl-positioned'}
       aria-label="container"
       data-testid="container"
+      {...props}
     >
       {children}
     </div>

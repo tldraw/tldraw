@@ -22,7 +22,7 @@ export const Shape = observer(function Shape<T extends TLShape, E extends Elemen
   const events = useShapeEvents(shape.id)
 
   return (
-    <Container id={shape.id} bounds={bounds} rotation={shape.rotation}>
+    <Container id={shape.id} bounds={bounds} rotation={shape.rotation} data-shape={shape.type}>
       <RenderedShape
         shape={shape}
         utils={utils as any}
