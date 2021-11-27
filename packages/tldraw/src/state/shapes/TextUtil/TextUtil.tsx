@@ -157,7 +157,12 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       return (
         <HTMLContainer ref={ref} {...events}>
-          <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
+          <Wrapper
+            data-testid="text-shape"
+            isGhost={isGhost}
+            isEditing={isEditing}
+            onPointerDown={handlePointerDown}
+          >
             <InnerWrapper
               style={{
                 font,
@@ -181,6 +186,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
               {isEditing ? (
                 <TextArea
                   ref={rInput}
+                  data-testid="text-shape-area"
                   style={{
                     font,
                     color: styles.stroke,

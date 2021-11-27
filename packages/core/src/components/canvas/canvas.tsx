@@ -88,10 +88,16 @@ export function Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   return (
     <div id={id} className="tl-container" ref={rContainer}>
-      <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
+      <div
+        id="canvas"
+        data-testid="canvas"
+        className="tl-absolute tl-canvas"
+        ref={rCanvas}
+        {...events}
+      >
         <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
           {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
-          <div ref={rLayer} className="tl-absolute tl-layer">
+          <div ref={rLayer} data-testid="layer" className="tl-absolute tl-layer">
             <Page
               page={page}
               pageState={pageState}

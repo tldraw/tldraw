@@ -2711,6 +2711,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   // Canvas (background)
   onPointCanvas: TLCanvasEventHandler = (info, e) => {
     this.updateInputs(info, e)
+    this.cleanupEditingShape()
     this.currentTool.onPointCanvas?.(info, e)
   }
 
@@ -2894,26 +2895,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.updateShapes(shape)
   }
 
-  onShapeBlur = () => {
-    // This prevents an auto-blur event from Safari
-    if (Date.now() - this.editingStartTime < 50) return
-
+  cleanupEditingShape = () => {
     const { editingId } = this.pageState
     const { isToolLocked } = this.getAppState()
 
-    if (editingId) {
-      // If we're editing text, then delete the text if it's empty
-      const shape = this.getShape(editingId)
-      this.setEditingId()
-      if (shape.type === TDShapeType.Text) {
-        if (shape.text.trim().length <= 0) {
-          this.patchState(Commands.deleteShapes(this, [editingId]).after, 'delete_empty_text')
-        } else if (!isToolLocked) {
-          this.select(editingId)
-        }
+    if (!editingId) return
+    if (Date.now() - this.editingStartTime < 50) return
+
+    // If we're editing text, then delete the text if it's empty
+    const shape = this.getShape(editingId)
+
+    this.setEditingId()
+
+    if (shape.type === TDShapeType.Text) {
+      if (shape.text.trim().length <= 0) {
+        this.patchState(Commands.deleteShapes(this, [editingId]).after, 'delete_empty_text')
+      } else if (!isToolLocked) {
+        this.select(editingId)
       }
     }
+  }
 
+  onShapeBlur = () => {
+    this.cleanupEditingShape()
     this.currentTool.onShapeBlur?.()
   }
 

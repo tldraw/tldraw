@@ -13,6 +13,7 @@ export interface ToolButtonProps {
   isSponsor?: boolean
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
+  testId?: string
   children: React.ReactNode
 }
 
@@ -24,6 +25,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       onDoubleClick,
       variant,
       children,
+      testId = 'ToolButton',
       isToolLocked = false,
       disabled = false,
       isActive = false,
@@ -43,6 +45,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
         bp={breakpoints}
+        data-testid={testId}
         {...rest}
       >
         <StyledToolButtonInner>{children}</StyledToolButtonInner>
@@ -76,6 +79,7 @@ export function ToolButtonWithTooltip({
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <ToolButton
         {...rest}
+        testId={label}
         variant="primary"
         isToolLocked={isLocked && rest.isActive}
         onDoubleClick={handleDoubleClick}

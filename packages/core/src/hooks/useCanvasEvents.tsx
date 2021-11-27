@@ -8,14 +8,17 @@ export function useCanvasEvents() {
     (e: React.PointerEvent) => {
       if (e.button !== 0 && e.button !== 1) return
       if (!inputs.pointerIsValid(e)) return
-      e.currentTarget.setPointerCapture(e.pointerId)
+
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId)
+      } catch (err) {
+        // noop
+      }
 
       const info = inputs.pointerDown(e, 'canvas')
 
-      if (e.button === 0 || e.button === 1) {
-        callbacks.onPointCanvas?.(info, e)
-        callbacks.onPointerDown?.(info, e)
-      }
+      callbacks.onPointCanvas?.(info, e)
+      callbacks.onPointerDown?.(info, e)
     },
     [callbacks, inputs]
   )
@@ -44,9 +47,14 @@ export function useCanvasEvents() {
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'canvas')
 
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget?.releasePointerCapture(e.pointerId)
+      try {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget?.releasePointerCapture(e.pointerId)
+        }
+      } catch (err) {
+        // noop
       }
+
       if (isDoubleClick && !(info.altKey || info.metaKey)) {
         callbacks.onDoubleClickCanvas?.(info, e)
       }

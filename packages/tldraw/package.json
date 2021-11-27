@@ -86,8 +86,9 @@
       "<rootDir>/src/test/"
     ],
     "moduleNameMapper": {
+      "\\~(.*)": "<rootDir>/src/$1",
       "@tldraw/tldraw": "<rootDir>/src",
-      "\\~(.*)": "<rootDir>/src/$1"
+      "@tldraw/core": "<rootDir>/../core"
     }
   },
   "gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9"
