@@ -93,6 +93,10 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     app.copyJson()
   }, [app])
 
+  const handleCut = React.useCallback(() => {
+    app.cut()
+  }, [app])
+
   const handleCopy = React.useCallback(() => {
     app.copy()
   }, [app])
@@ -177,6 +181,9 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 />
               )}
               <Divider />
+              <CMRowButton onClick={handleCut} kbd="#X">
+                Cut
+              </CMRowButton>
               <CMRowButton onClick={handleCopy} kbd="#C">
                 Copy
               </CMRowButton>
