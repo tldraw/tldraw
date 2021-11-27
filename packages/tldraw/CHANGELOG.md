@@ -1,5 +1,9 @@
 ## 1.1.6
 
+- Fix bug when creating arrows and lines.
+
+## 1.1.6
+
 - Adds spellcheck to text and stickies.
 
 ## 1.1.6
