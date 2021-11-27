@@ -1,6 +1,6 @@
 ## Introduction
 
-tldraw extends VS Code with support for [tldraw](https://tldraw.com) files.
+Create and edit diagrams using the [tldraw](https://tldraw.com/) editor, all inside of VS Code.
 
 ![A screenshot of tldraw in VS Code](./assets/screenshot.png)
 
