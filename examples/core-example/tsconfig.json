@@ -7,8 +7,6 @@
     "baseUrl": ".",
     "rootDir": "src",
     "emitDeclarationOnly": false,
-    "experimentalDecorators": true,
-    "useDefineForClassFields": true,
     "paths": {
       "*": ["src/*"]
     }
