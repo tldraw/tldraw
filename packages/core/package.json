@@ -54,8 +54,8 @@
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.33",
     "@types/react-dom": "^17.0.10",
-    "mobx": "^6.3.8",
-    "tsconfig-replace-paths": "^0.0.5"
+    "tsconfig-replace-paths": "^0.0.11",
+    "mobx": "^6.3.8"
   },
   "jest": {
     "setupFilesAfterEnv": [

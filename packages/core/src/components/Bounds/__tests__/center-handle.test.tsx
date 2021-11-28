@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import * as React from 'react'
-import { CenterHandle } from '../center-handle'
+import { CenterHandle } from '../CenterHandle'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

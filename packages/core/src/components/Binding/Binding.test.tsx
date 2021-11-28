@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import * as React from 'react'
-import { Binding } from './binding'
+import { Binding } from './Binding'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

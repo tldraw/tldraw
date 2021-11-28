@@ -38,10 +38,10 @@ async function main() {
       sourcemap: true,
     })
 
-    let esmSize = 0
-    Object.values(esmResult.metafile.outputs).forEach((output) => {
-      esmSize += output.bytes
-    })
+    const esmSize = Object.values(esmResult.metafile.outputs).reduce(
+      (acc, { bytes }) => acc + bytes,
+      0
+    )
 
     fs.readFile('./dist/esm/index.js', (_err, data) => {
       gzip(data, (_err, result) => {

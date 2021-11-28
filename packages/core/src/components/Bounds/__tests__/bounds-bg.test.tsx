@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import * as React from 'react'
-import { BoundsBg } from '../bounds-bg'
+import { BoundsBg } from '../BoundsBg'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

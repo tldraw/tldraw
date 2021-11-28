@@ -1,7 +1,7 @@
 import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
-import { LinkHandle } from '../link-handle'
+import { LinkHandle } from '../LinkHandle'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

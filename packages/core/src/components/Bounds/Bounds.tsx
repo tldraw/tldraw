@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { TLBoundsEdge, TLBoundsCorner, TLBounds } from '~types'
-import { CenterHandle } from './center-handle'
-import { RotateHandle } from './rotate-handle'
-import { CornerHandle } from './corner-handle'
-import { EdgeHandle } from './edge-handle'
-import { CloneButtons } from './clone-buttons'
+import { CenterHandle } from './CenterHandle'
+import { RotateHandle } from './RotateHandle'
+import { CornerHandle } from './CornerHandle'
+import { LinkHandle } from './LinkHandle'
+import { EdgeHandle } from './EdgeHandle'
+import { CloneButtons } from './CloneButtons'
 import { Container } from '~components/container'
 import { SVGContainer } from '~components/svg-container'
-import { LinkHandle } from './link-handle'
 import { observer } from 'mobx-react-lite'
 
 interface BoundsProps {

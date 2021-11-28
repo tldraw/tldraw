@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { TLBounds } from '~types'
-import { CloneButton } from './clone-button'
+import { CloneButton } from './CloneButton'
 
 export interface CloneButtonsProps {
   bounds: TLBounds

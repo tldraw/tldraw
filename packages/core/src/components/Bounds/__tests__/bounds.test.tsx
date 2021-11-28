@@ -1,7 +1,7 @@
 import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
-import { Bounds } from '../bounds'
+import { Bounds } from '../Bounds'
 
 describe('bounds', () => {
   test('mounts component without crashing', () => {
