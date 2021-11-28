@@ -147,6 +147,7 @@ const onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
       break
     }
     case 'z': {
+      console.log('z');
       if (info.metaKey || info.ctrlKey) {
         if (info.shiftKey) {
           machine.send('REDO')
