@@ -23,7 +23,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'd,2',
+    'p,2',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Draw)
@@ -53,7 +53,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'i,5',
+    'o,5',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Ellipse)
