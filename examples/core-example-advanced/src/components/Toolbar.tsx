@@ -51,7 +51,10 @@ export function Toolbar({ activeStates, lastEvent }: ToolbarProps) {
           <button onClick={onReset}>Reset</button>
           {activeStates
             .slice(1)
-            .map((name) => name.split('#state_1.root')[1])
+            .map((name) => {
+              const state = name.split('.')
+              return state[state.length - 1]
+            })
             .join(' - ')}
         </div>
         <div>{lastEvent}</div>
