@@ -29,6 +29,7 @@
     "build:packages": "lerna run build:packages --stream",
     "build:apps": "lerna run build:apps",
     "start": "yarn build:packages && lerna run start --stream --parallel",
+    "start:all": "yarn build:packages && lerna run start:all --stream --parallel",
     "start:core": "lerna run start:core --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
     "start:electron": "lerna run start:electron --stream --parallel",
