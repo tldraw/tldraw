@@ -11,6 +11,7 @@ import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -84,7 +85,27 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             return
           }
 
-          e.stopPropagation()
+          // If this keydown was just the meta key or a shortcut
+          // that includes holding the meta key like (Command+V)
+          // then leave the event untouched. We also have to explicitly
+          // Implement undo/redo for some reason in order to get this working
+          // in the vscode extension. Without the below code the following doesn't work
+          //
+          // - You can't cut/copy/paste when when text-editing/focused
+          // - You can't undo/redo when when text-editing/focused
+          // - You can't use Command+A to select all the text, when when text-editing/focused
+          if (!(e.key === 'Meta' || e.metaKey)) {
+            e.stopPropagation()
+          } else if (e.key === 'z' && e.metaKey) {
+            if (e.shiftKey) {
+              document.execCommand('redo', false)
+            } else {
+              document.execCommand('undo', false)
+            }
+            e.stopPropagation()
+            e.preventDefault()
+            return
+          }
 
           if (e.key === 'Tab') {
             e.preventDefault()
@@ -190,6 +211,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoFocus
                 spellCheck={true}
                 alignment={shape.style.textAlign}
+                onContextMenu={stopPropagation}
               />
             )}
           </StyledStickyContainer>
