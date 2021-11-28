@@ -391,12 +391,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
 
         if (nextPageState.bindingId && !page.bindings[nextPageState.bindingId]) {
-          console.warn('Could not find the binding binding!', pageId)
+          TLDR.warn(`Could not find the binding of ${pageId}`)
           delete nextPageState.bindingId
         }
 
         if (nextPageState.editingId && !page.shapes[nextPageState.editingId]) {
-          console.warn('Could not find the editing shape!')
+          TLDR.warn('Could not find the editing shape!')
           delete nextPageState.editingId
         }
 
@@ -1529,7 +1529,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           pasteInCurrentPage(data.shapes, data.bindings)
         } catch (e) {
-          console.warn(e)
+          TLDR.warn(e)
 
           const shapeId = Utils.uniqueId()
 
@@ -1984,7 +1984,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
     if (this.readOnly && type !== SessionType.Brush) return this
     if (this.session) {
-      console.warn(`Already in a session! (${this.session.constructor.name})`)
+      TLDR.warn(`Already in a session! (${this.session.constructor.name})`)
       this.cancelSession()
     }
 

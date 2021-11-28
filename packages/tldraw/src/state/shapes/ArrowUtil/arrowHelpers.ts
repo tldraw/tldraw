@@ -5,6 +5,7 @@ import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
 import { getShapeStyle } from '../shared/shape-styles'
 import type { ArrowShape, TldrawHandle } from '~types'
+import { TLDR } from '../../TLDR'
 
 export function getArrowArcPath(
   start: TldrawHandle,
@@ -159,7 +160,7 @@ export function getCurvedArrowHeadPoints(
   const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
 
   if (!ints) {
-    console.warn('Could not find an intersection for the arrow head.')
+    TLDR.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
@@ -175,7 +176,7 @@ export function getCurvedArrowHeadPoints(
 export function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   const ints = intersectCircleLineSegment(A, r, A, B).points
   if (!ints) {
-    console.warn('Could not find an intersection for the arrow head.')
+    TLDR.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
