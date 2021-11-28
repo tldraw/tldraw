@@ -31,5 +31,6 @@
     "types:build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist"
-  }
+  },
+  "gitHead": "7bf5f5fd8a16081819ed94a9113a2d6e6b8d689e"
 }

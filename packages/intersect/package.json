@@ -35,5 +35,6 @@
   },
   "dependencies": {
     "@tldraw/vec": "^1.2.0"
-  }
+  },
+  "gitHead": "7bf5f5fd8a16081819ed94a9113a2d6e6b8d689e"
 }

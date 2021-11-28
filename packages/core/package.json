@@ -89,5 +89,6 @@
       "@tldraw/core": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }
-  }
+  },
+  "gitHead": "7bf5f5fd8a16081819ed94a9113a2d6e6b8d689e"
 }
