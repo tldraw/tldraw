@@ -11,9 +11,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     return elm && (document.activeElement === elm || elm.contains(document.activeElement))
   }, [ref])
 
-  
   /* ---------------------- Tools --------------------- */
-  
+
   useHotkeys(
     'v,1',
     () => {
