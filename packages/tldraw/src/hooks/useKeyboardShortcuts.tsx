@@ -13,6 +13,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   
   /* ---------------------- Tools --------------------- */
+  
   useHotkeys(
     'v,1',
     () => {
