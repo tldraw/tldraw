@@ -3,8 +3,8 @@ import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLBounds } from '~types'
 import { useBoundsEvents } from '~hooks'
-import { Container } from '~components/container'
-import { SVGContainer } from '~components/svg-container'
+import { Container } from '~components/Container'
+import { SVGContainer } from '~components/SVGContainer'
 
 interface BoundsBgProps {
   bounds: TLBounds

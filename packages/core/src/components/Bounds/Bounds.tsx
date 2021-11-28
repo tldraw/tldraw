@@ -7,8 +7,8 @@ import { CornerHandle } from './CornerHandle'
 import { LinkHandle } from './LinkHandle'
 import { EdgeHandle } from './EdgeHandle'
 import { CloneButtons } from './CloneButtons'
-import { Container } from '~components/container'
-import { SVGContainer } from '~components/svg-container'
+import { Container } from '~components/Container'
+import { SVGContainer } from '~components/SVGContainer'
 import { observer } from 'mobx-react-lite'
 
 interface BoundsProps {

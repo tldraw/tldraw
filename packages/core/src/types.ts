@@ -289,18 +289,6 @@ export interface TLTransformInfo<T extends TLShape> {
   transformOrigin: number[]
 }
 
-// TODO: Remove me and the rest of the bezier curve content
-export interface TLBezierCurveSegment {
-  start: number[]
-  tangentStart: number[]
-  normalStart: number[]
-  pressureStart: number
-  end: number[]
-  tangentEnd: number[]
-  normalEnd: number[]
-  pressureEnd: number
-}
-
 // TODO: Move snaps into its own repo
 export enum SnapPoints {
   minX = 'minX',

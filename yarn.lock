@@ -3135,6 +3135,15 @@
     "@babel/runtime" "^7.12.5"
     "@testing-library/dom" "^8.0.0"
 
+"@tldraw/core@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@tldraw/core/-/core-1.1.5.tgz#1d8cf365842740dba3f4fe371f5a4cc66047e5f7"
+  integrity sha512-sPo/LYKiSHPiVe6D2elsCmkPhwZj+8IRVBI2ikzXK03r/LS7e6Yn0P6hxLuntpZDf+8qqVDcq/+NOBCZUaiH+A==
+  dependencies:
+    "@tldraw/intersect" "^1.1.5"
+    "@tldraw/vec" "^1.1.5"
+    "@use-gesture/react" "^10.1.3"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -10471,6 +10480,11 @@ mobx@^6.3.7:
   version "6.3.7"
   resolved "https://registry.yarnpkg.com/mobx/-/mobx-6.3.7.tgz#9ed85561e86da45141134c8fa20cf5f9c7246c3d"
   integrity sha512-X7yU7eOEyxIBk4gjIi2UIilwdw48gXh0kcZ5ex3Rc+COJsJmJ4SNpf42uYea3aUqb1hedTv5xzJrq5Q55p0P5g==
+
+mobx@^6.3.8:
+  version "6.3.8"
+  resolved "https://registry.yarnpkg.com/mobx/-/mobx-6.3.8.tgz#a4654b1b69c683237f2444cf0af39a621d4611af"
+  integrity sha512-RfG2y766P1o9u9xrQht/HBXEoUPIr4B3Gjri3reLW/TuHm3I/3TfBBS0OaeMbw19RIF0AymqjDNlJgakN4ZK7g==
 
 mocha@^9.1.1:
   version "9.1.3"

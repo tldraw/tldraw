@@ -9,6 +9,7 @@
   },
   "license": "MIT",
   "workspaces": [
+    "packages/curve",
     "packages/vec",
     "packages/intersect",
     "packages/core",
