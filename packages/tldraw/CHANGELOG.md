@@ -1,3 +1,7 @@
+## 1.1.9
+
+- Updates @tldraw/core.
+
 ## 1.1.6
 
 - Fix bug when creating arrows and lines.
