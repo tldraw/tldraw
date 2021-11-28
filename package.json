@@ -1,6 +1,7 @@
 {
   "name": "@tldraw/monorepo",
   "private": true,
+  "version": "1.0.0",
   "description": "A tiny little drawing app.",
   "author": "@steveruizok",
   "repository": {
@@ -9,6 +10,7 @@
   },
   "license": "MIT",
   "workspaces": [
+    "packages/curve",
     "packages/vec",
     "packages/intersect",
     "packages/core",
@@ -28,19 +30,21 @@
     "build:packages": "lerna run build:packages --stream",
     "build:apps": "lerna run build:apps",
     "start": "yarn build:packages && lerna run start --stream --parallel",
+    "start:all": "yarn build:packages && lerna run start:all --stream --parallel",
     "start:core": "lerna run start:core --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
-    "publish:patch": "yarn test && yarn build:packages && lerna publish patch",
-    "fix:style": "yarn run prettier ./packages/tldraw/src --write",
+    "publish:patch": "yarn build:packages && yarn test && lerna publish",
+    "fix:style": "yarn run prettier ./packages/core/src --write && yarn run prettier ./packages/tldraw/src --write",
     "lerna": "lerna",
     "test": "lerna run test --stream",
     "test:ci": "lerna run test:ci --stream",
     "test:watch": "lerna run test:watch --stream",
     "docs": "lerna run typedoc",
     "docs:watch": "lerna run typedoc --watch",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "pretty-quick": "pretty-quick"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.3.3",
@@ -64,15 +68,13 @@
     "resize-observer-polyfill": "^1.5.1",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "pretty-quick": "^3.1.2"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "test && lint-staged"
+      "pre-commit": "pretty-quick --staged",
+      "pre-push": "fix:style && eslint && test"
     }
-  },
-  "lint-staged": {
-    "*": "fix:style && eslint"
   }
 }

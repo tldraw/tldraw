@@ -19,11 +19,7 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "*": ["./*"],
-      "@tldraw/tldraw": ["./packages/tldraw"],
-      "@tldraw/core": ["./packages/core"],
-      "@tldraw/intersect": ["./packages/intersect"],
-      "@tldraw/vec": ["./packages/vec"]
+      "*": ["./*"]
     }
   },
   "references": [

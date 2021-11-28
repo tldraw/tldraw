@@ -15,6 +15,10 @@ export class ArrowUtil extends CustomShapeUtil<T, E> {
 
   Indicator = ArrowIndicator
 
+  hideResizeHandles = true
+
+  hideBounds = true
+
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const { start, end } = shape.handles
@@ -25,8 +29,6 @@ export class ArrowUtil extends CustomShapeUtil<T, E> {
   }
 
   /* ----------------- Custom Methods ----------------- */
-
-  hideBounds = true
 
   canBind = false
 
