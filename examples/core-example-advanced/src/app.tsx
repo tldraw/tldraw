@@ -16,6 +16,8 @@ import './styles.css'
 import styled from 'stitches.config'
 import { Api } from 'state/api'
 
+declare const window: Window & { api: Api }
+
 const onHoverShape: TLPointerEventHandler = (info, e) => {
   machine.send('HOVERED_SHAPE', info)
 }
@@ -181,13 +183,19 @@ export default function App({ onMount }: AppProps): JSX.Element {
   React.useEffect(() => {
     const api = new Api(appState)
     onMount?.(api)
-    // @ts-ignore
     window['api'] = api
   }, [])
 
   const hideBounds = appState.isInAny('transformingSelection', 'translating', 'creating')
 
   // const hideBounds = appState.isInAny('transformingSelection', 'translating', 'creating')
+
+  const firstShapeId = appState.data.pageState.selectedIds[0]
+  const firstShape = firstShapeId ? appState.data.page.shapes[firstShapeId] : null
+  const hideResizeHandles = firstShape
+    ? appState.data.pageState.selectedIds.length === 1 &&
+      shapeUtils[firstShape.type].hideResizeHandles
+    : false
 
   return (
     <AppContainer>
@@ -216,6 +224,7 @@ export default function App({ onMount }: AppProps): JSX.Element {
         onKeyUp={onKeyUp}
         hideBounds={hideBounds}
         hideHandles={hideBounds}
+        hideResizeHandles={hideResizeHandles}
         hideIndicators={hideBounds}
         hideBindingHandles={true}
       />

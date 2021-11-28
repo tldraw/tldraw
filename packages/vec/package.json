@@ -1,5 +1,5 @@
 {
-  "version": "1.1.5",
+  "version": "1.2.2",
   "name": "@tldraw/vec",
   "description": "2D vector utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",
@@ -31,5 +31,6 @@
     "types:build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist"
-  }
+  },
+  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
 }
