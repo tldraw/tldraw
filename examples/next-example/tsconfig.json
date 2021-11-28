@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "docs"],
+  "compilerOptions": {
+    "outDir": "./dist/types",
+    "baseUrl": ".",
+    "rootDir": "src",
+    "emitDeclarationOnly": false,
+    "paths": {
+      "*": ["src/*"]
+    }
+  },
+  "references": [{ "path": "../../packages/next" }],
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
+}

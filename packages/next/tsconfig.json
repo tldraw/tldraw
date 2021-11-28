@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "exclude": ["node_modules", "dist", "docs"],
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "useDefineForClassFields": true,
+    "outDir": "./dist/types",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "~*": ["./src/*"]
+    }
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }],
+  "typedocOptions": {
+    "entryPoints": ["src/index.ts"],
+    "out": "docs"
+  }
+}

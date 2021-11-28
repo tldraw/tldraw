@@ -10,6 +10,7 @@
   },
   "license": "MIT",
   "workspaces": [
+    "packages/next",
     "packages/curve",
     "packages/vec",
     "packages/intersect",
@@ -21,6 +22,7 @@
     "apps/vscode/extension",
     "examples/tldraw-example",
     "examples/core-example",
+    "examples/next-example",
     "examples/core-example-advanced"
   ],
   "scripts": {
@@ -32,6 +34,7 @@
     "start": "yarn build:packages && lerna run start --stream --parallel",
     "start:all": "yarn build:packages && lerna run start:all --stream --parallel",
     "start:core": "lerna run start:core --stream --parallel",
+    "start:next": "yarn build:packages && lerna run start:next --stream --parallel",
     "start:www": "yarn build:packages && lerna run start --parallel & cd apps/www && yarn dev",
     "start:electron": "lerna run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & lerna run start:vscode --parallel; ",
