@@ -42,7 +42,7 @@
     "docs": "lerna run typedoc",
     "docs:watch": "lerna run typedoc --watch",
     "postinstall": "husky install",
-    "pretty-quick": "yarn pretty-quick"
+    "pretty-quick": "pretty-quick"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.3.3",
@@ -66,15 +66,13 @@
     "resize-observer-polyfill": "^1.5.1",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "pretty-quick": "^3.1.2"
   },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged",
       "pre-push": "fix:style && eslint && test"
     }
-  },
-  "dependencies": {
-    "pretty-quick": "^3.1.2"
   }
 }
