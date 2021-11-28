@@ -11,7 +11,7 @@ import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
-import { keys } from 'idb-keyval'
+import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -211,6 +211,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoFocus
                 spellCheck={true}
                 alignment={shape.style.textAlign}
+                onContextMenu={stopPropagation}
               />
             )}
           </StyledStickyContainer>

@@ -11,6 +11,7 @@ import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
 import { getTextAlign } from '../shared/getTextAlign'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { stopPropagation } from '~components/stopPropagation'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -225,6 +226,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
+                  onContextMenu={stopPropagation}
                 />
               ) : (
                 text
