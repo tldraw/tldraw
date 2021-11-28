@@ -10,8 +10,7 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
     "paths": {
-      "*": ["src/*"],
-      "@tldraw/core": ["../packages/core"]
+      "*": ["src/*"]
     }
   },
   "references": [{ "path": "../../packages/core" }],

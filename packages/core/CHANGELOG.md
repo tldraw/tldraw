@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.9
+## 1.2.2
 
 - Adds mobx and support for mobx observables in the Renderer's props.
 - Removes unused code.

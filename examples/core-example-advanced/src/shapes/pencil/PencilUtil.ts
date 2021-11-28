@@ -2,7 +2,6 @@ import { Utils, TLBounds } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
-  intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
 } from '@tldraw/intersect'
 import { nanoid } from 'nanoid'

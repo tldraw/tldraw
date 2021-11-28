@@ -1,4 +1,4 @@
-## 1.1.9
+## 1.2.2
 
 - Updates @tldraw/core.
 
