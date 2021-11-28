@@ -1,6 +1,7 @@
 {
   "name": "@tldraw/monorepo",
   "private": true,
+  "version": "1.0.0",
   "description": "A tiny little drawing app.",
   "author": "@steveruizok",
   "repository": {
