@@ -105,12 +105,12 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               document.execCommand('undo', false)
             }
             e.stopPropagation()
-            e.preventDefault();
-            return;
+            e.preventDefault()
+            return
           }
           
           if (e.key === 'Tab') {
-            e.preventDefault();
+            e.preventDefault()
             if (e.shiftKey) {
               TextAreaUtils.unindent(e.currentTarget)
             } else {
