@@ -1,3 +1,49 @@
+export enum TLNuBoundsEdge {
+  Top = 'top_edge',
+  Right = 'right_edge',
+  Bottom = 'bottom_edge',
+  Left = 'left_edge',
+}
+
+export enum TLNuBoundsCorner {
+  TopLeft = 'top_left_corner',
+  TopRight = 'top_right_corner',
+  BottomRight = 'bottom_right_corner',
+  BottomLeft = 'bottom_left_corner',
+}
+
+export type TLNuBoundsHandle =
+  | TLNuBoundsCorner
+  | TLNuBoundsEdge
+  | 'rotate'
+  | 'center'
+  | 'left'
+  | 'right'
+
+export interface TLNuBoundsWithCenter extends TLNuBounds {
+  midX: number
+  midY: number
+}
+
+export enum TLNuSnapPoints {
+  minX = 'minX',
+  midX = 'midX',
+  maxX = 'maxX',
+  minY = 'minY',
+  midY = 'midY',
+  maxY = 'maxY',
+}
+
+export type TLNuSnap =
+  | { id: TLNuSnapPoints; isSnapped: false }
+  | {
+      id: TLNuSnapPoints
+      isSnapped: true
+      to: number
+      B: TLNuBoundsWithCenter
+      distance: number
+    }
+
 export interface TLNuTheme {
   accent?: string
   brushFill?: string
@@ -91,6 +137,10 @@ export abstract class TLNuPage<
     point: number[]
     zoom: number
   }
+
+  abstract hoveredShape?: S
+  abstract selectedShapes: S[]
+  abstract selectedBounds: TLNuBounds
 }
 
 export abstract class TLNuShape {

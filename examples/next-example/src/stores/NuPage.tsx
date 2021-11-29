@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TLNuPage } from '@tldraw/next'
+import { BoundsUtils, TLNuBinding, TLNuBounds, TLNuPage } from '@tldraw/next'
 import Vec from '@tldraw/vec'
-import { action, observable, makeObservable } from 'mobx'
+import { action, observable, makeObservable, computed } from 'mobx'
 import { NuBoxShape } from './NuBoxShape'
 
 export class NuPage extends TLNuPage<NuBoxShape> {
@@ -10,9 +10,9 @@ export class NuPage extends TLNuPage<NuBoxShape> {
   @observable shapes = {
     box1: new NuBoxShape({ id: 'box1' }),
   }
-  @observable bindings = {}
-  @observable selectedIds = []
-  @observable hoveredId = null
+  @observable bindings: Record<string, TLNuBinding> = {}
+  @observable selectedIds: string[] = []
+  @observable hoveredId: string | null = null
   @observable camera = {
     point: [0, 0],
     zoom: 1,
@@ -29,5 +29,21 @@ export class NuPage extends TLNuPage<NuBoxShape> {
 
   @action panCamera = (delta: number[]) => {
     this.camera.point = Vec.sub(this.camera.point, delta)
+  }
+
+  @computed get shapesArr(): NuBoxShape[] {
+    return Object.values(this.shapes)
+  }
+
+  @computed get hoveredShape(): NuBoxShape | undefined {
+    return this.hoveredId ? this.shapesArr.find((shape) => shape.id === this.hoveredId) : undefined
+  }
+
+  @computed get selectedShapes(): NuBoxShape[] {
+    return this.shapesArr.filter((shape) => this.selectedIds.includes(shape.id))
+  }
+
+  @computed get selectedBounds(): TLNuBounds {
+    return BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.bounds))
   }
 }

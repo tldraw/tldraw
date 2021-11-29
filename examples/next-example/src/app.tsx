@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite'
 import { NuPage } from './stores/NuPage'
 
 const page = new NuPage()
+page.selectedIds = ['box1']
 
 export default observer(function App(): JSX.Element {
   const handlePan = React.useCallback((delta: number[]) => {

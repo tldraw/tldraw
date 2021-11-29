@@ -85,7 +85,20 @@ export class NuBoxShape extends TLNuShape {
     isHovered: boolean
     isSelected: boolean
     meta: any
-  }) => React.ReactElement | null = () => null
+  }) => React.ReactElement | null = () => {
+    return (
+      <SVGContainer>
+        <rect
+          x={this.point[0]}
+          y={this.point[1]}
+          width={this.size[0]}
+          height={this.size[1]}
+          stroke="aqua"
+          strokeWidth={2}
+        />
+      </SVGContainer>
+    )
+  }
 
   @computed get bounds(): TLNuBounds {
     const [x, y] = this.point
