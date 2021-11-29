@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLNuViewport } from '~lib'
+import type { TLNuViewport } from '~nu-lib'
 import type { TLNuBounds } from '~types'
 
 export function useResizeObserver<T extends Element>(

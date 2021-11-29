@@ -1,6 +1,6 @@
 import { autorun } from 'mobx'
 import * as React from 'react'
-import type { TLNuViewport } from '~lib'
+import type { TLNuViewport } from '~nu-lib'
 
 export function useCameraCss(
   layerRef: React.RefObject<HTMLDivElement>,

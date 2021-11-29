@@ -6,9 +6,9 @@ import { useStylesheet } from '~hooks/useStylesheet'
 import { nuContext, NuContext } from '~hooks/useContext'
 import { Canvas } from './Canvas'
 import type { TLNuBinding, TLNuCallbacks, TLNuTheme, TLNuBounds } from '~types'
-import type { TLNuViewport } from '~lib'
-import type { TLNuShape } from '~lib/TLNuShape'
-import type { TLNuInputs } from '~lib/TLNuInputs'
+import type { TLNuViewport } from '~nu-lib'
+import type { TLNuShape } from '~nu-lib/TLNuShape'
+import type { TLNuInputs } from '~nu-lib/TLNuInputs'
 
 export interface TLNuRendererProps<
   S extends TLNuShape = TLNuShape,

@@ -10,7 +10,7 @@ import { Shape } from '~components/Shape/Shape'
 import { useCameraCss } from '~hooks/useCameraCss'
 import { useContext } from '~hooks/useContext'
 import { useResizeObserver } from '~hooks/useResizeObserver'
-import type { TLNuShape } from '~lib/TLNuShape'
+import type { TLNuShape } from '~nu-lib/TLNuShape'
 import { TLNuBinding, TLNuBounds, TLNuTargetType } from '~types'
 
 type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {

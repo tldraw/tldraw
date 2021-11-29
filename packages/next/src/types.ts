@@ -1,4 +1,4 @@
-import type { TLNuShape } from '~lib'
+import type { TLNuShape } from '~nu-lib'
 
 export enum TLNuBoundsEdge {
   Top = 'top_edge',

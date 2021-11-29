@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { Container } from '~components/Container'
-import type { TLNuShape } from '~lib'
+import type { TLNuShape } from '~nu-lib'
 import { useContext } from '~hooks/useContext'
 import { TLNuTargetType } from '~types'
 
