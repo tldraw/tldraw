@@ -1,9 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TLNuBounds, SVGContainer } from '@tldraw/next'
+import {
+  TLNuBounds,
+  SVGContainer,
+  TLNuShape,
+  TLNuShapeProps,
+  TLNuIndicatorProps,
+} from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
-import { TLNuShape } from '@tldraw/next/src/lib/TLNuShape'
 
 export class NuBoxShape extends TLNuShape {
   showCloneHandles = false
@@ -55,35 +60,31 @@ export class NuBoxShape extends TLNuShape {
     makeObservable(this)
   }
 
-  Component = observer(
-    ({
-      isHovered,
-    }: {
-      isEditing: boolean
-      isBinding: boolean
-      isHovered: boolean
-      isSelected: boolean
-      meta: any
-    }) => {
-      return (
-        <SVGContainer>
-          <rect width={this.size[0]} height={this.size[1]} fill="black" />
-        </SVGContainer>
-      )
-    }
-  )
-
-  Indicator: (props: {
-    shape: TLNuShape
-    isEditing: boolean
-    isBinding: boolean
-    isHovered: boolean
-    isSelected: boolean
-    meta: any
-  }) => React.ReactElement | null = () => {
+  Component = observer((props: TLNuShapeProps) => {
     return (
       <SVGContainer>
-        <rect width={this.size[0]} height={this.size[1]} stroke="aqua" strokeWidth={2} />
+        <rect
+          width={this.size[0]}
+          height={this.size[1]}
+          strokeWidth={2}
+          stroke="black"
+          fill="none"
+          pointerEvents="all"
+        />
+      </SVGContainer>
+    )
+  })
+
+  Indicator = (props: TLNuIndicatorProps) => {
+    return (
+      <SVGContainer>
+        <rect
+          width={this.size[0]}
+          height={this.size[1]}
+          stroke="dodgerblue"
+          strokeWidth={2}
+          fill="transparent"
+        />
       </SVGContainer>
     )
   }

@@ -1,5 +1,3 @@
-import Vec from '@tldraw/vec'
-
 export enum TLNuBoundsEdge {
   Top = 'top_edge',
   Right = 'right_edge',
@@ -79,6 +77,18 @@ export interface TLNuBinding {
   fromId: string
 }
 
+export type TLNuEventInfo = { target: string }
+export type TLNuWheelHandler = (info: TLNuEventInfo, event: WheelEvent) => void
+export type TLNuPointerHandler = (info: TLNuEventInfo, event: React.PointerEvent) => void
+export type TLNuKeyboardHandler = (info: TLNuEventInfo, event: React.KeyboardEvent) => void
+
 export interface TLNuCallbacks {
-  onPan?: (delta: number[]) => void
+  onPan?: TLNuWheelHandler
+  onPointerDown?: TLNuPointerHandler
+  onPointerUp?: TLNuPointerHandler
+  onPointerMove?: TLNuPointerHandler
+  onPointerEnter?: TLNuPointerHandler
+  onPointerLeave?: TLNuPointerHandler
+  onKeyDown?: TLNuKeyboardHandler
+  onKeyUp?: TLNuKeyboardHandler
 }

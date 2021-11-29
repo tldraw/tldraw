@@ -40,7 +40,7 @@ export const Canvas = observer(function Canvas({
         e.preventDefault()
         if (Vec.isEqual(delta, [0, 0])) return
         viewport.panCamera(delta)
-        callbacks.onPan?.(delta)
+        callbacks.onPan?.({ target: 'canvas' }, e)
       },
     },
     {
@@ -54,27 +54,54 @@ export const Canvas = observer(function Canvas({
   )
 
   const events = React.useMemo(() => {
+    const info = { target: 'canvas' }
+
     const onPointerMove: React.PointerEventHandler = (e) => {
       inputs.onPointerMove(e)
+      callbacks.onPointerMove?.(info, e)
     }
 
     const onPointerDown: React.PointerEventHandler = (e) => {
       inputs.onPointerDown(e)
+      callbacks.onPointerDown?.(info, e)
     }
 
     const onPointerUp: React.PointerEventHandler = (e) => {
       inputs.onPointerUp(e)
+      callbacks.onPointerUp?.(info, e)
     }
 
-    const onKeyPress: React.KeyboardEventHandler = (e) => {
-      inputs.onKeyPress(e)
+    const onKeyDown: React.KeyboardEventHandler = (e) => {
+      inputs.onKeyDown(e)
+      callbacks.onKeyDown?.(info, e)
     }
 
-    return { onPointerDown, onPointerMove, onPointerUp, onKeyPress }
+    const onKeyUp: React.KeyboardEventHandler = (e) => {
+      inputs.onKeyUp(e)
+      callbacks.onKeyUp?.(info, e)
+    }
+
+    const onPointerEnter: React.PointerEventHandler = (e) => {
+      callbacks.onPointerEnter?.(info, e)
+    }
+
+    const onPointerLeave: React.PointerEventHandler = (e) => {
+      callbacks.onPointerLeave?.(info, e)
+    }
+
+    return {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onKeyDown,
+      onKeyUp,
+      onPointerEnter,
+      onPointerLeave,
+    }
   }, [inputs])
 
   return (
-    <div ref={rContainer} className="nu-absolute nu-canvas" {...events}>
+    <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
       <div ref={rLayer} className="nu-absolute nu-layer">
         <BoundsBg />
         {shapes.map((shape) => (

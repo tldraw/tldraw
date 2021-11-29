@@ -1,13 +1,12 @@
 import * as React from 'react'
 import type { TLNuViewport } from '~lib'
 import type { TLNuInputs } from '~lib/TLNuInputs'
+import type { TLNuCallbacks } from '~types'
 
 export type NuContext = {
   viewport: TLNuViewport
   inputs: TLNuInputs
-  callbacks: {
-    onPan?: (delta: number[]) => void
-  }
+  callbacks: TLNuCallbacks
 }
 
 export const nuContext = React.createContext<NuContext>({} as NuContext)

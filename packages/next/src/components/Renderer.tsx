@@ -37,6 +37,13 @@ export const Renderer = observer(function Renderer<
   viewport,
   inputs,
   onPan,
+  onPointerDown,
+  onPointerUp,
+  onPointerMove,
+  onPointerEnter,
+  onPointerLeave,
+  onKeyDown,
+  onKeyUp,
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
 
@@ -45,6 +52,13 @@ export const Renderer = observer(function Renderer<
     inputs,
     callbacks: {
       onPan,
+      onPointerDown,
+      onPointerUp,
+      onPointerMove,
+      onPointerEnter,
+      onPointerLeave,
+      onKeyDown,
+      onKeyUp,
     },
   })
 
@@ -55,6 +69,13 @@ export const Renderer = observer(function Renderer<
         inputs,
         callbacks: {
           onPan,
+          onPointerDown,
+          onPointerUp,
+          onPointerMove,
+          onPointerEnter,
+          onPointerLeave,
+          onKeyDown,
+          onKeyUp,
         },
       })
     })

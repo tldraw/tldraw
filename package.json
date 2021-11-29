@@ -46,7 +46,7 @@
     "test:watch": "lerna run test:watch --stream",
     "docs": "lerna run typedoc",
     "docs:watch": "lerna run typedoc --watch",
-    "postinstall": "husky install",
+    "postinstall": "yarn build:packages && husky install",
     "pretty-quick": "pretty-quick"
   },
   "devDependencies": {

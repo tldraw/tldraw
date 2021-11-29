@@ -3,9 +3,9 @@ import * as React from 'react'
 import { Renderer } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { NuBoxShape } from 'stores/NuBoxShape'
-import { TLNuApp } from '@tldraw/next/src/lib'
+import { NuExampleApp } from 'stores/NuExampleApp'
 
-const app = new TLNuApp()
+const app = new NuExampleApp()
 
 app.currentPage.shapes = [
   new NuBoxShape({ id: 'box1' }),
@@ -20,6 +20,14 @@ export default observer(function App(): JSX.Element {
     hoveredShape,
     selectedShapes,
     shapesInViewport,
+    onPan,
+    onPointerDown,
+    onPointerUp,
+    onPointerMove,
+    onPointerEnter,
+    onPointerLeave,
+    onKeyDown,
+    onKeyUp,
   } = app
 
   return (
@@ -31,6 +39,14 @@ export default observer(function App(): JSX.Element {
         inputs={inputs}
         hoveredShape={hoveredShape}
         selectedShapes={selectedShapes}
+        onPan={onPan}
+        onPointerDown={onPointerDown}
+        onPointerUp={onPointerUp}
+        onPointerMove={onPointerMove}
+        onKeyDown={onKeyDown}
+        onKeyUp={onKeyUp}
+        onPointerEnter={onPointerEnter}
+        onPointerLeave={onPointerLeave}
       />
     </div>
   )

@@ -115,7 +115,6 @@
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
-		"@vscode/test-web": "^0.0.12",
 		"assert": "^2.0.0",
 		"eslint": "^7.32.0",
 		"mocha": "^9.1.1",
