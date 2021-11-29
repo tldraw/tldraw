@@ -108,6 +108,7 @@ export interface TLTheme {
   selectStroke?: string
   background?: string
   foreground?: string
+  grid?: string
 }
 
 export type TLWheelEventHandler = (
@@ -286,18 +287,6 @@ export interface TLTransformInfo<T extends TLShape> {
   scaleX: number
   scaleY: number
   transformOrigin: number[]
-}
-
-// TODO: Remove me and the rest of the bezier curve content
-export interface TLBezierCurveSegment {
-  start: number[]
-  tangentStart: number[]
-  normalStart: number[]
-  pressureStart: number
-  end: number[]
-  tangentEnd: number[]
-  normalEnd: number[]
-  pressureEnd: number
 }
 
 // TODO: Move snaps into its own repo

@@ -5,6 +5,7 @@ import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
 import { getShapeStyle } from '../shared/shape-styles'
 import type { ArrowShape, TldrawHandle } from '~types'
+import { TLDR } from '../../TLDR'
 
 export function getArrowArcPath(
   start: TldrawHandle,
@@ -38,7 +39,7 @@ export function getBendPoint(handles: ArrowShape['handles'], bend: number) {
 
   const u = Vec.uni(Vec.vec(start.point, end.point))
 
-  const point = Vec.round(
+  const point = Vec.toFixed(
     Math.abs(bendDist) < 10 ? midPoint : Vec.add(midPoint, Vec.mul(Vec.per(u), bendDist))
   )
 
@@ -115,7 +116,7 @@ export function renderCurvedFreehandArrowShaft(
 
     const angle = Utils.lerpAngles(startAngle, endAngle, t)
 
-    points.push(Vec.round(Vec.nudgeAtAngle(center, angle, radius)))
+    points.push(Vec.toFixed(Vec.nudgeAtAngle(center, angle, radius)))
   }
 
   const stroke = getStroke([startPoint, ...points, endPoint], {
@@ -159,7 +160,7 @@ export function getCurvedArrowHeadPoints(
   const ints = intersectCircleCircle(A, r1 * 0.618, C, r2).points
 
   if (!ints) {
-    console.warn('Could not find an intersection for the arrow head.')
+    TLDR.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
@@ -175,7 +176,7 @@ export function getCurvedArrowHeadPoints(
 export function getStraightArrowHeadPoints(A: number[], B: number[], r: number) {
   const ints = intersectCircleLineSegment(A, r, A, B).points
   if (!ints) {
-    console.warn('Could not find an intersection for the arrow head.')
+    TLDR.warn('Could not find an intersection for the arrow head.')
     return { left: A, right: A }
   }
 
@@ -221,7 +222,7 @@ export function getArrowPath(shape: ArrowShape) {
 
   const path: (string | number)[] = []
 
-  const isStraightLine = Vec.dist(_bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+  const isStraightLine = Vec.dist(_bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
 
   if (isStraightLine) {
     // Path (line segment)

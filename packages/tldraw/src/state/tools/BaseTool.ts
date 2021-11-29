@@ -89,7 +89,6 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
       return
     }
 
-    /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.app.updateSession()
       return
@@ -97,7 +96,6 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
   }
 
   onKeyUp: TLKeyboardEventHandler = (key) => {
-    /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.app.updateSession()
       return

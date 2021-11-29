@@ -11,12 +11,11 @@
     "docs"
   ],
   "compilerOptions": {
-    "rootDir": "src",
-    "baseUrl": "src",
     "composite": false,
     "incremental": false,
-    "declarationMap": false,
-    "sourceMap": false,
-    "emitDeclarationOnly": true
-  }
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
 }

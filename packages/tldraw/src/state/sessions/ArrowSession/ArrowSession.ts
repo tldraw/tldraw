@@ -10,12 +10,12 @@ import {
   TldrawCommand,
 } from '~types'
 import { Vec } from '@tldraw/vec'
-import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import { BINDING_DISTANCE } from '~constants'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
+import { Utils } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
@@ -70,7 +70,14 @@ export class ArrowSession extends BaseSession {
 
   update = (): TldrawPatch | undefined => {
     const { initialShape } = this
-    const { currentPoint, shiftKey, altKey, metaKey } = this.app
+    const {
+      currentPoint,
+      shiftKey,
+      altKey,
+      metaKey,
+      currentGrid,
+      settings: { showGrid },
+    } = this.app
 
     const shape = this.app.getShape<ArrowShape>(initialShape.id)
 
@@ -90,15 +97,18 @@ export class ArrowSession extends BaseSession {
     if (shiftKey) {
       const A = handles[handleId === 'start' ? 'end' : 'start'].point
       const B = handles[handleId].point
-      const C = Vec.round(Vec.sub(Vec.add(B, delta), shape.point))
+      const C = Vec.toFixed(Vec.sub(Vec.add(B, delta), shape.point))
       const angle = Vec.angle(A, C)
       const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
       delta = Vec.add(delta, Vec.sub(adjusted, C))
     }
 
+    const nextPoint = Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)
+
     const handle = {
       ...handles[handleId],
-      point: Vec.round(Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)),
+      point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
+
       bindingId: undefined,
     }
 
@@ -340,13 +350,19 @@ export class ArrowSession extends BaseSession {
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
 
+    const currentShape = TLDR.onSessionComplete(this.app.page.shapes[initialShape.id]) as ArrowShape
+    const currentBindingId = currentShape.handles[handleId].bindingId
+
+    if (
+      !(currentBindingId || initialBinding) &&
+      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) < 4
+    ) {
+      return this.cancel()
+    }
+
     const beforeBindings: Partial<Record<string, TDBinding>> = {}
 
     const afterBindings: Partial<Record<string, TDBinding>> = {}
-
-    let afterShape = this.app.page.shapes[initialShape.id] as ArrowShape
-
-    const currentBindingId = afterShape.handles[handleId].bindingId
 
     if (initialBinding) {
       beforeBindings[initialBinding.id] = this.isCreate ? undefined : initialBinding
@@ -362,8 +378,6 @@ export class ArrowSession extends BaseSession {
       beforeBindings[newStartBindingId] = undefined
       afterBindings[newStartBindingId] = this.app.page.bindings[newStartBindingId]
     }
-
-    afterShape = TLDR.onSessionComplete(afterShape)
 
     return {
       id: 'arrow',
@@ -392,7 +406,7 @@ export class ArrowSession extends BaseSession {
           pages: {
             [this.app.currentPageId]: {
               shapes: {
-                [initialShape.id]: afterShape,
+                [initialShape.id]: currentShape,
               },
               bindings: afterBindings,
             },
@@ -441,7 +455,7 @@ export class ArrowSession extends BaseSession {
       fromId: shape.id,
       toId: target.id,
       handleId: handleId,
-      point: Vec.round(bindingPoint.point),
+      point: Vec.toFixed(bindingPoint.point),
       distance: bindingPoint.distance,
     }
   }

@@ -99,7 +99,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     const isDraw = style.dash === DashStyle.Draw
 
-    const isStraightLine = Vec.dist(bend.point, Vec.round(Vec.med(start.point, end.point))) < 1
+    const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
 
     const styles = getShapeStyle(style, meta.isDarkMode)
 
@@ -122,7 +122,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     if (isStraightLine) {
       const path = isDraw
         ? renderFreehandArrowShaft(shape)
-        : 'M' + Vec.round(start.point) + 'L' + Vec.round(end.point)
+        : 'M' + Vec.toFixed(start.point) + 'L' + Vec.toFixed(end.point)
 
       const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         arrowDist,
@@ -398,11 +398,11 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     nextHandles['bend'] = {
       ...bend,
-      point: Vec.round(Math.abs(bendDist) < 10 ? midPoint : point),
+      point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
     }
 
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
       handles: nextHandles,
     }
   }
@@ -516,7 +516,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return this.onHandleChange(shape, {
       [handle.id]: {
         ...handle,
-        point: Vec.round(handlePoint),
+        point: Vec.toFixed(handlePoint),
       },
     })
   }
@@ -529,11 +529,11 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       ...nextHandles,
       start: {
         ...nextHandles.start,
-        point: Vec.round(nextHandles.start.point),
+        point: Vec.toFixed(nextHandles.start.point),
       },
       end: {
         ...nextHandles.end,
-        point: Vec.round(nextHandles.end.point),
+        point: Vec.toFixed(nextHandles.end.point),
       },
     }
 
@@ -601,10 +601,10 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
-        handle.point = Vec.round(Vec.sub(handle.point, offset))
+        handle.point = Vec.toFixed(Vec.sub(handle.point, offset))
       })
 
-      nextShape.point = Vec.round(Vec.add(nextShape.point, offset))
+      nextShape.point = Vec.toFixed(Vec.add(nextShape.point, offset))
     }
 
     return nextShape

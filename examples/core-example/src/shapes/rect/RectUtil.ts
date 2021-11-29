@@ -6,7 +6,7 @@ import type { RectShape } from './RectShape'
 type T = RectShape
 type E = SVGSVGElement
 
-export class BoxUtil extends TLShapeUtil<T, E> {
+export class RectUtil extends TLShapeUtil<T, E> {
   Component = RectComponent
 
   Indicator = RectIndicator

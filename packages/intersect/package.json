@@ -1,0 +1,40 @@
+{
+  "version": "1.2.2",
+  "name": "@tldraw/intersect",
+  "description": "2D intersection utilities for TLDraw and maybe you, too.",
+  "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "2d",
+    "vector",
+    "intersection",
+    "typescript",
+    "javascript"
+  ],
+  "files": [
+    "dist/**/*"
+  ],
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/types/index.d.ts",
+  "scripts": {
+    "start:packages": "yarn start",
+    "start:core": "yarn start",
+    "start": "node scripts/dev & yarn types:dev",
+    "build:packages": "yarn build",
+    "build:core": "yarn build",
+    "build": "node scripts/build && yarn types:build",
+    "types:dev": "tsc -w --p tsconfig.build.json",
+    "types:build": "tsc -p tsconfig.build.json",
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@tldraw/vec": "^1.2.2"
+  },
+  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
+}

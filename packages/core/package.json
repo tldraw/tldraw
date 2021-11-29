@@ -1,5 +1,5 @@
 {
-  "version": "1.1.3",
+  "version": "1.2.2",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -37,9 +37,10 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "@tldraw/intersect": "latest",
-    "@tldraw/vec": "latest",
-    "@use-gesture/react": "^10.1.3"
+    "@tldraw/intersect": "^1.2.2",
+    "@tldraw/vec": "^1.2.2",
+    "@use-gesture/react": "^10.1.3",
+    "mobx-react-lite": "^3.2.2"
   },
   "peerDependencies": {
     "react": ">=16.8",
@@ -53,14 +54,22 @@
     "@types/node": "^16.11.6",
     "@types/react": "^17.0.33",
     "@types/react-dom": "^17.0.10",
-    "tsconfig-replace-paths": "^0.0.5"
+    "mobx": "^6.3.8",
+    "tsconfig-replace-paths": "^0.0.11"
   },
   "jest": {
     "setupFilesAfterEnv": [
       "<rootDir>/../../setupTests.ts"
     ],
     "transform": {
-      "^.+\\.(tsx|jsx|ts|js|mjs)?$": "@swc-node/jest"
+      "^.+\\.(tsx|jsx|ts|js|mjs)?$": [
+        "@swc-node/jest",
+        {
+          "dynamicImport": true,
+          "experimentalDecorators": true,
+          "emitDecoratorMetadata": true
+        }
+      ]
     },
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "moduleFileExtensions": [
@@ -80,5 +89,6 @@
       "@tldraw/core": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }
-  }
+  },
+  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
 }

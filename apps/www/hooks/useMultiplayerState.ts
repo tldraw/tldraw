@@ -129,10 +129,17 @@ export function useMultiplayerState(roomId: string) {
                 page: { shapes, bindings },
               },
             },
-          } = doc.toObject()
+          } = doc.toObject() as { document: TDDocument }
 
-          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
-          Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
+          for (const key in shapes) {
+            const shape = shapes[key]
+            lShapes.set(shape.id, shape)
+          }
+
+          for (const key in bindings) {
+            const binding = bindings[key]
+            lBindings.set(binding.id, binding)
+          }
         }
       }
 
@@ -175,21 +182,23 @@ export function useMultiplayerState(roomId: string) {
 
         if (!(lShapes && lBindings)) return
 
-        Object.entries(shapes).forEach(([id, shape]) => {
+        for (const id in shapes) {
+          const shape = shapes[id]
           if (!shape) {
             lShapes.delete(id)
           } else {
             lShapes.set(shape.id, shape)
           }
-        })
+        }
 
-        Object.entries(bindings).forEach(([id, binding]) => {
+        for (const id in bindings) {
+          const binding = bindings[id]
           if (!binding) {
             lBindings.delete(id)
           } else {
             lBindings.set(binding.id, binding)
           }
-        })
+        }
 
         rExpectingUpdate.current = true
       })

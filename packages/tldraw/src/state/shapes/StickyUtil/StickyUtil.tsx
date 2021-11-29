@@ -11,6 +11,7 @@ import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -22,7 +23,11 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   canEdit = true
 
+  canClone = true
+
   hideResizeHandles = true
+
+  showCloneHandles = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -80,7 +85,27 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             return
           }
 
-          e.stopPropagation()
+          // If this keydown was just the meta key or a shortcut
+          // that includes holding the meta key like (Command+V)
+          // then leave the event untouched. We also have to explicitly
+          // Implement undo/redo for some reason in order to get this working
+          // in the vscode extension. Without the below code the following doesn't work
+          //
+          // - You can't cut/copy/paste when when text-editing/focused
+          // - You can't undo/redo when when text-editing/focused
+          // - You can't use Command+A to select all the text, when when text-editing/focused
+          if (!(e.key === 'Meta' || e.metaKey)) {
+            e.stopPropagation()
+          } else if (e.key === 'z' && e.metaKey) {
+            if (e.shiftKey) {
+              document.execCommand('redo', false)
+            } else {
+              document.execCommand('undo', false)
+            }
+            e.stopPropagation()
+            e.preventDefault()
+            return
+          }
 
           if (e.key === 'Tab') {
             e.preventDefault()
@@ -184,8 +209,9 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoCorrect="false"
                 autoSave="false"
                 autoFocus
-                spellCheck={false}
+                spellCheck={true}
                 alignment={shape.style.textAlign}
+                onContextMenu={stopPropagation}
               />
             )}
           </StyledStickyContainer>
@@ -217,7 +243,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     bounds: TLBounds,
     { scaleX, scaleY, transformOrigin }: TransformInfo<T>
   ): Partial<T> => {
-    const point = Vec.round([
+    const point = Vec.toFixed([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
       bounds.minY +

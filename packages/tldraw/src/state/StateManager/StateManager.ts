@@ -2,8 +2,8 @@ import createVanilla, { StoreApi } from 'zustand/vanilla'
 import create, { UseBoundStore } from 'zustand'
 import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
-import { merge } from './merge'
 import type { Patch, Command } from '../../types'
+import { Utils } from '@tldraw/core'
 
 export class StateManager<T extends Record<string, any>> {
   /**
@@ -140,7 +140,7 @@ export class StateManager<T extends Record<string, any>> {
    */
   private applyPatch = (patch: Patch<T>, id?: string) => {
     const prev = this._state
-    const next = merge(this._state, patch)
+    const next = Utils.deepMerge(this._state, patch)
     const final = this.cleanup(next, prev, patch, id)
     if (this.onStateWillChange) {
       this.onStateWillChange(final, id)

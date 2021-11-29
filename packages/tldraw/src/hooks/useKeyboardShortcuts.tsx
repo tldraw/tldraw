@@ -23,7 +23,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'd,2',
+    'p,2',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Draw)
@@ -53,7 +53,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'i,5',
+    'o,5',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Ellipse)
@@ -124,6 +124,16 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     () => {
       if (!canHandleEvent()) return
       app.toggleFocusMode()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'ctrl+shift+g,⌘+shift+g',
+    () => {
+      if (!canHandleEvent()) return
+      app.toggleGrid()
     },
     undefined,
     [app]

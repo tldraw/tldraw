@@ -1,3 +1,23 @@
+## 1.2.2
+
+- Updates @tldraw/core.
+
+## 1.1.6
+
+- Fix bug when creating arrows and lines.
+
+## 1.1.6
+
+- Adds spellcheck to text and stickies.
+
+## 1.1.6
+
+- Fixes bugs in VS Code extension.
+
+## 1.1.5
+
+- Adds grid, clone handles.
+
 ## 1.1.4
 
 - Adds undo and redo buttons at smaller breakpoints.
