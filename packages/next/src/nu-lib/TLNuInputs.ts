@@ -1,5 +1,4 @@
-import Vec from '@tldraw/vec'
-import { action, computed, makeObservable, observable } from 'mobx'
+import { action, makeObservable, observable } from 'mobx'
 import type React from 'react'
 
 export class TLNuInputs {

@@ -13,7 +13,7 @@ import type {
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
-import { BoundsUtils } from '~utils'
+import { BoundsUtils, KeyUtils } from '~utils'
 import { TLNuSelectTool } from './NuSelectTool'
 import type { TLNuTool } from '~nu-lib'
 
@@ -31,6 +31,11 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 {
   constructor() {
     makeObservable(this)
+    Object.values(this.tools).forEach((tool) => {
+      if (tool.shortcut !== undefined) {
+        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool))
+      }
+    })
   }
 
   @observable currentPageId = 'page'
@@ -45,7 +50,7 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   @observable currentTool: TLNuTool<S> = this.tools['select']
 
-  @action readonly setCurrentTool = (tool: TLNuTool<S>) => {
+  @action readonly selectTool = (tool: TLNuTool<S>) => {
     this.currentTool = tool
   }
 

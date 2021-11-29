@@ -13,7 +13,7 @@ import {
   TLNuWheelHandler,
 } from '~types'
 import { BoundsUtils } from '~utils'
-import { action, makeObservable, observable, override } from 'mobx'
+import type { TLNuToolComponentProps } from '~nu-lib'
 
 enum Status {
   Idle = 'idle',
@@ -26,15 +26,20 @@ enum Status {
 
 export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends TLNuTool<
   S,
+  B,
   Status
 > {
-  constructor(app: TLNuApp<S, B>) {
-    super()
-    this.app = app
-    makeObservable(this)
+  readonly id = 'select'
+
+  readonly label = 'Select'
+
+  readonly shortcut = '1'
+
+  readonly Component = ({ isActive }: TLNuToolComponentProps) => {
+    return <span style={{ fontWeight: isActive ? '600' : '500' }}>S</span>
   }
 
-  readonly app: TLNuApp<S, B>
+  /* -------------------- Mutables -------------------- */
 
   private pointedShape?: S
 
@@ -45,6 +50,8 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
   private translateSnapshot?: {
     initialPoints: Record<string, number[]>
   }
+
+  /* --------------------- Events --------------------- */
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
     this.onPointerMove(info, e as any)
