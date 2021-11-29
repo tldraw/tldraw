@@ -8,10 +8,8 @@ import { Shape } from '~components/Shape/Shape'
 import { useCameraCss } from '~hooks/useCameraCss'
 import { useContext } from '~hooks/useContext'
 import { useResizeObserver } from '~hooks/useResizeObserver'
-import type { TLNuViewport } from '~lib'
 import type { TLNuShape } from '~lib/TLNuShape'
-import type { TLNuBinding } from '~types'
-import { BoundsUtils } from '~utils'
+import { TLNuBinding, TLNuTargetType } from '~types'
 
 type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
   shapes: S[]
@@ -40,7 +38,7 @@ export const Canvas = observer(function Canvas({
         e.preventDefault()
         if (Vec.isEqual(delta, [0, 0])) return
         viewport.panCamera(delta)
-        callbacks.onPan?.({ target: 'canvas' }, e)
+        callbacks.onPan?.({ type: TLNuTargetType.Canvas, order: 0 }, e)
       },
     },
     {
@@ -54,39 +52,37 @@ export const Canvas = observer(function Canvas({
   )
 
   const events = React.useMemo(() => {
-    const info = { target: 'canvas' }
-
     const onPointerMove: React.PointerEventHandler = (e) => {
       inputs.onPointerMove(e)
-      callbacks.onPointerMove?.(info, e)
+      callbacks.onPointerMove?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onPointerDown: React.PointerEventHandler = (e) => {
       inputs.onPointerDown(e)
-      callbacks.onPointerDown?.(info, e)
+      callbacks.onPointerDown?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onPointerUp: React.PointerEventHandler = (e) => {
       inputs.onPointerUp(e)
-      callbacks.onPointerUp?.(info, e)
+      callbacks.onPointerUp?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onKeyDown: React.KeyboardEventHandler = (e) => {
       inputs.onKeyDown(e)
-      callbacks.onKeyDown?.(info, e)
+      callbacks.onKeyDown?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onKeyUp: React.KeyboardEventHandler = (e) => {
       inputs.onKeyUp(e)
-      callbacks.onKeyUp?.(info, e)
+      callbacks.onKeyUp?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onPointerEnter: React.PointerEventHandler = (e) => {
-      callbacks.onPointerEnter?.(info, e)
+      callbacks.onPointerEnter?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onPointerLeave: React.PointerEventHandler = (e) => {
-      callbacks.onPointerLeave?.(info, e)
+      callbacks.onPointerLeave?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     return {
@@ -104,8 +100,8 @@ export const Canvas = observer(function Canvas({
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
       <div ref={rLayer} className="nu-absolute nu-layer">
         <BoundsBg />
-        {shapes.map((shape) => (
-          <Shape key={'shape_' + shape.id} shape={shape} />
+        {shapes.map((shape, i) => (
+          <Shape key={'shape_' + shape.id} shape={shape} zIndex={i} />
         ))}
         {selectedShapes.map((shape) => (
           <Indicator key={'selected_indicator_' + shape.id} shape={shape} />

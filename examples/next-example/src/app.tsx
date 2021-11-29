@@ -1,15 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import { Renderer } from '@tldraw/next'
-import { observer } from 'mobx-react-lite'
+import { observer, Observer } from 'mobx-react-lite'
 import { NuBoxShape } from 'stores/NuBoxShape'
 import { NuExampleApp } from 'stores/NuExampleApp'
 
 const app = new NuExampleApp()
 
 app.currentPage.shapes = [
-  new NuBoxShape({ id: 'box1' }),
-  new NuBoxShape({ id: 'box2', point: [100, 100], size: [100, 100] }),
+  new NuBoxShape({
+    id: 'box1',
+    parentId: 'page',
+    point: [0, 0],
+    size: [100, 100],
+  }),
+  new NuBoxShape({
+    id: 'box2',
+    parentId: 'page',
+    point: [50, 50],
+    size: [100, 100],
+  }),
 ]
 
 export default observer(function App(): JSX.Element {
@@ -31,7 +41,7 @@ export default observer(function App(): JSX.Element {
   } = app
 
   return (
-    <div className="tldraw">
+    <div className="tlnu-app">
       <Renderer
         shapes={shapesInViewport}
         bindings={bindings}
@@ -48,6 +58,7 @@ export default observer(function App(): JSX.Element {
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
       />
+      <Observer>{() => <div className="tlnu-debug">{app.status}</div>}</Observer>
     </div>
   )
 })

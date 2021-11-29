@@ -11,7 +11,7 @@ export const Indicator = observer(function Shape({ shape }: IndicatorProps) {
   const { bounds, Indicator } = shape
 
   return (
-    <Container bounds={bounds}>
+    <Container bounds={bounds} zIndex={100000}>
       <Indicator
         isEditing={false}
         isBinding={false}

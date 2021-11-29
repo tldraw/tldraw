@@ -25,7 +25,7 @@ export function useResizeObserver<T extends Element>(
           height: rect.height,
         }
 
-        viewport.bounds = bounds
+        viewport.updateBounds(bounds)
         onBoundsChange?.(bounds)
       }
     } else {

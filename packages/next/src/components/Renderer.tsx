@@ -13,7 +13,7 @@ import type { TLNuInputs } from '~lib/TLNuInputs'
 export interface TLNuRendererProps<
   S extends TLNuShape = TLNuShape,
   B extends TLNuBinding = TLNuBinding
-> extends TLNuCallbacks {
+> extends TLNuCallbacks<S> {
   id?: string
   theme?: TLNuTheme
   shapes?: S[]
@@ -47,7 +47,7 @@ export const Renderer = observer(function Renderer<
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
 
-  const [currentContext, setCurrentContext] = React.useState<NuContext>({
+  const [currentContext, setCurrentContext] = React.useState<NuContext<S>>({
     viewport,
     inputs,
     callbacks: {

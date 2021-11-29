@@ -8,6 +8,7 @@ interface ContainerProps extends React.HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLNuBounds
   isGhost?: boolean
+  zIndex?: number
   rotation?: number
   children: React.ReactNode
 }
@@ -16,6 +17,7 @@ export const Container = observer<ContainerProps>(function Container({
   id,
   bounds,
   rotation = 0,
+  zIndex,
   isGhost,
   children,
   ...props
@@ -35,6 +37,16 @@ export const Container = observer<ContainerProps>(function Container({
 
       elm.style.setProperty('transform', transform)
 
+      if (zIndex !== undefined) {
+        elm.style.setProperty('z-index', zIndex?.toString())
+      }
+    })
+  }, [bounds])
+
+  React.useLayoutEffect(() => {
+    return autorun(() => {
+      const elm = rBounds.current!
+
       elm.style.setProperty(
         'width',
         `calc(${Math.floor(bounds.width)}px + (var(--nu-padding) * 2))`
@@ -44,6 +56,10 @@ export const Container = observer<ContainerProps>(function Container({
         'height',
         `calc(${Math.floor(bounds.height)}px + (var(--nu-padding) * 2))`
       )
+
+      if (zIndex !== undefined) {
+        elm.style.setProperty('z-index', zIndex?.toString())
+      }
     })
   }, [bounds, rotation])
 

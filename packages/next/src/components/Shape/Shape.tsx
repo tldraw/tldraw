@@ -3,52 +3,59 @@ import { observer } from 'mobx-react-lite'
 import { Container } from '~components/Container'
 import type { TLNuShape } from '~lib'
 import { useContext } from '~hooks/useContext'
+import { TLNuTargetType } from '~types'
 
 interface ShapeProps<S extends TLNuShape = TLNuShape> {
   shape: S
+  zIndex: number
 }
 
-export const Shape = observer(function Shape({ shape }: ShapeProps) {
+export const Shape = observer(function Shape({ shape, zIndex }: ShapeProps) {
   const { bounds, Component } = shape
 
   const { inputs, callbacks } = useContext()
 
   const events = React.useMemo(() => {
-    const info = { target: shape.id }
-
     const onPointerMove: React.PointerEventHandler = (e) => {
       inputs.onPointerMove(e)
-      callbacks.onPointerMove?.(info, e)
+      callbacks.onPointerMove?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onPointerDown: React.PointerEventHandler = (e) => {
       e.currentTarget.setPointerCapture(e.pointerId)
       inputs.onPointerDown(e)
-      callbacks.onPointerMove?.(info, e)
+      callbacks.onPointerDown?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onPointerUp: React.PointerEventHandler = (e) => {
       e.currentTarget.releasePointerCapture(e.pointerId)
       inputs.onPointerUp(e)
-      callbacks.onPointerUp?.(info, e)
+      callbacks.onPointerUp?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onPointerEnter: React.PointerEventHandler = (e) => {
-      callbacks.onPointerEnter?.(info, e)
+      callbacks.onPointerEnter?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onPointerLeave: React.PointerEventHandler = (e) => {
-      callbacks.onPointerLeave?.(info, e)
+      callbacks.onPointerLeave?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onKeyDown: React.KeyboardEventHandler = (e) => {
       inputs.onKeyDown(e)
-      callbacks.onKeyDown?.(info, e)
+      callbacks.onKeyDown?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     const onKeyUp: React.KeyboardEventHandler = (e) => {
       inputs.onKeyUp(e)
-      callbacks.onKeyUp?.(info, e)
+      callbacks.onKeyUp?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
+      e.detail++
     }
 
     return {
@@ -63,7 +70,7 @@ export const Shape = observer(function Shape({ shape }: ShapeProps) {
   }, [shape.id, inputs, callbacks])
 
   return (
-    <Container bounds={bounds}>
+    <Container bounds={bounds} zIndex={zIndex}>
       <Component
         meta={null}
         isEditing={false}
