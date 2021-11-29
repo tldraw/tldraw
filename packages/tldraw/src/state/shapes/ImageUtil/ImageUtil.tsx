@@ -41,13 +41,23 @@ export class ImageUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, events }, ref) => {
+    const rImg = React.useRef<HTMLImageElement>(null)
+
+    const onImageLoad = () => {
+      if (rImg && rImg.current) {
+        const { width, height } = rImg?.current
+        shape.size = [width, height]
+      }
+    }
     return (
       <HTMLContainer ref={ref} {...events}>
         <Wrapper>
           <img
             src={`data:image/png;base64, ${shape.data}`}
             alt="test"
-            style={{ pointerEvents: 'none' }}
+            style={{ pointerEvents: 'none', width: '100%', height: '100%' }}
+            ref={rImg}
+            onLoad={onImageLoad}
           />
         </Wrapper>
       </HTMLContainer>
