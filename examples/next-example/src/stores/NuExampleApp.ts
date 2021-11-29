@@ -18,6 +18,16 @@ export class NuExampleApp extends TLNuApp<Shape> {
     super()
   }
 
+  pointedShape?: Shape
+
+  brushSnapshot?: {
+    selectedIds: string[]
+  }
+
+  translateSnapshot?: {
+    initialPoints: Record<string, number[]>
+  }
+
   onPan: TLNuWheelHandler<Shape> = (info, e) => {
     this.onPointerMove(info, e as any)
   }
@@ -44,22 +54,16 @@ export class NuExampleApp extends TLNuApp<Shape> {
         }
         break
       }
+      case TLNuTargetType.Bounds: {
+        this.setStatus(TLNuStatus.PointingBounds)
+        break
+      }
       case TLNuTargetType.Canvas: {
         this.deselectAll()
         this.setStatus(TLNuStatus.PointingCanvas)
         break
       }
     }
-  }
-
-  pointedShape?: Shape
-
-  brushSnapshot?: {
-    selectedIds: string[]
-  }
-
-  translateSnapshot?: {
-    initialPoints: Record<string, number[]>
   }
 
   onPointerMove: TLNuPointerHandler<Shape> = (info, e) => {
@@ -142,12 +146,17 @@ export class NuExampleApp extends TLNuApp<Shape> {
         break
       }
       case TLNuStatus.PointingBounds: {
-        this.select(this.pointedShape!.id)
+        if (this.pointedShape) {
+          this.select(this.pointedShape.id)
+        } else {
+          this.select()
+        }
         break
       }
       case TLNuStatus.Brushing: {
         this.brushSnapshot = undefined
         this.clearBrush()
+        this.setStatus(TLNuStatus.Idle)
         break
       }
       case TLNuStatus.TranslatingShapes: {

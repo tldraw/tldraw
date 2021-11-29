@@ -345,7 +345,6 @@ const tlcss = css`
     stroke: var(--nu-brushStroke);
     stroke-width: calc(1px * var(--nu-scale));
     pointer-events: none;
-    contain: layout style size;
   }
 
   .nu-dot {

@@ -65,11 +65,13 @@ export const Canvas = observer(function Canvas({
     }
 
     const onPointerDown: React.PointerEventHandler = (e) => {
+      e.currentTarget.setPointerCapture(e.pointerId)
       inputs.onPointerDown([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerDown?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
 
     const onPointerUp: React.PointerEventHandler = (e) => {
+      e.currentTarget.releasePointerCapture(e.pointerId)
       inputs.onPointerUp([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerUp?.({ type: TLNuTargetType.Canvas, order: e.detail }, e)
     }
@@ -150,8 +152,10 @@ const SVGLayer = observer(function SVGLayer({ children }: SVGLayerProps) {
   )
 
   return (
-    <svg className="nu-absolute nu-overlay">
-      <g ref={rGroup}>{children}</g>
+    <svg className="nu-absolute nu-overlay" pointerEvents="none">
+      <g ref={rGroup} pointerEvents="none">
+        {children}
+      </g>
     </svg>
   )
 })

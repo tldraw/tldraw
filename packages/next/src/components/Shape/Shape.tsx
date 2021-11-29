@@ -13,25 +13,25 @@ interface ShapeProps<S extends TLNuShape = TLNuShape> {
 export const Shape = observer(function Shape({ shape, zIndex }: ShapeProps) {
   const { bounds, Component } = shape
 
-  const { inputs, callbacks } = useContext()
+  const { viewport, inputs, callbacks } = useContext()
 
   const events = React.useMemo(() => {
     const onPointerMove: React.PointerEventHandler = (e) => {
-      inputs.onPointerMove(e)
+      inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerMove?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
       e.detail++
     }
 
     const onPointerDown: React.PointerEventHandler = (e) => {
       e.currentTarget.setPointerCapture(e.pointerId)
-      inputs.onPointerDown(e)
+      inputs.onPointerDown([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerDown?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
       e.detail++
     }
 
     const onPointerUp: React.PointerEventHandler = (e) => {
       e.currentTarget.releasePointerCapture(e.pointerId)
-      inputs.onPointerUp(e)
+      inputs.onPointerUp([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerUp?.({ type: TLNuTargetType.Shape, target: shape, order: e.detail }, e)
       e.detail++
     }
