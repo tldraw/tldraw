@@ -136,6 +136,8 @@ const tlcss = css`
   }
 
   .nu-overlay {
+    background: none;
+    fill: transparent;
     position: absolute;
     width: 100%;
     height: 100%;
@@ -332,7 +334,7 @@ const tlcss = css`
     contain: layout style size;
   }
 
-  .nu-bounds-center {
+  .nu-bounds-fg {
     fill: transparent;
     stroke: var(--nu-selectStroke);
     stroke-width: calc(1.5px * var(--nu-scale));
@@ -419,7 +421,7 @@ export function useStylesheet(theme?: Partial<TLNuTheme>, selector?: string) {
     [theme]
   )
 
-  useTheme('tl', tltheme, selector)
+  useTheme('nu', tltheme, selector)
 
   useStyle('nu-canvas', tlcss)
 }

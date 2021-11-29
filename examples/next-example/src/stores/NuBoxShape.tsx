@@ -46,15 +46,13 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
 
   Indicator = (props: TLNuIndicatorProps) => {
     return (
-      <SVGContainer>
-        <rect
-          width={this.size[0]}
-          height={this.size[1]}
-          stroke="dodgerblue"
-          strokeWidth={2}
-          fill="transparent"
-        />
-      </SVGContainer>
+      <rect
+        width={this.size[0]}
+        height={this.size[1]}
+        stroke="dodgerblue"
+        strokeWidth={2}
+        fill="transparent"
+      />
     )
   }
 

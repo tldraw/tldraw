@@ -29,7 +29,9 @@ export default observer(function App(): JSX.Element {
     inputs,
     hoveredShape,
     selectedShapes,
+    selectedBounds,
     shapesInViewport,
+    brush,
     onPan,
     onPointerDown,
     onPointerUp,
@@ -49,6 +51,8 @@ export default observer(function App(): JSX.Element {
         inputs={inputs}
         hoveredShape={hoveredShape}
         selectedShapes={selectedShapes}
+        selectedBounds={selectedBounds}
+        brush={brush}
         onPan={onPan}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}

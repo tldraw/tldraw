@@ -6,11 +6,9 @@ import {
   TLNuTargetType,
   TLNuWheelHandler,
   TLNuApp,
-  TLNuBounds,
   TLNuStatus,
 } from '@tldraw/next'
 import Vec from '@tldraw/vec'
-import { action, makeObservable, observable } from 'mobx'
 import type { NuBoxShape } from './NuBoxShape'
 
 type Shape = NuBoxShape
@@ -20,8 +18,8 @@ export class NuExampleApp extends TLNuApp<Shape> {
     super()
   }
 
-  onPan: TLNuWheelHandler = (info, e) => {
-    // noop
+  onPan: TLNuWheelHandler<Shape> = (info, e) => {
+    this.onPointerMove(info, e as any)
   }
 
   onPointerEnter: TLNuPointerHandler<Shape> = (info, e) => {
@@ -67,8 +65,8 @@ export class NuExampleApp extends TLNuApp<Shape> {
   onPointerMove: TLNuPointerHandler<Shape> = (info, e) => {
     switch (this.status) {
       case TLNuStatus.PointingCanvas: {
-        const { currentPoint, currentOrigin } = this.inputs
-        if (Vec.dist(currentPoint, currentOrigin) > 5) {
+        const { currentPoint, originPoint } = this.inputs
+        if (Vec.dist(currentPoint, originPoint) > 5) {
           this.setStatus(TLNuStatus.Brushing)
           this.brushSnapshot = { selectedIds: [...this.selectedIds] }
         }
@@ -76,8 +74,8 @@ export class NuExampleApp extends TLNuApp<Shape> {
       }
       case TLNuStatus.PointingBounds:
       case TLNuStatus.PointingShape: {
-        const { currentPoint, currentOrigin } = this.inputs
-        if (Vec.dist(currentPoint, currentOrigin) > 5) {
+        const { currentPoint, originPoint } = this.inputs
+        if (Vec.dist(currentPoint, originPoint) > 5) {
           this.setStatus(TLNuStatus.TranslatingShapes)
           this.translateSnapshot = {
             initialPoints: Object.fromEntries(
@@ -89,9 +87,9 @@ export class NuExampleApp extends TLNuApp<Shape> {
       }
       case TLNuStatus.Brushing: {
         const { inputs } = this
-        const { currentOrigin, currentPoint } = this.inputs
+        const { originPoint, currentPoint } = this.inputs
 
-        const brushBounds = BoundsUtils.getBoundsFromPoints([currentPoint, currentOrigin])
+        const brushBounds = BoundsUtils.getBoundsFromPoints([currentPoint, originPoint], 0)
 
         this.setBrush(brushBounds)
 
@@ -112,11 +110,11 @@ export class NuExampleApp extends TLNuApp<Shape> {
       }
       case TLNuStatus.TranslatingShapes: {
         const { inputs } = this
-        const { currentOrigin, currentPoint } = this.inputs
+        const { originPoint, currentPoint } = this.inputs
 
         const { initialPoints } = this.translateSnapshot!
 
-        const delta = Vec.sub(currentPoint, currentOrigin)
+        const delta = Vec.sub(currentPoint, originPoint)
 
         if (inputs.shiftKey) {
           if (Math.abs(delta[0]) < Math.abs(delta[1])) {

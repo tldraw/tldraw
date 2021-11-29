@@ -5,7 +5,7 @@ import { observer } from 'mobx-react-lite'
 import { useStylesheet } from '~hooks/useStylesheet'
 import { nuContext, NuContext } from '~hooks/useContext'
 import { Canvas } from './Canvas'
-import type { TLNuBinding, TLNuCallbacks, TLNuTheme } from '~types'
+import type { TLNuBinding, TLNuCallbacks, TLNuTheme, TLNuBounds } from '~types'
 import type { TLNuViewport } from '~lib'
 import type { TLNuShape } from '~lib/TLNuShape'
 import type { TLNuInputs } from '~lib/TLNuInputs'
@@ -20,6 +20,8 @@ export interface TLNuRendererProps<
   bindings?: B[]
   selectedShapes?: S[]
   hoveredShape?: S
+  brush?: TLNuBounds
+  selectedBounds?: TLNuBounds
   viewport: TLNuViewport
   inputs: TLNuInputs
 }
@@ -34,6 +36,8 @@ export const Renderer = observer(function Renderer<
   bindings = [],
   selectedShapes = [],
   hoveredShape,
+  selectedBounds,
+  brush,
   viewport,
   inputs,
   onPan,
@@ -89,6 +93,8 @@ export const Renderer = observer(function Renderer<
           bindings={bindings}
           selectedShapes={selectedShapes}
           hoveredShape={hoveredShape}
+          brush={brush}
+          selectedBounds={selectedBounds}
         />
       </div>
     </nuContext.Provider>

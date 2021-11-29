@@ -116,11 +116,11 @@ export class BoundsUtils {
       maxX = 1
       maxY = 1
     } else {
-      for (const [x, y] of points) {
-        minX = Math.min(x, minX)
-        minY = Math.min(y, minY)
-        maxX = Math.max(x, maxX)
-        maxY = Math.max(y, maxY)
+      for (const point of points) {
+        minX = Math.min(point[0], minX)
+        minY = Math.min(point[1], minY)
+        maxX = Math.max(point[0], maxX)
+        maxY = Math.max(point[1], maxY)
       }
     }
 

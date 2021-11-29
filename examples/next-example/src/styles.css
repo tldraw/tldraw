@@ -28,4 +28,6 @@ body {
   display: flex;
   align-items: center;
   padding: 12px;
+  color: black;
+  z-index: 100000;
 }

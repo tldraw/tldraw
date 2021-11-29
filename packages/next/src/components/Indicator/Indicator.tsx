@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import { Container } from '~components/Container'
 import type { TLNuShape } from '~lib'
 
 interface IndicatorProps<S extends TLNuShape = TLNuShape> {
@@ -11,7 +10,7 @@ export const Indicator = observer(function Shape({ shape }: IndicatorProps) {
   const { bounds, Indicator } = shape
 
   return (
-    <Container bounds={bounds} zIndex={100000}>
+    <g transform={`translate(${bounds.minX}, ${bounds.minY})`}>
       <Indicator
         isEditing={false}
         isBinding={false}
@@ -19,6 +18,6 @@ export const Indicator = observer(function Shape({ shape }: IndicatorProps) {
         isSelected={false}
         meta={null}
       />
-    </Container>
+    </g>
   )
 })
