@@ -11,7 +11,6 @@ import {
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { EX_IMG_DATA } from './data'
 
 type T = ImageShape
 type E = HTMLDivElement
@@ -35,7 +34,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
-        data: EX_IMG_DATA,
+        data: '',
       },
       props
     )
