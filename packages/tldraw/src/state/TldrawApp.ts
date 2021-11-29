@@ -1525,15 +1525,27 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           console.warn(e)
 
           const shapeId = Utils.uniqueId()
-
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Text,
-            parentId: this.appState.currentPageId,
-            text: TLDR.normalizeText(result),
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
+          try {
+            window.atob(result)
+            this.createShapes({
+              id: shapeId,
+              type: TDShapeType.Image,
+              parentId: this.appState.currentPageId,
+              data: result,
+              point: this.getPagePoint(this.centerPoint, this.currentPageId),
+              size:[200,200],
+              style: { ...this.appState.currentStyle },
+            })
+          } catch (err) {
+            this.createShapes({
+              id: shapeId,
+              type: TDShapeType.Text,
+              parentId: this.appState.currentPageId,
+              text: TLDR.normalizeText(result),
+              point: this.getPagePoint(this.centerPoint, this.currentPageId),
+              style: { ...this.appState.currentStyle },
+            })
+          }
 
           this.select(shapeId)
         }

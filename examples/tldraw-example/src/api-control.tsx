@@ -8,6 +8,10 @@ export default function Imperative(): JSX.Element {
   const handleMount = React.useCallback((app: TldrawApp) => {
     rTldrawApp.current = app
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    window.app = app
+
     app.createShapes(
       {
         id: 'rect1',
@@ -23,6 +27,13 @@ export default function Imperative(): JSX.Element {
         type: TDShapeType.Rectangle,
         point: [200, 200],
         size: [100, 100],
+      },
+      {
+        id: 'image3',
+        name: 'Image',
+        type: TDShapeType.Image,
+        point: [230, 300],
+        size: [160, 180],
       }
     )
   }, [])
@@ -47,13 +58,13 @@ export default function Imperative(): JSX.Element {
 
       const color = i % 2 ? ColorStyle.Red : ColorStyle.Blue
 
-      app.patchShapes({
-        id: 'rect1',
-        style: {
-          ...rect1.style,
-          color,
-        },
-      })
+      //   app.patchShapes({
+      //     id: 'rect1',
+      //     style: {
+      //       ...rect1.style,
+      //       color,
+      //     },
+      //   })
 
       i++
     }, 1000)
