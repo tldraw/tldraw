@@ -8,25 +8,38 @@ import { Shape } from '~components/Shape/Shape'
 import { useCameraCss } from '~hooks/useCameraCss'
 import { useContext } from '~hooks/useContext'
 import { useResizeObserver } from '~hooks/useResizeObserver'
-import type { TLNuBinding, TLNuPage, TLNuShape } from '~types'
+import type { TLNuViewport } from '~lib'
+import type { TLNuShape } from '~lib/TLNuShape'
+import type { TLNuBinding } from '~types'
+import { BoundsUtils } from '~utils'
 
-interface CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> {
-  page: TLNuPage<S, B>
+type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
+  shapes: S[]
+  bindings: B[]
+  selectedShapes: S[]
+  hoveredShape?: S
 }
 
-export const Canvas = observer(function Canvas({ page }: CanvasProps) {
+export const Canvas = observer(function Canvas({
+  shapes,
+  bindings,
+  selectedShapes,
+  hoveredShape,
+}: CanvasProps) {
   const rContainer = React.useRef<HTMLDivElement>(null)
   const rLayer = React.useRef<HTMLDivElement>(null)
-  const { bounds } = useResizeObserver(rContainer)
-  const { callbacks } = useContext()
+  const { viewport, inputs, callbacks } = useContext()
 
-  useCameraCss(rLayer, rContainer, page)
+  useResizeObserver(rContainer, viewport)
+
+  useCameraCss(rLayer, rContainer, viewport)
 
   useGesture(
     {
       onWheel: ({ delta, event: e }) => {
         e.preventDefault()
         if (Vec.isEqual(delta, [0, 0])) return
+        viewport.panCamera(delta)
         callbacks.onPan?.(delta)
       },
     },
@@ -34,25 +47,45 @@ export const Canvas = observer(function Canvas({ page }: CanvasProps) {
       target: rContainer,
       eventOptions: { passive: false },
       pinch: {
-        from: page.camera.zoom,
-        scaleBounds: () => ({ from: page.camera.zoom, max: 5, min: 0.1 }),
+        from: viewport.camera.zoom,
+        scaleBounds: () => ({ from: viewport.camera.zoom, max: 5, min: 0.1 }),
       },
     }
   )
 
-  const shapesArr = Object.values(page.shapes)
-  const indicatedShapes = [...page.selectedShapes, page.hoveredShape].filter(Boolean) as TLNuShape[]
+  const events = React.useMemo(() => {
+    const onPointerMove: React.PointerEventHandler = (e) => {
+      inputs.onPointerMove(e)
+    }
+
+    const onPointerDown: React.PointerEventHandler = (e) => {
+      inputs.onPointerDown(e)
+    }
+
+    const onPointerUp: React.PointerEventHandler = (e) => {
+      inputs.onPointerUp(e)
+    }
+
+    const onKeyPress: React.KeyboardEventHandler = (e) => {
+      inputs.onKeyPress(e)
+    }
+
+    return { onPointerDown, onPointerMove, onPointerUp, onKeyPress }
+  }, [inputs])
 
   return (
-    <div ref={rContainer} className="nu-absolute nu-canvas">
+    <div ref={rContainer} className="nu-absolute nu-canvas" {...events}>
       <div ref={rLayer} className="nu-absolute nu-layer">
         <BoundsBg />
-        {shapesArr.map((shape) => (
-          <Shape key={shape.id} shape={shape} />
+        {shapes.map((shape) => (
+          <Shape key={'shape_' + shape.id} shape={shape} />
         ))}
-        {indicatedShapes.map((shape) => (
-          <Indicator key={shape.id} shape={shape} />
+        {selectedShapes.map((shape) => (
+          <Indicator key={'selected_indicator_' + shape.id} shape={shape} />
         ))}
+        {hoveredShape && (
+          <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
+        )}
         <BoundsFg />
       </div>
     </div>

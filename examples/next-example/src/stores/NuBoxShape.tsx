@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TLNuBounds, TLNuShape, SVGContainer } from '@tldraw/next'
+import { TLNuBounds, SVGContainer } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
+import { TLNuShape } from '@tldraw/next/src/lib/TLNuShape'
 
 export class NuBoxShape extends TLNuShape {
   showCloneHandles = false
@@ -66,13 +67,7 @@ export class NuBoxShape extends TLNuShape {
     }) => {
       return (
         <SVGContainer>
-          <rect
-            x={this.point[0]}
-            y={this.point[1]}
-            width={this.size[0]}
-            height={this.size[1]}
-            fill="black"
-          />
+          <rect width={this.size[0]} height={this.size[1]} fill="black" />
         </SVGContainer>
       )
     }
@@ -88,14 +83,7 @@ export class NuBoxShape extends TLNuShape {
   }) => React.ReactElement | null = () => {
     return (
       <SVGContainer>
-        <rect
-          x={this.point[0]}
-          y={this.point[1]}
-          width={this.size[0]}
-          height={this.size[1]}
-          stroke="aqua"
-          strokeWidth={2}
-        />
+        <rect width={this.size[0]} height={this.size[1]} stroke="aqua" strokeWidth={2} />
       </SVGContainer>
     )
   }

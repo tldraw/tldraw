@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { Container } from '~components/Container'
-import type { TLNuShape } from '~types'
+import type { TLNuShape } from '~lib'
 
 interface ShapeProps<S extends TLNuShape = TLNuShape> {
   shape: S

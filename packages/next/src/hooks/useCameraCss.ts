@@ -1,11 +1,11 @@
 import { autorun } from 'mobx'
 import * as React from 'react'
-import type { TLNuPage } from '~types'
+import type { TLNuViewport } from '~lib'
 
 export function useCameraCss(
   layerRef: React.RefObject<HTMLDivElement>,
   containerRef: React.ForwardedRef<HTMLDivElement>,
-  page: TLNuPage
+  viewport: TLNuViewport
 ) {
   // Update the tl-zoom CSS variable when the zoom changes
   const rZoom = React.useRef<number>()
@@ -13,7 +13,7 @@ export function useCameraCss(
 
   React.useLayoutEffect(() => {
     return autorun(() => {
-      const { zoom, point } = page.camera
+      const { zoom, point } = viewport.camera
 
       const didZoom = zoom !== rZoom.current
       const didPan = point !== rPoint.current
@@ -43,5 +43,5 @@ export function useCameraCss(
         }
       }
     })
-  }, [page])
+  }, [])
 }

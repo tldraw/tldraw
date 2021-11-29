@@ -1,20 +1,13 @@
 import * as React from 'react'
+import type { TLNuViewport } from '~lib'
 import type { TLNuBounds } from '~types'
 
 export function useResizeObserver<T extends Element>(
   ref: React.RefObject<T>,
+  viewport: TLNuViewport,
   onBoundsChange?: (bounds: TLNuBounds) => void
 ) {
   const rIsMounted = React.useRef(false)
-
-  const [bounds, setBounds] = React.useState<TLNuBounds>({
-    minX: 0,
-    minY: 0,
-    maxX: 100,
-    maxY: 100,
-    width: 100,
-    height: 100,
-  })
 
   // When the element resizes, update the bounds (stored in inputs)
   // and broadcast via the onBoundsChange callback prop.
@@ -32,6 +25,7 @@ export function useResizeObserver<T extends Element>(
           height: rect.height,
         }
 
+        viewport.bounds = bounds
         onBoundsChange?.(bounds)
       }
     } else {
@@ -68,6 +62,4 @@ export function useResizeObserver<T extends Element>(
   React.useEffect(() => {
     updateBounds()
   }, [ref])
-
-  return { bounds }
 }

@@ -2,19 +2,36 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { NuPage } from './stores/NuPage'
+import { NuBoxShape } from 'stores/NuBoxShape'
+import { TLNuApp } from '@tldraw/next/src/lib'
 
-const page = new NuPage()
-page.selectedIds = ['box1']
+const app = new TLNuApp()
+
+app.currentPage.shapes = [
+  new NuBoxShape({ id: 'box1' }),
+  new NuBoxShape({ id: 'box2', point: [100, 100], size: [100, 100] }),
+]
 
 export default observer(function App(): JSX.Element {
-  const handlePan = React.useCallback((delta: number[]) => {
-    page.panCamera(delta)
-  }, [])
+  const {
+    currentPage: { bindings },
+    viewport,
+    inputs,
+    hoveredShape,
+    selectedShapes,
+    shapesInViewport,
+  } = app
 
   return (
     <div className="tldraw">
-      <Renderer page={page} onPan={handlePan} />
+      <Renderer
+        shapes={shapesInViewport}
+        bindings={bindings}
+        viewport={viewport}
+        inputs={inputs}
+        hoveredShape={hoveredShape}
+        selectedShapes={selectedShapes}
+      />
     </div>
   )
 })
