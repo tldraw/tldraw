@@ -7,9 +7,7 @@ import {
   TLNuShapeProps,
   TLNuIndicatorProps,
   TLNuComponentProps,
-  BoundsUtils,
 } from '@tldraw/next'
-import { intersectPolylineBounds } from '@tldraw/intersect'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 
@@ -53,25 +51,6 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
         strokeWidth={2}
         fill="transparent"
       />
-    )
-  }
-
-  hitTestBounds = (bounds: TLNuBounds) => {
-    const ownBounds = this.bounds
-
-    if (!this.rotation) {
-      return (
-        BoundsUtils.boundsContain(bounds, ownBounds) ||
-        BoundsUtils.boundsContain(ownBounds, bounds) ||
-        BoundsUtils.boundsCollide(ownBounds, bounds)
-      )
-    }
-
-    const corners = BoundsUtils.getRotatedCorners(ownBounds, this.rotation)
-
-    return (
-      corners.every((point) => BoundsUtils.pointInBounds(point, bounds)) ||
-      intersectPolylineBounds(corners, bounds).length > 0
     )
   }
 

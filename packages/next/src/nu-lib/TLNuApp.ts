@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Vec from '@tldraw/vec'
-import { action, computed, makeObservable, observable, untracked } from 'mobx'
+import { action, computed, makeObservable, observable } from 'mobx'
 import { TLNuInputs } from './TLNuInputs'
 import { TLNuPage } from './TLNuPage'
 import { TLNuViewport } from './TLNuViewport'
@@ -13,6 +14,8 @@ import type {
   TLNuWheelHandler,
 } from '~types'
 import { BoundsUtils } from '~utils'
+import { TLNuSelectTool } from './NuSelectTool'
+import type { TLNuTool } from '~nu-lib'
 
 export enum TLNuStatus {
   Idle = 'idle',
@@ -23,7 +26,7 @@ export enum TLNuStatus {
   PointingBounds = 'pointingBounds',
 }
 
-export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
+export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
   implements Partial<TLNuCallbacks<S>>
 {
   constructor() {
@@ -35,6 +38,16 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   @observable inputs = new TLNuInputs()
 
   @observable viewport = new TLNuViewport()
+
+  @observable tools: Record<string, TLNuTool<S>> = {
+    select: new TLNuSelectTool(this),
+  }
+
+  @observable currentTool: TLNuTool<S> = this.tools['select']
+
+  @action readonly setCurrentTool = (tool: TLNuTool<S>) => {
+    this.currentTool = tool
+  }
 
   @observable pages: Record<string, TLNuPage<S, B>> = {
     page: new TLNuPage('page', 'page', [], []),
@@ -80,60 +93,83 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   @observable brush?: TLNuBounds
 
-  @action setBrush = (brush: TLNuBounds) => {
+  @action readonly setBrush = (brush: TLNuBounds) => {
     this.brush = brush
   }
 
-  @action clearBrush = () => {
+  @action readonly clearBrush = () => {
     this.brush = undefined
   }
 
   @observable status = TLNuStatus.Idle
 
-  @action setStatus = (status: TLNuStatus) => {
+  @action readonly setStatus = (status: TLNuStatus) => {
     this.status = status
   }
 
-  @action hoverShape = (shape: S) => {
+  @action readonly hoverShape = (shape: S) => {
     this.hoveredId = shape.id
   }
 
-  @action clearHoveredShape = () => {
+  @action readonly clearHoveredShape = () => {
     this.hoveredId = undefined
   }
 
-  @action select = (...ids: string[]) => {
+  @action readonly select = (...ids: string[]) => {
     this.selectedIds = ids
   }
 
-  @action deselectAll = () => {
+  @action readonly deselectAll = () => {
     this.selectedIds.length = 0
   }
 
-  @action selectAll = () => {
+  @action readonly selectAll = () => {
     this.selectedIds = this.currentPage.shapes.map((shape) => shape.id)
   }
 
   /* --------------------- Methods -------------------- */
 
-  getPagePoint(point: number[]) {
+  readonly getPagePoint = (point: number[]) => {
     const { camera } = this.viewport
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
-  getScreenPoint(point: number[]) {
+  readonly getScreenPoint = (point: number[]) => {
     const { camera } = this.viewport
     return Vec.mul(Vec.add(point, camera.point), camera.zoom)
   }
 
   /* --------------------- Events --------------------- */
 
-  onPan?: TLNuWheelHandler<S>
-  onPointerDown?: TLNuPointerHandler<S>
-  onPointerUp?: TLNuPointerHandler<S>
-  onPointerMove?: TLNuPointerHandler<S>
-  onPointerEnter?: TLNuPointerHandler<S>
-  onPointerLeave?: TLNuPointerHandler<S>
-  onKeyDown?: TLNuKeyboardHandler<S>
-  onKeyUp?: TLNuKeyboardHandler<S>
+  readonly onPan: TLNuWheelHandler<S> = (info, e) => {
+    this.currentTool.onPan?.(info, e)
+  }
+
+  readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
+    this.currentTool.onPointerDown?.(info, e)
+  }
+
+  readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
+    this.currentTool.onPointerUp?.(info, e)
+  }
+
+  readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
+    this.currentTool.onPointerMove?.(info, e)
+  }
+
+  readonly onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
+    this.currentTool.onPointerEnter?.(info, e)
+  }
+
+  readonly onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
+    this.currentTool.onPointerLeave?.(info, e)
+  }
+
+  readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+    this.currentTool.onKeyDown?.(info, e)
+  }
+
+  readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
+    this.currentTool.onKeyUp?.(info, e)
+  }
 }

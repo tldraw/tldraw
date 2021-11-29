@@ -11,15 +11,6 @@ import {
 } from '~types'
 
 export class BoundsUtils {
-  static pointInBounds(point: number[], bounds: TLNuBounds): boolean {
-    return !(
-      point[0] < bounds.minX ||
-      point[0] > bounds.maxX ||
-      point[1] < bounds.minY ||
-      point[1] > bounds.maxY
-    )
-  }
-
   static getRectangleSides(point: number[], size: number[], rotation = 0): [string, number[][]][] {
     const center = [point[0] + size[0] / 2, point[1] + size[1] / 2]
     const tl = Vec.rotWith(point, center, rotation)

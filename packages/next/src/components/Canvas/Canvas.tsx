@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import { useGesture } from '@use-gesture/react'
+import { useGesture, Handler } from '@use-gesture/react'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
@@ -38,15 +38,17 @@ export const Canvas = observer(function Canvas({
 
   useCameraCss(rLayer, rContainer, viewport)
 
+  const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(({ delta, event: e }) => {
+    e.preventDefault()
+    if (Vec.isEqual(delta, [0, 0])) return
+    viewport.panCamera(delta)
+    inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e as any)
+    callbacks.onPan?.({ type: TLNuTargetType.Canvas, order: 0 }, e)
+  }, [])
+
   useGesture(
     {
-      onWheel: ({ delta, event: e }) => {
-        e.preventDefault()
-        if (Vec.isEqual(delta, [0, 0])) return
-        viewport.panCamera(delta)
-        inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e as any)
-        callbacks.onPan?.({ type: TLNuTargetType.Canvas, order: 0 }, e)
-      },
+      onWheel: handleWheel,
     },
     {
       target: rContainer,

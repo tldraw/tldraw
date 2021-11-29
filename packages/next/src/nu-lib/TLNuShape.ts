@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { intersectPolylineBounds } from '@tldraw/intersect'
 import { action, makeObservable, observable } from 'mobx'
 import type { TLNuBounds, TLNuHandle } from '~types'
+import { BoundsUtils, PointUtils } from '~utils'
 
 export interface TLNuIndicatorProps<M = unknown> {
   meta: M
@@ -96,6 +98,37 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
   abstract readonly Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
 
   abstract get bounds(): TLNuBounds
+
+  hitTestPoint = (point: number[]): boolean => {
+    const ownBounds = this.bounds
+
+    if (!this.rotation) {
+      return PointUtils.pointInBounds(point, ownBounds)
+    }
+
+    const corners = BoundsUtils.getRotatedCorners(ownBounds, this.rotation)
+
+    return PointUtils.pointInPolygon(point, corners)
+  }
+
+  hitTestBounds = (bounds: TLNuBounds): boolean => {
+    const ownBounds = this.bounds
+
+    if (!this.rotation) {
+      return (
+        BoundsUtils.boundsContain(bounds, ownBounds) ||
+        BoundsUtils.boundsContain(ownBounds, bounds) ||
+        BoundsUtils.boundsCollide(ownBounds, bounds)
+      )
+    }
+
+    const corners = BoundsUtils.getRotatedCorners(ownBounds, this.rotation)
+
+    return (
+      corners.every((point) => PointUtils.pointInBounds(point, bounds)) ||
+      intersectPolylineBounds(corners, bounds).length > 0
+    )
+  }
 
   @action update(props: Partial<P>) {
     Object.assign(this, props)
