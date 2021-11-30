@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Vec from '@tldraw/vec'
+import { Vec } from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
 import { BoundsUtils, KeyUtils } from '~utils'
-import { TLNuSelectTool } from './TLNuSelectTool'
-import { TLNuInputs } from './TLNuInputs'
-import { TLNuPage } from './TLNuPage'
-import { TLNuViewport } from './TLNuViewport'
-import type { TLNuShape } from './TLNuShape'
+import { TLNuSelectTool, TLNuInputs, TLNuPage, TLNuViewport, TLNuShape, TLNuTool } from '~nu-lib'
 import type {
   TLNuBinding,
   TLNuBounds,
@@ -15,7 +11,6 @@ import type {
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
-import type { TLNuTool } from '~nu-lib'
 
 export enum TLNuStatus {
   Idle = 'idle',
@@ -33,19 +28,35 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
     makeObservable(this)
   }
 
-  @observable currentPageId = 'page'
-
   @observable inputs = new TLNuInputs()
 
   @observable viewport = new TLNuViewport()
 
-  readonly tools: TLNuTool<S>[] = [new TLNuSelectTool(this)]
+  /* ---------------------- Tools --------------------- */
 
-  @observable selectedTool: TLNuTool<S> = this.tools[0]
+  readonly tools: TLNuTool<S, B>[] = [new TLNuSelectTool(this)]
 
-  @action readonly selectTool = (tool: TLNuTool<S>) => {
+  @observable selectedTool: TLNuTool<S, B> = this.tools[0]
+
+  @action readonly selectTool = (id: string, data?: any) => {
+    const tool = this.tools.find((tool) => tool.id === id)
+    if (!tool) throw Error(`Could not find a tool named ${id}.`)
+    this.selectedTool.onExit?.(data)
     this.selectedTool = tool
+    this.selectedTool.onEnter?.(data)
   }
+
+  protected registerToolShortcuts = () => {
+    this.tools.forEach((tool) => {
+      if (tool.shortcut !== undefined) {
+        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool.id))
+      }
+    })
+  }
+
+  /* -------------------- Document -------------------- */
+
+  @observable currentPageId = 'page'
 
   @observable pages: Record<string, TLNuPage<S, B>> = {
     page: new TLNuPage<S, B>('page', 'page', [], []),
@@ -140,44 +151,34 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   /* --------------------- Events --------------------- */
 
   readonly onPan: TLNuWheelHandler<S> = (info, e) => {
-    this.selectedTool.onPan?.(info, e)
+    this.selectedTool._onPan?.(info, e)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool.onPointerDown?.(info, e)
+    this.selectedTool._onPointerDown?.(info, e)
   }
 
   readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool.onPointerUp?.(info, e)
+    this.selectedTool._onPointerUp?.(info, e)
   }
 
   readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool.onPointerMove?.(info, e)
+    this.selectedTool._onPointerMove?.(info, e)
   }
 
   readonly onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool.onPointerEnter?.(info, e)
+    this.selectedTool._onPointerEnter?.(info, e)
   }
 
   readonly onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool.onPointerLeave?.(info, e)
+    this.selectedTool._onPointerLeave?.(info, e)
   }
 
   readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
-    this.selectedTool.onKeyDown?.(info, e)
+    this.selectedTool._onKeyDown?.(info, e)
   }
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
-    this.selectedTool.onKeyUp?.(info, e)
-  }
-
-  /* --------------- Keyboard Shortcuts --------------- */
-
-  registerToolShortcuts = () => {
-    Object.values(this.tools).forEach((tool) => {
-      if (tool.shortcut !== undefined) {
-        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool))
-      }
-    })
+    this.selectedTool._onKeyUp?.(info, e)
   }
 }

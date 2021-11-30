@@ -1,7 +1,7 @@
-import Vec from '@tldraw/vec'
-import type { TLNuBounds } from '~types'
+import { Vec } from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
 import { BoundsUtils } from '~utils'
+import type { TLNuBounds } from '~types'
 
 export class TLNuViewport {
   constructor() {

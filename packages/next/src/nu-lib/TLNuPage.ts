@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { action, observable, makeObservable } from 'mobx'
 import type { TLNuBinding } from '~types'
-import type { TLNuShape } from './TLNuShape'
+import type { TLNuShape } from '~nu-lib'
 
 export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
   constructor(id: string, name: string, shapes: S[] = [], bindings: B[] = []) {

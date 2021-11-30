@@ -1,14 +1,14 @@
 import * as React from 'react'
+import { useGesture, Handler } from '@use-gesture/react'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react-lite'
-import { useGesture, Handler } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
-import { Brush, Indicator, Shape } from '~components'
-import { useCameraCss } from '~hooks/useCameraCss'
-import { useContext } from '~hooks/useContext'
-import { useResizeObserver } from '~hooks/useResizeObserver'
-import type { TLNuShape } from '~nu-lib/TLNuShape'
+import { Brush } from '../Brush'
+import { Indicator } from '../Indicator'
+import { Shape } from '../Shape'
+import { useCameraCss, useResizeObserver, useContext } from '~hooks'
 import { TLNuBinding, TLNuBounds, TLNuBoundsComponent, TLNuTargetType } from '~types'
+import type { TLNuShape } from '~nu-lib'
 
 type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
   shapes: S[]

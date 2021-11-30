@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-extra-semi */
-import Vec from '@tldraw/vec'
+import { Vec } from '@tldraw/vec'
 
 import {
   TLNuBounds,

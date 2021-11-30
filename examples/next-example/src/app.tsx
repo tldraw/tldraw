@@ -80,7 +80,7 @@ export default observer(function App(): JSX.Element {
               }
 
               return (
-                <button key={tool.id} onClick={() => app.selectTool(tool)}>
+                <button key={tool.id} onClick={() => app.selectTool(tool.id)}>
                   <tool.Component isActive={app.selectedTool === tool} />
                 </button>
               )
@@ -89,11 +89,13 @@ export default observer(function App(): JSX.Element {
         )}
       </Observer>
       <Observer>
-        {() => (
-          <div className="tlnu-debug">
-            {app.selectedTool.id} | {app.selectedTool.status}
-          </div>
-        )}
+        {() => {
+          return (
+            <div className="tlnu-debug">
+              {app.selectedTool.id} | {app.selectedTool.currentState.id}
+            </div>
+          )
+        }}
       </Observer>
     </div>
   )

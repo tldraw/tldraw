@@ -16,11 +16,11 @@ import { Brush } from '~components/Brush'
 import { Page } from '~components/Page'
 import { Users } from '~components/Users'
 import { useResizeObserver } from '~hooks/useResizeObserver'
-import { inputs } from '~inputs'
 import { UsersIndicators } from '~components/UsersIndicators'
 import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
+import { inputs } from '~inputs'
 
 function resetError() {
   void null

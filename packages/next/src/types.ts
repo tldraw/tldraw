@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react'
 import type React from 'react'
 import type { TLNuShape } from '~nu-lib'
 
@@ -99,7 +100,7 @@ export type TLNuWheelHandler<
 export type TLNuPointerHandler<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
-> = (info: E, event: React.PointerEvent) => void
+> = (info: E, event: React.PointerEvent | KeyboardEvent | WheelEvent) => void
 
 export type TLNuKeyboardHandler<
   S extends TLNuShape = TLNuShape,

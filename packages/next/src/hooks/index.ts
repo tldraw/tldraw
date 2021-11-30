@@ -1,6 +1,5 @@
 export * from './useCameraCss'
 export * from './useContext'
-export * from './useGestureEvents'
 export * from './useResizeObserver'
 export * from './useStylesheet'
 export * from './useBoundsEvents'
