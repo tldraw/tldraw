@@ -13,6 +13,7 @@ import {
 } from '~hooks'
 import type { TLNuBinding, TLNuBounds, TLNuBoundsComponent } from '~types'
 import type { TLNuShape } from '~nu-lib'
+import { Container, HTMLLayer } from '~components'
 
 type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
   shapes: S[]
@@ -24,6 +25,7 @@ type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBi
   selectedBounds?: TLNuBounds
   brush?: TLNuBounds
   BoundsComponent?: TLNuBoundsComponent<S>
+  children?: React.ReactNode
 }
 
 export const Canvas = observer(function Canvas({
@@ -34,12 +36,12 @@ export const Canvas = observer(function Canvas({
   bindingShape,
   selectedBounds,
   brush,
+  children,
 }: CanvasProps) {
   const rContainer = React.useRef<HTMLDivElement>(null)
-  const rLayer = React.useRef<HTMLDivElement>(null)
   const { viewport, components, meta } = useContext()
   useResizeObserver(rContainer, viewport)
-  useCameraCss(rLayer, rContainer, viewport)
+  useCameraCss(rContainer, viewport)
   useGestureEvents(rContainer)
   const events = useCanvasEvents()
 
@@ -50,7 +52,7 @@ export const Canvas = observer(function Canvas({
           <components.boundsBackground shapes={selectedShapes} bounds={selectedBounds} />
         )}
       </SVGLayer>
-      <div ref={rLayer} className="nu-absolute nu-layer">
+      <HTMLLayer>
         {shapes.map((shape, i) => (
           <Shape
             key={'shape_' + shape.id}
@@ -63,7 +65,7 @@ export const Canvas = observer(function Canvas({
             meta={meta}
           />
         ))}
-      </div>
+      </HTMLLayer>
       <SVGLayer>
         {selectedShapes.map((shape) => (
           <Indicator key={'selected_indicator_' + shape.id} shape={shape} />
@@ -71,11 +73,16 @@ export const Canvas = observer(function Canvas({
         {hoveredShape && (
           <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
         )}
-        {selectedBounds && (
-          <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
-        )}
         {brush && <Brush brush={brush} />}
       </SVGLayer>
+      {selectedBounds && (
+        <HTMLLayer>
+          <Container bounds={selectedBounds} zIndex={10000}>
+            <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
+          </Container>
+        </HTMLLayer>
+      )}
+      {children}
     </div>
   )
 })

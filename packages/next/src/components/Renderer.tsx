@@ -31,6 +31,7 @@ export interface TLNuRendererProps<
   BoundsComponent?: TLNuBoundsComponent<S>
   components?: Partial<TLNuComponents<S>>
   meta?: any
+  children?: React.ReactNode
 }
 
 export const Renderer = observer(function Renderer<
@@ -57,6 +58,7 @@ export const Renderer = observer(function Renderer<
   onKeyUp,
   meta,
   components = {} as Partial<TLNuComponents<S>>,
+  children,
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
 
@@ -120,7 +122,9 @@ export const Renderer = observer(function Renderer<
           hoveredShape={hoveredShape}
           brush={brush}
           selectedBounds={selectedBounds}
-        />
+        >
+          {children}
+        </Canvas>
       </div>
     </nuContext.Provider>
   )

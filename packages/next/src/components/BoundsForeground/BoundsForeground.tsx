@@ -3,91 +3,92 @@ import { observer } from 'mobx-react-lite'
 import { TLNuBoundsComponentProps, TLNuBoundsCorner, TLNuBoundsEdge } from '~types'
 import { EdgeHandle, CornerHandle, RotateHandle } from './handles'
 import type { TLNuShape } from '~nu-lib'
+import { SVGContainer } from '../SVGContainer'
 
 export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>({
   bounds,
 }: TLNuBoundsComponentProps<S>) {
-  const { minX, minY, maxX, maxY, width, height } = bounds
+  const { width, height } = bounds
 
   const size = 8
   const targetSize = 6
 
   return (
-    <g>
+    <SVGContainer>
       <rect
         className="nu-bounds-fg"
-        x={minX}
-        y={minY}
+        x={0}
+        y={0}
         width={Math.max(width, 1)}
         height={Math.max(height, 1)}
         pointerEvents="none"
       />
       <EdgeHandle
-        x={minX + targetSize * 2}
-        y={minY}
+        x={0 + targetSize * 2}
+        y={0}
         width={width - targetSize * 4}
         height={0}
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Top}
       />
       <EdgeHandle
-        x={maxX}
-        y={minY + targetSize * 2}
+        x={width}
+        y={0 + targetSize * 2}
         width={0}
         height={height - targetSize * 4}
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Right}
       />
       <EdgeHandle
-        x={minX + targetSize * 2}
-        y={maxY}
+        x={0 + targetSize * 2}
+        y={height}
         width={width - targetSize * 4}
         height={0}
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Bottom}
       />
       <EdgeHandle
-        x={minX}
-        y={minY + targetSize * 2}
+        x={0}
+        y={0 + targetSize * 2}
         width={0}
         height={height - targetSize * 4}
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Left}
       />
       <CornerHandle
-        cx={minX}
-        cy={minY}
+        cx={0}
+        cy={0}
         size={8}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.TopLeft}
       />
       <CornerHandle
-        cx={maxX}
-        cy={minY}
+        cx={width}
+        cy={0}
         size={8}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.TopRight}
       />
       <CornerHandle
-        cx={maxX}
-        cy={maxY}
+        cx={width}
+        cy={height}
         size={8}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomRight}
       />
       <CornerHandle
-        cx={minX}
-        cy={maxY}
+        cx={0}
+        cy={height}
         size={8}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomLeft}
       />
       <RotateHandle
-        cx={minX + width / 2}
-        cy={minY - targetSize * 2}
+        cx={0 + width / 2}
+        cy={0 - targetSize * 2}
         size={size}
         targetSize={targetSize}
       />
-    </g>
+    </SVGContainer>
   )
 })
