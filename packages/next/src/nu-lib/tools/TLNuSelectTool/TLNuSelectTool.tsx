@@ -12,6 +12,8 @@ import {
   PointingSelectedShapeState,
   PointingResizeHandleState,
   ResizingShapesState,
+  RotatingShapesState,
+  PointingRotateHandleState,
 } from './states'
 
 export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends TLNuTool<S, B> {
@@ -21,9 +23,7 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
   }
 
   readonly id = 'select'
-
   readonly label = 'Select'
-
   readonly shortcut = '1'
 
   readonly Component = ({ isActive }: TLNuToolComponentProps) => {
@@ -40,6 +40,8 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
     new TranslatingShapesState(this),
     new PointingResizeHandleState(this),
     new ResizingShapesState(this),
+    new PointingRotateHandleState(this),
+    new RotatingShapesState(this),
   ]
 
   @observable currentState = this.states[0]

@@ -116,6 +116,8 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
 
   abstract get bounds(): TLNuBounds
 
+  abstract get rotatedBounds(): TLNuBounds
+
   hitTestPoint = (point: number[]): boolean => {
     const ownBounds = this.bounds
 

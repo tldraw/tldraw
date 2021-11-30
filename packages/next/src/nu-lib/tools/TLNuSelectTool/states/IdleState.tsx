@@ -31,6 +31,7 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
             break
           }
           case 'rotate': {
+            this.tool.transition('pointingRotateHandle')
             break
           }
           default: {

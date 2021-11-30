@@ -47,12 +47,12 @@ export const Canvas = observer(function Canvas({
 
   return (
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
-      <SVGLayer>
-        {selectedBounds && (
-          <components.boundsBackground shapes={selectedShapes} bounds={selectedBounds} />
-        )}
-      </SVGLayer>
       <HTMLLayer>
+        {selectedBounds && (
+          <Container bounds={selectedBounds} zIndex={2}>
+            <components.boundsBackground shapes={selectedShapes} bounds={selectedBounds} />
+          </Container>
+        )}
         {shapes.map((shape, i) => (
           <Shape
             key={'shape_' + shape.id}
@@ -65,8 +65,6 @@ export const Canvas = observer(function Canvas({
             meta={meta}
           />
         ))}
-      </HTMLLayer>
-      <SVGLayer>
         {selectedShapes.map((shape) => (
           <Indicator key={'selected_indicator_' + shape.id} shape={shape} />
         ))}
@@ -74,14 +72,12 @@ export const Canvas = observer(function Canvas({
           <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
         )}
         {brush && <Brush brush={brush} />}
-      </SVGLayer>
-      {selectedBounds && (
-        <HTMLLayer>
+        {selectedBounds && (
           <Container bounds={selectedBounds} zIndex={10000}>
             <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
           </Container>
-        </HTMLLayer>
-      )}
+        )}
+      </HTMLLayer>
       {children}
     </div>
   )

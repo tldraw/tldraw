@@ -25,12 +25,12 @@ export const Shape = observer(function Shape<S extends TLNuShape = TLNuShape, M 
   isEditing = false,
   meta,
 }: ShapeProps<S, M>) {
-  const { bounds, Component } = shape
+  const { bounds, rotation, Component } = shape
 
   const events = useShapeEvents(shape)
 
   return (
-    <Container bounds={bounds} zIndex={zIndex}>
+    <Container bounds={bounds} rotation={rotation} zIndex={zIndex}>
       <Component
         meta={meta}
         isEditing={isEditing}

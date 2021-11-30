@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import type { TLNuBounds } from '~types'
+import { Container, SVGContainer } from '~components'
 
 interface BrushProps {
   brush: TLNuBounds
@@ -8,12 +9,10 @@ interface BrushProps {
 
 export const Brush = observer(function Brush({ brush }: BrushProps) {
   return (
-    <rect
-      className="nu-brush"
-      x={brush.minX}
-      y={brush.minY}
-      width={brush.width}
-      height={brush.height}
-    />
+    <Container bounds={brush}>
+      <SVGContainer>
+        <rect className="nu-brush" x={0} y={0} width={brush.width} height={brush.height} />
+      </SVGContainer>
+    </Container>
   )
 })

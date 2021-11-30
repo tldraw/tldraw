@@ -8,6 +8,7 @@ import {
   TLNuIndicatorProps,
   TLNuComponentProps,
   TLNuResizeInfo,
+  BoundsUtils,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
@@ -66,6 +67,12 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
       width,
       height,
     }
+  }
+
+  @computed get rotatedBounds(): TLNuBounds {
+    return BoundsUtils.getBoundsFromPoints(
+      BoundsUtils.getRotatedCorners(this.bounds, this.rotation)
+    )
   }
 
   resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuBoxShapeProps>) => {

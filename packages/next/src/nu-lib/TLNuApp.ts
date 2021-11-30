@@ -111,7 +111,7 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   @computed get selectedBounds(): TLNuBounds | undefined {
     return this.selectedShapes.length === 1
       ? { ...this.selectedShapes[0].bounds, rotation: this.selectedShapes[0].rotation }
-      : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.bounds))
+      : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
   }
 
   @computed get shapesInViewport(): S[] {
@@ -123,8 +123,8 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
     return currentPage.shapes.filter(
       (shape) =>
         shape.parentId === currentPage.id &&
-        (BoundsUtils.boundsContain(currentView, shape.bounds) ||
-          BoundsUtils.boundsCollide(currentView, shape.bounds))
+        (BoundsUtils.boundsContain(currentView, shape.rotatedBounds) ||
+          BoundsUtils.boundsCollide(currentView, shape.rotatedBounds))
     )
   }
 

@@ -17,14 +17,12 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
     <SVGContainer>
       <rect
         className="nu-bounds-fg"
-        x={0}
-        y={0}
         width={Math.max(width, 1)}
         height={Math.max(height, 1)}
         pointerEvents="none"
       />
       <EdgeHandle
-        x={0 + targetSize * 2}
+        x={targetSize * 2}
         y={0}
         width={width - targetSize * 4}
         height={0}
@@ -33,14 +31,14 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
       />
       <EdgeHandle
         x={width}
-        y={0 + targetSize * 2}
+        y={targetSize * 2}
         width={0}
         height={height - targetSize * 4}
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Right}
       />
       <EdgeHandle
-        x={0 + targetSize * 2}
+        x={targetSize * 2}
         y={height}
         width={width - targetSize * 4}
         height={0}
@@ -49,7 +47,7 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
       />
       <EdgeHandle
         x={0}
-        y={0 + targetSize * 2}
+        y={targetSize * 2}
         width={0}
         height={height - targetSize * 4}
         targetSize={targetSize}
@@ -83,12 +81,7 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomLeft}
       />
-      <RotateHandle
-        cx={0 + width / 2}
-        cy={0 - targetSize * 2}
-        size={size}
-        targetSize={targetSize}
-      />
+      <RotateHandle cx={width / 2} cy={0 - targetSize * 2} size={size} targetSize={targetSize} />
     </SVGContainer>
   )
 })

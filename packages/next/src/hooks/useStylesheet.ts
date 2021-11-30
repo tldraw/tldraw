@@ -284,6 +284,10 @@ const tlcss = css`
     pointer-events: none;
   }
 
+  tl-indicator-container {
+    transform-origin: 0 0;
+  }
+
   .nu-user-indicator-bounds {
     border-style: solid;
     border-width: calc(1px * var(--nu-scale));

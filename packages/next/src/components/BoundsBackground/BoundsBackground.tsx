@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { useBoundsEvents } from '~hooks/useBoundsEvents'
 import type { TLNuBoundsComponentProps } from '~types'
 import type { TLNuShape } from '~nu-lib'
+import { SVGContainer } from '~components'
 
 export const BoundsBackground = observer(function BoundsBackground<S extends TLNuShape>({
   bounds,
@@ -10,14 +11,14 @@ export const BoundsBackground = observer(function BoundsBackground<S extends TLN
   const events = useBoundsEvents('center')
 
   return (
-    <rect
-      className="nu-bounds-bg"
-      x={bounds.minX}
-      y={bounds.minY}
-      width={Math.max(1, bounds.width)}
-      height={Math.max(1, bounds.height)}
-      pointerEvents="all"
-      {...events}
-    />
+    <SVGContainer>
+      <rect
+        className="nu-bounds-bg"
+        width={Math.max(1, bounds.width)}
+        height={Math.max(1, bounds.height)}
+        pointerEvents="all"
+        {...events}
+      />
+    </SVGContainer>
   )
 })

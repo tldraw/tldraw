@@ -105,6 +105,16 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
     return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, 0)
   }
 
+  @computed get rotatedBounds(): TLNuBounds {
+    return BoundsUtils.getRotatedEllipseBounds(
+      this.point[0],
+      this.point[1],
+      this.size[0],
+      this.size[1],
+      this.rotation || 0
+    )
+  }
+
   resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuEllipseShapeProps>) => {
     this.update({
       point: [bounds.minX, bounds.minY],
