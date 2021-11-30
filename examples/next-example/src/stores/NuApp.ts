@@ -8,11 +8,12 @@ export class NuApp extends TLNuApp<Shape> {
   constructor() {
     super()
     this.registerToolShortcuts()
+    this.selectTool(this.tools[0])
   }
 
-  tools: Record<string, TLNuTool<Shape>> = {
-    select: new TLNuSelectTool(this),
-    box: new NuBoxTool(this),
-    ellipse: new NuEllipseTool(this),
-  }
+  tools: TLNuTool<Shape>[] = [
+    new TLNuSelectTool(this),
+    new NuBoxTool(this),
+    new NuEllipseTool(this),
+  ]
 }

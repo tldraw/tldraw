@@ -13,6 +13,8 @@ async function main() {
     })
   }
 
+  const deps = [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)]
+
   try {
     esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
@@ -24,7 +26,7 @@ async function main() {
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.build.json',
-      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
+      external: deps,
       metafile: true,
       sourcemap: true,
     })
@@ -39,7 +41,7 @@ async function main() {
       tsconfig: './tsconfig.build.json',
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
-      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
+      external: deps,
       metafile: true,
       sourcemap: true,
     })

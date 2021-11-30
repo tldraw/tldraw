@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import * as React from 'react'
 import {
   BoundsUtils,
   TLNuBinding,
@@ -88,7 +89,7 @@ export class NuBoxTool extends TLNuTool<Shape, TLNuBinding, Status> {
       case Status.Creating: {
         // Finish shape
         this.setStatus(Status.Idle)
-        this.app.selectTool(this.app.tools.select)
+        this.app.selectTool(this.app.tools[0])
         break
       }
     }

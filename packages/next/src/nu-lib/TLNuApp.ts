@@ -39,14 +39,12 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   @observable viewport = new TLNuViewport()
 
-  readonly tools: Record<string, TLNuTool<S>> = {
-    select: new TLNuSelectTool(this),
-  }
+  readonly tools: TLNuTool<S>[] = [new TLNuSelectTool(this)]
 
-  @observable currentTool: TLNuTool<S> = this.tools['select']
+  @observable selectedTool: TLNuTool<S> = this.tools[0]
 
   @action readonly selectTool = (tool: TLNuTool<S>) => {
-    this.currentTool = tool
+    this.selectedTool = tool
   }
 
   @observable pages: Record<string, TLNuPage<S, B>> = {
@@ -142,35 +140,35 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   /* --------------------- Events --------------------- */
 
   readonly onPan: TLNuWheelHandler<S> = (info, e) => {
-    this.currentTool.onPan?.(info, e)
+    this.selectedTool.onPan?.(info, e)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
-    this.currentTool.onPointerDown?.(info, e)
+    this.selectedTool.onPointerDown?.(info, e)
   }
 
   readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
-    this.currentTool.onPointerUp?.(info, e)
+    this.selectedTool.onPointerUp?.(info, e)
   }
 
   readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
-    this.currentTool.onPointerMove?.(info, e)
+    this.selectedTool.onPointerMove?.(info, e)
   }
 
   readonly onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
-    this.currentTool.onPointerEnter?.(info, e)
+    this.selectedTool.onPointerEnter?.(info, e)
   }
 
   readonly onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
-    this.currentTool.onPointerLeave?.(info, e)
+    this.selectedTool.onPointerLeave?.(info, e)
   }
 
   readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
-    this.currentTool.onKeyDown?.(info, e)
+    this.selectedTool.onKeyDown?.(info, e)
   }
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
-    this.currentTool.onKeyUp?.(info, e)
+    this.selectedTool.onKeyUp?.(info, e)
   }
 
   /* --------------- Keyboard Shortcuts --------------- */

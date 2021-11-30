@@ -7,6 +7,7 @@ body {
   overscroll-behavior: none;
   margin: 0px;
   padding: 0px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .tlnu-app {
@@ -19,6 +20,22 @@ body {
   height: 100%;
 }
 
+.tlnu-toolbar {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  color: black;
+  z-index: 100000;
+  user-select: none;
+  background: white;
+  border-bottom: 1px solid black;
+}
+
 .tlnu-debug {
   position: fixed;
   bottom: 0px;
@@ -27,7 +44,10 @@ body {
   width: 100%;
   display: flex;
   align-items: center;
-  padding: 12px;
+  padding: 8px;
   color: black;
   z-index: 100000;
+  user-select: none;
+  background: white;
+  border-top: 1px solid black;
 }

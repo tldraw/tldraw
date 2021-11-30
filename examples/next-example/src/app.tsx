@@ -71,8 +71,25 @@ export default observer(function App(): JSX.Element {
       />
       <Observer>
         {() => (
+          <div className="tlnu-toolbar">
+            {app.tools.map((tool) => {
+              if (!tool.Component) {
+                return null
+              }
+
+              return (
+                <button key={tool.id} onClick={() => app.selectTool(tool)}>
+                  <tool.Component isActive={app.selectedTool === tool} />
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </Observer>
+      <Observer>
+        {() => (
           <div className="tlnu-debug">
-            {app.currentTool.id} | {app.currentTool.status}
+            {app.selectedTool.id} | {app.selectedTool.status}
           </div>
         )}
       </Observer>
