@@ -1,5 +1,5 @@
-import { Observer } from 'mobx-react-lite'
 import * as React from 'react'
+import { Observer } from 'mobx-react-lite'
 
 interface SvgContainerProps extends React.SVGProps<SVGSVGElement> {
   children: React.ReactNode

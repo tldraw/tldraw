@@ -12,22 +12,24 @@ app.currentPage.shapes = [
   new NuBoxShape({
     id: 'box1',
     parentId: 'page',
-    point: [0, 0],
+    point: [100, 100],
     size: [100, 100],
   }),
   new NuBoxShape({
     id: 'box2',
     parentId: 'page',
-    point: [50, 50],
+    point: [150, 150],
     size: [100, 100],
   }),
   new NuEllipseShape({
     id: 'ellipse1',
     parentId: 'page',
-    point: [200, 50],
+    point: [300, 150],
     size: [100, 100],
   }),
 ]
+
+app.select('box1', 'box2')
 
 export default observer(function App(): JSX.Element {
   const {

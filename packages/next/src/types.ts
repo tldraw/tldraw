@@ -1,3 +1,4 @@
+import type React from 'react'
 import type { TLNuShape } from '~nu-lib'
 
 export enum TLNuBoundsEdge {
@@ -89,26 +90,46 @@ export type TLNuEventInfo<S extends TLNuShape = TLNuShape> =
   | { type: TLNuTargetType.Canvas; order: number }
   | { type: TLNuTargetType.Shape; target: S; order: number }
   | { type: TLNuTargetType.Bounds; target: TLNuBoundsHandle; order: number }
-export type TLNuWheelHandler<S extends TLNuShape = TLNuShape> = (
-  info: TLNuEventInfo<S>,
-  event: WheelEvent
-) => void
-export type TLNuPointerHandler<S extends TLNuShape = TLNuShape> = (
-  info: TLNuEventInfo<S>,
-  event: React.PointerEvent
-) => void
-export type TLNuKeyboardHandler<S extends TLNuShape = TLNuShape> = (
-  info: TLNuEventInfo<S>,
-  event: React.KeyboardEvent
-) => void
 
-export interface TLNuCallbacks<S extends TLNuShape = TLNuShape> {
-  onPan?: TLNuWheelHandler<S>
-  onPointerDown?: TLNuPointerHandler<S>
-  onPointerUp?: TLNuPointerHandler<S>
-  onPointerMove?: TLNuPointerHandler<S>
-  onPointerEnter?: TLNuPointerHandler<S>
-  onPointerLeave?: TLNuPointerHandler<S>
-  onKeyDown?: TLNuKeyboardHandler<S>
-  onKeyUp?: TLNuKeyboardHandler<S>
+export type TLNuWheelHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo = TLNuEventInfo<S>
+> = (info: E, event: WheelEvent) => void
+
+export type TLNuPointerHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo = TLNuEventInfo<S>
+> = (info: E, event: React.PointerEvent) => void
+
+export type TLNuKeyboardHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo = TLNuEventInfo<S>
+> = (info: E, event: React.KeyboardEvent) => void
+
+export interface TLNuCallbacks<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo = TLNuEventInfo<S>
+> {
+  onPan?: TLNuWheelHandler<S, E>
+  onPointerDown?: TLNuPointerHandler<S, E>
+  onPointerUp?: TLNuPointerHandler<S, E>
+  onPointerMove?: TLNuPointerHandler<S, E>
+  onPointerEnter?: TLNuPointerHandler<S, E>
+  onPointerLeave?: TLNuPointerHandler<S, E>
+  onKeyDown?: TLNuKeyboardHandler<S, E>
+  onKeyUp?: TLNuKeyboardHandler<S, E>
+}
+
+export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
+  shapes: S[]
+  bounds: TLNuBounds
+}
+
+export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
+  props: TLNuBoundsComponentProps<S>
+) => JSX.Element
+
+export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
+  boundsBackground: TLNuBoundsComponent<S>
+  boundsForeground: TLNuBoundsComponent<S>
 }

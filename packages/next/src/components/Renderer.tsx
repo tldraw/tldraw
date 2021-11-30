@@ -2,13 +2,17 @@
 import * as React from 'react'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react-lite'
-import { useStylesheet } from '~hooks/useStylesheet'
-import { nuContext, NuContext } from '~hooks/useContext'
-import { Canvas } from './Canvas'
-import type { TLNuBinding, TLNuCallbacks, TLNuTheme, TLNuBounds } from '~types'
-import type { TLNuViewport } from '~nu-lib'
-import type { TLNuShape } from '~nu-lib/TLNuShape'
-import type { TLNuInputs } from '~nu-lib/TLNuInputs'
+import { Canvas, BoundsForeground, BoundsBackground } from '~components'
+import { useStylesheet, nuContext, NuContext } from '~hooks'
+import type { TLNuViewport, TLNuShape, TLNuInputs } from '~nu-lib'
+import type {
+  TLNuBinding,
+  TLNuCallbacks,
+  TLNuTheme,
+  TLNuBounds,
+  TLNuBoundsComponent,
+  TLNuComponents,
+} from '~types'
 
 export interface TLNuRendererProps<
   S extends TLNuShape = TLNuShape,
@@ -24,6 +28,8 @@ export interface TLNuRendererProps<
   selectedBounds?: TLNuBounds
   viewport: TLNuViewport
   inputs: TLNuInputs
+  BoundsComponent?: TLNuBoundsComponent<S>
+  components?: Partial<TLNuComponents<S>>
 }
 
 export const Renderer = observer(function Renderer<
@@ -48,25 +54,36 @@ export const Renderer = observer(function Renderer<
   onPointerLeave,
   onKeyDown,
   onKeyUp,
+  components = {} as Partial<TLNuComponents<S>>,
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
 
-  const [currentContext, setCurrentContext] = React.useState<NuContext<S>>({
-    viewport,
-    inputs,
-    callbacks: {
-      onPan,
-      onPointerDown,
-      onPointerUp,
-      onPointerMove,
-      onPointerEnter,
-      onPointerLeave,
-      onKeyDown,
-      onKeyUp,
-    },
+  const [currentContext, setCurrentContext] = React.useState<NuContext<S>>(() => {
+    const { boundsBackground = BoundsBackground, boundsForeground = BoundsForeground } = components
+
+    return {
+      viewport,
+      inputs,
+      callbacks: {
+        onPan,
+        onPointerDown,
+        onPointerUp,
+        onPointerMove,
+        onPointerEnter,
+        onPointerLeave,
+        onKeyDown,
+        onKeyUp,
+      },
+      components: {
+        boundsBackground,
+        boundsForeground,
+      },
+    }
   })
 
   React.useEffect(() => {
+    const { boundsBackground = BoundsBackground, boundsForeground = BoundsForeground } = components
+
     autorun(() => {
       setCurrentContext({
         viewport,
@@ -80,6 +97,10 @@ export const Renderer = observer(function Renderer<
           onPointerLeave,
           onKeyDown,
           onKeyUp,
+        },
+        components: {
+          boundsBackground,
+          boundsForeground,
         },
       })
     })

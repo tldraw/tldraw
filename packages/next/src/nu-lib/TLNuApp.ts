@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Vec from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
+import { BoundsUtils, KeyUtils } from '~utils'
+import { TLNuSelectTool } from './TLNuSelectTool'
 import { TLNuInputs } from './TLNuInputs'
 import { TLNuPage } from './TLNuPage'
 import { TLNuViewport } from './TLNuViewport'
@@ -13,8 +15,6 @@ import type {
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
-import { BoundsUtils, KeyUtils } from '~utils'
-import { TLNuSelectTool } from './TLNuSelectTool'
 import type { TLNuTool } from '~nu-lib'
 
 export enum TLNuStatus {

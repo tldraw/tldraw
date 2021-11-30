@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import { Container } from '~components/Container'
+import { Container } from '~components'
 import type { TLNuShape } from '~nu-lib'
-import { useContext } from '~hooks/useContext'
+import { useContext } from '~hooks'
 import { TLNuTargetType } from '~types'
 
 interface ShapeProps<S extends TLNuShape = TLNuShape> {

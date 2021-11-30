@@ -1,17 +1,14 @@
-import Vec from '@tldraw/vec'
-import { useGesture, Handler } from '@use-gesture/react'
+import * as React from 'react'
 import { autorun } from 'mobx'
 import { observer } from 'mobx-react-lite'
-import * as React from 'react'
-import { BoundsBg, BoundsFg } from '~components/Bounds'
-import { Brush } from '~components/Brush'
-import { Indicator } from '~components/Indicator/Indicator'
-import { Shape } from '~components/Shape/Shape'
+import { useGesture, Handler } from '@use-gesture/react'
+import { Vec } from '@tldraw/vec'
+import { Brush, Indicator, Shape } from '~components'
 import { useCameraCss } from '~hooks/useCameraCss'
 import { useContext } from '~hooks/useContext'
 import { useResizeObserver } from '~hooks/useResizeObserver'
 import type { TLNuShape } from '~nu-lib/TLNuShape'
-import { TLNuBinding, TLNuBounds, TLNuTargetType } from '~types'
+import { TLNuBinding, TLNuBounds, TLNuBoundsComponent, TLNuTargetType } from '~types'
 
 type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
   shapes: S[]
@@ -20,6 +17,7 @@ type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBi
   hoveredShape?: S
   selectedBounds?: TLNuBounds
   brush?: TLNuBounds
+  BoundsComponent?: TLNuBoundsComponent<S>
 }
 
 export const Canvas = observer(function Canvas({
@@ -32,7 +30,7 @@ export const Canvas = observer(function Canvas({
 }: CanvasProps) {
   const rContainer = React.useRef<HTMLDivElement>(null)
   const rLayer = React.useRef<HTMLDivElement>(null)
-  const { viewport, inputs, callbacks } = useContext()
+  const { viewport, inputs, callbacks, components } = useContext()
 
   useResizeObserver(rContainer, viewport)
 
@@ -109,7 +107,11 @@ export const Canvas = observer(function Canvas({
 
   return (
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
-      <SVGLayer>{selectedBounds && <BoundsBg bounds={selectedBounds} />}</SVGLayer>
+      <SVGLayer>
+        {selectedBounds && (
+          <components.boundsBackground shapes={selectedShapes} bounds={selectedBounds} />
+        )}
+      </SVGLayer>
       <div ref={rLayer} className="nu-absolute nu-layer">
         {shapes.map((shape, i) => (
           <Shape key={'shape_' + shape.id} shape={shape} zIndex={i} />
@@ -122,7 +124,9 @@ export const Canvas = observer(function Canvas({
         {hoveredShape && (
           <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
         )}
-        {selectedBounds && <BoundsFg bounds={selectedBounds} />}
+        {selectedBounds && (
+          <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
+        )}
         {brush && <Brush brush={brush} />}
       </SVGLayer>
     </div>
