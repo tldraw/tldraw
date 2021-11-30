@@ -30,14 +30,15 @@ export abstract class TLNuTool<
   abstract readonly shortcut?: string
   abstract readonly label?: string
   abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
-  abstract onPan?: TLNuWheelHandler<S>
-  abstract onPointerDown?: TLNuPointerHandler<S>
-  abstract onPointerUp?: TLNuPointerHandler<S>
-  abstract onPointerMove?: TLNuPointerHandler<S>
-  abstract onPointerEnter?: TLNuPointerHandler<S>
-  abstract onPointerLeave?: TLNuPointerHandler<S>
-  abstract onKeyDown?: TLNuKeyboardHandler<S>
-  abstract onKeyUp?: TLNuKeyboardHandler<S>
+
+  onPan?: TLNuWheelHandler<S>
+  onPointerDown?: TLNuPointerHandler<S>
+  onPointerUp?: TLNuPointerHandler<S>
+  onPointerMove?: TLNuPointerHandler<S>
+  onPointerEnter?: TLNuPointerHandler<S>
+  onPointerLeave?: TLNuPointerHandler<S>
+  onKeyDown?: TLNuKeyboardHandler<S>
+  onKeyUp?: TLNuKeyboardHandler<S>
 
   @observable status: T = 'idle' as T
 

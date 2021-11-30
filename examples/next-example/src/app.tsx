@@ -2,10 +2,11 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/next'
 import { observer, Observer } from 'mobx-react-lite'
-import { NuBoxShape } from 'stores/NuBoxShape'
-import { NuExampleApp } from 'stores/NuExampleApp'
+import { NuBoxShape } from 'stores/shapes/NuBoxShape'
+import { NuApp } from 'stores/NuApp'
+import { NuEllipseShape } from 'stores'
 
-const app = new NuExampleApp()
+const app = new NuApp()
 
 app.currentPage.shapes = [
   new NuBoxShape({
@@ -18,6 +19,12 @@ app.currentPage.shapes = [
     id: 'box2',
     parentId: 'page',
     point: [50, 50],
+    size: [100, 100],
+  }),
+  new NuEllipseShape({
+    id: 'ellipse1',
+    parentId: 'page',
+    point: [200, 50],
     size: [100, 100],
   }),
 ]
@@ -62,7 +69,13 @@ export default observer(function App(): JSX.Element {
         onPointerEnter={onPointerEnter}
         onPointerLeave={onPointerLeave}
       />
-      <Observer>{() => <div className="tlnu-debug">{app.status}</div>}</Observer>
+      <Observer>
+        {() => (
+          <div className="tlnu-debug">
+            {app.currentTool.id} | {app.currentTool.status}
+          </div>
+        )}
+      </Observer>
     </div>
   )
 })

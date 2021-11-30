@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { intersectPolylineBounds } from '@tldraw/intersect'
-import { action, makeObservable, observable } from 'mobx'
+import {
+  intersectLineSegmentBounds,
+  intersectLineSegmentPolyline,
+  intersectPolylineBounds,
+} from '@tldraw/intersect'
+import { action, computed, makeObservable, observable } from 'mobx'
 import type { TLNuBounds, TLNuHandle } from '~types'
 import { BoundsUtils, PointUtils } from '~utils'
 
@@ -111,6 +115,15 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     return PointUtils.pointInPolygon(point, corners)
   }
 
+  hitTestLineSegment = (A: number[], B: number[]): boolean => {
+    const box = BoundsUtils.getBoundsFromPoints([A, B])
+    const { bounds, rotation = 0 } = this
+
+    return BoundsUtils.boundsContain(bounds, box) || rotation
+      ? intersectLineSegmentPolyline(A, B, BoundsUtils.getRotatedCorners(this.bounds)).didIntersect
+      : intersectLineSegmentBounds(A, B, this.bounds).length > 0
+  }
+
   hitTestBounds = (bounds: TLNuBounds): boolean => {
     const ownBounds = this.bounds
 
@@ -128,6 +141,10 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       corners.every((point) => PointUtils.pointInBounds(point, bounds)) ||
       intersectPolylineBounds(corners, bounds).length > 0
     )
+  }
+
+  @computed get center(): number[] {
+    return BoundsUtils.getBoundsCenter(this.bounds)
   }
 
   @action update(props: Partial<P>) {

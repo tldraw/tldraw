@@ -157,6 +157,21 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     ).didIntersect
   }
 
+  hitTestBounds = (shape: T, bounds: TLBounds): boolean => {
+    const shapeBounds = this.getBounds(shape)
+
+    return (
+      Utils.boundsContained(shapeBounds, bounds) ||
+      intersectEllipseBounds(
+        this.getCenter(shape),
+        shape.radius[0],
+        shape.radius[1],
+        shape.rotation || 0,
+        bounds
+      ).length > 0
+    )
+  }
+
   getBounds = (shape: T) => {
     return Utils.getFromCache(this.boundsCache, shape, () => {
       return Utils.getRotatedEllipseBounds(
@@ -176,21 +191,6 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
       shape.radius[0],
       shape.radius[1],
       shape.rotation
-    )
-  }
-
-  hitTestBounds = (shape: T, bounds: TLBounds): boolean => {
-    const shapeBounds = this.getBounds(shape)
-
-    return (
-      Utils.boundsContained(shapeBounds, bounds) ||
-      intersectEllipseBounds(
-        this.getCenter(shape),
-        shape.radius[0],
-        shape.radius[1],
-        shape.rotation || 0,
-        bounds
-      ).length > 0
     )
   }
 

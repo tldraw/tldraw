@@ -14,7 +14,7 @@ import type {
   TLNuWheelHandler,
 } from '~types'
 import { BoundsUtils, KeyUtils } from '~utils'
-import { TLNuSelectTool } from './NuSelectTool'
+import { TLNuSelectTool } from './TLNuSelectTool'
 import type { TLNuTool } from '~nu-lib'
 
 export enum TLNuStatus {
@@ -31,11 +31,6 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 {
   constructor() {
     makeObservable(this)
-    Object.values(this.tools).forEach((tool) => {
-      if (tool.shortcut !== undefined) {
-        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool))
-      }
-    })
   }
 
   @observable currentPageId = 'page'
@@ -44,7 +39,7 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   @observable viewport = new TLNuViewport()
 
-  @observable tools: Record<string, TLNuTool<S>> = {
+  readonly tools: Record<string, TLNuTool<S>> = {
     select: new TLNuSelectTool(this),
   }
 
@@ -55,7 +50,7 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   }
 
   @observable pages: Record<string, TLNuPage<S, B>> = {
-    page: new TLNuPage('page', 'page', [], []),
+    page: new TLNuPage<S, B>('page', 'page', [], []),
   }
 
   @computed get currentPage() {
@@ -176,5 +171,15 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
     this.currentTool.onKeyUp?.(info, e)
+  }
+
+  /* --------------- Keyboard Shortcuts --------------- */
+
+  registerToolShortcuts = () => {
+    Object.values(this.tools).forEach((tool) => {
+      if (tool.shortcut !== undefined) {
+        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool))
+      }
+    })
   }
 }
