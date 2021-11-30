@@ -45,6 +45,8 @@ export const Canvas = observer(function Canvas({
   useGestureEvents(rContainer)
   const events = useCanvasEvents()
 
+  console.log(hoveredShape)
+
   return (
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
       <HTMLLayer>
@@ -73,7 +75,7 @@ export const Canvas = observer(function Canvas({
         )}
         {brush && <Brush brush={brush} />}
         {selectedBounds && (
-          <Container bounds={selectedBounds} zIndex={10000}>
+          <Container bounds={selectedBounds} zIndex={10002}>
             <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
           </Container>
         )}

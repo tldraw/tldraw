@@ -27,8 +27,10 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
       transformOrigin: number[]
     }
   > = {}
+  initialRotation = 0
   initialInnerBounds = {} as TLNuBounds
   initialCommonBounds = {} as TLNuBounds
+  initialCommonCenter = {} as number[]
   transformOrigins: Record<string, number[]> = {}
   boundsRotation = 0
 
@@ -43,10 +45,9 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
     )
 
     this.isSingle = selectedShapes.length === 1
-
     this.boundsRotation = this.isSingle ? selectedShapes[0].rotation ?? 0 : 0
-
     this.initialCommonBounds = { ...selectedBounds }
+    this.initialCommonCenter = BoundsUtils.getBoundsCenter(this.initialCommonBounds)
 
     this.snapshots = Object.fromEntries(
       selectedShapes.map((shape) => {
@@ -91,7 +92,7 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
       initialCommonBounds,
       handle,
       delta,
-      0,
+      this.boundsRotation,
       shiftKey
     )
 
@@ -115,6 +116,13 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
         scaleY,
         transformOrigin,
       })
+
+      // if (this.isSingle) {
+      //   const offset = Vec.sub(shape.center, this.initialCommonCenter)
+      //   shape.update({
+      //     point: Vec.sub(shape.point, offset),
+      //   })
+      // }
     })
   }
 
