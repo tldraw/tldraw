@@ -23,7 +23,7 @@
             ],
             "rotation": 0,
             "style": {
-              "color": "red",
+              "color": "white",
               "size": "large",
               "isFilled": false,
               "dash": "draw"
