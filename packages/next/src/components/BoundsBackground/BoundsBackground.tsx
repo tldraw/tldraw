@@ -14,8 +14,8 @@ export const BoundsBackground = observer(function BoundsBackground<S extends TLN
       className="nu-bounds-bg"
       x={bounds.minX}
       y={bounds.minY}
-      width={bounds.width}
-      height={bounds.height}
+      width={Math.max(1, bounds.width)}
+      height={Math.max(1, bounds.height)}
       pointerEvents="all"
       {...events}
     />

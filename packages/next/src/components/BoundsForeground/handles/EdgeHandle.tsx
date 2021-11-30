@@ -40,8 +40,8 @@ export const EdgeHandle = observer<EdgeHandleProps>(function EdgeHandle({
       opacity={isHidden ? 0 : 1}
       x={x - targetSize}
       y={y - targetSize}
-      width={width + targetSize * 2}
-      height={height + targetSize * 2}
+      width={Math.max(1, width + targetSize * 2)}
+      height={Math.max(1, height + targetSize * 2)}
       {...events}
     />
   )

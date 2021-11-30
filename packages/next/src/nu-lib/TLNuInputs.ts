@@ -25,7 +25,10 @@ export class TLNuInputs {
     this.altKey = event.altKey
   }
 
-  @action onPointerMove = (pagePoint: number[], event: PointerEvent | React.PointerEvent) => {
+  @action onPointerMove = (
+    pagePoint: number[],
+    event: PointerEvent | React.PointerEvent | WheelEvent
+  ) => {
     this.previousPoint = this.currentPoint
     this.currentPoint = pagePoint
   }

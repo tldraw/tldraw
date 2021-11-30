@@ -10,6 +10,8 @@ import {
   PointingBoundsBackgroundState,
   TranslatingShapesState,
   PointingSelectedShapeState,
+  PointingResizeHandleState,
+  ResizingShapesState,
 } from './states'
 
 export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends TLNuTool<S, B> {
@@ -36,6 +38,8 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
     new PointingSelectedShapeState(this),
     new PointingBoundsBackgroundState(this),
     new TranslatingShapesState(this),
+    new PointingResizeHandleState(this),
+    new ResizingShapesState(this),
   ]
 
   @observable currentState = this.states[0]

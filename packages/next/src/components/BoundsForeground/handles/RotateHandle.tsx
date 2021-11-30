@@ -26,7 +26,7 @@ export const RotateHandle = observer<RotateHandleProps>(function RotateHandle({
         aria-label="rotate target"
         cx={cx}
         cy={cy}
-        r={targetSize / 2}
+        r={targetSize}
         pointerEvents={isHidden ? 'none' : 'all'}
         {...events}
       />

@@ -30,6 +30,7 @@ export interface TLNuRendererProps<
   inputs: TLNuInputs
   BoundsComponent?: TLNuBoundsComponent<S>
   components?: Partial<TLNuComponents<S>>
+  meta?: any
 }
 
 export const Renderer = observer(function Renderer<
@@ -54,6 +55,7 @@ export const Renderer = observer(function Renderer<
   onPointerLeave,
   onKeyDown,
   onKeyUp,
+  meta,
   components = {} as Partial<TLNuComponents<S>>,
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
@@ -78,6 +80,7 @@ export const Renderer = observer(function Renderer<
         boundsBackground,
         boundsForeground,
       },
+      meta,
     }
   })
 
@@ -102,6 +105,7 @@ export const Renderer = observer(function Renderer<
           boundsBackground,
           boundsForeground,
         },
+        meta,
       })
     })
   }, [])

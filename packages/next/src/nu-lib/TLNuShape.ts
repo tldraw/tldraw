@@ -4,9 +4,10 @@ import {
   intersectLineSegmentPolyline,
   intersectPolylineBounds,
 } from '@tldraw/intersect'
-import { action, computed, makeObservable, observable } from 'mobx'
-import type { TLNuBounds, TLNuHandle } from '~types'
+import { action, computed, makeObservable, observable, toJS } from 'mobx'
+import type { TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
 import { BoundsUtils, PointUtils } from '~utils'
+import { deepCopy } from '~utils/DataUtils'
 
 export interface TLNuIndicatorProps<M = unknown> {
   meta: M
@@ -43,6 +44,14 @@ export interface TLNuComponentProps<M = unknown> extends TLNuIndicatorProps<M> {
   }
 }
 
+export interface TLNuResizeInfo<P extends Record<string, any> = any> {
+  type: TLNuBoundsEdge | TLNuBoundsCorner
+  scaleX: number
+  scaleY: number
+  transformOrigin: number[]
+  initialProps: TLNuShapeProps & P
+}
+
 export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = unknown>
   implements TLNuShapeProps
 {
@@ -65,7 +74,7 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
   @observable isGenerated?: boolean
   @observable isAspectRatioLocked?: boolean
 
-  constructor(props = {} as P) {
+  constructor(props: P) {
     const {
       id,
       parentId,
@@ -80,6 +89,8 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isGenerated,
       isAspectRatioLocked,
     } = props
+
+    this.serializedProps = Object.keys(props).concat(['type'])
 
     this.id = id
     this.parentId = parentId
@@ -96,6 +107,8 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
 
     makeObservable(this)
   }
+
+  readonly serializedProps: string[]
 
   abstract readonly Component: (props: TLNuComponentProps<M>) => JSX.Element | null
 
@@ -141,6 +154,20 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       corners.every((point) => PointUtils.pointInBounds(point, bounds)) ||
       intersectPolylineBounds(corners, bounds).length > 0
     )
+  }
+
+  serialize(): P & { type: string } {
+    return deepCopy(
+      Object.fromEntries(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.serializedProps.map((prop) => [prop, this[prop]])
+      )
+    ) as P & { type: string }
+  }
+
+  resize = (bounds: TLNuBounds, info: TLNuResizeInfo) => {
+    this.update({ point: [bounds.minX, bounds.minY] } as Partial<P>)
   }
 
   @computed get center(): number[] {

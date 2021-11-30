@@ -45,6 +45,7 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
   }
 
   onPointerUp: TLNuPointerHandler<S> = () => {
+    this.app.persist()
     this.tool.transition('idle')
   }
 

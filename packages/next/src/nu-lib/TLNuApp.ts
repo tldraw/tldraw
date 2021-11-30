@@ -11,6 +11,8 @@ import type {
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
+import type { TLNuShapeProps } from './TLNuShape'
+import { TLNuHistory } from './TLNuHistory'
 
 export enum TLNuStatus {
   Idle = 'idle',
@@ -28,9 +30,19 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
     makeObservable(this)
   }
 
+  shapes: Record<string, { new (props: any): TLNuShape }> = {}
+
   @observable inputs = new TLNuInputs()
 
   @observable viewport = new TLNuViewport()
+
+  /* --------------------- History -------------------- */
+
+  history = new TLNuHistory<S, B>(this)
+
+  persist = this.history.persist
+  undo = this.history.undo
+  redo = this.history.redo
 
   /* ---------------------- Tools --------------------- */
 
@@ -56,14 +68,30 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   /* -------------------- Document -------------------- */
 
+  @observable pages: TLNuPage<S, B>[] = [
+    new TLNuPage<S, B>(this, { id: 'page', name: 'page', shapes: [], bindings: [] }),
+  ]
+
+  @action addPage(page: TLNuPage<S, B>) {
+    this.pages.push(page)
+    this.persist()
+  }
+
+  @action removePage(page: TLNuPage<S, B>) {
+    this.pages.splice(this.pages.indexOf(page), 1)
+    this.persist()
+  }
+
   @observable currentPageId = 'page'
 
-  @observable pages: Record<string, TLNuPage<S, B>> = {
-    page: new TLNuPage<S, B>('page', 'page', [], []),
+  @action setCurrentPageId(id: string) {
+    this.currentPageId = id
   }
 
   @computed get currentPage() {
-    return this.pages[this.currentPageId]
+    const page = this.pages.find((page) => page.id === this.currentPageId)
+    if (!page) throw Error(`Could not find a page named ${this.currentPageId}.`)
+    return page
   }
 
   @observable hoveredId?: string
@@ -81,9 +109,9 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   }
 
   @computed get selectedBounds(): TLNuBounds | undefined {
-    return this.selectedShapes.length > 1
-      ? BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.bounds))
-      : undefined
+    return this.selectedShapes.length === 1
+      ? { ...this.selectedShapes[0].bounds, rotation: this.selectedShapes[0].rotation }
+      : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.bounds))
   }
 
   @computed get shapesInViewport(): S[] {

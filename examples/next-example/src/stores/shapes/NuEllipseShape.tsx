@@ -9,6 +9,7 @@ import {
   TLNuComponentProps,
   PointUtils,
   BoundsUtils,
+  TLNuResizeInfo,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
@@ -50,6 +51,7 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
   Indicator = (props: TLNuIndicatorProps) => {
     return (
       <ellipse
+        className="nu-indicator"
         cx={this.size[0] / 2}
         cy={this.size[1] / 2}
         rx={this.size[0] / 2}
@@ -101,5 +103,12 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
     const [x, y] = this.point
     const [width, height] = this.size
     return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, 0)
+  }
+
+  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuEllipseShapeProps>) => {
+    this.update({
+      point: [bounds.minX, bounds.minY],
+      size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
+    })
   }
 }

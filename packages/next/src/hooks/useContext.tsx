@@ -8,6 +8,7 @@ export type NuContext<S extends TLNuShape = TLNuShape> = {
   inputs: TLNuInputs
   callbacks: TLNuCallbacks<S>
   components: TLNuComponents<S>
+  meta: any
 }
 
 export const nuContext = React.createContext<NuContext<any>>({} as NuContext<any>)

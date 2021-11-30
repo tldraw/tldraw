@@ -31,6 +31,8 @@ app.currentPage.shapes = [
 
 app.select('box1', 'box2')
 
+app.history.reset()
+
 export default observer(function App(): JSX.Element {
   const {
     currentPage: { bindings },

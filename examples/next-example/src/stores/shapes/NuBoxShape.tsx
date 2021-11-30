@@ -7,6 +7,7 @@ import {
   TLNuShapeProps,
   TLNuIndicatorProps,
   TLNuComponentProps,
+  TLNuResizeInfo,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
@@ -65,5 +66,12 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
       width,
       height,
     }
+  }
+
+  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuBoxShapeProps>) => {
+    this.update({
+      point: [bounds.minX, bounds.minY],
+      size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
+    })
   }
 }

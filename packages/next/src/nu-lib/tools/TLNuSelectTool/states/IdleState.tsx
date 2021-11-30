@@ -1,5 +1,5 @@
 import { TLNuShape, TLNuState } from '~nu-lib'
-import { TLNuBinding, TLNuPointerHandler, TLNuTargetType } from '~types'
+import { TLNuBinding, TLNuBoundsCorner, TLNuPointerHandler, TLNuTargetType } from '~types'
 
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
   readonly id = 'idle'
@@ -25,7 +25,18 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
         break
       }
       case TLNuTargetType.Bounds: {
-        this.tool.transition('pointingBoundsBackground')
+        switch (info.target) {
+          case 'background': {
+            this.tool.transition('pointingBoundsBackground')
+            break
+          }
+          case 'rotate': {
+            break
+          }
+          default: {
+            this.tool.transition('pointingResizeHandle', info.target)
+          }
+        }
         break
       }
       case TLNuTargetType.Canvas: {

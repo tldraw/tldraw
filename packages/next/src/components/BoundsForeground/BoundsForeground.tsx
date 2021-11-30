@@ -10,7 +10,7 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
   const { minX, minY, maxX, maxY, width, height } = bounds
 
   const size = 8
-  const targetSize = 12
+  const targetSize = 6
 
   return (
     <g>
@@ -18,9 +18,41 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
         className="nu-bounds-fg"
         x={minX}
         y={minY}
-        width={width}
-        height={height}
+        width={Math.max(width, 1)}
+        height={Math.max(height, 1)}
         pointerEvents="none"
+      />
+      <EdgeHandle
+        x={minX + targetSize * 2}
+        y={minY}
+        width={width - targetSize * 4}
+        height={0}
+        targetSize={targetSize}
+        edge={TLNuBoundsEdge.Top}
+      />
+      <EdgeHandle
+        x={maxX}
+        y={minY + targetSize * 2}
+        width={0}
+        height={height - targetSize * 4}
+        targetSize={targetSize}
+        edge={TLNuBoundsEdge.Right}
+      />
+      <EdgeHandle
+        x={minX + targetSize * 2}
+        y={maxY}
+        width={width - targetSize * 4}
+        height={0}
+        targetSize={targetSize}
+        edge={TLNuBoundsEdge.Bottom}
+      />
+      <EdgeHandle
+        x={minX}
+        y={minY + targetSize * 2}
+        width={0}
+        height={height - targetSize * 4}
+        targetSize={targetSize}
+        edge={TLNuBoundsEdge.Left}
       />
       <CornerHandle
         cx={minX}
@@ -50,41 +82,9 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomLeft}
       />
-      <EdgeHandle
-        x={minX}
-        y={minY}
-        width={width}
-        height={0}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Top}
-      />
-      <EdgeHandle
-        x={maxX}
-        y={minY}
-        width={0}
-        height={height}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Right}
-      />
-      <EdgeHandle
-        x={minX}
-        y={maxY}
-        width={width}
-        height={0}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Bottom}
-      />
-      <EdgeHandle
-        x={minX}
-        y={minY}
-        width={0}
-        height={height}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Left}
-      />
       <RotateHandle
-        cx={minX + width / 2 - targetSize / 2}
-        cy={minY - targetSize * 1.5}
+        cx={minX + width / 2}
+        cy={minY - targetSize * 2}
         size={size}
         targetSize={targetSize}
       />

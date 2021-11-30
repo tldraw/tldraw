@@ -31,12 +31,13 @@ export const CornerHandle = observer(function CornerHandle({
 
   return (
     <g opacity={isHidden ? 0 : 1}>
-      <circle
+      <rect
         className={'nu-transparent ' + (isHidden ? '' : cornerBgClassnames[corner])}
         aria-label={`${corner} target`}
-        cx={cx}
-        cy={cy}
-        r={targetSize / 2}
+        x={cx - targetSize}
+        y={cy - targetSize}
+        width={targetSize * 2}
+        height={targetSize * 2}
         pointerEvents={isHidden ? 'none' : 'all'}
         {...events}
       />

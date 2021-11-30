@@ -20,9 +20,10 @@ export type TLNuBoundsHandle =
   | TLNuBoundsCorner
   | TLNuBoundsEdge
   | 'rotate'
-  | 'center'
   | 'left'
   | 'right'
+  | 'center'
+  | 'background'
 
 export interface TLNuBoundsWithCenter extends TLNuBounds {
   midX: number
@@ -88,7 +89,7 @@ export enum TLNuTargetType {
 }
 
 export type TLNuEventInfo<S extends TLNuShape = TLNuShape> =
-  | { type: TLNuTargetType.Canvas; order: number }
+  | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number }
   | { type: TLNuTargetType.Shape; target: S; order: number }
   | { type: TLNuTargetType.Bounds; target: TLNuBoundsHandle; order: number }
 

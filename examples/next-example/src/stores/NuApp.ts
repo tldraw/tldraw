@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLNuApp, TLNuSelectTool, TLNuTool } from '@tldraw/next'
-import type { Shape } from './shapes'
+import { NuBoxShape, NuEllipseShape, Shape } from './shapes'
 import { NuBoxTool, NuEllipseTool } from './tools'
 
 export class NuApp extends TLNuApp<Shape> {
@@ -8,6 +8,11 @@ export class NuApp extends TLNuApp<Shape> {
     super()
     this.registerToolShortcuts()
     this.selectTool('select')
+  }
+
+  shapes = {
+    box: NuBoxShape,
+    ellipse: NuEllipseShape,
   }
 
   tools: TLNuTool<Shape>[] = [
