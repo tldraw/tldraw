@@ -17,6 +17,7 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
 
     const { ctrlKey } = this.app.inputs
 
+    // Holding ctrlKey should ignore shapes
     if (ctrlKey) {
       this.tool.transition('pointingCanvas')
       return
@@ -27,6 +28,7 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
         if (this.app.selectedShapes.includes(info.target)) {
           this.tool.transition('pointingSelectedShape', { target: info.target })
         } else {
+          console.log('pointing shape')
           this.tool.transition('pointingShape', { target: info.target })
         }
         break

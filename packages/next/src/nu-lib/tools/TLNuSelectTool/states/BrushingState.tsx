@@ -33,9 +33,18 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
       )
       .map((shape) => shape.id)
 
-    this.app.select(
-      ...(shiftKey ? Array.from(new Set([...this.initialSelectedIds, ...hits]).values()) : hits)
-    )
+    if (shiftKey) {
+      if (hits.every((hit) => this.initialSelectedIds.includes(hit))) {
+        // Deselect hit shapes
+        this.app.select(...this.initialSelectedIds.filter((id) => !hits.includes(id)))
+      } else {
+        // Select hit shapes + initial selected shapes
+        this.app.select(...Array.from(new Set([...this.initialSelectedIds, ...hits]).values()))
+      }
+    } else {
+      // Select hit shapes
+      this.app.select(...hits)
+    }
   }
 
   onPointerUp: TLNuPointerHandler<S> = () => {
