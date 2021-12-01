@@ -15,7 +15,7 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
   S,
   B
 > {
-  readonly id = 'resizingShapes'
+  static id = 'resizingShapes'
 
   isSingle = false
   handle: TLNuBoundsCorner | TLNuBoundsEdge = TLNuBoundsCorner.BottomRight

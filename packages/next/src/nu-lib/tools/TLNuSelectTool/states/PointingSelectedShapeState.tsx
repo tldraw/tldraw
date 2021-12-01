@@ -6,7 +6,7 @@ export class PointingSelectedShapeState<
   S extends TLNuShape,
   B extends TLNuBinding
 > extends TLNuState<S, B> {
-  readonly id = 'pointingSelectedShape'
+  static id = 'pointingSelectedShape'
 
   private pointedSelectedShape?: S
 

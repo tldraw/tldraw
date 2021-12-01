@@ -2,7 +2,7 @@ import { TLNuShape, TLNuState } from '~nu-lib'
 import { TLNuBinding, TLNuPointerHandler, TLNuTargetType } from '~types'
 
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
-  readonly id = 'idle'
+  static id = 'idle'
 
   onExit = () => {
     this.app.hover(undefined)

@@ -11,12 +11,7 @@ import { deepCopy } from '~utils/DataUtils'
 
 export interface TLNuShapeClass<S extends TLNuShape> {
   new (props: any): S
-  type: string
-}
-
-export interface TLNuSerializedShape extends TLNuShapeProps {
-  type: string
-  nonce: number
+  id: string
 }
 
 export interface TLNuIndicatorProps<M = unknown> {
@@ -41,6 +36,11 @@ export interface TLNuShapeProps {
   isGenerated?: boolean
   isAspectRatioLocked?: boolean
 }
+
+export type TLNuSerializedShape<P = Record<string, any>> = TLNuShapeProps & {
+  type: string
+  nonce?: number
+} & P
 
 export interface TLNuComponentProps<M = unknown> extends TLNuIndicatorProps<M> {
   events: {
@@ -79,7 +79,6 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isLocked,
       isGenerated,
       isAspectRatioLocked,
-      ...rest
     } = props
 
     this.serializedProps = Object.keys(props).concat(['type', 'nonce'])
@@ -96,8 +95,6 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     this.isLocked = isLocked
     this.isGenerated = isGenerated
     this.isAspectRatioLocked = isAspectRatioLocked
-
-    Object.assign(this, rest)
 
     makeObservable(this)
   }
@@ -185,14 +182,14 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     if (!('nonce' in props)) this.bump()
   }
 
-  @computed get serialized(): TLNuSerializedShape {
+  get serialized(): TLNuSerializedShape<P> {
     return deepCopy(
       Object.fromEntries(
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         this.serializedProps.map((prop) => [prop, this[prop]])
       )
-    ) as TLNuSerializedShape
+    ) as TLNuSerializedShape<P>
   }
 
   nonce = 0
@@ -201,13 +198,13 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     this.nonce++
   }
 
-  get type(): string {
+  get shapeId(): string {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return this.constructor['type']
   }
 
-  set type(type: string) {
+  set shapeId(type: string) {
     // noop, but easier if this exists
   }
 }

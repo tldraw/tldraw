@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { action, makeObservable, observable } from 'mobx'
-import type { TLNuApp, TLNuShape, TLNuState } from '~nu-lib'
+import type { TLNuApp, TLNuShape, TLNuState, TLNuStateClass } from '~nu-lib'
 import type {
   TLNuBinding,
   TLNuCallbacks,
@@ -10,6 +10,15 @@ import type {
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
+
+export interface TLNuToolClass<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> {
+  new (props: any): TLNuTool<S, B>
+  id: string
+  shortcut: string
+}
 
 export interface TLNuToolComponentProps {
   isActive: boolean
@@ -23,23 +32,31 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
     makeObservable(this)
   }
 
+  static id: string
+  static shortcut?: string
+
   readonly app: TLNuApp<S, B>
-  abstract readonly id: string
-  abstract readonly shortcut?: string
-  abstract readonly label?: string
+
   abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
 
   /* --------------------- States --------------------- */
 
-  abstract readonly states: TLNuState<S, B>[]
+  readonly states = new Map<string, TLNuState<S, B>>([])
 
-  abstract currentState: TLNuState<S, B>
+  registerStates = (...stateClasses: TLNuStateClass<S, B>[]) => {
+    stateClasses.forEach((StateClass) => this.states.set(StateClass.id, new StateClass(this)))
+  }
+
+  @observable currentState: TLNuState<S, B> = {} as TLNuState<S, B>
 
   @action transition = (id: string, data: Record<string, unknown> = {}) => {
-    const nextState = this.states.find((state) => state.id === id)
+    if (this.states.size === 0) throw Error(`Tool ${this.toolId} has no states.`)
+    const nextState = this.states.get(id)
     if (!nextState) throw Error(`Could not find a state named ${id}.`)
-    const currentStateId = this.currentState.id
-    this.currentState.onExit?.({ ...data, fromId: nextState.id })
+    const currentStateId = this.currentState?.stateId || null
+    if (this.currentState) {
+      this.currentState.onExit?.({ ...data, fromId: nextState.stateId })
+    }
     this.currentState = nextState
     this.currentState.onEnter?.({ ...data, fromId: currentStateId })
   }
@@ -112,5 +129,11 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
         break
       }
     }
+  }
+
+  get toolId(): string {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return this.constructor['id']
   }
 }

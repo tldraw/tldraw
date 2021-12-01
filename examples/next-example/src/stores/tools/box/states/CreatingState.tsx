@@ -2,7 +2,7 @@ import { BoundsUtils, TLNuPointerHandler, TLNuState, uniqueId } from '@tldraw/ne
 import { NuBoxShape, Shape } from 'stores'
 
 export class IdleState extends TLNuState<Shape> {
-  readonly id = 'creating'
+  static id = 'creating'
 
   creatingShape?: Shape
 

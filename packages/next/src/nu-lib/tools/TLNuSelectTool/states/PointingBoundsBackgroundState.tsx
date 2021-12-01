@@ -6,7 +6,7 @@ export class PointingBoundsBackgroundState<
   S extends TLNuShape,
   B extends TLNuBinding
 > extends TLNuState<S, B> {
-  readonly id = 'pointingBoundsBackground'
+  static id = 'pointingBoundsBackground'
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
     this.onPointerMove(info, e)

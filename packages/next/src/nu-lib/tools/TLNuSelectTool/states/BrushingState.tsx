@@ -3,7 +3,7 @@ import { BoundsUtils } from '~utils'
 import type { TLNuBinding, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
-  readonly id = 'brushing'
+  static id = 'brushing'
 
   private initialSelectedIds: string[] = []
   private initialSelectedShapes: S[] = []

@@ -10,6 +10,14 @@ import type {
   TLNuWheelHandler,
 } from '~types'
 
+export interface TLNuStateClass<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> {
+  new (props: any): TLNuState<S, B>
+  id: string
+}
+
 export abstract class TLNuState<
   S extends TLNuShape = TLNuShape,
   B extends TLNuBinding = TLNuBinding
@@ -20,7 +28,8 @@ export abstract class TLNuState<
     this.app = tool.app
   }
 
-  abstract readonly id: string
+  static id: string
+
   readonly app: TLNuApp<S, B>
   readonly tool: TLNuTool<S, B>
 
@@ -35,4 +44,10 @@ export abstract class TLNuState<
   onPointerLeave?: TLNuPointerHandler<S>
   onKeyDown?: TLNuKeyboardHandler<S>
   onKeyUp?: TLNuKeyboardHandler<S>
+
+  get stateId(): string {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return this.constructor['id']
+  }
 }

@@ -97,15 +97,15 @@ const App = observer(function App(): JSX.Element {
               Tool Lock
               <input type="checkbox" checked={app.isToolLocked} onChange={handleToolLockClick} />
             </label>
-            {app.tools.map((tool) => {
+            {Array.from(app.tools.values()).map((tool) => {
               if (!tool.Component) {
                 return null
               }
 
               return (
                 <button
-                  key={tool.id}
-                  data-tool={tool.id}
+                  key={tool.toolId}
+                  data-tool={tool.toolId}
                   onClick={handleToolClick}
                   onDoubleClick={handleToolDoubleClick}
                 >
@@ -120,7 +120,7 @@ const App = observer(function App(): JSX.Element {
         {() => {
           return (
             <div className="tlnu-debug">
-              {app.selectedTool.id} | {app.selectedTool.currentState.id}
+              {app.selectedTool.toolId} | {app.selectedTool.currentState.stateId}
             </div>
           )
         }}

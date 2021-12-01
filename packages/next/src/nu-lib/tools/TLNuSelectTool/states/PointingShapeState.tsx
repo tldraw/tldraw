@@ -6,7 +6,7 @@ export class PointingShapeState<S extends TLNuShape, B extends TLNuBinding> exte
   S,
   B
 > {
-  readonly id = 'pointingShape'
+  static id = 'pointingShape'
 
   onEnter = (info: { target: S }) => {
     const {

@@ -6,7 +6,7 @@ export class PointingCanvasState<S extends TLNuShape, B extends TLNuBinding> ext
   S,
   B
 > {
-  readonly id = 'pointingCanvas'
+  static id = 'pointingCanvas'
 
   onEnter = () => {
     const { shiftKey } = this.app.inputs

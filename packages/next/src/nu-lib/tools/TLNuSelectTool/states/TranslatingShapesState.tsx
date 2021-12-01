@@ -7,7 +7,7 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
   S,
   B
 > {
-  readonly id = 'translatingShapes'
+  static id = 'translatingShapes'
 
   private isCloning = false
   private didClone = false
@@ -43,7 +43,7 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
     if (!this.didClone) {
       // Create the clones
       this.clones = this.app.selectedShapes.map((shape) => {
-        const ShapeClass = this.app.getShapeClass(shape.type)
+        const ShapeClass = this.app.getShapeClass(shape.shapeId)
         if (!ShapeClass) throw Error('Could not find that shape class.')
         return new ShapeClass({
           ...shape.serialized,

@@ -6,7 +6,7 @@ export class PointingRotateHandleState<
   S extends TLNuShape,
   B extends TLNuBinding
 > extends TLNuState<S, B> {
-  readonly id = 'pointingRotateHandle'
+  static id = 'pointingRotateHandle'
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
     this.onPointerMove(info, e)

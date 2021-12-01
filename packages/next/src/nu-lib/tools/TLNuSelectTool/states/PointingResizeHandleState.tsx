@@ -6,7 +6,7 @@ export class PointingResizeHandleState<
   S extends TLNuShape,
   B extends TLNuBinding
 > extends TLNuState<S, B> {
-  readonly id = 'pointingResizeHandle'
+  static id = 'pointingResizeHandle'
 
   pointedHandle?: TLNuBoundsHandle
 

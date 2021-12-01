@@ -25,7 +25,7 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
     makeObservable(this)
   }
 
-  static type = 'box'
+  static id = 'box'
 
   @observable size: number[]
 

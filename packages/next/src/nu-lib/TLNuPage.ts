@@ -8,7 +8,7 @@ export interface TLNuSerializedPage {
   name: string
   shapes: TLNuSerializedShape[]
   bindings: TLNuBinding[]
-  nonce: number
+  nonce?: number
 }
 
 export interface TLNuPageProps<S extends TLNuShape, B extends TLNuBinding> {

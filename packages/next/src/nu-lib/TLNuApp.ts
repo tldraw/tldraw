@@ -11,6 +11,7 @@ import {
   TLNuTool,
   TLNuSerializedPage,
   TLNuShapeClass,
+  TLNuToolClass,
 } from '~nu-lib'
 import type {
   TLNuBinding,
@@ -36,16 +37,16 @@ export interface TLNuSerializedApp {
 export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
   implements Partial<TLNuCallbacks<S>>
 {
-  constructor(serializedApp?: TLNuSerializedApp, shapeClasses?: TLNuShapeClass<S>[]) {
+  constructor(
+    serializedApp?: TLNuSerializedApp,
+    shapeClasses?: TLNuShapeClass<S>[],
+    toolClasses?: TLNuToolClass<S, B>[]
+  ) {
     makeObservable(this)
 
-    if (shapeClasses) {
-      shapeClasses.forEach((c) => this.registerShape(c))
-    }
-
-    if (serializedApp) {
-      this.history.deserialize(serializedApp)
-    }
+    if (shapeClasses) this.registerShapes(...shapeClasses)
+    if (toolClasses) this.registerTools(...toolClasses)
+    if (serializedApp) this.history.deserialize(serializedApp)
 
     this.notify('mount', null)
   }
@@ -59,12 +60,12 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   // Map of shape classes (used for deserialization)
   shapes = new Map<string, TLNuShapeClass<S>>()
 
-  registerShape = (shapeClass: TLNuShapeClass<S>) => {
-    this.shapes.set(shapeClass.type, shapeClass)
+  registerShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
+    shapeClasses.forEach((shapeClass) => this.shapes.set(shapeClass.id, shapeClass))
   }
 
-  deregisterShape = (shapeClass: TLNuShapeClass<S>) => {
-    this.shapes.delete(shapeClass.type)
+  deregisterShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
+    shapeClasses.forEach((shapeClass) => this.shapes.delete(shapeClass.id))
   }
 
   getShapeClass = (type: string): TLNuShapeClass<S> => {
@@ -75,25 +76,31 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   // Tools
 
-  readonly tools: TLNuTool<S, B>[] = [new TLNuSelectTool(this)]
+  readonly tools: Map<string, TLNuTool<S, B>> = new Map([['select', new TLNuSelectTool(this)]])
 
-  registerTool = (tool: TLNuTool<S, B>) => {
-    this.tools.push(tool)
+  registerTools = (...tools: TLNuToolClass<S, B>[]) => {
+    tools.forEach((Tool) => {
+      this.tools.set(Tool.id, new Tool(this))
+      if (Tool.shortcut !== undefined) {
+        KeyUtils.registerShortcut(Tool.shortcut, () => this.selectTool(Tool.id))
+      }
+    })
   }
 
-  deregisterTool = (tool: TLNuTool<S, B>) => {
-    this.tools.splice(this.tools.indexOf(tool), 1)
+  deregisterTools = (...tools: TLNuToolClass<S, B>[]) => {
+    tools.forEach((Tool) => this.tools.delete(Tool.id))
   }
 
-  @observable selectedTool: TLNuTool<S, B> = this.tools[0]
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  @observable selectedTool: TLNuTool<S, B> = this.tools.get('select')!
 
   @action readonly selectTool = (id: string, data: Record<string, unknown> = {}): this => {
-    const nextTool = this.tools.find((tool) => tool.id === id)
+    const nextTool = this.tools.get(id)
     if (!nextTool) throw Error(`Could not find a tool named ${id}.`)
-    const currentToolId = this.selectedTool.id
-    this.selectedTool.onExit?.({ ...data, toId: nextTool.id })
+    const currentToolType = this.selectedTool.toolId
+    this.selectedTool.onExit?.({ ...data, toId: nextTool.toolId })
     this.selectedTool = nextTool
-    this.selectedTool.onEnter?.({ ...data, fromId: currentToolId })
+    this.selectedTool.onEnter?.({ ...data, fromId: currentToolType })
     this.isToolLocked = false
     return this
   }
@@ -102,15 +109,6 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   @action setToolLock(value: boolean) {
     this.isToolLocked = value
-  }
-
-  protected registerToolShortcuts = (): this => {
-    this.tools.forEach((tool) => {
-      if (tool.shortcut !== undefined) {
-        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool.id))
-      }
-    })
-    return this
   }
 
   // Pages

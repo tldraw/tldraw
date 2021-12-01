@@ -27,7 +27,7 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
     makeObservable(this)
   }
 
-  static type = 'ellipse'
+  static id = 'ellipse'
 
   @observable size: number[]
 

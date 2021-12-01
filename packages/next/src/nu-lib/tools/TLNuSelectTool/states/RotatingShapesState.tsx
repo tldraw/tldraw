@@ -13,7 +13,7 @@ export class RotatingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
   S,
   B
 > {
-  readonly id = 'rotatingShapes'
+  static id = 'rotatingShapes'
 
   snapshot: Record<
     string,
@@ -52,10 +52,10 @@ export class RotatingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
   onPointerMove: TLNuPointerHandler<S> = () => {
     const {
       selectedShapes,
-      inputs: { shiftKey, originPoint, currentPoint },
+      inputs: { shiftKey, currentPoint },
     } = this.app
 
-    const { snapshot, initialCommonCenter, initialCommonBounds, initialAngle } = this
+    const { snapshot, initialCommonCenter, initialAngle } = this
 
     const currentAngle = Vec.angle(initialCommonCenter, currentPoint)
 
