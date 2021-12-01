@@ -15,7 +15,7 @@ export class IdleState extends TLNuState<Shape> {
     })
 
     this.creatingShape = shape
-    this.app.currentPage.addShape(shape)
+    this.app.currentPage.addShapes(shape)
   }
 
   onPointerMove: TLNuPointerHandler<Shape> = () => {

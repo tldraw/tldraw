@@ -38,13 +38,13 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
 
   @observable bindings: B[]
 
-  @action addShape(shape: S) {
-    this.shapes.push(shape)
+  @action addShapes(...shapes: S[]) {
+    this.shapes.push(...shapes)
     this.app.persist()
   }
 
-  @action removeShape(shape: S) {
-    this.shapes.splice(this.shapes.indexOf(shape), 1)
+  @action removeShapes(...shapes: S[]) {
+    this.shapes = this.shapes.filter((shape) => !shapes.includes(shape))
     this.app.persist()
   }
 
@@ -55,5 +55,9 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
       shapes: this.shapes.map((shape) => shape.serialize()),
       bindings: this.bindings.map((binding) => ({ ...binding })),
     }
+  }
+
+  getShapesMap() {
+    return new Map(this.shapes.map((shape) => [shape.id, shape]))
   }
 }

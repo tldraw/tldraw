@@ -45,8 +45,6 @@ export const Canvas = observer(function Canvas({
   useGestureEvents(rContainer)
   const events = useCanvasEvents()
 
-  console.log(hoveredShape)
-
   return (
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
       <HTMLLayer>
@@ -59,12 +57,12 @@ export const Canvas = observer(function Canvas({
           <Shape
             key={'shape_' + shape.id}
             shape={shape}
-            zIndex={i}
             isEditing={editingShape === shape}
             isHovered={hoveredShape === shape}
             isBinding={bindingShape === shape}
             isSelected={selectedShapes.includes(shape)}
             meta={meta}
+            zIndex={100 + i}
           />
         ))}
         {selectedShapes.map((shape) => (

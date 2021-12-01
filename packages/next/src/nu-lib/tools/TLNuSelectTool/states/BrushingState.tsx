@@ -17,6 +17,7 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
 
   onPointerMove: TLNuPointerHandler<S> = () => {
     const {
+      currentPage,
       inputs: { shiftKey, ctrlKey, originPoint, currentPoint },
     } = this.app
 
@@ -24,7 +25,7 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
 
     this.app.setBrush(brushBounds)
 
-    const hits = this.app.currentPage.shapes
+    const hits = currentPage.shapes
       .filter((shape) =>
         ctrlKey
           ? BoundsUtils.boundsContain(brushBounds, shape.bounds)

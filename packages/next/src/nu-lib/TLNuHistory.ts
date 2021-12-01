@@ -28,10 +28,12 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
   }
 
   pause = () => {
+    if (this.isPaused) return
     this.isPaused = true
   }
 
   resume = () => {
+    if (!this.isPaused) return
     this.isPaused = false
   }
 
@@ -89,27 +91,53 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
 
   deserialize = (snapshot: SerializedState) => {
     const { currentPageId, selectedIds, pages } = snapshot
+
+    // Pause the history, to prevent any loops
     this.pause()
 
     this.app.setCurrentPageId(currentPageId)
     this.app.select(...selectedIds)
 
-    pages.forEach((serializedPage) => {
-      const page = this.app.pages.find((page) => page.id === serializedPage.id)
+    const pagesMap = this.app.getPagesMap()
+    const pagesToAdd: TLNuPage<S, B>[] = []
+
+    for (const serializedPage of pages) {
+      const page = pagesMap.get(serializedPage.id)
+
       if (page !== undefined) {
-        serializedPage.shapes.forEach((serializedShape) => {
-          const shape = page.shapes.find((shape) => shape.id === serializedShape.id)
-          if (shape) {
+        // Update the page
+        const shapesMap = page.getShapesMap()
+        const shapesToAdd: S[] = []
+
+        for (const serializedShape of serializedPage.shapes) {
+          const shape = shapesMap.get(serializedShape.id)
+
+          if (shape !== undefined) {
+            // Update the shape
             shape.update(serializedShape)
+            shapesMap.delete(serializedShape.id)
           } else {
+            // Create the shape
             const ShapeClass = this.app.shapes[serializedShape.type]
-            page.addShape(new ShapeClass(serializedShape) as S)
+            shapesToAdd.push(new ShapeClass(serializedShape) as S)
           }
-        })
+        }
+
+        if (shapesMap.size > 0) {
+          // Any shapes remaining in the shapes map need to be removed
+          page.removeShapes(...shapesMap.values())
+        }
+
+        // Add any new shapes
+        page.addShapes(...shapesToAdd)
+
+        // Remove the page from the map
+        pagesMap.delete(serializedPage.id)
       } else {
+        // Create the page
         const { id, name, shapes, bindings } = serializedPage
 
-        this.app.addPage(
+        pagesToAdd.push(
           new TLNuPage<S, B>(this.app, {
             id,
             name,
@@ -121,8 +149,17 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
           })
         )
       }
-    })
+    }
 
+    if (pagesMap.size > 0) {
+      // Any pages remaining in the pages map need to be removed
+      this.app.removePages(...pagesMap.values())
+    }
+
+    // Add any new pages
+    this.app.addPages(...pagesToAdd)
+
+    // Resume the history
     this.resume()
   }
 }

@@ -42,6 +42,7 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
     new ResizingShapesState(this),
     new PointingRotateHandleState(this),
     new RotatingShapesState(this),
+    new RotatingShapesState(this),
   ]
 
   @observable currentState = this.states[0]

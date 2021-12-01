@@ -1,5 +1,5 @@
 import { TLNuShape, TLNuState } from '~nu-lib'
-import { TLNuBinding, TLNuBoundsCorner, TLNuPointerHandler, TLNuTargetType } from '~types'
+import { TLNuBinding, TLNuPointerHandler, TLNuTargetType } from '~types'
 
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
   readonly id = 'idle'
@@ -8,24 +8,32 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
     if (info.order > 0) return
 
     if (info.type === TLNuTargetType.Shape) {
-      this.app.hoverShape(info.target)
+      this.app.hover(info.target.id)
     }
   }
 
   onPointerDown: TLNuPointerHandler<S> = (info) => {
     if (info.order > 0) return
 
+    const { ctrlKey } = this.app.inputs
+
+    if (ctrlKey) {
+      this.tool.transition('pointingCanvas')
+      return
+    }
+
     switch (info.type) {
       case TLNuTargetType.Shape: {
         if (this.app.selectedShapes.includes(info.target)) {
-          this.tool.transition('pointingSelectedShape', info.target)
+          this.tool.transition('pointingSelectedShape', { target: info.target })
         } else {
-          this.tool.transition('pointingShape', info.target)
+          this.tool.transition('pointingShape', { target: info.target })
         }
         break
       }
       case TLNuTargetType.Bounds: {
         switch (info.target) {
+          case 'center':
           case 'background': {
             this.tool.transition('pointingBoundsBackground')
             break
@@ -35,7 +43,7 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
             break
           }
           default: {
-            this.tool.transition('pointingResizeHandle', info.target)
+            this.tool.transition('pointingResizeHandle', { target: info.target })
           }
         }
         break
@@ -52,7 +60,7 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
 
     if (info.type === TLNuTargetType.Shape) {
       if (this.app.hoveredId) {
-        this.app.clearHoveredShape()
+        this.app.hover(undefined)
       }
     }
   }

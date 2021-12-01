@@ -4,6 +4,8 @@ import type {
   TLNuBinding,
   TLNuCallbacks,
   TLNuKeyboardHandler,
+  TLNuOnEnter,
+  TLNuOnExit,
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
@@ -22,8 +24,8 @@ export abstract class TLNuState<
   readonly app: TLNuApp<S, B>
   readonly tool: TLNuTool<S, B>
 
-  onEnter?: (data: any) => void
-  onExit?: (data: any) => void
+  onEnter?: TLNuOnEnter<any>
+  onExit?: TLNuOnExit<any>
 
   onPan?: TLNuWheelHandler<S>
   onPointerDown?: TLNuPointerHandler<S>

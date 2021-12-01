@@ -10,8 +10,8 @@ export class PointingSelectedShapeState<
 
   private pointedSelectedShape?: S
 
-  onEnter = (pointedShape: S) => {
-    this.pointedSelectedShape = pointedShape
+  onEnter = (info: { target: S }) => {
+    this.pointedSelectedShape = info.target
   }
 
   onExit = () => (this.pointedSelectedShape = undefined)

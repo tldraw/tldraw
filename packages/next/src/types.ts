@@ -135,3 +135,6 @@ export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
   boundsBackground: TLNuBoundsComponent<S>
   boundsForeground: TLNuBoundsComponent<S>
 }
+
+export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
+export type TLNuOnExit<T extends { toId: string }> = (info: T) => void

@@ -10,8 +10,8 @@ export class PointingResizeHandleState<
 
   pointedHandle?: TLNuBoundsHandle
 
-  onEnter = (handle: TLNuBoundsHandle) => {
-    this.pointedHandle = handle
+  onEnter = (info: { target: TLNuBoundsHandle }) => {
+    this.pointedHandle = info.target
   }
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
@@ -21,7 +21,7 @@ export class PointingResizeHandleState<
   onPointerMove: TLNuPointerHandler<S> = () => {
     const { currentPoint, originPoint } = this.app.inputs
     if (Vec.dist(currentPoint, originPoint) > 5) {
-      this.tool.transition('resizingShapes', this.pointedHandle)
+      this.tool.transition('resizingShapes', { handle: this.pointedHandle })
     }
   }
 

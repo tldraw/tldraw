@@ -62,7 +62,7 @@ export class NuEllipseTool extends TLNuTool<Shape, TLNuBinding, Status> {
           })
 
           this.creatingShape = shape
-          this.app.currentPage.addShape(shape)
+          this.app.currentPage.addShapes(shape)
           this.setStatus(Status.Creating)
         }
         break
@@ -105,7 +105,7 @@ export class NuEllipseTool extends TLNuTool<Shape, TLNuBinding, Status> {
         break
       }
       case 'Escape': {
-        this.app.currentPage.removeShape(this.creatingShape!)
+        this.app.currentPage.removeShapes(this.creatingShape!)
         this.setStatus(Status.Idle)
         break
       }

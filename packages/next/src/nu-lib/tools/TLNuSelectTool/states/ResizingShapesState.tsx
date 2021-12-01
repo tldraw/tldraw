@@ -34,8 +34,8 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
   transformOrigins: Record<string, number[]> = {}
   boundsRotation = 0
 
-  onEnter = (handle: TLNuBoundsCorner | TLNuBoundsEdge) => {
-    this.handle = handle
+  onEnter = (info: { handle: TLNuBoundsCorner | TLNuBoundsEdge }) => {
+    this.handle = info.handle
     const { selectedShapes, selectedBounds } = this.app
 
     if (!selectedBounds) throw Error('Expected a selected bounds.')

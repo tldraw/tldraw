@@ -24,8 +24,6 @@ export const Indicator = observer(function Shape<S extends TLNuShape = TLNuShape
 }: IndicatorProps<S, M>) {
   const { bounds, rotation = 0, Indicator } = shape
 
-  console.log(bounds)
-
   return (
     <Container bounds={bounds} rotation={rotation} zIndex={10000}>
       <SVGContainer>

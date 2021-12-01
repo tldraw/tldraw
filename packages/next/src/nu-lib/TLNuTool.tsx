@@ -5,6 +5,8 @@ import type {
   TLNuBinding,
   TLNuCallbacks,
   TLNuKeyboardHandler,
+  TLNuOnEnter,
+  TLNuOnExit,
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
@@ -33,20 +35,19 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
 
   abstract currentState: TLNuState<S, B>
 
-  @action transition = (id: string, data?: any) => {
-    const state = this.states.find((state) => state.id === id)
-    if (!state) {
-      throw Error(`Could not find a state named ${id}.`)
-    }
-    this.currentState.onExit?.(data)
-    this.currentState = state
-    this.currentState.onEnter?.(data)
+  @action transition = (id: string, data: Record<string, unknown> = {}) => {
+    const nextState = this.states.find((state) => state.id === id)
+    if (!nextState) throw Error(`Could not find a state named ${id}.`)
+    const currentStateId = this.currentState.id
+    this.currentState.onExit?.({ ...data, fromId: nextState.id })
+    this.currentState = nextState
+    this.currentState.onEnter?.({ ...data, fromId: currentStateId })
   }
 
   /* ------------------- Own Events ------------------- */
 
-  onEnter?: (data?: any) => void
-  onExit?: (data?: any) => void
+  onEnter?: TLNuOnEnter<any>
+  onExit?: TLNuOnExit<any>
 
   onPan?: TLNuWheelHandler<S>
   onPointerDown?: TLNuPointerHandler<S>

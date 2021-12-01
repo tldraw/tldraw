@@ -8,8 +8,8 @@ export class PointingShapeState<S extends TLNuShape, B extends TLNuBinding> exte
 > {
   readonly id = 'pointingShape'
 
-  onEnter = (pointedShape: S) => {
-    this.app.select(pointedShape.id)
+  onEnter = (info: { target: S }) => {
+    this.app.select(info.target.id)
   }
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
