@@ -560,7 +560,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         keepShapes[editingId] = this.getShape(editingId)
       }
 
-      const next = {
+      const next: TDSnapshot = {
         ...current,
         document: {
           ...current.document,
