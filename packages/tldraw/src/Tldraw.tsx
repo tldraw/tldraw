@@ -357,14 +357,16 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const page = document.pages[appState.currentPageId]
   const pageState = document.pageStates[page.id]
-  const { selectedIds } = state.document.pageStates[page.id]
+  const { selectedIds } = pageState
 
   const isHideBoundsShape =
-    pageState.selectedIds.length === 1 &&
+    selectedIds.length === 1 &&
+    page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideBounds
 
   const isHideResizeHandlesShape =
     selectedIds.length === 1 &&
+    page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideResizeHandles
 
   const isInSession = app.session !== undefined
