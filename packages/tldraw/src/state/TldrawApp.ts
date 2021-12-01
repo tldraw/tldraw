@@ -549,7 +549,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
       const keepShapes: Record<string, TDShape> = {}
-      const keepBindings: Record<string, TDShape> = {}
+      const keepBindings: Record<string, TDBinding> = {}
 
       if (this.session) {
         selectedIds.forEach((id) => (keepShapes[id] = this.getShape(id)))
