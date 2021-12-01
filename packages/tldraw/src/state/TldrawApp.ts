@@ -553,7 +553,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       if (this.session) {
         selectedIds.forEach((id) => (keepShapes[id] = this.getShape(id)))
-        // Bindings too!
+        Object.assign(keepBindings, this.bindings) // ROUGH
       }
 
       if (editingId) {
