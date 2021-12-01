@@ -2665,7 +2665,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ? info.delta[2] / 100
         : info.delta[2] / 2
 
-    this.zoomBy(delta, info.delta)
+    this.zoomBy(delta, this.centerPoint)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
