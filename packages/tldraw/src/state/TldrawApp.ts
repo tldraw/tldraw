@@ -548,6 +548,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.useStore.setState((current) => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
+      const keepShapes: Record<string, TDShape> = {}
+      const keepBindings: Record<string, TDShape> = {}
+
+      if (this.session) {
+        selectedIds.forEach((id) => (keepShapes[id] = this.getShape(id)))
+        // Bindings too!
+      }
+
+      if (editingId) {
+        keepShapes[editingId] = this.getShape(editingId)
+      }
+
       const next = {
         ...current,
         document: {
@@ -555,8 +567,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           pages: {
             [pageId]: {
               ...current.document.pages[pageId],
-              shapes,
-              bindings,
+              shapes: {
+                ...shapes,
+                ...keepShapes,
+              },
+              bindings: {
+                ...bindings,
+                ...keepBindings,
+              },
             },
           },
           pageStates: {
@@ -569,11 +587,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                   ? undefined
                   : hoveredId
                 : undefined,
-              editingId: editingId
-                ? shapes[editingId] === undefined
-                  ? undefined
-                  : hoveredId
-                : undefined,
+              editingId: editingId,
               bindingId: bindingId
                 ? bindings[bindingId] === undefined
                   ? undefined

@@ -121,7 +121,7 @@ export function useMultiplayerState(roomId: string) {
           migrated?: boolean
         }>
 
-        // No doc? No problem. This was likely
+        // No doc? No problem. This was likely a newer document
         if (doc) {
           const {
             document: {
