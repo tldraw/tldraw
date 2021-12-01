@@ -161,7 +161,10 @@ export class EraseSession extends BaseSession {
                 ...after.shapes[shape.id],
                 handles: {
                   ...after.shapes[shape.id]?.handles,
-                  [handle.id]: undefined,
+                  [handle.id]: {
+                    ...handle,
+                    bindingId: undefined,
+                  },
                 },
               }
             }
