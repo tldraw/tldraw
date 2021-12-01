@@ -522,7 +522,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
-    Object.keys(this.prevShapes)
+    Object.keys(this.prevBindings)
       .filter((id) => !visited.has(id))
       .forEach((id) => {
         changedBindings[id] = undefined
