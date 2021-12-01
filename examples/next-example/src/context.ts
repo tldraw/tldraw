@@ -1,14 +1,18 @@
+import { TLNuApp } from '@tldraw/next'
 import * as React from 'react'
-import { NuApp, NuBoxShape, NuEllipseShape } from 'stores'
+import { NuApp, NuBoxShape, NuEllipseShape, Shape } from 'stores'
 
-type NuAppContext = NuApp
+type NuAppContext = TLNuApp<Shape>
 
 export const appContext = React.createContext({} as NuAppContext)
 
 export function useCreateAppContext() {
-  const [app, setApp] = React.useState<NuAppContext>(new NuApp())
+  const [app, setApp] = React.useState<NuAppContext>(new TLNuApp())
 
   React.useEffect(() => {
+    app.registerShape(NuBoxShape)
+    app.registerShape(NuEllipseShape)
+
     app.currentPage.addShapes(
       new NuBoxShape({
         id: 'box1',

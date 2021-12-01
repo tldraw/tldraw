@@ -10,6 +10,7 @@ import {
   TLNuShape,
   TLNuTool,
   TLNuSerializedPage,
+  TLNuShapeClass,
 } from '~nu-lib'
 import type {
   TLNuBinding,
@@ -32,24 +33,57 @@ export interface TLNuSerializedApp {
   pages: TLNuSerializedPage[]
 }
 
-export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
+export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
   implements Partial<TLNuCallbacks<S>>
 {
-  constructor() {
+  constructor(serializedApp?: TLNuSerializedApp, shapeClasses?: TLNuShapeClass<S>[]) {
     makeObservable(this)
+
+    if (shapeClasses) {
+      shapeClasses.forEach((c) => this.registerShape(c))
+    }
+
+    if (serializedApp) {
+      this.history.deserialize(serializedApp)
+    }
+
     this.notify('mount', null)
   }
-
-  // Map of shape classes (used for deserialization)
-  shapes: Record<string, { new (props: any): S }> = {}
 
   @observable inputs = new TLNuInputs()
 
   @observable viewport = new TLNuViewport()
 
+  // Shapes
+
+  // Map of shape classes (used for deserialization)
+  shapes = new Map<string, TLNuShapeClass<S>>()
+
+  registerShape = (shapeClass: TLNuShapeClass<S>) => {
+    this.shapes.set(shapeClass.type, shapeClass)
+  }
+
+  deregisterShape = (shapeClass: TLNuShapeClass<S>) => {
+    this.shapes.delete(shapeClass.type)
+  }
+
+  getShapeClass = (type: string): TLNuShapeClass<S> => {
+    const shapeClass = this.shapes.get(type)
+    if (!shapeClass) throw Error(`Could not find shape class for ${type}`)
+    return shapeClass
+  }
+
   // Tools
 
   readonly tools: TLNuTool<S, B>[] = [new TLNuSelectTool(this)]
+
+  registerTool = (tool: TLNuTool<S, B>) => {
+    this.tools.push(tool)
+  }
+
+  deregisterTool = (tool: TLNuTool<S, B>) => {
+    this.tools.splice(this.tools.indexOf(tool), 1)
+  }
 
   @observable selectedTool: TLNuTool<S, B> = this.tools[0]
 

@@ -20,16 +20,16 @@ export interface NuEllipseShapeProps extends TLNuShapeProps {
 }
 
 export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
-  readonly type = 'ellipse'
-
-  @observable size: number[]
-
   constructor(props = {} as NuEllipseShapeProps) {
     super(props)
     const { size = [100, 100] } = props
     this.size = size
     makeObservable(this)
   }
+
+  static type = 'ellipse'
+
+  @observable size: number[]
 
   Component = observer(({ events }: TLNuComponentProps) => {
     return (

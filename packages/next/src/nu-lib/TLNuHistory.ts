@@ -103,7 +103,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
             shapesMap.delete(serializedShape.id)
           } else {
             // Create the shape
-            const ShapeClass = this.app.shapes[serializedShape.type]
+            const ShapeClass = this.app.getShapeClass(serializedShape.type)
             shapesToAdd.push(new ShapeClass(serializedShape) as S)
           }
         }
@@ -128,7 +128,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
             name,
             bindings: bindings as B[],
             shapes: shapes.map((serializedShape) => {
-              const ShapeClass = this.app.shapes[serializedShape.type]
+              const ShapeClass = this.app.getShapeClass(serializedShape.type)
               return new ShapeClass(serializedShape)
             }) as S[],
           })

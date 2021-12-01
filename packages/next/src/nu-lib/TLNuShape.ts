@@ -9,6 +9,11 @@ import type { TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~
 import { BoundsUtils, PointUtils } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
+export interface TLNuShapeClass<S extends TLNuShape> {
+  new (props: any): S
+  type: string
+}
+
 export interface TLNuSerializedShape extends TLNuShapeProps {
   type: string
   nonce: number
@@ -74,6 +79,7 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isLocked,
       isGenerated,
       isAspectRatioLocked,
+      ...rest
     } = props
 
     this.serializedProps = Object.keys(props).concat(['type', 'nonce'])
@@ -91,10 +97,12 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     this.isGenerated = isGenerated
     this.isAspectRatioLocked = isAspectRatioLocked
 
+    Object.assign(this, rest)
+
     makeObservable(this)
   }
 
-  abstract readonly type: string
+  static type: string
 
   readonly showCloneHandles = false
   readonly hideBounds = false
@@ -191,5 +199,15 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
 
   private bump() {
     this.nonce++
+  }
+
+  get type(): string {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return this.constructor['type']
+  }
+
+  set type(type: string) {
+    // noop, but easier if this exists
   }
 }

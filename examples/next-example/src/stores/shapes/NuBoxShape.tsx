@@ -18,16 +18,16 @@ export interface NuBoxShapeProps extends TLNuShapeProps {
 }
 
 export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
-  readonly type = 'box'
-
-  @observable size: number[]
-
   constructor(props = {} as NuBoxShapeProps) {
     super(props)
     const { size = [100, 100] } = props
     this.size = size
     makeObservable(this)
   }
+
+  static type = 'box'
+
+  @observable size: number[]
 
   Component = observer(({ events }: TLNuComponentProps) => {
     return (
