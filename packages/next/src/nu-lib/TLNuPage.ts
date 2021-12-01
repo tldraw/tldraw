@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { action, observable, makeObservable } from 'mobx'
+import { action, observable, makeObservable, computed } from 'mobx'
 import type { TLNuBinding } from '~types'
-import type { TLNuApp, TLNuShape, TLNuShapeProps } from '~nu-lib'
+import type { TLNuSerializedShape, TLNuApp, TLNuShape } from '~nu-lib'
 
-interface SerializedPage {
+export interface TLNuSerializedPage {
   id: string
   name: string
-  shapes: (TLNuShapeProps & { type: string })[]
+  shapes: TLNuSerializedShape[]
   bindings: TLNuBinding[]
+  nonce: number
 }
 
 export interface TLNuPageProps<S extends TLNuShape, B extends TLNuBinding> {
@@ -18,8 +19,6 @@ export interface TLNuPageProps<S extends TLNuShape, B extends TLNuBinding> {
 }
 
 export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
-  app: TLNuApp<S, B>
-
   constructor(app: TLNuApp<S, B>, props = {} as TLNuPageProps<S, B>) {
     const { id, name, shapes = [], bindings = [] } = props
     this.id = id
@@ -29,6 +28,8 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
     this.app = app
     makeObservable(this)
   }
+
+  app: TLNuApp<S, B>
 
   @observable id: string
 
@@ -40,24 +41,34 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
 
   @action addShapes(...shapes: S[]) {
     this.shapes.push(...shapes)
+    this.bump()
     this.app.persist()
   }
 
-  @action removeShapes(...shapes: S[]) {
-    this.shapes = this.shapes.filter((shape) => !shapes.includes(shape))
+  @action removeShapes(...shapes: S[] | string[]) {
+    if (typeof shapes[0] === 'string') {
+      this.shapes = this.shapes.filter((shape) => !(shapes as string[]).includes(shape.id))
+    } else {
+      this.shapes = this.shapes.filter((shape) => !(shapes as S[]).includes(shape))
+    }
+    this.bump()
     this.app.persist()
   }
 
-  serialize(): SerializedPage {
+  // TODO: How to avoid making deep copies when shapes have not changed?
+  @computed get serialized(): TLNuSerializedPage {
     return {
       id: this.id,
       name: this.name,
-      shapes: this.shapes.map((shape) => shape.serialize()),
+      shapes: this.shapes.map((shape) => shape.serialized),
       bindings: this.bindings.map((binding) => ({ ...binding })),
+      nonce: this.nonce,
     }
   }
 
-  getShapesMap() {
-    return new Map(this.shapes.map((shape) => [shape.id, shape]))
+  nonce = 0
+
+  private bump = () => {
+    this.nonce++
   }
 }

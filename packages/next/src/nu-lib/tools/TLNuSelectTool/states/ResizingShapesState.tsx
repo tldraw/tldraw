@@ -1,5 +1,5 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuShape, TLNuShapeProps, TLNuState } from '~nu-lib'
+import { TLNuSerializedShape, TLNuShape, TLNuState } from '~nu-lib'
 import {
   TLNuBinding,
   TLNuBounds,
@@ -22,7 +22,7 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
   snapshots: Record<
     string,
     {
-      props: TLNuShapeProps
+      props: TLNuSerializedShape
       bounds: TLNuBounds
       transformOrigin: number[]
     }
@@ -61,7 +61,7 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
           shape.id,
           {
             bounds,
-            props: shape.serialize() as TLNuShapeProps,
+            props: shape.serialized,
             transformOrigin: [ix, iy],
           },
         ]

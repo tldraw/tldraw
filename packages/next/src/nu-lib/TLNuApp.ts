@@ -2,24 +2,34 @@
 import { Vec } from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
 import { BoundsUtils, KeyUtils } from '~utils'
-import { TLNuSelectTool, TLNuInputs, TLNuPage, TLNuViewport, TLNuShape, TLNuTool } from '~nu-lib'
+import {
+  TLNuSelectTool,
+  TLNuInputs,
+  TLNuPage,
+  TLNuViewport,
+  TLNuShape,
+  TLNuTool,
+  TLNuSerializedPage,
+} from '~nu-lib'
 import type {
   TLNuBinding,
   TLNuBounds,
   TLNuCallbacks,
   TLNuKeyboardHandler,
   TLNuPointerHandler,
+  TLNuSubscription,
   TLNuWheelHandler,
+  TLNuSubscriptionEventInfo,
+  TLNuSubscriptionEventName,
+  TLNuSubscriptionCallback,
+  TLSubscribe,
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 
-export enum TLNuStatus {
-  Idle = 'idle',
-  PointingCanvas = 'pointingCanvas',
-  Brushing = 'brushing',
-  PointingShape = 'pointingShape',
-  TranslatingShapes = 'translatingShapes',
-  PointingBounds = 'pointingBounds',
+export interface TLNuSerializedApp {
+  currentPageId: string
+  selectedIds: string[]
+  pages: TLNuSerializedPage[]
 }
 
 export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
@@ -27,6 +37,7 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 {
   constructor() {
     makeObservable(this)
+    this.notify('mount', null)
   }
 
   // Map of shape classes (used for deserialization)
@@ -35,8 +46,6 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   @observable inputs = new TLNuInputs()
 
   @observable viewport = new TLNuViewport()
-
-  history = new TLNuHistory<S, B>(this)
 
   // Tools
 
@@ -51,7 +60,14 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
     this.selectedTool.onExit?.({ ...data, toId: nextTool.id })
     this.selectedTool = nextTool
     this.selectedTool.onEnter?.({ ...data, fromId: currentToolId })
+    this.isToolLocked = false
     return this
+  }
+
+  @observable isToolLocked = false
+
+  @action setToolLock(value: boolean) {
+    this.isToolLocked = value
   }
 
   protected registerToolShortcuts = (): this => {
@@ -79,10 +95,6 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
     this.persist()
   }
 
-  getPagesMap() {
-    return new Map(this.pages.map((page) => [page.id, page]))
-  }
-
   // Current Page
 
   @observable currentPageId = 'page'
@@ -102,12 +114,8 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
   @observable hoveredId?: string
 
   @computed get hoveredShape(): S | undefined {
-    const { hoveredId, currentPage, selectedTool } = this
-    if (!(hoveredId && selectedTool.id === 'select' && selectedTool.currentState.id === 'idle')) {
-      return
-    }
-
-    return currentPage.shapes.find((shape) => shape.id === hoveredId)
+    const { hoveredId, currentPage } = this
+    return hoveredId ? currentPage.shapes.find((shape) => shape.id === hoveredId) : undefined
   }
 
   @action readonly hover = (id: string | undefined): this => {
@@ -129,8 +137,17 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
       : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
   }
 
-  @action readonly select = (...ids: string[]): this => {
-    this.selectedIds = ids
+  @action readonly select = (...shapes: S[] | string[]): this => {
+    if (shapes[0] && typeof shapes[0] === 'string') {
+      this.selectedIds = shapes as string[]
+    } else {
+      this.selectedIds = (shapes as S[]).map((shape) => shape.id)
+    }
+    return this
+  }
+
+  @action readonly deselect = (...ids: string[]): this => {
+    this.selectedIds = this.selectedIds.filter((id) => !ids.includes(id))
     return this
   }
 
@@ -141,6 +158,11 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   @action readonly selectAll = (): this => {
     this.selectedIds = this.currentPage.shapes.map((shape) => shape.id)
+    return this
+  }
+
+  @action readonly delete = (...shapes: S[] | string[]): this => {
+    this.currentPage.removeShapes(...shapes)
     return this
   }
 
@@ -186,6 +208,8 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   // History
 
+  history = new TLNuHistory<S, B>(this)
+
   persist = this.history.persist
 
   undo = this.history.undo
@@ -194,8 +218,42 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   /* --------------------- Events --------------------- */
 
+  private subscriptions = new Set<TLNuSubscription<TLNuSubscriptionEventName, S, B>>([])
+
+  readonly unsubscribe = (subscription: TLNuSubscription<TLNuSubscriptionEventName, S, B>) => {
+    this.subscriptions.delete(subscription)
+    return this
+  }
+
+  subscribe: TLSubscribe = <E extends TLNuSubscriptionEventName>(
+    event: E,
+    callback?: TLNuSubscriptionCallback<E, S, B>
+  ) => {
+    if (typeof event === 'object') {
+      this.subscriptions.add(event)
+      return () => this.unsubscribe(event)
+    } else {
+      if (callback === undefined) throw Error('Callback is required.')
+      const subscription = { event, callback }
+      this.subscriptions.add(subscription)
+      return () => this.unsubscribe(subscription)
+    }
+  }
+
+  notify = <E extends TLNuSubscriptionEventName>(event: E, info: TLNuSubscriptionEventInfo<E>) => {
+    this.subscriptions.forEach((subscription) => {
+      if (subscription.event === event) {
+        subscription.callback(this, info)
+      }
+    })
+    return this
+  }
+
+  /* ----------------- Event Handlers ----------------- */
+
   readonly onPan: TLNuWheelHandler<S> = (info, e) => {
     this.selectedTool._onPan?.(info, e)
+    this.notify('persist', null)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
@@ -224,5 +282,13 @@ export abstract class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBin
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
     this.selectedTool._onKeyUp?.(info, e)
+  }
+
+  @computed get serialized(): TLNuSerializedApp {
+    return {
+      currentPageId: this.currentPageId,
+      selectedIds: this.selectedIds,
+      pages: this.pages.map((page) => page.serialized),
+    }
   }
 }

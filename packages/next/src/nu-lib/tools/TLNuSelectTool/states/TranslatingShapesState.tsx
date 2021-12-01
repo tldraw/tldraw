@@ -45,7 +45,7 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
       this.clones = this.app.selectedShapes.map((shape) => {
         const ShapeClass = this.app.shapes[shape.type]
         return new ShapeClass({
-          ...shape.serialize(),
+          ...shape.serialized,
           point: this.initialPoints[shape.id],
           id: uniqueId(),
         })

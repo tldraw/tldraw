@@ -30,6 +30,8 @@ export class IdleState extends TLNuState<Shape> {
 
   onPointerUp: TLNuPointerHandler<Shape> = () => {
     this.tool.transition('idle')
-    this.app.selectTool('select')
+    if (!this.app.isToolLocked) {
+      this.app.selectTool('select')
+    }
   }
 }

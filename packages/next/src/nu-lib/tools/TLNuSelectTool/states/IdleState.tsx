@@ -4,6 +4,10 @@ import { TLNuBinding, TLNuPointerHandler, TLNuTargetType } from '~types'
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
   readonly id = 'idle'
 
+  onExit = () => {
+    this.app.hover(undefined)
+  }
+
   onPointerEnter: TLNuPointerHandler<S> = (info) => {
     if (info.order > 0) return
 
@@ -15,7 +19,10 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
   onPointerDown: TLNuPointerHandler<S> = (info) => {
     if (info.order > 0) return
 
-    const { ctrlKey } = this.app.inputs
+    const {
+      selectedShapes,
+      inputs: { ctrlKey },
+    } = this.app
 
     // Holding ctrlKey should ignore shapes
     if (ctrlKey) {
@@ -25,10 +32,9 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
 
     switch (info.type) {
       case TLNuTargetType.Shape: {
-        if (this.app.selectedShapes.includes(info.target)) {
+        if (selectedShapes.includes(info.target)) {
           this.tool.transition('pointingSelectedShape', { target: info.target })
         } else {
-          console.log('pointing shape')
           this.tool.transition('pointingShape', { target: info.target })
         }
         break

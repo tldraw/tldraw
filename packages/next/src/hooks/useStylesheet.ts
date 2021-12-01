@@ -192,8 +192,6 @@ const tlcss = css`
 
   .nu-positioned {
     position: absolute;
-    top: 0px;
-    left: 0px;
     transform-origin: center center;
     pointer-events: none;
     display: flex;

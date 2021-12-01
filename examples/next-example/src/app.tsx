@@ -1,47 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { Renderer } from '@tldraw/next'
+import { Renderer, TLNuBinding, TLNuSubscriptionCallback } from '@tldraw/next'
 import { observer, Observer } from 'mobx-react-lite'
-import { NuBoxShape } from 'stores/shapes/NuBoxShape'
-import { NuApp } from 'stores/NuApp'
-import { NuEllipseShape } from 'stores'
+import { appContext, useAppContext, useCreateAppContext } from 'context'
+import type { Shape } from 'stores'
 
-const app = new NuApp()
+interface AppProps {
+  onMount?: TLNuSubscriptionCallback<'mount', Shape, TLNuBinding>
+  onPersist?: TLNuSubscriptionCallback<'persist', Shape, TLNuBinding>
+}
 
-app.currentPage.shapes = [
-  new NuBoxShape({
-    id: 'box1',
-    parentId: 'page',
-    point: [100, 100],
-    size: [100, 100],
-  }),
-  new NuBoxShape({
-    id: 'box2',
-    parentId: 'page',
-    point: [150, 150],
-    size: [100, 100],
-  }),
-  new NuEllipseShape({
-    id: 'ellipse1',
-    parentId: 'page',
-    point: [300, 150],
-    size: [100, 100],
-  }),
-]
+export default function AppProvider({ onMount, onPersist }: AppProps) {
+  const app = useCreateAppContext()
 
-app.select('box1', 'box2')
+  React.useLayoutEffect(() => {
+    if (app) {
+      if (onMount) app.subscribe('mount', onMount)
+      if (onPersist) app.subscribe('persist', onPersist)
+    }
+  }, [])
 
-app.history.reset()
+  return (
+    <appContext.Provider value={app}>
+      <App />
+    </appContext.Provider>
+  )
+}
 
-export default observer(function App(): JSX.Element {
+const App = observer(function App(): JSX.Element {
+  const app = useAppContext()
+
   const {
-    currentPage: { bindings },
+    currentPage: { shapes, bindings },
+    shapesInViewport,
     viewport,
     inputs,
     hoveredShape,
     selectedShapes,
     selectedBounds,
-    shapesInViewport,
     brush,
     onPan,
     onPointerDown,
@@ -53,10 +49,31 @@ export default observer(function App(): JSX.Element {
     onKeyUp,
   } = app
 
+  const handleToolClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const tool = e.currentTarget.dataset.tool
+      if (tool) app.selectTool(tool)
+    },
+    [app]
+  )
+
+  const handleToolDoubleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      const tool = e.currentTarget.dataset.tool
+      if (tool) app.selectTool(tool)
+      app.setToolLock(true)
+    },
+    [app]
+  )
+
+  const handleToolLockClick = React.useCallback(() => {
+    app.setToolLock(!app.isToolLocked)
+  }, [])
+
   return (
     <div className="tlnu-app">
       <Renderer
-        shapes={shapesInViewport}
+        shapes={shapes.length > 150 ? shapesInViewport : shapes}
         bindings={bindings}
         viewport={viewport}
         inputs={inputs}
@@ -76,13 +93,22 @@ export default observer(function App(): JSX.Element {
       <Observer>
         {() => (
           <div className="tlnu-toolbar">
+            <label>
+              Tool Lock
+              <input type="checkbox" checked={app.isToolLocked} onChange={handleToolLockClick} />
+            </label>
             {app.tools.map((tool) => {
               if (!tool.Component) {
                 return null
               }
 
               return (
-                <button key={tool.id} onClick={() => app.selectTool(tool.id)}>
+                <button
+                  key={tool.id}
+                  data-tool={tool.id}
+                  onClick={handleToolClick}
+                  onDoubleClick={handleToolDoubleClick}
+                >
                   <tool.Component isActive={app.selectedTool === tool} />
                 </button>
               )

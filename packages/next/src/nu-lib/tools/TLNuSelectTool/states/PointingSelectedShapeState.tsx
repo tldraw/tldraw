@@ -28,8 +28,15 @@ export class PointingSelectedShapeState<
   }
 
   onPointerUp: TLNuPointerHandler<S> = () => {
+    const { pointedSelectedShape } = this
+    const { shiftKey } = this.app.inputs
+
     if (!this.pointedSelectedShape) throw Error('Expected a pointed selected shape')
-    this.app.select(this.pointedSelectedShape.id)
+    if (shiftKey) {
+      this.app.deselect(this.pointedSelectedShape.id)
+    } else {
+      this.app.select(this.pointedSelectedShape.id)
+    }
     this.tool.transition('idle')
   }
 }

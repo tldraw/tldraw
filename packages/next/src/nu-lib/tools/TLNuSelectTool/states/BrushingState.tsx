@@ -1,4 +1,4 @@
-import { TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuBush, TLNuShape, TLNuState } from '~nu-lib'
 import { BoundsUtils } from '~utils'
 import type { TLNuBinding, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
@@ -6,10 +6,21 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
   readonly id = 'brushing'
 
   private initialSelectedIds: string[] = []
+  private initialSelectedShapes: S[] = []
 
-  onEnter = () => (this.initialSelectedIds = [...this.app.selectedIds])
+  private tree: TLNuBush<S, B> = new TLNuBush()
 
-  onExit = () => (this.initialSelectedIds = [])
+  onEnter = () => {
+    const { selectedShapes, currentPage, selectedIds } = this.app
+    this.initialSelectedIds = [...selectedIds]
+    this.initialSelectedShapes = [...selectedShapes]
+    this.tree.load(currentPage.shapes)
+  }
+
+  onExit = () => {
+    this.initialSelectedIds = []
+    this.tree.clear()
+  }
 
   onPan: TLNuWheelHandler<S> = (info, e) => {
     this.onPointerMove(info, e)
@@ -17,7 +28,6 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
 
   onPointerMove: TLNuPointerHandler<S> = () => {
     const {
-      currentPage,
       inputs: { shiftKey, ctrlKey, originPoint, currentPoint },
     } = this.app
 
@@ -25,21 +35,21 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
 
     this.app.setBrush(brushBounds)
 
-    const hits = currentPage.shapes
+    const hits = this.tree
+      .search(brushBounds)
       .filter((shape) =>
         ctrlKey
           ? BoundsUtils.boundsContain(brushBounds, shape.bounds)
           : shape.hitTestBounds(brushBounds)
       )
-      .map((shape) => shape.id)
 
     if (shiftKey) {
-      if (hits.every((hit) => this.initialSelectedIds.includes(hit))) {
+      if (hits.every((hit) => this.initialSelectedShapes.includes(hit))) {
         // Deselect hit shapes
-        this.app.select(...this.initialSelectedIds.filter((id) => !hits.includes(id)))
+        this.app.select(...this.initialSelectedShapes.filter((hit) => !hits.includes(hit)))
       } else {
         // Select hit shapes + initial selected shapes
-        this.app.select(...Array.from(new Set([...this.initialSelectedIds, ...hits]).values()))
+        this.app.select(...Array.from(new Set([...this.initialSelectedShapes, ...hits]).values()))
       }
     } else {
       // Select hit shapes

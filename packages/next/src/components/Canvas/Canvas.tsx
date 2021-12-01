@@ -26,6 +26,9 @@ type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBi
   brush?: TLNuBounds
   BoundsComponent?: TLNuBoundsComponent<S>
   children?: React.ReactNode
+  showBounds?: boolean
+  showRotateHandle?: boolean
+  showResizeHandles?: boolean
 }
 
 export const Canvas = observer(function Canvas({
@@ -37,6 +40,9 @@ export const Canvas = observer(function Canvas({
   selectedBounds,
   brush,
   children,
+  showBounds = true,
+  showRotateHandle = true,
+  showResizeHandles = true,
 }: CanvasProps) {
   const rContainer = React.useRef<HTMLDivElement>(null)
   const { viewport, components, meta } = useContext()
@@ -48,9 +54,14 @@ export const Canvas = observer(function Canvas({
   return (
     <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
       <HTMLLayer>
-        {selectedBounds && (
+        {selectedBounds && showBounds && (
           <Container bounds={selectedBounds} zIndex={2}>
-            <components.boundsBackground shapes={selectedShapes} bounds={selectedBounds} />
+            <components.boundsBackground
+              shapes={selectedShapes}
+              bounds={selectedBounds}
+              showResizeHandles={showResizeHandles}
+              showRotateHandle={showRotateHandle}
+            />
           </Container>
         )}
         {shapes.map((shape, i) => (
@@ -66,15 +77,27 @@ export const Canvas = observer(function Canvas({
           />
         ))}
         {selectedShapes.map((shape) => (
-          <Indicator key={'selected_indicator_' + shape.id} shape={shape} />
+          <Indicator
+            key={'selected_indicator_' + shape.id}
+            shape={shape}
+            isEditing={false}
+            isHovered={false}
+            isBinding={false}
+            isSelected={true}
+          />
         ))}
         {hoveredShape && (
           <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
         )}
         {brush && <Brush brush={brush} />}
-        {selectedBounds && (
+        {selectedBounds && showBounds && (
           <Container bounds={selectedBounds} zIndex={10002}>
-            <components.boundsForeground shapes={selectedShapes} bounds={selectedBounds} />
+            <components.boundsForeground
+              shapes={selectedShapes}
+              bounds={selectedBounds}
+              showResizeHandles={showResizeHandles}
+              showRotateHandle={showRotateHandle}
+            />
           </Container>
         )}
       </HTMLLayer>

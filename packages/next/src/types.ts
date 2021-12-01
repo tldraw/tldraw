@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from 'react'
 import type React from 'react'
-import type { TLNuShape } from '~nu-lib'
+import type { TLNuApp, TLNuShape } from '~nu-lib'
 
 export enum TLNuBoundsEdge {
   Top = 'top_edge',
@@ -125,6 +125,8 @@ export interface TLNuCallbacks<
 export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
   shapes: S[]
   bounds: TLNuBounds
+  showResizeHandles: boolean
+  showRotateHandle: boolean
 }
 
 export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
@@ -138,3 +140,59 @@ export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
 
 export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
 export type TLNuOnExit<T extends { toId: string }> = (info: T) => void
+
+export type TLNuSubscriptionEvent =
+  | {
+      event: 'mount'
+      info: null
+    }
+  | {
+      event: 'persist'
+      info: null
+    }
+
+export type TLNuSubscriptionEventName = TLNuSubscriptionEvent['event']
+
+export type TLNuSubscriptionEventInfo<T extends TLNuSubscriptionEventName> = Extract<
+  TLNuSubscriptionEvent,
+  { event: T }
+>['info']
+
+export type TLNuSubscriptionCallback<
+  E extends TLNuSubscriptionEventName,
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> = (app: TLNuApp<S, B>, info: TLNuSubscriptionEventInfo<E>) => void
+
+export type TLNuSubscription<
+  E extends TLNuSubscriptionEventName,
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> = {
+  event: E
+  callback: TLNuSubscriptionCallback<E, S, B>
+}
+
+export type TLSubscribe = {
+  <
+    E extends TLNuSubscriptionEventName,
+    S extends TLNuShape = TLNuShape,
+    B extends TLNuBinding = TLNuBinding
+  >(
+    subscription: TLNuSubscription<E, S, B>
+  ): () => void
+  <
+    E extends TLNuSubscriptionEventName,
+    S extends TLNuShape = TLNuShape,
+    B extends TLNuBinding = TLNuBinding
+  >(
+    event: E,
+    callback: TLNuSubscriptionCallback<E, S, B>
+  ): () => void
+}
+
+export function isStringArray(arr: string[] | any[]): asserts arr is string[] {
+  if (arr[0] && typeof arr[0] !== 'string') {
+    throw Error('Expected a string array.')
+  }
+}

@@ -4,10 +4,15 @@ import {
   intersectLineSegmentPolyline,
   intersectPolylineBounds,
 } from '@tldraw/intersect'
-import { action, computed, makeObservable, observable, toJS } from 'mobx'
+import { action, computed, makeObservable, observable } from 'mobx'
 import type { TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
 import { BoundsUtils, PointUtils } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
+
+export interface TLNuSerializedShape extends TLNuShapeProps {
+  type: string
+  nonce: number
+}
 
 export interface TLNuIndicatorProps<M = unknown> {
   meta: M
@@ -55,25 +60,6 @@ export interface TLNuResizeInfo<P extends Record<string, any> = any> {
 export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = unknown>
   implements TLNuShapeProps
 {
-  abstract readonly type: string
-
-  readonly showCloneHandles = false
-  readonly hideBounds = false
-  readonly isStateful = false
-
-  readonly id: string
-  @observable parentId: string
-  @observable point: number[]
-  @observable name?: string
-  @observable rotation?: number
-  @observable children?: string[]
-  @observable handles?: Record<string, TLNuHandle>
-  @observable isGhost?: boolean
-  @observable isHidden?: boolean
-  @observable isLocked?: boolean
-  @observable isGenerated?: boolean
-  @observable isAspectRatioLocked?: boolean
-
   constructor(props: P) {
     const {
       id,
@@ -90,7 +76,7 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isAspectRatioLocked,
     } = props
 
-    this.serializedProps = Object.keys(props).concat(['type'])
+    this.serializedProps = Object.keys(props).concat(['type', 'nonce'])
 
     this.id = id
     this.parentId = parentId
@@ -107,6 +93,26 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
 
     makeObservable(this)
   }
+
+  abstract readonly type: string
+
+  readonly showCloneHandles = false
+  readonly hideBounds = false
+  readonly isStateful = false
+
+  readonly id: string
+
+  @observable parentId: string
+  @observable point: number[]
+  @observable name?: string
+  @observable rotation?: number
+  @observable children?: string[]
+  @observable handles?: Record<string, TLNuHandle>
+  @observable isGhost?: boolean
+  @observable isHidden?: boolean
+  @observable isLocked?: boolean
+  @observable isGenerated?: boolean
+  @observable isAspectRatioLocked?: boolean
 
   readonly serializedProps: string[]
 
@@ -158,16 +164,6 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     )
   }
 
-  serialize(): P & { type: string } {
-    return deepCopy(
-      Object.fromEntries(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.serializedProps.map((prop) => [prop, this[prop]])
-      )
-    ) as P & { type: string }
-  }
-
   resize = (bounds: TLNuBounds, info: TLNuResizeInfo) => {
     this.update({ point: [bounds.minX, bounds.minY] } as Partial<P>)
   }
@@ -178,5 +174,22 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
 
   @action update(props: Partial<P>) {
     Object.assign(this, props)
+    if (!('nonce' in props)) this.bump()
+  }
+
+  @computed get serialized(): TLNuSerializedShape {
+    return deepCopy(
+      Object.fromEntries(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        this.serializedProps.map((prop) => [prop, this[prop]])
+      )
+    ) as TLNuSerializedShape
+  }
+
+  nonce = 0
+
+  private bump() {
+    this.nonce++
   }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { autorun } from 'mobx'
@@ -31,18 +32,25 @@ export interface TLNuRendererProps<
   BoundsComponent?: TLNuBoundsComponent<S>
   components?: Partial<TLNuComponents<S>>
   meta?: any
+  showBounds?: boolean
+  showRotateHandle?: boolean
+  showResizeHandles?: boolean
   children?: React.ReactNode
 }
+
+const EMPTY_OBJECT: any = {}
+const EMPTY_ARRAY: any = []
 
 export const Renderer = observer(function Renderer<
   S extends TLNuShape = TLNuShape,
   B extends TLNuBinding = TLNuBinding
 >({
   id,
-  theme = {},
-  shapes = [],
-  bindings = [],
-  selectedShapes = [],
+  theme = EMPTY_OBJECT,
+  components = EMPTY_OBJECT,
+  shapes = EMPTY_ARRAY,
+  bindings = EMPTY_ARRAY,
+  selectedShapes = EMPTY_ARRAY,
   hoveredShape,
   selectedBounds,
   brush,
@@ -57,7 +65,9 @@ export const Renderer = observer(function Renderer<
   onKeyDown,
   onKeyUp,
   meta,
-  components = {} as Partial<TLNuComponents<S>>,
+  showBounds,
+  showRotateHandle,
+  showResizeHandles,
   children,
 }: TLNuRendererProps<S, B>): JSX.Element {
   useStylesheet(theme, id)
@@ -122,6 +132,9 @@ export const Renderer = observer(function Renderer<
           hoveredShape={hoveredShape}
           brush={brush}
           selectedBounds={selectedBounds}
+          showBounds={showBounds}
+          showRotateHandle={showRotateHandle}
+          showResizeHandles={showResizeHandles}
         >
           {children}
         </Canvas>

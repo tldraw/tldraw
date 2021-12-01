@@ -23,6 +23,7 @@ export const Container = observer<ContainerProps>(function Container({
   ...props
 }) {
   const rBounds = React.useRef<HTMLDivElement>(null)
+  const rTransform = React.useRef<SVGSVGElement>(null)
 
   React.useLayoutEffect(() => {
     return autorun(() => {
@@ -37,9 +38,9 @@ export const Container = observer<ContainerProps>(function Container({
 
       elm.style.setProperty('transform', transform)
 
-      if (zIndex !== undefined) {
-        elm.style.setProperty('z-index', zIndex?.toString())
-      }
+      // if (zIndex !== undefined) {
+      //   elm.style.setProperty('z-index', zIndex?.toString())
+      // }
     })
   }, [bounds])
 
