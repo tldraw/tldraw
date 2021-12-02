@@ -493,7 +493,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* ----------- Managing Multiplayer State ----------- */
 
-  private justSent = false
+  private ticksBeforeReplace = 0
   private prevShapes = this.page.shapes
   private prevBindings = this.page.bindings
 
@@ -502,6 +502,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const changedShapes: Record<string, TDShape | undefined> = {}
     const changedBindings: Record<string, TDBinding | undefined> = {}
+
+    // const visitedIds = new Set<string>()
+    // const shapesToVisit = this.shapes
+
+    // while (shapesToVisit.length > 0) {
+    //   const shape = shapesToVisit.pop()
+    //   if (!shape) break
+    //   visitedIds.add(shape.id)
+    //   if (this.prevShapes[shape.id] !== shape) {
+    //     changedShapes[shape.id] = shape
+
+    //     if (shape.parentId !== this.currentPageId) {
+    //       shapesToVisit.push(this.page.shapes[shape.parentId])
+    //     }
+
+    //     if (shape.children) {
+
+    //     }
+    //   }
+    // }
 
     this.shapes.forEach((shape) => {
       visited.add(shape.id)
@@ -533,16 +553,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         changedBindings[id] = undefined
       })
 
-    this.justSent = true
+    this.ticksBeforeReplace = 2
     this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
     this.callbacks.onPersist?.(this)
     this.prevShapes = this.page.shapes
     this.prevBindings = this.page.bindings
   }
 
-  getReservedContent = (pageId = this.currentPageId) => {
+  getReservedContent = (ids: string[], pageId = this.currentPageId) => {
     const { bindings } = this.document.pages[pageId]
-    const { editingId, selectedIds } = this.document.pageStates[pageId]
 
     // We want to know which shapes we need to
     const reservedShapes: Record<string, TDShape> = {}
@@ -557,11 +576,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Unique set of shape ids that are going to be reserved
     const reservedShapeIds: string[] = []
 
-    // If we're in a session, reserve all selected shapes
-    if (this.session) selectedIds.forEach((id) => reservedShapeIds.push(id))
+    if (this.session) ids.forEach((id) => reservedShapeIds.push(id))
 
-    // If we're editing a shape, reserve it
-    if (editingId) reservedShapeIds.push(editingId)
+    const strongReservedShapeIds = new Set(reservedShapeIds)
 
     // Which shape ids have we already visited?
     const visited = new Set<string>()
@@ -579,6 +596,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const shape = this.getShape(id)
       reservedShapes[id] = shape
 
+      if (shape.parentId !== pageId) reservedShapeIds.push(shape.parentId)
+
       // If the shape has children, add the shape's children to the list of ids to process
       if (shape.children) reservedShapeIds.push(...shape.children)
 
@@ -593,7 +612,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         })
     }
 
-    return { reservedShapes, reservedBindings }
+    return { reservedShapes, reservedBindings, strongReservedShapeIds }
   }
 
   /**
@@ -606,15 +625,28 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     bindings: Record<string, TDBinding>,
     pageId = this.currentPageId
   ): this => {
-    if (this.justSent) {
-      this.justSent = false
+    // This will be called a few times: once by our own change,
+    // once by the change to shapes, and once by the change to bindings
+
+    if (this.ticksBeforeReplace > 0) {
+      this.ticksBeforeReplace--
+    }
+
+    if (this.ticksBeforeReplace > 0) {
       return this
     }
 
     this.useStore.setState((current) => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
-      const { reservedShapes, reservedBindings } = this.getReservedContent(this.currentPageId)
+      const coreReservedIds = [...selectedIds]
+
+      if (editingId) coreReservedIds.push(editingId)
+
+      const { reservedShapes, reservedBindings, strongReservedShapeIds } = this.getReservedContent(
+        coreReservedIds,
+        this.currentPageId
+      )
 
       // Merge in certain changes to reserved shapes
       Object.values(reservedShapes)
@@ -624,6 +656,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           const incomingShape = shapes[reservedShape.id]
           if (!incomingShape) return
 
+          // If the shape isn't "strongly reserved", then use the incoming shape;
+          // note that this is only if the incoming shape exists! If the shape was
+          // deleted in the incoming shapes, then we'll keep out reserved shape.
+          // This logic would need more work for arrows, because the incoming shape
+          // include a binding change that we'll need to resolve with our reserved bindings.
+          if (
+            !(
+              reservedShape.type === TDShapeType.Arrow ||
+              strongReservedShapeIds.has(reservedShape.id)
+            )
+          ) {
+            reservedShapes[reservedShape.id] = incomingShape
+            return
+          }
+
+          // Only allow certain merges.
+
           // Allow decorations (of an arrow) to be changed
           if ('decorations' in incomingShape && 'decorations' in reservedShape) {
             reservedShape.decorations = incomingShape.decorations
@@ -632,6 +681,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           // Allow the shape's style to be changed
           reservedShape.style = incomingShape.style
         })
+
+      // Use the incoming shapes / bindings as comparisons for what
+      // will have changed. This is important because we want to restore
+      // related shapes that may not have changed on our side, but which
+      // were deleted on the server.
+      this.prevShapes = shapes
+      this.prevBindings = bindings
 
       const nextShapes = {
         ...shapes,
@@ -675,9 +731,66 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
       }
 
+      // Get bindings related to the changed shapes
+      const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(nextShapes), pageId)
+
+      const page = next.document.pages[pageId]
+
+      // Update all of the bindings we've just collected
+      bindingsToUpdate.forEach((binding) => {
+        if (!page.bindings[binding.id]) {
+          return
+        }
+
+        const toShape = page.shapes[binding.toId]
+        const fromShape = page.shapes[binding.fromId]
+
+        const toUtils = TLDR.getShapeUtil(toShape)
+
+        const fromUtils = TLDR.getShapeUtil(fromShape)
+
+        // We only need to update the binding's "from" shape
+        const fromDelta = fromUtils.onBindingChange?.(
+          fromShape,
+          binding,
+          toShape,
+          toUtils.getBounds(toShape),
+          toUtils.getCenter(toShape)
+        )
+
+        if (fromDelta) {
+          const nextShape = {
+            ...fromShape,
+            ...fromDelta,
+          } as TDShape
+
+          page.shapes[fromShape.id] = nextShape
+        }
+      })
+
+      Object.values(nextShapes).forEach((shape) => {
+        if (shape.type !== TDShapeType.Group) return
+
+        const children = shape.children.filter((id) => page.shapes[id] !== undefined)
+
+        const commonBounds = Utils.getCommonBounds(
+          children
+            .map((id) => page.shapes[id])
+            .filter(Boolean)
+            .map((shape) => TLDR.getRotatedBounds(shape))
+        )
+
+        page.shapes[shape.id] = {
+          ...shape,
+          point: [commonBounds.minX, commonBounds.minY],
+          size: [commonBounds.width, commonBounds.height],
+          children,
+        }
+      })
+
       this.state.document = next.document
-      this.prevShapes = nextShapes
-      this.prevBindings = nextBindings
+      // this.prevShapes = nextShapes
+      // this.prevBindings = nextBindings
 
       return next
     }, true)
