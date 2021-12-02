@@ -560,6 +560,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         keepShapes[editingId] = this.getShape(editingId)
       }
 
+      const nextShapes = {
+        ...shapes,
+        ...keepShapes
+      }
+
+      const nextBindings = {
+        ...bindings,
+        ...keepBindings
+      }
+
       const next: TDSnapshot = {
         ...current,
         document: {
@@ -567,29 +577,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           pages: {
             [pageId]: {
               ...current.document.pages[pageId],
-              shapes: {
-                ...shapes,
-                ...keepShapes,
-              },
-              bindings: {
-                ...bindings,
-                ...keepBindings,
-              },
+              shapes: nextShapes,
+              bindings: nextBindings
             },
           },
           pageStates: {
             ...current.document.pageStates,
             [pageId]: {
               ...current.document.pageStates[pageId],
-              selectedIds: selectedIds.filter((id) => shapes[id] !== undefined),
+              selectedIds: selectedIds.filter((id) => nextShapes[id] !== undefined),
               hoveredId: hoveredId
-                ? shapes[hoveredId] === undefined
+                ? nextShapes[hoveredId] === undefined
                   ? undefined
                   : hoveredId
                 : undefined,
               editingId: editingId,
               bindingId: bindingId
-                ? bindings[bindingId] === undefined
+                ? nextBindings[bindingId] === undefined
                   ? undefined
                   : bindingId
                 : undefined,
