@@ -228,6 +228,8 @@ export interface TLNuRendererProps<S extends TLNuShape, B extends TLNuBinding>
   brush?: TLNuBounds
   children?: React.ReactNode
   hoveredShape?: S
+  editingShape?: S
+  bindingShape?: S
   id?: string
   selectedBounds?: TLNuBounds
   selectedShapes?: S[]

@@ -19,7 +19,7 @@ function App(): JSX.Element {
 
   const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',
-    selectedIds: [],
+    selectedIds: ['box2'],
     pages: [
       {
         name: 'Page',

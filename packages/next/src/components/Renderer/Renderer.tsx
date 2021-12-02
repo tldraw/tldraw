@@ -1,49 +1,40 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import { Indicator } from '../Indicator'
-import { Shape } from '../Shape'
-import { Brush } from '../Brush'
-import { SVGLayer } from '../SVGLayer'
+import { Brush, Container, HTMLLayer, Indicator, Shape } from '~components'
 import {
   useCameraCss,
-  useResizeObserver,
-  useContext,
   useCanvasEvents,
+  useContext,
   useGestureEvents,
+  useResizeObserver,
+  useStylesheet,
 } from '~hooks'
-import type { TLNuBinding, TLNuBounds, TLNuBoundsComponent } from '~types'
 import type { TLNuShape } from '~nu-lib'
-import { Container, HTMLLayer } from '~components'
+import type { TLNuBinding, TLNuRendererProps } from '~types'
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '~constants'
 
-type CanvasProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
-  shapes: S[]
-  bindings: B[]
-  selectedShapes: S[]
-  hoveredShape?: S
-  editingShape?: S
-  bindingShape?: S
-  selectedBounds?: TLNuBounds
-  brush?: TLNuBounds
-  BoundsComponent?: TLNuBoundsComponent<S>
-  children?: React.ReactNode
-  showBounds?: boolean
-  showRotateHandle?: boolean
-  showResizeHandles?: boolean
-}
-
-export const Canvas = observer(function Canvas({
-  shapes,
-  selectedShapes,
-  hoveredShape,
-  editingShape,
+export const Renderer = observer(function Renderer<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+>({
+  bindings = EMPTY_ARRAY,
   bindingShape,
-  selectedBounds,
   brush,
   children,
+  editingShape,
+  hoveredShape,
+  id,
+  selectedBounds,
+  selectedShapes = EMPTY_ARRAY,
+  shapes = EMPTY_ARRAY,
   showBounds = true,
-  showRotateHandle = true,
   showResizeHandles = true,
-}: CanvasProps) {
+  showRotateHandle = true,
+  theme = EMPTY_OBJECT,
+}: TLNuRendererProps<S, B>): JSX.Element {
+  useStylesheet(theme, id)
   const rContainer = React.useRef<HTMLDivElement>(null)
   const { viewport, components, meta } = useContext()
   useResizeObserver(rContainer, viewport)
