@@ -714,7 +714,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             ...current.document.pageStates,
             [pageId]: {
               ...current.document.pageStates[pageId],
-              selectedIds,
+              selectedIds: selectedIds.filter((id) => nextShapes[id] !== undefined),
               hoveredId: hoveredId
                 ? nextShapes[hoveredId] === undefined
                   ? undefined
