@@ -34,65 +34,67 @@ export const Renderer = observer(function Renderer<
   showRotateHandle = true,
   theme = EMPTY_OBJECT,
 }: TLNuRendererProps<S, B>): JSX.Element {
+  const { viewport, components, meta } = useContext()
   useStylesheet(theme, id)
   const rContainer = React.useRef<HTMLDivElement>(null)
-  const { viewport, components, meta } = useContext()
   useResizeObserver(rContainer, viewport)
   useCameraCss(rContainer, viewport)
   useGestureEvents(rContainer)
   const events = useCanvasEvents()
 
   return (
-    <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
-      <HTMLLayer>
-        {selectedBounds && showBounds && (
-          <Container bounds={selectedBounds} zIndex={2}>
-            <components.boundsBackground
-              shapes={selectedShapes}
-              bounds={selectedBounds}
-              showResizeHandles={showResizeHandles}
-              showRotateHandle={showRotateHandle}
+    <div className="nu-container">
+      <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
+        <HTMLLayer>
+          {selectedBounds && showBounds && (
+            <Container bounds={selectedBounds} zIndex={2}>
+              <components.boundsBackground
+                shapes={selectedShapes}
+                bounds={selectedBounds}
+                showResizeHandles={showResizeHandles}
+                showRotateHandle={showRotateHandle}
+              />
+            </Container>
+          )}
+          {shapes.map((shape, i) => (
+            <Shape
+              key={'shape_' + shape.id}
+              shape={shape}
+              isEditing={editingShape === shape}
+              isHovered={hoveredShape === shape}
+              isBinding={bindingShape === shape}
+              isSelected={selectedShapes.includes(shape)}
+              meta={meta}
+              zIndex={100 + i}
             />
-          </Container>
-        )}
-        {shapes.map((shape, i) => (
-          <Shape
-            key={'shape_' + shape.id}
-            shape={shape}
-            isEditing={editingShape === shape}
-            isHovered={hoveredShape === shape}
-            isBinding={bindingShape === shape}
-            isSelected={selectedShapes.includes(shape)}
-            meta={meta}
-            zIndex={100 + i}
-          />
-        ))}
-        {selectedShapes.map((shape) => (
-          <Indicator
-            key={'selected_indicator_' + shape.id}
-            shape={shape}
-            isEditing={false}
-            isHovered={false}
-            isBinding={false}
-            isSelected={true}
-          />
-        ))}
-        {hoveredShape && (
-          <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
-        )}
-        {brush && <Brush brush={brush} />}
-        {selectedBounds && showBounds && (
-          <Container bounds={selectedBounds} zIndex={10002}>
-            <components.boundsForeground
-              shapes={selectedShapes}
-              bounds={selectedBounds}
-              showResizeHandles={showResizeHandles}
-              showRotateHandle={showRotateHandle}
+          ))}
+          {selectedShapes.map((shape) => (
+            <Indicator
+              key={'selected_indicator_' + shape.id}
+              shape={shape}
+              isEditing={false}
+              isHovered={false}
+              isBinding={false}
+              isSelected={true}
             />
-          </Container>
-        )}
-      </HTMLLayer>
-      {children}
+          ))}
+          {hoveredShape && (
+            <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
+          )}
+          {brush && <Brush brush={brush} />}
+          {selectedBounds && showBounds && (
+            <Container bounds={selectedBounds} zIndex={10002}>
+              <components.boundsForeground
+                shapes={selectedShapes}
+                bounds={selectedBounds}
+                showResizeHandles={showResizeHandles}
+                showRotateHandle={showRotateHandle}
+              />
+            </Container>
+          )}
+        </HTMLLayer>
+        {children}
+      </div>
     </div>
   )
 })
