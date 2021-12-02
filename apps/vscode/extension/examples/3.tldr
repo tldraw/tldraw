@@ -4,7 +4,7 @@
   "document": {
     "id": "doc",
     "name": "New Document",
-    "version": 13,
+    "version": 14,
     "pages": {
       "page": {
         "id": "page",
@@ -18,12 +18,12 @@
             "parentId": "page",
             "childIndex": 1,
             "point": [
-              268.18,
-              247.52
+              211.25,
+              246.95
             ],
             "rotation": 0,
             "style": {
-              "color": "black",
+              "color": "white",
               "size": "large",
               "isFilled": false,
               "dash": "draw"

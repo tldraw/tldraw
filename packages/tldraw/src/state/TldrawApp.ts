@@ -391,12 +391,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
 
         if (nextPageState.bindingId && !page.bindings[nextPageState.bindingId]) {
-          console.warn('Could not find the binding binding!', pageId)
+          TLDR.warn(`Could not find the binding of ${pageId}`)
           delete nextPageState.bindingId
         }
 
         if (nextPageState.editingId && !page.shapes[nextPageState.editingId]) {
-          console.warn('Could not find the editing shape!')
+          TLDR.warn('Could not find the editing shape!')
           delete nextPageState.editingId
         }
 
@@ -522,7 +522,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
-    Object.keys(this.prevShapes)
+    Object.keys(this.prevBindings)
       .filter((id) => !visited.has(id))
       .forEach((id) => {
         changedBindings[id] = undefined
@@ -548,15 +548,33 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.useStore.setState((current) => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
-      const next = {
+      const keepShapes: Record<string, TDShape> = {}
+      const keepBindings: Record<string, TDBinding> = {}
+
+      if (this.session) {
+        selectedIds.forEach((id) => (keepShapes[id] = this.getShape(id)))
+        Object.assign(keepBindings, this.bindings) // ROUGH
+      }
+
+      if (editingId) {
+        keepShapes[editingId] = this.getShape(editingId)
+      }
+
+      const next: TDSnapshot = {
         ...current,
         document: {
           ...current.document,
           pages: {
             [pageId]: {
               ...current.document.pages[pageId],
-              shapes,
-              bindings,
+              shapes: {
+                ...shapes,
+                ...keepShapes,
+              },
+              bindings: {
+                ...bindings,
+                ...keepBindings,
+              },
             },
           },
           pageStates: {
@@ -569,11 +587,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                   ? undefined
                   : hoveredId
                 : undefined,
-              editingId: editingId
-                ? shapes[editingId] === undefined
-                  ? undefined
-                  : hoveredId
-                : undefined,
+              editingId: editingId,
               bindingId: bindingId
                 ? bindings[bindingId] === undefined
                   ? undefined
@@ -1529,7 +1543,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           pasteInCurrentPage(data.shapes, data.bindings)
         } catch (e) {
-          console.warn(e)
+          TLDR.warn(e)
 
           const shapeId = Utils.uniqueId()
 
@@ -1984,7 +1998,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
     if (this.readOnly && type !== SessionType.Brush) return this
     if (this.session) {
-      console.warn(`Already in a session! (${this.session.constructor.name})`)
+      TLDR.warn(`Already in a session! (${this.session.constructor.name})`)
       this.cancelSession()
     }
 
@@ -2665,7 +2679,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ? info.delta[2] / 100
         : info.delta[2] / 2
 
-    this.zoomBy(delta, info.delta)
+    this.zoomBy(delta, this.centerPoint)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 

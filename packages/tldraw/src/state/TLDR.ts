@@ -15,6 +15,7 @@ import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getShapeUtil } from './shapes'
 
+const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(type: T['type']): TDShapeUtil<T>
@@ -865,8 +866,8 @@ export class TLDR {
     return shapes.length === 0
       ? 1
       : shapes
-          .filter((shape) => shape.parentId === pageId)
-          .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+        .filter((shape) => shape.parentId === pageId)
+        .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
   }
 
   /* -------------------------------------------------- */
@@ -891,4 +892,16 @@ export class TLDR {
       throw new Error()
     }
   }
+
+  static warn(e: any) {
+    if (isDev) {
+      console.warn(e);
+    }
+  }
+  static error(e: any) {
+    if (isDev) {
+      console.error(e)
+    }
+  }
+
 }

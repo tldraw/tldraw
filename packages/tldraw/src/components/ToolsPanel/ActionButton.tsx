@@ -228,7 +228,7 @@ export function ActionButton(): JSX.Element {
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
-              <Tooltip label="More to Front" kbd={`#⇧]`}>
+              <Tooltip label="Move to Front" kbd={`#⇧]`}>
                 <PinTopIcon />
               </Tooltip>
             </ToolButton>
