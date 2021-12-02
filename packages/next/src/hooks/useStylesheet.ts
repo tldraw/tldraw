@@ -125,7 +125,6 @@ const tlcss = css`
     padding: 0px;
     margin: 0px;
     z-index: 100;
-    overflow: hidden;
     touch-action: none;
     overscroll-behavior: none;
     background-color: var(--nu-background);
@@ -197,7 +196,6 @@ const tlcss = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     contain: layout style size;
   }
 
@@ -413,8 +411,17 @@ const tlcss = css`
   }
 
   .nu-context-bar {
-    background-color: red;
-    transform: scale(var(--nu-scale));
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    grid-template-columns: 1fr;
+  }
+
+  .nu-context-bar > * {
+    grid-column: 1;
+    grid-row: 1;
   }
 `
 

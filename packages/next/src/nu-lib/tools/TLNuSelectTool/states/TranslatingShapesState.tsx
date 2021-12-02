@@ -45,10 +45,13 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
       this.clones = this.app.selectedShapes.map((shape) => {
         const ShapeClass = this.app.getShapeClass(shape.shapeId)
         if (!ShapeClass) throw Error('Could not find that shape class.')
+        console.log(shape.serialized)
         return new ShapeClass({
           ...shape.serialized,
-          point: this.initialPoints[shape.id],
           id: uniqueId(),
+          type: shape.type,
+          point: this.initialPoints[shape.id],
+          rotation: shape.rotation,
         })
       })
 
@@ -86,17 +89,14 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
     this.app.history.pause()
 
     // Set initial data
-    const {
-      selectedShapes,
-      inputs: { altKey },
-    } = this.app
+    const { selectedShapes, inputs } = this.app
 
     this.initialShapePoints = Object.fromEntries(
       selectedShapes.map(({ id, point }) => [id, point.slice()])
     )
     this.initialPoints = this.initialShapePoints
 
-    if (altKey) {
+    if (inputs.altKey) {
       this.startCloning()
     } else {
       this.moveSelectedShapesToPointer()

@@ -39,7 +39,6 @@ export const CornerHandle = observer(function CornerHandle({
         width={targetSize * 2.5}
         height={targetSize * 2.5}
         pointerEvents={isHidden ? 'none' : 'all'}
-        fill={'black'}
         {...events}
       />
       <rect

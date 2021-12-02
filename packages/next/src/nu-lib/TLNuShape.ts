@@ -37,6 +37,23 @@ export interface TLNuShapeProps {
   isAspectRatioLocked?: boolean
 }
 
+const PROP_KEYS = [
+  'id',
+  'parentId',
+  'name',
+  'point',
+  'rotation',
+  'children',
+  'handles',
+  'isGhost',
+  'isHidden',
+  'isLocked',
+  'isGenerated',
+  'isAspectRatioLocked',
+  'type',
+  'nonce',
+]
+
 export type TLNuSerializedShape<P = Record<string, any>> = TLNuShapeProps & {
   type: string
   nonce?: number
@@ -81,8 +98,11 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isAspectRatioLocked,
     } = props
 
-    this.serializedProps = Object.keys(props).concat(['shapeId', 'nonce'])
+    this.serializedProps = Array.from(new Set(Object.keys(props).concat(PROP_KEYS)).values())
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.type = this.constructor['id']
     this.id = id
     this.parentId = parentId
     this.name = name
@@ -100,6 +120,8 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
   }
 
   static type: string
+
+  type: string
 
   readonly showCloneHandles = false
   readonly hideBounds = false

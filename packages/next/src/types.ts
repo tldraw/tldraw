@@ -132,6 +132,7 @@ export interface TLNuCallbacks<
 }
 
 export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
+  zoom: number
   shapes: S[]
   bounds: TLNuBounds
   showResizeHandles: boolean

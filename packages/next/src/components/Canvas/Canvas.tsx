@@ -4,7 +4,6 @@ import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { Brush, Container, HTMLLayer, Indicator, Shape } from '~components'
 import {
-  useCameraCss,
   useCanvasEvents,
   useContext,
   useGestureEvents,
@@ -15,6 +14,8 @@ import type { TLNuShape } from '~nu-lib'
 import type { TLNuBinding, TLNuRendererProps } from '~types'
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '~constants'
 import { autorun } from 'mobx'
+import { ContextBarWrapper } from '~components/ContextBarWrapper'
+import { usePreventNavigation } from '~hooks/usePreventNavigation'
 
 export const Canvas = observer(function Renderer<
   S extends TLNuShape = TLNuShape,
@@ -37,13 +38,12 @@ export const Canvas = observer(function Renderer<
 }: TLNuRendererProps<S, B>): JSX.Element {
   const rContainer = React.useRef<HTMLDivElement>(null)
   useStylesheet(theme, id)
+  usePreventNavigation(rContainer)
 
   const { viewport, components, meta } = useContext()
-  useResizeObserver(rContainer, viewport)
-  // useCameraCss(rContainer, viewport)
-  useGestureEvents(rContainer)
 
-  const events = useCanvasEvents()
+  useResizeObserver(rContainer, viewport)
+  useGestureEvents(rContainer)
 
   // If we zoomed, set the CSS variable for the zoom
   React.useLayoutEffect(() => {
@@ -51,10 +51,13 @@ export const Canvas = observer(function Renderer<
       const { zoom } = viewport.camera
       const container = rContainer.current
       if (!container) return
-      console.log('updating zoom css', zoom.toString())
       container.style.setProperty('--nu-zoom', zoom.toString())
     })
   }, [])
+
+  const events = useCanvasEvents()
+
+  const { zoom } = viewport.camera
 
   return (
     <div ref={rContainer} className="nu-container">
@@ -63,6 +66,7 @@ export const Canvas = observer(function Renderer<
           {selectedBounds && showBounds && (
             <Container bounds={selectedBounds} zIndex={2}>
               <components.BoundsBackground
+                zoom={zoom}
                 shapes={selectedShapes}
                 bounds={selectedBounds}
                 showResizeHandles={showResizeHandles}
@@ -99,6 +103,7 @@ export const Canvas = observer(function Renderer<
           {selectedBounds && showBounds && (
             <Container bounds={selectedBounds} zIndex={10002}>
               <components.BoundsForeground
+                zoom={zoom}
                 shapes={selectedShapes}
                 bounds={selectedBounds}
                 showResizeHandles={showResizeHandles}
@@ -107,9 +112,7 @@ export const Canvas = observer(function Renderer<
             </Container>
           )}
           {selectedBounds && components.ContextBar && (
-            <Container bounds={selectedBounds} zIndex={10003} counterScaled>
-              <components.ContextBar shapes={selectedShapes} bounds={selectedBounds} />
-            </Container>
+            <ContextBarWrapper bounds={selectedBounds} shapes={selectedShapes} />
           )}
         </HTMLLayer>
         {children}
