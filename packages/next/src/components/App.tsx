@@ -2,7 +2,6 @@
 import * as React from 'react'
 import { Renderer } from './Renderer'
 import { TLNuApp, TLNuSerializedApp, TLNuShape } from '~nu-lib'
-import { RendererContextProvider } from './RendererContextProvider'
 import type { TLNuAppProps, TLNuBinding } from '~types'
 import { observer } from 'mobx-react-lite'
 
@@ -62,12 +61,21 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
   )
 
   return (
-    <RendererContextProvider
+    <Renderer
       id={id}
       meta={meta}
       theme={theme}
       components={components}
       inputs={app.inputs}
+      viewport={app.viewport}
+      showBounds={showBounds}
+      showRotateHandle={showRotateHandle}
+      showResizeHandles={showResizeHandles}
+      shapes={app.shapesInViewport}
+      selectedShapes={app.selectedShapes}
+      hoveredShape={app.hoveredShape}
+      selectedBounds={app.selectedBounds}
+      brush={app.brush}
       onKeyDown={app.onKeyDown}
       onKeyUp={app.onKeyUp}
       onPan={app.onPan}
@@ -76,21 +84,8 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
       onPointerLeave={app.onPointerLeave}
       onPointerMove={app.onPointerMove}
       onPointerUp={app.onPointerUp}
-      viewport={app.viewport}
     >
-      <Renderer
-        id={id}
-        showBounds={showBounds}
-        showRotateHandle={showRotateHandle}
-        showResizeHandles={showResizeHandles}
-        shapes={app.shapesInViewport}
-        selectedShapes={app.selectedShapes}
-        hoveredShape={app.hoveredShape}
-        selectedBounds={app.selectedBounds}
-        brush={app.brush}
-      >
-        {children}
-      </Renderer>
-    </RendererContextProvider>
+      {children}
+    </Renderer>
   )
 })
