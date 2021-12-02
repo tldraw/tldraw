@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import { BoundsBackground, BoundsForeground } from '~components'
+import {
+  BoundsBackground as _BoundsBackground,
+  BoundsForeground as _BoundsForeground,
+} from '~components'
 import { NuContext, nuContext, useStylesheet } from '~hooks'
 import type { TLNuShape } from '~nu-lib'
 import type { TLNuBinding, TLNuContextProviderProps, TLNuRendererProps } from '~types'
@@ -34,7 +37,11 @@ export const Renderer = observer(function Renderer<
   useStylesheet(theme, id)
 
   const [currentContext, setCurrentContext] = React.useState<NuContext<S>>(() => {
-    const { boundsBackground = BoundsBackground, boundsForeground = BoundsForeground } = components
+    const {
+      ContextBar,
+      BoundsBackground = _BoundsBackground,
+      BoundsForeground = _BoundsForeground,
+    } = components
 
     return {
       viewport,
@@ -50,15 +57,20 @@ export const Renderer = observer(function Renderer<
         onKeyUp,
       },
       components: {
-        boundsBackground,
-        boundsForeground,
+        BoundsBackground,
+        BoundsForeground,
+        ContextBar,
       },
       meta,
     }
   })
 
   React.useEffect(() => {
-    const { boundsBackground = BoundsBackground, boundsForeground = BoundsForeground } = components
+    const {
+      ContextBar,
+      BoundsBackground = _BoundsBackground,
+      BoundsForeground = _BoundsForeground,
+    } = components
 
     autorun(() => {
       setCurrentContext({
@@ -75,8 +87,9 @@ export const Renderer = observer(function Renderer<
           onKeyUp,
         },
         components: {
-          boundsBackground,
-          boundsForeground,
+          ContextBar,
+          BoundsBackground,
+          BoundsForeground,
         },
         meta,
       })

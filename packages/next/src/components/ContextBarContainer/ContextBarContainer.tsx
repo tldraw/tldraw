@@ -4,23 +4,21 @@ import { observer } from 'mobx-react-lite'
 import type { TLNuBounds } from '~types'
 
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-interface ContainerProps extends React.HTMLProps<HTMLDivElement> {
+interface ContextBarContainerProps extends React.HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLNuBounds
   isGhost?: boolean
   zIndex?: number
   rotation?: number
-  counterScaled?: boolean
   className?: string
   children: React.ReactNode
 }
 
-export const Container = observer<ContainerProps>(function Container({
+export const ContextBarContainer = observer<ContextBarContainerProps>(function ContextBarContainer({
   id,
   bounds,
   rotation = 0,
   className = '',
-  counterScaled,
   zIndex,
   isGhost,
   children,
@@ -37,12 +35,11 @@ export const Container = observer<ContainerProps>(function Container({
       calc(${bounds.minX}px - var(--nu-padding)),
       calc(${bounds.minY}px - var(--nu-padding))
     )
-    rotate(${rotation + (bounds.rotation || 0)}rad)
-    ${counterScaled ? 'scale(var(--nu-scale)' : ''}`
+    rotate(${rotation + (bounds.rotation || 0)}rad)`
 
       elm.style.setProperty('transform', transform)
     })
-  }, [bounds, counterScaled])
+  }, [bounds])
 
   React.useLayoutEffect(() => {
     return autorun(() => {

@@ -250,6 +250,10 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   // Camera
 
+  @action setCamera = (point?: number[], zoom?: number) => {
+    this.viewport.update({ point, zoom })
+  }
+
   readonly getPagePoint = (point: number[]): number[] => {
     const { camera } = this.viewport
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)

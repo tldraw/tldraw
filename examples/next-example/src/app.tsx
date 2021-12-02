@@ -10,6 +10,15 @@ import {
 import { NuBoxShape, NuEllipseShape, Shape, NuBoxTool, NuEllipseTool } from 'stores'
 import { AppUI } from 'components/AppUI'
 
+function ContextBar() {
+  console.log('hi')
+  return <div>hi</div>
+}
+
+const components = {
+  ContextBar,
+}
+
 function App(): JSX.Element {
   const [app, setApp] = React.useState<TLNuApp<Shape>>()
 
@@ -47,6 +56,7 @@ function App(): JSX.Element {
 
   const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
     setApp(app)
+    app.setCamera(undefined, 0.5)
   }, [])
 
   const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {
@@ -61,6 +71,7 @@ function App(): JSX.Element {
         serializedApp={serializedApp}
         shapeClasses={shapeClasses}
         toolClasses={toolClasses}
+        components={components}
       />
       {app && <AppUI app={app} />}
     </div>

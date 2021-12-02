@@ -14,6 +14,7 @@ import {
 import type { TLNuShape } from '~nu-lib'
 import type { TLNuBinding, TLNuRendererProps } from '~types'
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '~constants'
+import { autorun } from 'mobx'
 
 export const Canvas = observer(function Renderer<
   S extends TLNuShape = TLNuShape,
@@ -39,18 +40,29 @@ export const Canvas = observer(function Renderer<
 
   const { viewport, components, meta } = useContext()
   useResizeObserver(rContainer, viewport)
-  useCameraCss(rContainer, viewport)
+  // useCameraCss(rContainer, viewport)
   useGestureEvents(rContainer)
 
   const events = useCanvasEvents()
 
+  // If we zoomed, set the CSS variable for the zoom
+  React.useLayoutEffect(() => {
+    return autorun(() => {
+      const { zoom } = viewport.camera
+      const container = rContainer.current
+      if (!container) return
+      console.log('updating zoom css', zoom.toString())
+      container.style.setProperty('--nu-zoom', zoom.toString())
+    })
+  }, [])
+
   return (
-    <div className="nu-container">
-      <div ref={rContainer} tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
+    <div ref={rContainer} className="nu-container">
+      <div tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
         <HTMLLayer>
           {selectedBounds && showBounds && (
             <Container bounds={selectedBounds} zIndex={2}>
-              <components.boundsBackground
+              <components.BoundsBackground
                 shapes={selectedShapes}
                 bounds={selectedBounds}
                 showResizeHandles={showResizeHandles}
@@ -86,12 +98,17 @@ export const Canvas = observer(function Renderer<
           {brush && <Brush brush={brush} />}
           {selectedBounds && showBounds && (
             <Container bounds={selectedBounds} zIndex={10002}>
-              <components.boundsForeground
+              <components.BoundsForeground
                 shapes={selectedShapes}
                 bounds={selectedBounds}
                 showResizeHandles={showResizeHandles}
                 showRotateHandle={showRotateHandle}
               />
+            </Container>
+          )}
+          {selectedBounds && components.ContextBar && (
+            <Container bounds={selectedBounds} zIndex={10003} counterScaled>
+              <components.ContextBar shapes={selectedShapes} bounds={selectedBounds} />
             </Container>
           )}
         </HTMLLayer>

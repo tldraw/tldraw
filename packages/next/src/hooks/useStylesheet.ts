@@ -282,7 +282,7 @@ const tlcss = css`
     pointer-events: none;
   }
 
-  tl-indicator-container {
+  .nu-indicator-container {
     transform-origin: 0 0;
   }
 
@@ -411,6 +411,11 @@ const tlcss = css`
   .nu-grid-dot {
     fill: var(--nu-grid);
   }
+
+  .nu-context-bar {
+    background-color: red;
+    transform: scale(var(--nu-scale));
+  }
 `
 
 export function useStylesheet(theme?: Partial<TLNuTheme>, selector?: string) {
@@ -423,6 +428,5 @@ export function useStylesheet(theme?: Partial<TLNuTheme>, selector?: string) {
   )
 
   useTheme('nu', tltheme, selector)
-
   useStyle('nu-canvas', tlcss)
 }

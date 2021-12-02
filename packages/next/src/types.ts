@@ -142,9 +142,15 @@ export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
   props: TLNuBoundsComponentProps<S>
 ) => JSX.Element
 
+export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {
+  shapes: S[]
+  bounds: TLNuBounds
+}) => JSX.Element
+
 export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
-  boundsBackground: TLNuBoundsComponent<S>
-  boundsForeground: TLNuBoundsComponent<S>
+  BoundsBackground: TLNuBoundsComponent<S>
+  BoundsForeground: TLNuBoundsComponent<S>
+  ContextBar?: TLNuContextBarComponent<S>
 }
 
 export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
