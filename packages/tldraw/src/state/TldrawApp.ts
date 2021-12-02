@@ -469,7 +469,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPersist = () => {
-    this.broadcastPageChanges()
+    // If we are part of a room, send our changes to the server
+    if (this.callbacks.onChangePage) {
+      this.broadcastPageChanges()
+    }
   }
 
   private prevSelectedIds = this.selectedIds
@@ -493,7 +496,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* ----------- Managing Multiplayer State ----------- */
 
-  private ticksBeforeReplace = 0
+  private justSent = false
   private prevShapes = this.page.shapes
   private prevBindings = this.page.bindings
 
@@ -553,7 +556,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         changedBindings[id] = undefined
       })
 
-    this.ticksBeforeReplace = 2
+    this.justSent = true
     this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
     this.callbacks.onPersist?.(this)
     this.prevShapes = this.page.shapes
@@ -628,11 +631,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // This will be called a few times: once by our own change,
     // once by the change to shapes, and once by the change to bindings
 
-    if (this.ticksBeforeReplace > 0) {
-      this.ticksBeforeReplace--
-    }
-
-    if (this.ticksBeforeReplace > 0) {
+    if (this.justSent) {
+      this.justSent = false
       return this
     }
 
