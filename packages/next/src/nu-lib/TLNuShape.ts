@@ -81,7 +81,7 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isAspectRatioLocked,
     } = props
 
-    this.serializedProps = Object.keys(props).concat(['type', 'nonce'])
+    this.serializedProps = Object.keys(props).concat(['shapeId', 'nonce'])
 
     this.id = id
     this.parentId = parentId
@@ -201,7 +201,7 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
   get shapeId(): string {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    return this.constructor['type']
+    return this.constructor['id']
   }
 
   set shapeId(type: string) {

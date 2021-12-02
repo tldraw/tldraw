@@ -1,54 +1,55 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { Renderer, TLNuBinding, TLNuSubscriptionCallback } from '@tldraw/next'
-import { observer, Observer } from 'mobx-react-lite'
-import { appContext, useAppContext, useCreateAppContext } from 'context'
-import type { Shape } from 'stores'
+import { App as TLNuAppComponent, TLNuApp, TLNuSubscriptionCallbacks } from '@tldraw/next'
+import { NuBoxShape, NuEllipseShape, Shape, NuBoxTool, NuEllipseTool } from 'stores'
+import { Observer } from 'mobx-react-lite'
 
-interface AppProps {
-  onMount?: TLNuSubscriptionCallback<'mount', Shape, TLNuBinding>
-  onPersist?: TLNuSubscriptionCallback<'persist', Shape, TLNuBinding>
-}
+function App(): JSX.Element {
+  const [app, setApp] = React.useState<TLNuApp<Shape>>()
 
-export default function AppProvider({ onMount, onPersist }: AppProps) {
-  const app = useCreateAppContext()
+  const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
+    setApp(app)
+  }, [])
 
-  React.useLayoutEffect(() => {
-    if (app) {
-      if (onMount) app.subscribe('mount', onMount)
-      if (onPersist) app.subscribe('persist', onPersist)
-    }
+  const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {
+    console.log('persisting!')
   }, [])
 
   return (
-    <appContext.Provider value={app}>
-      <App />
-    </appContext.Provider>
+    <div className="tlnu-app">
+      <TLNuAppComponent
+        onMount={onMount}
+        onPersist={onPersist}
+        serializedApp={{
+          currentPageId: 'page1',
+          selectedIds: [],
+          pages: [
+            {
+              name: 'Page',
+              id: 'page1',
+              shapes: [
+                {
+                  id: 'box1',
+                  type: 'box',
+                  parentId: 'page1',
+                  point: [100, 100],
+                  size: [100, 100],
+                },
+              ],
+              bindings: [],
+            },
+          ],
+        }}
+        shapeClasses={[NuBoxShape, NuEllipseShape]}
+        toolClasses={[NuBoxTool, NuEllipseTool]}
+      />
+      {app && <AppUI app={app} />}
+    </div>
   )
 }
 
-const App = observer(function App(): JSX.Element {
-  const app = useAppContext()
-
-  const {
-    currentPage: { shapes, bindings },
-    shapesInViewport,
-    viewport,
-    inputs,
-    hoveredShape,
-    selectedShapes,
-    selectedBounds,
-    brush,
-    onPan,
-    onPointerDown,
-    onPointerUp,
-    onPointerMove,
-    onPointerEnter,
-    onPointerLeave,
-    onKeyDown,
-    onKeyUp,
-  } = app
-
+function AppUI({ app }: { app: TLNuApp<Shape> }) {
   const handleToolClick = React.useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       const tool = e.currentTarget.dataset.tool
@@ -68,28 +69,10 @@ const App = observer(function App(): JSX.Element {
 
   const handleToolLockClick = React.useCallback(() => {
     app.setToolLock(!app.isToolLocked)
-  }, [])
+  }, [app])
 
   return (
-    <div className="tlnu-app">
-      <Renderer
-        shapes={shapes.length > 150 ? shapesInViewport : shapes}
-        bindings={bindings}
-        viewport={viewport}
-        inputs={inputs}
-        hoveredShape={hoveredShape}
-        selectedShapes={selectedShapes}
-        selectedBounds={selectedBounds}
-        brush={brush}
-        onPan={onPan}
-        onPointerDown={onPointerDown}
-        onPointerUp={onPointerUp}
-        onPointerMove={onPointerMove}
-        onKeyDown={onKeyDown}
-        onKeyUp={onKeyUp}
-        onPointerEnter={onPointerEnter}
-        onPointerLeave={onPointerLeave}
-      />
+    <>
       <Observer>
         {() => (
           <div className="tlnu-toolbar">
@@ -125,6 +108,8 @@ const App = observer(function App(): JSX.Element {
           )
         }}
       </Observer>
-    </div>
+    </>
   )
-})
+}
+
+export default App

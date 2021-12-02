@@ -34,11 +34,12 @@ export const CornerHandle = observer(function CornerHandle({
       <rect
         className={'nu-transparent ' + (isHidden ? '' : cornerBgClassnames[corner])}
         aria-label={`${corner} target`}
-        x={cx - targetSize}
-        y={cy - targetSize}
-        width={targetSize * 2}
-        height={targetSize * 2}
+        x={cx - targetSize * 1.25}
+        y={cy - targetSize * 1.25}
+        width={targetSize * 2.5}
+        height={targetSize * 2.5}
         pointerEvents={isHidden ? 'none' : 'all'}
+        fill={'black'}
         {...events}
       />
       <rect

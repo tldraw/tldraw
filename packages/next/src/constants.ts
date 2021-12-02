@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { TLNuBoundsCorner, TLNuBoundsEdge } from '~types'
 
 export const CURSORS = {
@@ -10,3 +11,6 @@ export const CURSORS = {
   [TLNuBoundsEdge.Bottom]: 'resize-ns',
   [TLNuBoundsEdge.Left]: 'resize-ew',
 }
+
+export const EMPTY_OBJECT: any = {}
+export const EMPTY_ARRAY: any[] = []
