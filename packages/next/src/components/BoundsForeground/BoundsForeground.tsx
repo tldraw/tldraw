@@ -7,11 +7,12 @@ import { SVGContainer } from '../SVGContainer'
 
 export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>({
   bounds,
+  zoom,
 }: TLNuBoundsComponentProps<S>) {
   const { width, height } = bounds
 
-  const size = 8
-  const targetSize = 6
+  const size = 8 / zoom
+  const targetSize = 6 / zoom
 
   return (
     <SVGContainer>
@@ -56,28 +57,28 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
       <CornerHandle
         cx={0}
         cy={0}
-        size={8}
+        size={size}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.TopLeft}
       />
       <CornerHandle
         cx={width}
         cy={0}
-        size={8}
+        size={size}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.TopRight}
       />
       <CornerHandle
         cx={width}
         cy={height}
-        size={8}
+        size={size}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomRight}
       />
       <CornerHandle
         cx={0}
         cy={height}
-        size={8}
+        size={size}
         targetSize={targetSize}
         corner={TLNuBoundsCorner.BottomLeft}
       />

@@ -1,6 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { KeyboardEvent } from 'react'
 import type React from 'react'
-import type { TLNuApp, TLNuShape } from '~nu-lib'
+import type {
+  TLNuApp,
+  TLNuInputs,
+  TLNuSerializedApp,
+  TLNuShape,
+  TLNuShapeClass,
+  TLNuToolClass,
+  TLNuViewport,
+} from '~nu-lib'
 
 export enum TLNuBoundsEdge {
   Top = 'top_edge',
@@ -112,17 +121,18 @@ export interface TLNuCallbacks<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
 > {
-  onPan?: TLNuWheelHandler<S, E>
-  onPointerDown?: TLNuPointerHandler<S, E>
-  onPointerUp?: TLNuPointerHandler<S, E>
-  onPointerMove?: TLNuPointerHandler<S, E>
-  onPointerEnter?: TLNuPointerHandler<S, E>
-  onPointerLeave?: TLNuPointerHandler<S, E>
-  onKeyDown?: TLNuKeyboardHandler<S, E>
-  onKeyUp?: TLNuKeyboardHandler<S, E>
+  onPan: TLNuWheelHandler<S, E>
+  onPointerDown: TLNuPointerHandler<S, E>
+  onPointerUp: TLNuPointerHandler<S, E>
+  onPointerMove: TLNuPointerHandler<S, E>
+  onPointerEnter: TLNuPointerHandler<S, E>
+  onPointerLeave: TLNuPointerHandler<S, E>
+  onKeyDown: TLNuKeyboardHandler<S, E>
+  onKeyUp: TLNuKeyboardHandler<S, E>
 }
 
 export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
+  zoom: number
   shapes: S[]
   bounds: TLNuBounds
   showResizeHandles: boolean
@@ -133,9 +143,15 @@ export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
   props: TLNuBoundsComponentProps<S>
 ) => JSX.Element
 
+export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {
+  shapes: S[]
+  bounds: TLNuBounds
+}) => JSX.Element
+
 export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
-  boundsBackground: TLNuBoundsComponent<S>
-  boundsForeground: TLNuBoundsComponent<S>
+  BoundsBackground: TLNuBoundsComponent<S>
+  BoundsForeground: TLNuBoundsComponent<S>
+  ContextBar?: TLNuContextBarComponent<S>
 }
 
 export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
@@ -196,3 +212,60 @@ export function isStringArray(arr: string[] | any[]): asserts arr is string[] {
     throw Error('Expected a string array.')
   }
 }
+
+export interface TLNuViewOptions {
+  showBounds?: boolean
+  showResizeHandles?: boolean
+  showRotateHandle?: boolean
+}
+
+export interface TLNuContextProviderProps<S extends TLNuShape> extends TLNuCallbacks<S> {
+  children?: React.ReactNode
+  components?: Partial<TLNuComponents<S>>
+  id?: string
+  inputs: TLNuInputs
+  theme?: TLNuTheme
+  viewport: TLNuViewport
+  meta?: any
+}
+
+export interface TLNuRendererProps<S extends TLNuShape, B extends TLNuBinding>
+  extends TLNuViewOptions {
+  bindings?: B[]
+  brush?: TLNuBounds
+  children?: React.ReactNode
+  hoveredShape?: S
+  editingShape?: S
+  bindingShape?: S
+  id?: string
+  selectedBounds?: TLNuBounds
+  selectedShapes?: S[]
+  shapes?: S[]
+  theme?: TLNuTheme
+}
+
+export interface TLNuSubscriptionCallbacks<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> {
+  onMount: TLNuSubscriptionCallback<'mount', S, B>
+  onPersist: TLNuSubscriptionCallback<'persist', S, B>
+}
+
+export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> = {
+  id?: string
+  meta?: Record<string, unknown>
+  theme?: Partial<TLNuTheme>
+  components?: Partial<TLNuComponents>
+  children?: React.ReactNode
+} & TLNuViewOptions &
+  Partial<TLNuSubscriptionCallbacks<S, B>> &
+  Partial<TLNuCallbacks<S>> &
+  (
+    | {
+        serializedApp?: TLNuSerializedApp
+        shapeClasses?: TLNuShapeClass<S>[]
+        toolClasses?: TLNuToolClass<S, B>[]
+      }
+    | { app: TLNuApp<S, B> }
+  )

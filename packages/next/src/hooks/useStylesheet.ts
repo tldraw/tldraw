@@ -125,7 +125,6 @@ const tlcss = css`
     padding: 0px;
     margin: 0px;
     z-index: 100;
-    overflow: hidden;
     touch-action: none;
     overscroll-behavior: none;
     background-color: var(--nu-background);
@@ -197,7 +196,6 @@ const tlcss = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     contain: layout style size;
   }
 
@@ -282,7 +280,7 @@ const tlcss = css`
     pointer-events: none;
   }
 
-  tl-indicator-container {
+  .nu-indicator-container {
     transform-origin: 0 0;
   }
 
@@ -411,6 +409,20 @@ const tlcss = css`
   .nu-grid-dot {
     fill: var(--nu-grid);
   }
+
+  .nu-context-bar {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    grid-template-columns: 1fr;
+  }
+
+  .nu-context-bar > * {
+    grid-column: 1;
+    grid-row: 1;
+  }
 `
 
 export function useStylesheet(theme?: Partial<TLNuTheme>, selector?: string) {
@@ -423,6 +435,5 @@ export function useStylesheet(theme?: Partial<TLNuTheme>, selector?: string) {
   )
 
   useTheme('nu', tltheme, selector)
-
   useStyle('nu-canvas', tlcss)
 }

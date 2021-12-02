@@ -34,6 +34,11 @@ export class TLNuViewport {
     this.camera.point = Vec.sub(this.camera.point, delta)
   }
 
+  @action update = ({ point, zoom }: Partial<{ point: number[]; zoom: number }>) => {
+    if (point !== undefined) this.camera.point = point
+    if (zoom !== undefined) this.camera.zoom = zoom
+  }
+
   @computed get currentView(): TLNuBounds {
     const {
       bounds,

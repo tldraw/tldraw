@@ -39,8 +39,16 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
 
   @observable bindings: B[]
 
-  @action addShapes(...shapes: S[]) {
-    this.shapes.push(...shapes)
+  @action addShapes(...shapes: S[] | TLNuSerializedShape[]) {
+    const shapeInstances =
+      'shapeId' in shapes[0]
+        ? (shapes as S[])
+        : (shapes as TLNuSerializedShape[]).map((shape) => {
+            const ShapeClass = this.app.getShapeClass(shape.type)
+            return new ShapeClass(shape)
+          })
+
+    this.shapes.push(...shapeInstances)
     this.bump()
     this.app.persist()
   }

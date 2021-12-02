@@ -6,7 +6,7 @@ import type { TLNuCallbacks, TLNuComponents } from '~types'
 export type NuContext<S extends TLNuShape = TLNuShape> = {
   viewport: TLNuViewport
   inputs: TLNuInputs
-  callbacks: TLNuCallbacks<S>
+  callbacks: Partial<TLNuCallbacks<S>>
   components: TLNuComponents<S>
   meta: any
 }

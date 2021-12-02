@@ -1,14 +1,12 @@
 import { TLNuApp, TLNuPage, TLNuSerializedApp, TLNuShape } from '~nu-lib'
 import type { TLNuBinding } from '~types'
 import { KeyUtils } from '~utils'
-import { transaction } from 'mobx'
 
 export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> {
   constructor(app: TLNuApp<S, B>) {
     KeyUtils.registerShortcut('cmd+z,ctrl+z', () => this.undo())
     KeyUtils.registerShortcut('cmd+shift+z,ctrl+shift+z', () => this.redo())
     this.app = app
-    this.stack = [this.app.serialized]
   }
 
   app: TLNuApp<S, B>
@@ -78,7 +76,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
     // Pause the history, to prevent any loops
     this.pause()
 
-    this.app.setCurrentPageId(currentPageId)
+    this.app.setCurrentPage(currentPageId)
     this.app.select(...selectedIds)
 
     const pagesMap = new Map(this.app.pages.map((page) => [page.id, page]))
@@ -103,18 +101,17 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
             shapesMap.delete(serializedShape.id)
           } else {
             // Create the shape
+            console.log(serializedShape)
             const ShapeClass = this.app.getShapeClass(serializedShape.type)
             shapesToAdd.push(new ShapeClass(serializedShape) as S)
           }
         }
 
-        if (shapesMap.size > 0) {
-          // Any shapes remaining in the shapes map need to be removed
-          page.removeShapes(...shapesMap.values())
-        }
+        // Any shapes remaining in the shapes map need to be removed
+        if (shapesMap.size > 0) page.removeShapes(...shapesMap.values())
 
         // Add any new shapes
-        page.addShapes(...shapesToAdd)
+        if (shapesToAdd.length > 0) page.addShapes(...shapesToAdd)
 
         // Remove the page from the map
         pagesMap.delete(serializedPage.id)
@@ -136,13 +133,11 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
       }
     }
 
-    if (pagesMap.size > 0) {
-      // Any pages remaining in the pages map need to be removed
-      this.app.removePages(...pagesMap.values())
-    }
+    // Any pages remaining in the pages map need to be removed
+    if (pagesMap.size > 0) this.app.removePages(...pagesMap.values())
 
     // Add any new pages
-    this.app.addPages(...pagesToAdd)
+    if (pagesToAdd.length > 0) this.app.addPages(...pagesToAdd)
 
     // Resume the history if not originally paused
     if (!wasPaused) this.resume()

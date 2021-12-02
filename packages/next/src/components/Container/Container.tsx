@@ -10,6 +10,8 @@ interface ContainerProps extends React.HTMLProps<HTMLDivElement> {
   isGhost?: boolean
   zIndex?: number
   rotation?: number
+  counterScaled?: boolean
+  className?: string
   children: React.ReactNode
 }
 
@@ -17,13 +19,14 @@ export const Container = observer<ContainerProps>(function Container({
   id,
   bounds,
   rotation = 0,
+  className = '',
+  counterScaled,
   zIndex,
   isGhost,
   children,
   ...props
 }) {
   const rBounds = React.useRef<HTMLDivElement>(null)
-  const rTransform = React.useRef<SVGSVGElement>(null)
 
   React.useLayoutEffect(() => {
     return autorun(() => {
@@ -34,15 +37,12 @@ export const Container = observer<ContainerProps>(function Container({
       calc(${bounds.minX}px - var(--nu-padding)),
       calc(${bounds.minY}px - var(--nu-padding))
     )
-    rotate(${rotation + (bounds.rotation || 0)}rad)`
+    rotate(${rotation + (bounds.rotation || 0)}rad)
+    ${counterScaled ? 'scale(var(--nu-scale)' : ''}`
 
       elm.style.setProperty('transform', transform)
-
-      // if (zIndex !== undefined) {
-      //   elm.style.setProperty('z-index', zIndex?.toString())
-      // }
     })
-  }, [bounds])
+  }, [bounds, counterScaled])
 
   React.useLayoutEffect(() => {
     return autorun(() => {
@@ -68,7 +68,7 @@ export const Container = observer<ContainerProps>(function Container({
     <div
       id={id}
       ref={rBounds}
-      className={isGhost ? 'nu-positioned nu-ghost' : 'nu-positioned'}
+      className={`nu-positioned ${isGhost ? 'nu-ghost' : ''} ${className}`}
       aria-label="container"
       data-testid="container"
       {...props}

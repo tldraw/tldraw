@@ -12,6 +12,7 @@ import {
   TLNuSerializedPage,
   TLNuShapeClass,
   TLNuToolClass,
+  TLNuSerializedShape,
 } from '~nu-lib'
 import type {
   TLNuBinding,
@@ -55,32 +56,60 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   @observable viewport = new TLNuViewport()
 
-  // Shapes
+  /* --------------------- History -------------------- */
+
+  // this needs to be at the bottom
+
+  history = new TLNuHistory<S, B>(this)
+
+  persist = this.history.persist
+
+  undo = this.history.undo
+
+  redo = this.history.redo
+
+  /* -------------------- App State ------------------- */
+
+  loadAppState(state: TLNuSerializedApp) {
+    this.history.deserialize(state)
+  }
+
+  @computed get serialized(): TLNuSerializedApp {
+    return {
+      currentPageId: this.currentPageId,
+      selectedIds: this.selectedIds,
+      pages: this.pages.map((page) => page.serialized),
+    }
+  }
+
+  /* ------------------ Shape Classes ----------------- */
 
   // Map of shape classes (used for deserialization)
-  shapes = new Map<string, TLNuShapeClass<S>>()
+  shapeClasses = new Map<string, TLNuShapeClass<S>>()
 
   registerShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
-    shapeClasses.forEach((shapeClass) => this.shapes.set(shapeClass.id, shapeClass))
+    shapeClasses.forEach((shapeClass) => this.shapeClasses.set(shapeClass.id, shapeClass))
   }
 
   deregisterShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
-    shapeClasses.forEach((shapeClass) => this.shapes.delete(shapeClass.id))
+    shapeClasses.forEach((shapeClass) => this.shapeClasses.delete(shapeClass.id))
   }
 
   getShapeClass = (type: string): TLNuShapeClass<S> => {
-    const shapeClass = this.shapes.get(type)
+    const shapeClass = this.shapeClasses.get(type)
     if (!shapeClass) throw Error(`Could not find shape class for ${type}`)
     return shapeClass
   }
 
-  // Tools
+  /* ------------------ Tool Classse ------------------ */
 
-  readonly tools: Map<string, TLNuTool<S, B>> = new Map([['select', new TLNuSelectTool(this)]])
+  readonly toolClasses: Map<string, TLNuTool<S, B>> = new Map([
+    ['select', new TLNuSelectTool(this)],
+  ])
 
   registerTools = (...tools: TLNuToolClass<S, B>[]) => {
     tools.forEach((Tool) => {
-      this.tools.set(Tool.id, new Tool(this))
+      this.toolClasses.set(Tool.id, new Tool(this))
       if (Tool.shortcut !== undefined) {
         KeyUtils.registerShortcut(Tool.shortcut, () => this.selectTool(Tool.id))
       }
@@ -88,14 +117,14 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   }
 
   deregisterTools = (...tools: TLNuToolClass<S, B>[]) => {
-    tools.forEach((Tool) => this.tools.delete(Tool.id))
+    tools.forEach((Tool) => this.toolClasses.delete(Tool.id))
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  @observable selectedTool: TLNuTool<S, B> = this.tools.get('select')!
+  @observable selectedTool: TLNuTool<S, B> = this.toolClasses.get('select')!
 
   @action readonly selectTool = (id: string, data: Record<string, unknown> = {}): this => {
-    const nextTool = this.tools.get(id)
+    const nextTool = this.toolClasses.get(id)
     if (!nextTool) throw Error(`Could not find a tool named ${id}.`)
     const currentToolType = this.selectedTool.toolId
     this.selectedTool.onExit?.({ ...data, toId: nextTool.toolId })
@@ -111,7 +140,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     this.isToolLocked = value
   }
 
-  // Pages
+  /* ---------------------- Pages --------------------- */
 
   @observable pages: TLNuPage<S, B>[] = [
     new TLNuPage<S, B>(this, { id: 'page', name: 'page', shapes: [], bindings: [] }),
@@ -127,12 +156,13 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     this.persist()
   }
 
-  // Current Page
+  /* ------------------ Current Page ------------------ */
 
   @observable currentPageId = 'page'
 
-  @action setCurrentPageId(id: string) {
-    this.currentPageId = id
+  @action setCurrentPage(page: string | TLNuPage<S, B>) {
+    this.currentPageId = typeof page === 'string' ? page : page.id
+    return this
   }
 
   @computed get currentPage(): TLNuPage<S, B> {
@@ -141,88 +171,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     return page
   }
 
-  // Hovered Shape
-
-  @observable hoveredId?: string
-
-  @computed get hoveredShape(): S | undefined {
-    const { hoveredId, currentPage } = this
-    return hoveredId ? currentPage.shapes.find((shape) => shape.id === hoveredId) : undefined
-  }
-
-  @action readonly hover = (id: string | undefined): this => {
-    this.hoveredId = id
-    return this
-  }
-
-  // Selected Shapes
-
-  @observable selectedIds: string[] = []
-
-  @computed get selectedShapes(): S[] {
-    return this.currentPage.shapes.filter((shape) => this.selectedIds.includes(shape.id))
-  }
-
-  @computed get selectedBounds(): TLNuBounds | undefined {
-    return this.selectedShapes.length === 1
-      ? { ...this.selectedShapes[0].bounds, rotation: this.selectedShapes[0].rotation }
-      : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
-  }
-
-  @action readonly select = (...shapes: S[] | string[]): this => {
-    if (shapes[0] && typeof shapes[0] === 'string') {
-      this.selectedIds = shapes as string[]
-    } else {
-      this.selectedIds = (shapes as S[]).map((shape) => shape.id)
-    }
-    return this
-  }
-
-  @action readonly deselect = (...ids: string[]): this => {
-    this.selectedIds = this.selectedIds.filter((id) => !ids.includes(id))
-    return this
-  }
-
-  @action readonly deselectAll = (): this => {
-    this.selectedIds.length = 0
-    return this
-  }
-
-  @action readonly selectAll = (): this => {
-    this.selectedIds = this.currentPage.shapes.map((shape) => shape.id)
-    return this
-  }
-
-  @action readonly delete = (...shapes: S[] | string[]): this => {
-    this.currentPage.removeShapes(...shapes)
-    return this
-  }
-
-  // Brush
-
-  @observable brush?: TLNuBounds
-
-  @action readonly setBrush = (brush: TLNuBounds): this => {
-    this.brush = brush
-    return this
-  }
-
-  @action readonly clearBrush = (): this => {
-    this.brush = undefined
-    return this
-  }
-
-  // Camera
-
-  readonly getPagePoint = (point: number[]): number[] => {
-    const { camera } = this.viewport
-    return Vec.sub(Vec.div(point, camera.zoom), camera.point)
-  }
-
-  readonly getScreenPoint = (point: number[]): number[] => {
-    const { camera } = this.viewport
-    return Vec.mul(Vec.add(point, camera.point), camera.zoom)
-  }
+  /* --------------------- Shapes --------------------- */
 
   @computed get shapesInViewport(): S[] {
     const {
@@ -238,15 +187,82 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     )
   }
 
-  // History
+  @action readonly createShapes = (shapes: S[] | TLNuSerializedShape[]): this => {
+    this.currentPage.addShapes(...shapes)
+    return this
+  }
 
-  history = new TLNuHistory<S, B>(this)
+  @action readonly deleteShapes = (shapes: S[] | string[]): this => {
+    this.currentPage.removeShapes(...shapes)
+    return this
+  }
 
-  persist = this.history.persist
+  /* ------------------ Hovered Shape ----------------- */
 
-  undo = this.history.undo
+  @observable hoveredId?: string
 
-  redo = this.history.redo
+  @computed get hoveredShape(): S | undefined {
+    const { hoveredId, currentPage } = this
+    return hoveredId ? currentPage.shapes.find((shape) => shape.id === hoveredId) : undefined
+  }
+
+  @action readonly setHoveredShape = (shape: string | S | undefined): this => {
+    this.hoveredId = typeof shape === 'string' ? shape : shape?.id
+    return this
+  }
+
+  /* ----------------- Selected Shapes ---------------- */
+
+  @observable selectedIds: string[] = []
+
+  @computed get selectedShapes(): S[] {
+    return this.currentPage.shapes.filter((shape) => this.selectedIds.includes(shape.id))
+  }
+
+  @computed get selectedBounds(): TLNuBounds | undefined {
+    return this.selectedShapes.length === 1
+      ? { ...this.selectedShapes[0].bounds, rotation: this.selectedShapes[0].rotation }
+      : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
+  }
+
+  @action readonly setSelectedShapes = (shapes: S[] | string[]): this => {
+    if (shapes[0] && typeof shapes[0] === 'string') {
+      this.selectedIds = shapes as string[]
+    } else {
+      this.selectedIds = (shapes as S[]).map((shape) => shape.id)
+    }
+    return this
+  }
+
+  /* ---------------------- Brush --------------------- */
+
+  @observable brush?: TLNuBounds
+
+  @action readonly setBrush = (brush: TLNuBounds): this => {
+    this.brush = brush
+    return this
+  }
+
+  @action readonly clearBrush = (): this => {
+    this.brush = undefined
+    return this
+  }
+
+  // Camera
+
+  @action setCamera = (point?: number[], zoom?: number) => {
+    this.viewport.update({ point, zoom })
+  }
+
+  readonly getPagePoint = (point: number[]): number[] => {
+    const { camera } = this.viewport
+    return Vec.sub(Vec.div(point, camera.zoom), camera.point)
+  }
+
+  readonly getScreenPoint = (point: number[]): number[] => {
+    const { camera } = this.viewport
+    return Vec.mul(Vec.add(point, camera.point), camera.zoom)
+  }
 
   /* --------------------- Events --------------------- */
 
@@ -316,11 +332,85 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     this.selectedTool._onKeyUp?.(info, e)
   }
 
-  @computed get serialized(): TLNuSerializedApp {
-    return {
-      currentPageId: this.currentPageId,
-      selectedIds: this.selectedIds,
-      pages: this.pages.map((page) => page.serialized),
-    }
+  /* ------------------- Public API ------------------- */
+
+  /**
+   * Set the current page.
+   * @param page The new current page or page id.
+   */
+  changePage = (page: string | TLNuPage<S, B>): this => {
+    return this.setCurrentPage(page)
+  }
+
+  /**
+   * Set the hovered shape.
+   * @param shape The new hovered shape or shape id.
+   */
+  hover = (shape: string | S | undefined): this => {
+    return this.setHoveredShape(shape)
+  }
+
+  /**
+   * Create one or more shapes on the current page.
+   * @param shapes The new shape instances or serialized shapes.
+   */
+  create = (...shapes: S[] | TLNuSerializedShape[]): this => {
+    return this.createShapes(shapes)
+  }
+
+  /**
+   * Update one or more shapes on the current page.
+   * @param shapes The serialized shape changes to apply.
+   */
+  update = (...shapes: { id: string } & TLNuSerializedShape[]): this => {
+    shapes.forEach((shape) => {
+      this.currentPage.shapes.find((instance) => shape.id === instance.id)?.update(shape)
+    })
+    return this
+  }
+
+  /**
+   * Delete one or more shapes from the current page.
+   * @param shapes The shapes or shape ids to delete.
+   */
+  delete = (...shapes: S[] | string[]): this => {
+    if (shapes.length === 0) shapes = this.selectedIds
+    if (shapes.length === 0) shapes = this.currentPage.shapes
+    return this.deleteShapes(shapes)
+  }
+
+  /**
+   * Select one or more shapes on the current page.
+   * @param shapes The shapes or shape ids to select.
+   */
+  select = (...shapes: S[] | string[]): this => {
+    return this.setSelectedShapes(shapes)
+  }
+
+  /**
+   * Deselect one or more selected shapes on the current page.
+   * @param ids The shapes or shape ids to deselect.
+   */
+  deselect = (...shapes: S[] | string[]): this => {
+    const ids =
+      typeof shapes[0] === 'string'
+        ? (shapes as string[])
+        : (shapes as S[]).map((shape) => shape.id)
+    this.setSelectedShapes(this.selectedIds.filter((id) => !ids.includes(id)))
+    return this
+  }
+
+  /**
+   * Select all shapes on the current page.
+   */
+  selectAll = (): this => {
+    return this.setSelectedShapes(this.currentPage.shapes)
+  }
+
+  /**
+   * Deselect all shapes on the current page.
+   */
+  deselectAll = (): this => {
+    return this.setSelectedShapes([])
   }
 }

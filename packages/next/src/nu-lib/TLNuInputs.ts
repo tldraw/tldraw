@@ -18,7 +18,7 @@ export class TLNuInputs {
   @observable isPressed = false
 
   @action updateModifiers(
-    event: PointerEvent | React.PointerEvent | KeyboardEvent | React.KeyboardEvent
+    event: PointerEvent | React.PointerEvent | KeyboardEvent | React.KeyboardEvent | WheelEvent
   ) {
     this.shiftKey = event.shiftKey
     this.ctrlKey = event.metaKey || event.ctrlKey
@@ -29,16 +29,19 @@ export class TLNuInputs {
     pagePoint: number[],
     event: PointerEvent | React.PointerEvent | WheelEvent
   ) => {
+    this.updateModifiers(event)
     this.previousPoint = this.currentPoint
     this.currentPoint = pagePoint
   }
 
   @action onPointerDown = (pagePoint: number[], event: PointerEvent | React.PointerEvent) => {
+    this.updateModifiers(event)
     this.originPoint = pagePoint
     this.isPressed = true
   }
 
   @action onPointerUp = (pagePoint: number[], event: PointerEvent | React.PointerEvent) => {
+    this.updateModifiers(event)
     this.isPressed = false
   }
 
