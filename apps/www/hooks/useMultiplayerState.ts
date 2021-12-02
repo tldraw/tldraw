@@ -11,21 +11,73 @@ export function useMultiplayerState(roomId: string) {
   const [app, setApp] = React.useState<TldrawApp>()
   const [error, setError] = React.useState<Error>()
   const [loading, setLoading] = React.useState(true)
-  const rExpectingUpdate = React.useRef(false)
 
   const room = useRoom()
   const onUndo = useUndo()
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  // Document Changes --------
-
   const rLiveShapes = React.useRef<LiveMap<string, TDShape>>()
   const rLiveBindings = React.useRef<LiveMap<string, TDBinding>>()
 
+  // Callbacks --------------
+
+  // Put the state into the window, for debugging.
+  const onMount = React.useCallback(
+    (app: TldrawApp) => {
+      app.loadRoom(roomId)
+      app.pause() // Turn off the app's own undo / redo stack
+      window.app = app
+      setApp(app)
+    },
+    [roomId]
+  )
+
+  // Update the live shapes when the app's shapes change.
+  const onChangePage = React.useCallback(
+    (
+      app: TldrawApp,
+      shapes: Record<string, TDShape | undefined>,
+      bindings: Record<string, TDBinding | undefined>
+    ) => {
+      room.batch(() => {
+        const lShapes = rLiveShapes.current
+        const lBindings = rLiveBindings.current
+
+        if (!(lShapes && lBindings)) return
+
+        Object.entries(shapes).forEach(([id, shape]) => {
+          if (!shape) {
+            lShapes.delete(id)
+          } else {
+            lShapes.set(shape.id, shape)
+          }
+        })
+
+        Object.entries(bindings).forEach(([id, binding]) => {
+          if (!binding) {
+            lBindings.delete(id)
+          } else {
+            lBindings.set(binding.id, binding)
+          }
+        })
+      })
+    },
+    [room]
+  )
+
+  // Handle presence updates when the user's pointer / selection changes
+  const onChangePresence = React.useCallback(
+    (app: TldrawApp, user: TDUser) => {
+      updateMyPresence({ id: app.room?.userId, user })
+    },
+    [updateMyPresence]
+  )
+
+  // Document Changes --------
+
   React.useEffect(() => {
     const unsubs: (() => void)[] = []
-
     if (!(app && room)) return
     // Handle errors
     unsubs.push(room.subscribe('error', (error) => setError(error)))
@@ -67,6 +119,8 @@ export function useMultiplayerState(roomId: string) {
     window.addEventListener('beforeunload', handleExit)
     unsubs.push(() => window.removeEventListener('beforeunload', handleExit))
 
+    let stillAlive = true
+
     // Setup the document's storage and subscriptions
     async function setupDocument() {
       const storage = await room.getStorage<any>()
@@ -87,25 +141,6 @@ export function useMultiplayerState(roomId: string) {
       }
       rLiveBindings.current = lBindings
 
-      // Subscribe to changes
-      function handleChanges() {
-        if (rExpectingUpdate.current) {
-          rExpectingUpdate.current = false
-          return
-        }
-
-        app?.replacePageContent(
-          Object.fromEntries(lShapes.entries()),
-          Object.fromEntries(lBindings.entries())
-        )
-      }
-
-      unsubs.push(room.subscribe(lShapes, handleChanges))
-      unsubs.push(room.subscribe(lBindings, handleChanges))
-
-      // Update the document with initial content
-      handleChanges()
-
       // Migrate previous versions
       const version = storage.root.get('version')
 
@@ -121,7 +156,7 @@ export function useMultiplayerState(roomId: string) {
           migrated?: boolean
         }>
 
-        // No doc? No problem. This was likely
+        // No doc? No problem. This was likely a newer document
         if (doc) {
           const {
             document: {
@@ -129,90 +164,40 @@ export function useMultiplayerState(roomId: string) {
                 page: { shapes, bindings },
               },
             },
-          } = doc.toObject() as { document: TDDocument }
+          } = doc.toObject()
 
-          for (const key in shapes) {
-            const shape = shapes[key]
-            lShapes.set(shape.id, shape)
-          }
-
-          for (const key in bindings) {
-            const binding = bindings[key]
-            lBindings.set(binding.id, binding)
-          }
+          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
+          Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
         }
       }
 
       // Save the version number for future migrations
       storage.root.set('version', 2)
 
-      setLoading(false)
-    }
+      // Subscribe to changes
+      const handleChanges = () => {
+        app?.replacePageContent(
+          Object.fromEntries(lShapes.entries()),
+          Object.fromEntries(lBindings.entries())
+        )
+      }
 
+      if (stillAlive) {
+        unsubs.push(room.subscribe(lShapes, handleChanges))
+
+        // Update the document with initial content
+        handleChanges()
+
+        setLoading(false)
+      }
+    }
     setupDocument()
 
     return () => {
+      stillAlive = false
       unsubs.forEach((unsub) => unsub())
     }
   }, [room, app])
-
-  // Callbacks --------------
-
-  // Put the state into the window, for debugging.
-  const onMount = React.useCallback(
-    (app: TldrawApp) => {
-      app.loadRoom(roomId)
-      app.pause() // Turn off the app's own undo / redo stack
-      window.app = app
-      setApp(app)
-    },
-    [roomId]
-  )
-
-  // Update the live shapes when the app's shapes change.
-  const onChangePage = React.useCallback(
-    (
-      app: TldrawApp,
-      shapes: Record<string, TDShape | undefined>,
-      bindings: Record<string, TDBinding | undefined>
-    ) => {
-      room.batch(() => {
-        const lShapes = rLiveShapes.current
-        const lBindings = rLiveBindings.current
-
-        if (!(lShapes && lBindings)) return
-
-        for (const id in shapes) {
-          const shape = shapes[id]
-          if (!shape) {
-            lShapes.delete(id)
-          } else {
-            lShapes.set(shape.id, shape)
-          }
-        }
-
-        for (const id in bindings) {
-          const binding = bindings[id]
-          if (!binding) {
-            lBindings.delete(id)
-          } else {
-            lBindings.set(binding.id, binding)
-          }
-        }
-
-        rExpectingUpdate.current = true
-      })
-    },
-    [room]
-  )
-
-  // Handle presence updates when the user's pointer / selection changes
-  const onChangePresence = React.useCallback(
-    (app: TldrawApp, user: TDUser) => {
-      updateMyPresence({ id: app.room?.userId, user })
-    },
-    [updateMyPresence]
-  )
 
   return {
     onUndo,
