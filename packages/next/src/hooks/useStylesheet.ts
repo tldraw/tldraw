@@ -448,6 +448,7 @@ const tlcss = css`
     pointer-events: none;
     padding: 0;
     contain: layout style size;
+    will-change: transform;
   }
 
   .nu-fade-in {
@@ -467,6 +468,7 @@ const tlcss = css`
   }
 
   .nu-counter-scaled-positioned > .nu-positioned-div {
+    user-select: none;
     padding: 64px;
   }
 

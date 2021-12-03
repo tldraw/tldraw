@@ -8,6 +8,8 @@ import { SVGContainer } from '../SVGContainer'
 export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>({
   bounds,
   zoom,
+  showResizeHandles,
+  showRotateHandle,
 }: TLNuBoundsComponentProps<S>) {
   const { width, height } = bounds
 
@@ -54,35 +56,41 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
         targetSize={targetSize}
         edge={TLNuBoundsEdge.Left}
       />
-      <CornerHandle
-        cx={0}
-        cy={0}
-        size={size}
-        targetSize={targetSize}
-        corner={TLNuBoundsCorner.TopLeft}
-      />
-      <CornerHandle
-        cx={width}
-        cy={0}
-        size={size}
-        targetSize={targetSize}
-        corner={TLNuBoundsCorner.TopRight}
-      />
-      <CornerHandle
-        cx={width}
-        cy={height}
-        size={size}
-        targetSize={targetSize}
-        corner={TLNuBoundsCorner.BottomRight}
-      />
-      <CornerHandle
-        cx={0}
-        cy={height}
-        size={size}
-        targetSize={targetSize}
-        corner={TLNuBoundsCorner.BottomLeft}
-      />
-      <RotateHandle cx={width / 2} cy={0 - targetSize * 2} size={size} targetSize={targetSize} />
+      {showResizeHandles && (
+        <>
+          <CornerHandle
+            cx={0}
+            cy={0}
+            size={size}
+            targetSize={targetSize}
+            corner={TLNuBoundsCorner.TopLeft}
+          />
+          <CornerHandle
+            cx={width}
+            cy={0}
+            size={size}
+            targetSize={targetSize}
+            corner={TLNuBoundsCorner.TopRight}
+          />
+          <CornerHandle
+            cx={width}
+            cy={height}
+            size={size}
+            targetSize={targetSize}
+            corner={TLNuBoundsCorner.BottomRight}
+          />
+          <CornerHandle
+            cx={0}
+            cy={height}
+            size={size}
+            targetSize={targetSize}
+            corner={TLNuBoundsCorner.BottomLeft}
+          />
+        </>
+      )}
+      {showRotateHandle && (
+        <RotateHandle cx={width / 2} cy={0 - targetSize * 2} size={size} targetSize={targetSize} />
+      )}
     </SVGContainer>
   )
 })

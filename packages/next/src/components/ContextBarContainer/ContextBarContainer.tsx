@@ -49,7 +49,7 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
   return (
     <div
       ref={rBounds}
-      className="nu-counter-scaled-positioned "
+      className="nu-counter-scaled-positioned"
       aria-label="context-bar-container"
       onPointerMove={stopEventPropagation}
       onPointerUp={stopEventPropagation}

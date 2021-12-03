@@ -30,14 +30,23 @@ export class NuBoxShape extends NuBaseShape<NuBoxShapeProps> {
   @observable size: number[]
 
   Component = observer(({ events }: TLNuComponentProps) => {
+    const {
+      size: [w, h],
+      stroke,
+      fill,
+      strokeWidth,
+    } = this
+
     return (
       <SVGContainer {...events}>
         <rect
-          width={this.size[0]}
-          height={this.size[1]}
-          stroke={this.stroke}
-          fill={this.fill}
-          strokeWidth={this.strokeWidth}
+          x={strokeWidth / 2}
+          y={strokeWidth / 2}
+          width={Math.max(0.01, w - strokeWidth)}
+          height={Math.max(0.01, h - strokeWidth)}
+          stroke={stroke}
+          fill={fill}
+          strokeWidth={strokeWidth}
           pointerEvents="all"
         />
       </SVGContainer>

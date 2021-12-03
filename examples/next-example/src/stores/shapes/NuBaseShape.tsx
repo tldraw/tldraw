@@ -11,7 +11,7 @@ export interface NuBaseShapeProps extends TLNuShapeProps {
 export abstract class NuBaseShape<P extends NuBaseShapeProps> extends TLNuShape<P> {
   constructor(props = {} as P) {
     super(props)
-    const { stroke = '#000000', fill = '#ffffff33', strokeWidth = 2 } = props
+    const { stroke = '#000000', fill = '#ffffffcc', strokeWidth = 2 } = props
     this.stroke = stroke
     this.fill = fill
     this.strokeWidth = strokeWidth

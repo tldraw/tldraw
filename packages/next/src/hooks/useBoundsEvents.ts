@@ -1,45 +1,44 @@
 import * as React from 'react'
 import { useContext } from '~hooks'
-import { TLNuBoundsHandle, TLNuTargetType } from '~types'
+import { TLNuBoundsHandle, TLNuPointerEventHandler, TLNuTargetType } from '~types'
 
 export function useBoundsEvents(handle: TLNuBoundsHandle) {
   const { viewport, inputs, callbacks } = useContext()
 
   const events = React.useMemo(() => {
-    const onPointerMove: React.PointerEventHandler = (e) => {
+    const onPointerMove: TLNuPointerEventHandler = (e) => {
+      const { order = 0 } = e
       inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
-      callbacks.onPointerMove?.({ type: TLNuTargetType.Bounds, target: handle, order: e.detail }, e)
-      e.detail++
+      callbacks.onPointerMove?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      e.order = order + 1
     }
 
-    const onPointerDown: React.PointerEventHandler = (e) => {
-      if (e.detail === 0) e.currentTarget.setPointerCapture(e.pointerId)
+    const onPointerDown: TLNuPointerEventHandler = (e) => {
+      const { order = 0 } = e
+      if (order) e.currentTarget.setPointerCapture(e.pointerId)
       inputs.onPointerDown([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
-      callbacks.onPointerDown?.({ type: TLNuTargetType.Bounds, target: handle, order: e.detail }, e)
-      e.detail++
+      callbacks.onPointerDown?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      e.order = order + 1
     }
 
-    const onPointerUp: React.PointerEventHandler = (e) => {
-      if (e.detail === 0) e.currentTarget.releasePointerCapture(e.pointerId)
+    const onPointerUp: TLNuPointerEventHandler = (e) => {
+      const { order = 0 } = e
+      if (order) e.currentTarget.releasePointerCapture(e.pointerId)
       inputs.onPointerUp([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
-      callbacks.onPointerUp?.({ type: TLNuTargetType.Bounds, target: handle, order: e.detail }, e)
-      e.detail++
+      callbacks.onPointerUp?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      e.order = order + 1
     }
 
-    const onPointerEnter: React.PointerEventHandler = (e) => {
-      callbacks.onPointerEnter?.(
-        { type: TLNuTargetType.Bounds, target: handle, order: e.detail },
-        e
-      )
-      e.detail++
+    const onPointerEnter: TLNuPointerEventHandler = (e) => {
+      const { order = 0 } = e
+      callbacks.onPointerEnter?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      e.order = order + 1
     }
 
-    const onPointerLeave: React.PointerEventHandler = (e) => {
-      callbacks.onPointerLeave?.(
-        { type: TLNuTargetType.Bounds, target: handle, order: e.detail },
-        e
-      )
-      e.detail++
+    const onPointerLeave: TLNuPointerEventHandler = (e) => {
+      const { order = 0 } = e
+      callbacks.onPointerLeave?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      e.order = order + 1
     }
 
     return {

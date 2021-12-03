@@ -5,7 +5,8 @@ import { TLContext } from '~hooks'
 export function useShapeEvents(id: string) {
   const { rPageState, rSelectionBounds, callbacks, inputs } = React.useContext(TLContext)
 
-  return React.useMemo(() => ({
+  return React.useMemo(
+    () => ({
       onPointerDown: (e: React.PointerEvent) => {
         if (!inputs.pointerIsValid(e)) return
 
@@ -82,6 +83,8 @@ export function useShapeEvents(id: string) {
         if (!inputs.pointerIsValid(e)) return
         const info = inputs.pointerEnter(e, id)
         callbacks.onUnhoverShape?.(info, e)
-      }
-    }), [inputs, callbacks, id])
+      },
+    }),
+    [inputs, callbacks, id]
+  )
 }

@@ -114,10 +114,29 @@ export type TLNuWheelHandler<
   event: WheelEvent
 ) => void
 
+export interface TLNuPointerEvent<T = Element> extends TLNuReactPointerEvent<T> {
+  order?: number
+}
+
+interface TLNuReactPointerEvent<T = Element> extends React.MouseEvent<T, PointerEvent> {
+  pointerId: number
+  pressure: number
+  tangentialPressure: number
+  tiltX: number
+  tiltY: number
+  twist: number
+  width: number
+  height: number
+  pointerType: 'mouse' | 'pen' | 'touch'
+  isPrimary: boolean
+}
+
+export type TLNuPointerEventHandler<T = Element> = React.EventHandler<TLNuPointerEvent<T>>
+
 export type TLNuPointerHandler<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
-> = (info: E, event: React.PointerEvent | KeyboardEvent | WheelEvent) => void
+> = (info: E, event: TLNuPointerEvent | KeyboardEvent | WheelEvent) => void
 
 export type TLNuKeyboardHandler<
   S extends TLNuShape = TLNuShape,

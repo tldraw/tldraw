@@ -20,6 +20,7 @@ export class TLNuInputs {
   @observable previousPoint = [0, 0]
   @observable originScreenPoint = [0, 0]
   @observable originPoint = [0, 0]
+  pointerIds = new Set<number>()
 
   @observable state: 'pointing' | 'pinching' | 'idle' = 'idle'
 
@@ -45,31 +46,35 @@ export class TLNuInputs {
   }
 
   @action onWheel = (pagePoint: number[], event: React.WheelEvent | WheelEvent) => {
-    if (this.state === 'pinching') return
-    this.updateModifiers(event)
-    this.previousPoint = this.currentPoint
-    this.currentPoint = pagePoint
-  }
-
-  @action onPointerMove = (
-    pagePoint: number[],
-    event: PointerEvent | React.PointerEvent | WheelEvent
-  ) => {
-    if (this.state === 'pinching') return
+    // if (this.state === 'pinching') return
     this.updateModifiers(event)
     this.previousPoint = this.currentPoint
     this.currentPoint = pagePoint
   }
 
   @action onPointerDown = (pagePoint: number[], event: PointerEvent | React.PointerEvent) => {
-    if (this.state !== 'idle') return
+    // if (this.pointerIds.size > 0) return
+    this.pointerIds.add(event.pointerId)
     this.updateModifiers(event)
     this.originScreenPoint = this.currentScreenPoint
     this.originPoint = pagePoint
     this.state = 'pointing'
   }
 
+  @action onPointerMove = (
+    pagePoint: number[],
+    event: PointerEvent | TouchEvent | React.PointerEvent | WheelEvent
+  ) => {
+    if (this.state === 'pinching') return
+    // if ('pointerId' in event && !this.pointerIds.has(event.pointerId)) return
+    this.updateModifiers(event)
+    this.previousPoint = this.currentPoint
+    this.currentPoint = pagePoint
+  }
+
   @action onPointerUp = (pagePoint: number[], event: PointerEvent | React.PointerEvent) => {
+    // if (!this.pointerIds.has(event.pointerId)) return
+    this.pointerIds.clear()
     this.updateModifiers(event)
     this.state = 'idle'
   }

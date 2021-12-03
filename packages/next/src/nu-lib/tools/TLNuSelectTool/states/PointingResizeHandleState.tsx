@@ -1,6 +1,12 @@
 import { Vec } from '@tldraw/vec'
 import { TLNuShape, TLNuState } from '~nu-lib'
-import type { TLNuBinding, TLNuBoundsHandle, TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import type {
+  TLNuBinding,
+  TLNuBoundsHandle,
+  TLNuPinchHandler,
+  TLNuPointerHandler,
+  TLNuWheelHandler,
+} from '~types'
 
 export class PointingResizeHandleState<
   S extends TLNuShape,
@@ -27,5 +33,9 @@ export class PointingResizeHandleState<
 
   onPointerUp: TLNuPointerHandler<S> = () => {
     this.tool.transition('idle')
+  }
+
+  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+    this.tool.transition('pinching', { info, gesture, event })
   }
 }

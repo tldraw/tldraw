@@ -31,16 +31,23 @@ export class NuEllipseShape extends NuBaseShape<NuEllipseShapeProps> {
   @observable size: number[]
 
   Component = observer(({ events }: TLNuComponentProps) => {
+    const {
+      size: [w, h],
+      stroke,
+      fill,
+      strokeWidth,
+    } = this
+
     return (
       <SVGContainer {...events}>
         <ellipse
-          cx={this.size[0] / 2}
-          cy={this.size[1] / 2}
-          rx={this.size[0] / 2}
-          ry={this.size[1] / 2}
-          stroke={this.stroke}
-          fill={this.fill}
-          strokeWidth={this.strokeWidth}
+          cx={w / 2}
+          cy={h / 2}
+          rx={Math.max(0.01, (w - strokeWidth) / 2)}
+          ry={Math.max(0.01, (h - strokeWidth) / 2)}
+          stroke={stroke}
+          fill={fill}
+          strokeWidth={strokeWidth}
           pointerEvents="all"
         />
       </SVGContainer>

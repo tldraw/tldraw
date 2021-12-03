@@ -47,7 +47,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
   const onPinch = React.useCallback<PinchHandler>(
     (gesture) => {
       const elm = ref.current
-      const { event, origin, delta } = gesture
+      const { event, origin } = gesture
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       if (inputs.state !== 'pinching') return
       inputs.onPinch([...viewport.getPagePoint(origin), 0.5], event)
@@ -65,13 +65,15 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
       const elm = ref.current
       const { event, origin } = gesture
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
-      if (inputs.state !== 'pinching') return
-      inputs.onPinchEnd([...viewport.getPagePoint(origin), 0.5], event)
-      callbacks.onPinchEnd?.(
-        { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
-        gesture,
-        event
-      )
+      setTimeout(() => {
+        if (inputs.state !== 'pinching') return
+        inputs.onPinchEnd([...viewport.getPagePoint(origin), 0.5], event)
+        callbacks.onPinchEnd?.(
+          { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
+          gesture,
+          event
+        )
+      }, 100)
     },
     [viewport, inputs, callbacks.onPinchEnd]
   )

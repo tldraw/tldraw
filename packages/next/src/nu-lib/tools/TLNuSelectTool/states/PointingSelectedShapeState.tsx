@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import { TLNuShape, TLNuState } from '~nu-lib'
-import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingSelectedShapeState<
   S extends TLNuShape,
@@ -28,7 +28,6 @@ export class PointingSelectedShapeState<
   }
 
   onPointerUp: TLNuPointerHandler<S> = () => {
-    const { pointedSelectedShape } = this
     const { shiftKey } = this.app.inputs
 
     if (!this.pointedSelectedShape) throw Error('Expected a pointed selected shape')
@@ -38,5 +37,9 @@ export class PointingSelectedShapeState<
       this.app.select(this.pointedSelectedShape.id)
     }
     this.tool.transition('idle')
+  }
+
+  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+    this.tool.transition('pinching', { info, gesture, event })
   }
 }
