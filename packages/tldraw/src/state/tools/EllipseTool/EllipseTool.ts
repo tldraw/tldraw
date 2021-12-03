@@ -8,6 +8,16 @@ export class EllipseTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showCircle()
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
+
   onPointerDown: TLPointerEventHandler = () => {
     const {
       currentPoint,
