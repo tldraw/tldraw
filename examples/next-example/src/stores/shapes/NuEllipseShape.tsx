@@ -3,8 +3,6 @@ import * as React from 'react'
 import {
   TLNuBounds,
   SVGContainer,
-  TLNuShape,
-  TLNuShapeProps,
   TLNuIndicatorProps,
   TLNuComponentProps,
   PointUtils,
@@ -12,14 +10,15 @@ import {
   TLNuResizeInfo,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { observable, computed, makeObservable } from 'mobx'
+import { observable, computed, makeObservable, override } from 'mobx'
 import { intersectEllipseBounds, intersectLineSegmentEllipse } from '@tldraw/intersect'
+import { NuBaseShape, NuBaseShapeProps } from './NuBaseShape'
 
-export interface NuEllipseShapeProps extends TLNuShapeProps {
+export interface NuEllipseShapeProps extends NuBaseShapeProps {
   size: number[]
 }
 
-export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
+export class NuEllipseShape extends NuBaseShape<NuEllipseShapeProps> {
   constructor(props = {} as NuEllipseShapeProps) {
     super(props)
     const { size = [100, 100] } = props
@@ -39,9 +38,9 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
           cy={this.size[1] / 2}
           rx={this.size[0] / 2}
           ry={this.size[1] / 2}
-          strokeWidth={2}
-          stroke="black"
-          fill="none"
+          stroke={this.stroke}
+          fill={this.fill}
+          strokeWidth={this.strokeWidth}
           pointerEvents="all"
         />
       </SVGContainer>
@@ -104,7 +103,7 @@ export class NuEllipseShape extends TLNuShape<NuEllipseShapeProps> {
     return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, 0)
   }
 
-  @computed get rotatedBounds(): TLNuBounds {
+  @override get rotatedBounds(): TLNuBounds {
     const [x, y] = this.point
     const [width, height] = this.size
     return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, this.rotation || 0)

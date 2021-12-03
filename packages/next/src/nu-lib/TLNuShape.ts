@@ -6,7 +6,7 @@ import {
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
 import type { TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
-import { BoundsUtils, PointUtils } from '~utils'
+import { isPlainObject, BoundsUtils, PointUtils } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
 export interface TLNuShapeClass<S extends TLNuShape> {
@@ -37,22 +37,14 @@ export interface TLNuShapeProps {
   isAspectRatioLocked?: boolean
 }
 
-const PROP_KEYS = [
-  'id',
-  'parentId',
-  'name',
-  'point',
-  'rotation',
-  'children',
-  'handles',
-  'isGhost',
-  'isHidden',
-  'isLocked',
-  'isGenerated',
-  'isAspectRatioLocked',
-  'type',
-  'nonce',
-]
+const serializableTypes = new Set(['string', 'number', 'boolean', 'undefined'])
+
+function isSerializable(value: any): boolean {
+  if (serializableTypes.has(typeof value) || value === null) return true
+  if (Array.isArray(value)) return value.every(isSerializable)
+  if (isPlainObject(value)) return Object.values(value).every(isSerializable)
+  return false
+}
 
 export type TLNuSerializedShape<P = Record<string, any>> = TLNuShapeProps & {
   type: string
@@ -98,8 +90,6 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
       isAspectRatioLocked,
     } = props
 
-    this.serializedProps = Array.from(new Set(Object.keys(props).concat(PROP_KEYS)).values())
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.type = this.constructor['id']
@@ -140,8 +130,6 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
   @observable isLocked?: boolean
   @observable isGenerated?: boolean
   @observable isAspectRatioLocked?: boolean
-
-  readonly serializedProps: string[]
 
   abstract readonly Component: (props: TLNuComponentProps<M>) => JSX.Element | null
 
@@ -204,13 +192,9 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     if (!('nonce' in props)) this.bump()
   }
 
-  get serialized(): TLNuSerializedShape<P> {
+  @computed get serialized(): TLNuSerializedShape<P> {
     return deepCopy(
-      Object.fromEntries(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.serializedProps.map((prop) => [prop, this[prop]])
-      )
+      Object.fromEntries(Object.entries(this).filter(([_key, value]) => isSerializable(value)))
     ) as TLNuSerializedShape<P>
   }
 

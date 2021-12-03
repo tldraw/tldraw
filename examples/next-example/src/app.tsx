@@ -15,9 +15,6 @@ import { appContext } from 'context'
 
 const components: TLNuComponents<Shape> = {
   ContextBar: NuContextBar,
-  BoundsDetail: null,
-  BoundsBackground: null,
-  BoundsForeground: null,
 }
 
 function App(): JSX.Element {

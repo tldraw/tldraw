@@ -114,6 +114,22 @@ const tlcss = css`
     --nu-zoom: 1;
     --nu-scale: calc(1 / var(--nu-zoom));
     --nu-padding: calc(64px * var(--nu-scale));
+    --nu-shadow-color: 0deg 0% 0%;
+    --nu-shadow-elevation-low: 0px 0.4px 0.5px hsl(var(--nu-shadow-color) / 0.04),
+      0px 0.6px 0.8px -0.7px hsl(var(--nu-shadow-color) / 0.06),
+      0.1px 1.2px 1.5px -1.4px hsl(var(--nu-shadow-color) / 0.08);
+    --nu-shadow-elevation-medium: 0px 0.4px 0.5px hsl(var(--nu-shadow-color) / 0.04),
+      0.1px 1.3px 1.7px -0.5px hsl(var(--nu-shadow-color) / 0.06),
+      0.1px 2.8px 3.6px -1px hsl(var(--nu-shadow-color) / 0.07),
+      0.3px 6.1px 7.8px -1.4px hsl(var(--nu-shadow-color) / 0.09);
+    --nu-shadow-elevation-high: 0px 0.4px 0.5px hsl(var(--nu-shadow-color) / 0.04),
+      0.1px 2.3px 3px -0.2px hsl(var(--nu-shadow-color) / 0.05),
+      0.2px 4.1px 5.3px -0.5px hsl(var(--nu-shadow-color) / 0.06),
+      0.4px 6.6px 8.5px -0.7px hsl(var(--nu-shadow-color) / 0.07),
+      0.6px 10.3px 13.2px -1px hsl(var(--nu-shadow-color) / 0.08),
+      0.9px 16px 20.6px -1.2px hsl(var(--nu-shadow-color) / 0.09),
+      1.3px 24.3px 31.2px -1.4px hsl(var(--nu-shadow-color) / 0.1);
+
     position: relative;
     top: 0px;
     left: 0px;
@@ -436,10 +452,10 @@ const tlcss = css`
 
   .nu-fade-in {
     opacity: 1;
-    transition-timing-function: ease-in;
+    transition-timing-function: ease-in-out;
     transition-property: opacity;
     transition-duration: 0.12s;
-    transition-delay: 0.12s;
+    transition-delay: 0;
   }
 
   .nu-fade-out {
@@ -447,6 +463,7 @@ const tlcss = css`
     transition-timing-function: ease-out;
     transition-property: opacity;
     transition-duration: 0.12s;
+    transition-delay: 0;
   }
 
   .nu-counter-scaled-positioned > .nu-positioned-div {

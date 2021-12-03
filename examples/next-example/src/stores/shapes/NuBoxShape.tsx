@@ -4,7 +4,6 @@ import {
   TLNuBounds,
   SVGContainer,
   TLNuShape,
-  TLNuShapeProps,
   TLNuIndicatorProps,
   TLNuComponentProps,
   TLNuResizeInfo,
@@ -12,12 +11,13 @@ import {
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
+import { NuBaseShape, NuBaseShapeProps } from './NuBaseShape'
 
-export interface NuBoxShapeProps extends TLNuShapeProps {
+export interface NuBoxShapeProps extends NuBaseShapeProps {
   size: number[]
 }
 
-export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
+export class NuBoxShape extends NuBaseShape<NuBoxShapeProps> {
   constructor(props = {} as NuBoxShapeProps) {
     super(props)
     const { size = [100, 100] } = props
@@ -35,9 +35,9 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
         <rect
           width={this.size[0]}
           height={this.size[1]}
-          strokeWidth={2}
-          stroke="black"
-          fill="none"
+          stroke={this.stroke}
+          fill={this.fill}
+          strokeWidth={this.strokeWidth}
           pointerEvents="all"
         />
       </SVGContainer>
@@ -67,12 +67,6 @@ export class NuBoxShape extends TLNuShape<NuBoxShapeProps> {
       width,
       height,
     }
-  }
-
-  @computed get rotatedBounds(): TLNuBounds {
-    return BoundsUtils.getBoundsFromPoints(
-      BoundsUtils.getRotatedCorners(this.bounds, this.rotation)
-    )
   }
 
   resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuBoxShapeProps>) => {
