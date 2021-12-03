@@ -7,12 +7,14 @@ import { useCounterScaledPosition } from '~hooks/useCounterScaledPosition'
 
 export interface TLNuBoundsDetailContainerProps {
   hidden: boolean
+  detail: 'size' | 'rotation'
   bounds: TLNuBounds
 }
 
 export const BoundsDetailContainer = observer(function BoundsDetail({
-  hidden,
   bounds,
+  hidden,
+  detail = 'size',
 }: TLNuBoundsDetailContainerProps) {
   const {
     components: { BoundsDetail },
@@ -20,10 +22,9 @@ export const BoundsDetailContainer = observer(function BoundsDetail({
       camera: { zoom },
     },
   } = useContext()
+
   const rBounds = React.useRef<HTMLDivElement>(null)
-
   const scaledBounds = BoundsUtils.multiplyBounds(bounds, zoom)
-
   useCounterScaledPosition(rBounds, scaledBounds, zoom, 10003)
 
   if (!BoundsDetail) throw Error('Expected a BoundsDetail component.')
@@ -34,7 +35,7 @@ export const BoundsDetailContainer = observer(function BoundsDetail({
       className={`nu-counter-scaled-positioned ${hidden ? `nu-fade` : ''}`}
       aria-label="bounds-detail-container"
     >
-      <BoundsDetail bounds={bounds} scaledBounds={scaledBounds} zoom={zoom} />
+      <BoundsDetail bounds={bounds} scaledBounds={scaledBounds} zoom={zoom} detail={detail} />
     </div>
   )
 })

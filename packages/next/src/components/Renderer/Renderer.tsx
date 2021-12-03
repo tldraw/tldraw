@@ -41,12 +41,7 @@ export const Renderer = observer(function Renderer<
   useStylesheet(theme, id)
 
   const [currentContext, setCurrentContext] = React.useState<NuContext<S>>(() => {
-    const {
-      ContextBar,
-      BoundsBackground = _BoundsBackground,
-      BoundsForeground = _BoundsForeground,
-      BoundsDetail = _BoundsDetail,
-    } = components
+    const { ContextBar, BoundsBackground, BoundsForeground, BoundsDetail } = components
 
     return {
       viewport,
@@ -65,22 +60,17 @@ export const Renderer = observer(function Renderer<
         onWheel,
       },
       components: {
-        BoundsBackground,
-        BoundsForeground,
+        BoundsBackground: BoundsBackground === null ? undefined : _BoundsBackground,
+        BoundsForeground: BoundsForeground === null ? undefined : _BoundsForeground,
+        BoundsDetail: BoundsDetail === null ? undefined : _BoundsDetail,
         ContextBar,
-        BoundsDetail,
       },
       meta,
     }
   })
 
   React.useEffect(() => {
-    const {
-      ContextBar,
-      BoundsBackground = _BoundsBackground,
-      BoundsForeground = _BoundsForeground,
-      BoundsDetail = _BoundsDetail,
-    } = components
+    const { ContextBar, BoundsBackground, BoundsForeground, BoundsDetail } = components
 
     autorun(() => {
       setCurrentContext({
@@ -100,10 +90,10 @@ export const Renderer = observer(function Renderer<
           onWheel,
         },
         components: {
+          BoundsBackground: BoundsBackground === null ? undefined : _BoundsBackground,
+          BoundsForeground: BoundsForeground === null ? undefined : _BoundsForeground,
+          BoundsDetail: BoundsDetail === null ? undefined : _BoundsDetail,
           ContextBar,
-          BoundsBackground,
-          BoundsForeground,
-          BoundsDetail,
         },
         meta,
       })

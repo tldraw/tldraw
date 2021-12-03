@@ -1,17 +1,14 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import type { TLNuApp } from '@tldraw/next'
-import type { Shape } from 'stores'
 import { ToolBar } from './ToolBar'
 import { StatusBar } from './StatusBar'
+import { useAppContext } from 'context'
 
-interface AppUIProps {
-  app: TLNuApp<Shape>
-}
+export const AppUI = observer(function AppUI() {
+  const app = useAppContext()
 
-export const AppUI = observer(function AppUI({ app }: AppUIProps) {
+  if (!app) return null
+
   return (
     <>
       <ToolBar app={app} />

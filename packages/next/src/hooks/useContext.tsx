@@ -8,7 +8,7 @@ export type NuContext<S extends TLNuShape = TLNuShape> = {
   viewport: TLNuViewport
   inputs: TLNuInputs
   callbacks: Partial<TLNuCallbacks<S>>
-  components: TLNuComponents<S>
+  components: Partial<TLNuComponents<S>>
   meta: any
 }
 

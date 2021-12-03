@@ -33,6 +33,7 @@ export const Canvas = observer(function Renderer<
   selectedShapes = EMPTY_ARRAY,
   shapes = EMPTY_ARRAY,
   showBounds = true,
+  showBoundsRotation = false,
   showResizeHandles = true,
   showRotateHandle = true,
   showBoundsDetail = true,
@@ -66,7 +67,7 @@ export const Canvas = observer(function Renderer<
     <div ref={rContainer} className="nu-container">
       <div tabIndex={-1} className="nu-absolute nu-canvas" {...events}>
         <HTMLLayer>
-          {selectedBounds && showBounds && (
+          {components.BoundsBackground && selectedBounds && showBounds && (
             <Container bounds={selectedBounds} zIndex={2}>
               <components.BoundsBackground
                 zoom={zoom}
@@ -105,7 +106,7 @@ export const Canvas = observer(function Renderer<
           {brush && <Brush brush={brush} />}
           {selectedBounds && (
             <>
-              {showBounds && (
+              {components.BoundsForeground && showBounds && (
                 <Container bounds={selectedBounds} zIndex={10002}>
                   <components.BoundsForeground
                     zoom={zoom}
@@ -116,13 +117,14 @@ export const Canvas = observer(function Renderer<
                   />
                 </Container>
               )}
-              {
+              {components.BoundsDetail && (
                 <BoundsDetailContainer
                   key={'detail' + selectedShapes.map((shape) => shape.id).join('')}
                   bounds={selectedBounds}
+                  detail={showBoundsRotation ? 'rotation' : 'size'}
                   hidden={!showBoundsDetail}
                 />
-              }
+              )}
               {components.ContextBar && (
                 <ContextBarContainer
                   key={'context' + selectedShapes.map((shape) => shape.id).join('')}

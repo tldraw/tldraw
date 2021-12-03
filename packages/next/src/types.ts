@@ -162,27 +162,28 @@ export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
 
 export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
   props: TLNuBoundsComponentProps<S>
-) => JSX.Element
+) => JSX.Element | null
 
 export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {
   shapes: S[]
   bounds: TLNuBounds
   scaledBounds: TLNuBounds
   rotation: number
-}) => JSX.Element
+}) => JSX.Element | null
 
 export type TLNuBoundsDetailComponent = (props: {
   bounds: TLNuBounds
   scaledBounds: TLNuBounds
   zoom: number
-}) => JSX.Element
+  detail: 'size' | 'rotation'
+}) => JSX.Element | null
 
-export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
-  BoundsBackground: TLNuBoundsComponent<S>
-  BoundsForeground: TLNuBoundsComponent<S>
-  BoundsDetail: TLNuBoundsDetailComponent
-  ContextBar?: TLNuContextBarComponent<S>
-}
+export type TLNuComponents<S extends TLNuShape = TLNuShape> = Partial<{
+  BoundsBackground: TLNuBoundsComponent<S> | null
+  BoundsForeground: TLNuBoundsComponent<S> | null
+  BoundsDetail: TLNuBoundsDetailComponent | null
+  ContextBar: TLNuContextBarComponent<S> | null
+}>
 
 export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
 export type TLNuOnExit<T extends { toId: string }> = (info: T) => void
@@ -249,6 +250,7 @@ export interface TLNuViewOptions {
   showRotateHandle?: boolean
   showContextMenu?: boolean
   showBoundsDetail?: boolean
+  showBoundsRotation?: boolean
 }
 
 export interface TLNuContextProviderProps<S extends TLNuShape> extends TLNuCallbacks<S> {
@@ -288,7 +290,7 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
   id?: string
   meta?: Record<string, unknown>
   theme?: Partial<TLNuTheme>
-  components?: Partial<TLNuComponents>
+  components?: Partial<TLNuComponents<S>>
   children?: React.ReactNode
 } & TLNuViewOptions &
   Partial<TLNuSubscriptionCallbacks<S, B>> &

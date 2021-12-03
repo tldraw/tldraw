@@ -4,16 +4,20 @@ import * as React from 'react'
 import {
   App as TLNuAppComponent,
   TLNuApp,
-  TLNuContextBarComponent,
+  TLNuComponents,
   TLNuSerializedApp,
   TLNuSubscriptionCallbacks,
 } from '@tldraw/next'
 import { NuBoxShape, NuEllipseShape, Shape, NuBoxTool, NuEllipseTool } from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
+import { appContext } from 'context'
 
-const components = {
+const components: TLNuComponents<Shape> = {
   ContextBar: NuContextBar,
+  BoundsDetail: null,
+  BoundsBackground: null,
+  BoundsForeground: null,
 }
 
 function App(): JSX.Element {
@@ -61,15 +65,17 @@ function App(): JSX.Element {
 
   return (
     <div className="tlnu-app">
-      <TLNuAppComponent
-        onMount={onMount}
-        onPersist={onPersist}
-        serializedApp={serializedApp}
-        shapeClasses={shapeClasses}
-        toolClasses={toolClasses}
-        components={components}
-      />
-      {app && <AppUI app={app} />}
+      <appContext.Provider value={app}>
+        <TLNuAppComponent
+          onMount={onMount}
+          onPersist={onPersist}
+          serializedApp={serializedApp}
+          shapeClasses={shapeClasses}
+          toolClasses={toolClasses}
+          components={components}
+        />
+        <AppUI />
+      </appContext.Provider>
     </div>
   )
 }

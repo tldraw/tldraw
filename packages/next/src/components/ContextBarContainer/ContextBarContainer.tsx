@@ -28,12 +28,10 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
       camera: { zoom },
     },
   } = useContext()
+
   const rBounds = React.useRef<HTMLDivElement>(null)
-
   const scaledBounds = BoundsUtils.multiplyBounds(bounds, zoom)
-
   useCounterScaledPosition(rBounds, scaledBounds, zoom, 10003)
-
   if (!ContextBar) throw Error('Expected a ContextBar component.')
 
   React.useLayoutEffect(() => {

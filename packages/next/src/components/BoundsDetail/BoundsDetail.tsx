@@ -3,9 +3,11 @@ import { observer } from 'mobx-react-lite'
 import type { TLNuBoundsDetailComponent } from '~types'
 import { HTMLContainer } from '~components'
 import { TAU } from '~constants'
+import { GeomUtils } from '~utils'
 
 export const BoundsDetail: TLNuBoundsDetailComponent = observer(function BoundsDetail({
   bounds,
+  detail,
   scaledBounds,
 }) {
   const { rotation = 0 } = bounds
@@ -23,7 +25,9 @@ export const BoundsDetail: TLNuBoundsDetailComponent = observer(function BoundsD
           borderRadius: '1px',
         }}
       >
-        {bounds.width.toFixed()} × {bounds.height.toFixed()}
+        {detail === 'size'
+          ? `${bounds.width.toFixed()} × ${bounds.height.toFixed()}`
+          : `∠${GeomUtils.radiansToDegrees(GeomUtils.clampRadians(rotation)).toFixed()}°`}
       </div>
     </HTMLContainer>
   )
