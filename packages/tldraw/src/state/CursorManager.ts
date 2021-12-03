@@ -7,12 +7,9 @@ enum Cursor {
   ResizeCorner = 'resize-corner',
   Text = 'text',
   Draw = 'draw',
-<<<<<<< HEAD
-  Square = 'square'
-=======
+  Square = 'square',
   Arrow = 'arrow',
-  Eraser = 'eraser',
->>>>>>> 967b4b733eba9b01364bc9f67df3476cd0d01f6c
+  Eraser = 'eraser'
 }
 
 export class CursorManager{ 
