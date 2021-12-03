@@ -14,8 +14,9 @@ import type { TLNuShape } from '~nu-lib'
 import type { TLNuBinding, TLNuRendererProps } from '~types'
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '~constants'
 import { autorun } from 'mobx'
-import { ContextBarWrapper } from '~components/ContextBarWrapper'
+import { ContextBarContainer } from '~components/ContextBarContainer'
 import { usePreventNavigation } from '~hooks/usePreventNavigation'
+import { BoundsDetailContainer } from '~components/BoundsDetailContainer/BoundsDetailContainer'
 
 export const Canvas = observer(function Renderer<
   S extends TLNuShape = TLNuShape,
@@ -34,6 +35,8 @@ export const Canvas = observer(function Renderer<
   showBounds = true,
   showResizeHandles = true,
   showRotateHandle = true,
+  showBoundsDetail = true,
+  showContextMenu = true,
   theme = EMPTY_OBJECT,
 }: TLNuRendererProps<S, B>): JSX.Element {
   const rContainer = React.useRef<HTMLDivElement>(null)
@@ -100,19 +103,35 @@ export const Canvas = observer(function Renderer<
             <Indicator key={'hovered_indicator_' + hoveredShape.id} shape={hoveredShape} />
           )}
           {brush && <Brush brush={brush} />}
-          {selectedBounds && showBounds && (
-            <Container bounds={selectedBounds} zIndex={10002}>
-              <components.BoundsForeground
-                zoom={zoom}
-                shapes={selectedShapes}
-                bounds={selectedBounds}
-                showResizeHandles={showResizeHandles}
-                showRotateHandle={showRotateHandle}
-              />
-            </Container>
-          )}
-          {selectedBounds && components.ContextBar && (
-            <ContextBarWrapper bounds={selectedBounds} shapes={selectedShapes} />
+          {selectedBounds && (
+            <>
+              {showBounds && (
+                <Container bounds={selectedBounds} zIndex={10002}>
+                  <components.BoundsForeground
+                    zoom={zoom}
+                    shapes={selectedShapes}
+                    bounds={selectedBounds}
+                    showResizeHandles={showResizeHandles}
+                    showRotateHandle={showRotateHandle}
+                  />
+                </Container>
+              )}
+              {
+                <BoundsDetailContainer
+                  key={'detail' + selectedShapes.map((shape) => shape.id).join('')}
+                  bounds={selectedBounds}
+                  hidden={!showBoundsDetail}
+                />
+              }
+              {components.ContextBar && (
+                <ContextBarContainer
+                  key={'context' + selectedShapes.map((shape) => shape.id).join('')}
+                  bounds={selectedBounds}
+                  shapes={selectedShapes}
+                  hidden={!showContextMenu}
+                />
+              )}
+            </>
           )}
         </HTMLLayer>
         {children}

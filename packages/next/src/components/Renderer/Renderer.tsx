@@ -5,6 +5,7 @@ import { observer } from 'mobx-react-lite'
 import {
   BoundsBackground as _BoundsBackground,
   BoundsForeground as _BoundsForeground,
+  BoundsDetail as _BoundsDetail,
 } from '~components'
 import { NuContext, nuContext, useStylesheet } from '~hooks'
 import type { TLNuShape } from '~nu-lib'
@@ -44,6 +45,7 @@ export const Renderer = observer(function Renderer<
       ContextBar,
       BoundsBackground = _BoundsBackground,
       BoundsForeground = _BoundsForeground,
+      BoundsDetail = _BoundsDetail,
     } = components
 
     return {
@@ -66,6 +68,7 @@ export const Renderer = observer(function Renderer<
         BoundsBackground,
         BoundsForeground,
         ContextBar,
+        BoundsDetail,
       },
       meta,
     }
@@ -76,6 +79,7 @@ export const Renderer = observer(function Renderer<
       ContextBar,
       BoundsBackground = _BoundsBackground,
       BoundsForeground = _BoundsForeground,
+      BoundsDetail = _BoundsDetail,
     } = components
 
     autorun(() => {
@@ -99,6 +103,7 @@ export const Renderer = observer(function Renderer<
           ContextBar,
           BoundsBackground,
           BoundsForeground,
+          BoundsDetail,
         },
         meta,
       })

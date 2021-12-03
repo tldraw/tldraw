@@ -14,18 +14,7 @@ export const appContext = React.createContext({} as TLNuAppContext<any, any>)
 export const App = observer(function App<S extends TLNuShape, B extends TLNuBinding>(
   props: TLNuAppProps<S, B>
 ): JSX.Element {
-  const {
-    id,
-    meta,
-    components,
-    theme,
-    showBounds,
-    showRotateHandle,
-    showResizeHandles,
-    onMount,
-    onPersist,
-    children,
-  } = props
+  const { onMount, onPersist, showContextMenu, ...rest } = props
 
   const [app] = React.useState(() => {
     const app =
@@ -62,15 +51,8 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
 
   return (
     <Renderer
-      id={id}
-      meta={meta}
-      theme={theme}
-      components={components}
       inputs={app.inputs}
       viewport={app.viewport}
-      showBounds={showBounds}
-      showRotateHandle={showRotateHandle}
-      showResizeHandles={showResizeHandles}
       shapes={app.shapesInViewport}
       selectedShapes={app.selectedShapes}
       hoveredShape={app.hoveredShape}
@@ -87,8 +69,12 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
       onPointerMove={app.onPointerMove}
       onPointerUp={app.onPointerUp}
       onWheel={app.onWheel}
-    >
-      {children}
-    </Renderer>
+      showContextMenu={
+        showContextMenu === undefined
+          ? app.selectedTool.currentState.stateId === 'idle'
+          : showContextMenu
+      }
+      {...rest}
+    />
   )
 })

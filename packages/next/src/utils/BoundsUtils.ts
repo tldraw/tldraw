@@ -180,23 +180,65 @@ export class BoundsUtils {
     }
   }
 
+  static multiplyBounds(bounds: TLNuBounds, n: number) {
+    const center = BoundsUtils.getBoundsCenter(bounds)
+    return BoundsUtils.centerBounds(
+      {
+        minX: bounds.minX * n,
+        minY: bounds.minY * n,
+        maxX: bounds.maxX * n,
+        maxY: bounds.maxY * n,
+        width: bounds.width * n,
+        height: bounds.height * n,
+      },
+      center
+    )
+  }
+
+  static divideBounds(bounds: TLNuBounds, n: number) {
+    const center = BoundsUtils.getBoundsCenter(bounds)
+    return BoundsUtils.centerBounds(
+      {
+        minX: bounds.minX / n,
+        minY: bounds.minY / n,
+        maxX: bounds.maxX / n,
+        maxY: bounds.maxY / n,
+        width: bounds.width / n,
+        height: bounds.height / n,
+      },
+      center
+    )
+  }
+
   /**
-   * Rotate a bounding box.
+   * Get an axis-aligned bounding box that fits around a rotated bounding box.
    * @param bounds
    * @param center
    * @param rotation
    */
-  static rotateBounds(bounds: TLNuBounds, center: number[], rotation: number): TLNuBounds {
-    const [minX, minY] = Vec.rotWith([bounds.minX, bounds.minY], center, rotation)
-    const [maxX, maxY] = Vec.rotWith([bounds.maxX, bounds.maxY], center, rotation)
+  static getRotatedBounds(bounds: TLNuBounds, rotation = 0): TLNuBounds {
+    const corners = BoundsUtils.getRotatedCorners(bounds, rotation)
+
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+
+    for (const point of corners) {
+      minX = Math.min(point[0], minX)
+      minY = Math.min(point[1], minY)
+      maxX = Math.max(point[0], maxX)
+      maxY = Math.max(point[1], maxY)
+    }
 
     return {
       minX,
       minY,
       maxX,
       maxY,
-      width: bounds.width,
-      height: bounds.height,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+      rotation: 0,
     }
   }
 

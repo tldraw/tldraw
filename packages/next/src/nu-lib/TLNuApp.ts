@@ -29,6 +29,7 @@ import type {
   TLNuPinchHandler,
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
+import { TLNuSettings } from './TLNuSettings'
 
 export interface TLNuSerializedApp {
   currentPageId: string
@@ -53,9 +54,11 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     this.notify('mount', null)
   }
 
-  @observable inputs = new TLNuInputs()
+  inputs = new TLNuInputs()
 
-  @observable viewport = new TLNuViewport()
+  viewport = new TLNuViewport()
+
+  settings = new TLNuSettings()
 
   /* --------------------- History -------------------- */
 

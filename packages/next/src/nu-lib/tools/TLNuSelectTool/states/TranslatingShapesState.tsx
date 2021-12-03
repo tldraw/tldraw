@@ -45,7 +45,6 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
       this.clones = this.app.selectedShapes.map((shape) => {
         const ShapeClass = this.app.getShapeClass(shape.shapeId)
         if (!ShapeClass) throw Error('Could not find that shape class.')
-        console.log(shape.serialized)
         return new ShapeClass({
           ...shape.serialized,
           id: uniqueId(),

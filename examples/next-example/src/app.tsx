@@ -10,37 +10,10 @@ import {
 } from '@tldraw/next'
 import { NuBoxShape, NuEllipseShape, Shape, NuBoxTool, NuEllipseTool } from 'stores'
 import { AppUI } from 'components/AppUI'
-
-const ContextBar: TLNuContextBarComponent = ({ bounds }) => {
-  return (
-    <>
-      <div
-        style={{
-          border: '1px solid black',
-          padding: '4px 12px',
-          borderRadius: '4px',
-          width: 'fit-content',
-          transform: `translateY(-${bounds.height / 2 + 40}px)`,
-        }}
-      >
-        hello
-      </div>
-      <div
-        style={{
-          border: '1px solid black',
-          padding: '4px 12px',
-          borderRadius: '4px',
-          transform: `translateY(${bounds.height / 2 + 24}px)`,
-        }}
-      >
-        {bounds.width.toFixed()} x {bounds.height.toFixed()}
-      </div>
-    </>
-  )
-}
+import { NuContextBar } from 'components/NuContextBar'
 
 const components = {
-  ContextBar,
+  ContextBar: NuContextBar,
 }
 
 function App(): JSX.Element {
@@ -69,7 +42,7 @@ function App(): JSX.Element {
             id: 'box2',
             type: 'box',
             parentId: 'page1',
-            point: [400, 600],
+            point: [400, 300],
             size: [100, 100],
           },
         ],
@@ -80,7 +53,6 @@ function App(): JSX.Element {
 
   const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
     setApp(app)
-    app.setCamera(undefined, 0.5)
   }, [])
 
   const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {

@@ -101,7 +101,6 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
             shapesMap.delete(serializedShape.id)
           } else {
             // Create the shape
-            console.log(serializedShape)
             const ShapeClass = this.app.getShapeClass(serializedShape.type)
             shapesToAdd.push(new ShapeClass(serializedShape) as S)
           }

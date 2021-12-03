@@ -7,12 +7,13 @@ export class TLNuInputs {
     makeObservable(this)
   }
 
+  // note: fine for dev, but we probably don't need to make
+  // any of these properties observable
   @observable shiftKey = false
   @observable ctrlKey = false
   @observable altKey = false
   @observable spaceKey = false
   @observable isPinching = false
-
   @observable currentScreenPoint = [0, 0]
   @observable currentPoint = [0, 0]
   @observable previousScreenPoint = [0, 0]

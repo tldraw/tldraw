@@ -7,10 +7,8 @@ import type { TLNuBounds } from '~types'
 interface ContainerProps extends React.HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLNuBounds
-  isGhost?: boolean
   zIndex?: number
   rotation?: number
-  counterScaled?: boolean
   className?: string
   children: React.ReactNode
 }
@@ -20,57 +18,46 @@ export const Container = observer<ContainerProps>(function Container({
   bounds,
   rotation = 0,
   className = '',
-  counterScaled,
   zIndex,
-  isGhost,
   children,
   ...props
 }) {
   const rBounds = React.useRef<HTMLDivElement>(null)
 
   React.useLayoutEffect(() => {
-    return autorun(() => {
-      const elm = rBounds.current!
+    const elm = rBounds.current!
 
-      const transform = `
-    translate(
-      calc(${bounds.minX}px - var(--nu-padding)),
-      calc(${bounds.minY}px - var(--nu-padding))
+    elm.style.setProperty(
+      'transform',
+      `translate(
+          calc(${bounds.minX}px - var(--nu-padding)),
+          calc(${bounds.minY}px - var(--nu-padding))
+        )
+        rotate(${rotation + (bounds.rotation || 0)}rad)`
     )
-    rotate(${rotation + (bounds.rotation || 0)}rad)
-    ${counterScaled ? 'scale(var(--nu-scale)' : ''}`
-
-      elm.style.setProperty('transform', transform)
-    })
-  }, [bounds, counterScaled])
+  }, [bounds.minX, bounds.minY, rotation, bounds.rotation])
 
   React.useLayoutEffect(() => {
-    return autorun(() => {
-      const elm = rBounds.current!
+    const elm = rBounds.current!
 
-      elm.style.setProperty(
-        'width',
-        `calc(${Math.floor(bounds.width)}px + (var(--nu-padding) * 2))`
-      )
+    elm.style.setProperty('width', `calc(${Math.floor(bounds.width)}px + (var(--nu-padding) * 2))`)
 
-      elm.style.setProperty(
-        'height',
-        `calc(${Math.floor(bounds.height)}px + (var(--nu-padding) * 2))`
-      )
+    elm.style.setProperty(
+      'height',
+      `calc(${Math.floor(bounds.height)}px + (var(--nu-padding) * 2))`
+    )
 
-      if (zIndex !== undefined) {
-        elm.style.setProperty('z-index', zIndex?.toString())
-      }
-    })
-  }, [bounds, rotation])
+    if (zIndex !== undefined) {
+      elm.style.setProperty('z-index', zIndex?.toString())
+    }
+  }, [bounds.width, bounds.height, zIndex, rotation])
 
   return (
     <div
       id={id}
       ref={rBounds}
-      className={`nu-positioned ${isGhost ? 'nu-ghost' : ''} ${className}`}
+      className={`nu-positioned ${className}`}
       aria-label="container"
-      data-testid="container"
       {...props}
     >
       {children}

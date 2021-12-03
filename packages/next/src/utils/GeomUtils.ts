@@ -1,6 +1,5 @@
 import Vec from '@tldraw/vec'
-
-const TAU = Math.PI * 2
+import { PI, PI2, TAU } from '~constants'
 
 export class GeomUtils {
   /**
@@ -16,19 +15,16 @@ export class GeomUtils {
     const [x3, y3] = C
 
     const a = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2
-
     const b =
       (x1 * x1 + y1 * y1) * (y3 - y2) +
       (x2 * x2 + y2 * y2) * (y1 - y3) +
       (x3 * x3 + y3 * y3) * (y2 - y1)
-
     const c =
       (x1 * x1 + y1 * y1) * (x2 - x3) +
       (x2 * x2 + y2 * y2) * (x3 - x1) +
       (x3 * x3 + y3 * y3) * (x1 - x2)
 
     const x = -b / (2 * a)
-
     const y = -c / (2 * a)
 
     return [x, y, Math.hypot(x - x1, y - y1)]
@@ -41,7 +37,7 @@ export class GeomUtils {
    */
   static perimeterOfEllipse(rx: number, ry: number): number {
     const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
-    const p = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+    const p = PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
     return p
   }
 
@@ -51,9 +47,8 @@ export class GeomUtils {
    * @param a1
    */
   static shortAngleDist(a0: number, a1: number): number {
-    const max = Math.PI * 2
-    const da = (a1 - a0) % max
-    return ((2 * da) % max) - da
+    const da = (a1 - a0) % PI2
+    return ((2 * da) % PI2) - da
   }
 
   /**
@@ -62,7 +57,7 @@ export class GeomUtils {
    * @param a1
    */
   static longAngleDist(a0: number, a1: number): number {
-    return Math.PI * 2 - GeomUtils.shortAngleDist(a0, a1)
+    return PI2 - GeomUtils.shortAngleDist(a0, a1)
   }
 
   /**
@@ -99,7 +94,7 @@ export class GeomUtils {
    * @param r
    */
   static clampRadians(r: number): number {
-    return (Math.PI * 2 + r) % (Math.PI * 2)
+    return (PI2 + r) % PI2
   }
 
   /**
@@ -108,8 +103,11 @@ export class GeomUtils {
    * @param segments
    */
   static snapAngleToSegments(r: number, segments: number): number {
-    const seg = (Math.PI * 2) / segments
-    return Math.floor((GeomUtils.clampRadians(r) + seg / 2) / seg) * seg
+    const seg = PI2 / segments
+    let ang = (Math.floor((GeomUtils.clampRadians(r) + seg / 2) / seg) * seg) % PI2
+    if (ang < PI) ang += PI2
+    if (ang > PI) ang -= PI2
+    return ang
   }
 
   /**
@@ -123,7 +121,7 @@ export class GeomUtils {
 
     const AB = (b - a + TAU) % TAU
     const AC = (c - a + TAU) % TAU
-    return AB <= Math.PI !== AC > AB
+    return AB <= PI !== AC > AB
   }
 
   /**
@@ -131,7 +129,7 @@ export class GeomUtils {
    * @param d
    */
   static degreesToRadians(d: number): number {
-    return (d * Math.PI) / 180
+    return (d * PI) / 180
   }
 
   /**
@@ -139,7 +137,7 @@ export class GeomUtils {
    * @param r
    */
   static radiansToDegrees(r: number): number {
-    return (r * 180) / Math.PI
+    return (r * 180) / PI
   }
 
   /**
@@ -151,21 +149,21 @@ export class GeomUtils {
    */
   static getArcLength(C: number[], r: number, A: number[], B: number[]): number {
     const sweep = GeomUtils.getSweep(C, A, B)
-    return r * (2 * Math.PI) * (sweep / (2 * Math.PI))
+    return r * PI2 * (sweep / PI2)
   }
 
   static getSweepFlag(A: number[], B: number[], C: number[]) {
     const angleAC = Vec.angle(A, C)
     const angleAB = Vec.angle(A, B)
-    const angleCAB = ((angleAB - angleAC + 3 * Math.PI) % (2 * Math.PI)) - Math.PI
+    const angleCAB = ((angleAB - angleAC + 3 * PI) % PI2) - PI
     return angleCAB > 0 ? 0 : 1
   }
 
   static getLargeArcFlag(A: number[], C: number[], P: number[]) {
     const anglePA = Vec.angle(P, A)
     const anglePC = Vec.angle(P, C)
-    const angleAPC = ((anglePC - anglePA + 3 * Math.PI) % (2 * Math.PI)) - Math.PI
-    return Math.abs(angleAPC) > Math.PI / 2 ? 0 : 1
+    const angleAPC = ((anglePC - anglePA + 3 * PI) % PI2) - PI
+    return Math.abs(angleAPC) > TAU ? 0 : 1
   }
 
   /**
@@ -179,7 +177,7 @@ export class GeomUtils {
   static getArcDashOffset(C: number[], r: number, A: number[], B: number[], step: number): number {
     const del0 = GeomUtils.getSweepFlag(C, A, B)
     const len0 = GeomUtils.getArcLength(C, r, A, B)
-    const off0 = del0 < 0 ? len0 : 2 * Math.PI * C[2] - len0
+    const off0 = del0 < 0 ? len0 : PI2 * C[2] - len0
     return -off0 / 2 + step
   }
 
@@ -189,7 +187,7 @@ export class GeomUtils {
    * @param step
    */
   static getEllipseDashOffset(A: number[], step: number): number {
-    const c = 2 * Math.PI * A[2]
+    const c = PI2 * A[2]
     return -c / 2 + -step
   }
 }

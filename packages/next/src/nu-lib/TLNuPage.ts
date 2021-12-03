@@ -79,4 +79,8 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
   private bump = () => {
     this.nonce++
   }
+
+  @action update(props: Partial<TLNuPageProps<S, B>>): void {
+    Object.assign(this, props)
+  }
 }

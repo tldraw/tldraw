@@ -113,7 +113,7 @@ const tlcss = css`
   .nu-container {
     --nu-zoom: 1;
     --nu-scale: calc(1 / var(--nu-zoom));
-    --nu-padding: calc(64px * max(1, var(--nu-scale)));
+    --nu-padding: calc(64px * var(--nu-scale));
     position: relative;
     top: 0px;
     left: 0px;
@@ -210,10 +210,14 @@ const tlcss = css`
     position: relative;
     width: 100%;
     height: 100%;
-    overflow: hidden;
     padding: var(--nu-padding);
-    overflow: hidden;
     contain: layout style size;
+  }
+
+  .nu-positioned-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
   }
 
   .nu-counter-scaled {
@@ -389,7 +393,18 @@ const tlcss = css`
   .nu-binding-indicator {
     stroke-width: calc(3px * var(--nu-scale));
     fill: var(--nu-selectFill);
-    stroke: var(--nu-selected);
+    stroke: var(--nu-selectStroke);
+  }
+
+  .nu-centered {
+    display: grid;
+    place-content: center;
+    place-items: center;
+  }
+
+  .nu-centered > * {
+    grid-column: 1;
+    grid-row: 1;
   }
 
   .nu-centered-g {
@@ -410,18 +425,49 @@ const tlcss = css`
     fill: var(--nu-grid);
   }
 
-  .nu-context-bar {
-    width: 100%;
-    height: 100%;
-    display: grid;
-    place-items: center;
+  .nu-counter-scaled-positioned {
+    position: absolute;
+    top: 0;
+    left: 0;
     pointer-events: none;
-    grid-template-columns: 1fr;
+    padding: 0;
+    contain: layout style size;
+  }
+
+  .nu-fade-in {
+    opacity: 1;
+    transition-timing-function: ease-in;
+    transition-property: opacity;
+    transition-duration: 0.12s;
+    transition-delay: 0.12s;
+  }
+
+  .nu-fade-out {
+    opacity: 0;
+    transition-timing-function: ease-out;
+    transition-property: opacity;
+    transition-duration: 0.12s;
+  }
+
+  .nu-counter-scaled-positioned > .nu-positioned-div {
+    padding: 64px;
   }
 
   .nu-context-bar > * {
     grid-column: 1;
     grid-row: 1;
+  }
+
+  .nu-bounds-detail {
+    padding: 2px 3px;
+    border-radius: 1px;
+    white-space: nowrap;
+    width: fit-content;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    background-color: var(--nu-selectStroke);
+    color: var(--nu-background);
   }
 `
 

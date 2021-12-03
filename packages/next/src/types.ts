@@ -167,11 +167,20 @@ export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
 export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {
   shapes: S[]
   bounds: TLNuBounds
+  scaledBounds: TLNuBounds
+  rotation: number
+}) => JSX.Element
+
+export type TLNuBoundsDetailComponent = (props: {
+  bounds: TLNuBounds
+  scaledBounds: TLNuBounds
+  zoom: number
 }) => JSX.Element
 
 export type TLNuComponents<S extends TLNuShape = TLNuShape> = {
   BoundsBackground: TLNuBoundsComponent<S>
   BoundsForeground: TLNuBoundsComponent<S>
+  BoundsDetail: TLNuBoundsDetailComponent
   ContextBar?: TLNuContextBarComponent<S>
 }
 
@@ -238,6 +247,8 @@ export interface TLNuViewOptions {
   showBounds?: boolean
   showResizeHandles?: boolean
   showRotateHandle?: boolean
+  showContextMenu?: boolean
+  showBoundsDetail?: boolean
 }
 
 export interface TLNuContextProviderProps<S extends TLNuShape> extends TLNuCallbacks<S> {
