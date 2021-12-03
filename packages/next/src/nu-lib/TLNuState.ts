@@ -6,6 +6,7 @@ import type {
   TLNuKeyboardHandler,
   TLNuOnEnter,
   TLNuOnExit,
+  TLNuPinchHandler,
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
@@ -24,19 +25,23 @@ export abstract class TLNuState<
 > implements Partial<TLNuCallbacks<S>>
 {
   constructor(tool: TLNuTool<S, B>) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.stateId = this.constructor['id']
     this.tool = tool
     this.app = tool.app
   }
 
   static id: string
 
+  readonly stateId: string
   readonly app: TLNuApp<S, B>
   readonly tool: TLNuTool<S, B>
 
   onEnter?: TLNuOnEnter<any>
   onExit?: TLNuOnExit<any>
 
-  onPan?: TLNuWheelHandler<S>
+  onWheel?: TLNuWheelHandler<S>
   onPointerDown?: TLNuPointerHandler<S>
   onPointerUp?: TLNuPointerHandler<S>
   onPointerMove?: TLNuPointerHandler<S>
@@ -44,10 +49,7 @@ export abstract class TLNuState<
   onPointerLeave?: TLNuPointerHandler<S>
   onKeyDown?: TLNuKeyboardHandler<S>
   onKeyUp?: TLNuKeyboardHandler<S>
-
-  get stateId(): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return this.constructor['id']
-  }
+  onPinchStart?: TLNuPinchHandler<S>
+  onPinch?: TLNuPinchHandler<S>
+  onPinchEnd?: TLNuPinchHandler<S>
 }

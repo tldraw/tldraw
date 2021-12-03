@@ -13,7 +13,7 @@ export class PointingCanvasState<S extends TLNuShape, B extends TLNuBinding> ext
     if (!shiftKey) this.app.deselectAll()
   }
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

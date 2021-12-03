@@ -16,7 +16,7 @@ export class PointingSelectedShapeState<
 
   onExit = () => (this.pointedSelectedShape = undefined)
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

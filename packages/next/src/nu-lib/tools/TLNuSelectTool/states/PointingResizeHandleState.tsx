@@ -14,7 +14,7 @@ export class PointingResizeHandleState<
     this.pointedHandle = info.target
   }
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

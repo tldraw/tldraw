@@ -22,7 +22,7 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
     this.tree.clear()
   }
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

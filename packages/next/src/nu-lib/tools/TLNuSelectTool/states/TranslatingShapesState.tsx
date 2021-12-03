@@ -116,7 +116,7 @@ export class TranslatingShapesState<S extends TLNuShape, B extends TLNuBinding> 
     this.initialClonePoints = {}
   }
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { FullGestureState, WebKitGestureEvent } from '@use-gesture/core/types'
 import type { KeyboardEvent } from 'react'
 import type React from 'react'
 import type {
@@ -105,7 +106,13 @@ export type TLNuEventInfo<S extends TLNuShape = TLNuShape> =
 export type TLNuWheelHandler<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
-> = (info: E, event: WheelEvent) => void
+> = (
+  info: E,
+  gesture: Omit<FullGestureState<'wheel'>, 'event'> & {
+    event: WheelEvent
+  },
+  event: WheelEvent
+) => void
 
 export type TLNuPointerHandler<
   S extends TLNuShape = TLNuShape,
@@ -117,18 +124,32 @@ export type TLNuKeyboardHandler<
   E extends TLNuEventInfo = TLNuEventInfo<S>
 > = (info: E, event: React.KeyboardEvent) => void
 
+export type TLNuPinchHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo = TLNuEventInfo<S>
+> = (
+  info: E,
+  gesture: Omit<FullGestureState<'pinch'>, 'event'> & {
+    event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
+  },
+  event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
+) => void
+
 export interface TLNuCallbacks<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
 > {
-  onPan: TLNuWheelHandler<S, E>
-  onPointerDown: TLNuPointerHandler<S, E>
-  onPointerUp: TLNuPointerHandler<S, E>
-  onPointerMove: TLNuPointerHandler<S, E>
-  onPointerEnter: TLNuPointerHandler<S, E>
-  onPointerLeave: TLNuPointerHandler<S, E>
   onKeyDown: TLNuKeyboardHandler<S, E>
   onKeyUp: TLNuKeyboardHandler<S, E>
+  onPinch: TLNuPinchHandler<S, E>
+  onPinchEnd: TLNuPinchHandler<S, E>
+  onPinchStart: TLNuPinchHandler<S, E>
+  onPointerDown: TLNuPointerHandler<S, E>
+  onPointerEnter: TLNuPointerHandler<S, E>
+  onPointerLeave: TLNuPointerHandler<S, E>
+  onPointerMove: TLNuPointerHandler<S, E>
+  onPointerUp: TLNuPointerHandler<S, E>
+  onWheel: TLNuWheelHandler<S, E>
 }
 
 export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {

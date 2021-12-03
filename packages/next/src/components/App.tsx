@@ -78,12 +78,15 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
       brush={app.brush}
       onKeyDown={app.onKeyDown}
       onKeyUp={app.onKeyUp}
-      onPan={app.onPan}
+      onPinch={app.onPinch}
+      onPinchEnd={app.onPinchEnd}
+      onPinchStart={app.onPinchStart}
       onPointerDown={app.onPointerDown}
       onPointerEnter={app.onPointerEnter}
       onPointerLeave={app.onPointerLeave}
       onPointerMove={app.onPointerMove}
       onPointerUp={app.onPointerUp}
+      onWheel={app.onWheel}
     >
       {children}
     </Renderer>

@@ -1,12 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { WebKitGestureEvent } from '@use-gesture/core/types'
 import { action, makeObservable, observable } from 'mobx'
+import type React from 'react'
 import type { TLNuApp, TLNuShape, TLNuState, TLNuStateClass } from '~nu-lib'
 import type {
   TLNuBinding,
   TLNuCallbacks,
+  TLNuEventInfo,
   TLNuKeyboardHandler,
   TLNuOnEnter,
   TLNuOnExit,
+  TLNuPinchHandler,
   TLNuPointerHandler,
   TLNuWheelHandler,
 } from '~types'
@@ -28,6 +32,9 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   implements Partial<TLNuCallbacks<S>>
 {
   constructor(app: TLNuApp<S, B>) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.toolId = this.constructor['id']
     this.app = app
     makeObservable(this)
   }
@@ -35,6 +42,7 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   static id: string
   static shortcut?: string
 
+  readonly toolId: string
   readonly app: TLNuApp<S, B>
 
   abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
@@ -66,7 +74,7 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   onEnter?: TLNuOnEnter<any>
   onExit?: TLNuOnExit<any>
 
-  onPan?: TLNuWheelHandler<S>
+  onWheel?: TLNuWheelHandler<S>
   onPointerDown?: TLNuPointerHandler<S>
   onPointerUp?: TLNuPointerHandler<S>
   onPointerMove?: TLNuPointerHandler<S>
@@ -74,52 +82,70 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   onPointerLeave?: TLNuPointerHandler<S>
   onKeyDown?: TLNuKeyboardHandler<S>
   onKeyUp?: TLNuKeyboardHandler<S>
+  onPinchStart?: TLNuPinchHandler<S>
+  onPinch?: TLNuPinchHandler<S>
+  onPinchEnd?: TLNuPinchHandler<S>
 
   /* ----------------- Internal Events ---------------- */
 
-  _onPan: TLNuWheelHandler<S> = (info, e) => {
-    this.currentState.onPan?.(info, e)
-    this.onPan?.(info, e)
+  readonly _onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+    this.currentState.onWheel?.(info, gesture, e)
+    this.onWheel?.(info, gesture, e)
   }
 
-  _onPointerDown: TLNuPointerHandler<S> = (info, e) => {
+  readonly _onPointerDown: TLNuPointerHandler<S> = (info, e) => {
     this.currentState.onPointerDown?.(info, e)
     this.onPointerDown?.(info, e)
   }
 
-  _onPointerUp: TLNuPointerHandler<S> = (info, e) => {
+  readonly _onPointerUp: TLNuPointerHandler<S> = (info, e) => {
     this.currentState.onPointerUp?.(info, e)
     this.onPointerUp?.(info, e)
   }
 
-  _onPointerMove: TLNuPointerHandler<S> = (info, e) => {
+  readonly _onPointerMove: TLNuPointerHandler<S> = (info, e) => {
     this.currentState.onPointerMove?.(info, e)
     this.onPointerMove?.(info, e)
   }
 
-  _onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
+  readonly _onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
     this.currentState.onPointerEnter?.(info, e)
     this.onPointerEnter?.(info, e)
   }
 
-  _onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
+  readonly _onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
     this.currentState.onPointerLeave?.(info, e)
     this.onPointerLeave?.(info, e)
   }
 
-  _onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+  readonly _onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
     this.handleModifierKey(info, e)
     this.currentState.onKeyDown?.(info, e)
     this.onKeyDown?.(info, e)
   }
 
-  _onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
+  readonly _onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
     this.handleModifierKey(info, e)
     this.currentState.onKeyUp?.(info, e)
     this.onKeyUp?.(info, e)
   }
 
-  handleModifierKey: TLNuKeyboardHandler<S> = (info, e) => {
+  readonly _onPinchStart: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.currentState.onPinchStart?.(info, gesture, e)
+    this.onPinchStart?.(info, gesture, e)
+  }
+
+  readonly _onPinch: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.currentState.onPinch?.(info, gesture, e)
+    this.onPinch?.(info, gesture, e)
+  }
+
+  readonly _onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.currentState.onPinchEnd?.(info, gesture, e)
+    this.onPinchEnd?.(info, gesture, e)
+  }
+
+  handleModifierKey = (info: TLNuEventInfo<S>, e: React.KeyboardEvent) => {
     switch (e.key) {
       case 'Shift':
       case 'Alt':
@@ -129,11 +155,5 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
         break
       }
     }
-  }
-
-  get toolId(): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return this.constructor['id']
   }
 }

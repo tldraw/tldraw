@@ -26,6 +26,7 @@ import type {
   TLNuSubscriptionEventName,
   TLNuSubscriptionCallback,
   TLSubscribe,
+  TLNuPinchHandler,
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 
@@ -299,9 +300,9 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   /* ----------------- Event Handlers ----------------- */
 
-  readonly onPan: TLNuWheelHandler<S> = (info, e) => {
-    this.selectedTool._onPan?.(info, e)
-    this.notify('persist', null)
+  readonly onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+    this.viewport.panCamera(gesture.delta)
+    this.selectedTool._onWheel?.(info, gesture, e)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
@@ -330,6 +331,18 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
     this.selectedTool._onKeyUp?.(info, e)
+  }
+
+  readonly onPinchStart: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.selectedTool._onPinchStart?.(info, gesture, e)
+  }
+
+  readonly onPinch: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.selectedTool._onPinch?.(info, gesture, e)
+  }
+
+  readonly onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.selectedTool._onPinchEnd?.(info, gesture, e)
   }
 
   /* ------------------- Public API ------------------- */

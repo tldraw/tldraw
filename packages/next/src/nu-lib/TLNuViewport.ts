@@ -31,7 +31,7 @@ export class TLNuViewport {
   }
 
   @action panCamera = (delta: number[]) => {
-    this.camera.point = Vec.sub(this.camera.point, delta)
+    this.camera.point = Vec.sub(this.camera.point, Vec.div(delta, this.camera.zoom))
   }
 
   @action update = ({ point, zoom }: Partial<{ point: number[]; zoom: number }>) => {

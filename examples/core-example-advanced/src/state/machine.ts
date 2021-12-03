@@ -2,7 +2,6 @@ import { createState } from '@state-designer/react'
 import type { TLPointerInfo } from '@tldraw/core'
 import { INITIAL_DATA } from './constants'
 import Vec from '@tldraw/vec'
-import { getPagePoint } from './helpers'
 import * as actions from './actions'
 import { mutables } from './mutables'
 

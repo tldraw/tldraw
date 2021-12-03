@@ -45,7 +45,7 @@ export class RotatingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
 
   onExit = () => (this.snapshot = {})
 
-  onPan: TLNuWheelHandler<S> = (info, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 

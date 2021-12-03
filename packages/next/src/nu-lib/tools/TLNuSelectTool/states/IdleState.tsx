@@ -1,5 +1,5 @@
 import { TLNuShape, TLNuState } from '~nu-lib'
-import { TLNuBinding, TLNuPointerHandler, TLNuTargetType } from '~types'
+import { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuTargetType } from '~types'
 
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
   static id = 'idle'
@@ -71,5 +71,9 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
         this.app.hover(undefined)
       }
     }
+  }
+
+  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+    this.tool.transition('pinching', { info, gesture, event })
   }
 }

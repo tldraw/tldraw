@@ -10,62 +10,75 @@ type PinchHandler = Handler<'pinch', WheelEvent | PointerEvent | TouchEvent | We
 export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
   const { viewport, inputs, callbacks } = useContext()
 
-  const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
-    ({ delta, event: e }) => {
-      e.preventDefault()
-      if (Vec.isEqual(delta, [0, 0])) return
+  const onWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
+    (gesture) => {
+      const { event, delta } = gesture
+      event.preventDefault()
+      if (Vec.isEqual(delta, [0, 0])) {
+        return
+      }
 
-      viewport.panCamera(delta)
-      inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
-      callbacks.onPan?.({ type: TLNuTargetType.Canvas, target: 'canvas', order: 0 }, e)
+      inputs.onWheel([...viewport.getPagePoint([event.clientX, event.clientY]), 0.5], event)
+      callbacks.onWheel?.(
+        { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
+        gesture,
+        event
+      )
     },
-    [viewport, inputs, callbacks.onPan]
+    [viewport, inputs, callbacks.onWheel]
   )
 
-  const onPinchStart = React.useCallback<PinchHandler>(({ origin, event }) => {
-    // const elm = ref.current
-    // if (!elm || !(event.target === elm || elm.contains(event.target as Node))) return
-    // const info = inputs.pinch(origin, origin)
-    // inputs.isPinching = true
-    // inputs.onPinchStart?.(info, event)
-    // rPinchPoint.current = info.point
-    // rOriginPoint.current = info.origin
-    // rDelta.current = [0, 0]
-  }, [])
+  const onPinchStart = React.useCallback<PinchHandler>(
+    (gesture) => {
+      const elm = ref.current
+      const { event, origin } = gesture
+      if (!(event.target === elm || elm?.contains(event.target as Node))) return
+      if (inputs.state !== 'idle') return
+      inputs.onPinchStart([...viewport.getPagePoint(origin), 0.5], event)
+      callbacks.onPinchStart?.(
+        { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
+        gesture,
+        event
+      )
+    },
+    [viewport, inputs, callbacks.onPinch]
+  )
 
-  const onPinchEnd = React.useCallback<PinchHandler>(({ origin, event }) => {
-    // const elm = ref.current
-    // if (!(event.target === elm || elm?.contains(event.target as Node))) return
-    // const info = inputs.pinch(origin, origin)
-    // inputs.isPinching = false
-    // callbacks.onPinchEnd?.(info, event)
-    // rPinchPoint.current = undefined
-    // rOriginPoint.current = undefined
-    // rDelta.current = [0, 0]
-  }, [])
+  const onPinch = React.useCallback<PinchHandler>(
+    (gesture) => {
+      const elm = ref.current
+      const { event, origin, delta } = gesture
+      if (!(event.target === elm || elm?.contains(event.target as Node))) return
+      if (inputs.state !== 'pinching') return
+      inputs.onPinch([...viewport.getPagePoint(origin), 0.5], event)
+      callbacks.onPinch?.(
+        { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
+        gesture,
+        event
+      )
+    },
+    [viewport, inputs, callbacks.onPinch]
+  )
 
-  const onPinch = React.useCallback<PinchHandler>(({ origin, offset, event }) => {
-    // const elm = ref.current
-    // if (!(event.target === elm || elm?.contains(event.target as Node))) return
-    // if (!rOriginPoint.current) return
-    // const info = inputs.pinch(origin, rOriginPoint.current)
-    // const trueDelta = Vec.sub(info.delta, rDelta.current)
-    // rDelta.current = info.delta
-    // callbacks.onPinch?.(
-    //   {
-    //     ...info,
-    //     point: info.point,
-    //     origin: rOriginPoint.current,
-    //     delta: [...trueDelta, offset[0]],
-    //   },
-    //   event
-    // )
-    // rPinchPoint.current = origin
-  }, [])
+  const onPinchEnd = React.useCallback<PinchHandler>(
+    (gesture) => {
+      const elm = ref.current
+      const { event, origin } = gesture
+      if (!(event.target === elm || elm?.contains(event.target as Node))) return
+      if (inputs.state !== 'pinching') return
+      inputs.onPinchEnd([...viewport.getPagePoint(origin), 0.5], event)
+      callbacks.onPinchEnd?.(
+        { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
+        gesture,
+        event
+      )
+    },
+    [viewport, inputs, callbacks.onPinchEnd]
+  )
 
   useGesture(
     {
-      onWheel: handleWheel,
+      onWheel,
       onPinch,
       onPinchStart,
       onPinchEnd,

@@ -13,6 +13,7 @@ import {
   ResizingShapesState,
   RotatingShapesState,
   PointingRotateHandleState,
+  PinchingState,
 } from './states'
 
 export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends TLNuTool<S, B> {
@@ -30,7 +31,8 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
       ResizingShapesState,
       PointingRotateHandleState,
       RotatingShapesState,
-      RotatingShapesState
+      RotatingShapesState,
+      PinchingState
     )
     this.transition('idle')
   }
