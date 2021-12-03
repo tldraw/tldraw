@@ -8,6 +8,16 @@ export class ArrowTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showArrow()
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
+
   onPointerDown: TLPointerEventHandler = () => {
     const {
       currentPoint,

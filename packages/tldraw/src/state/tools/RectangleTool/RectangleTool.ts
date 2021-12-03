@@ -8,6 +8,16 @@ export class RectangleTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showSquare()
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
+
   onPointerDown: TLPointerEventHandler = () => {
     const {
       currentPoint,
