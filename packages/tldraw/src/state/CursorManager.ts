@@ -7,10 +7,11 @@ enum Cursor {
   ResizeCorner = 'resize-corner',
   Text = 'text',
   Draw = 'draw',
-  Arrow = 'arrow'
+  Arrow = 'arrow',
+  Eraser = 'eraser',
 }
 
-export class CursorManager {
+export class CursorManager{ 
   private current?: Cursor
   private stack: Cursor[] = []
   public rContainer?: React.RefObject<HTMLDivElement>
@@ -43,8 +44,13 @@ export class CursorManager {
     this.push(Cursor.Draw)
   }
 
+<<<<<<< HEAD
   showArrow() {
     this.push(Cursor.Arrow)
+=======
+  showEraser() {
+    this.push(Cursor.Eraser)
+>>>>>>> d97e0a79102847c36bee760599812326568ca823
   }
 
   showPrevious() {
@@ -101,5 +107,7 @@ export class CursorManager {
       "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' width='35' height='35' viewBox='0 0 35 35' version='1.1'%3E%3Cg id='surface1'%3E%3Cpath style=' stroke:none;fill-rule:nonzero;fill:rgb(0%25,0%25,0%25);fill-opacity:1;' d='M 31.109375 9.425781 L 28.894531 11.640625 L 23.359375 6.097656 L 25.574219 3.882812 C 26.023438 3.433594 26.8125 3.433594 27.261719 3.882812 L 31.109375 7.738281 C 31.574219 8.203125 31.574219 8.960938 31.109375 9.425781 Z M 12.605469 27.953125 L 7.070312 22.40625 L 21.382812 8.074219 L 26.921875 13.617188 Z M 5.789062 25.082031 L 9.933594 29.230469 L 4.164062 30.859375 Z M 33.085938 5.761719 L 29.238281 1.90625 C 28.484375 1.15625 25.773438 -0.265625 23.605469 1.90625 L 4.101562 21.421875 C 3.929688 21.59375 3.808594 21.800781 3.746094 22.03125 L 0.808594 32.5 C 0.671875 32.984375 0.8125 33.503906 1.164062 33.867188 C 1.519531 34.226562 2.230469 34.289062 2.53125 34.21875 L 12.988281 31.273438 C 13.222656 31.210938 13.425781 31.089844 13.597656 30.917969 L 33.085938 11.402344 C 34.636719 9.851562 34.636719 7.320312 33.085938 5.761719 Z M 33.085938 5.761719 '/%3E%3C/g%3E%3C/svg%3E%0A",
     [Cursor.Arrow]:
     "data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' fill-rule='evenodd' clip-rule='evenodd'%3E%3Cpath d='M21.883 12l-7.527 6.235.644.765 9-7.521-9-7.479-.645.764 7.529 6.236h-21.884v1h21.883z'/%3E%3C/svg%3E",     
-    }
+    [Cursor.Eraser]:
+    "data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 15 15' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.72838 9.33987L8.84935 2.34732C9.23874 1.96494 9.86279 1.96539 10.2516 2.34831L13.5636 5.60975C13.9655 6.00555 13.9607 6.65526 13.553 7.04507L8.13212 12.2278C7.94604 12.4057 7.69851 12.505 7.44107 12.505L6.06722 12.505L3.83772 12.505C3.5673 12.505 3.30842 12.3954 3.12009 12.2014L1.7114 10.7498C1.32837 10.3551 1.33596 9.72521 1.72838 9.33987Z' stroke='currentColor' /%3E%3Cline x1='6.01807' y1='12.5' x2='10.7959' y2='12.5' stroke='currentColor' strokeLinecap='round' /%3E%3Cline x1='5.50834' y1='5.74606' x2='10.1984' y2='10.4361' stroke='currentColor' /%3E%3C/svg%3E",
+  }
 }
