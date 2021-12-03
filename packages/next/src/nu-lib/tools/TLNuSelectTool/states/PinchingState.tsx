@@ -37,10 +37,10 @@ export class PinchingState<S extends TLNuShape, B extends TLNuBinding> extends T
   }
 
   onPinch: TLNuPinchHandler<S> = (info, gesture, event) => {
-    const delta = Vec.sub(this.origin, gesture.origin)
-    const trueDelta = Vec.sub(delta, this.prevDelta)
-    this.prevDelta = gesture.delta
-    this.pinchCamera(gesture.origin, trueDelta, gesture.offset[0])
+    // const delta = Vec.sub(this.origin, gesture.origin)
+    // const trueDelta = Vec.sub(delta, this.prevDelta)
+    // this.prevDelta = gesture.delta
+    this.pinchCamera(gesture.origin, [0, 0], gesture.offset[0])
   }
 
   onPinchEnd: TLNuPinchHandler<S> = (_info, gesture, event) => {

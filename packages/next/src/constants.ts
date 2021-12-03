@@ -6,6 +6,8 @@ export const TAU = PI / 2
 export const PI2 = PI * 2
 export const EPSILON = Math.PI / 180
 
+export const FIT_TO_SCREEN_PADDING = 100
+
 export const EMPTY_OBJECT: any = {}
 export const EMPTY_ARRAY: any[] = []
 

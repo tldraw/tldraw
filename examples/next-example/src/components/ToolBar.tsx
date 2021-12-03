@@ -31,6 +31,26 @@ export const ToolBar = observer(function ToolBar({ app }: ToolBarProps): JSX.Ele
     app.setToolLock(!app.isToolLocked)
   }, [app])
 
+  const zoomIn = React.useCallback(() => {
+    app.zoomIn()
+  }, [app])
+
+  const zoomOut = React.useCallback(() => {
+    app.zoomOut()
+  }, [app])
+
+  const resetZoom = React.useCallback(() => {
+    app.resetZoom()
+  }, [app])
+
+  const zoomToFit = React.useCallback(() => {
+    app.zoomToFit()
+  }, [app])
+
+  const zoomToSelection = React.useCallback(() => {
+    app.zoomToSelection()
+  }, [app])
+
   return (
     <div className="tlnu-toolbar">
       <label>
@@ -53,6 +73,12 @@ export const ToolBar = observer(function ToolBar({ app }: ToolBarProps): JSX.Ele
           </button>
         )
       })}
+      Camera
+      <button onClick={zoomOut}>-</button>
+      <button onClick={zoomIn}>+</button>
+      <button onClick={resetZoom}>reset</button>
+      <button onClick={zoomToFit}>zoom to fit</button>
+      <button onClick={zoomToSelection}>zoom to selection</button>
     </div>
   )
 })

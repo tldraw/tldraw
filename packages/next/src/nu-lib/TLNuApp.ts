@@ -30,6 +30,7 @@ import type {
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 import { TLNuSettings } from './TLNuSettings'
+import { FIT_TO_SCREEN_PADDING } from '~constants'
 
 export interface TLNuSerializedApp {
   currentPageId: string
@@ -254,8 +255,9 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   // Camera
 
-  @action setCamera = (point?: number[], zoom?: number) => {
+  @action setCamera = (point?: number[], zoom?: number): this => {
     this.viewport.update({ point, zoom })
+    return this
   }
 
   readonly getPagePoint = (point: number[]): number[] => {
@@ -428,5 +430,50 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
    */
   deselectAll = (): this => {
     return this.setSelectedShapes([])
+  }
+
+  /**
+   * Zoom the camera in.
+   */
+  zoomIn = (): this => {
+    this.viewport.zoomIn()
+    return this
+  }
+
+  /**
+   * Zoom the camera out.
+   */
+  zoomOut = (): this => {
+    this.viewport.zoomOut()
+    return this
+  }
+
+  /**
+   * Reset the camera to 100%.
+   */
+  resetZoom = (): this => {
+    this.viewport.resetZoom()
+    return this
+  }
+
+  /**
+   * Zoom to fit all of the current page's shapes in the viewport.
+   */
+  zoomToFit = (): this => {
+    const { shapes } = this.currentPage
+    if (shapes.length === 0) return this
+    const commonBounds = BoundsUtils.getCommonBounds(shapes.map((shape) => shape.bounds))
+    this.viewport.zoomToBounds(commonBounds)
+    return this
+  }
+
+  /**
+   * Zoom to fit the current selection in the viewport.
+   */
+  zoomToSelection = (): this => {
+    const { selectedBounds } = this
+    if (!selectedBounds) return this
+    this.viewport.zoomToBounds(selectedBounds)
+    return this
   }
 }

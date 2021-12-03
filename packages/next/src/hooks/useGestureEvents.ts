@@ -14,10 +14,8 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
     (gesture) => {
       const { event, delta } = gesture
       event.preventDefault()
-      if (Vec.isEqual(delta, [0, 0])) {
-        return
-      }
-
+      if (inputs.state === 'pinching') return
+      if (Vec.isEqual(delta, [0, 0])) return
       inputs.onWheel([...viewport.getPagePoint([event.clientX, event.clientY]), 0.5], event)
       callbacks.onWheel?.(
         { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
@@ -90,7 +88,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
       eventOptions: { passive: false },
       pinch: {
         from: viewport.camera.zoom,
-        scaleBounds: () => ({ from: viewport.camera.zoom, max: 5, min: 0.1 }),
+        scaleBounds: () => ({ from: viewport.camera.zoom, max: 8, min: 0.1 }),
       },
     }
   )

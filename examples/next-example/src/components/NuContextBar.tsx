@@ -9,15 +9,28 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, r
 
   const app = useAppContext()
 
+  const updateStroke = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ stroke: e.currentTarget.value }))
+  }, [])
+
+  const updateFill = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ fill: e.currentTarget.value }))
+  }, [])
+
+  const updateStrokeWidth = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ strokeWidth: +e.currentTarget.value }))
+  }, [])
+
   if (!app) return null
 
   return (
     <HTMLContainer centered>
       <div
+        className="contextbar"
         style={{
+          top: -(rotatedBounds.height / 2 + 52),
           pointerEvents: 'all',
           position: 'relative',
-          top: -(rotatedBounds.height / 2 + 52),
           backgroundColor: 'white',
           padding: '8px 12px',
           borderRadius: '8px',
@@ -30,26 +43,14 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, r
         }}
       >
         Stroke
-        <input
-          type="color"
-          onChange={(e) => {
-            shapes.forEach((shape) => shape.update({ stroke: e.currentTarget.value }))
-          }}
-        />
+        <input type="color" onChange={updateStroke} />
         Fill
-        <input
-          type="color"
-          onChange={(e) => {
-            shapes.forEach((shape) => shape.update({ fill: e.currentTarget.value }))
-          }}
-        />
+        <input type="color" onChange={updateFill} />
         Width
         <input
           type="number"
           value={Math.max(...shapes.map((shape) => shape.strokeWidth))}
-          onChange={(e) => {
-            shapes.forEach((shape) => shape.update({ strokeWidth: +e.currentTarget.value }))
-          }}
+          onChange={updateStrokeWidth}
           style={{ width: 48 }}
         />
       </div>
