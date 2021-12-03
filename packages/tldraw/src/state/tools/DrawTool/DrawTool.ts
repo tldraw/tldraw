@@ -8,6 +8,16 @@ export class DrawTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showDraw()
+  }
+
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
+
   onPointerDown: TLPointerEventHandler = (info) => {
     const {
       currentPoint,
