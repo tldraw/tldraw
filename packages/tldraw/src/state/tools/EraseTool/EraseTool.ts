@@ -16,7 +16,15 @@ export class EraseTool extends BaseTool {
   status: Status = Status.Idle
 
   /* ----------------- Event Handlers ----------------- */
+  onEnter = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showEraser()
+  }
 
+  onExit = () => {
+    this.setStatus(Status.Idle)
+    this.app.cursorManager.showPrevious()
+  }
   onPointerDown: TLPointerEventHandler = () => {
     this.setStatus(Status.Pointing)
   }
