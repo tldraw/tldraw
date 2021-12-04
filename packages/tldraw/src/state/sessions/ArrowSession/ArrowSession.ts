@@ -185,6 +185,7 @@ export class ArrowSession extends BaseSession {
           next.shape,
           startBinding,
           target,
+          targetUtils.getBounds(target),
           targetUtils.getExpandedBounds(target),
           targetUtils.getCenter(target)
         )

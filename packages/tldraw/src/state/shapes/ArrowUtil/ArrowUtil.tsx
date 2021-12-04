@@ -458,9 +458,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     // (Remember that the binding.point is normalized)
     const anchor = Vec.sub(
       Vec.add(
-        [targetBounds.minX, targetBounds.minY],
+        [expandedBounds.minX, expandedBounds.minY],
         Vec.mulV(
-          [targetBounds.width, targetBounds.height],
+          [expandedBounds.width, expandedBounds.height],
           Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
         )
       ),
