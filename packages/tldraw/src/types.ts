@@ -206,6 +206,7 @@ export type TDToolType =
   | TDShapeType.Draw
   | TDShapeType.Ellipse
   | TDShapeType.Rectangle
+  | TDShapeType.Triangle
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
@@ -270,6 +271,7 @@ export enum TDShapeType {
   Sticky = 'sticky',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
+  Triangle = 'triangle',
   Draw = 'draw',
   Arrow = 'arrow',
   Line = 'line',
@@ -336,6 +338,12 @@ export interface RectangleShape extends TDBaseShape {
   size: number[]
 }
 
+// The shape created by the Triangle tool
+export interface TriangleShape extends TDBaseShape {
+  type: TDShapeType.Triangle
+  size: number[]
+}
+
 // The shape created by the text tool
 export interface TextShape extends TDBaseShape {
   type: TDShapeType.Text
@@ -360,6 +368,7 @@ export interface GroupShape extends TDBaseShape {
 export type TDShape =
   | RectangleShape
   | EllipseShape
+  | TriangleShape
   | DrawShape
   | ArrowShape
   | TextShape
