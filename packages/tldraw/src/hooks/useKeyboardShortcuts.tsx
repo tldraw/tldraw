@@ -63,7 +63,17 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'l,6',
+    'g,6',
+    () => {
+      if (!canHandleEvent()) return
+      app.selectTool(TDShapeType.Triangle)
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'l,7',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Line)
@@ -73,7 +83,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'a,7',
+    'a,8',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Arrow)
@@ -83,7 +93,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    't,8',
+    't,9',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Text)
@@ -93,7 +103,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    's,9',
+    's,0',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Sticky)
