@@ -136,12 +136,5 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 /* -------------------------------------------------- */
 
 function getTrianglePoints(x: number, y: number, w: number, h: number) {
-  const p1x = w / 2;
-  const p1y = y;
-  const p2x = x;
-  const p2y = h;
-  const p3x = w;
-  const p3y = h;
-
-  return `${p1x} ${p1y}, ${p2x} ${p2y}, ${p3x} ${p3y}`;
+  return `${w / 2} ${y}, ${x} ${h}, ${w} ${h}`;
 }
