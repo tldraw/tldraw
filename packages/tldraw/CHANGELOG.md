@@ -1,3 +1,12 @@
+## 1.2.4
+
+- Fixes bug with `onPersist`.
+- Fixes knock-on bug with VS Code extension not saving.
+
+## 1.2.3
+
+- Updates multiplayer code.
+
 ## 1.2.2
 
 - Updates @tldraw/core.
