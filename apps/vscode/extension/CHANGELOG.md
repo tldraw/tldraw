@@ -1,6 +1,6 @@
 ## 1.2.4
 
-- Fixing bug that prevented saving.
+- Fixed bug that prevented saving.
 
 ## 1.1.9
 
