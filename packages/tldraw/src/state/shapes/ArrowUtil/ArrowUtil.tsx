@@ -20,6 +20,7 @@ import {
   intersectLineSegmentLineSegment,
   intersectRayBounds,
   intersectRayEllipse,
+  intersectRayLineSegment,
 } from '@tldraw/intersect'
 import { BINDING_DISTANCE, EASINGS, GHOSTED_OPACITY } from '~constants'
 import {
@@ -35,6 +36,7 @@ import {
   renderCurvedFreehandArrowShaft,
   renderFreehandArrowShaft,
 } from './arrowHelpers'
+import { getTrianglePoints } from '../TriangleUtil'
 
 type T = ArrowShape
 type E = SVGSVGElement
@@ -447,19 +449,18 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     binding: TDBinding,
     target: TDShape,
     targetBounds: TLBounds,
+    expandedBounds: TLBounds,
     center: number[]
   ): Partial<T> | void => {
     const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
-
-    const expandedBounds = Utils.expandBounds(targetBounds, BINDING_DISTANCE)
 
     // The anchor is the "actual" point in the target shape
     // (Remember that the binding.point is normalized)
     const anchor = Vec.sub(
       Vec.add(
-        [expandedBounds.minX, expandedBounds.minY],
+        [targetBounds.minX, targetBounds.minY],
         Vec.mulV(
-          [expandedBounds.width, expandedBounds.height],
+          [targetBounds.width, targetBounds.height],
           Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
         )
       ),
@@ -490,6 +491,24 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
           (target as EllipseShape).radius[1] + binding.distance,
           target.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
+        }
+      } else if (target.type === TDShapeType.Triangle) {
+        const points = getTrianglePoints(target).map((pt) => Vec.add(pt, target.point))
+        const sides = Utils.pointsToLineSegments(points)
+
+        const expandedPoints = getTrianglePoints(target, BINDING_DISTANCE).map((pt) =>
+          Vec.add(pt, target.point)
+        )
+
+        const segments = Utils.pointsToLineSegments(expandedPoints.concat([expandedPoints[0]]))
+
+        const hits = segments
+          .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
+          .filter((intersection) => intersection.didIntersect)
+          .flatMap((intersection) => intersection.points)
 
         if (hits[0]) {
           handlePoint = Vec.sub(hits[0], shape.point)

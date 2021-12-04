@@ -10,6 +10,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import type { TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
+import { BINDING_DISTANCE } from '~constants'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,
@@ -51,6 +52,10 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
 
   getCenter = (shape: T) => {
     return Utils.getBoundsCenter(this.getBounds(shape))
+  }
+
+  getExpandedBounds = (shape: T) => {
+    return Utils.expandBounds(this.getBounds(shape), BINDING_DISTANCE)
   }
 
   getBindingPoint = <K extends TDShape>(
@@ -155,6 +160,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     binding: TDBinding,
     target: TDShape,
     targetBounds: TLBounds,
+    expandedBounds: TLBounds,
     center: number[]
   ) => Partial<T> | void
 

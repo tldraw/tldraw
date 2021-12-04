@@ -1239,3 +1239,39 @@ export function intersectPolygonBounds(points: number[][], bounds: TLBounds): TL
     points
   )
 }
+
+/**
+ * Find the intersections between a rectangle and a ray.
+ * @param point
+ * @param size
+ * @param rotation
+ * @param origin
+ * @param direction
+ */
+export function intersectRayPolygon(
+  origin: number[],
+  direction: number[],
+  points: number[][]
+): TLIntersection[] {
+  const sideIntersections = pointsToLineSegments(points, true).reduce<TLIntersection[]>(
+    (acc, [a1, a2], i) => {
+      const intersection = intersectRayLineSegment(origin, direction, a1, a2)
+
+      if (intersection) {
+        acc.push(createIntersection(i.toString(), ...intersection.points))
+      }
+
+      return acc
+    },
+    []
+  )
+
+  return sideIntersections.filter((int) => int.didIntersect)
+}
+
+export function pointsToLineSegments(points: number[][], closed = false) {
+  const segments = []
+  for (let i = 1; i < points.length; i++) segments.push([points[i - 1], points[i]])
+  if (closed) segments.push([points[points.length - 1], points[0]])
+  return segments
+}

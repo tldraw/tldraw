@@ -345,6 +345,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               binding,
               toShape,
               toUtils.getBounds(toShape),
+              toUtils.getExpandedBounds(toShape),
               toUtils.getCenter(toShape)
             )
 
@@ -757,6 +758,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           binding,
           toShape,
           toUtils.getBounds(toShape),
+          toUtils.getExpandedBounds(toShape),
           toUtils.getCenter(toShape)
         )
 

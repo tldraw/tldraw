@@ -634,6 +634,7 @@ export class TLDR {
       binding,
       otherShape,
       TLDR.getShapeUtil(otherShape).getBounds(otherShape),
+      TLDR.getShapeUtil(otherShape).getExpandedBounds(otherShape),
       TLDR.getShapeUtil(otherShape).getCenter(otherShape)
     )
     if (!delta) return shape
@@ -866,8 +867,8 @@ export class TLDR {
     return shapes.length === 0
       ? 1
       : shapes
-        .filter((shape) => shape.parentId === pageId)
-        .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+          .filter((shape) => shape.parentId === pageId)
+          .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
   }
 
   /* -------------------------------------------------- */
@@ -895,7 +896,7 @@ export class TLDR {
 
   static warn(e: any) {
     if (isDev) {
-      console.warn(e);
+      console.warn(e)
     }
   }
   static error(e: any) {
@@ -903,5 +904,4 @@ export class TLDR {
       console.error(e)
     }
   }
-
 }
