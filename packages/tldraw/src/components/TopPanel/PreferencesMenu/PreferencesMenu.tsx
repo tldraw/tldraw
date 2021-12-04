@@ -47,7 +47,7 @@ export function PreferencesMenu() {
       <DMCheckboxItem checked={settings.isDarkMode} onCheckedChange={toggleDarkMode} kbd="#⇧D">
         Dark Mode
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.isFocusMode} onCheckedChange={toggleFocusMode} kbd="⇧.">
+      <DMCheckboxItem checked={settings.isFocusMode} onCheckedChange={toggleFocusMode} kbd="#.">
         Focus Mode
       </DMCheckboxItem>
       <DMCheckboxItem checked={settings.isDebugMode} onCheckedChange={toggleDebugMode}>
@@ -66,7 +66,11 @@ export function PreferencesMenu() {
       <DMCheckboxItem checked={settings.showCloneHandles} onCheckedChange={toggleCloneControls}>
         Clone Handles
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.showGrid} onCheckedChange={toggleGrid} kbd="#⇧G">
+      <DMCheckboxItem
+        checked={settings.showGrid}
+        onCheckedChange={toggleGrid}
+        kbd="#⇧G"
+      >
         Grid
       </DMCheckboxItem>
       <DMCheckboxItem checked={settings.isSnapping} onCheckedChange={toggleisSnapping}>
