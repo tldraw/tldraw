@@ -3,7 +3,7 @@ import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
-import { GHOSTED_OPACITY } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectEllipseBounds,
@@ -89,9 +89,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
         )
       }
 
-      const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
-
-      const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
+      const perimeter = Utils.perimeterOfEllipse(rx, ry) // Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
 
       const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
         perimeter < 64 ? perimeter * 2 : perimeter,
@@ -107,8 +105,9 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               cx={radiusX}
               cy={radiusY}
-              rx={rx + 32}
-              ry={ry + 32}
+              rx={rx + this.bindingDistance / 2}
+              ry={ry + this.bindingDistance / 2}
+              strokeWidth={this.bindingDistance}
             />
           )}
           <ellipse
@@ -131,7 +130,22 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   )
 
   Indicator = TDShapeUtil.Indicator<T, M>(({ shape }) => {
-    return <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
+    const {
+      radius: [radiusX, radiusY],
+      style,
+    } = shape
+
+    const styles = getShapeStyle(style)
+    const strokeWidth = styles.strokeWidth
+    const sw = 1 + strokeWidth * 1.618
+    const rx = Math.max(0, radiusX - sw / 2)
+    const ry = Math.max(0, radiusY - sw / 2)
+
+    return style.dash === DashStyle.Draw ? (
+      <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
+    ) : (
+      <ellipse cx={radiusX} cy={radiusY} rx={rx} ry={ry} />
+    )
   })
 
   hitTestPoint = (shape: T, point: number[]): boolean => {

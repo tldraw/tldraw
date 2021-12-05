@@ -68,7 +68,7 @@ function isAngleBetween(a: number, b: number, c: number): boolean {
 /*                        Line                        */
 /* -------------------------------------------------- */
 
-export function intersectLineLine(AB: number[][], PQ: number[][]) {
+export function intersectLineLine(AB: number[][], PQ: number[][]): number[] | undefined {
   const slopeAB = Vec.slope(AB[0], AB[1])
   const slopePQ = Vec.slope(PQ[0], PQ[1])
 

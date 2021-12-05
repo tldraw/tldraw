@@ -48,7 +48,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, meta, events, isGhost, isEditing, onShapeBlur, onShapeChange }, ref) => {
+    ({ shape, meta, events, isGhost, isBinding, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
       const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -191,6 +191,19 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
             style={{ backgroundColor: fill, ...style }}
           >
+            {isBinding && (
+              <div
+                className="tl-binding-indicator"
+                style={{
+                  position: 'absolute',
+                  top: -this.bindingDistance,
+                  left: -this.bindingDistance,
+                  width: `calc(100% + ${this.bindingDistance * 2}px)`,
+                  height: `calc(100% + ${this.bindingDistance * 2}px)`,
+                  backgroundColor: 'var(--tl-selectFill)',
+                }}
+              />
+            )}
             <StyledText ref={rText} isEditing={isEditing} alignment={shape.style.textAlign}>
               {shape.text}&#8203;
             </StyledText>
