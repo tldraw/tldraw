@@ -66,7 +66,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
                 cy={radiusY}
                 rx={rx}
                 ry={ry}
-                strokeWidth={this.bindingDistance * 2}
+                strokeWidth={this.bindingDistance}
               />
             )}
             <path
@@ -105,8 +105,8 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               cx={radiusX}
               cy={radiusY}
-              rx={rx + this.bindingDistance / 2}
-              ry={ry + this.bindingDistance / 2}
+              rx={rx}
+              ry={ry}
               strokeWidth={this.bindingDistance}
             />
           )}
