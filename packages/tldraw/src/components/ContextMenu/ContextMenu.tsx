@@ -154,7 +154,7 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 </CMRowButton>
               )}
               {hasGroupSelected && (
-                <CMRowButton onClick={handleGroup} kbd="#⇧G">
+                <CMRowButton onClick={handleGroup} kbd="#G">
                   Ungroup
                 </CMRowButton>
               )}

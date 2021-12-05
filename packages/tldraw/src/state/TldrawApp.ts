@@ -473,6 +473,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.callbacks.onChangePage) {
       this.broadcastPageChanges()
     }
+    this.callbacks.onPersist?.(this)
   }
 
   private prevSelectedIds = this.selectedIds
@@ -506,26 +507,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const changedShapes: Record<string, TDShape | undefined> = {}
     const changedBindings: Record<string, TDBinding | undefined> = {}
 
-    // const visitedIds = new Set<string>()
-    // const shapesToVisit = this.shapes
-
-    // while (shapesToVisit.length > 0) {
-    //   const shape = shapesToVisit.pop()
-    //   if (!shape) break
-    //   visitedIds.add(shape.id)
-    //   if (this.prevShapes[shape.id] !== shape) {
-    //     changedShapes[shape.id] = shape
-
-    //     if (shape.parentId !== this.currentPageId) {
-    //       shapesToVisit.push(this.page.shapes[shape.parentId])
-    //     }
-
-    //     if (shape.children) {
-
-    //     }
-    //   }
-    // }
-
     this.shapes.forEach((shape) => {
       visited.add(shape.id)
       if (this.prevShapes[shape.id] !== shape) {
@@ -558,7 +539,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.justSent = true
     this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
-    this.callbacks.onPersist?.(this)
     this.prevShapes = this.page.shapes
     this.prevBindings = this.page.bindings
   }

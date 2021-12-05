@@ -25,7 +25,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'p,2',
+    'd,p,2',
     () => {
       if (!canHandleEvent()) return
       app.selectTool(TDShapeType.Draw)
