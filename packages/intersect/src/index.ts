@@ -63,6 +63,35 @@ function isAngleBetween(a: number, b: number, c: number): boolean {
   const AC = (c - a + PI2) % PI2
   return AB <= Math.PI !== AC > AB
 }
+/* -------------------------------------------------- */
+/*                        Line                        */
+/* -------------------------------------------------- */
+
+export function intersectLineLine(AB: number[][], PQ: number[][]): TLIntersection {
+  const slopeAB = Vec.slope(AB[0], AB[1])
+  const slopePQ = Vec.slope(PQ[0], PQ[1])
+
+  if (slopeAB === slopePQ) return createIntersection('no intersection')
+
+  if (Number.isNaN(slopeAB) && !Number.isNaN(slopePQ)) {
+    return createIntersection('intersection', [
+      AB[0][0],
+      (AB[0][0] - PQ[0][0]) * slopePQ + PQ[0][1],
+    ])
+  }
+
+  if (Number.isNaN(slopePQ) && !Number.isNaN(slopeAB)) {
+    return createIntersection('intersection', [
+      PQ[0][0],
+      (PQ[0][0] - AB[0][0]) * slopeAB + AB[0][1],
+    ])
+  }
+
+  const x = (slopeAB * AB[0][0] - slopePQ * PQ[0][0] + PQ[0][1] - AB[0][1]) / (slopeAB - slopePQ)
+  const y = slopePQ * (x - PQ[0][0]) + PQ[0][1]
+
+  return createIntersection('intersection', [x, y])
+}
 
 /* -------------------------------------------------- */
 /*                         Ray                        */

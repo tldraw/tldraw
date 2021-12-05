@@ -5,7 +5,7 @@ import {
   intersectPolylineBounds,
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
-import type { TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
+import type { AnyObject, TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
 import { isPlainObject, BoundsUtils, PointUtils } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
@@ -46,7 +46,7 @@ function isSerializable(value: any): boolean {
   return false
 }
 
-export type TLNuSerializedShape<P = Record<string, any>> = TLNuShapeProps & {
+export type TLNuSerializedShape<P = AnyObject> = TLNuShapeProps & {
   type: string
   nonce?: number
 } & P
@@ -63,7 +63,7 @@ export interface TLNuComponentProps<M = unknown> extends TLNuIndicatorProps<M> {
   }
 }
 
-export interface TLNuResizeInfo<P extends Record<string, any> = any> {
+export interface TLNuResizeInfo<P extends AnyObject = any> {
   type: TLNuBoundsEdge | TLNuBoundsCorner
   scaleX: number
   scaleY: number
@@ -71,10 +71,8 @@ export interface TLNuResizeInfo<P extends Record<string, any> = any> {
   initialProps: TLNuShapeProps & P
 }
 
-export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = unknown>
-  implements TLNuShapeProps
-{
-  constructor(props: P) {
+export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implements TLNuShapeProps {
+  constructor(props: TLNuShapeProps & Partial<P>) {
     const {
       id,
       parentId,
@@ -179,15 +177,15 @@ export abstract class TLNuShape<P extends TLNuShapeProps = TLNuShapeProps, M = u
     )
   }
 
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo) => {
-    this.update({ point: [bounds.minX, bounds.minY] } as Partial<P>)
+  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
+    this.update({ point: [bounds.minX, bounds.minY] })
   }
 
   @computed get center(): number[] {
     return BoundsUtils.getBoundsCenter(this.bounds)
   }
 
-  @action update(props: Partial<P>) {
+  @action update(props: Partial<TLNuShapeProps | P>) {
     Object.assign(this, props)
     if (!('nonce' in props)) this.bump()
   }

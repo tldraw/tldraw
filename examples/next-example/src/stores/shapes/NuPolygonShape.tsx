@@ -1,34 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import {
-  TLNuBounds,
   SVGContainer,
-  TLNuShape,
   TLNuIndicatorProps,
   TLNuComponentProps,
-  TLNuResizeInfo,
-  BoundsUtils,
+  TLNuPolygonShape,
+  TLNuPolygonShapeProps,
   TLNuShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { observable, computed, makeObservable } from 'mobx'
-import { NuBaseShape, NuBaseShapeProps } from './NuBaseShape'
+import { observable, makeObservable } from 'mobx'
+import type { NuBaseShapeProps } from './NuBaseShape'
 
-export interface NuBoxShapeProps extends NuBaseShapeProps {
-  size: number[]
-}
+interface NuPolygonShapeProps extends NuBaseShapeProps, TLNuPolygonShapeProps {}
 
-export class NuBoxShape extends NuBaseShape<NuBoxShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuBoxShapeProps>) {
+export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
+  constructor(props = {} as TLNuShapeProps & Partial<NuPolygonShapeProps>) {
     super(props)
-    const { size = [100, 100] } = props
-    this.size = size
+    const { stroke = '#000000', fill = '#ffffffcc', strokeWidth = 2 } = props
+    this.stroke = stroke
+    this.fill = fill
+    this.strokeWidth = strokeWidth
     makeObservable(this)
   }
 
-  static id = 'box'
+  @observable stroke: string
+  @observable fill: string
+  @observable strokeWidth: number
 
-  @observable size: number[]
+  static id = 'polygon'
 
   Component = observer(({ events }: TLNuComponentProps) => {
     const {
@@ -64,25 +64,5 @@ export class NuBoxShape extends NuBaseShape<NuBoxShapeProps> {
         fill="transparent"
       />
     )
-  }
-
-  @computed get bounds(): TLNuBounds {
-    const [x, y] = this.point
-    const [width, height] = this.size
-    return {
-      minX: x,
-      minY: y,
-      maxX: x + width,
-      maxY: y + height,
-      width,
-      height,
-    }
-  }
-
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuBoxShapeProps>) => {
-    return this.update({
-      point: [bounds.minX, bounds.minY],
-      size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
-    })
   }
 }

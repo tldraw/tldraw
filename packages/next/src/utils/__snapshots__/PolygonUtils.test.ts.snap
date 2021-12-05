@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`When finding the offset polygon When there are three points 1`] = `
+Array [
+  Array [
+    34.14213562373095,
+    20,
+  ],
+  Array [
+    -34.14213562373095,
+    20,
+  ],
+  Array [
+    -0,
+    -14.14213562373095,
+  ],
+]
+`;
+
+exports[`When finding the offset polygon When there are two points 1`] = `
+Array [
+  Array [
+    7.071067811865475,
+    -7.071067811865475,
+  ],
+  Array [
+    17.071067811865476,
+    2.9289321881345254,
+  ],
+  Array [
+    2.9289321881345254,
+    17.071067811865476,
+  ],
+  Array [
+    -7.071067811865475,
+    7.071067811865475,
+  ],
+]
+`;

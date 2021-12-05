@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TLNuBounds, TLNuShape, TLNuShapeProps, BoundsUtils } from '@tldraw/next'
+import { BoundsUtils, TLNuBounds, TLNuShape, TLNuShapeProps } from '@tldraw/next'
 import { observable, makeObservable, computed } from 'mobx'
 
-export interface NuBaseShapeProps extends TLNuShapeProps {
+export interface NuBaseShapeProps {
   strokeWidth: number
   stroke: string
   fill: string
 }
 
 export abstract class NuBaseShape<P extends NuBaseShapeProps> extends TLNuShape<P> {
-  constructor(props = {} as P) {
+  constructor(props = {} as TLNuShapeProps & Partial<P>) {
     super(props)
     const { stroke = '#000000', fill = '#ffffffcc', strokeWidth = 2 } = props
     this.stroke = stroke

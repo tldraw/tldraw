@@ -322,3 +322,5 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
       }
     | { app: TLNuApp<S, B> }
   )
+
+export type AnyObject = { [key: string]: any }

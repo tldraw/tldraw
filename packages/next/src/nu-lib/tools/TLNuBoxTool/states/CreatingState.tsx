@@ -1,13 +1,16 @@
-import { BoundsUtils, TLNuPointerHandler, TLNuState, uniqueId } from '@tldraw/next'
-import { NuBoxShape, Shape } from 'stores'
+import { TLNuShape, TLNuState } from '~nu-lib'
+import type { TLNuPointerHandler } from '~types'
+import { BoundsUtils, uniqueId } from '~utils'
+import type { TLNuBoxTool } from '../index'
 
-export class IdleState extends TLNuState<Shape> {
+export class IdleState<S extends TLNuShape> extends TLNuState<S> {
   static id = 'creating'
 
-  creatingShape?: Shape
+  creatingShape?: S
 
   onEnter = () => {
-    const shape = new NuBoxShape({
+    const { shapeClass } = this.tool as TLNuBoxTool<S>
+    const shape = new shapeClass({
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: this.app.inputs.currentPoint,
@@ -18,7 +21,7 @@ export class IdleState extends TLNuState<Shape> {
     this.app.currentPage.addShapes(shape)
   }
 
-  onPointerMove: TLNuPointerHandler<Shape> = () => {
+  onPointerMove: TLNuPointerHandler<S> = () => {
     if (!this.creatingShape) throw Error('Expected a creating shape.')
     const { currentPoint, originPoint } = this.app.inputs
     const bounds = BoundsUtils.getBoundsFromPoints([currentPoint, originPoint])
@@ -28,7 +31,7 @@ export class IdleState extends TLNuState<Shape> {
     })
   }
 
-  onPointerUp: TLNuPointerHandler<Shape> = () => {
+  onPointerUp: TLNuPointerHandler<S> = () => {
     this.tool.transition('idle')
     if (!this.app.isToolLocked) {
       this.app.selectTool('select')

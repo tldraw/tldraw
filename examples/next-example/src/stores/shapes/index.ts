@@ -5,3 +5,4 @@ export type Shape = NuBoxShape | NuEllipseShape
 
 export * from './NuBoxShape'
 export * from './NuEllipseShape'
+export * from './NuPolygonShape'

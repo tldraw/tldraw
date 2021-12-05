@@ -8,7 +8,15 @@ import {
   TLNuSerializedApp,
   TLNuSubscriptionCallbacks,
 } from '@tldraw/next'
-import { NuBoxShape, NuEllipseShape, Shape, NuBoxTool, NuEllipseTool } from 'stores'
+import {
+  NuBoxShape,
+  NuEllipseShape,
+  Shape,
+  NuBoxTool,
+  NuEllipseTool,
+  NuPolygonTool,
+  NuPolygonShape,
+} from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
 import { appContext } from 'context'
@@ -20,9 +28,9 @@ const components: TLNuComponents<Shape> = {
 function App(): JSX.Element {
   const [app, setApp] = React.useState<TLNuApp<Shape>>()
 
-  const [shapeClasses] = React.useState(() => [NuBoxShape, NuEllipseShape])
+  const [shapeClasses] = React.useState(() => [NuBoxShape, NuEllipseShape, NuPolygonShape])
 
-  const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool])
+  const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool, NuPolygonTool])
 
   const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',

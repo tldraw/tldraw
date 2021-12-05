@@ -7,6 +7,7 @@ import {
   TLNuComponentProps,
   PointUtils,
   BoundsUtils,
+  TLNuShapeProps,
   TLNuResizeInfo,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
@@ -19,7 +20,7 @@ export interface NuEllipseShapeProps extends NuBaseShapeProps {
 }
 
 export class NuEllipseShape extends NuBaseShape<NuEllipseShapeProps> {
-  constructor(props = {} as NuEllipseShapeProps) {
+  constructor(props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
     super(props)
     const { size = [100, 100] } = props
     this.size = size
@@ -117,7 +118,7 @@ export class NuEllipseShape extends NuBaseShape<NuEllipseShapeProps> {
   }
 
   resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuEllipseShapeProps>) => {
-    this.update({
+    return this.update({
       point: [bounds.minX, bounds.minY],
       size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
     })

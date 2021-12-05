@@ -1,24 +1,25 @@
 import { BoundsUtils, TLNuPointerHandler, TLNuState, uniqueId } from '@tldraw/next'
-import { NuEllipseShape, Shape } from 'stores'
+import { NuBoxShape, NuPolygonShape, Shape } from 'stores'
 
-export class IdleState extends TLNuState<Shape> {
+export class IdleState extends TLNuState<NuPolygonShape> {
   static id = 'creating'
 
-  creatingShape?: Shape
+  creatingShape?: NuPolygonShape
 
   onEnter = () => {
-    const shape = new NuEllipseShape({
+    const shape = new NuPolygonShape({
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: this.app.inputs.currentPoint,
       size: [1, 1],
+      sides: 3,
     })
 
     this.creatingShape = shape
     this.app.currentPage.addShapes(shape)
   }
 
-  onPointerMove: TLNuPointerHandler<Shape> = () => {
+  onPointerMove: TLNuPointerHandler<NuPolygonShape> = () => {
     if (!this.creatingShape) throw Error('Expected a creating shape.')
     const { currentPoint, originPoint } = this.app.inputs
     const bounds = BoundsUtils.getBoundsFromPoints([currentPoint, originPoint])
@@ -28,7 +29,7 @@ export class IdleState extends TLNuState<Shape> {
     })
   }
 
-  onPointerUp: TLNuPointerHandler<Shape> = () => {
+  onPointerUp: TLNuPointerHandler<NuPolygonShape> = () => {
     this.tool.transition('idle')
     if (!this.app.isToolLocked) {
       this.app.selectTool('select')

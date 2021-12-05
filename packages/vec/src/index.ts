@@ -494,6 +494,16 @@ export class Vec {
       return [...Vec.lrp(A, B, t), k]
     })
   }
+
+  /**
+   * Get the slope between two points.
+   * @param A
+   * @param B
+   */
+  static slope = (A: number[], B: number[]) => {
+    if (A[0] === B[0]) return NaN
+    return (A[1] - B[1]) / (A[0] - B[0])
+  }
 }
 
 export default Vec
