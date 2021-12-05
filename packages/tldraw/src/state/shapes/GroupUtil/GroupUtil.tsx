@@ -3,7 +3,7 @@ import { styled } from '~styles'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { defaultStyle } from '../shared/shape-styles'
 import { TDShapeType, GroupShape, ColorStyle, TDMeta } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { getBoundsRectangle } from '../shared'
 
@@ -55,13 +55,7 @@ export class GroupUtil extends TDShapeUtil<T, E> {
       return (
         <SVGContainer ref={ref} {...events}>
           {isBinding && (
-            <rect
-              className="tl-binding-indicator"
-              x={-BINDING_DISTANCE}
-              y={-BINDING_DISTANCE}
-              width={size[0] + BINDING_DISTANCE * 2}
-              height={size[1] + BINDING_DISTANCE * 2}
-            />
+            <rect className="tl-binding-indicator" strokeWidth={this.bindingDistance} />
           )}
           <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
             <rect

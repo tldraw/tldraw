@@ -458,6 +458,7 @@ export class Vec {
    * @returns
    */
   static nudge = (A: number[], B: number[], d: number): number[] => {
+    if (Vec.isEqual(A, B)) return A
     return Vec.add(A, Vec.mul(Vec.uni(Vec.sub(B, A)), d))
   }
 
@@ -493,6 +494,15 @@ export class Vec {
       const k = Math.min(1, 0.5 + Math.abs(0.5 - t))
       return [...Vec.lrp(A, B, t), k]
     })
+  }
+
+  /**
+   * Get the slope between two points.
+   * @param A
+   * @param B
+   */
+  static slope = (A: number[], B: number[]) => {
+    return (A[1] - B[1]) / (A[0] - B[0])
   }
 }
 

@@ -454,9 +454,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   ): Partial<T> | void => {
     const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
 
-    // The anchor is the "actual" point in the target shape
-    // (Remember that the binding.point is normalized)
-    const anchor = Vec.sub(
+    let handlePoint = Vec.sub(
       Vec.add(
         [expandedBounds.minX, expandedBounds.minY],
         Vec.mulV(
@@ -466,9 +464,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       ),
       shape.point
     )
-
-    // We're looking for the point to put the dragging handle
-    let handlePoint = anchor
 
     if (binding.distance) {
       const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
@@ -480,7 +475,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       )
 
       // And passes through the dragging handle
-      const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
+      const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
 
       if (target.type === TDShapeType.Ellipse) {
         const hits = intersectRayEllipse(
@@ -496,19 +491,17 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
           handlePoint = Vec.sub(hits[0], shape.point)
         }
       } else if (target.type === TDShapeType.Triangle) {
-        const points = getTrianglePoints(target).map((pt) => Vec.add(pt, target.point))
-        const sides = Utils.pointsToLineSegments(points)
-
-        const expandedPoints = getTrianglePoints(target, BINDING_DISTANCE).map((pt) =>
+        const points = getTrianglePoints(target, BINDING_DISTANCE).map((pt) =>
           Vec.add(pt, target.point)
         )
 
-        const segments = Utils.pointsToLineSegments(expandedPoints.concat([expandedPoints[0]]))
+        const segments = Utils.pointsToLineSegments(points, true)
 
         const hits = segments
           .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
           .filter((intersection) => intersection.didIntersect)
           .flatMap((intersection) => intersection.points)
+          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
         if (hits[0]) {
           handlePoint = Vec.sub(hits[0], shape.point)

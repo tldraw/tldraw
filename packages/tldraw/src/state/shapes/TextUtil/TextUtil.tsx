@@ -191,10 +191,10 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   className="tl-binding-indicator"
                   style={{
                     position: 'absolute',
-                    top: -BINDING_DISTANCE,
-                    left: -BINDING_DISTANCE,
-                    width: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
-                    height: `calc(100% + ${BINDING_DISTANCE * 2}px)`,
+                    top: -this.bindingDistance,
+                    left: -this.bindingDistance,
+                    width: `calc(100% + ${this.bindingDistance * 2}px)`,
+                    height: `calc(100% + ${this.bindingDistance * 2}px)`,
                     backgroundColor: 'var(--tl-selectFill)',
                   }}
                 />
@@ -205,7 +205,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   style={{
                     font,
                     color: styles.stroke,
-                    textAlign: 'inherit',
                   }}
                   name="text"
                   defaultValue={text}
@@ -426,7 +425,7 @@ const InnerWrapper = styled('div', {
   zIndex: 1,
   minHeight: 1,
   minWidth: 1,
-  lineHeight: 1.4,
+  lineHeight: 1,
   letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
@@ -457,6 +456,7 @@ const TextArea = styled('textarea', {
   border: 'none',
   padding: '4px',
   resize: 'none',
+  textAlign: 'inherit',
   minHeight: 'inherit',
   minWidth: 'inherit',
   lineHeight: 'inherit',

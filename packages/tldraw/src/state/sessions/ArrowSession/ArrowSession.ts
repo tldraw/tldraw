@@ -11,7 +11,6 @@ import {
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import { BINDING_DISTANCE } from '~constants'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
@@ -438,15 +437,7 @@ export class ArrowSession extends BaseSession {
   ) => {
     const util = TLDR.getShapeUtil<TDShape>(target.type)
 
-    const bindingPoint = util.getBindingPoint(
-      target,
-      shape,
-      point,
-      origin,
-      direction,
-      BINDING_DISTANCE,
-      bindAnywhere
-    )
+    const bindingPoint = util.getBindingPoint(target, shape, point, origin, direction, bindAnywhere)
 
     // Not all shapes will produce a binding point
     if (!bindingPoint) return

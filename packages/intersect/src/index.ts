@@ -65,6 +65,21 @@ function isAngleBetween(a: number, b: number, c: number): boolean {
 }
 
 /* -------------------------------------------------- */
+/*                        Line                        */
+/* -------------------------------------------------- */
+
+export function intersectLineLine(A: number[][], B: number[][]) {
+  const mA = Vec.slope(A[0], A[1])
+  const mB = Vec.slope(B[0], B[1])
+  return mA - mB < Number.EPSILON
+    ? undefined
+    : [
+        (mA * A[0][0] - mB * B[0][0] + B[0][1] - A[0][1]) / (mA - mB),
+        (mA * mB * (B[0][0] - A[0][0]) + mB * A[0][1] - mA * B[0][1]) / (mB - mA),
+      ]
+}
+
+/* -------------------------------------------------- */
 /*                         Ray                        */
 /* -------------------------------------------------- */
 

@@ -3,7 +3,7 @@ import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectEllipseBounds,
@@ -64,8 +64,9 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
                 className="tl-binding-indicator"
                 cx={radiusX}
                 cy={radiusY}
-                rx={rx + 2}
-                ry={ry + 2}
+                rx={rx}
+                ry={ry}
+                strokeWidth={this.bindingDistance * 2}
               />
             )}
             <path
@@ -208,13 +209,10 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     point: number[],
     origin: number[],
     direction: number[],
-    padding: number,
     bindAnywhere: boolean
   ) => {
     {
-      const bounds = this.getBounds(shape)
-
-      const expandedBounds = Utils.expandBounds(bounds, padding)
+      const expandedBounds = this.getExpandedBounds(shape)
 
       const center = this.getCenter(shape)
 
@@ -225,8 +223,8 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
         !Utils.pointInEllipse(
           point,
           center,
-          shape.radius[0] + BINDING_DISTANCE,
-          shape.radius[1] + BINDING_DISTANCE
+          shape.radius[0] + this.bindingDistance,
+          shape.radius[1] + this.bindingDistance
         )
       )
         return
@@ -285,7 +283,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
           Utils.pointInEllipse(point, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
         ) {
           // Pad the arrow out by 16 points
-          distance = BINDING_DISTANCE / 2
+          distance = this.bindingDistance / 2
         } else {
           // Find the distance between the point and the ellipse
           const innerIntersection = intersectLineSegmentEllipse(
@@ -301,7 +299,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             return undefined
           }
 
-          distance = Math.max(BINDING_DISTANCE / 2, Vec.dist(point, innerIntersection))
+          distance = Math.max(this.bindingDistance / 2, Vec.dist(point, innerIntersection))
         }
       }
 

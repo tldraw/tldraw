@@ -29,6 +29,8 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
 
   hideResizeHandles = false
 
+  bindingDistance = BINDING_DISTANCE
+
   abstract getShape: (props: Partial<T>) => T
 
   hitTestPoint = (shape: T, point: number[]): boolean => {
@@ -55,7 +57,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
   }
 
   getExpandedBounds = (shape: T) => {
-    return Utils.expandBounds(this.getBounds(shape), BINDING_DISTANCE)
+    return Utils.expandBounds(this.getBounds(shape), this.bindingDistance)
   }
 
   getBindingPoint = <K extends TDShape>(
@@ -64,74 +66,72 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     point: number[],
     origin: number[],
     direction: number[],
-    padding: number,
     bindAnywhere: boolean
   ) => {
     // Algorithm time! We need to find the binding point (a normalized point inside of the shape, or around the shape, where the arrow will point to) and the distance from the binding shape to the anchor.
 
-    let bindingPoint: number[]
-
-    let distance: number
-
     const bounds = this.getBounds(shape)
-
-    const expandedBounds = Utils.expandBounds(bounds, padding)
+    const expandedBounds = this.getExpandedBounds(shape)
 
     // The point must be inside of the expanded bounding box
     if (!Utils.pointInBounds(point, expandedBounds)) return
 
-    // The point is inside of the shape, so we'll assume the user is indicating a specific point inside of the shape.
-    if (bindAnywhere) {
-      if (Vec.dist(point, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
-      }
+    const intersections = intersectRayBounds(origin, direction, expandedBounds)
+      .filter((int) => int.didIntersect)
+      .map((int) => int.points[0])
 
+    if (!intersections.length) return
+
+    // The center of the shape
+    const center = this.getCenter(shape)
+
+    // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
+    const intersection = intersections.sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+
+    // The point between the handle and the intersection
+    const middlePoint = Vec.med(point, intersection)
+
+    // The anchor is the point in the shape where the arrow will be pointing
+    let anchor: number[]
+
+    // The distance is the distance from the anchor to the handle
+    let distance: number
+
+    if (bindAnywhere) {
+      // If the user is indicating that they want to bind inside of the shape, we just use the handle's point
+      anchor = Vec.dist(point, center) < BINDING_DISTANCE / 2 ? center : point
       distance = 0
     } else {
-      // (1) Binding point
-
-      // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
-
-      const intersection = intersectRayBounds(origin, direction, expandedBounds)
-        .filter((int) => int.didIntersect)
-        .map((int) => int.points[0])
-        .sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-
-      // The anchor is a point between the handle and the intersection
-      const anchor = Vec.med(point, intersection)
-
-      // If we're close to the center, snap to the center, or else calculate a normalized point based on the anchor and the expanded bounds.
-
-      if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
+      if (Vec.distanceToLineSegment(point, middlePoint, center) < BINDING_DISTANCE / 2) {
+        // If the line segment would pass near to the center, snap the anchor the center point
+        anchor = center
       } else {
-        //
-        bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-          expandedBounds.width,
-          expandedBounds.height,
-        ])
+        // Otherwise, the anchor is the middle point between the handle and the intersection
+        anchor = middlePoint
       }
 
-      // (3) Distance
-
-      // If the point is inside of the bounds, set the distance to a fixed value.
       if (Utils.pointInBounds(point, bounds)) {
-        distance = 16
+        // If the point is inside of the shape, use the shape's binding distance
+        distance = this.bindingDistance
       } else {
-        // If the binding point was close to the shape's center, snap to to the center. Find the distance between the point and the real bounds of the shape
+        // Otherwise, use the actual distance from the handle point to nearest edge
         distance = Math.max(
-          16,
+          this.bindingDistance,
           Utils.getBoundsSides(bounds)
             .map((side) => Vec.distanceToLineSegment(side[1][0], side[1][1], point))
             .sort((a, b) => a - b)[0]
         )
       }
     }
+
+    // The binding point is a normalized point indicating the position of the anchor.
+    // An anchor at the middle of the shape would be (0.5, 0.5). When the shape's bounds
+    // changes, we will re-recalculate the actual anchor point by multiplying the
+    // normalized point by the shape's new bounds.
+    const bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+      expandedBounds.width,
+      expandedBounds.height,
+    ])
 
     return {
       point: Vec.clampV(bindingPoint, 0, 1),

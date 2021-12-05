@@ -80,7 +80,7 @@ describe('Arrow session', () => {
         .select('arrow1')
         .movePointer([200, 200])
         .startSession(SessionType.Arrow, 'arrow1', 'start')
-        .movePointer([124, -24])
+        .movePointer([116, -16])
       expect(app.bindings[0].point).toStrictEqual([1, 0])
     })
 
@@ -103,7 +103,7 @@ describe('Arrow session', () => {
         .startSession(SessionType.Arrow, 'arrow1', 'start')
         .movePointer([91, 9])
 
-      expect(app.bindings[0].point).toStrictEqual([0.71, 0.11])
+      expect(app.bindings[0].point).toMatchSnapshot()
 
       app.movePointer({ x: 91, y: 9, altKey: true })
     })
@@ -116,7 +116,7 @@ describe('Arrow session', () => {
         .startSession(SessionType.Arrow, 'arrow1', 'start')
         .movePointer({ x: 91, y: 9, altKey: true })
 
-      expect(app.bindings[0].point).toStrictEqual([0.78, 0.22])
+      expect(app.bindings[0].point).toMatchSnapshot()
     })
 
     it('ignores binding when meta is held', () => {
@@ -269,8 +269,8 @@ describe('When drawing an arrow', () => {
         size: [200, 200],
       })
       .selectTool(TDShapeType.Arrow)
-      .pointCanvas([75, 100])
-      .movePointer([76, 100]) // One pixel right, into binding area
+      .pointCanvas([84, 100])
+      .movePointer([85, 100]) // One pixel right, into binding area
       .stopPointing()
 
     expect(app.shapes.length).toBe(2)
@@ -285,8 +285,8 @@ describe('When drawing an arrow', () => {
         size: [200, 200],
       })
       .selectTool(TDShapeType.Arrow)
-      .pointCanvas([75, 100])
-      .movePointer([74, 100]) // One pixel left, not in binding area
+      .pointCanvas([84, 100])
+      .movePointer([83, 100]) // One pixel left, not in binding area
       .stopPointing()
 
     expect(app.shapes.length).toBe(1)

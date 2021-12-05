@@ -18,6 +18,7 @@ import {
 } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
 import { BINDING_DISTANCE } from '~constants'
+import { getOffsetPolygon, PolygonUtils } from '../shared/PolygonUtils'
 
 type T = TriangleShape
 type E = SVGSVGElement
@@ -81,16 +82,19 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         )
       })
 
+      const trianglePoints = getTrianglePoints(shape).join()
+
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           {isBinding && (
             <polygon
               className="tl-binding-indicator"
-              points={getTrianglePoints(shape, 32).join()}
+              points={trianglePoints}
+              strokeWidth={this.bindingDistance * 2}
             />
           )}
           <polygon
-            points={getTrianglePoints(shape).join()}
+            points={trianglePoints}
             fill={styles.fill}
             strokeWidth={sw}
             stroke="none"
@@ -132,7 +136,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 
   getExpandedBounds = (shape: T) => {
     return Utils.getBoundsFromPoints(
-      getTrianglePoints(shape, BINDING_DISTANCE).map((pt) => Vec.add(pt, shape.point))
+      getTrianglePoints(shape, this.bindingDistance).map((pt) => Vec.add(pt, shape.point))
     )
   }
 
@@ -153,88 +157,69 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     point: number[],
     origin: number[],
     direction: number[],
-    padding: number,
     bindAnywhere: boolean
   ) => {
     // Algorithm time! We need to find the binding point (a normalized point inside of the shape, or around the shape, where the arrow will point to) and the distance from the binding shape to the anchor.
 
-    let bindingPoint: number[]
-
-    let distance: number
-
-    const bounds = this.getBounds(shape)
     const expandedBounds = this.getExpandedBounds(shape)
 
+    if (!Utils.pointInBounds(point, expandedBounds)) return
+
     const points = getTrianglePoints(shape).map((pt) => Vec.add(pt, shape.point))
-    const sides = pointsToLineSegments(points)
 
-    const expandedPoints = getTrianglePoints(shape, padding).map((pt) => Vec.add(pt, shape.point))
+    const expandedPoints = getTrianglePoints(shape, this.bindingDistance).map((pt) =>
+      Vec.add(pt, shape.point)
+    )
 
-    const segments = Utils.pointsToLineSegments(expandedPoints.concat([expandedPoints[0]]))
+    const closestDistanceToEdge = Utils.pointsToLineSegments(points, true)
+      .map(([a, b]) => Vec.distanceToLineSegment(a, b, point))
+      .sort((a, b) => a - b)[0]
 
-    const intersections = segments
+    if (
+      !(Utils.pointInPolygon(point, expandedPoints) || closestDistanceToEdge < this.bindingDistance)
+    )
+      return
+
+    const intersections = Utils.pointsToLineSegments(expandedPoints.concat([expandedPoints[0]]))
       .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
       .filter((intersection) => intersection.didIntersect)
       .flatMap((intersection) => intersection.points)
 
     if (!intersections.length) return
 
-    // The point is inside of the shape, so we'll assume the user is indicating a specific point inside of the shape.
-    if (bindAnywhere) {
-      if (Vec.dist(point, getTriangleCentroid(shape)) < 12) {
-        bindingPoint = [0.5, 0.5]
-      } else {
-        bindingPoint = Vec.divV(
-          Vec.sub(Vec.med(intersections[0], intersections[1]), [
-            expandedBounds.minX,
-            expandedBounds.minY,
-          ]),
-          [expandedBounds.width, expandedBounds.height]
-        )
-      }
+    // The center of the triangle
+    const center = Vec.add(getTriangleCentroid(shape), shape.point)
 
+    // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
+    const intersection = intersections.sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
+
+    // The point between the handle and the intersection
+    const middlePoint = Vec.med(point, intersection)
+
+    let anchor: number[]
+    let distance: number
+
+    if (bindAnywhere) {
+      anchor = Vec.dist(point, center) < BINDING_DISTANCE / 2 ? center : point
       distance = 0
     } else {
-      // (1) Binding point
-
-      // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
-
-      const intersection = intersections.sort(
-        (a, b) => Vec.dist(b, origin) - Vec.dist(a, origin)
-      )[0]
-
-      // The anchor is a point between the handle and the intersection
-      const anchor = Vec.med(point, intersection)
-
-      // If we're close to the center, snap to the center, or else calculate a normalized point based on the anchor and the expanded bounds.
-
-      const centroid = getTriangleCentroid(shape)
-
-      if (Vec.distanceToLineSegment(point, anchor, centroid) < 12) {
-        bindingPoint = Vec.divV(Vec.sub(centroid, [bounds.minX, bounds.minY]), [
-          bounds.width,
-          bounds.height,
-        ])
+      if (Vec.distanceToLineSegment(point, middlePoint, center) < BINDING_DISTANCE / 2) {
+        anchor = center
       } else {
-        bindingPoint = Vec.divV(Vec.sub(anchor, [bounds.minX, bounds.minY]), [
-          bounds.width,
-          bounds.height,
-        ])
+        anchor = middlePoint
       }
 
-      // (3) Distance
-
-      // If the point is inside of the bounds, set the distance to a fixed value.
       if (Utils.pointInPolygon(point, points)) {
-        distance = 16
+        distance = this.bindingDistance
       } else {
-        // If the binding point was close to the shape's center, snap to to the center. Find the distance between the point and the real bounds of the shape
-        distance = Math.max(
-          16,
-          sides.map(([a, b]) => Vec.distanceToLineSegment(a, b, point)).sort((a, b) => a - b)[0]
-        )
+        distance = Math.max(this.bindingDistance, closestDistanceToEdge)
       }
     }
+
+    const bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
+      expandedBounds.width,
+      expandedBounds.height,
+    ])
 
     return {
       point: Vec.clampV(bindingPoint, 0, 1),
@@ -257,17 +242,20 @@ export function getTrianglePoints(shape: T, offset = 0) {
     rotation = 0,
   } = shape
 
-  const points = [
+  let points = [
     [w / 2, 0],
     [w, h],
     [0, h],
   ]
 
-  const centroid = getTriangleCentroid(shape)
+  if (offset) points = getOffsetPolygon(points, offset)
+
+  if (shape.rotation) {
+    const centroid = getTriangleCentroid(shape)
+    points = points.map((pt) => Vec.rotWith(pt, centroid, rotation))
+  }
 
   return points
-    .map((pt) => Vec.rotWith(pt, centroid, rotation))
-    .map((pt) => Vec.nudge(pt, centroid, -offset))
 }
 
 export function getTriangleCentroid(shape: T) {
