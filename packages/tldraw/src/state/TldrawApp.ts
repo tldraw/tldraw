@@ -995,6 +995,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Toggles the state if menu is opened 
+   */
+  toggleMenuOpened = (): this => {
+    if (this.session) return this
+    this.patchState(
+      { appState: { isMenuOpen: !this.appState.isMenuOpen } },
+      'ui:toggled_menu_opened'
+    )
+    this.persist()
+    return this
+  }
+
+  isMenuOpen = (): boolean => this.appState.isMenuOpen
+
+  /**
    * Toggle grids.
    */
   toggleGrid = (): this => {
@@ -3245,6 +3260,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentStyle: defaultStyle,
       isToolLocked: false,
       isStyleOpen: false,
+      isMenuOpen: false,
       isEmptyCanvas: false,
       snapLines: [],
     },

@@ -8,6 +8,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   const canHandleEvent = React.useCallback(() => {
     const elm = ref.current
+    if(app.isMenuOpen())
+      return true
     return elm && (document.activeElement === elm || elm.contains(document.activeElement))
   }, [ref])
 

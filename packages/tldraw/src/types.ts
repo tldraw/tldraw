@@ -100,6 +100,7 @@ export interface TDSnapshot {
     isToolLocked: boolean
     isStyleOpen: boolean
     isEmptyCanvas: boolean
+    isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
   }

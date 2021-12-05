@@ -147,8 +147,12 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
     app.style({ textAlign: value as AlignStyle })
   }, [])
 
+  const handleMenuOpenChange = () => {
+    app.toggleMenuOpened();
+  }
+
   return (
-    <DropdownMenu.Root dir="ltr">
+    <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger asChild>
         <ToolButton variant="text">
           Styles

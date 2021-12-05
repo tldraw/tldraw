@@ -172,8 +172,12 @@ export function ActionButton(): JSX.Element {
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
+  const handleMenuOpenChange = () => {
+    app.toggleMenuOpened();
+  }
+  
   return (
-    <DropdownMenu.Root dir="ltr">
+    <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton variant="circle">
           <DotsHorizontalIcon />
