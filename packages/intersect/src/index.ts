@@ -68,15 +68,24 @@ function isAngleBetween(a: number, b: number, c: number): boolean {
 /*                        Line                        */
 /* -------------------------------------------------- */
 
-export function intersectLineLine(A: number[][], B: number[][]) {
-  const mA = Vec.slope(A[0], A[1])
-  const mB = Vec.slope(B[0], B[1])
-  return mA - mB < Number.EPSILON
-    ? undefined
-    : [
-        (mA * A[0][0] - mB * B[0][0] + B[0][1] - A[0][1]) / (mA - mB),
-        (mA * mB * (B[0][0] - A[0][0]) + mB * A[0][1] - mA * B[0][1]) / (mB - mA),
-      ]
+export function intersectLineLine(AB: number[][], PQ: number[][]) {
+  const slopeAB = Vec.slope(AB[0], AB[1])
+  const slopePQ = Vec.slope(PQ[0], PQ[1])
+
+  if (slopeAB === slopePQ) return undefined
+
+  if (Number.isNaN(slopeAB) && !Number.isNaN(slopePQ)) {
+    return [AB[0][0], (AB[0][0] - PQ[0][0]) * slopePQ + PQ[0][1]]
+  }
+
+  if (Number.isNaN(slopePQ) && !Number.isNaN(slopeAB)) {
+    return [PQ[0][0], (PQ[0][0] - AB[0][0]) * slopeAB + AB[0][1]]
+  }
+
+  const x = (slopeAB * AB[0][0] - slopePQ * PQ[0][0] + PQ[0][1] - AB[0][1]) / (slopeAB - slopePQ)
+  const y = slopePQ * (x - PQ[0][0]) + PQ[0][1]
+
+  return [x, y]
 }
 
 /* -------------------------------------------------- */

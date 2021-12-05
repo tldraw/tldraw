@@ -112,6 +112,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
 
       if (Utils.pointInBounds(point, bounds)) {
         // If the point is inside of the shape, use the shape's binding distance
+
         distance = this.bindingDistance
       } else {
         // Otherwise, use the actual distance from the handle point to nearest edge

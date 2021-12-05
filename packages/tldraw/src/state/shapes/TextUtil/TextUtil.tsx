@@ -27,6 +27,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
   canClone = true
 
+  bindingDistance = BINDING_DISTANCE / 2
+
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
