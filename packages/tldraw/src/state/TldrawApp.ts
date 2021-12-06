@@ -962,19 +962,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Toggle the style panel.
-   */
-  toggleStylePanel = (): this => {
-    if (this.session) return this
-    this.patchState(
-      { appState: { isStyleOpen: !this.appState.isStyleOpen } },
-      'ui:toggled_style_panel'
-    )
-    this.persist()
-    return this
-  }
-
-  /**
    * Toggles the state if menu is opened
    */
   setMenuOpen = (isOpen: boolean): this => {
