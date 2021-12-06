@@ -8,6 +8,16 @@ export abstract class TLNuDrawTool<S extends TLNuDrawShape<any>> extends TLNuToo
     this.transition('idle')
   }
 
+  /**
+   * Whether to simplify the shape's points after creating.
+   */
+  simplify = true
+
+  /**
+   * The minimum distance between points when simplifying a line.
+   */
+  simplifyTolerance = 1
+
   abstract shapeClass: {
     new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }

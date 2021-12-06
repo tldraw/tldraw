@@ -54,13 +54,14 @@ function App(): JSX.Element {
             point: [400, 400],
             size: [100, 100],
           },
-          // {
-          //   id: 'ellipse1',
-          //   type: 'ellipse',
-          //   parentId: 'page1',
-          //   point: [100, 100],
-          //   size: [100, 100],
-          // },
+          {
+            id: 'ellipse1',
+            type: 'ellipse',
+            parentId: 'page1',
+            point: [100, 100],
+            size: [100, 200],
+            rotation: Math.PI / 6,
+          },
           // {
           //   id: 'polygon1',
           //   type: 'polygon',

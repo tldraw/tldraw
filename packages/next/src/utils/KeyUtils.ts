@@ -14,7 +14,7 @@ export class KeyUtils {
     key: string,
     callback: (keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent) => void
   ) {
-    hotkeys(key, (keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent): void => {
+    const fn = (keyboardEvent: KeyboardEvent, hotkeysEvent: HotkeysEvent): void => {
       keyboardEvent.preventDefault()
 
       if (
@@ -25,6 +25,9 @@ export class KeyUtils {
       }
 
       callback(keyboardEvent, hotkeysEvent)
-    })
+    }
+
+    hotkeys(key, fn)
+    return () => hotkeys.unbind(key, fn)
   }
 }

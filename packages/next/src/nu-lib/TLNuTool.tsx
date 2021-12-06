@@ -14,17 +14,21 @@ import type {
   TLNuWheelHandler,
 } from '~types'
 
-export interface TLNuToolClass<S extends TLNuShape, B extends TLNuBinding = TLNuBinding> {
+export interface TLNuToolClass<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> {
   new (props: any): TLNuTool<S, B>
   id: string
-  shortcut: string
+  shortcut?: string
+  shortcuts?: { keys: string; fn: () => void }[]
 }
 
 export interface TLNuToolComponentProps {
   isActive: boolean
 }
 
-export abstract class TLNuTool<S extends TLNuShape, B extends TLNuBinding = TLNuBinding>
+export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
   implements Partial<TLNuCallbacks<S>>
 {
   constructor(app: TLNuApp<S, B>) {
@@ -32,17 +36,24 @@ export abstract class TLNuTool<S extends TLNuShape, B extends TLNuBinding = TLNu
     // @ts-ignore
     this.toolId = this.constructor['id']
     this.app = app
+
     makeObservable(this)
   }
 
   static id: string
   static shortcut?: string
+  static shortcuts?: { keys: string; fn: () => void }[]
 
   readonly toolId: string
   readonly app: TLNuApp<S, B>
 
   abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
 
+  disposables: (() => void)[] = []
+
+  dispose() {
+    this.disposables.forEach((disposable) => disposable())
+  }
   /* --------------------- States --------------------- */
 
   readonly states = new Map<string, TLNuState<S, B>>([])

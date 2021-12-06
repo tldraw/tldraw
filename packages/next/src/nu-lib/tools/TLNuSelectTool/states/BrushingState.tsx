@@ -39,7 +39,7 @@ export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends T
       .search(brushBounds)
       .filter((shape) =>
         ctrlKey
-          ? BoundsUtils.boundsContain(brushBounds, shape.bounds)
+          ? BoundsUtils.boundsContain(brushBounds, shape.rotatedBounds)
           : shape.hitTestBounds(brushBounds)
       )
 

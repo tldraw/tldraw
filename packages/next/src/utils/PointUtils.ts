@@ -88,4 +88,42 @@ export class PointUtils {
 
     return false
   }
+
+  /**
+   * Simplify a line (using Ramer-Douglas-Peucker algorithm).
+   * @param points An array of points as [x, y, ...][]
+   * @param tolerance The minimum line distance (also called epsilon).
+   * @returns Simplified array as [x, y, ...][]
+   */
+  static simplify = (points: number[][], tolerance = 1): number[][] => {
+    const len = points.length
+    const a = points[0]
+    const b = points[len - 1]
+    const [x1, y1] = a
+    const [x2, y2] = b
+
+    if (len > 2) {
+      let distance = 0
+      let index = 0
+      const max = Math.hypot(y2 - y1, x2 - x1)
+
+      for (let i = 1; i < len - 1; i++) {
+        const [x0, y0] = points[i]
+        const d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
+
+        if (distance > d) continue
+
+        distance = d
+        index = i
+      }
+
+      if (distance > tolerance) {
+        const l0 = PointUtils.simplify(points.slice(0, index + 1), tolerance)
+        const l1 = PointUtils.simplify(points.slice(index + 1), tolerance)
+        return l0.concat(l1.slice(1))
+      }
+    }
+
+    return [a, b]
+  }
 }

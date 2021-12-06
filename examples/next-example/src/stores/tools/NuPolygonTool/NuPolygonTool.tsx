@@ -5,9 +5,11 @@ import { NuPolygonShape } from 'stores'
 
 export class NuPolygonTool extends TLNuBoxTool<NuPolygonShape> {
   shapeClass = NuPolygonShape
+
   static id = 'polygon'
-  static shortcut = '4'
-  readonly label = 'Polygon'
+  static shortcut = 'g,4'
+
+  label = 'Polygon'
 
   readonly Component = ({ isActive }: TLNuToolComponentProps) => {
     return <span style={{ fontWeight: isActive ? '600' : '500' }}>P</span>

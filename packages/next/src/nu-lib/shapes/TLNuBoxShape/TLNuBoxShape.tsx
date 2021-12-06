@@ -58,7 +58,7 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
     )
   })
 
-  @computed get bounds(): TLNuBounds {
+  getBounds = (): TLNuBounds => {
     const [x, y] = this.point
     const [width, height] = this.size
     return {
@@ -71,13 +71,13 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
     }
   }
 
-  @computed get rotatedBounds(): TLNuBounds {
+  getRotatedBounds = (): TLNuBounds => {
     return BoundsUtils.getBoundsFromPoints(
       BoundsUtils.getRotatedCorners(this.bounds, this.rotation)
     )
   }
 
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>): this => {
+  onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>): this => {
     this.update({
       point: [bounds.minX, bounds.minY],
       size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],

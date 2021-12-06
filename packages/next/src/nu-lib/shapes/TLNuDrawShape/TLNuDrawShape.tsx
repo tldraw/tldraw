@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Vec } from '@tldraw/vec'
-import { computed, makeObservable, observable } from 'mobx'
+import { autorun, computed, makeObservable, observable } from 'mobx'
 import {
   TLNuComponentProps,
   TLNuIndicatorProps,
@@ -67,7 +67,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
   /**
    * The shape's bounds in "page space".
    */
-  @computed get bounds(): TLNuBounds {
+  getBounds = (): TLNuBounds => {
     const { pointBounds, point } = this
     return BoundsUtils.translateBounds(pointBounds, point)
   }
@@ -84,7 +84,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
   /**
    * The shape's rotated bounds in "page space".
    */
-  @computed get rotatedBounds(): TLNuBounds {
+  getRotatedBounds = (): TLNuBounds => {
     const { rotatedPoints } = this
     if (!this.rotation) return this.bounds
     return BoundsUtils.translateBounds(BoundsUtils.getBoundsFromPoints(rotatedPoints), this.point)
@@ -96,18 +96,16 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
    * with `setNormalizedPoints`.
    */
   normalizedPoints: number[][] = []
+  isResizeFlippedX = false
+  isResizeFlippedY = false
 
   /**
-   * Update the snapshot of the shape's points normalized against its bounds.
+   * Prepare the shape for a resize session.
    */
-  setNormalizedPoints = (): this => {
-    const {
-      points,
-      pointBounds: { width, height },
-    } = this
-    const size = [width, height]
+  onResizeStart = () => {
+    const { bounds, points } = this
+    const size = [bounds.width, bounds.height]
     this.normalizedPoints = points.map((point) => Vec.divV(point, size))
-    return this
   }
 
   /**
@@ -115,12 +113,18 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
    * @param bounds
    * @param info
    */
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
-    const { normalizedPoints } = this
+  onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
     const size = [bounds.width, bounds.height]
+    const flipX = info.scaleX < 0
+    const flipY = info.scaleY < 0
+
     this.update({
       point: [bounds.minX, bounds.minY],
-      points: normalizedPoints.map((point) => Vec.mulV(point, size)),
+      points: this.normalizedPoints.map((point) => {
+        if (flipX) point = [1 - point[0], point[1]]
+        if (flipY) point = [point[0], 1 - point[1]]
+        return Vec.mulV(point, size)
+      }),
     })
     return this
   }

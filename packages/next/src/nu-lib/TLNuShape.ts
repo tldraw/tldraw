@@ -2,7 +2,7 @@
 import {
   intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
-  intersectPolylineBounds,
+  intersectPolygonBounds,
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
 import type { AnyObject, TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
@@ -68,6 +68,7 @@ export interface TLNuResizeInfo<P extends AnyObject = any> {
   scaleX: number
   scaleY: number
   transformOrigin: number[]
+  initialBounds: TLNuBounds
   initialProps: TLNuShapeProps & P
 }
 
@@ -102,15 +103,24 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
   abstract readonly Component: (props: TLNuComponentProps<M>) => JSX.Element | null
   abstract readonly Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
 
-  abstract get bounds(): TLNuBounds
-  abstract get rotatedBounds(): TLNuBounds
-
   protected init = (props: TLNuShapeProps & Partial<P>) => {
     assignOwnProps(this, props)
   }
 
+  abstract getBounds: () => TLNuBounds
+
+  getCenter = () => {
+    return BoundsUtils.getBoundsCenter(this.bounds)
+  }
+
+  getRotatedBounds = () => {
+    const { bounds, rotation } = this
+    if (!rotation) return bounds
+    return BoundsUtils.getBoundsFromPoints(BoundsUtils.getRotatedCorners(bounds, rotation))
+  }
+
   hitTestPoint = (point: number[]): boolean => {
-    const ownBounds = this.bounds
+    const ownBounds = this.rotatedBounds
 
     if (!this.rotation) {
       return PointUtils.pointInBounds(point, ownBounds)
@@ -123,34 +133,49 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
 
   hitTestLineSegment = (A: number[], B: number[]): boolean => {
     const box = BoundsUtils.getBoundsFromPoints([A, B])
-    const { bounds, rotation = 0 } = this
+    const { rotatedBounds, rotation = 0 } = this
 
-    return BoundsUtils.boundsContain(bounds, box) || rotation
+    return BoundsUtils.boundsContain(rotatedBounds, box) || rotation
       ? intersectLineSegmentPolyline(A, B, BoundsUtils.getRotatedCorners(this.bounds)).didIntersect
-      : intersectLineSegmentBounds(A, B, this.bounds).length > 0
+      : intersectLineSegmentBounds(A, B, rotatedBounds).length > 0
   }
 
   hitTestBounds = (bounds: TLNuBounds): boolean => {
-    const ownBounds = this.bounds
+    const { rotatedBounds } = this
 
     if (!this.rotation) {
       return (
-        BoundsUtils.boundsContain(bounds, ownBounds) ||
-        BoundsUtils.boundsContain(ownBounds, bounds) ||
-        BoundsUtils.boundsCollide(ownBounds, bounds)
+        BoundsUtils.boundsContain(bounds, rotatedBounds) ||
+        BoundsUtils.boundsContain(rotatedBounds, bounds) ||
+        BoundsUtils.boundsCollide(rotatedBounds, bounds)
       )
     }
 
-    const corners = BoundsUtils.getRotatedCorners(ownBounds, this.rotation)
+    const corners = BoundsUtils.getRotatedCorners(this.bounds, this.rotation)
 
     return (
-      corners.every((point) => PointUtils.pointInBounds(point, bounds)) ||
-      intersectPolylineBounds(corners, bounds).length > 0
+      BoundsUtils.boundsContain(bounds, rotatedBounds) ||
+      intersectPolygonBounds(corners, bounds).length > 0
     )
   }
 
+  onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
+    this.update({ point: [bounds.minX, bounds.minY] })
+    return this
+  }
+
+  onResizeStart?: () => void
+
   @computed get center(): number[] {
-    return BoundsUtils.getBoundsCenter(this.bounds)
+    return this.getCenter()
+  }
+
+  @computed get bounds(): TLNuBounds {
+    return this.getBounds()
+  }
+
+  @computed get rotatedBounds(): TLNuBounds {
+    return this.getRotatedBounds()
   }
 
   @computed get serialized(): TLNuSerializedShape<P> {
@@ -179,11 +204,6 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
   @action update(props: Partial<TLNuShapeProps | P>) {
     Object.assign(this, props)
     if (!('nonce' in props)) this.bump()
-    return this
-  }
-
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
-    this.update({ point: [bounds.minX, bounds.minY] })
     return this
   }
 }

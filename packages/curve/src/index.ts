@@ -338,9 +338,7 @@ export function simplify(points: number[][], tolerance = 1): number[][] {
     for (let i = 1; i < len - 1; i++) {
       const [x0, y0] = points[i]
       const d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
-
       if (distance > d) continue
-
       distance = d
       index = i
     }

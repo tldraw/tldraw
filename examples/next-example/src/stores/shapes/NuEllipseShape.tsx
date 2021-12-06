@@ -71,6 +71,18 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
     )
   })
 
+  getBounds = (): TLNuBounds => {
+    const [x, y] = this.point
+    const [width, height] = this.size
+    return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, 0)
+  }
+
+  getRotatedBounds = (): TLNuBounds => {
+    const [x, y] = this.point
+    const [width, height] = this.size
+    return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, this.rotation)
+  }
+
   hitTestPoint = (point: number[]) => {
     return PointUtils.pointInEllipse(
       point,
@@ -93,10 +105,10 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
   }
 
   hitTestBounds = (bounds: TLNuBounds): boolean => {
-    const shapeBounds = this.bounds
+    const { rotatedBounds } = this
 
     return (
-      BoundsUtils.boundsContained(shapeBounds, bounds) ||
+      BoundsUtils.boundsContain(bounds, rotatedBounds) ||
       intersectEllipseBounds(
         this.center,
         this.size[0] / 2,
@@ -107,13 +119,7 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
     )
   }
 
-  @computed get bounds(): TLNuBounds {
-    const [x, y] = this.point
-    const [width, height] = this.size
-    return BoundsUtils.getRotatedEllipseBounds(x, y, width / 2, height / 2, 0)
-  }
-
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuEllipseShapeProps>) => {
+  onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<NuEllipseShapeProps>) => {
     return this.update({
       point: [bounds.minX, bounds.minY],
       size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],

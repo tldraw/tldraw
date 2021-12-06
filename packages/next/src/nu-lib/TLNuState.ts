@@ -13,18 +13,20 @@ import type {
 
 export interface TLNuStateClass<
   S extends TLNuShape = TLNuShape,
-  B extends TLNuBinding = TLNuBinding
+  B extends TLNuBinding = TLNuBinding,
+  T extends TLNuTool<S, B> = TLNuTool<S, B>
 > {
-  new (props: any): TLNuState<S, B>
+  new (props: any): TLNuState<S, B, T>
   id: string
 }
 
 export abstract class TLNuState<
   S extends TLNuShape = TLNuShape,
-  B extends TLNuBinding = TLNuBinding
+  B extends TLNuBinding = TLNuBinding,
+  T extends TLNuTool<S, B> = TLNuTool<S, B>
 > implements Partial<TLNuCallbacks<S>>
 {
-  constructor(tool: TLNuTool<S, B>) {
+  constructor(tool: T) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.stateId = this.constructor['id']
@@ -36,7 +38,7 @@ export abstract class TLNuState<
 
   readonly stateId: string
   readonly app: TLNuApp<S, B>
-  readonly tool: TLNuTool<S, B>
+  readonly tool: T
 
   onEnter?: TLNuOnEnter<any>
   onExit?: TLNuOnExit<any>

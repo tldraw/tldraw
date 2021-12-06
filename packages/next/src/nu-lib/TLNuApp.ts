@@ -45,11 +45,14 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     shapeClasses?: TLNuShapeClass<S>[],
     toolClasses?: TLNuToolClass<S, B>[]
   ) {
-    makeObservable(this)
+    this.registerTools(TLNuSelectTool)
+    this.selectedTool = this.toolClasses.get('select')!
 
     if (shapeClasses) this.registerShapes(...shapeClasses)
     if (toolClasses) this.registerTools(...toolClasses)
     if (serializedApp) this.history.deserialize(serializedApp)
+
+    makeObservable(this)
 
     this.notify('mount', null)
   }
@@ -107,25 +110,38 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   /* ------------------ Tool Classse ------------------ */
 
-  readonly toolClasses: Map<string, TLNuTool<S, B>> = new Map([
-    ['select', new TLNuSelectTool(this)],
-  ])
+  readonly toolClasses: Map<string, TLNuTool<S, B>> = new Map()
 
   registerTools = (...tools: TLNuToolClass<any, B>[]) => {
     tools.forEach((Tool) => {
+      const tool = new Tool(this)
       this.toolClasses.set(Tool.id, new Tool(this))
+
+      // Register the tool's activation keyboard shortcut, if any
       if (Tool.shortcut !== undefined) {
         KeyUtils.registerShortcut(Tool.shortcut, () => this.selectTool(Tool.id))
+      }
+
+      // Register the tool's keyboard shortcuts, if any
+      if (Tool.shortcuts?.length) {
+        Tool.shortcuts.forEach(({ keys, fn }) =>
+          tool.disposables.push(
+            KeyUtils.registerShortcut(keys, () => this.selectedTool === tool && fn())
+          )
+        )
       }
     })
   }
 
   deregisterTools = (...tools: TLNuToolClass<S, B>[]) => {
-    tools.forEach((Tool) => this.toolClasses.delete(Tool.id))
+    tools.forEach((Tool) => {
+      this.toolClasses.get(Tool.id)?.dispose()
+      this.toolClasses.delete(Tool.id)
+    })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  @observable selectedTool: TLNuTool<S, B> = this.toolClasses.get('select')!
+  @observable selectedTool: TLNuTool<S, B>
 
   @action readonly selectTool = (id: string, data: Record<string, unknown> = {}): this => {
     const nextTool = this.toolClasses.get(id)

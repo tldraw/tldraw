@@ -4,11 +4,11 @@ import { TLNuDrawTool, TLNuToolComponentProps } from '@tldraw/next'
 import { NuDrawShape } from 'stores'
 
 export class NuDrawTool extends TLNuDrawTool<NuDrawShape> {
-  shapeClass = NuDrawShape
-
   static id = 'draw'
-  static shortcut = '5'
-  readonly label = 'Draw'
+  static shortcut = 'd,p,5'
+
+  shapeClass = NuDrawShape
+  label = 'Draw'
 
   readonly Component = ({ isActive }: TLNuToolComponentProps) => {
     return <span style={{ fontWeight: isActive ? '600' : '500' }}>D</span>

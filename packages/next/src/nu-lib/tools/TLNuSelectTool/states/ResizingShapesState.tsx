@@ -67,6 +67,8 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
         ]
       })
     )
+
+    selectedShapes.forEach((shape) => shape.onResizeStart?.())
   }
 
   onExit = () => {
@@ -109,9 +111,10 @@ export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> ext
         scaleY < 0
       )
 
-      shape.resize(relativeBounds, {
+      shape.onResize(relativeBounds, {
         type: handle,
         initialProps: props,
+        initialBounds: bounds,
         scaleX,
         scaleY,
         transformOrigin,

@@ -38,9 +38,10 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
   }
 
   static id = 'select'
+  static shortcut = '1'
+  static shortcuts = [{ keys: 'h', fn: () => console.log('hi!') }]
 
-  readonly label = 'Select'
-  readonly shortcut = '1'
+  label = 'Select'
 
   readonly Component = ({ isActive }: TLNuToolComponentProps) => {
     return <span style={{ fontWeight: isActive ? '600' : '500' }}>S</span>

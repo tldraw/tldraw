@@ -1,5 +1,5 @@
 import { TLNuBoxShape, TLNuState } from '~nu-lib'
-import type { TLNuPointerHandler } from '~types'
+import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { BoundsUtils, uniqueId } from '~utils'
 import type { TLNuBoxTool } from '../TLNuBoxTool'
 
@@ -40,5 +40,9 @@ export class CreatingState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
     if (!this.app.isToolLocked) {
       this.app.selectTool('select')
     }
+  }
+
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+    this.onPointerMove(info, e)
   }
 }
