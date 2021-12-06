@@ -41,7 +41,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isBinding, isGhost, meta, events }, ref) => {
+    ({ shape, isBinding, isSelected, isGhost, meta, events }, ref) => {
       const { id, size, style } = shape
 
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -63,7 +63,10 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
                 height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
               />
             )}
-            <path className="tl-stroke-hitarea" d={indicatorPath} />
+            <path
+              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              d={indicatorPath}
+            />
             <path
               d={indicatorPath}
               fill={style.isFilled ? styles.fill : 'none'}
@@ -125,7 +128,13 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
                 height={h + 64}
               />
             )}
-            <rect className="tl-stroke-hitarea" x={sw / 2} y={sw / 2} width={w} height={h} />
+            <rect
+              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              x={sw / 2}
+              y={sw / 2}
+              width={w}
+              height={h}
+            />
             {style.isFilled && (
               <rect
                 x={sw / 2}

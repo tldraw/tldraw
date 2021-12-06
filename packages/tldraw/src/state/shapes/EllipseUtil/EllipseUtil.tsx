@@ -39,7 +39,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isGhost, isBinding, meta, events }, ref) => {
+    ({ shape, isGhost, isSelected, isBinding, meta, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
         style,
@@ -69,7 +69,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
               />
             )}
             <ellipse
-              className="tl-stroke-hitarea"
+              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
               cx={radiusX}
               cy={radiusY}
               rx={radiusX}
@@ -118,7 +118,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             />
           )}
           <ellipse
-            className="tl-stroke-hitarea"
+            className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
             cx={radiusX}
             cy={radiusY}
             rx={radiusX}

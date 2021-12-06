@@ -228,6 +228,16 @@ const tlcss = css`
     stroke-linejoin: round;
   }
 
+  .tl-fill-hitarea {
+    cursor: pointer;
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: calc(24px * var(--tl-scale));
+    pointer-events: all;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .tl-counter-scaled {
     transform: scale(var(--tl-scale));
   }
