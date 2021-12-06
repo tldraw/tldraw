@@ -36,26 +36,12 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
     const elm = rContextBar.current
     if (!elm) return
 
-    let x = 0
-    let y = 0
+    const { offsetWidth, offsetHeight } = elm
 
-    const { offsetWidth } = elm
+    const [x, y] = BoundsUtils.getContextBarTranslation([offsetWidth, offsetHeight], offset)
 
-    if (offset.top > 116) {
-      y = -(rotatedBounds.height / 2 + 52)
-    } else {
-      y = rotatedBounds.height / 2 + 64
-    }
-
-    if (offset.left + scaledBounds.width / 2 - offsetWidth / 2 < 16) {
-      x += -(offset.left + scaledBounds.width / 2 - offsetWidth / 2 - 16)
-    } else if (offset.right + scaledBounds.width / 2 - offsetWidth / 2 < 16) {
-      x += offset.right + scaledBounds.width / 2 - offsetWidth / 2 - 16
-    }
-
-    elm.style.setProperty('opacity', `1`)
     elm.style.setProperty('transform', `translateX(${x}px) translateY(${y}px)`)
-  }, [rotatedBounds, offset])
+  }, [scaledBounds, offset])
 
   if (!app) return null
 
@@ -75,9 +61,9 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
           whiteSpace: 'nowrap',
           display: 'flex',
           gap: 8,
-          opacity: 0,
           alignItems: 'center',
           fontSize: 14,
+          willChange: 'transform',
           boxShadow: 'var(--nu-shadow-elevation-medium)',
         }}
       >

@@ -188,6 +188,8 @@ export interface TLNuOffset {
   right: number
   bottom: number
   left: number
+  width: number
+  height: number
 }
 
 export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {

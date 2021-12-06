@@ -30,17 +30,35 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
     },
   } = useContext()
 
-  const offset: TLNuOffset = {
-    top: bounds.minY + y * zoom,
-    right: vpBounds.width - (bounds.maxX + x * zoom),
-    bottom: vpBounds.height - (bounds.maxY + y * zoom),
-    left: bounds.minX + x * zoom,
-  }
-
-  const inView = offset.left > 0 && offset.top > 0 && offset.right > 0 && offset.bottom > 0
-
   const rBounds = React.useRef<HTMLDivElement>(null)
   const scaledBounds = BoundsUtils.multiplyBounds(bounds, zoom)
+  const minX = (bounds.minX + x) * zoom
+  const maxX = (bounds.maxX + x) * zoom
+  const minY = (bounds.minY + y) * zoom
+  const maxY = (bounds.maxY + y) * zoom
+
+  const screenBounds: TLNuBounds = {
+    minX,
+    minY,
+    maxX,
+    maxY,
+    width: maxX - minX,
+    height: maxY - minY,
+  }
+
+  const offsets: TLNuOffset = {
+    left: screenBounds.minX,
+    right: vpBounds.width - screenBounds.maxX,
+    top: screenBounds.minY,
+    bottom: vpBounds.height - screenBounds.maxY,
+    width: screenBounds.width,
+    height: screenBounds.height,
+  }
+
+  const inView =
+    BoundsUtils.boundsContain(vpBounds, screenBounds) ||
+    BoundsUtils.boundsCollide(vpBounds, screenBounds)
+
   useCounterScaledPosition(rBounds, scaledBounds, zoom, 10003)
   if (!ContextBar) throw Error('Expected a ContextBar component.')
 
@@ -68,7 +86,7 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
       <ContextBar
         shapes={shapes}
         bounds={bounds}
-        offset={offset}
+        offset={offsets}
         scaledBounds={scaledBounds}
         rotation={bounds.rotation || 0}
       />

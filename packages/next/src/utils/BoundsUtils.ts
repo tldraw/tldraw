@@ -6,6 +6,7 @@ import {
   TLNuBoundsCorner,
   TLNuBoundsEdge,
   TLNuBoundsWithCenter,
+  TLNuOffset,
   TLNuSnap,
   TLNuSnapPoints,
 } from '~types'
@@ -877,5 +878,32 @@ left past the initial left edge) then swap points on that axis.
     })
 
     return { offset, snapLines }
+  }
+
+  static getContextBarTranslation(barSize: number[], offset: TLNuOffset) {
+    let x = 0
+    let y = 0
+
+    if (offset.top < 116) {
+      // Show on bottom
+      y = offset.height / 2 + 64
+
+      // Too far down, move up
+      if (offset.bottom < 140) {
+        y += offset.bottom - 140
+      }
+    } else {
+      // Show on top
+      y = -(offset.height / 2 + 52)
+    }
+
+    // Too far right, move left
+    if (offset.left + offset.width / 2 - barSize[0] / 2 < 16) {
+      x += -(offset.left + offset.width / 2 - barSize[0] / 2 - 16)
+    } else if (offset.right + offset.width / 2 - barSize[0] / 2 < 16) {
+      x += offset.right + offset.width / 2 - barSize[0] / 2 - 16
+    }
+
+    return [x, y]
   }
 }

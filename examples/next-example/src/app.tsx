@@ -44,8 +44,8 @@ function App(): JSX.Element {
             id: 'box1',
             type: 'box',
             parentId: 'page1',
-            point: [400, 100],
-            size: [100, 100],
+            point: [400, -100],
+            size: [100, 900],
           },
           {
             id: 'ellipse1',
