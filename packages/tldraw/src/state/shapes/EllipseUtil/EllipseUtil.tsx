@@ -127,8 +127,8 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
           <ellipse
             cx={radiusX}
             cy={radiusY}
-            rx={rx}
-            ry={ry}
+            rx={radiusX}
+            ry={radiusY}
             fill={styles.fill}
             stroke={styles.stroke}
             strokeWidth={sw}
@@ -144,7 +144,16 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   )
 
   Indicator = TDShapeUtil.Indicator<T, M>(({ shape }) => {
-    return <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
+    const {
+      radius: [radiusX, radiusY],
+      style: { dash },
+    } = shape
+
+    return dash === DashStyle.Draw ? (
+      <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
+    ) : (
+      <ellipse cx={radiusX} cy={radiusY} rx={radiusX} ry={radiusY} />
+    )
   })
 
   hitTestPoint = (shape: T, point: number[]): boolean => {

@@ -50,6 +50,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
       if (style.dash === DashStyle.Draw) {
         const pathTDSnapshot = getRectanglePath(shape)
+        const indicatorPath = getRectangleIndicatorPathTDSnapshot(shape)
 
         return (
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -62,19 +63,18 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
                 height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
               />
             )}
+            <path className="tl-stroke-hitarea" d={indicatorPath} />
             <path
-              className="tl-stroke-hitarea"
-              d={getRectangleIndicatorPathTDSnapshot(shape)}
+              d={indicatorPath}
               fill={style.isFilled ? styles.fill : 'none'}
-              stroke="none"
-              pointerEvents="stroke"
+              pointerEvents="none"
             />
             <path
               d={pathTDSnapshot}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
+              pointerEvents="none"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
           </SVGContainer>
@@ -107,9 +107,6 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
             y1={start[1]}
             x2={end[0]}
             y2={end[1]}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeLinecap="round"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
           />
@@ -128,17 +125,20 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
                 height={h + 64}
               />
             )}
-            <rect
-              className="tl-stroke-hitarea"
-              x={sw / 2}
-              y={sw / 2}
-              width={w}
-              height={h}
-              fill={styles.fill}
-              stroke="none"
-              pointerEvents="stroke"
-            />
-            <g pointerEvents="stroke">{paths}</g>
+            <rect className="tl-stroke-hitarea" x={sw / 2} y={sw / 2} width={w} height={h} />
+            {style.isFilled && (
+              <rect
+                x={sw / 2}
+                y={sw / 2}
+                width={w}
+                height={h}
+                fill={styles.fill}
+                pointerEvents="none"
+              />
+            )}
+            <g pointerEvents="none" stroke={styles.stroke} strokeWidth={sw} strokeLinecap="round">
+              {paths}
+            </g>
           </g>
         </SVGContainer>
       )
