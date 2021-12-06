@@ -1,7 +1,7 @@
-import { TLNuBoxShape, TLNuState } from '~nu-lib'
+import { TLNuDrawShape, TLNuState } from '~nu-lib'
 import type { TLNuPointerHandler } from '~types'
 
-export class IdleState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
+export class IdleState<S extends TLNuDrawShape<any>> extends TLNuState<S> {
   static id = 'idle'
 
   onPointerDown: TLNuPointerHandler<S> = (info, e) => {

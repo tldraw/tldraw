@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { TLNuBoxTool, TLNuToolComponentProps } from '@tldraw/next'
-import { NuPolygonShape, Shape } from 'stores'
+import { NuPolygonShape } from 'stores'
 
-export class NuPolygonTool extends TLNuBoxTool<Shape> {
+export class NuPolygonTool extends TLNuBoxTool<NuPolygonShape> {
   shapeClass = NuPolygonShape
   static id = 'polygon'
   static shortcut = '4'

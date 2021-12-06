@@ -1,13 +1,7 @@
 import { Vec } from '@tldraw/vec'
 import type { FullGestureState, WebKitGestureEvent } from '@use-gesture/core/types'
 import { TLNuShape, TLNuState } from '~nu-lib'
-import type {
-  TLNuBinding,
-  TLNuEventInfo,
-  TLNuPinchHandler,
-  TLNuPointerHandler,
-  TLNuWheelHandler,
-} from '~types'
+import type { TLNuBinding, TLNuEventInfo, TLNuPinchHandler } from '~types'
 
 type GestureInfo<S extends TLNuShape> = {
   info: TLNuEventInfo<S>

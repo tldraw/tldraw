@@ -1,7 +1,7 @@
 import { IdleState, PointingState, CreatingState } from './states'
-import { TLNuApp, TLNuBoxShape, TLNuShapeProps, TLNuTool } from '~nu-lib'
+import { TLNuApp, TLNuDrawShape, TLNuDrawShapeProps, TLNuShapeProps, TLNuTool } from '~nu-lib'
 
-export abstract class TLNuBoxTool<S extends TLNuBoxShape<any>> extends TLNuTool<S> {
+export abstract class TLNuDrawTool<S extends TLNuDrawShape<any>> extends TLNuTool<S> {
   constructor(app: TLNuApp<S>) {
     super(app)
     this.registerStates(IdleState, PointingState, CreatingState)
@@ -9,7 +9,7 @@ export abstract class TLNuBoxTool<S extends TLNuBoxShape<any>> extends TLNuTool<
   }
 
   abstract shapeClass: {
-    new (props: TLNuShapeProps & Partial<any>): S
+    new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }
 
   onEnter = () => this.transition('idle')

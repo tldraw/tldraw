@@ -30,7 +30,6 @@ import type {
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 import { TLNuSettings } from './TLNuSettings'
-import { FIT_TO_SCREEN_PADDING } from '~constants'
 
 export interface TLNuSerializedApp {
   currentPageId: string
@@ -112,7 +111,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     ['select', new TLNuSelectTool(this)],
   ])
 
-  registerTools = (...tools: TLNuToolClass<S, B>[]) => {
+  registerTools = (...tools: TLNuToolClass<any, B>[]) => {
     tools.forEach((Tool) => {
       this.toolClasses.set(Tool.id, new Tool(this))
       if (Tool.shortcut !== undefined) {

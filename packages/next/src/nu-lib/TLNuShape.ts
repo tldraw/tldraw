@@ -6,7 +6,7 @@ import {
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
 import type { AnyObject, TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
-import { isPlainObject, BoundsUtils, PointUtils } from '~utils'
+import { isPlainObject, BoundsUtils, PointUtils, assignOwnProps } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
 export interface TLNuShapeClass<S extends TLNuShape> {
@@ -73,53 +73,23 @@ export interface TLNuResizeInfo<P extends AnyObject = any> {
 
 export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implements TLNuShapeProps {
   constructor(props: TLNuShapeProps & Partial<P>) {
-    const {
-      id,
-      parentId,
-      name,
-      point,
-      rotation,
-      children,
-      handles,
-      isGhost,
-      isHidden,
-      isLocked,
-      isGenerated,
-      isAspectRatioLocked,
-    } = props
-
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.type = this.constructor['id']
-    this.id = id
-    this.parentId = parentId
-    this.name = name
-    this.point = point
-    this.rotation = rotation
-    this.children = children
-    this.handles = handles
-    this.isGhost = isGhost
-    this.isHidden = isHidden
-    this.isLocked = isLocked
-    this.isGenerated = isGenerated
-    this.isAspectRatioLocked = isAspectRatioLocked
-
+    this.init(props)
     makeObservable(this)
   }
 
   static type: string
 
-  type: string
-
   readonly showCloneHandles = false
   readonly hideBounds = false
   readonly isStateful = false
-
-  readonly id: string
-
-  @observable parentId: string
-  @observable point: number[]
-  @observable name?: string
+  readonly type: string
+  readonly id: string = 'id'
+  @observable parentId = 'parentId'
+  @observable point: number[] = [0, 0]
+  @observable name?: string = 'Shape'
   @observable rotation?: number
   @observable children?: string[]
   @observable handles?: Record<string, TLNuHandle>
@@ -130,12 +100,14 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
   @observable isAspectRatioLocked?: boolean
 
   abstract readonly Component: (props: TLNuComponentProps<M>) => JSX.Element | null
-
   abstract readonly Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
 
   abstract get bounds(): TLNuBounds
-
   abstract get rotatedBounds(): TLNuBounds
+
+  protected init = (props: TLNuShapeProps & Partial<P>) => {
+    assignOwnProps(this, props)
+  }
 
   hitTestPoint = (point: number[]): boolean => {
     const ownBounds = this.bounds
@@ -177,29 +149,14 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
     )
   }
 
-  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
-    this.update({ point: [bounds.minX, bounds.minY] })
-  }
-
   @computed get center(): number[] {
     return BoundsUtils.getBoundsCenter(this.bounds)
-  }
-
-  @action update(props: Partial<TLNuShapeProps | P>) {
-    Object.assign(this, props)
-    if (!('nonce' in props)) this.bump()
   }
 
   @computed get serialized(): TLNuSerializedShape<P> {
     return deepCopy(
       Object.fromEntries(Object.entries(this).filter(([_key, value]) => isSerializable(value)))
     ) as TLNuSerializedShape<P>
-  }
-
-  nonce = 0
-
-  protected bump() {
-    this.nonce++
   }
 
   get shapeId(): string {
@@ -210,5 +167,23 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
 
   set shapeId(type: string) {
     // noop, but easier if this exists
+  }
+
+  nonce = 0
+
+  protected bump(): this {
+    this.nonce++
+    return this
+  }
+
+  @action update(props: Partial<TLNuShapeProps | P>) {
+    Object.assign(this, props)
+    if (!('nonce' in props)) this.bump()
+    return this
+  }
+
+  resize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
+    this.update({ point: [bounds.minX, bounds.minY] })
+    return this
   }
 }

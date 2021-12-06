@@ -16,6 +16,8 @@ import {
   NuEllipseTool,
   NuPolygonTool,
   NuPolygonShape,
+  NuDrawShape,
+  NuDrawTool,
 } from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
@@ -28,13 +30,18 @@ const components: TLNuComponents<Shape> = {
 function App(): JSX.Element {
   const [app, setApp] = React.useState<TLNuApp<Shape>>()
 
-  const [shapeClasses] = React.useState(() => [NuBoxShape, NuEllipseShape, NuPolygonShape])
+  const [shapeClasses] = React.useState(() => [
+    NuBoxShape,
+    NuEllipseShape,
+    NuPolygonShape,
+    NuDrawShape,
+  ])
 
-  const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool, NuPolygonTool])
+  const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool, NuPolygonTool, NuDrawTool])
 
   const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',
-    selectedIds: ['box1'],
+    selectedIds: [],
     pages: [
       {
         name: 'Page',
@@ -44,23 +51,23 @@ function App(): JSX.Element {
             id: 'box1',
             type: 'box',
             parentId: 'page1',
-            point: [400, -100],
-            size: [100, 900],
-          },
-          {
-            id: 'ellipse1',
-            type: 'ellipse',
-            parentId: 'page1',
-            point: [100, 100],
+            point: [400, 400],
             size: [100, 100],
           },
-          {
-            id: 'polygon1',
-            type: 'polygon',
-            parentId: 'page1',
-            point: [300, 100],
-            size: [150, 100],
-          },
+          // {
+          //   id: 'ellipse1',
+          //   type: 'ellipse',
+          //   parentId: 'page1',
+          //   point: [100, 100],
+          //   size: [100, 100],
+          // },
+          // {
+          //   id: 'polygon1',
+          //   type: 'polygon',
+          //   parentId: 'page1',
+          //   point: [300, 100],
+          //   size: [150, 100],
+          // },
         ],
         bindings: [],
       },

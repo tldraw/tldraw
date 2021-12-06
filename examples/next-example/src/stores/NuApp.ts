@@ -1,12 +1,12 @@
 import { TLNuApp } from '@tldraw/next'
-import { NuBoxShape, NuEllipseShape, Shape } from './shapes'
-import { NuBoxTool, NuEllipseTool } from './tools'
+import { NuBoxShape, NuDrawShape, NuPolygonShape, NuEllipseShape, Shape } from './shapes'
+import { NuDrawTool, NuPolygonTool, NuBoxTool, NuEllipseTool } from './tools'
 
 export class NuApp extends TLNuApp<Shape> {
   constructor() {
     super()
-    this.registerShapes(NuBoxShape, NuEllipseShape)
-    this.registerTools(NuBoxTool, NuEllipseTool)
+    this.registerShapes(NuBoxShape, NuEllipseShape, NuPolygonShape, NuDrawShape)
+    this.registerTools(NuBoxTool, NuEllipseTool, NuPolygonTool, NuDrawTool)
     this.selectTool('select')
   }
 }

@@ -3,44 +3,41 @@ import * as React from 'react'
 import {
   SVGContainer,
   TLNuComponentProps,
-  TLNuBoxShape,
+  TLNuDrawShape,
+  TLNuDrawShapeProps,
   TLNuShapeProps,
-  TLNuBoxShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { makeObservable, observable } from 'mobx'
+import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
 
-export interface NuBoxShapeProps extends TLNuBoxShapeProps, NuStyleProps {}
+export interface NuDrawShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
-export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuBoxShapeProps>) {
+export class NuDrawShape extends TLNuDrawShape<NuDrawShapeProps> {
+  constructor(props = {} as TLNuShapeProps & Partial<NuDrawShapeProps>) {
     super(props)
     this.init(props)
     makeObservable(this)
   }
 
-  static id = 'box'
+  static id = 'draw'
 
   @observable stroke = '#000000'
   @observable fill = '#ffffff22'
   @observable strokeWidth = 2
 
+  @computed get pointsPath() {
+    const { points } = this
+    return points.join()
+  }
+
   Component = observer(({ events }: TLNuComponentProps) => {
-    const {
-      size: [w, h],
-      stroke,
-      fill,
-      strokeWidth,
-    } = this
+    const { pointsPath, stroke, fill, strokeWidth } = this
 
     return (
       <SVGContainer {...events}>
-        <rect
-          x={strokeWidth / 2}
-          y={strokeWidth / 2}
-          width={Math.max(0.01, w - strokeWidth)}
-          height={Math.max(0.01, h - strokeWidth)}
+        <polyline
+          points={pointsPath}
           stroke={stroke}
           fill={fill}
           strokeWidth={strokeWidth}

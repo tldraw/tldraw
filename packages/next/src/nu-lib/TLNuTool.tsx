@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { WebKitGestureEvent } from '@use-gesture/core/types'
 import { action, makeObservable, observable } from 'mobx'
 import type React from 'react'
 import type { TLNuApp, TLNuShape, TLNuState, TLNuStateClass } from '~nu-lib'
@@ -15,10 +14,7 @@ import type {
   TLNuWheelHandler,
 } from '~types'
 
-export interface TLNuToolClass<
-  S extends TLNuShape = TLNuShape,
-  B extends TLNuBinding = TLNuBinding
-> {
+export interface TLNuToolClass<S extends TLNuShape, B extends TLNuBinding = TLNuBinding> {
   new (props: any): TLNuTool<S, B>
   id: string
   shortcut: string
@@ -28,7 +24,7 @@ export interface TLNuToolComponentProps {
   isActive: boolean
 }
 
-export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
+export abstract class TLNuTool<S extends TLNuShape, B extends TLNuBinding = TLNuBinding>
   implements Partial<TLNuCallbacks<S>>
 {
   constructor(app: TLNuApp<S, B>) {
