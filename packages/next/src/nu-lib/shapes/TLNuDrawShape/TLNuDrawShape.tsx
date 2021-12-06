@@ -123,7 +123,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
       points: this.normalizedPoints.map((point) => {
         if (flipX) point = [1 - point[0], point[1]]
         if (flipY) point = [point[0], 1 - point[1]]
-        return Vec.mulV(point, size)
+        return Vec.mulV(point, size).concat(point[2])
       }),
     })
     return this

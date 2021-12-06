@@ -10,86 +10,71 @@ type PinchHandler = Handler<'pinch', WheelEvent | PointerEvent | TouchEvent | We
 export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
   const { viewport, inputs, callbacks } = useContext()
 
-  const onWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
-    (gesture) => {
+  const events = React.useMemo(() => {
+    const onWheel: Handler<'wheel', WheelEvent> = (gesture) => {
       const { event, delta } = gesture
       event.preventDefault()
       if (inputs.state === 'pinching') return
       if (Vec.isEqual(delta, [0, 0])) return
-      inputs.onWheel([...viewport.getPagePoint([event.clientX, event.clientY]), 0.5], event)
       callbacks.onWheel?.(
         { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
         gesture,
         event
       )
-    },
-    [viewport, inputs, callbacks.onWheel]
-  )
+    }
 
-  const onPinchStart = React.useCallback<PinchHandler>(
-    (gesture) => {
+    const onPinchStart: PinchHandler = (gesture) => {
       const elm = ref.current
-      const { event, origin } = gesture
+      const { event } = gesture
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       if (inputs.state !== 'idle') return
-      inputs.onPinchStart([...viewport.getPagePoint(origin), 0.5], event)
       callbacks.onPinchStart?.(
         { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
         gesture,
         event
       )
-    },
-    [viewport, inputs, callbacks.onPinch]
-  )
+    }
 
-  const onPinch = React.useCallback<PinchHandler>(
-    (gesture) => {
+    const onPinch: PinchHandler = (gesture) => {
       const elm = ref.current
-      const { event, origin } = gesture
+      const { event } = gesture
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       if (inputs.state !== 'pinching') return
-      inputs.onPinch([...viewport.getPagePoint(origin), 0.5], event)
       callbacks.onPinch?.(
         { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
         gesture,
         event
       )
-    },
-    [viewport, inputs, callbacks.onPinch]
-  )
+    }
 
-  const onPinchEnd = React.useCallback<PinchHandler>(
-    (gesture) => {
+    const onPinchEnd: PinchHandler = (gesture) => {
       const elm = ref.current
-      const { event, origin } = gesture
+      const { event } = gesture
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       setTimeout(() => {
         if (inputs.state !== 'pinching') return
-        inputs.onPinchEnd([...viewport.getPagePoint(origin), 0.5], event)
         callbacks.onPinchEnd?.(
           { type: TLNuTargetType.Canvas, target: 'canvas', order: 0 },
           gesture,
           event
         )
       }, 100)
-    },
-    [viewport, inputs, callbacks.onPinchEnd]
-  )
+    }
 
-  useGesture(
-    {
+    return {
       onWheel,
-      onPinch,
       onPinchStart,
       onPinchEnd,
-    },
-    {
-      target: ref,
-      eventOptions: { passive: false },
-      pinch: {
-        from: viewport.camera.zoom,
-        scaleBounds: () => ({ from: viewport.camera.zoom, max: 8, min: 0.1 }),
-      },
+      onPinch,
     }
-  )
+  }, [callbacks])
+
+  useGesture(events, {
+    target: ref,
+    eventOptions: { passive: false },
+    pinch: {
+      from: viewport.camera.zoom,
+      scaleBounds: () => ({ from: viewport.camera.zoom, max: 8, min: 0.1 }),
+    },
+  })
 }

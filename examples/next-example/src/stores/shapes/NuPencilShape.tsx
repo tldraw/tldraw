@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
+import { getStroke } from 'perfect-freehand'
 import {
   SVGContainer,
   TLNuComponentProps,
@@ -11,10 +12,10 @@ import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
 
-export interface NuDrawShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
+export interface NuPencilShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
-export class NuDrawShape extends TLNuDrawShape<NuDrawShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuDrawShapeProps>) {
+export class NuPencilShape extends TLNuDrawShape<NuPencilShapeProps> {
+  constructor(props = {} as TLNuShapeProps & Partial<NuPencilShapeProps>) {
     super(props)
     this.init(props)
     makeObservable(this)

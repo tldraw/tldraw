@@ -44,7 +44,7 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
     if (Vec.isEqual(previousPoint, currentPoint)) return
 
     // The point relative to the initial point
-    const point = Vec.sub(currentPoint, originPoint)
+    const point = Vec.sub(currentPoint, originPoint).concat(currentPoint[2])
 
     // The raw points array holds the relative points
     this.rawPoints.push(point)
@@ -55,13 +55,13 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
     // to stay in the same place.
     if (point[0] < this.offset[0] || point[1] < this.offset[1]) {
       this.offset = [Math.min(this.offset[0], point[0]), Math.min(this.offset[1], point[1])]
-      this.points = this.rawPoints.map((point) => Vec.sub(point, this.offset))
+      this.points = this.rawPoints.map((point) => Vec.sub(point, this.offset).concat(point[2]))
       this.creatingShape.update({
         point: Vec.add(originPoint, this.offset),
         points: this.points,
       })
     } else {
-      this.points.push(Vec.sub(point, this.offset))
+      this.points.push(Vec.toFixed(Vec.sub(point, this.offset).concat(currentPoint[2])))
       this.creatingShape.update({
         points: this.points,
       })
@@ -75,6 +75,8 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
     if (this.tool.simplify) {
       this.creatingShape.update({ points: PointUtils.simplify(this.points) })
     }
+
+    this.tool.transition('idle')
   }
 
   onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {

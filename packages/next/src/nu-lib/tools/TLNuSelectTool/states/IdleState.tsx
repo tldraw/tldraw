@@ -15,6 +15,10 @@ export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuS
       keys: 'Delete,Backspace',
       fn: () => this.app.delete(),
     },
+    {
+      keys: 'cmd+a,ctrl+a',
+      fn: () => this.app.selectAll(),
+    },
   ]
 
   onExit = () => {

@@ -8,7 +8,6 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
   const events = React.useMemo(() => {
     const onPointerMove: TLNuPointerEventHandler = (e) => {
       const { order = 0 } = e
-      inputs.onPointerMove([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerMove?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
       e.order = order + 1
     }
@@ -16,7 +15,6 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
     const onPointerDown: TLNuPointerEventHandler = (e) => {
       const { order = 0 } = e
       if (order) e.currentTarget.setPointerCapture(e.pointerId)
-      inputs.onPointerDown([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerDown?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
       e.order = order + 1
     }
@@ -24,7 +22,6 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
     const onPointerUp: TLNuPointerEventHandler = (e) => {
       const { order = 0 } = e
       if (order) e.currentTarget.releasePointerCapture(e.pointerId)
-      inputs.onPointerUp([...viewport.getPagePoint([e.clientX, e.clientY]), e.pressure ?? 0.5], e)
       callbacks.onPointerUp?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
       e.order = order + 1
     }
@@ -48,7 +45,7 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
       onPointerEnter,
       onPointerLeave,
     }
-  }, [inputs, callbacks])
+  }, [callbacks])
 
   return events
 }

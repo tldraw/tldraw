@@ -12,4 +12,8 @@ export class PointingState<S extends TLNuDrawShape<any>> extends TLNuState<S> {
       this.app.deselectAll()
     }
   }
+
+  onPointerUp: TLNuPointerHandler<S> = () => {
+    this.tool.transition('idle')
+  }
 }

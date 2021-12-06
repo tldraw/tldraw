@@ -40,7 +40,7 @@ export class TLNuSelectTool<S extends TLNuShape, B extends TLNuBinding> extends 
   static id = 'select'
 
   label = 'Select'
-  shortcut = '1'
+  shortcut = 'v,1'
 
   readonly Component = ({ isActive }: TLNuToolComponentProps) => {
     return <span style={{ fontWeight: isActive ? '600' : '500' }}>S</span>

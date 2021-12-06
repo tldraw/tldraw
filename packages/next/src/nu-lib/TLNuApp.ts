@@ -355,18 +355,28 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   readonly onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.viewport.panCamera(gesture.delta)
+    this.inputs.onWheel([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
     this.selectedTool._onWheel?.(info, gesture, e)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
+    if ('clientX' in e) {
+      this.inputs.onPointerDown([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
+    }
     this.selectedTool._onPointerDown?.(info, e)
   }
 
   readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
+    if ('clientX' in e) {
+      this.inputs.onPointerUp([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
+    }
     this.selectedTool._onPointerUp?.(info, e)
   }
 
   readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
+    if ('clientX' in e) {
+      this.inputs.onPointerMove([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
+    }
     this.selectedTool._onPointerMove?.(info, e)
   }
 
@@ -379,22 +389,27 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   }
 
   readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+    this.inputs.onKeyDown(e)
     this.selectedTool._onKeyDown?.(info, e)
   }
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
+    this.inputs.onKeyUp(e)
     this.selectedTool._onKeyUp?.(info, e)
   }
 
   readonly onPinchStart: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.inputs.onPinchStart([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
     this.selectedTool._onPinchStart?.(info, gesture, e)
   }
 
   readonly onPinch: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.inputs.onPinch([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
     this.selectedTool._onPinch?.(info, gesture, e)
   }
 
   readonly onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
+    this.inputs.onPinchEnd([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
     this.selectedTool._onPinchEnd?.(info, gesture, e)
   }
 

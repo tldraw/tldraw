@@ -16,7 +16,7 @@ import {
   NuEllipseTool,
   NuPolygonTool,
   NuPolygonShape,
-  NuDrawShape,
+  NuPenShape,
   NuDrawTool,
 } from 'stores'
 import { AppUI } from 'components/AppUI'
@@ -34,7 +34,7 @@ function App(): JSX.Element {
     NuBoxShape,
     NuEllipseShape,
     NuPolygonShape,
-    NuDrawShape,
+    NuPenShape,
   ])
 
   const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool, NuPolygonTool, NuDrawTool])

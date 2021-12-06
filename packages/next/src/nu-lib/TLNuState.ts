@@ -36,14 +36,7 @@ export abstract class TLNuState<
   }
 
   static id: string
-  static shortcuts = [
-    {
-      keys: 'Backspace,Delete',
-      fn: () => {
-        console.log('deleting!')
-      },
-    },
-  ]
+  static shortcuts: TLNuShortcut[]
 
   readonly stateId: string
   readonly app: TLNuApp<S, B>

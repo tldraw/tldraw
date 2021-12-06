@@ -31,5 +31,8 @@
     "rimraf": "3.0.2",
     "typescript": "4.2.3"
   },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6",
+  "dependencies": {
+    "perfect-freehand": "^1.0.16"
+  }
 }
