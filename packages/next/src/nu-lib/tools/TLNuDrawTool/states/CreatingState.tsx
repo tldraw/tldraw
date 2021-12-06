@@ -73,12 +73,7 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
     if (!this.creatingShape) throw Error('Expected a creating shape.')
 
     if (this.tool.simplify) {
-      this.creatingShape.points = PointUtils.simplify(this.points)
-    }
-
-    this.app.select(this.creatingShape)
-    if (!this.app.isToolLocked) {
-      this.app.selectTool('select')
+      this.creatingShape.update({ points: PointUtils.simplify(this.points) })
     }
   }
 

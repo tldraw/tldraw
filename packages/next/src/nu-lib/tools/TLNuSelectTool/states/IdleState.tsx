@@ -1,8 +1,21 @@
 import { TLNuShape, TLNuState } from '~nu-lib'
-import { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuTargetType } from '~types'
+import {
+  TLNuBinding,
+  TLNuPinchHandler,
+  TLNuPointerHandler,
+  TLNuShortcut,
+  TLNuTargetType,
+} from '~types'
 
 export class IdleState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
   static id = 'idle'
+
+  shortcuts: TLNuShortcut[] = [
+    {
+      keys: 'Delete,Backspace',
+      fn: () => this.app.delete(),
+    },
+  ]
 
   onExit = () => {
     this.app.hover(undefined)

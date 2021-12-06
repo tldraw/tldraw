@@ -120,16 +120,17 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   registerTools = (...tools: TLNuToolClass<any, B>[]) => {
     tools.forEach((Tool) => {
       const tool = new Tool(this)
+
       this.toolClasses.set(Tool.id, new Tool(this))
 
       // Register the tool's activation keyboard shortcut, if any
-      if (Tool.shortcut !== undefined) {
-        KeyUtils.registerShortcut(Tool.shortcut, () => this.selectTool(Tool.id))
+      if (tool.shortcut !== undefined) {
+        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool.toolId))
       }
 
       // Register the tool's keyboard shortcuts, if any
-      if (Tool.shortcuts?.length) {
-        Tool.shortcuts.forEach(({ keys, fn }) =>
+      if (tool.shortcuts?.length) {
+        tool.shortcuts.forEach(({ keys, fn }) =>
           tool.disposables.push(
             KeyUtils.registerShortcut(keys, () => {
               if (this.selectedTool.toolId === Tool.id) fn()
@@ -137,6 +138,22 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
           )
         )
       }
+
+      tool.states.forEach((state) => {
+        if (state.shortcuts) {
+          state.shortcuts.forEach(({ keys, fn }) =>
+            tool.disposables.push(
+              KeyUtils.registerShortcut(keys, () => {
+                if (
+                  this.selectedTool.toolId === Tool.id &&
+                  this.selectedTool.currentState.stateId === state.stateId
+                )
+                  fn()
+              })
+            )
+          )
+        }
+      })
     })
   }
 
@@ -220,6 +237,15 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   }
 
   @action readonly deleteShapes = (shapes: S[] | string[]): this => {
+    if (shapes.length === 0) return this
+
+    let ids: Set<string>
+    if (typeof shapes[0] === 'string') {
+      ids = new Set(shapes as string[])
+    } else {
+      ids = new Set((shapes as S[]).map((shape) => shape.id))
+    }
+    this.selectedIds = this.selectedIds.filter((id) => !ids.has(id))
     this.currentPage.removeShapes(...shapes)
     return this
   }

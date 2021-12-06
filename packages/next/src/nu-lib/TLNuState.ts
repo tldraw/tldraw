@@ -8,6 +8,7 @@ import type {
   TLNuOnExit,
   TLNuPinchHandler,
   TLNuPointerHandler,
+  TLNuShortcut,
   TLNuWheelHandler,
 } from '~types'
 
@@ -35,10 +36,20 @@ export abstract class TLNuState<
   }
 
   static id: string
+  static shortcuts = [
+    {
+      keys: 'Backspace,Delete',
+      fn: () => {
+        console.log('deleting!')
+      },
+    },
+  ]
 
   readonly stateId: string
   readonly app: TLNuApp<S, B>
   readonly tool: T
+
+  shortcuts?: TLNuShortcut[]
 
   onEnter?: TLNuOnEnter<any>
   onExit?: TLNuOnExit<any>

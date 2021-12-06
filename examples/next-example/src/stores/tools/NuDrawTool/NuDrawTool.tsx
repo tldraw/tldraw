@@ -5,8 +5,7 @@ import { NuDrawShape } from 'stores'
 
 export class NuDrawTool extends TLNuDrawTool<NuDrawShape> {
   static id = 'draw'
-  static shortcut = 'd,p,5'
-
+  shortcut = 'd,p,5'
   shapeClass = NuDrawShape
   label = 'Draw'
 

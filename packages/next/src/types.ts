@@ -334,3 +334,5 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
   )
 
 export type AnyObject = { [key: string]: any }
+
+export type TLNuShortcut = { keys: string; fn: () => void }

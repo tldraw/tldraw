@@ -11,6 +11,7 @@ import type {
   TLNuOnExit,
   TLNuPinchHandler,
   TLNuPointerHandler,
+  TLNuShortcut,
   TLNuWheelHandler,
 } from '~types'
 
@@ -21,7 +22,6 @@ export interface TLNuToolClass<
   new (props: any): TLNuTool<S, B>
   id: string
   shortcut?: string
-  shortcuts?: { keys: string; fn: () => void }[]
 }
 
 export interface TLNuToolComponentProps {
@@ -41,11 +41,10 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   }
 
   static id: string
-  static shortcut?: string
-  static shortcuts?: { keys: string; fn: () => void }[]
-
   readonly toolId: string
   readonly app: TLNuApp<S, B>
+  readonly shortcut?: string
+  readonly shortcuts?: TLNuShortcut[]
 
   abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
 
