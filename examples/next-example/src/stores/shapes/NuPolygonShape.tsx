@@ -9,7 +9,7 @@ import {
   TLNuShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { observable, makeObservable } from 'mobx'
+import { observable, makeObservable, action } from 'mobx'
 import type { NuBaseShapeProps } from './NuBaseShape'
 
 interface NuPolygonShapeProps extends NuBaseShapeProps, TLNuPolygonShapeProps {}
@@ -32,7 +32,7 @@ export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
 
   Component = observer(({ events }: TLNuComponentProps) => {
     const {
-      size: [w, h],
+      offset: [x, y],
       stroke,
       fill,
       strokeWidth,
@@ -40,11 +40,9 @@ export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
 
     return (
       <SVGContainer {...events}>
-        <rect
-          x={strokeWidth / 2}
-          y={strokeWidth / 2}
-          width={Math.max(0.01, w - strokeWidth)}
-          height={Math.max(0.01, h - strokeWidth)}
+        <polygon
+          transform={`translate(${x}, ${y})`}
+          points={this.getVertices(strokeWidth / 2).join()}
           stroke={stroke}
           fill={fill}
           strokeWidth={strokeWidth}
@@ -55,13 +53,16 @@ export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
   })
 
   Indicator = (props: TLNuIndicatorProps) => {
+    const {
+      offset: [x, y],
+      strokeWidth,
+    } = this
+
     return (
-      <rect
+      <polygon
         className="nu-indicator"
-        width={this.size[0]}
-        height={this.size[1]}
-        strokeWidth={2}
-        fill="transparent"
+        transform={`translate(${x}, ${y})`}
+        points={this.getVertices(strokeWidth / 2).join()}
       />
     )
   }

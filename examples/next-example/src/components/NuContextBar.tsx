@@ -2,9 +2,16 @@ import * as React from 'react'
 import { BoundsUtils, HTMLContainer, TLNuContextBarComponent } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { useAppContext } from 'context'
-import type { Shape } from 'stores'
+import type { NuPolygonShape, Shape } from 'stores'
 
-const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, rotation }) => {
+const _NuContextBar: TLNuContextBarComponent<Shape> = ({
+  shapes,
+  offset,
+  scaledBounds,
+  rotation,
+}) => {
+  const rContextBar = React.useRef<HTMLDivElement>(null)
+
   const rotatedBounds = BoundsUtils.getRotatedBounds(scaledBounds, rotation)
 
   const app = useAppContext()
@@ -21,14 +28,45 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, r
     shapes.forEach((shape) => shape.update({ strokeWidth: +e.currentTarget.value }))
   }, [])
 
+  const updateSides = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ sides: +e.currentTarget.value }))
+  }, [])
+
+  React.useLayoutEffect(() => {
+    const elm = rContextBar.current
+    if (!elm) return
+
+    let x = 0
+    let y = 0
+
+    const { offsetWidth } = elm
+
+    if (offset.top > 116) {
+      y = -(rotatedBounds.height / 2 + 52)
+    } else {
+      y = rotatedBounds.height / 2 + 64
+    }
+
+    if (offset.left + scaledBounds.width / 2 - offsetWidth / 2 < 16) {
+      x += -(offset.left + scaledBounds.width / 2 - offsetWidth / 2 - 16)
+    } else if (offset.right + scaledBounds.width / 2 - offsetWidth / 2 < 16) {
+      x += offset.right + scaledBounds.width / 2 - offsetWidth / 2 - 16
+    }
+
+    elm.style.setProperty('opacity', `1`)
+    elm.style.setProperty('transform', `translateX(${x}px) translateY(${y}px)`)
+  }, [rotatedBounds, offset])
+
   if (!app) return null
+
+  const polygonShapes = shapes.filter((shape) => shape.type === 'polygon') as NuPolygonShape[]
 
   return (
     <HTMLContainer centered>
       <div
+        ref={rContextBar}
         className="contextbar"
         style={{
-          top: -(rotatedBounds.height / 2 + 52),
           pointerEvents: 'all',
           position: 'relative',
           backgroundColor: 'white',
@@ -37,6 +75,7 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, r
           whiteSpace: 'nowrap',
           display: 'flex',
           gap: 8,
+          opacity: 0,
           alignItems: 'center',
           fontSize: 14,
           boxShadow: 'var(--nu-shadow-elevation-medium)',
@@ -53,6 +92,17 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({ shapes, scaledBounds, r
           onChange={updateStrokeWidth}
           style={{ width: 48 }}
         />
+        {polygonShapes.length > 0 && (
+          <>
+            Sides
+            <input
+              type="number"
+              value={Math.max(...polygonShapes.map((shape) => shape.sides))}
+              onChange={updateSides}
+              style={{ width: 48 }}
+            />
+          </>
+        )}
       </div>
     </HTMLContainer>
   )

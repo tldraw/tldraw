@@ -198,7 +198,7 @@ export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implemen
 
   nonce = 0
 
-  private bump() {
+  protected bump() {
     this.nonce++
   }
 

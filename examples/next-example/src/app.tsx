@@ -34,7 +34,7 @@ function App(): JSX.Element {
 
   const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',
-    selectedIds: ['box2'],
+    selectedIds: ['box1'],
     pages: [
       {
         name: 'Page',
@@ -44,15 +44,22 @@ function App(): JSX.Element {
             id: 'box1',
             type: 'box',
             parentId: 'page1',
+            point: [400, 100],
+            size: [100, 100],
+          },
+          {
+            id: 'ellipse1',
+            type: 'ellipse',
+            parentId: 'page1',
             point: [100, 100],
             size: [100, 100],
           },
           {
-            id: 'box2',
-            type: 'box',
+            id: 'polygon1',
+            type: 'polygon',
             parentId: 'page1',
-            point: [400, 300],
-            size: [100, 100],
+            point: [300, 100],
+            size: [150, 100],
           },
         ],
         bindings: [],

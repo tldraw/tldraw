@@ -1,13 +1,10 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import { Container } from '~components'
-import { PI, PI2, TAU } from '~constants'
 import { useContext } from '~hooks'
 import { BoundsUtils } from '~utils'
+import { useCounterScaledPosition } from '~hooks'
 import type { TLNuShape } from '~nu-lib'
-import type { TLNuBounds } from '~types'
-import { autorun } from 'mobx'
-import { useCounterScaledPosition } from '~hooks/useCounterScaledPosition'
+import type { TLNuBounds, TLNuOffset } from '~types'
 
 const stopEventPropagation = (e: React.PointerEvent) => e.stopPropagation()
 
@@ -25,9 +22,22 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
   const {
     components: { ContextBar },
     viewport: {
-      camera: { zoom },
+      bounds: vpBounds,
+      camera: {
+        point: [x, y],
+        zoom,
+      },
     },
   } = useContext()
+
+  const offset: TLNuOffset = {
+    top: bounds.minY + y * zoom,
+    right: vpBounds.width - (bounds.maxX + x * zoom),
+    bottom: vpBounds.height - (bounds.maxY + y * zoom),
+    left: bounds.minX + x * zoom,
+  }
+
+  const inView = offset.left > 0 && offset.top > 0 && offset.right > 0 && offset.bottom > 0
 
   const rBounds = React.useRef<HTMLDivElement>(null)
   const scaledBounds = BoundsUtils.multiplyBounds(bounds, zoom)
@@ -37,19 +47,19 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
   React.useLayoutEffect(() => {
     const elm = rBounds.current
     if (!elm) return
-    if (hidden) {
+    if (hidden || !inView) {
       elm.classList.add('nu-fade-out')
       elm.classList.remove('nu-fade-in')
     } else {
       elm.classList.add('nu-fade-in')
       elm.classList.remove('nu-fade-out')
     }
-  }, [hidden])
+  }, [hidden, inView])
 
   return (
     <div
       ref={rBounds}
-      className="nu-counter-scaled-positioned"
+      className="nu-counter-scaled-positioned nu-fade-out"
       aria-label="context-bar-container"
       onPointerMove={stopEventPropagation}
       onPointerUp={stopEventPropagation}
@@ -58,6 +68,7 @@ export const ContextBarContainer = observer(function ContextBar<S extends TLNuSh
       <ContextBar
         shapes={shapes}
         bounds={bounds}
+        offset={offset}
         scaledBounds={scaledBounds}
         rotation={bounds.rotation || 0}
       />

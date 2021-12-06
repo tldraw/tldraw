@@ -1,5 +1,6 @@
 import { intersectLineLine } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
+import { PI2, TAU } from '~constants'
 
 export class PolygonUtils {
   static getEdges = (points: number[][]) => {
@@ -52,5 +53,22 @@ export class PolygonUtils {
         return intersection.points
       }
     )
+  }
+
+  static getPolygonInEllipse = (
+    center: number[],
+    radiusX: number,
+    radiusY: number,
+    sides: number
+  ) => {
+    const pointsOnPerimeter: number[][] = []
+    const step = PI2 / sides
+    for (let i = 0; i < sides; i++) {
+      const theta = -TAU + i * step
+      pointsOnPerimeter.push(
+        Vec.add(center, [radiusX * Math.cos(theta), radiusY * Math.sin(theta)])
+      )
+    }
+    return pointsOnPerimeter
   }
 }

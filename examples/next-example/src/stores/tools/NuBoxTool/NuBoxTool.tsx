@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { TLNuBoxTool, TLNuToolComponentProps } from '@tldraw/next'
-import { NuBoxShape } from 'stores'
+import { NuBoxShape, Shape } from 'stores'
 
-export class NuBoxTool extends TLNuBoxTool<NuBoxShape> {
+export class NuBoxTool extends TLNuBoxTool<Shape> {
   shapeClass = NuBoxShape
 
   static id = 'box'

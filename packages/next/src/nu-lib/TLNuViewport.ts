@@ -63,6 +63,11 @@ export class TLNuViewport {
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
   }
 
+  getScreenPoint = (point: number[]): number[] => {
+    const { camera } = this
+    return Vec.mul(Vec.add(point, camera.point), camera.zoom)
+  }
+
   zoomIn = (): this => {
     const { camera, bounds, zooms } = this
     let zoom: number | undefined

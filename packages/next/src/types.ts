@@ -183,11 +183,19 @@ export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
   props: TLNuBoundsComponentProps<S>
 ) => JSX.Element | null
 
+export interface TLNuOffset {
+  top: number
+  right: number
+  bottom: number
+  left: number
+}
+
 export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (props: {
   shapes: S[]
   bounds: TLNuBounds
   scaledBounds: TLNuBounds
   rotation: number
+  offset: TLNuOffset
 }) => JSX.Element | null
 
 export type TLNuBoundsDetailComponent = (props: {
