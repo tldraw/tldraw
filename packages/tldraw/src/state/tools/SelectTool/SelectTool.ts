@@ -341,9 +341,6 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
-    if (this.app.appState.isStyleOpen) {
-      this.app.toggleStylePanel()
-    }
     if (e.buttons === 4) {
       this.setStatus(Status.MiddleWheelPanning)
     }

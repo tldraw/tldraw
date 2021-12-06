@@ -962,17 +962,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Toggle the style panel.
+   * Toggles the state if menu is opened
    */
-  toggleStylePanel = (): this => {
-    if (this.session) return this
-    this.patchState(
-      { appState: { isStyleOpen: !this.appState.isStyleOpen } },
-      'ui:toggled_style_panel'
-    )
+  setMenuOpen = (isOpen: boolean): this => {
+    this.patchState({ appState: { isMenuOpen: isOpen } }, 'ui:toggled_menu_opened')
     this.persist()
     return this
   }
+
+  isMenuOpen = (): boolean => this.appState.isMenuOpen
 
   /**
    * Toggle grids.
@@ -3224,7 +3222,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentPageId: 'page',
       currentStyle: defaultStyle,
       isToolLocked: false,
-      isStyleOpen: false,
+      isMenuOpen: false,
       isEmptyCanvas: false,
       snapLines: [],
     },
