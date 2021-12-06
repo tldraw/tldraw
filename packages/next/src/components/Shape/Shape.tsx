@@ -2,10 +2,7 @@ import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { Container } from '~components'
 import type { TLNuShape } from '~nu-lib'
-import { useContext } from '~hooks'
-import { TLNuTargetType } from '~types'
 import { useShapeEvents } from '~hooks/useShapeEvents'
-import { SVGContainer } from '~'
 
 interface ShapeProps<S extends TLNuShape = TLNuShape, M = any> {
   shape: S

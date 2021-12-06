@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Vec } from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
@@ -63,6 +64,10 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   settings = new TLNuSettings()
 
+  /* -------------------- Disposal -------------------- */
+
+  dispose = () => this.toolClasses.forEach((tool) => tool.dispose())
+
   /* --------------------- History -------------------- */
 
   // this needs to be at the bottom
@@ -126,7 +131,9 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
       if (Tool.shortcuts?.length) {
         Tool.shortcuts.forEach(({ keys, fn }) =>
           tool.disposables.push(
-            KeyUtils.registerShortcut(keys, () => this.selectedTool === tool && fn())
+            KeyUtils.registerShortcut(keys, () => {
+              if (this.selectedTool.toolId === Tool.id) fn()
+            })
           )
         )
       }

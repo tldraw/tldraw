@@ -34,7 +34,10 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
     app.history.reset()
     if (onMount) onMount(app, null)
     if (onPersist) unsubs.push(app.subscribe('persist', onPersist))
-    return () => unsubs.forEach((unsub) => unsub())
+    return () => {
+      unsubs.forEach((unsub) => unsub())
+      app.dispose()
+    }
   }, [app, onMount, onPersist])
 
   React.useEffect(

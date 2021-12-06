@@ -128,7 +128,9 @@ export const Canvas = observer(function Renderer<
               {components.ContextBar && (
                 <ContextBarContainer
                   key={'context' + selectedShapes.map((shape) => shape.id).join('')}
-                  bounds={selectedBounds}
+                  bounds={
+                    selectedShapes.length === 1 ? selectedShapes[0].rotatedBounds : selectedBounds
+                  }
                   shapes={selectedShapes}
                   hidden={!showContextMenu}
                 />

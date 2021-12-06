@@ -27,7 +27,7 @@ export class KeyUtils {
       callback(keyboardEvent, hotkeysEvent)
     }
 
-    hotkeys(key, fn)
+    hotkeys(key, { keydown: true, keyup: false }, fn)
     return () => hotkeys.unbind(key, fn)
   }
 }
