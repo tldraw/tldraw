@@ -1,5 +1,5 @@
 import { TLNuDrawShape, TLNuState } from '~nu-lib'
-import type { TLNuPointerHandler, TLNuShortcut } from '~types'
+import type { TLNuPinchHandler, TLNuPointerHandler, TLNuShortcut } from '~types'
 
 export class IdleState<S extends TLNuDrawShape<any>> extends TLNuState<S> {
   static id = 'idle'
@@ -19,8 +19,8 @@ export class IdleState<S extends TLNuDrawShape<any>> extends TLNuState<S> {
     this.tool.transition('pointing')
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
-    this.tool.transition('idle')
-    this.app.selectTool('select')
+  onPinchStart: TLNuPinchHandler<S> = (...args) => {
+    this.app.selectTool('select', { returnTo: 'draw' })
+    this.app.selectedTool.currentState.onPinchStart?.(...args)
   }
 }

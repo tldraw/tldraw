@@ -28,6 +28,7 @@ import type {
   TLNuSubscriptionCallback,
   TLSubscribe,
   TLNuPinchHandler,
+  TLNuPointerEvent,
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 import { TLNuSettings } from './TLNuSettings'
@@ -361,14 +362,20 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
     if ('clientX' in e) {
-      this.inputs.onPointerDown([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
+      this.inputs.onPointerDown(
+        [...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5],
+        e as TLNuPointerEvent<Element>
+      )
     }
     this.selectedTool._onPointerDown?.(info, e)
   }
 
   readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
     if ('clientX' in e) {
-      this.inputs.onPointerUp([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
+      this.inputs.onPointerUp(
+        [...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5],
+        e as TLNuPointerEvent<Element>
+      )
     }
     this.selectedTool._onPointerUp?.(info, e)
   }

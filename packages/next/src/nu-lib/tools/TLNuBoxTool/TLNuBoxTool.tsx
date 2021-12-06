@@ -9,6 +9,8 @@ export abstract class TLNuBoxTool<S extends TLNuBoxShape<any>> extends TLNuTool<
     this.transition('idle')
   }
 
+  static id = 'box'
+
   shortcuts: TLNuShortcut[] = [
     {
       keys: 'cmd+a,ctrl+a',

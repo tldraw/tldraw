@@ -8,6 +8,8 @@ export abstract class TLNuDrawTool<S extends TLNuDrawShape<any>> extends TLNuToo
     this.transition('idle')
   }
 
+  static id = 'draw'
+
   /**
    * Whether to simplify the shape's points after creating.
    */

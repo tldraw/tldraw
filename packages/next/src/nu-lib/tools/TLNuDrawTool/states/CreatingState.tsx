@@ -13,9 +13,9 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
 
   private creatingShape?: S
 
-  private rawPoints: number[][] = [[0, 0]]
-  private points: number[][] = [[0, 0]]
-  private offset: number[] = [0, 0]
+  private rawPoints: number[][] = [[0, 0, 0.5]]
+  private points: number[][] = [[0, 0, 0.5]]
+  private offset: number[] = [0, 0, 0.5]
 
   onEnter = () => {
     const { shapeClass } = this.tool as TLNuDrawTool<S>
@@ -26,16 +26,16 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: originPoint,
-      points: [[0, 0]],
+      points: [[0, 0, originPoint[2]]],
     })
 
     this.creatingShape = shape
     this.app.currentPage.addShapes(shape)
     this.app.select(shape)
 
-    this.points = [[0, 0]]
-    this.rawPoints = [[0, 0]]
-    this.offset = [0, 0]
+    this.points = [[0, 0, originPoint[2]]]
+    this.rawPoints = [[0, 0, originPoint[2]]]
+    this.offset = [0, 0, originPoint[2]]
   }
 
   onPointerMove: TLNuPointerHandler<S> = () => {
