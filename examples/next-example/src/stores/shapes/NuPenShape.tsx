@@ -28,11 +28,6 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
   @observable fill = '#ffffff22'
   @observable strokeWidth = 2
 
-  // @computed get pointsPath() {
-  //   const { points } = this
-  //   return points.join()
-  // }
-
   @computed get pointsPath() {
     const { points } = this
 
