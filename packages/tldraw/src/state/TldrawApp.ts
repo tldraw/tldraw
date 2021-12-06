@@ -3222,7 +3222,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       currentPageId: 'page',
       currentStyle: defaultStyle,
       isToolLocked: false,
-      isStyleOpen: false,
       isMenuOpen: false,
       isEmptyCanvas: false,
       snapLines: [],
