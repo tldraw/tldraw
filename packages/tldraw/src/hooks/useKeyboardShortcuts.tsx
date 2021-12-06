@@ -6,19 +6,21 @@ import { useFileSystemHandlers, useTldrawApp } from '~hooks'
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const app = useTldrawApp()
 
-  const canHandleEvent = React.useCallback(() => {
-    const elm = ref.current
-    if(app.isMenuOpen())
-      return true
-    return elm && (document.activeElement === elm || elm.contains(document.activeElement))
-  }, [ref])
+  const canHandleEvent = React.useCallback(
+    (ignoreMenus = false) => {
+      const elm = ref.current
+      if (ignoreMenus && app.isMenuOpen()) return true
+      return elm && (document.activeElement === elm || elm.contains(document.activeElement))
+    },
+    [ref]
+  )
 
   /* ---------------------- Tools --------------------- */
 
   useHotkeys(
     'v,1',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool('select')
     },
     [app, ref.current]
@@ -27,7 +29,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'd,p,2',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Draw)
     },
     undefined,
@@ -37,7 +39,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'e,3',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool('erase')
     },
     undefined,
@@ -47,7 +49,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'r,4',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Rectangle)
     },
     undefined,
@@ -57,7 +59,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'o,5',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Ellipse)
     },
     undefined,
@@ -67,7 +69,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'l,6',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Line)
     },
     undefined,
@@ -77,7 +79,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'a,7',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Arrow)
     },
     undefined,
@@ -87,7 +89,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     't,8',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Text)
     },
     undefined,
@@ -97,7 +99,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     's,9',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectTool(TDShapeType.Sticky)
     },
     undefined,
@@ -111,7 +113,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift+d,⌘+shift+d',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.toggleDarkMode()
       e.preventDefault()
     },
@@ -124,7 +126,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+.,⌘+.',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.toggleFocusMode()
     },
     undefined,
@@ -134,7 +136,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift+g,⌘+shift+g',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.toggleGrid()
     },
     undefined,
@@ -192,7 +194,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '⌘+z,ctrl+z',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
 
       if (app.session) {
         app.cancelSession()
@@ -207,7 +209,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+shift-z,⌘+shift+z',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
 
       if (app.session) {
         app.cancelSession()
@@ -248,7 +250,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.zoomIn()
       e.preventDefault()
     },
@@ -259,7 +261,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
 
       app.zoomOut()
       e.preventDefault()
@@ -271,7 +273,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+0,ctrl+numpad_0,⌘+numpad_0',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.resetZoom()
     },
     undefined,
@@ -281,7 +283,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+1',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.zoomToFit()
     },
     undefined,
@@ -291,7 +293,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+2',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.zoomToSelection()
     },
     undefined,
@@ -317,7 +319,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+h',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.flipHorizontal()
     },
     undefined,
@@ -327,7 +329,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+v',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.flipVertical()
     },
     undefined,
@@ -339,7 +341,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'escape',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
 
       app.cancel()
     },
@@ -364,7 +366,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '⌘+a,ctrl+a',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.selectAll()
     },
     undefined,
@@ -526,7 +528,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     '[',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.moveBackward()
     },
     undefined,
@@ -536,7 +538,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     ']',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.moveForward()
     },
     undefined,
@@ -546,7 +548,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+[',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.moveToBack()
     },
     undefined,
@@ -556,7 +558,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'shift+]',
     () => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.moveToFront()
     },
     undefined,
@@ -581,7 +583,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'alt+command+l,alt+ctrl+l',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.Start })
       e.preventDefault()
     },
@@ -592,7 +594,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'alt+command+t,alt+ctrl+t',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.Middle })
       e.preventDefault()
     },
@@ -603,7 +605,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'alt+command+r,alt+ctrl+r',
     (e) => {
-      if (!canHandleEvent()) return
+      if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.End })
       e.preventDefault()
     },

@@ -31,7 +31,6 @@ import {
 } from '@radix-ui/react-icons'
 import { DMContent } from '~components/Primitives/DropdownMenu'
 import { Divider } from '~components/Primitives/Divider'
-import { TrashIcon } from '~components/Primitives/icons'
 import { ToolButton } from '~components/Primitives/ToolButton'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
@@ -172,10 +171,13 @@ export function ActionButton(): JSX.Element {
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
-  const handleMenuOpenChange = () => {
-    app.toggleMenuOpened();
-  }
-  
+  const handleMenuOpenChange = React.useCallback(
+    (open: boolean) => {
+      app.setMenuOpen(open)
+    },
+    [app]
+  )
+
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild>

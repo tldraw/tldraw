@@ -975,14 +975,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Toggles the state if menu is opened 
+   * Toggles the state if menu is opened
    */
-  toggleMenuOpened = (): this => {
-    if (this.session) return this
-    this.patchState(
-      { appState: { isMenuOpen: !this.appState.isMenuOpen } },
-      'ui:toggled_menu_opened'
-    )
+  setMenuOpen = (isOpen: boolean): this => {
+    this.patchState({ appState: { isMenuOpen: isOpen } }, 'ui:toggled_menu_opened')
     this.persist()
     return this
   }
