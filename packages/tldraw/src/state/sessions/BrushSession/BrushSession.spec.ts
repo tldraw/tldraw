@@ -6,7 +6,7 @@ describe('Brush session', () => {
     const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
-      .movePointer([-10, -10])
+      .movePointer([-24, -24])
       .startSession(SessionType.Brush)
       .movePointer([10, 10])
       .completeSession()
