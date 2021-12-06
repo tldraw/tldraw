@@ -144,16 +144,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       shaftPath =
         arrowDist > 2 ? (
           <>
-            <path
-              d={path}
-              fill="none"
-              strokeWidth={Math.max(8, strokeWidth * 2)}
-              strokeDasharray="none"
-              strokeDashoffset="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              pointerEvents="stroke"
-            />
+            <path className="tl-stroke-hitarea" d={path} />
             <path
               d={path}
               fill={styles.stroke}
@@ -207,17 +198,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       // Curved arrow path
       shaftPath = (
         <>
-          <path
-            d={path}
-            fill="none"
-            stroke="none"
-            strokeWidth={Math.max(8, strokeWidth)}
-            strokeDasharray="none"
-            strokeDashoffset="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="stroke"
-          />
+          <path className="tl-stroke-hitarea" d={path} />
           <path
             d={path}
             fill={isDraw ? styles.stroke : 'none'}
@@ -227,7 +208,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             strokeLinejoin="round"
-            pointerEvents="stroke"
+            pointerEvents="none"
           />
         </>
       )
@@ -238,30 +219,38 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         <g pointerEvents="none" opacity={isGhost ? GHOSTED_OPACITY : 1}>
           {shaftPath}
           {startArrowHead && (
-            <path
-              d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-              fill="none"
-              stroke={styles.stroke}
-              strokeWidth={sw}
-              strokeDashoffset="none"
-              strokeDasharray="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              pointerEvents="stroke"
-            />
+            <>
+              <path
+                className="tl-stroke-hitarea"
+                d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+              />
+              <path
+                d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+                fill="none"
+                stroke={styles.stroke}
+                strokeWidth={sw}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="none"
+              />
+            </>
           )}
           {endArrowHead && (
-            <path
-              d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-              fill="none"
-              stroke={styles.stroke}
-              strokeWidth={sw}
-              strokeDashoffset="none"
-              strokeDasharray="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              pointerEvents="stroke"
-            />
+            <>
+              <path
+                className="tl-stroke-hitarea"
+                d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+              />
+              <path
+                d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+                fill="none"
+                stroke={styles.stroke}
+                strokeWidth={sw}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="none"
+              />
+            </>
           )}
         </g>
       </SVGContainer>

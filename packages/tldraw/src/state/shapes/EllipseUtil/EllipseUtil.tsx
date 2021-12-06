@@ -68,18 +68,25 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
                 ry={ry + 2}
               />
             )}
+            <ellipse
+              className="tl-stroke-hitarea"
+              cx={radiusX}
+              cy={radiusY}
+              rx={radiusX}
+              ry={radiusY}
+            />
             <path
               d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))}
               stroke="none"
               fill={style.isFilled ? styles.fill : 'none'}
-              pointerEvents="all"
+              pointerEvents="none"
             />
             <path
               d={path}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
+              pointerEvents="none"
               strokeLinecap="round"
               strokeLinejoin="round"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
@@ -111,6 +118,13 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             />
           )}
           <ellipse
+            className="tl-stroke-hitarea"
+            cx={radiusX}
+            cy={radiusY}
+            rx={radiusX}
+            ry={radiusY}
+          />
+          <ellipse
             cx={radiusX}
             cy={radiusY}
             rx={rx}
@@ -120,7 +134,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
-            pointerEvents="all"
+            pointerEvents="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

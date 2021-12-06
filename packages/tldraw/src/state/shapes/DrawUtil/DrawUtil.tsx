@@ -97,6 +97,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            <path className="tl-stroke-hitarea" d={pathTDSnapshot} />
             {shouldFill && (
               <path
                 d={polygonPathTDSnapshot}
@@ -104,7 +105,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
                 fill={fill}
                 strokeLinejoin="round"
                 strokeLinecap="round"
-                pointerEvents="fill"
+                pointerEvents="none"
               />
             )}
             <path
@@ -114,7 +115,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
               strokeWidth={strokeWidth / 2}
               strokeLinejoin="round"
               strokeLinecap="round"
-              pointerEvents="all"
+              pointerEvents="none"
             />
           </g>
         </SVGContainer>
@@ -142,6 +143,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+          <path className="tl-stroke-hitarea" d={pathTDSnapshot} />
           <path
             d={pathTDSnapshot}
             fill={shouldFill ? fill : 'none'}
@@ -149,7 +151,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
             strokeWidth={Math.min(4, strokeWidth * 2)}
             strokeLinejoin="round"
             strokeLinecap="round"
-            pointerEvents={shouldFill ? 'all' : 'stroke'}
+            pointerEvents="none"
           />
           <path
             d={pathTDSnapshot}
@@ -160,7 +162,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
             strokeDashoffset={strokeDashoffset}
             strokeLinejoin="round"
             strokeLinecap="round"
-            pointerEvents="stroke"
+            pointerEvents="none"
           />
         </g>
       </SVGContainer>

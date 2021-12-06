@@ -63,11 +63,11 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
               />
             )}
             <path
+              className="tl-stroke-hitarea"
               d={getRectangleIndicatorPathTDSnapshot(shape)}
               fill={style.isFilled ? styles.fill : 'none'}
-              radius={strokeWidth}
               stroke="none"
-              pointerEvents="all"
+              pointerEvents="stroke"
             />
             <path
               d={pathTDSnapshot}
@@ -118,26 +118,28 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          {isBinding && (
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            {isBinding && (
+              <rect
+                className="tl-binding-indicator"
+                x={sw / 2 - 32}
+                y={sw / 2 - 32}
+                width={w + 64}
+                height={h + 64}
+              />
+            )}
             <rect
-              className="tl-binding-indicator"
-              x={sw / 2 - 32}
-              y={sw / 2 - 32}
-              width={w + 64}
-              height={h + 64}
+              className="tl-stroke-hitarea"
+              x={sw / 2}
+              y={sw / 2}
+              width={w}
+              height={h}
+              fill={styles.fill}
+              stroke="none"
+              pointerEvents="stroke"
             />
-          )}
-          <rect
-            x={sw / 2}
-            y={sw / 2}
-            width={w}
-            height={h}
-            fill={styles.fill}
-            strokeWidth={sw}
-            stroke="none"
-            pointerEvents="all"
-          />
-          <g pointerEvents="stroke">{paths}</g>
+            <g pointerEvents="stroke">{paths}</g>
+          </g>
         </SVGContainer>
       )
     }
