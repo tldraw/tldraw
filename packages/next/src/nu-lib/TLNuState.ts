@@ -90,12 +90,16 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
 
   @observable currentState: TLNuState<S, B, any, any> = {} as TLNuState<S, B, any, any>
 
+  @action setCurrentState(state: TLNuState<S, B, any, any>) {
+    this.currentState = state
+  }
+
   /**
    * Transition to a new active state.
    * @param id The id of the new active state.
    * @param data (optional) Any data to send to the new active state's `onEnter` method.
    */
-  @action transition = (id: string, data: Record<string, unknown> = {}) => {
+  transition = (id: string, data: Record<string, unknown> = {}) => {
     if (this.children.size === 0)
       throw Error(`Tool ${this.id} has no states, cannot transition to ${id}.`)
     const nextState = this.children.get(id)
@@ -103,7 +107,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
     if (!nextState) throw Error(`Could not find a state named ${id}.`)
     if (this.currentState) {
       prevState._events.onExit({ ...data, toId: id })
-      this.currentState = nextState
+      this.setCurrentState(nextState)
       nextState._events.onEnter({ ...data, fromId: prevState.id })
     } else {
       this.currentState = nextState
@@ -352,7 +356,7 @@ export abstract class TLNuState<
       const initialId = this.initial ?? this.states[0].id
       const state = this.children.get(initialId)
       if (state) {
-        this.currentState = state
+        this.setCurrentState(state)
         this.currentState?._events.onEnter({ fromId: 'initial' })
       }
     }
