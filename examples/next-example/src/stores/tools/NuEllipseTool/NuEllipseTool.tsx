@@ -3,7 +3,6 @@ import { NuEllipseShape } from 'stores'
 
 export class NuEllipseTool extends TLNuBoxTool<NuEllipseShape> {
   static id = 'ellipse'
-  shortcut = 'c,3'
+  static shortcut = 'c,3'
   shapeClass = NuEllipseShape
-  label = 'Ellipse'
 }

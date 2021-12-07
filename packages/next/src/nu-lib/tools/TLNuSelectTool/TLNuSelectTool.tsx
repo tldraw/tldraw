@@ -25,6 +25,8 @@ export class TLNuSelectTool<
 
   static initial = 'idle'
 
+  static shortcut = 'v,1'
+
   static states: TLNuToolStateClass[] = [
     IdleState,
     BrushingState,
@@ -40,8 +42,4 @@ export class TLNuSelectTool<
     RotatingShapesState,
     PinchingState,
   ]
-
-  label = 'Select'
-
-  shortcut = 'v,1'
 }

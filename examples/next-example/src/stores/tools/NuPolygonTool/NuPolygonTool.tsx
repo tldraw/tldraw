@@ -4,7 +4,6 @@ import { NuPolygonShape } from 'stores'
 
 export class NuPolygonTool extends TLNuBoxTool<NuPolygonShape> {
   static id = 'polygon'
+  static shortcut = 'g,4'
   shapeClass = NuPolygonShape
-  shortcut = 'g,4'
-  label = 'Polygon'
 }

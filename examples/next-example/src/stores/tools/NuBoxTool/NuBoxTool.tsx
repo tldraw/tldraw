@@ -4,7 +4,6 @@ import { NuBoxShape } from 'stores'
 
 export class NuBoxTool extends TLNuBoxTool<NuBoxShape, TLNuBinding> {
   static id = 'box'
-  shortcut = 'b,r,2'
+  static shortcut = 'b,r,2'
   shapeClass = NuBoxShape
-  label = 'Box'
 }

@@ -1,4 +1,4 @@
-import type { TLNuApp, TLNuShape, TLNuToolState } from '~nu-lib'
+import type { TLNuApp, TLNuShape } from '~nu-lib'
 import type { TLNuBinding } from '~types'
 import { TLNuState } from './TLNuState'
 

@@ -356,6 +356,16 @@ export abstract class TLNuState<
       }
     }
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    const shortcut = this.constructor['shortcut'] as string
+
+    if (shortcut) {
+      KeyUtils.registerShortcut(shortcut, () => {
+        this.parent.transition(this.id)
+      })
+    }
+
     this.registerKeyboardShortcuts()
 
     makeObservable(this)
