@@ -218,6 +218,26 @@ const tlcss = css`
     contain: layout style size;
   }
 
+  .tl-stroke-hitarea {
+    cursor: pointer;
+    fill: none;
+    stroke: transparent;
+    stroke-width: calc(24px * var(--tl-scale));
+    pointer-events: stroke;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .tl-fill-hitarea {
+    cursor: pointer;
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: calc(24px * var(--tl-scale));
+    pointer-events: all;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   .tl-counter-scaled {
     transform: scale(var(--tl-scale));
   }
@@ -354,6 +374,7 @@ const tlcss = css`
 
   .tl-handle {
     pointer-events: all;
+    cursor: grab;
   }
 
   .tl-handle:hover .tl-handle-bg {
@@ -365,6 +386,7 @@ const tlcss = css`
   }
 
   .tl-handle:active .tl-handle-bg {
+    cursor: grabbing;
     fill: var(--tl-selectFill);
   }
 
@@ -389,6 +411,7 @@ const tlcss = css`
     stroke-width: calc(3px * var(--tl-scale));
     fill: var(--tl-selectFill);
     stroke: var(--tl-selected);
+    pointer-events: none;
   }
 
   .tl-centered-g {
