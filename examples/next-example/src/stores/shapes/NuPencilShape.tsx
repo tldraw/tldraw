@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { getStroke } from 'perfect-freehand'
 import {
   SVGContainer,
+  SvgPathUtils,
   TLNuComponentProps,
   TLNuDrawShape,
   TLNuDrawShapeProps,
+  TLNuIndicatorProps,
   TLNuShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
@@ -21,7 +22,7 @@ export class NuPencilShape extends TLNuDrawShape<NuPencilShapeProps> {
     makeObservable(this)
   }
 
-  static id = 'draw'
+  static id = 'pencil'
 
   @observable stroke = '#000000'
   @observable fill = '#ffffff22'
@@ -29,7 +30,7 @@ export class NuPencilShape extends TLNuDrawShape<NuPencilShapeProps> {
 
   @computed get pointsPath() {
     const { points } = this
-    return points.join()
+    return SvgPathUtils.getCurvedPathForPoints(points)
   }
 
   Component = observer(({ events }: TLNuComponentProps) => {
@@ -46,5 +47,10 @@ export class NuPencilShape extends TLNuDrawShape<NuPencilShapeProps> {
         />
       </SVGContainer>
     )
+  })
+
+  Indicator = observer((props: TLNuIndicatorProps) => {
+    const { pointsPath } = this
+    return <path d={pointsPath} fill="none" />
   })
 }

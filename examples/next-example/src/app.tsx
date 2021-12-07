@@ -18,6 +18,8 @@ import {
   NuPolygonShape,
   NuPenShape,
   NuDrawTool,
+  NuHighlighterShape,
+  NuHighlighterTool,
 } from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
@@ -35,9 +37,16 @@ function App(): JSX.Element {
     NuEllipseShape,
     NuPolygonShape,
     NuPenShape,
+    NuHighlighterShape,
   ])
 
-  const [toolClasses] = React.useState(() => [NuBoxTool, NuEllipseTool, NuPolygonTool, NuDrawTool])
+  const [toolClasses] = React.useState(() => [
+    NuBoxTool,
+    NuEllipseTool,
+    NuPolygonTool,
+    NuDrawTool,
+    NuHighlighterTool,
+  ])
 
   const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',

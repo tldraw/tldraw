@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { getStroke } from 'perfect-freehand'
 import {
+  PointUtils,
   SVGContainer,
   SvgPathUtils,
   TLNuComponentProps,
@@ -14,16 +14,16 @@ import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
 
-export interface NuPenShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
+export interface NuHighlighterShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
-export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuPenShapeProps>) {
+export class NuHighlighterShape extends TLNuDrawShape<NuHighlighterShapeProps> {
+  constructor(props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
     super(props)
     this.init(props)
     makeObservable(this)
   }
 
-  static id = 'draw'
+  static id = 'highlighter'
 
   @observable stroke = '#000000'
   @observable fill = '#ffffff22'
@@ -31,22 +31,23 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
 
   @computed get pointsPath() {
     const { points } = this
-    if (points.length < 2) return ''
-    const stroke = getStroke(points, { size: 8 })
-    return SvgPathUtils.getCurvedPathForPolygon(stroke)
+    return SvgPathUtils.getCurvedPathForPoints(points)
   }
 
   Component = observer(({ events }: TLNuComponentProps) => {
-    const { pointsPath, stroke, strokeWidth } = this
+    const { pointsPath, stroke, fill, strokeWidth } = this
 
     return (
       <SVGContainer {...events}>
         <path
           d={pointsPath}
           stroke={stroke}
-          fill={stroke}
-          strokeWidth={strokeWidth}
+          fill={fill}
+          strokeWidth={strokeWidth * 16}
           pointerEvents="all"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          opacity={0.17}
         />
       </SVGContainer>
     )
@@ -54,6 +55,6 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
 
   Indicator = observer((props: TLNuIndicatorProps) => {
     const { pointsPath } = this
-    return <path className="nu-indicator" d={pointsPath} />
+    return <path d={pointsPath} fill="none" />
   })
 }

@@ -46,8 +46,6 @@ export abstract class TLNuTool<S extends TLNuShape = TLNuShape, B extends TLNuBi
   readonly shortcut?: string
   readonly shortcuts?: TLNuShortcut[]
 
-  abstract readonly Component?: (props: TLNuToolComponentProps) => JSX.Element
-
   disposables: (() => void)[] = []
 
   dispose() {
