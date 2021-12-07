@@ -2,6 +2,7 @@
 import { action, makeObservable, observable } from 'mobx'
 import type { TLNuShape } from '~nu-lib'
 import type {
+  TLNuOnTransition,
   TLNuBinding,
   TLNuCallbacks,
   TLNuKeyboardHandler,
@@ -108,6 +109,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
     if (this.currentState) {
       prevState._events.onExit({ ...data, toId: id })
       this.setCurrentState(nextState)
+      this._events.onTransition({ fromId: prevState.id, toId: id, data })
       nextState._events.onEnter({ ...data, fromId: prevState.id })
     } else {
       this.currentState = nextState
@@ -158,11 +160,20 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
      * Handle the change from inactive to active.
      * @param info The previous state and any info sent via the transition.
      */
+    onTransition: (info) => {
+      this.onTransition?.(info)
+    },
+
+    /**
+     * Handle the change from inactive to active.
+     * @param info The previous state and any info sent via the transition.
+     */
     onEnter: (info) => {
       this._isActive = true
       if (this.initial) this.transition(this.initial, info)
       this.onEnter?.(info)
     },
+
     /**
      * Handle the change from active to inactive.
      * @param info The next state and any info sent via the transition.
@@ -316,6 +327,8 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
   onEnter?: TLNuOnEnter<any>
 
   onExit?: TLNuOnExit<any>
+
+  onTransition?: TLNuOnTransition<any>
 
   onWheel?: TLNuWheelHandler<S>
 

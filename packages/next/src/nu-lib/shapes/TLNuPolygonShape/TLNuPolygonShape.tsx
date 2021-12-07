@@ -5,15 +5,15 @@ import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import { BoundsUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
-import type { TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
+import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
 
 export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
   sides: number
 }
 
 export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxShape<P> {
-  constructor(props = {} as TLNuShapeProps & Partial<P>) {
-    super(props)
+  constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }

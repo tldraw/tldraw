@@ -6,16 +6,18 @@ import {
   TLNuBoxShape,
   TLNuShapeProps,
   TLNuBoxShapeProps,
+  TLNuApp,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { makeObservable, observable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
+import type { NuApp } from 'stores'
 
 export interface NuBoxShapeProps extends TLNuBoxShapeProps, NuStyleProps {}
 
 export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuBoxShapeProps>) {
-    super(props)
+  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuBoxShapeProps>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }
@@ -26,7 +28,7 @@ export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
   @observable fill = '#ffffff22'
   @observable strokeWidth = 2
 
-  Component = observer(({ events }: TLNuComponentProps) => {
+  Component = observer(({ events, isSelected }: TLNuComponentProps) => {
     const {
       size: [w, h],
       stroke,
@@ -37,6 +39,14 @@ export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
     return (
       <SVGContainer {...events}>
         <rect
+          className={isSelected ? 'nu-hitarea-fill' : 'nu-hitarea-stroke'}
+          x={strokeWidth / 2}
+          y={strokeWidth / 2}
+          width={Math.max(0.01, w - strokeWidth)}
+          height={Math.max(0.01, h - strokeWidth)}
+          pointerEvents="all"
+        />
+        <rect
           x={strokeWidth / 2}
           y={strokeWidth / 2}
           width={Math.max(0.01, w - strokeWidth)}
@@ -44,7 +54,7 @@ export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
           stroke={stroke}
           fill={fill}
           strokeWidth={strokeWidth}
-          pointerEvents="all"
+          pointerEvents="none"
         />
       </SVGContainer>
     )

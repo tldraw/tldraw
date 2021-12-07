@@ -15,14 +15,15 @@ import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import { intersectEllipseBounds, intersectLineSegmentEllipse } from '@tldraw/intersect'
 import type { NuStyleProps } from './NuStyleProps'
+import type { NuApp } from 'stores'
 
 export interface NuEllipseShapeProps extends NuStyleProps {
   size: number[]
 }
 
 export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
-    super(props)
+  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }
@@ -33,7 +34,7 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
   @observable fill = '#ffffff22'
   @observable strokeWidth = 2
 
-  Component = observer(({ events }: TLNuComponentProps) => {
+  Component = observer(({ isSelected, events }: TLNuComponentProps) => {
     const {
       size: [w, h],
       stroke,
@@ -44,6 +45,13 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
     return (
       <SVGContainer {...events}>
         <ellipse
+          className={isSelected ? 'nu-hitarea-fill' : 'nu-hitarea-stroke'}
+          cx={w / 2}
+          cy={h / 2}
+          rx={Math.max(0.01, (w - strokeWidth) / 2)}
+          ry={Math.max(0.01, (h - strokeWidth) / 2)}
+        />
+        <ellipse
           cx={w / 2}
           cy={h / 2}
           rx={Math.max(0.01, (w - strokeWidth) / 2)}
@@ -51,7 +59,6 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
           stroke={stroke}
           fill={fill}
           strokeWidth={strokeWidth}
-          pointerEvents="all"
         />
       </SVGContainer>
     )

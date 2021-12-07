@@ -220,6 +220,7 @@ const tlcss = css`
     height: 100%;
     overflow: hidden;
     contain: layout style size;
+    pointer-events: none;
   }
 
   .nu-positioned-div {
@@ -487,6 +488,20 @@ const tlcss = css`
     font-weight: 500;
     background-color: var(--nu-selectStroke);
     color: var(--nu-background);
+  }
+
+  .nu-hitarea-stroke {
+    fill: none;
+    stroke: transparent;
+    pointer-events: stroke;
+    stroke-width: calc(24px * var(--nu-scale));
+  }
+
+  .nu-hitarea-fill {
+    fill: transparent;
+    stroke: transparent;
+    pointer-events: all;
+    stroke-width: calc(24px * var(--nu-scale));
   }
 `
 

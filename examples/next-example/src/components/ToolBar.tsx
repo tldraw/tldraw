@@ -53,10 +53,7 @@ export const ToolBar = observer(function ToolBar({ app }: ToolBarProps): JSX.Ele
 
   return (
     <div className="tlnu-toolbar">
-      <label>
-        Tool Lock
-        <input type="checkbox" checked={app.isToolLocked} onChange={handleToolLockClick} />
-      </label>
+      <input type="checkbox" checked={app.isToolLocked} onChange={handleToolLockClick} />
       {Array.from(app.children.values()).map((tool) => {
         const isActive = app.selectedTool === tool
         return (

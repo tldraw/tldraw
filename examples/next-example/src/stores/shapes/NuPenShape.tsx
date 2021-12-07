@@ -13,12 +13,13 @@ import {
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
+import type { NuApp } from 'stores'
 
 export interface NuPenShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
 export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuPenShapeProps>) {
-    super(props)
+  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuPenShapeProps>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }

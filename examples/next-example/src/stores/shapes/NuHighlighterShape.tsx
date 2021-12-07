@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import {
-  PointUtils,
   SVGContainer,
   SvgPathUtils,
   TLNuComponentProps,
@@ -13,12 +12,13 @@ import {
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
+import type { NuApp } from 'stores'
 
 export interface NuHighlighterShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
 export class NuHighlighterShape extends TLNuDrawShape<NuHighlighterShapeProps> {
-  constructor(props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
-    super(props)
+  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }

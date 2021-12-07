@@ -31,6 +31,6 @@ export abstract class TLNuDrawTool<
   simplifyTolerance = 1
 
   abstract shapeClass: {
-    new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
+    new (app: R, props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }
 }

@@ -245,7 +245,9 @@ export interface TLNuStateEvents<S extends TLNuShape> extends TLNuCallbacks<S> {
    * Handle the change from active to inactive.
    * @param info The next state and any info sent via the transition.
    */
-  onExit: TLNuOnEnter<any>
+  onExit: TLNuOnExit<any>
+
+  onTransition: TLNuOnTransition<any>
 
   handleModifierKey: TLNuKeyboardHandler<S>
 }
@@ -295,6 +297,7 @@ export type TLNuComponents<S extends TLNuShape = TLNuShape> = Partial<{
 
 export type TLNuOnEnter<T extends { fromId: string }> = (info: T) => void
 export type TLNuOnExit<T extends { toId: string }> = (info: T) => void
+export type TLNuOnTransition<T extends { toId: string; fromId: string }> = (info: T) => void
 
 export type TLNuSubscriptionEvent =
   | {
@@ -406,7 +409,7 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
   (
     | {
         serializedApp?: TLNuSerializedApp
-        shapeClasses?: TLNuShapeClass<S>[]
+        shapeClasses?: TLNuShapeClass<S, B, any>[]
         toolClasses?: TLNuToolClass<any, B>[]
       }
     | { app: TLNuApp<S, B> }

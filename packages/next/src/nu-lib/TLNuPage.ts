@@ -45,7 +45,7 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
         ? (shapes as S[])
         : (shapes as TLNuSerializedShape[]).map((shape) => {
             const ShapeClass = this.app.getShapeClass(shape.type)
-            return new ShapeClass(shape)
+            return new ShapeClass(this.app, shape)
           })
 
     this.shapes.push(...shapeInstances)

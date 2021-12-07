@@ -25,6 +25,6 @@ export abstract class TLNuBoxTool<
   ]
 
   abstract shapeClass: {
-    new (props: TLNuShapeProps & Partial<any>): S
+    new (app: R, props: TLNuShapeProps & Partial<any>): S
   }
 }

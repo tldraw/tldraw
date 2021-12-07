@@ -27,6 +27,7 @@ import type {
   TLSubscribe,
   TLNuPinchHandler,
   TLNuPointerEvent,
+  TLNuOnTransition,
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 import { TLNuSettings } from './TLNuSettings'
@@ -44,7 +45,7 @@ export class TLNuApp<
 > extends TLNuRootState<S, B> {
   constructor(
     serializedApp?: TLNuSerializedApp,
-    shapeClasses?: TLNuShapeClass<S>[],
+    shapeClasses?: TLNuShapeClass<S, B, any>[],
     tools?: TLNuToolClass<S, B, any>[]
   ) {
     super()
@@ -118,17 +119,17 @@ export class TLNuApp<
   /* ------------------ Shape Classes ----------------- */
 
   // Map of shape classes (used for deserialization)
-  shapeClasses = new Map<string, TLNuShapeClass<S>>()
+  shapeClasses = new Map<string, TLNuShapeClass<S, B, any>>()
 
-  registerShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
+  registerShapes = (...shapeClasses: TLNuShapeClass<S, B, any>[]) => {
     shapeClasses.forEach((shapeClass) => this.shapeClasses.set(shapeClass.id, shapeClass))
   }
 
-  deregisterShapes = (...shapeClasses: TLNuShapeClass<S>[]) => {
+  deregisterShapes = (...shapeClasses: TLNuShapeClass<S, B, any>[]) => {
     shapeClasses.forEach((shapeClass) => this.shapeClasses.delete(shapeClass.id))
   }
 
-  getShapeClass = (type: string): TLNuShapeClass<S> => {
+  getShapeClass = (type: string): TLNuShapeClass<S, B, any> => {
     const shapeClass = this.shapeClasses.get(type)
     if (!shapeClass) throw Error(`Could not find shape class for ${type}`)
     return shapeClass
@@ -358,6 +359,10 @@ export class TLNuApp<
 
   readonly onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
     this.inputs.onPinchEnd([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
+  }
+
+  readonly onTransition: TLNuOnTransition<any> = () => {
+    this.setToolLock(false)
   }
 
   /* ------------------- Public API ------------------- */

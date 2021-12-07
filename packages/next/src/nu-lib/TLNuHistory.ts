@@ -102,7 +102,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
           } else {
             // Create the shape
             const ShapeClass = this.app.getShapeClass(serializedShape.type)
-            shapesToAdd.push(new ShapeClass(serializedShape) as S)
+            shapesToAdd.push(new ShapeClass(this.app, serializedShape) as S)
           }
         }
 
@@ -125,7 +125,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
             bindings: bindings as B[],
             shapes: shapes.map((serializedShape) => {
               const ShapeClass = this.app.getShapeClass(serializedShape.type)
-              return new ShapeClass(serializedShape)
+              return new ShapeClass(this.app, serializedShape)
             }) as S[],
           })
         )

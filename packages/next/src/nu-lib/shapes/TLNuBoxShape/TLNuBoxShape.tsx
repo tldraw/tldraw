@@ -5,15 +5,15 @@ import { SVGContainer } from '~components'
 import { TLNuShape, TLNuShapeProps } from '../../TLNuShape'
 import { BoundsUtils } from '~utils'
 import type { TLNuBounds } from '~types'
-import type { TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
+import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
 export interface TLNuBoxShapeProps {
   size: number[]
 }
 
 export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
-  constructor(props = {} as TLNuShapeProps & Partial<P>) {
-    super(props)
+  constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }

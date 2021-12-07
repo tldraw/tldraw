@@ -6,15 +6,15 @@ import { BoundsUtils } from '~utils'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import type { TLNuBounds } from '~types'
-import type { TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
+import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
 export interface TLNuDrawShapeProps {
   points: number[][]
 }
 
 export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
-  constructor(props = {} as TLNuShapeProps & Partial<P>) {
-    super(props)
+  constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
+    super(app, props)
     this.init(props)
     makeObservable(this)
   }

@@ -22,7 +22,7 @@ export class CreatingState<
 
     const { originPoint } = this.app.inputs
 
-    const shape = new shapeClass({
+    const shape = new shapeClass(this.app, {
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: originPoint,
