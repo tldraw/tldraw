@@ -57,19 +57,16 @@ export const ToolBar = observer(function ToolBar({ app }: ToolBarProps): JSX.Ele
         Tool Lock
         <input type="checkbox" checked={app.isToolLocked} onChange={handleToolLockClick} />
       </label>
-      {Array.from(app.toolClasses.values()).map((tool) => {
-        if (!tool.Component) {
-          return null
-        }
-
+      {Array.from(app.children.values()).map((tool) => {
+        const isActive = app.selectedTool === tool
         return (
           <button
-            key={tool.toolId}
-            data-tool={tool.toolId}
+            key={tool.id}
+            data-tool={tool.id}
             onClick={handleToolClick}
             onDoubleClick={handleToolDoubleClick}
           >
-            <tool.Component isActive={app.selectedTool === tool} />
+            {tool.id}
           </button>
         )
       })}

@@ -1,14 +1,20 @@
-import { TLNuBoxShape, TLNuState } from '~nu-lib'
-import type { TLNuPinchHandler, TLNuPointerHandler, TLNuShortcut } from '~types'
+import type { TLNuApp, TLNuBoxShape, TLNuBoxTool } from '~nu-lib'
+import { TLNuToolState } from '../../../TLNuToolState'
+import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuShortcut } from '~types'
 
-export class IdleState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
+export class IdleState<
+  S extends TLNuBoxShape<any>,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuBoxTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'idle'
 
   shortcuts: TLNuShortcut[] = [
     {
       keys: 'cmd+a,ctrl+a',
       fn: () => {
-        this.app.selectTool('select')
+        this.app.transition('select')
         this.app.selectAll()
       },
     },
@@ -20,7 +26,7 @@ export class IdleState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
   }
 
   onPinchStart: TLNuPinchHandler<S> = (...args) => {
-    this.app.selectTool('select', { returnTo: 'box' })
-    this.app.selectedTool.currentState.onPinchStart?.(...args)
+    this.app.transition('select', { returnTo: 'box' })
+    this.app.onPinchStart?.(...args)
   }
 }

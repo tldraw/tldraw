@@ -105,14 +105,12 @@ export class PointUtils {
     if (len > 2) {
       let distance = 0
       let index = 0
-      const max = Math.hypot(y2 - y1, x2 - x1)
+      const max = Vec.len2([y2 - y1, x2 - x1])
 
       for (let i = 1; i < len - 1; i++) {
         const [x0, y0] = points[i]
-        const d = Math.abs((y2 - y1) * x0 - (x2 - x1) * y0 + x2 * y1 - y2 * x1) / max
-
+        const d = Math.pow(x0 * (y2 - y1) + x1 * (y0 - y2) + x2 * (y1 - y0), 2) / max
         if (distance > d) continue
-
         distance = d
         index = i
       }
@@ -125,5 +123,72 @@ export class PointUtils {
     }
 
     return [a, b]
+  }
+
+  static _getSqSegDist(p: number[], p1: number[], p2: number[]) {
+    let x = p1[0]
+    let y = p1[1]
+    let dx = p2[0] - x
+    let dy = p2[1] - y
+    if (dx !== 0 || dy !== 0) {
+      const t = ((p[0] - x) * dx + (p[1] - y) * dy) / (dx * dx + dy * dy)
+      if (t > 1) {
+        x = p2[0]
+        y = p2[1]
+      } else if (t > 0) {
+        x += dx * t
+        y += dy * t
+      }
+    }
+    dx = p[0] - x
+    dy = p[1] - y
+    return dx * dx + dy * dy
+  }
+
+  static _simplifyStep(
+    points: number[][],
+    first: number,
+    last: number,
+    sqTolerance: number,
+    result: number[][]
+  ) {
+    let maxSqDist = sqTolerance
+    let index = -1
+    for (let i = first + 1; i < last; i++) {
+      const sqDist = PointUtils._getSqSegDist(points[i], points[first], points[last])
+      if (sqDist > maxSqDist) {
+        index = i
+        maxSqDist = sqDist
+      }
+    }
+
+    if (index > -1 && maxSqDist > sqTolerance) {
+      if (index - first > 1) PointUtils._simplifyStep(points, first, index, sqTolerance, result)
+      result.push(points[index])
+      if (last - index > 1) PointUtils._simplifyStep(points, index, last, sqTolerance, result)
+    }
+  }
+
+  static simplify2(points: number[][], tolerance = 1) {
+    if (points.length <= 2) return points
+    const sqTolerance = tolerance * tolerance
+    // Radial distance
+    let A = points[0]
+    let B = points[1]
+    const newPoints = [A]
+    for (let i = 1, len = points.length; i < len; i++) {
+      B = points[i]
+      if ((B[0] - A[0]) * (B[0] - A[0]) + (B[1] - A[1]) * (B[1] - A[1]) > sqTolerance) {
+        newPoints.push(B)
+        A = B
+      }
+    }
+    if (A !== B) newPoints.push(B)
+    // Ramer-Douglas-Peucker
+    const last = newPoints.length - 1
+    const result = [newPoints[0]]
+    PointUtils._simplifyStep(newPoints, 0, last, sqTolerance, result)
+    result.push(newPoints[last], points[points.length - 1])
+    return result
   }
 }

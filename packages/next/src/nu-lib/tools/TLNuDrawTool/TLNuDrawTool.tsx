@@ -1,14 +1,24 @@
 import { IdleState, PointingState, CreatingState } from './states'
-import { TLNuApp, TLNuDrawShape, TLNuDrawShapeProps, TLNuShapeProps, TLNuTool } from '~nu-lib'
+import { TLNuTool } from '~nu-lib'
+import type { TLNuBinding } from '~types'
+import type {
+  TLNuToolStateClass,
+  TLNuApp,
+  TLNuDrawShape,
+  TLNuDrawShapeProps,
+  TLNuShapeProps,
+} from '~nu-lib'
 
-export abstract class TLNuDrawTool<S extends TLNuDrawShape<any>> extends TLNuTool<S> {
-  constructor(app: TLNuApp<S>) {
-    super(app)
-    this.registerStates(IdleState, PointingState, CreatingState)
-    this.transition('idle')
-  }
-
+export abstract class TLNuDrawTool<
+  S extends TLNuDrawShape<any> = TLNuDrawShape<any>,
+  B extends TLNuBinding = TLNuBinding,
+  R extends TLNuApp<S, B> = TLNuApp<S, B>
+> extends TLNuTool<S, B, R> {
   static id = 'draw'
+
+  static states = [IdleState, PointingState, CreatingState]
+
+  static initial = 'idle'
 
   /**
    * Whether to simplify the shape's points after creating.
@@ -23,6 +33,4 @@ export abstract class TLNuDrawTool<S extends TLNuDrawShape<any>> extends TLNuToo
   abstract shapeClass: {
     new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }
-
-  onEnter = () => this.transition('idle')
 }

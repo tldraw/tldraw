@@ -30,9 +30,9 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
   @observable strokeWidth = 2
 
   @computed get pointsPath() {
-    const { points } = this
+    const { points, isComplete } = this
     if (points.length < 2) return ''
-    const stroke = getStroke(points, { size: 8 })
+    const stroke = getStroke(points, { size: 8, last: isComplete })
     return SvgPathUtils.getCurvedPathForPolygon(stroke)
   }
 

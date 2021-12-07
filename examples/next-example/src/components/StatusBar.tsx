@@ -12,7 +12,7 @@ interface StatusBarProps {
 export const StatusBar = observer(function StatusBar({ app }: StatusBarProps) {
   return (
     <div className="tlnu-debug">
-      {app.selectedTool.toolId} | {app.selectedTool.currentState.stateId}
+      {app.selectedTool.id} | {app.selectedTool.currentState.id}
     </div>
   )
 })

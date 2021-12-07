@@ -3,14 +3,9 @@ import { Vec } from '@tldraw/vec'
 import { computed, makeObservable, observable } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
-import {
-  TLNuBoxShape,
-  TLNuBoxShapeProps,
-  TLNuComponentProps,
-  TLNuIndicatorProps,
-  TLNuShapeProps,
-} from '~nu-lib'
 import { BoundsUtils, PolygonUtils } from '~utils'
+import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
+import type { TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
 
 export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
   sides: number

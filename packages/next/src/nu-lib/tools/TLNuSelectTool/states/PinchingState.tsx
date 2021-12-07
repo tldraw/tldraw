@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import type { FullGestureState, WebKitGestureEvent } from '@use-gesture/core/types'
-import { TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
 import type { TLNuBinding, TLNuEventInfo, TLNuPinchHandler } from '~types'
 
 type GestureInfo<S extends TLNuShape> = {
@@ -11,7 +11,12 @@ type GestureInfo<S extends TLNuShape> = {
   event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
 }
 
-export class PinchingState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
+export class PinchingState<
+  S extends TLNuShape,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuSelectTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'pinching'
 
   origin: number[] = [0, 0]

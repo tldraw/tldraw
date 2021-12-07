@@ -1,5 +1,5 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuState, TLNuToolState } from '~nu-lib'
 import type {
   TLNuBinding,
   TLNuBounds,
@@ -9,10 +9,12 @@ import type {
 } from '~types'
 import { BoundsUtils, GeomUtils } from '~utils'
 
-export class RotatingShapesState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<
-  S,
-  B
-> {
+export class RotatingShapesState<
+  S extends TLNuShape,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuSelectTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'rotatingShapes'
 
   snapshot: Record<

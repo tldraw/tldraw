@@ -1,8 +1,13 @@
-import { TLNuBush, TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuApp, TLNuBush, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
 import { BoundsUtils } from '~utils'
 import type { TLNuBinding, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
-export class BrushingState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<S, B> {
+export class BrushingState<
+  S extends TLNuShape,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuSelectTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'brushing'
 
   private initialSelectedIds: string[] = []

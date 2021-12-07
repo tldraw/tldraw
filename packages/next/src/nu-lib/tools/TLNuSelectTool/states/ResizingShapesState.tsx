@@ -1,5 +1,5 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuSerializedShape, TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuApp, TLNuSelectTool, TLNuSerializedShape, TLNuShape, TLNuToolState } from '~nu-lib'
 import {
   TLNuBinding,
   TLNuBounds,
@@ -11,10 +11,12 @@ import {
 } from '~types'
 import { BoundsUtils } from '~utils'
 
-export class ResizingShapesState<S extends TLNuShape, B extends TLNuBinding> extends TLNuState<
-  S,
-  B
-> {
+export class ResizingShapesState<
+  S extends TLNuShape,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuSelectTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'resizingShapes'
 
   isSingle = false

@@ -1,16 +1,11 @@
 import * as React from 'react'
-import { computed, makeObservable, observable } from 'mobx'
+import { makeObservable, observable } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
-import {
-  TLNuComponentProps,
-  TLNuIndicatorProps,
-  TLNuResizeInfo,
-  TLNuShape,
-  TLNuShapeProps,
-} from '~nu-lib'
-import type { TLNuBounds } from '~types'
+import { TLNuShape, TLNuShapeProps } from '../../TLNuShape'
 import { BoundsUtils } from '~utils'
+import type { TLNuBounds } from '~types'
+import type { TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
 export interface TLNuBoxShapeProps {
   size: number[]

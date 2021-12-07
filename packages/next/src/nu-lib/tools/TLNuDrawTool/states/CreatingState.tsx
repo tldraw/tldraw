@@ -1,24 +1,24 @@
-import { TLNuDrawShape, TLNuState } from '~nu-lib'
+import { Vec } from '@tldraw/vec'
 import { PointUtils, uniqueId } from '~utils'
+import { TLNuToolState } from '../../../TLNuToolState'
+import type { TLNuApp, TLNuDrawShape, TLNuDrawTool } from '~nu-lib'
 import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
-import type { TLNuDrawTool } from '../index'
-import Vec from '@tldraw/vec'
 
-export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
-  S,
-  TLNuBinding,
-  TLNuDrawTool<S>
-> {
+export class CreatingState<
+  S extends TLNuDrawShape<any>,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuDrawTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'creating'
 
   private creatingShape?: S
-
   private rawPoints: number[][] = [[0, 0, 0.5]]
   private points: number[][] = [[0, 0, 0.5]]
   private offset: number[] = [0, 0, 0.5]
 
   onEnter = () => {
-    const { shapeClass } = this.tool as TLNuDrawTool<S>
+    const { shapeClass } = this.tool
 
     const { originPoint } = this.app.inputs
 
@@ -69,12 +69,14 @@ export class CreatingState<S extends TLNuDrawShape<any>> extends TLNuState<
   }
 
   onPointerUp: TLNuPointerHandler<S> = () => {
-    this.tool.transition('idle')
     if (!this.creatingShape) throw Error('Expected a creating shape.')
 
-    if (this.tool.simplify) {
-      this.creatingShape.update({ points: PointUtils.simplify(this.points) })
-    }
+    this.creatingShape.update({
+      isComplete: true,
+      points: this.tool.simplify
+        ? PointUtils.simplify2(this.points, this.tool.simplifyTolerance)
+        : this.creatingShape.points,
+    })
 
     this.tool.transition('idle')
   }

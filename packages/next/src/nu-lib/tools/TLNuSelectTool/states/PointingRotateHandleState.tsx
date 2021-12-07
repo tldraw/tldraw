@@ -1,11 +1,13 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuShape, TLNuState } from '~nu-lib'
+import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
 import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingRotateHandleState<
   S extends TLNuShape,
-  B extends TLNuBinding
-> extends TLNuState<S, B> {
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuSelectTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'pointingRotateHandle'
 
   onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {

@@ -2,23 +2,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Vec } from '@tldraw/vec'
 import { action, computed, makeObservable, observable } from 'mobx'
-import { BoundsUtils, KeyUtils } from '~utils'
+import { BoundsUtils } from '~utils'
 import {
   TLNuSelectTool,
   TLNuInputs,
   TLNuPage,
   TLNuViewport,
   TLNuShape,
-  TLNuTool,
   TLNuSerializedPage,
   TLNuShapeClass,
-  TLNuToolClass,
   TLNuSerializedShape,
-} from '~nu-lib'
+  TLNuToolClass,
+} from '../index'
 import type {
   TLNuBinding,
   TLNuBounds,
-  TLNuCallbacks,
   TLNuKeyboardHandler,
   TLNuPointerHandler,
   TLNuSubscription,
@@ -32,6 +30,7 @@ import type {
 } from '~types'
 import { TLNuHistory } from './TLNuHistory'
 import { TLNuSettings } from './TLNuSettings'
+import { TLNuRootState } from './TLNuState'
 
 export interface TLNuSerializedApp {
   currentPageId: string
@@ -39,19 +38,31 @@ export interface TLNuSerializedApp {
   pages: TLNuSerializedPage[]
 }
 
-export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding>
-  implements Partial<TLNuCallbacks<S>>
-{
+export class TLNuApp<
+  S extends TLNuShape = TLNuShape,
+  B extends TLNuBinding = TLNuBinding
+> extends TLNuRootState<S, B> {
   constructor(
     serializedApp?: TLNuSerializedApp,
     shapeClasses?: TLNuShapeClass<S>[],
-    toolClasses?: TLNuToolClass<S, B>[]
+    tools?: TLNuToolClass<S, B, any>[]
   ) {
-    this.registerTools(TLNuSelectTool)
-    this.selectedTool = this.toolClasses.get('select')!
+    super()
+
+    if (this.states && this.states.length > 0) {
+      this.registerStates(...this.states)
+      const initialId = this.initial ?? this.states[0].id
+      const state = this.children.get(initialId)
+      if (state) {
+        this.currentState = state
+        this.currentState?._events.onEnter({ fromId: 'initial' })
+      }
+    }
+
+    this.registerKeyboardShortcuts()
 
     if (shapeClasses) this.registerShapes(...shapeClasses)
-    if (toolClasses) this.registerTools(...toolClasses)
+    if (tools) this.registerStates(...tools)
     if (serializedApp) this.history.deserialize(serializedApp)
 
     makeObservable(this)
@@ -59,15 +70,24 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     this.notify('mount', null)
   }
 
+  static id = 'app'
+
+  static states: TLNuToolClass[] = [TLNuSelectTool]
+
+  static initial = 'select'
+
   inputs = new TLNuInputs()
 
   viewport = new TLNuViewport()
 
   settings = new TLNuSettings()
 
-  /* -------------------- Disposal -------------------- */
+  get selectedTool() {
+    return this.currentState
+  }
 
-  dispose = () => this.toolClasses.forEach((tool) => tool.dispose())
+  selectTool = this.transition
+  registerTools = this.registerStates
 
   /* --------------------- History -------------------- */
 
@@ -114,70 +134,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
     return shapeClass
   }
 
-  /* ------------------ Tool Classse ------------------ */
-
-  readonly toolClasses: Map<string, TLNuTool<S, B>> = new Map()
-
-  registerTools = (...tools: TLNuToolClass<any, B>[]) => {
-    tools.forEach((Tool) => {
-      const tool = new Tool(this)
-
-      this.toolClasses.set(Tool.id, new Tool(this))
-
-      // Register the tool's activation keyboard shortcut, if any
-      if (tool.shortcut !== undefined) {
-        KeyUtils.registerShortcut(tool.shortcut, () => this.selectTool(tool.toolId))
-      }
-
-      // Register the tool's keyboard shortcuts, if any
-      if (tool.shortcuts?.length) {
-        tool.shortcuts.forEach(({ keys, fn }) =>
-          tool.disposables.push(
-            KeyUtils.registerShortcut(keys, () => {
-              if (this.selectedTool.toolId === Tool.id) fn()
-            })
-          )
-        )
-      }
-
-      tool.states.forEach((state) => {
-        if (state.shortcuts) {
-          state.shortcuts.forEach(({ keys, fn }) =>
-            tool.disposables.push(
-              KeyUtils.registerShortcut(keys, () => {
-                if (
-                  this.selectedTool.toolId === Tool.id &&
-                  this.selectedTool.currentState.stateId === state.stateId
-                )
-                  fn()
-              })
-            )
-          )
-        }
-      })
-    })
-  }
-
-  deregisterTools = (...tools: TLNuToolClass<S, B>[]) => {
-    tools.forEach((Tool) => {
-      this.toolClasses.get(Tool.id)?.dispose()
-      this.toolClasses.delete(Tool.id)
-    })
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  @observable selectedTool: TLNuTool<S, B>
-
-  @action readonly selectTool = (id: string, data: Record<string, unknown> = {}): this => {
-    const nextTool = this.toolClasses.get(id)
-    if (!nextTool) throw Error(`Could not find a tool named ${id}.`)
-    const currentToolType = this.selectedTool.toolId
-    this.selectedTool.onExit?.({ ...data, toId: nextTool.toolId })
-    this.selectedTool = nextTool
-    this.selectedTool.onEnter?.({ ...data, fromId: currentToolType })
-    this.isToolLocked = false
-    return this
-  }
+  /* -------------------- Settings -------------------- */
 
   @observable isToolLocked = false
 
@@ -357,7 +314,6 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
   readonly onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.viewport.panCamera(gesture.delta)
     this.inputs.onWheel([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
-    this.selectedTool._onWheel?.(info, gesture, e)
   }
 
   readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
@@ -367,7 +323,6 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
         e as TLNuPointerEvent<Element>
       )
     }
-    this.selectedTool._onPointerDown?.(info, e)
   }
 
   readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
@@ -377,47 +332,32 @@ export class TLNuApp<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TL
         e as TLNuPointerEvent<Element>
       )
     }
-    this.selectedTool._onPointerUp?.(info, e)
   }
 
   readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
     if ('clientX' in e) {
       this.inputs.onPointerMove([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
     }
-    this.selectedTool._onPointerMove?.(info, e)
-  }
-
-  readonly onPointerEnter: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool._onPointerEnter?.(info, e)
-  }
-
-  readonly onPointerLeave: TLNuPointerHandler<S> = (info, e) => {
-    this.selectedTool._onPointerLeave?.(info, e)
   }
 
   readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
     this.inputs.onKeyDown(e)
-    this.selectedTool._onKeyDown?.(info, e)
   }
 
   readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
     this.inputs.onKeyUp(e)
-    this.selectedTool._onKeyUp?.(info, e)
   }
 
   readonly onPinchStart: TLNuPinchHandler<S> = (info, gesture, e) => {
     this.inputs.onPinchStart([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
-    this.selectedTool._onPinchStart?.(info, gesture, e)
   }
 
   readonly onPinch: TLNuPinchHandler<S> = (info, gesture, e) => {
     this.inputs.onPinch([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
-    this.selectedTool._onPinch?.(info, gesture, e)
   }
 
   readonly onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
     this.inputs.onPinchEnd([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
-    this.selectedTool._onPinchEnd?.(info, gesture, e)
   }
 
   /* ------------------- Public API ------------------- */

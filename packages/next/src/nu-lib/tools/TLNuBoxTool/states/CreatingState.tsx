@@ -1,15 +1,20 @@
-import { TLNuBoxShape, TLNuState } from '~nu-lib'
-import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import type { TLNuApp, TLNuBoxShape, TLNuBoxTool } from '~nu-lib'
+import { TLNuToolState } from '../../../TLNuToolState'
+import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { BoundsUtils, uniqueId } from '~utils'
-import type { TLNuBoxTool } from '../TLNuBoxTool'
 
-export class CreatingState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
+export class CreatingState<
+  S extends TLNuBoxShape<any>,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuBoxTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'creating'
 
   creatingShape?: S
 
   onEnter = () => {
-    const { shapeClass } = this.tool as TLNuBoxTool<S>
+    const { shapeClass } = this.tool
     const shape = new shapeClass({
       id: uniqueId(),
       parentId: this.app.currentPage.id,
@@ -38,7 +43,7 @@ export class CreatingState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
       this.app.select(this.creatingShape)
     }
     if (!this.app.isToolLocked) {
-      this.app.selectTool('select')
+      this.app.transition('select')
     }
   }
 

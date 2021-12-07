@@ -1,21 +1,24 @@
 import { IdleState, PointingState, CreatingState } from './states'
-import { TLNuApp, TLNuBoxShape, TLNuShapeProps, TLNuTool } from '~nu-lib'
-import type { TLNuShortcut } from '~types'
+import { TLNuTool } from '~nu-lib'
+import type { TLNuBinding, TLNuShortcut } from '~types'
+import type { TLNuApp, TLNuBoxShape, TLNuShapeProps } from '~nu-lib'
 
-export abstract class TLNuBoxTool<S extends TLNuBoxShape<any>> extends TLNuTool<S> {
-  constructor(app: TLNuApp<S>) {
-    super(app)
-    this.registerStates(IdleState, PointingState, CreatingState)
-    this.transition('idle')
-  }
-
+export abstract class TLNuBoxTool<
+  S extends TLNuBoxShape<any> = TLNuBoxShape<any>,
+  B extends TLNuBinding = TLNuBinding,
+  R extends TLNuApp<S, B> = TLNuApp<S, B>
+> extends TLNuTool<S, B, R> {
   static id = 'box'
+
+  static states = [IdleState, PointingState, CreatingState]
+
+  static initial = 'idle'
 
   shortcuts: TLNuShortcut[] = [
     {
       keys: 'cmd+a,ctrl+a',
       fn: () => {
-        this.app.selectTool('select')
+        this.app.transition('select')
         this.app.selectAll()
       },
     },
@@ -24,6 +27,4 @@ export abstract class TLNuBoxTool<S extends TLNuBoxShape<any>> extends TLNuTool<
   abstract shapeClass: {
     new (props: TLNuShapeProps & Partial<any>): S
   }
-
-  onEnter = () => this.transition('idle')
 }

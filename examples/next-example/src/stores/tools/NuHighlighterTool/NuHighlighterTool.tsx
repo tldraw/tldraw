@@ -6,4 +6,7 @@ export class NuHighlighterTool extends TLNuDrawTool<NuHighlighterShape> {
   shortcut = 'h'
   shapeClass = NuHighlighterShape
   label = 'Highlighter'
+
+  simplify = true
+  simplifyTolerance = 0.618
 }

@@ -158,17 +158,96 @@ export interface TLNuCallbacks<
   S extends TLNuShape = TLNuShape,
   E extends TLNuEventInfo = TLNuEventInfo<S>
 > {
-  onKeyDown: TLNuKeyboardHandler<S, E>
-  onKeyUp: TLNuKeyboardHandler<S, E>
-  onPinch: TLNuPinchHandler<S, E>
-  onPinchEnd: TLNuPinchHandler<S, E>
-  onPinchStart: TLNuPinchHandler<S, E>
-  onPointerDown: TLNuPointerHandler<S, E>
-  onPointerEnter: TLNuPointerHandler<S, E>
-  onPointerLeave: TLNuPointerHandler<S, E>
-  onPointerMove: TLNuPointerHandler<S, E>
-  onPointerUp: TLNuPointerHandler<S, E>
+  /**
+   * Respond to wheel events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
   onWheel: TLNuWheelHandler<S, E>
+  /**
+   * Respond to pointer down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onPointerDown: TLNuPointerHandler<S, E>
+  /**
+   * Respond to pointer up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onPointerUp: TLNuPointerHandler<S, E>
+  /**
+   * Respond to pointer move events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onPointerMove: TLNuPointerHandler<S, E>
+
+  /**
+   * Respond to pointer enter events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onPointerEnter: TLNuPointerHandler<S, E>
+  /**
+   * Respond to pointer leave events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onPointerLeave: TLNuPointerHandler<S, E>
+
+  /**
+   * Respond to key down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onKeyDown: TLNuKeyboardHandler<S, E>
+
+  /**
+   * Respond to key up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param event The DOM event.
+   */
+  onKeyUp: TLNuKeyboardHandler<S, E>
+
+  /**
+   * Respond to pinch start events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param gesture The gesture info from useGesture.
+   * @param event The DOM event.
+   */
+  onPinchStart: TLNuPinchHandler<S, E>
+
+  /**
+   * Respond to pinch events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param gesture The gesture info from useGesture.
+   * @param event The DOM event.
+   */
+  onPinch: TLNuPinchHandler<S, E>
+  /**
+   * Respond to pinch end events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * @param info The event info from TLNuInputs.
+   * @param gesture The gesture info from useGesture.
+   * @param event The DOM event.
+   */
+  onPinchEnd: TLNuPinchHandler<S, E>
+}
+
+export interface TLNuStateEvents<S extends TLNuShape> extends TLNuCallbacks<S> {
+  /**
+   * Handle the change from inactive to active.
+   * @param info The previous state and any info sent via the transition.
+   */
+  onEnter: TLNuOnEnter<any>
+
+  /**
+   * Handle the change from active to inactive.
+   * @param info The next state and any info sent via the transition.
+   */
+  onExit: TLNuOnEnter<any>
+
+  handleModifierKey: TLNuKeyboardHandler<S>
 }
 
 export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {

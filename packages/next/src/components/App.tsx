@@ -53,7 +53,7 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
     [props.serializedApp]
   )
 
-  const { stateId } = app.selectedTool.currentState
+  const stateId = app.selectedTool?.currentState?.id ?? ''
 
   return (
     <Renderer
@@ -64,17 +64,7 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
       hoveredShape={app.hoveredShape}
       selectedBounds={app.selectedBounds}
       brush={app.brush}
-      onKeyDown={app.onKeyDown}
-      onKeyUp={app.onKeyUp}
-      onPinch={app.onPinch}
-      onPinchEnd={app.onPinchEnd}
-      onPinchStart={app.onPinchStart}
-      onPointerDown={app.onPointerDown}
-      onPointerEnter={app.onPointerEnter}
-      onPointerLeave={app.onPointerLeave}
-      onPointerMove={app.onPointerMove}
-      onPointerUp={app.onPointerUp}
-      onWheel={app.onWheel}
+      {...app._events}
       showBoundsRotation={stateId === 'rotatingShapes' || stateId === 'pointingRotateHandle'}
       showContextMenu={showContextMenu === undefined ? stateId === 'idle' : showContextMenu}
       showRotateHandle={

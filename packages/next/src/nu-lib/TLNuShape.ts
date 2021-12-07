@@ -72,7 +72,7 @@ export interface TLNuResizeInfo<P extends AnyObject = any> {
   initialProps: TLNuShapeProps & P
 }
 
-export abstract class TLNuShape<P extends AnyObject = any, M = unknown> implements TLNuShapeProps {
+export abstract class TLNuShape<P extends AnyObject = any, M = any> implements TLNuShapeProps {
   constructor(props: TLNuShapeProps & Partial<P>) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore

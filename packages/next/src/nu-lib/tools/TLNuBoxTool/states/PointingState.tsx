@@ -1,8 +1,14 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuBoxShape, TLNuState } from '~nu-lib'
-import type { TLNuPointerHandler } from '~types'
+import type { TLNuApp, TLNuBoxShape, TLNuBoxTool } from '~nu-lib'
+import { TLNuToolState } from '../../../TLNuToolState'
+import type { TLNuBinding, TLNuPointerHandler } from '~types'
 
-export class PointingState<S extends TLNuBoxShape<any>> extends TLNuState<S> {
+export class PointingState<
+  S extends TLNuBoxShape<any>,
+  B extends TLNuBinding,
+  R extends TLNuApp<S, B>,
+  P extends TLNuBoxTool<S, B, R>
+> extends TLNuToolState<S, B, R, P> {
   static id = 'pointing'
 
   onPointerMove: TLNuPointerHandler<S> = () => {

@@ -1,17 +1,12 @@
 import * as React from 'react'
 import { Vec } from '@tldraw/vec'
-import { autorun, computed, makeObservable, observable } from 'mobx'
-import {
-  TLNuComponentProps,
-  TLNuIndicatorProps,
-  TLNuResizeInfo,
-  TLNuShape,
-  TLNuShapeProps,
-} from '~nu-lib'
+import { computed, makeObservable, observable } from 'mobx'
+import { TLNuShape, TLNuShapeProps } from '~nu-lib/TLNuShape'
 import { BoundsUtils } from '~utils'
-import type { TLNuBounds } from '~types'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
+import type { TLNuBounds } from '~types'
+import type { TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
 export interface TLNuDrawShapeProps {
   points: number[][]
@@ -27,6 +22,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
   static id = 'draw'
 
   @observable points: number[][] = []
+  @observable isComplete = false
 
   Component = observer(({ events }: TLNuComponentProps) => {
     const { points } = this
