@@ -165,6 +165,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
      */
     onExit: (info) => {
       this._isActive = false
+      this.currentState?.onExit?.({ fromId: 'parent' })
       this.onExit?.(info)
     },
 
