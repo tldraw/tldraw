@@ -10,6 +10,7 @@ import {
   TLNuResizeInfo,
   TLNuBoxShape,
   TLNuShapeProps,
+  assignOwnProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { observable, makeObservable } from 'mobx'
@@ -24,7 +25,7 @@ export interface NuEllipseShapeProps extends NuStyleProps {
 export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
   constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
     super(app, props)
-    this.init(props)
+    assignOwnProps(this, props)
     makeObservable(this)
   }
 

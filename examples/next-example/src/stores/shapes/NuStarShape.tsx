@@ -7,6 +7,7 @@ import {
   TLNuStarShape,
   TLNuStarShapeProps,
   TLNuShapeProps,
+  assignOwnProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { makeObservable, observable } from 'mobx'
@@ -18,7 +19,7 @@ interface NuStarShapeProps extends NuStyleProps, TLNuStarShapeProps {}
 export class NuStarShape extends TLNuStarShape<NuStarShapeProps> {
   constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuStarShapeProps>) {
     super(app, props)
-    this.init(props)
+    assignOwnProps(this, props)
     makeObservable(this)
   }
 

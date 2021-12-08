@@ -15,14 +15,14 @@ export class IdleState<
 > extends TLNuToolState<S, B, R, P> {
   static id = 'idle'
 
-  shortcuts: TLNuShortcut[] = [
+  static shortcuts: TLNuShortcut<TLNuApp>[] = [
     {
       keys: 'Delete,Backspace',
-      fn: () => this.app.delete(),
+      fn: (app) => app.delete(),
     },
     {
       keys: 'cmd+a,ctrl+a',
-      fn: () => this.app.selectAll(),
+      fn: (app) => app.selectAll(),
     },
   ]
 

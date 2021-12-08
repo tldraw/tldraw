@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { makeObservable, observable } from 'mobx'
+import { makeObservable, observable, observe } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import { TLNuShape, TLNuShapeProps } from '../../TLNuShape'
@@ -73,10 +73,9 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
   }
 
   onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>): this => {
-    this.update({
+    return this.update({
       point: [bounds.minX, bounds.minY],
       size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
     })
-    return this
   }
 }

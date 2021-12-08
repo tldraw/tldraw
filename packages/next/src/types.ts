@@ -10,6 +10,8 @@ import type {
   TLNuShapeClass,
   TLNuToolClass,
   TLNuViewport,
+  TLNuRootState,
+  TLNuState,
 } from '~nu-lib'
 
 export enum TLNuBoundsEdge {
@@ -159,59 +161,77 @@ export interface TLNuCallbacks<
   E extends TLNuEventInfo = TLNuEventInfo<S>
 > {
   /**
-   * Respond to wheel events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to wheel events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onWheel: TLNuWheelHandler<S, E>
   /**
-   * Respond to pointer down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pointer down events forwarded to the state by its parent. Run the current active
+   * child state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onPointerDown: TLNuPointerHandler<S, E>
   /**
-   * Respond to pointer up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pointer up events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onPointerUp: TLNuPointerHandler<S, E>
   /**
-   * Respond to pointer move events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pointer move events forwarded to the state by its parent. Run the current active
+   * child state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onPointerMove: TLNuPointerHandler<S, E>
 
   /**
-   * Respond to pointer enter events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pointer enter events forwarded to the state by its parent. Run the current active
+   * child state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onPointerEnter: TLNuPointerHandler<S, E>
   /**
-   * Respond to pointer leave events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pointer leave events forwarded to the state by its parent. Run the current active
+   * child state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onPointerLeave: TLNuPointerHandler<S, E>
 
   /**
-   * Respond to key down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to key down events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onKeyDown: TLNuKeyboardHandler<S, E>
 
   /**
-   * Respond to key up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to key up events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
   onKeyUp: TLNuKeyboardHandler<S, E>
 
   /**
-   * Respond to pinch start events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pinch start events forwarded to the state by its parent. Run the current active
+   * child state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
@@ -219,14 +239,18 @@ export interface TLNuCallbacks<
   onPinchStart: TLNuPinchHandler<S, E>
 
   /**
-   * Respond to pinch events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pinch events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
    */
   onPinch: TLNuPinchHandler<S, E>
   /**
-   * Respond to pinch end events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+   * Respond to pinch end events forwarded to the state by its parent. Run the current active child
+   * state's handler, then the state's own handler.
+   *
    * @param info The event info from TLNuInputs.
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
@@ -237,12 +261,14 @@ export interface TLNuCallbacks<
 export interface TLNuStateEvents<S extends TLNuShape> extends TLNuCallbacks<S> {
   /**
    * Handle the change from inactive to active.
+   *
    * @param info The previous state and any info sent via the transition.
    */
   onEnter: TLNuOnEnter<any>
 
   /**
    * Handle the change from active to inactive.
+   *
    * @param info The next state and any info sent via the transition.
    */
   onExit: TLNuOnExit<any>
@@ -417,4 +443,10 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
 
 export type AnyObject = { [key: string]: any }
 
-export type TLNuShortcut = { keys: string; fn: () => void }
+export type TLNuShortcut<
+  R extends TLNuRootState<any, any> = TLNuRootState<any, any>,
+  T extends R | TLNuState<any, any, R, any> = any
+> = {
+  keys: string
+  fn: (root: R, state: T) => void
+}

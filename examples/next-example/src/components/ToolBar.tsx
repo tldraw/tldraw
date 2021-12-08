@@ -62,6 +62,7 @@ export const ToolBar = observer(function ToolBar({ app }: ToolBarProps): JSX.Ele
             data-tool={tool.id}
             onClick={handleToolClick}
             onDoubleClick={handleToolDoubleClick}
+            style={{ textDecoration: isActive ? 'underline' : 'none' }}
           >
             {tool.id}
           </button>

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import {
+  assignOwnProps,
   SVGContainer,
   SvgPathUtils,
   TLNuComponentProps,
@@ -19,7 +20,7 @@ export interface NuHighlighterShapeProps extends TLNuDrawShapeProps, NuStyleProp
 export class NuHighlighterShape extends TLNuDrawShape<NuHighlighterShapeProps> {
   constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
     super(app, props)
-    this.init(props)
+    assignOwnProps(this, props)
     makeObservable(this)
   }
 

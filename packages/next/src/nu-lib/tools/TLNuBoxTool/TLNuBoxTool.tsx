@@ -17,12 +17,12 @@ export abstract class TLNuBoxTool<
 
   static initial = 'idle'
 
-  shortcuts: TLNuShortcut[] = [
+  static shortcuts: TLNuShortcut<TLNuApp>[] = [
     {
       keys: 'cmd+a,ctrl+a',
-      fn: () => {
-        this.app.transition('select')
-        this.app.selectAll()
+      fn: (app) => {
+        app.transition('select')
+        app.selectAll()
       },
     },
   ]

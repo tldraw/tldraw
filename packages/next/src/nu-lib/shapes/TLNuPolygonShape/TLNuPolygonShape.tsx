@@ -5,11 +5,19 @@ import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import { BoundsUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
-import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
+import type {
+  TLNuResizeInfo,
+  TLNuApp,
+  TLNuComponentProps,
+  TLNuIndicatorProps,
+  TLNuShapeProps,
+} from '~nu-lib'
+import type { TLNuBounds } from '~types'
 
 export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
   sides: number
   ratio: number
+  isFlippedY: boolean
 }
 
 export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxShape<P> {
@@ -21,6 +29,7 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
 
   @observable sides = 3
   @observable ratio = 1
+  @observable isFlippedY = false
 
   static id = 'polygon'
 
@@ -75,11 +84,9 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
   }
 
   getVertices(padding = 0): number[][] {
-    const {
-      ratio,
-      sides,
-      size: [w, h],
-    } = this
+    const { ratio, sides, size, isFlippedY } = this
+    const [w, h] = size
+
     if (sides === 3) {
       const A = [w / 2, padding / 2]
       const B = [w - padding, h - padding]
@@ -103,11 +110,32 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
       ]
     }
 
-    return PolygonUtils.getPolygonVertices(
+    const vertices = PolygonUtils.getPolygonVertices(
       Vec.div([w, h], 2),
-      [w - padding, h - padding],
+      [Math.max(1, w - padding), Math.max(1, h - padding)],
       Math.round(sides),
       ratio
     )
+
+    if (isFlippedY) {
+      return vertices.map((point) => [point[0], h - point[1]])
+    }
+
+    return vertices
+  }
+
+  initialFlipped = this.isFlippedY
+
+  onResizeStart = () => {
+    this.initialFlipped = this.isFlippedY
+  }
+
+  onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>) => {
+    const { initialFlipped } = this
+    return this.update({
+      point: [bounds.minX, bounds.minY],
+      size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
+      isFlippedY: info.scaleY < 0 ? !initialFlipped : initialFlipped,
+    })
   }
 }

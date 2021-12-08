@@ -79,17 +79,6 @@ export class PolygonUtils {
       const [rx, ry] = i % 2 ? inner : outer
       return Vec.add(center, [rx * Math.cos(theta), ry * Math.sin(theta)])
     })
-
-    // const pointsOnPerimeter: number[][] = []
-    // for (let i = 0, steps = sides * 2, step = PI2 / steps; i < steps; i += 2) {
-    //   const t1 = -TAU + i * step
-    //   const t2 = -TAU + (i + 1) * step
-    //   pointsOnPerimeter.push(
-    //     Vec.add(center, [rx1 * Math.cos(t1), ry1 * Math.sin(t1)]),
-    //     Vec.add(center, [rx2 * Math.cos(t2), ry2 * Math.sin(t2)])
-    //   )
-    // }
-    // return pointsOnPerimeter
   }
 
   static getPolygonCentroid(points: number[][]): number[] {

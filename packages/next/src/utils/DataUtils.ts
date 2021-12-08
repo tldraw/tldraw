@@ -1,6 +1,9 @@
+import { isPlainObject } from 'is-plain-object'
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Deep copy function for TypeScript.
+ *
  * @param T Generic type of target/copied value.
  * @param target Target value to be copied.
  * @see Source project, ts-deeply https://github.com/ykdr2017/ts-deepcopy
@@ -39,4 +42,13 @@ export function deepCopy<T>(target: T): T {
 
   // Means that object is atomic
   return target
+}
+
+const serializableTypes = new Set(['string', 'number', 'boolean', 'undefined'])
+
+export function isSerializable(value: any): boolean {
+  if (serializableTypes.has(typeof value) || value === null) return true
+  if (Array.isArray(value)) return value.every(isSerializable)
+  if (isPlainObject(value)) return Object.values(value).every(isSerializable)
+  return false
 }

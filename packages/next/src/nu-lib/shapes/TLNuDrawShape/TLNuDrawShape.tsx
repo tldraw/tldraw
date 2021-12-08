@@ -52,34 +52,26 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
     )
   })
 
-  /**
-   * The shape's bounds in "shape space".
-   */
+  /** The shape's bounds in "shape space". */
   @computed get pointBounds(): TLNuBounds {
     const { points } = this
     return BoundsUtils.getBoundsFromPoints(points)
   }
 
-  /**
-   * The shape's bounds in "page space".
-   */
+  /** The shape's bounds in "page space". */
   getBounds = (): TLNuBounds => {
     const { pointBounds, point } = this
     return BoundsUtils.translateBounds(pointBounds, point)
   }
 
-  /**
-   * The shape's rotated points in "shape space".
-   */
+  /** The shape's rotated points in "shape space". */
   @computed get rotatedPoints(): number[][] {
     const { points, center, rotation } = this
     if (!this.rotation) return points
     return points.map((point) => Vec.rotWith(point, center, rotation))
   }
 
-  /**
-   * The shape's rotated bounds in "page space".
-   */
+  /** The shape's rotated bounds in "page space". */
   getRotatedBounds = (): TLNuBounds => {
     const { rotatedPoints } = this
     if (!this.rotation) return this.bounds
@@ -87,17 +79,14 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
   }
 
   /**
-   * A snapshot of the shape's points normalized against its bounds. For
-   * performance and memory reasons, this property must be set manually
-   * with `setNormalizedPoints`.
+   * A snapshot of the shape's points normalized against its bounds. For performance and memory
+   * reasons, this property must be set manually with `setNormalizedPoints`.
    */
   normalizedPoints: number[][] = []
   isResizeFlippedX = false
   isResizeFlippedY = false
 
-  /**
-   * Prepare the shape for a resize session.
-   */
+  /** Prepare the shape for a resize session. */
   onResizeStart = () => {
     const { bounds, points } = this
     const size = [bounds.width, bounds.height]
@@ -106,6 +95,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps> extends TLNuShape<P> {
 
   /**
    * Resize the shape to fit a new bounding box.
+   *
    * @param bounds
    * @param info
    */

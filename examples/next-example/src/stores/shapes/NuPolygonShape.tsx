@@ -7,6 +7,7 @@ import {
   TLNuPolygonShape,
   TLNuPolygonShapeProps,
   TLNuShapeProps,
+  assignOwnProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { makeObservable, observable } from 'mobx'
@@ -18,7 +19,7 @@ interface NuPolygonShapeProps extends NuStyleProps, TLNuPolygonShapeProps {}
 export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
   constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuPolygonShapeProps>) {
     super(app, props)
-    this.init(props)
+    assignOwnProps(this, props)
     makeObservable(this)
   }
 

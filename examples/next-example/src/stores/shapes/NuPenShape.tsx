@@ -2,6 +2,7 @@
 import * as React from 'react'
 import { getStroke } from 'perfect-freehand'
 import {
+  assignOwnProps,
   SVGContainer,
   SvgPathUtils,
   TLNuComponentProps,
@@ -20,7 +21,7 @@ export interface NuPenShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
   constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuPenShapeProps>) {
     super(app, props)
-    this.init(props)
+    assignOwnProps(this, props)
     makeObservable(this)
   }
 

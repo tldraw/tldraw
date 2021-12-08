@@ -76,8 +76,13 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
     // Pause the history, to prevent any loops
     this.pause()
 
-    this.app.setCurrentPage(currentPageId)
-    this.app.select(...selectedIds)
+    if (currentPageId !== this.app.currentPageId) {
+      this.app.setCurrentPage(currentPageId)
+    }
+
+    if (selectedIds !== this.app.selectedIds) {
+      this.app.select(...selectedIds)
+    }
 
     const pagesMap = new Map(this.app.pages.map((page) => [page.id, page]))
     const pagesToAdd: TLNuPage<S, B>[] = []
@@ -96,7 +101,6 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
           if (shape !== undefined) {
             // Update the shape
             if (shape.nonce !== serializedShape.nonce) {
-              console.log('updating', shape.id)
               shape.update(serializedShape, true)
             }
             shapesMap.delete(serializedShape.id)

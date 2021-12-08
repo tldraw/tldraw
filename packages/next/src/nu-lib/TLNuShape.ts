@@ -4,7 +4,7 @@ import {
   intersectLineSegmentPolyline,
   intersectPolygonBounds,
 } from '@tldraw/intersect'
-import { action, autorun, computed, isObservable, makeObservable, observable, observe } from 'mobx'
+import { action, computed, makeObservable, observable } from 'mobx'
 import type {
   TLNuBinding,
   AnyObject,
@@ -14,9 +14,8 @@ import type {
   TLNuHandle,
 } from '~types'
 import type { TLNuApp } from './TLNuApp'
-import { isPlainObject, BoundsUtils, PointUtils, assignOwnProps } from '~utils'
-import { deepCopy } from '~utils/DataUtils'
-import { observer } from 'mobx-react-lite'
+import { BoundsUtils, PointUtils, assignOwnProps } from '~utils'
+import { deepCopy, isSerializable } from '~utils/DataUtils'
 
 export interface TLNuShapeClass<
   S extends TLNuShape,
@@ -48,15 +47,6 @@ export interface TLNuShapeProps {
   isLocked?: boolean
   isGenerated?: boolean
   isAspectRatioLocked?: boolean
-}
-
-const serializableTypes = new Set(['string', 'number', 'boolean', 'undefined'])
-
-function isSerializable(value: any): boolean {
-  if (serializableTypes.has(typeof value) || value === null) return true
-  if (Array.isArray(value)) return value.every(isSerializable)
-  if (isPlainObject(value)) return Object.values(value).every(isSerializable)
-  return false
 }
 
 export type TLNuSerializedShape<P = AnyObject> = TLNuShapeProps & {
@@ -91,10 +81,27 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
     // @ts-ignore
     this.type = this.constructor['id']
     this.app = app
-    assignOwnProps(this, props)
+    this.init(props)
+    makeObservable(this)
   }
 
   static type: string
+
+  protected propsKeys = new Set<string>([
+    'type',
+    'nonce',
+    'parentId',
+    'point',
+    'name',
+    'rotation',
+    'children',
+    'handles',
+    'isGhost',
+    'isHidden',
+    'isLocked',
+    'isGenerated',
+    'isAspectRatioLocked',
+  ])
 
   readonly app: TLNuApp<any, any>
   readonly showCloneHandles = false
@@ -102,6 +109,10 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
   readonly isStateful = false
   readonly type: string
   readonly id: string = 'id'
+  nonce = 0
+  isDirty = false
+  private lastSerialized = {} as TLNuSerializedShape<P>
+
   @observable parentId = 'parentId'
   @observable point: number[] = [0, 0]
   @observable name?: string = 'Shape'
@@ -115,15 +126,17 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
   @observable isAspectRatioLocked?: boolean
 
   abstract Component: (props: TLNuComponentProps<M>) => JSX.Element | null
+
   abstract Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
+
+  abstract getBounds: () => TLNuBounds
 
   protected init = (props: TLNuShapeProps & Partial<P>) => {
     assignOwnProps(this, props)
+    Object.keys(props).forEach((key) => this.propsKeys.add(key))
     this.lastSerialized = this.getSerialized()
     makeObservable(this)
   }
-
-  abstract getBounds: () => TLNuBounds
 
   getCenter = () => {
     return BoundsUtils.getBoundsCenter(this.bounds)
@@ -194,25 +207,54 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
     return this.getRotatedBounds()
   }
 
-  /** A version for the shape, incremented each time it is serialized. */
-  nonce = 0
-  isDirty = true
-  lastSerialized = {} as TLNuSerializedShape<P>
-
-  /** Get a serialized version of the shape. */
+  /**
+   * Get a new serialized copy of the shape.
+   *
+   * ```tsx
+   * myShape.getSerialized()
+   * ```
+   *
+   * @returns The new serialized shape.
+   * @public
+   */
   getSerialized = (): TLNuSerializedShape<P> => {
+    const propKeys = Array.from(this.propsKeys.values()) as (keyof typeof this)[]
+    return deepCopy(
+      Object.fromEntries(propKeys.map((key) => [key, this[key]]))
+    ) as TLNuSerializedShape<P>
+  }
+
+  /**
+   * Get a serialized copy of the shape. This method will return a cached copy unless the shape has changed.
+   *
+   * ```tsx
+   * myShape.getCachedSerialized()
+   * ```
+   *
+   * @private
+   * @returns The serialized shape.
+   */
+  protected getCachedSerialized = (): TLNuSerializedShape<P> => {
     if (this.isDirty) {
       this.nonce++
       this.isDirty = false
-      this.lastSerialized = deepCopy(
-        Object.fromEntries(Object.entries(this).filter(([_key, value]) => isSerializable(value)))
-      ) as TLNuSerializedShape<P>
+      this.lastSerialized = this.getSerialized()
     }
     return this.lastSerialized
   }
 
+  /**
+   * Get a serialized copy of the shape.
+   *
+   * ```tsx
+   * example
+   * ```
+   *
+   * @returns The serialized shape.
+   * @public
+   */
   get serialized(): TLNuSerializedShape<P> {
-    return this.getSerialized()
+    return this.getCachedSerialized()
   }
 
   /**
@@ -222,12 +264,11 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
    * myShape.update({ size: [200, 200] })
    * ```
    *
+   * @returns The shape instance.
    * @public
    */
-  @action update(props: Partial<TLNuShapeProps | P>, isDeserializing = false) {
-    if (!(isDeserializing || this.isDirty)) {
-      this.isDirty = true
-    }
+  @action update = (props: Partial<TLNuShapeProps | P>, isDeserializing = false) => {
+    if (!(isDeserializing || this.isDirty)) this.isDirty = true
     Object.assign(this, props)
     return this
   }

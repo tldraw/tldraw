@@ -97,6 +97,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
 
   /**
    * Transition to a new active state.
+   *
    * @param id The id of the new active state.
    * @param data (optional) Any data to send to the new active state's `onEnter` method.
    */
@@ -119,14 +120,14 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
 
   /* --------------- Keyboard Shortcuts --------------- */
 
-  protected registerKeyboardShortcuts() {
+  protected registerKeyboardShortcuts = () => {
     if (!this.shortcuts?.length) return
 
     this.disposables.push(
       ...this.shortcuts.map(({ keys, fn }) =>
         KeyUtils.registerShortcut(keys, () => {
           if (!this.isActive) return
-          fn()
+          fn(this, this)
         })
       )
     )
@@ -158,6 +159,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
   _events: TLNuStateEvents<S> = {
     /**
      * Handle the change from inactive to active.
+     *
      * @param info The previous state and any info sent via the transition.
      */
     onTransition: (info) => {
@@ -166,6 +168,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
 
     /**
      * Handle the change from inactive to active.
+     *
      * @param info The previous state and any info sent via the transition.
      */
     onEnter: (info) => {
@@ -176,6 +179,7 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
 
     /**
      * Handle the change from active to inactive.
+     *
      * @param info The next state and any info sent via the transition.
      */
     onExit: (info) => {
@@ -185,125 +189,148 @@ export abstract class TLNuRootState<S extends TLNuShape, B extends TLNuBinding>
     },
 
     /**
-     * Respond to wheel events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to wheel events forwarded to the state by its parent. Run the current active child
+     * state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onWheel: (info, gesture, event) => {
-      this.forwardEvent('onWheel', info, gesture, event)
       this.onWheel?.(info, gesture, event)
+      this.forwardEvent('onWheel', info, gesture, event)
     },
 
     /**
-     * Respond to pointer down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pointer down events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onPointerDown: (info, event) => {
-      this.forwardEvent('onPointerDown', info, event)
       this.onPointerDown?.(info, event)
+      this.forwardEvent('onPointerDown', info, event)
     },
 
     /**
-     * Respond to pointer up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pointer up events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onPointerUp: (info, event) => {
-      this.forwardEvent('onPointerUp', info, event)
       this.onPointerUp?.(info, event)
+      this.forwardEvent('onPointerUp', info, event)
     },
 
     /**
-     * Respond to pointer move events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pointer move events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onPointerMove: (info, event) => {
-      this.forwardEvent('onPointerMove', info, event)
       this.onPointerMove?.(info, event)
+      this.forwardEvent('onPointerMove', info, event)
     },
 
     /**
-     * Respond to pointer enter events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pointer enter events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onPointerEnter: (info, event) => {
-      this.forwardEvent('onPointerEnter', info, event)
       this.onPointerEnter?.(info, event)
+      this.forwardEvent('onPointerEnter', info, event)
     },
 
     /**
-     * Respond to pointer leave events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pointer leave events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onPointerLeave: (info, event) => {
-      this.forwardEvent('onPointerLeave', info, event)
       this.onPointerLeave?.(info, event)
+      this.forwardEvent('onPointerLeave', info, event)
     },
 
     /**
-     * Respond to key down events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to key down events forwarded to the state by its parent. Run the current active child
+     * state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onKeyDown: (info, event) => {
       this._events.handleModifierKey(info, event)
-      this.forwardEvent('onKeyDown', info, event)
       this.onKeyDown?.(info, event)
+      this.forwardEvent('onKeyDown', info, event)
     },
 
     /**
-     * Respond to key up events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to key up events forwarded to the state by its parent. Run the current active child
+     * state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
      */
     onKeyUp: (info, event) => {
       this._events.handleModifierKey(info, event)
-      this.forwardEvent('onKeyUp', info, event)
       this.onKeyUp?.(info, event)
+      this.forwardEvent('onKeyUp', info, event)
     },
 
     /**
-     * Respond to pinch start events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pinch start events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param gesture The gesture info from useGesture.
      * @param event The DOM event.
      */
     onPinchStart: (info, gesture, event) => {
-      this.forwardEvent('onPinchStart', info, gesture, event)
       this.onPinchStart?.(info, gesture, event)
+      this.forwardEvent('onPinchStart', info, gesture, event)
     },
 
     /**
-     * Respond to pinch events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pinch events forwarded to the state by its parent. Run the current active child
+     * state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param gesture The gesture info from useGesture.
      * @param event The DOM event.
      */
     onPinch: (info, gesture, event) => {
-      this.forwardEvent('onPinch', info, gesture, event)
       this.onPinch?.(info, gesture, event)
+      this.forwardEvent('onPinch', info, gesture, event)
     },
 
     /**
-     * Respond to pinch end events forwarded to the state by its parent. Run the current active child state's handler, then the state's own handler.
+     * Respond to pinch end events forwarded to the state by its parent. Run the current active
+     * child state's handler, then the state's own handler.
+     *
      * @param info The event info from TLNuInputs.
      * @param gesture The gesture info from useGesture.
      * @param event The DOM event.
      */
     onPinchEnd: (info, gesture, event) => {
-      this.forwardEvent('onPinchEnd', info, gesture, event)
       this.onPinchEnd?.(info, gesture, event)
+      this.forwardEvent('onPinchEnd', info, gesture, event)
     },
 
     /**
      * When a modifier key is pressed, treat it as a pointer move.
+     *
+     * @private
      * @param info The event info from TLNuInputs.
      * @param event The DOM event.
-     * @private
      */
     handleModifierKey: (info, event) => {
       switch (event.key) {
@@ -387,6 +414,21 @@ export abstract class TLNuState<
     this.registerKeyboardShortcuts()
 
     makeObservable(this)
+  }
+
+  /* --------------- Keyboard Shortcuts --------------- */
+
+  protected registerKeyboardShortcuts = () => {
+    if (!this.shortcuts?.length) return
+
+    this.disposables.push(
+      ...this.shortcuts.map(({ keys, fn }) =>
+        KeyUtils.registerShortcut(keys, () => {
+          if (!this.isActive) return
+          fn(this.root, this)
+        })
+      )
+    )
   }
 
   protected _root: R

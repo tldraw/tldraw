@@ -41,7 +41,7 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
 
   @action addShapes(...shapes: S[] | TLNuSerializedShape[]) {
     const shapeInstances =
-      'shapeId' in shapes[0]
+      'getBounds' in shapes[0]
         ? (shapes as S[])
         : (shapes as TLNuSerializedShape[]).map((shape) => {
             const ShapeClass = this.app.getShapeClass(shape.type)
@@ -49,8 +49,8 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
           })
 
     this.shapes.push(...shapeInstances)
-    this.bump()
-    this.app.persist()
+    // this.bump()
+    // this.app.persist()
   }
 
   @action removeShapes(...shapes: S[] | string[]) {
@@ -59,8 +59,8 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
     } else {
       this.shapes = this.shapes.filter((shape) => !(shapes as S[]).includes(shape))
     }
-    this.bump()
-    this.app.persist()
+    // this.bump()
+    // this.app.persist()
   }
 
   // TODO: How to avoid making deep copies when shapes have not changed?
