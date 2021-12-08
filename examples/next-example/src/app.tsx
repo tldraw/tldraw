@@ -17,7 +17,7 @@ import {
   NuPolygonTool,
   NuPolygonShape,
   NuPenShape,
-  NuDrawTool,
+  NuPenTool,
   NuHighlighterShape,
   NuHighlighterTool,
   NuDotShape,
@@ -47,12 +47,12 @@ function App(): JSX.Element {
     NuBoxTool,
     NuEllipseTool,
     NuPolygonTool,
-    NuDrawTool,
+    NuPenTool,
     NuHighlighterTool,
     NuDotTool,
   ])
 
-  const [serializedApp, setSerializedApp] = React.useState<TLNuSerializedApp>({
+  const [model, setModel] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',
     selectedIds: ['dot1'],
     pages: [
@@ -136,7 +136,7 @@ function App(): JSX.Element {
         <TLNuAppComponent
           onMount={onMount}
           onPersist={onPersist}
-          serializedApp={serializedApp}
+          model={model}
           shapeClasses={shapeClasses}
           toolClasses={toolClasses}
           components={components}

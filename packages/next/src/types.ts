@@ -434,7 +434,7 @@ export type TLNuAppProps<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
   Partial<TLNuCallbacks<S>> &
   (
     | {
-        serializedApp?: TLNuSerializedApp
+        model?: TLNuSerializedApp
         shapeClasses?: TLNuShapeClass<S, B, any>[]
         toolClasses?: TLNuToolClass<any, B>[]
       }

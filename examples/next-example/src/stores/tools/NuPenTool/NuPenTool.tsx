@@ -1,8 +1,8 @@
 import { TLNuDrawTool } from '@tldraw/next'
 import { NuPenShape } from 'stores'
 
-export class NuDrawTool extends TLNuDrawTool<NuPenShape> {
-  static id = 'draw'
+export class NuPenTool extends TLNuDrawTool<NuPenShape> {
+  static id = 'pen'
   static shortcut = 'd,p,5'
   shapeClass = NuPenShape
   simplify = false

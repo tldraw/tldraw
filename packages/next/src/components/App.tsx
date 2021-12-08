@@ -30,7 +30,7 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
     const app =
       'app' in props
         ? props.app
-        : new TLNuApp<S, B>(props.serializedApp, props.shapeClasses, props.toolClasses)
+        : new TLNuApp<S, B>(props.model, props.shapeClasses, props.toolClasses)
 
     if (typeof window !== undefined) window['tln'] = app
 
@@ -52,8 +52,8 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
   React.useEffect(
     () => {
       if (!('app' in props)) {
-        if (props.serializedApp) {
-          app.history.deserialize(props.serializedApp as unknown as TLNuSerializedApp)
+        if (props.model) {
+          app.history.deserialize(props.model as unknown as TLNuSerializedApp)
         }
       }
     },
