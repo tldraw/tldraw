@@ -303,6 +303,9 @@ const tlcss = css`
 
   .nu-indicator-container {
     transform-origin: 0 0;
+    fill: transparent;
+    stroke-width: calc(1.5px * var(--nu-scale));
+    pointer-events: none;
   }
 
   .nu-user-indicator-bounds {

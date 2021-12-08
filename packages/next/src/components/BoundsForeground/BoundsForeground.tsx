@@ -24,40 +24,40 @@ export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>(
         height={Math.max(height, 1)}
         pointerEvents="none"
       />
-      <EdgeHandle
-        x={targetSize * 2}
-        y={0}
-        width={width - targetSize * 4}
-        height={0}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Top}
-      />
-      <EdgeHandle
-        x={width}
-        y={targetSize * 2}
-        width={0}
-        height={height - targetSize * 4}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Right}
-      />
-      <EdgeHandle
-        x={targetSize * 2}
-        y={height}
-        width={width - targetSize * 4}
-        height={0}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Bottom}
-      />
-      <EdgeHandle
-        x={0}
-        y={targetSize * 2}
-        width={0}
-        height={height - targetSize * 4}
-        targetSize={targetSize}
-        edge={TLNuBoundsEdge.Left}
-      />
       {showResizeHandles && (
         <>
+          <EdgeHandle
+            x={targetSize * 2}
+            y={0}
+            width={width - targetSize * 4}
+            height={0}
+            targetSize={targetSize}
+            edge={TLNuBoundsEdge.Top}
+          />
+          <EdgeHandle
+            x={width}
+            y={targetSize * 2}
+            width={0}
+            height={height - targetSize * 4}
+            targetSize={targetSize}
+            edge={TLNuBoundsEdge.Right}
+          />
+          <EdgeHandle
+            x={targetSize * 2}
+            y={height}
+            width={width - targetSize * 4}
+            height={0}
+            targetSize={targetSize}
+            edge={TLNuBoundsEdge.Bottom}
+          />
+          <EdgeHandle
+            x={0}
+            y={targetSize * 2}
+            width={0}
+            height={height - targetSize * 4}
+            targetSize={targetSize}
+            edge={TLNuBoundsEdge.Left}
+          />
           <CornerHandle
             cx={0}
             cy={0}

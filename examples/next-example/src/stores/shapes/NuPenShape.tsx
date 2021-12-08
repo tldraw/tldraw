@@ -56,6 +56,6 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
 
   Indicator = observer((props: TLNuIndicatorProps) => {
     const { pointsPath } = this
-    return <path className="nu-indicator" d={pointsPath} />
+    return <path d={pointsPath} />
   })
 }

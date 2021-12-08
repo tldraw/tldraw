@@ -3,7 +3,7 @@ import { Vec } from '@tldraw/vec'
 import { computed, makeObservable, observable } from 'mobx'
 import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
-import { BoundsUtils, PolygonUtils } from '~utils'
+import { BoundsUtils, PointUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
 import type {
   TLNuResizeInfo,
@@ -13,6 +13,7 @@ import type {
   TLNuShapeProps,
 } from '~nu-lib'
 import type { TLNuBounds } from '~types'
+import { intersectLineSegmentPolyline, intersectPolygonBounds } from '@tldraw/intersect'
 
 export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
   sides: number
@@ -57,13 +58,7 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
       offset: [x, y],
     } = this
 
-    return (
-      <polygon
-        className="nu-indicator"
-        transform={`translate(${x}, ${y})`}
-        points={this.vertices.join()}
-      />
-    )
+    return <polygon transform={`translate(${x}, ${y})`} points={this.vertices.join()} />
   })
 
   @computed get vertices() {
@@ -137,5 +132,25 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
       size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
       isFlippedY: info.scaleY < 0 ? !initialFlipped : initialFlipped,
     })
+  }
+
+  hitTestPoint = (point: number[]): boolean => {
+    const { vertices } = this
+    return PointUtils.pointInPolygon(Vec.add(point, this.point), vertices)
+  }
+
+  hitTestLineSegment = (A: number[], B: number[]): boolean => {
+    const { vertices, point } = this
+    return intersectLineSegmentPolyline(Vec.add(A, point), Vec.add(B, point), vertices).didIntersect
+  }
+
+  hitTestBounds = (bounds: TLNuBounds): boolean => {
+    const { offset, vertices, point } = this
+    return (
+      intersectPolygonBounds(
+        vertices,
+        BoundsUtils.translateBounds(bounds, Vec.neg(Vec.add(point, offset)))
+      ).length > 0
+    )
   }
 }

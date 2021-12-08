@@ -385,7 +385,7 @@ export interface TLNuViewOptions {
   showBounds?: boolean
   showResizeHandles?: boolean
   showRotateHandle?: boolean
-  showContextMenu?: boolean
+  showContextBar?: boolean
   showBoundsDetail?: boolean
   showBoundsRotation?: boolean
 }

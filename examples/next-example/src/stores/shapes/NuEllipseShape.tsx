@@ -68,7 +68,6 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
   Indicator = observer((props: TLNuIndicatorProps) => {
     return (
       <ellipse
-        className="nu-indicator"
         cx={this.size[0] / 2}
         cy={this.size[1] / 2}
         rx={this.size[0] / 2}

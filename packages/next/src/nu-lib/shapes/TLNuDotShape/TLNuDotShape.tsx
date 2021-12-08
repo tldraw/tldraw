@@ -7,34 +7,37 @@ import { BoundsUtils } from '~utils'
 import type { TLNuBounds } from '~types'
 import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
-export interface TLNuBoxShapeProps {
-  size: number[]
+export interface TLNuDotShapeProps {
+  radius: number
 }
 
-export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
+export class TLNuDotShape<P extends TLNuDotShapeProps> extends TLNuShape<P> {
   constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
     super(app, props)
     this.init(props)
     makeObservable(this)
   }
 
-  static id = 'box'
+  static id = 'dot'
 
-  @observable size: number[] = [100, 100]
+  @observable radius = 4
+
+  readonly hideBounds = true
+  readonly hideResizeHandles = true
+  readonly hideRotateHandle = true
+  readonly hideBoundsDetail = true
 
   Component = observer(({ events }: TLNuComponentProps) => {
-    const {
-      size: [w, h],
-    } = this
+    const { radius } = this
 
     return (
       <SVGContainer {...events}>
-        <rect
-          width={Math.max(0.01, w)}
-          height={Math.max(0.01, h)}
+        <circle
+          cx={radius}
+          cy={radius}
+          r={radius}
           stroke={'#000'}
-          fill={'none'}
-          strokeWidth={2}
+          fill={'#000'}
           pointerEvents="all"
         />
       </SVGContainer>
@@ -42,19 +45,22 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
   })
 
   Indicator = observer((props: TLNuIndicatorProps) => {
-    return <rect width={this.size[0]} height={this.size[1]} strokeWidth={2} fill="transparent" />
+    const { radius } = this
+    return <circle cx={radius} cy={radius} r={radius} />
   })
 
   getBounds = (): TLNuBounds => {
-    const [x, y] = this.point
-    const [width, height] = this.size
+    const {
+      point: [x, y],
+      radius,
+    } = this
     return {
       minX: x,
       minY: y,
-      maxX: x + width,
-      maxY: y + height,
-      width,
-      height,
+      maxX: x + radius * 2,
+      maxY: y + radius * 2,
+      width: radius * 2,
+      height: radius * 2,
     }
   }
 
@@ -65,9 +71,9 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps> extends TLNuShape<P> {
   }
 
   onResize = (bounds: TLNuBounds, info: TLNuResizeInfo<P>): this => {
+    const { radius } = this
     return this.update({
-      point: [bounds.minX, bounds.minY],
-      size: [Math.max(1, bounds.width), Math.max(1, bounds.height)],
+      point: [bounds.minX + bounds.width / 2 - radius, bounds.minY + bounds.height / 2 - radius],
     })
   }
 }

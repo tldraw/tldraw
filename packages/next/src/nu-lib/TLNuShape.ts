@@ -15,7 +15,7 @@ import type {
 } from '~types'
 import type { TLNuApp } from './TLNuApp'
 import { BoundsUtils, PointUtils, assignOwnProps } from '~utils'
-import { deepCopy, isSerializable } from '~utils/DataUtils'
+import { deepCopy } from '~utils/DataUtils'
 
 export interface TLNuShapeClass<
   S extends TLNuShape,
@@ -104,9 +104,13 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
   ])
 
   readonly app: TLNuApp<any, any>
-  readonly showCloneHandles = false
-  readonly hideBounds = false
-  readonly isStateful = false
+  readonly showCloneHandles: boolean = false
+  readonly hideResizeHandles: boolean = false
+  readonly hideRotateHandle: boolean = false
+  readonly hideContextBar: boolean = false
+  readonly hideBoundsDetail: boolean = false
+  readonly hideBounds: boolean = false
+  readonly isStateful: boolean = false
   readonly type: string
   readonly id: string = 'id'
   nonce = 0

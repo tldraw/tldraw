@@ -67,7 +67,6 @@ export class NuStarShape extends TLNuStarShape<NuStarShapeProps> {
 
     return (
       <polygon
-        className="nu-indicator"
         transform={`translate(${x}, ${y})`}
         points={this.getVertices(strokeWidth / 2).join()}
       />

@@ -116,6 +116,52 @@ export class TLNuApp<
     }
   }
 
+  @computed get showBounds() {
+    return this.selectedShapes.length > 0 && !this.selectedShapes.every((shape) => shape.hideBounds)
+  }
+
+  @computed get showBoundsDetail() {
+    return (
+      this.selectedShapes.length > 0 &&
+      !this.selectedShapes.every((shape) => shape.hideBoundsDetail)
+    )
+  }
+
+  @computed get showBoundsRotation() {
+    const stateId = this.selectedTool.currentState.id
+    return (
+      (this.selectedShapes.length > 0 && stateId === 'rotatingShapes') ||
+      stateId === 'pointingRotateHandle'
+    )
+  }
+
+  @computed get showContextBar() {
+    const stateId = this.selectedTool.currentState.id
+    return (
+      this.selectedShapes.length > 0 &&
+      stateId === 'idle' &&
+      !this.selectedShapes.every((shape) => shape.hideContextBar)
+    )
+  }
+
+  @computed get showRotateHandle() {
+    const stateId = this.selectedTool.currentState.id
+    return (
+      this.selectedShapes.length > 0 &&
+      stateId === 'idle' &&
+      !this.selectedShapes.every((shape) => shape.hideRotateHandle)
+    )
+  }
+
+  @computed get showResizeHandles() {
+    const stateId = this.selectedTool.currentState.id
+    return (
+      this.selectedShapes.length > 0 &&
+      stateId === 'idle' &&
+      !this.selectedShapes.every((shape) => shape.hideResizeHandles)
+    )
+  }
+
   /* ------------------ Shape Classes ----------------- */
 
   // Map of shape classes (used for deserialization)

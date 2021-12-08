@@ -66,7 +66,6 @@ export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
 
     return (
       <polygon
-        className="nu-indicator"
         transform={`translate(${x}, ${y})`}
         points={this.getVertices(strokeWidth / 2).join()}
       />

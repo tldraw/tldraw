@@ -14,8 +14,17 @@ export const appContext = React.createContext({} as TLNuAppContext<any, any>)
 export const App = observer(function App<S extends TLNuShape, B extends TLNuBinding>(
   props: TLNuAppProps<S, B>
 ): JSX.Element {
-  const { onMount, onPersist, showRotateHandle, showContextMenu, showResizeHandles, ...rest } =
-    props
+  const {
+    onMount,
+    onPersist,
+    showBounds,
+    showBoundsDetail,
+    showBoundsRotation,
+    showContextBar,
+    showRotateHandle,
+    showResizeHandles,
+    ...rest
+  } = props
 
   const [app] = React.useState(() => {
     const app =
@@ -53,8 +62,6 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
     [props.serializedApp]
   )
 
-  const stateId = app.selectedTool?.currentState?.id ?? ''
-
   return (
     <Renderer
       inputs={app.inputs}
@@ -65,18 +72,12 @@ export const App = observer(function App<S extends TLNuShape, B extends TLNuBind
       selectedBounds={app.selectedBounds}
       brush={app.brush}
       {...app._events}
-      showBoundsRotation={stateId === 'rotatingShapes' || stateId === 'pointingRotateHandle'}
-      showContextMenu={showContextMenu === undefined ? stateId === 'idle' : showContextMenu}
-      showRotateHandle={
-        showRotateHandle === undefined
-          ? stateId === 'idle' || stateId === 'pointingRotateHandle'
-          : showRotateHandle
-      }
-      showResizeHandles={
-        showResizeHandles === undefined
-          ? stateId === 'idle' || stateId === 'pointingResizeHandle'
-          : showResizeHandles
-      }
+      showBounds={showBounds || app.showBounds}
+      showBoundsDetail={showBoundsDetail || app.showBoundsDetail}
+      showBoundsRotation={showBoundsRotation || app.showBoundsRotation}
+      showContextBar={showContextBar || app.showContextBar}
+      showRotateHandle={showRotateHandle || app.showRotateHandle}
+      showResizeHandles={showResizeHandles || app.showResizeHandles}
       {...rest}
     />
   )

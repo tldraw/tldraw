@@ -32,7 +32,7 @@ export const BoundsDetailContainer = observer(function BoundsDetail({
   return (
     <div
       ref={rBounds}
-      className={`nu-counter-scaled-positioned ${hidden ? `nu-fade` : ''}`}
+      className={`nu-counter-scaled-positioned ${hidden ? `nu-fade-out` : ''}`}
       aria-label="bounds-detail-container"
     >
       <BoundsDetail bounds={bounds} scaledBounds={scaledBounds} zoom={zoom} detail={detail} />

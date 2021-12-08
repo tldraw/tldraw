@@ -37,7 +37,7 @@ export const Canvas = observer(function Renderer<
   showResizeHandles = true,
   showRotateHandle = true,
   showBoundsDetail = true,
-  showContextMenu = true,
+  showContextBar = true,
   theme = EMPTY_OBJECT,
 }: TLNuRendererProps<S, B>): JSX.Element {
   const rContainer = React.useRef<HTMLDivElement>(null)
@@ -132,7 +132,7 @@ export const Canvas = observer(function Renderer<
                     selectedShapes.length === 1 ? selectedShapes[0].rotatedBounds : selectedBounds
                   }
                   shapes={selectedShapes}
-                  hidden={!showContextMenu}
+                  hidden={!showContextBar}
                 />
               )}
             </>
