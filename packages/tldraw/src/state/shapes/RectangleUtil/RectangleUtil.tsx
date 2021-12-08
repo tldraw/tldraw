@@ -64,7 +64,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
               />
             )}
             <path
-              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
               d={indicatorPath}
             />
             <path
