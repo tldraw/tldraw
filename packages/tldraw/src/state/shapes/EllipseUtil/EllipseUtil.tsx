@@ -69,7 +69,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
               />
             )}
             <ellipse
-              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
               cx={radiusX}
               cy={radiusY}
               rx={radiusX}

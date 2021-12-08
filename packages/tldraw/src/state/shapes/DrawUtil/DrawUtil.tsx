@@ -99,7 +99,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
             <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
               <path
-                className={shouldFill && isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+                className={shouldFill || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
                 d={pathTDSnapshot}
               />
               {shouldFill && (
