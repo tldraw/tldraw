@@ -12,7 +12,7 @@ import {
   TLNuShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
-import { observable, computed, makeObservable } from 'mobx'
+import { observable, makeObservable } from 'mobx'
 import { intersectEllipseBounds, intersectLineSegmentEllipse } from '@tldraw/intersect'
 import type { NuStyleProps } from './NuStyleProps'
 import type { NuApp } from 'stores'
@@ -56,9 +56,9 @@ export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
           cy={h / 2}
           rx={Math.max(0.01, (w - strokeWidth) / 2)}
           ry={Math.max(0.01, (h - strokeWidth) / 2)}
+          strokeWidth={strokeWidth}
           stroke={stroke}
           fill={fill}
-          strokeWidth={strokeWidth}
         />
       </SVGContainer>
     )

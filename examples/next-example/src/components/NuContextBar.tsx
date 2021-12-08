@@ -32,6 +32,10 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
     shapes.forEach((shape) => shape.update({ sides: +e.currentTarget.value }))
   }, [])
 
+  const updateRatio = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ ratio: +e.currentTarget.value }))
+  }, [])
+
   React.useLayoutEffect(() => {
     const elm = rContextBar.current
     if (!elm) return
@@ -85,7 +89,15 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
               type="number"
               value={Math.max(...polygonShapes.map((shape) => shape.sides))}
               onChange={updateSides}
-              style={{ width: 48 }}
+              style={{ width: 40 }}
+            />
+            Ratio
+            <input
+              type="number"
+              value={Math.max(...polygonShapes.map((shape) => shape.ratio))}
+              onChange={updateRatio}
+              step={0.01}
+              style={{ width: 40 }}
             />
           </>
         )}

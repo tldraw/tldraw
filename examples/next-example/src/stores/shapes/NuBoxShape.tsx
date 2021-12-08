@@ -51,10 +51,9 @@ export class NuBoxShape extends TLNuBoxShape<NuBoxShapeProps> {
           y={strokeWidth / 2}
           width={Math.max(0.01, w - strokeWidth)}
           height={Math.max(0.01, h - strokeWidth)}
+          strokeWidth={strokeWidth}
           stroke={stroke}
           fill={fill}
-          strokeWidth={strokeWidth}
-          pointerEvents="none"
         />
       </SVGContainer>
     )

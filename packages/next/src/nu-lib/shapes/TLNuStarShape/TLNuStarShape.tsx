@@ -7,19 +7,19 @@ import { BoundsUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
 import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
 
-export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
-  sides: number
+export interface TLNuStarShapeProps extends TLNuBoxShapeProps {
+  points: number
   ratio: number
 }
 
-export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxShape<P> {
+export class TLNuStarShape<P extends TLNuStarShapeProps> extends TLNuBoxShape<P> {
   constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
     super(app, props)
     this.init(props)
     makeObservable(this)
   }
 
-  @observable sides = 3
+  @observable points = 3
   @observable ratio = 1
 
   static id = 'polygon'
@@ -77,10 +77,10 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
   getVertices(padding = 0): number[][] {
     const {
       ratio,
-      sides,
+      points,
       size: [w, h],
     } = this
-    if (sides === 3) {
+    if (points === 3) {
       const A = [w / 2, padding / 2]
       const B = [w - padding, h - padding]
       const C = [padding / 2, h - padding]
@@ -103,10 +103,10 @@ export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxSh
       ]
     }
 
-    return PolygonUtils.getPolygonVertices(
+    return PolygonUtils.getStarVertices(
       Vec.div([w, h], 2),
       [w - padding, h - padding],
-      Math.round(sides),
+      Math.round(points),
       ratio
     )
   }

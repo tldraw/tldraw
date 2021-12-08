@@ -4,7 +4,7 @@ import {
   intersectLineSegmentPolyline,
   intersectPolygonBounds,
 } from '@tldraw/intersect'
-import { action, computed, makeObservable, observable } from 'mobx'
+import { action, autorun, computed, isObservable, makeObservable, observable, observe } from 'mobx'
 import type {
   TLNuBinding,
   AnyObject,
@@ -16,6 +16,7 @@ import type {
 import type { TLNuApp } from './TLNuApp'
 import { isPlainObject, BoundsUtils, PointUtils, assignOwnProps } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
+import { observer } from 'mobx-react-lite'
 
 export interface TLNuShapeClass<
   S extends TLNuShape,
@@ -90,8 +91,7 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
     // @ts-ignore
     this.type = this.constructor['id']
     this.app = app
-    this.init(props)
-    makeObservable(this)
+    assignOwnProps(this, props)
   }
 
   static type: string
@@ -114,11 +114,13 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
   @observable isGenerated?: boolean
   @observable isAspectRatioLocked?: boolean
 
-  abstract readonly Component: (props: TLNuComponentProps<M>) => JSX.Element | null
-  abstract readonly Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
+  abstract Component: (props: TLNuComponentProps<M>) => JSX.Element | null
+  abstract Indicator: (props: TLNuIndicatorProps<M>) => JSX.Element | null
 
   protected init = (props: TLNuShapeProps & Partial<P>) => {
     assignOwnProps(this, props)
+    this.lastSerialized = this.getSerialized()
+    makeObservable(this)
   }
 
   abstract getBounds: () => TLNuBounds
@@ -192,32 +194,41 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
     return this.getRotatedBounds()
   }
 
-  @computed get serialized(): TLNuSerializedShape<P> {
-    return deepCopy(
-      Object.fromEntries(Object.entries(this).filter(([_key, value]) => isSerializable(value)))
-    ) as TLNuSerializedShape<P>
-  }
-
-  get shapeId(): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return this.constructor['id']
-  }
-
-  set shapeId(type: string) {
-    // noop, but easier if this exists
-  }
-
+  /** A version for the shape, incremented each time it is serialized. */
   nonce = 0
+  isDirty = true
+  lastSerialized = {} as TLNuSerializedShape<P>
 
-  protected bump(): this {
-    this.nonce++
-    return this
+  /** Get a serialized version of the shape. */
+  getSerialized = (): TLNuSerializedShape<P> => {
+    if (this.isDirty) {
+      this.nonce++
+      this.isDirty = false
+      this.lastSerialized = deepCopy(
+        Object.fromEntries(Object.entries(this).filter(([_key, value]) => isSerializable(value)))
+      ) as TLNuSerializedShape<P>
+    }
+    return this.lastSerialized
   }
 
-  @action update(props: Partial<TLNuShapeProps | P>) {
+  get serialized(): TLNuSerializedShape<P> {
+    return this.getSerialized()
+  }
+
+  /**
+   * Update the shape with new properties.
+   *
+   * ```tsx
+   * myShape.update({ size: [200, 200] })
+   * ```
+   *
+   * @public
+   */
+  @action update(props: Partial<TLNuShapeProps | P>, isDeserializing = false) {
+    if (!(isDeserializing || this.isDirty)) {
+      this.isDirty = true
+    }
     Object.assign(this, props)
-    if (!('nonce' in props)) this.bump()
     return this
   }
 }

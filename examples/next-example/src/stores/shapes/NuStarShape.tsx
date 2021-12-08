@@ -4,8 +4,8 @@ import {
   SVGContainer,
   TLNuIndicatorProps,
   TLNuComponentProps,
-  TLNuPolygonShape,
-  TLNuPolygonShapeProps,
+  TLNuStarShape,
+  TLNuStarShapeProps,
   TLNuShapeProps,
 } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
@@ -13,10 +13,10 @@ import { makeObservable, observable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
 import type { NuApp } from 'stores'
 
-interface NuPolygonShapeProps extends NuStyleProps, TLNuPolygonShapeProps {}
+interface NuStarShapeProps extends NuStyleProps, TLNuStarShapeProps {}
 
-export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
-  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuPolygonShapeProps>) {
+export class NuStarShape extends TLNuStarShape<NuStarShapeProps> {
+  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuStarShapeProps>) {
     super(app, props)
     this.init(props)
     makeObservable(this)
@@ -52,6 +52,7 @@ export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
           fill={fill}
           strokeWidth={strokeWidth}
           strokeLinejoin="round"
+          strokeLinecap="round"
         />
       </SVGContainer>
     )

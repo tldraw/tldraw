@@ -6,11 +6,14 @@
       "/**",
       " * ${1:description}",
       " *",
-      " * ### Example",
-      " *",
-      " *```ts",
+      " * ```tsx",
       " * ${2:example}",
-      " *```"
+      " * ```",
+      " *",
+      " * @returns ${3:returns}",
+      " *",
+      " * @public",
+      " */"
     ],
     "description": "comment"
   }

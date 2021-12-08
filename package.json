@@ -68,11 +68,12 @@
     "lerna": "^3.22.1",
     "lint-staged": "^11.2.6",
     "prettier": "^2.4.1",
+    "prettier-plugin-jsdoc": "^0.3.30",
+    "pretty-quick": "^3.1.2",
     "resize-observer-polyfill": "^1.5.1",
     "tslib": "^2.3.0",
     "typedoc": "^0.22.3",
-    "typescript": "^4.5.2",
-    "pretty-quick": "^3.1.2"
+    "typescript": "^4.5.2"
   },
   "husky": {
     "hooks": {

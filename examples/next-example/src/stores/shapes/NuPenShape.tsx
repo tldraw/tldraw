@@ -44,9 +44,9 @@ export class NuPenShape extends TLNuDrawShape<NuPenShapeProps> {
       <SVGContainer {...events}>
         <path
           d={pointsPath}
+          strokeWidth={strokeWidth}
           stroke={stroke}
           fill={stroke}
-          strokeWidth={strokeWidth}
           pointerEvents="all"
         />
       </SVGContainer>

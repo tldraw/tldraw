@@ -41,9 +41,9 @@ export class NuHighlighterShape extends TLNuDrawShape<NuHighlighterShapeProps> {
       <SVGContainer {...events}>
         <path
           d={pointsPath}
+          strokeWidth={strokeWidth * 16}
           stroke={stroke}
           fill={fill}
-          strokeWidth={strokeWidth * 16}
           pointerEvents="all"
           strokeLinejoin="round"
           strokeLinecap="round"

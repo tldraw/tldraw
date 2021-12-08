@@ -12,7 +12,7 @@ import type {
 export abstract class TLNuDrawTool<
   S extends TLNuDrawShape<any> = TLNuDrawShape<any>,
   B extends TLNuBinding = TLNuBinding,
-  R extends TLNuApp<S, B> = TLNuApp<S, B>
+  R extends TLNuApp<any, any> = TLNuApp<any, any>
 > extends TLNuTool<S, B, R> {
   static id = 'draw'
 
@@ -31,6 +31,6 @@ export abstract class TLNuDrawTool<
   simplifyTolerance = 1
 
   abstract shapeClass: {
-    new (app: R, props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
+    new (app: TLNuApp<any, any>, props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }
 }

@@ -96,7 +96,8 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
           if (shape !== undefined) {
             // Update the shape
             if (shape.nonce !== serializedShape.nonce) {
-              shape.update(serializedShape)
+              console.log('updating', shape.id)
+              shape.update(serializedShape, true)
             }
             shapesMap.delete(serializedShape.id)
           } else {

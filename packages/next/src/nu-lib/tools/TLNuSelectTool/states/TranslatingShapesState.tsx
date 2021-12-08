@@ -45,7 +45,7 @@ export class TranslatingShapesState<
     if (!this.didClone) {
       // Create the clones
       this.clones = this.app.selectedShapes.map((shape) => {
-        const ShapeClass = this.app.getShapeClass(shape.shapeId)
+        const ShapeClass = this.app.getShapeClass(shape.type)
         if (!ShapeClass) throw Error('Could not find that shape class.')
         return new ShapeClass(this.app, {
           ...shape.serialized,

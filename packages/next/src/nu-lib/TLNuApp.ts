@@ -130,6 +130,7 @@ export class TLNuApp<
   }
 
   getShapeClass = (type: string): TLNuShapeClass<S, B, any> => {
+    if (!type) throw Error('No shape type provided.')
     const shapeClass = this.shapeClasses.get(type)
     if (!shapeClass) throw Error(`Could not find shape class for ${type}`)
     return shapeClass
@@ -369,6 +370,7 @@ export class TLNuApp<
 
   /**
    * Set the current page.
+   *
    * @param page The new current page or page id.
    */
   changePage = (page: string | TLNuPage<S, B>): this => {
@@ -377,6 +379,7 @@ export class TLNuApp<
 
   /**
    * Set the hovered shape.
+   *
    * @param shape The new hovered shape or shape id.
    */
   hover = (shape: string | S | undefined): this => {
@@ -385,6 +388,7 @@ export class TLNuApp<
 
   /**
    * Create one or more shapes on the current page.
+   *
    * @param shapes The new shape instances or serialized shapes.
    */
   create = (...shapes: S[] | TLNuSerializedShape[]): this => {
@@ -393,6 +397,7 @@ export class TLNuApp<
 
   /**
    * Update one or more shapes on the current page.
+   *
    * @param shapes The serialized shape changes to apply.
    */
   update = (...shapes: { id: string } & TLNuSerializedShape[]): this => {
@@ -404,6 +409,7 @@ export class TLNuApp<
 
   /**
    * Delete one or more shapes from the current page.
+   *
    * @param shapes The shapes or shape ids to delete.
    */
   delete = (...shapes: S[] | string[]): this => {
@@ -414,6 +420,7 @@ export class TLNuApp<
 
   /**
    * Select one or more shapes on the current page.
+   *
    * @param shapes The shapes or shape ids to select.
    */
   select = (...shapes: S[] | string[]): this => {
@@ -422,6 +429,7 @@ export class TLNuApp<
 
   /**
    * Deselect one or more selected shapes on the current page.
+   *
    * @param ids The shapes or shape ids to deselect.
    */
   deselect = (...shapes: S[] | string[]): this => {
@@ -433,47 +441,35 @@ export class TLNuApp<
     return this
   }
 
-  /**
-   * Select all shapes on the current page.
-   */
+  /** Select all shapes on the current page. */
   selectAll = (): this => {
     return this.setSelectedShapes(this.currentPage.shapes)
   }
 
-  /**
-   * Deselect all shapes on the current page.
-   */
+  /** Deselect all shapes on the current page. */
   deselectAll = (): this => {
     return this.setSelectedShapes([])
   }
 
-  /**
-   * Zoom the camera in.
-   */
+  /** Zoom the camera in. */
   zoomIn = (): this => {
     this.viewport.zoomIn()
     return this
   }
 
-  /**
-   * Zoom the camera out.
-   */
+  /** Zoom the camera out. */
   zoomOut = (): this => {
     this.viewport.zoomOut()
     return this
   }
 
-  /**
-   * Reset the camera to 100%.
-   */
+  /** Reset the camera to 100%. */
   resetZoom = (): this => {
     this.viewport.resetZoom()
     return this
   }
 
-  /**
-   * Zoom to fit all of the current page's shapes in the viewport.
-   */
+  /** Zoom to fit all of the current page's shapes in the viewport. */
   zoomToFit = (): this => {
     const { shapes } = this.currentPage
     if (shapes.length === 0) return this
@@ -482,9 +478,7 @@ export class TLNuApp<
     return this
   }
 
-  /**
-   * Zoom to fit the current selection in the viewport.
-   */
+  /** Zoom to fit the current selection in the viewport. */
   zoomToSelection = (): this => {
     const { selectedBounds } = this
     if (!selectedBounds) return this

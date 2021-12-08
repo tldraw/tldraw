@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { observer } from 'mobx-react-lite'
+import { Observer, observer } from 'mobx-react-lite'
 import { Container } from '~components'
 import type { TLNuShape } from '~nu-lib'
 import { useShapeEvents } from '~hooks/useShapeEvents'
