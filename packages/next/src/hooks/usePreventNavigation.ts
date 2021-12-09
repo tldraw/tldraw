@@ -3,9 +3,10 @@ import * as React from 'react'
 import { useContext } from '~hooks'
 
 export function usePreventNavigation(rCanvas: React.RefObject<HTMLDivElement>): void {
+  const context = useContext()
   const {
     viewport: { bounds },
-  } = useContext()
+  } = context
 
   React.useEffect(() => {
     const preventGestureNavigation = (event: TouchEvent) => {

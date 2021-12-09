@@ -4,13 +4,14 @@ import { TLNuBoundsComponentProps, TLNuBoundsCorner, TLNuBoundsEdge } from '~typ
 import { EdgeHandle, CornerHandle, RotateHandle } from './handles'
 import { SVGContainer } from '../SVGContainer'
 import { useBoundsEvents } from '~hooks'
+import type { TLNuShape } from '~nu-lib'
 
-export const BoundsForeground = observer(function BoundsFg({
+export const BoundsForeground = observer(function BoundsForeground<S extends TLNuShape>({
   bounds,
   zoom,
   showResizeHandles,
   showRotateHandle,
-}: TLNuBoundsComponentProps) {
+}: TLNuBoundsComponentProps<S>) {
   const { width, height } = bounds
 
   const size = 8 / zoom

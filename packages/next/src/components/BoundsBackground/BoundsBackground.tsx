@@ -3,10 +3,11 @@ import { observer } from 'mobx-react-lite'
 import { useBoundsEvents } from '~hooks/useBoundsEvents'
 import type { TLNuBoundsComponentProps } from '~types'
 import { SVGContainer } from '~components'
+import type { TLNuShape } from '~nu-lib'
 
-export const BoundsBackground = observer(function BoundsBackground({
+export const BoundsBackground = observer(function BoundsBackground<S extends TLNuShape>({
   bounds,
-}: TLNuBoundsComponentProps) {
+}: TLNuBoundsComponentProps<S>) {
   const events = useBoundsEvents('background')
 
   return (

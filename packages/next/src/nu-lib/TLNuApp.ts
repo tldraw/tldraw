@@ -219,7 +219,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
 
   /* --------------------- Shapes --------------------- */
 
-  @computed get shapesInViewport(): TLNuShape<S>[] {
+  @computed get shapesInViewport(): S[] {
     const {
       currentPage,
       viewport: { currentView },
@@ -245,7 +245,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
     if (typeof shapes[0] === 'string') {
       ids = new Set(shapes as string[])
     } else {
-      ids = new Set((shapes as TLNuShape[]).map((shape) => shape.id))
+      ids = new Set((shapes as S[]).map((shape) => shape.id))
     }
     this.selectedIds = this.selectedIds.filter((id) => !ids.has(id))
     this.currentPage.removeShapes(...shapes)
@@ -270,7 +270,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
 
   @observable selectedIds: string[] = []
 
-  @computed get selectedShapes(): TLNuShape[] {
+  @computed get selectedShapes(): S[] {
     return this.currentPage.shapes.filter((shape) => this.selectedIds.includes(shape.id))
   }
 
@@ -280,11 +280,11 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
       : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
   }
 
-  @action readonly setSelectedShapes = (shapes: TLNuShape[] | string[]): this => {
+  @action readonly setSelectedShapes = (shapes: S[] | string[]): this => {
     if (shapes[0] && typeof shapes[0] === 'string') {
       this.selectedIds = shapes as string[]
     } else {
-      this.selectedIds = (shapes as TLNuShape[]).map((shape) => shape.id)
+      this.selectedIds = (shapes as S[]).map((shape) => shape.id)
     }
     return this
   }
@@ -322,16 +322,16 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
 
   /* --------------------- Events --------------------- */
 
-  private subscriptions = new Set<TLNuSubscription<S, TLNuSubscriptionEventName>>([])
+  private subscriptions = new Set<TLNuSubscription<S, this, TLNuSubscriptionEventName>>([])
 
-  readonly unsubscribe = (subscription: TLNuSubscription<S, TLNuSubscriptionEventName>) => {
+  readonly unsubscribe = (subscription: TLNuSubscription<S, this, TLNuSubscriptionEventName>) => {
     this.subscriptions.delete(subscription)
     return this
   }
 
-  subscribe: TLSubscribe<S> = <E extends TLNuSubscriptionEventName>(
+  subscribe = <E extends TLNuSubscriptionEventName>(
     event: E | TLNuSubscription<S>,
-    callback?: TLNuSubscriptionCallback<S, E>
+    callback?: TLNuSubscriptionCallback<S, this, E>
   ) => {
     if (typeof event === 'object') {
       this.subscriptions.add(event)
@@ -433,7 +433,7 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
    *
    * @param shapes The new shape instances or serialized shapes.
    */
-  create = (...shapes: TLNuShape[] | TLNuSerializedShape[]): this => {
+  create = (...shapes: S[] | TLNuSerializedShape[]): this => {
     return this.createShapes(shapes)
   }
 
@@ -474,11 +474,11 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
    *
    * @param ids The shapes or shape ids to deselect.
    */
-  deselect = (...shapes: TLNuShape[] | string[]): this => {
+  deselect = (...shapes: S[] | string[]): this => {
     const ids =
       typeof shapes[0] === 'string'
         ? (shapes as string[])
-        : (shapes as TLNuShape[]).map((shape) => shape.id)
+        : (shapes as S[]).map((shape) => shape.id)
     this.setSelectedShapes(this.selectedIds.filter((id) => !ids.includes(id)))
     return this
   }

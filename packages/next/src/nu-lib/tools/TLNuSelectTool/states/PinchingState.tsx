@@ -1,10 +1,10 @@
 import { Vec } from '@tldraw/vec'
 import type { FullGestureState, WebKitGestureEvent } from '@use-gesture/core/types'
 import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
-import type { TLNuBinding, TLNuEventInfo, TLNuPinchHandler } from '~types'
+import type { TLNuEventInfo, TLNuPinchHandler } from '~types'
 
-type GestureInfo = {
-  info: TLNuEventInfo
+type GestureInfo<S extends TLNuShape = TLNuShape> = {
+  info: TLNuEventInfo<S>
   gesture: Omit<FullGestureState<'pinch'>, 'event'> & {
     event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
   }
@@ -28,7 +28,7 @@ export class PinchingState<R extends TLNuApp, P extends TLNuSelectTool<R>> exten
     this.app.setCamera(Vec.toFixed(Vec.add(nextPoint, Vec.sub(p1, p0))), zoom)
   }
 
-  onEnter = (info: GestureInfo) => {
+  onEnter = (info: GestureInfo<any>) => {
     this.prevDelta = info.gesture.delta
     this.origin = info.gesture.origin
   }

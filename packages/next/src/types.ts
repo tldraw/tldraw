@@ -100,16 +100,19 @@ export enum TLNuTargetType {
   Bounds = 'bounds',
 }
 
-export type TLNuEventInfo =
+export type TLNuEventInfo<S extends TLNuShape> =
   | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number }
-  | { type: TLNuTargetType.Shape; target: TLNuShape; order: number }
+  | { type: TLNuTargetType.Shape; target: S; order: number }
   | {
       type: TLNuTargetType.Bounds
       target: TLNuBoundsHandle
       order: number
     }
 
-export type TLNuWheelHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
+export type TLNuWheelHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo<S> = TLNuEventInfo<S>
+> = (
   info: E,
   gesture: Omit<FullGestureState<'wheel'>, 'event'> & {
     event: WheelEvent
@@ -136,17 +139,20 @@ interface TLNuReactPointerEvent<T = Element> extends React.MouseEvent<T, Pointer
 
 export type TLNuPointerEventHandler<T = Element> = React.EventHandler<TLNuPointerEvent<T>>
 
-export type TLNuPointerHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
-  info: E,
-  event: TLNuPointerEvent | KeyboardEvent | WheelEvent
-) => void
+export type TLNuPointerHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo<S> = TLNuEventInfo<S>
+> = (info: E, event: TLNuPointerEvent | KeyboardEvent | WheelEvent) => void
 
-export type TLNuKeyboardHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
-  info: E,
-  event: React.KeyboardEvent
-) => void
+export type TLNuKeyboardHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo<S> = TLNuEventInfo<S>
+> = (info: E, event: React.KeyboardEvent) => void
 
-export type TLNuPinchHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
+export type TLNuPinchHandler<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo<S> = TLNuEventInfo<S>
+> = (
   info: E,
   gesture: Omit<FullGestureState<'pinch'>, 'event'> & {
     event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
@@ -154,7 +160,10 @@ export type TLNuPinchHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
   event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
 ) => void
 
-export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
+export interface TLNuCallbacks<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuEventInfo<S> = TLNuEventInfo<S>
+> {
   /**
    * Respond to wheel events forwarded to the state by its parent. Run the current active child
    * state's handler, then the state's own handler.
@@ -162,7 +171,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onWheel: TLNuWheelHandler<E>
+  onWheel: TLNuWheelHandler<S, E>
   /**
    * Respond to pointer down events forwarded to the state by its parent. Run the current active
    * child state's handler, then the state's own handler.
@@ -170,7 +179,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onPointerDown: TLNuPointerHandler<E>
+  onPointerDown: TLNuPointerHandler<S, E>
   /**
    * Respond to pointer up events forwarded to the state by its parent. Run the current active child
    * state's handler, then the state's own handler.
@@ -178,7 +187,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onPointerUp: TLNuPointerHandler<E>
+  onPointerUp: TLNuPointerHandler<S, E>
   /**
    * Respond to pointer move events forwarded to the state by its parent. Run the current active
    * child state's handler, then the state's own handler.
@@ -186,7 +195,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onPointerMove: TLNuPointerHandler<E>
+  onPointerMove: TLNuPointerHandler<S, E>
 
   /**
    * Respond to pointer enter events forwarded to the state by its parent. Run the current active
@@ -195,7 +204,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onPointerEnter: TLNuPointerHandler<E>
+  onPointerEnter: TLNuPointerHandler<S, E>
   /**
    * Respond to pointer leave events forwarded to the state by its parent. Run the current active
    * child state's handler, then the state's own handler.
@@ -203,7 +212,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onPointerLeave: TLNuPointerHandler<E>
+  onPointerLeave: TLNuPointerHandler<S, E>
 
   /**
    * Respond to key down events forwarded to the state by its parent. Run the current active child
@@ -212,7 +221,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onKeyDown: TLNuKeyboardHandler<E>
+  onKeyDown: TLNuKeyboardHandler<S, E>
 
   /**
    * Respond to key up events forwarded to the state by its parent. Run the current active child
@@ -221,7 +230,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param info The event info from TLNuInputs.
    * @param event The DOM event.
    */
-  onKeyUp: TLNuKeyboardHandler<E>
+  onKeyUp: TLNuKeyboardHandler<S, E>
 
   /**
    * Respond to pinch start events forwarded to the state by its parent. Run the current active
@@ -231,7 +240,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
    */
-  onPinchStart: TLNuPinchHandler<E>
+  onPinchStart: TLNuPinchHandler<S, E>
 
   /**
    * Respond to pinch events forwarded to the state by its parent. Run the current active child
@@ -241,7 +250,7 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
    */
-  onPinch: TLNuPinchHandler<E>
+  onPinch: TLNuPinchHandler<S, E>
   /**
    * Respond to pinch end events forwarded to the state by its parent. Run the current active child
    * state's handler, then the state's own handler.
@@ -250,10 +259,10 @@ export interface TLNuCallbacks<E extends TLNuEventInfo = TLNuEventInfo> {
    * @param gesture The gesture info from useGesture.
    * @param event The DOM event.
    */
-  onPinchEnd: TLNuPinchHandler<E>
+  onPinchEnd: TLNuPinchHandler<S, E>
 }
 
-export interface TLNuStateEvents extends TLNuCallbacks {
+export interface TLNuStateEvents<S extends TLNuShape = TLNuShape> extends TLNuCallbacks<S> {
   /**
    * Handle the change from inactive to active.
    *
@@ -270,18 +279,20 @@ export interface TLNuStateEvents extends TLNuCallbacks {
 
   onTransition: TLNuOnTransition
 
-  handleModifierKey: TLNuKeyboardHandler
+  handleModifierKey: TLNuKeyboardHandler<S>
 }
 
-export type TLNuBoundsComponentProps = {
+export type TLNuBoundsComponentProps<S extends TLNuShape = TLNuShape> = {
   zoom: number
-  shapes: TLNuShape[]
+  shapes: S[]
   bounds: TLNuBounds
   showResizeHandles: boolean
   showRotateHandle: boolean
 }
 
-export type TLNuBoundsComponent = (props: TLNuBoundsComponentProps) => JSX.Element | null
+export type TLNuBoundsComponent<S extends TLNuShape = TLNuShape> = (
+  props: TLNuBoundsComponentProps<S>
+) => JSX.Element | null
 
 export interface TLNuOffset {
   top: number
@@ -292,27 +303,36 @@ export interface TLNuOffset {
   height: number
 }
 
-export type TLNuContextBarComponent = (props: {
-  shapes: TLNuShape[]
+export type TLNuContextBarProps<S extends TLNuShape = TLNuShape> = {
+  shapes: S[]
   bounds: TLNuBounds
   scaledBounds: TLNuBounds
   rotation: number
   offset: TLNuOffset
-}) => JSX.Element | null
+}
 
-export type TLNuBoundsDetailComponent = (props: {
+export type TLNuContextBarComponent<S extends TLNuShape = TLNuShape> = (
+  props: TLNuContextBarProps<S>
+) => JSX.Element | null
+
+export type TLNuBoundsDetailProps<S extends TLNuShape = TLNuShape> = {
+  shapes: S[]
   bounds: TLNuBounds
   scaledBounds: TLNuBounds
   zoom: number
   detail: 'size' | 'rotation'
-}) => JSX.Element | null
+}
 
-export type TLNuComponents = Partial<{
-  BoundsBackground: TLNuBoundsComponent | null
-  BoundsForeground: TLNuBoundsComponent | null
-  BoundsDetail: TLNuBoundsDetailComponent | null
-  ContextBar: TLNuContextBarComponent | null
-}>
+export type TLNuBoundsDetailComponent<S extends TLNuShape = TLNuShape> = (
+  props: TLNuBoundsDetailProps<S>
+) => JSX.Element | null
+
+export type TLNuComponents<S extends TLNuShape> = {
+  BoundsBackground?: TLNuBoundsComponent<S> | null
+  BoundsForeground?: TLNuBoundsComponent<S> | null
+  BoundsDetail?: TLNuBoundsDetailComponent<S> | null
+  ContextBar?: TLNuContextBarComponent<S> | null
+}
 
 export type TLNuOnEnter<T = { fromId: string }> = (info: T) => void
 export type TLNuOnExit<T = { toId: string }> = (info: T) => void
@@ -337,22 +357,24 @@ export type TLNuSubscriptionEventInfo<T extends TLNuSubscriptionEventName> = Ext
 
 export type TLNuSubscriptionCallback<
   S extends TLNuShape = TLNuShape,
+  R extends TLNuApp<S> = TLNuApp<S>,
   E extends TLNuSubscriptionEventName = TLNuSubscriptionEventName
-> = (app: TLNuApp<S>, info: TLNuSubscriptionEventInfo<E>) => void
+> = (app: R, info: TLNuSubscriptionEventInfo<E>) => void
 
 export type TLNuSubscription<
   S extends TLNuShape = TLNuShape,
+  R extends TLNuApp<S> = TLNuApp<S>,
   E extends TLNuSubscriptionEventName = TLNuSubscriptionEventName
 > = {
   event: E
-  callback: TLNuSubscriptionCallback<S, E>
+  callback: TLNuSubscriptionCallback<S, R, E>
 }
 
-export type TLSubscribe<S extends TLNuShape = TLNuShape> = {
-  <E extends TLNuSubscriptionEventName>(subscription: TLNuSubscription<S, E>): () => void
+export type TLSubscribe<S extends TLNuShape = TLNuShape, R extends TLNuApp<S> = TLNuApp<S>> = {
+  <E extends TLNuSubscriptionEventName>(subscription: TLNuSubscription<S, R, E>): () => void
   <E extends TLNuSubscriptionEventName>(
     event: E,
-    callback: TLNuSubscriptionCallback<S, E>
+    callback: TLNuSubscriptionCallback<S, R, E>
   ): () => void
 }
 
@@ -371,14 +393,41 @@ export interface TLNuViewOptions {
   showBoundsRotation: boolean
 }
 
-export interface TLNuContextProviderProps extends TLNuCallbacks {
+export interface TLNuContextProviderProps<S extends TLNuShape> extends TLNuCallbacks<S> {
   inputs: TLNuInputs
   viewport: TLNuViewport
   children?: React.ReactNode
-  components?: Partial<TLNuComponents>
   id?: string
   theme?: TLNuTheme
   meta?: any
+  components?: TLNuComponents<S>
+}
+
+export interface TLNuSubscriptionCallbacks<S extends TLNuShape, R extends TLNuApp<S>> {
+  onMount: TLNuSubscriptionCallback<S, R, 'mount'>
+  onPersist: TLNuSubscriptionCallback<S, R, 'persist'>
+}
+
+export interface TLNuCommonAppProps<S extends TLNuShape, R extends TLNuApp<S> = TLNuApp<S>> {
+  id?: string
+  meta?: AnyObject
+  theme?: Partial<TLNuTheme>
+  components?: TLNuComponents<S>
+  children?: React.ReactNode
+  onMount: TLNuSubscriptionCallback<S, R, 'mount'>
+  onPersist: TLNuSubscriptionCallback<S, R, 'persist'>
+}
+
+export interface TLNuAppPropsWithoutApp<S extends TLNuShape, R extends TLNuApp<S> = TLNuApp<S>>
+  extends TLNuCommonAppProps<S, R> {
+  model?: TLNuSerializedApp
+  shapeClasses?: TLNuShapeClass<S>[]
+  toolClasses?: TLNuToolClass<TLNuApp<S>>[]
+}
+
+export interface TLNuAppPropsWithApp<S extends TLNuShape, R extends TLNuApp<S> = TLNuApp<S>>
+  extends TLNuCommonAppProps<S, R> {
+  app: R
 }
 
 export interface TLNuRendererProps<S extends TLNuShape> extends Partial<TLNuViewOptions> {
@@ -393,32 +442,12 @@ export interface TLNuRendererProps<S extends TLNuShape> extends Partial<TLNuView
   selectedShapes: S[]
   shapes: S[]
   theme: TLNuTheme
-}
-
-export interface TLNuSubscriptionCallbacks<S extends TLNuShape = TLNuShape> {
-  onMount: TLNuSubscriptionCallback<S, 'mount'>
-  onPersist: TLNuSubscriptionCallback<S, 'persist'>
-}
-
-export interface TLNuCommonAppProps<S extends TLNuShape>
-  extends Partial<TLNuSubscriptionCallbacks<S>>,
-    Partial<TLNuCallbacks>,
-    Partial<TLNuViewOptions> {
-  id?: string
-  meta?: Record<string, unknown>
-  theme?: Partial<TLNuTheme>
-  components?: Partial<TLNuComponents>
-  children?: React.ReactNode
-}
-
-export interface TLNuAppPropsWithoutApp<S extends TLNuShape> extends TLNuCommonAppProps<S> {
-  model?: TLNuSerializedApp
-  shapeClasses?: TLNuShapeClass<S>[]
-  toolClasses?: TLNuToolClass[]
-}
-
-export interface TLNuAppPropsWithApp<S extends TLNuShape> extends TLNuCommonAppProps<S> {
-  app: TLNuApp<S>
+  showBounds?: boolean
+  showResizeHandles?: boolean
+  showRotateHandle?: boolean
+  showContextBar?: boolean
+  showBoundsDetail?: boolean
+  showBoundsRotation?: boolean
 }
 
 export type AnyObject = { [key: string]: any }

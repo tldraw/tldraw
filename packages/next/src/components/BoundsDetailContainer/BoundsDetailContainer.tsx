@@ -3,19 +3,22 @@ import { observer } from 'mobx-react-lite'
 import { useContext } from '~hooks'
 import { BoundsUtils } from '~utils'
 import type { TLNuBounds } from '~types'
-import { useCounterScaledPosition } from '~hooks/useCounterScaledPosition'
+import type { TLNuShape } from '~nu-lib'
+import { useCounterScaledPosition } from '~hooks'
 
-export interface TLNuBoundsDetailContainerProps {
+export interface TLNuBoundsDetailContainerProps<S extends TLNuShape> {
   hidden: boolean
   detail: 'size' | 'rotation'
   bounds: TLNuBounds
+  shapes: S[]
 }
 
-export const BoundsDetailContainer = observer(function BoundsDetail({
+export const BoundsDetailContainer = observer(function BoundsDetail<S extends TLNuShape>({
   bounds,
   hidden,
+  shapes,
   detail = 'size',
-}: TLNuBoundsDetailContainerProps) {
+}: TLNuBoundsDetailContainerProps<S>) {
   const {
     components: { BoundsDetail },
     viewport: {
@@ -35,7 +38,13 @@ export const BoundsDetailContainer = observer(function BoundsDetail({
       className={`nu-counter-scaled-positioned ${hidden ? `nu-fade-out` : ''}`}
       aria-label="bounds-detail-container"
     >
-      <BoundsDetail bounds={bounds} scaledBounds={scaledBounds} zoom={zoom} detail={detail} />
+      <BoundsDetail
+        shapes={shapes}
+        bounds={bounds}
+        scaledBounds={scaledBounds}
+        zoom={zoom}
+        detail={detail}
+      />
     </div>
   )
 })

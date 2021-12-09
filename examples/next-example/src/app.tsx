@@ -24,12 +24,13 @@ import {
   NuStarTool,
   NuStarShape,
   Shape,
+  NuApp,
 } from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
 import { appContext } from 'context'
 
-const components: TLNuComponents = {
+const components: TLNuComponents<Shape> = {
   ContextBar: NuContextBar,
 }
 
@@ -56,7 +57,7 @@ function App(): JSX.Element {
     NuStarTool,
   ])
 
-  const [model, setModel] = React.useState<TLNuSerializedApp>({
+  const [model] = React.useState<TLNuSerializedApp>({
     currentPageId: 'page1',
     selectedIds: ['dot1'],
     pages: [
@@ -154,11 +155,11 @@ function App(): JSX.Element {
     ],
   })
 
-  const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
+  const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape, NuApp>['onMount']>((app) => {
     setApp(app)
   }, [])
 
-  const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {
+  const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape, NuApp>['onPersist']>(() => {
     // todo
   }, [])
 

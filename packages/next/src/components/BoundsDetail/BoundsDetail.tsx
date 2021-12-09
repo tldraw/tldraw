@@ -1,15 +1,16 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
-import type { TLNuBoundsDetailComponent } from '~types'
 import { HTMLContainer } from '~components'
 import { TAU } from '~constants'
 import { GeomUtils } from '~utils'
+import type { TLNuBoundsDetailProps } from '~types'
+import type { TLNuShape } from '~nu-lib'
 
-export const BoundsDetail: TLNuBoundsDetailComponent = observer(function BoundsDetail({
+export const BoundsDetail = observer(function BoundsDetail<S extends TLNuShape>({
   bounds,
   detail,
   scaledBounds,
-}) {
+}: TLNuBoundsDetailProps<S>) {
   const { rotation = 0 } = bounds
   const isFlipped = Math.abs(rotation) > TAU
 

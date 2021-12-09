@@ -117,6 +117,7 @@ export const Canvas = observer(function Renderer<S extends TLNuShape>({
               {components.BoundsDetail && (
                 <BoundsDetailContainer
                   key={'detail' + selectedShapes.map((shape) => shape.id).join('')}
+                  shapes={selectedShapes}
                   bounds={selectedBounds}
                   detail={showBoundsRotation ? 'rotation' : 'size'}
                   hidden={!showBoundsDetail}
