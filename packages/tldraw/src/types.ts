@@ -98,8 +98,8 @@ export interface TDSnapshot {
     hoveredId?: string
     activeTool: TDToolType
     isToolLocked: boolean
-    isStyleOpen: boolean
     isEmptyCanvas: boolean
+    isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
   }

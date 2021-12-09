@@ -41,7 +41,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isBinding, isGhost, meta, events }, ref) => {
+    ({ shape, isBinding, isSelected, isGhost, meta, events }, ref) => {
       const { id, size, style } = shape
 
       const styles = getShapeStyle(style, meta.isDarkMode)
@@ -50,6 +50,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
       if (style.dash === DashStyle.Draw) {
         const pathTDSnapshot = getRectanglePath(shape)
+        const indicatorPath = getRectangleIndicatorPathTDSnapshot(shape)
 
         return (
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -64,18 +65,20 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
               />
             )}
             <path
-              d={getRectangleIndicatorPathTDSnapshot(shape)}
+              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              d={indicatorPath}
+            />
+            <path
+              d={indicatorPath}
               fill={style.isFilled ? styles.fill : 'none'}
-              radius={strokeWidth}
-              stroke="none"
-              pointerEvents="all"
+              pointerEvents="none"
             />
             <path
               d={pathTDSnapshot}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
+              pointerEvents="none"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
           </SVGContainer>
@@ -108,9 +111,6 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
             y1={start[1]}
             x2={end[0]}
             y2={end[1]}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeLinecap="round"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
           />
@@ -119,7 +119,16 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          {isBinding && (
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            {isBinding && (
+              <rect
+                className="tl-binding-indicator"
+                x={sw / 2 - 32}
+                y={sw / 2 - 32}
+                width={w + 64}
+                height={h + 64}
+              />
+            )}
             <rect
               className="tl-binding-indicator"
               x={sw / 2 - 32}
@@ -128,18 +137,20 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
               height={h + 64}
               strokeWidth={this.bindingDistance}
             />
-          )}
-          <rect
-            x={sw / 2}
-            y={sw / 2}
-            width={w}
-            height={h}
-            fill={styles.fill}
-            strokeWidth={sw}
-            stroke="none"
-            pointerEvents="all"
-          />
-          <g pointerEvents="stroke">{paths}</g>
+            {style.isFilled && (
+              <rect
+                x={sw / 2}
+                y={sw / 2}
+                width={w}
+                height={h}
+                fill={styles.fill}
+                pointerEvents="none"
+              />
+            )}
+            <g pointerEvents="none" stroke={styles.stroke} strokeWidth={sw} strokeLinecap="round">
+              {paths}
+            </g>
+          </g>
         </SVGContainer>
       )
     }

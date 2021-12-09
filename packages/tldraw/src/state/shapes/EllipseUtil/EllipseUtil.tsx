@@ -39,7 +39,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isGhost, isBinding, meta, events }, ref) => {
+    ({ shape, isGhost, isSelected, isBinding, meta, events }, ref) => {
       const {
         radius: [radiusX, radiusY],
         style,
@@ -69,18 +69,25 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
                 strokeWidth={this.bindingDistance}
               />
             )}
+            <ellipse
+              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              cx={radiusX}
+              cy={radiusY}
+              rx={radiusX}
+              ry={radiusY}
+            />
             <path
               d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))}
               stroke="none"
               fill={style.isFilled ? styles.fill : 'none'}
-              pointerEvents="all"
+              pointerEvents="none"
             />
             <path
               d={path}
               fill={styles.stroke}
               stroke={styles.stroke}
               strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
+              pointerEvents="none"
               strokeLinecap="round"
               strokeLinejoin="round"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
@@ -111,16 +118,23 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             />
           )}
           <ellipse
+            className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
             cx={radiusX}
             cy={radiusY}
-            rx={rx}
-            ry={ry}
+            rx={radiusX}
+            ry={radiusY}
+          />
+          <ellipse
+            cx={radiusX}
+            cy={radiusY}
+            rx={radiusX}
+            ry={radiusY}
             fill={styles.fill}
             stroke={styles.stroke}
             strokeWidth={sw}
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
-            pointerEvents="all"
+            pointerEvents="none"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
