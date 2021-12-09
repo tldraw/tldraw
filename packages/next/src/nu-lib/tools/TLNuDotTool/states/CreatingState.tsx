@@ -8,7 +8,7 @@ export class CreatingState<
   T extends S & TLNuDotShape,
   R extends TLNuApp<S>,
   P extends TLNuDotTool<T, S, R>
-> extends TLNuToolState<R, P> {
+> extends TLNuToolState<S, R, P> {
   static id = 'creating'
 
   creatingShape?: S

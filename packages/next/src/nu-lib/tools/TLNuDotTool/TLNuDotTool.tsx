@@ -10,14 +10,14 @@ export abstract class TLNuDotTool<
   T extends TLNuDotShape = TLNuDotShape,
   S extends TLNuShape = TLNuShape,
   R extends TLNuApp<S> = TLNuApp<S>
-> extends TLNuTool<R> {
+> extends TLNuTool<S, R> {
   static id = 'box'
 
   static states = [IdleState, PointingState, CreatingState]
 
   static initial = 'idle'
 
-  static shortcuts: TLNuShortcut<TLNuApp>[] = [
+  static shortcuts: TLNuShortcut<TLNuShape, TLNuApp>[] = [
     {
       keys: 'cmd+a,ctrl+a',
       fn: (app) => {

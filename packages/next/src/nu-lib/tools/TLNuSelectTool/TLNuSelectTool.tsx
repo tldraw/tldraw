@@ -17,7 +17,10 @@ import {
   PinchingState,
 } from './states'
 
-export class TLNuSelectTool<R extends TLNuApp<any> = TLNuApp<any>> extends TLNuTool<R> {
+export class TLNuSelectTool<
+  S extends TLNuShape,
+  R extends TLNuApp<any> = TLNuApp<any>
+> extends TLNuTool<S, R> {
   static id = 'select'
 
   static initial = 'idle'

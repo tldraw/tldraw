@@ -422,7 +422,7 @@ export interface TLNuAppPropsWithoutApp<S extends TLNuShape, R extends TLNuApp<S
   extends TLNuCommonAppProps<S, R> {
   model?: TLNuSerializedApp
   shapeClasses?: TLNuShapeClass<S>[]
-  toolClasses?: TLNuToolClass<TLNuApp<S>>[]
+  toolClasses?: TLNuToolClass<S, TLNuApp<S>>[]
 }
 
 export interface TLNuAppPropsWithApp<S extends TLNuShape, R extends TLNuApp<S> = TLNuApp<S>>
@@ -453,8 +453,9 @@ export interface TLNuRendererProps<S extends TLNuShape> extends Partial<TLNuView
 export type AnyObject = { [key: string]: any }
 
 export type TLNuShortcut<
-  R extends TLNuRootState = TLNuRootState,
-  T extends R | TLNuState<R, any> = any
+  S extends TLNuShape = TLNuShape,
+  R extends TLNuRootState<S> = TLNuRootState<S>,
+  T extends R | TLNuState<S, R, any> = any
 > = {
   keys: string
   fn: (root: R, state: T) => void

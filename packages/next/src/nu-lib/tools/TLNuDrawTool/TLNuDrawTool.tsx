@@ -6,7 +6,7 @@ export abstract class TLNuDrawTool<
   T extends TLNuDrawShape = TLNuDrawShape,
   S extends TLNuShape = TLNuShape,
   R extends TLNuApp<S> = TLNuApp<S>
-> extends TLNuTool<R> {
+> extends TLNuTool<S, R> {
   static id = 'draw'
 
   static states = [IdleState, PointingState, CreatingState]

@@ -7,10 +7,10 @@ export class IdleState<
   T extends S & TLNuDotShape,
   R extends TLNuApp<S>,
   P extends TLNuDotTool<T, S, R>
-> extends TLNuToolState<R, P> {
+> extends TLNuToolState<S, R, P> {
   static id = 'idle'
 
-  static shortcuts: TLNuShortcut<TLNuApp>[] = [
+  static shortcuts: TLNuShortcut<TLNuShape, TLNuApp>[] = [
     {
       keys: 'cmd+a,ctrl+a',
       fn: (app) => {

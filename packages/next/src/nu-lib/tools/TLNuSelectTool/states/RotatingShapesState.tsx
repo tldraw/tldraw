@@ -4,9 +4,10 @@ import type { TLNuBounds, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHand
 import { BoundsUtils, GeomUtils } from '~utils'
 
 export class RotatingShapesState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'rotatingShapes'
 
   snapshot: Record<

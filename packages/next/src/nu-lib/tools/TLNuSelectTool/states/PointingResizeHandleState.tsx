@@ -9,9 +9,10 @@ import type {
 } from '~types'
 
 export class PointingResizeHandleState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'pointingResizeHandle'
 
   pointedHandle?: TLNuBoundsHandle

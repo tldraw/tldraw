@@ -3,9 +3,10 @@ import { TLNuApp, TLNuSelectTool, TLNuToolState, TLNuShape } from '~nu-lib'
 import type { TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingSelectedShapeState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'pointingSelectedShape'
 
   private pointedSelectedShape?: TLNuShape

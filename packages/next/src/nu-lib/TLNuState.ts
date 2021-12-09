@@ -11,18 +11,21 @@ import type {
   TLNuShortcut,
   TLNuWheelHandler,
   TLNuStateEvents,
+  AnyObject,
 } from '~types'
+import type { TLNuShape } from '~nu-lib'
 import { KeyUtils } from '~utils'
 
 export interface TLNuStateClass<
-  R extends TLNuRootState = TLNuRootState,
-  P extends R | TLNuState<R, any> = any
+  S extends TLNuShape,
+  R extends TLNuRootState<S> = TLNuRootState<S>,
+  P extends R | TLNuState<S, R, any> = any
 > {
-  new (parent: P, root: R): TLNuState<R, P>
+  new (parent: P, root: R): TLNuState<S, R, P>
   id: string
 }
 
-export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
+export abstract class TLNuRootState<S extends TLNuShape> implements Partial<TLNuCallbacks<S>> {
   constructor() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -34,7 +37,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const states = this.constructor['states'] as TLNuStateClass[]
+    const states = this.constructor['states'] as TLNuStateClass<S>[]
 
     this._id = id
     this._initial = initial
@@ -43,7 +46,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
   private _id: string
   private _initial?: string
-  private _states: TLNuStateClass<any>[]
+  private _states: TLNuStateClass<S, any, any>[]
   private _isActive = false
 
   get initial() {
@@ -62,30 +65,30 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
     return this._isActive
   }
 
-  get descendants(): (TLNuState<any, any> | this)[] {
+  get descendants(): (TLNuState<S, any, any> | this)[] {
     return Array.from(this.children.values()).flatMap((state) => [state, ...state.descendants])
   }
 
   /* ------------------ Child States ------------------ */
 
-  children = new Map<string, TLNuState<any, any>>([])
+  children = new Map<string, TLNuState<S, any, any>>([])
 
-  registerStates = (...stateClasses: TLNuStateClass<any, any>[]) => {
+  registerStates = (...stateClasses: TLNuStateClass<S, any>[]) => {
     stateClasses.forEach((StateClass) =>
       this.children.set(StateClass.id, new StateClass(this, this))
     )
   }
 
-  deregisterStates = (...states: TLNuStateClass<any, any>[]) => {
+  deregisterStates = (...states: TLNuStateClass<S, any>[]) => {
     states.forEach((StateClass) => {
       this.children.get(StateClass.id)?.dispose()
       this.children.delete(StateClass.id)
     })
   }
 
-  @observable currentState: TLNuState<any, any> = {} as TLNuState<any, any>
+  @observable currentState: TLNuState<S, any, any> = {} as TLNuState<S, any, any>
 
-  @action setCurrentState(state: TLNuState<any, any>) {
+  @action setCurrentState(state: TLNuState<S, any, any>) {
     this.currentState = state
   }
 
@@ -95,7 +98,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
    * @param id The id of the new active state.
    * @param data (optional) Any data to send to the new active state's `onEnter` method.
    */
-  transition = (id: string, data: Record<string, unknown> = {}) => {
+  transition = (id: string, data: AnyObject = {}) => {
     if (this.children.size === 0)
       throw Error(`Tool ${this.id} has no states, cannot transition to ${id}.`)
     const nextState = this.children.get(id)
@@ -137,10 +140,10 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
   /* ----------------- Internal Events ---------------- */
 
   private forwardEvent = <
-    K extends keyof TLNuStateEvents,
-    A extends Parameters<TLNuStateEvents[K]>
+    K extends keyof TLNuStateEvents<S>,
+    A extends Parameters<TLNuStateEvents<S>[K]>
   >(
-    eventName: keyof TLNuStateEvents,
+    eventName: keyof TLNuStateEvents<S>,
     ...args: A
   ) => {
     if (this.currentState?._events?.[eventName]) {
@@ -150,7 +153,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
     }
   }
 
-  _events: TLNuStateEvents = {
+  _events: TLNuStateEvents<S> = {
     /**
      * Handle the change from inactive to active.
      *
@@ -343,7 +346,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
   static id: string
 
-  shortcuts?: TLNuShortcut[]
+  shortcuts?: TLNuShortcut<S>[]
 
   onEnter?: TLNuOnEnter<any>
 
@@ -351,33 +354,34 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
   onTransition?: TLNuOnTransition<any>
 
-  onWheel?: TLNuWheelHandler
+  onWheel?: TLNuWheelHandler<S>
 
-  onPointerDown?: TLNuPointerHandler
+  onPointerDown?: TLNuPointerHandler<S>
 
-  onPointerUp?: TLNuPointerHandler
+  onPointerUp?: TLNuPointerHandler<S>
 
-  onPointerMove?: TLNuPointerHandler
+  onPointerMove?: TLNuPointerHandler<S>
 
-  onPointerEnter?: TLNuPointerHandler
+  onPointerEnter?: TLNuPointerHandler<S>
 
-  onPointerLeave?: TLNuPointerHandler
+  onPointerLeave?: TLNuPointerHandler<S>
 
-  onKeyDown?: TLNuKeyboardHandler
+  onKeyDown?: TLNuKeyboardHandler<S>
 
-  onKeyUp?: TLNuKeyboardHandler
+  onKeyUp?: TLNuKeyboardHandler<S>
 
-  onPinchStart?: TLNuPinchHandler
+  onPinchStart?: TLNuPinchHandler<S>
 
-  onPinch?: TLNuPinchHandler
+  onPinch?: TLNuPinchHandler<S>
 
-  onPinchEnd?: TLNuPinchHandler
+  onPinchEnd?: TLNuPinchHandler<S>
 }
 
 export abstract class TLNuState<
-  R extends TLNuRootState,
-  P extends TLNuState<R, any> | R
-> extends TLNuRootState {
+  S extends TLNuShape,
+  R extends TLNuRootState<S>,
+  P extends TLNuState<S, R, any> | R
+> extends TLNuRootState<S> {
   constructor(parent: P, root: R) {
     super()
     this._parent = parent
@@ -434,21 +438,21 @@ export abstract class TLNuState<
     return this._parent
   }
 
-  get ascendants(): (P | TLNuState<R, P>)[] {
+  get ascendants(): (P | TLNuState<S, R, P>)[] {
     if (!this.parent) return [this]
     if (!('ascendants' in this.parent)) return [this.parent, this]
     return [...this.parent.ascendants, this]
   }
 
-  children = new Map<string, TLNuState<R, any>>([])
+  children = new Map<string, TLNuState<S, R, any>>([])
 
-  registerStates = (...stateClasses: TLNuStateClass<R, any>[]) => {
+  registerStates = (...stateClasses: TLNuStateClass<S, R, this>[]) => {
     stateClasses.forEach((StateClass) =>
       this.children.set(StateClass.id, new StateClass(this, this._root))
     )
   }
 
-  deregisterStates = (...states: TLNuStateClass<R, any>[]) => {
+  deregisterStates = (...states: TLNuStateClass<S, R, this>[]) => {
     states.forEach((StateClass) => {
       this.children.get(StateClass.id)?.dispose()
       this.children.delete(StateClass.id)

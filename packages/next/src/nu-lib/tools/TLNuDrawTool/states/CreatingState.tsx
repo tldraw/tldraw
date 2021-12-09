@@ -9,7 +9,7 @@ export class CreatingState<
   T extends S & TLNuDrawShape,
   R extends TLNuApp<S>,
   P extends TLNuDrawTool<T, S, R>
-> extends TLNuToolState<R, P> {
+> extends TLNuToolState<S, R, P> {
   static id = 'creating'
 
   private creatingShape?: T

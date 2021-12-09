@@ -3,9 +3,10 @@ import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
 import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingRotateHandleState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'pointingRotateHandle'
 
   onWheel: TLNuWheelHandler = (info, gesture, e) => {

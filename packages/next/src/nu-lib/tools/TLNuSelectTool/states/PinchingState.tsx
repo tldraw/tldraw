@@ -11,10 +11,11 @@ type GestureInfo<S extends TLNuShape = TLNuShape> = {
   event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
 }
 
-export class PinchingState<R extends TLNuApp, P extends TLNuSelectTool<R>> extends TLNuToolState<
-  R,
-  P
-> {
+export class PinchingState<
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'pinching'
 
   origin: number[] = [0, 0]

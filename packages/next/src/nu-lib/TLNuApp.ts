@@ -38,11 +38,11 @@ export interface TLNuSerializedApp {
   pages: TLNuSerializedPage[]
 }
 
-export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
+export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState<S> {
   constructor(
     serializedApp?: TLNuSerializedApp,
     shapeClasses?: TLNuShapeClass<S>[],
-    tools?: TLNuToolClass[]
+    tools?: TLNuToolClass<S>[]
   ) {
     super()
 

@@ -2,16 +2,17 @@ import { TLNuApp, TLNuBush, TLNuSelectTool, TLNuToolState, TLNuShape } from '~nu
 import { BoundsUtils } from '~utils'
 import type { TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
-export class BrushingState<R extends TLNuApp, P extends TLNuSelectTool<R>> extends TLNuToolState<
-  R,
-  P
-> {
+export class BrushingState<
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'brushing'
 
   private initialSelectedIds: string[] = []
-  private initialSelectedShapes: TLNuShape[] = []
+  private initialSelectedShapes: S[] = []
 
-  private tree: TLNuBush = new TLNuBush()
+  private tree: TLNuBush<S> = new TLNuBush()
 
   onEnter = () => {
     const { selectedShapes, currentPage, selectedIds } = this.app
@@ -25,11 +26,11 @@ export class BrushingState<R extends TLNuApp, P extends TLNuSelectTool<R>> exten
     this.tree.clear()
   }
 
-  onWheel: TLNuWheelHandler = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler = () => {
+  onPointerMove: TLNuPointerHandler<S> = () => {
     const {
       inputs: { shiftKey, ctrlKey, originPoint, currentPoint },
     } = this.app

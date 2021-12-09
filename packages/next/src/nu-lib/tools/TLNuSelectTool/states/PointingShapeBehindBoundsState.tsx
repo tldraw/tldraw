@@ -3,9 +3,10 @@ import { TLNuApp, TLNuShape, TLNuSelectTool, TLNuToolState } from '~nu-lib'
 import type { TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingShapeBehindBoundsState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'pointingShapeBehindBounds'
 
   info = {} as { target: TLNuShape }

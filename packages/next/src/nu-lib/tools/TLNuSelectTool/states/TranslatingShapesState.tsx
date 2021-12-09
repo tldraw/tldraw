@@ -4,9 +4,10 @@ import type { TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '
 import { uniqueId } from '~utils'
 
 export class TranslatingShapesState<
-  R extends TLNuApp,
-  P extends TLNuSelectTool<R>
-> extends TLNuToolState<R, P> {
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuSelectTool<S, R>
+> extends TLNuToolState<S, R, P> {
   static id = 'translatingShapes'
 
   private isCloning = false
