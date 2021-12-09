@@ -125,11 +125,8 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
             />
           )}
           <polygon
+            className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
             points={points.join()}
-            fill={styles.fill}
-            strokeWidth={sw}
-            stroke="none"
-            pointerEvents="all"
           />
           <g pointerEvents="stroke">{paths}</g>
         </SVGContainer>

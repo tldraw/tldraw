@@ -112,13 +112,13 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               cx={radiusX}
               cy={radiusY}
-              rx={rx}
-              ry={ry}
+              rx={radiusX}
+              ry={radiusY}
               strokeWidth={this.bindingDistance}
             />
           )}
           <ellipse
-            className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+            className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
             cx={radiusX}
             cy={radiusY}
             rx={radiusX}
@@ -127,8 +127,8 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
           <ellipse
             cx={radiusX}
             cy={radiusY}
-            rx={radiusX}
-            ry={radiusY}
+            rx={rx}
+            ry={ry}
             fill={styles.fill}
             stroke={styles.stroke}
             strokeWidth={sw}

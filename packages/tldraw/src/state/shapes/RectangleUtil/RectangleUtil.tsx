@@ -123,18 +123,19 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
             {isBinding && (
               <rect
                 className="tl-binding-indicator"
-                x={sw / 2 - 32}
-                y={sw / 2 - 32}
-                width={w + 64}
-                height={h + 64}
+                x={0}
+                y={0}
+                width={size[0]}
+                height={size[1]}
+                strokeWidth={this.bindingDistance}
               />
             )}
             <rect
-              className="tl-binding-indicator"
-              x={sw / 2 - 32}
-              y={sw / 2 - 32}
-              width={w + 64}
-              height={h + 64}
+              className={isSelected || style.isFilled ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              x={sw / 2}
+              y={sw / 2}
+              width={w}
+              height={h}
               strokeWidth={this.bindingDistance}
             />
             {style.isFilled && (
