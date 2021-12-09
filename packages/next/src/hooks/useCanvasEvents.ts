@@ -3,7 +3,7 @@ import { useContext } from '~hooks'
 import { TLNuPointerEventHandler, TLNuTargetType } from '~types'
 
 export function useCanvasEvents() {
-  const { inputs, callbacks } = useContext()
+  const { callbacks } = useContext()
 
   const events = React.useMemo(() => {
     const onPointerMove: TLNuPointerEventHandler = (e) => {

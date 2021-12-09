@@ -43,7 +43,7 @@ export class TLNuDrawShape<P extends TLNuDrawShapeProps = any> extends TLNuShape
 
   Indicator = observer((props: TLNuIndicatorProps) => {
     const { points } = this
-    return <polyline points={points.join()} strokeWidth={2} fill="transparent" />
+    return <polyline points={points.join()} fill="transparent" />
   })
 
   /** The shape's bounds in "shape space". */

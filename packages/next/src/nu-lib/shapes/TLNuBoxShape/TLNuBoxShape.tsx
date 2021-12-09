@@ -44,7 +44,7 @@ export class TLNuBoxShape<P extends TLNuBoxShapeProps = any> extends TLNuShape<
   })
 
   Indicator = observer((props: TLNuIndicatorProps) => {
-    return <rect width={this.size[0]} height={this.size[1]} strokeWidth={2} fill="transparent" />
+    return <rect width={this.size[0]} height={this.size[1]} fill="transparent" />
   })
 
   getBounds = (): TLNuBounds => {
