@@ -21,7 +21,7 @@ export interface TLNuStateClass<
   R extends TLNuRootState<S> = TLNuRootState<S>,
   P extends R | TLNuState<S, R, any> = any
 > {
-  new (parent: P, root: R): TLNuState<S, R, P>
+  new (parent: P, root: R): TLNuState<S, R>
   id: string
 }
 
@@ -380,7 +380,7 @@ export abstract class TLNuRootState<S extends TLNuShape> implements Partial<TLNu
 export abstract class TLNuState<
   S extends TLNuShape,
   R extends TLNuRootState<S>,
-  P extends TLNuState<S, R, any> | R
+  P extends R | TLNuState<S, any> = any
 > extends TLNuRootState<S> {
   constructor(parent: P, root: R) {
     super()
@@ -438,7 +438,7 @@ export abstract class TLNuState<
     return this._parent
   }
 
-  get ascendants(): (P | TLNuState<S, R, P>)[] {
+  get ascendants(): (P | TLNuState<S, R>)[] {
     if (!this.parent) return [this]
     if (!('ascendants' in this.parent)) return [this.parent, this]
     return [...this.parent.ascendants, this]

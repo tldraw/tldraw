@@ -12,9 +12,9 @@ export interface TLNuToolStateClass<
 }
 
 export abstract class TLNuToolState<
-  S extends TLNuShape = TLNuShape,
-  R extends TLNuApp<S> = TLNuApp<S>,
-  P extends R | TLNuTool<S, R> = TLNuTool<S, R>
+  S extends TLNuShape,
+  R extends TLNuApp<S>,
+  P extends TLNuTool<S, R>
 > extends TLNuState<S, R, P> {
   get app() {
     return this.root
