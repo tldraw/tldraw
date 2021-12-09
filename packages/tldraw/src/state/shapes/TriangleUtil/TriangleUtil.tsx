@@ -54,12 +54,12 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 
       const { strokeWidth } = styles
 
-      const trianglePoints = getTrianglePoints(shape).join()
-
       const sw = 1 + strokeWidth * 1.618
+
       if (style.dash === DashStyle.Draw) {
         const pathTDSnapshot = getTrianglePath(shape)
         const indicatorPath = getTriangleIndicatorPathTDSnapshot(shape)
+        const trianglePoints = getTrianglePoints(shape).join()
 
         return (
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
@@ -91,7 +91,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         )
       }
 
-      const points = getTrianglePoints(shape, sw / 2)
+      const points = getTrianglePoints(shape)
       const sides = Utils.pointsToLineSegments(points, true)
       const paths = sides.map(([start, end], i) => {
         const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
@@ -120,12 +120,12 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
           {isBinding && (
             <polygon
               className="tl-binding-indicator"
-              points={trianglePoints}
+              points={points.join()}
               strokeWidth={this.bindingDistance * 2}
             />
           )}
           <polygon
-            points={trianglePoints}
+            points={points.join()}
             fill={styles.fill}
             strokeWidth={sw}
             stroke="none"
