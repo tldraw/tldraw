@@ -1,6 +1,8 @@
 import { Vec } from '@tldraw/vec'
+import { PI2 } from '~constants'
 import { TLNuApp, TLNuShape, TLNuDrawShape, TLNuDrawTool, TLNuToolState } from '~nu-lib'
 import type { TLNuBinding, TLNuPointerHandler } from '~types'
+import { uniqueId } from '~utils'
 
 export class PointingState<
   S extends TLNuShape,
@@ -19,6 +21,19 @@ export class PointingState<
   }
 
   onPointerUp: TLNuPointerHandler = () => {
+    const { shapeClass } = this.tool
+
+    const { originPoint } = this.app.inputs
+
+    const shape = new shapeClass({
+      id: uniqueId(),
+      parentId: this.app.currentPage.id,
+      point: originPoint,
+      points: [[0, 0, 0.5]],
+    })
+
+    this.app.currentPage.addShapes(shape)
+
     this.tool.transition('idle')
   }
 }

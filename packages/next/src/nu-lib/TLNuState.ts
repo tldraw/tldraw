@@ -73,13 +73,13 @@ export abstract class TLNuRootState<S extends TLNuShape> implements Partial<TLNu
 
   children = new Map<string, TLNuState<S, any, any>>([])
 
-  registerStates = (...stateClasses: TLNuStateClass<S, any>[]) => {
+  registerStates = (...stateClasses: TLNuStateClass<S, any>[]): void => {
     stateClasses.forEach((StateClass) =>
       this.children.set(StateClass.id, new StateClass(this, this))
     )
   }
 
-  deregisterStates = (...states: TLNuStateClass<S, any>[]) => {
+  deregisterStates = (...states: TLNuStateClass<S, any>[]): void => {
     states.forEach((StateClass) => {
       this.children.get(StateClass.id)?.dispose()
       this.children.delete(StateClass.id)
@@ -117,7 +117,7 @@ export abstract class TLNuRootState<S extends TLNuShape> implements Partial<TLNu
 
   /* --------------- Keyboard Shortcuts --------------- */
 
-  protected registerKeyboardShortcuts = () => {
+  protected registerKeyboardShortcuts = (): void => {
     if (!this.shortcuts?.length) return
 
     this.disposables.push(
@@ -446,13 +446,13 @@ export abstract class TLNuState<
 
   children = new Map<string, TLNuState<S, R, any>>([])
 
-  registerStates = (...stateClasses: TLNuStateClass<S, R, this>[]) => {
+  registerStates = (...stateClasses: TLNuStateClass<S, R, this>[]): void => {
     stateClasses.forEach((StateClass) =>
       this.children.set(StateClass.id, new StateClass(this, this._root))
     )
   }
 
-  deregisterStates = (...states: TLNuStateClass<S, R, this>[]) => {
+  deregisterStates = (...states: TLNuStateClass<S, R, this>[]): void => {
     states.forEach((StateClass) => {
       this.children.get(StateClass.id)?.dispose()
       this.children.delete(StateClass.id)

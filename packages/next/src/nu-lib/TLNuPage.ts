@@ -53,8 +53,8 @@ export class TLNuPage<S extends TLNuShape = TLNuShape> {
     shapeInstances.forEach((instance) => observe(instance, this.app.saveState))
 
     this.shapes.push(...shapeInstances)
-    // this.bump()
-    // this.app.persist()
+    this.bump()
+    this.app.saveState()
   }
 
   @action removeShapes(...shapes: S[] | string[]) {

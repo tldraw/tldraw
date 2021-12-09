@@ -1,5 +1,11 @@
 export class SvgPathUtils {
   static getCurvedPathForPolygon(points: number[][]) {
+    if (points.length < 3) {
+      return `M -4, 0
+      a 4,4 0 1,0 8,0
+      a 4,4 0 1,0 -8,0`
+    }
+
     const d = ['M', ...points[0].slice(0, 2), 'Q']
     const len = points.length
     for (let i = 1; i < len; i++) {
@@ -12,7 +18,12 @@ export class SvgPathUtils {
   }
 
   static getCurvedPathForPoints(points: number[][]) {
-    if (points.length < 3) return ''
+    if (points.length < 3) {
+      return `M -4, 0
+      a 4,4 0 1,0 8,0
+      a 4,4 0 1,0 -8,0`
+    }
+
     const d = ['M', ...points[0].slice(0, 2), 'Q']
     const len = points.length
     for (let i = 1; i < len - 1; i++) {
