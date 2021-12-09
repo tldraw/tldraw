@@ -267,7 +267,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-export function getTrianglePoints(shape: T, offset = 0) {
+export function getTrianglePoints(shape: T, offset = 0, rotation = 0) {
   const {
     size: [w, h],
   } = shape
@@ -279,6 +279,7 @@ export function getTrianglePoints(shape: T, offset = 0) {
   ]
 
   if (offset) points = getOffsetPolygon(points, offset)
+  if (rotation) points = points.map((pt) => Vec.rotWith(pt, [w / 2, h / 2], rotation))
 
   return points
 }
