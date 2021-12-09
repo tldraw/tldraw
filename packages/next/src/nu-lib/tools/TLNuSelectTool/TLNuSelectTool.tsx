@@ -16,18 +16,14 @@ import {
   PinchingState,
 } from './states'
 
-export class TLNuSelectTool<
-  S extends TLNuShape = TLNuShape,
-  B extends TLNuBinding = TLNuBinding,
-  R extends TLNuApp<S, B> = TLNuApp<S, B>
-> extends TLNuTool<S, B, R> {
+export class TLNuSelectTool<R extends TLNuApp = TLNuApp> extends TLNuTool<R> {
   static id = 'select'
 
   static initial = 'idle'
 
   static shortcut = 'v,1'
 
-  static states: TLNuToolStateClass[] = [
+  static states = [
     IdleState,
     BrushingState,
     PointingCanvasState,

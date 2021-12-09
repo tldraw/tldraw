@@ -1,7 +1,6 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuApp, TLNuSelectTool, TLNuSerializedShape, TLNuShape, TLNuToolState } from '~nu-lib'
+import { TLNuApp, TLNuSelectTool, TLNuSerializedShape, TLNuToolState } from '~nu-lib'
 import {
-  TLNuBinding,
   TLNuBounds,
   TLNuBoundsCorner,
   TLNuBoundsEdge,
@@ -12,11 +11,9 @@ import {
 import { BoundsUtils } from '~utils'
 
 export class ResizingShapesState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuSelectTool<R>
+> extends TLNuToolState<R, P> {
   static id = 'resizingShapes'
 
   isSingle = false
@@ -79,11 +76,11 @@ export class ResizingShapesState<
     this.boundsRotation = 0
   }
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     const {
       inputs: { shiftKey, originPoint, currentPoint },
     } = this.app
@@ -131,12 +128,12 @@ export class ResizingShapesState<
     })
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     this.tool.transition('idle')
     this.app.persist()
   }
 
-  onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+  onKeyDown: TLNuKeyboardHandler = (info, e) => {
     switch (e.key) {
       case 'Escape': {
         this.app.selectedShapes.forEach((shape) => {

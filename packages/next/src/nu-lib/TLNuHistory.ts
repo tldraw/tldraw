@@ -2,14 +2,14 @@ import { TLNuApp, TLNuPage, TLNuSerializedApp, TLNuShape } from '~nu-lib'
 import type { TLNuBinding } from '~types'
 import { KeyUtils } from '~utils'
 
-export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding = TLNuBinding> {
-  constructor(app: TLNuApp<S, B>) {
+export class TLNuHistory {
+  constructor(app: TLNuApp) {
     KeyUtils.registerShortcut('cmd+z,ctrl+z', () => this.undo())
     KeyUtils.registerShortcut('cmd+shift+z,ctrl+shift+z', () => this.redo())
     this.app = app
   }
 
-  app: TLNuApp<S, B>
+  app: TLNuApp
   stack: TLNuSerializedApp[] = []
   pointer = 0
   isPaused = true
@@ -85,7 +85,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
     }
 
     const pagesMap = new Map(this.app.pages.map((page) => [page.id, page]))
-    const pagesToAdd: TLNuPage<S, B>[] = []
+    const pagesToAdd: TLNuPage[] = []
 
     for (const serializedPage of pages) {
       const page = pagesMap.get(serializedPage.id)
@@ -93,7 +93,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
       if (page !== undefined) {
         // Update the page
         const shapesMap = new Map(page.shapes.map((shape) => [shape.id, shape]))
-        const shapesToAdd: S[] = []
+        const shapesToAdd: TLNuShape[] = []
 
         for (const serializedShape of serializedPage.shapes) {
           const shape = shapesMap.get(serializedShape.id)
@@ -107,7 +107,7 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
           } else {
             // Create the shape
             const ShapeClass = this.app.getShapeClass(serializedShape.type)
-            shapesToAdd.push(new ShapeClass(this.app, serializedShape) as S)
+            shapesToAdd.push(new ShapeClass(serializedShape))
           }
         }
 
@@ -124,14 +124,14 @@ export class TLNuHistory<S extends TLNuShape = TLNuShape, B extends TLNuBinding 
         const { id, name, shapes, bindings } = serializedPage
 
         pagesToAdd.push(
-          new TLNuPage<S, B>(this.app, {
+          new TLNuPage(this.app, {
             id,
             name,
-            bindings: bindings as B[],
+            bindings,
             shapes: shapes.map((serializedShape) => {
               const ShapeClass = this.app.getShapeClass(serializedShape.type)
-              return new ShapeClass(this.app, serializedShape)
-            }) as S[],
+              return new ShapeClass(serializedShape)
+            }),
           })
         )
       }

@@ -10,27 +10,22 @@ import type {
 } from '~nu-lib'
 
 export abstract class TLNuDrawTool<
-  S extends TLNuDrawShape<any> = TLNuDrawShape<any>,
-  B extends TLNuBinding = TLNuBinding,
-  R extends TLNuApp<any, any> = TLNuApp<any, any>
-> extends TLNuTool<S, B, R> {
+  S extends TLNuDrawShape = TLNuDrawShape,
+  R extends TLNuApp = TLNuApp
+> extends TLNuTool<R> {
   static id = 'draw'
 
   static states = [IdleState, PointingState, CreatingState]
 
   static initial = 'idle'
 
-  /**
-   * Whether to simplify the shape's points after creating.
-   */
+  /** Whether to simplify the shape's points after creating. */
   simplify = true
 
-  /**
-   * The minimum distance between points when simplifying a line.
-   */
+  /** The minimum distance between points when simplifying a line. */
   simplifyTolerance = 1
 
   abstract shapeClass: {
-    new (app: TLNuApp<any, any>, props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
+    new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
   }
 }

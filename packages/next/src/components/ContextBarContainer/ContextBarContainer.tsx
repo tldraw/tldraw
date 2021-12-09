@@ -8,17 +8,17 @@ import type { TLNuBounds, TLNuOffset } from '~types'
 
 const stopEventPropagation = (e: React.PointerEvent) => e.stopPropagation()
 
-export interface TLNuContextBarContainerProps<S extends TLNuShape> {
-  shapes: S[]
+export interface TLNuContextBarContainerProps {
+  shapes: TLNuShape[]
   hidden: boolean
   bounds: TLNuBounds
 }
 
-export const ContextBarContainer = observer(function ContextBar<S extends TLNuShape>({
+export const ContextBarContainer = observer(function ContextBar({
   shapes,
   hidden,
   bounds,
-}: TLNuContextBarContainerProps<S>) {
+}: TLNuContextBarContainerProps) {
   const {
     components: { ContextBar },
     viewport: {

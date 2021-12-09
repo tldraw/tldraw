@@ -5,11 +5,10 @@ import type { TLNuApp, TLNuDrawShape, TLNuDrawTool } from '~nu-lib'
 import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class CreatingState<
-  S extends TLNuDrawShape<any>,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuDrawTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  S extends TLNuDrawShape,
+  R extends TLNuApp,
+  P extends TLNuDrawTool<S, R>
+> extends TLNuToolState<R, P> {
   static id = 'creating'
 
   private creatingShape?: S
@@ -22,7 +21,7 @@ export class CreatingState<
 
     const { originPoint } = this.app.inputs
 
-    const shape = new shapeClass(this.app, {
+    const shape = new shapeClass({
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: originPoint,
@@ -38,7 +37,7 @@ export class CreatingState<
     this.offset = [0, 0, originPoint[2]]
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     if (!this.creatingShape) throw Error('Expected a creating shape.')
     const { currentPoint, previousPoint, originPoint } = this.app.inputs
     if (Vec.isEqual(previousPoint, currentPoint)) return
@@ -68,7 +67,7 @@ export class CreatingState<
     }
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     if (!this.creatingShape) throw Error('Expected a creating shape.')
 
     this.creatingShape.update({
@@ -81,7 +80,7 @@ export class CreatingState<
     this.tool.transition('idle')
   }
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 }

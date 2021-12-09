@@ -4,17 +4,17 @@ import { Container } from '~components'
 import type { TLNuShape } from '~nu-lib'
 import { useShapeEvents } from '~hooks/useShapeEvents'
 
-interface ShapeProps<S extends TLNuShape = TLNuShape, M = any> {
-  shape: S
+interface ShapeProps {
+  shape: TLNuShape
   zIndex: number
   isHovered?: boolean
   isSelected?: boolean
   isBinding?: boolean
   isEditing?: boolean
-  meta: M
+  meta: any
 }
 
-export const Shape = observer(function Shape<S extends TLNuShape = TLNuShape, M = any>({
+export const Shape = observer(function Shape({
   shape,
   zIndex,
   isHovered = false,
@@ -22,7 +22,7 @@ export const Shape = observer(function Shape<S extends TLNuShape = TLNuShape, M 
   isBinding = false,
   isEditing = false,
   meta,
-}: ShapeProps<S, M>) {
+}: ShapeProps) {
   const { bounds, rotation, Component } = shape
 
   const events = useShapeEvents(shape)

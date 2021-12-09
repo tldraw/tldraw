@@ -2,15 +2,14 @@ import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { TLNuBoundsComponentProps, TLNuBoundsCorner, TLNuBoundsEdge } from '~types'
 import { EdgeHandle, CornerHandle, RotateHandle } from './handles'
-import type { TLNuShape } from '~nu-lib'
 import { SVGContainer } from '../SVGContainer'
 
-export const BoundsForeground = observer(function BoundsFg<S extends TLNuShape>({
+export const BoundsForeground = observer(function BoundsFg({
   bounds,
   zoom,
   showResizeHandles,
   showRotateHandle,
-}: TLNuBoundsComponentProps<S>) {
+}: TLNuBoundsComponentProps) {
   const { width, height } = bounds
 
   const size = 8 / zoom

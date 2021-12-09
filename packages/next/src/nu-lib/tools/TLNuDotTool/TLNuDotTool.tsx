@@ -1,16 +1,15 @@
 import { IdleState, PointingState, CreatingState } from './states'
 import { TLNuTool } from '~nu-lib'
-import type { TLNuBinding, TLNuShortcut } from '~types'
-import type { TLNuApp, TLNuDotShape, TLNuShapeProps } from '~nu-lib'
+import type { TLNuShortcut } from '~types'
+import type { TLNuDotShapeProps, TLNuApp, TLNuDotShape, TLNuShapeProps } from '~nu-lib'
 
 // shape tools need to have two generics: a union of all shapes in
 // the app, and the particular shape that they'll be creating
 
 export abstract class TLNuDotTool<
-  S extends TLNuDotShape<any> = TLNuDotShape<any>,
-  B extends TLNuBinding = TLNuBinding,
-  R extends TLNuApp<any, any> = TLNuApp<any, any>
-> extends TLNuTool<S, B, R> {
+  S extends TLNuDotShape = TLNuDotShape,
+  R extends TLNuApp = TLNuApp
+> extends TLNuTool<R> {
   static id = 'box'
 
   static states = [IdleState, PointingState, CreatingState]
@@ -28,6 +27,6 @@ export abstract class TLNuDotTool<
   ]
 
   abstract shapeClass: {
-    new (app: R, props: TLNuShapeProps & Partial<any>): S
+    new (props: TLNuShapeProps & Partial<TLNuDotShapeProps & unknown>): S
   }
 }

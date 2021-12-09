@@ -6,7 +6,7 @@ import { SVGContainer } from '~components'
 import { BoundsUtils, PointUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
 import { intersectLineSegmentPolyline, intersectPolygonBounds } from '@tldraw/intersect'
-import type { TLNuApp, TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
+import type { TLNuComponentProps, TLNuIndicatorProps, TLNuShapeProps } from '~nu-lib'
 import type { TLNuBounds } from '~types'
 
 export interface TLNuStarShapeProps extends TLNuBoxShapeProps {
@@ -14,9 +14,9 @@ export interface TLNuStarShapeProps extends TLNuBoxShapeProps {
   ratio: number
 }
 
-export class TLNuStarShape<P extends TLNuStarShapeProps> extends TLNuBoxShape<P> {
-  constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
-    super(app, props)
+export class TLNuStarShape<P extends TLNuStarShapeProps = any> extends TLNuBoxShape<P> {
+  constructor(props = {} as TLNuShapeProps & Partial<P>) {
+    super(props)
     this.init(props)
     makeObservable(this)
   }

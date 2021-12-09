@@ -5,9 +5,9 @@ import type { TLNuBoundsComponentProps } from '~types'
 import type { TLNuShape } from '~nu-lib'
 import { SVGContainer } from '~components'
 
-export const BoundsBackground = observer(function BoundsBackground<S extends TLNuShape>({
+export const BoundsBackground = observer(function BoundsBackground({
   bounds,
-}: TLNuBoundsComponentProps<S>) {
+}: TLNuBoundsComponentProps) {
   const events = useBoundsEvents('center')
 
   return (

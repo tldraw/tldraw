@@ -17,8 +17,8 @@ import type { NuApp } from 'stores'
 interface NuPolygonShapeProps extends NuStyleProps, TLNuPolygonShapeProps {}
 
 export class NuPolygonShape extends TLNuPolygonShape<NuPolygonShapeProps> {
-  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuPolygonShapeProps>) {
-    super(app, props)
+  constructor(props = {} as TLNuShapeProps & Partial<NuPolygonShapeProps>) {
+    super(props)
     assignOwnProps(this, props)
     makeObservable(this)
   }

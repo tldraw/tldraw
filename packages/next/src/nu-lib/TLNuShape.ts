@@ -5,24 +5,13 @@ import {
   intersectPolygonBounds,
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
-import type {
-  TLNuBinding,
-  AnyObject,
-  TLNuBounds,
-  TLNuBoundsCorner,
-  TLNuBoundsEdge,
-  TLNuHandle,
-} from '~types'
+import type { AnyObject, TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
 import type { TLNuApp } from './TLNuApp'
 import { BoundsUtils, PointUtils, assignOwnProps } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
-export interface TLNuShapeClass<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  A extends TLNuApp<S, B> = TLNuApp<S, B>
-> {
-  new (app: A, props: any): S
+export interface TLNuShapeClass {
+  new (props: any): TLNuShape
   id: string
 }
 
@@ -66,7 +55,7 @@ export interface TLNuComponentProps<M = unknown> extends TLNuIndicatorProps<M> {
   }
 }
 
-export interface TLNuResizeInfo<P extends AnyObject = any> {
+export interface TLNuResizeInfo<P = any> {
   type: TLNuBoundsEdge | TLNuBoundsCorner
   scaleX: number
   scaleY: number
@@ -76,11 +65,10 @@ export interface TLNuResizeInfo<P extends AnyObject = any> {
 }
 
 export abstract class TLNuShape<P extends AnyObject = any, M = any> implements TLNuShapeProps {
-  constructor(app: TLNuApp<any, any>, props: TLNuShapeProps & Partial<P>) {
+  constructor(props: TLNuShapeProps & Partial<P>) {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     this.type = this.constructor['id']
-    this.app = app
     this.init(props)
     makeObservable(this)
   }
@@ -103,7 +91,6 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
     'isAspectRatioLocked',
   ])
 
-  readonly app: TLNuApp<any, any>
   readonly showCloneHandles: boolean = false
   readonly hideResizeHandles: boolean = false
   readonly hideRotateHandle: boolean = false

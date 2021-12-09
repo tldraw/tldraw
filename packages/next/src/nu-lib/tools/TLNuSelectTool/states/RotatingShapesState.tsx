@@ -1,20 +1,12 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuState, TLNuToolState } from '~nu-lib'
-import type {
-  TLNuBinding,
-  TLNuBounds,
-  TLNuKeyboardHandler,
-  TLNuPointerHandler,
-  TLNuWheelHandler,
-} from '~types'
+import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
+import type { TLNuBounds, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { BoundsUtils, GeomUtils } from '~utils'
 
 export class RotatingShapesState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuSelectTool<R>
+> extends TLNuToolState<R, P> {
   static id = 'rotatingShapes'
 
   snapshot: Record<
@@ -47,11 +39,11 @@ export class RotatingShapesState<
 
   onExit = () => (this.snapshot = {})
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     const {
       selectedShapes,
       inputs: { shiftKey, currentPoint },
@@ -106,12 +98,12 @@ export class RotatingShapesState<
     })
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     this.app.persist()
     this.tool.transition('idle')
   }
 
-  onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+  onKeyDown: TLNuKeyboardHandler = (info, e) => {
     switch (e.key) {
       case 'Escape': {
         this.app.selectedShapes.forEach((shape) => {

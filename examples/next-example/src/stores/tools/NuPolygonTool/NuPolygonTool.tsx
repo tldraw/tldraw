@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLNuBoxTool } from '@tldraw/next'
 import { NuPolygonShape } from 'stores'
 

@@ -16,15 +16,14 @@ import { observer } from 'mobx-react-lite'
 import { observable, makeObservable } from 'mobx'
 import { intersectEllipseBounds, intersectLineSegmentEllipse } from '@tldraw/intersect'
 import type { NuStyleProps } from './NuStyleProps'
-import type { NuApp } from 'stores'
 
 export interface NuEllipseShapeProps extends NuStyleProps {
   size: number[]
 }
 
 export class NuEllipseShape extends TLNuBoxShape<NuEllipseShapeProps> {
-  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
-    super(app, props)
+  constructor(props = {} as TLNuShapeProps & Partial<NuEllipseShapeProps>) {
+    super(props)
     assignOwnProps(this, props)
     makeObservable(this)
   }

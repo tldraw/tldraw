@@ -18,8 +18,8 @@ import type { NuApp } from 'stores'
 export interface NuHighlighterShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 
 export class NuHighlighterShape extends TLNuDrawShape<NuHighlighterShapeProps> {
-  constructor(app: NuApp, props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
-    super(app, props)
+  constructor(props = {} as TLNuShapeProps & Partial<NuHighlighterShapeProps>) {
+    super(props)
     assignOwnProps(this, props)
     makeObservable(this)
   }

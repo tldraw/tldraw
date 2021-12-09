@@ -11,15 +11,15 @@ export interface TLNuSerializedPage {
   nonce?: number
 }
 
-export interface TLNuPageProps<S extends TLNuShape, B extends TLNuBinding> {
+export interface TLNuPageProps {
   id: string
   name: string
-  shapes: S[]
-  bindings: B[]
+  shapes: TLNuShape[]
+  bindings: TLNuBinding[]
 }
 
-export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
-  constructor(app: TLNuApp<S, B>, props = {} as TLNuPageProps<S, B>) {
+export class TLNuPage {
+  constructor(app: TLNuApp, props = {} as TLNuPageProps) {
     const { id, name, shapes = [], bindings = [] } = props
     this.id = id
     this.name = name
@@ -29,23 +29,23 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
     makeObservable(this)
   }
 
-  app: TLNuApp<S, B>
+  app: TLNuApp
 
   @observable id: string
 
   @observable name: string
 
-  @observable shapes: S[]
+  @observable shapes: TLNuShape[]
 
-  @observable bindings: B[]
+  @observable bindings: TLNuBinding[]
 
-  @action addShapes(...shapes: S[] | TLNuSerializedShape[]) {
+  @action addShapes(...shapes: TLNuShape[] | TLNuSerializedShape[]) {
     const shapeInstances =
       'getBounds' in shapes[0]
-        ? (shapes as S[])
+        ? (shapes as TLNuShape[])
         : (shapes as TLNuSerializedShape[]).map((shape) => {
             const ShapeClass = this.app.getShapeClass(shape.type)
-            return new ShapeClass(this.app, shape)
+            return new ShapeClass(shape)
           })
 
     this.shapes.push(...shapeInstances)
@@ -53,11 +53,11 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
     // this.app.persist()
   }
 
-  @action removeShapes(...shapes: S[] | string[]) {
+  @action removeShapes(...shapes: TLNuShape[] | string[]) {
     if (typeof shapes[0] === 'string') {
       this.shapes = this.shapes.filter((shape) => !(shapes as string[]).includes(shape.id))
     } else {
-      this.shapes = this.shapes.filter((shape) => !(shapes as S[]).includes(shape))
+      this.shapes = this.shapes.filter((shape) => !(shapes as TLNuShape[]).includes(shape))
     }
     // this.bump()
     // this.app.persist()
@@ -80,7 +80,7 @@ export class TLNuPage<S extends TLNuShape, B extends TLNuBinding> {
     this.nonce++
   }
 
-  @action update(props: Partial<TLNuPageProps<S, B>>): void {
+  @action update(props: Partial<TLNuPageProps>): void {
     Object.assign(this, props)
   }
 }

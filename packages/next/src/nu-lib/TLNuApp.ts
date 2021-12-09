@@ -39,14 +39,11 @@ export interface TLNuSerializedApp {
   pages: TLNuSerializedPage[]
 }
 
-export class TLNuApp<
-  S extends TLNuShape = TLNuShape,
-  B extends TLNuBinding = TLNuBinding
-> extends TLNuRootState<S, B> {
+export class TLNuApp extends TLNuRootState {
   constructor(
     serializedApp?: TLNuSerializedApp,
-    shapeClasses?: TLNuShapeClass<S, B, any>[],
-    tools?: TLNuToolClass<S, B, any>[]
+    shapeClasses?: TLNuShapeClass[],
+    tools?: TLNuToolClass[]
   ) {
     super()
 
@@ -94,7 +91,7 @@ export class TLNuApp<
 
   // this needs to be at the bottom
 
-  history = new TLNuHistory<S, B>(this)
+  history = new TLNuHistory(this)
 
   persist = this.history.persist
 
@@ -165,17 +162,17 @@ export class TLNuApp<
   /* ------------------ Shape Classes ----------------- */
 
   // Map of shape classes (used for deserialization)
-  shapeClasses = new Map<string, TLNuShapeClass<S, B, any>>()
+  shapeClasses = new Map<string, TLNuShapeClass>()
 
-  registerShapes = (...shapeClasses: TLNuShapeClass<S, B, any>[]) => {
+  registerShapes = (...shapeClasses: TLNuShapeClass[]) => {
     shapeClasses.forEach((shapeClass) => this.shapeClasses.set(shapeClass.id, shapeClass))
   }
 
-  deregisterShapes = (...shapeClasses: TLNuShapeClass<S, B, any>[]) => {
+  deregisterShapes = (...shapeClasses: TLNuShapeClass[]) => {
     shapeClasses.forEach((shapeClass) => this.shapeClasses.delete(shapeClass.id))
   }
 
-  getShapeClass = (type: string): TLNuShapeClass<S, B, any> => {
+  getShapeClass = (type: string): TLNuShapeClass => {
     if (!type) throw Error('No shape type provided.')
     const shapeClass = this.shapeClasses.get(type)
     if (!shapeClass) throw Error(`Could not find shape class for ${type}`)
@@ -192,16 +189,16 @@ export class TLNuApp<
 
   /* ---------------------- Pages --------------------- */
 
-  @observable pages: TLNuPage<S, B>[] = [
-    new TLNuPage<S, B>(this, { id: 'page', name: 'page', shapes: [], bindings: [] }),
+  @observable pages: TLNuPage[] = [
+    new TLNuPage(this, { id: 'page', name: 'page', shapes: [], bindings: [] }),
   ]
 
-  @action addPages(...pages: TLNuPage<S, B>[]): void {
+  @action addPages(...pages: TLNuPage[]): void {
     this.pages.push(...pages)
     this.persist()
   }
 
-  @action removePages(...pages: TLNuPage<S, B>[]): void {
+  @action removePages(...pages: TLNuPage[]): void {
     this.pages = this.pages.filter((page) => !pages.includes(page))
     this.persist()
   }
@@ -210,12 +207,12 @@ export class TLNuApp<
 
   @observable currentPageId = 'page'
 
-  @action setCurrentPage(page: string | TLNuPage<S, B>) {
+  @action setCurrentPage(page: string | TLNuPage) {
     this.currentPageId = typeof page === 'string' ? page : page.id
     return this
   }
 
-  @computed get currentPage(): TLNuPage<S, B> {
+  @computed get currentPage(): TLNuPage {
     const page = this.pages.find((page) => page.id === this.currentPageId)
     if (!page) throw Error(`Could not find a page named ${this.currentPageId}.`)
     return page
@@ -223,7 +220,7 @@ export class TLNuApp<
 
   /* --------------------- Shapes --------------------- */
 
-  @computed get shapesInViewport(): S[] {
+  @computed get shapesInViewport(): TLNuShape[] {
     const {
       currentPage,
       viewport: { currentView },
@@ -237,19 +234,19 @@ export class TLNuApp<
     )
   }
 
-  @action readonly createShapes = (shapes: S[] | TLNuSerializedShape[]): this => {
+  @action readonly createShapes = (shapes: TLNuShape[] | TLNuSerializedShape[]): this => {
     this.currentPage.addShapes(...shapes)
     return this
   }
 
-  @action readonly deleteShapes = (shapes: S[] | string[]): this => {
+  @action readonly deleteShapes = (shapes: TLNuShape[] | string[]): this => {
     if (shapes.length === 0) return this
 
     let ids: Set<string>
     if (typeof shapes[0] === 'string') {
       ids = new Set(shapes as string[])
     } else {
-      ids = new Set((shapes as S[]).map((shape) => shape.id))
+      ids = new Set((shapes as TLNuShape[]).map((shape) => shape.id))
     }
     this.selectedIds = this.selectedIds.filter((id) => !ids.has(id))
     this.currentPage.removeShapes(...shapes)
@@ -260,12 +257,12 @@ export class TLNuApp<
 
   @observable hoveredId?: string
 
-  @computed get hoveredShape(): S | undefined {
+  @computed get hoveredShape(): TLNuShape | undefined {
     const { hoveredId, currentPage } = this
     return hoveredId ? currentPage.shapes.find((shape) => shape.id === hoveredId) : undefined
   }
 
-  @action readonly setHoveredShape = (shape: string | S | undefined): this => {
+  @action readonly setHoveredShape = (shape: string | TLNuShape | undefined): this => {
     this.hoveredId = typeof shape === 'string' ? shape : shape?.id
     return this
   }
@@ -274,7 +271,7 @@ export class TLNuApp<
 
   @observable selectedIds: string[] = []
 
-  @computed get selectedShapes(): S[] {
+  @computed get selectedShapes(): TLNuShape[] {
     return this.currentPage.shapes.filter((shape) => this.selectedIds.includes(shape.id))
   }
 
@@ -284,11 +281,11 @@ export class TLNuApp<
       : BoundsUtils.getCommonBounds(this.selectedShapes.map((shape) => shape.rotatedBounds))
   }
 
-  @action readonly setSelectedShapes = (shapes: S[] | string[]): this => {
+  @action readonly setSelectedShapes = (shapes: TLNuShape[] | string[]): this => {
     if (shapes[0] && typeof shapes[0] === 'string') {
       this.selectedIds = shapes as string[]
     } else {
-      this.selectedIds = (shapes as S[]).map((shape) => shape.id)
+      this.selectedIds = (shapes as TLNuShape[]).map((shape) => shape.id)
     }
     return this
   }
@@ -326,16 +323,16 @@ export class TLNuApp<
 
   /* --------------------- Events --------------------- */
 
-  private subscriptions = new Set<TLNuSubscription<TLNuSubscriptionEventName, S, B>>([])
+  private subscriptions = new Set<TLNuSubscription<TLNuSubscriptionEventName>>([])
 
-  readonly unsubscribe = (subscription: TLNuSubscription<TLNuSubscriptionEventName, S, B>) => {
+  readonly unsubscribe = (subscription: TLNuSubscription<TLNuSubscriptionEventName>) => {
     this.subscriptions.delete(subscription)
     return this
   }
 
   subscribe: TLSubscribe = <E extends TLNuSubscriptionEventName>(
     event: E,
-    callback?: TLNuSubscriptionCallback<E, S, B>
+    callback?: TLNuSubscriptionCallback<E>
   ) => {
     if (typeof event === 'object') {
       this.subscriptions.add(event)
@@ -359,12 +356,12 @@ export class TLNuApp<
 
   /* ----------------- Event Handlers ----------------- */
 
-  readonly onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  readonly onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.viewport.panCamera(gesture.delta)
     this.inputs.onWheel([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
   }
 
-  readonly onPointerDown: TLNuPointerHandler<S> = (info, e) => {
+  readonly onPointerDown: TLNuPointerHandler = (info, e) => {
     if ('clientX' in e) {
       this.inputs.onPointerDown(
         [...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5],
@@ -373,7 +370,7 @@ export class TLNuApp<
     }
   }
 
-  readonly onPointerUp: TLNuPointerHandler<S> = (info, e) => {
+  readonly onPointerUp: TLNuPointerHandler = (info, e) => {
     if ('clientX' in e) {
       this.inputs.onPointerUp(
         [...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5],
@@ -382,29 +379,29 @@ export class TLNuApp<
     }
   }
 
-  readonly onPointerMove: TLNuPointerHandler<S> = (info, e) => {
+  readonly onPointerMove: TLNuPointerHandler = (info, e) => {
     if ('clientX' in e) {
       this.inputs.onPointerMove([...this.viewport.getPagePoint([e.clientX, e.clientY]), 0.5], e)
     }
   }
 
-  readonly onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+  readonly onKeyDown: TLNuKeyboardHandler = (info, e) => {
     this.inputs.onKeyDown(e)
   }
 
-  readonly onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
+  readonly onKeyUp: TLNuKeyboardHandler = (info, e) => {
     this.inputs.onKeyUp(e)
   }
 
-  readonly onPinchStart: TLNuPinchHandler<S> = (info, gesture, e) => {
+  readonly onPinchStart: TLNuPinchHandler = (info, gesture, e) => {
     this.inputs.onPinchStart([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
   }
 
-  readonly onPinch: TLNuPinchHandler<S> = (info, gesture, e) => {
+  readonly onPinch: TLNuPinchHandler = (info, gesture, e) => {
     this.inputs.onPinch([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
   }
 
-  readonly onPinchEnd: TLNuPinchHandler<S> = (info, gesture, e) => {
+  readonly onPinchEnd: TLNuPinchHandler = (info, gesture, e) => {
     this.inputs.onPinchEnd([...this.viewport.getPagePoint(gesture.origin), 0.5], e)
   }
 
@@ -419,7 +416,7 @@ export class TLNuApp<
    *
    * @param page The new current page or page id.
    */
-  changePage = (page: string | TLNuPage<S, B>): this => {
+  changePage = (page: string | TLNuPage): this => {
     return this.setCurrentPage(page)
   }
 
@@ -428,7 +425,7 @@ export class TLNuApp<
    *
    * @param shape The new hovered shape or shape id.
    */
-  hover = (shape: string | S | undefined): this => {
+  hover = (shape: string | TLNuShape | undefined): this => {
     return this.setHoveredShape(shape)
   }
 
@@ -437,7 +434,7 @@ export class TLNuApp<
    *
    * @param shapes The new shape instances or serialized shapes.
    */
-  create = (...shapes: S[] | TLNuSerializedShape[]): this => {
+  create = (...shapes: TLNuShape[] | TLNuSerializedShape[]): this => {
     return this.createShapes(shapes)
   }
 
@@ -458,7 +455,7 @@ export class TLNuApp<
    *
    * @param shapes The shapes or shape ids to delete.
    */
-  delete = (...shapes: S[] | string[]): this => {
+  delete = (...shapes: TLNuShape[] | string[]): this => {
     if (shapes.length === 0) shapes = this.selectedIds
     if (shapes.length === 0) shapes = this.currentPage.shapes
     return this.deleteShapes(shapes)
@@ -469,7 +466,7 @@ export class TLNuApp<
    *
    * @param shapes The shapes or shape ids to select.
    */
-  select = (...shapes: S[] | string[]): this => {
+  select = (...shapes: TLNuShape[] | string[]): this => {
     return this.setSelectedShapes(shapes)
   }
 
@@ -478,11 +475,11 @@ export class TLNuApp<
    *
    * @param ids The shapes or shape ids to deselect.
    */
-  deselect = (...shapes: S[] | string[]): this => {
+  deselect = (...shapes: TLNuShape[] | string[]): this => {
     const ids =
       typeof shapes[0] === 'string'
         ? (shapes as string[])
-        : (shapes as S[]).map((shape) => shape.id)
+        : (shapes as TLNuShape[]).map((shape) => shape.id)
     this.setSelectedShapes(this.selectedIds.filter((id) => !ids.includes(id)))
     return this
   }

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { action, makeObservable, observable } from 'mobx'
+import type { TLNuShape } from '~nu-lib'
 import type {
   TLNuOnTransition,
   TLNuCallbacks,
@@ -14,15 +15,7 @@ import type {
 } from '~types'
 import { KeyUtils } from '~utils'
 
-export interface TLNuStateClass<
-  R extends TLNuRootState = TLNuRootState,
-  P extends R | TLNuState<R, any> = any
-> {
-  new (parent: P, root: R): TLNuState<R, P>
-  id: string
-}
-
-export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
+export class BaseStateNode<R = any, P = any> implements Partial<TLNuCallbacks> {
   constructor() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
@@ -34,58 +27,68 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    const states = this.constructor['states'] as TLNuStateClass[]
+    const states = this.constructor['states'] as typeof BaseStateNode[]
 
     this._id = id
     this._initial = initial
     this._states = states
+
+    if (this.states && this.states.length > 0) {
+      this.registerStates(...this.states)
+      const initialId = this.initial ?? this.states[0].id
+      const state = this.children.get(initialId)
+
+      if (state) {
+        this.currentState = state
+        this.currentState._events.onEnter({ fromId: 'initial' })
+      }
+    }
+
+    makeObservable(this)
   }
 
   private _id: string
-  private _initial?: string
-  private _states: TLNuStateClass<any>[]
-  private _isActive = false
-
-  get initial() {
-    return this._initial
-  }
-
-  get states() {
-    return this._states
-  }
 
   get id() {
     return this._id
   }
 
+  private _initial?: string
+
+  get initial() {
+    return this._initial
+  }
+
+  private _states: typeof BaseStateNode[]
+
+  get states() {
+    return this._states
+  }
+
+  private _isActive = false
+
   get isActive(): boolean {
     return this._isActive
   }
 
-  get descendants(): (TLNuState<any, any> | this)[] {
-    return Array.from(this.children.values()).flatMap((state) => [state, ...state.descendants])
-  }
-
   /* ------------------ Child States ------------------ */
 
-  children = new Map<string, TLNuState<any, any>>([])
+  children = new Map<string, BaseStateNode<R, this>>([])
 
-  registerStates = (...stateClasses: TLNuStateClass<any, any>[]) => {
-    stateClasses.forEach((StateClass) =>
-      this.children.set(StateClass.id, new StateClass(this, this))
-    )
+  registerStates = (...stateClasses: typeof BaseStateNode[]) => {
+    stateClasses.forEach((StateClass) => this.children.set(StateClass.id, new StateClass()))
   }
 
-  deregisterStates = (...states: TLNuStateClass<any, any>[]) => {
+  deregisterStates = (...states: typeof BaseStateNode[]) => {
     states.forEach((StateClass) => {
       this.children.get(StateClass.id)?.dispose()
       this.children.delete(StateClass.id)
     })
   }
 
-  @observable currentState: TLNuState<any, any> = {} as TLNuState<any, any>
+  @observable currentState: BaseStateNode<R, this> = {} as BaseStateNode<R, this>
 
-  @action setCurrentState(state: TLNuState<any, any>) {
+  @action private setCurrentState(state: BaseStateNode<R, any>) {
     this.currentState = state
   }
 
@@ -97,10 +100,11 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
    */
   transition = (id: string, data: Record<string, unknown> = {}) => {
     if (this.children.size === 0)
-      throw Error(`Tool ${this.id} has no states, cannot transition to ${id}.`)
+      throw Error(`State ${this.id}: No child states, cannot transition to ${id}.`)
     const nextState = this.children.get(id)
     const prevState = this.currentState
-    if (!nextState) throw Error(`Could not find a state named ${id}.`)
+    if (!nextState)
+      throw Error(`State ${this.id}: No child state named ${id}, cannot transition to ${id}.`)
     if (this.currentState) {
       prevState._events.onExit({ ...data, toId: id })
       this.setCurrentState(nextState)
@@ -121,7 +125,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
       ...this.shortcuts.map(({ keys, fn }) =>
         KeyUtils.registerShortcut(keys, () => {
           if (!this.isActive) return
-          fn(this, this)
+          // fn(this, this)
         })
       )
     )
@@ -178,7 +182,7 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
      */
     onExit: (info) => {
       this._isActive = false
-      this.currentState?.onExit?.({ fromId: 'parent' })
+      this.currentState?.onExit?.({ toId: 'external' })
       this.onExit?.(info)
     },
 
@@ -345,11 +349,11 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
 
   shortcuts?: TLNuShortcut[]
 
-  onEnter?: TLNuOnEnter<any>
+  onEnter?: TLNuOnEnter
 
-  onExit?: TLNuOnExit<any>
+  onExit?: TLNuOnExit
 
-  onTransition?: TLNuOnTransition<any>
+  onTransition?: TLNuOnTransition
 
   onWheel?: TLNuWheelHandler
 
@@ -372,86 +376,4 @@ export abstract class TLNuRootState implements Partial<TLNuCallbacks> {
   onPinch?: TLNuPinchHandler
 
   onPinchEnd?: TLNuPinchHandler
-}
-
-export abstract class TLNuState<
-  R extends TLNuRootState,
-  P extends TLNuState<R, any> | R
-> extends TLNuRootState {
-  constructor(parent: P, root: R) {
-    super()
-    this._parent = parent
-    this._root = root
-
-    if (this.states && this.states.length > 0) {
-      this.registerStates(...this.states)
-      const initialId = this.initial ?? this.states[0].id
-      const state = this.children.get(initialId)
-      if (state) {
-        this.setCurrentState(state)
-        this.currentState?._events.onEnter({ fromId: 'initial' })
-      }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const shortcut = this.constructor['shortcut'] as string
-
-    if (shortcut) {
-      KeyUtils.registerShortcut(shortcut, () => {
-        this.parent.transition(this.id)
-      })
-    }
-
-    this.registerKeyboardShortcuts()
-
-    makeObservable(this)
-  }
-
-  /* --------------- Keyboard Shortcuts --------------- */
-
-  protected registerKeyboardShortcuts = () => {
-    if (!this.shortcuts?.length) return
-
-    this.disposables.push(
-      ...this.shortcuts.map(({ keys, fn }) =>
-        KeyUtils.registerShortcut(keys, () => {
-          if (!this.isActive) return
-          fn(this.root, this)
-        })
-      )
-    )
-  }
-
-  protected _root: R
-  protected _parent: P
-
-  get root() {
-    return this._root
-  }
-
-  get parent() {
-    return this._parent
-  }
-
-  get ascendants(): (P | TLNuState<R, P>)[] {
-    if (!this.parent) return [this]
-    if (!('ascendants' in this.parent)) return [this.parent, this]
-    return [...this.parent.ascendants, this]
-  }
-
-  children = new Map<string, TLNuState<R, any>>([])
-
-  registerStates = (...stateClasses: TLNuStateClass<R, any>[]) => {
-    stateClasses.forEach((StateClass) =>
-      this.children.set(StateClass.id, new StateClass(this, this._root))
-    )
-  }
-
-  deregisterStates = (...states: TLNuStateClass<R, any>[]) => {
-    states.forEach((StateClass) => {
-      this.children.get(StateClass.id)?.dispose()
-      this.children.delete(StateClass.id)
-    })
-  }
 }

@@ -11,7 +11,6 @@ import {
 import {
   NuBoxShape,
   NuEllipseShape,
-  Shape,
   NuBoxTool,
   NuEllipseTool,
   NuPolygonTool,
@@ -27,12 +26,12 @@ import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
 import { appContext } from 'context'
 
-const components: TLNuComponents<Shape> = {
+const components: TLNuComponents = {
   ContextBar: NuContextBar,
 }
 
 function App(): JSX.Element {
-  const [app, setApp] = React.useState<TLNuApp<Shape>>()
+  const [app, setApp] = React.useState<TLNuApp>()
 
   const [shapeClasses] = React.useState(() => [
     NuBoxShape,
@@ -122,11 +121,11 @@ function App(): JSX.Element {
     ],
   })
 
-  const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
+  const onMount = React.useCallback<TLNuSubscriptionCallbacks['onMount']>((app) => {
     setApp(app)
   }, [])
 
-  const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {
+  const onPersist = React.useCallback<TLNuSubscriptionCallbacks['onPersist']>((app) => {
     // todo
   }, [])
 

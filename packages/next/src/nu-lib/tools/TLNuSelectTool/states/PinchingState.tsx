@@ -3,20 +3,18 @@ import type { FullGestureState, WebKitGestureEvent } from '@use-gesture/core/typ
 import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
 import type { TLNuBinding, TLNuEventInfo, TLNuPinchHandler } from '~types'
 
-type GestureInfo<S extends TLNuShape> = {
-  info: TLNuEventInfo<S>
+type GestureInfo = {
+  info: TLNuEventInfo
   gesture: Omit<FullGestureState<'pinch'>, 'event'> & {
     event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
   }
   event: WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent
 }
 
-export class PinchingState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+export class PinchingState<R extends TLNuApp, P extends TLNuSelectTool<R>> extends TLNuToolState<
+  R,
+  P
+> {
   static id = 'pinching'
 
   origin: number[] = [0, 0]
@@ -30,19 +28,19 @@ export class PinchingState<
     this.app.setCamera(Vec.toFixed(Vec.add(nextPoint, Vec.sub(p1, p0))), zoom)
   }
 
-  onEnter = (info: GestureInfo<S>) => {
+  onEnter = (info: GestureInfo) => {
     this.prevDelta = info.gesture.delta
     this.origin = info.gesture.origin
   }
 
-  onPinch: TLNuPinchHandler<S> = (info, gesture, event) => {
+  onPinch: TLNuPinchHandler = (info, gesture, event) => {
     // const delta = Vec.sub(this.origin, gesture.origin)
     // const trueDelta = Vec.sub(delta, this.prevDelta)
     // this.prevDelta = gesture.delta
     this.pinchCamera(gesture.origin, [0, 0], gesture.offset[0])
   }
 
-  onPinchEnd: TLNuPinchHandler<S> = (_info, gesture, event) => {
+  onPinchEnd: TLNuPinchHandler = (_info, gesture, event) => {
     this.tool.transition('idle')
   }
 }

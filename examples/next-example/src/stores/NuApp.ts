@@ -17,7 +17,7 @@ import {
   NuHighlighterTool,
 } from './tools'
 
-export class NuApp extends TLNuApp<Shape, TLNuBinding> {
+export class NuApp extends TLNuApp {
   constructor() {
     super()
     this.registerShapes(

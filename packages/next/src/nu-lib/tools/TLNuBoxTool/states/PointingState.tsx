@@ -5,13 +5,12 @@ import type { TLNuBinding, TLNuPointerHandler } from '~types'
 
 export class PointingState<
   S extends TLNuBoxShape<any>,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuBoxTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuBoxTool<S, R>
+> extends TLNuToolState<R, P> {
   static id = 'pointing'
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     const { currentPoint, originPoint } = this.app.inputs
     if (Vec.dist(currentPoint, originPoint) > 5) {
       this.tool.transition('creating')

@@ -7,7 +7,6 @@ import { BoundsUtils, PointUtils, PolygonUtils } from '~utils'
 import { TLNuBoxShape, TLNuBoxShapeProps } from '../TLNuBoxShape'
 import type {
   TLNuResizeInfo,
-  TLNuApp,
   TLNuComponentProps,
   TLNuIndicatorProps,
   TLNuShapeProps,
@@ -21,9 +20,9 @@ export interface TLNuPolygonShapeProps extends TLNuBoxShapeProps {
   isFlippedY: boolean
 }
 
-export class TLNuPolygonShape<P extends TLNuPolygonShapeProps> extends TLNuBoxShape<P> {
-  constructor(app: TLNuApp<any, any>, props = {} as TLNuShapeProps & Partial<P>) {
-    super(app, props)
+export class TLNuPolygonShape<P extends TLNuPolygonShapeProps = any> extends TLNuBoxShape<P> {
+  constructor(props = {} as TLNuShapeProps & Partial<P>) {
+    super(props)
     this.init(props)
     makeObservable(this)
   }

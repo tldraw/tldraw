@@ -1,21 +1,20 @@
 import type { TLNuApp, TLNuDotShape, TLNuDotTool } from '~nu-lib'
 import { TLNuToolState } from '../../../TLNuToolState'
-import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
-import { BoundsUtils, uniqueId } from '~utils'
+import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import { uniqueId } from '~utils'
 
 export class CreatingState<
-  S extends TLNuDotShape<any>,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuDotTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  S extends TLNuDotShape,
+  R extends TLNuApp,
+  P extends TLNuDotTool<S, R>
+> extends TLNuToolState<R, P> {
   static id = 'creating'
 
   creatingShape?: S
 
   onEnter = () => {
     const { shapeClass } = this.tool
-    const shape = new shapeClass(this.app, {
+    const shape = new shapeClass({
       id: uniqueId(),
       parentId: this.app.currentPage.id,
       point: this.app.inputs.currentPoint,
@@ -26,7 +25,7 @@ export class CreatingState<
     this.app.select(shape)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     if (!this.creatingShape) throw Error('Expected a creating shape.')
     const { currentPoint } = this.app.inputs
     this.creatingShape.update({
@@ -34,7 +33,7 @@ export class CreatingState<
     })
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     this.tool.transition('idle')
     if (this.creatingShape) {
       this.app.select(this.creatingShape)
@@ -44,7 +43,7 @@ export class CreatingState<
     }
   }
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 }

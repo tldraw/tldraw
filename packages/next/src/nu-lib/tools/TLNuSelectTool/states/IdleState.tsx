@@ -7,12 +7,7 @@ import {
   TLNuTargetType,
 } from '~types'
 
-export class IdleState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+export class IdleState<R extends TLNuApp, P extends TLNuSelectTool<R>> extends TLNuToolState<R, P> {
   static id = 'idle'
 
   static shortcuts: TLNuShortcut<TLNuApp>[] = [
@@ -30,7 +25,7 @@ export class IdleState<
     this.app.hover(undefined)
   }
 
-  onPointerEnter: TLNuPointerHandler<S> = (info) => {
+  onPointerEnter: TLNuPointerHandler = (info) => {
     if (info.order > 0) return
 
     if (info.type === TLNuTargetType.Shape) {
@@ -38,7 +33,7 @@ export class IdleState<
     }
   }
 
-  onPointerDown: TLNuPointerHandler<S> = (info) => {
+  onPointerDown: TLNuPointerHandler = (info) => {
     if (info.order > 0) return
 
     const {
@@ -85,7 +80,7 @@ export class IdleState<
     }
   }
 
-  onPointerLeave: TLNuPointerHandler<S> = (info) => {
+  onPointerLeave: TLNuPointerHandler = (info) => {
     if (info.order > 0) return
 
     if (info.type === TLNuTargetType.Shape) {
@@ -95,7 +90,7 @@ export class IdleState<
     }
   }
 
-  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+  onPinchStart: TLNuPinchHandler = (info, gesture, event) => {
     this.tool.transition('pinching', { info, gesture, event })
   }
 }

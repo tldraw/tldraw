@@ -1,35 +1,33 @@
 import { Vec } from '@tldraw/vec'
-import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
-import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import { TLNuApp, TLNuSelectTool, TLNuToolState, TLNuShape } from '~nu-lib'
+import type { TLNuPinchHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class PointingSelectedShapeState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuSelectTool<R>
+> extends TLNuToolState<R, P> {
   static id = 'pointingSelectedShape'
 
-  private pointedSelectedShape?: S
+  private pointedSelectedShape?: TLNuShape
 
-  onEnter = (info: { target: S }) => {
+  onEnter = (info: { target: TLNuShape }) => {
     this.pointedSelectedShape = info.target
   }
 
   onExit = () => (this.pointedSelectedShape = undefined)
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     const { currentPoint, originPoint } = this.app.inputs
     if (Vec.dist(currentPoint, originPoint) > 5) {
       this.tool.transition('translatingShapes')
     }
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     const { shiftKey } = this.app.inputs
 
     if (!this.pointedSelectedShape) throw Error('Expected a pointed selected shape')
@@ -41,7 +39,7 @@ export class PointingSelectedShapeState<
     this.tool.transition('idle')
   }
 
-  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+  onPinchStart: TLNuPinchHandler = (info, gesture, event) => {
     this.tool.transition('pinching', { info, gesture, event })
   }
 }

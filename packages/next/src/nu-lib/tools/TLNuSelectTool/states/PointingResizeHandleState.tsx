@@ -9,11 +9,9 @@ import type {
 } from '~types'
 
 export class PointingResizeHandleState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuSelectTool<R>
+> extends TLNuToolState<R, P> {
   static id = 'pointingResizeHandle'
 
   pointedHandle?: TLNuBoundsHandle
@@ -22,22 +20,22 @@ export class PointingResizeHandleState<
     this.pointedHandle = info.target
   }
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     const { currentPoint, originPoint } = this.app.inputs
     if (Vec.dist(currentPoint, originPoint) > 5) {
       this.tool.transition('resizingShapes', { handle: this.pointedHandle })
     }
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     this.tool.transition('idle')
   }
 
-  onPinchStart: TLNuPinchHandler<S> = (info, gesture, event) => {
+  onPinchStart: TLNuPinchHandler = (info, gesture, event) => {
     this.tool.transition('pinching', { info, gesture, event })
   }
 }

@@ -1,14 +1,12 @@
 import { Vec } from '@tldraw/vec'
 import { TLNuApp, TLNuSelectTool, TLNuShape, TLNuToolState } from '~nu-lib'
-import type { TLNuBinding, TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import type { TLNuKeyboardHandler, TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { uniqueId } from '~utils'
 
 export class TranslatingShapesState<
-  S extends TLNuShape,
-  B extends TLNuBinding,
-  R extends TLNuApp<S, B>,
-  P extends TLNuSelectTool<S, B, R>
-> extends TLNuToolState<S, B, R, P> {
+  R extends TLNuApp,
+  P extends TLNuSelectTool<R>
+> extends TLNuToolState<R, P> {
   static id = 'translatingShapes'
 
   private isCloning = false
@@ -16,7 +14,7 @@ export class TranslatingShapesState<
   private initialPoints: Record<string, number[]> = {}
   private initialShapePoints: Record<string, number[]> = {}
   private initialClonePoints: Record<string, number[]> = {}
-  private clones: S[] = []
+  private clones: TLNuShape[] = []
 
   private moveSelectedShapesToPointer() {
     const {
@@ -47,7 +45,7 @@ export class TranslatingShapesState<
       this.clones = this.app.selectedShapes.map((shape) => {
         const ShapeClass = this.app.getShapeClass(shape.type)
         if (!ShapeClass) throw Error('Could not find that shape class.')
-        return new ShapeClass(this.app, {
+        return new ShapeClass({
           ...shape.serialized,
           id: uniqueId(),
           type: shape.type,
@@ -117,21 +115,21 @@ export class TranslatingShapesState<
     this.initialClonePoints = {}
   }
 
-  onWheel: TLNuWheelHandler<S> = (info, gesture, e) => {
+  onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
   }
 
-  onPointerMove: TLNuPointerHandler<S> = () => {
+  onPointerMove: TLNuPointerHandler = () => {
     this.moveSelectedShapesToPointer()
   }
 
-  onPointerUp: TLNuPointerHandler<S> = () => {
+  onPointerUp: TLNuPointerHandler = () => {
     this.app.history.resume()
     this.app.persist()
     this.tool.transition('idle')
   }
 
-  onKeyDown: TLNuKeyboardHandler<S> = (info, e) => {
+  onKeyDown: TLNuKeyboardHandler = (info, e) => {
     switch (e.key) {
       case 'Alt': {
         this.startCloning()
@@ -147,7 +145,7 @@ export class TranslatingShapesState<
     }
   }
 
-  onKeyUp: TLNuKeyboardHandler<S> = (info, e) => {
+  onKeyUp: TLNuKeyboardHandler = (info, e) => {
     switch (e.key) {
       case 'Alt': {
         if (!this.isCloning) throw Error('Expected to be cloning.')
