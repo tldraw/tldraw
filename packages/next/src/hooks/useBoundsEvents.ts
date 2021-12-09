@@ -15,12 +15,8 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
     const onPointerDown: TLNuPointerEventHandler = (e) => {
       const { order = 0 } = e
       if (order) e.currentTarget.setPointerCapture(e.pointerId)
-      callbacks.onPointerDown?.(
-        { type: TLNuTargetType.Bounds, target: handle, order, didPassThroughBounds: true },
-        e
-      )
+      callbacks.onPointerDown?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
       e.order = order + 1
-      e.didPassThroughBounds = true
     }
 
     const onPointerUp: TLNuPointerEventHandler = (e) => {

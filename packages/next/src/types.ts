@@ -101,12 +101,11 @@ export enum TLNuTargetType {
 }
 
 export type TLNuEventInfo =
-  | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number; didPassThroughBounds?: boolean }
-  | { type: TLNuTargetType.Shape; target: TLNuShape; order: number; didPassThroughBounds?: boolean }
+  | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number }
+  | { type: TLNuTargetType.Shape; target: TLNuShape; order: number }
   | {
       type: TLNuTargetType.Bounds
       target: TLNuBoundsHandle
-      didPassThroughBounds?: boolean
       order: number
     }
 
@@ -120,7 +119,6 @@ export type TLNuWheelHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
 
 export interface TLNuPointerEvent<T = Element> extends TLNuReactPointerEvent<T> {
   order?: number
-  didPassThroughBounds?: boolean
 }
 
 interface TLNuReactPointerEvent<T = Element> extends React.MouseEvent<T, PointerEvent> {
