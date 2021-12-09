@@ -1,5 +1,6 @@
 import type { TDShapeUtil } from './TDShapeUtil'
 import { RectangleUtil } from './RectangleUtil'
+import { TriangleUtil } from './TriangleUtil'
 import { EllipseUtil } from './EllipseUtil'
 import { ArrowUtil } from './ArrowUtil'
 import { GroupUtil } from './GroupUtil'
@@ -9,6 +10,7 @@ import { DrawUtil } from './DrawUtil'
 import { TDShape, TDShapeType } from '~types'
 
 export const Rectangle = new RectangleUtil()
+export const Triangle = new TriangleUtil()
 export const Ellipse = new EllipseUtil()
 export const Draw = new DrawUtil()
 export const Arrow = new ArrowUtil()
@@ -18,6 +20,7 @@ export const Sticky = new StickyUtil()
 
 export const shapeUtils = {
   [TDShapeType.Rectangle]: Rectangle,
+  [TDShapeType.Triangle]: Triangle,
   [TDShapeType.Ellipse]: Ellipse,
   [TDShapeType.Draw]: Draw,
   [TDShapeType.Arrow]: Arrow,

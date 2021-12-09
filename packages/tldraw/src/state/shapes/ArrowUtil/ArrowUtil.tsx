@@ -20,6 +20,7 @@ import {
   intersectLineSegmentLineSegment,
   intersectRayBounds,
   intersectRayEllipse,
+  intersectRayLineSegment,
 } from '@tldraw/intersect'
 import { BINDING_DISTANCE, EASINGS, GHOSTED_OPACITY } from '~constants'
 import {
@@ -35,6 +36,7 @@ import {
   renderCurvedFreehandArrowShaft,
   renderFreehandArrowShaft,
 } from './arrowHelpers'
+import { getTrianglePoints } from '../TriangleUtil'
 
 type T = ArrowShape
 type E = SVGSVGElement
@@ -436,15 +438,12 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     binding: TDBinding,
     target: TDShape,
     targetBounds: TLBounds,
+    expandedBounds: TLBounds,
     center: number[]
   ): Partial<T> | void => {
     const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
 
-    const expandedBounds = Utils.expandBounds(targetBounds, BINDING_DISTANCE)
-
-    // The anchor is the "actual" point in the target shape
-    // (Remember that the binding.point is normalized)
-    const anchor = Vec.sub(
+    let handlePoint = Vec.sub(
       Vec.add(
         [expandedBounds.minX, expandedBounds.minY],
         Vec.mulV(
@@ -454,9 +453,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       ),
       shape.point
     )
-
-    // We're looking for the point to put the dragging handle
-    let handlePoint = anchor
 
     if (binding.distance) {
       const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
@@ -468,7 +464,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       )
 
       // And passes through the dragging handle
-      const direction = Vec.uni(Vec.sub(Vec.add(anchor, shape.point), origin))
+      const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
 
       if (target.type === TDShapeType.Ellipse) {
         const hits = intersectRayEllipse(
@@ -479,6 +475,22 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
           (target as EllipseShape).radius[1] + binding.distance,
           target.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+        if (hits[0]) {
+          handlePoint = Vec.sub(hits[0], shape.point)
+        }
+      } else if (target.type === TDShapeType.Triangle) {
+        const points = getTrianglePoints(target, BINDING_DISTANCE).map((pt) =>
+          Vec.add(pt, target.point)
+        )
+
+        const segments = Utils.pointsToLineSegments(points, true)
+
+        const hits = segments
+          .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
+          .filter((intersection) => intersection.didIntersect)
+          .flatMap((intersection) => intersection.points)
+          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
 
         if (hits[0]) {
           handlePoint = Vec.sub(hits[0], shape.point)

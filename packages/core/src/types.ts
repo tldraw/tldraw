@@ -106,6 +106,7 @@ export interface TLTheme {
   brushStroke?: string
   selectFill?: string
   selectStroke?: string
+  binding: string
   background?: string
   foreground?: string
   grid?: string

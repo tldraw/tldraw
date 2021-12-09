@@ -1,26 +1,27 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Text shape Creates a shape: text 1`] = `
+exports[`Triangle shape Creates a shape: triangle 1`] = `
 Object {
   "childIndex": 1,
-  "id": "text",
-  "name": "Text",
+  "id": "triangle",
+  "name": "Triangle",
   "parentId": "page",
   "point": Array [
     0,
     0,
   ],
   "rotation": 0,
+  "size": Array [
+    1,
+    1,
+  ],
   "style": Object {
     "color": "black",
     "dash": "draw",
-    "font": "script",
     "isFilled": false,
     "scale": 1,
     "size": "small",
-    "textAlign": "middle",
   },
-  "text": " ",
-  "type": "text",
+  "type": "triangle",
 }
 `;

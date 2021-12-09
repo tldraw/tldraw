@@ -65,6 +65,30 @@ function isAngleBetween(a: number, b: number, c: number): boolean {
 }
 
 /* -------------------------------------------------- */
+/*                        Line                        */
+/* -------------------------------------------------- */
+
+export function intersectLineLine(AB: number[][], PQ: number[][]): number[] | undefined {
+  const slopeAB = Vec.slope(AB[0], AB[1])
+  const slopePQ = Vec.slope(PQ[0], PQ[1])
+
+  if (slopeAB === slopePQ) return undefined
+
+  if (Number.isNaN(slopeAB) && !Number.isNaN(slopePQ)) {
+    return [AB[0][0], (AB[0][0] - PQ[0][0]) * slopePQ + PQ[0][1]]
+  }
+
+  if (Number.isNaN(slopePQ) && !Number.isNaN(slopeAB)) {
+    return [PQ[0][0], (PQ[0][0] - AB[0][0]) * slopeAB + AB[0][1]]
+  }
+
+  const x = (slopeAB * AB[0][0] - slopePQ * PQ[0][0] + PQ[0][1] - AB[0][1]) / (slopeAB - slopePQ)
+  const y = slopePQ * (x - PQ[0][0]) + PQ[0][1]
+
+  return [x, y]
+}
+
+/* -------------------------------------------------- */
 /*                         Ray                        */
 /* -------------------------------------------------- */
 
@@ -1238,4 +1262,40 @@ export function intersectPolygonBounds(points: number[][], bounds: TLBounds): TL
     [bounds.width, bounds.height],
     points
   )
+}
+
+/**
+ * Find the intersections between a rectangle and a ray.
+ * @param point
+ * @param size
+ * @param rotation
+ * @param origin
+ * @param direction
+ */
+export function intersectRayPolygon(
+  origin: number[],
+  direction: number[],
+  points: number[][]
+): TLIntersection[] {
+  const sideIntersections = pointsToLineSegments(points, true).reduce<TLIntersection[]>(
+    (acc, [a1, a2], i) => {
+      const intersection = intersectRayLineSegment(origin, direction, a1, a2)
+
+      if (intersection) {
+        acc.push(createIntersection(i.toString(), ...intersection.points))
+      }
+
+      return acc
+    },
+    []
+  )
+
+  return sideIntersections.filter((int) => int.didIntersect)
+}
+
+export function pointsToLineSegments(points: number[][], closed = false) {
+  const segments = []
+  for (let i = 1; i < points.length; i++) segments.push([points[i - 1], points[i]])
+  if (closed) segments.push([points[points.length - 1], points[0]])
+  return segments
 }

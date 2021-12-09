@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Arrow session arrow binding binds on the inside of a shape while alt is held 1`] = `
+Array [
+  0.76,
+  0.09,
+]
+`;
+
+exports[`Arrow session arrow binding snaps to the inside center when the point is close to the center 1`] = `
+Array [
+  0.81,
+  0.19,
+]
+`;

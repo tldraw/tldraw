@@ -148,6 +148,13 @@ export class Utils {
 
   /* ---------------------- Boxes --------------------- */
 
+  static pointsToLineSegments(points: number[][], closed = false) {
+    const segments = []
+    for (let i = 1; i < points.length; i++) segments.push([points[i - 1], points[i]])
+    if (closed) segments.push([points[points.length - 1], points[0]])
+    return segments
+  }
+
   static getRectangleSides(point: number[], size: number[], rotation = 0): [string, number[][]][] {
     const center = [point[0] + size[0] / 2, point[1] + size[1] / 2]
     const tl = Vec.rotWith(point, center, rotation)

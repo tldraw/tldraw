@@ -71,6 +71,7 @@ const defaultTheme: TLTheme = {
   brushStroke: 'rgba(0,0,0,.25)',
   selectStroke: 'rgb(66, 133, 244)',
   selectFill: 'rgba(65, 132, 244, 0.05)',
+  binding: 'rgba(65, 132, 244, 0.12)',
   background: 'rgb(248, 249, 250)',
   foreground: 'rgb(51, 51, 51)',
   grid: 'rgba(144, 144, 144, 1)',
@@ -408,10 +409,8 @@ const tlcss = css`
   }
 
   .tl-binding-indicator {
-    stroke-width: calc(3px * var(--tl-scale));
-    fill: var(--tl-selectFill);
-    stroke: var(--tl-selected);
-    pointer-events: none;
+    fill: transparent;
+    stroke: var(--tl-binding);
   }
 
   .tl-centered-g {

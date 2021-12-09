@@ -3,7 +3,7 @@ import { Utils, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { getStroke, getStrokePoints } from 'perfect-freehand'
 import { RectangleShape, DashStyle, TDShapeType, TDMeta } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   defaultStyle,
@@ -57,10 +57,11 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
             {isBinding && (
               <rect
                 className="tl-binding-indicator"
-                x={strokeWidth / 2 - BINDING_DISTANCE}
-                y={strokeWidth / 2 - BINDING_DISTANCE}
-                width={Math.max(0, size[0] - strokeWidth / 2) + BINDING_DISTANCE * 2}
-                height={Math.max(0, size[1] - strokeWidth / 2) + BINDING_DISTANCE * 2}
+                x={strokeWidth}
+                y={strokeWidth}
+                width={Math.max(0, size[0] - strokeWidth / 2)}
+                height={Math.max(0, size[1] - strokeWidth / 2)}
+                strokeWidth={this.bindingDistance * 2}
               />
             )}
             <path
@@ -129,11 +130,12 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
               />
             )}
             <rect
-              className={isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-              x={sw / 2}
-              y={sw / 2}
-              width={w}
-              height={h}
+              className="tl-binding-indicator"
+              x={sw / 2 - 32}
+              y={sw / 2 - 32}
+              width={w + 64}
+              height={h + 64}
+              strokeWidth={this.bindingDistance}
             />
             {style.isFilled && (
               <rect

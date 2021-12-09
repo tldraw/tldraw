@@ -4,7 +4,7 @@ import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { SquareIcon, CircleIcon } from '@radix-ui/react-icons'
+import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { LineIcon } from '~components/Primitives/icons'
 
@@ -13,11 +13,12 @@ interface ShapesMenuProps {
   isToolLocked: boolean
 }
 
-type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse | TDShapeType.Line
-const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse, TDShapeType.Line]
+type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse | TDShapeType.Triangle | TDShapeType.Line
+const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse, TDShapeType.Triangle, TDShapeType.Line]
 const shapeShapeIcons = {
   [TDShapeType.Rectangle]: <SquareIcon />,
   [TDShapeType.Ellipse]: <CircleIcon />,
+  [TDShapeType.Triangle]: <VercelLogoIcon />,
   [TDShapeType.Line]: <LineIcon />,
 }
 

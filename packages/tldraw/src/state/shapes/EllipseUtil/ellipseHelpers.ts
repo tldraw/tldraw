@@ -68,7 +68,7 @@ export function getEllipsePath(shape: EllipseShape, boundsCenter: number[]) {
 
   return Utils.getSvgPathFromStroke(
     getStrokeOutlinePoints(getEllipseStrokePoints(shape, boundsCenter), {
-      size: 1 + strokeWidth * 2,
+      size: 2 + strokeWidth * 2,
       thinning: 0.618,
       end: { taper: perimeter / 8 },
       start: { taper: perimeter / 12 },

@@ -126,7 +126,7 @@ export function getFontStyle(style: ShapeStyles): string {
   const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 ${fontFace}`
+  return `${fontSize * scale}px/1 ${fontFace}`
 }
 
 export function getStickyFontStyle(style: ShapeStyles): string {
@@ -134,7 +134,7 @@ export function getStickyFontStyle(style: ShapeStyles): string {
   const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 ${fontFace}`
+  return `${fontSize * scale}px/1 ${fontFace}`
 }
 
 export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
@@ -183,5 +183,5 @@ export const defaultStyle: ShapeStyles = {
 export const defaultTextStyle: ShapeStyles = {
   ...defaultStyle,
   font: FontStyle.Script,
-  textAlign: AlignStyle.Start,
+  textAlign: AlignStyle.Middle,
 }
