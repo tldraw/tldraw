@@ -8,7 +8,7 @@ import type { TLNuDotShapeProps, TLNuApp, TLNuDotShape, TLNuShapeProps } from '~
 
 export abstract class TLNuDotTool<
   S extends TLNuDotShape = TLNuDotShape,
-  R extends TLNuApp = TLNuApp
+  R extends TLNuApp = TLNuApp<any>
 > extends TLNuTool<R> {
   static id = 'box'
 

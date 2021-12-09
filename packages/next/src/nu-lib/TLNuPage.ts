@@ -11,15 +11,15 @@ export interface TLNuSerializedPage {
   nonce?: number
 }
 
-export interface TLNuPageProps {
+export interface TLNuPageProps<S> {
   id: string
   name: string
-  shapes: TLNuShape[]
+  shapes: S[]
   bindings: TLNuBinding[]
 }
 
-export class TLNuPage {
-  constructor(app: TLNuApp, props = {} as TLNuPageProps) {
+export class TLNuPage<S extends TLNuShape = TLNuShape> {
+  constructor(app: TLNuApp<S>, props = {} as TLNuPageProps<S>) {
     const { id, name, shapes = [], bindings = [] } = props
     this.id = id
     this.name = name
@@ -29,20 +29,20 @@ export class TLNuPage {
     makeObservable(this)
   }
 
-  app: TLNuApp
+  app: TLNuApp<S>
 
   @observable id: string
 
   @observable name: string
 
-  @observable shapes: TLNuShape[]
+  @observable shapes: S[]
 
   @observable bindings: TLNuBinding[]
 
-  @action addShapes(...shapes: TLNuShape[] | TLNuSerializedShape[]) {
+  @action addShapes(...shapes: S[] | TLNuSerializedShape[]) {
     const shapeInstances =
       'getBounds' in shapes[0]
-        ? (shapes as TLNuShape[])
+        ? (shapes as S[])
         : (shapes as TLNuSerializedShape[]).map((shape) => {
             const ShapeClass = this.app.getShapeClass(shape.type)
             return new ShapeClass(shape)
@@ -53,11 +53,11 @@ export class TLNuPage {
     // this.app.persist()
   }
 
-  @action removeShapes(...shapes: TLNuShape[] | string[]) {
+  @action removeShapes(...shapes: S[] | string[]) {
     if (typeof shapes[0] === 'string') {
       this.shapes = this.shapes.filter((shape) => !(shapes as string[]).includes(shape.id))
     } else {
-      this.shapes = this.shapes.filter((shape) => !(shapes as TLNuShape[]).includes(shape))
+      this.shapes = this.shapes.filter((shape) => !(shapes as S[]).includes(shape))
     }
     // this.bump()
     // this.app.persist()
@@ -80,7 +80,7 @@ export class TLNuPage {
     this.nonce++
   }
 
-  @action update(props: Partial<TLNuPageProps>): void {
+  @action update(props: Partial<TLNuPageProps<S>>): void {
     Object.assign(this, props)
   }
 }

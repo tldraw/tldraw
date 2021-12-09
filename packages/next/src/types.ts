@@ -101,9 +101,14 @@ export enum TLNuTargetType {
 }
 
 export type TLNuEventInfo =
-  | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number }
-  | { type: TLNuTargetType.Shape; target: TLNuShape; order: number }
-  | { type: TLNuTargetType.Bounds; target: TLNuBoundsHandle; order: number }
+  | { type: TLNuTargetType.Canvas; target: 'canvas'; order: number; didPassThroughBounds?: boolean }
+  | { type: TLNuTargetType.Shape; target: TLNuShape; order: number; didPassThroughBounds?: boolean }
+  | {
+      type: TLNuTargetType.Bounds
+      target: TLNuBoundsHandle
+      didPassThroughBounds?: boolean
+      order: number
+    }
 
 export type TLNuWheelHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
   info: E,
@@ -115,6 +120,7 @@ export type TLNuWheelHandler<E extends TLNuEventInfo = TLNuEventInfo> = (
 
 export interface TLNuPointerEvent<T = Element> extends TLNuReactPointerEvent<T> {
   order?: number
+  didPassThroughBounds?: boolean
 }
 
 interface TLNuReactPointerEvent<T = Element> extends React.MouseEvent<T, PointerEvent> {
@@ -331,19 +337,25 @@ export type TLNuSubscriptionEventInfo<T extends TLNuSubscriptionEventName> = Ext
   { event: T }
 >['info']
 
-export type TLNuSubscriptionCallback<E extends TLNuSubscriptionEventName> = (
-  app: TLNuApp,
-  info: TLNuSubscriptionEventInfo<E>
-) => void
+export type TLNuSubscriptionCallback<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuSubscriptionEventName = TLNuSubscriptionEventName
+> = (app: TLNuApp<S>, info: TLNuSubscriptionEventInfo<E>) => void
 
-export type TLNuSubscription<E extends TLNuSubscriptionEventName> = {
+export type TLNuSubscription<
+  S extends TLNuShape = TLNuShape,
+  E extends TLNuSubscriptionEventName = TLNuSubscriptionEventName
+> = {
   event: E
-  callback: TLNuSubscriptionCallback<E>
+  callback: TLNuSubscriptionCallback<S, E>
 }
 
-export type TLSubscribe = {
-  <E extends TLNuSubscriptionEventName>(subscription: TLNuSubscription<E>): () => void
-  <E extends TLNuSubscriptionEventName>(event: E, callback: TLNuSubscriptionCallback<E>): () => void
+export type TLSubscribe<S extends TLNuShape = TLNuShape> = {
+  <E extends TLNuSubscriptionEventName>(subscription: TLNuSubscription<S, E>): () => void
+  <E extends TLNuSubscriptionEventName>(
+    event: E,
+    callback: TLNuSubscriptionCallback<S, E>
+  ): () => void
 }
 
 export function isStringArray(arr: string[] | any[]): asserts arr is string[] {
@@ -385,9 +397,9 @@ export interface TLNuRendererProps extends Partial<TLNuViewOptions> {
   theme: TLNuTheme
 }
 
-export interface TLNuSubscriptionCallbacks {
-  onMount: TLNuSubscriptionCallback<'mount'>
-  onPersist: TLNuSubscriptionCallback<'persist'>
+export interface TLNuSubscriptionCallbacks<S extends TLNuShape = TLNuShape> {
+  onMount: TLNuSubscriptionCallback<S, 'mount'>
+  onPersist: TLNuSubscriptionCallback<S, 'persist'>
 }
 
 export interface TLNuCommonAppProps

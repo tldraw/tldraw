@@ -8,7 +8,7 @@ import { SVGContainer } from '~components'
 export const BoundsBackground = observer(function BoundsBackground({
   bounds,
 }: TLNuBoundsComponentProps) {
-  const events = useBoundsEvents('center')
+  const events = useBoundsEvents('background')
 
   return (
     <SVGContainer>

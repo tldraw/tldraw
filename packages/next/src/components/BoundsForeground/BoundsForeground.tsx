@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite'
 import { TLNuBoundsComponentProps, TLNuBoundsCorner, TLNuBoundsEdge } from '~types'
 import { EdgeHandle, CornerHandle, RotateHandle } from './handles'
 import { SVGContainer } from '../SVGContainer'
+import { useBoundsEvents } from '~hooks'
 
 export const BoundsForeground = observer(function BoundsFg({
   bounds,
@@ -15,6 +16,8 @@ export const BoundsForeground = observer(function BoundsFg({
   const size = 8 / zoom
   const targetSize = 6 / zoom
 
+  const events = useBoundsEvents('center')
+
   return (
     <SVGContainer>
       <rect
@@ -22,6 +25,7 @@ export const BoundsForeground = observer(function BoundsFg({
         width={Math.max(width, 1)}
         height={Math.max(height, 1)}
         pointerEvents="none"
+        {...events}
       />
       {showResizeHandles && (
         <>

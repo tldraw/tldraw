@@ -13,7 +13,6 @@ import {
 import { observer } from 'mobx-react-lite'
 import { observable, computed, makeObservable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
-import type { NuApp } from 'stores'
 
 export interface NuHighlighterShapeProps extends TLNuDrawShapeProps, NuStyleProps {}
 

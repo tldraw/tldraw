@@ -2,14 +2,14 @@ import { TLNuApp, TLNuPage, TLNuSerializedApp, TLNuShape } from '~nu-lib'
 import type { TLNuBinding } from '~types'
 import { KeyUtils } from '~utils'
 
-export class TLNuHistory {
-  constructor(app: TLNuApp) {
+export class TLNuHistory<S extends TLNuShape> {
+  constructor(app: TLNuApp<S>) {
     KeyUtils.registerShortcut('cmd+z,ctrl+z', () => this.undo())
     KeyUtils.registerShortcut('cmd+shift+z,ctrl+shift+z', () => this.redo())
     this.app = app
   }
 
-  app: TLNuApp
+  app: TLNuApp<S>
   stack: TLNuSerializedApp[] = []
   pointer = 0
   isPaused = true
@@ -85,7 +85,7 @@ export class TLNuHistory {
     }
 
     const pagesMap = new Map(this.app.pages.map((page) => [page.id, page]))
-    const pagesToAdd: TLNuPage[] = []
+    const pagesToAdd: TLNuPage<S>[] = []
 
     for (const serializedPage of pages) {
       const page = pagesMap.get(serializedPage.id)

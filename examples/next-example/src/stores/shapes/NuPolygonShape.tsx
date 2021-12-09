@@ -12,7 +12,6 @@ import {
 import { observer } from 'mobx-react-lite'
 import { makeObservable, observable } from 'mobx'
 import type { NuStyleProps } from './NuStyleProps'
-import type { NuApp } from 'stores'
 
 interface NuPolygonShapeProps extends NuStyleProps, TLNuPolygonShapeProps {}
 

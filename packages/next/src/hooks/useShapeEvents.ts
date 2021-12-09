@@ -14,9 +14,12 @@ export function useShapeEvents(shape: TLNuShape) {
     }
 
     const onPointerDown: TLNuPointerEventHandler = (e) => {
-      const { order = 0 } = e
+      const { order = 0, didPassThroughBounds } = e
       if (e.order === 0) e.currentTarget.setPointerCapture(e.pointerId)
-      callbacks.onPointerDown?.({ type: TLNuTargetType.Shape, target: shape, order }, e)
+      callbacks.onPointerDown?.(
+        { type: TLNuTargetType.Shape, target: shape, order, didPassThroughBounds },
+        e
+      )
       e.order = order + 1
     }
 

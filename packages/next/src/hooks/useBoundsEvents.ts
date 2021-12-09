@@ -3,7 +3,7 @@ import { useContext } from '~hooks'
 import { TLNuBoundsHandle, TLNuPointerEventHandler, TLNuTargetType } from '~types'
 
 export function useBoundsEvents(handle: TLNuBoundsHandle) {
-  const { viewport, inputs, callbacks } = useContext()
+  const { callbacks } = useContext()
 
   const events = React.useMemo(() => {
     const onPointerMove: TLNuPointerEventHandler = (e) => {
@@ -15,8 +15,12 @@ export function useBoundsEvents(handle: TLNuBoundsHandle) {
     const onPointerDown: TLNuPointerEventHandler = (e) => {
       const { order = 0 } = e
       if (order) e.currentTarget.setPointerCapture(e.pointerId)
-      callbacks.onPointerDown?.({ type: TLNuTargetType.Bounds, target: handle, order }, e)
+      callbacks.onPointerDown?.(
+        { type: TLNuTargetType.Bounds, target: handle, order, didPassThroughBounds: true },
+        e
+      )
       e.order = order + 1
+      e.didPassThroughBounds = true
     }
 
     const onPointerUp: TLNuPointerEventHandler = (e) => {

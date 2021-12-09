@@ -6,12 +6,11 @@ import {
 } from '@tldraw/intersect'
 import { action, computed, makeObservable, observable } from 'mobx'
 import type { AnyObject, TLNuBounds, TLNuBoundsCorner, TLNuBoundsEdge, TLNuHandle } from '~types'
-import type { TLNuApp } from './TLNuApp'
 import { BoundsUtils, PointUtils, assignOwnProps } from '~utils'
 import { deepCopy } from '~utils/DataUtils'
 
-export interface TLNuShapeClass {
-  new (props: any): TLNuShape
+export interface TLNuShapeClass<S extends TLNuShape = TLNuShape> {
+  new (props: any): S
   id: string
 }
 
