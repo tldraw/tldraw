@@ -1,3 +1,7 @@
+## 1.2.4
+
+- Fixed bug that prevented saving.
+
 ## 1.1.9
 
 - Updates READMEs.

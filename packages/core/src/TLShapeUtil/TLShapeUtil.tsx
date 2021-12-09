@@ -39,17 +39,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {
     const shapeBounds = this.getBounds(shape)
-
-    if (!shape.rotation) {
-      return (
-        Utils.boundsContain(bounds, shapeBounds) ||
-        Utils.boundsContain(shapeBounds, bounds) ||
-        Utils.boundsCollide(shapeBounds, bounds)
-      )
-    }
-
     const corners = Utils.getRotatedCorners(shapeBounds, shape.rotation)
-
     return (
       corners.every((point) => Utils.pointInBounds(point, bounds)) ||
       intersectPolylineBounds(corners, bounds).length > 0

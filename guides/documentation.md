@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This file contains the documentatin for the `<Tldraw>` component as well as the data model that the component accepts.
+This file contains the documentation for the `<Tldraw>` component as well as the data model that the component accepts.
 
 In addition to the docs written below, this project also includes **generated documentation**. To view the generated docs:
 
