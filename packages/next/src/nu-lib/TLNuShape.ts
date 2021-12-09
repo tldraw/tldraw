@@ -160,18 +160,8 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
   }
 
   hitTestBounds = (bounds: TLNuBounds): boolean => {
-    const { rotatedBounds } = this
-
-    if (!this.rotation) {
-      return (
-        BoundsUtils.boundsContain(bounds, rotatedBounds) ||
-        BoundsUtils.boundsContain(rotatedBounds, bounds) ||
-        BoundsUtils.boundsCollide(rotatedBounds, bounds)
-      )
-    }
-
-    const corners = BoundsUtils.getRotatedCorners(this.bounds, this.rotation)
-
+    const { rotatedBounds, rotation = 0 } = this
+    const corners = BoundsUtils.getRotatedCorners(this.bounds, rotation)
     return (
       BoundsUtils.boundsContain(bounds, rotatedBounds) ||
       intersectPolygonBounds(corners, bounds).length > 0

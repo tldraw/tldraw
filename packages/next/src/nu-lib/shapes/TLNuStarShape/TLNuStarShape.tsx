@@ -118,12 +118,12 @@ export class TLNuStarShape<P extends TLNuStarShapeProps = any> extends TLNuBoxSh
   }
 
   hitTestBounds = (bounds: TLNuBounds): boolean => {
-    const { offset, vertices, point } = this
+    const { rotatedBounds, offset, vertices, point } = this
+    const oBounds = BoundsUtils.translateBounds(bounds, Vec.neg(Vec.add(point, offset)))
     return (
-      intersectPolygonBounds(
-        vertices,
-        BoundsUtils.translateBounds(bounds, Vec.neg(Vec.add(point, offset)))
-      ).length > 0
+      BoundsUtils.boundsContain(bounds, rotatedBounds) ||
+      vertices.every((vert) => PointUtils.pointInBounds(vert, oBounds)) ||
+      intersectPolygonBounds(vertices, oBounds).length > 0
     )
   }
 }

@@ -36,9 +36,9 @@ export class BoundsUtils {
    *
    * ### Example
    *
-   *```ts
+   * ```ts
    * expandBounds(myBounds, [100, 100])
-   *```
+   * ```
    */
   static expandBounds(bounds: TLNuBounds, delta: number): TLNuBounds {
     return {
@@ -53,6 +53,7 @@ export class BoundsUtils {
 
   /**
    * Get whether two bounds collide.
+   *
    * @param a Bounds
    * @param b Bounds
    * @returns
@@ -63,6 +64,7 @@ export class BoundsUtils {
 
   /**
    * Get whether the bounds of A contain the bounds of B. A perfect match will return true.
+   *
    * @param a Bounds
    * @param b Bounds
    * @returns
@@ -73,6 +75,7 @@ export class BoundsUtils {
 
   /**
    * Get whether the bounds of A are contained by the bounds of B.
+   *
    * @param a Bounds
    * @param b Bounds
    * @returns
@@ -83,6 +86,7 @@ export class BoundsUtils {
 
   /**
    * Get whether two bounds are identical.
+   *
    * @param a Bounds
    * @param b Bounds
    * @returns
@@ -93,6 +97,7 @@ export class BoundsUtils {
 
   /**
    * Find a bounding box from an array of points.
+   *
    * @param points
    * @param rotation (optional) The bounding box's rotation.
    */
@@ -134,6 +139,7 @@ export class BoundsUtils {
 
   /**
    * Center a bounding box around a given point.
+   *
    * @param bounds
    * @param center
    */
@@ -146,6 +152,7 @@ export class BoundsUtils {
 
   /**
    * Snap a bounding box to a grid size.
+   *
    * @param bounds
    * @param gridSize
    */
@@ -166,6 +173,7 @@ export class BoundsUtils {
 
   /**
    * Move a bounding box without recalculating it.
+   *
    * @param bounds
    * @param delta
    * @returns
@@ -213,6 +221,7 @@ export class BoundsUtils {
 
   /**
    * Get an axis-aligned bounding box that fits around a rotated bounding box.
+   *
    * @param bounds
    * @param center
    * @param rotation
@@ -245,6 +254,7 @@ export class BoundsUtils {
 
   /**
    * Get the rotated bounds of an ellipse.
+   *
    * @param x
    * @param y
    * @param rx
@@ -275,6 +285,7 @@ export class BoundsUtils {
 
   /**
    * Get a bounding box that includes two bounding boxes.
+   *
    * @param a Bounding box
    * @param b Bounding box
    * @returns
@@ -292,29 +303,29 @@ export class BoundsUtils {
 
   /**
    * Get the common bounds of a group of bounds.
+   *
    * @returns
    */
   static getCommonBounds(bounds: TLNuBounds[]): TLNuBounds {
     if (bounds.length < 2) return bounds[0]
-
     let result = bounds[0]
-
     for (let i = 1; i < bounds.length; i++) {
       result = BoundsUtils.getExpandedBounds(result, bounds[i])
     }
-
     return result
   }
 
   static getRotatedCorners(b: TLNuBounds, rotation = 0): number[][] {
     const center = [b.minX + b.width / 2, b.minY + b.height / 2]
-
-    return [
+    const corners = [
       [b.minX, b.minY],
       [b.maxX, b.minY],
       [b.maxX, b.maxY],
       [b.minX, b.maxY],
-    ].map((point) => Vec.rotWith(point, center, rotation))
+    ]
+
+    if (rotation) return corners.map((point) => Vec.rotWith(point, center, rotation))
+    return corners
   }
 
   static getTransformedBoundingBox(
@@ -609,6 +620,7 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Get the relative bounds (usually a child) within a transformed bounding box.
+   *
    * @param bounds
    * @param initialBounds
    * @param initialShapeBounds
@@ -650,6 +662,7 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Get the size of a rotated box.
+   *
    * @param size : ;
    * @param rotation
    */
@@ -667,6 +680,7 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Get the center of a bounding box.
+   *
    * @param bounds
    */
   static getBoundsCenter(bounds: TLNuBounds): number[] {
@@ -675,6 +689,7 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Get a bounding box with a midX and midY.
+   *
    * @param bounds
    */
   static getBoundsWithCenter(bounds: TLNuBounds): TLNuBoundsWithCenter {
@@ -688,6 +703,7 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Given a set of points, get their common [minX, minY].
+   *
    * @param points
    */
   static getCommonTopLeft(points: number[][]) {
