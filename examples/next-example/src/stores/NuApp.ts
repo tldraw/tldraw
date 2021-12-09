@@ -10,7 +10,7 @@ import {
 } from './shapes'
 import {
   NuDotTool,
-  NuDrawTool,
+  NuPenTool,
   NuPolygonTool,
   NuBoxTool,
   NuEllipseTool,
@@ -32,7 +32,7 @@ export class NuApp extends TLNuApp<Shape, TLNuBinding> {
       NuBoxTool,
       NuEllipseTool,
       NuPolygonTool,
-      NuDrawTool,
+      NuPenTool,
       NuHighlighterTool,
       NuDotTool
     )
