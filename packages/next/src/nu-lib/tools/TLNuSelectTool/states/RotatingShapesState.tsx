@@ -22,10 +22,11 @@ export class RotatingShapesState<
   initialAngle = 0
 
   onEnter = () => {
-    const { selectedShapes, selectedBounds } = this.app
+    const { history, selectedShapes, selectedBounds } = this.app
 
     if (!selectedBounds) throw Error('Expected selected bounds.')
 
+    history.pause()
     this.initialCommonBounds = { ...selectedBounds }
     this.initialCommonCenter = BoundsUtils.getBoundsCenter(selectedBounds)
     this.initialAngle = Vec.angle(this.initialCommonCenter, this.app.inputs.currentPoint)
@@ -37,7 +38,10 @@ export class RotatingShapesState<
     )
   }
 
-  onExit = () => (this.snapshot = {})
+  onExit = () => {
+    this.app.history.resume()
+    this.snapshot = {}
+  }
 
   onWheel: TLNuWheelHandler = (info, gesture, e) => {
     this.onPointerMove(info, e)
@@ -99,6 +103,7 @@ export class RotatingShapesState<
   }
 
   onPointerUp: TLNuPointerHandler = () => {
+    this.app.history.resume()
     this.app.persist()
     this.tool.transition('idle')
   }

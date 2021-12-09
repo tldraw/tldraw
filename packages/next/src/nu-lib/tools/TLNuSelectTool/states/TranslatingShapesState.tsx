@@ -18,6 +18,7 @@ export class TranslatingShapesState<
 
   private moveSelectedShapesToPointer() {
     const {
+      history,
       selectedShapes,
       inputs: { shiftKey, originPoint, currentPoint },
     } = this.app

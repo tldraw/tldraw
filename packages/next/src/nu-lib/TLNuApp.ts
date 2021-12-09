@@ -527,4 +527,18 @@ export class TLNuApp<S extends TLNuShape = TLNuShape> extends TLNuRootState {
     this.viewport.zoomToBounds(selectedBounds)
     return this
   }
+
+  // This is used to capture direct mutations as part of the history stack
+  saving = false
+
+  saveState = () => {
+    if (this.history.isPaused) return
+    this.saving = true
+    requestAnimationFrame(() => {
+      if (this.saving) {
+        this.persist()
+        this.saving = false
+      }
+    })
+  }
 }

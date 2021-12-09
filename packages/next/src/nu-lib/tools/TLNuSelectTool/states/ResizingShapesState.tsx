@@ -35,9 +35,11 @@ export class ResizingShapesState<
 
   onEnter = (info: { handle: TLNuBoundsCorner | TLNuBoundsEdge }) => {
     this.handle = info.handle
-    const { selectedShapes, selectedBounds } = this.app
+    const { history, selectedShapes, selectedBounds } = this.app
 
     if (!selectedBounds) throw Error('Expected a selected bounds.')
+
+    history.pause()
 
     const initialInnerBounds = BoundsUtils.getBoundsFromPoints(
       selectedShapes.map((shape) => BoundsUtils.getBoundsCenter(shape.bounds))
@@ -74,6 +76,7 @@ export class ResizingShapesState<
     this.snapshots = {}
     this.initialCommonBounds = {} as TLNuBounds
     this.boundsRotation = 0
+    this.app.history.resume()
   }
 
   onWheel: TLNuWheelHandler = (info, gesture, e) => {
@@ -129,8 +132,9 @@ export class ResizingShapesState<
   }
 
   onPointerUp: TLNuPointerHandler = () => {
-    this.tool.transition('idle')
+    this.app.history.resume()
     this.app.persist()
+    this.tool.transition('idle')
   }
 
   onKeyDown: TLNuKeyboardHandler = (info, e) => {

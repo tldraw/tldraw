@@ -24,7 +24,7 @@ export class TLNuStarShape<P extends TLNuStarShapeProps = any> extends TLNuBoxSh
   @observable points = 3
   @observable ratio = 1
 
-  static id = 'polygon'
+  static id = 'star'
 
   Component = observer(({ events }: TLNuComponentProps) => {
     const {

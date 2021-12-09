@@ -2,17 +2,17 @@ import * as React from 'react'
 import { BoundsUtils, HTMLContainer, TLNuContextBarComponent } from '@tldraw/next'
 import { observer } from 'mobx-react-lite'
 import { useAppContext } from 'context'
-import type { NuPolygonShape, Shape } from 'stores'
+import type { NuStarShape, NuPolygonShape, Shape } from 'stores'
 
 const _NuContextBar: TLNuContextBarComponent<Shape> = ({
   shapes,
   offset,
   scaledBounds,
-  rotation,
+  // rotation,
 }) => {
   const rContextBar = React.useRef<HTMLDivElement>(null)
 
-  const rotatedBounds = BoundsUtils.getRotatedBounds(scaledBounds, rotation)
+  // const rotatedBounds = BoundsUtils.getRotatedBounds(scaledBounds, rotation)
 
   const app = useAppContext()
 
@@ -32,6 +32,10 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
     shapes.forEach((shape) => shape.update({ sides: +e.currentTarget.value }))
   }, [])
 
+  const updatePoints = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
+    shapes.forEach((shape) => shape.update({ points: +e.currentTarget.value }))
+  }, [])
+
   const updateRatio = React.useCallback<React.ChangeEventHandler<HTMLInputElement>>((e) => {
     shapes.forEach((shape) => shape.update({ ratio: +e.currentTarget.value }))
   }, [])
@@ -39,17 +43,18 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
   React.useLayoutEffect(() => {
     const elm = rContextBar.current
     if (!elm) return
-
     const { offsetWidth, offsetHeight } = elm
-
     const [x, y] = BoundsUtils.getContextBarTranslation([offsetWidth, offsetHeight], offset)
-
     elm.style.setProperty('transform', `translateX(${x}px) translateY(${y}px)`)
   }, [scaledBounds, offset])
 
   if (!app) return null
 
+  const starShapes = shapes.filter((shape) => shape.type === 'star') as NuStarShape[]
+
   const polygonShapes = shapes.filter((shape) => shape.type === 'polygon') as NuPolygonShape[]
+
+  const ratioShapes = shapes.filter((shape) => 'ratio' in shape) as (NuPolygonShape | NuStarShape)[]
 
   return (
     <HTMLContainer centered>
@@ -91,12 +96,29 @@ const _NuContextBar: TLNuContextBarComponent<Shape> = ({
               onChange={updateSides}
               style={{ width: 40 }}
             />
+          </>
+        )}
+        {starShapes.length > 0 && (
+          <>
+            Points
+            <input
+              type="number"
+              value={Math.max(...starShapes.map((shape) => shape.points))}
+              onChange={updatePoints}
+              style={{ width: 40 }}
+            />
+          </>
+        )}
+        {ratioShapes.length > 0 && (
+          <>
             Ratio
             <input
               type="number"
-              value={Math.max(...polygonShapes.map((shape) => shape.ratio))}
+              value={Math.max(...ratioShapes.map((shape) => shape.ratio))}
               onChange={updateRatio}
-              step={0.01}
+              step={0.1}
+              min={0}
+              max={2}
               style={{ width: 40 }}
             />
           </>
