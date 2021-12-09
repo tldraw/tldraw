@@ -21,6 +21,9 @@ import {
   NuHighlighterTool,
   NuDotShape,
   NuDotTool,
+  NuStarTool,
+  NuStarShape,
+  Shape,
 } from 'stores'
 import { AppUI } from 'components/AppUI'
 import { NuContextBar } from 'components/NuContextBar'
@@ -31,7 +34,7 @@ const components: TLNuComponents = {
 }
 
 function App(): JSX.Element {
-  const [app, setApp] = React.useState<TLNuApp>()
+  const [app, setApp] = React.useState<TLNuApp<Shape>>()
 
   const [shapeClasses] = React.useState(() => [
     NuBoxShape,
@@ -40,6 +43,7 @@ function App(): JSX.Element {
     NuPenShape,
     NuHighlighterShape,
     NuDotShape,
+    NuStarShape,
   ])
 
   const [toolClasses] = React.useState(() => [
@@ -49,6 +53,7 @@ function App(): JSX.Element {
     NuPenTool,
     NuHighlighterTool,
     NuDotTool,
+    NuStarTool,
   ])
 
   const [model, setModel] = React.useState<TLNuSerializedApp>({
@@ -115,17 +120,45 @@ function App(): JSX.Element {
             point: [500, 300],
             radius: 3,
           },
+
+          {
+            id: 'star1',
+            type: 'star',
+            parentId: 'page1',
+            point: [100, 500],
+            size: [150, 150],
+            sides: 5,
+            ratio: 0.5,
+          },
+          {
+            id: 'star2',
+            type: 'star',
+            parentId: 'page1',
+            point: [300, 500],
+            size: [150, 150],
+            sides: 5,
+            ratio: 1,
+          },
+          {
+            id: 'star3',
+            type: 'star',
+            parentId: 'page1',
+            point: [500, 500],
+            size: [150, 150],
+            sides: 5,
+            ratio: 0,
+          },
         ],
         bindings: [],
       },
     ],
   })
 
-  const onMount = React.useCallback<TLNuSubscriptionCallbacks['onMount']>((app) => {
+  const onMount = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onMount']>((app) => {
     setApp(app)
   }, [])
 
-  const onPersist = React.useCallback<TLNuSubscriptionCallbacks['onPersist']>((app) => {
+  const onPersist = React.useCallback<TLNuSubscriptionCallbacks<Shape>['onPersist']>((app) => {
     // todo
   }, [])
 

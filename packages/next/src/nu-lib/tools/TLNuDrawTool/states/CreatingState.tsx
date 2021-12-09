@@ -1,17 +1,18 @@
 import { Vec } from '@tldraw/vec'
 import { PointUtils, uniqueId } from '~utils'
 import { TLNuToolState } from '../../../TLNuToolState'
-import type { TLNuApp, TLNuDrawShape, TLNuDrawTool } from '~nu-lib'
-import type { TLNuBinding, TLNuPointerHandler, TLNuWheelHandler } from '~types'
+import type { TLNuShape, TLNuApp, TLNuDrawShape, TLNuDrawTool } from '~nu-lib'
+import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
 
 export class CreatingState<
-  S extends TLNuDrawShape,
-  R extends TLNuApp,
-  P extends TLNuDrawTool<S, R>
+  S extends TLNuShape,
+  T extends S & TLNuDrawShape,
+  R extends TLNuApp<S>,
+  P extends TLNuDrawTool<T, S, R>
 > extends TLNuToolState<R, P> {
   static id = 'creating'
 
-  private creatingShape?: S
+  private creatingShape?: T
   private rawPoints: number[][] = [[0, 0, 0.5]]
   private points: number[][] = [[0, 0, 0.5]]
   private offset: number[] = [0, 0, 0.5]

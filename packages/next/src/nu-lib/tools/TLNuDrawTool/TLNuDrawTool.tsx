@@ -1,17 +1,11 @@
 import { IdleState, PointingState, CreatingState } from './states'
 import { TLNuTool } from '~nu-lib'
-import type { TLNuBinding } from '~types'
-import type {
-  TLNuToolStateClass,
-  TLNuApp,
-  TLNuDrawShape,
-  TLNuDrawShapeProps,
-  TLNuShapeProps,
-} from '~nu-lib'
+import type { TLNuApp, TLNuDrawShape, TLNuDrawShapeProps, TLNuShapeProps, TLNuShape } from '~nu-lib'
 
 export abstract class TLNuDrawTool<
-  S extends TLNuDrawShape = TLNuDrawShape,
-  R extends TLNuApp = TLNuApp
+  T extends TLNuDrawShape = TLNuDrawShape,
+  S extends TLNuShape = TLNuShape,
+  R extends TLNuApp<S> = TLNuApp<S>
 > extends TLNuTool<R> {
   static id = 'draw'
 
@@ -26,6 +20,6 @@ export abstract class TLNuDrawTool<
   simplifyTolerance = 1
 
   abstract shapeClass: {
-    new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): S
+    new (props: TLNuShapeProps & Partial<TLNuDrawShapeProps & unknown>): T
   }
 }

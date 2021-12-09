@@ -1,12 +1,13 @@
-import type { TLNuApp, TLNuDotShape, TLNuDotTool } from '~nu-lib'
+import type { TLNuApp, TLNuDotShape, TLNuShape, TLNuDotTool } from '~nu-lib'
 import { TLNuToolState } from '../../../TLNuToolState'
 import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { uniqueId } from '~utils'
 
 export class CreatingState<
-  S extends TLNuDotShape,
-  R extends TLNuApp,
-  P extends TLNuDotTool<S, R>
+  S extends TLNuShape,
+  T extends S & TLNuDotShape,
+  R extends TLNuApp<S>,
+  P extends TLNuDotTool<T, S, R>
 > extends TLNuToolState<R, P> {
   static id = 'creating'
 

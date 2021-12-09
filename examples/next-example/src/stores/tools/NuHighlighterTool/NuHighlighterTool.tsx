@@ -1,7 +1,7 @@
 import { TLNuDrawTool } from '@tldraw/next'
-import { NuHighlighterShape } from 'stores'
+import { NuHighlighterShape, Shape, NuApp } from 'stores'
 
-export class NuHighlighterTool extends TLNuDrawTool<NuHighlighterShape> {
+export class NuHighlighterTool extends TLNuDrawTool<NuHighlighterShape, Shape, NuApp> {
   static id = 'highlighter'
   static shortcut = 'h'
   shapeClass = NuHighlighterShape

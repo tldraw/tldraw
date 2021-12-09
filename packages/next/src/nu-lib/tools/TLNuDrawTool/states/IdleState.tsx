@@ -1,11 +1,12 @@
-import type { TLNuApp, TLNuDrawShape } from '~nu-lib'
+import type { TLNuShape, TLNuApp, TLNuDrawShape } from '~nu-lib'
 import { TLNuToolState, TLNuDrawTool } from '~nu-lib'
-import type { TLNuBinding, TLNuPinchHandler, TLNuPointerHandler, TLNuShortcut } from '~types'
+import type { TLNuPinchHandler, TLNuPointerHandler, TLNuShortcut } from '~types'
 
 export class IdleState<
-  S extends TLNuDrawShape,
-  R extends TLNuApp,
-  P extends TLNuDrawTool<S, R>
+  S extends TLNuShape,
+  T extends S & TLNuDrawShape,
+  R extends TLNuApp<S>,
+  P extends TLNuDrawTool<T, S, R>
 > extends TLNuToolState<R, P> {
   static id = 'idle'
   static shortcuts: TLNuShortcut<TLNuApp>[] = [

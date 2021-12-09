@@ -1,8 +1,13 @@
-import { TLNuToolState, TLNuApp, TLNuBoxShape } from '~nu-lib'
+import { TLNuShape, TLNuBoxTool, TLNuToolState, TLNuApp, TLNuBoxShape } from '~nu-lib'
 import type { TLNuPointerHandler, TLNuWheelHandler } from '~types'
 import { BoundsUtils, uniqueId } from '~utils'
 
-export class CreatingState<S extends TLNuBoxShape, R extends TLNuApp> extends TLNuToolState<R> {
+export class CreatingState<
+  S extends TLNuShape,
+  T extends S & TLNuBoxShape,
+  R extends TLNuApp<S>,
+  P extends TLNuBoxTool<T, S, R>
+> extends TLNuToolState<R, P> {
   static id = 'creating'
 
   creatingShape?: S

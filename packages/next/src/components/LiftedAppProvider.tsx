@@ -2,12 +2,14 @@
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import { Renderer } from './Renderer'
-import { TLNuApp, TLNuSerializedApp } from '~nu-lib'
-import type { TLNuAppPropsWithoutApp } from '~types'
+import type { TLNuApp, TLNuShape } from '~nu-lib'
+import type { TLNuAppPropsWithApp } from '~types'
 
-declare const window: Window & { tln: TLNuApp }
+declare const window: Window & { tln: TLNuApp<any> }
 
-export const ControlledApp = observer(function App(props: TLNuAppPropsWithoutApp): JSX.Element {
+export const LiftedAppProvider = observer(function App<S extends TLNuShape>(
+  props: TLNuAppPropsWithApp<S>
+): JSX.Element {
   const {
     onMount,
     onPersist,
@@ -17,18 +19,14 @@ export const ControlledApp = observer(function App(props: TLNuAppPropsWithoutApp
     showContextBar,
     showRotateHandle,
     showResizeHandles,
+    app,
     ...rest
   } = props
 
-  const [app] = React.useState(
-    () => new TLNuApp(props.model, props.shapeClasses, props.toolClasses)
-  )
-
   React.useLayoutEffect(() => {
     const unsubs: (() => void)[] = []
-    if (!app) return
-    if (typeof window !== undefined) window['tln'] = app
     app.history.reset()
+    if (typeof window !== undefined) window['tln'] = app
     if (onMount) onMount(app, null)
     if (onPersist) unsubs.push(app.subscribe('persist', onPersist))
     return () => {
@@ -36,10 +34,6 @@ export const ControlledApp = observer(function App(props: TLNuAppPropsWithoutApp
       app.dispose()
     }
   }, [app, onMount, onPersist])
-
-  React.useEffect(() => {
-    if (props.model) app.history.deserialize(props.model as unknown as TLNuSerializedApp)
-  }, [props.model])
 
   return (
     <Renderer

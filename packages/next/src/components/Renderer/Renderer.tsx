@@ -14,7 +14,7 @@ import { EMPTY_OBJECT } from '~constants'
 import { Canvas } from '~components/Canvas'
 import { autorun } from 'mobx'
 
-export const Renderer = observer(function Renderer({
+export const Renderer = observer(function Renderer<S extends TLNuShape>({
   children,
   components = EMPTY_OBJECT,
   id,
@@ -34,7 +34,7 @@ export const Renderer = observer(function Renderer({
   theme = EMPTY_OBJECT,
   viewport,
   ...rest
-}: Partial<TLNuRendererProps> & TLNuContextProviderProps): JSX.Element {
+}: Partial<TLNuRendererProps<S>> & TLNuContextProviderProps): JSX.Element {
   useStylesheet(theme, id)
 
   const [currentContext, setCurrentContext] = React.useState<NuContext>(() => {

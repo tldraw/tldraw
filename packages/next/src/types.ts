@@ -381,17 +381,17 @@ export interface TLNuContextProviderProps extends TLNuCallbacks {
   meta?: any
 }
 
-export interface TLNuRendererProps extends Partial<TLNuViewOptions> {
+export interface TLNuRendererProps<S extends TLNuShape> extends Partial<TLNuViewOptions> {
   bindings: TLNuBinding[]
   brush: TLNuBounds
   children: React.ReactNode
-  hoveredShape: TLNuShape
-  editingShape: TLNuShape
-  bindingShape: TLNuShape
+  hoveredShape: S
+  editingShape: S
+  bindingShape: S
   id: string
   selectedBounds: TLNuBounds
-  selectedShapes: TLNuShape[]
-  shapes: TLNuShape[]
+  selectedShapes: S[]
+  shapes: S[]
   theme: TLNuTheme
 }
 
@@ -400,8 +400,8 @@ export interface TLNuSubscriptionCallbacks<S extends TLNuShape = TLNuShape> {
   onPersist: TLNuSubscriptionCallback<S, 'persist'>
 }
 
-export interface TLNuCommonAppProps
-  extends Partial<TLNuSubscriptionCallbacks>,
+export interface TLNuCommonAppProps<S extends TLNuShape>
+  extends Partial<TLNuSubscriptionCallbacks<S>>,
     Partial<TLNuCallbacks>,
     Partial<TLNuViewOptions> {
   id?: string
@@ -411,14 +411,14 @@ export interface TLNuCommonAppProps
   children?: React.ReactNode
 }
 
-export interface TLNuAppPropsWithoutApp extends TLNuCommonAppProps {
+export interface TLNuAppPropsWithoutApp<S extends TLNuShape> extends TLNuCommonAppProps<S> {
   model?: TLNuSerializedApp
-  shapeClasses?: TLNuShapeClass[]
+  shapeClasses?: TLNuShapeClass<S>[]
   toolClasses?: TLNuToolClass[]
 }
 
-export interface TLNuAppPropsWithApp extends TLNuCommonAppProps {
-  app: TLNuApp
+export interface TLNuAppPropsWithApp<S extends TLNuShape> extends TLNuCommonAppProps<S> {
+  app: TLNuApp<S>
 }
 
 export type AnyObject = { [key: string]: any }

@@ -18,7 +18,7 @@ import { ContextBarContainer } from '~components/ContextBarContainer'
 import { usePreventNavigation } from '~hooks/usePreventNavigation'
 import { BoundsDetailContainer } from '~components/BoundsDetailContainer/BoundsDetailContainer'
 
-export const Canvas = observer(function Renderer({
+export const Canvas = observer(function Renderer<S extends TLNuShape>({
   bindings = EMPTY_ARRAY,
   bindingShape,
   brush,
@@ -36,7 +36,7 @@ export const Canvas = observer(function Renderer({
   showBoundsDetail = true,
   showContextBar = true,
   theme = EMPTY_OBJECT,
-}: Partial<TLNuRendererProps>): JSX.Element {
+}: Partial<TLNuRendererProps<S>>): JSX.Element {
   const rContainer = React.useRef<HTMLDivElement>(null)
   useStylesheet(theme, id)
   usePreventNavigation(rContainer)

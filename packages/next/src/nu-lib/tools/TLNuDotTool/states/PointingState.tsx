@@ -1,12 +1,13 @@
 import { Vec } from '@tldraw/vec'
-import type { TLNuApp, TLNuBoxShape, TLNuBoxTool } from '~nu-lib'
+import type { TLNuApp, TLNuShape, TLNuDotShape, TLNuDotTool } from '~nu-lib'
 import { TLNuToolState } from '~nu-lib'
 import type { TLNuPointerHandler } from '~types'
 
 export class PointingState<
-  S extends TLNuBoxShape,
-  R extends TLNuApp,
-  P extends TLNuBoxTool<S, R>
+  S extends TLNuShape,
+  T extends S & TLNuDotShape,
+  R extends TLNuApp<S>,
+  P extends TLNuDotTool<T, S, R>
 > extends TLNuToolState<R, P> {
   static id = 'pointing'
 

@@ -4,7 +4,7 @@ import { observer } from 'mobx-react-lite'
 import { SVGContainer } from '~components'
 import { TLNuShape, TLNuShapeProps } from '../../TLNuShape'
 import { BoundsUtils } from '~utils'
-import type { AnyObject, TLNuBounds } from '~types'
+import type { TLNuBounds } from '~types'
 import type { TLNuComponentProps, TLNuIndicatorProps, TLNuResizeInfo } from '~nu-lib'
 
 export interface TLNuBoxShapeProps {

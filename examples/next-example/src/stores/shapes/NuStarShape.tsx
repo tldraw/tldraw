@@ -26,7 +26,7 @@ export class NuStarShape extends TLNuStarShape<NuStarShapeProps> {
   @observable fill = '#ffffff22'
   @observable strokeWidth = 2
 
-  static id = 'polygon'
+  static id = 'star'
 
   Component = observer(({ events, isSelected }: TLNuComponentProps) => {
     const {
