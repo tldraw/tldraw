@@ -216,7 +216,6 @@ export abstract class TLNuShape<P extends AnyObject = any, M = any> implements T
    */
   protected getCachedSerialized = (): TLNuSerializedShape<P> => {
     if (this.isDirty) {
-      console.log(this.id)
       this.nonce++
       this.isDirty = false
       this.lastSerialized = this.getSerialized()
