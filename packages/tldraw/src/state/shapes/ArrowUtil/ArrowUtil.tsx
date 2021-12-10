@@ -16,6 +16,9 @@ import {
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectArcBounds,
+  intersectCircleBounds,
+  intersectEllipseCircle,
+  intersectEllipsePolygon,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
   intersectRayBounds,
@@ -37,6 +40,7 @@ import {
   renderFreehandArrowShaft,
 } from './arrowHelpers'
 import { getTrianglePoints } from '../TriangleUtil'
+import { TLDR } from '~state/TLDR'
 
 type T = ArrowShape
 type E = SVGSVGElement
@@ -435,91 +439,101 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
   onBindingChange = (
     shape: T,
-    binding: TDBinding,
-    target: TDShape,
-    targetBounds: TLBounds,
-    expandedBounds: TLBounds,
-    center: number[]
+    handleId: 'start' | 'end',
+    startInfo?: { binding: TDBinding; target: TDShape; bounds: TLBounds },
+    endInfo?: { binding: TDBinding; target: TDShape; bounds: TLBounds }
   ): Partial<T> | void => {
-    const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
+    const bendHandlePoint = Vec.add(shape.point, shape.handles.bend.point)
+    let startHandlePoint = Vec.add(shape.point, shape.handles.start.point)
+    let endHandlePoint = Vec.add(shape.point, shape.handles.end.point)
 
-    let handlePoint = Vec.sub(
-      Vec.add(
-        [expandedBounds.minX, expandedBounds.minY],
-        Vec.mulV(
-          [expandedBounds.width, expandedBounds.height],
-          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
+    // The "origins" here are the points in page-space where the arrow's
+    // handles are located; or, if they are bound to a shape, the page-
+    // space location of they're "anchor" points. We use these points to
+    // find intersections.
+    const startOrigin = startInfo ? getOrigin(startInfo) : startHandlePoint
+    const endOrigin = endInfo ? getOrigin(endInfo) : endHandlePoint
+
+    let isStraightLine = false
+
+    const dist = Vec.dist(startOrigin, endOrigin)
+    const bendDist = (dist / 2) * shape.bend
+    isStraightLine = Math.abs(bendDist) < 10
+
+    if (!isStraightLine) {
+      let start = startHandlePoint
+      let end = endHandlePoint
+      const [cx, cy, r] = Utils.circleFromThreePoints(startOrigin, bendHandlePoint, endOrigin)
+      if (startInfo) {
+        const { binding } = startInfo
+        const padding = shape.decorations?.start ? binding.distance : 0
+        const intersection = findCurveIntersectionPoint(
+          [cx, cy],
+          r,
+          endOrigin,
+          bendHandlePoint,
+          startOrigin,
+          padding,
+          startInfo
         )
-      ),
-      shape.point
-    )
-
-    if (binding.distance) {
-      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
-
-      // The direction vector starts from the arrow's opposite handle
-      const origin = Vec.add(
-        shape.point,
-        shape.handles[handle.id === 'start' ? 'end' : 'start'].point
-      )
-
-      // And passes through the dragging handle
-      const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
-
-      if (target.type === TDShapeType.Ellipse) {
-        const hits = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          (target as EllipseShape).radius[0] + binding.distance,
-          (target as EllipseShape).radius[1] + binding.distance,
-          target.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
-      } else if (target.type === TDShapeType.Triangle) {
-        const points = getTrianglePoints(target, BINDING_DISTANCE, target.rotation).map((pt) =>
-          Vec.add(pt, target.point)
+        if (intersection) start = intersection
+      }
+      if (endInfo) {
+        const { binding } = endInfo
+        const padding = shape.decorations?.end ? binding.distance : 0
+        const intersection = findCurveIntersectionPoint(
+          [cx, cy],
+          r,
+          startOrigin,
+          bendHandlePoint,
+          endOrigin,
+          padding,
+          endInfo
         )
+        if (intersection) end = intersection
+      }
 
-        const segments = Utils.pointsToLineSegments(points, true)
-
-        const hits = segments
-          .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
-          .filter((intersection) => intersection.didIntersect)
-          .flatMap((intersection) => intersection.points)
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
+      if (Vec.dist(Vec.med(start, end), Vec.med(startOrigin, endOrigin)) < 32) {
+        isStraightLine = true
       } else {
-        let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
-          .filter((int) => int.didIntersect)
-          .map((int) => int.points[0])
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (hits.length < 2) {
-          hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
-            .filter((int) => int.didIntersect)
-            .map((int) => int.points[0])
-            .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        }
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
+        startHandlePoint = start
+        endHandlePoint = end
       }
     }
 
-    return this.onHandleChange(shape, {
-      [handle.id]: {
-        ...handle,
-        point: Vec.toFixed(handlePoint),
+    if (isStraightLine) {
+      if (startInfo) {
+        const { binding } = startInfo
+        const padding = shape.decorations?.start ? binding.distance : 0
+        const intersection = findIntersectionPoint(endOrigin, startOrigin, padding, startInfo)
+        if (intersection) startHandlePoint = intersection
+      }
+
+      if (endInfo) {
+        const { binding } = endInfo
+        const padding = shape.decorations?.end ? binding.distance : 0
+        const intersection = findIntersectionPoint(startOrigin, endOrigin, padding, endInfo)
+        if (intersection) endHandlePoint = intersection
+      }
+
+      // bendHandlePoint = Vec.med(startHandlePoint, endHandlePoint)
+    }
+
+    const shapeSpaceStart = Vec.sub(startHandlePoint, shape.point)
+    const shapeSpaceEnd = Vec.sub(endHandlePoint, shape.point)
+
+    const nextHandles: Partial<ArrowShape['handles']> = {
+      start: {
+        ...shape.handles.start,
+        point: shapeSpaceStart,
       },
-    })
+      end: {
+        ...shape.handles.end,
+        point: shapeSpaceEnd,
+      },
+    }
+
+    return this.onHandleChange(shape, nextHandles)
   }
 
   onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
@@ -541,34 +555,24 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = nextHandles
-
       const distance = Vec.dist(start.point, end.point)
-
       const midPoint = Vec.med(start.point, end.point)
-
       const angle = Vec.angle(start.point, end.point)
-
       const u = Vec.uni(Vec.vec(start.point, end.point))
-
       // Create a line segment perendicular to the line between the start and end points
       const ap = Vec.add(midPoint, Vec.mul(Vec.per(u), distance / 2))
       const bp = Vec.sub(midPoint, Vec.mul(Vec.per(u), distance / 2))
-
       const bendPoint = Vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
-
       // Find the distance between the midpoint and the nearest point on the
       // line segment to the bend handle's dragged point
       const bendDist = Vec.dist(midPoint, bendPoint)
-
       // The shape's "bend" is the ratio of the bend to the distance between
       // the start and end points. If the bend is below a certain amount, the
       // bend should be zero.
       nextBend = Utils.clamp(bendDist / (distance / 2), -0.99, 0.99)
-
       // If the point is to the left of the line segment, we make the bend
       // negative, otherwise it's positive.
       const angleToBend = Vec.angle(start.point, bendPoint)
-
       // If resulting bend is low enough that the handle will snap to center,
       // then also snap the bend to center
       if (Vec.isEqual(midPoint, getBendPoint(nextHandles, nextBend))) {
@@ -610,4 +614,121 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
     return nextShape
   }
+}
+
+function getOrigin(info: { binding: TDBinding; target: TDShape; bounds: TLBounds }) {
+  const { target, binding } = info
+  const targetUtil = TLDR.getShapeUtil(target.type)
+  const expandedBounds = targetUtil.getExpandedBounds(target)
+  return Vec.add(
+    [expandedBounds.minX, expandedBounds.minY],
+    Vec.mulV(
+      [expandedBounds.width, expandedBounds.height],
+      Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
+    )
+  )
+}
+
+function findIntersectionPoint(
+  start: number[],
+  end: number[],
+  padding: number,
+  info: { binding: TDBinding; target: TDShape; bounds: TLBounds }
+) {
+  const { target, binding, bounds } = info
+  if (!binding.distance) return end
+  const intersectBounds = padding ? Utils.expandBounds(bounds, binding.distance) : bounds
+  const direction = Vec.uni(Vec.sub(end, start))
+  let intersection: number[] | undefined
+  switch (target.type) {
+    case TDShapeType.Ellipse: {
+      const hits = intersectRayEllipse(
+        start,
+        direction,
+        TLDR.getShapeUtil(target.type).getCenter(target),
+        (target as EllipseShape).radius[0] + padding,
+        (target as EllipseShape).radius[1] + padding,
+        target.rotation || 0
+      ).points.sort((a, b) => Vec.dist(a, start) - Vec.dist(b, start))
+      intersection = hits[0]
+      break
+    }
+    case TDShapeType.Triangle: {
+      const segments = Utils.pointsToLineSegments(
+        getTrianglePoints(target, padding, target.rotation).map((pt) => Vec.add(pt, target.point)),
+        true
+      )
+      const hits = segments
+        .map((segment) => intersectRayLineSegment(start, direction, segment[0], segment[1]))
+        .filter((intersection) => intersection.didIntersect)
+        .flatMap((intersection) => intersection.points)
+        .sort((a, b) => Vec.dist(a, start) - Vec.dist(b, start))
+      intersection = hits[0]
+
+      break
+    }
+    default: {
+      let hits = intersectRayBounds(start, direction, intersectBounds, target.rotation)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => Vec.dist(a, start) - Vec.dist(b, start))
+      if (hits.length < 2) {
+        hits = intersectRayBounds(start, Vec.neg(direction), intersectBounds)
+          .filter((int) => int.didIntersect)
+          .map((int) => int.points[0])
+          .sort((a, b) => Vec.dist(a, start) - Vec.dist(b, start))
+      }
+      intersection = hits[0]
+    }
+  }
+  return intersection
+}
+
+function findCurveIntersectionPoint(
+  center: number[],
+  radius: number,
+  start: number[],
+  mid: number[],
+  end: number[],
+  padding: number,
+  info: { binding: TDBinding; target: TDShape; bounds: TLBounds }
+) {
+  const { target, binding, bounds } = info
+  let intersection: number[] | undefined
+  switch (target.type) {
+    case TDShapeType.Ellipse: {
+      const hits = intersectEllipseCircle(
+        TLDR.getShapeUtil(target.type).getCenter(target),
+        (target as EllipseShape).radius[0] + padding,
+        (target as EllipseShape).radius[1] + padding,
+        target.rotation || 0,
+        center,
+        radius
+      ).points.sort((a, b) => Vec.dist(a, mid) - Vec.dist(b, mid))
+      intersection = hits[0]
+      break
+    }
+    case TDShapeType.Triangle: {
+      const hits = intersectEllipsePolygon(
+        center,
+        radius,
+        radius,
+        0,
+        getTrianglePoints(target, padding, target.rotation).map((pt) => Vec.add(pt, target.point))
+      )
+        .flatMap((intersection) => intersection.points)
+        .sort((a, b) => Vec.dist(a, mid) - Vec.dist(b, mid))
+      intersection = hits[0]
+      break
+    }
+    default: {
+      const intersectBounds = padding ? Utils.expandBounds(bounds, binding.distance) : bounds
+      const hits = intersectCircleBounds(center, radius, intersectBounds)
+        .filter((int) => int.didIntersect)
+        .map((int) => int.points[0])
+        .sort((a, b) => Vec.dist(a, mid) - Vec.dist(b, mid))
+      intersection = hits[0]
+    }
+  }
+  return intersection
 }

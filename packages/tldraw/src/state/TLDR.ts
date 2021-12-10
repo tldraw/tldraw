@@ -259,15 +259,53 @@ export class TLDR {
           )
         }
 
-        TLDR.onBindingChange(
-          TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
-          binding,
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-        )
+        // In tldraw, a binding is a relationship between an arrow
+        // and a shape. An arrow may be bound at its start handle
+        // or its end handle. It may have bindings on either side,
+        // or it may have no bindings.
+
+        // Updating the binding requires quite a lot of information.
+        // For each handle, we need to know the handle's position in
+        // page space; and, if the shape is bound to another point,
+        // the the shape as well. From this we can decide where the
+        // handles should be.
+
+        const arrowShape = TLDR.getShape<ArrowShape>(cTDSnapshot, binding.fromId, pageId)
+
+        const { start, end } = arrowShape.handles
+
+        let startInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+        if (start.bindingId) {
+          const binding = TLDR.getBinding(cTDSnapshot, start.bindingId, pageId)
+          const target = TLDR.getShape(cTDSnapshot, binding.toId, pageId)
+          const utils = TLDR.getShapeUtil(target.type)
+          startInfo = {
+            binding,
+            target,
+            bounds: utils.getBounds(target),
+          }
+        }
+
+        let endInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+        if (end.bindingId) {
+          const binding = TLDR.getBinding(cTDSnapshot, end.bindingId, pageId)
+          const target = TLDR.getShape(cTDSnapshot, binding.toId, pageId)
+          const utils = TLDR.getShapeUtil(target.type)
+          endInfo = {
+            binding,
+            target,
+            bounds: utils.getBounds(target),
+          }
+        }
+
+        TLDR.onBindingChange(arrowShape, binding.handleId as 'start' | 'end', startInfo, endInfo)
 
         afterShapes[binding.fromId] = Utils.deepClone(
           TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
         )
+
         afterShapes[binding.toId] = Utils.deepClone(
           TLDR.getShape(cTDSnapshot, binding.toId, pageId)
         )
@@ -628,15 +666,14 @@ export class TLDR {
     return { ...shape, ...delta }
   }
 
-  static onBindingChange<T extends TDShape>(shape: T, binding: TDBinding, otherShape: TDShape) {
-    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
-      shape,
-      binding,
-      otherShape,
-      TLDR.getShapeUtil(otherShape).getBounds(otherShape),
-      TLDR.getShapeUtil(otherShape).getExpandedBounds(otherShape),
-      TLDR.getShapeUtil(otherShape).getCenter(otherShape)
-    )
+  static onBindingChange<T extends TDShape>(
+    shape: T,
+    handleId: 'start' | 'end',
+    startInfo?: { binding: TDBinding; target: TDShape; bounds: TLBounds },
+    endInfo?: { binding: TDBinding; target: TDShape; bounds: TLBounds }
+  ) {
+    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(shape, handleId, startInfo, endInfo)
+
     if (!delta) return shape
 
     return { ...shape, ...delta }

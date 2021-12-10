@@ -30,19 +30,13 @@ export function getArrowArcPath(
 
 export function getBendPoint(handles: ArrowShape['handles'], bend: number) {
   const { start, end } = handles
-
   const dist = Vec.dist(start.point, end.point)
-
   const midPoint = Vec.med(start.point, end.point)
-
   const bendDist = (dist / 2) * bend
-
   const u = Vec.uni(Vec.vec(start.point, end.point))
-
   const point = Vec.toFixed(
     Math.abs(bendDist) < 10 ? midPoint : Vec.add(midPoint, Vec.mul(Vec.per(u), bendDist))
   )
-
   return point
 }
 

@@ -14,7 +14,7 @@ import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
@@ -178,16 +178,17 @@ export class ArrowSession extends BaseSession {
 
         const target = this.app.page.shapes[this.startBindingShapeId]
 
-        const targetUtils = TLDR.getShapeUtil(target)
+        const utils = this.app.getShapeUtil(target.type)
 
-        const arrowChange = TLDR.getShapeUtil<ArrowShape>(next.shape.type).onBindingChange?.(
-          next.shape,
-          startBinding,
+        const startInfo = {
+          binding: startBinding,
           target,
-          targetUtils.getBounds(target),
-          targetUtils.getExpandedBounds(target),
-          targetUtils.getCenter(target)
-        )
+          bounds: utils.getBounds(target),
+        }
+
+        const arrowChange = this.app
+          .getShapeUtil<ArrowShape>(shape.type)
+          .onBindingChange?.(shape, 'start', startInfo, undefined)
 
         if (arrowChange) {
           Object.assign(next.shape, arrowChange)
@@ -259,13 +260,39 @@ export class ArrowSession extends BaseSession {
 
       const utils = shapeUtils[TDShapeType.Arrow]
 
+      const { start, end } = shape.handles
+
+      let startInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+      if (start.bindingId) {
+        const binding = this.app.getBinding(start.bindingId)
+        const target = this.app.getShape(binding.toId)
+        const utils = this.app.getShapeUtil(target.type)
+        startInfo = {
+          binding,
+          target,
+          bounds: utils.getBounds(target),
+        }
+      }
+
+      let endInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+      if (end.bindingId) {
+        const binding = this.app.getBinding(end.bindingId)
+        const target = this.app.getShape(binding.toId)
+        const utils = this.app.getShapeUtil(target.type)
+        endInfo = {
+          binding,
+          target,
+          bounds: utils.getBounds(target),
+        }
+      }
+
       const arrowChange = utils.onBindingChange(
         next.shape,
-        draggedBinding,
-        target,
-        targetUtils.getBounds(target),
-        targetUtils.getExpandedBounds(target),
-        targetUtils.getCenter(target)
+        handleId as 'start' | 'end',
+        startInfo,
+        endInfo
       )
 
       if (arrowChange) {

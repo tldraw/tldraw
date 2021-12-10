@@ -34,6 +34,7 @@ import {
   TDUser,
   SessionType,
   TDToolType,
+  ArrowShape,
 } from '~types'
 import {
   migrate,
@@ -332,21 +333,44 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               return
             }
 
-            const toShape = page.shapes[binding.toId]
-            const fromShape = page.shapes[binding.fromId]
+            const fromShape = page.shapes[binding.fromId] as ArrowShape
 
-            const toUtils = TLDR.getShapeUtil(toShape)
+            const utils = shapeUtils[TDShapeType.Arrow]
 
-            const fromUtils = TLDR.getShapeUtil(fromShape)
+            const { start, end } = fromShape.handles
 
-            // We only need to update the binding's "from" shape
-            const fromDelta = fromUtils.onBindingChange?.(
+            let startInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+            if (start.bindingId) {
+              const binding = page.bindings[start.bindingId]
+              const target = page.shapes[binding.toId]
+              const utils = this.getShapeUtil(target.type)
+              startInfo = {
+                binding,
+                target,
+                bounds: utils.getBounds(target),
+              }
+            }
+
+            let endInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+            if (end.bindingId) {
+              const binding = page.bindings[end.bindingId]
+              const target = page.shapes[binding.toId]
+              const utils = this.getShapeUtil(target.type)
+
+              endInfo = {
+                binding,
+                target,
+                bounds: utils.getBounds(target),
+              }
+            }
+
+            const fromDelta = utils.onBindingChange(
               fromShape,
-              binding,
-              toShape,
-              toUtils.getBounds(toShape),
-              toUtils.getExpandedBounds(toShape),
-              toUtils.getCenter(toShape)
+              binding.handleId as 'start' | 'end',
+              startInfo,
+              endInfo
             )
 
             if (fromDelta) {
@@ -725,21 +749,43 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           return
         }
 
-        const toShape = page.shapes[binding.toId]
-        const fromShape = page.shapes[binding.fromId]
+        const fromShape = page.shapes[binding.fromId] as ArrowShape
 
-        const toUtils = TLDR.getShapeUtil(toShape)
+        const utils = shapeUtils[TDShapeType.Arrow]
 
-        const fromUtils = TLDR.getShapeUtil(fromShape)
+        const { start, end } = fromShape.handles
 
-        // We only need to update the binding's "from" shape
-        const fromDelta = fromUtils.onBindingChange?.(
+        let startInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+        if (start.bindingId) {
+          const binding = this.getBinding(start.bindingId)
+          const target = this.getShape(binding.toId)
+          const utils = this.getShapeUtil(target.type)
+          startInfo = {
+            binding,
+            target,
+            bounds: utils.getBounds(target),
+          }
+        }
+
+        let endInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
+
+        if (end.bindingId) {
+          const binding = this.getBinding(end.bindingId)
+          const target = this.getShape(binding.toId)
+          const utils = this.getShapeUtil(target.type)
+          endInfo = {
+            binding,
+            target,
+            bounds: utils.getBounds(target),
+          }
+        }
+
+        const fromDelta = utils.onBindingChange(
           fromShape,
-          binding,
-          toShape,
-          toUtils.getBounds(toShape),
-          toUtils.getExpandedBounds(toShape),
-          toUtils.getCenter(toShape)
+          binding.handleId as 'start' | 'end',
+          startInfo,
+          endInfo
         )
 
         if (fromDelta) {
