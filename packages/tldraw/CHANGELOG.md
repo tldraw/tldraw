@@ -1,3 +1,8 @@
+## 1.2.5
+
+- Triangles!
+- Improves selection logic.
+
 ## 1.2.4
 
 - Fixes bug with `onPersist`.

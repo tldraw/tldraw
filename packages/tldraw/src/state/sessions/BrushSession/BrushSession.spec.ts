@@ -11,7 +11,7 @@ describe('Brush session', () => {
       .movePointer([48, 48])
       .completeSession()
     expect(app.status).toBe(TDStatus.Idle)
-    expect(app.selectedIds.length).toBe(2)
+    expect(app.selectedIds.length).toBe(1)
   })
 
   it('selects multiple shapes', () => {
