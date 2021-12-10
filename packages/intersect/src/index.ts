@@ -1293,6 +1293,29 @@ export function intersectRayPolygon(
   return sideIntersections.filter((int) => int.didIntersect)
 }
 
+export function intersectEllipsePolygon(
+  c: number[],
+  rx: number,
+  ry: number,
+  rotation: number,
+  points: number[][]
+): TLIntersection[] {
+  const sideIntersections = pointsToLineSegments(points, true).reduce<TLIntersection[]>(
+    (acc, [a1, a2], i) => {
+      const intersection = intersectLineSegmentEllipse(a1, a2, c, rx, ry, rotation)
+
+      if (intersection) {
+        acc.push(createIntersection(i.toString(), ...intersection.points))
+      }
+
+      return acc
+    },
+    []
+  )
+
+  return sideIntersections.filter((int) => int.didIntersect)
+}
+
 export function pointsToLineSegments(points: number[][], closed = false) {
   const segments = []
   for (let i = 1; i < points.length; i++) segments.push([points[i - 1], points[i]])
