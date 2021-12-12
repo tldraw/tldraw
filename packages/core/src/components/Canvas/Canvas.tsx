@@ -10,8 +10,6 @@ import {
   useKeyEvents,
 } from '~hooks'
 import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape, TLSnapLine, TLUsers } from '~types'
-import { ErrorFallback } from '~components/ErrorFallback'
-import { ErrorBoundary } from '~components/ErrorBoundary'
 import { Brush } from '~components/Brush'
 import { Page } from '~components/Page'
 import { Users } from '~components/Users'
@@ -93,28 +91,26 @@ export const Canvas = observer(function _Canvas<
   return (
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
-        <ErrorBoundary FallbackComponent={ErrorFallback} onReset={resetError}>
-          {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
-          <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
-            <Page
-              page={page}
-              pageState={pageState}
-              hideBounds={hideBounds}
-              hideIndicators={hideIndicators}
-              hideHandles={hideHandles}
-              hideBindingHandles={hideBindingHandles}
-              hideCloneHandles={hideCloneHandles}
-              hideResizeHandles={hideResizeHandles}
-              hideRotateHandle={hideRotateHandle}
-              meta={meta}
-            />
-            {users && userId && (
-              <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
-            )}
-            {pageState.brush && <Brush brush={pageState.brush} />}
-            {users && <Users userId={userId} users={users} />}
-          </div>
-        </ErrorBoundary>
+        {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
+        <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
+          <Page
+            page={page}
+            pageState={pageState}
+            hideBounds={hideBounds}
+            hideIndicators={hideIndicators}
+            hideHandles={hideHandles}
+            hideBindingHandles={hideBindingHandles}
+            hideCloneHandles={hideCloneHandles}
+            hideResizeHandles={hideResizeHandles}
+            hideRotateHandle={hideRotateHandle}
+            meta={meta}
+          />
+          {users && userId && (
+            <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
+          )}
+          {pageState.brush && <Brush brush={pageState.brush} />}
+          {users && <Users userId={userId} users={users} />}
+        </div>
         <Overlay camera={pageState.camera}>
           {snapLines && <SnapLines snapLines={snapLines} />}
         </Overlay>

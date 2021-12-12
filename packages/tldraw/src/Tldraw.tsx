@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
 import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
@@ -301,21 +300,19 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <IdProvider>
-        <InnerTldraw
-          key={sId || 'Tldraw'}
-          id={sId}
-          autofocus={autofocus}
-          showPages={showPages}
-          showMenu={showMenu}
-          showStyles={showStyles}
-          showZoom={showZoom}
-          showTools={showTools}
-          showUI={showUI}
-          showSponsorLink={showSponsorLink}
-          readOnly={readOnly}
-        />
-      </IdProvider>
+      <InnerTldraw
+        key={sId || 'Tldraw'}
+        id={sId}
+        autofocus={autofocus}
+        showPages={showPages}
+        showMenu={showMenu}
+        showStyles={showStyles}
+        showZoom={showZoom}
+        showTools={showTools}
+        showUI={showUI}
+        showSponsorLink={showSponsorLink}
+        readOnly={readOnly}
+      />
     </TldrawContext.Provider>
   )
 }

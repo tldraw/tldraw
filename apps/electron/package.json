@@ -11,10 +11,10 @@
     "esbuild"
   ],
   "scripts": {
-    "start:electron": "yarn dev",
-    "build:apps": "yarn build",
     "dev": "electron-esbuild dev",
-    "build": "electron-esbuild build",
+    "start:electron": "yarn dev",
+    "build:apps": "yarn build:electron",
+    "build:electron": "electron-esbuild build",
     "package": "electron-builder"
   },
   "devDependencies": {

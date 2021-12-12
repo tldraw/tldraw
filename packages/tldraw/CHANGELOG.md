@@ -1,3 +1,7 @@
+## 1.2.7
+
+- Fixes crash due to a missing ID provider.
+
 ## 1.2.6
 
 - No minify on bundle.
