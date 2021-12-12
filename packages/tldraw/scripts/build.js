@@ -31,7 +31,7 @@ async function main() {
     const esmResult = esbuild.buildSync({
       entryPoints: ['./src/index.ts'],
       outdir: 'dist/esm',
-      minify: true,
+      minify: false,
       bundle: true,
       format: 'esm',
       target: 'es6',
