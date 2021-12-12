@@ -1,3 +1,7 @@
+## 1.2.6
+
+- No minify on bundle.
+
 ## 1.2.5
 
 - Triangles!
