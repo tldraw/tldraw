@@ -179,80 +179,16 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     )
   }
 
-  getBindingPoint = <K extends TDShape>(
-    shape: T,
-    fromShape: K,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    bindAnywhere: boolean
-  ) => {
-    // Algorithm time! We need to find the binding point (a normalized point inside of the shape, or around the shape, where the arrow will point to) and the distance from the binding shape to the anchor.
-
+  hitTestBindingPoint = (shape: T, point: number[]): boolean => {
     const expandedBounds = this.getExpandedBounds(shape)
-
-    if (!Utils.pointInBounds(point, expandedBounds)) return
-
-    const points = getTrianglePoints(shape).map((pt) => Vec.add(pt, shape.point))
-
-    const expandedPoints = getTrianglePoints(shape, this.bindingDistance).map((pt) =>
-      Vec.add(pt, shape.point)
+    if (!Utils.pointInBounds(point, expandedBounds)) return false
+    const relativePoint = Vec.sub(point, shape.point)
+    return (
+      Utils.pointInPolygon(relativePoint, getTrianglePoints(shape, this.bindingDistance)) ||
+      Utils.pointsToLineSegments(getTrianglePoints(shape), true)
+        .map(([a, b]) => Vec.distanceToLineSegment(a, b, relativePoint))
+        .sort((a, b) => a - b)[0] < this.bindingDistance
     )
-
-    const closestDistanceToEdge = Utils.pointsToLineSegments(points, true)
-      .map(([a, b]) => Vec.distanceToLineSegment(a, b, point))
-      .sort((a, b) => a - b)[0]
-
-    if (
-      !(Utils.pointInPolygon(point, expandedPoints) || closestDistanceToEdge < this.bindingDistance)
-    )
-      return
-
-    const intersections = Utils.pointsToLineSegments(expandedPoints.concat([expandedPoints[0]]))
-      .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
-      .filter((intersection) => intersection.didIntersect)
-      .flatMap((intersection) => intersection.points)
-
-    if (!intersections.length) return
-
-    // The center of the triangle
-    const center = Vec.add(getTriangleCentroid(shape), shape.point)
-
-    // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
-    const intersection = intersections.sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
-
-    // The point between the handle and the intersection
-    const middlePoint = Vec.med(point, intersection)
-
-    let anchor: number[]
-    let distance: number
-
-    if (bindAnywhere) {
-      anchor = Vec.dist(point, center) < BINDING_DISTANCE / 2 ? center : point
-      distance = 0
-    } else {
-      if (Vec.distanceToLineSegment(point, middlePoint, center) < BINDING_DISTANCE / 2) {
-        anchor = center
-      } else {
-        anchor = middlePoint
-      }
-
-      if (Utils.pointInPolygon(point, points)) {
-        distance = this.bindingDistance
-      } else {
-        distance = Math.max(this.bindingDistance, closestDistanceToEdge)
-      }
-    }
-
-    const bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-      expandedBounds.width,
-      expandedBounds.height,
-    ])
-
-    return {
-      point: Vec.clampV(bindingPoint, 0, 1),
-      distance,
-    }
   }
 
   transform = transformRectangle

@@ -5,6 +5,7 @@ import type {
   TLUser,
   TLPageState,
   TLBinding,
+  TLBounds,
   TLBoundsCorner,
   TLBoundsEdge,
   TLShape,
@@ -320,9 +321,12 @@ export interface ArrowShape extends TDBaseShape {
 
 export interface ArrowBinding extends TLBinding {
   handleId: keyof ArrowShape['handles']
-  distance: number
+  isInside: boolean
+  isExact: boolean
   point: number[]
 }
+
+export type TDBindingInfo = { binding: TDBinding; target: TDShape; bounds: TLBounds }
 
 export type TDBinding = ArrowBinding
 

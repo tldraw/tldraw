@@ -144,15 +144,6 @@ const tlcss = css`
     pointer-events: none;
   }
 
-  .tl-grid {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    touch-action: none;
-    pointer-events: none;
-    user-select: none;
-  }
-
   .tl-snap-line {
     stroke: var(--tl-accent);
     stroke-width: calc(1px * var(--tl-scale));
@@ -425,6 +416,15 @@ const tlcss = css`
     fill: none;
     stroke: var(--tl-selectStroke);
     stroke-width: calc(2px * var(--tl-scale));
+  }
+
+  .tl-grid {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    pointer-events: none;
+    user-select: none;
   }
 
   .tl-grid-dot {

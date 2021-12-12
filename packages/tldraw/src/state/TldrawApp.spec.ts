@@ -619,7 +619,7 @@ describe('TldrawTestApp', () => {
     internal app.
   */
 
-  jest.setTimeout(10000)
+  // jest.setTimeout(10000)
 
   describe('When changing versions', () => {
     it('migrates correctly', (done) => {

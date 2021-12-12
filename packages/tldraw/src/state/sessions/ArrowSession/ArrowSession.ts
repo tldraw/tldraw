@@ -157,8 +157,6 @@ export class ArrowSession extends BaseSession {
           'start',
           this.newStartBindingId,
           center,
-          rayOrigin,
-          rayDirection,
           false
         )
       }
@@ -218,11 +216,6 @@ export class ArrowSession extends BaseSession {
 
     if (!metaKey) {
       const handle = next.shape.handles[this.handleId]
-      const oppositeHandle = next.shape.handles[this.handleId === 'start' ? 'end' : 'start']
-      const rayOrigin = Vec.add(oppositeHandle.point, next.shape.point)
-      const rayPoint = Vec.add(handle.point, next.shape.point)
-      const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
-
       const targets = this.bindableShapeIds.map((id) => this.app.page.shapes[id])
 
       for (const target of targets) {
@@ -231,9 +224,7 @@ export class ArrowSession extends BaseSession {
           target,
           this.handleId,
           this.draggedBindingId,
-          rayPoint,
-          rayOrigin,
-          rayDirection,
+          Vec.add(handle.point, next.shape.point),
           altKey
         )
 
@@ -254,10 +245,6 @@ export class ArrowSession extends BaseSession {
         },
       }
 
-      const target = this.app.page.shapes[draggedBinding.toId]
-
-      const targetUtils = TLDR.getShapeUtil(target)
-
       const utils = shapeUtils[TDShapeType.Arrow]
 
       const { start, end } = shape.handles
@@ -268,11 +255,8 @@ export class ArrowSession extends BaseSession {
         const binding = this.app.getBinding(start.bindingId)
         const target = this.app.getShape(binding.toId)
         const utils = this.app.getShapeUtil(target.type)
-        startInfo = {
-          binding,
-          target,
-          bounds: utils.getBounds(target),
-        }
+        const bounds = utils.getBounds(target)
+        startInfo = { binding, target, bounds }
       }
 
       let endInfo: { binding: TDBinding; target: TDShape; bounds: TLBounds } | undefined
@@ -281,11 +265,8 @@ export class ArrowSession extends BaseSession {
         const binding = this.app.getBinding(end.bindingId)
         const target = this.app.getShape(binding.toId)
         const utils = this.app.getShapeUtil(target.type)
-        endInfo = {
-          binding,
-          target,
-          bounds: utils.getBounds(target),
-        }
+        const bounds = utils.getBounds(target)
+        endInfo = { binding, target, bounds }
       }
 
       const arrowChange = utils.onBindingChange(
@@ -458,25 +439,18 @@ export class ArrowSession extends BaseSession {
     handleId: 'start' | 'end',
     bindingId: string,
     point: number[],
-    origin: number[],
-    direction: number[],
     bindAnywhere: boolean
   ) => {
     const util = TLDR.getShapeUtil<TDShape>(target.type)
-
-    const bindingPoint = util.getBindingPoint(target, shape, point, origin, direction, bindAnywhere)
-
-    // Not all shapes will produce a binding point
-    if (!bindingPoint) return
-
+    const bindingInfo = util.getBindingInfo(target, point, bindAnywhere)
+    if (!bindingInfo) return // It's a miss!
     return {
       id: bindingId,
       type: 'arrow',
       fromId: shape.id,
       toId: target.id,
       handleId: handleId,
-      point: Vec.toFixed(bindingPoint.point),
-      distance: bindingPoint.distance,
+      ...bindingInfo,
     }
   }
 }

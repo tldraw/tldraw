@@ -231,111 +231,16 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     return Vec.add(shape.point, shape.radius)
   }
 
-  getBindingPoint = <K extends TDShape>(
-    shape: T,
-    fromShape: K,
-    point: number[],
-    origin: number[],
-    direction: number[],
-    bindAnywhere: boolean
-  ) => {
-    {
-      const expandedBounds = this.getExpandedBounds(shape)
-
-      const center = this.getCenter(shape)
-
-      let bindingPoint: number[]
-      let distance: number
-
-      if (
-        !Utils.pointInEllipse(
-          point,
-          center,
-          shape.radius[0] + this.bindingDistance,
-          shape.radius[1] + this.bindingDistance
-        )
-      )
-        return
-
-      if (bindAnywhere) {
-        if (Vec.dist(point, this.getCenter(shape)) < 12) {
-          bindingPoint = [0.5, 0.5]
-        } else {
-          bindingPoint = Vec.divV(Vec.sub(point, [expandedBounds.minX, expandedBounds.minY]), [
-            expandedBounds.width,
-            expandedBounds.height,
-          ])
-        }
-
-        distance = 0
-      } else {
-        let intersection = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          shape.radius[0],
-          shape.radius[1],
-          shape.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
-
-        if (!intersection) {
-          intersection = intersectLineSegmentEllipse(
-            point,
-            center,
-            center,
-            shape.radius[0],
-            shape.radius[1],
-            shape.rotation || 0
-          ).points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
-        }
-
-        if (!intersection) {
-          return undefined
-        }
-
-        // The anchor is a point between the handle and the intersection
-        const anchor = Vec.med(point, intersection)
-
-        if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
-          // If we're close to the center, snap to the center
-          bindingPoint = [0.5, 0.5]
-        } else {
-          // Or else calculate a normalized point
-          bindingPoint = Vec.divV(Vec.sub(anchor, [expandedBounds.minX, expandedBounds.minY]), [
-            expandedBounds.width,
-            expandedBounds.height,
-          ])
-        }
-
-        if (
-          Utils.pointInEllipse(point, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
-        ) {
-          // Pad the arrow out by 16 points
-          distance = this.bindingDistance / 2
-        } else {
-          // Find the distance between the point and the ellipse
-          const innerIntersection = intersectLineSegmentEllipse(
-            point,
-            center,
-            center,
-            shape.radius[0],
-            shape.radius[1],
-            shape.rotation || 0
-          ).points[0]
-
-          if (!innerIntersection) {
-            return undefined
-          }
-
-          distance = Math.max(this.bindingDistance / 2, Vec.dist(point, innerIntersection))
-        }
-      }
-
-      return {
-        point: bindingPoint,
-        distance,
-      }
-    }
+  hitTestBindingPoint = (shape: T, point: number[]): boolean => {
+    const expandedBounds = this.getExpandedBounds(shape)
+    if (!Utils.pointInBounds(point, expandedBounds)) return false
+    const center = this.getCenter(shape)
+    return Utils.pointInEllipse(
+      point,
+      center,
+      shape.radius[0] + this.bindingDistance,
+      shape.radius[1] + this.bindingDistance
+    )
   }
 
   transform = (

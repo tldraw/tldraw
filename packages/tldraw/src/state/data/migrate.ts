@@ -1,18 +1,10 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Decoration, FontStyle, TDDocument, TDShapeType, TextShape } from '~types'
+import { ArrowShape, Decoration, FontStyle, TDDocument, TDShapeType, TextShape } from '~types'
 
 export function migrate(document: TDDocument, newVersion: number): TDDocument {
   const { version = 0 } = document
 
   if (version === newVersion) return document
-
-  if (version < 14) {
-    Object.values(document.pages).forEach((page) => {
-      Object.values(page.shapes)
-        .filter((shape) => shape.type === TDShapeType.Text)
-        .forEach((shape) => (shape as TextShape).style.font === FontStyle.Script)
-    })
-  }
 
   // Lowercase styles, move binding meta to binding
   if (version <= 13) {
@@ -49,6 +41,30 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
   // Add document name and file system handle
   if (version <= 13.1) {
     document.name = 'New Document'
+  }
+
+  if (version < 14) {
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.shapes)
+        .filter((shape) => shape.type === TDShapeType.Text)
+        .forEach((shape) => (shape as TextShape).style.font === FontStyle.Script)
+    })
+  }
+
+  if (version < 15) {
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.bindings).forEach((binding) => {
+        type OldBinding = {
+          handleId: keyof ArrowShape['handles']
+          distance: number
+          point: number[]
+        }
+
+        const b = { ...binding } as unknown as OldBinding
+        binding.isExact = !b.distance
+        binding.isInside = true
+      })
+    })
   }
 
   // Cleanup
