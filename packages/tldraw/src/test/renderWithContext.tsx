@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { IdProvider } from '@radix-ui/react-id'
 import { TldrawApp } from '~state'
 import { useKeyboardShortcuts, TldrawContext } from '~hooks'
 import { mockDocument } from './mockDocument'
@@ -22,9 +21,7 @@ export const Wrapper: React.FC = ({ children }) => {
 
   return (
     <TldrawContext.Provider value={context}>
-      <IdProvider>
-        <div ref={rWrapper}>{children}</div>
-      </IdProvider>
+      <div ref={rWrapper}>{children}</div>
     </TldrawContext.Provider>
   )
 }
