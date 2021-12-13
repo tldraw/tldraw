@@ -611,8 +611,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     bindings: Record<string, TDBinding>,
     pageId = this.currentPageId
   ): this => {
-    // This will be called a few times: once by our own change,
-    // once by the change to shapes, and once by the change to bindings
+    // This may be called a few times: once by our own change, and once by the changes that come in.
 
     if (this.justSent) {
       this.justSent = false
