@@ -602,18 +602,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Manually patch a set of shapes.
-   * @param shapes An array of shape partials, containing the changes to be made to each shape.
-   * @command
+   * Manually patch in page content.
    */
   public replacePageContent = (
     shapes: Record<string, TDShape>,
     bindings: Record<string, TDBinding>,
     pageId = this.currentPageId
   ): this => {
-    // This may be called a few times: once by our own change, and once by the changes that come in.
-
     if (this.justSent) {
+      // The incoming update was caused by an update that the client sent, noop.
       this.justSent = false
       return this
     }
