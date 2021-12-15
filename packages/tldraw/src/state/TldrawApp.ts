@@ -540,10 +540,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         changedBindings[id] = undefined
       })
 
-    this.justSent = true
-    this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
-    this.prevShapes = this.page.shapes
-    this.prevBindings = this.page.bindings
+    // Only trigger update if shapes or bindings have changed
+    if (Object.keys(changedBindings).length > 0 || Object.keys(changedShapes).length > 0) {
+      this.justSent = true
+      this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
+      this.prevShapes = this.page.shapes
+      this.prevBindings = this.page.bindings
+    }
   }
 
   getReservedContent = (ids: string[], pageId = this.currentPageId) => {
