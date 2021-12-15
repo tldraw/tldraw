@@ -1816,6 +1816,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     svg.setAttribute('width', String(commonBounds.width))
     svg.setAttribute('height', String(commonBounds.height))
 
+    svg.setAttribute('fill', 'transparent')
+
     const s = new XMLSerializer()
 
     const svgString = s
