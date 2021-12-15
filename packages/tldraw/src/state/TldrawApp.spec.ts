@@ -658,4 +658,31 @@ describe('TldrawTestApp', () => {
       }, 100)
     })
   })
+
+  describe('When replacing the page content', () => {
+    it('Should update the page with the correct shapes and bindings.', () => {
+      const shapes = mockDocument.pages.page1.shapes
+      const bindings = mockDocument.pages.page1.bindings
+      const app = new TldrawTestApp('multiplayer', {
+        onChangePage: () => {},
+      }).createPage()
+      app.replacePageContent(shapes, bindings)
+
+      expect(app.shapes).toEqual(Object.values(shapes))
+      expect(app.bindings).toEqual(Object.values(bindings))
+    })
+
+    it('It should update the page shapes after the settings have been updated', () => {
+      const shapes = mockDocument.pages.page1.shapes
+      const bindings = mockDocument.pages.page1.bindings
+      const app = new TldrawTestApp('multiplayer', {
+        onChangePage: () => {},
+      }).createPage()
+      app.setSetting('isDebugMode', true)
+      app.replacePageContent(shapes, bindings)
+
+      expect(app.shapes).toEqual(Object.values(shapes))
+      expect(app.bindings).toEqual(Object.values(bindings))
+    })
+  })
 })
