@@ -1815,8 +1815,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     svg.setAttribute('width', String(commonBounds.width))
     svg.setAttribute('height', String(commonBounds.height))
-
     svg.setAttribute('fill', 'transparent')
+    svg
+      .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
+      .forEach((element) => element.remove())
 
     const s = new XMLSerializer()
 
