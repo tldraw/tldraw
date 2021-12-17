@@ -30,7 +30,7 @@ export function useShapeEvents(id: string) {
           !rPageState.current.selectedIds.includes(id)
         ) {
           callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
-          callbacks.onPointShape?.(info, e)
+          callbacks.onPointerDown?.(info, e)
           return
         }
 
