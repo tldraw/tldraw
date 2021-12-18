@@ -579,6 +579,16 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with group')
     })
 
+    it('Respects child index', () => {
+      const result = new TldrawTestApp()
+      .loadDocument(mockDocument)
+      .moveToBack(['rect2'])
+      .selectAll()
+      .copySvg()
+
+      expect(result).toMatchSnapshot('copied svg with reordered elements')
+    })
+
     it.todo('Copies Text shapes as <text> elements.')
     // it('Copies Text shapes as <text> elements.', () => {
     //   const state2 = new TldrawTestApp()
