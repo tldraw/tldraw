@@ -19,7 +19,7 @@ export default async function GetSponsors(_req: NextApiRequest, res: NextApiResp
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'bearer ' + process.env.GITHUB_API_SECRET,
+      Authorization: 'bearer ' + process.env.GITHUB_SECRET,
     },
     body: JSON.stringify({
       query: `{

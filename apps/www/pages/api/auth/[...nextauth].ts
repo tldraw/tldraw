@@ -1,34 +1,38 @@
-import { isSponsoringMe } from 'utils/isSponsoringMe'
+import { isSignedInUserSponsoringMe } from 'utils/github'
 import type { NextApiHandler, NextApiRequest, NextApiResponse } from 'next'
 import NextAuth from 'next-auth'
-import Providers from 'next-auth/providers'
+import GithubProvider from 'next-auth/providers/github'
 
 export default function Auth(
   req: NextApiRequest,
   res: NextApiResponse
 ): ReturnType<NextApiHandler> {
   return NextAuth(req, res, {
+    theme: {
+      colorScheme: 'light',
+    },
     providers: [
-      Providers.GitHub({
+      GithubProvider({
         clientId: process.env.GITHUB_ID,
         clientSecret: process.env.GITHUB_SECRET,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         scope: 'read:user',
       }),
     ],
+    secret: process.env.NEXTAUTH_SECRET,
     callbacks: {
-      async redirect(url, baseUrl) {
+      async redirect({ baseUrl }) {
         return baseUrl
       },
-      async signIn(user, account, profile: { login?: string }) {
-        if (profile?.login) {
-          const canLogin = await isSponsoringMe(profile.login)
-
-          if (canLogin) {
-            return canLogin
-          }
+      async signIn() {
+        return true
+      },
+      async session({ session, token, user }) {
+        if (token) {
+          session.isSponsor = await isSignedInUserSponsoringMe()
         }
-
-        return '/'
+        return session
       },
     },
   })

@@ -1,12 +1,12 @@
 import { styled } from 'styles'
-import { getSession, signin, signout, useSession } from 'next-auth/client'
+import { getSession, signIn, signOut, useSession } from 'next-auth/react'
 import type { GetServerSideProps } from 'next'
 import Link from 'next/link'
 import React from 'react'
 import Head from 'next/head'
 
 export default function Sponsorware(): JSX.Element {
-  const [session, loading] = useSession()
+  const { data, status } = useSession()
 
   return (
     <>
@@ -51,14 +51,14 @@ export default function Sponsorware(): JSX.Element {
             (at any level) and sign in below.
           </p>
           <StyledButtonGroup>
-            {session ? (
+            {data ? (
               <>
-                <StyledButton variant="secondary" onClick={() => signout()}>
+                <StyledButton variant="secondary" onClick={() => signOut()}>
                   Sign Out
                 </StyledButton>
                 <StyledDetail>
-                  Signed in as {session?.user?.name} ({session?.user?.email}), but it looks like
-                  you&apos;re not yet a sponsor.
+                  Signed in as {data.user?.name} ({data.user?.email}), but it looks like you&apos;re
+                  not yet a sponsor.
                   <br />
                   Something wrong? Try <Link href="/">reloading the page</Link> or DM me on{' '}
                   <a
@@ -73,8 +73,8 @@ export default function Sponsorware(): JSX.Element {
               </>
             ) : (
               <>
-                <StyledButton variant="primary" onClick={() => signin('github')}>
-                  {loading ? 'Loading...' : 'Sign in with GitHub'}
+                <StyledButton variant="primary" onClick={() => signIn('github')}>
+                  {status === 'loading' ? 'Loading...' : 'Sign in with GitHub'}
                 </StyledButton>
                 <StyledDetail>Already a sponsor? Just sign in to visit the app.</StyledDetail>
               </>

@@ -1,6 +1,6 @@
 import dynamic from 'next/dynamic'
 import type { GetServerSideProps } from 'next'
-import { getSession } from 'next-auth/client'
+import { getSession } from 'next-auth/react'
 import Head from 'next/head'
 
 const Editor = dynamic(() => import('components/Editor'), { ssr: false })
@@ -27,7 +27,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
       isUser: session?.user ? true : false,
-      isSponsor: session?.user ? true : false,
+      isSponsor: session?.isSponsor,
     },
   }
 }
