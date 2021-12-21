@@ -9,10 +9,14 @@
     "emitDeclarationOnly": false,
     "paths": {
       "~*": ["./src/*"],
+      "@tldraw/core": ["../../packages/core"],
       "@tldraw/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [
+    {
+      "path": "../../packages/core"
+    },
     {
       "path": "../../packages/tldraw"
     }

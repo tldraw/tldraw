@@ -42,7 +42,7 @@ async function main() {
         },
         watch: {
           onRebuild(err) {
-            err ? error('❌ Failed') : log('✅ Updated')
+            err ? error('❌ Failed') : jslog('✅ Updated')
           },
         },
       },
