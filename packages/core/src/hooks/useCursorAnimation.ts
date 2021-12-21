@@ -56,7 +56,6 @@ export function useCursorAnimation(ref: any, point: number[]) {
     const now = performance.now()
     const spline = rSpline.current
     if (rState.current === 'stopped') {
-      console.log('yep!')
       rTimestamp.current = now
       rPrevPoint.current = point
       spline.clear()
