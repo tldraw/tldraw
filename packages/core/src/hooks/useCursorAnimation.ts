@@ -20,41 +20,43 @@ export function useCursorAnimation(ref: any, point: number[]) {
   const rTimestamp = React.useRef(performance.now())
   const rLastRequestId = React.useRef<any>(0)
   const rTimeoutId = React.useRef<any>(0)
-  const rSpline = React.useRef(new Spline())
+  const [spline] = React.useState(() => new Spline())
 
   // Animate an animation
-  const animateNext = React.useCallback((animation: Animation) => {
-    const start = performance.now()
-    function loop() {
-      const t = (performance.now() - start) / animation.duration
-      if (t <= 1) {
-        const elm = ref.current
-        if (!elm) return
-        const point = animation.curve
-          ? rSpline.current.getSplinePoint(t + animation.start)
-          : Vec.lrp(animation.from, animation.to, t)
-        elm.style.setProperty('transform', `translate(${point[0]}px, ${point[1]}px)`)
-        rLastRequestId.current = requestAnimationFrame(loop)
-        return
+  const animateNext = React.useCallback(
+    (animation: Animation) => {
+      const start = performance.now()
+      function loop() {
+        const t = (performance.now() - start) / animation.duration
+        if (t <= 1) {
+          const elm = ref.current
+          if (!elm) return
+          const point = animation.curve
+            ? spline.getSplinePoint(t + animation.start)
+            : Vec.lrp(animation.from, animation.to, t)
+          elm.style.setProperty('transform', `translate(${point[0]}px, ${point[1]}px)`)
+          rLastRequestId.current = requestAnimationFrame(loop)
+          return
+        }
+        const next = rQueue.current.shift()
+        if (next) {
+          rState.current = 'animating'
+          animateNext(next)
+        } else {
+          rState.current = 'idle'
+          rTimeoutId.current = setTimeout(() => {
+            rState.current = 'stopped'
+          }, 250)
+        }
       }
-      const next = rQueue.current.shift()
-      if (next) {
-        rState.current = 'animating'
-        animateNext(next)
-      } else {
-        rState.current = 'idle'
-        rTimeoutId.current = setTimeout(() => {
-          rState.current = 'stopped'
-        }, 250)
-      }
-    }
-    loop()
-  }, [])
+      loop()
+    },
+    [spline]
+  )
 
   // When the point changes, add a new animation
   React.useLayoutEffect(() => {
     const now = performance.now()
-    const spline = rSpline.current
     if (rState.current === 'stopped') {
       rTimestamp.current = now
       rPrevPoint.current = point
@@ -92,7 +94,7 @@ export function useCursorAnimation(ref: any, point: number[]) {
     return () => {
       clearTimeout(rTimeoutId.current)
     }
-  }, [point])
+  }, [point, spline])
 }
 
 class Spline {
