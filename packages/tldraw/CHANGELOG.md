@@ -1,3 +1,10 @@
+## 1.2.9
+
+- Improves multiplayer cursor appearance.
+- Improves authentication and sponsor-related code.
+- Fixes bug where logged-out users could not access multiplayer rooms.
+- Fixes bug where sponsors would see sponsor prompt in multiplayer rooms.
+
 ## 1.2.7
 
 - Fixes crash due to a missing ID provider.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.9
+
+- Improves multiplayer cursor appearance.
+
 ## 1.2.2
 
 - Adds mobx and support for mobx observables in the Renderer's props.
