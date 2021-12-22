@@ -188,8 +188,6 @@ export default function App({ onMount }: AppProps): JSX.Element {
 
   const hideBounds = appState.isInAny('transformingSelection', 'translating', 'creating')
 
-  // const hideBounds = appState.isInAny('transformingSelection', 'translating', 'creating')
-
   const firstShapeId = appState.data.pageState.selectedIds[0]
   const firstShape = firstShapeId ? appState.data.page.shapes[firstShapeId] : null
   const hideResizeHandles = firstShape

@@ -19,7 +19,9 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "*": ["./*"]
+      "*": ["./*"],
+      "@tldraw/core": ["../../packages/core"],
+      "@tldraw/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [

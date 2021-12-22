@@ -5,7 +5,6 @@ const withTM = require('next-transpile-modules')(['@tldraw/tldraw', '@tldraw/cor
 
 const {
   GITHUB_ID,
-  GITHUB_SECRET,
   GITHUB_API_SECRET,
   NEXT_PUBLIC_SENTRY_DSN: SENTRY_DSN,
   SENTRY_ORG,
@@ -34,7 +33,6 @@ module.exports = withPWA(
       NEXT_PUBLIC_COMMIT_SHA: VERCEL_GIT_COMMIT_SHA,
       GA_MEASUREMENT_ID,
       GITHUB_ID,
-      GITHUB_SECRET,
       GITHUB_API_SECRET,
     },
     webpack: (config, options) => {

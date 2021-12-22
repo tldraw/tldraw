@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { signIn, signOut } from 'next-auth/client'
+import { signIn, signOut } from 'next-auth/react'
 
 export function useAccountHandlers() {
   const onSignIn = React.useCallback(() => {

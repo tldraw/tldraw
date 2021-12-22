@@ -6,6 +6,8 @@ import { createRequire } from 'module'
 
 const pkg = createRequire(import.meta.url)('../package.json')
 
+const { log: jslog } = console
+
 async function main() {
   try {
     esbuild.buildSync({
@@ -31,10 +33,10 @@ async function main() {
         if (err) throw err
       })
     )
-    console.log(`✔ ${pkg.name}: Build completed.`)
+    jslog(`✔ ${pkg.name}: Build completed.`)
   } catch (e) {
-    console.log(`× ${pkg.name}: Build failed due to an error.`)
-    console.log(e)
+    jslog(`× ${pkg.name}: Build failed due to an error.`)
+    jslog(e)
   }
 }
 

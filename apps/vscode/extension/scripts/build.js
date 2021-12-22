@@ -2,6 +2,8 @@
 const fs = require('fs')
 const esbuild = require('esbuild')
 
+const { log: jslog } = console
+
 async function main() {
   if (fs.existsSync('./dist')) {
     fs.rmSync('./dist', { recursive: true }, (e) => {
@@ -25,10 +27,10 @@ async function main() {
       tsconfig: './tsconfig.json',
       external: ['vscode'],
     })
-    console.log(`Built package.`)
+    jslog(`Built package.`)
   } catch (e) {
-    console.log(`× Build failed due to an error.`)
-    console.log(e)
+    jslog(`× Build failed due to an error.`)
+    jslog(e)
   }
 }
 
