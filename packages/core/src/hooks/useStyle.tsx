@@ -289,12 +289,13 @@ const tlcss = css`
   }
 
   .tl-user {
-    left: -4px;
-    top: -4px;
-    height: 8px;
-    width: 8px;
-    border-radius: 100%;
+    left: calc(-15px * var(--tl-scale));
+    top: calc(-15px * var(--tl-scale));
+    height: calc(35px * var(--tl-scale));
+    width: calc(35px * var(--tl-scale));
+    transform: scale(var(--tl-scale));
     pointer-events: none;
+    will-change: transform;
   }
 
   .tl-indicator {

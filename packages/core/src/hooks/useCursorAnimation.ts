@@ -57,6 +57,7 @@ export function useCursorAnimation(ref: any, point: number[]) {
     const spline = rSpline.current
     if (rState.current === 'stopped') {
       rTimestamp.current = now
+      rPrevPoint.current = point
       spline.clear()
     }
     spline.addPoint(point)
@@ -67,7 +68,7 @@ export function useCursorAnimation(ref: any, point: number[]) {
       from: rPrevPoint.current,
       to: point,
       timeStamp: now,
-      duration: Math.min(now - rTimestamp.current, 500),
+      duration: Math.min(now - rTimestamp.current, 300),
     }
     rPrevPoint.current = point
     rTimestamp.current = now

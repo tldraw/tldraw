@@ -52,7 +52,7 @@ function Editor({
       <Tldraw
         autofocus
         showPages={false}
-        showSponsorLink={isSponsor}
+        showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
         {...fileSystemEvents}
