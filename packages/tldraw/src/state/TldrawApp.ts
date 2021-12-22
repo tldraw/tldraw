@@ -60,6 +60,8 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { ImageTool } from './tools/ImageTool'
+import { VideoTool } from './tools/VideoTool'
 
 const uuid = Utils.uniqueId()
 
@@ -144,6 +146,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
+    [TDShapeType.Image]: new ImageTool(this),
+    [TDShapeType.Video]: new VideoTool(this),
   }
 
   currentTool: BaseTool = this.tools.select
@@ -2405,6 +2409,48 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  createShapeAtPoint(
+    shape: TDShapeType,
+    point: number[],
+    src?: string,
+    size?: number[],
+    id?: string
+  ): this {
+    const {
+      shapes,
+      appState: { currentPageId, currentStyle },
+    } = this
+
+    const childIndex =
+      shapes.length === 0
+        ? 1
+        : shapes
+            .filter((shape) => shape.parentId === currentPageId)
+            .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
+
+    // @ts-ignore
+    const Image = shapeUtils[shape]
+
+    const newShape = Image.create({
+      id: id || Utils.uniqueId(),
+      parentId: currentPageId,
+      childIndex,
+      point,
+      size: size?.length || [400, 400],
+      style: { ...currentStyle },
+      data: {
+        src: src,
+      },
+    })
+
+    const bounds = Image.getBounds(newShape)
+    newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+    this.createShapes(newShape)
+    this.setEditingId(newShape.id)
+
+    return this
+  }
+
   /**
    * Create one or more shapes.
    * @param shapes An array of shapes.
@@ -3136,6 +3182,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
   }
+
+  fileToBase64 = (file: Blob): Promise<string | ArrayBuffer | null> =>
+    new Promise((resolve, reject) => {
+      if (file) {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = (error) => reject(error)
+        reader.onabort = (error) => reject(error)
+      }
+    })
 
   onError = () => {
     // TODO

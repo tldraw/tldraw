@@ -79,3 +79,6 @@ export const USER_COLORS = [
   '#55B467',
   '#FF802B',
 ]
+
+export const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg']
+export const VIDEO_EXTENSIONS = ['mp4', 'webm']

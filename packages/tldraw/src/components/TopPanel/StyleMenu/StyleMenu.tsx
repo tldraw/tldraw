@@ -22,6 +22,7 @@ import {
   ShapeStyles,
   FontStyle,
   AlignStyle,
+  TDShapeType,
 } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
@@ -73,11 +74,23 @@ const showTextStylesSelector = (s: TDSnapshot) => {
   )
 }
 
+const showImageStylesSelector = (s: TDSnapshot) => {
+  const { activeTool, currentPageId: pageId } = s.appState
+  const page = s.document.pages[pageId]
+
+  return (
+    activeTool === TDShapeType.Image ||
+    TDShapeType.Video ||
+    s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
+  )
+}
+
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
 
   const theme = app.useStore(themeSelector)
   const showTextStyles = app.useStore(showTextStylesSelector)
+  const showImageStyles = app.useStore(showImageStylesSelector)
 
   const currentStyle = app.useStore(currentStyleSelector)
   const selectedIds = app.useStore(selectedIdsSelector)

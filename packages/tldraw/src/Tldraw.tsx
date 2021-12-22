@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Renderer } from '@tldraw/core'
+import { Renderer, Utils } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser, TDShapeType } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -10,7 +10,7 @@ import { TopPanel } from '~components/TopPanel'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
-import { GRID_SIZE } from '~constants'
+import { GRID_SIZE, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -415,7 +415,30 @@ const InnerTldraw = React.memo(function InnerTldraw({
   }, [])
 
   return (
-    <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
+    <StyledLayout
+      ref={rWrapper}
+      tabIndex={-0}
+      className={settings.isDarkMode ? dark : ''}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={async (e) => {
+        e.preventDefault()
+        if (e.dataTransfer.files?.length) {
+          const file = e.dataTransfer.files[0]
+          const dataurl = await app.fileToBase64(file)
+          if (typeof dataurl === 'string') {
+            const extension = file.name.split('.').pop() || ''
+            console.log(extension)
+
+            const point = app.getPagePoint([e.pageX, e.pageY])
+            if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
+              app.createShapeAtPoint(TDShapeType.Image, point, dataurl)
+            } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
+              app.createShapeAtPoint(TDShapeType.Video, point, dataurl)
+            }
+          }
+        }
+      }}
+    >
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu onBlur={handleMenuBlur}>
         <Renderer
