@@ -145,7 +145,7 @@ export interface TldrawProps extends TDCallbacks {
   /**
    * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 or remote URL
    */
-  onImageUpload?: (file: File) => Promise<string>
+  onImageUpload?: (file: File, id: string) => Promise<string>
 
   onChangePage?: (
     app: TldrawApp,
@@ -335,7 +335,7 @@ interface InnerTldrawProps {
   showTools: boolean
   showSponsorLink: boolean
   readOnly: boolean
-  onImageUpload?: (file: File) => Promise<string>
+  onImageUpload?: (file: File, id: string) => Promise<string>
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -434,9 +434,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
         e.preventDefault()
         if (e.dataTransfer.files?.length) {
           const file = e.dataTransfer.files[0]
+          const id = Utils.uniqueId()
 
           let dataurl
-          if (onImageUpload) dataurl = await onImageUpload(file)
+          if (onImageUpload) dataurl = await onImageUpload(file, id)
           else dataurl = await app.fileToBase64(file)
 
           if (typeof dataurl === 'string') {
@@ -444,9 +445,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
             const point = app.getPagePoint([e.pageX, e.pageY])
             if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
-              app.createShapeAtPoint(TDShapeType.Image, point, dataurl)
+              app.createShapeAtPoint(TDShapeType.Image, point, dataurl, [], id)
             } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
-              app.createShapeAtPoint(TDShapeType.Video, point, dataurl)
+              app.createShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
             }
           }
         }
