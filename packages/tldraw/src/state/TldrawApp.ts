@@ -130,6 +130,8 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user creates a new project.
    */
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
+
+  onImageDelete?: (id: string) => void
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -2477,6 +2479,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @command
    */
   delete = (ids = this.selectedIds): this => {
+    if (this.callbacks.onImageDelete) {
+      ids.forEach((id) => {
+        const node = this.getShape(id)
+        if (node.type === TDShapeType.Image || node.type === TDShapeType.Video)
+          this.callbacks.onImageDelete!(id)
+      })
+    }
+
     if (ids.length === 0) return this
     return this.setState(Commands.deleteShapes(this, ids))
   }

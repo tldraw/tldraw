@@ -146,6 +146,7 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 or remote URL
    */
   onImageUpload?: (file: File, id: string) => Promise<string>
+  onImageDelete?: (id: string) => void
 
   onChangePage?: (
     app: TldrawApp,
@@ -184,6 +185,7 @@ export function Tldraw({
   onCommand,
   onChangePage,
   onImageUpload,
+  onImageDelete,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -206,6 +208,7 @@ export function Tldraw({
         onPatch,
         onCommand,
         onChangePage,
+        onImageDelete,
       })
   )
 
@@ -229,6 +232,7 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
+      onImageDelete,
     })
 
     setSId(id)
@@ -284,6 +288,7 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
+      onImageDelete,
     }
   }, [
     onMount,
@@ -301,6 +306,7 @@ export function Tldraw({
     onPatch,
     onCommand,
     onChangePage,
+    onImageDelete,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
