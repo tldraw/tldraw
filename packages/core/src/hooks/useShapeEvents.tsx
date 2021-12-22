@@ -60,7 +60,7 @@ export function useShapeEvents(id: string) {
         callbacks.onReleaseShape?.(info, e)
         callbacks.onPointerUp?.(info, e)
       },
-      onPointerEnter: (e: React.PointerEvent) => {
+      onPointerMove: (e: React.PointerEvent) => {
         if (!inputs.pointerIsValid(e)) return
 
         e.stopPropagation()
@@ -75,7 +75,7 @@ export function useShapeEvents(id: string) {
 
         callbacks.onPointerMove?.(info, e)
       },
-      onPointerMove: (e: React.PointerEvent) => {
+      onPointerEnter: (e: React.PointerEvent) => {
         if (!inputs.pointerIsValid(e)) return
         const info = inputs.pointerEnter(e, id)
         callbacks.onHoverShape?.(info, e)
