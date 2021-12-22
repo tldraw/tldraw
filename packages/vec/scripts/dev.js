@@ -2,6 +2,8 @@
 const esbuild = require('esbuild')
 const pkg = require('../package.json')
 
+const { log: jslog } = console
+
 async function main() {
   try {
     await esbuild.build({
@@ -17,7 +19,7 @@ async function main() {
       },
       watch: {
         onRebuild(err) {
-          err ? error('❌ Failed') : log('✅ Updated')
+          err ? error('❌ Failed') : jslog('✅ Updated')
         },
       },
     })

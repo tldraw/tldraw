@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Utils from '../utils'
 import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '../types'
-import { intersectPolylineBounds } from '@tldraw/intersect'
+import { intersectPolygonBounds, intersectPolylineBounds } from '@tldraw/intersect'
 
 export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M = any> {
   refMap = new Map<string, React.RefObject<E>>()
@@ -42,7 +42,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     const corners = Utils.getRotatedCorners(shapeBounds, shape.rotation)
     return (
       corners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      intersectPolylineBounds(corners, bounds).length > 0
+      intersectPolygonBounds(corners, bounds).length > 0
     )
   }
 

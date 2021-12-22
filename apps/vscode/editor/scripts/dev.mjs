@@ -5,6 +5,8 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
+const { log: jslog } = console
+
 async function main() {
   if (fs.existsSync('./dist')) {
     fs.rmSync('./dist', { recursive: true }, (e) => {
@@ -28,7 +30,7 @@ async function main() {
         },
         watch: {
           onRebuild(err) {
-            err ? error('❌ Failed') : log('✅ Updated')
+            err ? error('❌ Failed') : jslog('✅ Updated')
           },
         },
       },

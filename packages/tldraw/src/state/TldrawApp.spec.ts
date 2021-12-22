@@ -579,6 +579,16 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with group')
     })
 
+    it('Respects child index', () => {
+      const result = new TldrawTestApp()
+      .loadDocument(mockDocument)
+      .moveToBack(['rect2'])
+      .selectAll()
+      .copySvg()
+
+      expect(result).toMatchSnapshot('copied svg with reordered elements')
+    })
+
     it.todo('Copies Text shapes as <text> elements.')
     // it('Copies Text shapes as <text> elements.', () => {
     //   const state2 = new TldrawTestApp()
@@ -664,7 +674,9 @@ describe('TldrawTestApp', () => {
       const shapes = mockDocument.pages.page1.shapes
       const bindings = mockDocument.pages.page1.bindings
       const app = new TldrawTestApp('multiplayer', {
-        onChangePage: () => {},
+        onChangePage: () => {
+          //
+        },
       }).createPage()
       app.replacePageContent(shapes, bindings)
 
@@ -676,7 +688,9 @@ describe('TldrawTestApp', () => {
       const shapes = mockDocument.pages.page1.shapes
       const bindings = mockDocument.pages.page1.bindings
       const app = new TldrawTestApp('multiplayer', {
-        onChangePage: () => {},
+        onChangePage: () => {
+          //
+        },
       }).createPage()
       app.setSetting('isDebugMode', true)
       app.replacePageContent(shapes, bindings)
@@ -684,5 +698,15 @@ describe('TldrawTestApp', () => {
       expect(app.shapes).toEqual(Object.values(shapes))
       expect(app.bindings).toEqual(Object.values(bindings))
     })
+  })
+
+  describe('When selecting a box', () => {
+    const app = new TldrawTestApp()
+    app
+      .createShapes({ id: 'box1', type: TDShapeType.Rectangle, point: [0, 0], size: [100, 100] })
+      .pointCanvas([-50, 20])
+      .movePointer([50, 50])
+      .movePointer([50, 51])
+      .expectSelectedIdsToBe(['box1'])
   })
 })

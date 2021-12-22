@@ -1752,6 +1752,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (ids.length === 0) return
 
     const shapes = ids.map((id) => this.getShape(id, pageId))
+    shapes.sort((a, b) => a.childIndex - b.childIndex)
+
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     const padding = 16
 
@@ -1815,6 +1817,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     svg.setAttribute('width', String(commonBounds.width))
     svg.setAttribute('height', String(commonBounds.height))
+    svg.setAttribute('fill', 'transparent')
+    svg
+      .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
+      .forEach((element) => element.remove())
 
     const s = new XMLSerializer()
 

@@ -83,63 +83,6 @@ export function getTLBezierCurveSegments(
 }
 
 /**
- * Find a point along a curve segment, via pomax.
- * @param t
- * @param points [cpx1, cpy1, cpx2, cpy2, px, py][]
- */
-export function computePointOnCurve(t: number, points: number[][]): number[] {
-  // shortcuts
-  if (t === 0) {
-    return points[0]
-  }
-
-  const order = points.length - 1
-
-  if (t === 1) {
-    return points[order]
-  }
-
-  const mt = 1 - t
-  let p = points // constant?
-
-  if (order === 0) {
-    return points[0]
-  } // linear?
-
-  if (order === 1) {
-    return [mt * p[0][0] + t * p[1][0], mt * p[0][1] + t * p[1][1]]
-  } // quadratic/cubic curve?
-
-  // if (order < 4) {
-  const mt2 = mt * mt
-  const t2 = t * t
-
-  let a: number
-  let b: number
-  let c: number
-  let d = 0
-
-  if (order === 2) {
-    p = [p[0], p[1], p[2], [0, 0]]
-    a = mt2
-    b = mt * t * 2
-    c = t2
-    // } else if (order === 3) {
-  } else {
-    a = mt2 * mt
-    b = mt2 * t * 3
-    c = mt * t2 * 3
-    d = t * t2
-  }
-
-  return [
-    a * p[0][0] + b * p[1][0] + c * p[2][0] + d * p[3][0],
-    a * p[0][1] + b * p[1][1] + c * p[2][1] + d * p[3][1],
-  ]
-  // } // higher order curves: use de Casteljau's computation
-}
-
-/**
  * Evaluate a 2d cubic bezier at a point t on the x axis.
  * @param tx
  * @param x1
@@ -197,28 +140,11 @@ export function cubicBezier(tx: number, x1: number, y1: number, x2: number, y2: 
  * @param points An array of points formatted as [x, y]
  * @param k Tension
  */
-export function getSpline(
-  pts: number[][],
-  k = 0.5
-): {
-  cp1x: number
-  cp1y: number
-  cp2x: number
-  cp2y: number
-  px: number
-  py: number
-}[] {
+export function getSpline(pts: number[][], k = 0.5): number[][] {
   let p0: number[]
   let [p1, p2, p3] = pts
 
-  const results: {
-    cp1x: number
-    cp1y: number
-    cp2x: number
-    cp2y: number
-    px: number
-    py: number
-  }[] = []
+  const results: number[][] = []
 
   for (let i = 1, len = pts.length; i < len; i++) {
     p0 = p1
@@ -226,17 +152,74 @@ export function getSpline(
     p2 = p3
     p3 = pts[i + 2] ? pts[i + 2] : p2
 
-    results.push({
-      cp1x: p1[0] + ((p2[0] - p0[0]) / 6) * k,
-      cp1y: p1[1] + ((p2[1] - p0[1]) / 6) * k,
-      cp2x: p2[0] - ((p3[0] - p1[0]) / 6) * k,
-      cp2y: p2[1] - ((p3[1] - p1[1]) / 6) * k,
-      px: pts[i][0],
-      py: pts[i][1],
-    })
+    results.push([
+      p1[0] + ((p2[0] - p0[0]) / 6) * k,
+      p1[1] + ((p2[1] - p0[1]) / 6) * k,
+      p2[0] - ((p3[0] - p1[0]) / 6) * k,
+      p2[1] - ((p3[1] - p1[1]) / 6) * k,
+      pts[i][0],
+      pts[i][1],
+    ])
   }
 
   return results
+}
+
+/**
+ * Find a point along a curve segment, via pomax.
+ * @param t
+ * @param points [cpx1, cpy1, cpx2, cpy2, px, py][]
+ */
+export function computePointOnSpline(t: number, points: number[][]): number[] {
+  // shortcuts
+  if (t === 0) {
+    return points[0]
+  }
+
+  const order = points.length - 1
+
+  if (t === 1) {
+    return points[order]
+  }
+
+  const mt = 1 - t
+  let p = points // constant?
+
+  if (order === 0) {
+    return points[0]
+  } // linear?
+
+  if (order === 1) {
+    return [mt * p[0][0] + t * p[1][0], mt * p[0][1] + t * p[1][1]]
+  } // quadratic/cubic curve?
+
+  // if (order < 4) {
+  const mt2 = mt * mt
+  const t2 = t * t
+
+  let a: number
+  let b: number
+  let c: number
+  let d = 0
+
+  if (order === 2) {
+    p = [p[0], p[1], p[2], [0, 0]]
+    a = mt2
+    b = mt * t * 2
+    c = t2
+    // } else if (order === 3) {
+  } else {
+    a = mt2 * mt
+    b = mt2 * t * 3
+    c = mt * t2 * 3
+    d = t * t2
+  }
+
+  return [
+    a * p[0][0] + b * p[1][0] + c * p[2][0] + d * p[3][0],
+    a * p[0][1] + b * p[1][1] + c * p[2][1] + d * p[3][1],
+  ]
+  // } // higher order curves: use de Casteljau's computation
 }
 
 /**
@@ -271,7 +254,7 @@ export function getCurvePoints(
   // The algorithm require a previous and next point to the actual point array.
   // Check if we will draw closed or open curve.
   // If closed, copy end points to beginning and first points to end
-  // If open, duplicate first points to befinning, end points to end
+  // If open, duplicate first points to beginning, end points to end
   if (isClosed) {
     _pts.unshift(_pts[len - 1])
     _pts.push(_pts[0])

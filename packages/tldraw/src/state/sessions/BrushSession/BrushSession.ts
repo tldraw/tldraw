@@ -33,6 +33,8 @@ export class BrushSession extends BaseSession {
         bounds: this.app.getShapeUtil(shape).getBounds(shape),
         selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
       }))
+
+    this.update()
   }
 
   start = (): TldrawPatch | undefined => void null

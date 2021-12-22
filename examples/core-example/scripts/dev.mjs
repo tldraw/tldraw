@@ -2,6 +2,8 @@
 import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
 
+const { log: jslog } = console
+
 async function main() {
   if (!fs.existsSync('./dist')) {
     fs.mkdirSync('./dist')
@@ -26,7 +28,7 @@ async function main() {
         },
         watch: {
           onRebuild(err) {
-            err ? error('❌ Failed') : log('✅ Updated')
+            err ? error('❌ Failed') : jslog('✅ Updated')
           },
         },
       },

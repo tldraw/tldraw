@@ -8,7 +8,7 @@ describe('Brush session', () => {
       .selectNone()
       .movePointer([-48, -48])
       .startSession(SessionType.Brush)
-      .movePointer([48, 48])
+      .movePointer([10, 10])
       .completeSession()
     expect(app.status).toBe(TDStatus.Idle)
     expect(app.selectedIds.length).toBe(1)
