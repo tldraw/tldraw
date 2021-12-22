@@ -142,6 +142,11 @@ export interface TldrawProps extends TDCallbacks {
    */
   onRedo?: (state: TldrawApp) => void
 
+  /**
+   * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 or remote URL
+   */
+  onImageUpload?: (file: File) => Promise<string>
+
   onChangePage?: (
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
@@ -178,6 +183,7 @@ export function Tldraw({
   onPatch,
   onCommand,
   onChangePage,
+  onImageUpload,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -312,6 +318,7 @@ export function Tldraw({
         showUI={showUI}
         showSponsorLink={showSponsorLink}
         readOnly={readOnly}
+        onImageUpload={onImageUpload}
       />
     </TldrawContext.Provider>
   )
@@ -328,6 +335,7 @@ interface InnerTldrawProps {
   showTools: boolean
   showSponsorLink: boolean
   readOnly: boolean
+  onImageUpload?: (file: File) => Promise<string>
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -341,6 +349,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showSponsorLink,
   readOnly,
   showUI,
+  onImageUpload,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
 
@@ -419,15 +428,19 @@ const InnerTldraw = React.memo(function InnerTldraw({
       ref={rWrapper}
       tabIndex={-0}
       className={settings.isDarkMode ? dark : ''}
+      onMouseOver={() => console.log('A')}
       onDragOver={(e) => e.preventDefault()}
       onDrop={async (e) => {
         e.preventDefault()
         if (e.dataTransfer.files?.length) {
           const file = e.dataTransfer.files[0]
-          const dataurl = await app.fileToBase64(file)
+
+          let dataurl
+          if (onImageUpload) dataurl = await onImageUpload(file)
+          else dataurl = await app.fileToBase64(file)
+
           if (typeof dataurl === 'string') {
             const extension = file.name.split('.').pop() || ''
-            console.log(extension)
 
             const point = app.getPagePoint([e.pageX, e.pageY])
             if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
