@@ -96,7 +96,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             <ImageElement
               src={shape.data.src}
               alt="test"
-              style={{ maxWidth: '100%' }}
               draggable={false}
               ref={imgRef}
               onLoad={onImageLoad}
@@ -129,20 +128,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
 
   transformSingle = transformSingleRectangle
 }
-
-const IconWrapper = styled('div', {
-  width: '100%',
-  height: '100%',
-  backgroundColor: 'white',
-  borderRadius: '10px',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  flexDirection: 'column',
-  '&:hover': {
-    cursor: 'pointer',
-  },
-})
 
 const Wrapper = styled('div', {
   pointerEvents: 'all',

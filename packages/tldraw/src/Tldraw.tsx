@@ -11,6 +11,7 @@ import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
 import { GRID_SIZE, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import { Loading } from '~components/Loading'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -143,9 +144,13 @@ export interface TldrawProps extends TDCallbacks {
   onRedo?: (state: TldrawApp) => void
 
   /**
-   * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 or remote URL
+   * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 (default) or remote URL
    */
   onImageUpload?: (file: File, id: string) => Promise<string>
+
+  /**
+   * (optional) A callback to run when the user deletes an image or video.
+   */
   onImageDelete?: (id: string) => void
 
   onChangePage?: (
@@ -434,31 +439,46 @@ const InnerTldraw = React.memo(function InnerTldraw({
       ref={rWrapper}
       tabIndex={-0}
       className={settings.isDarkMode ? dark : ''}
-      onMouseOver={() => console.log('A')}
       onDragOver={(e) => e.preventDefault()}
       onDrop={async (e) => {
         e.preventDefault()
         if (e.dataTransfer.files?.length) {
+          app.setIsLoading(true)
           const file = e.dataTransfer.files[0]
           const id = Utils.uniqueId()
 
-          let dataurl
-          if (onImageUpload) dataurl = await onImageUpload(file, id)
-          else dataurl = await app.fileToBase64(file)
+          try {
+            let dataurl
+            if (onImageUpload) dataurl = await onImageUpload(file, id)
+            else dataurl = await TldrawApp.fileToBase64(file)
 
-          if (typeof dataurl === 'string') {
-            const extension = file.name.split('.').pop() || ''
+            if (typeof dataurl === 'string') {
+              const extension = file.name.split('.').pop() || ''
 
-            const point = app.getPagePoint([e.pageX, e.pageY])
-            if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
-              app.createShapeAtPoint(TDShapeType.Image, point, dataurl, [], id)
-            } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
-              app.createShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
+              const point = app.getPagePoint([e.pageX, e.pageY])
+              if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
+                const size = await getHeightAndWidthFromDataUrl(dataurl)
+
+                app.createImageOrVideoShapeAtPoint(
+                  TDShapeType.Image,
+                  point,
+                  dataurl,
+                  [size.width, size.height],
+                  id
+                )
+              } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
+                app.createImageOrVideoShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
+              }
+
+              app.setIsLoading(false)
             }
+          } catch (error) {
+            console.error(error)
           }
         }
       }}
     >
+      <Loading />
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu onBlur={handleMenuBlur}>
         <Renderer
@@ -624,3 +644,17 @@ const StyledUI = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
 })
+
+const getHeightAndWidthFromDataUrl = (
+  dataURL: string
+): Promise<{ width: number; height: number }> =>
+  new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      resolve({
+        height: img.height,
+        width: img.width,
+      })
+    }
+    img.src = dataURL
+  })

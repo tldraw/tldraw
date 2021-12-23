@@ -982,6 +982,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   isMenuOpen = (): boolean => this.appState.isMenuOpen
 
   /**
+   * Toggles the state if something is loading
+   */
+  setIsLoading = (isLoading: boolean): this => {
+    this.patchState({ appState: { isLoading } }, 'ui:toggled_is_loading')
+    this.persist()
+    return this
+  }
+
+  isLoading = (): boolean => this.appState.isLoading
+
+  /**
    * Toggle grids.
    */
   toggleGrid = (): this => {
@@ -2411,8 +2422,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  createShapeAtPoint(
-    shape: TDShapeType,
+  createImageOrVideoShapeAtPoint(
+    shape: TDShapeType.Image | TDShapeType.Video,
     point: number[],
     src?: string,
     size?: number[],
@@ -2430,22 +2441,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             .filter((shape) => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-    // @ts-ignore
-    const Image = shapeUtils[shape]
+    const Shape = shapeUtils[shape]
 
-    const newShape = Image.create({
+    const newShape = Shape.create({
       id: id || Utils.uniqueId(),
       parentId: currentPageId,
       childIndex,
       point,
-      size: size?.length || [400, 400],
+      size: size?.length ? size : [400, 400],
       style: { ...currentStyle },
       data: {
         src: src,
       },
     })
 
-    const bounds = Image.getBounds(newShape)
+    const bounds = Shape.getBounds(newShape as never)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     this.createShapes(newShape)
     this.setEditingId(newShape.id)
@@ -3193,7 +3203,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
-  fileToBase64 = (file: Blob): Promise<string | ArrayBuffer | null> =>
+  static fileToBase64 = (file: Blob): Promise<string | ArrayBuffer | null> =>
     new Promise((resolve, reject) => {
       if (file) {
         const reader = new FileReader()
@@ -3302,6 +3312,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isMenuOpen: false,
       isEmptyCanvas: false,
       snapLines: [],
+      isLoading: false,
     },
     document: TldrawApp.defaultDocument,
   }

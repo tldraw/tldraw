@@ -102,6 +102,7 @@ export interface TDSnapshot {
     isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
+    isLoading: boolean
   }
   document: TDDocument
   room?: {

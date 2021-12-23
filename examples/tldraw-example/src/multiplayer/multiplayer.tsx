@@ -6,7 +6,6 @@ import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useMultiplayerState } from './useMultiplayerState'
 import { initializeApp } from 'firebase/app'
 import firebaseConfig from '../firebase.config'
-import { useEffect } from 'react'
 import { useMemo } from 'react'
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
@@ -47,7 +46,6 @@ function Editor({ roomId }: { roomId: string }) {
           return url
         }}
         onImageDelete={async (id: string) => {
-          console.log(id)
           const imageRef = ref(storage, id)
           await deleteObject(imageRef)
         }}
