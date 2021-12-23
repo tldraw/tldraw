@@ -140,7 +140,7 @@ export interface TDCallbacks {
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
 
   onImageDelete?: (id: string) => void
-  onImageUpload?: (file: File, id: string) => Promise<string>
+  onImageCreate?: (file: File, id: string) => Promise<string>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -2916,7 +2916,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         try {
           let dataurl
-          if (this.callbacks.onImageUpload) dataurl = await this.callbacks.onImageUpload(file, id)
+          if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
           else dataurl = await TldrawApp.fileToBase64(file)
 
           if (typeof dataurl === 'string') {

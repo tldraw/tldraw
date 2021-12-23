@@ -45,7 +45,7 @@ function Editor({ roomId }: { roomId: string }) {
          * massive base64 string to be written to the liveblocks room.
          */
         disableImages
-        // onImageUpload={async (file: File, id: string) => {
+        // onImageCreate={async (file: File, id: string) => {
         //   const imageRef = ref(storage, id)
         //   const snapshot = await uploadBytes(imageRef, file)
         //   const url = await getDownloadURL(snapshot.ref)
