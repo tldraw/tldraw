@@ -51,6 +51,10 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     document.name = 'New Document'
   }
 
+  if (version < 15) {
+    document.assets = {}
+  }
+
   // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {
     pageState.selectedIds = pageState.selectedIds.filter((id) => {
