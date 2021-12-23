@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw-example",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "private": true,
   "description": "An example project for @tldraw/tldraw.",
   "author": "@steveruizok",
@@ -17,8 +17,8 @@
   "devDependencies": {
     "@liveblocks/client": "^0.13.0-beta.1",
     "@liveblocks/react": "0.13.0-beta.1",
-    "@tldraw/tldraw": "^1.2.9",
-    "@types/node": "^17.0.2",
+    "@tldraw/tldraw": "^1.2.10",
+    "@types/node": "^14.14.35",
     "@types/react": "^16.9.55",
     "@types/react-dom": "^16.9.9",
     "@types/react-router-dom": "^5.1.8",

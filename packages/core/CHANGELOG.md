@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.10
+
+- Fix bug in shape events.
+
 ## 1.2.9
 
 - Improves multiplayer cursor appearance.
