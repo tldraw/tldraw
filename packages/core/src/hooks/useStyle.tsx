@@ -219,6 +219,12 @@ const tlcss = css`
     contain: layout style size;
   }
 
+  .tl-inner-div {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
   .tl-stroke-hitarea {
     cursor: pointer;
     fill: none;

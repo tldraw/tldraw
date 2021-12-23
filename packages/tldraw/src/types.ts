@@ -19,6 +19,7 @@ import type {
   TLBoundsHandleEventHandler,
   TLShapeBlurHandler,
   TLShapeCloneHandler,
+  TLAssets,
 } from '@tldraw/core'
 
 /* -------------------------------------------------- */
@@ -132,6 +133,7 @@ export interface TDDocument {
   version: number
   pages: Record<string, TDPage>
   pageStates: Record<string, TLPageState>
+  assets: TLAssets
 }
 
 // The shape of a single page in the Tldraw document
@@ -347,17 +349,13 @@ export interface RectangleShape extends TDBaseShape {
 export interface ImageShape extends TDBaseShape {
   type: TDShapeType.Image
   size: number[]
-  data: {
-    src?: string
-  }
+  assetId: string
 }
 
 export interface VideoShape extends TDBaseShape {
   type: TDShapeType.Video
   size: number[]
-  data: {
-    src?: string
-  }
+  assetId: string
 }
 
 // The shape created by the Triangle tool

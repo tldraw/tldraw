@@ -1,18 +1,14 @@
 import * as React from 'react'
-import { Utils, SVGContainer, HTMLContainer } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { getStroke, getStrokePoints } from 'perfect-freehand'
-import { RectangleShape, DashStyle, TDShapeType, TDMeta, ImageShape, VideoShape } from '~types'
+import { Utils, HTMLContainer } from '@tldraw/core'
+import { TDShapeType, TDMeta, VideoShape } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   defaultStyle,
-  getShapeStyle,
   getBoundsRectangle,
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { UploadIcon } from '@radix-ui/react-icons'
 import { styled } from '@stitches/react'
 
 type T = VideoShape
@@ -43,14 +39,14 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
-        data: {},
+        assetId: 'assetId',
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isBinding, isSelected, isEditing, isGhost, meta, events }, ref) => {
+    ({ shape, asset, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
       const { size } = shape
 
       React.useEffect(() => {
@@ -64,14 +60,14 @@ export class VideoUtil extends TDShapeUtil<T, E> {
       const imgRef = React.useRef<HTMLVideoElement>(null)
       const wrapperRef = React.useRef<HTMLDivElement>(null)
 
-      const onImageLoad = () => {
+      const onImageLoad = React.useCallback(() => {
         if (imgRef?.current && wrapperRef?.current) {
           const { videoWidth, videoHeight } = imgRef?.current
           wrapperRef.current.style.width = `${videoWidth}px`
           wrapperRef.current.style.height = `${videoHeight}px`
-          shape.size = [videoWidth, videoHeight]
+          onShapeChange?.({ id: shape.id, size: [videoWidth, videoHeight] })
         }
-      }
+      }, [])
 
       return (
         <HTMLContainer ref={ref} {...events}>
@@ -80,10 +76,10 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               style={{
                 position: 'absolute',
-                top: -this.bindingDistance,
-                left: -this.bindingDistance,
-                width: `calc(100% + ${this.bindingDistance * 2}px)`,
-                height: `calc(100% + ${this.bindingDistance * 2}px)`,
+                top: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
+                left: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
+                width: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
+                height: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
                 backgroundColor: 'var(--tl-selectFill)',
               }}
             />
@@ -94,7 +90,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
           >
             <VideoElement muted autoPlay loop ref={imgRef} onLoadedMetadata={onImageLoad}>
-              <source src={shape.data.src} />
+              <source src={asset?.src} />
             </VideoElement>
           </Wrapper>
         </HTMLContainer>

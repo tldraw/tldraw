@@ -11,7 +11,7 @@ export const HTMLContainer = React.forwardRef<HTMLDivElement, HTMLContainerProps
       <Observer>
         {() => (
           <div ref={ref} className={`tl-positioned-div ${className}`} {...rest}>
-            {children}
+            <div className="tl-inner-div">{children}</div>
           </div>
         )}
       </Observer>

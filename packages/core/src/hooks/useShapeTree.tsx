@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBinding, TLBounds } from '~types'
+import type {
+  IShapeTreeNode,
+  TLPage,
+  TLPageState,
+  TLShape,
+  TLBinding,
+  TLBounds,
+  TLAssets,
+} from '~types'
 import { Utils } from '~utils'
 import { Vec } from '@tldraw/vec'
 import { useTLContext } from '~hooks'
@@ -13,6 +21,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   pageState: TLPageState & {
     bindingTargetId?: string | null
   },
+  assets: TLAssets,
   isChildOfGhost = false,
   isChildOfSelected = false,
   meta?: M
@@ -20,6 +29,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   // Create a node for this shape
   const node: IShapeTreeNode<T, M> = {
     shape,
+    asset: shape.assetId ? assets[shape.assetId] : undefined,
     meta: meta as any,
     isChildOfSelected,
     isGhost: shape.isGhost || isChildOfGhost,
@@ -54,6 +64,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
           node.children!,
           shapes,
           pageState,
+          assets,
           node.isGhost,
           node.isSelected || node.isChildOfSelected,
           meta
@@ -69,6 +80,7 @@ function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
 export function useShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
+  assets: TLAssets,
   meta?: M
 ) {
   const { callbacks, shapeUtils, bounds } = useTLContext()
@@ -154,6 +166,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       tree,
       page.shapes,
       { ...pageState, bindingTargetId },
+      assets,
       shape.isGhost,
       false,
       meta

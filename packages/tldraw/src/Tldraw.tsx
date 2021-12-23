@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { Renderer, Utils } from '@tldraw/core'
+import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser, TDShapeType } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -10,7 +10,7 @@ import { TopPanel } from '~components/TopPanel'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
-import { GRID_SIZE, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
 
 export interface TldrawProps extends TDCallbacks {
@@ -392,6 +392,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const page = document.pages[appState.currentPageId]
   const pageState = document.pageStates[page.id]
+  const assets = document.assets
   const { selectedIds } = pageState
 
   const isHideBoundsShape =
@@ -463,6 +464,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
+          assets={assets}
           snapLines={appState.snapLines}
           grid={GRID_SIZE}
           users={room?.users}

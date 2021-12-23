@@ -2,8 +2,8 @@
 
 exports[`Video shape Creates a shape: video 1`] = `
 Object {
+  "assetId": "assetId",
   "childIndex": 1,
-  "data": Object {},
   "id": "video",
   "name": "Video",
   "parentId": "page",

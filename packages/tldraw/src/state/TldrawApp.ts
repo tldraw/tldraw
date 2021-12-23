@@ -15,6 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
+  TLAssetType,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -2439,11 +2440,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   createImageOrVideoShapeAtPoint(
-    shape: TDShapeType.Image | TDShapeType.Video,
+    id: string,
+    type: TDShapeType.Image | TDShapeType.Video,
     point: number[],
-    src?: string,
-    size?: number[],
-    id?: string
+    size: number[],
+    assetId: string
   ): this {
     const {
       shapes,
@@ -2457,18 +2458,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             .filter((shape) => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
-    const Shape = shapeUtils[shape]
+    const Shape = shapeUtils[type]
 
     const newShape = Shape.create({
-      id: id || Utils.uniqueId(),
+      id,
       parentId: currentPageId,
       childIndex,
       point,
-      size: size?.length ? size : [400, 400],
+      size,
       style: { ...currentStyle },
-      data: {
-        src: src,
-      },
+      assetId,
     })
 
     const bounds = Shape.getBounds(newShape as never)
@@ -2923,21 +2922,37 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           if (typeof dataurl === 'string') {
             const extension = file.name.split('.').pop() || ''
 
-            const point = this.getPagePoint([e.pageX, e.pageY])
-            if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
-              const size = await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
+            const isImage = IMAGE_EXTENSIONS.includes(extension.toLowerCase())
+            const isVideo = VIDEO_EXTENSIONS.includes(extension.toLowerCase())
 
-              this.createImageOrVideoShapeAtPoint(
-                TDShapeType.Image,
-                point,
-                dataurl,
-                [size.width, size.height],
-                id
-              )
-            } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
-              this.createImageOrVideoShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
+            if (!(isImage || isVideo)) {
+              this.setIsLoading(false)
+              return
             }
 
+            const point = this.getPagePoint([e.pageX, e.pageY])
+
+            const assetId = Utils.uniqueId()
+
+            const type = isImage ? TDShapeType.Image : TDShapeType.Video
+            const size = isImage
+              ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
+              : [400, 400]
+
+            this.patchState({
+              document: {
+                assets: {
+                  [assetId]: {
+                    id: assetId,
+                    type: TLAssetType.Image,
+                    src: dataurl,
+                    size,
+                  },
+                },
+              },
+            })
+
+            this.createImageOrVideoShapeAtPoint(id, type, point, size, assetId)
             this.setIsLoading(false)
           }
         } catch (error) {
@@ -3274,16 +3289,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
-  static getHeightAndWidthFromDataUrl = (
-    dataURL: string
-  ): Promise<{ width: number; height: number }> =>
+  static getHeightAndWidthFromDataUrl = (dataURL: string): Promise<number[]> =>
     new Promise((resolve) => {
       const img = new Image()
       img.onload = () => {
-        resolve({
-          height: img.height,
-          width: img.width,
-        })
+        resolve([img.width, img.height])
       }
       img.src = dataURL
     })
@@ -3357,6 +3367,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
       },
     },
+    assets: {},
   }
 
   static defaultState: TDSnapshot = {
