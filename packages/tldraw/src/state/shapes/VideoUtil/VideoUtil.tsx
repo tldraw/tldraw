@@ -34,9 +34,9 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
-        id: 'id',
+        id: 'video',
         type: TDShapeType.Video,
-        name: 'Image',
+        name: 'Video',
         parentId: 'page',
         childIndex: 1,
         point: [0, 0],

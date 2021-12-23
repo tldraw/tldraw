@@ -5,7 +5,7 @@ Object {
   "childIndex": 1,
   "data": Object {},
   "id": "video",
-  "name": "Image",
+  "name": "Video",
   "parentId": "page",
   "point": Array [
     0,

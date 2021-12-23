@@ -117,6 +117,8 @@ export type TLWheelEventHandler = (
   e: React.WheelEvent<Element> | WheelEvent
 ) => void
 
+export type TLDropEventHandler = (e: React.DragEvent<Element>) => void
+
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
   e:
@@ -176,6 +178,8 @@ export interface TLCallbacks<T extends TLShape> {
   onRightPointCanvas: TLCanvasEventHandler
   onDragCanvas: TLCanvasEventHandler
   onReleaseCanvas: TLCanvasEventHandler
+  onDragOver: TLDropEventHandler
+  onDrop: TLDropEventHandler
 
   // Shape
   onPointShape: TLPointerEventHandler

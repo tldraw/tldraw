@@ -34,7 +34,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
       {
-        id: 'id',
+        id: 'image',
         type: TDShapeType.Image,
         name: 'Image',
         parentId: 'page',
@@ -95,7 +95,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
           >
             <ImageElement
               src={shape.data.src}
-              alt="test"
+              alt="tl_image_asset"
               draggable={false}
               ref={imgRef}
               onLoad={onImageLoad}

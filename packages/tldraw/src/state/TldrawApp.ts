@@ -14,6 +14,7 @@ import {
   TLWheelEventHandler,
   Utils,
   TLBounds,
+  TLDropEventHandler,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -48,7 +49,13 @@ import { defaultStyle } from '~state/shapes/shared/shape-styles'
 import * as Commands from './commands'
 import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
 import type { BaseTool } from './tools/BaseTool'
-import { USER_COLORS, FIT_TO_SCREEN_PADDING, GRID_SIZE } from '~constants'
+import {
+  USER_COLORS,
+  FIT_TO_SCREEN_PADDING,
+  GRID_SIZE,
+  IMAGE_EXTENSIONS,
+  VIDEO_EXTENSIONS,
+} from '~constants'
 import { SelectTool } from './tools/SelectTool'
 import { EraseTool } from './tools/EraseTool'
 import { TextTool } from './tools/TextTool'
@@ -132,6 +139,7 @@ export interface TDCallbacks {
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
 
   onImageDelete?: (id: string) => void
+  onImageUpload?: (file: File, id: string) => Promise<string>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -991,6 +999,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   isLoading = (): boolean => this.appState.isLoading
+
+  setDisableImages = (disableImages: boolean): this => {
+    this.patchState({ appState: { disableImages } }, 'ui:toggled_disable_images')
+    this.persist()
+    return this
+  }
+
+  disableImages = (): boolean => this.appState.disableImages
 
   /**
    * Toggle grids.
@@ -2887,6 +2903,50 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* ------------- Renderer Event Handlers ------------ */
 
+  onDragOver: TLDropEventHandler = (e) => {
+    e.preventDefault()
+  }
+  onDrop: TLDropEventHandler = async (e) => {
+    e.preventDefault()
+
+    if (!this.disableImages()) {
+      if (e.dataTransfer.files?.length) {
+        this.setIsLoading(true)
+        const file = e.dataTransfer.files[0]
+        const id = Utils.uniqueId()
+
+        try {
+          let dataurl
+          if (this.callbacks.onImageUpload) dataurl = await this.callbacks.onImageUpload(file, id)
+          else dataurl = await TldrawApp.fileToBase64(file)
+
+          if (typeof dataurl === 'string') {
+            const extension = file.name.split('.').pop() || ''
+
+            const point = this.getPagePoint([e.pageX, e.pageY])
+            if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
+              const size = await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
+
+              this.createImageOrVideoShapeAtPoint(
+                TDShapeType.Image,
+                point,
+                dataurl,
+                [size.width, size.height],
+                id
+              )
+            } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
+              this.createImageOrVideoShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
+            }
+
+            this.setIsLoading(false)
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+  }
+
   onPinchStart: TLPinchEventHandler = (info, e) => this.currentTool.onPinchStart?.(info, e)
 
   onPinchEnd: TLPinchEventHandler = (info, e) => this.currentTool.onPinchEnd?.(info, e)
@@ -3214,6 +3274,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
+  static getHeightAndWidthFromDataUrl = (
+    dataURL: string
+  ): Promise<{ width: number; height: number }> =>
+    new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        resolve({
+          height: img.height,
+          width: img.width,
+        })
+      }
+      img.src = dataURL
+    })
+
   onError = () => {
     // TODO
   }
@@ -3313,6 +3387,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isEmptyCanvas: false,
       snapLines: [],
       isLoading: false,
+      disableImages: false,
     },
     document: TldrawApp.defaultDocument,
   }

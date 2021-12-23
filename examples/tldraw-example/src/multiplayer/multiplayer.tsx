@@ -4,10 +4,10 @@ import { TDShape, Tldraw } from '@tldraw/tldraw'
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useMultiplayerState } from './useMultiplayerState'
-import { initializeApp } from 'firebase/app'
-import firebaseConfig from '../firebase.config'
-import { useMemo } from 'react'
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+// import { initializeApp } from 'firebase/app'
+// import firebaseConfig from '../firebase.config'
+// import { useMemo } from 'react'
+// import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
 const client = createClient({
   // @ts-ignore
@@ -29,8 +29,8 @@ export function Multiplayer() {
 
 function Editor({ roomId }: { roomId: string }) {
   const { error, ...events } = useMultiplayerState(roomId)
-  const app = useMemo(() => initializeApp(firebaseConfig), [firebaseConfig])
-  const storage = useMemo(() => getStorage(app, firebaseConfig.storageBucket), [])
+  // const app = useMemo(() => initializeApp(firebaseConfig), [firebaseConfig])
+  // const storage = useMemo(() => getStorage(app, firebaseConfig.storageBucket), [])
 
   if (error) return <div>Error: {error.message}</div>
 
@@ -39,16 +39,22 @@ function Editor({ roomId }: { roomId: string }) {
       <Tldraw
         showPages={false}
         {...events}
-        onImageUpload={async (file: File, id: string) => {
-          const imageRef = ref(storage, id)
-          const snapshot = await uploadBytes(imageRef, file)
-          const url = await getDownloadURL(snapshot.ref)
-          return url
-        }}
-        onImageDelete={async (id: string) => {
-          const imageRef = ref(storage, id)
-          await deleteObject(imageRef)
-        }}
+        /**
+         * Warning: Keeping images enabled for multiplayer applications
+         * without provifing a storage bucket based solution will cause
+         * massive base64 string to be written to the liveblocks room.
+         */
+        disableImages
+        // onImageUpload={async (file: File, id: string) => {
+        //   const imageRef = ref(storage, id)
+        //   const snapshot = await uploadBytes(imageRef, file)
+        //   const url = await getDownloadURL(snapshot.ref)
+        //   return url
+        // }}
+        // onImageDelete={async (id: string) => {
+        //   const imageRef = ref(storage, id)
+        //   await deleteObject(imageRef)
+        // }}
       />
     </div>
   )

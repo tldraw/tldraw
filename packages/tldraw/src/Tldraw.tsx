@@ -80,6 +80,14 @@ export interface TldrawProps extends TDCallbacks {
   darkMode?: boolean
 
   /**
+   * (optional) If provided, image/video componnets will be disabled.
+   *
+   * Warning: Keeping this enabled for multiplayer applications without provifing a storage
+   * bucket based solution will cause massive base64 string to be written to the liveblocks room.
+   */
+  disableImages?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TldrawApp) => void
@@ -174,6 +182,7 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   showSponsorLink = false,
+  disableImages = false,
   onMount,
   onChange,
   onChangePresence,
@@ -214,6 +223,7 @@ export function Tldraw({
         onCommand,
         onChangePage,
         onImageDelete,
+        onImageUpload,
       })
   )
 
@@ -238,6 +248,7 @@ export function Tldraw({
       onCommand,
       onChangePage,
       onImageDelete,
+      onImageUpload,
     })
 
     setSId(id)
@@ -256,6 +267,14 @@ export function Tldraw({
       app.loadDocument(document)
     }
   }, [document, app])
+
+  React.useEffect(() => {
+    // Hacky workaround, not sure why state changes dont go through
+    // without delay. I will fix it in a bit
+    setTimeout(() => {
+      app.setDisableImages(disableImages)
+    }, 3000)
+  }, [app, disableImages])
 
   // Change the page when the `currentPageId` prop changes
   React.useEffect(() => {
@@ -294,6 +313,7 @@ export function Tldraw({
       onCommand,
       onChangePage,
       onImageDelete,
+      onImageUpload,
     }
   }, [
     onMount,
@@ -312,6 +332,7 @@ export function Tldraw({
     onCommand,
     onChangePage,
     onImageDelete,
+    onImageUpload,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
@@ -329,7 +350,6 @@ export function Tldraw({
         showUI={showUI}
         showSponsorLink={showSponsorLink}
         readOnly={readOnly}
-        onImageUpload={onImageUpload}
       />
     </TldrawContext.Provider>
   )
@@ -346,7 +366,6 @@ interface InnerTldrawProps {
   showTools: boolean
   showSponsorLink: boolean
   readOnly: boolean
-  onImageUpload?: (file: File, id: string) => Promise<string>
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -360,7 +379,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showSponsorLink,
   readOnly,
   showUI,
-  onImageUpload,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
 
@@ -435,49 +453,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   }, [])
 
   return (
-    <StyledLayout
-      ref={rWrapper}
-      tabIndex={-0}
-      className={settings.isDarkMode ? dark : ''}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={async (e) => {
-        e.preventDefault()
-        if (e.dataTransfer.files?.length) {
-          app.setIsLoading(true)
-          const file = e.dataTransfer.files[0]
-          const id = Utils.uniqueId()
-
-          try {
-            let dataurl
-            if (onImageUpload) dataurl = await onImageUpload(file, id)
-            else dataurl = await TldrawApp.fileToBase64(file)
-
-            if (typeof dataurl === 'string') {
-              const extension = file.name.split('.').pop() || ''
-
-              const point = app.getPagePoint([e.pageX, e.pageY])
-              if (IMAGE_EXTENSIONS.includes(extension.toLowerCase())) {
-                const size = await getHeightAndWidthFromDataUrl(dataurl)
-
-                app.createImageOrVideoShapeAtPoint(
-                  TDShapeType.Image,
-                  point,
-                  dataurl,
-                  [size.width, size.height],
-                  id
-                )
-              } else if (VIDEO_EXTENSIONS.includes(extension.toLowerCase())) {
-                app.createImageOrVideoShapeAtPoint(TDShapeType.Video, point, dataurl, [], id)
-              }
-
-              app.setIsLoading(false)
-            }
-          } catch (error) {
-            console.error(error)
-          }
-        }
-      }}
-    >
+    <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
       <Loading />
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu onBlur={handleMenuBlur}>
@@ -550,6 +526,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
           onBoundsChange={app.updateBounds}
           onKeyDown={app.onKeyDown}
           onKeyUp={app.onKeyUp}
+          onDragOver={app.onDragOver}
+          onDrop={app.onDrop}
         />
       </ContextMenu>
       {showUI && (
@@ -644,17 +622,3 @@ const StyledUI = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
 })
-
-const getHeightAndWidthFromDataUrl = (
-  dataURL: string
-): Promise<{ width: number; height: number }> =>
-  new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => {
-      resolve({
-        height: img.height,
-        width: img.width,
-      })
-    }
-    img.src = dataURL
-  })
