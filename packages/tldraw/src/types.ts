@@ -356,7 +356,6 @@ export interface VideoShape extends TDBaseShape {
   type: TDShapeType.Video
   size: number[]
   assetId: string
-  isPlaying: boolean
 }
 
 // The shape created by the Triangle tool

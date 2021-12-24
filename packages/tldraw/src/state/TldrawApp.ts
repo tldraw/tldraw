@@ -138,6 +138,7 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user creates a new project.
    */
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
+
   onImageDelete?: (id: string) => void
   onImageCreate?: (file: File, id: string) => Promise<string>
 }
@@ -2401,7 +2402,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const pageShapes = this.document.pages[this.currentPageId].shapes
     const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
-
     return this.setState(
       Commands.updateShapes(this, shapesToUpdate, this.currentPageId),
       'updated_shapes'
@@ -2915,11 +2915,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const id = Utils.uniqueId()
 
         try {
-          let dataurl: string | ArrayBuffer | null
+          let dataurl
           if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
           else dataurl = await TldrawApp.fileToBase64(file)
+
           if (typeof dataurl === 'string') {
             const extension = file.name.split('.').pop() || ''
+
             const isImage = IMAGE_EXTENSIONS.includes(extension.toLowerCase())
             const isVideo = VIDEO_EXTENSIONS.includes(extension.toLowerCase())
 
@@ -2929,7 +2931,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
 
             const point = this.getPagePoint([e.pageX, e.pageY])
+
             const assetId = Utils.uniqueId()
+
             const type = isImage ? TDShapeType.Image : TDShapeType.Video
             const size = isImage
               ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)

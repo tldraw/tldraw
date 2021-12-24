@@ -15,6 +15,7 @@ export function useBoundsEvents() {
 
       if (e.button !== 0) return
 
+      e.stopPropagation()
       e.currentTarget?.setPointerCapture(e.pointerId)
       const info = inputs.pointerDown(e, 'bounds')
 
@@ -31,7 +32,7 @@ export function useBoundsEvents() {
       inputs.activePointer = undefined
 
       if (!inputs.pointerIsValid(e)) return
-
+      e.stopPropagation()
       const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, 'bounds')
 

@@ -40,7 +40,6 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         rotation: 0,
         style: defaultStyle,
         assetId: 'assetId',
-        isPlaying: true,
       },
       props
     )
@@ -48,44 +47,30 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, asset, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
-      const { size, isPlaying } = shape
+      const { size } = shape
 
       React.useEffect(() => {
-        if (wrapperRef.current) {
+        if (wrapperRef?.current) {
           const [width, height] = size
           wrapperRef.current.style.width = `${width}px`
           wrapperRef.current.style.height = `${height}px`
         }
       }, [size])
 
-      const videoRef = React.useRef<HTMLVideoElement>(null)
+      const imgRef = React.useRef<HTMLVideoElement>(null)
       const wrapperRef = React.useRef<HTMLDivElement>(null)
 
       const onImageLoad = React.useCallback(() => {
-        if (videoRef.current && wrapperRef.current) {
-          const { videoWidth, videoHeight } = videoRef.current
+        if (imgRef?.current && wrapperRef?.current) {
+          const { videoWidth, videoHeight } = imgRef?.current
           wrapperRef.current.style.width = `${videoWidth}px`
           wrapperRef.current.style.height = `${videoHeight}px`
           onShapeChange?.({ id: shape.id, size: [videoWidth, videoHeight] })
         }
       }, [])
 
-      const toggleIsPlaying = React.useCallback(() => {
-        onShapeChange?.({ id: shape.id, isPlaying: !isPlaying })
-      }, [isPlaying])
-
-      React.useEffect(() => {
-        const video = videoRef.current
-        if (!video) return
-        if (isPlaying) {
-          video.play()
-        } else {
-          video.pause()
-        }
-      }, [isPlaying])
-
       return (
-        <HTMLContainer ref={ref} {...events} onDoubleClick={toggleIsPlaying}>
+        <HTMLContainer ref={ref} {...events}>
           {isBinding && (
             <div
               className="tl-binding-indicator"
@@ -103,15 +88,8 @@ export class VideoUtil extends TDShapeUtil<T, E> {
             ref={wrapperRef}
             isDarkMode={meta.isDarkMode} //
             isGhost={isGhost}
-            onPointerDown={(e) => e.stopPropagation()}
           >
-            <VideoElement
-              ref={videoRef}
-              muted
-              loop
-              autoPlay={isPlaying}
-              onLoadedMetadata={onImageLoad}
-            >
+            <VideoElement muted autoPlay loop ref={imgRef} onLoadedMetadata={onImageLoad}>
               <source src={asset?.src} />
             </VideoElement>
           </Wrapper>
