@@ -73,6 +73,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         const video = rVideo.current
         if (!video) return
         if (isPlaying) video.play()
+        // throws error on safari
         else video.pause()
       }, [isPlaying])
 
