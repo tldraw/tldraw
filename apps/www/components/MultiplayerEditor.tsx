@@ -51,6 +51,7 @@ function Editor({
     <div className="tldraw">
       <Tldraw
         autofocus
+        disableAssets
         showPages={false}
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
