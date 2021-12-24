@@ -117,3 +117,13 @@ export function fileToBase64(file: Blob): Promise<string | ArrayBuffer | null> {
     }
   })
 }
+
+export function getSizeFromDataurl(dataURL: string): Promise<number[]> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      resolve([img.width, img.height])
+    }
+    img.src = dataURL
+  })
+}

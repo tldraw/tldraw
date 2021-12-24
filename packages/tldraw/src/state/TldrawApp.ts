@@ -45,6 +45,7 @@ import {
   saveToFileSystem,
   openAssetFromFileSystem,
   fileToBase64,
+  getSizeFromDataurl,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -2823,9 +2824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const pagePoint = this.getPagePoint(point)
         const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
         const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
-        const size: number[] = isImage
-          ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
-          : [400, 400]
+        const size = isImage ? await getSizeFromDataurl(dataurl) : [400, 400]
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === dataurl
         )
@@ -3303,15 +3302,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
   }
-
-  static getHeightAndWidthFromDataUrl = (dataURL: string): Promise<number[]> =>
-    new Promise((resolve) => {
-      const img = new Image()
-      img.onload = () => {
-        resolve([img.width, img.height])
-      }
-      img.src = dataURL
-    })
 
   onError = () => {
     // TODO
