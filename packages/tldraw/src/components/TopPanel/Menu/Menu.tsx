@@ -16,6 +16,7 @@ import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
 import type { TDSnapshot } from '~types'
+import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
   showSponsorLink: boolean
@@ -26,9 +27,14 @@ const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length
 }
 
+const disableAssetsSelector = (s: TDSnapshot) => {
+  return s.appState.disableAssets
+}
+
 export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
   const app = useTldrawApp()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
+  const disableAssets = app.useStore(disableAssetsSelector)
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
@@ -64,8 +70,12 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
     app.selectAll()
   }, [app])
 
-  const handleselectNone = React.useCallback(() => {
+  const handleSelectNone = React.useCallback(() => {
     app.selectNone()
+  }, [app])
+
+  const handleUploadMedia = React.useCallback(() => {
+    app.openAsset()
   }, [app])
 
   const showFileMenu =
@@ -105,6 +115,14 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               <DMItem onClick={onSaveProjectAs} kbd="#⇧S">
                 Save As...
               </DMItem>
+            )}
+            {!disableAssets && (
+              <>
+                <Divider />
+                <DMItem onClick={handleUploadMedia} kbd="#U">
+                  Upload Media
+                </DMItem>
+              </>
             )}
           </DMSubMenu>
         )}
@@ -148,7 +166,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               <DMItem onSelect={preventEvent} onClick={handleSelectAll} kbd="#A">
                 Select All
               </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handleselectNone}>
+              <DMItem onSelect={preventEvent} onClick={handleSelectNone}>
                 Select None
               </DMItem>
             </DMSubMenu>

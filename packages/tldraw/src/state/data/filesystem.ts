@@ -1,6 +1,7 @@
 import type { TDDocument, TDFile } from '~types'
 import { fileSave, fileOpen, FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
+import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
 
 const options = { mode: 'readwrite' as const }
 
@@ -95,4 +96,24 @@ export async function openFromFileSystem(): Promise<null | {
     fileHandle,
     document: file.document,
   }
+}
+
+export async function openAssetFromFileSystem() {
+  return fileOpen({
+    description: 'Image or Video',
+    extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],
+    multiple: false,
+  })
+}
+
+export function fileToBase64(file: Blob): Promise<string | ArrayBuffer | null> {
+  return new Promise((resolve, reject) => {
+    if (file) {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = (error) => reject(error)
+      reader.onabort = (error) => reject(error)
+    }
+  })
 }

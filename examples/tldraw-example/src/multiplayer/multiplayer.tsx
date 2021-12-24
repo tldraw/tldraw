@@ -10,7 +10,6 @@ import { useMultiplayerState } from './useMultiplayerState'
 // import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
 const client = createClient({
-  // @ts-ignore
   publicApiKey: process.env.LIVEBLOCKS_PUBLIC_API_KEY || '',
   throttle: 100,
 })
@@ -44,7 +43,7 @@ function Editor({ roomId }: { roomId: string }) {
          * without provifing a storage bucket based solution will cause
          * massive base64 string to be written to the liveblocks room.
          */
-        disableImages
+        disableAssets={true}
         // onImageCreate={async (file: File, id: string) => {
         //   const imageRef = ref(storage, id)
         //   const snapshot = await uploadBytes(imageRef, file)

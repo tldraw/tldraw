@@ -9,7 +9,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const canHandleEvent = React.useCallback(
     (ignoreMenus = false) => {
       const elm = ref.current
-      if (ignoreMenus && app.isMenuOpen()) return true
+      if (ignoreMenus && app.isMenuOpen) return true
       return elm && (document.activeElement === elm || elm.contains(document.activeElement))
     },
     [ref]
@@ -155,7 +155,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   // File System
 
-  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs, onOpenMedia } =
+    useFileSystemHandlers()
 
   useHotkeys(
     'ctrl+n,⌘+n',
@@ -194,6 +195,15 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       if (!canHandleEvent()) return
 
       onOpenProject(e)
+    },
+    undefined,
+    [app]
+  )
+  useHotkeys(
+    'ctrl+u,⌘+u',
+    (e) => {
+      if (!canHandleEvent()) return
+      onOpenMedia(e)
     },
     undefined,
     [app]

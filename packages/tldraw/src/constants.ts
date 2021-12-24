@@ -80,5 +80,5 @@ export const USER_COLORS = [
   '#FF802B',
 ]
 
-export const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif']
-export const VIDEO_EXTENSIONS = ['mp4', 'webm']
+export const IMAGE_EXTENSIONS = ['.png', '.svg', '.jpg', '.jpeg', '.gif']
+export const VIDEO_EXTENSIONS = ['.mp4', '.webm']

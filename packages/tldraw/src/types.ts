@@ -104,7 +104,7 @@ export interface TDSnapshot {
     status: string
     snapLines: TLSnapLine[]
     isLoading: boolean
-    disableImages: boolean
+    disableAssets: boolean
   }
   document: TDDocument
   room?: {

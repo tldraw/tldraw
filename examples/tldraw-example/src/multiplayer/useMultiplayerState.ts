@@ -188,7 +188,6 @@ export function useMultiplayerState(roomId: string) {
 
         // Update the document with initial content
         handleChanges()
-
         setLoading(false)
       }
     }

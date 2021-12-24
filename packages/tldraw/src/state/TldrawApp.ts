@@ -43,6 +43,8 @@ import {
   loadFileHandle,
   openFromFileSystem,
   saveToFileSystem,
+  openAssetFromFileSystem,
+  fileToBase64,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -96,6 +98,10 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
   onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+  /**
+   * (optional) A callback to run when the opens a file to upload.
+   */
+  onOpenMedia?: (state: TldrawApp) => void
   /**
    * (optional) A callback to run when the user signs in via the menu.
    */
@@ -984,8 +990,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  isMenuOpen = (): boolean => this.appState.isMenuOpen
-
   /**
    * Toggles the state if something is loading
    */
@@ -995,15 +999,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  isLoading = (): boolean => this.appState.isLoading
-
-  setDisableImages = (disableImages: boolean): this => {
-    this.patchState({ appState: { disableImages } }, 'ui:toggled_disable_images')
+  setDisableAssets = (disableAssets: boolean): this => {
+    this.patchState({ appState: { disableAssets } }, 'ui:toggled_disable_images')
     this.persist()
     return this
   }
 
-  disableImages = (): boolean => this.appState.disableImages
+  get isMenuOpen(): boolean {
+    return this.appState.isMenuOpen
+  }
+
+  get isLoading(): boolean {
+    return this.appState.isLoading
+  }
+
+  get disableAssets(): boolean {
+    return this.appState.disableAssets
+  }
 
   /**
    * Toggle grids.
@@ -1280,7 +1292,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
-
     this.replaceState(
       {
         ...TldrawApp.defaultState,
@@ -1288,6 +1299,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         appState: {
           ...TldrawApp.defaultState.appState,
           currentPageId: Object.keys(document.pages)[0],
+          disableAssets: this.disableAssets,
         },
       },
       'loaded_document'
@@ -1362,6 +1374,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } finally {
       this.persist()
     }
+  }
+
+  /**
+   * Upload media from file
+   */
+  openAsset = async () => {
+    if (!this.isLocal) return
+    if (!this.disableAssets)
+      try {
+        const file = await openAssetFromFileSystem()
+        if (!file) return
+        this.addMediaFromFile(file)
+      } catch (e) {
+        console.error(e)
+      } finally {
+        this.persist()
+      }
   }
 
   /**
@@ -2777,6 +2806,54 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  private addMediaFromFile = async (file: File, point = this.centerPoint) => {
+    this.setIsLoading(true)
+    const id = Utils.uniqueId()
+    try {
+      let dataurl: string | ArrayBuffer | null
+      if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
+      else dataurl = await fileToBase64(file)
+      if (typeof dataurl === 'string') {
+        const extension = file.name.match(/\.[0-9a-z]+$/i)
+        if (!extension) throw Error('No extension')
+        const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
+        const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
+        if (!(isImage || isVideo)) throw Error('Wrong extension')
+        let assetId = Utils.uniqueId()
+        const pagePoint = this.getPagePoint(point)
+        const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
+        const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
+        const size: number[] = isImage
+          ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
+          : [400, 400]
+        const match = Object.values(this.document.assets).find(
+          (asset) => asset.type === assetType && asset.src === dataurl
+        )
+        if (!match) {
+          this.patchState({
+            document: {
+              assets: {
+                [assetId]: {
+                  id: assetId,
+                  type: assetType,
+                  src: dataurl,
+                  size,
+                },
+              },
+            },
+          })
+        } else assetId = match.id
+        this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
+      }
+    } catch (error) {
+      console.error(error)
+      this.setIsLoading(false)
+      return this
+    }
+    this.setIsLoading(false)
+    return this
+  }
+
   /* -------------------------------------------------- */
   /*                   Event Handlers                   */
   /* -------------------------------------------------- */
@@ -2900,65 +2977,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onDragOver: TLDropEventHandler = (e) => {
     e.preventDefault()
   }
+
   onDrop: TLDropEventHandler = async (e) => {
     e.preventDefault()
-
-    if (!this.disableImages()) {
-      if (e.dataTransfer.files?.length) {
-        this.setIsLoading(true)
-        const file = e.dataTransfer.files[0]
-        const id = Utils.uniqueId()
-
-        try {
-          let dataurl: string | ArrayBuffer | null
-          if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
-          else dataurl = await TldrawApp.fileToBase64(file)
-
-          if (typeof dataurl === 'string') {
-            const extension = file.name.split('.').pop() || ''
-
-            const isImage = IMAGE_EXTENSIONS.includes(extension.toLowerCase())
-            const isVideo = VIDEO_EXTENSIONS.includes(extension.toLowerCase())
-
-            if (!(isImage || isVideo)) {
-              this.setIsLoading(false)
-              return
-            }
-
-            const point = this.getPagePoint([e.pageX, e.pageY])
-            const assetId = Utils.uniqueId()
-            const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
-            const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
-            const size: number[] = isImage
-              ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
-              : [401.42, 401.42]
-            const match = Object.values(this.document.assets).find(
-              (asset) => asset.type === assetType && asset.src === dataurl
-            )
-
-            if (!match) {
-              this.patchState({
-                document: {
-                  assets: {
-                    [assetId]: {
-                      id: assetId,
-                      type: assetType,
-                      src: dataurl,
-                      size,
-                    },
-                  },
-                },
-              })
-            }
-
-            this.createImageOrVideoShapeAtPoint(id, shapeType, point, size, assetId)
-            this.setIsLoading(false)
-          }
-        } catch (error) {
-          console.error(error)
-        }
-      }
+    if (this.disableAssets) return this
+    if (e.dataTransfer.files?.length) {
+      const file = e.dataTransfer.files[0]
+      this.addMediaFromFile(file, [e.clientX, e.clientY])
     }
+    return this
   }
 
   onPinchStart: TLPinchEventHandler = (info, e) => this.currentTool.onPinchStart?.(info, e)
@@ -3277,17 +3304,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
-  static fileToBase64 = (file: Blob): Promise<string | ArrayBuffer | null> =>
-    new Promise((resolve, reject) => {
-      if (file) {
-        const reader = new FileReader()
-        reader.readAsDataURL(file)
-        reader.onload = () => resolve(reader.result)
-        reader.onerror = (error) => reject(error)
-        reader.onabort = (error) => reject(error)
-      }
-    })
-
   static getHeightAndWidthFromDataUrl = (dataURL: string): Promise<number[]> =>
     new Promise((resolve) => {
       const img = new Image()
@@ -3397,7 +3413,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isEmptyCanvas: false,
       snapLines: [],
       isLoading: false,
-      disableImages: false,
+      disableAssets: false,
     },
     document: TldrawApp.defaultDocument,
   }
