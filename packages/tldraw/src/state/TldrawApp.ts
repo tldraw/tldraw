@@ -68,8 +68,6 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
-import { ImageTool } from './tools/ImageTool'
-import { VideoTool } from './tools/VideoTool'
 
 const uuid = Utils.uniqueId()
 
@@ -157,8 +155,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
-    [TDShapeType.Image]: new ImageTool(this),
-    [TDShapeType.Video]: new VideoTool(this),
   }
 
   currentTool: BaseTool = this.tools.select

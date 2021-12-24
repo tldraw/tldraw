@@ -372,7 +372,7 @@ export class SelectTool extends BaseTool<Status> {
     }
   }
 
-  onPointerUp: TLPointerEventHandler = (info, e) => {
+  onPointerUp: TLPointerEventHandler = (info) => {
     if (this.status === Status.MiddleWheelPanning) {
       this.setStatus(Status.Idle)
       return

@@ -214,8 +214,6 @@ export type TDToolType =
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
-  | TDShapeType.Image
-  | TDShapeType.Video
 
 export type Easing =
   | 'linear'
