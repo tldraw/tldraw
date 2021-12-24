@@ -65,7 +65,13 @@ export class VideoUtil extends TDShapeUtil<T, E> {
           const { videoWidth, videoHeight } = rVideo.current
           wrapperRef.current.style.width = `${videoWidth}px`
           wrapperRef.current.style.height = `${videoHeight}px`
-          onShapeChange?.({ id: shape.id, size: [videoWidth, videoHeight] })
+          const newSize = [videoWidth, videoHeight]
+          const delta = Vec.sub(size, newSize)
+          onShapeChange?.({
+            id: shape.id,
+            point: Vec.add(shape.point, Vec.div(delta, 2)),
+            size: [videoWidth, videoHeight],
+          })
         }
       }, [size])
 

@@ -2824,7 +2824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const pagePoint = this.getPagePoint(point)
         const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
         const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
-        const size = isImage ? await getSizeFromDataurl(dataurl) : [400, 400]
+        const size = isImage ? await getSizeFromDataurl(dataurl) : [401.42, 401.42] // special
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === dataurl
         )
