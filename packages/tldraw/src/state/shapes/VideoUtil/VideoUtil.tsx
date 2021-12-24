@@ -151,7 +151,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
     } = shape
 
     return (
-      <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
+      <rect x={0} y={0} rx={2} ry={2} width={Math.max(1, width)} height={Math.max(1, height)} />
     )
   })
 
@@ -205,14 +205,5 @@ const VideoElement = styled('video', {
   maxWidth: '100%',
   minWidth: '100%',
   pointerEvents: 'all',
-  // variants: {
-  //   isEditing: {
-  //     true: {
-  //       pointerEvents: 'all',
-  //     },
-  //     false: {
-  //       pointerEvents: 'none',
-  //     },
-  //   },
-  // },
+  borderRadius: 2,
 })

@@ -106,7 +106,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
     } = shape
 
     return (
-      <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
+      <rect x={0} y={0} rx={2} ry={2} width={Math.max(1, width)} height={Math.max(1, height)} />
     )
   })
 
@@ -163,4 +163,5 @@ const ImageElement = styled('img', {
   minWidth: '100%',
   pointerEvents: 'none',
   objectFit: 'cover',
+  borderRadius: 2,
 })

@@ -110,8 +110,6 @@ export class StateManager<T extends Record<string, any>> {
         this._status = 'ready'
         resolve(message)
       }
-
-      resolve(message)
     }).then((message) => {
       if (this.onReady) this.onReady(message)
       return message

@@ -282,6 +282,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const next = { ...state }
 
+    const assetIdsInUse = new Set<string>([])
+
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (next.document !== prev.document) {
       Object.entries(next.document.pages).forEach(([pageId, page]) => {
@@ -310,6 +312,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               parentId = prevPage?.shapes[id]?.parentId
               delete page.shapes[id]
             } else {
+              if (shape.assetId) assetIdsInUse.add(shape.assetId)
               parentId = shape.parentId
             }
 
@@ -426,6 +429,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         next.document.pageStates[pageId] = nextPageState
       })
     }
+
+    // Cleanup assets
 
     const currentPageId = next.appState.currentPageId
 
@@ -1096,6 +1101,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       .clearSelectHistory()
       .loadDocument(migrate(TldrawApp.defaultDocument, TldrawApp.version))
       .persist()
+
     return this
   }
 
@@ -1295,6 +1301,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
+
     this.replaceState(
       {
         ...TldrawApp.defaultState,
@@ -1327,7 +1334,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   saveProject = async () => {
     if (this.readOnly) return
     try {
-      const fileHandle = await saveToFileSystem(this.document, this.fileSystemHandle)
+      const fileHandle = await saveToFileSystem(
+        migrate(this.document, TldrawApp.version),
+        this.fileSystemHandle
+      )
       this.fileSystemHandle = fileHandle
       this.persist()
       this.isDirty = false
@@ -1691,13 +1701,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TLAsset[]) => {
       const idsMap: Record<string, string> = {}
 
-      if (assets.length) {
+      const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
+
+      if (newAssets.length) {
         this.patchState({
           document: {
-            assets: {
-              ...this.document.assets,
-              ...Object.fromEntries(assets.map((asset) => [asset.id, asset])),
-            },
+            assets: Object.fromEntries(newAssets.map((asset) => [asset.id, asset])),
           },
         })
       }
