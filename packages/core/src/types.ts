@@ -23,7 +23,7 @@ export interface TLImageAsset extends TLBaseAsset {
 }
 
 export interface TLVideoAsset extends TLBaseAsset {
-  type: TLAssetType.Image
+  type: TLAssetType.Video
   src: string
   size: number[]
 }

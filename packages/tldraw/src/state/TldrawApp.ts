@@ -2469,7 +2469,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const bounds = Shape.getBounds(newShape as never)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     this.createShapes(newShape)
-    // this.setEditingId(newShape.id)
 
     return this
   }
@@ -2911,7 +2910,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const id = Utils.uniqueId()
 
         try {
-          let dataurl
+          let dataurl: string | ArrayBuffer | null
           if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
           else dataurl = await TldrawApp.fileToBase64(file)
 
@@ -2928,25 +2927,31 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
             const point = this.getPagePoint([e.pageX, e.pageY])
             const assetId = Utils.uniqueId()
-            const type = isImage ? TDShapeType.Image : TDShapeType.Video
-            const size = isImage
+            const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
+            const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
+            const size: number[] = isImage
               ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
               : [401.42, 401.42]
+            const match = Object.values(this.document.assets).find(
+              (asset) => asset.type === assetType && asset.src === dataurl
+            )
 
-            this.patchState({
-              document: {
-                assets: {
-                  [assetId]: {
-                    id: assetId,
-                    type: TLAssetType.Image,
-                    src: dataurl,
-                    size,
+            if (!match) {
+              this.patchState({
+                document: {
+                  assets: {
+                    [assetId]: {
+                      id: assetId,
+                      type: assetType,
+                      src: dataurl,
+                      size,
+                    },
                   },
                 },
-              },
-            })
+              })
+            }
 
-            this.createImageOrVideoShapeAtPoint(id, type, point, size, assetId)
+            this.createImageOrVideoShapeAtPoint(id, shapeType, point, size, assetId)
             this.setIsLoading(false)
           }
         } catch (error) {
