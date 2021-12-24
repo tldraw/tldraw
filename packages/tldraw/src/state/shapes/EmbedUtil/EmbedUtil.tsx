@@ -52,7 +52,7 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
     ) => {
       const { size } = shape
       const [url, setUrl] = React.useState<string>(asset.src)
-      const [frameSrc, setFraemSrc] = React.useState<string>(asset.src)
+      const [frameSrc, setFrameSrc] = React.useState<string>(asset.src)
 
       // TODO: Use this to disable canvas interaction when input is being
       // edited.
@@ -81,7 +81,7 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
       React.useEffect(() => {
         if (!isEditing) {
           if (TldrawApp.isValidHttpUrl(url)) {
-            setFraemSrc(url)
+            setFrameSrc(url)
           }
         }
       }, [isEditing, url])
