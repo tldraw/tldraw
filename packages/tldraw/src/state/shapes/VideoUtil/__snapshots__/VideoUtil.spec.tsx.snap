@@ -5,6 +5,7 @@ Object {
   "assetId": "assetId",
   "childIndex": 1,
   "id": "video",
+  "isPlaying": true,
   "name": "Video",
   "parentId": "page",
   "point": Array [
