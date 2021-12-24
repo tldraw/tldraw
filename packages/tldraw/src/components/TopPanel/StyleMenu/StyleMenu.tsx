@@ -34,7 +34,6 @@ import {
   TextAlignLeftIcon,
   TextAlignRightIcon,
 } from '@radix-ui/react-icons'
-import { RowButton } from '~components/Primitives/RowButton'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -74,23 +73,11 @@ const showTextStylesSelector = (s: TDSnapshot) => {
   )
 }
 
-const showImageStylesSelector = (s: TDSnapshot) => {
-  const { activeTool, currentPageId: pageId } = s.appState
-  const page = s.document.pages[pageId]
-
-  return (
-    activeTool === TDShapeType.Image ||
-    TDShapeType.Video ||
-    s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
-  )
-}
-
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
 
   const theme = app.useStore(themeSelector)
   const showTextStyles = app.useStore(showTextStylesSelector)
-  const showImageStyles = app.useStore(showImageStylesSelector)
 
   const currentStyle = app.useStore(currentStyleSelector)
   const selectedIds = app.useStore(selectedIdsSelector)
@@ -302,27 +289,6 @@ const ColorGrid = styled('div', {
   gridTemplateColumns: 'repeat(4, auto)',
   gap: 0,
 })
-
-// const StyledRowInner = styled('div', {
-//   height: '100%',
-//   width: '100%',
-//   backgroundColor: '$panel',
-//   borderRadius: '$2',
-//   display: 'flex',
-//   gap: '$1',
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   padding: '0 $3',
-//   justifyContent: 'space-between',
-//   border: '1px solid transparent',
-
-//   '& svg': {
-//     position: 'relative',
-//     stroke: '$overlay',
-//     strokeWidth: 1,
-//     zIndex: 1,
-//   },
-// })
 
 export const StyledRow = styled('div', {
   position: 'relative',
