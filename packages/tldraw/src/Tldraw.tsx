@@ -405,22 +405,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
     page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideResizeHandles
 
-  const isInSession = app.session !== undefined
-
-  // Hide bounds when not using the select tool, or when the only selected shape has handles
-  const hideBounds =
-    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
-    !isSelecting ||
-    isHideBoundsShape ||
-    !!pageState.editingId
-
-  // Hide bounds when not using the select tool, or when in session
-  const hideHandles = isInSession || !isSelecting
-
-  // Hide indicators when not using the select tool, or when in session
-  const hideIndicators =
-    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
-
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => {
     return { isDarkMode: settings.isDarkMode }
@@ -453,6 +437,25 @@ const InnerTldraw = React.memo(function InnerTldraw({
     elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
   }, [])
 
+  const isInSession = app.session !== undefined
+
+  // Hide bounds when not using the select tool, or when the only selected shape has handles
+  const hideBounds =
+    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
+    !isSelecting ||
+    isHideBoundsShape ||
+    !!pageState.editingId
+
+  // Hide bounds when not using the select tool, or when in session
+  const hideHandles = isInSession || !isSelecting
+
+  // Hide indicators when not using the select tool, or when in session
+  const hideIndicators =
+    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
+
+  const hideCloneHandles =
+    isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
       <Loading />
@@ -476,7 +479,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideResizeHandles={isHideResizeHandlesShape}
           hideIndicators={hideIndicators}
           hideBindingHandles={!settings.showBindingHandles}
-          hideCloneHandles={!settings.showCloneHandles}
+          hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
           onPinchStart={app.onPinchStart}

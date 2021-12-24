@@ -50,7 +50,7 @@ export class VideoTool extends BaseTool {
       this.setStatus(Status.Idle)
       this.app.completeSession()
       this.app.selectTool('select')
-      this.app.setEditingId(this.shapeId)
+      // this.app.setEditingId(this.shapeId)
     }
   }
 }

@@ -19,8 +19,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
 
   canBind = true
 
-  canEdit = true
-
   canClone = true
 
   isAspectRatioLocked = true
@@ -90,10 +88,10 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
           >
             <ImageElement
+              ref={imgRef}
               src={asset.src}
               alt="tl_image_asset"
               draggable={false}
-              ref={imgRef}
               onLoad={onImageLoad}
             />
           </Wrapper>
@@ -159,7 +157,10 @@ const Wrapper = styled('div', {
 })
 
 const ImageElement = styled('img', {
+  width: '100%',
+  height: '100%',
   maxWidth: '100%',
   minWidth: '100%',
   pointerEvents: 'none',
+  objectFit: 'cover',
 })

@@ -419,10 +419,8 @@ const commonTextWrapping = {
 
 const InnerWrapper = styled('div', {
   position: 'absolute',
-  top: 'var(--tl-padding)',
-  left: 'var(--tl-padding)',
-  width: 'calc(100% - (var(--tl-padding) * 2))',
-  height: 'calc(100% - (var(--tl-padding) * 2))',
+  width: '100%',
+  height: '100%',
   padding: '4px',
   zIndex: 1,
   minHeight: 1,

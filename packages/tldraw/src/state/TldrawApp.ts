@@ -2473,7 +2473,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const bounds = Shape.getBounds(newShape as never)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     this.createShapes(newShape)
-    this.setEditingId(newShape.id)
+    // this.setEditingId(newShape.id)
 
     return this
   }
@@ -2931,13 +2931,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
 
             const point = this.getPagePoint([e.pageX, e.pageY])
-
             const assetId = Utils.uniqueId()
-
             const type = isImage ? TDShapeType.Image : TDShapeType.Video
             const size = isImage
               ? await TldrawApp.getHeightAndWidthFromDataUrl(dataurl)
-              : [400, 400]
+              : [401.42, 401.42]
 
             this.patchState({
               document: {

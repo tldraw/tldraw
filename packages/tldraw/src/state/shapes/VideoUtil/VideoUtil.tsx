@@ -10,22 +10,19 @@ import {
   transformSingleRectangle,
 } from '~state/shapes/shared'
 import { styled } from '@stitches/react'
+import Vec from '@tldraw/vec'
 
 type T = VideoShape
 type E = HTMLDivElement
 
 export class VideoUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Video as const
-
   canBind = true
-
   canEdit = true
-
   canClone = true
-
   isAspectRatioLocked = true
-
   showCloneHandles = true
+  isStateful = true // don't unmount
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -40,34 +37,67 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         rotation: 0,
         style: defaultStyle,
         assetId: 'assetId',
+        isPlaying: true,
+        currentTime: 0,
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, asset, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
-      const { size } = shape
+    ({ shape, asset, isBinding, isEditing, isGhost, meta, events, onShapeChange }, ref) => {
+      const rVideo = React.useRef<HTMLVideoElement>(null)
+      const wrapperRef = React.useRef<HTMLDivElement>(null)
+
+      const { currentTime = 0, size, isPlaying } = shape
 
       React.useEffect(() => {
-        if (wrapperRef?.current) {
+        if (wrapperRef.current) {
           const [width, height] = size
           wrapperRef.current.style.width = `${width}px`
           wrapperRef.current.style.height = `${height}px`
         }
       }, [size])
 
-      const imgRef = React.useRef<HTMLVideoElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
-
       const onImageLoad = React.useCallback(() => {
-        if (imgRef?.current && wrapperRef?.current) {
-          const { videoWidth, videoHeight } = imgRef?.current
+        if (rVideo.current && wrapperRef.current) {
+          if (!Vec.isEqual(size, [401.42, 401.42])) return
+          const { videoWidth, videoHeight } = rVideo.current
           wrapperRef.current.style.width = `${videoWidth}px`
           wrapperRef.current.style.height = `${videoHeight}px`
           onShapeChange?.({ id: shape.id, size: [videoWidth, videoHeight] })
         }
+      }, [size])
+
+      React.useLayoutEffect(() => {
+        const video = rVideo.current
+        if (!video) return
+        if (isPlaying) video.play()
+        else video.pause()
+      }, [isPlaying])
+
+      React.useLayoutEffect(() => {
+        const video = rVideo.current
+        if (!video) return
+        if (currentTime !== video.currentTime) {
+          video.currentTime = currentTime
+        }
+      }, [currentTime])
+
+      const handlePlay = React.useCallback(() => {
+        onShapeChange?.({ id: shape.id, isPlaying: true })
       }, [])
+
+      const handlePause = React.useCallback(() => {
+        onShapeChange?.({ id: shape.id, isPlaying: false })
+      }, [])
+
+      const handleSetCurrentTime = React.useCallback(() => {
+        const video = rVideo.current
+        if (!video) return
+        if (!isEditing) return
+        onShapeChange?.({ id: shape.id, currentTime: video.currentTime })
+      }, [isEditing])
 
       return (
         <HTMLContainer ref={ref} {...events}>
@@ -76,20 +106,30 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               style={{
                 position: 'absolute',
-                top: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
-                left: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
-                width: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
-                height: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
+                top: -this.bindingDistance,
+                left: -this.bindingDistance,
+                width: `calc(100% + ${this.bindingDistance * 2}px)`,
+                height: `calc(100% + ${this.bindingDistance * 2}px)`,
                 backgroundColor: 'var(--tl-selectFill)',
               }}
             />
           )}
-          <Wrapper
-            ref={wrapperRef}
-            isDarkMode={meta.isDarkMode} //
-            isGhost={isGhost}
-          >
-            <VideoElement muted autoPlay loop ref={imgRef} onLoadedMetadata={onImageLoad}>
+          <Wrapper ref={wrapperRef} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
+            <VideoElement
+              ref={rVideo}
+              id={shape.id + '_video'}
+              muted
+              loop
+              playsInline
+              disableRemotePlayback
+              disablePictureInPicture
+              controls={isEditing}
+              autoPlay={isPlaying}
+              onPlay={handlePlay}
+              onPause={handlePause}
+              onTimeUpdate={handleSetCurrentTime}
+              onLoadedMetadata={onImageLoad}
+            >
               <source src={asset?.src} />
             </VideoElement>
           </Wrapper>
@@ -113,7 +153,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style
+    return next.size !== prev.size || next.style !== prev.style || next.isPlaying !== prev.isPlaying
   }
 
   transform = transformRectangle
@@ -171,5 +211,15 @@ const Wrapper = styled('div', {
 const VideoElement = styled('video', {
   maxWidth: '100%',
   minWidth: '100%',
-  pointerEvents: 'none',
+  pointerEvents: 'all',
+  // variants: {
+  //   isEditing: {
+  //     true: {
+  //       pointerEvents: 'all',
+  //     },
+  //     false: {
+  //       pointerEvents: 'none',
+  //     },
+  //   },
+  // },
 })
