@@ -16,6 +16,7 @@ import {
   TLBounds,
   TLDropEventHandler,
   TLAssetType,
+  TLAsset,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -212,6 +213,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   clipboard?: {
     shapes: TDShape[]
     bindings: TDBinding[]
+    assets: TLAsset[]
   }
 
   rotationInfo = {
@@ -1632,16 +1634,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
     )
 
+    const copyingAssets = copyingShapes
+      .map((shape) => {
+        if (!shape.assetId) return
+        return this.document.assets[shape.assetId]
+      })
+      .filter(Boolean) as TLAsset[]
+
     this.clipboard = {
       shapes: copyingShapes,
       bindings: copyingBindings,
+      assets: copyingAssets,
     }
 
     try {
       const text = JSON.stringify({
         type: 'tldr/clipboard',
-        shapes: copyingShapes,
-        bindings: copyingBindings,
+        ...this.clipboard,
       })
 
       navigator.clipboard.writeText(text).then(
@@ -1678,11 +1687,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
-    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[]) => {
+
+    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TLAsset[]) => {
       const idsMap: Record<string, string> = {}
 
-      shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
+      if (assets.length) {
+        this.patchState({
+          document: {
+            assets: {
+              ...this.document.assets,
+              ...Object.fromEntries(assets.map((asset) => [asset.id, asset])),
+            },
+          },
+        })
+      }
 
+      shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
       bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
 
       let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
@@ -1765,14 +1785,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       navigator.clipboard.readText().then((result) => {
         try {
-          const data: { type: string; shapes: TDShape[]; bindings: TDBinding[] } =
-            JSON.parse(result)
+          const data: {
+            type: string
+            shapes: TDShape[]
+            bindings: TDBinding[]
+            assets: TLAsset[]
+          } = JSON.parse(result)
 
           if (data.type !== 'tldr/clipboard') {
             throw Error('The pasted string was not from the Tldraw clipboard.')
           }
 
-          pasteInCurrentPage(data.shapes, data.bindings)
+          pasteInCurrentPage(data.shapes, data.bindings, data.assets)
         } catch (e) {
           TLDR.warn(e)
 
@@ -1794,7 +1818,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // Navigator does not support clipboard. Note that this fallback will
       // not support pasting from one document to another.
       if (this.clipboard) {
-        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings)
+        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
       }
     }
 
