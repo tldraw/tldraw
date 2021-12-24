@@ -11,6 +11,7 @@ import { TextTool } from './TextTool'
 import { EraseTool } from './EraseTool'
 import { ImageTool } from './ImageTool'
 import { VideoTool } from './VideoTool'
+import { EmbedTool } from './EmbedTool'
 
 export interface ToolsMap {
   select: typeof SelectTool
@@ -25,6 +26,7 @@ export interface ToolsMap {
   [TDShapeType.Sticky]: typeof StickyTool
   [TDShapeType.Image]: typeof ImageTool
   [TDShapeType.Video]: typeof VideoTool
+  [TDShapeType.Embed]: typeof EmbedTool
 }
 
 export type ToolOfType<K extends TDToolType> = ToolsMap[K]
@@ -44,4 +46,5 @@ export const tools: { [K in TDToolType]: ToolsMap[K] } = {
   [TDShapeType.Sticky]: StickyTool,
   [TDShapeType.Image]: ImageTool,
   [TDShapeType.Video]: VideoTool,
+  [TDShapeType.Embed]: EmbedTool,
 }

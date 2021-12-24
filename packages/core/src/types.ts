@@ -9,6 +9,7 @@ export type TLAssets = Record<string, TLAsset>
 export enum TLAssetType {
   Image = 'image',
   Video = 'video',
+  Embed = 'embed',
 }
 
 export interface TLBaseAsset {
@@ -28,7 +29,13 @@ export interface TLVideoAsset extends TLBaseAsset {
   size: number[]
 }
 
-export type TLAsset = TLImageAsset | TLVideoAsset
+export interface TLEmbedAsset extends TLBaseAsset {
+  type: TLAssetType.Embed
+  src: string
+  size: number[]
+}
+
+export type TLAsset = TLImageAsset | TLVideoAsset | TLEmbedAsset
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
@@ -146,6 +153,8 @@ export type TLWheelEventHandler = (
 ) => void
 
 export type TLDropEventHandler = (e: React.DragEvent<Element>) => void
+
+export type TLClipboardEventHandler = (e: React.ClipboardEvent<Element>) => void
 
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,

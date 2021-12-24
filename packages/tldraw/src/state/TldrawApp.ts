@@ -16,6 +16,7 @@ import {
   TLBounds,
   TLDropEventHandler,
   TLAssetType,
+  TLClipboardEventHandler,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -70,6 +71,7 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { ImageTool } from './tools/ImageTool'
 import { VideoTool } from './tools/VideoTool'
+import { EmbedTool } from './tools/EmbedTool'
 
 const uuid = Utils.uniqueId()
 
@@ -159,6 +161,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Sticky]: new StickyTool(this),
     [TDShapeType.Image]: new ImageTool(this),
     [TDShapeType.Video]: new VideoTool(this),
+    [TDShapeType.Embed]: new EmbedTool(this),
   }
 
   currentTool: BaseTool = this.tools.select
@@ -1738,30 +1741,53 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
 
       navigator.clipboard.readText().then((result) => {
-        try {
-          const data: { type: string; shapes: TDShape[]; bindings: TDBinding[] } =
-            JSON.parse(result)
+        if (TldrawApp.isValidHttpUrl(result)) {
+          const id = Utils.uniqueId()
+          const point = this.currentPoint
+          const assetId = Utils.uniqueId()
+          const type = TDShapeType.Embed
+          const size = [400, 225]
 
-          if (data.type !== 'tldr/clipboard') {
-            throw Error('The pasted string was not from the Tldraw clipboard.')
-          }
-
-          pasteInCurrentPage(data.shapes, data.bindings)
-        } catch (e) {
-          TLDR.warn(e)
-
-          const shapeId = Utils.uniqueId()
-
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Text,
-            parentId: this.appState.currentPageId,
-            text: TLDR.normalizeText(result),
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
+          this.patchState({
+            document: {
+              assets: {
+                [assetId]: {
+                  id: assetId,
+                  type: TLAssetType.Embed,
+                  src: result,
+                  size,
+                },
+              },
+            },
           })
 
-          this.select(shapeId)
+          this.createAssetShapeAtPoint(id, type, point, size, assetId)
+        } else {
+          try {
+            const data: { type: string; shapes: TDShape[]; bindings: TDBinding[] } =
+              JSON.parse(result)
+
+            if (data.type !== 'tldr/clipboard') {
+              throw Error('The pasted string was not from the Tldraw clipboard.')
+            }
+
+            pasteInCurrentPage(data.shapes, data.bindings)
+          } catch (e) {
+            TLDR.warn(e)
+
+            const shapeId = Utils.uniqueId()
+
+            this.createShapes({
+              id: shapeId,
+              type: TDShapeType.Text,
+              parentId: this.appState.currentPageId,
+              text: TLDR.normalizeText(result),
+              point: this.getPagePoint(this.centerPoint, this.currentPageId),
+              style: { ...this.appState.currentStyle },
+            })
+
+            this.select(shapeId)
+          }
         }
       })
     } catch (e) {
@@ -2439,9 +2465,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  createImageOrVideoShapeAtPoint(
+  createAssetShapeAtPoint(
     id: string,
-    type: TDShapeType.Image | TDShapeType.Video,
+    type: TDShapeType.Image | TDShapeType.Video | TDShapeType.Embed,
     point: number[],
     size: number[],
     assetId: string
@@ -2952,7 +2978,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             })
 
-            this.createImageOrVideoShapeAtPoint(id, type, point, size, assetId)
+            this.createAssetShapeAtPoint(id, type, point, size, assetId)
             this.setIsLoading(false)
           }
         } catch (error) {
@@ -3278,6 +3304,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
+  /* Helpers */
+
   static fileToBase64 = (file: Blob): Promise<string | ArrayBuffer | null> =>
     new Promise((resolve, reject) => {
       if (file) {
@@ -3297,6 +3325,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
       img.src = dataURL
     })
+
+  static isValidHttpUrl(input: string) {
+    let url
+
+    try {
+      url = new URL(input)
+    } catch (_) {
+      return false
+    }
+
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  }
 
   onError = () => {
     // TODO

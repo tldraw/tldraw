@@ -216,6 +216,7 @@ export type TDToolType =
   | TDShapeType.Sticky
   | TDShapeType.Image
   | TDShapeType.Video
+  | TDShapeType.Embed
 
 export type Easing =
   | 'linear'
@@ -285,6 +286,7 @@ export enum TDShapeType {
   Group = 'group',
   Image = 'image',
   Video = 'video',
+  Embed = 'embed',
 }
 
 export enum Decoration {
@@ -358,6 +360,12 @@ export interface VideoShape extends TDBaseShape {
   assetId: string
 }
 
+export interface EmbedShape extends TDBaseShape {
+  type: TDShapeType.Embed
+  size: number[]
+  assetId: string
+}
+
 // The shape created by the Triangle tool
 export interface TriangleShape extends TDBaseShape {
   type: TDShapeType.Triangle
@@ -396,6 +404,7 @@ export type TDShape =
   | StickyShape
   | ImageShape
   | VideoShape
+  | EmbedShape
 
 /* ------------------ Shape Styles ------------------ */
 
