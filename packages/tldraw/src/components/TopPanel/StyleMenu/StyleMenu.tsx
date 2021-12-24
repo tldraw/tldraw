@@ -22,7 +22,6 @@ import {
   ShapeStyles,
   FontStyle,
   AlignStyle,
-  TDShapeType,
 } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'

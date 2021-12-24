@@ -173,7 +173,11 @@ export class SelectTool extends BaseTool<Status> {
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
-    this.selectNone()
+    if (this.app.pageState.editingId) {
+      this.app.setEditingId()
+    } else {
+      this.selectNone()
+    }
     this.app.cancelSession()
     this.setStatus(Status.Idle)
   }
