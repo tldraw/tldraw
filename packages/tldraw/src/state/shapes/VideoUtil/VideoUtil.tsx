@@ -50,32 +50,33 @@ export class VideoUtil extends TDShapeUtil<T, E> {
       ref
     ) => {
       const rVideo = React.useRef<HTMLVideoElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
+      const rWrapper = React.useRef<HTMLDivElement>(null)
 
       const { currentTime = 0, size, isPlaying } = shape
 
-      React.useEffect(() => {
-        if (wrapperRef.current) {
-          const [width, height] = size
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
-        }
+      React.useLayoutEffect(() => {
+        const wrapper = rWrapper.current
+        if (!wrapper) return
+        const [width, height] = size
+        wrapper.style.width = `${width}px`
+        wrapper.style.height = `${height}px`
       }, [size])
 
       const onImageLoad = React.useCallback(() => {
-        if (rVideo.current && wrapperRef.current) {
-          if (!Vec.isEqual(size, [401.42, 401.42])) return
-          const { videoWidth, videoHeight } = rVideo.current
-          wrapperRef.current.style.width = `${videoWidth}px`
-          wrapperRef.current.style.height = `${videoHeight}px`
-          const newSize = [videoWidth, videoHeight]
-          const delta = Vec.sub(size, newSize)
-          onShapeChange?.({
-            id: shape.id,
-            point: Vec.add(shape.point, Vec.div(delta, 2)),
-            size: [videoWidth, videoHeight],
-          })
-        }
+        const wrapper = rWrapper.current
+        const video = rVideo.current
+        if (!(video && wrapper)) return
+        if (!Vec.isEqual(size, [401.42, 401.42])) return
+        const { videoWidth, videoHeight } = video
+        wrapper.style.width = `${videoWidth}px`
+        wrapper.style.height = `${videoHeight}px`
+        const newSize = [videoWidth, videoHeight]
+        const delta = Vec.sub(size, newSize)
+        onShapeChange?.({
+          id: shape.id,
+          point: Vec.add(shape.point, Vec.div(delta, 2)),
+          size: [videoWidth, videoHeight],
+        })
       }, [size])
 
       React.useLayoutEffect(() => {
@@ -124,7 +125,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               }}
             />
           )}
-          <Wrapper ref={wrapperRef} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
+          <Wrapper ref={rWrapper} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
             <VideoElement
               ref={rVideo}
               id={shape.id + '_video'}

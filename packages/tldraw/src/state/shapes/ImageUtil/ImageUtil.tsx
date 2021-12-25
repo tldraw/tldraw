@@ -47,24 +47,25 @@ export class ImageUtil extends TDShapeUtil<T, E> {
     ({ shape, asset = { src: '' }, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
       const { size } = shape
 
-      React.useEffect(() => {
-        if (wrapperRef?.current) {
-          const [width, height] = size
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
-        }
+      const rImage = React.useRef<HTMLImageElement>(null)
+      const rWrapper = React.useRef<HTMLDivElement>(null)
+
+      React.useLayoutEffect(() => {
+        const wrapper = rWrapper.current
+        if (!wrapper) return
+        const [width, height] = size
+        wrapper.style.width = `${width}px`
+        wrapper.style.height = `${height}px`
       }, [size])
 
-      const imgRef = React.useRef<HTMLImageElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
-
       const onImageLoad = React.useCallback(() => {
-        if (imgRef?.current && wrapperRef?.current) {
-          const { width, height } = imgRef?.current
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
-          onShapeChange?.({ id: shape.id, size: [width, height] })
-        }
+        const wrapper = rWrapper.current
+        const image = rImage.current
+        if (!(image && wrapper)) return
+        const { width, height } = image
+        wrapper.style.width = `${width}px`
+        wrapper.style.height = `${height}px`
+        onShapeChange?.({ id: shape.id, size: [width, height] })
       }, [])
 
       return (
@@ -83,12 +84,12 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             />
           )}
           <Wrapper
-            ref={wrapperRef}
+            ref={rWrapper}
             isDarkMode={meta.isDarkMode} //
             isGhost={isGhost}
           >
             <ImageElement
-              ref={imgRef}
+              ref={rImage}
               src={(asset as TDImageAsset).src}
               alt="tl_image_asset"
               draggable={false}
