@@ -19,7 +19,7 @@ import type {
   TLBoundsHandleEventHandler,
   TLShapeBlurHandler,
   TLShapeCloneHandler,
-  TLAssets,
+  TLAsset,
 } from '@tldraw/core'
 
 /* -------------------------------------------------- */
@@ -133,7 +133,7 @@ export interface TDDocument {
   version: number
   pages: Record<string, TDPage>
   pageStates: Record<string, TLPageState>
-  assets: TLAssets
+  assets: TDAssets
 }
 
 // The shape of a single page in the Tldraw document
@@ -457,6 +457,27 @@ export type ShapeStyles = {
   isFilled?: boolean
   scale?: number
 }
+
+export enum TDAssetType {
+  Image = 'image',
+  Video = 'video',
+}
+
+export interface TDImageAsset extends TLAsset {
+  type: TDAssetType.Image
+  src: string
+  size: number[]
+}
+
+export interface TDVideoAsset extends TLAsset {
+  type: TDAssetType.Video
+  src: string
+  size: number[]
+}
+
+export type TDAsset = TDImageAsset | TDVideoAsset
+
+export type TDAssets = Record<string, TDAsset>
 
 /* -------------------------------------------------- */
 /*                    Type Helpers                    */

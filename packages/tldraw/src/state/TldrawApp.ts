@@ -15,8 +15,6 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
-  TLAssetType,
-  TLAsset,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -37,6 +35,8 @@ import {
   TDUser,
   SessionType,
   TDToolType,
+  TDAssetType,
+  TDAsset,
 } from '~types'
 import {
   migrate,
@@ -214,7 +214,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   clipboard?: {
     shapes: TDShape[]
     bindings: TDBinding[]
-    assets: TLAsset[]
+    assets: TDAsset[]
   }
 
   rotationInfo = {
@@ -1646,7 +1646,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         if (!shape.assetId) return
         return this.document.assets[shape.assetId]
       })
-      .filter(Boolean) as TLAsset[]
+      .filter(Boolean) as TDAsset[]
     this.clipboard = {
       shapes: copyingShapes,
       bindings: copyingBindings,
@@ -1690,7 +1690,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
-    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TLAsset[]) => {
+    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
       const idsMap: Record<string, string> = {}
       const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
       if (newAssets.length) {
@@ -1773,7 +1773,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             type: string
             shapes: TDShape[]
             bindings: TDBinding[]
-            assets: TLAsset[]
+            assets: TDAsset[]
           } = JSON.parse(result)
           if (data.type !== 'tldr/clipboard') {
             throw Error('The pasted string was not from the Tldraw clipboard.')
@@ -2821,7 +2821,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         let assetId = Utils.uniqueId()
         const pagePoint = this.getPagePoint(point)
         const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
-        const assetType = isImage ? TLAssetType.Image : TLAssetType.Video
+        const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
         const size = isImage ? await getSizeFromDataurl(dataurl) : [401.42, 401.42] // special
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === dataurl

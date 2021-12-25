@@ -6,29 +6,10 @@ import type React from 'react'
 
 export type TLAssets = Record<string, TLAsset>
 
-export enum TLAssetType {
-  Image = 'image',
-  Video = 'video',
-}
-
-export interface TLBaseAsset {
+export interface TLAsset {
   id: string
-  type: TLAssetType
+  type: string
 }
-
-export interface TLImageAsset extends TLBaseAsset {
-  type: TLAssetType.Image
-  src: string
-  size: number[]
-}
-
-export interface TLVideoAsset extends TLBaseAsset {
-  type: TLAssetType.Video
-  src: string
-  size: number[]
-}
-
-export type TLAsset = TLImageAsset | TLVideoAsset
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 

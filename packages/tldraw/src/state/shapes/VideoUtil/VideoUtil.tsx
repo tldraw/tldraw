@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Utils, HTMLContainer } from '@tldraw/core'
-import { TDShapeType, TDMeta, VideoShape } from '~types'
+import { TDShapeType, TDMeta, VideoShape, TDVideoAsset } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
@@ -45,7 +45,10 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, asset, isBinding, isEditing, isGhost, meta, events, onShapeChange }, ref) => {
+    (
+      { shape, asset = { src: '' }, isBinding, isEditing, isGhost, meta, events, onShapeChange },
+      ref
+    ) => {
       const rVideo = React.useRef<HTMLVideoElement>(null)
       const wrapperRef = React.useRef<HTMLDivElement>(null)
 
@@ -137,7 +140,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               onTimeUpdate={handleSetCurrentTime}
               onLoadedMetadata={onImageLoad}
             >
-              <source src={asset?.src} />
+              <source src={(asset as TDVideoAsset).src} />
             </VideoElement>
           </Wrapper>
         </HTMLContainer>

@@ -81,11 +81,12 @@ function App() {
 
 To avoid unnecessary renders, be sure to pass "stable" values as props to the `Renderer`. Either define these values outside of the parent component, or place them in React state, or memoize them with `React.useMemo`.
 
-| Prop         | Type                            | Description                                    |
-| ------------ | ------------------------------- | ---------------------------------------------- |
-| `page`       | [`TLPage`](#tlpage)             | The current page object.                       |
-| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                      |
-| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes. |
+| Prop         | Type                            | Description                                      |
+| ------------ | ------------------------------- | ------------------------------------------------ |
+| `page`       | [`TLPage`](#tlpage)             | The current page object.                         |
+| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                        |
+| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes.   |
+| `assets`     | [`TLAssets`](#tlassets)         | A table of assets used by shapes in the project. |
 
 In addition to these required props, the Renderer accents many other **optional** props.
 
@@ -205,6 +206,17 @@ An object describing the current page. It contains:
 | `editingId`    | `string`   | (optional) The currently editing shape id           |
 | `bindingId`    | `string`   | (optional) The currently editing binding.           |
 | `brush`        | `TLBounds` | (optional) A `Bounds` for the current selection box |
+
+### `TLAsset`
+
+An object describing the current page. It contains:
+
+| Property | Type     | Description                |
+| -------- | -------- | -------------------------- |
+| `id`     | `string` | A unique id for the asset. |
+| `type`   | `string` | The type of the asset.     |
+
+Specific asset types may describe additional properties.
 
 ### `TLShape`
 
