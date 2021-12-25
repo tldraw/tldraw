@@ -47,22 +47,25 @@ export class ImageUtil extends TDShapeUtil<T, E> {
     ({ shape, asset = { src: '' }, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
       const { size } = shape
 
-      React.useEffect(() => {
-        if (wrapperRef?.current) {
+      React.useLayoutEffect(() => {
+        const wrapper = rWrapper.current
+        if (wrapper) {
           const [width, height] = size
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
+          wrapper.style.width = `${width}px`
+          wrapper.style.height = `${height}px`
         }
       }, [size])
 
-      const imgRef = React.useRef<HTMLImageElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
+      const rImage = React.useRef<HTMLImageElement>(null)
+      const rWrapper = React.useRef<HTMLDivElement>(null)
 
       const onImageLoad = React.useCallback(() => {
-        if (imgRef?.current && wrapperRef?.current) {
-          const { width, height } = imgRef?.current
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
+        const image = rImage.current
+        const wrapper = rWrapper.current
+        if (image && wrapper) {
+          const { width, height } = image
+          wrapper.style.width = `${width}px`
+          wrapper.style.height = `${height}px`
           onShapeChange?.({ id: shape.id, size: [width, height] })
         }
       }, [])
@@ -83,12 +86,12 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             />
           )}
           <Wrapper
-            ref={wrapperRef}
+            ref={rWrapper}
             isDarkMode={meta.isDarkMode} //
             isGhost={isGhost}
           >
             <ImageElement
-              ref={imgRef}
+              ref={rImage}
               src={asset.src}
               alt="tl_image_asset"
               draggable={false}

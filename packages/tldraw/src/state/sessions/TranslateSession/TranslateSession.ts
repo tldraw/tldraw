@@ -633,9 +633,16 @@ export class TranslateSession extends BaseSession {
         childIndex: TLDR.getChildIndexAbove(this.app.state, shape.id, currentPageId),
       }
 
-      if (clone.type === TDShapeType.Video) {
-        const element = document.getElementById(shape.id + '_video') as HTMLVideoElement
-        if (element) clone.currentTime = (element.currentTime + 16) % element.duration
+      switch (clone.type) {
+        case TDShapeType.Video: {
+          const element = document.getElementById(shape.id + '_video') as HTMLVideoElement
+          if (element) clone.currentTime = (element.currentTime + 16) % element.duration
+          break
+        }
+        case TDShapeType.Embed: {
+          // Copy the current URL and scroll location, if we can get it?
+          break
+        }
       }
 
       clones.push(clone)

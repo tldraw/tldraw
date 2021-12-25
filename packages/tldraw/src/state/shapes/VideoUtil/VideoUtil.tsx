@@ -47,24 +47,27 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, asset, isBinding, isEditing, isGhost, meta, events, onShapeChange }, ref) => {
       const rVideo = React.useRef<HTMLVideoElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
+      const rWrapper = React.useRef<HTMLDivElement>(null)
 
       const { currentTime = 0, size, isPlaying } = shape
 
-      React.useEffect(() => {
-        if (wrapperRef.current) {
+      React.useLayoutEffect(() => {
+        const wrapper = rWrapper.current
+        if (wrapper) {
           const [width, height] = size
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
+          wrapper.style.width = `${width}px`
+          wrapper.style.height = `${height}px`
         }
       }, [size])
 
       const onImageLoad = React.useCallback(() => {
-        if (rVideo.current && wrapperRef.current) {
+        const video = rVideo.current
+        const wrapper = rWrapper.current
+        if (video && wrapper) {
           if (!Vec.isEqual(size, [401.42, 401.42])) return
-          const { videoWidth, videoHeight } = rVideo.current
-          wrapperRef.current.style.width = `${videoWidth}px`
-          wrapperRef.current.style.height = `${videoHeight}px`
+          const { videoWidth, videoHeight } = video
+          wrapper.style.width = `${videoWidth}px`
+          wrapper.style.height = `${videoHeight}px`
           const newSize = [videoWidth, videoHeight]
           const delta = Vec.sub(size, newSize)
           onShapeChange?.({
@@ -121,7 +124,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               }}
             />
           )}
-          <Wrapper ref={wrapperRef} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
+          <Wrapper ref={rWrapper} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
             <VideoElement
               ref={rVideo}
               id={shape.id + '_video'}

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Utils, HTMLContainer } from '@tldraw/core'
-import { TDShapeType, TDMeta, ImageShape, EmbedShape } from '~types'
+import { TDShapeType, TDMeta, EmbedShape } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
@@ -11,7 +11,6 @@ import {
 } from '~state/shapes/shared'
 import { styled } from '@stitches/react'
 import { TldrawApp } from '~state'
-import { useTldrawApp } from '~hooks'
 
 type T = EmbedShape
 type E = HTMLDivElement
@@ -50,39 +49,63 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
     ({ shape, isEditing, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
       const { size, src } = shape
       const [url, setUrl] = React.useState<string>(src)
-      const [frameSrc, setFrameSrc] = React.useState<string>(src)
+      const rInitialUrl = React.useRef(url)
 
-      // TODO: Use this to disable canvas interaction when input is being
-      // edited.
-      const [isInputFocus, setIsInputFocus] = React.useState<boolean>(false)
-
-      React.useEffect(() => {
-        if (wrapperRef?.current) {
+      React.useLayoutEffect(() => {
+        if (rWrapper?.current) {
           const [width, height] = size
-          wrapperRef.current.style.width = `${width}px`
-          wrapperRef.current.style.height = `${height}px`
+          rWrapper.current.style.width = `${width}px`
+          rWrapper.current.style.height = `${height}px`
         }
       }, [size])
 
-      const frameRef = React.useRef<HTMLIFrameElement>(null)
-      const wrapperRef = React.useRef<HTMLDivElement>(null)
+      const rFrame = React.useRef<HTMLIFrameElement>(null)
+      const rWrapper = React.useRef<HTMLDivElement>(null)
 
-      const onFrameLoad = React.useCallback(() => {
-        if (frameRef?.current && wrapperRef?.current) {
-          const { clientWidth, clientHeight } = frameRef?.current
-          wrapperRef.current.style.width = `${clientWidth}px`
-          wrapperRef.current.style.height = `${clientHeight}px`
-          onShapeChange?.({ id: shape.id, size: [clientWidth, clientHeight] })
+      const handleInputFocus = React.useCallback<React.FocusEventHandler<HTMLInputElement>>((e) => {
+        rInitialUrl.current = e.currentTarget.value
+      }, [])
+
+      const handleInputChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        setUrl(e.currentTarget.value)
+      }, [])
+
+      const handleInputBlur = React.useCallback<React.FocusEventHandler<HTMLInputElement>>((e) => {
+        const url = e.currentTarget.value
+        if (TldrawApp.isValidHttpUrl(url)) {
+          if (url !== rInitialUrl.current) {
+            onShapeChange?.({ id: shape.id, src: url })
+          }
+        } else {
+          e.currentTarget.value = rInitialUrl.current
+          setUrl(rInitialUrl.current)
         }
       }, [])
 
-      React.useEffect(() => {
-        if (!isEditing) {
-          if (TldrawApp.isValidHttpUrl(url)) {
-            setFrameSrc(url)
+      const handleInputKeyDown = React.useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
+        (e) => {
+          switch (e.key) {
+            case 'Enter': {
+              e.currentTarget.blur()
+              break
+            }
+            case 'Escape': {
+              e.currentTarget.value = rInitialUrl.current
+              setUrl(rInitialUrl.current)
+              e.currentTarget.blur()
+              break
+            }
           }
-        }
-      }, [isEditing, url])
+        },
+        []
+      )
+
+      const handleWheel = React.useCallback<React.WheelEventHandler<HTMLDivElement>>(
+        (e) => {
+          if (isEditing) e.preventDefault()
+        },
+        [isEditing]
+      )
 
       return (
         <HTMLContainer ref={ref} {...events}>
@@ -100,16 +123,17 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
             />
           )}
           <Wrapper
-            ref={wrapperRef}
+            ref={rWrapper}
             isDarkMode={meta.isDarkMode} //
             isGhost={isGhost}
           >
             <FrameElement
+              ref={rFrame}
+              id={shape.id + '_frame'}
               focused={isEditing}
-              src={frameSrc}
+              src={src}
               draggable={false}
-              ref={frameRef}
-              onLoad={onFrameLoad}
+              onWheel={handleWheel}
             />
             {isEditing && (
               <InputContainer>
@@ -117,9 +141,10 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
                   type="text"
                   placeholder="url"
                   value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  onFocus={() => setIsInputFocus(true)}
-                  onBlur={() => setIsInputFocus(false)}
+                  onChange={handleInputChange}
+                  onFocus={handleInputFocus}
+                  onBlur={handleInputBlur}
+                  onKeyDown={handleInputKeyDown}
                 />
               </InputContainer>
             )}
@@ -159,7 +184,7 @@ const Wrapper = styled('div', {
   fontSize: '2em',
   height: '100%',
   width: '100%',
-  borderRadius: '3px',
+  borderRadius: 2,
   perspective: '800px',
   p: {
     userSelect: 'none',
@@ -191,6 +216,7 @@ const FrameElement = styled('iframe', {
   maxHeight: '100%',
   minHeight: '100%',
   userSelect: 'none',
+  border: 'none',
   variants: {
     focused: {
       false: { pointerEvents: 'none' },
@@ -204,6 +230,7 @@ const InputContainer = styled('div', {
   justifyContent: 'center',
   alignItems: 'center',
 })
+
 const Input = styled('input', {
   width: '100%',
   padding: '4px 0px',
