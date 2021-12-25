@@ -12,7 +12,6 @@ export function useBoundsHandleEvents(
       if (e.button !== 0) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerDown(e, id)
-
       if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
         callbacks.onDoubleClickBoundsHandle?.(info, e)
       }

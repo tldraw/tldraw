@@ -3179,20 +3179,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickBoundsHandle?.(info, e)
     // hack time to reset the size / clipping of an image
-    if (this.selectedIds.length > 0) return
+    if (this.selectedIds.length !== 1) return
     const shape = this.getShape(this.selectedIds[0])
-    if (shape.type !== TDShapeType.Image) return
-    const asset = this.document.assets[shape.assetId]
-    const util = TLDR.getShapeUtil(shape)
-    const centerA = util.getCenter(shape)
-    const next = { ...shape, size: asset.size }
-    const centerB = util.getCenter(next)
-    const delta = Vec.sub(centerB, centerA)
-    this.updateShapes({
-      id: shape.id,
-      point: Vec.sub(shape.point, delta),
-      size: asset.size,
-    })
+    if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+      const asset = this.document.assets[shape.assetId]
+      const util = TLDR.getShapeUtil(shape)
+      const centerA = util.getCenter(shape)
+      const centerB = util.getCenter({ ...shape, size: asset.size })
+      const delta = Vec.sub(centerB, centerA)
+      this.updateShapes({
+        id: shape.id,
+        point: Vec.sub(shape.point, delta),
+        size: asset.size,
+      })
+    }
   }
 
   onRightPointBoundsHandle: TLBoundsHandleEventHandler = (info, e) => {
