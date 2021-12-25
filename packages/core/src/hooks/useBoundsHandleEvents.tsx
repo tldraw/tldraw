@@ -12,6 +12,10 @@ export function useBoundsHandleEvents(
       if (e.button !== 0) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerDown(e, id)
+
+      if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
+        callbacks.onDoubleClickBoundsHandle?.(info, e)
+      }
       callbacks.onPointBoundsHandle?.(info, e)
       callbacks.onPointerDown?.(info, e)
     },
@@ -22,11 +26,7 @@ export function useBoundsHandleEvents(
     (e: React.PointerEvent) => {
       if (e.button !== 0) return
       if (!inputs.pointerIsValid(e)) return
-      const isDoubleClick = inputs.isDoubleClick()
       const info = inputs.pointerUp(e, id)
-      if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoubleClickBoundsHandle?.(info, e)
-      }
       callbacks.onReleaseBoundsHandle?.(info, e)
       callbacks.onPointerUp?.(info, e)
     },
