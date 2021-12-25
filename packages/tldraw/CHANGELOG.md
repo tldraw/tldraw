@@ -1,3 +1,7 @@
+## 1.3.0
+
+- Adds Video and Image shape types.
+
 ## 1.2.9
 
 - Improves multiplayer cursor appearance.

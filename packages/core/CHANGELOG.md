@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+- Adds assets for image and video shape types.
+
 ## 1.2.10
 
 - Fix bug in shape events.
