@@ -19,8 +19,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
 
   canBind = true
 
-  canEdit = true
-
   canClone = true
 
   isAspectRatioLocked = true
@@ -90,10 +88,10 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
           >
             <ImageElement
+              ref={imgRef}
               src={asset.src}
               alt="tl_image_asset"
               draggable={false}
-              ref={imgRef}
               onLoad={onImageLoad}
             />
           </Wrapper>
@@ -108,7 +106,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
     } = shape
 
     return (
-      <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
+      <rect x={0} y={0} rx={2} ry={2} width={Math.max(1, width)} height={Math.max(1, height)} />
     )
   })
 
@@ -123,6 +121,14 @@ export class ImageUtil extends TDShapeUtil<T, E> {
   transform = transformRectangle
 
   transformSingle = transformSingleRectangle
+
+  getSvgElement = (shape: ImageShape) => {
+    const bounds = this.getBounds(shape)
+    const elm = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+    elm.setAttribute('width', `${bounds.width}`)
+    elm.setAttribute('height', `${bounds.height}`)
+    return elm
+  }
 }
 
 const Wrapper = styled('div', {
@@ -159,7 +165,11 @@ const Wrapper = styled('div', {
 })
 
 const ImageElement = styled('img', {
+  width: '100%',
+  height: '100%',
   maxWidth: '100%',
   minWidth: '100%',
   pointerEvents: 'none',
+  objectFit: 'cover',
+  borderRadius: 2,
 })

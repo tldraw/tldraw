@@ -85,7 +85,7 @@ export interface TldrawProps extends TDCallbacks {
    * Warning: Keeping this enabled for multiplayer applications without provifing a storage
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
-  disableImages?: boolean
+  disableAssets?: boolean
 
   /**
    * (optional) A callback to run when the component mounts.
@@ -152,9 +152,9 @@ export interface TldrawProps extends TDCallbacks {
   onRedo?: (state: TldrawApp) => void
 
   /**
-   * (optional) A callback to run when the user uploads an image or video. Returns the desired "src" attribute eg: base64 (default) or remote URL
+   * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
    */
-  onImageUpload?: (file: File, id: string) => Promise<string>
+  onImageCreate?: (file: File, id: string) => Promise<string>
 
   /**
    * (optional) A callback to run when the user deletes an image or video.
@@ -172,7 +172,6 @@ export function Tldraw({
   id,
   document,
   currentPageId,
-  darkMode = false,
   autofocus = true,
   showMenu = true,
   showPages = true,
@@ -182,7 +181,7 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   showSponsorLink = false,
-  disableImages = false,
+  disableAssets = false,
   onMount,
   onChange,
   onChangePresence,
@@ -190,6 +189,7 @@ export function Tldraw({
   onSaveProject,
   onSaveProjectAs,
   onOpenProject,
+  onOpenMedia,
   onSignOut,
   onSignIn,
   onUndo,
@@ -198,34 +198,35 @@ export function Tldraw({
   onPatch,
   onCommand,
   onChangePage,
-  onImageUpload,
+  onImageCreate,
   onImageDelete,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
   // Create a new app when the component mounts.
-  const [app, setApp] = React.useState(
-    () =>
-      new TldrawApp(id, {
-        onMount,
-        onChange,
-        onChangePresence,
-        onNewProject,
-        onSaveProject,
-        onSaveProjectAs,
-        onOpenProject,
-        onSignOut,
-        onSignIn,
-        onUndo,
-        onRedo,
-        onPersist,
-        onPatch,
-        onCommand,
-        onChangePage,
-        onImageDelete,
-        onImageUpload,
-      })
-  )
+  const [app, setApp] = React.useState(() => {
+    const app = new TldrawApp(id, {
+      onMount,
+      onChange,
+      onChangePresence,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onOpenMedia,
+      onSignOut,
+      onSignIn,
+      onUndo,
+      onRedo,
+      onPersist,
+      onPatch,
+      onCommand,
+      onChangePage,
+      onImageDelete,
+      onImageCreate,
+    })
+    return app
+  })
 
   // Create a new app if the `id` prop changes.
   React.useEffect(() => {
@@ -239,6 +240,7 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
+      onOpenMedia,
       onSignOut,
       onSignIn,
       onUndo,
@@ -248,11 +250,9 @@ export function Tldraw({
       onCommand,
       onChangePage,
       onImageDelete,
-      onImageUpload,
+      onImageCreate,
     })
-
     setSId(id)
-
     setApp(newApp)
   }, [sId, id])
 
@@ -260,7 +260,6 @@ export function Tldraw({
   // are the same, or else load a new document if the ids are different.
   React.useEffect(() => {
     if (!document) return
-
     if (document.id === app.document.id) {
       app.updateDocument(document)
     } else {
@@ -268,31 +267,21 @@ export function Tldraw({
     }
   }, [document, app])
 
+  // Disable assets when the `disableAssets` prop changes.
   React.useEffect(() => {
-    // Hacky workaround, not sure why state changes dont go through
-    // without delay. I will fix it in a bit
-    setTimeout(() => {
-      app.setDisableImages(disableImages)
-    }, 3000)
-  }, [app, disableImages])
+    app.setDisableAssets(disableAssets)
+  }, [app, disableAssets])
 
-  // Change the page when the `currentPageId` prop changes
+  // Change the page when the `currentPageId` prop changes.
   React.useEffect(() => {
     if (!currentPageId) return
     app.changePage(currentPageId)
   }, [currentPageId, app])
 
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  // Toggle the app's readOnly mode when the `readOnly` prop changes.
   React.useEffect(() => {
     app.readOnly = readOnly
   }, [app, readOnly])
-
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
-  React.useEffect(() => {
-    if (darkMode && !app.settings.isDarkMode) {
-      // app.toggleDarkMode()
-    }
-  }, [app, darkMode])
 
   // Update the app's callbacks when any callback changes.
   React.useEffect(() => {
@@ -304,6 +293,7 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
+      onOpenMedia,
       onSignOut,
       onSignIn,
       onUndo,
@@ -313,7 +303,7 @@ export function Tldraw({
       onCommand,
       onChangePage,
       onImageDelete,
-      onImageUpload,
+      onImageCreate,
     }
   }, [
     onMount,
@@ -323,6 +313,7 @@ export function Tldraw({
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
+    onOpenMedia,
     onSignOut,
     onSignIn,
     onUndo,
@@ -332,7 +323,7 @@ export function Tldraw({
     onCommand,
     onChangePage,
     onImageDelete,
-    onImageUpload,
+    onImageCreate,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
@@ -405,22 +396,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
     page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideResizeHandles
 
-  const isInSession = app.session !== undefined
-
-  // Hide bounds when not using the select tool, or when the only selected shape has handles
-  const hideBounds =
-    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
-    !isSelecting ||
-    isHideBoundsShape ||
-    !!pageState.editingId
-
-  // Hide bounds when not using the select tool, or when in session
-  const hideHandles = isInSession || !isSelecting
-
-  // Hide indicators when not using the select tool, or when in session
-  const hideIndicators =
-    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
-
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => {
     return { isDarkMode: settings.isDarkMode }
@@ -453,6 +428,25 @@ const InnerTldraw = React.memo(function InnerTldraw({
     elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
   }, [])
 
+  const isInSession = app.session !== undefined
+
+  // Hide bounds when not using the select tool, or when the only selected shape has handles
+  const hideBounds =
+    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
+    !isSelecting ||
+    isHideBoundsShape ||
+    !!pageState.editingId
+
+  // Hide bounds when not using the select tool, or when in session
+  const hideHandles = isInSession || !isSelecting
+
+  // Hide indicators when not using the select tool, or when in session
+  const hideIndicators =
+    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
+
+  const hideCloneHandles =
+    isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
       <Loading />
@@ -476,7 +470,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideResizeHandles={isHideResizeHandlesShape}
           hideIndicators={hideIndicators}
           hideBindingHandles={!settings.showBindingHandles}
-          hideCloneHandles={!settings.showCloneHandles}
+          hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
           onPinchStart={app.onPinchStart}

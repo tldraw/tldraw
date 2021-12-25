@@ -34,7 +34,6 @@ import {
   TextAlignLeftIcon,
   TextAlignRightIcon,
 } from '@radix-ui/react-icons'
-import { RowButton } from '~components/Primitives/RowButton'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -302,27 +301,6 @@ const ColorGrid = styled('div', {
   gridTemplateColumns: 'repeat(4, auto)',
   gap: 0,
 })
-
-// const StyledRowInner = styled('div', {
-//   height: '100%',
-//   width: '100%',
-//   backgroundColor: '$panel',
-//   borderRadius: '$2',
-//   display: 'flex',
-//   gap: '$1',
-//   flexDirection: 'row',
-//   alignItems: 'center',
-//   padding: '0 $3',
-//   justifyContent: 'space-between',
-//   border: '1px solid transparent',
-
-//   '& svg': {
-//     position: 'relative',
-//     stroke: '$overlay',
-//     strokeWidth: 1,
-//     zIndex: 1,
-//   },
-// })
 
 export const StyledRow = styled('div', {
   position: 'relative',

@@ -6,7 +6,7 @@ import type { SelectTool } from './tools/SelectTool'
 describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      const app = new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
+      new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
@@ -42,6 +42,8 @@ describe('TldrawTestApp', () => {
 
       expect(Object.keys(app.page.shapes).length).toBe(1)
     })
+
+    it.todo('Copies and pastes a shape with an asset')
 
     it('Copies grouped shapes.', () => {
       const app = new TldrawTestApp()
@@ -581,10 +583,10 @@ describe('TldrawTestApp', () => {
 
     it('Respects child index', () => {
       const result = new TldrawTestApp()
-      .loadDocument(mockDocument)
-      .moveToBack(['rect2'])
-      .selectAll()
-      .copySvg()
+        .loadDocument(mockDocument)
+        .moveToBack(['rect2'])
+        .selectAll()
+        .copySvg()
 
       expect(result).toMatchSnapshot('copied svg with reordered elements')
     })
@@ -709,4 +711,14 @@ describe('TldrawTestApp', () => {
       .movePointer([50, 51])
       .expectSelectedIdsToBe(['box1'])
   })
+})
+
+describe('When adding an image', () => {
+  it.todo('Adds the image to the assets table')
+  it.todo('Does not add the image if that image already exists as an asset')
+})
+
+describe('When adding a video', () => {
+  it.todo('Adds the video to the assets table')
+  it.todo('Does not add the video if that video already exists as an asset')
 })

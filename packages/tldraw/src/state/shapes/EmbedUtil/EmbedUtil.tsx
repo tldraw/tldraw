@@ -40,19 +40,17 @@ export class EmbedUtil extends TDShapeUtil<T, E> {
         rotation: 0,
         style: defaultStyle,
         assetId: 'assetId',
+        src: 'https://www.google.com',
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    (
-      { shape, asset = { src: '' }, isEditing, isBinding, isGhost, meta, events, onShapeChange },
-      ref
-    ) => {
-      const { size } = shape
-      const [url, setUrl] = React.useState<string>(asset.src)
-      const [frameSrc, setFrameSrc] = React.useState<string>(asset.src)
+    ({ shape, isEditing, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
+      const { size, src } = shape
+      const [url, setUrl] = React.useState<string>(src)
+      const [frameSrc, setFrameSrc] = React.useState<string>(src)
 
       // TODO: Use this to disable canvas interaction when input is being
       // edited.

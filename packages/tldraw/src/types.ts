@@ -104,7 +104,7 @@ export interface TDSnapshot {
     status: string
     snapLines: TLSnapLine[]
     isLoading: boolean
-    disableImages: boolean
+    disableAssets: boolean
   }
   document: TDDocument
   room?: {
@@ -358,12 +358,14 @@ export interface VideoShape extends TDBaseShape {
   type: TDShapeType.Video
   size: number[]
   assetId: string
+  isPlaying: boolean
+  currentTime: number
 }
 
 export interface EmbedShape extends TDBaseShape {
   type: TDShapeType.Embed
   size: number[]
-  assetId: string
+  src: string
 }
 
 // The shape created by the Triangle tool

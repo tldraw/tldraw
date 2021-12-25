@@ -36,10 +36,19 @@ export function useFileSystemHandlers() {
     [app]
   )
 
+  const onOpenMedia = React.useCallback(
+    async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
+      if (e && app.callbacks.onOpenMedia) e.preventDefault()
+      app.callbacks.onOpenMedia?.(app)
+    },
+    [app]
+  )
+
   return {
     onNewProject,
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
+    onOpenMedia,
   }
 }

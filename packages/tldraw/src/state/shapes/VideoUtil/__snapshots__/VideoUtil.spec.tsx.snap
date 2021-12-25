@@ -4,7 +4,9 @@ exports[`Video shape Creates a shape: video 1`] = `
 Object {
   "assetId": "assetId",
   "childIndex": 1,
+  "currentTime": 0,
   "id": "video",
+  "isPlaying": true,
   "name": "Video",
   "parentId": "page",
   "point": Array [

@@ -315,12 +315,16 @@ const tlcss = css`
     border-width: calc(1px * var(--tl-scale));
   }
 
+  .tl-hovered {
+    stroke: var(--tl-selectStroke);
+  }
+
   .tl-selected {
     stroke: var(--tl-selectStroke);
   }
 
-  .tl-hovered {
-    stroke: var(--tl-selectStroke);
+  .tl-editing {
+    stroke-width: calc(2.5px * min(5, var(--tl-scale)));
   }
 
   .tl-clone-target {

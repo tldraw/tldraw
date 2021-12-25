@@ -12,6 +12,7 @@ import {
   SessionType,
   ArrowBinding,
   TldrawPatch,
+  TDShapeType,
 } from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
@@ -630,6 +631,11 @@ export class TranslateSession extends BaseSession {
         id: newId,
         parentId: shape.parentId,
         childIndex: TLDR.getChildIndexAbove(this.app.state, shape.id, currentPageId),
+      }
+
+      if (clone.type === TDShapeType.Video) {
+        const element = document.getElementById(shape.id + '_video') as HTMLVideoElement
+        if (element) clone.currentTime = (element.currentTime + 16) % element.duration
       }
 
       clones.push(clone)
