@@ -121,6 +121,14 @@ export class ImageUtil extends TDShapeUtil<T, E> {
   transform = transformRectangle
 
   transformSingle = transformSingleRectangle
+
+  getSvgElement = (shape: ImageShape) => {
+    const bounds = this.getBounds(shape)
+    const elm = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+    elm.setAttribute('width', `${bounds.width}`)
+    elm.setAttribute('height', `${bounds.height}`)
+    return elm
+  }
 }
 
 const Wrapper = styled('div', {

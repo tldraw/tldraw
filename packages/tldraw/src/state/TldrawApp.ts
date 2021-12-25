@@ -1858,14 +1858,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     defs.appendChild(style)
     svg.appendChild(defs)
 
-    function getSvgElementForShape(shape: TDShape) {
+    const getSvgElementForShape = (shape: TDShape) => {
       const util = TLDR.getShapeUtil(shape)
-      const element = util.getSvgElement(shape)
       const bounds = util.getBounds(shape)
+      const elm = util.getSvgElement(shape)
 
-      if (!element) return
+      if (!elm) return
 
-      element.setAttribute(
+      if (shape.type === TDShapeType.Image) {
+        elm.setAttribute('xlink:href', this.document.assets[shape.assetId].src)
+      }
+
+      elm.setAttribute(
         'transform',
         `translate(${padding + shape.point[0] - commonBounds.minX}, ${
           padding + shape.point[1] - commonBounds.minY
@@ -1874,35 +1878,37 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         })`
       )
 
-      return element
+      return elm
     }
 
     shapes.forEach((shape) => {
       if (shape.children?.length) {
-        // Create a group <g> element for shape
+        // Create a group <g> elm for shape
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-        // Get the shape's children as elements
+        // Get the shape's children as elms
         shape.children
           .map((childId) => this.getShape(childId, pageId))
           .map(getSvgElementForShape)
           .filter(Boolean)
-          .forEach((element) => g.appendChild(element!))
+          .forEach((elm) => g.appendChild(elm!))
 
-        // Add the group element to the SVG
+        // Add the group elm to the SVG
         svg.appendChild(g)
 
         return
       }
 
-      const element = getSvgElementForShape(shape)
+      const elm = getSvgElementForShape(shape)
 
-      if (element) {
-        svg.appendChild(element)
+      console.log(elm)
+
+      if (elm) {
+        svg.appendChild(elm)
       }
     })
 
-    // Resize the element to the bounding box
+    // Resize the elm to the bounding box
     svg.setAttribute(
       'viewBox',
       [0, 0, commonBounds.width + padding * 2, commonBounds.height + padding * 2].join(' ')
@@ -1913,7 +1919,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     svg.setAttribute('fill', 'transparent')
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
-      .forEach((element) => element.remove())
+      .forEach((elm) => elm.remove())
 
     const s = new XMLSerializer()
 
