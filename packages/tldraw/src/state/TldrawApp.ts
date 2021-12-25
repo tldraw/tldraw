@@ -60,6 +60,7 @@ import {
   GRID_SIZE,
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
+  SVG_EXPORT_PADDING,
 } from '~constants'
 import { SelectTool } from './tools/SelectTool'
 import { EraseTool } from './tools/EraseTool'
@@ -1632,31 +1633,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const copyingShapeIds = ids.flatMap((id) =>
       TLDR.getDocumentBranch(this.state, id, this.currentPageId)
     )
-
     const copyingShapes = copyingShapeIds.map((id) =>
       Utils.deepClone(this.getShape(id, this.currentPageId))
     )
-
     if (copyingShapes.length === 0) return this
-
     const copyingBindings: TDBinding[] = Object.values(this.page.bindings).filter(
       (binding) =>
         copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
     )
-
     const copyingAssets = copyingShapes
       .map((shape) => {
         if (!shape.assetId) return
         return this.document.assets[shape.assetId]
       })
       .filter(Boolean) as TLAsset[]
-
     this.clipboard = {
       shapes: copyingShapes,
       bindings: copyingBindings,
       assets: copyingAssets,
     }
-
     try {
       const text = JSON.stringify({
         type: 'tldr/clipboard',
@@ -1674,10 +1669,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } catch (e) {
       // Browser does not support copying to clipboard
     }
-
     this.pasteInfo.offset = [0, 0]
     this.pasteInfo.center = [0, 0]
-
     return this
   }
 
@@ -1697,12 +1690,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
-
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TLAsset[]) => {
       const idsMap: Record<string, string> = {}
-
       const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
-
       if (newAssets.length) {
         this.patchState({
           document: {
@@ -1710,32 +1700,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         })
       }
-
       shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
       bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
-
       let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
-
       const shapesToPaste = shapes
         .sort((a, b) => a.childIndex - b.childIndex)
         .map((shape) => {
           const parentShapeId = idsMap[shape.parentId]
-
           const copy = {
             ...shape,
             id: idsMap[shape.id],
             parentId: parentShapeId || this.currentPageId,
           }
-
           if (shape.children) {
             copy.children = shape.children.map((id) => idsMap[id])
           }
-
           if (!parentShapeId) {
             copy.childIndex = startIndex
             startIndex++
           }
-
           if (copy.handles) {
             Object.values(copy.handles).forEach((handle) => {
               if (handle.bindingId) {
@@ -1743,21 +1726,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               }
             })
           }
-
           return copy
         })
-
       const bindingsToPaste = bindings.map((binding) => ({
         ...binding,
         id: idsMap[binding.id],
         toId: idsMap[binding.toId],
         fromId: idsMap[binding.fromId],
       }))
-
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
-
       let center = Vec.toFixed(this.getPagePoint(point || this.centerPoint))
-
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
@@ -1768,14 +1746,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.pasteInfo.center = center
         this.pasteInfo.offset = [0, 0]
       }
-
       const centeredBounds = Utils.centerBounds(commonBounds, center)
-
       const delta = Vec.sub(
         Utils.getBoundsCenter(centeredBounds),
         Utils.getBoundsCenter(commonBounds)
       )
-
       this.create(
         shapesToPaste.map((shape) =>
           TLDR.getShapeUtil(shape.type).create({
@@ -1800,17 +1775,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             bindings: TDBinding[]
             assets: TLAsset[]
           } = JSON.parse(result)
-
           if (data.type !== 'tldr/clipboard') {
             throw Error('The pasted string was not from the Tldraw clipboard.')
           }
-
           pasteInCurrentPage(data.shapes, data.bindings, data.assets)
         } catch (e) {
           TLDR.warn(e)
-
           const shapeId = Utils.uniqueId()
-
           this.createShapes({
             id: shapeId,
             type: TDShapeType.Text,
@@ -1819,7 +1790,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             point: this.getPagePoint(this.centerPoint, this.currentPageId),
             style: { ...this.appState.currentStyle },
           })
-
           this.select(shapeId)
         }
       })
@@ -1843,93 +1813,84 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
     if (ids.length === 0) return
-
-    const shapes = ids.map((id) => this.getShape(id, pageId))
-    shapes.sort((a, b) => a.childIndex - b.childIndex)
-
-    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
-    const padding = 16
-
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+    // Embed our custom fonts
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
     style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Source+Serif+Pro&display=swap');`
     defs.appendChild(style)
     svg.appendChild(defs)
-
+    // Get the shapes in order
+    const shapes = ids
+      .map((id) => this.getShape(id, pageId))
+      .sort((a, b) => a.childIndex - b.childIndex)
+    // Find their common bounding box. S hapes will be positioned relative to this box
+    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
+    // A quick routine to get an SVG element for each shape
     const getSvgElementForShape = (shape: TDShape) => {
       const util = TLDR.getShapeUtil(shape)
       const bounds = util.getBounds(shape)
       const elm = util.getSvgElement(shape)
-
       if (!elm) return
-
+      // If the element is an image, set the asset src as the xlinkhref
       if (shape.type === TDShapeType.Image) {
         elm.setAttribute('xlink:href', this.document.assets[shape.assetId].src)
       }
-
+      // Put the element in the correct position relative to the common bounds
       elm.setAttribute(
         'transform',
-        `translate(${padding + shape.point[0] - commonBounds.minX}, ${
-          padding + shape.point[1] - commonBounds.minY
+        `translate(${SVG_EXPORT_PADDING + shape.point[0] - commonBounds.minX}, ${
+          SVG_EXPORT_PADDING + shape.point[1] - commonBounds.minY
         }) rotate(${((shape.rotation || 0) * 180) / Math.PI}, ${bounds.width / 2}, ${
           bounds.height / 2
         })`
       )
-
       return elm
     }
-
+    // Assemble the final SVG by iterating through each shape and its children
     shapes.forEach((shape) => {
+      // The shape is a group! Just add the children.
       if (shape.children?.length) {
         // Create a group <g> elm for shape
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-        // Get the shape's children as elms
-        shape.children
-          .map((childId) => this.getShape(childId, pageId))
-          .map(getSvgElementForShape)
-          .filter(Boolean)
-          .forEach((elm) => g.appendChild(elm!))
-
+        // Get the shape's children as elms and add them to the group
+        shape.children.forEach((childId) => {
+          const shape = this.getShape(childId, pageId)
+          const elm = getSvgElementForShape(shape)
+          if (elm) g.appendChild(elm)
+        })
         // Add the group elm to the SVG
         svg.appendChild(g)
-
         return
       }
-
+      // Just add the shape's element to the
       const elm = getSvgElementForShape(shape)
-
-      console.log(elm)
-
-      if (elm) {
-        svg.appendChild(elm)
-      }
+      if (elm) svg.appendChild(elm)
     })
-
     // Resize the elm to the bounding box
     svg.setAttribute(
       'viewBox',
-      [0, 0, commonBounds.width + padding * 2, commonBounds.height + padding * 2].join(' ')
+      [
+        0,
+        0,
+        commonBounds.width + SVG_EXPORT_PADDING * 2,
+        commonBounds.height + SVG_EXPORT_PADDING * 2,
+      ].join(' ')
     )
-
     svg.setAttribute('width', String(commonBounds.width))
     svg.setAttribute('height', String(commonBounds.height))
     svg.setAttribute('fill', 'transparent')
+    // Clean up the SVG by removing any hidden elements
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
       .forEach((elm) => elm.remove())
-
-    const s = new XMLSerializer()
-
-    const svgString = s
+    // Serialize the SVG to a string
+    const svgString = new XMLSerializer()
       .serializeToString(svg)
       .replaceAll('&#10;      ', '')
       .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
-
+    // Copy the string to the clipboard
     TLDR.copyStringToClipboard(svgString)
-
     return svgString
   }
 
@@ -1942,7 +1903,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
     if (ids.length === 0) return
-
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const json = JSON.stringify(shapes, null, 2)
     TLDR.copyStringToClipboard(json)
@@ -1971,7 +1931,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       },
       reason
     )
-
     return this
   }
 
