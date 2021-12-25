@@ -43,6 +43,8 @@ describe('TldrawTestApp', () => {
       expect(Object.keys(app.page.shapes).length).toBe(1)
     })
 
+    it.todo('Copies and pastes a shape with an asset')
+
     it('Copies grouped shapes.', () => {
       const app = new TldrawTestApp()
         .loadDocument(mockDocument)
