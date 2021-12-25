@@ -24,12 +24,11 @@ export function Multiplayer() {
 
 function Editor({ roomId }: { roomId: string }) {
   const { error, ...events } = useMultiplayerState(roomId)
-
   if (error) return <div>Error: {error.message}</div>
 
   return (
     <div className="tldraw">
-      <Tldraw showPages={false} {...events} />
+      <Tldraw showPages={false} {...events} disableAssets={true} />
     </div>
   )
 }

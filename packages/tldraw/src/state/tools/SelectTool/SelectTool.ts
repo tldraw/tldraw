@@ -173,7 +173,11 @@ export class SelectTool extends BaseTool<Status> {
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
-    this.selectNone()
+    if (this.app.pageState.editingId) {
+      this.app.setEditingId()
+    } else {
+      this.selectNone()
+    }
     this.app.cancelSession()
     this.setStatus(Status.Idle)
   }
@@ -372,7 +376,7 @@ export class SelectTool extends BaseTool<Status> {
     }
   }
 
-  onPointerUp: TLPointerEventHandler = (info, e) => {
+  onPointerUp: TLPointerEventHandler = (info) => {
     if (this.status === Status.MiddleWheelPanning) {
       this.setStatus(Status.Idle)
       return

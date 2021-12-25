@@ -11,6 +11,7 @@ import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
 import { GRID_SIZE } from '~constants'
+import { Loading } from '~components/Loading'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -79,6 +80,14 @@ export interface TldrawProps extends TDCallbacks {
   darkMode?: boolean
 
   /**
+   * (optional) If provided, image/video componnets will be disabled.
+   *
+   * Warning: Keeping this enabled for multiplayer applications without provifing a storage
+   * bucket based solution will cause massive base64 string to be written to the liveblocks room.
+   */
+  disableAssets?: boolean
+
+  /**
    * (optional) A callback to run when the component mounts.
    */
   onMount?: (state: TldrawApp) => void
@@ -142,6 +151,16 @@ export interface TldrawProps extends TDCallbacks {
    */
   onRedo?: (state: TldrawApp) => void
 
+  /**
+   * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
+   */
+  onImageCreate?: (file: File, id: string) => Promise<string>
+
+  /**
+   * (optional) A callback to run when the user deletes an image or video.
+   */
+  onImageDelete?: (id: string) => void
+
   onChangePage?: (
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
@@ -153,7 +172,6 @@ export function Tldraw({
   id,
   document,
   currentPageId,
-  darkMode = false,
   autofocus = true,
   showMenu = true,
   showPages = true,
@@ -163,6 +181,7 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   showSponsorLink = false,
+  disableAssets = false,
   onMount,
   onChange,
   onChangePresence,
@@ -170,6 +189,7 @@ export function Tldraw({
   onSaveProject,
   onSaveProjectAs,
   onOpenProject,
+  onOpenMedia,
   onSignOut,
   onSignIn,
   onUndo,
@@ -178,30 +198,35 @@ export function Tldraw({
   onPatch,
   onCommand,
   onChangePage,
+  onImageCreate,
+  onImageDelete,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
   // Create a new app when the component mounts.
-  const [app, setApp] = React.useState(
-    () =>
-      new TldrawApp(id, {
-        onMount,
-        onChange,
-        onChangePresence,
-        onNewProject,
-        onSaveProject,
-        onSaveProjectAs,
-        onOpenProject,
-        onSignOut,
-        onSignIn,
-        onUndo,
-        onRedo,
-        onPersist,
-        onPatch,
-        onCommand,
-        onChangePage,
-      })
-  )
+  const [app, setApp] = React.useState(() => {
+    const app = new TldrawApp(id, {
+      onMount,
+      onChange,
+      onChangePresence,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onOpenMedia,
+      onSignOut,
+      onSignIn,
+      onUndo,
+      onRedo,
+      onPersist,
+      onPatch,
+      onCommand,
+      onChangePage,
+      onImageDelete,
+      onImageCreate,
+    })
+    return app
+  })
 
   // Create a new app if the `id` prop changes.
   React.useEffect(() => {
@@ -215,6 +240,7 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
+      onOpenMedia,
       onSignOut,
       onSignIn,
       onUndo,
@@ -223,10 +249,10 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
+      onImageDelete,
+      onImageCreate,
     })
-
     setSId(id)
-
     setApp(newApp)
   }, [sId, id])
 
@@ -234,7 +260,6 @@ export function Tldraw({
   // are the same, or else load a new document if the ids are different.
   React.useEffect(() => {
     if (!document) return
-
     if (document.id === app.document.id) {
       app.updateDocument(document)
     } else {
@@ -242,23 +267,21 @@ export function Tldraw({
     }
   }, [document, app])
 
-  // Change the page when the `currentPageId` prop changes
+  // Disable assets when the `disableAssets` prop changes.
+  React.useEffect(() => {
+    app.setDisableAssets(disableAssets)
+  }, [app, disableAssets])
+
+  // Change the page when the `currentPageId` prop changes.
   React.useEffect(() => {
     if (!currentPageId) return
     app.changePage(currentPageId)
   }, [currentPageId, app])
 
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  // Toggle the app's readOnly mode when the `readOnly` prop changes.
   React.useEffect(() => {
     app.readOnly = readOnly
   }, [app, readOnly])
-
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
-  React.useEffect(() => {
-    if (darkMode && !app.settings.isDarkMode) {
-      // app.toggleDarkMode()
-    }
-  }, [app, darkMode])
 
   // Update the app's callbacks when any callback changes.
   React.useEffect(() => {
@@ -270,6 +293,7 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
+      onOpenMedia,
       onSignOut,
       onSignIn,
       onUndo,
@@ -278,6 +302,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
+      onImageDelete,
+      onImageCreate,
     }
   }, [
     onMount,
@@ -287,6 +313,7 @@ export function Tldraw({
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
+    onOpenMedia,
     onSignOut,
     onSignIn,
     onUndo,
@@ -295,6 +322,8 @@ export function Tldraw({
     onPatch,
     onCommand,
     onChangePage,
+    onImageDelete,
+    onImageCreate,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
@@ -354,6 +383,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const page = document.pages[appState.currentPageId]
   const pageState = document.pageStates[page.id]
+  const assets = document.assets
   const { selectedIds } = pageState
 
   const isHideBoundsShape =
@@ -365,22 +395,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
     selectedIds.length === 1 &&
     page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideResizeHandles
-
-  const isInSession = app.session !== undefined
-
-  // Hide bounds when not using the select tool, or when the only selected shape has handles
-  const hideBounds =
-    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
-    !isSelecting ||
-    isHideBoundsShape ||
-    !!pageState.editingId
-
-  // Hide bounds when not using the select tool, or when in session
-  const hideHandles = isInSession || !isSelecting
-
-  // Hide indicators when not using the select tool, or when in session
-  const hideIndicators =
-    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
   // Custom rendering meta, with dark mode for shapes
   const meta = React.useMemo(() => {
@@ -414,8 +428,28 @@ const InnerTldraw = React.memo(function InnerTldraw({
     elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
   }, [])
 
+  const isInSession = app.session !== undefined
+
+  // Hide bounds when not using the select tool, or when the only selected shape has handles
+  const hideBounds =
+    (isInSession && app.session?.constructor.name !== 'BrushSession') ||
+    !isSelecting ||
+    isHideBoundsShape ||
+    !!pageState.editingId
+
+  // Hide bounds when not using the select tool, or when in session
+  const hideHandles = isInSession || !isSelecting
+
+  // Hide indicators when not using the select tool, or when in session
+  const hideIndicators =
+    (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
+
+  const hideCloneHandles =
+    isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
+      <Loading />
       <OneOff focusableRef={rWrapper} autofocus={autofocus} />
       <ContextMenu onBlur={handleMenuBlur}>
         <Renderer
@@ -424,6 +458,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           shapeUtils={shapeUtils}
           page={page}
           pageState={pageState}
+          assets={assets}
           snapLines={appState.snapLines}
           grid={GRID_SIZE}
           users={room?.users}
@@ -435,7 +470,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideResizeHandles={isHideResizeHandlesShape}
           hideIndicators={hideIndicators}
           hideBindingHandles={!settings.showBindingHandles}
-          hideCloneHandles={!settings.showCloneHandles}
+          hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
           onPinchStart={app.onPinchStart}
@@ -487,6 +522,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
           onBoundsChange={app.updateBounds}
           onKeyDown={app.onKeyDown}
           onKeyUp={app.onKeyUp}
+          onDragOver={app.onDragOver}
+          onDrop={app.onDrop}
         />
       </ContextMenu>
       {showUI && (

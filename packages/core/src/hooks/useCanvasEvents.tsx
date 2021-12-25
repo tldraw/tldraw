@@ -61,5 +61,7 @@ export function useCanvasEvents() {
     onPointerDown,
     onPointerMove,
     onPointerUp,
+    onDrop: callbacks.onDrop,
+    onDragOver: callbacks.onDragOver,
   }
 }

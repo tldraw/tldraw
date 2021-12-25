@@ -4,6 +4,32 @@
 
 import type React from 'react'
 
+export type TLAssets = Record<string, TLAsset>
+
+export enum TLAssetType {
+  Image = 'image',
+  Video = 'video',
+}
+
+export interface TLBaseAsset {
+  id: string
+  type: TLAssetType
+}
+
+export interface TLImageAsset extends TLBaseAsset {
+  type: TLAssetType.Image
+  src: string
+  size: number[]
+}
+
+export interface TLVideoAsset extends TLBaseAsset {
+  type: TLAssetType.Video
+  src: string
+  size: number[]
+}
+
+export type TLAsset = TLImageAsset | TLVideoAsset
+
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
 export type TLForwardedRef<T> =
@@ -57,6 +83,7 @@ export interface TLShape {
   childIndex: number
   name: string
   point: number[]
+  assetId?: string
   rotation?: number
   children?: string[]
   handles?: Record<string, TLHandle>
@@ -69,6 +96,7 @@ export interface TLShape {
 
 export interface TLComponentProps<T extends TLShape, E = any, M = any> {
   shape: T
+  asset?: TLAsset
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
@@ -116,6 +144,8 @@ export type TLWheelEventHandler = (
   info: TLPointerInfo<string>,
   e: React.WheelEvent<Element> | WheelEvent
 ) => void
+
+export type TLDropEventHandler = (e: React.DragEvent<Element>) => void
 
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
@@ -176,6 +206,8 @@ export interface TLCallbacks<T extends TLShape> {
   onRightPointCanvas: TLCanvasEventHandler
   onDragCanvas: TLCanvasEventHandler
   onReleaseCanvas: TLCanvasEventHandler
+  onDragOver: TLDropEventHandler
+  onDrop: TLDropEventHandler
 
   // Shape
   onPointShape: TLPointerEventHandler
@@ -314,6 +346,7 @@ export type Snap =
 
 export interface IShapeTreeNode<T extends TLShape, M = any> {
   shape: T
+  asset?: TLAsset
   children?: IShapeTreeNode<TLShape, M>[]
   isGhost: boolean
   isChildOfSelected: boolean

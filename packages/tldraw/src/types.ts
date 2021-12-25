@@ -19,6 +19,7 @@ import type {
   TLBoundsHandleEventHandler,
   TLShapeBlurHandler,
   TLShapeCloneHandler,
+  TLAssets,
 } from '@tldraw/core'
 
 /* -------------------------------------------------- */
@@ -102,6 +103,8 @@ export interface TDSnapshot {
     isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
+    isLoading: boolean
+    disableAssets: boolean
   }
   document: TDDocument
   room?: {
@@ -130,6 +133,7 @@ export interface TDDocument {
   version: number
   pages: Record<string, TDPage>
   pageStates: Record<string, TLPageState>
+  assets: TLAssets
 }
 
 // The shape of a single page in the Tldraw document
@@ -277,6 +281,8 @@ export enum TDShapeType {
   Line = 'line',
   Text = 'text',
   Group = 'group',
+  Image = 'image',
+  Video = 'video',
 }
 
 export enum Decoration {
@@ -338,6 +344,20 @@ export interface RectangleShape extends TDBaseShape {
   size: number[]
 }
 
+export interface ImageShape extends TDBaseShape {
+  type: TDShapeType.Image
+  size: number[]
+  assetId: string
+}
+
+export interface VideoShape extends TDBaseShape {
+  type: TDShapeType.Video
+  size: number[]
+  assetId: string
+  isPlaying: boolean
+  currentTime: number
+}
+
 // The shape created by the Triangle tool
 export interface TriangleShape extends TDBaseShape {
   type: TDShapeType.Triangle
@@ -374,6 +394,8 @@ export type TDShape =
   | TextShape
   | GroupShape
   | StickyShape
+  | ImageShape
+  | VideoShape
 
 /* ------------------ Shape Styles ------------------ */
 

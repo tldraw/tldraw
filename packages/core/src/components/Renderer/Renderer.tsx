@@ -11,6 +11,7 @@ import type {
   TLBinding,
   TLSnapLine,
   TLUsers,
+  TLAssets,
 } from '../../types'
 import { Canvas } from '../Canvas'
 import { Inputs } from '../../inputs'
@@ -30,6 +31,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    * The current page state.
    */
   pageState: TLPageState
+  /**
+   * A map of assets to be used in the renderer.
+   */
+  assets: TLAssets
   /**
    * (optional) A unique id to be applied to the renderer element, used to scope styles.
    */
@@ -121,6 +126,7 @@ export const Renderer = observer(function _Renderer<
   shapeUtils,
   page,
   pageState,
+  assets,
   users,
   userId,
   theme,
@@ -177,6 +183,7 @@ export const Renderer = observer(function _Renderer<
         id={id}
         page={page}
         pageState={pageState}
+        assets={assets}
         snapLines={snapLines}
         grid={grid}
         users={users}

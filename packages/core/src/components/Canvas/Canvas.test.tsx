@@ -19,6 +19,7 @@ describe('page', () => {
         onBoundsChange={() => {
           // noop
         }}
+        assets={{}}
       />
     )
   })

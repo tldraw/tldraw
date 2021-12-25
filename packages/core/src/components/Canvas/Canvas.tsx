@@ -9,7 +9,16 @@ import {
   useCameraCss,
   useKeyEvents,
 } from '~hooks'
-import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape, TLSnapLine, TLUsers } from '~types'
+import type {
+  TLAssets,
+  TLBinding,
+  TLBounds,
+  TLPage,
+  TLPageState,
+  TLShape,
+  TLSnapLine,
+  TLUsers,
+} from '~types'
 import { Brush } from '~components/Brush'
 import { Page } from '~components/Page'
 import { Users } from '~components/Users'
@@ -20,13 +29,10 @@ import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
 
-function resetError() {
-  void null
-}
-
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
+  assets: TLAssets
   snapLines?: TLSnapLine[]
   grid?: number
   users?: TLUsers<T>
@@ -52,6 +58,7 @@ export const Canvas = observer(function _Canvas<
   id,
   page,
   pageState,
+  assets,
   snapLines,
   grid,
   users,
@@ -96,6 +103,7 @@ export const Canvas = observer(function _Canvas<
           <Page
             page={page}
             pageState={pageState}
+            assets={assets}
             hideBounds={hideBounds}
             hideIndicators={hideIndicators}
             hideHandles={hideHandles}

@@ -27,26 +27,27 @@ export const CloneButton = observer<CloneButtonProps>(function CloneButton({
   targetSize,
   size,
 }: CloneButtonProps) {
+  const s = targetSize * 2
   const x = {
-    left: -44,
-    topLeft: -44,
-    bottomLeft: -44,
-    right: bounds.width + 44,
-    topRight: bounds.width + 44,
-    bottomRight: bounds.width + 44,
-    top: bounds.width / 2,
-    bottom: bounds.width / 2,
+    left: -s,
+    topLeft: -s,
+    bottomLeft: -s,
+    right: bounds.width,
+    topRight: bounds.width,
+    bottomRight: bounds.width,
+    top: bounds.width / 2 - s / 2,
+    bottom: bounds.width / 2 - s / 2,
   }[side]
 
   const y = {
-    left: bounds.height / 2,
-    right: bounds.height / 2,
-    top: -44,
-    topLeft: -44,
-    topRight: -44,
-    bottom: bounds.height + 44,
-    bottomLeft: bounds.height + 44,
-    bottomRight: bounds.height + 44,
+    left: bounds.height / 2 - s / 2,
+    right: bounds.height / 2 - s / 2,
+    top: -s * 2,
+    topLeft: -s,
+    topRight: -s,
+    bottom: bounds.height,
+    bottomLeft: bounds.height,
+    bottomRight: bounds.height,
   }[side]
 
   const { callbacks, inputs } = useTLContext()
@@ -62,17 +63,11 @@ export const CloneButton = observer<CloneButtonProps>(function CloneButton({
 
   return (
     <g className="tl-clone-target" transform={`translate(${x}, ${y})`} aria-label="clone button">
-      <rect
-        className="tl-transparent"
-        width={targetSize * 4}
-        height={targetSize * 4}
-        x={-targetSize * 2}
-        y={-targetSize * 2}
-      />
+      <rect className="tl-transparent" width={targetSize * 2} height={targetSize * 2} />
       <g
         className="tl-clone-button-target"
         onPointerDown={handleClick}
-        transform={`rotate(${ROTATIONS[side]})`}
+        transform={`translate(${targetSize}, ${targetSize}) rotate(${ROTATIONS[side]})`}
       >
         <circle className="tl-transparent " r={targetSize} />
         <path

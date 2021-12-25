@@ -4,6 +4,23 @@ import { Decoration, FontStyle, TDDocument, TDShapeType, TextShape } from '~type
 export function migrate(document: TDDocument, newVersion: number): TDDocument {
   const { version = 0 } = document
 
+  // Remove unused assets when loading a document
+  if ('assets' in document) {
+    const assetIdsInUse = new Set<string>()
+
+    Object.values(document.pages).forEach((page) =>
+      Object.values(page.shapes).forEach((shape) => {
+        if (shape.assetId) assetIdsInUse.add(shape.assetId)
+      })
+    )
+
+    Object.keys(document.assets).forEach((assetId) => {
+      if (!assetIdsInUse.has(assetId)) {
+        delete document.assets[assetId]
+      }
+    })
+  }
+
   if (version === newVersion) return document
 
   if (version < 14) {
@@ -49,6 +66,10 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
   // Add document name and file system handle
   if (version <= 13.1) {
     document.name = 'New Document'
+  }
+
+  if (version < 15) {
+    document.assets = {}
   }
 
   // Cleanup

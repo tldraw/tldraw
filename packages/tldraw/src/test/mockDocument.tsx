@@ -64,4 +64,5 @@ export const mockDocument: TDDocument = {
       },
     },
   },
+  assets: {},
 }

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const GRID_SIZE = 8
+export const SVG_EXPORT_PADDING = 16
 export const BINDING_DISTANCE = 16
 export const CLONING_DISTANCE = 32
 export const FIT_TO_SCREEN_PADDING = 128
@@ -79,3 +80,8 @@ export const USER_COLORS = [
   '#55B467',
   '#FF802B',
 ]
+
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
+export const IMAGE_EXTENSIONS = ['.png', '.svg', '.jpg', '.jpeg', '.gif']
+export const VIDEO_EXTENSIONS = isSafari ? [] : ['.mp4', '.webm']

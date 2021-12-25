@@ -42,10 +42,15 @@ export function useFileSystem() {
     [promptSaveBeforeChange]
   )
 
+  const onOpenMedia = React.useCallback(async (app: TldrawApp) => {
+    app.openAsset?.()
+  }, [])
+
   return {
     onNewProject,
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
+    onOpenMedia,
   }
 }

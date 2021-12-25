@@ -7,7 +7,9 @@ import { GroupUtil } from './GroupUtil'
 import { StickyUtil } from './StickyUtil'
 import { TextUtil } from './TextUtil'
 import { DrawUtil } from './DrawUtil'
+import { ImageUtil } from './ImageUtil'
 import { TDShape, TDShapeType } from '~types'
+import { VideoUtil } from './VideoUtil'
 
 export const Rectangle = new RectangleUtil()
 export const Triangle = new TriangleUtil()
@@ -17,6 +19,8 @@ export const Arrow = new ArrowUtil()
 export const Text = new TextUtil()
 export const Group = new GroupUtil()
 export const Sticky = new StickyUtil()
+export const Image = new ImageUtil()
+export const Video = new VideoUtil()
 
 export const shapeUtils = {
   [TDShapeType.Rectangle]: Rectangle,
@@ -27,6 +31,8 @@ export const shapeUtils = {
   [TDShapeType.Text]: Text,
   [TDShapeType.Group]: Group,
   [TDShapeType.Sticky]: Sticky,
+  [TDShapeType.Image]: Image,
+  [TDShapeType.Video]: Video,
 }
 
 export const getShapeUtil = <T extends TDShape>(shape: T | T['type']) => {

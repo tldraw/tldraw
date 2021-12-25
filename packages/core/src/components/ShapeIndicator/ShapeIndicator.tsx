@@ -8,12 +8,14 @@ interface IndicatorProps<T extends TLShape, M = unknown> {
   meta: M extends unknown ? M : undefined
   isSelected?: boolean
   isHovered?: boolean
+  isEditing?: boolean
   user?: TLUser<T>
 }
 
 export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape, M>({
   isHovered = false,
   isSelected = false,
+  isEditing = false,
   shape,
   user,
   meta,
@@ -26,9 +28,12 @@ export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape
   return (
     <div
       ref={rPositioned}
-      className={
-        'tl-indicator tl-absolute ' + (user ? '' : isSelected ? 'tl-selected' : 'tl-hovered')
-      }
+      className={[
+        'tl-indicator',
+        'tl-absolute',
+        isSelected && !user ? 'tl-selected' : 'tl-hovered',
+        isEditing ? 'tl-editing' : '',
+      ].join(' ')}
     >
       <svg width="100%" height="100%">
         <g className="tl-centered-g" stroke={user?.color}>

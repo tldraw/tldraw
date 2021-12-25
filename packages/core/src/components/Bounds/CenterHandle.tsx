@@ -15,7 +15,7 @@ export const CenterHandle = observer<CenterHandleProps>(function CenterHandle({
 }): JSX.Element {
   return (
     <rect
-      className={isLocked ? 'tl-bounds-center tl-dashed' : 'tl-bounds-center'}
+      className={['tl-bounds-center', isLocked ? 'tl-dashed' : ''].join(' ')}
       x={-1}
       y={-1}
       width={bounds.width + 2}
