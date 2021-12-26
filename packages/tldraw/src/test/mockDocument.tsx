@@ -21,6 +21,7 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          text: '',
         },
         rect2: {
           id: 'rect2',
@@ -35,6 +36,7 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          text: '',
         },
         rect3: {
           id: 'rect3',
@@ -49,6 +51,7 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          text: '',
         },
       },
       bindings: {},

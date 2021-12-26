@@ -10,8 +10,11 @@ import {
   getShapeStyle,
   getBoundsRectangle,
   transformRectangle,
+  getFontStyle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
+import { styled } from '~styles'
+import { TextLabel } from '../shared/TextLabel'
 
 type T = RectangleShape
 type E = SVGSVGElement
@@ -22,6 +25,8 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   canBind = true
 
   canClone = true
+
+  canEdit = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -35,53 +40,90 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
+        text: '',
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isBinding, isSelected, isGhost, meta, events }, ref) => {
-      const { id, size, style } = shape
+    (
+      {
+        shape,
+        isEditing,
+        isBinding,
+        isSelected,
+        isGhost,
+        meta,
+        events,
+        onShapeBlur,
+        onShapeChange,
+      },
+      ref
+    ) => {
+      const { id, size, style, text } = shape
 
       const styles = getShapeStyle(style, meta.isDarkMode)
 
       const { strokeWidth } = styles
+
+      const handleTextChange = React.useCallback(
+        (text: string) => {
+          onShapeChange?.({ id, text })
+        },
+        [onShapeChange]
+      )
+
+      const handleBlur = React.useCallback(() => {
+        onShapeBlur?.()
+      }, [onShapeBlur])
+
+      const font = getFontStyle(shape.style)
 
       if (style.dash === DashStyle.Draw) {
         const pathTDSnapshot = getRectanglePath(shape)
         const indicatorPath = getRectangleIndicatorPathTDSnapshot(shape)
 
         return (
-          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-            {isBinding && (
-              <rect
-                className="tl-binding-indicator"
-                x={strokeWidth}
-                y={strokeWidth}
-                width={Math.max(0, size[0] - strokeWidth / 2)}
-                height={Math.max(0, size[1] - strokeWidth / 2)}
-                strokeWidth={this.bindingDistance * 2}
+          <Wrapper>
+            <TextLabel
+              isEditing={isEditing}
+              onChange={handleTextChange}
+              onBlur={handleBlur}
+              text={text}
+              color={styles.stroke}
+              font={font}
+            />
+            <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+              {isBinding && (
+                <rect
+                  className="tl-binding-indicator"
+                  x={strokeWidth}
+                  y={strokeWidth}
+                  width={Math.max(0, size[0] - strokeWidth / 2)}
+                  height={Math.max(0, size[1] - strokeWidth / 2)}
+                  strokeWidth={this.bindingDistance * 2}
+                />
+              )}
+              <path
+                className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+                d={indicatorPath}
               />
-            )}
-            <path
-              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-              d={indicatorPath}
-            />
-            <path
-              d={indicatorPath}
-              fill={style.isFilled ? styles.fill : 'none'}
-              pointerEvents="none"
-            />
-            <path
-              d={pathTDSnapshot}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              pointerEvents="none"
-              opacity={isGhost ? GHOSTED_OPACITY : 1}
-            />
-          </SVGContainer>
+              <path
+                d={indicatorPath}
+                fill={style.isFilled ? styles.fill : 'none'}
+                pointerEvents="none"
+              />
+              <path
+                d={pathTDSnapshot}
+                fill={styles.stroke}
+                stroke={styles.stroke}
+                strokeWidth={styles.strokeWidth}
+                pointerEvents="none"
+                opacity={isGhost ? GHOSTED_OPACITY : 1}
+              />
+            </SVGContainer>
+          </Wrapper>
         )
       }
 
@@ -118,41 +160,43 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
       })
 
       return (
-        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
-            {isBinding && (
+        <Wrapper>
+          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+            <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+              {isBinding && (
+                <rect
+                  className="tl-binding-indicator"
+                  x={0}
+                  y={0}
+                  width={size[0]}
+                  height={size[1]}
+                  strokeWidth={this.bindingDistance}
+                />
+              )}
               <rect
-                className="tl-binding-indicator"
-                x={0}
-                y={0}
-                width={size[0]}
-                height={size[1]}
-                strokeWidth={this.bindingDistance}
-              />
-            )}
-            <rect
-              className={isSelected || style.isFilled ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-              x={sw / 2}
-              y={sw / 2}
-              width={w}
-              height={h}
-              strokeWidth={this.bindingDistance}
-            />
-            {style.isFilled && (
-              <rect
+                className={isSelected || style.isFilled ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
                 x={sw / 2}
                 y={sw / 2}
                 width={w}
                 height={h}
-                fill={styles.fill}
-                pointerEvents="none"
+                strokeWidth={this.bindingDistance}
               />
-            )}
-            <g pointerEvents="none" stroke={styles.stroke} strokeWidth={sw} strokeLinecap="round">
-              {paths}
+              {style.isFilled && (
+                <rect
+                  x={sw / 2}
+                  y={sw / 2}
+                  width={w}
+                  height={h}
+                  fill={styles.fill}
+                  pointerEvents="none"
+                />
+              )}
+              <g pointerEvents="none" stroke={styles.stroke} strokeWidth={sw} strokeLinecap="round">
+                {paths}
+              </g>
             </g>
-          </g>
-        </SVGContainer>
+          </SVGContainer>
+        </Wrapper>
       )
     }
   )
@@ -187,7 +231,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style
+    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
   }
 
   transform = transformRectangle
@@ -294,3 +338,8 @@ function getRectangleIndicatorPathTDSnapshot(shape: RectangleShape) {
     false
   )
 }
+
+const Wrapper = styled('div', {
+  width: '100%',
+  height: '100%',
+})

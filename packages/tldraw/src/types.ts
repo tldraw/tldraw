@@ -342,6 +342,7 @@ export interface EllipseShape extends TDBaseShape {
 export interface RectangleShape extends TDBaseShape {
   type: TDShapeType.Rectangle
   size: number[]
+  text: string
 }
 
 export interface ImageShape extends TDBaseShape {

@@ -48,11 +48,11 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
-      const rInput = React.useRef<HTMLTextAreaElement>(null)
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
 
+      const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
       const handleChange = React.useCallback(
@@ -209,7 +209,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
                     color: styles.stroke,
                   }}
                   name="text"
-                  defaultValue={text}
                   tabIndex={-1}
                   autoComplete="false"
                   autoCapitalize="false"
@@ -217,16 +216,17 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   autoSave="false"
                   autoFocus
                   placeholder=""
+                  spellCheck="true"
+                  wrap="off"
+                  dir="auto"
+                  datatype="wysiwyg"
+                  defaultValue={text}
                   color={styles.stroke}
                   onFocus={handleFocus}
                   onChange={handleChange}
                   onKeyDown={handleKeyDown}
                   onBlur={handleBlur}
                   onPointerDown={handlePointerDown}
-                  spellCheck="true"
-                  wrap="off"
-                  dir="auto"
-                  datatype="wysiwyg"
                   onContextMenu={stopPropagation}
                 />
               ) : (

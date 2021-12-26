@@ -20,7 +20,8 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"text\\": \\"\\"
   },
   {
     \\"id\\": \\"rect2\\",
@@ -40,7 +41,8 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"text\\": \\"\\"
   },
   {
     \\"id\\": \\"rect3\\",
@@ -60,7 +62,8 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"text\\": \\"\\"
   }
 ]"
 `;
@@ -102,6 +105,7 @@ Array [
                   "scale": 1,
                   "size": "small",
                 },
+                "text": "",
                 "type": "rectangle",
               },
             },
@@ -163,6 +167,7 @@ Array [
                   "scale": 1,
                   "size": "small",
                 },
+                "text": "",
                 "type": "rectangle",
               },
             },
