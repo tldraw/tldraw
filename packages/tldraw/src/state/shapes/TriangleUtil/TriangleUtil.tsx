@@ -4,7 +4,6 @@ import { TriangleShape, TDShapeType, TDMeta, TDShape, DashStyle } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   defaultStyle,
-  getShapeStyle,
   getBoundsRectangle,
   transformRectangle,
   transformSingleRectangle,
@@ -80,6 +79,12 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         [onShapeChange]
       )
 
+      const offsetY = React.useMemo(() => {
+        const center = Vec.div(size, 2)
+        const centroid = getTriangleCentroid(size)
+        return (centroid[1] - center[1]) * 0.72
+      }, [size])
+
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -89,6 +94,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
             isDarkMode={meta.isDarkMode}
             font={font}
             text={text}
+            offsetY={offsetY}
           />
           <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && <TriangleBindingIndicator size={size} />}

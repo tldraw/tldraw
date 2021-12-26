@@ -198,7 +198,6 @@ const tlcss = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     contain: layout style size;
   }
 

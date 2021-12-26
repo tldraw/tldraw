@@ -12,6 +12,9 @@ export interface TextLabelProps {
   isDarkMode: boolean
   onBlur?: () => void
   onChange: (text: string) => void
+  offsetY?: number
+  offsetX?: number
+  scale?: number
   isEditing?: boolean
 }
 
@@ -19,6 +22,9 @@ export const TextLabel = React.memo(function TextLabel({
   isDarkMode,
   font,
   text,
+  offsetX = 0,
+  offsetY = 0,
+  scale = 1,
   isEditing = false,
   onBlur,
   onChange,
@@ -127,9 +133,10 @@ export const TextLabel = React.memo(function TextLabel({
   React.useLayoutEffect(() => {
     const elm = rInnerWrapper.current
     if (!elm) return
+    elm.style.transform = `scale(${scale}, ${scale}) translate(${offsetX}px, ${offsetY}px)`
     elm.style.width = size[0] + 'px'
     elm.style.height = size[1] + 'px'
-  }, [size])
+  }, [size, offsetY, offsetX, scale])
 
   return (
     <TextWrapper>

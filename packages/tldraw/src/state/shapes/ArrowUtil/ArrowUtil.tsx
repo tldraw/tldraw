@@ -37,14 +37,19 @@ import {
   renderFreehandArrowShaft,
 } from './arrowHelpers'
 import { getTrianglePoints } from '../TriangleUtil/triangleHelpers'
+import { styled } from '~styles'
+import { TextLabel, getFontStyle } from '../shared'
+import { getTextLabelSize } from '../shared/getTextSize'
 
 type T = ArrowShape
-type E = SVGSVGElement
+type E = HTMLDivElement
 
 export class ArrowUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Arrow as const
 
   hideBounds = true
+
+  canEdit = true
 
   pathCache = new WeakMap<T, string>()
 
@@ -88,176 +93,242 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         isFilled: false,
         ...props.style,
       },
+      text: '',
       ...props,
     }
   }
 
-  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, isGhost, meta, events }, ref) => {
-    const {
-      handles: { start, bend, end },
-      decorations = {},
-      style,
-    } = shape
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, isEditing, isGhost, meta, events, onShapeChange, onShapeBlur }, ref) => {
+      const {
+        id,
+        text,
+        handles: { start, bend, end },
+        decorations = {},
+        style,
+      } = shape
 
-    const isDraw = style.dash === DashStyle.Draw
+      const isDraw = style.dash === DashStyle.Draw
 
-    const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
+      const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
 
-    const styles = getShapeStyle(style, meta.isDarkMode)
+      const styles = getShapeStyle(style, meta.isDarkMode)
 
-    const { strokeWidth } = styles
+      const { strokeWidth } = styles
 
-    const arrowDist = Vec.dist(start.point, end.point)
+      const arrowDist = Vec.dist(start.point, end.point)
 
-    const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
+      const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
 
-    const sw = 1 + strokeWidth * 1.618
+      const sw = 1 + strokeWidth * 1.618
 
-    let shaftPath: JSX.Element | null
-    let startArrowHead: { left: number[]; right: number[] } | undefined
-    let endArrowHead: { left: number[]; right: number[] } | undefined
+      let shaftPath: JSX.Element | null
+      let startArrowHead: { left: number[]; right: number[] } | undefined
+      let endArrowHead: { left: number[]; right: number[] } | undefined
 
-    const getRandom = Utils.rng(shape.id)
+      const getRandom = Utils.rng(shape.id)
 
-    const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
+      const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
 
-    if (isStraightLine) {
-      const path = isDraw
-        ? renderFreehandArrowShaft(shape)
-        : 'M' + Vec.toFixed(start.point) + 'L' + Vec.toFixed(end.point)
+      if (isStraightLine) {
+        const path = isDraw
+          ? renderFreehandArrowShaft(shape)
+          : 'M' + Vec.toFixed(start.point) + 'L' + Vec.toFixed(end.point)
 
-      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-        arrowDist,
-        strokeWidth * 1.618,
-        shape.style.dash,
-        2,
-        false
-      )
+        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
+          arrowDist,
+          strokeWidth * 1.618,
+          shape.style.dash,
+          2,
+          false
+        )
 
-      if (decorations.start) {
-        startArrowHead = getStraightArrowHeadPoints(start.point, end.point, arrowHeadLength)
-      }
+        if (decorations.start) {
+          startArrowHead = getStraightArrowHeadPoints(start.point, end.point, arrowHeadLength)
+        }
 
-      if (decorations.end) {
-        endArrowHead = getStraightArrowHeadPoints(end.point, start.point, arrowHeadLength)
-      }
+        if (decorations.end) {
+          endArrowHead = getStraightArrowHeadPoints(end.point, start.point, arrowHeadLength)
+        }
 
-      // Straight arrow path
-      shaftPath =
-        arrowDist > 2 ? (
+        // Straight arrow path
+        shaftPath =
+          arrowDist > 2 ? (
+            <>
+              <path className="tl-stroke-hitarea" d={path} />
+              <path
+                d={path}
+                fill={styles.stroke}
+                stroke={styles.stroke}
+                strokeWidth={isDraw ? sw / 2 : sw}
+                strokeDasharray={strokeDasharray}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                pointerEvents="stroke"
+              />
+            </>
+          ) : null
+      } else {
+        const circle = getCtp(shape)
+
+        const { center, radius, length } = getArrowArc(shape)
+
+        const path = isDraw
+          ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
+          : getArrowArcPath(start, end, circle, shape.bend)
+
+        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
+          Math.abs(length),
+          sw,
+          shape.style.dash,
+          2,
+          false
+        )
+
+        if (decorations.start) {
+          startArrowHead = getCurvedArrowHeadPoints(
+            start.point,
+            arrowHeadLength,
+            center,
+            radius,
+            length < 0
+          )
+        }
+
+        if (decorations.end) {
+          endArrowHead = getCurvedArrowHeadPoints(
+            end.point,
+            arrowHeadLength,
+            center,
+            radius,
+            length >= 0
+          )
+        }
+
+        // Curved arrow path
+        shaftPath = (
           <>
             <path className="tl-stroke-hitarea" d={path} />
             <path
               d={path}
-              fill={styles.stroke}
+              fill={isDraw ? styles.stroke : 'none'}
               stroke={styles.stroke}
-              strokeWidth={isDraw ? sw / 2 : sw}
+              strokeWidth={isDraw ? 0 : sw}
               strokeDasharray={strokeDasharray}
               strokeDashoffset={strokeDashoffset}
               strokeLinecap="round"
               strokeLinejoin="round"
-              pointerEvents="stroke"
+              pointerEvents="none"
             />
           </>
-        ) : null
-    } else {
-      const circle = getCtp(shape)
+        )
+      }
 
-      const { center, radius, length } = getArrowArc(shape)
+      const font = getFontStyle(style)
 
-      const path = isDraw
-        ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
-        : getArrowArcPath(start, end, circle, shape.bend)
-
-      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-        Math.abs(length),
-        sw,
-        shape.style.dash,
-        2,
-        false
+      const handleTextChange = React.useCallback(
+        (text: string) => {
+          onShapeChange?.({ id, text })
+        },
+        [onShapeChange]
       )
 
-      if (decorations.start) {
-        startArrowHead = getCurvedArrowHeadPoints(
-          start.point,
-          arrowHeadLength,
-          center,
-          radius,
-          length < 0
-        )
-      }
+      const labelSize = text || isEditing ? getTextLabelSize(text, font) : [0, 0]
+      const bounds = this.getBounds(shape)
+      const dist = Vec.dist(shape.handles.start.point, shape.handles.end.point)
+      const scale = Math.max(
+        0.5,
+        Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
+      )
 
-      if (decorations.end) {
-        endArrowHead = getCurvedArrowHeadPoints(
-          end.point,
-          arrowHeadLength,
-          center,
-          radius,
-          length >= 0
-        )
-      }
+      const offset = React.useMemo(() => {
+        const bounds = this.getBounds(shape)
+        const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
+        return offset
+      }, [shape, scale])
 
-      // Curved arrow path
-      shaftPath = (
-        <>
-          <path className="tl-stroke-hitarea" d={path} />
-          <path
-            d={path}
-            fill={isDraw ? styles.stroke : 'none'}
-            stroke={styles.stroke}
-            strokeWidth={isDraw ? 0 : sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            pointerEvents="none"
+      return (
+        <FullWrapper ref={ref} {...events}>
+          <TextLabel
+            isEditing={isEditing}
+            onChange={handleTextChange}
+            onBlur={onShapeBlur}
+            isDarkMode={meta.isDarkMode}
+            font={font}
+            text={text}
+            offsetX={offset[0]}
+            offsetY={offset[1]}
+            scale={scale}
           />
-        </>
+          <SVGContainer id={shape.id + '_svg'}>
+            <defs>
+              <mask id={shape.id + '_clip'}>
+                <rect
+                  x={-100}
+                  y={-100}
+                  width={bounds.width + 200}
+                  height={bounds.height + 200}
+                  fill="white"
+                />
+                <rect
+                  x={bounds.width / 2 - (labelSize[0] / 2 + offset[0]) * scale}
+                  y={bounds.height / 2 - (labelSize[1] / 2 + offset[1]) * scale}
+                  width={labelSize[0] * scale}
+                  height={labelSize[1] * scale}
+                  rx={4 * scale}
+                  ry={4 * scale}
+                  fill="black"
+                  opacity={Math.max(scale, 0.8)}
+                />
+              </mask>
+            </defs>
+            <g
+              pointerEvents="none"
+              opacity={isGhost ? GHOSTED_OPACITY : 1}
+              mask={text || isEditing ? `url(#${shape.id}_clip)` : ``}
+            >
+              {shaftPath}
+              {startArrowHead && (
+                <>
+                  <path
+                    className="tl-stroke-hitarea"
+                    d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+                  />
+                  <path
+                    d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
+                    fill="none"
+                    stroke={styles.stroke}
+                    strokeWidth={sw}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+              {endArrowHead && (
+                <>
+                  <path
+                    className="tl-stroke-hitarea"
+                    d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+                  />
+                  <path
+                    d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
+                    fill="none"
+                    stroke={styles.stroke}
+                    strokeWidth={sw}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    pointerEvents="none"
+                  />
+                </>
+              )}
+            </g>
+          </SVGContainer>
+        </FullWrapper>
       )
     }
-
-    return (
-      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-        <g pointerEvents="none" opacity={isGhost ? GHOSTED_OPACITY : 1}>
-          {shaftPath}
-          {startArrowHead && (
-            <>
-              <path
-                className="tl-stroke-hitarea"
-                d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-              />
-              <path
-                d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-                fill="none"
-                stroke={styles.stroke}
-                strokeWidth={sw}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                pointerEvents="none"
-              />
-            </>
-          )}
-          {endArrowHead && (
-            <>
-              <path
-                className="tl-stroke-hitarea"
-                d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-              />
-              <path
-                d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-                fill="none"
-                stroke={styles.stroke}
-                strokeWidth={sw}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                pointerEvents="none"
-              />
-            </>
-          )}
-        </g>
-      </SVGContainer>
-    )
-  })
+  )
 
   Indicator = TDShapeUtil.Indicator<ArrowShape>(({ shape }) => {
     return <path d={getArrowPath(shape)} />
@@ -294,7 +365,8 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return (
       next.decorations !== prev.decorations ||
       next.handles !== prev.handles ||
-      next.style !== prev.style
+      next.style !== prev.style ||
+      next.text !== prev.text
     )
   }
 
@@ -611,3 +683,5 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return nextShape
   }
 }
+
+const FullWrapper = styled('div', { width: '100%', height: '100%' })

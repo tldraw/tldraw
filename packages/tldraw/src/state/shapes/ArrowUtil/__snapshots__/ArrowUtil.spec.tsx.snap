@@ -50,6 +50,7 @@ Object {
     "scale": 1,
     "size": "small",
   },
+  "text": "",
   "type": "arrow",
 }
 `;

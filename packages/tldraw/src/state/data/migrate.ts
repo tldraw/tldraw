@@ -72,6 +72,21 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     document.assets = {}
   }
 
+  if (version < 15.1) {
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.shapes).forEach((shape) => {
+        if (
+          shape.type === TDShapeType.Rectangle ||
+          shape.type === TDShapeType.Triangle ||
+          shape.type === TDShapeType.Ellipse ||
+          shape.type === TDShapeType.Arrow
+        ) {
+          shape.text = ''
+        }
+      })
+    })
+  }
+
   // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {
     pageState.selectedIds = pageState.selectedIds.filter((id) => {

@@ -182,37 +182,47 @@ export class SelectTool extends BaseTool<Status> {
     this.setStatus(Status.Idle)
   }
 
-  onKeyDown: TLKeyboardEventHandler = (key) => {
-    if (key === 'Escape') {
-      this.onCancel()
-      return
-    }
+  onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
+    switch (key) {
+      case 'Escape': {
+        this.onCancel()
+        break
+      }
+      case ' ': {
+        if (this.status === Status.Idle) {
+          this.setStatus(Status.SpacePanning)
+        }
+        break
+      }
+      case 'Tab': {
+        if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
+          const [selectedId] = this.app.selectedIds
+          const clonedShape = this.getShapeClone(selectedId, 'right')
 
-    if (key === ' ' && this.status === Status.Idle) {
-      this.setStatus(Status.SpacePanning)
-    }
-
-    if (key === 'Tab') {
-      if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
-        const [selectedId] = this.app.selectedIds
-        const clonedShape = this.getShapeClone(selectedId, 'right')
-
-        if (clonedShape) {
-          this.app.createShapes(clonedShape)
-          this.setStatus(Status.Idle)
-          if (clonedShape.type === TDShapeType.Sticky) {
-            this.app.select(clonedShape.id)
-            this.app.setEditingId(clonedShape.id)
+          if (clonedShape) {
+            this.app.createShapes(clonedShape)
+            this.setStatus(Status.Idle)
+            if (clonedShape.type === TDShapeType.Sticky) {
+              this.app.select(clonedShape.id)
+              this.app.setEditingId(clonedShape.id)
+            }
           }
         }
+        break
       }
-
-      return
-    }
-
-    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
-      this.app.updateSession()
-      return
+      case 'Meta':
+      case 'Control':
+      case 'Alt': {
+        this.app.updateSession()
+        break
+      }
+      case 'Enter': {
+        const { pageState } = this.app
+        if (pageState.selectedIds.length === 1 && !pageState.editingId) {
+          this.app.setEditingId(pageState.selectedIds[0])
+          e.preventDefault()
+        }
+      }
     }
   }
 

@@ -38,6 +38,10 @@ if (typeof window !== 'undefined') {
   melm = getMeasurementDiv()
 }
 
+let prevText = ''
+let prevFont = ''
+let prevSize = [0, 0]
+
 export function getTextLabelSize(text: string, font: string) {
   if (!text) {
     return [16, 32]
@@ -48,6 +52,13 @@ export function getTextLabelSize(text: string, font: string) {
     return [10, 10]
   }
 
+  if (text === prevText && font === prevFont) {
+    return prevSize
+  }
+
+  prevText = text
+  prevFont = font
+
   melm.innerHTML = `${text}&zwj;`
   melm.style.font = font
 
@@ -55,5 +66,6 @@ export function getTextLabelSize(text: string, font: string) {
   const width = melm.offsetWidth || 1
   const height = melm.offsetHeight || 1
 
-  return [width, height]
+  prevSize = [width, height]
+  return prevSize
 }

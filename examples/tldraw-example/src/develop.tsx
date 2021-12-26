@@ -12,8 +12,6 @@ export default function Develop(): JSX.Element {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
     rTldrawApp.current = app
-    app.toggleDarkMode()
-    app.selectNone()
     // app.reset()
     // app.createShapes({
     //   id: 'box1',

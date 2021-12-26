@@ -322,6 +322,7 @@ export interface ArrowShape extends TDBaseShape {
     end?: Decoration
     middle?: Decoration
   }
+  text: string
 }
 
 export interface ArrowBinding extends TLBinding {

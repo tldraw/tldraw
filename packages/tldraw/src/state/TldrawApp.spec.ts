@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
+import { ArrowShape, ColorStyle, RectangleShape, SessionType, TDShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TldrawTestApp', () => {
@@ -662,6 +662,7 @@ describe('TldrawTestApp', () => {
         setTimeout(() => {
           try {
             expect(app2.getShape('rect1')).toBeTruthy()
+            expect(app2.getShape<RectangleShape>('rect1').text).toBe('')
             done()
           } catch (e) {
             done(e)
