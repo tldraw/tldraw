@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
+import { defaultStyle } from '../shared/shape-styles'
 import {
   ArrowShape,
   TransformInfo,
@@ -22,24 +22,21 @@ import {
   intersectRayEllipse,
   intersectRayLineSegment,
 } from '@tldraw/intersect'
-import { BINDING_DISTANCE, EASINGS, GHOSTED_OPACITY } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
 import {
+  getArcLength,
   getArcPoints,
-  getArrowArc,
-  getArrowArcPath,
   getArrowPath,
   getBendPoint,
   getCtp,
-  getCurvedArrowHeadPoints,
-  getStraightArrowHeadPoints,
   isAngleBetween,
-  renderCurvedFreehandArrowShaft,
-  renderFreehandArrowShaft,
 } from './arrowHelpers'
 import { getTrianglePoints } from '../TriangleUtil/triangleHelpers'
 import { styled } from '~styles'
 import { TextLabel, getFontStyle } from '../shared'
 import { getTextLabelSize } from '../shared/getTextSize'
+import { StraightArrow } from './components/StraightArrow'
+import { CurvedArrow } from './components/CurvedArrow.tsx'
 
 type T = ArrowShape
 type E = HTMLDivElement
@@ -107,147 +104,35 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         decorations = {},
         style,
       } = shape
-
-      const isDraw = style.dash === DashStyle.Draw
-
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
-
-      const styles = getShapeStyle(style, meta.isDarkMode)
-
-      const { strokeWidth } = styles
-
-      const arrowDist = Vec.dist(start.point, end.point)
-
-      const arrowHeadLength = Math.min(arrowDist / 3, strokeWidth * 8)
-
-      const sw = 1 + strokeWidth * 1.618
-
-      let shaftPath: JSX.Element | null
-      let startArrowHead: { left: number[]; right: number[] } | undefined
-      let endArrowHead: { left: number[]; right: number[] } | undefined
-
-      const getRandom = Utils.rng(shape.id)
-
-      const easing = EASINGS[getRandom() > 0 ? 'easeInOutSine' : 'easeInOutCubic']
-
-      if (isStraightLine) {
-        const path = isDraw
-          ? renderFreehandArrowShaft(shape)
-          : 'M' + Vec.toFixed(start.point) + 'L' + Vec.toFixed(end.point)
-
-        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-          arrowDist,
-          strokeWidth * 1.618,
-          shape.style.dash,
-          2,
-          false
-        )
-
-        if (decorations.start) {
-          startArrowHead = getStraightArrowHeadPoints(start.point, end.point, arrowHeadLength)
-        }
-
-        if (decorations.end) {
-          endArrowHead = getStraightArrowHeadPoints(end.point, start.point, arrowHeadLength)
-        }
-
-        // Straight arrow path
-        shaftPath =
-          arrowDist > 2 ? (
-            <>
-              <path className="tl-stroke-hitarea" d={path} />
-              <path
-                d={path}
-                fill={styles.stroke}
-                stroke={styles.stroke}
-                strokeWidth={isDraw ? sw / 2 : sw}
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                pointerEvents="stroke"
-              />
-            </>
-          ) : null
-      } else {
-        const circle = getCtp(shape)
-
-        const { center, radius, length } = getArrowArc(shape)
-
-        const path = isDraw
-          ? renderCurvedFreehandArrowShaft(shape, circle, length, easing)
-          : getArrowArcPath(start, end, circle, shape.bend)
-
-        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-          Math.abs(length),
-          sw,
-          shape.style.dash,
-          2,
-          false
-        )
-
-        if (decorations.start) {
-          startArrowHead = getCurvedArrowHeadPoints(
-            start.point,
-            arrowHeadLength,
-            center,
-            radius,
-            length < 0
-          )
-        }
-
-        if (decorations.end) {
-          endArrowHead = getCurvedArrowHeadPoints(
-            end.point,
-            arrowHeadLength,
-            center,
-            radius,
-            length >= 0
-          )
-        }
-
-        // Curved arrow path
-        shaftPath = (
-          <>
-            <path className="tl-stroke-hitarea" d={path} />
-            <path
-              d={path}
-              fill={isDraw ? styles.stroke : 'none'}
-              stroke={styles.stroke}
-              strokeWidth={isDraw ? 0 : sw}
-              strokeDasharray={strokeDasharray}
-              strokeDashoffset={strokeDashoffset}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              pointerEvents="none"
-            />
-          </>
-        )
-      }
-
       const font = getFontStyle(style)
-
+      const labelSize = text || isEditing ? getTextLabelSize(text, font) : [0, 0]
+      const bounds = this.getBounds(shape)
+      const dist = React.useMemo(() => {
+        const { start, bend, end } = shape.handles
+        if (isStraightLine) return Vec.dist(start.point, end.point)
+        const circle = getCtp(start.point, bend.point, end.point)
+        const center = circle.slice(0, 2)
+        const radius = circle[2]
+        const length = getArcLength(center, radius, start.point, end.point)
+        return Math.abs(length)
+      }, [shape.handles])
+      const scale = Math.max(
+        0.5,
+        Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
+      )
+      const offset = React.useMemo(() => {
+        const bounds = this.getBounds(shape)
+        const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
+        return offset
+      }, [shape, scale])
       const handleTextChange = React.useCallback(
         (text: string) => {
           onShapeChange?.({ id, text })
         },
         [onShapeChange]
       )
-
-      const labelSize = text || isEditing ? getTextLabelSize(text, font) : [0, 0]
-      const bounds = this.getBounds(shape)
-      const dist = Vec.dist(shape.handles.start.point, shape.handles.end.point)
-      const scale = Math.max(
-        0.5,
-        Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
-      )
-
-      const offset = React.useMemo(() => {
-        const bounds = this.getBounds(shape)
-        const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
-        return offset
-      }, [shape, scale])
-
+      const Component = isStraightLine ? StraightArrow : CurvedArrow
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -288,41 +173,18 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
               opacity={isGhost ? GHOSTED_OPACITY : 1}
               mask={text || isEditing ? `url(#${shape.id}_clip)` : ``}
             >
-              {shaftPath}
-              {startArrowHead && (
-                <>
-                  <path
-                    className="tl-stroke-hitarea"
-                    d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-                  />
-                  <path
-                    d={`M ${startArrowHead.left} L ${start.point} ${startArrowHead.right}`}
-                    fill="none"
-                    stroke={styles.stroke}
-                    strokeWidth={sw}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    pointerEvents="none"
-                  />
-                </>
-              )}
-              {endArrowHead && (
-                <>
-                  <path
-                    className="tl-stroke-hitarea"
-                    d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-                  />
-                  <path
-                    d={`M ${endArrowHead.left} L ${end.point} ${endArrowHead.right}`}
-                    fill="none"
-                    stroke={styles.stroke}
-                    strokeWidth={sw}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    pointerEvents="none"
-                  />
-                </>
-              )}
+              <Component
+                id={id}
+                style={style}
+                start={start.point}
+                end={end.point}
+                bend={bend.point}
+                arrowBend={shape.bend}
+                decorationStart={decorations?.start}
+                decorationEnd={decorations?.end}
+                isDraw={style.dash === DashStyle.Draw}
+                isDarkMode={meta.isDarkMode}
+              />
             </g>
           </SVGContainer>
         </FullWrapper>
@@ -331,22 +193,41 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   )
 
   Indicator = TDShapeUtil.Indicator<ArrowShape>(({ shape }) => {
-    return <path d={getArrowPath(shape)} />
+    const {
+      style,
+      decorations,
+      handles: { start, bend, end },
+    } = shape
+    return (
+      <path
+        d={getArrowPath(
+          style,
+          start.point,
+          bend.point,
+          end.point,
+          decorations?.start,
+          decorations?.end
+        )}
+      />
+    )
   })
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
-      return Utils.getBoundsFromPoints(getArcPoints(shape))
+      const {
+        handles: { start, bend, end },
+      } = shape
+      return Utils.getBoundsFromPoints(getArcPoints(start.point, bend.point, end.point))
     })
-
     return Utils.translateBounds(bounds, shape.point)
   }
 
   getRotatedBounds = (shape: T) => {
-    let points = getArcPoints(shape)
-
+    const {
+      handles: { start, bend, end },
+    } = shape
+    let points = getArcPoints(start.point, bend.point, end.point)
     const { minX, minY, maxX, maxY } = Utils.getBoundsFromPoints(points)
-
     if (shape.rotation !== 0) {
       points = points.map((pt) =>
         Vec.rotWith(pt, [(minX + maxX) / 2, (minY + maxY) / 2], shape.rotation || 0)
@@ -371,51 +252,46 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   }
 
   hitTestPoint = (shape: T, point: number[]): boolean => {
+    const {
+      handles: { start, bend, end },
+    } = shape
     const pt = Vec.sub(point, shape.point)
-    const points = getArcPoints(shape)
-
+    const points = getArcPoints(start.point, bend.point, end.point)
     for (let i = 1; i < points.length; i++) {
       if (Vec.distanceToLineSegment(points[i - 1], points[i], pt) < 1) {
         return true
       }
     }
-
     return false
   }
 
   hitTestLineSegment = (shape: T, A: number[], B: number[]): boolean => {
+    const {
+      handles: { start, bend, end },
+    } = shape
     const ptA = Vec.sub(A, shape.point)
     const ptB = Vec.sub(B, shape.point)
-
-    const points = getArcPoints(shape)
-
+    const points = getArcPoints(start.point, bend.point, end.point)
     for (let i = 1; i < points.length; i++) {
       if (intersectLineSegmentLineSegment(points[i - 1], points[i], ptA, ptB).didIntersect) {
         return true
       }
     }
-
     return false
   }
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {
     const { start, end, bend } = shape.handles
-
     const sp = Vec.add(shape.point, start.point)
-
     const ep = Vec.add(shape.point, end.point)
-
     if (Utils.pointInBounds(sp, bounds) || Utils.pointInBounds(ep, bounds)) {
       return true
     }
-
     if (Vec.isEqual(Vec.med(start.point, end.point), bend.point)) {
       return intersectLineSegmentBounds(sp, ep, bounds).length > 0
     } else {
-      const [cx, cy, r] = getCtp(shape)
-
+      const [cx, cy, r] = getCtp(start.point, bend.point, end.point)
       const cp = Vec.add(shape.point, [cx, cy])
-
       return intersectArcBounds(cp, r, sp, ep, bounds).length > 0
     }
   }
@@ -426,18 +302,12 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     { initialShape, scaleX, scaleY }: TransformInfo<T>
   ): Partial<T> => {
     const initialShapeBounds = this.getBounds(initialShape)
-
     const handles: (keyof T['handles'])[] = ['start', 'end']
-
     const nextHandles = { ...initialShape.handles }
-
     handles.forEach((handle) => {
       const [x, y] = nextHandles[handle].point
-
       const nw = x / initialShapeBounds.width
-
       const nh = y / initialShapeBounds.height
-
       nextHandles[handle] = {
         ...nextHandles[handle],
         point: [
@@ -446,24 +316,16 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         ],
       }
     })
-
     const { start, bend, end } = nextHandles
-
     const dist = Vec.dist(start.point, end.point)
-
     const midPoint = Vec.med(start.point, end.point)
-
     const bendDist = (dist / 2) * initialShape.bend
-
     const u = Vec.uni(Vec.vec(start.point, end.point))
-
     const point = Vec.add(midPoint, Vec.mul(Vec.per(u), bendDist))
-
     nextHandles['bend'] = {
       ...bend,
       point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
     }
-
     return {
       point: Vec.toFixed([bounds.minX, bounds.minY]),
       handles: nextHandles,
@@ -514,7 +376,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     center: number[]
   ): Partial<T> | void => {
     const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
-
     let handlePoint = Vec.sub(
       Vec.add(
         [expandedBounds.minX, expandedBounds.minY],
@@ -525,19 +386,15 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       ),
       shape.point
     )
-
     if (binding.distance) {
       const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
-
       // The direction vector starts from the arrow's opposite handle
       const origin = Vec.add(
         shape.point,
         shape.handles[handle.id === 'start' ? 'end' : 'start'].point
       )
-
       // And passes through the dragging handle
       const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
-
       if (target.type === TDShapeType.Ellipse) {
         const hits = intersectRayEllipse(
           origin,
@@ -547,45 +404,32 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
           (target as EllipseShape).radius[1] + binding.distance,
           target.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
+        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
       } else if (target.type === TDShapeType.Triangle) {
         const points = getTrianglePoints(target.size, BINDING_DISTANCE, target.rotation).map((pt) =>
           Vec.add(pt, target.point)
         )
-
         const segments = Utils.pointsToLineSegments(points, true)
-
         const hits = segments
           .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
           .filter((intersection) => intersection.didIntersect)
           .flatMap((intersection) => intersection.points)
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
+        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
       } else {
         let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
           .filter((int) => int.didIntersect)
           .map((int) => int.points[0])
           .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-
         if (hits.length < 2) {
           hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
             .filter((int) => int.didIntersect)
             .map((int) => int.points[0])
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
         }
-
-        if (hits[0]) {
-          handlePoint = Vec.sub(hits[0], shape.point)
-        }
+        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
-
     return this.onHandleChange(shape, {
       [handle.id]: {
         ...handle,
@@ -597,7 +441,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
-
     nextHandles = {
       ...nextHandles,
       start: {
@@ -609,38 +452,27 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         point: Vec.toFixed(nextHandles.end.point),
       },
     }
-
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = nextHandles
-
       const distance = Vec.dist(start.point, end.point)
-
       const midPoint = Vec.med(start.point, end.point)
-
       const angle = Vec.angle(start.point, end.point)
-
       const u = Vec.uni(Vec.vec(start.point, end.point))
-
       // Create a line segment perendicular to the line between the start and end points
       const ap = Vec.add(midPoint, Vec.mul(Vec.per(u), distance / 2))
       const bp = Vec.sub(midPoint, Vec.mul(Vec.per(u), distance / 2))
-
       const bendPoint = Vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
-
       // Find the distance between the midpoint and the nearest point on the
       // line segment to the bend handle's dragged point
       const bendDist = Vec.dist(midPoint, bendPoint)
-
       // The shape's "bend" is the ratio of the bend to the distance between
       // the start and end points. If the bend is below a certain amount, the
       // bend should be zero.
       nextBend = Utils.clamp(bendDist / (distance / 2), -0.99, 0.99)
-
       // If the point is to the left of the line segment, we make the bend
       // negative, otherwise it's positive.
       const angleToBend = Vec.angle(start.point, bendPoint)
-
       // If resulting bend is low enough that the handle will snap to center,
       // then also snap the bend to center
       if (Vec.isEqual(midPoint, getBendPoint(nextHandles, nextBend))) {
@@ -650,7 +482,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         nextBend *= -1
       }
     }
-
     const nextShape = {
       point: shape.point,
       bend: nextBend,
@@ -662,24 +493,17 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         },
       },
     }
-
     // Zero out the handles to prevent handles with negative points. If a handle's x or y
     // is below zero, we need to move the shape left or up to make it zero.
-
     const topLeft = shape.point
-
     const nextBounds = this.getBounds({ ...nextShape } as ArrowShape)
-
     const offset = Vec.sub([nextBounds.minX, nextBounds.minY], topLeft)
-
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
         handle.point = Vec.toFixed(Vec.sub(handle.point, offset))
       })
-
       nextShape.point = Vec.toFixed(Vec.add(nextShape.point, offset))
     }
-
     return nextShape
   }
 }
