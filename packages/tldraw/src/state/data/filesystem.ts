@@ -13,6 +13,7 @@ const checkPermissions = async (handle: FileSystemHandle) => {
 }
 
 export async function loadFileHandle() {
+  if (typeof Window === 'undefined' || !('_location' in Window)) return
   const fileHandle = await getFromIdb(`Tldraw_file_handle_${window.location.origin}`)
   if (!fileHandle) return null
   return fileHandle
