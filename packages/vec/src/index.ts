@@ -505,6 +505,20 @@ export class Vec {
     if (A[0] === B[0]) return NaN
     return (A[1] - B[1]) / (A[0] - B[0])
   }
+
+  /**
+   * Get a vector comprised of the maximum of two or more vectors.
+   */
+  static max = (...v: number[][]) => {
+    return [Math.max(...v.map((a) => a[0])), Math.max(...v.map((a) => a[1]))]
+  }
+
+  /**
+   * Get a vector comprised of the minimum of two or more vectors.
+   */
+  static min = (...v: number[][]) => {
+    return [Math.max(...v.map((a) => a[0])), Math.max(...v.map((a) => a[1]))]
+  }
 }
 
 export default Vec

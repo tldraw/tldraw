@@ -1,18 +1,16 @@
-import type { TLShapeBlurHandler, TLShapeChangeHandler } from '@tldraw/core'
-import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
 import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
-import { AlignStyle, RectangleShape } from '~types'
-import { getFontStyle, TextAreaUtils } from '.'
+import { TextAreaUtils } from '.'
+import { getTextLabelSize } from './getTextSize'
 
 export interface TextLabelProps {
   color: string
   font: string
   text: string
-  onBlur: () => void
+  onBlur?: () => void
   onChange: (text: string) => void
   isEditing?: boolean
 }
@@ -27,6 +25,8 @@ export const TextLabel = React.memo(function TextLabel({
 }: TextLabelProps) {
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
+
+  const size = getTextLabelSize(text, font)
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -81,7 +81,7 @@ export const TextLabel = React.memo(function TextLabel({
   const handleBlur = React.useCallback(
     (e: React.FocusEvent<HTMLTextAreaElement>) => {
       e.currentTarget.setSelectionRange(0, 0)
-      onBlur()
+      onBlur?.()
     },
     [onBlur]
   )
@@ -118,19 +118,18 @@ export const TextLabel = React.memo(function TextLabel({
         }
       })
     } else {
-      onBlur()
+      onBlur?.()
     }
   }, [isEditing, onBlur])
 
   const rInnerWrapper = React.useRef<HTMLDivElement>(null)
 
   React.useLayoutEffect(() => {
-    const size = getTextLabelSize(text, font)
     const elm = rInnerWrapper.current
     if (!elm) return
     elm.style.width = size[0] + 'px'
     elm.style.height = size[1] + 'px'
-  }, [text, font])
+  }, [size])
 
   return (
     <TextWrapper>
@@ -264,65 +263,3 @@ const TextArea = styled('textarea', {
   WebkitUserSelect: 'text',
   ...commonTextWrapping,
 })
-
-/* -------------------------------------------------- */
-/*                        Utils                       */
-/* -------------------------------------------------- */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let melm: any
-
-function getMeasurementDiv() {
-  // A div used for measurement
-  document.getElementById('__textLabelMeasure')?.remove()
-
-  const pre = document.createElement('pre')
-  pre.id = '__textLabelMeasure'
-
-  Object.assign(pre.style, {
-    whiteSpace: 'pre',
-    width: 'auto',
-    border: '1px solid transparent',
-    padding: '4px',
-    margin: '0px',
-    letterSpacing: `${LETTER_SPACING}px`,
-    opacity: '0',
-    position: 'absolute',
-    top: '-500px',
-    left: '0px',
-    zIndex: '9999',
-    pointerEvents: 'none',
-    userSelect: 'none',
-    alignmentBaseline: 'mathematical',
-    dominantBaseline: 'mathematical',
-  })
-
-  pre.tabIndex = -1
-
-  document.body.appendChild(pre)
-  return pre
-}
-
-if (typeof window !== 'undefined') {
-  melm = getMeasurementDiv()
-}
-
-function getTextLabelSize(text: string, font: string) {
-  if (!text) {
-    return [0, 0]
-  }
-
-  if (!melm) {
-    // We're in SSR
-    return [10, 10]
-  }
-
-  melm.innerHTML = `${text}&zwj;`
-  melm.style.font = font
-
-  // In tests, offsetWidth and offsetHeight will be 0
-  const width = melm.offsetWidth || 1
-  const height = melm.offsetHeight || 1
-
-  return [width, height]
-}
