@@ -60,7 +60,6 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
       Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.82)])
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: '#fefefe',
-    [ColorStyle.Black]: '#4d4d4d',
   },
   dark: {
     ...(Object.fromEntries(

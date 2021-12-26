@@ -1,35 +1,33 @@
 import * as React from 'react'
 import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getRectangleIndicatorPathTDSnapshot, getRectanglePath } from '../rectangleHelpers'
+import { getTriangleIndicatorPathTDSnapshot, getTrianglePath } from '../triangleHelpers'
 
-interface RectangleSvgProps {
+interface TriangleSvgProps {
   id: string
+  size: number[]
   style: ShapeStyles
   isSelected: boolean
   isDarkMode: boolean
-  size: number[]
 }
 
-export const DrawRectangle = React.memo(function DrawRectangle({
+export const DrawTriangle = React.memo(function DrawTriangle({
   id,
-  style,
   size,
+  style,
   isSelected,
   isDarkMode,
-}: RectangleSvgProps) {
-  const { isFilled } = style
+}: TriangleSvgProps) {
   const { stroke, strokeWidth, fill } = getShapeStyle(style, isDarkMode)
-  const pathTDSnapshot = getRectanglePath(id, style, size)
-  const innerPath = getRectangleIndicatorPathTDSnapshot(id, style, size)
-
+  const pathTDSnapshot = getTrianglePath(id, size, style)
+  const indicatorPath = getTriangleIndicatorPathTDSnapshot(id, size, style)
   return (
     <>
       <path
         className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-        d={innerPath}
+        d={indicatorPath}
       />
-      {isFilled && <path d={innerPath} fill={fill} pointerEvents="none" />}
+      {style.isFilled && <path d={indicatorPath} fill={fill} pointerEvents="none" />}
       <path
         d={pathTDSnapshot}
         fill={stroke}

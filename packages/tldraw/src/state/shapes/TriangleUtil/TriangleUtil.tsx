@@ -8,6 +8,7 @@ import {
   getBoundsRectangle,
   transformRectangle,
   transformSingleRectangle,
+  getFontStyle,
 } from '~state/shapes/shared'
 import {
   intersectBoundsPolygon,
@@ -16,11 +17,15 @@ import {
 } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
 import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { getOffsetPolygon } from '../shared/PolygonUtils'
-import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
+import { styled } from '~styles'
+import { DrawTriangle } from './components/DrawTriangle'
+import { DashedTriangle } from './components/DashedTriangle'
+import { TextLabel } from '../shared/TextLabel'
+import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'
 
 type T = TriangleShape
-type E = SVGSVGElement
+type E = HTMLDivElement
 
 export class TriangleUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Triangle as const
@@ -28,6 +33,8 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
   canBind = true
 
   canClone = true
+
+  canEdit = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -41,104 +48,66 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
+        text: '',
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isBinding, isSelected, isGhost, meta, events }, ref) => {
-      const { id, style } = shape
+    (
+      {
+        shape,
+        isBinding,
+        isEditing,
+        isSelected,
+        isGhost,
+        meta,
+        events,
+        onShapeChange,
+        onShapeBlur,
+      },
+      ref
+    ) => {
+      const { id, text, size, style } = shape
+      const font = getFontStyle(style)
+      const Component = style.dash === DashStyle.Draw ? DrawTriangle : DashedTriangle
 
-      const styles = getShapeStyle(style, meta.isDarkMode)
+      const handleTextChange = React.useCallback(
+        (text: string) => {
+          onShapeChange?.({ id, text })
+        },
+        [onShapeChange]
+      )
 
-      const { strokeWidth } = styles
-
-      const sw = 1 + strokeWidth * 1.618
-
-      if (style.dash === DashStyle.Draw) {
-        const pathTDSnapshot = getTrianglePath(shape)
-        const indicatorPath = getTriangleIndicatorPathTDSnapshot(shape)
-        const trianglePoints = getTrianglePoints(shape).join()
-
-        return (
-          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-            {isBinding && (
-              <polygon
-                className="tl-binding-indicator"
-                points={trianglePoints}
-                strokeWidth={this.bindingDistance * 2}
-              />
-            )}
-            <path
-              className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-              d={indicatorPath}
-            />
-            <path
-              d={indicatorPath}
-              fill={style.isFilled ? styles.fill : 'none'}
-              pointerEvents="none"
-            />
-            <path
-              d={pathTDSnapshot}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              pointerEvents="none"
-              opacity={isGhost ? GHOSTED_OPACITY : 1}
+      return (
+        <FullWrapper ref={ref} {...events}>
+          <TextLabel
+            isEditing={isEditing}
+            onChange={handleTextChange}
+            onBlur={onShapeBlur}
+            isDarkMode={meta.isDarkMode}
+            font={font}
+            text={text}
+          />
+          <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            {isBinding && <TriangleBindingIndicator size={size} />}
+            <Component
+              id={id}
+              style={style}
+              size={size}
+              isSelected={isSelected}
+              isDarkMode={meta.isDarkMode}
             />
           </SVGContainer>
-        )
-      }
-
-      const points = getTrianglePoints(shape)
-      const sides = Utils.pointsToLineSegments(points, true)
-      const paths = sides.map(([start, end], i) => {
-        const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-          Vec.dist(start, end),
-          strokeWidth * 1.618,
-          shape.style.dash
-        )
-
-        return (
-          <line
-            key={id + '_' + i}
-            x1={start[0]}
-            y1={start[1]}
-            x2={end[0]}
-            y2={end[1]}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeLinecap="round"
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-          />
-        )
-      })
-      return (
-        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          {isBinding && (
-            <polygon
-              className="tl-binding-indicator"
-              points={points.join()}
-              strokeWidth={this.bindingDistance * 2}
-            />
-          )}
-          <polygon
-            className={style.isFilled || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
-            points={points.join()}
-          />
-          <g pointerEvents="stroke">{paths}</g>
-        </SVGContainer>
+        </FullWrapper>
       )
     }
   )
 
   Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
-    const { style } = shape
-    const styles = getShapeStyle(style, false)
-    const sw = styles.strokeWidth
-    return <polygon points={getTrianglePoints(shape).join()} />
+    const { size } = shape
+    return <polygon points={getTrianglePoints(size).join()} />
   })
 
   private getPoints(shape: T) {
@@ -155,7 +124,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style
+    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
   }
 
   getBounds = (shape: T) => {
@@ -164,7 +133,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 
   getExpandedBounds = (shape: T) => {
     return Utils.getBoundsFromPoints(
-      getTrianglePoints(shape, this.bindingDistance).map((pt) => Vec.add(pt, shape.point))
+      getTrianglePoints(shape.size, this.bindingDistance).map((pt) => Vec.add(pt, shape.point))
     )
   }
 
@@ -193,9 +162,9 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
 
     if (!Utils.pointInBounds(point, expandedBounds)) return
 
-    const points = getTrianglePoints(shape).map((pt) => Vec.add(pt, shape.point))
+    const points = getTrianglePoints(shape.size).map((pt) => Vec.add(pt, shape.point))
 
-    const expandedPoints = getTrianglePoints(shape, this.bindingDistance).map((pt) =>
+    const expandedPoints = getTrianglePoints(shape.size, this.bindingDistance).map((pt) =>
       Vec.add(pt, shape.point)
     )
 
@@ -216,7 +185,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     if (!intersections.length) return
 
     // The center of the triangle
-    const center = Vec.add(getTriangleCentroid(shape), shape.point)
+    const center = Vec.add(getTriangleCentroid(shape.size), shape.point)
 
     // Find furthest intersection between ray from origin through point and expanded bounds. TODO: What if the shape has a curve? In that case, should we intersect the circle-from-three-points instead?
     const intersection = intersections.sort((a, b) => Vec.dist(b, origin) - Vec.dist(a, origin))[0]
@@ -260,127 +229,4 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
   transformSingle = transformSingleRectangle
 }
 
-/* -------------------------------------------------- */
-/*                       Helpers                      */
-/* -------------------------------------------------- */
-
-export function getTrianglePoints(shape: T, offset = 0, rotation = 0) {
-  const {
-    size: [w, h],
-  } = shape
-
-  let points = [
-    [w / 2, 0],
-    [w, h],
-    [0, h],
-  ]
-
-  if (offset) points = getOffsetPolygon(points, offset)
-  if (rotation) points = points.map((pt) => Vec.rotWith(pt, [w / 2, h / 2], rotation))
-
-  return points
-}
-
-export function getTriangleCentroid(shape: T) {
-  const {
-    size: [w, h],
-  } = shape
-
-  const points = [
-    [w / 2, 0],
-    [w, h],
-    [0, h],
-  ]
-
-  return [
-    (points[0][0] + points[1][0] + points[2][0]) / 3,
-    (points[0][1] + points[1][1] + points[2][1]) / 3,
-  ]
-}
-
-function getTriangleDrawPoints(shape: TriangleShape) {
-  const styles = getShapeStyle(shape.style)
-
-  const {
-    size: [w, h],
-  } = shape
-
-  const getRandom = Utils.rng(shape.id)
-
-  const sw = styles.strokeWidth
-
-  // Random corner offsets
-  const offsets = Array.from(Array(3)).map(() => {
-    return [getRandom() * sw * 0.75, getRandom() * sw * 0.75]
-  })
-
-  // Corners
-  const corners = [
-    Vec.add([w / 2, 0], offsets[0]),
-    Vec.add([w, h], offsets[1]),
-    Vec.add([0, h], offsets[2]),
-  ]
-
-  // Which side to start drawing first
-  const rm = Math.round(Math.abs(getRandom() * 2 * 3))
-
-  // Number of points per side
-
-  // Inset each line by the corner radii and let the freehand algo
-  // interpolate points for the corners.
-  const lines = Utils.rotateArray(
-    [
-      Vec.pointsBetween(corners[0], corners[1], 32),
-      Vec.pointsBetween(corners[1], corners[2], 32),
-      Vec.pointsBetween(corners[2], corners[0], 32),
-    ],
-    rm
-  )
-
-  // For the final points, include the first half of the first line again,
-  // so that the line wraps around and avoids ending on a sharp corner.
-  // This has a bit of finesse and magic—if you change the points between
-  // function, then you'll likely need to change this one too.
-
-  const points = [...lines.flat(), ...lines[0]]
-
-  return {
-    points,
-  }
-}
-
-function getDrawStrokeInfo(shape: TriangleShape) {
-  const { points } = getTriangleDrawPoints(shape)
-
-  const { strokeWidth } = getShapeStyle(shape.style)
-
-  const options = {
-    size: strokeWidth,
-    thinning: 0.65,
-    streamline: 0.3,
-    smoothing: 1,
-    simulatePressure: false,
-    last: true,
-  }
-
-  return { points, options }
-}
-
-function getTrianglePath(shape: TriangleShape) {
-  const { points, options } = getDrawStrokeInfo(shape)
-
-  const stroke = getStroke(points, options)
-
-  return Utils.getSvgPathFromStroke(stroke)
-}
-
-function getTriangleIndicatorPathTDSnapshot(shape: TriangleShape) {
-  const { points, options } = getDrawStrokeInfo(shape)
-
-  const strokePoints = getStrokePoints(points, options)
-
-  return Utils.getSvgPathFromStroke(
-    strokePoints.map((pt) => pt.point.slice(0, 2)),
-    false
-  )
-}
+const FullWrapper = styled('div', { width: '100%', height: '100%' })

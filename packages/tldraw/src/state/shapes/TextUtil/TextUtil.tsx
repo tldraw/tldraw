@@ -4,7 +4,7 @@ import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultTextStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
 import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
 import { TextAreaUtils } from '../shared'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
@@ -350,8 +350,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
 /* -------------------------------------------------- */
 /*                       Helpers                      */
 /* -------------------------------------------------- */
-
-const LETTER_SPACING = -1.5
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any

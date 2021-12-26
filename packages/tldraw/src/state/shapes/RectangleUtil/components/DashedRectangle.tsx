@@ -9,6 +9,7 @@ interface RectangleSvgProps {
   style: ShapeStyles
   isSelected: boolean
   size: number[]
+  isDarkMode: boolean
 }
 
 export const DashedRectangle = React.memo(function DashedRectangle({
@@ -16,8 +17,9 @@ export const DashedRectangle = React.memo(function DashedRectangle({
   style,
   size,
   isSelected,
+  isDarkMode,
 }: RectangleSvgProps) {
-  const { stroke, strokeWidth, fill } = getShapeStyle(style)
+  const { stroke, strokeWidth, fill } = getShapeStyle(style, isDarkMode)
 
   const sw = 1 + strokeWidth * 1.618
 

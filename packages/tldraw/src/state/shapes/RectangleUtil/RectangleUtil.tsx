@@ -12,13 +12,14 @@ import {
   transformSingleRectangle,
 } from '~state/shapes/shared'
 import { TextLabel } from '../shared/TextLabel'
-import { getRectangleIndicatorPathTDSnapshot } from './helpers'
+import { getRectangleIndicatorPathTDSnapshot } from './rectangleHelpers'
 import { DrawRectangle } from './components/DrawRectangle'
 import { DashedRectangle } from './components/DashedRectangle'
 import { BindingIndicator } from './components/BindingIndicator'
+import { styled } from '~styles'
 
 type T = RectangleShape
-type E = SVGSVGElement
+type E = HTMLDivElement
 
 export class RectangleUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Rectangle as const
@@ -63,7 +64,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
       ref
     ) => {
       const { id, size, style, text } = shape
-      const font = getFontStyle(shape.style)
+      const font = getFontStyle(style)
       const styles = getShapeStyle(style, meta.isDarkMode)
       const Component = style.dash === DashStyle.Draw ? DrawRectangle : DashedRectangle
 
@@ -75,25 +76,26 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
       )
 
       return (
-        <>
+        <FullWrapper ref={ref} {...events}>
           <TextLabel
             isEditing={isEditing}
             onChange={handleTextChange}
             onBlur={onShapeBlur}
-            color={styles.stroke}
+            isDarkMode={meta.isDarkMode}
             font={font}
             text={text}
           />
-          <SVGContainer
-            ref={ref}
-            id={shape.id + '_svg'}
-            opacity={isGhost ? GHOSTED_OPACITY : 1}
-            {...events}
-          >
+          <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && <BindingIndicator strokeWidth={styles.strokeWidth} size={size} />}
-            <Component id={id} style={style} isSelected={isSelected} size={size} />
+            <Component
+              id={id}
+              style={style}
+              size={size}
+              isSelected={isSelected}
+              isDarkMode={meta.isDarkMode}
+            />
           </SVGContainer>
-        </>
+        </FullWrapper>
       )
     }
   )
@@ -132,3 +134,5 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
 
   transformSingle = transformSingleRectangle
 }
+
+const FullWrapper = styled('div', { width: '100%', height: '100%' })

@@ -226,7 +226,6 @@ const tlcss = css`
   }
 
   .tl-stroke-hitarea {
-    cursor: pointer;
     fill: none;
     stroke: transparent;
     stroke-width: calc(24px * var(--tl-scale));
@@ -236,7 +235,6 @@ const tlcss = css`
   }
 
   .tl-fill-hitarea {
-    cursor: pointer;
     fill: transparent;
     stroke: transparent;
     stroke-width: calc(24px * var(--tl-scale));

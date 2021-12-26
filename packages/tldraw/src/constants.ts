@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export const LETTER_SPACING = -1.5
+export const LETTER_SPACING = '-0.03em'
 export const GRID_SIZE = 8
 export const SVG_EXPORT_PADDING = 16
 export const BINDING_DISTANCE = 16

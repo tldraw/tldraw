@@ -7,16 +7,16 @@ import { TextAreaUtils } from '.'
 import { getTextLabelSize } from './getTextSize'
 
 export interface TextLabelProps {
-  color: string
   font: string
   text: string
+  isDarkMode: boolean
   onBlur?: () => void
   onChange: (text: string) => void
   isEditing?: boolean
 }
 
 export const TextLabel = React.memo(function TextLabel({
-  color,
+  isDarkMode,
   font,
   text,
   isEditing = false,
@@ -25,8 +25,8 @@ export const TextLabel = React.memo(function TextLabel({
 }: TextLabelProps) {
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
-
   const size = getTextLabelSize(text, font)
+  const color = isDarkMode ? 'white' : 'black'
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -186,20 +186,12 @@ const TextWrapper = styled('div', {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  pointerEvents: 'none',
+  userSelect: 'none',
   variants: {
     isGhost: {
       false: { opacity: 1 },
       true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
-    },
-    isEditing: {
-      false: {
-        pointerEvents: 'all',
-        userSelect: 'all',
-      },
-      true: {
-        pointerEvents: 'none',
-        userSelect: 'none',
-      },
     },
   },
 })
@@ -222,13 +214,14 @@ const InnerWrapper = styled('div', {
   textAlign: 'center',
   backfaceVisibility: 'hidden',
   userSelect: 'none',
-  pointerEvents: 'none',
   WebkitUserSelect: 'none',
   WebkitTouchCallout: 'none',
+  pointerEvents: 'all',
   isEditing: {
-    false: {},
+    false: {
+      userSelect: 'none',
+    },
     true: {
-      pointerEvents: 'all',
       background: '$boundsBg',
       userSelect: 'text',
       WebkitUserSelect: 'text',

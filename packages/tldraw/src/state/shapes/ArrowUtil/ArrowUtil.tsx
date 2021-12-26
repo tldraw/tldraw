@@ -36,7 +36,7 @@ import {
   renderCurvedFreehandArrowShaft,
   renderFreehandArrowShaft,
 } from './arrowHelpers'
-import { getTrianglePoints } from '../TriangleUtil'
+import { getTrianglePoints } from '../TriangleUtil/triangleHelpers'
 
 type T = ArrowShape
 type E = SVGSVGElement
@@ -480,7 +480,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
           handlePoint = Vec.sub(hits[0], shape.point)
         }
       } else if (target.type === TDShapeType.Triangle) {
-        const points = getTrianglePoints(target, BINDING_DISTANCE, target.rotation).map((pt) =>
+        const points = getTrianglePoints(target.size, BINDING_DISTANCE, target.rotation).map((pt) =>
           Vec.add(pt, target.point)
         )
 

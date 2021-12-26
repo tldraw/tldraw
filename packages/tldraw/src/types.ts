@@ -336,6 +336,7 @@ export type TDBinding = ArrowBinding
 export interface EllipseShape extends TDBaseShape {
   type: TDShapeType.Ellipse
   radius: number[]
+  text: string
 }
 
 // The shape created by the rectangle tool
@@ -363,6 +364,7 @@ export interface VideoShape extends TDBaseShape {
 export interface TriangleShape extends TDBaseShape {
   type: TDShapeType.Triangle
   size: number[]
+  text: string
 }
 
 // The shape created by the text tool
