@@ -272,8 +272,8 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                   fill="white"
                 />
                 <rect
-                  x={bounds.width / 2 - (labelSize[0] / 2 + offset[0]) * scale}
-                  y={bounds.height / 2 - (labelSize[1] / 2 + offset[1]) * scale}
+                  x={bounds.width / 2 - (labelSize[0] / 2) * scale + offset[0]}
+                  y={bounds.height / 2 - (labelSize[1] / 2) * scale + offset[1]}
                   width={labelSize[0] * scale}
                   height={labelSize[1] * scale}
                   rx={4 * scale}

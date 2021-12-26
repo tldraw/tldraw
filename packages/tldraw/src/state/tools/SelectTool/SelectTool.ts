@@ -662,6 +662,19 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickHandle: TLPointerEventHandler = (info) => {
+    if (info.target === 'bend') {
+      const { selectedIds } = this.app
+      if (selectedIds.length !== 1) return
+      const shape = this.app.getShape(selectedIds[0])
+      if (
+        TLDR.getShapeUtil(shape.type).canEdit &&
+        (shape.parentId === this.app.currentPageId || shape.parentId === this.selectedGroupId)
+      ) {
+        this.app.setEditingId(shape.id)
+      }
+      return
+    }
+
     this.app.toggleDecoration(info.target)
   }
 
