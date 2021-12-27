@@ -212,6 +212,8 @@ describe('When creating with an arrow session', () => {
 
   it('Removes a binding when dragged away', () => {
     const app = new TldrawTestApp()
+      .selectAll()
+      .delete()
       .createShapes(
         { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [200, 200] },
         { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 200], size: [200, 200] },
@@ -260,7 +262,7 @@ describe('When drawing an arrow', () => {
     expect(app.shapes.length).toBe(1)
   })
 
-  it('creates a short arrow if at least one handle is bound to a shape', () => {
+  it('create a short arrow if at least one handle is bound to a shape', () => {
     const app = new TldrawTestApp()
       .createShapes({
         type: TDShapeType.Rectangle,
@@ -292,7 +294,7 @@ describe('When drawing an arrow', () => {
     expect(app.shapes.length).toBe(1)
   })
 
-  it('creates a short arrow if start handle is bound', () => {
+  it('create a short arrow if start handle is bound', () => {
     const app = new TldrawTestApp()
       .createShapes({
         type: TDShapeType.Rectangle,

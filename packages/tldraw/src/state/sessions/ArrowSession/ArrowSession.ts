@@ -40,6 +40,12 @@ export class ArrowSession extends BaseSession {
     this.bindableShapeIds = TLDR.getBindableShapeIds(app.state).filter(
       (id) => !(id === this.initialShape.id || id === this.initialShape.parentId)
     )
+    const oppositeHandleBindingId =
+      this.initialShape.handles[handleId === 'start' ? 'end' : 'start']?.bindingId
+    if (oppositeHandleBindingId) {
+      const oppositeToId = page.bindings[oppositeHandleBindingId].toId
+      this.bindableShapeIds = this.bindableShapeIds.filter((id) => id !== oppositeToId)
+    }
 
     const { originPoint } = this.app
 
@@ -52,6 +58,9 @@ export class ArrowSession extends BaseSession {
         .find((shape) =>
           Utils.pointInBounds(originPoint, TLDR.getShapeUtil(shape).getBounds(shape))
         )?.id
+      if (this.startBindingShapeId) {
+        this.bindableShapeIds.splice(this.bindableShapeIds.indexOf(this.startBindingShapeId), 1)
+      }
     } else {
       // If we're editing an existing line, is there a binding already
       // for the dragging handle?
@@ -59,6 +68,7 @@ export class ArrowSession extends BaseSession {
 
       if (initialBindingId) {
         this.initialBinding = page.bindings[initialBindingId]
+        this.bindableShapeIds.splice(this.bindableShapeIds.indexOf(initialBindingId), 1)
       } else {
         // If not, explicitly set this handle to undefined, so that it gets deleted on undo
         this.initialShape.handles[this.handleId].bindingId = undefined
@@ -151,6 +161,7 @@ export class ArrowSession extends BaseSession {
         const rayPoint = Vec.add(handle.point, next.shape.point)
         const rayOrigin = center
         const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
+        const isInsideShape = targetUtils.hitTestPoint(target, currentPoint)
 
         startBinding = this.findBindingPoint(
           shape,
@@ -160,7 +171,7 @@ export class ArrowSession extends BaseSession {
           center,
           rayOrigin,
           rayDirection,
-          false
+          isInsideShape
         )
       }
 
@@ -315,12 +326,18 @@ export class ArrowSession extends BaseSession {
   cancel = (): TldrawPatch | undefined => {
     const { initialShape, initialBinding, newStartBindingId, draggedBindingId } = this
 
+    const currentShape = TLDR.onSessionComplete(this.app.page.shapes[initialShape.id]) as ArrowShape
+
+    const isDeleting =
+      this.isCreate ||
+      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) < 4
+
     const afterBindings: Record<string, TDBinding | undefined> = {}
 
     afterBindings[draggedBindingId] = undefined
 
     if (initialBinding) {
-      afterBindings[initialBinding.id] = initialBinding
+      afterBindings[initialBinding.id] = isDeleting ? undefined : initialBinding
     }
 
     if (newStartBindingId) {
@@ -332,14 +349,14 @@ export class ArrowSession extends BaseSession {
         pages: {
           [this.app.currentPageId]: {
             shapes: {
-              [initialShape.id]: this.isCreate ? undefined : initialShape,
+              [initialShape.id]: isDeleting ? undefined : initialShape,
             },
             bindings: afterBindings,
           },
         },
         pageStates: {
           [this.app.currentPageId]: {
-            selectedIds: this.isCreate ? [] : [initialShape.id],
+            selectedIds: isDeleting ? [] : [initialShape.id],
             bindingId: undefined,
             hoveredId: undefined,
             editingId: undefined,
@@ -351,36 +368,24 @@ export class ArrowSession extends BaseSession {
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { initialShape, initialBinding, newStartBindingId, startBindingShapeId, handleId } = this
-
     const currentShape = TLDR.onSessionComplete(this.app.page.shapes[initialShape.id]) as ArrowShape
     const currentBindingId = currentShape.handles[handleId].bindingId
-
-    if (
-      !(currentBindingId || initialBinding) &&
-      Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point) < 4
-    ) {
-      return this.cancel()
-    }
-
+    const length = Vec.dist(currentShape.handles.start.point, currentShape.handles.end.point)
+    if (!(currentBindingId || initialBinding) && length < 4) return this.cancel()
     const beforeBindings: Partial<Record<string, TDBinding>> = {}
-
     const afterBindings: Partial<Record<string, TDBinding>> = {}
-
     if (initialBinding) {
       beforeBindings[initialBinding.id] = this.isCreate ? undefined : initialBinding
       afterBindings[initialBinding.id] = undefined
     }
-
     if (currentBindingId) {
       beforeBindings[currentBindingId] = undefined
       afterBindings[currentBindingId] = this.app.page.bindings[currentBindingId]
     }
-
     if (startBindingShapeId) {
       beforeBindings[newStartBindingId] = undefined
       afterBindings[newStartBindingId] = this.app.page.bindings[newStartBindingId]
     }
-
     return {
       id: 'arrow',
       before: {

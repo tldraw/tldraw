@@ -360,8 +360,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
 
-            const toUtils = TLDR.getShapeUtil(toShape)
+            if (!(toShape && fromShape)) {
+              delete next.document.pages[pageId].bindings[binding.id]
+              return
+            }
 
+            const toUtils = TLDR.getShapeUtil(toShape)
             const fromUtils = TLDR.getShapeUtil(fromShape)
 
             // We only need to update the binding's "from" shape
