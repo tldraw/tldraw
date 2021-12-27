@@ -46,9 +46,7 @@ export class ArrowSession extends BaseSession {
       const oppositeToId = page.bindings[oppositeHandleBindingId].toId
       this.bindableShapeIds = this.bindableShapeIds.filter((id) => id !== oppositeToId)
     }
-
     const { originPoint } = this.app
-
     if (this.isCreate) {
       // If we're creating a new shape, should we bind its first point?
       // The method may return undefined, which is correct if there is no
@@ -86,22 +84,15 @@ export class ArrowSession extends BaseSession {
       currentGrid,
       settings: { showGrid },
     } = this.app
-
     const shape = this.app.getShape<ArrowShape>(initialShape.id)
-
     if (shape.isLocked) return
-
     const handles = shape.handles
-
     const handleId = this.handleId as keyof typeof handles
-
     // If the handle can bind, then we need to search bindable shapes for
     // a binding.
     if (!handles[handleId].canBind) return
-
     // First update the handle's next point
     let delta = Vec.sub(currentPoint, handles[handleId].point)
-
     if (shiftKey) {
       const A = handles[handleId === 'start' ? 'end' : 'start'].point
       const B = handles[handleId].point
@@ -110,25 +101,18 @@ export class ArrowSession extends BaseSession {
       const adjusted = Vec.rotWith(C, A, Utils.snapAngleToSegments(angle, 24) - angle)
       delta = Vec.add(delta, Vec.sub(adjusted, C))
     }
-
     const nextPoint = Vec.sub(Vec.add(handles[handleId].point, delta), shape.point)
-
     const handle = {
       ...handles[handleId],
       point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
-
       bindingId: undefined,
     }
-
     const utils = shapeUtils[TDShapeType.Arrow]
-
     const change = utils.onHandleChange?.(shape, {
       [handleId]: handle,
     })
-
     // If the handle changed produced no change, bail here
     if (!change) return
-
     // If nothing changes, we want these to be the same object reference as
     // before. If it does change, we'll redefine this later on. And if we've
     // made it this far, the shape should be a new object reference that
@@ -137,22 +121,16 @@ export class ArrowSession extends BaseSession {
       shape: Utils.deepMerge(shape, change),
       bindings: {},
     }
-
     if (this.initialBinding) {
       next.bindings[this.initialBinding.id] = undefined
     }
-
     // START BINDING
-
     // If we have a start binding shape id, the recompute the binding
     // point based on the current end handle position
     if (this.startBindingShapeId) {
       let startBinding: ArrowBinding | undefined
-
       const target = this.app.page.shapes[this.startBindingShapeId]
-
       const targetUtils = TLDR.getShapeUtil(target)
-
       if (!metaKey) {
         const center = targetUtils.getCenter(target)
         const handle = next.shape.handles.start
@@ -160,7 +138,6 @@ export class ArrowSession extends BaseSession {
         const rayOrigin = center
         const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
         const isInsideShape = targetUtils.hitTestPoint(target, currentPoint)
-
         startBinding = this.findBindingPoint(
           shape,
           target,
@@ -172,12 +149,9 @@ export class ArrowSession extends BaseSession {
           isInsideShape
         )
       }
-
       if (startBinding) {
         this.didBind = true
-
         next.bindings[this.newStartBindingId] = startBinding
-
         next.shape.handles = {
           ...next.shape.handles,
           start: {
@@ -185,11 +159,8 @@ export class ArrowSession extends BaseSession {
             bindingId: startBinding.id,
           },
         }
-
         const target = this.app.page.shapes[this.startBindingShapeId]
-
         const targetUtils = TLDR.getShapeUtil(target)
-
         const arrowChange = TLDR.getShapeUtil<ArrowShape>(next.shape.type).onBindingChange?.(
           next.shape,
           startBinding,
@@ -198,17 +169,12 @@ export class ArrowSession extends BaseSession {
           targetUtils.getExpandedBounds(target),
           targetUtils.getCenter(target)
         )
-
-        if (arrowChange) {
-          Object.assign(next.shape, arrowChange)
-        }
+        if (arrowChange) Object.assign(next.shape, arrowChange)
       } else {
         this.didBind = this.didBind || false
-
         if (this.app.page.bindings[this.newStartBindingId]) {
           next.bindings[this.newStartBindingId] = undefined
         }
-
         if (shape.handles.start.bindingId === this.newStartBindingId) {
           next.shape.handles = {
             ...next.shape.handles,
@@ -220,20 +186,15 @@ export class ArrowSession extends BaseSession {
         }
       }
     }
-
     // DRAGGED POINT BINDING
-
     let draggedBinding: ArrowBinding | undefined
-
     if (!metaKey) {
       const handle = next.shape.handles[this.handleId]
       const oppositeHandle = next.shape.handles[this.handleId === 'start' ? 'end' : 'start']
       const rayOrigin = Vec.add(oppositeHandle.point, next.shape.point)
       const rayPoint = Vec.add(handle.point, next.shape.point)
       const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
-
       const targets = this.bindableShapeIds.map((id) => this.app.page.shapes[id])
-
       for (const target of targets) {
         draggedBinding = this.findBindingPoint(
           shape,
@@ -245,16 +206,12 @@ export class ArrowSession extends BaseSession {
           rayDirection,
           altKey
         )
-
         if (draggedBinding) break
       }
     }
-
     if (draggedBinding) {
       this.didBind = true
-
       next.bindings[this.draggedBindingId] = draggedBinding
-
       next.shape.handles = {
         ...next.shape.handles,
         [this.handleId]: {
@@ -262,13 +219,9 @@ export class ArrowSession extends BaseSession {
           bindingId: this.draggedBindingId,
         },
       }
-
       const target = this.app.page.shapes[draggedBinding.toId]
-
       const targetUtils = TLDR.getShapeUtil(target)
-
       const utils = shapeUtils[TDShapeType.Arrow]
-
       const arrowChange = utils.onBindingChange(
         next.shape,
         draggedBinding,
@@ -277,21 +230,17 @@ export class ArrowSession extends BaseSession {
         targetUtils.getExpandedBounds(target),
         targetUtils.getCenter(target)
       )
-
       if (arrowChange) {
         Object.assign(next.shape, arrowChange)
       }
     } else {
       this.didBind = this.didBind || false
-
       const currentBindingId = shape.handles[this.handleId].bindingId
-
       if (currentBindingId) {
         next.bindings = {
           ...next.bindings,
           [currentBindingId]: undefined,
         }
-
         next.shape.handles = {
           ...next.shape.handles,
           [this.handleId]: {
@@ -301,7 +250,6 @@ export class ArrowSession extends BaseSession {
         }
       }
     }
-
     return {
       document: {
         pages: {
