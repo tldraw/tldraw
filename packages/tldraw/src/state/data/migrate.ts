@@ -72,6 +72,16 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     document.assets = {}
   }
 
+  if (version < 15.3) {
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.shapes).forEach((shape) => {
+        if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+          shape.style.isFilled = true
+        }
+      })
+    })
+  }
+
   // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {
     pageState.selectedIds = pageState.selectedIds.filter((id) => {

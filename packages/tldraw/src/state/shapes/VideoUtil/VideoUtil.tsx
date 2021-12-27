@@ -52,7 +52,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
       const rVideo = React.useRef<HTMLVideoElement>(null)
       const rWrapper = React.useRef<HTMLDivElement>(null)
 
-      const { currentTime = 0, size, isPlaying } = shape
+      const { currentTime = 0, size, isPlaying, style } = shape
 
       React.useLayoutEffect(() => {
         const wrapper = rWrapper.current
@@ -125,7 +125,12 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               }}
             />
           )}
-          <Wrapper ref={rWrapper} isDarkMode={meta.isDarkMode} isGhost={isGhost}>
+          <Wrapper
+            ref={rWrapper}
+            isDarkMode={meta.isDarkMode}
+            isGhost={isGhost}
+            isFilled={style.isFilled}
+          >
             <VideoElement
               ref={rVideo}
               id={shape.id + '_video'}
@@ -192,17 +197,33 @@ const Wrapper = styled('div', {
       false: { opacity: 1 },
       true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
     },
+    isFilled: {
+      true: {},
+      false: {},
+    },
     isDarkMode: {
-      true: {
+      true: {},
+      false: {},
+    },
+  },
+  compoundVariants: [
+    {
+      isFilled: true,
+      isDarkMode: true,
+      css: {
         boxShadow:
           '2px 3px 12px -2px rgba(0,0,0,.3), 1px 1px 4px rgba(0,0,0,.3), 1px 1px 2px rgba(0,0,0,.3)',
       },
-      false: {
+    },
+    {
+      isFilled: true,
+      isDarkMode: false,
+      css: {
         boxShadow:
           '2px 3px 12px -2px rgba(0,0,0,.2), 1px 1px 4px rgba(0,0,0,.16),  1px 1px 2px rgba(0,0,0,.16)',
       },
     },
-  },
+  ],
 })
 
 const VideoElement = styled('video', {

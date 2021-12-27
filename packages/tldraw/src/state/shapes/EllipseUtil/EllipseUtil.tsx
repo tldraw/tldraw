@@ -3,7 +3,7 @@ import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectEllipseBounds,
