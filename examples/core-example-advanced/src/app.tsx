@@ -201,6 +201,7 @@ export default function App({ onMount }: AppProps): JSX.Element {
         shapeUtils={shapeUtils} // Required
         page={appState.data.page} // Required
         pageState={appState.data.pageState} // Required
+        performanceMode={appState.data.performanceMode}
         meta={appState.data.meta}
         snapLines={appState.data.overlays.snapLines}
         onPointShape={onPointShape}

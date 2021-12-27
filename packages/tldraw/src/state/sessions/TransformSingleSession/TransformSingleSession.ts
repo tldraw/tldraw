@@ -5,6 +5,7 @@ import {
   Utils,
   TLBoundsWithCenter,
   TLBounds,
+  TLPerformanceMode,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
@@ -25,6 +26,7 @@ type SnapInfo =
 export class TransformSingleSession extends BaseSession {
   type = SessionType.TransformSingle
   status = TDStatus.Transforming
+  performanceMode = undefined
   transformType: TLBoundsEdge | TLBoundsCorner
   scaleX = 1
   scaleY = 1

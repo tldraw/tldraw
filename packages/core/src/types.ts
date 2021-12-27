@@ -4,6 +4,13 @@
 
 import type React from 'react'
 
+export enum TLPerformanceMode {
+  TransformSelected = 'transform_selected',
+  TranslateSelected = 'translate_selected',
+  TransformAll = 'transform_all',
+  TranslateAll = 'translate_all',
+}
+
 export type TLAssets = Record<string, TLAsset>
 
 export interface TLAsset {

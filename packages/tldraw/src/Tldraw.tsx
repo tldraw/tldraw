@@ -473,6 +473,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
+          performanceMode={app.session?.performanceMode}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
           onPinch={app.onPinch}

@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.0
+
+- Adds support for performance modes.
+- Makes assets an optional prop for the Renderer.
+
 ## 1.3.0
 
 - Adds assets for image and video shape types.
