@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 
-export function usePreventNavigation(rCanvas: React.RefObject<HTMLDivElement>): void {
+export function usePreventNavigationCss(rCanvas: React.RefObject<HTMLDivElement>): void {
   const { bounds } = useTLContext()
 
   React.useEffect(() => {

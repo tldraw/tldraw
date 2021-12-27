@@ -13,6 +13,7 @@ import { BaseSession } from '../BaseSession'
 
 export class EraseSession extends BaseSession {
   type = SessionType.Draw
+  performanceMode = undefined
   status = TDStatus.Creating
   isLocked?: boolean
   lockedDirection?: 'horizontal' | 'vertical'

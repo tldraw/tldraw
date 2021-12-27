@@ -115,6 +115,8 @@ const tlcss = css`
     --tl-zoom: 1;
     --tl-scale: calc(1 / var(--tl-zoom));
     --tl-padding: calc(64px * max(1, var(--tl-scale)));
+    --tl-performance-all: auto;
+    --tl-performance-selected: auto;
     position: relative;
     top: 0px;
     left: 0px;
@@ -200,6 +202,7 @@ const tlcss = css`
     justify-content: center;
     overflow: hidden;
     contain: layout style size;
+    will-change: var(--tl-performance-all);
   }
 
   .tl-positioned-svg {
@@ -217,6 +220,10 @@ const tlcss = css`
     padding: var(--tl-padding);
     overflow: hidden;
     contain: layout style size;
+  }
+
+  .tl-positioned-selected {
+    will-change: var(--tl-performance-selected);
   }
 
   .tl-inner-div {
@@ -325,6 +332,10 @@ const tlcss = css`
 
   .tl-editing {
     stroke-width: calc(2.5px * min(5, var(--tl-scale)));
+  }
+
+  .tl-performance {
+    will-change: transform, contents;
   }
 
   .tl-clone-target {
