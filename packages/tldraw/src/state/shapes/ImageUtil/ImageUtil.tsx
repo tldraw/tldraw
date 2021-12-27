@@ -36,7 +36,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
         point: [0, 0],
         size: [1, 1],
         rotation: 0,
-        style: defaultStyle,
+        style: { ...defaultStyle, isFilled: true },
         assetId: 'assetId',
       },
       props
@@ -45,7 +45,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, asset = { src: '' }, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
-      const { size } = shape
+      const { size, style } = shape
 
       const rImage = React.useRef<HTMLImageElement>(null)
       const rWrapper = React.useRef<HTMLDivElement>(null)
@@ -86,6 +86,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
           <Wrapper
             ref={rWrapper}
             isDarkMode={meta.isDarkMode} //
+            isFilled={style.isFilled}
             isGhost={isGhost}
           >
             <ImageElement
@@ -153,17 +154,33 @@ const Wrapper = styled('div', {
       false: { opacity: 1 },
       true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
     },
+    isFilled: {
+      true: {},
+      false: {},
+    },
     isDarkMode: {
-      true: {
+      true: {},
+      false: {},
+    },
+  },
+  compoundVariants: [
+    {
+      isFilled: true,
+      isDarkMode: true,
+      css: {
         boxShadow:
           '2px 3px 12px -2px rgba(0,0,0,.3), 1px 1px 4px rgba(0,0,0,.3), 1px 1px 2px rgba(0,0,0,.3)',
       },
-      false: {
+    },
+    {
+      isFilled: true,
+      isDarkMode: false,
+      css: {
         boxShadow:
           '2px 3px 12px -2px rgba(0,0,0,.2), 1px 1px 4px rgba(0,0,0,.16),  1px 1px 2px rgba(0,0,0,.16)',
       },
     },
-  },
+  ],
 })
 
 const ImageElement = styled('img', {

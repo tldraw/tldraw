@@ -19,7 +19,7 @@ Object {
   "style": Object {
     "color": "black",
     "dash": "draw",
-    "isFilled": false,
+    "isFilled": true,
     "scale": 1,
     "size": "small",
   },

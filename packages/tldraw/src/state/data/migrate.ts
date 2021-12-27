@@ -75,6 +75,12 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
   Object.values(document.pages).forEach((page) => {
     Object.values(page.shapes).forEach((shape) => {
       if (version < 15.2) {
+        if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+          shape.style.isFilled = true
+        }
+      }
+
+      if (version < 15.3) {
         if (
           shape.type === TDShapeType.Rectangle ||
           shape.type === TDShapeType.Triangle ||
