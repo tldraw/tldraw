@@ -636,29 +636,22 @@ describe('TldrawTestApp', () => {
   describe('When changing versions', () => {
     it('migrates correctly', async () => {
       const defaultState = TldrawTestApp.defaultState
-
       const withoutRoom = {
         ...defaultState,
       }
-
       delete withoutRoom.room
-
       TldrawTestApp.defaultState = withoutRoom
-
       const app = new TldrawTestApp('migrate_1')
-
+      await app.ready
       app.createShapes({
         id: 'rect1',
         type: TDShapeType.Rectangle,
       })
-
-      // TODO: Force the version to change and restore room.
       TldrawTestApp.version = 100
       TldrawTestApp.defaultState.room = defaultState.room
-
       const app2 = new TldrawTestApp('migrate_1')
-      app2.ready.then(() => expect(app2.getShape('rect1')).toBeTruthy())
-
+      await app2.ready
+      expect(app2.getShape('rect1')).toBeTruthy()
       return
     })
   })
