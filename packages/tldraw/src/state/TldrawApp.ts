@@ -360,8 +360,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             const toShape = page.shapes[binding.toId]
             const fromShape = page.shapes[binding.fromId]
 
-            const toUtils = TLDR.getShapeUtil(toShape)
+            if (!(toShape && fromShape)) {
+              delete next.document.pages[pageId].bindings[binding.id]
+              return
+            }
 
+            const toUtils = TLDR.getShapeUtil(toShape)
             const fromUtils = TLDR.getShapeUtil(fromShape)
 
             // We only need to update the binding's "from" shape
@@ -1011,7 +1015,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   setDisableAssets = (disableAssets: boolean): this => {
     this.patchState({ appState: { disableAssets } }, 'ui:toggled_disable_images')
-    this.persist()
     return this
   }
 
@@ -3361,12 +3364,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getShapeUtil = TLDR.getShapeUtil
 
-  static version = 15.3
+  static version = 15.2
 
   static defaultDocument: TDDocument = {
     id: 'doc',
     name: 'New Document',
-    version: 15,
+    version: TldrawApp.version,
     pages: {
       page: {
         id: 'page',

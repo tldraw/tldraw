@@ -186,6 +186,7 @@ const Wrapper = styled('div', {
   width: '100%',
   borderRadius: '3px',
   perspective: '800px',
+  overflow: 'hidden',
   p: {
     userSelect: 'none',
   },
@@ -227,8 +228,14 @@ const Wrapper = styled('div', {
 })
 
 const VideoElement = styled('video', {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
   maxWidth: '100%',
   minWidth: '100%',
-  pointerEvents: 'all',
+  pointerEvents: 'none',
+  objectFit: 'cover',
   borderRadius: 2,
 })
