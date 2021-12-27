@@ -2,12 +2,13 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import {
-  usePreventNavigation,
+  usePreventNavigationCss,
   useZoomEvents,
   useSafariFocusOutFix,
   useCanvasEvents,
   useCameraCss,
   useKeyEvents,
+  usePerformanceCss,
 } from '~hooks'
 import type {
   TLAssets,
@@ -15,6 +16,7 @@ import type {
   TLBounds,
   TLPage,
   TLPageState,
+  TLPerformanceMode,
   TLShape,
   TLSnapLine,
   TLUsers,
@@ -46,6 +48,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideRotateHandle: boolean
   hideGrid: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
+  performanceMode?: TLPerformanceMode
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
@@ -64,6 +67,7 @@ export const Canvas = observer(function _Canvas<
   users,
   userId,
   meta,
+  performanceMode,
   externalContainerRef,
   hideHandles,
   hideBounds,
@@ -87,9 +91,11 @@ export const Canvas = observer(function _Canvas<
 
   useSafariFocusOutFix()
 
-  usePreventNavigation(rCanvas)
+  usePreventNavigationCss(rCanvas)
 
   useCameraCss(rLayer, rContainer, pageState)
+
+  usePerformanceCss(performanceMode, rContainer)
 
   useKeyEvents()
 

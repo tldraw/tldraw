@@ -5,6 +5,7 @@ import { BaseSession } from '../BaseSession'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush
+  performanceMode = undefined
   status = TDStatus.Brushing
   initialSelectedIds: Set<string>
   shapesToTest: {

@@ -15,6 +15,7 @@ import type { TldrawApp } from '../../internal'
 
 export class GridSession extends BaseSession {
   type = SessionType.Grid
+  performanceMode = undefined
   status = TDStatus.Translating
   shape: TDShape
   bounds: TLBounds

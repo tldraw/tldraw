@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import type {HTMLProps} from 'react'
+import type { HTMLProps } from 'react'
 import * as React from 'react'
 import type { TLBounds } from '~types'
 import { usePosition } from '~hooks'
@@ -7,8 +7,9 @@ import { usePosition } from '~hooks'
 interface ContainerProps extends HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLBounds
-  isGhost?: boolean
   rotation?: number
+  isGhost?: boolean
+  isSelected?: boolean
   children: React.ReactNode
 }
 
@@ -17,6 +18,7 @@ export const Container = observer<ContainerProps>(function Container({
   bounds,
   rotation = 0,
   isGhost = false,
+  isSelected = false,
   children,
   ...props
 }) {
@@ -26,7 +28,9 @@ export const Container = observer<ContainerProps>(function Container({
     <div
       id={id}
       ref={rPositioned}
-      className={isGhost ? 'tl-positioned tl-ghost' : 'tl-positioned'}
+      className={`tl-positioned${isGhost ? ' tl-ghost' : ''}${
+        isSelected ? ` tl-positioned-selected` : ''
+      }`}
       aria-label="container"
       data-testid="container"
       {...props}
