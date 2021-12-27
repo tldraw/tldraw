@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
+import {
+  TLPageState,
+  Utils,
+  TLBoundsWithCenter,
+  TLSnapLine,
+  TLBounds,
+  TLPerformance,
+} from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TDShape,
@@ -41,6 +48,7 @@ type SnapInfo =
     }
 
 export class TranslateSession extends BaseSession {
+  performanceMode = TLPerformance.TranslateSelected
   type = SessionType.Translate
   status = TDStatus.Translating
   delta = [0, 0]

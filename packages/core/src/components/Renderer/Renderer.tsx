@@ -12,6 +12,7 @@ import type {
   TLSnapLine,
   TLUsers,
   TLAssets,
+  TLPerformance,
 } from '../../types'
 import { Canvas } from '../Canvas'
 import { Inputs } from '../../inputs'
@@ -101,6 +102,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   grid?: number
   /**
+   * (optional) Use a performance mode.
+   */
+  performanceMode?: TLPerformance
+  /**
    * (optional) A callback that receives the renderer's inputs manager.
    */
   onMount?: (inputs: Inputs) => void
@@ -134,6 +139,7 @@ export const Renderer = observer(function _Renderer<
   snapLines,
   grid,
   containerRef,
+  performanceMode,
   hideHandles = false,
   hideIndicators = false,
   hideCloneHandles = false,
@@ -198,6 +204,7 @@ export const Renderer = observer(function _Renderer<
         hideResizeHandles={hideResizeHandles}
         hideGrid={hideGrid}
         onBoundsChange={onBoundsChange}
+        performanceMode={performanceMode}
         meta={meta}
       />
     </TLContext.Provider>

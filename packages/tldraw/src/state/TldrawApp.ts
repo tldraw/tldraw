@@ -15,6 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
+  TLPerformance,
 } from '@tldraw/core'
 import {
   FlipType,
