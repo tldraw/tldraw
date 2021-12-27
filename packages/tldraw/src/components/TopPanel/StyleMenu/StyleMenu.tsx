@@ -95,6 +95,8 @@ const optionsSelector = (s: TDSnapshot) => {
       return 'label'
     }
   }
+
+  return false
 }
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
