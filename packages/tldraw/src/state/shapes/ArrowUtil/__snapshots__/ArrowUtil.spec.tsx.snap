@@ -36,6 +36,11 @@ Object {
     },
   },
   "id": "arrow",
+  "label": "",
+  "labelPoint": Array [
+    0.5,
+    0.5,
+  ],
   "name": "Arrow",
   "parentId": "page",
   "point": Array [

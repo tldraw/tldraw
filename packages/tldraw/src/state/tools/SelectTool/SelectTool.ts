@@ -182,37 +182,47 @@ export class SelectTool extends BaseTool<Status> {
     this.setStatus(Status.Idle)
   }
 
-  onKeyDown: TLKeyboardEventHandler = (key) => {
-    if (key === 'Escape') {
-      this.onCancel()
-      return
-    }
+  onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
+    switch (key) {
+      case 'Escape': {
+        this.onCancel()
+        break
+      }
+      case ' ': {
+        if (this.status === Status.Idle) {
+          this.setStatus(Status.SpacePanning)
+        }
+        break
+      }
+      case 'Tab': {
+        if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
+          const [selectedId] = this.app.selectedIds
+          const clonedShape = this.getShapeClone(selectedId, 'right')
 
-    if (key === ' ' && this.status === Status.Idle) {
-      this.setStatus(Status.SpacePanning)
-    }
-
-    if (key === 'Tab') {
-      if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
-        const [selectedId] = this.app.selectedIds
-        const clonedShape = this.getShapeClone(selectedId, 'right')
-
-        if (clonedShape) {
-          this.app.createShapes(clonedShape)
-          this.setStatus(Status.Idle)
-          if (clonedShape.type === TDShapeType.Sticky) {
-            this.app.select(clonedShape.id)
-            this.app.setEditingId(clonedShape.id)
+          if (clonedShape) {
+            this.app.createShapes(clonedShape)
+            this.setStatus(Status.Idle)
+            if (clonedShape.type === TDShapeType.Sticky) {
+              this.app.select(clonedShape.id)
+              this.app.setEditingId(clonedShape.id)
+            }
           }
         }
+        break
       }
-
-      return
-    }
-
-    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
-      this.app.updateSession()
-      return
+      case 'Meta':
+      case 'Control':
+      case 'Alt': {
+        this.app.updateSession()
+        break
+      }
+      case 'Enter': {
+        const { pageState } = this.app
+        if (pageState.selectedIds.length === 1 && !pageState.editingId) {
+          this.app.setEditingId(pageState.selectedIds[0])
+          e.preventDefault()
+        }
+      }
     }
   }
 
@@ -624,19 +634,29 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info) => {
-    if (info.target === 'center' || info.target === 'left' || info.target === 'right') {
-      this.app.select(
-        ...TLDR.getLinkedShapeIds(
-          this.app.state,
-          this.app.currentPageId,
-          info.target,
-          info.shiftKey
+    switch (info.target) {
+      case 'center':
+      case 'left':
+      case 'right': {
+        this.app.select(
+          ...TLDR.getLinkedShapeIds(
+            this.app.state,
+            this.app.currentPageId,
+            info.target,
+            info.shiftKey
+          )
         )
-      )
-    }
-
-    if (this.app.selectedIds.length === 1) {
-      this.app.resetBounds(this.app.selectedIds)
+        break
+      }
+      default: {
+        if (this.app.selectedIds.length === 1) {
+          this.app.resetBounds(this.app.selectedIds)
+          const shape = this.app.getShape(this.app.selectedIds[0])
+          if ('label' in shape) {
+            this.app.setEditingId(shape.id)
+          }
+        }
+      }
     }
   }
 
@@ -652,6 +672,19 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickHandle: TLPointerEventHandler = (info) => {
+    if (info.target === 'bend') {
+      const { selectedIds } = this.app
+      if (selectedIds.length !== 1) return
+      const shape = this.app.getShape(selectedIds[0])
+      if (
+        TLDR.getShapeUtil(shape.type).canEdit &&
+        (shape.parentId === this.app.currentPageId || shape.parentId === this.selectedGroupId)
+      ) {
+        this.app.setEditingId(shape.id)
+      }
+      return
+    }
+
     this.app.toggleDecoration(info.target)
   }
 

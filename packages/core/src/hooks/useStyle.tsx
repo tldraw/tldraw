@@ -200,7 +200,6 @@ const tlcss = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
     contain: layout style size;
     will-change: var(--tl-performance-all);
   }
@@ -233,7 +232,6 @@ const tlcss = css`
   }
 
   .tl-stroke-hitarea {
-    cursor: pointer;
     fill: none;
     stroke: transparent;
     stroke-width: calc(24px * var(--tl-scale));
@@ -243,7 +241,6 @@ const tlcss = css`
   }
 
   .tl-fill-hitarea {
-    cursor: pointer;
     fill: transparent;
     stroke: transparent;
     stroke-width: calc(24px * var(--tl-scale));

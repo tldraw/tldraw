@@ -53,6 +53,7 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
     camera: { zoom },
   } = pageState
 
+  let _hideIndicators = hideIndicators
   let _hideCloneHandles = true
   let _isEditing = false
 
@@ -63,9 +64,10 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
   if (selectedShapes.length === 1) {
     const shape = selectedShapes[0]
     _isEditing = editingId === shape.id
+    if (_isEditing) _hideIndicators = true
     const utils = shapeUtils[shape.type] as TLShapeUtil<any, any>
     _hideCloneHandles = hideCloneHandles || !utils.showCloneHandles
-    if (shape.handles !== undefined) {
+    if (shape.handles !== undefined && !_isEditing) {
       shapeWithHandles = shape
     }
   }
@@ -76,7 +78,7 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
       {shapeTree.map((node) => (
         <ShapeNode key={node.shape.id} utils={shapeUtils} {...node} />
       ))}
-      {!hideIndicators &&
+      {!_hideIndicators &&
         selectedShapes.map((shape) => (
           <ShapeIndicator
             key={'selected_' + shape.id}
@@ -86,7 +88,7 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
             isEditing={_isEditing}
           />
         ))}
-      {!hideIndicators && hoveredId && hoveredId !== editingId && (
+      {!_hideIndicators && hoveredId && hoveredId !== editingId && (
         <ShapeIndicator
           key={'hovered_' + hoveredId}
           shape={page.shapes[hoveredId]}

@@ -3364,7 +3364,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getShapeUtil = TLDR.getShapeUtil
 
-  static version = 15.2
+  static version = 15.3
 
   static defaultDocument: TDDocument = {
     id: 'doc',

@@ -20,7 +20,12 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"label\\": \\"\\",
+    \\"labelPoint\\": [
+      0.5,
+      0.5
+    ]
   },
   {
     \\"id\\": \\"rect2\\",
@@ -40,7 +45,12 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"label\\": \\"\\",
+    \\"labelPoint\\": [
+      0.5,
+      0.5
+    ]
   },
   {
     \\"id\\": \\"rect3\\",
@@ -60,7 +70,12 @@ exports[` 1`] = `
       \\"dash\\": \\"draw\\",
       \\"size\\": \\"medium\\",
       \\"color\\": \\"blue\\"
-    }
+    },
+    \\"label\\": \\"\\",
+    \\"labelPoint\\": [
+      0.5,
+      0.5
+    ]
   }
 ]"
 `;
@@ -84,6 +99,11 @@ Array [
               "rect1": Object {
                 "childIndex": 1,
                 "id": "rect1",
+                "label": "",
+                "labelPoint": Array [
+                  0.5,
+                  0.5,
+                ],
                 "name": "Rectangle",
                 "parentId": "page1",
                 "point": Array [
@@ -145,6 +165,11 @@ Array [
               "rect2": Object {
                 "childIndex": 1,
                 "id": "rect2",
+                "label": "",
+                "labelPoint": Array [
+                  0.5,
+                  0.5,
+                ],
                 "name": "Rectangle",
                 "parentId": "page1",
                 "point": Array [

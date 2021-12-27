@@ -65,7 +65,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
         e.stopPropagation()
       }, [])
 
-      const handleTextChange = React.useCallback(
+      const handleLabelChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           onShapeChange?.({
             id: shape.id,
@@ -212,7 +212,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 ref={rTextArea}
                 onPointerDown={handlePointerDown}
                 value={shape.text}
-                onChange={handleTextChange}
+                onChange={handleLabelChange}
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
                 onBlur={handleBlur}

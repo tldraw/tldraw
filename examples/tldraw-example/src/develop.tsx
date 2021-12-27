@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { TDShapeType, Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -12,6 +12,13 @@ export default function Develop(): JSX.Element {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
     rTldrawApp.current = app
+    // app.reset()
+    // app.createShapes({
+    //   id: 'box1',
+    //   type: TDShapeType.Rectangle,
+    //   point: [200, 200],
+    //   size: [200, 200],
+    // })
   }, [])
 
   const handleSignOut = React.useCallback(() => {

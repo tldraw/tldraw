@@ -91,6 +91,7 @@ export interface TLComponentProps<T extends TLShape, E = any, M = any> {
   isSelected: boolean
   isGhost?: boolean
   isChildOfSelected?: boolean
+  bounds: TLBounds
   meta: M
   onShapeChange?: TLShapeChangeHandler<T, any>
   onShapeBlur?: TLShapeBlurHandler<any>
