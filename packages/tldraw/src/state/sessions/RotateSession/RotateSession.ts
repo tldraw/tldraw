@@ -1,4 +1,4 @@
-import { TLPerformance, Utils } from '@tldraw/core'
+import { TLPerformanceMode, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
@@ -8,7 +8,7 @@ import type { TldrawApp } from '../../internal'
 export class RotateSession extends BaseSession {
   type = SessionType.Rotate
   status = TDStatus.Transforming
-  performanceMode = TLPerformance.TranslateSelected
+  performanceMode = TLPerformanceMode.TranslateSelected
   delta = [0, 0]
   commonBoundsCenter: number[]
   initialAngle: number

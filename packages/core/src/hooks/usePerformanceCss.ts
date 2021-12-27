@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { TLPerformance } from '~types'
+import { TLPerformanceMode } from '~types'
 
 export function usePerformanceCss(
-  performanceMode: TLPerformance | undefined,
+  performanceMode: TLPerformanceMode | undefined,
   rContainer: React.ForwardedRef<HTMLDivElement>
 ) {
   React.useLayoutEffect(() => {
@@ -10,22 +10,22 @@ export function usePerformanceCss(
       const container = rContainer?.current
       if (!container) return
       switch (performanceMode) {
-        case TLPerformance.TransformSelected: {
+        case TLPerformanceMode.TransformSelected: {
           container.style.setProperty('--tl-performance-all', 'auto')
           container.style.setProperty('--tl-performance-selected', 'transform, contents')
           break
         }
-        case TLPerformance.TransformAll: {
+        case TLPerformanceMode.TransformAll: {
           container.style.setProperty('--tl-performance-all', 'transform, contents')
           container.style.setProperty('--tl-performance-selected', 'transform, contents')
           break
         }
-        case TLPerformance.TranslateSelected: {
+        case TLPerformanceMode.TranslateSelected: {
           container.style.setProperty('--tl-performance-all', 'auto')
           container.style.setProperty('--tl-performance-selected', 'transform')
           break
         }
-        case TLPerformance.TranslateAll: {
+        case TLPerformanceMode.TranslateAll: {
           container.style.setProperty('--tl-performance-all', 'transform')
           container.style.setProperty('--tl-performance-selected', 'transform')
           break
@@ -36,5 +36,5 @@ export function usePerformanceCss(
         }
       }
     }
-  }, [performance])
+  }, [performanceMode])
 }

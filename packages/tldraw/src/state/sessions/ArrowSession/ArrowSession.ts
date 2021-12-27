@@ -14,11 +14,11 @@ import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { TLPerformance, Utils } from '@tldraw/core'
+import { TLPerformanceMode, Utils } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
-  performanceMode = TLPerformance.TransformSelected
+  performanceMode = TLPerformanceMode.TransformSelected
   status = TDStatus.TranslatingHandle
   newStartBindingId = Utils.uniqueId()
   draggedBindingId = Utils.uniqueId()

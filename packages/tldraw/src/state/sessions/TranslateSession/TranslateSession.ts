@@ -5,7 +5,7 @@ import {
   TLBoundsWithCenter,
   TLSnapLine,
   TLBounds,
-  TLPerformance,
+  TLPerformanceMode,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
@@ -48,7 +48,7 @@ type SnapInfo =
     }
 
 export class TranslateSession extends BaseSession {
-  performanceMode = TLPerformance.TranslateSelected
+  performanceMode = TLPerformanceMode.TranslateSelected
   type = SessionType.Translate
   status = TDStatus.Translating
   delta = [0, 0]

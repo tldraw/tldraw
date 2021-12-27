@@ -16,7 +16,7 @@ import type {
   TLBounds,
   TLPage,
   TLPageState,
-  TLPerformance,
+  TLPerformanceMode,
   TLShape,
   TLSnapLine,
   TLUsers,
@@ -48,7 +48,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideRotateHandle: boolean
   hideGrid: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
-  performanceMode?: TLPerformance
+  performanceMode?: TLPerformanceMode
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void

@@ -4,7 +4,7 @@
 
 import type React from 'react'
 
-export enum TLPerformance {
+export enum TLPerformanceMode {
   TransformSelected = 'transform_selected',
   TranslateSelected = 'translate_selected',
   TransformAll = 'transform_all',

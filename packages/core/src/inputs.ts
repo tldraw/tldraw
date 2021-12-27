@@ -239,7 +239,7 @@ export class Inputs {
 
     this.pointer = info
 
-    this.pointerUpTime = Date.now()
+    this.pointerUpTime = performance.now()
 
     return info
   }
@@ -300,7 +300,7 @@ export class Inputs {
     const { origin, point } = this.pointer
 
     const isDoubleClick =
-      Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION && Vec.dist(origin, point) < 4
+      performance.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION && Vec.dist(origin, point) < 4
 
     // Reset the active pointer, in case it got stuck
     if (isDoubleClick) this.activePointer = undefined

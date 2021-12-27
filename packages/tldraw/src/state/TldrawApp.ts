@@ -15,7 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
-  TLPerformance,
+  TLPerformanceMode,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -859,7 +859,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   setEditingId = (id?: string) => {
     if (this.readOnly) return
 
-    this.editingStartTime = Date.now()
+    this.editingStartTime = performance.now()
     this.patchState(
       {
         document: {
@@ -3267,7 +3267,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onShapeBlur = () => {
     // This prevents an auto-blur event from Safari
-    if (Date.now() - this.editingStartTime < 50) return
+    if (performance.now() - this.editingStartTime < 50) return
 
     const { editingId } = this.pageState
     const { isToolLocked } = this.getAppState()

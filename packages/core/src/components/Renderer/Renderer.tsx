@@ -12,7 +12,7 @@ import type {
   TLSnapLine,
   TLUsers,
   TLAssets,
-  TLPerformance,
+  TLPerformanceMode,
 } from '../../types'
 import { Canvas } from '../Canvas'
 import { Inputs } from '../../inputs'
@@ -35,7 +35,7 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
   /**
    * A map of assets to be used in the renderer.
    */
-  assets: TLAssets
+  assets?: TLAssets
   /**
    * (optional) A unique id to be applied to the renderer element, used to scope styles.
    */
@@ -104,7 +104,7 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
   /**
    * (optional) Use a performance mode.
    */
-  performanceMode?: TLPerformance
+  performanceMode?: TLPerformanceMode
   /**
    * (optional) A callback that receives the renderer's inputs manager.
    */
@@ -131,7 +131,7 @@ export const Renderer = observer(function _Renderer<
   shapeUtils,
   page,
   pageState,
-  assets,
+  assets = EMPTY_OBJECT,
   users,
   userId,
   theme,
@@ -210,3 +210,5 @@ export const Renderer = observer(function _Renderer<
     </TLContext.Provider>
   )
 })
+
+const EMPTY_OBJECT = {} as TLAssets

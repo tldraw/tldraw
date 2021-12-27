@@ -3,11 +3,11 @@ import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TDStatus } fro
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { TLPerformance } from '@tldraw/core'
+import { TLPerformanceMode } from '@tldraw/core'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle
-  performanceMode = TLPerformance.TransformSelected
+  performanceMode = TLPerformanceMode.TransformSelected
   status = TDStatus.TranslatingHandle
   commandId: string
   topLeft: number[]

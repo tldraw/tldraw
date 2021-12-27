@@ -1,4 +1,4 @@
-import { TLBounds, TLBoundsCorner, TLBoundsEdge, TLPerformance, Utils } from '@tldraw/core'
+import { TLBounds, TLBoundsCorner, TLBoundsEdge, TLPerformanceMode, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
@@ -18,7 +18,7 @@ type SnapInfo =
 
 export class TransformSession extends BaseSession {
   type = SessionType.Transform
-  performanceMode = TLPerformance.TransformSelected
+  performanceMode = TLPerformanceMode.TransformSelected
   status = TDStatus.Transforming
   scaleX = 1
   scaleY = 1

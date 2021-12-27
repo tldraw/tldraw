@@ -1,4 +1,4 @@
-import type { TLBinding, TLPage, TLPageState, TLSnapLine } from '@tldraw/core'
+import type { TLBinding, TLPage, TLPageState, TLPerformanceMode, TLSnapLine } from '@tldraw/core'
 import type { Shape } from '../shapes'
 import type { S } from '@state-designer/react'
 
@@ -104,6 +104,7 @@ export const INITIAL_DATA = {
   meta: {
     isDarkMode: false,
   },
+  performanceMode: undefined as TLPerformanceMode | undefined,
 }
 
 export type AppDocument = {

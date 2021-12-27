@@ -1,4 +1,4 @@
-import { TLPerformance, Utils } from '@tldraw/core'
+import { TLPerformanceMode, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
 import type { TldrawApp } from '../../internal'
@@ -6,7 +6,7 @@ import { BaseSession } from '../BaseSession'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
-  performanceMode = TLPerformance.TransformSelected
+  performanceMode = TLPerformanceMode.TransformSelected
   status = TDStatus.Creating
   topLeft: number[]
   points: number[][]
