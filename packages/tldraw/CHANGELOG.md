@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Adds performance modes to sessions.
+
 ## 1.3.0
 
 - Adds Video and Image shape types.
