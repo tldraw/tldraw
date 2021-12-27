@@ -1,3 +1,9 @@
+## 1.5.0
+
+- Fixes bug with black canvas after double reload.
+- Fixes rendering bug with tiny images / videos.
+- Adds labels to rectangles, triangles, circles, lines and arrows.
+
 ## 1.4.0
 
 - Adds support for performance modes to sessions.
