@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
-import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
+import { GHOSTED_OPACITY, LABEL_POINT, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { TextAreaUtils } from '.'

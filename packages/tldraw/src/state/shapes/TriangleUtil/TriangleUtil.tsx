@@ -15,7 +15,7 @@ import {
   intersectRayLineSegment,
 } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
 import { styled } from '~styles'
 import { DrawTriangle } from './components/DrawTriangle'
@@ -47,7 +47,8 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
-        text: '',
+        label: '',
+        labelPoint: [0.5, 0.5],
       },
       props
     )
@@ -57,6 +58,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     (
       {
         shape,
+        bounds,
         isBinding,
         isEditing,
         isSelected,
@@ -68,33 +70,29 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
       },
       ref
     ) => {
-      const { id, text, size, style } = shape
+      const { id, label = '', size, style, labelPoint = LABEL_POINT } = shape
       const font = getFontStyle(style)
       const Component = style.dash === DashStyle.Draw ? DrawTriangle : DashedTriangle
-
-      const handleTextChange = React.useCallback(
-        (text: string) => {
-          onShapeChange?.({ id, text })
-        },
+      const handleLabelChange = React.useCallback(
+        (label: string) => onShapeChange?.({ id, label }),
         [onShapeChange]
       )
-
       const offsetY = React.useMemo(() => {
         const center = Vec.div(size, 2)
         const centroid = getTriangleCentroid(size)
         return (centroid[1] - center[1]) * 0.72
       }, [size])
-
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
             isEditing={isEditing}
-            onChange={handleTextChange}
+            onChange={handleLabelChange}
             onBlur={onShapeBlur}
             isDarkMode={meta.isDarkMode}
             font={font}
-            text={text}
-            offsetY={offsetY}
+            text={label}
+            offsetX={(labelPoint[0] - 0.5) * bounds.width}
+            offsetY={offsetY + (labelPoint[1] - 0.5) * bounds.height}
           />
           <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && <TriangleBindingIndicator size={size} />}
@@ -130,7 +128,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
+    return next.size !== prev.size || next.style !== prev.style || next.label !== prev.label
   }
 
   getBounds = (shape: T) => {

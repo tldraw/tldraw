@@ -90,7 +90,8 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         isFilled: false,
         ...props.style,
       },
-      text: '',
+      label: '',
+      labelPoint: [0.5, 0.5],
       ...props,
     }
   }
@@ -99,14 +100,14 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     ({ shape, isEditing, isGhost, meta, events, onShapeChange, onShapeBlur }, ref) => {
       const {
         id,
-        text,
+        label = '',
         handles: { start, bend, end },
         decorations = {},
         style,
       } = shape
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
       const font = getFontStyle(style)
-      const labelSize = text || isEditing ? getTextLabelSize(text, font) : [0, 0]
+      const labelSize = label || isEditing ? getTextLabelSize(label, font) : [0, 0]
       const bounds = this.getBounds(shape)
       const dist = React.useMemo(() => {
         const { start, bend, end } = shape.handles
@@ -126,9 +127,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
         return offset
       }, [shape, scale])
-      const handleTextChange = React.useCallback(
-        (text: string) => {
-          onShapeChange?.({ id, text })
+      const handleLabelChange = React.useCallback(
+        (label: string) => {
+          onShapeChange?.({ id, label })
         },
         [onShapeChange]
       )
@@ -137,11 +138,11 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         <FullWrapper ref={ref} {...events}>
           <TextLabel
             isEditing={isEditing}
-            onChange={handleTextChange}
+            onChange={handleLabelChange}
             onBlur={onShapeBlur}
             isDarkMode={meta.isDarkMode}
             font={font}
-            text={text}
+            text={label}
             offsetX={offset[0]}
             offsetY={offset[1]}
             scale={scale}
@@ -171,7 +172,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             <g
               pointerEvents="none"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
-              mask={text || isEditing ? `url(#${shape.id}_clip)` : ``}
+              mask={label || isEditing ? `url(#${shape.id}_clip)` : ``}
             >
               <Component
                 id={id}
@@ -247,7 +248,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       next.decorations !== prev.decorations ||
       next.handles !== prev.handles ||
       next.style !== prev.style ||
-      next.text !== prev.text
+      next.label !== prev.label
     )
   }
 

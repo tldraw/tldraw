@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, SVGContainer } from '@tldraw/core'
 import { RectangleShape, DashStyle, TDShapeType, TDMeta } from '~types'
-import { GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   defaultStyle,
@@ -42,7 +42,8 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
         size: [1, 1],
         rotation: 0,
         style: defaultStyle,
-        text: '',
+        label: '',
+        labelPoint: [0.5, 0.5],
       },
       props
     )
@@ -57,33 +58,32 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
         isSelected,
         isGhost,
         meta,
+        bounds,
         events,
         onShapeBlur,
         onShapeChange,
       },
       ref
     ) => {
-      const { id, size, style, text } = shape
+      const { id, size, style, label = '', labelPoint = LABEL_POINT } = shape
       const font = getFontStyle(style)
       const styles = getShapeStyle(style, meta.isDarkMode)
       const Component = style.dash === DashStyle.Draw ? DrawRectangle : DashedRectangle
-
-      const handleTextChange = React.useCallback(
-        (text: string) => {
-          onShapeChange?.({ id, text })
-        },
+      const handleLabelChange = React.useCallback(
+        (label: string) => onShapeChange?.({ id, label }),
         [onShapeChange]
       )
-
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
             isEditing={isEditing}
-            onChange={handleTextChange}
+            onChange={handleLabelChange}
             onBlur={onShapeBlur}
             isDarkMode={meta.isDarkMode}
             font={font}
-            text={text}
+            text={label}
+            offsetX={(labelPoint[0] - 0.5) * bounds.width}
+            offsetY={(labelPoint[1] - 0.5) * bounds.height}
           />
           <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && <BindingIndicator strokeWidth={styles.strokeWidth} size={size} />}
@@ -127,7 +127,7 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T) => {
-    return next.size !== prev.size || next.style !== prev.style || next.text !== prev.text
+    return next.size !== prev.size || next.style !== prev.style || next.label !== prev.label
   }
 
   transform = transformRectangle

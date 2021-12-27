@@ -662,7 +662,7 @@ describe('TldrawTestApp', () => {
         setTimeout(() => {
           try {
             expect(app2.getShape('rect1')).toBeTruthy()
-            expect(app2.getShape<RectangleShape>('rect1').text).toBe('')
+            expect(app2.getShape<RectangleShape>('rect1').label).toBe('')
             done()
           } catch (e) {
             done(e)

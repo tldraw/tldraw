@@ -193,6 +193,7 @@ export enum TDStatus {
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
   PointingBoundsHandle = 'pointingBoundsHandle',
+  TranslatingLabel = 'translatingLabel',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
   Transforming = 'transforming',
@@ -295,7 +296,6 @@ export interface TDBaseShape extends TLShape {
   handles?: Record<string, TldrawHandle>
 }
 
-// The shape created with the draw tool
 export interface DrawShape extends TDBaseShape {
   type: TDShapeType.Draw
   points: number[][]
@@ -306,6 +306,27 @@ export interface DrawShape extends TDBaseShape {
 export interface TldrawHandle extends TLHandle {
   canBind?: boolean
   bindingId?: string
+}
+
+export interface RectangleShape extends TDBaseShape {
+  type: TDShapeType.Rectangle
+  size: number[]
+  label?: string
+  labelPoint?: number[]
+}
+
+export interface EllipseShape extends TDBaseShape {
+  type: TDShapeType.Ellipse
+  radius: number[]
+  label?: string
+  labelPoint?: number[]
+}
+
+export interface TriangleShape extends TDBaseShape {
+  type: TDShapeType.Triangle
+  size: number[]
+  label?: string
+  labelPoint?: number[]
 }
 
 // The shape created with the arrow tool
@@ -322,7 +343,8 @@ export interface ArrowShape extends TDBaseShape {
     end?: Decoration
     middle?: Decoration
   }
-  text: string
+  label?: string
+  labelPoint?: number[]
 }
 
 export interface ArrowBinding extends TLBinding {
@@ -332,20 +354,6 @@ export interface ArrowBinding extends TLBinding {
 }
 
 export type TDBinding = ArrowBinding
-
-// The shape created by the ellipse tool
-export interface EllipseShape extends TDBaseShape {
-  type: TDShapeType.Ellipse
-  radius: number[]
-  text: string
-}
-
-// The shape created by the rectangle tool
-export interface RectangleShape extends TDBaseShape {
-  type: TDShapeType.Rectangle
-  size: number[]
-  text: string
-}
 
 export interface ImageShape extends TDBaseShape {
   type: TDShapeType.Image
@@ -359,13 +367,6 @@ export interface VideoShape extends TDBaseShape {
   assetId: string
   isPlaying: boolean
   currentTime: number
-}
-
-// The shape created by the Triangle tool
-export interface TriangleShape extends TDBaseShape {
-  type: TDShapeType.Triangle
-  size: number[]
-  text: string
 }
 
 // The shape created by the text tool

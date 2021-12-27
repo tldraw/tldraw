@@ -35,6 +35,7 @@ export const Shape = observer(function Shape<T extends TLShape, E extends Elemen
         utils={utils as any}
         meta={meta}
         events={events}
+        bounds={bounds}
         onShapeChange={callbacks.onShapeChange}
         onShapeBlur={callbacks.onShapeBlur}
         {...rest}

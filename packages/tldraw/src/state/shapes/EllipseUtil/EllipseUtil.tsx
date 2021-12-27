@@ -3,7 +3,7 @@ import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle, getShapeStyle, getFontStyle } from '~state/shapes/shared'
 import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
-import { GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectEllipseBounds,
@@ -41,7 +41,8 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
         radius: [1, 1],
         rotation: 0,
         style: defaultStyle,
-        text: '',
+        label: '',
+        labelPoint: [0.5, 0.5],
       },
       props
     )
@@ -56,13 +57,14 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
         isBinding,
         isEditing,
         meta,
+        bounds,
         events,
         onShapeChange,
         onShapeBlur,
       },
       ref
     ) => {
-      const { id, radius, style, text } = shape
+      const { id, radius, style, label = '', labelPoint = LABEL_POINT } = shape
       const font = getFontStyle(shape.style)
       const styles = getShapeStyle(style, meta.isDarkMode)
       const strokeWidth = styles.strokeWidth
@@ -70,21 +72,21 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
       const rx = Math.max(0, radius[0] - sw / 2)
       const ry = Math.max(0, radius[1] - sw / 2)
       const Component = style.dash === DashStyle.Draw ? DrawEllipse : DashedEllipse
-      const handleTextChange = React.useCallback(
-        (text: string) => {
-          onShapeChange?.({ id, text })
-        },
+      const handleLabelChange = React.useCallback(
+        (label: string) => onShapeChange?.({ id, label }),
         [onShapeChange]
       )
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
             isEditing={isEditing}
-            onChange={handleTextChange}
+            onChange={handleLabelChange}
             onBlur={onShapeBlur}
             isDarkMode={meta.isDarkMode}
             font={font}
-            text={text}
+            text={label}
+            offsetX={(labelPoint[0] - 0.5) * bounds.width}
+            offsetY={(labelPoint[1] - 0.5) * bounds.height}
           />
           <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && (
@@ -186,7 +188,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T): boolean => {
-    return next.radius !== prev.radius || next.style !== prev.style || next.text !== prev.text
+    return next.radius !== prev.radius || next.style !== prev.style || next.label !== prev.label
   }
 
   getCenter = (shape: T): number[] => {

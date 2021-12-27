@@ -4,6 +4,11 @@ exports[`Rectangle shape Creates a shape: rectangle 1`] = `
 Object {
   "childIndex": 1,
   "id": "rectangle",
+  "label": "",
+  "labelPoint": Array [
+    0.5,
+    0.5,
+  ],
   "name": "Rectangle",
   "parentId": "page",
   "point": Array [
@@ -22,7 +27,6 @@ Object {
     "scale": 1,
     "size": "small",
   },
-  "text": "",
   "type": "rectangle",
 }
 `;
