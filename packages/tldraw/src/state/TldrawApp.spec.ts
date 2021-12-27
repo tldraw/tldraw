@@ -634,7 +634,7 @@ describe('TldrawTestApp', () => {
   jest.setTimeout(10000)
 
   describe('When changing versions', () => {
-    it('migrates correctly', (done) => {
+    it('migrates correctly', async () => {
       const defaultState = TldrawTestApp.defaultState
 
       const withoutRoom = {
@@ -652,22 +652,14 @@ describe('TldrawTestApp', () => {
         type: TDShapeType.Rectangle,
       })
 
-      setTimeout(() => {
-        // TODO: Force the version to change and restore room.
-        TldrawTestApp.version = 100
-        TldrawTestApp.defaultState.room = defaultState.room
+      // TODO: Force the version to change and restore room.
+      TldrawTestApp.version = 100
+      TldrawTestApp.defaultState.room = defaultState.room
 
-        const app2 = new TldrawTestApp('migrate_1')
+      const app2 = new TldrawTestApp('migrate_1')
+      app2.ready.then(() => expect(app2.getShape('rect1')).toBeTruthy())
 
-        setTimeout(() => {
-          try {
-            expect(app2.getShape('rect1')).toBeTruthy()
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }, 100)
-      }, 100)
+      return
     })
   })
 
