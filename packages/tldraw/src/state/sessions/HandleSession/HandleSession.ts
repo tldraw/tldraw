@@ -7,7 +7,7 @@ import { TLPerformanceMode } from '@tldraw/core'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle
-  performanceMode = TLPerformanceMode.TransformSelected
+  performanceMode = undefined
   status = TDStatus.TranslatingHandle
   commandId: string
   topLeft: number[]

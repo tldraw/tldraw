@@ -18,7 +18,7 @@ import { TLPerformanceMode, Utils } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
-  performanceMode = TLPerformanceMode.TransformSelected
+  performanceMode = undefined
   status = TDStatus.TranslatingHandle
   newStartBindingId = Utils.uniqueId()
   draggedBindingId = Utils.uniqueId()

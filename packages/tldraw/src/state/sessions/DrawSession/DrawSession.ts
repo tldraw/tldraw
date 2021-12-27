@@ -6,7 +6,7 @@ import { BaseSession } from '../BaseSession'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
-  performanceMode = TLPerformanceMode.TransformSelected
+  performanceMode = undefined
   status = TDStatus.Creating
   topLeft: number[]
   points: number[][]

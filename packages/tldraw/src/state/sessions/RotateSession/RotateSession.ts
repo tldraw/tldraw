@@ -8,7 +8,7 @@ import type { TldrawApp } from '../../internal'
 export class RotateSession extends BaseSession {
   type = SessionType.Rotate
   status = TDStatus.Transforming
-  performanceMode = TLPerformanceMode.TranslateSelected
+  performanceMode = undefined
   delta = [0, 0]
   commonBoundsCenter: number[]
   initialAngle: number

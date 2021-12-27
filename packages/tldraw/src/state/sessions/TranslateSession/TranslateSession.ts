@@ -48,7 +48,7 @@ type SnapInfo =
     }
 
 export class TranslateSession extends BaseSession {
-  performanceMode = TLPerformanceMode.TranslateSelected
+  performanceMode = undefined
   type = SessionType.Translate
   status = TDStatus.Translating
   delta = [0, 0]

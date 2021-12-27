@@ -18,7 +18,7 @@ type SnapInfo =
 
 export class TransformSession extends BaseSession {
   type = SessionType.Transform
-  performanceMode = TLPerformanceMode.TransformSelected
+  performanceMode = undefined
   status = TDStatus.Transforming
   scaleX = 1
   scaleY = 1

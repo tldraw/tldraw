@@ -26,7 +26,7 @@ type SnapInfo =
 export class TransformSingleSession extends BaseSession {
   type = SessionType.TransformSingle
   status = TDStatus.Transforming
-  performanceMode = TLPerformanceMode.TransformSelected
+  performanceMode = undefined
   transformType: TLBoundsEdge | TLBoundsCorner
   scaleX = 1
   scaleY = 1
