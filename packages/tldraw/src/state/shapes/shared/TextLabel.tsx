@@ -142,6 +142,8 @@ export const TextLabel = React.memo(function TextLabel({
     <TextWrapper>
       <InnerWrapper
         ref={rInnerWrapper}
+        hasText={!!text}
+        isEditing={isEditing}
         style={{
           font,
           color,
@@ -223,15 +225,24 @@ const InnerWrapper = styled('div', {
   userSelect: 'none',
   WebkitUserSelect: 'none',
   WebkitTouchCallout: 'none',
-  pointerEvents: 'all',
-  isEditing: {
-    false: {
-      userSelect: 'none',
+  variants: {
+    hasText: {
+      false: {
+        pointerEvents: 'none',
+      },
+      true: {
+        pointerEvents: 'all',
+      },
     },
-    true: {
-      background: '$boundsBg',
-      userSelect: 'text',
-      WebkitUserSelect: 'text',
+    isEditing: {
+      false: {
+        userSelect: 'none',
+      },
+      true: {
+        background: '$boundsBg',
+        userSelect: 'text',
+        WebkitUserSelect: 'text',
+      },
     },
   },
   ...commonTextWrapping,

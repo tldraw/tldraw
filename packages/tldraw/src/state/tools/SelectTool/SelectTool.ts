@@ -634,19 +634,29 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info) => {
-    if (info.target === 'center' || info.target === 'left' || info.target === 'right') {
-      this.app.select(
-        ...TLDR.getLinkedShapeIds(
-          this.app.state,
-          this.app.currentPageId,
-          info.target,
-          info.shiftKey
+    switch (info.target) {
+      case 'center':
+      case 'left':
+      case 'right': {
+        this.app.select(
+          ...TLDR.getLinkedShapeIds(
+            this.app.state,
+            this.app.currentPageId,
+            info.target,
+            info.shiftKey
+          )
         )
-      )
-    }
-
-    if (this.app.selectedIds.length === 1) {
-      this.app.resetBounds(this.app.selectedIds)
+        break
+      }
+      default: {
+        if (this.app.selectedIds.length === 1) {
+          this.app.resetBounds(this.app.selectedIds)
+          const shape = this.app.getShape(this.app.selectedIds[0])
+          if ('label' in shape) {
+            this.app.setEditingId(shape.id)
+          }
+        }
+      }
     }
   }
 

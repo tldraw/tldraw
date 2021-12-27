@@ -22,6 +22,7 @@ import {
   ShapeStyles,
   FontStyle,
   AlignStyle,
+  TDShapeType,
 } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
@@ -62,42 +63,59 @@ const ALIGN_ICONS = {
 
 const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
 
-const showTextStylesSelector = (s: TDSnapshot) => {
+const optionsSelector = (s: TDSnapshot) => {
   const { activeTool, currentPageId: pageId } = s.appState
-  const page = s.document.pages[pageId]
-
-  return (
-    activeTool === 'text' ||
-    s.document.pageStates[pageId].selectedIds.some((id) => 'text' in page.shapes[id])
-  )
+  switch (activeTool) {
+    case 'select': {
+      const page = s.document.pages[pageId]
+      let hasText = false
+      let hasLabel = false
+      for (const id of s.document.pageStates[pageId].selectedIds) {
+        if ('text' in page.shapes[id]) hasText = true
+        if ('label' in page.shapes[id]) hasLabel = true
+      }
+      return hasText ? 'text' : hasLabel ? 'label' : ''
+    }
+    case TDShapeType.Text: {
+      return 'text'
+    }
+    case TDShapeType.Rectangle: {
+      return 'label'
+    }
+    case TDShapeType.Ellipse: {
+      return 'label'
+    }
+    case TDShapeType.Triangle: {
+      return 'label'
+    }
+    case TDShapeType.Arrow: {
+      return 'label'
+    }
+    case TDShapeType.Line: {
+      return 'label'
+    }
+  }
 }
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
-
   const theme = app.useStore(themeSelector)
-  const showTextStyles = app.useStore(showTextStylesSelector)
-
+  const options = app.useStore(optionsSelector)
   const currentStyle = app.useStore(currentStyleSelector)
   const selectedIds = app.useStore(selectedIdsSelector)
-
   const [displayedStyle, setDisplayedStyle] = React.useState(currentStyle)
   const rDisplayedStyle = React.useRef(currentStyle)
-
   React.useEffect(() => {
     const {
       appState: { currentStyle },
       page,
       selectedIds,
     } = app
-
     let commonStyle = {} as ShapeStyles
-
     if (selectedIds.length <= 0) {
       commonStyle = currentStyle
     } else {
       const overrides = new Set<string>([])
-
       app.selectedIds
         .map((id) => page.shapes[id])
         .forEach((shape) => {
@@ -117,7 +135,6 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
           })
         })
     }
-
     // Until we can work out the correct logic for deciding whether or not to
     // update the selected style, do a string comparison. Yuck!
     if (JSON.stringify(commonStyle) !== JSON.stringify(rDisplayedStyle.current)) {
@@ -125,34 +142,27 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
       setDisplayedStyle(commonStyle)
     }
   }, [currentStyle, selectedIds])
-
   const handleToggleFilled = React.useCallback((checked: boolean) => {
     app.style({ isFilled: checked })
   }, [])
-
   const handleDashChange = React.useCallback((value: string) => {
     app.style({ dash: value as DashStyle })
   }, [])
-
   const handleSizeChange = React.useCallback((value: string) => {
     app.style({ size: value as SizeStyle })
   }, [])
-
   const handleFontChange = React.useCallback((value: string) => {
     app.style({ font: value as FontStyle })
   }, [])
-
   const handleTextAlignChange = React.useCallback((value: string) => {
     app.style({ textAlign: value as AlignStyle })
   }, [])
-
   const handleMenuOpenChange = React.useCallback(
     (open: boolean) => {
       app.setMenuOpen(open)
     },
     [app]
   )
-
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger asChild>
@@ -237,7 +247,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
             ))}
           </StyledGroup>
         </StyledRow>
-        {showTextStyles && (
+        {(options === 'text' || options === 'label') && (
           <>
             <Divider />
             <StyledRow>
@@ -256,26 +266,28 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                 ))}
               </StyledGroup>
             </StyledRow>
-            <StyledRow>
-              Align
-              <StyledGroup
-                dir="ltr"
-                value={displayedStyle.textAlign}
-                onValueChange={handleTextAlignChange}
-              >
-                {Object.values(AlignStyle).map((style) => (
-                  <DMRadioItem
-                    key={style}
-                    isActive={style === displayedStyle.textAlign}
-                    value={style}
-                    onSelect={preventEvent}
-                    bp={breakpoints}
-                  >
-                    {ALIGN_ICONS[style]}
-                  </DMRadioItem>
-                ))}
-              </StyledGroup>
-            </StyledRow>
+            {options === 'text' && (
+              <StyledRow>
+                Align
+                <StyledGroup
+                  dir="ltr"
+                  value={displayedStyle.textAlign}
+                  onValueChange={handleTextAlignChange}
+                >
+                  {Object.values(AlignStyle).map((style) => (
+                    <DMRadioItem
+                      key={style}
+                      isActive={style === displayedStyle.textAlign}
+                      value={style}
+                      onSelect={preventEvent}
+                      bp={breakpoints}
+                    >
+                      {ALIGN_ICONS[style]}
+                    </DMRadioItem>
+                  ))}
+                </StyledGroup>
+              </StyledRow>
+            )}
           </>
         )}
       </DMContent>

@@ -14,7 +14,7 @@ import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { TLPerformanceMode, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
@@ -65,10 +65,8 @@ export class ArrowSession extends BaseSession {
       // If we're editing an existing line, is there a binding already
       // for the dragging handle?
       const initialBindingId = this.initialShape.handles[this.handleId].bindingId
-
       if (initialBindingId) {
         this.initialBinding = page.bindings[initialBindingId]
-        this.bindableShapeIds.splice(this.bindableShapeIds.indexOf(initialBindingId), 1)
       } else {
         // If not, explicitly set this handle to undefined, so that it gets deleted on undo
         this.initialShape.handles[this.handleId].bindingId = undefined
