@@ -120,6 +120,8 @@ export class StateManager<T extends Record<string, any>> {
    * Save the current state to indexdb.
    */
   protected persist = (id?: string): void | Promise<void> => {
+    if (this._status !== 'ready') return
+
     if (this.onPersist) {
       this.onPersist(this._state, id)
     }
