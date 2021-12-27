@@ -1,6 +1,6 @@
 ## 1.4.0
 
-- Adds performance modes to sessions.
+- Adds support for performance modes to sessions.
 
 ## 1.3.0
 

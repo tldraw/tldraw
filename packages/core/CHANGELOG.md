@@ -2,7 +2,7 @@
 
 ## 1.4.0
 
-- Adds performance modes.
+- Adds support for performance modes.
 - Makes assets an optional prop for the Renderer.
 
 ## 1.3.0
