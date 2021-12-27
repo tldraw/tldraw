@@ -1015,7 +1015,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   setDisableAssets = (disableAssets: boolean): this => {
     this.patchState({ appState: { disableAssets } }, 'ui:toggled_disable_images')
-    this.persist()
     return this
   }
 
