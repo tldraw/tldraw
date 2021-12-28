@@ -15,10 +15,16 @@
  */
 // @license © 2020 Google LLC. Licensed under the Apache License, Version 2.0.
 
+import supported from './supported.js'
+
+const implementation = !supported
+  ? import('./legacy/file-save.js')
+  : import('./fs-access/file-save.js')
+
 /**
- * @module browser-fs-access
+ * For saving files, dynamically either loads the File System Access API module
+ * or the legacy method.
  */
-export { fileOpen } from './file-open.js'
-export { directoryOpen } from './directory-open.js'
-export { fileSave } from './file-save.js'
-export { default as supported } from './supported.js'
+export async function fileSave(...args) {
+  return (await implementation).default(...args)
+}
