@@ -5,6 +5,7 @@ import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { TextAreaUtils } from '.'
 import { getTextLabelSize } from './getTextSize'
+import { useTextKeyboardEvents } from './useTextKeyboardEvents'
 
 export interface TextLabelProps {
   font: string
@@ -40,48 +41,7 @@ export const TextLabel = React.memo(function TextLabel({
     [onChange]
   )
 
-  const handleKeyDown = React.useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      // If this keydown was just the meta key or a shortcut
-      // that includes holding the meta key like (Command+V)
-      // then leave the event untouched. We also have to explicitly
-      // Implement undo/redo for some reason in order to get this working
-      // in the vscode extension. Without the below code the following doesn't work
-      //
-      // - You can't cut/copy/paste when when text-editing/focused
-      // - You can't undo/redo when when text-editing/focused
-      // - You can't use Command+A to select all the text, when when text-editing/focused
-      if (!(e.key === 'Meta' || e.metaKey)) {
-        e.stopPropagation()
-      } else if (e.key === 'z' && e.metaKey) {
-        if (e.shiftKey) {
-          document.execCommand('redo', false)
-        } else {
-          document.execCommand('undo', false)
-        }
-        e.stopPropagation()
-        e.preventDefault()
-        return
-      }
-
-      if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-        e.currentTarget.blur()
-        return
-      }
-
-      if (e.key === 'Tab') {
-        e.preventDefault()
-        if (e.shiftKey) {
-          TextAreaUtils.unindent(e.currentTarget)
-        } else {
-          TextAreaUtils.indent(e.currentTarget)
-        }
-
-        onChange(TLDR.normalizeText(e.currentTarget.value))
-      }
-    },
-    [onChange]
-  )
+  const handleKeyDown = useTextKeyboardEvents(onChange)
 
   const handleBlur = React.useCallback(
     (e: React.FocusEvent<HTMLTextAreaElement>) => {

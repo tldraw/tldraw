@@ -167,7 +167,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                   rx={4 * scale}
                   ry={4 * scale}
                   fill="black"
-                  opacity={Math.max(scale, 0.8)}
+                  opacity={Math.max(scale, 0.9)}
                 />
               </mask>
             </defs>
