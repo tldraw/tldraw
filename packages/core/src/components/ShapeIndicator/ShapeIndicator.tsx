@@ -28,6 +28,7 @@ export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape
   return (
     <div
       ref={rPositioned}
+      draggable={false}
       className={[
         'tl-indicator',
         'tl-absolute',
@@ -41,6 +42,7 @@ export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape
             shape={shape}
             meta={meta}
             user={user}
+            bounds={bounds}
             isSelected={isSelected}
             isHovered={isHovered}
           />

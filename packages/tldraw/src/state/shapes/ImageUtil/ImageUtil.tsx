@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Utils, HTMLContainer } from '@tldraw/core'
-import { TDShapeType, TDMeta, ImageShape, TDAsset, TDImageAsset } from '~types'
+import { TDShapeType, TDMeta, ImageShape, TDImageAsset } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
@@ -193,5 +193,6 @@ const ImageElement = styled('img', {
   minWidth: '100%',
   pointerEvents: 'none',
   objectFit: 'cover',
+  userSelect: 'none',
   borderRadius: 2,
 })

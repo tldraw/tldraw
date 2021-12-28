@@ -63,7 +63,7 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
   },
   dark: {
     ...(Object.fromEntries(
-      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)])
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.82)])
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: 'rgb(30,33,37)',
     [ColorStyle.Black]: '#1e1e1f',
@@ -86,7 +86,7 @@ const fontSizes = {
 const fontFaces = {
   [FontStyle.Script]: '"Caveat Brush"',
   [FontStyle.Sans]: '"Source Sans Pro", sans-serif',
-  [FontStyle.Serif]: '"Source Serif Pro", serif',
+  [FontStyle.Serif]: '"Crimson Pro", serif',
   [FontStyle.Mono]: '"Source Code Pro", monospace',
 }
 

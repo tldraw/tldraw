@@ -12,6 +12,7 @@ import { TLDR } from '~state/TLDR'
 import { getTextAlign } from '../shared/getTextAlign'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { stopPropagation } from '~components/stopPropagation'
+import { useTextKeyboardEvents } from '../shared/useTextKeyboardEvents'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -86,56 +87,22 @@ export class TextUtil extends TDShapeUtil<T, E> {
           }
 
           onShapeChange?.({
-            ...shape,
+            id: shape.id,
             point: Vec.sub(shape.point, delta),
             text: TLDR.normalizeText(e.currentTarget.value),
           })
         },
-        [shape]
+        [shape.id, shape.point]
       )
 
-      const handleKeyDown = React.useCallback(
-        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          // If this keydown was just the meta key or a shortcut
-          // that includes holding the meta key like (Command+V)
-          // then leave the event untouched. We also have to explicitly
-          // Implement undo/redo for some reason in order to get this working
-          // in the vscode extension. Without the below code the following doesn't work
-          //
-          // - You can't cut/copy/paste when when text-editing/focused
-          // - You can't undo/redo when when text-editing/focused
-          // - You can't use Command+A to select all the text, when when text-editing/focused
-          if (!(e.key === 'Meta' || e.metaKey)) {
-            e.stopPropagation()
-          } else if (e.key === 'z' && e.metaKey) {
-            if (e.shiftKey) {
-              document.execCommand('redo', false)
-            } else {
-              document.execCommand('undo', false)
-            }
-            e.stopPropagation()
-            e.preventDefault()
-            return
-          }
-
-          if (e.key === 'Escape' || (e.key === 'Enter' && (e.ctrlKey || e.metaKey))) {
-            e.currentTarget.blur()
-            return
-          }
-
-          if (e.key === 'Tab') {
-            e.preventDefault()
-            if (e.shiftKey) {
-              TextAreaUtils.unindent(e.currentTarget)
-            } else {
-              TextAreaUtils.indent(e.currentTarget)
-            }
-
-            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
-          }
+      const onChange = React.useCallback(
+        (text: string) => {
+          onShapeChange?.({ id: shape.id, text })
         },
-        [shape, onShapeChange]
+        [shape.id]
       )
+
+      const handleKeyDown = useTextKeyboardEvents(onChange)
 
       const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
         e.currentTarget.setSelectionRange(0, 0)
@@ -341,7 +308,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: T): SVGElement | void => {
     const bounds = this.getBounds(shape)
-    const elm = getTextSvgElement(shape, bounds)
+    const elm = getTextSvgElement(shape.text, shape.style, bounds)
     elm.setAttribute('fill', getShapeStyle(shape.style).stroke)
     return elm
   }
