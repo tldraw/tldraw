@@ -485,6 +485,22 @@ export type TDAsset = TDImageAsset | TDVideoAsset
 export type TDAssets = Record<string, TDAsset>
 
 /* -------------------------------------------------- */
+/*                    Export                          */
+/* -------------------------------------------------- */
+
+export enum TDExportTypes {
+  PNG = 'png',
+  JPG = 'jpeg',
+  WEBP = 'webp',
+}
+
+export interface TDExportRequestBody {
+  shapes: TDShape[]
+  assets: TDAssets
+  type: TDExportTypes
+}
+
+/* -------------------------------------------------- */
 /*                    Type Helpers                    */
 /* -------------------------------------------------- */
 

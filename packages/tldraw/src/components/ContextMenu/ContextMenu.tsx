@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTldrawApp } from '~hooks'
-import { TDSnapshot, AlignType, DistributeType, StretchType } from '~types'
+import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportTypes } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -117,6 +117,16 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     app.redo()
   }, [app])
 
+  const handleExportPNG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.PNG)
+  }, [app])
+  const handleExportJPG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.JPG)
+  }, [app])
+  const handleExportWEBP = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.WEBP)
+  }, [app])
+
   const hasSelection = numberOfSelectedIds > 0
   const hasTwoOrMore = numberOfSelectedIds > 1
   const hasThreeOrMore = numberOfSelectedIds > 2
@@ -172,6 +182,11 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
                   To Back
                 </CMRowButton>
+              </ContextMenuSubMenu>
+              <ContextMenuSubMenu label="Export">
+                <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
+                <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
+                <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
               </ContextMenuSubMenu>
               <MoveToPageMenu />
               {hasTwoOrMore && (

@@ -15,7 +15,7 @@ import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
-import type { TDSnapshot } from '~types'
+import { TDExportTypes, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
@@ -37,6 +37,16 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const disableAssets = app.useStore(disableAssetsSelector)
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
+
+  const handleExportPNG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.PNG)
+  }, [app])
+  const handleExportJPG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.JPG)
+  }, [app])
+  const handleExportWEBP = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.WEBP)
+  }, [app])
 
   const handleSignIn = React.useCallback(() => {
     app.callbacks.onSignIn?.(app)
@@ -116,6 +126,11 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Save As...
               </DMItem>
             )}
+            <DMSubMenu label="Export page as...">
+              <DMItem onClick={handleExportPNG}>PNG</DMItem>
+              <DMItem onClick={handleExportJPG}>JPG</DMItem>
+              <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
+            </DMSubMenu>
             {!disableAssets && (
               <>
                 <Divider />

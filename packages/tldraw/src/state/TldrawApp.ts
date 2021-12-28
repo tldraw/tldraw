@@ -38,6 +38,9 @@ import {
   TDToolType,
   TDAssetType,
   TDAsset,
+  TDExportTypes,
+  TDAssets,
+  TDExportRequestBody,
 } from '~types'
 import {
   migrate,
@@ -62,6 +65,7 @@ import {
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
+  EXPORT_ENDPOINT,
 } from '~constants'
 import { SelectTool } from './tools/SelectTool'
 import { EraseTool } from './tools/EraseTool'
@@ -3326,6 +3330,68 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   isSelected(id: string) {
     return this.selectedIds.includes(id)
+  }
+
+  /* ----------------- Export ----------------- */
+
+  patchAssets(assets: TDAssets) {
+    this.document.assets = {
+      ...this.document.assets,
+      ...assets,
+    }
+  }
+
+  async exportAllShapesAs(type: TDExportTypes) {
+    const prevSelected = [...this.selectedIds]
+    this.selectAll()
+    await this.exportSelectedShapesAs(type)
+    this.select(...prevSelected)
+  }
+
+  async exportSelectedShapesAs(type: TDExportTypes) {
+    this.setIsLoading(true)
+    const assets: TDAssets = {}
+    const shapes = this.selectedIds
+      .map((id) => this.getShape(id))
+      .filter((s) => s.type !== TDShapeType.Video)
+
+    shapes.forEach((s) => {
+      if (s.assetId) {
+        assets[s.assetId] = this.document.assets[s.assetId]
+      }
+    })
+
+    const data: TDExportRequestBody = {
+      shapes: shapes,
+      assets: assets,
+      type,
+    }
+
+    try {
+      const response = await fetch(EXPORT_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      const blob = await response.blob()
+
+      this.downloadBlob(blob, type)
+      this.setIsLoading(false)
+    } catch (error) {
+      this.setIsLoading(false)
+
+      console.error(error)
+    }
+  }
+
+  downloadBlob(blob: Blob, type: TDExportTypes) {
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = (this.page.name || 'tldr') + '.' + type
+    link.click()
   }
 
   get room() {
