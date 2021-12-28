@@ -237,5 +237,6 @@ const VideoElement = styled('video', {
   minWidth: '100%',
   pointerEvents: 'none',
   objectFit: 'cover',
+  userSelect: 'none',
   borderRadius: 2,
 })

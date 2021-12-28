@@ -9,6 +9,7 @@ import { getTextLabelSize } from './getTextSize'
 export interface TextLabelProps {
   font: string
   text: string
+  color: string
   isDarkMode: boolean
   onBlur?: () => void
   onChange: (text: string) => void
@@ -22,6 +23,7 @@ export const TextLabel = React.memo(function TextLabel({
   isDarkMode,
   font,
   text,
+  color,
   offsetX = 0,
   offsetY = 0,
   scale = 1,
@@ -32,7 +34,7 @@ export const TextLabel = React.memo(function TextLabel({
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
   const size = getTextLabelSize(text, font)
-  const color = isDarkMode ? 'white' : 'black'
+  // const color = isDarkMode ? 'white' : 'black'
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {

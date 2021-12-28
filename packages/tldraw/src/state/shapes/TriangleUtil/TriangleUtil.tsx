@@ -20,7 +20,7 @@ import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
 import { styled } from '~styles'
 import { DrawTriangle } from './components/DrawTriangle'
 import { DashedTriangle } from './components/DashedTriangle'
-import { TextLabel } from '../shared/TextLabel'
+import { TextLabel, getShapeStyle } from '../shared'
 import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'
 
 type T = TriangleShape
@@ -72,6 +72,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     ) => {
       const { id, label = '', size, style, labelPoint = LABEL_POINT } = shape
       const font = getFontStyle(style)
+      const styles = getShapeStyle(style)
       const Component = style.dash === DashStyle.Draw ? DrawTriangle : DashedTriangle
       const handleLabelChange = React.useCallback(
         (label: string) => onShapeChange?.({ id, label }),
@@ -85,14 +86,15 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
-            isEditing={isEditing}
-            onChange={handleLabelChange}
-            onBlur={onShapeBlur}
-            isDarkMode={meta.isDarkMode}
             font={font}
             text={label}
+            color={styles.stroke}
             offsetX={(labelPoint[0] - 0.5) * bounds.width}
             offsetY={offsetY + (labelPoint[1] - 0.5) * bounds.height}
+            isEditing={isEditing}
+            isDarkMode={meta.isDarkMode}
+            onChange={handleLabelChange}
+            onBlur={onShapeBlur}
           />
           <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && <TriangleBindingIndicator size={size} />}

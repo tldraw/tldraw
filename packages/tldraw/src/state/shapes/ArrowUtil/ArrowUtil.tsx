@@ -33,10 +33,11 @@ import {
 } from './arrowHelpers'
 import { getTrianglePoints } from '../TriangleUtil/triangleHelpers'
 import { styled } from '~styles'
-import { TextLabel, getFontStyle } from '../shared'
+import { TextLabel, getFontStyle, getShapeStyle } from '../shared'
 import { getTextLabelSize } from '../shared/getTextSize'
 import { StraightArrow } from './components/StraightArrow'
 import { CurvedArrow } from './components/CurvedArrow.tsx'
+import { LabelMask } from '../shared/LabelMask'
 
 type T = ArrowShape
 type E = HTMLDivElement
@@ -107,6 +108,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       } = shape
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
       const font = getFontStyle(style)
+      const styles = getShapeStyle(style)
       const labelSize = label || isEditing ? getTextLabelSize(label, font) : [0, 0]
       const bounds = this.getBounds(shape)
       const dist = React.useMemo(() => {
@@ -137,15 +139,16 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
-            isEditing={isEditing}
-            onChange={handleLabelChange}
-            onBlur={onShapeBlur}
-            isDarkMode={meta.isDarkMode}
             font={font}
             text={label}
+            color={styles.stroke}
             offsetX={offset[0]}
             offsetY={offset[1]}
             scale={scale}
+            isEditing={isEditing}
+            isDarkMode={meta.isDarkMode}
+            onChange={handleLabelChange}
+            onBlur={onShapeBlur}
           />
           <SVGContainer id={shape.id + '_svg'}>
             <defs>
@@ -193,23 +196,66 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     }
   )
 
-  Indicator = TDShapeUtil.Indicator<ArrowShape>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<ArrowShape>(({ shape, bounds }) => {
     const {
       style,
       decorations,
+      label,
       handles: { start, bend, end },
     } = shape
+    const font = getFontStyle(style)
+    const labelSize = label ? getTextLabelSize(label, font) : [0, 0]
+    const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
+    const dist = React.useMemo(() => {
+      const { start, bend, end } = shape.handles
+      if (isStraightLine) return Vec.dist(start.point, end.point)
+      const circle = getCtp(start.point, bend.point, end.point)
+      const center = circle.slice(0, 2)
+      const radius = circle[2]
+      const length = getArcLength(center, radius, start.point, end.point)
+      return Math.abs(length)
+    }, [shape.handles])
+    const scale = Math.max(
+      0.5,
+      Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
+    )
+    const offset = React.useMemo(() => {
+      const bounds = this.getBounds(shape)
+      const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
+      return offset
+    }, [shape, scale])
     return (
-      <path
-        d={getArrowPath(
-          style,
-          start.point,
-          bend.point,
-          end.point,
-          decorations?.start,
-          decorations?.end
+      <>
+        <LabelMask
+          id={shape.id}
+          scale={scale}
+          offset={offset}
+          bounds={bounds}
+          labelSize={labelSize}
+        />
+        <path
+          d={getArrowPath(
+            style,
+            start.point,
+            bend.point,
+            end.point,
+            decorations?.start,
+            decorations?.end
+          )}
+          mask={label ? `url(#${shape.id}_clip)` : ``}
+        />
+        {label && (
+          <rect
+            x={bounds.width / 2 - (labelSize[0] / 2) * scale + offset[0]}
+            y={bounds.height / 2 - (labelSize[1] / 2) * scale + offset[1]}
+            width={labelSize[0] * scale}
+            height={labelSize[1] * scale}
+            rx={4 * scale}
+            ry={4 * scale}
+            fill="transparent"
+          />
         )}
-      />
+      </>
     )
   })
 

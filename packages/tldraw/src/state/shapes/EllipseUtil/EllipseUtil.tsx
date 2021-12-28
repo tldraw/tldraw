@@ -85,6 +85,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             isDarkMode={meta.isDarkMode}
             font={font}
             text={label}
+            color={styles.stroke}
             offsetX={(labelPoint[0] - 0.5) * bounds.width}
             offsetY={(labelPoint[1] - 0.5) * bounds.height}
           />

@@ -21,6 +21,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     shape: T
     meta: M
     user?: TLUser<T>
+    bounds: TLBounds
     isHovered: boolean
     isSelected: boolean
   }) => React.ReactElement | null
@@ -64,6 +65,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
       meta: M
       isHovered: boolean
       isSelected: boolean
+      bounds: TLBounds
     }) => JSX.Element
   ) => component
 }

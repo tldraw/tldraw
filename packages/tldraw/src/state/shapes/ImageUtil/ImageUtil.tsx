@@ -193,5 +193,6 @@ const ImageElement = styled('img', {
   minWidth: '100%',
   pointerEvents: 'none',
   objectFit: 'cover',
+  userSelect: 'none',
   borderRadius: 2,
 })
