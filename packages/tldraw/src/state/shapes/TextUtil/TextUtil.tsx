@@ -341,7 +341,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: T): SVGElement | void => {
     const bounds = this.getBounds(shape)
-    const elm = getTextSvgElement(shape, bounds)
+    const elm = getTextSvgElement(shape.text, shape.style, bounds)
     elm.setAttribute('fill', getShapeStyle(shape.style).stroke)
     return elm
   }

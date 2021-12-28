@@ -146,7 +146,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             offsetY={offset[1]}
             scale={scale}
             isEditing={isEditing}
-            isDarkMode={meta.isDarkMode}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
           />

@@ -79,7 +79,6 @@ export class RectangleUtil extends TDShapeUtil<T, E> {
             isEditing={isEditing}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
-            isDarkMode={meta.isDarkMode}
             font={font}
             text={label}
             color={styles.stroke}

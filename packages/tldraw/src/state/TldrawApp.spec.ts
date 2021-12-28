@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, ColorStyle, RectangleShape, SessionType, TDShapeType } from '~types'
+import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TldrawTestApp', () => {

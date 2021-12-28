@@ -1,43 +1,39 @@
 import type { TLBounds } from '@tldraw/core'
-import { AlignStyle, StickyShape, TextShape } from '~types'
+import { AlignStyle, ShapeStyles } from '~types'
 import { getFontFace, getFontSize } from './shape-styles'
 import { getTextAlign } from './getTextAlign'
+import { LINE_HEIGHT } from '~constants'
 
-export function getTextSvgElement(shape: TextShape | StickyShape, bounds: TLBounds) {
-  const { text, style } = shape
-  const fontSize = getFontSize(shape.style.size, shape.style.font)
-
+export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBounds) {
+  const fontSize = getFontSize(style.size, style.font)
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-  const LINE_HEIGHT = fontSize * 1.3
-
   const textLines = text.split('\n').map((line, i) => {
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
-    textElm.setAttribute('font-family', getFontFace(style.font))
-    textElm.setAttribute('font-size', fontSize + 'px')
-    textElm.setAttribute('text-anchor', 'start')
-    textElm.setAttribute('alignment-baseline', 'central')
-    textElm.setAttribute('text-align', getTextAlign(style.textAlign))
-    textElm.setAttribute('y', LINE_HEIGHT * (0.5 + i) + '')
+    textElm.setAttribute('y', LINE_HEIGHT * fontSize * (0.5 + i) + '')
     g.appendChild(textElm)
-
     return textElm
   })
-
-  if (style.textAlign === AlignStyle.Middle) {
-    textLines.forEach((textElm) => {
-      textElm.setAttribute('x', bounds.width / 2 + '')
-      textElm.setAttribute('text-align', 'center')
-      textElm.setAttribute('text-anchor', 'middle')
-    })
-  } else if (style.textAlign === AlignStyle.End) {
-    textLines.forEach((textElm) => {
-      textElm.setAttribute('x', bounds.width + '')
-      textElm.setAttribute('text-align', 'right')
-      textElm.setAttribute('text-anchor', 'end')
-    })
+  g.setAttribute('font-size', fontSize + '')
+  g.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
+  g.setAttribute('text-align', getTextAlign(style.textAlign))
+  switch (style.textAlign) {
+    case AlignStyle.Middle: {
+      g.setAttribute('text-align', 'center')
+      g.setAttribute('text-anchor', 'middle')
+      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width / 2 + ''))
+      break
+    }
+    case AlignStyle.End: {
+      g.setAttribute('text-align', 'right')
+      g.setAttribute('text-anchor', 'end')
+      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width + ''))
+      break
+    }
+    case AlignStyle.Start: {
+      g.setAttribute('text-anchor', 'start')
+      g.setAttribute('alignment-baseline', 'central')
+    }
   }
-
   return g
 }

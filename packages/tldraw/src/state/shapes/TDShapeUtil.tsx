@@ -11,6 +11,9 @@ import { Vec } from '@tldraw/vec'
 import type { TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
+import { getTextSvgElement } from './shared/getTextSvgElement'
+import { getTextLabelSize } from './shared/getTextSize'
+import { getFontStyle, getShapeStyle } from './shared'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,
@@ -188,6 +191,24 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
   onSessionComplete?: (shape: T) => Partial<T> | void
 
   getSvgElement = (shape: T): SVGElement | void => {
-    return document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
+    const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
+    if (!elm) return // possibly in test mode
+    if ('label' in shape && shape.label !== undefined) {
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      const bounds = this.getBounds(shape)
+      const labelElm = getTextSvgElement(shape.label, shape.style, bounds)
+      labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
+      const font = getFontStyle(shape.style)
+      const size = getTextLabelSize(shape.label, font)
+      labelElm.setAttribute('transform-origin', 'top left')
+      labelElm.setAttribute(
+        'transform',
+        `translate(${(bounds.width - size[0]) / 2}, ${(bounds.height - size[1]) / 2})`
+      )
+      g.appendChild(elm)
+      g.appendChild(labelElm)
+      return g
+    }
+    return elm
   }
 }

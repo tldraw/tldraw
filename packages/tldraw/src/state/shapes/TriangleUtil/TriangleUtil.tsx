@@ -92,7 +92,6 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
             offsetX={(labelPoint[0] - 0.5) * bounds.width}
             offsetY={offsetY + (labelPoint[1] - 0.5) * bounds.height}
             isEditing={isEditing}
-            isDarkMode={meta.isDarkMode}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
           />

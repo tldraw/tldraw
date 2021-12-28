@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
-import { GHOSTED_OPACITY, LABEL_POINT, LETTER_SPACING } from '~constants'
+import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { TextAreaUtils } from '.'
@@ -10,7 +10,6 @@ export interface TextLabelProps {
   font: string
   text: string
   color: string
-  isDarkMode: boolean
   onBlur?: () => void
   onChange: (text: string) => void
   offsetY?: number
@@ -20,7 +19,6 @@ export interface TextLabelProps {
 }
 
 export const TextLabel = React.memo(function TextLabel({
-  isDarkMode,
   font,
   text,
   color,
@@ -34,7 +32,6 @@ export const TextLabel = React.memo(function TextLabel({
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
   const size = getTextLabelSize(text, font)
-  // const color = isDarkMode ? 'white' : 'black'
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
