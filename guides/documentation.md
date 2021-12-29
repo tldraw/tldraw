@@ -101,7 +101,7 @@ function App() {
 }
 ```
 
-**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tldraw/core](https://github.com/tldraw/core) library.
+**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tldraw/core](/packages/core) library.
 
 **Tip:** The `assets` in tldraw is a table of `TDAssets` (images and videos).
 
