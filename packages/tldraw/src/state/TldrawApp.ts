@@ -139,7 +139,8 @@ export interface TDCallbacks {
   onChangePage?: (
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
-    bindings: Record<string, TDBinding | undefined>
+    bindings: Record<string, TDBinding | undefined>,
+    assets: Record<string, TDAsset | undefined>
   ) => void
   /**
    * (optional) A callback to run when the user creates a new project.
@@ -533,12 +534,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   private justSent = false
   private prevShapes = this.page.shapes
   private prevBindings = this.page.bindings
+  private prevAssets = this.document.assets
 
   private broadcastPageChanges = () => {
     const visited = new Set<string>()
 
     const changedShapes: Record<string, TDShape | undefined> = {}
     const changedBindings: Record<string, TDBinding | undefined> = {}
+    const changedAssets: Record<string, TDAsset | undefined> = {}
 
     this.shapes.forEach((shape) => {
       visited.add(shape.id)
@@ -570,12 +573,47 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         changedBindings[id] = undefined
       })
 
+    this.bindings.forEach((binding) => {
+      visited.add(binding.id)
+      if (this.prevBindings[binding.id] !== binding) {
+        changedBindings[binding.id] = binding
+      }
+    })
+
+    Object.keys(this.prevAssets)
+      .filter((id) => !visited.has(id))
+      .forEach((id) => {
+        // After visiting all the current bindings, if we haven't visited a
+        // previously present shape, then it was deleted
+        changedAssets[id] = undefined
+      })
+
+    Object.values(this.document.assets).forEach((asset) => {
+      visited.add(asset.id)
+      if (this.prevAssets[asset.id] !== asset) {
+        changedAssets[asset.id] = asset
+      }
+    })
+
+    Object.keys(this.prevAssets)
+      .filter((id) => !visited.has(id))
+      .forEach((id) => {
+        // After visiting all the current bindings, if we haven't visited a
+        // previously present shape, then it was deleted
+        changedBindings[id] = undefined
+      })
+
     // Only trigger update if shapes or bindings have changed
-    if (Object.keys(changedBindings).length > 0 || Object.keys(changedShapes).length > 0) {
+    if (
+      Object.keys(changedBindings).length > 0 ||
+      Object.keys(changedShapes).length > 0 ||
+      Object.keys(changedAssets).length > 0
+    ) {
       this.justSent = true
-      this.callbacks.onChangePage?.(this, changedShapes, changedBindings)
+      this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets)
       this.prevShapes = this.page.shapes
       this.prevBindings = this.page.bindings
+      this.prevAssets = this.document.assets
     }
   }
 
@@ -2842,6 +2880,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             },
           })
+          this.persist()
         } else assetId = match.id
         this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
       }
