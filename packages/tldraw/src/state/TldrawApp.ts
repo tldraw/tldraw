@@ -580,14 +580,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     })
 
-    Object.keys(this.prevAssets)
-      .filter((id) => !visited.has(id))
-      .forEach((id) => {
-        // After visiting all the current bindings, if we haven't visited a
-        // previously present shape, then it was deleted
-        changedAssets[id] = undefined
-      })
-
     Object.values(this.document.assets).forEach((asset) => {
       visited.add(asset.id)
       if (this.prevAssets[asset.id] !== asset) {
@@ -600,7 +592,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       .forEach((id) => {
         // After visiting all the current bindings, if we haven't visited a
         // previously present shape, then it was deleted
-        changedBindings[id] = undefined
+        changedAssets[id] = undefined
       })
 
     // Only trigger update if shapes or bindings have changed
@@ -678,6 +670,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   public replacePageContent = (
     shapes: Record<string, TDShape>,
     bindings: Record<string, TDBinding>,
+    assets: Record<string, TDAsset>,
     pageId = this.currentPageId
   ): this => {
     if (this.justSent) {
@@ -738,6 +731,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // were deleted on the server.
       this.prevShapes = shapes
       this.prevBindings = bindings
+      this.prevAssets = assets
 
       const nextShapes = {
         ...shapes,
@@ -747,6 +741,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const nextBindings = {
         ...bindings,
         ...reservedBindings,
+      }
+      const nextAssets = {
+        ...assets,
       }
 
       const next: TDSnapshot = {
@@ -760,6 +757,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               bindings: nextBindings,
             },
           },
+          assets: nextAssets ?? {},
           pageStates: {
             ...current.document.pageStates,
             [pageId]: {

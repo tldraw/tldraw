@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser, TDAsset } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -164,7 +164,8 @@ export interface TldrawProps extends TDCallbacks {
   onChangePage?: (
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
-    bindings: Record<string, TDBinding | undefined>
+    bindings: Record<string, TDBinding | undefined>,
+    assets: Record<string, TDAsset | undefined>
   ) => void
 }
 
