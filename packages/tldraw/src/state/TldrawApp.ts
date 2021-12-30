@@ -757,7 +757,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               bindings: nextBindings,
             },
           },
-          assets: nextAssets ?? {},
+          assets: nextAssets,
           pageStates: {
             ...current.document.pageStates,
             [pageId]: {

@@ -665,7 +665,7 @@ describe('TldrawTestApp', () => {
           //
         },
       }).createPage()
-      app.replacePageContent(shapes, bindings)
+      app.replacePageContent(shapes, bindings, {})
 
       expect(app.shapes).toEqual(Object.values(shapes))
       expect(app.bindings).toEqual(Object.values(bindings))
@@ -680,7 +680,7 @@ describe('TldrawTestApp', () => {
         },
       }).createPage()
       app.setSetting('isDebugMode', true)
-      app.replacePageContent(shapes, bindings)
+      app.replacePageContent(shapes, bindings, {})
 
       expect(app.shapes).toEqual(Object.values(shapes))
       expect(app.bindings).toEqual(Object.values(bindings))
