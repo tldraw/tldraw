@@ -43,8 +43,8 @@ function Editor({ roomId }: { roomId: string }) {
          * without providing a storage bucket based solution will cause
          * massive base64 string to be written to the liveblocks room.
          *
-         * Base64 storage is enabled here for testing only.
-         * Test with very small images only
+         * Base64 storage is enabled here for testing.
+         * Use very small images only
          */
         disableAssets={false}
         // onImageCreate={async (file: File, id: string) => {
