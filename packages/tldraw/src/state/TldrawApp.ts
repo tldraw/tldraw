@@ -575,19 +575,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         changedBindings[id] = undefined
       })
 
-    this.bindings.forEach((binding) => {
-      visited.add(binding.id)
-      if (this.prevBindings[binding.id] !== binding) {
-        changedBindings[binding.id] = binding
-      }
-    })
-
-    Object.values(this.document.assets).forEach((asset) => {
-      if (asset) {
-        visited.add(asset.id)
-        if (this.prevAssets[asset.id] !== asset) {
-          changedAssets[asset.id] = asset
-        }
+    this.assets.forEach((asset) => {
+      visited.add(asset.id)
+      if (this.prevAssets[asset.id] !== asset) {
+        changedAssets[asset.id] = asset
       }
     })
 
@@ -1595,6 +1586,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   get bindings(): TDBinding[] {
     return Object.values(this.page.bindings)
+  }
+
+  /**
+   * The document's assets (as an array).
+   */
+  get assets(): TDAsset[] {
+    return Object.values(this.document.assets)
   }
 
   /**
