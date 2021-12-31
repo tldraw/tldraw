@@ -1,14 +1,14 @@
-import type { TDAssets, TldrawCommand } from '~types'
+import type { TDAsset, TDAssets, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 const removeAssetsFromDocument = (assets: TDAssets, idsToRemove: string[]) => {
-  const updatedAssets = {} as TDAssets
+  const updatedAssets: Record<string, TDAsset | undefined> = {}
   Object.entries(assets).forEach(([id, entry]) => {
     if (idsToRemove.includes(id)) {
-      updatedAssets[id] = undefined!
-    } else {
       updatedAssets[id] = entry
+    } else {
+      updatedAssets[id] = undefined
     }
   })
   return updatedAssets
