@@ -581,11 +581,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     })
 
     Object.values(this.document.assets).forEach((asset) => {
-      visited.add(asset.id)
-      if (this.prevAssets[asset.id] !== asset) {
-        changedAssets[asset.id] = asset
+      if (asset) {
+        visited.add(asset.id)
+        if (this.prevAssets[asset.id] !== asset) {
+          changedAssets[asset.id] = asset
+        }
       }
     })
+
+    debugger
 
     Object.keys(this.prevAssets)
       .filter((id) => !visited.has(id))
@@ -2569,8 +2573,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.callbacks.onImageDelete) {
       ids.forEach((id) => {
         const node = this.getShape(id)
-        if (node.type === TDShapeType.Image || node.type === TDShapeType.Video)
+        if (node.type === TDShapeType.Image || node.type === TDShapeType.Video) {
           this.callbacks.onImageDelete!(id)
+        }
       })
     }
 
@@ -2878,7 +2883,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             },
           })
-          this.persist()
         } else assetId = match.id
         this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
       }

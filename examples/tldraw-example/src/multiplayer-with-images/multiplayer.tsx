@@ -14,7 +14,7 @@ const client = createClient({
   throttle: 100,
 })
 
-const roomId = 'mp-test-8'
+const roomId = 'mp-test-images-1'
 
 export function Multiplayer() {
   return (

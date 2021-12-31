@@ -178,7 +178,8 @@ export function useMultiplayerState(roomId: string) {
       const handleChanges = () => {
         app?.replacePageContent(
           Object.fromEntries(lShapes.entries()),
-          Object.fromEntries(lBindings.entries())
+          Object.fromEntries(lBindings.entries()),
+          {}
         )
       }
 
