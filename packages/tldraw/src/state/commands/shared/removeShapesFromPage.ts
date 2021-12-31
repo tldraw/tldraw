@@ -1,12 +1,9 @@
 import { TLDR } from '~state/TLDR'
-import { ArrowShape, TDSnapshot, GroupShape, PagePartial, TDShapeType, TDPage } from '~types'
+import type { ArrowShape, GroupShape, PagePartial, TDPage, TDSnapshot } from '~types'
 
 const doesAssetExistInAnotherShape = (page: TDPage, deletedShapes: string[], assetId: string) =>
-  !!Object.values(page.shapes).find(
-    (s) =>
-      s.type === TDShapeType.Image ||
-      (s.type === TDShapeType.Video && s.assetId === assetId && !deletedShapes.includes(s.id))
-  )
+  !!Object.values(page.shapes).find((s) => s.assetId === assetId && !deletedShapes.includes(s.id))
+
 const canDeleteAsset = (data: TDSnapshot, deletedShapes: string[], assetId: string) => {
   return !!Object.values(data.document.pages).find((page) =>
     doesAssetExistInAnotherShape(page, deletedShapes, assetId)
@@ -54,7 +51,7 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
         parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
       }
 
-      if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+      if (shape.assetId) {
         if (canDeleteAsset(data, ids, shape.assetId)) {
           assetsToRemove.add(shape.assetId)
         }

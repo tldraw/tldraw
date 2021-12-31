@@ -437,6 +437,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     // Cleanup assets
+    Object.keys(next.document.assets).forEach((id) => {
+      if (!next.document.assets[id]) {
+        delete next.document.assets[id]
+      }
+    })
 
     const currentPageId = next.appState.currentPageId
 
@@ -588,8 +593,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
       }
     })
-
-    debugger
 
     Object.keys(this.prevAssets)
       .filter((id) => !visited.has(id))
