@@ -284,8 +284,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
     const next = { ...state }
 
-    const assetIdsInUse = new Set<string>([])
-
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (next.document !== prev.document) {
       Object.entries(next.document.pages).forEach(([pageId, page]) => {
@@ -314,7 +312,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               parentId = prevPage?.shapes[id]?.parentId
               delete page.shapes[id]
             } else {
-              if (shape.assetId) assetIdsInUse.add(shape.assetId)
               parentId = shape.parentId
             }
 
@@ -597,8 +594,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     Object.keys(this.prevAssets)
       .filter((id) => !visited.has(id))
       .forEach((id) => {
-        // After visiting all the current bindings, if we haven't visited a
-        // previously present shape, then it was deleted
         changedAssets[id] = undefined
       })
 

@@ -40,9 +40,13 @@ function Editor({ roomId }: { roomId: string }) {
         {...events}
         /**
          * Warning: Keeping images enabled for multiplayer applications
-         * without provifing a storage bucket based solution will cause
+         * without providing a storage bucket based solution will cause
          * massive base64 string to be written to the liveblocks room.
+         *
+         * Base64 storage is enabled here for testing only.
+         * Test with very small images only
          */
+        disableAssets={false}
         // onImageCreate={async (file: File, id: string) => {
         //   const imageRef = ref(storage, id)
         //   const snapshot = await uploadBytes(imageRef, file)
