@@ -10,24 +10,27 @@ export class DrawSession extends BaseSession {
   status = TDStatus.Creating
   topLeft: number[]
   points: number[][]
+  initialShape: DrawShape
   lastAdjustedPoint: number[]
   shiftedPoints: number[][] = []
   shapeId: string
   isLocked?: boolean
+  isExtending: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
   constructor(app: TldrawApp, id: string) {
     super(app)
     const { originPoint } = this.app
     this.shapeId = id
-    const shape = this.app.getShape<DrawShape>(id)
-    this.topLeft = [...shape.point]
+    this.initialShape = this.app.getShape<DrawShape>(id)
+    this.topLeft = [...this.initialShape.point]
     const currentPoint = [0, 0, originPoint[2] ?? 0.5]
-    const delta = Vec.sub(originPoint, shape.point)
-    const initialPoints = shape.points.map((pt) => Vec.sub(pt, delta).concat(pt[2]))
+    const delta = Vec.sub(originPoint, this.topLeft)
+    const initialPoints = this.initialShape.points.map((pt) => Vec.sub(pt, delta).concat(pt[2]))
     const prevPoint = initialPoints[initialPoints.length - 1]
+    this.isExtending = prevPoint !== undefined
     let newPoints: number[][]
-    if (prevPoint) {
+    if (this.isExtending) {
       newPoints = [prevPoint, prevPoint]
       // Continuing with shift
       const len = Math.ceil(Vec.dist(prevPoint, currentPoint) / 16)
@@ -160,7 +163,7 @@ export class DrawSession extends BaseSession {
         pages: {
           [pageId]: {
             shapes: {
-              [shapeId]: undefined,
+              [shapeId]: this.isExtending ? this.initialShape : undefined,
             },
           },
         },
@@ -184,7 +187,7 @@ export class DrawSession extends BaseSession {
           pages: {
             [pageId]: {
               shapes: {
-                [shapeId]: undefined,
+                [shapeId]: this.isExtending ? this.initialShape : undefined,
               },
             },
           },
