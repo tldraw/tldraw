@@ -81,12 +81,12 @@ function App() {
 
 To avoid unnecessary renders, be sure to pass "stable" values as props to the `Renderer`. Either define these values outside of the parent component, or place them in React state, or memoize them with `React.useMemo`.
 
-| Prop         | Type                            | Description                                      |
-| ------------ | ------------------------------- | ------------------------------------------------ |
-| `page`       | [`TLPage`](#tlpage)             | The current page object.                         |
-| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                        |
-| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes.   |
-| `assets`     | [`TLAssets`](#tlassets)         | A table of assets used by shapes in the project. |
+| Prop         | Type                            | Description                                                 |
+| ------------ | ------------------------------- | ----------------------------------------------------------- |
+| `page`       | [`TLPage`](#tlpage)             | The current page object.                                    |
+| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                                   |
+| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes.              |
+| `assets`     | [`TLAssets`](#tlassets)         | (optional) A table of assets used by shapes in the project. |
 
 In addition to these required props, the Renderer accents many other **optional** props.
 
@@ -207,16 +207,16 @@ An object describing the current page. It contains:
 | `bindingId`    | `string`   | (optional) The currently editing binding.           |
 | `brush`        | `TLBounds` | (optional) A `Bounds` for the current selection box |
 
-### `TLAsset`
+### `TLAssets`
 
-An object describing the current page. It contains:
+An object describing the current page's assets. It contains:
 
 | Property | Type     | Description                |
 | -------- | -------- | -------------------------- |
 | `id`     | `string` | A unique id for the asset. |
 | `type`   | `string` | The type of the asset.     |
 
-Specific asset types may describe additional properties.
+Assets are used for shared resources, such as serialized images and videos in the `@tldraw/tldraw` app. If a shape has an `assetId` property, its component will receive the corresponding asset in the component's props. Like shapes, this interface is meant to be extended with additional properties relevant to the type of asset used (e.g. size, duration, url).
 
 ### `TLShape`
 
@@ -230,7 +230,8 @@ An object that describes a shape on the page. The shapes in your document should
 | `childIndex`          | `number`   | the order of the shape among its parent's children                                    |
 | `name`                | `string`   | the name of the shape                                                                 |
 | `point`               | `number[]` | the shape's current `[x, y]` coordinates on the page                                  |
-| `rotation`            | `number`   | (optiona) The shape's current rotation in radians                                     |
+| `assetId`             | `string`   | (optional) An asset id from the [`TLAssets`](#tlassets) table.                        |
+| `rotation`            | `number`   | (optional) The shape's current rotation in radians                                    |
 | `children`            | `string[]` | (optional) An array containing the ids of this shape's children                       |
 | `handles`             | `{}`       | (optional) A table of [`TLHandle`](#tlhandle) objects                                 |
 | `isGhost`             | `boolean`  | (optional) True if the shape is "ghosted", e.g. while deleting                        |
