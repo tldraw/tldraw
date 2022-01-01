@@ -1,4 +1,4 @@
-import { TLPerformanceMode, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
 import type { TldrawApp } from '../../internal'
@@ -14,23 +14,57 @@ export class DrawSession extends BaseSession {
   shiftedPoints: number[][] = []
   shapeId: string
   isLocked?: boolean
+  startFrom?: number[]
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(app: TldrawApp, id: string) {
+  constructor(app: TldrawApp, id: string, startFrom?: number[]) {
     super(app)
     const { originPoint } = this.app
-    this.topLeft = [...originPoint]
     this.shapeId = id
+    this.startFrom = startFrom
+    this.topLeft = startFrom ?? [...originPoint]
 
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
     this.points = [[0, 0, originPoint[2] || 0.5]]
-    this.shiftedPoints = [...this.points]
     this.lastAdjustedPoint = [0, 0]
+    this.update()
   }
 
-  start = (): TldrawPatch | undefined => void null
+  start = (): TldrawPatch | undefined => {
+    const { startFrom, shapeId } = this
+    if (!startFrom) return
+    const { originPoint } = this.app
+    this.points = []
+    this.shiftedPoints = []
+    let change: any
+    Vec.pointsBetween(
+      startFrom,
+      originPoint,
+      Math.ceil(Vec.dist(startFrom, originPoint) / 16)
+    ).forEach((pt) => (change = this.addPoint([...pt, 0.5])))
+    if (!change) return
+    return {
+      document: {
+        pages: {
+          [this.app.currentPageId]: {
+            shapes: {
+              [shapeId]: change,
+            },
+          },
+        },
+        pageStates: {
+          [this.app.currentPageId]: {
+            selectedIds: [shapeId],
+          },
+        },
+      },
+    }
+
+    // const delta = Utils.getCommonTopLeft(this.points)
+    // this.shiftedPoints = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
+  }
 
   update = (): TldrawPatch | undefined => {
     const { shapeId } = this
@@ -81,58 +115,16 @@ export class DrawSession extends BaseSession {
       }
     }
 
-    // The new adjusted point
-    const newAdjustedPoint = Vec.toFixed(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
+    const change = this.addPoint(currentPoint)
 
-    // Don't add duplicate points.
-    if (Vec.isEqual(this.lastAdjustedPoint, newAdjustedPoint)) return
-
-    // Add the new adjusted point to the points array
-    this.points.push(newAdjustedPoint)
-
-    // The new adjusted point is now the previous adjusted point.
-    this.lastAdjustedPoint = newAdjustedPoint
-
-    // Does the input point create a new top left?
-    const prevTopLeft = [...this.topLeft]
-
-    const topLeft = [
-      Math.min(this.topLeft[0], currentPoint[0]),
-      Math.min(this.topLeft[1], currentPoint[1]),
-    ]
-
-    const delta = Vec.sub(topLeft, originPoint)
-
-    // Time to shift some points!
-    let points: number[][]
-
-    if (prevTopLeft[0] !== topLeft[0] || prevTopLeft[1] !== topLeft[1]) {
-      this.topLeft = topLeft
-      // If we have a new top left, then we need to iterate through
-      // the "unshifted" points array and shift them based on the
-      // offset between the new top left and the original top left.
-
-      points = this.points.map((pt) => {
-        return Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2])
-      })
-    } else {
-      // If the new top left is the same as the previous top left,
-      // we don't need to shift anything: we just shift the new point
-      // and add it to the shifted points array.
-      points = [...this.shiftedPoints, Vec.sub(newAdjustedPoint, delta).concat(newAdjustedPoint[2])]
-    }
-
-    this.shiftedPoints = points
+    if (!change) return
 
     return {
       document: {
         pages: {
           [this.app.currentPageId]: {
             shapes: {
-              [shapeId]: {
-                point: this.topLeft,
-                points,
-              },
+              [shapeId]: change,
             },
           },
         },
@@ -170,9 +162,7 @@ export class DrawSession extends BaseSession {
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { shapeId } = this
     const pageId = this.app.currentPageId
-
     const shape = this.app.getShape<DrawShape>(shapeId)
-
     return {
       id: 'create_draw',
       before: {
@@ -212,6 +202,54 @@ export class DrawSession extends BaseSession {
           },
         },
       },
+    }
+  }
+
+  addPoint = (currentPoint: number[]) => {
+    const { originPoint } = this.app
+    // The new adjusted point
+    const newAdjustedPoint = Vec.toFixed(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
+
+    // Don't add duplicate points.
+    if (Vec.isEqual(this.lastAdjustedPoint, newAdjustedPoint)) return
+
+    // Add the new adjusted point to the points array
+    this.points.push(newAdjustedPoint)
+
+    // The new adjusted point is now the previous adjusted point.
+    this.lastAdjustedPoint = newAdjustedPoint
+
+    // Does the input point create a new top left?
+    const prevTopLeft = [...this.topLeft]
+
+    const topLeft = [
+      Math.min(this.topLeft[0], currentPoint[0]),
+      Math.min(this.topLeft[1], currentPoint[1]),
+    ]
+
+    const delta = Vec.sub(topLeft, originPoint)
+
+    // Time to shift some points!
+    let points: number[][]
+
+    if (prevTopLeft[0] !== topLeft[0] || prevTopLeft[1] !== topLeft[1]) {
+      this.topLeft = topLeft
+      // If we have a new top left, then we need to iterate through
+      // the "unshifted" points array and shift them based on the
+      // offset between the new top left and the original top left.
+      points = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
+    } else {
+      // If the new top left is the same as the previous top left,
+      // we don't need to shift anything: we just shift the new point
+      // and add it to the shifted points array.
+      points = [...this.shiftedPoints, Vec.sub(newAdjustedPoint, delta).concat(newAdjustedPoint[2])]
+    }
+
+    this.shiftedPoints = points
+
+    return {
+      point: this.topLeft,
+      points,
     }
   }
 }
