@@ -14,56 +14,70 @@ export class DrawSession extends BaseSession {
   shiftedPoints: number[][] = []
   shapeId: string
   isLocked?: boolean
-  startFrom?: number[]
   lockedDirection?: 'horizontal' | 'vertical'
 
-  constructor(app: TldrawApp, id: string, startFrom?: number[]) {
+  constructor(app: TldrawApp, id: string) {
     super(app)
     const { originPoint } = this.app
     this.shapeId = id
-    this.startFrom = startFrom
-    this.topLeft = startFrom ?? [...originPoint]
-
+    const shape = this.app.getShape<DrawShape>(id)
+    this.topLeft = [...shape.point]
+    const currentPoint = [0, 0, originPoint[2] ?? 0.5]
+    const delta = Vec.sub(originPoint, shape.point)
+    const initialPoints = shape.points.map((pt) => Vec.sub(pt, delta).concat(pt[2]))
+    const prevPoint = initialPoints[initialPoints.length - 1]
+    let newPoints: number[][]
+    if (prevPoint) {
+      newPoints = [prevPoint, prevPoint]
+      // Continuing with shift
+      const len = Math.ceil(Vec.dist(prevPoint, currentPoint) / 16)
+      for (let i = 0; i < len - 1; i++) {
+        const t = i / (len - 1)
+        newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+      }
+    } else {
+      newPoints = [currentPoint]
+    }
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
-    this.points = [[0, 0, originPoint[2] || 0.5]]
-    this.lastAdjustedPoint = [0, 0]
-    this.update()
+    this.points = [...initialPoints, ...newPoints]
+    this.shiftedPoints = this.points.map((pt) => Vec.add(pt, delta).concat(pt[2]))
+    this.lastAdjustedPoint = this.points[this.points.length - 1]
   }
 
-  start = (): TldrawPatch | undefined => {
-    const { startFrom, shapeId } = this
-    if (!startFrom) return
-    const { originPoint } = this.app
-    this.points = []
-    this.shiftedPoints = []
-    let change: any
-    Vec.pointsBetween(
-      startFrom,
-      originPoint,
-      Math.ceil(Vec.dist(startFrom, originPoint) / 16)
-    ).forEach((pt) => (change = this.addPoint([...pt, 0.5])))
-    if (!change) return
+  start = () => {
+    const currentPoint = this.app.originPoint
+    const newAdjustedPoint = [0, 0, currentPoint[2] ?? 0.5]
+    // Add the new adjusted point to the points array
+    this.points.push(newAdjustedPoint)
+    const topLeft = [
+      Math.min(this.topLeft[0], currentPoint[0]),
+      Math.min(this.topLeft[1], currentPoint[1]),
+    ]
+    const delta = Vec.sub(topLeft, currentPoint)
+    this.topLeft = topLeft
+    this.shiftedPoints = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
+
     return {
       document: {
         pages: {
           [this.app.currentPageId]: {
             shapes: {
-              [shapeId]: change,
+              [this.shapeId]: {
+                point: this.topLeft,
+                points: this.shiftedPoints,
+              },
             },
           },
         },
         pageStates: {
           [this.app.currentPageId]: {
-            selectedIds: [shapeId],
+            selectedIds: [this.shapeId],
           },
         },
       },
     }
-
-    // const delta = Utils.getCommonTopLeft(this.points)
-    // this.shiftedPoints = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
   }
 
   update = (): TldrawPatch | undefined => {
