@@ -195,7 +195,11 @@ export class SelectTool extends BaseTool<Status> {
         break
       }
       case 'Tab': {
-        if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
+        if (
+          !this.app.pageState.editingId &&
+          this.status === Status.Idle &&
+          this.app.selectedIds.length === 1
+        ) {
           const [selectedId] = this.app.selectedIds
           const clonedShape = this.getShapeClone(selectedId, 'right')
 
