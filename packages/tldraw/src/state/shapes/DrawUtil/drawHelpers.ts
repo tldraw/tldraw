@@ -1,4 +1,5 @@
 import { Utils } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
 import type { DrawShape } from '~types'
 import { getShapeStyle } from '../shared/shape-styles'
@@ -59,7 +60,8 @@ export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   if (points.length < 2) return 'M 0 0 L 0 0'
   const options = getFreehandOptions(shape)
   const strokePoints = getDrawStrokePoints(shape, options).map((pt) => pt.point.slice(0, 2))
-  strokePoints.push(points[points.length - 1].slice(0, 2))
+  const last = points[points.length - 1].slice(0, 2)
+  if (!Vec.isEqual(strokePoints[0], last)) strokePoints.push(last)
   const path = Utils.getSvgPathFromStroke(strokePoints, false)
   return path
 }
