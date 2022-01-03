@@ -361,6 +361,7 @@ export class SelectTool extends BaseTool<Status> {
   onPointerDown: TLPointerEventHandler = (info, e) => {
     if (e.buttons === 4) {
       this.setStatus(Status.MiddleWheelPanning)
+      return
     }
 
     if (info.target === 'canvas' && this.status === Status.Idle) {
