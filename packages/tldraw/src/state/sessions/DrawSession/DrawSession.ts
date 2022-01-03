@@ -27,19 +27,19 @@ export class DrawSession extends BaseSession {
     const currentPoint = [0, 0, originPoint[2] ?? 0.5]
     const delta = Vec.sub(originPoint, this.topLeft)
     const initialPoints = this.initialShape.points.map((pt) => Vec.sub(pt, delta).concat(pt[2]))
-    const prevPoint = initialPoints[initialPoints.length - 1]
-    this.isExtending = prevPoint !== undefined
-    let newPoints: number[][]
+    this.isExtending = initialPoints.length > 0
+    const newPoints: number[][] = []
     if (this.isExtending) {
-      newPoints = [prevPoint, prevPoint]
+      const prevPoint = initialPoints[initialPoints.length - 1]
+      newPoints.push(prevPoint, prevPoint)
       // Continuing with shift
       const len = Math.ceil(Vec.dist(prevPoint, currentPoint) / 16)
-      for (let i = 0; i < len - 1; i++) {
+      for (let i = 0; i < len; i++) {
         const t = i / (len - 1)
         newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
       }
     } else {
-      newPoints = [currentPoint]
+      newPoints.push(currentPoint)
     }
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional

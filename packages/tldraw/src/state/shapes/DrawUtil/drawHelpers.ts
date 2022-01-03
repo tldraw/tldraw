@@ -45,15 +45,9 @@ export function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
  */
 export function getDrawStrokePathTDSnapshot(shape: DrawShape) {
   if (shape.points.length < 2) return ''
-
   const options = getFreehandOptions(shape)
-
   const strokePoints = getDrawStrokePoints(shape, options)
-
-  const stroke = getStrokeOutlinePoints(strokePoints, options)
-
-  const path = Utils.getSvgPathFromStroke(stroke)
-
+  const path = Utils.getSvgPathFromStroke(getStrokeOutlinePoints(strokePoints, options))
   return path
 }
 
@@ -65,6 +59,7 @@ export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   if (points.length < 2) return 'M 0 0 L 0 0'
   const options = getFreehandOptions(shape)
   const strokePoints = getDrawStrokePoints(shape, options).map((pt) => pt.point.slice(0, 2))
+  strokePoints.push(points[points.length - 1].slice(0, 2))
   const path = Utils.getSvgPathFromStroke(strokePoints, false)
   return path
 }
