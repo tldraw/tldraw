@@ -486,7 +486,6 @@ export class Vec {
    * @param A The first point.
    * @param B The second point.
    * @param steps The number of points to return.
-   * @param ease An easing function to apply to the simulated pressure.
    */
   static pointsBetween = (A: number[], B: number[], steps = 6): number[][] => {
     return Array.from(Array(steps)).map((_, i) => {

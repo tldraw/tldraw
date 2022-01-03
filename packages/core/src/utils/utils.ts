@@ -1356,12 +1356,8 @@ left past the initial left edge) then swap points on that axis.
       .reduce(
         (acc, point, i, arr) => {
           if (i === max) {
-            if (closed) {
-              acc.push('Z')
-            }
-          } else {
-            acc.push(point, Vec.med(point, arr[i + 1]))
-          }
+            if (closed) acc.push('Z')
+          } else acc.push(point, Vec.med(point, arr[i + 1]))
           return acc
         },
         ['M', points[0], 'Q']
