@@ -1,4 +1,4 @@
-import { Utils, TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
+import { Utils, TLPointerEventHandler } from '@tldraw/core'
 import { Draw } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
@@ -8,7 +8,6 @@ enum Status {
   Creating = 'creating',
   Extending = 'extending',
   Pinching = 'pinching',
-  SpacePanning = 'spacePanning',
 }
 
 export class DrawTool extends BaseTool {

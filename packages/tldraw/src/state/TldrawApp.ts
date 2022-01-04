@@ -3010,7 +3010,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onPinch: TLPinchEventHandler = (info, e) => this.currentTool.onPinch?.(info, e)
 
   onPan: TLWheelEventHandler = (info, e) => {
-    console.log('pan')
     if (this.appState.status === 'pinching') return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 

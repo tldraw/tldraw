@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDShapeType, TDToolType } from '~types'
+import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
@@ -13,8 +13,17 @@ interface ShapesMenuProps {
   isToolLocked: boolean
 }
 
-type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse | TDShapeType.Triangle | TDShapeType.Line
-const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse, TDShapeType.Triangle, TDShapeType.Line]
+type ShapeShape =
+  | TDShapeType.Rectangle
+  | TDShapeType.Ellipse
+  | TDShapeType.Triangle
+  | TDShapeType.Line
+const shapeShapes: ShapeShape[] = [
+  TDShapeType.Rectangle,
+  TDShapeType.Ellipse,
+  TDShapeType.Triangle,
+  TDShapeType.Line,
+]
 const shapeShapeIcons = {
   [TDShapeType.Rectangle]: <SquareIcon />,
   [TDShapeType.Ellipse]: <CircleIcon />,
@@ -22,11 +31,19 @@ const shapeShapeIcons = {
   [TDShapeType.Line]: <LineIcon />,
 }
 
+const statusSelector = (s: TDSnapshot) => s.appState.status
+
+enum Status {
+  SpacePanning = 'spacePanning',
+}
+
 export const ShapesMenu = React.memo(function ShapesMenu({
   activeTool,
   isToolLocked,
 }: ShapesMenuProps) {
   const app = useTldrawApp()
+
+  const status = app.useStore(statusSelector)
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 
@@ -50,6 +67,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton
+          disabled={isActive && status === Status.SpacePanning}
           variant="primary"
           onDoubleClick={handleDoubleClick}
           isToolLocked={isActive && isToolLocked}
