@@ -3096,6 +3096,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.setStatus(Status.Idle)
       return
     }
+    if (this.status === Status.SpacePanning) {
+      return
+    }
     this.updateInputs(info, e)
     this.currentTool.onPointerUp?.(info, e)
   }
