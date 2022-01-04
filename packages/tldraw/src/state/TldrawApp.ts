@@ -3092,6 +3092,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerUp: TLPointerEventHandler = (info, e) => {
+    if (e.button === 1 && this.status === Status.MiddleWheelPanning) {
+      this.setStatus(Status.Idle)
+      return
+    }
     this.updateInputs(info, e)
     this.currentTool.onPointerUp?.(info, e)
   }

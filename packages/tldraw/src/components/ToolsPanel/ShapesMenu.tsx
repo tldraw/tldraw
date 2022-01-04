@@ -67,7 +67,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton
-          disabled={isActive && status === Status.SpacePanning}
+          disabled={isActive && status === Status.SpacePanning} // otherwise this continuously opens and closes on "SpacePanning"
           variant="primary"
           onDoubleClick={handleDoubleClick}
           isToolLocked={isActive && isToolLocked}
