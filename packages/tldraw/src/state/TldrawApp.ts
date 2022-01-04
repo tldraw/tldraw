@@ -76,6 +76,12 @@ import { StateManager } from './StateManager'
 
 const uuid = Utils.uniqueId()
 
+enum Status {
+  Idle = 'idle',
+  MiddleWheelPanning = 'middleWheelPanning',
+  SpacePanning = 'spacePanning',
+}
+
 export interface TDCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
@@ -2861,6 +2867,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /* ----------------- Keyboard Events ---------------- */
 
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
+    if (e.key === ' ' && this.status === Status.Idle) {
+      this.setStatus(Status.SpacePanning)
+      return
+    }
     switch (e.key) {
       case '/': {
         if (this.status === 'idle') {
@@ -2921,6 +2931,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onKeyUp: TLKeyboardEventHandler = (key, info, e) => {
     if (!info) return
+
+    if (this.status === Status.SpacePanning && key === ' ') {
+      this.setStatus(Status.Idle)
+      return
+    }
 
     switch (e.key) {
       case '/': {
@@ -2995,6 +3010,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onPinch: TLPinchEventHandler = (info, e) => this.currentTool.onPinch?.(info, e)
 
   onPan: TLWheelEventHandler = (info, e) => {
+    console.log('pan')
     if (this.appState.status === 'pinching') return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 
@@ -3044,6 +3060,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Several events (e.g. pan) can trigger the same "pointer move" behavior
     this.currentTool.onPointerMove?.(info, e)
 
+    if (
+      (this.status === Status.SpacePanning && e.buttons === 1) ||
+      (this.status === Status.MiddleWheelPanning && e.buttons === 4)
+    ) {
+      this.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
+      return
+    }
+
     // Move this to an emitted event
     if (this.state.room) {
       const { users, userId } = this.state.room
@@ -3056,6 +3080,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
+    if (e.buttons === 4) {
+      this.setStatus(Status.MiddleWheelPanning)
+      return
+    }
+    if (this.status === Status.SpacePanning) {
+      return
+    }
     this.originPoint = this.getPagePoint(info.point)
     this.updateInputs(info, e)
     this.currentTool.onPointerDown?.(info, e)

@@ -32,8 +32,6 @@ enum Status {
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
-  SpacePanning = 'spacePanning',
-  MiddleWheelPanning = 'middleWheelPanning',
 }
 
 export class SelectTool extends BaseTool<Status> {
@@ -188,12 +186,6 @@ export class SelectTool extends BaseTool<Status> {
         this.onCancel()
         break
       }
-      case ' ': {
-        if (this.status === Status.Idle) {
-          this.setStatus(Status.SpacePanning)
-        }
-        break
-      }
       case 'Tab': {
         if (
           !this.app.pageState.editingId &&
@@ -236,11 +228,6 @@ export class SelectTool extends BaseTool<Status> {
       return
     }
 
-    if (this.status === Status.SpacePanning && key === ' ') {
-      this.setStatus(Status.Idle)
-      return
-    }
-
     /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.app.updateSession()
@@ -252,16 +239,8 @@ export class SelectTool extends BaseTool<Status> {
 
   // Pointer Events (generic)
 
-  onPointerMove: TLPointerEventHandler = (info, e) => {
+  onPointerMove: TLPointerEventHandler = () => {
     const { originPoint, currentPoint } = this.app
-
-    if (
-      (this.status === Status.SpacePanning && e.buttons === 1) ||
-      (this.status === Status.MiddleWheelPanning && e.buttons === 4)
-    ) {
-      this.app.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
-      return
-    }
 
     if (this.status === Status.PointingBoundsHandle) {
       if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
@@ -359,11 +338,6 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
-    if (e.buttons === 4) {
-      this.setStatus(Status.MiddleWheelPanning)
-      return
-    }
-
     if (info.target === 'canvas' && this.status === Status.Idle) {
       const { currentPoint } = this.app
 
@@ -392,11 +366,6 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onPointerUp: TLPointerEventHandler = (info) => {
-    if (this.status === Status.MiddleWheelPanning) {
-      this.setStatus(Status.Idle)
-      return
-    }
-
     if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
       if (this.pointedId) {
         this.app.completeSession()
