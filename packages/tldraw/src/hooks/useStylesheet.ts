@@ -10,13 +10,11 @@ const CSS = `
 export function useStylesheet() {
   React.useLayoutEffect(() => {
     if (styles.get(UID)) return
-
     const style = document.createElement('style')
     style.innerHTML = CSS
     style.setAttribute('id', UID)
     document.head.appendChild(style)
     styles.set(UID, style)
-
     return () => {
       if (style && document.head.contains(style)) {
         document.head.removeChild(style)

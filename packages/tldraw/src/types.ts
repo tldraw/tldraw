@@ -494,6 +494,7 @@ export enum TDExportTypes {
   PNG = 'png',
   JPG = 'jpeg',
   WEBP = 'webp',
+  PDF = 'pdf',
 }
 
 export interface TDExport {
@@ -501,7 +502,7 @@ export interface TDExport {
   shapes: TDShape[]
   assets: TDAssets
   type: TDExportTypes
-  viewport: TLBounds
+  size: number[]
 }
 
 /* -------------------------------------------------- */

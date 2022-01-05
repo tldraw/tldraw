@@ -3367,21 +3367,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   async exportAllShapesAs(type: TDExportTypes) {
     const initialSelectedIds = [...this.selectedIds]
     this.selectAll()
-    const bounds = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
+    const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
     const allIds = [...this.selectedIds]
     this.setSelectedIds(initialSelectedIds)
-    await this.exportShapesAs(allIds, bounds, type)
+    await this.exportShapesAs(allIds, [width, height], type)
   }
 
   async exportSelectedShapesAs(type: TDExportTypes) {
-    await this.exportShapesAs(
-      this.selectedIds,
-      Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64),
-      type
-    )
+    const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
+    await this.exportShapesAs(this.selectedIds, [width, height], type)
   }
 
-  async exportShapesAs(shapeIds: string[], viewport: TLBounds, type: TDExportTypes) {
+  async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
     this.setIsLoading(true)
     const assets: TDAssets = {}
     let shapes = shapeIds.map((id) => ({ ...this.getShape(id) }))
@@ -3411,7 +3408,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       shapes: shapes,
       assets: assets,
       type,
-      viewport,
+      size: type === 'png' ? Vec.mul(size, 2) : size,
     }
 
     if (this.callbacks.onExport) {
@@ -3424,23 +3421,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.setIsLoading(false)
       }
     }
-
-    // try {
-    //   const response = await fetch(EXPORT_ENDPOINT, {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(data),
-    //   })
-    //   const blob = await response.blob()
-
-    //   this.downloadBlob(blob, type)
-    //   this.setIsLoading(false)
-    // } catch (error) {
-    //   this.setIsLoading(false)
-    //   console.error(error)
-    // }
   }
 
   get room() {

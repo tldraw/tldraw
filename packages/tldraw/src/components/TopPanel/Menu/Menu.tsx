@@ -44,11 +44,17 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const handleExportPNG = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.PNG)
   }, [app])
+
   const handleExportJPG = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.JPG)
   }, [app])
+
   const handleExportWEBP = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.WEBP)
+  }, [app])
+
+  const handleExportPDF = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.PDF)
   }, [app])
 
   const handleSignIn = React.useCallback(() => {

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import puppeteer from 'puppeteer'
 import Cors from 'cors'
-import type { TDExport, TldrawApp } from '@tldraw/tldraw'
+import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
 
 const cors = Cors({
   methods: ['POST'],
@@ -31,25 +31,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   await runMiddleware(req, res, cors)
   const { body } = req
   const {
-    viewport: { width, height },
+    size: [width, height],
     type,
   } = body
+  if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
   let browser: puppeteer.Browser = null
   try {
     browser = await puppeteer.launch({
+      slowMo: 50,
       ignoreHTTPSErrors: true,
       headless: true,
     })
     const page = await browser.newPage()
-    await page.goto(FRONTEND_URL, { timeout: 15 * 1000 })
-    await page.setViewport({ width: Math.floor(width * 2), height: Math.floor(height * 2) })
-    await page.waitForSelector('#canvas')
+    await page.setUserAgent(
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'
+    )
+    await page.setViewport({ width: Math.floor(width), height: Math.floor(height) })
+    await page.goto(FRONTEND_URL, { timeout: 15 * 1000, waitUntil: 'networkidle0' })
+    await page.evaluateHandle('document.fonts.ready')
     await page.evaluate(async (body: TDExport) => {
       let app = window.app
-      if (!app) {
-        await new Promise((resolve) => setTimeout(resolve, 250))
-        app = window.app
-      }
+      if (!app) app = await new Promise((resolve) => setTimeout(() => resolve(window.app), 250))
       await app.ready
       const { assets, shapes } = body
       app.patchAssets(assets)
