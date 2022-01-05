@@ -63,17 +63,26 @@ export const ShapesMenu = React.memo(function ShapesMenu({
     app.toggleToolLock()
   }, [app])
 
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === ' ') {
+      if (app.shiftKey) {
+        e.preventDefault()
+      }
+    }
+  }, [])
+
   const isActive = shapeShapes.includes(activeTool as ShapeShape)
 
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
       <DropdownMenu.Trigger dir="ltr" asChild>
         <ToolButton
-          disabled={isActive && status === Status.SpacePanning} // otherwise this continuously opens and closes on "SpacePanning"
+          disabled={isActive && app.shiftKey} // otherwise this continuously opens and closes on "SpacePanning"
           variant="primary"
           onDoubleClick={handleDoubleClick}
           isToolLocked={isActive && isToolLocked}
           isActive={isActive}
+          onKeyDown={handleKeyDown}
         >
           {shapeShapeIcons[lastActiveTool]}
         </ToolButton>
