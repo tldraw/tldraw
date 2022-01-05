@@ -10,7 +10,7 @@
 		"url": "https://github.com/tldraw/tldraw"
 	},
 	"engines": {
-		"vscode": "^1.59.0"
+		"vscode": "^1.63.0"
 	},
 	"keywords": [
 		"diagram",
@@ -107,7 +107,9 @@
 		"start:vscode": "node scripts/dev",
 		"build:apps": "yarn build",
 		"build": "yarn package",
-		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
+		"build:tests": "yarn build && cd ../extension && node scripts/build-tests",
+		"pretest": "yarn build && yarn build:tests",
+		"test": "node ./out/test/runTest.js",
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
 		"publish": "yarn package && vsce publish",
 		"lint": "eslint src --ext ts"
@@ -115,6 +117,7 @@
 	"devDependencies": {
 		"@typescript-eslint/eslint-plugin": "^4.31.1",
 		"@typescript-eslint/parser": "^4.31.1",
+		"@vscode/test-electron": "^2.0.1",
 		"@vscode/test-web": "^0.0.12",
 		"assert": "^2.0.0",
 		"eslint": "^7.32.0",
@@ -125,5 +128,6 @@
 		"typescript": "^4.4.3",
 		"vsce": "^2.2.0"
 	},
-	"gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
+	"gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c",
+	"dependencies": {}
 }

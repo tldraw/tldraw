@@ -6,8 +6,8 @@ const { log: jslog } = console
 
 async function main() {
   if (fs.existsSync('./dist')) {
-    if (fs.existsSync('./dist/web')) {
-      fs.rmSync('./dist/web', { recursive: true }, (e) => {
+    if (fs.existsSync('./dist/tests')) {
+      fs.rmSync('./dist/tests', { recursive: true }, (e) => {
         if (e) {
           throw e
         }
@@ -17,12 +17,14 @@ async function main() {
 
   try {
     esbuild.buildSync({
-      entryPoints: ['./src/extension.ts'],
-      outdir: 'dist/web',
+      entryPoints: ['./src/test/runTest.ts'],
+      outdir: 'dist/tests',
+      
       minify: false,
       bundle: true,
       format: 'cjs',
       target: 'es6',
+      platform: 'node',
       define: {
         'process.env.NODE_ENV': '"production"',
       },
