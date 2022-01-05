@@ -54,6 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { assets, shapes } = body
       app.patchAssets(assets)
       app.createShapes(...shapes)
+      app.selectAll()
       app.zoomToFit()
       app.selectNone()
     }, body)

@@ -5,11 +5,17 @@ import { MenuContent } from '~components/Primitives/MenuContent'
 
 export interface DMSubMenuProps {
   label: string
+  size?: 'small'
   disabled?: boolean
   children: React.ReactNode
 }
 
-export function DMSubMenu({ children, disabled = false, label }: DMSubMenuProps): JSX.Element {
+export function DMSubMenu({
+  children,
+  size,
+  disabled = false,
+  label,
+}: DMSubMenuProps): JSX.Element {
   return (
     <Root dir="ltr">
       <TriggerItem dir="ltr" asChild>
@@ -18,7 +24,7 @@ export function DMSubMenu({ children, disabled = false, label }: DMSubMenuProps)
         </RowButton>
       </TriggerItem>
       <Content dir="ltr" asChild sideOffset={2} alignOffset={-2}>
-        <MenuContent>
+        <MenuContent size={size}>
           {children}
           <Arrow offset={13} />
         </MenuContent>

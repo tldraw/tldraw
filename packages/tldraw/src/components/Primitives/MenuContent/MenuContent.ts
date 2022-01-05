@@ -14,4 +14,11 @@ export const MenuContent = styled('div', {
   padding: '$2 $2',
   borderRadius: '$3',
   font: '$ui',
+  variants: {
+    size: {
+      small: {
+        minWidth: 72,
+      },
+    },
+  },
 })

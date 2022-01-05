@@ -169,7 +169,7 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                 </CMRowButton>
               )}
               <Divider />
-              <ContextMenuSubMenu label="Move">
+              <ContextMenuSubMenu label="Move" size="small">
                 <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
                   To Front
                 </CMRowButton>
@@ -183,7 +183,7 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                   To Back
                 </CMRowButton>
               </ContextMenuSubMenu>
-              <ContextMenuSubMenu label="Export">
+              <ContextMenuSubMenu label="Export" size="small">
                 <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
                 <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
                 <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
@@ -384,15 +384,20 @@ function MoveToPageMenu(): JSX.Element | null {
 
 export interface ContextMenuSubMenuProps {
   label: string
+  size?: 'small'
   children: React.ReactNode
 }
 
-export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps): JSX.Element {
+export function ContextMenuSubMenu({
+  children,
+  label,
+  size,
+}: ContextMenuSubMenuProps): JSX.Element {
   return (
     <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>{label}</CMTriggerButton>
       <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
-        <MenuContent>
+        <MenuContent size={size}>
           {children}
           <CMArrow offset={13} />
         </MenuContent>

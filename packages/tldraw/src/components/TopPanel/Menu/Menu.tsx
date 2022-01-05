@@ -126,7 +126,8 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Save As...
               </DMItem>
             )}
-            <DMSubMenu label="Export page as...">
+            <Divider />
+            <DMSubMenu label="Export" size="small">
               <DMItem onClick={handleExportPNG}>PNG</DMItem>
               <DMItem onClick={handleExportJPG}>JPG</DMItem>
               <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
