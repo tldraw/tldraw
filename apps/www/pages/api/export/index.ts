@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import puppeteer from 'puppeteer'
 import Cors from 'cors'
+import type { TDExportRequestBody, TldrawApp } from '@tldraw/tldraw'
 
 const cors = Cors({
   methods: ['POST'],
@@ -9,10 +10,7 @@ const cors = Cors({
 function runMiddleware(req, res, fn) {
   return new Promise((resolve, reject) => {
     fn(req, res, (result) => {
-      if (result instanceof Error) {
-        return reject(result)
-      }
-
+      if (result instanceof Error) return reject(result)
       return resolve(result)
     })
   })
@@ -25,37 +23,47 @@ const FRONTEND_URL =
 
 declare global {
   interface Window {
-    app: any
+    app: TldrawApp
   }
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await runMiddleware(req, res, cors)
-
   const { body } = req
-
+  const {
+    viewport: { width, height },
+    type,
+  } = body
   let browser: puppeteer.Browser = null
-
   try {
-    browser = await puppeteer.launch({ headless: true })
-
+    browser = await puppeteer.launch({
+      ignoreHTTPSErrors: true,
+      headless: true,
+    })
     const page = await browser.newPage()
-
-    await page.goto(FRONTEND_URL)
-    await page.evaluate(async (body: { [key: string]: any }) => {
-      const app = window.app
-
-      app.patchAssets(body.assets)
-      app.createShapes(...body.shapes)
-      app.selectAll()
+    await page.goto(FRONTEND_URL, { timeout: 15 * 1000 })
+    await page.setViewport({ width: Math.floor(width * 2), height: Math.floor(height * 2) })
+    await page.waitForSelector('#canvas')
+    await page.evaluate(async (body: TDExportRequestBody) => {
+      let app = window.app
+      if (!app) {
+        await new Promise((resolve) => setTimeout(resolve, 250))
+        app = window.app
+      }
+      await app.ready
+      const { assets, shapes } = body
+      app.patchAssets(assets)
+      app.createShapes(...shapes)
       app.zoomToFit()
       app.selectNone()
     }, body)
-
-    const file = await page.screenshot({ type: body.type })
-    res.status(200).end(file)
+    const imageBuffer = await page.screenshot({
+      type,
+    })
+    res.status(200).send(imageBuffer)
   } catch (err) {
-    res.status(500).end(err)
+    console.error(err.message)
+    res.status(500).send(err)
   } finally {
     await browser.close()
   }

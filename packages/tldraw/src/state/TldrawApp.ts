@@ -57,7 +57,6 @@ import { shapeUtils } from '~state/shapes'
 import { defaultStyle } from '~state/shapes/shared/shape-styles'
 import * as Commands from './commands'
 import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
-import type { BaseTool } from './tools/BaseTool'
 import {
   USER_COLORS,
   FIT_TO_SCREEN_PADDING,
@@ -67,6 +66,7 @@ import {
   SVG_EXPORT_PADDING,
   EXPORT_ENDPOINT,
 } from '~constants'
+import type { BaseTool } from './tools/BaseTool'
 import { SelectTool } from './tools/SelectTool'
 import { EraseTool } from './tools/EraseTool'
 import { TextTool } from './tools/TextTool'
@@ -2015,29 +2015,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom to fit the page's shapes.
    */
   zoomToFit = (): this => {
-    const shapes = this.shapes
-
+    const {
+      shapes,
+      pageState: { camera },
+    } = this
     if (shapes.length === 0) return this
-
     const { rendererBounds } = this
-
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getBounds))
-
     let zoom = TLDR.getCameraZoom(
       Math.min(
         (rendererBounds.width - FIT_TO_SCREEN_PADDING) / commonBounds.width,
         (rendererBounds.height - FIT_TO_SCREEN_PADDING) / commonBounds.height
       )
     )
-
-    zoom =
-      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom < 1
-        ? Math.min(1, zoom)
-        : zoom
-
+    zoom = camera.zoom === zoom || camera.zoom < 1 ? Math.min(1, zoom) : zoom
     const mx = (rendererBounds.width - commonBounds.width * zoom) / 2 / zoom
     const my = (rendererBounds.height - commonBounds.height * zoom) / 2 / zoom
-
     return this.setCamera(
       Vec.toFixed(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
       zoom,
@@ -3364,16 +3357,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   async exportAllShapesAs(type: TDExportTypes) {
-    const prevSelected = [...this.selectedIds]
+    const initialSelectedIds = [...this.selectedIds]
     this.selectAll()
-    await this.exportSelectedShapesAs(type)
-    this.select(...prevSelected)
+    const bounds = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
+    const allIds = [...this.selectedIds]
+    this.setSelectedIds(initialSelectedIds)
+    await this.exportShapesAs(allIds, bounds, type)
   }
 
   async exportSelectedShapesAs(type: TDExportTypes) {
+    await this.exportShapesAs(
+      this.selectedIds,
+      Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64),
+      type
+    )
+  }
+
+  async exportShapesAs(shapeIds: string[], viewport: TLBounds, type: TDExportTypes) {
     this.setIsLoading(true)
     const assets: TDAssets = {}
-    let shapes = this.selectedIds.map((id) => ({ ...this.getShape(id) }))
+    let shapes = shapeIds.map((id) => ({ ...this.getShape(id) }))
 
     // Patch asset table. Replace videos with serialized snapshots
     shapes.forEach((s, i) => {
@@ -3389,9 +3392,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Cast exported video shapes to image shapes to properly display snapshots
     shapes = shapes.map((s) => {
       if (s.type === TDShapeType.Video) {
-        const shape = <TDShape>s
+        const shape = s as TDShape
         shape.type = TDShapeType.Image
-        return <ImageShape>shape
+        return shape as ImageShape
       } else return s
     })
 
@@ -3399,6 +3402,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       shapes: shapes,
       assets: assets,
       type,
+      viewport,
     }
 
     try {
@@ -3415,7 +3419,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.setIsLoading(false)
     } catch (error) {
       this.setIsLoading(false)
-
       console.error(error)
     }
   }

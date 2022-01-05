@@ -20,6 +20,7 @@ import type {
   TLShapeBlurHandler,
   TLShapeCloneHandler,
   TLAsset,
+  TLBounds,
 } from '@tldraw/core'
 
 /* -------------------------------------------------- */
@@ -293,6 +294,7 @@ export enum Decoration {
 export interface TDBaseShape extends TLShape {
   style: ShapeStyles
   type: TDShapeType
+  label?: string
   handles?: Record<string, TldrawHandle>
 }
 
@@ -498,6 +500,7 @@ export interface TDExportRequestBody {
   shapes: TDShape[]
   assets: TDAssets
   type: TDExportTypes
+  viewport: TLBounds
 }
 
 /* -------------------------------------------------- */

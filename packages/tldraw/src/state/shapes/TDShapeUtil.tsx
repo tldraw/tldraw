@@ -8,7 +8,16 @@ import {
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import type { TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
+import type {
+  ArrowShape,
+  EllipseShape,
+  RectangleShape,
+  TDBinding,
+  TDMeta,
+  TDShape,
+  TransformInfo,
+  TriangleShape,
+} from '~types'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
 import { getTextSvgElement } from './shared/getTextSvgElement'
@@ -196,10 +205,10 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     if ('label' in shape && shape.label !== undefined) {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       const bounds = this.getBounds(shape)
-      const labelElm = getTextSvgElement(shape.label, shape.style, bounds)
+      const labelElm = getTextSvgElement((shape as any).label, shape.style, bounds)
       labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
       const font = getFontStyle(shape.style)
-      const size = getTextLabelSize(shape.label, font)
+      const size = getTextLabelSize((shape as any).label, font)
       labelElm.setAttribute('transform-origin', 'top left')
       labelElm.setAttribute(
         'transform',
