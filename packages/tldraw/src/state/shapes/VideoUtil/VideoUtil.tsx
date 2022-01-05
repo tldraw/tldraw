@@ -172,6 +172,15 @@ export class VideoUtil extends TDShapeUtil<T, E> {
     return next.size !== prev.size || next.style !== prev.style || next.isPlaying !== prev.isPlaying
   }
 
+  getSvgElement = (shape: VideoShape) => {
+    const bounds = this.getBounds(shape)
+    const elm = document.createElementNS('http://www.w3.org/2000/svg', 'video')
+    elm.setAttribute('width', `${bounds.width}`)
+    elm.setAttribute('height', `${bounds.height}`)
+    elm.setAttribute('xmlns:xlink', `http://www.w3.org/1999/xlink`)
+    return elm
+  }
+
   transform = transformRectangle
 
   transformSingle = transformSingleRectangle

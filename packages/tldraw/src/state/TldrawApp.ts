@@ -40,6 +40,7 @@ import {
   TDExportTypes,
   TDAssets,
   TDExportRequestBody,
+  ImageShape,
 } from '~types'
 import {
   migrate,
@@ -1651,6 +1652,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const copyingAssets = copyingShapes
       .map((shape) => {
         if (!shape.assetId) return
+
         return this.document.assets[shape.assetId]
       })
       .filter(Boolean) as TDAsset[]
@@ -1839,9 +1841,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const bounds = util.getBounds(shape)
       const elm = util.getSvgElement(shape)
       if (!elm) return
+
       // If the element is an image, set the asset src as the xlinkhref
       if (shape.type === TDShapeType.Image) {
         elm.setAttribute('xlink:href', this.document.assets[shape.assetId].src)
+      } else if (shape.type === TDShapeType.Video) {
+        elm.setAttribute('xlink:href', this.serializeVideo(shape.id))
       }
       // Put the element in the correct position relative to the common bounds
       elm.setAttribute(
@@ -3333,6 +3338,24 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* ----------------- Export ----------------- */
 
+  /**
+   * Get a snapshot of a video at current frame as base64 encoded image
+   * @param id ID of video shape
+   * @returns base64 encoded frame
+   * @throws Error if video shape with given ID does not exist
+   */
+  serializeVideo(id: string): string {
+    const video = document.getElementById(id + '_video') as HTMLVideoElement
+    if (video) {
+      const canvas = document.createElement('canvas')
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const canvasContext = canvas.getContext('2d')!
+      canvasContext.drawImage(video, 0, 0)
+      return canvas.toDataURL('image/png')
+    } else throw new Error('Video with id ' + id + ' not found')
+  }
+
   patchAssets(assets: TDAssets) {
     this.document.assets = {
       ...this.document.assets,
@@ -3350,14 +3373,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   async exportSelectedShapesAs(type: TDExportTypes) {
     this.setIsLoading(true)
     const assets: TDAssets = {}
-    const shapes = this.selectedIds
-      .map((id) => this.getShape(id))
-      .filter((s) => s.type !== TDShapeType.Video)
+    let shapes = this.selectedIds.map((id) => ({ ...this.getShape(id) }))
 
-    shapes.forEach((s) => {
+    // Patch asset table. Replace videos with serialized snapshots
+    shapes.forEach((s, i) => {
       if (s.assetId) {
-        assets[s.assetId] = this.document.assets[s.assetId]
+        assets[s.assetId] = { ...this.document.assets[s.assetId] }
+        if (s.type === TDShapeType.Video) {
+          assets[s.assetId].src = this.serializeVideo(s.id)
+          assets[s.assetId].type = TDAssetType.Image
+        }
       }
+    })
+
+    // Cast exported video shapes to image shapes to properly display snapshots
+    shapes = shapes.map((s) => {
+      if (s.type === TDShapeType.Video) {
+        const shape = <TDShape>s
+        shape.type = TDShapeType.Image
+        return <ImageShape>shape
+      } else return s
     })
 
     const data: TDExportRequestBody = {
