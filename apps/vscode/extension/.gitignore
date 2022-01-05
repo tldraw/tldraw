@@ -1,4 +1,5 @@
 dist
+out
 editor
 node_modules
 .vscode-test-web/
