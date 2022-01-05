@@ -3063,6 +3063,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onPointerDown: TLPointerEventHandler = (info, e) => {
     if (this.isPointing) return
     this.isPointing = true
+    if (e.buttons === 4) this.isForcePanning = true
     this.originPoint = this.getPagePoint(info.point)
     this.updateInputs(info, e)
     this.currentTool.onPointerDown?.(info, e)
