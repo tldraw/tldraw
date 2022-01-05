@@ -2,6 +2,7 @@ import React from 'react'
 import * as gtag from 'utils/gtag'
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
+import { exportToImage } from 'utils/export'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -45,6 +46,7 @@ export default function Editor({
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
+        onExport={exportToImage}
         {...fileSystemEvents}
         {...rest}
       />

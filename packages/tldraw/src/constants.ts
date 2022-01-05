@@ -13,11 +13,6 @@ export const VERY_SLOW_SPEED = 2.5
 export const GHOSTED_OPACITY = 0.3
 export const DEAD_ZONE = 3
 export const LABEL_POINT = [0.5, 0.5]
-export const EXPORT_ENDPOINT =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000/api/export'
-    : 'https://www.tldraw.com/api/export'
-
 import type { Easing } from '~types'
 
 export const PI2 = Math.PI * 2

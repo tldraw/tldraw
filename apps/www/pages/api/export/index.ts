@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import puppeteer from 'puppeteer'
 import Cors from 'cors'
-import type { TDExportRequestBody, TldrawApp } from '@tldraw/tldraw'
+import type { TDExport, TldrawApp } from '@tldraw/tldraw'
 
 const cors = Cors({
   methods: ['POST'],
@@ -44,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await page.goto(FRONTEND_URL, { timeout: 15 * 1000 })
     await page.setViewport({ width: Math.floor(width * 2), height: Math.floor(height * 2) })
     await page.waitForSelector('#canvas')
-    await page.evaluate(async (body: TDExportRequestBody) => {
+    await page.evaluate(async (body: TDExport) => {
       let app = window.app
       if (!app) {
         await new Promise((resolve) => setTimeout(resolve, 250))

@@ -6,6 +6,7 @@ import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { styled } from 'styles'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
+import { exportToImage } from 'utils/export'
 
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
@@ -56,6 +57,7 @@ function Editor({
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
+        onExport={exportToImage}
         {...fileSystemEvents}
         {...events}
       />

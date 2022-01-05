@@ -496,7 +496,8 @@ export enum TDExportTypes {
   WEBP = 'webp',
 }
 
-export interface TDExportRequestBody {
+export interface TDExport {
+  name: string
   shapes: TDShape[]
   assets: TDAssets
   type: TDExportTypes

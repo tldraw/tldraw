@@ -39,7 +39,7 @@ import {
   TDAsset,
   TDExportTypes,
   TDAssets,
-  TDExportRequestBody,
+  TDExport,
   ImageShape,
 } from '~types'
 import {
@@ -64,7 +64,6 @@ import {
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
-  EXPORT_ENDPOINT,
 } from '~constants'
 import type { BaseTool } from './tools/BaseTool'
 import { SelectTool } from './tools/SelectTool'
@@ -150,9 +149,18 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user creates a new project.
    */
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
-
-  onImageDelete?: (id: string) => void
+  /**
+   * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
+   */
   onImageCreate?: (file: File, id: string) => Promise<string>
+  /**
+   * (optional) A callback to run when the user deletes an image or video.
+   */
+  onImageDelete?: (id: string) => void
+  /**
+   * (optional) A callback to run when the user exports their page or selection.
+   */
+  onExport?: (info: TDExport) => Promise<void>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -3398,37 +3406,41 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else return s
     })
 
-    const data: TDExportRequestBody = {
+    const exportInfo: TDExport = {
+      name: this.page.name ?? 'export',
       shapes: shapes,
       assets: assets,
       type,
       viewport,
     }
 
-    try {
-      const response = await fetch(EXPORT_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-      const blob = await response.blob()
-
-      this.downloadBlob(blob, type)
-      this.setIsLoading(false)
-    } catch (error) {
-      this.setIsLoading(false)
-      console.error(error)
+    if (this.callbacks.onExport) {
+      try {
+        this.setIsLoading(true)
+        await this.callbacks.onExport?.(exportInfo)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        this.setIsLoading(false)
+      }
     }
-  }
 
-  downloadBlob(blob: Blob, type: TDExportTypes) {
-    const blobUrl = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = (this.page.name || 'tldr') + '.' + type
-    link.click()
+    // try {
+    //   const response = await fetch(EXPORT_ENDPOINT, {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(data),
+    //   })
+    //   const blob = await response.blob()
+
+    //   this.downloadBlob(blob, type)
+    //   this.setIsLoading(false)
+    // } catch (error) {
+    //   this.setIsLoading(false)
+    //   console.error(error)
+    // }
   }
 
   get room() {

@@ -126,12 +126,16 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Save As...
               </DMItem>
             )}
-            <Divider />
-            <DMSubMenu label="Export" size="small">
-              <DMItem onClick={handleExportPNG}>PNG</DMItem>
-              <DMItem onClick={handleExportJPG}>JPG</DMItem>
-              <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
-            </DMSubMenu>
+            {app.callbacks.onExport && (
+              <>
+                <Divider />
+                <DMSubMenu label="Export" size="small">
+                  <DMItem onClick={handleExportPNG}>PNG</DMItem>
+                  <DMItem onClick={handleExportJPG}>JPG</DMItem>
+                  <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
+                </DMSubMenu>
+              </>
+            )}
             {!disableAssets && (
               <>
                 <Divider />

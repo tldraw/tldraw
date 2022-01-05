@@ -183,11 +183,13 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                   To Back
                 </CMRowButton>
               </ContextMenuSubMenu>
-              <ContextMenuSubMenu label="Export" size="small">
-                <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
-                <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
-                <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
-              </ContextMenuSubMenu>
+              {app.callbacks.onExport && (
+                <ContextMenuSubMenu label="Export" size="small">
+                  <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
+                  <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
+                  <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
+                </ContextMenuSubMenu>
+              )}
               <MoveToPageMenu />
               {hasTwoOrMore && (
                 <AlignDistributeSubMenu
