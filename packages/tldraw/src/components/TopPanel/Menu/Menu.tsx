@@ -36,6 +36,9 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const disableAssets = app.useStore(disableAssetsSelector)
 
+  const [_, setForce] = React.useState(0)
+  React.useEffect(() => setForce(1), [])
+
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
   const handleExportPNG = React.useCallback(async () => {
@@ -92,7 +95,8 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
     app.callbacks.onNewProject ||
     app.callbacks.onOpenProject ||
     app.callbacks.onSaveProject ||
-    app.callbacks.onSaveProjectAs
+    app.callbacks.onSaveProjectAs ||
+    app.callbacks.onExport
 
   const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
 

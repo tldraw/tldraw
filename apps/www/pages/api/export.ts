@@ -55,7 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       app.patchAssets(assets)
       app.createShapes(...shapes)
       app.selectAll()
-      app.zoomToFit()
+      app.zoomToSelection()
       app.selectNone()
     }, body)
     const imageBuffer = await page.screenshot({
