@@ -44,9 +44,6 @@ In the `vscode/extension` folder:
 - [Web Extensions Guide](https://code.visualstudio.com/api/extension-guides/web-extensions)
   - [Test Your Web Extension](https://code.visualstudio.com/api/extension-guides/web-extensions#test-your-web-extension)
   - [Web Extension Testing](https://code.visualstudio.com/api/extension-guides/web-extensions#web-extension-tests)
-  - An example custom editor that does work as a Web Extension
-    - https://marketplace.visualstudio.com/items?itemName=hediet.vscode-drawio
-    - https://github.com/hediet/vscode-drawio
 - [VS Code Extension API/Landing Page](https://code.visualstudio.com/api)
 - [Getting Started](https://code.visualstudio.com/api/get-started/your-first-extension)
 - [Custom Editor API](https://code.visualstudio.com/api/extension-guides/custom-editors)
