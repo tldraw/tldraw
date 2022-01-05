@@ -76,12 +76,6 @@ import { StateManager } from './StateManager'
 
 const uuid = Utils.uniqueId()
 
-enum Status {
-  Idle = 'idle',
-  MiddleWheelPanning = 'middleWheelPanning',
-  SpacePanning = 'spacePanning',
-}
-
 export interface TDCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
@@ -197,6 +191,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   ctrlKey = false
 
   spaceKey = false
+
+  isPointing = false
+
+  isForcePanning = false
 
   editingStartTime = -1
 
@@ -347,11 +345,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           })
 
           next.document.pages[pageId] = page
-
-          // Find which shapes have changed
-          // const changedShapes = Object.entries(page.shapes).filter(
-          //   ([id, shape]) => prevPage?.shapes[shape.id] !== shape
-          // )
 
           // Get bindings related to the changed shapes
           const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(changedShapes), pageId)
@@ -1051,6 +1044,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   selectTool = (type: TDToolType): this => {
     if (this.readOnly || this.session) return this
+
+    this.isPointing = false // reset pointer state, in case something weird happened
 
     const tool = this.tools[type]
 
@@ -2867,10 +2862,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /* ----------------- Keyboard Events ---------------- */
 
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
-    if (e.key === ' ' && this.status === Status.Idle) {
-      this.setStatus(Status.SpacePanning)
-      return
-    }
     switch (e.key) {
       case '/': {
         if (this.status === 'idle') {
@@ -2919,6 +2910,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         break
       }
       case ' ': {
+        this.isForcePanning = true
         this.spaceKey = true
         break
       }
@@ -2931,11 +2923,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onKeyUp: TLKeyboardEventHandler = (key, info, e) => {
     if (!info) return
-
-    if (this.status === Status.SpacePanning && key === ' ') {
-      this.setStatus(Status.Idle)
-      return
-    }
 
     switch (e.key) {
       case '/': {
@@ -2979,6 +2966,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         break
       }
       case ' ': {
+        this.isForcePanning = false
         this.spaceKey = false
         break
       }
@@ -3021,11 +3009,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.pan(delta)
 
-    // onPan is called by onPointerMove when spaceKey & middle wheel button is pressed,
-    // so we shouldn't call this again.
-    if (!info.spaceKey && !(e.buttons === 4)) {
-      this.onPointerMove(info, e as unknown as React.PointerEvent)
-    }
+    // When panning, we also want to call onPointerMove, except when "force panning" via spacebar / middle wheel button (it's called elsewhere in that case)
+    if (!this.isForcePanning) this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
@@ -3056,16 +3041,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.previousPoint = this.currentPoint
     this.updateInputs(info, e)
 
-    // Several events (e.g. pan) can trigger the same "pointer move" behavior
-    this.currentTool.onPointerMove?.(info, e)
-
-    if (
-      (this.status === Status.SpacePanning && e.buttons === 1) ||
-      (this.status === Status.MiddleWheelPanning && e.buttons === 4)
-    ) {
+    if (this.isForcePanning && this.isPointing) {
       this.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
       return
     }
+
+    // Several events (e.g. pan) can trigger the same "pointer move" behavior
+    this.currentTool.onPointerMove?.(info, e)
 
     // Move this to an emitted event
     if (this.state.room) {
@@ -3079,26 +3061,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
-    if (e.buttons === 4) {
-      this.setStatus(Status.MiddleWheelPanning)
-      return
-    }
-    if (this.status === Status.SpacePanning) {
-      return
-    }
+    if (this.isPointing) return
+    this.isPointing = true
     this.originPoint = this.getPagePoint(info.point)
     this.updateInputs(info, e)
     this.currentTool.onPointerDown?.(info, e)
   }
 
   onPointerUp: TLPointerEventHandler = (info, e) => {
-    if (e.button === 1 && this.status === Status.MiddleWheelPanning) {
-      this.setStatus(Status.Idle)
-      return
-    }
-    if (this.status === Status.SpacePanning) {
-      return
-    }
+    this.isPointing = false
     this.updateInputs(info, e)
     this.currentTool.onPointerUp?.(info, e)
   }

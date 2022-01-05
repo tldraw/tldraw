@@ -239,102 +239,104 @@ export class SelectTool extends BaseTool<Status> {
 
   // Pointer Events (generic)
 
-  onPointerMove: TLPointerEventHandler = () => {
+  onPointerMove: TLPointerEventHandler = (info, e) => {
     const { originPoint, currentPoint } = this.app
 
-    if (this.status === Status.PointingBoundsHandle) {
-      if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        if (this.pointedBoundsHandle === 'rotate') {
-          // Stat a rotate session
-          this.setStatus(Status.Rotating)
-          this.app.startSession(SessionType.Rotate)
-        } else if (
-          this.pointedBoundsHandle === 'center' ||
-          this.pointedBoundsHandle === 'left' ||
-          this.pointedBoundsHandle === 'right'
-        ) {
-          this.setStatus(Status.Translating)
-          this.app.startSession(SessionType.Translate, false, this.pointedBoundsHandle)
-        } else {
-          // Stat a transform session
-          this.setStatus(Status.Transforming)
-
-          const idsToTransform = this.app.selectedIds.flatMap((id) =>
-            TLDR.getDocumentBranch(this.app.state, id, this.app.currentPageId)
-          )
-
-          if (idsToTransform.length === 1) {
-            // if only one shape is selected, transform single
-            this.app.startSession(
-              SessionType.TransformSingle,
-              idsToTransform[0],
-              this.pointedBoundsHandle
-            )
+    switch (this.status) {
+      case Status.PointingBoundsHandle: {
+        if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          if (this.pointedBoundsHandle === 'rotate') {
+            // Stat a rotate session
+            this.setStatus(Status.Rotating)
+            this.app.startSession(SessionType.Rotate)
+          } else if (
+            this.pointedBoundsHandle === 'center' ||
+            this.pointedBoundsHandle === 'left' ||
+            this.pointedBoundsHandle === 'right'
+          ) {
+            this.setStatus(Status.Translating)
+            this.app.startSession(SessionType.Translate, false, this.pointedBoundsHandle)
           } else {
-            // otherwise, transform
-            this.app.startSession(SessionType.Transform, this.pointedBoundsHandle)
+            // Stat a transform session
+            this.setStatus(Status.Transforming)
+            const idsToTransform = this.app.selectedIds.flatMap((id) =>
+              TLDR.getDocumentBranch(this.app.state, id, this.app.currentPageId)
+            )
+            if (idsToTransform.length === 1) {
+              // if only one shape is selected, transform single
+              this.app.startSession(
+                SessionType.TransformSingle,
+                idsToTransform[0],
+                this.pointedBoundsHandle
+              )
+            } else {
+              // otherwise, transform
+              this.app.startSession(SessionType.Transform, this.pointedBoundsHandle)
+            }
+          }
+
+          // Also update the session with the current point
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingCanvas: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.app.startSession(SessionType.Brush)
+          this.setStatus(Status.Brushing)
+        }
+        break
+      }
+      case Status.PointingClone: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.TranslatingClone)
+          this.app.startSession(SessionType.Translate)
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingBounds: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.Translating)
+          this.app.startSession(SessionType.Translate)
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingHandle: {
+        if (!this.pointedHandleId) throw Error('No pointed handle')
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.TranslatingHandle)
+          const selectedShape = this.app.getShape(this.app.selectedIds[0])
+          if (selectedShape) {
+            if (this.pointedHandleId === 'bend') {
+              this.app.startSession(SessionType.Handle, selectedShape.id, this.pointedHandleId)
+              this.app.updateSession()
+            } else {
+              this.app.startSession(
+                SessionType.Arrow,
+                selectedShape.id,
+                this.pointedHandleId,
+                false
+              )
+              this.app.updateSession()
+            }
           }
         }
-
-        // Also update the session with the current point
-        this.app.updateSession()
+        break
       }
-      return
-    }
-
-    if (this.status === Status.PointingCanvas) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.app.startSession(SessionType.Brush)
-        this.setStatus(Status.Brushing)
+      case Status.ClonePainting: {
+        this.clonePaint(currentPoint)
+        break
       }
-      return
-    }
-
-    if (this.status === Status.PointingClone) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.TranslatingClone)
-        this.app.startSession(SessionType.Translate)
-        this.app.updateSession()
-      }
-      return
-    }
-
-    if (this.status === Status.PointingBounds) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.Translating)
-        this.app.startSession(SessionType.Translate)
-        this.app.updateSession()
-      }
-      return
-    }
-
-    if (this.status === Status.PointingHandle) {
-      if (!this.pointedHandleId) throw Error('No pointed handle')
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.TranslatingHandle)
-        const selectedShape = this.app.getShape(this.app.selectedIds[0])
-        if (!selectedShape) return
-        if (this.pointedHandleId === 'bend') {
-          this.app.startSession(SessionType.Handle, selectedShape.id, this.pointedHandleId)
+      default: {
+        if (this.app.session) {
           this.app.updateSession()
-        } else {
-          this.app.startSession(SessionType.Arrow, selectedShape.id, this.pointedHandleId, false)
-          this.app.updateSession()
+          break
         }
       }
-      return
     }
-
-    if (this.app.session) {
-      return this.app.updateSession()
-    }
-
-    if (this.status === Status.ClonePainting) {
-      this.clonePaint(currentPoint)
-    }
-
-    return
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {

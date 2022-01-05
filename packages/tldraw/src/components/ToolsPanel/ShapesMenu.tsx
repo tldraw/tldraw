@@ -18,12 +18,14 @@ type ShapeShape =
   | TDShapeType.Ellipse
   | TDShapeType.Triangle
   | TDShapeType.Line
+
 const shapeShapes: ShapeShape[] = [
   TDShapeType.Rectangle,
   TDShapeType.Ellipse,
   TDShapeType.Triangle,
   TDShapeType.Line,
 ]
+
 const shapeShapeIcons = {
   [TDShapeType.Rectangle]: <SquareIcon />,
   [TDShapeType.Ellipse]: <CircleIcon />,
