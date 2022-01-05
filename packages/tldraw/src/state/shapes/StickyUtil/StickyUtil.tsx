@@ -275,15 +275,19 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: T): SVGElement | void => {
     const bounds = this.getBounds(shape)
-    const textElm = getTextSvgElement(shape, bounds)
+    const textBounds = Utils.expandBounds(bounds, -PADDING)
+    const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
     const style = getStickyShapeStyle(shape.style)
     textElm.setAttribute('fill', style.color)
+    textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
     rect.setAttribute('width', bounds.width + '')
     rect.setAttribute('height', bounds.height + '')
     rect.setAttribute('fill', style.fill)
+    rect.setAttribute('rx', '3')
+    rect.setAttribute('ry', '3')
 
     g.appendChild(rect)
     g.appendChild(textElm)

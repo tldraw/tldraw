@@ -77,6 +77,7 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
 
   onPinch: TLPinchEventHandler = (info, e) => {
     if (this.status !== 'pinching') return
+    if (isNaN(info.delta[0]) || isNaN(info.delta[1])) return
     this.app.pinchZoom(info.point, info.delta, info.delta[2])
     this.onPointerMove?.(info, e as unknown as React.PointerEvent)
   }

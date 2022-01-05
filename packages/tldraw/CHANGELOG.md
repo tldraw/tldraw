@@ -1,3 +1,10 @@
+## 1.4.1
+
+- Improves label placement, indicators and colors
+- Fixes a bug with missing labels when copying shapes to SVG
+- Fixes a bug with font when copying text to SVG
+- Fixes a bug with text placement when copying sticky notes to SVG
+
 ## 1.4.0
 
 - Fixes bug with black canvas after double reload.

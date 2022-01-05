@@ -15,7 +15,6 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
-  TLPerformanceMode,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -1825,7 +1824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Embed our custom fonts
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Source+Serif+Pro&display=swap');`
+    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
     defs.appendChild(style)
     svg.appendChild(defs)
     // Get the shapes in order
