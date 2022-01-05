@@ -192,6 +192,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   spaceKey = false
 
+  isPointing = false
+
+  isForcePanning = false
+
   editingStartTime = -1
 
   fileSystemHandle: FileSystemHandle | null = null
@@ -341,11 +345,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           })
 
           next.document.pages[pageId] = page
-
-          // Find which shapes have changed
-          // const changedShapes = Object.entries(page.shapes).filter(
-          //   ([id, shape]) => prevPage?.shapes[shape.id] !== shape
-          // )
 
           // Get bindings related to the changed shapes
           const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(changedShapes), pageId)
@@ -1045,6 +1044,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   selectTool = (type: TDToolType): this => {
     if (this.readOnly || this.session) return this
+
+    this.isPointing = false // reset pointer state, in case something weird happened
 
     const tool = this.tools[type]
 
@@ -2909,6 +2910,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         break
       }
       case ' ': {
+        this.isForcePanning = true
         this.spaceKey = true
         break
       }
@@ -2964,6 +2966,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         break
       }
       case ' ': {
+        this.isForcePanning = false
         this.spaceKey = false
         break
       }
@@ -3006,11 +3009,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.pan(delta)
 
-    // onPan is called by onPointerMove when spaceKey & middle wheel button is pressed,
-    // so we shouldn't call this again.
-    if (!info.spaceKey && !(e.buttons === 4)) {
-      this.onPointerMove(info, e as unknown as React.PointerEvent)
-    }
+    // When panning, we also want to call onPointerMove, except when "force panning" via spacebar / middle wheel button (it's called elsewhere in that case)
+    if (!this.isForcePanning) this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
@@ -3041,6 +3041,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.previousPoint = this.currentPoint
     this.updateInputs(info, e)
 
+    if (this.isForcePanning && this.isPointing) {
+      this.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
+      return
+    }
+
     // Several events (e.g. pan) can trigger the same "pointer move" behavior
     this.currentTool.onPointerMove?.(info, e)
 
@@ -3056,12 +3061,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
+    if (e.buttons === 4) {
+      this.isForcePanning = true
+    } else if (this.isPointing) {
+      return
+    }
+    this.isPointing = true
     this.originPoint = this.getPagePoint(info.point)
     this.updateInputs(info, e)
+    if (this.isForcePanning) return
     this.currentTool.onPointerDown?.(info, e)
   }
 
   onPointerUp: TLPointerEventHandler = (info, e) => {
+    this.isPointing = false
+    if (!this.shiftKey) this.isForcePanning = false
     this.updateInputs(info, e)
     this.currentTool.onPointerUp?.(info, e)
   }
