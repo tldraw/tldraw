@@ -90,10 +90,7 @@ export function useCursorAnimation(ref: any, point: number[]) {
         break
       }
     }
-
-    return () => {
-      clearTimeout(rTimeoutId.current)
-    }
+    return () => clearTimeout(rTimeoutId.current)
   }, [point, spline])
 }
 

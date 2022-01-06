@@ -8,18 +8,16 @@ export function useShapeEvents(id: string) {
   return React.useMemo(
     () => ({
       onPointerDown: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-
+        if (!inputs.pointerIsValid(e)) return
         if (e.button === 2) {
           callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
           return
         }
-
         if (e.button !== 0) return
-
         const info = inputs.pointerDown(e, id)
-
-        e.stopPropagation()
         e.currentTarget?.setPointerCapture(e.pointerId)
 
         // If we click "through" the selection bounding box to hit a shape that isn't selected,
@@ -35,7 +33,6 @@ export function useShapeEvents(id: string) {
           callbacks.onPointerDown?.(info, e)
           return
         }
-
         callbacks.onPointShape?.(info, e)
         callbacks.onPointerDown?.(info, e)
       },
