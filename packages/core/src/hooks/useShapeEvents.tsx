@@ -19,7 +19,6 @@ export function useShapeEvents(id: string) {
         if (e.button !== 0) return
         const info = inputs.pointerDown(e, id)
         e.currentTarget?.setPointerCapture(e.pointerId)
-
         // If we click "through" the selection bounding box to hit a shape that isn't selected,
         // treat the event as a bounding box click. Unfortunately there's no way I know to pipe
         // the event to the actual bounds background element.
@@ -38,38 +37,28 @@ export function useShapeEvents(id: string) {
       },
       onPointerUp: (e: React.PointerEvent) => {
         if (e.button !== 0) return
-
         inputs.activePointer = undefined
-
         if (!inputs.pointerIsValid(e)) return
         e.stopPropagation()
         const isDoubleClick = inputs.isDoubleClick()
         const info = inputs.pointerUp(e, id)
-
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
         }
-
         if (isDoubleClick && !(info.altKey || info.metaKey)) {
           callbacks.onDoubleClickShape?.(info, e)
         }
-
         callbacks.onReleaseShape?.(info, e)
         callbacks.onPointerUp?.(info, e)
       },
       onPointerMove: (e: React.PointerEvent) => {
         if (!inputs.pointerIsValid(e)) return
-
         e.stopPropagation()
-
         if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
-
         const info = inputs.pointerMove(e, id)
-
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           callbacks.onDragShape?.(info, e)
         }
-
         callbacks.onPointerMove?.(info, e)
       },
       onPointerEnter: (e: React.PointerEvent) => {
