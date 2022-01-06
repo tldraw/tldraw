@@ -114,6 +114,13 @@ export class EraseSession extends BaseSession {
   cancel = (): TldrawPatch | undefined => {
     const { page } = this.app
 
+    this.erasedShapes.forEach((shape) => {
+      if (!this.app.getShape(shape.id)) {
+        this.erasedShapes.delete(shape)
+        this.erasableShapes.delete(shape)
+      }
+    })
+
     const erasedShapes = Array.from(this.erasedShapes.values())
 
     return {
@@ -134,6 +141,19 @@ export class EraseSession extends BaseSession {
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { page } = this.app
+
+    this.erasedShapes.forEach((shape) => {
+      if (!this.app.getShape(shape.id)) {
+        this.erasedShapes.delete(shape)
+        this.erasableShapes.delete(shape)
+      }
+    })
+
+    this.erasedBindings.forEach((binding) => {
+      if (!this.app.getBinding(binding.id)) {
+        this.erasedBindings.delete(binding)
+      }
+    })
 
     const erasedShapes = Array.from(this.erasedShapes.values())
     const erasedBindings = Array.from(this.erasedBindings.values())
@@ -191,7 +211,9 @@ export class EraseSession extends BaseSession {
           },
           pageStates: {
             [page.id]: {
-              selectedIds: this.initialSelectedShapes.map((shape) => shape.id),
+              selectedIds: this.initialSelectedShapes
+                .filter((shape) => !!this.app.getShape(shape.id))
+                .map((shape) => shape.id),
             },
           },
         },
@@ -204,6 +226,7 @@ export class EraseSession extends BaseSession {
           pageStates: {
             [page.id]: {
               selectedIds: this.initialSelectedShapes
+                .filter((shape) => !!this.app.getShape(shape.id))
                 .filter((shape) => !erasedShapeIds.includes(shape.id))
                 .map((shape) => shape.id),
             },
