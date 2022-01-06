@@ -14,9 +14,7 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   const { inputs, bounds, callbacks } = useTLContext()
 
   React.useEffect(() => {
-    const preventGesture = (event: TouchEvent) => {
-      event.preventDefault()
-    }
+    const preventGesture = (event: TouchEvent) => event.preventDefault()
 
     // @ts-ignore
     document.addEventListener('gesturestart', preventGesture)

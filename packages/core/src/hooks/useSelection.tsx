@@ -28,23 +28,15 @@ export function useSelection<T extends TLShape>(
 
   if (selectedIds.length === 1) {
     const id = selectedIds[0]
-
     const shape = page.shapes[id]
-
     rotation = shape.rotation || 0
-
     isLocked = shape.isLocked || false
-
     const utils = getShapeUtils(shapeUtils, shape)
-
     bounds = utils.hideBounds ? undefined : utils.getBounds(shape)
   } else if (selectedIds.length > 1) {
     const selectedShapes = selectedIds.map((id) => page.shapes[id])
-
     rotation = 0
-
     isLocked = selectedShapes.every((shape) => shape.isLocked)
-
     bounds = selectedShapes.reduce((acc, shape, i) => {
       if (i === 0) {
         return getShapeUtils(shapeUtils, shape).getRotatedBounds(shape)
@@ -56,11 +48,9 @@ export function useSelection<T extends TLShape>(
   if (bounds) {
     const [minX, minY] = canvasToScreen([bounds.minX, bounds.minY], pageState.camera)
     const [maxX, maxY] = canvasToScreen([bounds.maxX, bounds.maxY], pageState.camera)
-
     isLinked = !!Object.values(page.bindings).find(
       (binding) => selectedIds.includes(binding.toId) || selectedIds.includes(binding.fromId)
     )
-
     rSelectionBounds.current = {
       minX,
       minY,

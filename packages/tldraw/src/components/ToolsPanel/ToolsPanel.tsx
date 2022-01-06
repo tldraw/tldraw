@@ -11,12 +11,11 @@ import { DeleteButton } from './DeleteButton'
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 
 interface ToolsPanelProps {
-  onBlur: React.FocusEventHandler
+  onBlur?: React.FocusEventHandler
 }
 
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps): JSX.Element {
   const app = useTldrawApp()
-
   const isDebugMode = app.useStore(isDebugModeSelector)
 
   return (

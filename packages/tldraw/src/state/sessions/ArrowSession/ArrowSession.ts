@@ -43,8 +43,11 @@ export class ArrowSession extends BaseSession {
     const oppositeHandleBindingId =
       this.initialShape.handles[handleId === 'start' ? 'end' : 'start']?.bindingId
     if (oppositeHandleBindingId) {
-      const oppositeToId = page.bindings[oppositeHandleBindingId].toId
-      this.bindableShapeIds = this.bindableShapeIds.filter((id) => id !== oppositeToId)
+      // TODO: find out why this the binding here is sometimes missing
+      const oppositeToId = page.bindings[oppositeHandleBindingId]?.toId
+      if (oppositeToId) {
+        this.bindableShapeIds = this.bindableShapeIds.filter((id) => id !== oppositeToId)
+      }
     }
     const { originPoint } = this.app
     if (this.isCreate) {

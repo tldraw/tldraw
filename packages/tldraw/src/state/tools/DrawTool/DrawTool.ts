@@ -42,9 +42,10 @@ export class DrawTool extends BaseTool {
       currentPoint,
       appState: { currentPageId, currentStyle },
     } = this.app
-    if (info.shiftKey && this.lastShapeId) {
+    const previous = this.lastShapeId && this.app.getShape(this.lastShapeId)
+    if (info.shiftKey && previous) {
       // Extend the previous shape
-      this.app.startSession(SessionType.Draw, this.lastShapeId)
+      this.app.startSession(SessionType.Draw, previous.id)
       this.setStatus(Status.Extending)
     } else {
       // Create a new shape

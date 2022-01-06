@@ -37,11 +37,24 @@ const hasGroupSelectedSelector = (s: TDSnapshot) => {
 const preventDefault = (e: Event) => e.stopPropagation()
 
 interface ContextMenuProps {
-  onBlur: React.FocusEventHandler
+  onBlur?: React.FocusEventHandler
   children: React.ReactNode
 }
 
 export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
+  return (
+    <RadixContextMenu.Root dir="ltr">
+      <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
+      <InnerMenu onBlur={onBlur} />
+    </RadixContextMenu.Root>
+  )
+}
+
+interface InnerContextMenuProps {
+  onBlur?: React.FocusEventHandler
+}
+
+const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProps) {
   const app = useTldrawApp()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const isDebugMode = app.useStore(isDebugModeSelector)
@@ -138,57 +151,54 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
   const hasThreeOrMore = numberOfSelectedIds > 2
 
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
-      <RadixContextMenu.Content
-        dir="ltr"
-        ref={rContent}
-        onEscapeKeyDown={preventDefault}
-        asChild
-        tabIndex={-1}
-        onBlur={onBlur}
-      >
-        <MenuContent>
-          {hasSelection ? (
-            <>
-              <CMRowButton onClick={handleDuplicate} kbd="#D">
-                Duplicate
+    <RadixContextMenu.Content
+      dir="ltr"
+      ref={rContent}
+      onEscapeKeyDown={preventDefault}
+      asChild
+      tabIndex={-1}
+      onBlur={onBlur}
+    >
+      <MenuContent>
+        {hasSelection ? (
+          <>
+            <CMRowButton onClick={handleDuplicate} kbd="#D">
+              Duplicate
+            </CMRowButton>
+            <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H">
+              Flip Horizontal
+            </CMRowButton>
+            <CMRowButton onClick={handleFlipVertical} kbd="⇧V">
+              Flip Vertical
+            </CMRowButton>
+            <CMRowButton onClick={handleLock} kbd="#⇧L">
+              Lock / Unlock
+            </CMRowButton>
+            {(hasTwoOrMore || hasGroupSelected) && <Divider />}
+            {hasTwoOrMore && (
+              <CMRowButton onClick={handleGroup} kbd="#G">
+                Group
               </CMRowButton>
-              <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H">
-                Flip Horizontal
+            )}
+            {hasGroupSelected && (
+              <CMRowButton onClick={handleGroup} kbd="#G">
+                Ungroup
               </CMRowButton>
-              <CMRowButton onClick={handleFlipVertical} kbd="⇧V">
-                Flip Vertical
+            )}
+            <Divider />
+            <ContextMenuSubMenu label="Move">
+              <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
+                To Front
               </CMRowButton>
-              <CMRowButton onClick={handleLock} kbd="#⇧L">
-                Lock / Unlock
+              <CMRowButton onClick={handleMoveForward} kbd="]">
+                Forward
               </CMRowButton>
-              {(hasTwoOrMore || hasGroupSelected) && <Divider />}
-              {hasTwoOrMore && (
-                <CMRowButton onClick={handleGroup} kbd="#G">
-                  Group
-                </CMRowButton>
-              )}
-              {hasGroupSelected && (
-                <CMRowButton onClick={handleGroup} kbd="#G">
-                  Ungroup
-                </CMRowButton>
-              )}
-              <Divider />
-              <ContextMenuSubMenu label="Move" size="small">
-                <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
-                  To Front
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveForward} kbd="]">
-                  Forward
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveBackward} kbd="[">
-                  Backward
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
-                  To Back
-                </CMRowButton>
-              </ContextMenuSubMenu>
+              <CMRowButton onClick={handleMoveBackward} kbd="[">
+                Backward
+              </CMRowButton>
+              <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
+                To Back
+              </CMRowButton>
               {app.callbacks.onExport && (
                 <ContextMenuSubMenu label="Export" size="small">
                   <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
@@ -198,50 +208,47 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                   <CMRowButton onClick={handleExportJSON}>JSON</CMRowButton>
                 </ContextMenuSubMenu>
               )}
-              <MoveToPageMenu />
-              {hasTwoOrMore && (
-                <AlignDistributeSubMenu
-                  hasTwoOrMore={hasTwoOrMore}
-                  hasThreeOrMore={hasThreeOrMore}
-                />
-              )}
-              <Divider />
-              <CMRowButton onClick={handleCut} kbd="#X">
-                Cut
-              </CMRowButton>
-              <CMRowButton onClick={handleCopy} kbd="#C">
-                Copy
-              </CMRowButton>
-              <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
-                Copy as SVG
-              </CMRowButton>
-              {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
-              <CMRowButton onClick={handlePaste} kbd="#V">
-                Paste
-              </CMRowButton>
-              <Divider />
-              <CMRowButton onClick={handleDelete} kbd="⌫">
-                Delete
-              </CMRowButton>
-            </>
-          ) : (
-            <>
-              <CMRowButton onClick={handlePaste} kbd="#V">
-                Paste
-              </CMRowButton>
-              <CMRowButton onClick={handleUndo} kbd="#Z">
-                Undo
-              </CMRowButton>
-              <CMRowButton onClick={handleRedo} kbd="#⇧Z">
-                Redo
-              </CMRowButton>
-            </>
-          )}
-        </MenuContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+            </ContextMenuSubMenu>
+            <MoveToPageMenu />
+            {hasTwoOrMore && (
+              <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
+            )}
+            <Divider />
+            <CMRowButton onClick={handleCut} kbd="#X">
+              Cut
+            </CMRowButton>
+            <CMRowButton onClick={handleCopy} kbd="#C">
+              Copy
+            </CMRowButton>
+            <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
+              Copy as SVG
+            </CMRowButton>
+            {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
+            <CMRowButton onClick={handlePaste} kbd="#V">
+              Paste
+            </CMRowButton>
+            <Divider />
+            <CMRowButton onClick={handleDelete} kbd="⌫">
+              Delete
+            </CMRowButton>
+          </>
+        ) : (
+          <>
+            <CMRowButton onClick={handlePaste} kbd="#V">
+              Paste
+            </CMRowButton>
+            <CMRowButton onClick={handleUndo} kbd="#Z">
+              Undo
+            </CMRowButton>
+            <CMRowButton onClick={handleRedo} kbd="#⇧Z">
+              Redo
+            </CMRowButton>
+          </>
+        )}
+      </MenuContent>
+    </RadixContextMenu.Content>
   )
-}
+})
 
 /* ---------- Align and Distribute Sub Menu --------- */
 
