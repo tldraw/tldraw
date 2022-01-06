@@ -56,6 +56,12 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const handleExportPDF = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.PDF)
   }, [app])
+  const handleExportSVG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.SVG)
+  }, [app])
+  const handleExportJSON = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.JSON)
+  }, [app])
 
   const handleSignIn = React.useCallback(() => {
     app.callbacks.onSignIn?.(app)
@@ -143,6 +149,8 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                   <DMItem onClick={handleExportPNG}>PNG</DMItem>
                   <DMItem onClick={handleExportJPG}>JPG</DMItem>
                   <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
+                  <DMItem onClick={handleExportSVG}>SVG</DMItem>
+                  <DMItem onClick={handleExportJSON}>JSON</DMItem>
                 </DMSubMenu>
               </>
             )}

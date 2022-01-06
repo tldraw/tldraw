@@ -3423,6 +3423,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       assets: assets,
       type,
       size: type === 'png' ? Vec.mul(size, 2) : size,
+      serialized:
+        type == TDExportTypes.SVG || type === TDExportTypes.JSON
+          ? this.copySvg(shapeIds)
+          : undefined,
     }
 
     if (this.callbacks.onExport) {

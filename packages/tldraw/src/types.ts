@@ -495,6 +495,8 @@ export enum TDExportTypes {
   JPG = 'jpeg',
   WEBP = 'webp',
   PDF = 'pdf',
+  SVG = 'svg',
+  JSON = 'json',
 }
 
 export interface TDExport {
@@ -503,6 +505,7 @@ export interface TDExport {
   assets: TDAssets
   type: TDExportTypes
   size: number[]
+  serialized?: string
 }
 
 /* -------------------------------------------------- */

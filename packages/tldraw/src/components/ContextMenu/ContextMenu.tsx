@@ -126,6 +126,12 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
   const handleExportWEBP = React.useCallback(async () => {
     await app.exportSelectedShapesAs(TDExportTypes.WEBP)
   }, [app])
+  const handleExportSVG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.SVG)
+  }, [app])
+  const handleExportJSON = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.JSON)
+  }, [app])
 
   const hasSelection = numberOfSelectedIds > 0
   const hasTwoOrMore = numberOfSelectedIds > 1
@@ -188,6 +194,8 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
                   <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
                   <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
                   <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
+                  <CMRowButton onClick={handleExportSVG}>SVG</CMRowButton>
+                  <CMRowButton onClick={handleExportJSON}>JSON</CMRowButton>
                 </ContextMenuSubMenu>
               )}
               <MoveToPageMenu />

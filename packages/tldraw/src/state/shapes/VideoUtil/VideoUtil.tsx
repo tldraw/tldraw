@@ -174,7 +174,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: VideoShape) => {
     const bounds = this.getBounds(shape)
-    const elm = document.createElementNS('http://www.w3.org/2000/svg', 'video')
+    const elm = document.createElementNS('http://www.w3.org/2000/svg', 'image')
     elm.setAttribute('width', `${bounds.width}`)
     elm.setAttribute('height', `${bounds.height}`)
     elm.setAttribute('xmlns:xlink', `http://www.w3.org/1999/xlink`)
