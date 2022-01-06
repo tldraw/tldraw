@@ -3417,16 +3417,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else return s
     })
 
+    let serializedExport
+    if (type == TDExportTypes.SVG) {
+      serializedExport = this.copySvg(shapeIds)
+    } else if (type == TDExportTypes.JSON) {
+      serializedExport = this.copyJson(shapeIds)
+    }
+
     const exportInfo: TDExport = {
       name: this.page.name ?? 'export',
       shapes: shapes,
       assets: assets,
       type,
       size: type === 'png' ? Vec.mul(size, 2) : size,
-      serialized:
-        type == TDExportTypes.SVG || type === TDExportTypes.JSON
-          ? this.copySvg(shapeIds)
-          : undefined,
+      serialized: serializedExport,
     }
 
     if (this.callbacks.onExport) {
