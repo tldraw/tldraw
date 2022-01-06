@@ -1766,25 +1766,28 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         bindingsToPaste
       )
     }
-    try {
-      if (!('clipboard' in navigator && navigator.clipboard.readText)) {
-        throw Error('This browser does not support the clipboard API.')
-      }
 
-      navigator.clipboard.readText().then((result) => {
-        try {
-          const data: {
-            type: string
-            shapes: TDShape[]
-            bindings: TDBinding[]
-            assets: TDAsset[]
-          } = JSON.parse(result)
-          if (data.type !== 'tldr/clipboard') {
-            throw Error('The pasted string was not from the Tldraw clipboard.')
-          }
+    if (!('clipboard' in navigator && navigator.clipboard.readText)) {
+      TLDR.warn('This browser does not support the Clipboard API!')
+      if (this.clipboard) {
+        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
+      }
+      return
+    }
+
+    navigator.clipboard
+      .readText()
+      .then((result) => {
+        const data: {
+          type: string
+          shapes: TDShape[]
+          bindings: TDBinding[]
+          assets: TDAsset[]
+        } = JSON.parse(result)
+        if (data.type === 'tldr/clipboard') {
           pasteInCurrentPage(data.shapes, data.bindings, data.assets)
-        } catch (e) {
-          TLDR.warn(e)
+        } else {
+          TLDR.warn('The selected shape was not a tldraw shape, treating as text.')
           const shapeId = Utils.uniqueId()
           this.createShapes({
             id: shapeId,
@@ -1797,14 +1800,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           this.select(shapeId)
         }
       })
-    } catch (e) {
-      // Navigator does not support clipboard. Note that this fallback will
-      // not support pasting from one document to another.
-      if (this.clipboard) {
-        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
-      }
-    }
-
+      .catch(() => {
+        TLDR.warn('Read permissions denied!')
+        if (this.clipboard) {
+          pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
+        }
+      })
     return this
   }
 
