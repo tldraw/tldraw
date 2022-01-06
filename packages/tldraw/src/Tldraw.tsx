@@ -424,8 +424,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
     const elm = rWrapper.current
     if (!elm) return
     if (!elm.contains(e.relatedTarget)) return
-    const event = new Event('pointerdown', { bubbles: true }) as any
-    event.pointerId = -1 // Hopefully fix a bug where @use-gesture tries to set pointer capture
+    const event = new Event('mousedown', { bubbles: true }) as any
     elm.dispatchEvent(event)
     elm.dispatchEvent(event)
   }, [])
