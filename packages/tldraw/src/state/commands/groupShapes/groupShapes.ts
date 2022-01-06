@@ -10,6 +10,8 @@ export function groupShapes(
   groupId: string,
   pageId: string
 ): TldrawCommand | undefined {
+  if (ids.length < 2) return
+
   const beforeShapes: Record<string, Patch<TDShape | undefined>> = {}
   const afterShapes: Record<string, Patch<TDShape | undefined>> = {}
 
@@ -30,10 +32,9 @@ export function groupShapes(
       shapesToGroup.push(shape)
     } else {
       const childIds = shape.children.filter((id) => !app.getShape(id).isLocked)
-
       otherEffectedGroups.push(shape)
       idsToGroup.push(...childIds)
-      shapesToGroup.push(...childIds.map((id) => app.getShape(id)))
+      shapesToGroup.push(...childIds.map((id) => app.getShape(id)).filter(Boolean))
     }
   }
 

@@ -16,9 +16,9 @@ Thanks to our corporate sponsors:
 
 <a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
 
-...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
+<a href="https://oppizi.com"><img src="./assets/oppizi.png" width="212"></img></a>
 
-<!-- sponsors --><!-- sponsors -->
+...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
 
 ## Contents
 

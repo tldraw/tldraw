@@ -591,21 +591,20 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with reordered elements')
     })
 
-    it.todo('Copies Text shapes as <text> elements.')
-    // it('Copies Text shapes as <text> elements.', () => {
-    //   const state2 = new TldrawTestApp()
+    it('Copies Text shapes as <text> elements.', () => {
+      const state2 = new TldrawTestApp()
 
-    //   const svgString = state2
-    //     .createShapes({
-    //       id: 'text1',
-    //       type: TDShapeType.Text,
-    //       text: 'hello world!',
-    //     })
-    //     .select('text1')
-    //     .copySvg()
+      const svgString = state2
+        .createShapes({
+          id: 'text1',
+          type: TDShapeType.Text,
+          text: 'hello world!',
+        })
+        .select('text1')
+        .copySvg()
 
-    //   expect(svgString).toBeTruthy()
-    // })
+      expect(svgString).toBeTruthy()
+    })
   })
 
   describe('when the document prop changes', () => {
@@ -706,4 +705,44 @@ describe('When adding an image', () => {
 describe('When adding a video', () => {
   it.todo('Adds the video to the assets table')
   it.todo('Does not add the video if that video already exists as an asset')
+})
+
+describe('When space panning', () => {
+  it('pans camera when spacebar is down', () => {
+    const app = new TldrawTestApp()
+    expect(app.pageState.camera.point).toMatchObject([0, 0])
+    app.movePointer([0, 0])
+    app.pointCanvas([0, 0])
+    app.pressKey(' ')
+    expect(app.isForcePanning).toBe(true)
+    expect(app.isPointing).toBe(true)
+    expect(app.currentTool.status).toBe('pointingCanvas')
+    app.movePointer([100, 100])
+    // Should not change to "brushing"
+    expect(app.currentTool.status).toBe('pointingCanvas')
+    app.releaseKey(' ')
+    app.stopPointing()
+    expect(app.pageState.camera.point).toMatchObject([100, 100])
+  })
+
+  it('pans camera in any state', () => {
+    const app = new TldrawTestApp()
+    app.selectTool(TDShapeType.Rectangle)
+    expect(app.pageState.camera.point).toMatchObject([0, 0])
+    app.movePointer([0, 0])
+    app.pointCanvas([0, 0])
+    app.movePointer([100, 100])
+    expect(app.currentTool.status).toBe('creating')
+    expect(app.isForcePanning).toBe(false)
+    expect(app.isPointing).toBe(true)
+    app.pressKey(' ')
+    expect(app.isForcePanning).toBe(true)
+    expect(app.isPointing).toBe(true)
+    app.movePointer([200, 200])
+    expect(app.pageState.camera.point).toMatchObject([100, 100])
+    expect(app.currentTool.status).toBe('creating')
+    app.releaseKey(' ')
+    app.stopPointing()
+    expect(app.currentTool.status).toBe('idle')
+  })
 })

@@ -14,6 +14,7 @@ export interface ToolButtonProps {
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
+  onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
 }
 
 export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
@@ -28,6 +29,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       disabled = false,
       isActive = false,
       isSponsor = false,
+      onKeyDown,
       ...rest
     },
     ref
@@ -42,6 +44,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         disabled={disabled}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
+        onKeyDown={onKeyDown}
         bp={breakpoints}
         {...rest}
       >
@@ -72,6 +75,12 @@ export function ToolButtonWithTooltip({
     app.toggleToolLock()
   }, [])
 
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === ' ' && app.isForcePanning) {
+      e.preventDefault()
+    }
+  }, [])
+
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <ToolButton
@@ -79,6 +88,7 @@ export function ToolButtonWithTooltip({
         variant="primary"
         isToolLocked={isLocked && rest.isActive}
         onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
       />
     </Tooltip>
   )
