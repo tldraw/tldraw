@@ -1,3 +1,10 @@
+# Changelog
+
+## 1.4.3
+
+- Update README
+- Update LICENSE year
+
 ## 1.4.2
 
 - Fixes a bug where shapes could be deleted during an erasing session

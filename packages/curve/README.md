@@ -2,22 +2,18 @@
   <img src="card-repo.png"/>
 </div>
 
-# @tldraw/core
+# @tldraw/curve
 
-This package contains the `Renderer` and core utilities used by [tldraw](https://tldraw.com).
-
-You can use this package to build projects like [tldraw](https://tldraw.com), where React components are rendered on a canvas user interface. Check out the [advanced example](https://core-steveruiz.vercel.app/).
+This package contains the curve methods used by [tldraw](https://tldraw.com).
 
 💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
 ## Installation
 
-Use your package manager of choice to install `@tldraw/core` and its peer dependencies.
-
 ```bash
-yarn add @tldraw/core
+yarn add @tldraw/curve
 # or
-npm i @tldraw/core
+npm i @tldraw/curve
 ```
 
 ## Examples

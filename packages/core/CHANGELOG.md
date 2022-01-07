@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.3
+
+- Update README
+- Update LICENSE year
+
 ## 1.4.0
 
 - Adds support for performance modes.

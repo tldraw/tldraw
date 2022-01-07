@@ -15,12 +15,10 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
 
   React.useEffect(() => {
     const preventGesture = (event: TouchEvent) => event.preventDefault()
-
     // @ts-ignore
     document.addEventListener('gesturestart', preventGesture)
     // @ts-ignore
     document.addEventListener('gesturechange', preventGesture)
-
     return () => {
       // @ts-ignore
       document.removeEventListener('gesturestart', preventGesture)
