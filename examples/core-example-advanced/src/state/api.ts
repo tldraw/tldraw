@@ -1,7 +1,5 @@
-import type { TLBinding } from '@tldraw/core'
 import { nanoid } from 'nanoid'
 import type { Shape } from 'shapes'
-import type { ArrowShape } from 'shapes/arrow'
 import type { CustomBinding } from './constants'
 import type { machine } from './machine'
 
