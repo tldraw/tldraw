@@ -9,6 +9,8 @@ export function useBoundsHandleEvents(
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
+      if ((e as any).dead) return
+      else (e as any).dead = true
       if (e.button !== 0) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerDown(e, id)
@@ -23,6 +25,8 @@ export function useBoundsHandleEvents(
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
+      if ((e as any).dead) return
+      else (e as any).dead = true
       if (e.button !== 0) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerUp(e, id)
@@ -34,8 +38,9 @@ export function useBoundsHandleEvents(
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
+      if ((e as any).dead) return
+      else (e as any).dead = true
       if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
       if (e.currentTarget.hasPointerCapture(e.pointerId)) {
         callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
       }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.5.0
+
+- Fix context menu bug on mobile.
+- Support for assets (images and videos) in tldraw multiplayer.
+- Support for image exporting in tldraw.
+- Breaking change: changed `onImageCreate` and `onImageDelete` props to `onAssetCreate` and `onAssetDelete`.
+- Preserve application state between reloads.
+
 ## 1.4.3
 
 - Update README
