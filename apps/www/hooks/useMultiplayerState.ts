@@ -136,6 +136,9 @@ export function useMultiplayerState(roomId: string) {
     async function setupDocument() {
       const storage = await room.getStorage<any>()
 
+      // Migrate previous versions
+      const version = storage.root.get('version')
+
       // Initialize (get or create) maps for shapes/bindings/assets
 
       let lShapes: LiveMap<string, TDShape> = storage.root.get('shapes')
@@ -158,9 +161,6 @@ export function useMultiplayerState(roomId: string) {
         lAssets = storage.root.get('assets')
       }
       rLiveAssets.current = lAssets
-
-      // Migrate previous versions
-      const version = storage.root.get('version')
 
       if (!version) {
         // The doc object will only be present if the document was created
@@ -192,7 +192,7 @@ export function useMultiplayerState(roomId: string) {
       }
 
       // Save the version number for future migrations
-      storage.root.set('version', 2)
+      storage.root.set('version', 2.1)
 
       // Subscribe to changes
       const handleChanges = () => {

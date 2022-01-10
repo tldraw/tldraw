@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
@@ -24,7 +24,7 @@ export default function MultiplayerEditor({
 }) {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId} defaultStorageRoot={TldrawApp.defaultDocument}>
+      <RoomProvider id={roomId}>
         <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
       </RoomProvider>
     </LiveblocksProvider>
