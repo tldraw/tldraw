@@ -3,15 +3,9 @@ import type { TldrawApp } from '../../internal'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 const removeAssetsFromDocument = (assets: TDAssets, idsToRemove: string[]) => {
-  const updatedAssets: Record<string, TDAsset | undefined> = {}
-  Object.entries(assets).forEach(([id, entry]) => {
-    if (idsToRemove.includes(id)) {
-      updatedAssets[id] = entry
-    } else {
-      updatedAssets[id] = undefined
-    }
-  })
-  return updatedAssets
+  const afterAssets: Record<string, TDAsset | undefined> = { ...assets }
+  idsToRemove.forEach((id) => (afterAssets[id] = undefined))
+  return afterAssets
 }
 
 export function deleteShapes(

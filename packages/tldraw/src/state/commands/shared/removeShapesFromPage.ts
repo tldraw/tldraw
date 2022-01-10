@@ -1,15 +1,6 @@
 import { TLDR } from '~state/TLDR'
 import type { ArrowShape, GroupShape, PagePartial, TDPage, TDSnapshot } from '~types'
 
-const doesAssetExistInAnotherShape = (page: TDPage, deletedShapes: string[], assetId: string) =>
-  !!Object.values(page.shapes).find((s) => s.assetId === assetId && !deletedShapes.includes(s.id))
-
-const canDeleteAsset = (data: TDSnapshot, deletedShapes: string[], assetId: string) => {
-  return !!Object.values(data.document.pages).find((page) =>
-    doesAssetExistInAnotherShape(page, deletedShapes, assetId)
-  )
-}
-
 export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: string) {
   const before: PagePartial = {
     shapes: {},
@@ -22,7 +13,6 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
   }
 
   const parentsToUpdate: GroupShape[] = []
-
   const deletedIds = new Set()
   const assetsToRemove = new Set<string>()
 
@@ -52,9 +42,7 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
       }
 
       if (shape.assetId) {
-        if (canDeleteAsset(data, ids, shape.assetId)) {
-          assetsToRemove.add(shape.assetId)
-        }
+        assetsToRemove.add(shape.assetId)
       }
     })
 
@@ -122,6 +110,15 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
               })
           }
         }
+      }
+    })
+
+  // If any other shapes are using the deleted assets, don't remove them
+  Object.values(data.document.pages)
+    .flatMap((page) => Object.values(page.shapes))
+    .forEach((shape) => {
+      if ('assetId' in shape && shape.assetId && !deletedIds.has(shape.id)) {
+        assetsToRemove.delete(shape.assetId)
       }
     })
 
