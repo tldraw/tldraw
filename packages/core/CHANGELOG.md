@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0
+
+- Fix propagation on pointer move events.
+
 ## 1.4.3
 
 - Update README

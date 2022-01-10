@@ -1,5 +1,5 @@
 {
-  "version": "1.4.3",
+  "version": "1.5.0",
   "name": "@tldraw/core-example-advanced",
   "description": "An advanced example project for @tldraw/core.",
   "author": "@steveruizok",
@@ -18,7 +18,7 @@
   "devDependencies": {
     "@state-designer/react": "3.0.0",
     "@stitches/react": "^1.2.5",
-    "@tldraw/core": "^1.4.3",
+    "@tldraw/core": "^1.5.0",
     "@tldraw/intersect": "^1.4.3",
     "@tldraw/vec": "^1.4.3",
     "@types/node": "^14.14.35",

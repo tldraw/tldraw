@@ -1354,9 +1354,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.replaceState(
       {
         ...TldrawApp.defaultState,
+        settings: {
+          ...this.state.settings,
+        },
         document: migrate(document, TldrawApp.version),
         appState: {
           ...TldrawApp.defaultState.appState,
+          ...this.state.appState,
           currentPageId: Object.keys(document.pages)[0],
           disableAssets: this.disableAssets,
         },
