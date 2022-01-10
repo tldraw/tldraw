@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     },
     Expires: 60, // seconds
     Conditions: [
-      ['content-length-range', 0, 1048576], // up to 1 MB
+      ['content-length-range', 0, 5242880], // up to 5 MB
     ],
   })
 
