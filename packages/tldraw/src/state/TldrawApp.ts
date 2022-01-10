@@ -46,7 +46,7 @@ import {
   saveToFileSystem,
   openAssetFromFileSystem,
   fileToBase64,
-  getSizeFromDataurl,
+  getSizeFromSrc,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -147,8 +147,9 @@ export interface TDCallbacks {
    */
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
 
-  onImageDelete?: (id: string) => void
-  onImageCreate?: (file: File, id: string) => Promise<string>
+  onAssetDelete?: (id: string) => void
+
+  onAssetCreate?: (file: File, id: string) => Promise<string | false>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -2566,11 +2567,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @command
    */
   delete = (ids = this.selectedIds): this => {
-    if (this.callbacks.onImageDelete) {
+    if (this.callbacks.onAssetDelete) {
       ids.forEach((id) => {
         const node = this.getShape(id)
         if (node.type === TDShapeType.Image || node.type === TDShapeType.Video) {
-          this.callbacks.onImageDelete!(id)
+          this.callbacks.onAssetDelete!(id)
         }
       })
     }
@@ -2848,45 +2849,55 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   private addMediaFromFile = async (file: File, point = this.centerPoint) => {
     this.setIsLoading(true)
     const id = Utils.uniqueId()
+    const pagePoint = this.getPagePoint(point)
+    const extension = file.name.match(/\.[0-9a-z]+$/i)
+    if (!extension) throw Error('No extension')
+    const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
+    const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
+    if (!(isImage || isVideo)) throw Error('Wrong extension')
+    const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
+    const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
+    let src: string | ArrayBuffer | null
+
     try {
-      let dataurl: string | ArrayBuffer | null
-      if (this.callbacks.onImageCreate) dataurl = await this.callbacks.onImageCreate(file, id)
-      else dataurl = await fileToBase64(file)
-      if (typeof dataurl === 'string') {
-        const extension = file.name.match(/\.[0-9a-z]+$/i)
-        if (!extension) throw Error('No extension')
-        const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
-        const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
-        if (!(isImage || isVideo)) throw Error('Wrong extension')
-        let assetId = Utils.uniqueId()
-        const pagePoint = this.getPagePoint(point)
-        const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
-        const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
-        const size = isImage ? await getSizeFromDataurl(dataurl) : [401.42, 401.42] // special
-        const match = Object.values(this.document.assets).find(
-          (asset) => asset.type === assetType && asset.src === dataurl
-        )
-        if (!match) {
-          this.patchState({
-            document: {
-              assets: {
-                [assetId]: {
-                  id: assetId,
-                  type: assetType,
-                  src: dataurl,
-                  size,
-                },
-              },
-            },
-          })
-        } else assetId = match.id
-        this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
+      if (this.callbacks.onAssetCreate) {
+        const result = await this.callbacks.onAssetCreate(file, id)
+        if (!result) throw Error('Asset creation callback returned false')
+        src = result
+      } else {
+        src = await fileToBase64(file)
       }
     } catch (error) {
-      console.error(error)
       this.setIsLoading(false)
       return this
     }
+    if (typeof src === 'string') {
+      const size = isImage ? await getSizeFromSrc(src) : [401.42, 401.42] // special
+      const match = Object.values(this.document.assets).find(
+        (asset) => asset.type === assetType && asset.src === src
+      )
+      let assetId: string
+      if (!match) {
+        assetId = Utils.uniqueId()
+        const asset = {
+          id: assetId,
+          type: assetType,
+          src,
+          size,
+        }
+        console.log(asset)
+        this.patchState({
+          document: {
+            assets: {
+              [assetId]: asset,
+            },
+          },
+        })
+      } else assetId = match.id
+      console.log('Creating shape')
+      this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
+    }
+
     this.setIsLoading(false)
     return this
   }

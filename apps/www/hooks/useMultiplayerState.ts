@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument } from '@tldraw/tldraw'
+import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
 import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
 import { LiveMap, LiveObject } from '@liveblocks/client'
 
@@ -19,6 +19,7 @@ export function useMultiplayerState(roomId: string) {
 
   const rLiveShapes = React.useRef<LiveMap<string, TDShape>>()
   const rLiveBindings = React.useRef<LiveMap<string, TDBinding>>()
+  const rLiveAssets = React.useRef<LiveMap<string, TDAsset>>()
 
   // Callbacks --------------
 
@@ -38,13 +39,15 @@ export function useMultiplayerState(roomId: string) {
     (
       app: TldrawApp,
       shapes: Record<string, TDShape | undefined>,
-      bindings: Record<string, TDBinding | undefined>
+      bindings: Record<string, TDBinding | undefined>,
+      assets: Record<string, TDAsset | undefined>
     ) => {
       room.batch(() => {
         const lShapes = rLiveShapes.current
         const lBindings = rLiveBindings.current
+        const lAssets = rLiveAssets.current
 
-        if (!(lShapes && lBindings)) return
+        if (!(lShapes && lBindings && lAssets)) return
 
         Object.entries(shapes).forEach(([id, shape]) => {
           if (!shape) {
@@ -59,6 +62,14 @@ export function useMultiplayerState(roomId: string) {
             lBindings.delete(id)
           } else {
             lBindings.set(binding.id, binding)
+          }
+        })
+
+        Object.entries(assets).forEach(([id, asset]) => {
+          if (!asset) {
+            lAssets.delete(id)
+          } else {
+            lAssets.set(asset.id, asset)
           }
         })
       })
@@ -125,7 +136,7 @@ export function useMultiplayerState(roomId: string) {
     async function setupDocument() {
       const storage = await room.getStorage<any>()
 
-      // Initialize (get or create) shapes and bindings maps
+      // Initialize (get or create) maps for shapes/bindings/assets
 
       let lShapes: LiveMap<string, TDShape> = storage.root.get('shapes')
       if (!lShapes) {
@@ -140,6 +151,13 @@ export function useMultiplayerState(roomId: string) {
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
+
+      let lAssets: LiveMap<string, TDAsset> = storage.root.get('assets')
+      if (!lAssets) {
+        storage.root.set('assets', new LiveMap<string, TDAsset>())
+        lAssets = storage.root.get('assets')
+      }
+      rLiveAssets.current = lAssets
 
       // Migrate previous versions
       const version = storage.root.get('version')
@@ -163,11 +181,13 @@ export function useMultiplayerState(roomId: string) {
               pages: {
                 page: { shapes, bindings },
               },
+              assets,
             },
           } = doc.toObject()
 
           Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
           Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
+          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset))
         }
       }
 
@@ -179,7 +199,7 @@ export function useMultiplayerState(roomId: string) {
         app?.replacePageContent(
           Object.fromEntries(lShapes.entries()),
           Object.fromEntries(lBindings.entries()),
-          {}
+          Object.fromEntries(lAssets.entries())
         )
       }
 

@@ -47,13 +47,13 @@ function Editor({ roomId }: { roomId: string }) {
          * Use very small images only
          */
         disableAssets={false}
-        // onImageCreate={async (file: File, id: string) => {
+        // onAssetCreate={async (file: File, id: string) => {
         //   const imageRef = ref(storage, id)
         //   const snapshot = await uploadBytes(imageRef, file)
         //   const url = await getDownloadURL(snapshot.ref)
         //   return url
         // }}
-        // onImageDelete={async (id: string) => {
+        // onAssetDelete={async (id: string) => {
         //   const imageRef = ref(storage, id)
         //   await deleteObject(imageRef)
         // }}

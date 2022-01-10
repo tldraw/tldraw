@@ -154,12 +154,12 @@ export interface TldrawProps extends TDCallbacks {
   /**
    * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
    */
-  onImageCreate?: (file: File, id: string) => Promise<string>
+  onAssetCreate?: (file: File, id: string) => Promise<string | false>
 
   /**
    * (optional) A callback to run when the user deletes an image or video.
    */
-  onImageDelete?: (id: string) => void
+  onAssetDelete?: (id: string) => void
 
   onChangePage?: (
     app: TldrawApp,
@@ -199,8 +199,8 @@ export function Tldraw({
   onPatch,
   onCommand,
   onChangePage,
-  onImageCreate,
-  onImageDelete,
+  onAssetCreate,
+  onAssetDelete,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -223,8 +223,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     })
     return app
   })
@@ -250,8 +250,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     })
     setSId(id)
     setApp(newApp)
@@ -303,8 +303,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     }
   }, [
     onMount,
@@ -323,8 +323,8 @@ export function Tldraw({
     onPatch,
     onCommand,
     onChangePage,
-    onImageDelete,
-    onImageCreate,
+    onAssetDelete,
+    onAssetCreate,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
