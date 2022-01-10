@@ -22,7 +22,9 @@ export class TranslateLabelSession extends BaseSession {
 
   constructor(app: TldrawApp, shapeId: string) {
     super(app)
-    this.initialShape = this.app.getShape(shapeId)
+    this.initialShape = this.app.getShape<
+      RectangleShape | TriangleShape | EllipseShape | ArrowShape
+    >(shapeId)
     this.initialShapeBounds = this.app.getShapeBounds(shapeId)
   }
 

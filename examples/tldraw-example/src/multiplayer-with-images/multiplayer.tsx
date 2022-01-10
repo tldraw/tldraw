@@ -14,7 +14,7 @@ const client = createClient({
   throttle: 100,
 })
 
-const roomId = 'mp-test-8'
+const roomId = 'mp-test-images-1'
 
 export function Multiplayer() {
   return (
@@ -40,17 +40,20 @@ function Editor({ roomId }: { roomId: string }) {
         {...events}
         /**
          * Warning: Keeping images enabled for multiplayer applications
-         * without provifing a storage bucket based solution will cause
+         * without providing a storage bucket based solution will cause
          * massive base64 string to be written to the liveblocks room.
+         *
+         * Base64 storage is enabled here for testing.
+         * Use very small images only
          */
-        disableAssets={true}
-        // onImageCreate={async (file: File, id: string) => {
+        disableAssets={false}
+        // onAssetCreate={async (file: File, id: string) => {
         //   const imageRef = ref(storage, id)
         //   const snapshot = await uploadBytes(imageRef, file)
         //   const url = await getDownloadURL(snapshot.ref)
         //   return url
         // }}
-        // onImageDelete={async (id: string) => {
+        // onAssetDelete={async (id: string) => {
         //   const imageRef = ref(storage, id)
         //   await deleteObject(imageRef)
         // }}

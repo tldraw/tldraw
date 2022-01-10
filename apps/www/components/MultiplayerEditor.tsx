@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { styled } from 'styles'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
 import { exportToImage } from 'utils/export'
+import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
@@ -24,7 +25,7 @@ export default function MultiplayerEditor({
 }) {
   return (
     <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId} defaultStorageRoot={TldrawApp.defaultDocument}>
+      <RoomProvider id={roomId}>
         <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
       </RoomProvider>
     </LiveblocksProvider>
@@ -45,6 +46,7 @@ function Editor({
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
+  const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
@@ -52,12 +54,14 @@ function Editor({
     <div className="tldraw">
       <Tldraw
         autofocus
-        disableAssets
+        disableAssets={false}
         showPages={false}
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
         onExport={exportToImage}
+        onAssetCreate={onAssetCreate}
+        onAssetDelete={onAssetDelete}
         {...fileSystemEvents}
         {...events}
       />
