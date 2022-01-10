@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
+import { TDDocument, TDShape, TDBinding, TDStatus, TDUser, TDAsset } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -150,21 +150,20 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
-
   /**
-   * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
+   * (optional) A callback to run when an asset will be deleted.
    */
-  onImageCreate?: (file: File, id: string) => Promise<string>
-
+  onAssetDelete?: (assetId: string) => void
   /**
-   * (optional) A callback to run when the user deletes an image or video.
+   * (optional) A callback to run when an asset will be created. Should return the value for the image/video's `src` property.
    */
-  onImageDelete?: (id: string) => void
+  onAssetCreate?: (file: File, id: string) => Promise<string | false>
 
   onChangePage?: (
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
-    bindings: Record<string, TDBinding | undefined>
+    bindings: Record<string, TDBinding | undefined>,
+    assets: Record<string, TDAsset | undefined>
   ) => void
 }
 
@@ -198,8 +197,8 @@ export function Tldraw({
   onPatch,
   onCommand,
   onChangePage,
-  onImageCreate,
-  onImageDelete,
+  onAssetCreate,
+  onAssetDelete,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -222,8 +221,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     })
     return app
   })
@@ -249,8 +248,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     })
     setSId(id)
     setApp(newApp)
@@ -302,8 +301,8 @@ export function Tldraw({
       onPatch,
       onCommand,
       onChangePage,
-      onImageDelete,
-      onImageCreate,
+      onAssetDelete,
+      onAssetCreate,
     }
   }, [
     onMount,
@@ -322,8 +321,8 @@ export function Tldraw({
     onPatch,
     onCommand,
     onChangePage,
-    onImageDelete,
-    onImageCreate,
+    onAssetDelete,
+    onAssetCreate,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes

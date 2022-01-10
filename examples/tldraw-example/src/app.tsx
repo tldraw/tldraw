@@ -14,6 +14,7 @@ import Api from './api'
 import FileSystem from './file-system'
 import UIOptions from './ui-options'
 import { Multiplayer } from './multiplayer'
+import { Multiplayer as MultiplayerWithImages } from './multiplayer-with-images'
 import './styles.css'
 
 export default function App(): JSX.Element {
@@ -61,6 +62,9 @@ export default function App(): JSX.Element {
         </Route>
         <Route path="/multiplayer">
           <Multiplayer />
+        </Route>
+        <Route path="/multiplayer-with-images">
+          <MultiplayerWithImages />
         </Route>
         <Route path="/">
           <img className="hero" src="./card-repo.png" />

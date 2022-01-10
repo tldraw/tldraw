@@ -1,5 +1,5 @@
 import { TLDR } from '~state/TLDR'
-import type { ArrowShape, TDSnapshot, GroupShape, PagePartial } from '~types'
+import type { ArrowShape, GroupShape, PagePartial, TDPage, TDSnapshot } from '~types'
 
 export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: string) {
   const before: PagePartial = {
@@ -13,8 +13,8 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
   }
 
   const parentsToUpdate: GroupShape[] = []
-
   const deletedIds = new Set()
+  const assetsToRemove = new Set<string>()
 
   // These are the shapes we're definitely going to delete
 
@@ -39,6 +39,10 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
 
       if (shape.parentId !== pageId) {
         parentsToUpdate.push(TLDR.getShape(data, shape.parentId, pageId))
+      }
+
+      if (shape.assetId) {
+        assetsToRemove.add(shape.assetId)
       }
     })
 
@@ -109,5 +113,14 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
       }
     })
 
-  return { before, after }
+  // If any other shapes are using the deleted assets, don't remove them
+  Object.values(data.document.pages)
+    .flatMap((page) => Object.values(page.shapes))
+    .forEach((shape) => {
+      if ('assetId' in shape && shape.assetId && !deletedIds.has(shape.id)) {
+        assetsToRemove.delete(shape.assetId)
+      }
+    })
+
+  return { before, after, assetsToRemove: Array.from(assetsToRemove) }
 }
