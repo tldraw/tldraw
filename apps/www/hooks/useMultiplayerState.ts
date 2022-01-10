@@ -142,21 +142,21 @@ export function useMultiplayerState(roomId: string) {
       // Initialize (get or create) maps for shapes/bindings/assets
 
       let lShapes: LiveMap<string, TDShape> = storage.root.get('shapes')
-      if (!lShapes) {
+      if (!lShapes || !('_serialize' in lShapes)) {
         storage.root.set('shapes', new LiveMap<string, TDShape>())
         lShapes = storage.root.get('shapes')
       }
       rLiveShapes.current = lShapes
 
       let lBindings: LiveMap<string, TDBinding> = storage.root.get('bindings')
-      if (!lBindings) {
+      if (!lBindings || !('_serialize' in lBindings)) {
         storage.root.set('bindings', new LiveMap<string, TDBinding>())
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
 
       let lAssets: LiveMap<string, TDAsset> = storage.root.get('assets')
-      if (!lAssets) {
+      if (!lAssets || !('_serialize' in lAssets)) {
         storage.root.set('assets', new LiveMap<string, TDAsset>())
         lAssets = storage.root.get('assets')
       }
