@@ -33,10 +33,13 @@ const disableAssetsSelector = (s: TDSnapshot) => {
 
 export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
   const app = useTldrawApp()
+
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
+
   const disableAssets = app.useStore(disableAssetsSelector)
 
   const [_, setForce] = React.useState(0)
+
   React.useEffect(() => setForce(1), [])
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
@@ -56,9 +59,11 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   const handleExportPDF = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.PDF)
   }, [app])
+
   const handleExportSVG = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.SVG)
   }, [app])
+
   const handleExportJSON = React.useCallback(async () => {
     await app.exportAllShapesAs(TDExportTypes.JSON)
   }, [app])

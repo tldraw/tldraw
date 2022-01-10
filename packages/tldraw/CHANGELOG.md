@@ -1,3 +1,15 @@
+# Changelog
+
+## 1.4.3
+
+- Update README
+- Update LICENSE year
+
+## 1.4.2
+
+- Fixes a bug where shapes could be deleted during an erasing session
+- Fixes a bug where groups could throw an error if a shape was missing
+
 ## 1.4.1
 
 - Improves label placement, indicators and colors

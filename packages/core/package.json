@@ -1,5 +1,5 @@
 {
-  "version": "1.4.1",
+  "version": "1.4.3",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -37,8 +37,8 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "@tldraw/intersect": "^1.4.0",
-    "@tldraw/vec": "^1.4.0",
+    "@tldraw/intersect": "^1.4.3",
+    "@tldraw/vec": "^1.4.3",
     "@use-gesture/react": "^10.2.4",
     "mobx-react-lite": "^3.2.2"
   },
@@ -90,5 +90,5 @@
       "\\~(.*)": "<rootDir>/src/$1"
     }
   },
-  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
+  "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
 }

@@ -20,14 +20,14 @@ export class EraseSession extends BaseSession {
   erasedShapes = new Set<TDShape>()
   erasedBindings = new Set<TDBinding>()
   initialSelectedShapes: TDShape[]
-  erasableShapes: TDShape[]
+  erasableShapes: Set<TDShape>
   prevPoint: number[]
 
   constructor(app: TldrawApp) {
     super(app)
     this.prevPoint = [...app.originPoint]
     this.initialSelectedShapes = this.app.selectedIds.map((id) => this.app.getShape(id))
-    this.erasableShapes = this.app.shapes.filter((shape) => !shape.isLocked)
+    this.erasableShapes = new Set(this.app.shapes.filter((shape) => !shape.isLocked))
   }
 
   start = (): TldrawPatch | undefined => void null
@@ -62,9 +62,8 @@ export class EraseSession extends BaseSession {
 
     const deletedShapeIds = new Set<string>([])
 
-    for (const shape of this.erasableShapes) {
-      if (this.erasedShapes.has(shape)) continue
-
+    this.erasableShapes.forEach((shape) => {
+      if (this.erasedShapes.has(shape)) return
       if (this.app.getShapeUtil(shape).hitTestLineSegment(shape, this.prevPoint, newPoint)) {
         this.erasedShapes.add(shape)
         deletedShapeIds.add(shape.id)
@@ -76,7 +75,7 @@ export class EraseSession extends BaseSession {
           }
         }
       }
-    }
+    })
 
     // Erase bindings that reference deleted shapes
 
@@ -85,6 +84,15 @@ export class EraseSession extends BaseSession {
         if (deletedShapeIds.has(id)) {
           this.erasedBindings.add(binding)
         }
+      }
+    })
+
+    this.erasedShapes.forEach((shape) => {
+      // Has the shape been deleted? If so, pull it from the list.
+      if (!this.app.getShape(shape.id)) {
+        this.erasedShapes.delete(shape)
+        this.erasableShapes.delete(shape)
+        deletedShapeIds.delete(shape.id)
       }
     })
 
@@ -106,6 +114,13 @@ export class EraseSession extends BaseSession {
   cancel = (): TldrawPatch | undefined => {
     const { page } = this.app
 
+    this.erasedShapes.forEach((shape) => {
+      if (!this.app.getShape(shape.id)) {
+        this.erasedShapes.delete(shape)
+        this.erasableShapes.delete(shape)
+      }
+    })
+
     const erasedShapes = Array.from(this.erasedShapes.values())
 
     return {
@@ -126,6 +141,19 @@ export class EraseSession extends BaseSession {
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { page } = this.app
+
+    this.erasedShapes.forEach((shape) => {
+      if (!this.app.getShape(shape.id)) {
+        this.erasedShapes.delete(shape)
+        this.erasableShapes.delete(shape)
+      }
+    })
+
+    this.erasedBindings.forEach((binding) => {
+      if (!this.app.getBinding(binding.id)) {
+        this.erasedBindings.delete(binding)
+      }
+    })
 
     const erasedShapes = Array.from(this.erasedShapes.values())
     const erasedBindings = Array.from(this.erasedBindings.values())
@@ -183,7 +211,9 @@ export class EraseSession extends BaseSession {
           },
           pageStates: {
             [page.id]: {
-              selectedIds: this.initialSelectedShapes.map((shape) => shape.id),
+              selectedIds: this.initialSelectedShapes
+                .filter((shape) => !!this.app.getShape(shape.id))
+                .map((shape) => shape.id),
             },
           },
         },
@@ -196,6 +226,7 @@ export class EraseSession extends BaseSession {
           pageStates: {
             [page.id]: {
               selectedIds: this.initialSelectedShapes
+                .filter((shape) => !!this.app.getShape(shape.id))
                 .filter((shape) => !erasedShapeIds.includes(shape.id))
                 .map((shape) => shape.id),
             },
