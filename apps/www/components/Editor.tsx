@@ -1,7 +1,8 @@
 import React from 'react'
 import * as gtag from 'utils/gtag'
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
+import { exportToImage } from 'utils/export'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -11,7 +12,12 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home', isUser = false, isSponsor = false }: EditorProps) {
+export default function Editor({
+  id = 'home',
+  isUser = false,
+  isSponsor = false,
+  ...rest
+}: EditorProps & Partial<TldrawProps>) {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -40,7 +46,9 @@ export default function Editor({ id = 'home', isUser = false, isSponsor = false 
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
+        onExport={exportToImage}
         {...fileSystemEvents}
+        {...rest}
       />
     </div>
   )

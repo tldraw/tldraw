@@ -20,7 +20,7 @@ const StyledLoadingPanelContainer = styled('div', {
   transform: `translate(-50%, 0)`,
   borderBottomLeftRadius: '12px',
   borderBottomRightRadius: '12px',
-  padding: '8px',
+  padding: '8px 16px',
   fontFamily: 'var(--fonts-ui)',
   fontSize: 'var(--fontSizes-1)',
   boxShadow: 'var(--shadows-panel)',

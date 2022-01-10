@@ -13,7 +13,6 @@ export const VERY_SLOW_SPEED = 2.5
 export const GHOSTED_OPACITY = 0.3
 export const DEAD_ZONE = 3
 export const LABEL_POINT = [0.5, 0.5]
-
 import type { Easing } from '~types'
 
 export const PI2 = Math.PI * 2
@@ -84,7 +83,7 @@ export const USER_COLORS = [
   '#FF802B',
 ]
 
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-
+export const isSafari =
+  typeof Window === 'undefined' ? false : /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 export const IMAGE_EXTENSIONS = ['.png', '.svg', '.jpg', '.jpeg', '.gif']
 export const VIDEO_EXTENSIONS = isSafari ? [] : ['.mp4', '.webm']

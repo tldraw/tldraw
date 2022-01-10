@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
 import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser, TDAsset } from '~types'
+import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -86,85 +86,6 @@ export interface TldrawProps extends TDCallbacks {
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
   disableAssets?: boolean
-
-  /**
-   * (optional) A callback to run when the component mounts.
-   */
-  onMount?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
-   */
-  onNewProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
-   */
-  onSaveProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
-   */
-  onSaveProjectAs?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
-   */
-  onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user signs in via the menu.
-   */
-  onSignIn?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user signs out via the menu.
-   */
-  onSignOut?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user creates a new project.
-   */
-  onChangePresence?: (state: TldrawApp, user: TDUser) => void
-  /**
-   * (optional) A callback to run when the component's state changes.
-   */
-  onChange?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is patched.
-   */
-  onPatch?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is changed with a command.
-   */
-  onCommand?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is persisted.
-   */
-  onPersist?: (state: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user undos.
-   */
-  onUndo?: (state: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user redos.
-   */
-  onRedo?: (state: TldrawApp) => void
-  /**
-   * (optional) A callback to run when an asset will be deleted.
-   */
-  onAssetDelete?: (assetId: string) => void
-  /**
-   * (optional) A callback to run when an asset will be created. Should return the value for the image/video's `src` property.
-   */
-  onAssetCreate?: (file: File, id: string) => Promise<string | false>
-
-  onChangePage?: (
-    app: TldrawApp,
-    shapes: Record<string, TDShape | undefined>,
-    bindings: Record<string, TDBinding | undefined>,
-    assets: Record<string, TDAsset | undefined>
-  ) => void
 }
 
 export function Tldraw({
@@ -199,6 +120,7 @@ export function Tldraw({
   onChangePage,
   onAssetCreate,
   onAssetDelete,
+  onExport,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -250,6 +172,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onExport,
     })
     setSId(id)
     setApp(newApp)
@@ -303,6 +226,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onExport,
     }
   }, [
     onMount,
@@ -323,6 +247,7 @@ export function Tldraw({
     onChangePage,
     onAssetDelete,
     onAssetCreate,
+    onExport,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes

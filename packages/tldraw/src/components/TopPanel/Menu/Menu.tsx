@@ -15,7 +15,7 @@ import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
-import type { TDSnapshot } from '~types'
+import { TDExportTypes, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
@@ -33,10 +33,40 @@ const disableAssetsSelector = (s: TDSnapshot) => {
 
 export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
   const app = useTldrawApp()
+
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
+
   const disableAssets = app.useStore(disableAssetsSelector)
 
+  const [_, setForce] = React.useState(0)
+
+  React.useEffect(() => setForce(1), [])
+
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
+
+  const handleExportPNG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.PNG)
+  }, [app])
+
+  const handleExportJPG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.JPG)
+  }, [app])
+
+  const handleExportWEBP = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.WEBP)
+  }, [app])
+
+  const handleExportPDF = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.PDF)
+  }, [app])
+
+  const handleExportSVG = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.SVG)
+  }, [app])
+
+  const handleExportJSON = React.useCallback(async () => {
+    await app.exportAllShapesAs(TDExportTypes.JSON)
+  }, [app])
 
   const handleSignIn = React.useCallback(() => {
     app.callbacks.onSignIn?.(app)
@@ -82,7 +112,8 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
     app.callbacks.onNewProject ||
     app.callbacks.onOpenProject ||
     app.callbacks.onSaveProject ||
-    app.callbacks.onSaveProjectAs
+    app.callbacks.onSaveProjectAs ||
+    app.callbacks.onExport
 
   const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
 
@@ -115,6 +146,18 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               <DMItem onClick={onSaveProjectAs} kbd="#⇧S">
                 Save As...
               </DMItem>
+            )}
+            {app.callbacks.onExport && (
+              <>
+                <Divider />
+                <DMSubMenu label="Export" size="small">
+                  <DMItem onClick={handleExportPNG}>PNG</DMItem>
+                  <DMItem onClick={handleExportJPG}>JPG</DMItem>
+                  <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
+                  <DMItem onClick={handleExportSVG}>SVG</DMItem>
+                  <DMItem onClick={handleExportJSON}>JSON</DMItem>
+                </DMSubMenu>
+              </>
             )}
             {!disableAssets && (
               <>

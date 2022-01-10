@@ -53,6 +53,7 @@
     "@tldraw/vec": "^1.4.3",
     "idb-keyval": "^6.0.3",
     "perfect-freehand": "^1.0.16",
+    "puppeteer": "^13.0.1",
     "react-hotkeys-hook": "^3.4.0",
     "tslib": "^2.3.1",
     "zustand": "^3.6.5"

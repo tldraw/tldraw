@@ -1,7 +1,5 @@
-import { Vec } from '@tldraw/vec'
 import {
   SessionType,
-  ShapesWithProp,
   TldrawCommand,
   TldrawPatch,
   TDStatus,

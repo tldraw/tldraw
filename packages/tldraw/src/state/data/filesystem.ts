@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { TDDocument, TDFile } from '~types'
-import { fileSave, fileOpen, FileSystemHandle } from './browser-fs-access'
+import type { FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
 
@@ -46,6 +47,8 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
   }
 
   // Save to file system
+  // @ts-ignore
+  const fileSave = await import('./browser-fs-access').default.fileSave
   const newFileHandle = await fileSave(
     blob,
     {
@@ -67,6 +70,8 @@ export async function openFromFileSystem(): Promise<null | {
   document: TDDocument
 }> {
   // Get the blob
+  // @ts-ignore
+  const fileOpen = await import('./browser-fs-access').fileOpen
   const blob = await fileOpen({
     description: 'Tldraw File',
     extensions: [`.tldr`],
@@ -100,6 +105,8 @@ export async function openFromFileSystem(): Promise<null | {
 }
 
 export async function openAssetFromFileSystem() {
+  // @ts-ignore
+  const fileOpen = await import('./browser-fs-access').fileOpen
   return fileOpen({
     description: 'Image or Video',
     extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],

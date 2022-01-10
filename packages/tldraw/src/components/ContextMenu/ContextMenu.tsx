@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTldrawApp } from '~hooks'
-import { TDSnapshot, AlignType, DistributeType, StretchType } from '~types'
+import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportTypes } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -130,6 +130,26 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
     app.redo()
   }, [app])
 
+  const handleExportPNG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.PNG)
+  }, [app])
+
+  const handleExportJPG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.JPG)
+  }, [app])
+
+  const handleExportWEBP = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.WEBP)
+  }, [app])
+
+  const handleExportSVG = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.SVG)
+  }, [app])
+
+  const handleExportJSON = React.useCallback(async () => {
+    await app.exportSelectedShapesAs(TDExportTypes.JSON)
+  }, [app])
+
   const hasSelection = numberOfSelectedIds > 0
   const hasTwoOrMore = numberOfSelectedIds > 1
   const hasThreeOrMore = numberOfSelectedIds > 2
@@ -188,6 +208,31 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             {hasTwoOrMore && (
               <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
             )}
+            {app.callbacks.onExport ? (
+              <>
+                <Divider />
+                <ContextMenuSubMenu label="Export" size="small">
+                  <CMRowButton onClick={handleExportPNG}>PNG</CMRowButton>
+                  <CMRowButton onClick={handleExportJPG}>JPG</CMRowButton>
+                  <CMRowButton onClick={handleExportWEBP}>WEBP</CMRowButton>
+                  <CMRowButton onClick={handleExportSVG}>SVG</CMRowButton>
+                  <CMRowButton onClick={handleExportJSON}>JSON</CMRowButton>
+                  <Divider />
+                  <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
+                    Copy as SVG
+                  </CMRowButton>
+                  {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
+                </ContextMenuSubMenu>
+              </>
+            ) : (
+              <>
+                <Divider />
+                <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
+                  Copy as SVG
+                </CMRowButton>
+                {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
+              </>
+            )}
             <Divider />
             <CMRowButton onClick={handleCut} kbd="#X">
               Cut
@@ -195,13 +240,10 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             <CMRowButton onClick={handleCopy} kbd="#C">
               Copy
             </CMRowButton>
-            <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
-              Copy as SVG
-            </CMRowButton>
-            {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
             <CMRowButton onClick={handlePaste} kbd="#V">
               Paste
             </CMRowButton>
+
             <Divider />
             <CMRowButton onClick={handleDelete} kbd="⌫">
               Delete
@@ -376,15 +418,20 @@ function MoveToPageMenu(): JSX.Element | null {
 
 export interface ContextMenuSubMenuProps {
   label: string
+  size?: 'small'
   children: React.ReactNode
 }
 
-export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps): JSX.Element {
+export function ContextMenuSubMenu({
+  children,
+  label,
+  size,
+}: ContextMenuSubMenuProps): JSX.Element {
   return (
     <RadixContextMenu.Root dir="ltr">
       <CMTriggerButton isSubmenu>{label}</CMTriggerButton>
       <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
-        <MenuContent>
+        <MenuContent size={size}>
           {children}
           <CMArrow offset={13} />
         </MenuContent>
