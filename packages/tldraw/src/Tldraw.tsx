@@ -150,16 +150,14 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) A callback to run when the user redos.
    */
   onRedo?: (state: TldrawApp) => void
-
   /**
-   * (optional) A callback to run when the user creates an image or video asset. Returns the desired "src" attribute eg: base64 (default) or remote URL
+   * (optional) A callback to run when an asset will be deleted.
+   */
+  onAssetDelete?: (assetId: string) => void
+  /**
+   * (optional) A callback to run when an asset will be created. Should return the value for the image/video's `src` property.
    */
   onAssetCreate?: (file: File, id: string) => Promise<string | false>
-
-  /**
-   * (optional) A callback to run when the user deletes an image or video.
-   */
-  onAssetDelete?: (id: string) => void
 
   onChangePage?: (
     app: TldrawApp,

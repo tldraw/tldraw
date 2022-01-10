@@ -6,7 +6,7 @@ import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { styled } from 'styles'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
-import { useMultiplayerMediaUpload } from 'hooks/useMultiplayerMediaUpload'
+import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
@@ -45,7 +45,7 @@ function Editor({
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
-  const { onAssetCreate } = useMultiplayerMediaUpload()
+  const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
@@ -59,6 +59,7 @@ function Editor({
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
         onAssetCreate={onAssetCreate}
+        onAssetDelete={onAssetDelete}
         {...fileSystemEvents}
         {...events}
       />

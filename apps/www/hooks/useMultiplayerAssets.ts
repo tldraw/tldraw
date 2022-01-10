@@ -1,6 +1,6 @@
 import React from 'react'
 
-export function useMultiplayerMediaUpload() {
+export function useMultiplayerAssets() {
   const onAssetCreate = React.useCallback(
     async (file: File, id: string): Promise<string | false> => {
       const filename = encodeURIComponent(file.name)
@@ -24,5 +24,10 @@ export function useMultiplayerMediaUpload() {
     []
   )
 
-  return { onAssetCreate }
+  const onAssetDelete = React.useCallback(async (id: string): Promise<boolean> => {
+    // noop
+    return true
+  }, [])
+
+  return { onAssetCreate, onAssetDelete }
 }

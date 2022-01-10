@@ -146,9 +146,13 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user creates a new project.
    */
   onChangePresence?: (state: TldrawApp, user: TDUser) => void
-
-  onAssetDelete?: (id: string) => void
-
+  /**
+   * (optional) A callback to run when an asset will be deleted.
+   */
+  onAssetDelete?: (assetId: string) => void
+  /**
+   * (optional) A callback to run when an asset will be created. Should return the value for the image/video's `src` property.
+   */
   onAssetCreate?: (file: File, id: string) => Promise<string | false>
 }
 
@@ -2567,15 +2571,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @command
    */
   delete = (ids = this.selectedIds): this => {
-    if (this.callbacks.onAssetDelete) {
-      ids.forEach((id) => {
-        const node = this.getShape(id)
-        if (node.type === TDShapeType.Image || node.type === TDShapeType.Video) {
-          this.callbacks.onAssetDelete!(id)
-        }
-      })
-    }
-
     if (ids.length === 0) return this
     return this.setState(Commands.deleteShapes(this, ids))
   }
