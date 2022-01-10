@@ -10,7 +10,7 @@
 		"url": "https://github.com/tldraw/tldraw"
 	},
 	"engines": {
-		"vscode": "^1.63.0"
+		"vscode": "1.60.0"
 	},
 	"keywords": [
 		"diagram",
@@ -108,8 +108,7 @@
 		"build:apps": "yarn build",
 		"build": "yarn package",
 		"build:tests": "yarn build && cd ../extension && node scripts/build-tests",
-		"pretest": "yarn build && yarn build:tests",
-		"test": "node ./out/test/runTest.js",
+		"vscode:test": "yarn build:tests && node ./out/test/runTest.js",
 		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
 		"publish": "yarn package && vsce publish",
 		"lint": "eslint src --ext ts"

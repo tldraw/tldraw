@@ -16,22 +16,38 @@ async function main() {
   }
 
   try {
+    // esbuild.buildSync({
+    //   entryPoints: ['./src/test/runTest.ts'],
+    //   outdir: 'dist/tests',
+      
+    //   minify: false,
+    //   bundle: true,
+    //   format: 'cjs',
+    //   target: 'es6',
+    //   platform: 'node',
+    //   define: {
+    //     'process.env.NODE_ENV': '"production"',
+    //   },
+    //   tsconfig: './tsconfig.json',
+    //   external: ['vscode'],
+    // })
+
     esbuild.buildSync({
-      entryPoints: ['./src/test/runTest.ts'],
-      outdir: 'dist/tests',
+      entryPoints: ['./src/test/suite/index.ts'],
+      outdir: 'dist/tests/suite',
       
       minify: false,
-      bundle: true,
+      bundle: false,
       format: 'cjs',
       target: 'es6',
       platform: 'node',
       define: {
         'process.env.NODE_ENV': '"production"',
       },
-      tsconfig: './tsconfig.json',
-      external: ['vscode'],
+      tsconfig: './tsconfig.json'
     })
-    jslog(`Built package.`)
+    
+    jslog(`Built tests.`)
   } catch (e) {
     jslog(`× Build failed due to an error.`)
     jslog(e)
