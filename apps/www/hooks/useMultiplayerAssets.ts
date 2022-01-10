@@ -13,7 +13,6 @@ export function useMultiplayerAssets() {
       const upload = await fetch(url, {
         method: 'POST',
         body: formData,
-        // CORS
       })
       if (upload.ok) {
         return url + '/' + filename

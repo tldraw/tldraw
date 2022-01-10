@@ -2862,35 +2862,38 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else {
         src = await fileToBase64(file)
       }
+      if (typeof src === 'string') {
+        const size = isImage
+          ? await getSizeFromSrc(src).catch((e) => {
+              throw e
+            })
+          : [401.42, 401.42] // special
+        const match = Object.values(this.document.assets).find(
+          (asset) => asset.type === assetType && asset.src === src
+        )
+        let assetId: string
+        if (!match) {
+          assetId = Utils.uniqueId()
+          const asset = {
+            id: assetId,
+            type: assetType,
+            src,
+            size,
+          }
+          this.patchState({
+            document: {
+              assets: {
+                [assetId]: asset,
+              },
+            },
+          })
+        } else assetId = match.id
+        this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
+      }
     } catch (error) {
+      console.warn(error)
       this.setIsLoading(false)
       return this
-    }
-    if (typeof src === 'string') {
-      const size = isImage ? await getSizeFromSrc(src) : [401.42, 401.42] // special
-      const match = Object.values(this.document.assets).find(
-        (asset) => asset.type === assetType && asset.src === src
-      )
-      let assetId: string
-      if (!match) {
-        assetId = Utils.uniqueId()
-        const asset = {
-          id: assetId,
-          type: assetType,
-          src,
-          size,
-        }
-        console.log(asset)
-        this.patchState({
-          document: {
-            assets: {
-              [assetId]: asset,
-            },
-          },
-        })
-      } else assetId = match.id
-      console.log('Creating shape')
-      this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
     }
 
     this.setIsLoading(false)
