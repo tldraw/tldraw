@@ -4,6 +4,21 @@ import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TldrawTestApp', () => {
+  
+  describe('When creating a new project...', () => {
+    it('persists the app settings', () => {
+      const app = new TldrawTestApp().loadDocument(mockDocument)
+      app.setSetting('isDarkMode', true)
+      app.setSetting('isDebugMode', false)
+      app.setSetting('isPenMode', false)
+      const settings = app.settings
+
+      app.newProject()
+
+      expect(app.settings).toEqual(settings)
+    })
+  })
+
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
       new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])

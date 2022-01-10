@@ -1360,6 +1360,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           currentPageId: Object.keys(document.pages)[0],
           disableAssets: this.disableAssets,
         },
+        settings: this.settings,
       },
       'loaded_document'
     )
