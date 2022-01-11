@@ -129,7 +129,6 @@ export function fileToBase64(file: Blob): Promise<string | ArrayBuffer | null> {
 
 export function getSizeFromSrc(src: string): Promise<number[]> {
   return new Promise((resolve, reject) => {
-    console.log(src)
     const img = new Image()
     img.onload = () => resolve([img.width, img.height])
     img.onerror = () => reject(new Error('Could not get image size'))
