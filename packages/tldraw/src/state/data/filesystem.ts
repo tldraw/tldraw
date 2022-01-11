@@ -72,7 +72,8 @@ export async function openFromFileSystem(): Promise<null | {
 }> {
   // Get the blob
   // @ts-ignore
-  const fileOpen = await import('./browser-fs-access').fileOpen
+  const browserFS = await import('./browser-fs-access')
+  const fileOpen = browserFS.fileOpen
   const blob = await fileOpen({
     description: 'Tldraw File',
     extensions: [`.tldr`],
@@ -107,7 +108,8 @@ export async function openFromFileSystem(): Promise<null | {
 
 export async function openAssetFromFileSystem() {
   // @ts-ignore
-  const fileOpen = await import('./browser-fs-access').fileOpen
+  const browserFS = await import('./browser-fs-access')
+  const fileOpen = browserFS.fileOpen
   return fileOpen({
     description: 'Image or Video',
     extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],
