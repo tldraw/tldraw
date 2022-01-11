@@ -52,6 +52,7 @@ import {
   openAssetFromFileSystem,
   fileToBase64,
   getSizeFromSrc,
+  fileToJSON,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -66,6 +67,7 @@ import {
   VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
   SAVEFILE_EXTENSIONS,
+  SPECIAL_EXTENSIONS,
 } from '~constants'
 import type { BaseTool } from './tools/BaseTool'
 import { SelectTool } from './tools/SelectTool'
@@ -2865,7 +2867,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
     const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
     const isSaveFile = SAVEFILE_EXTENSIONS.includes(extension[0].toLowerCase())
-    if (!(isImage || isVideo || isSaveFile)) throw Error('Wrong extension')
+    const isSPECIAL = SPECIAL_EXTENSIONS.includes(extension[0].toLowerCase())
+    if (!(isImage || isVideo || isSaveFile || isSPECIAL)) throw Error('Wrong extension')
 
     if (isSaveFile) {
       if (this.isDirty) {
@@ -2879,23 +2882,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           }
         }
       }
-
-      // Get JSON from blob
-      const blob = file
-      const json: string = await new Promise((resolve) => {
-        const reader = new FileReader()
-        reader.onloadend = (e) => {
-          if (reader.readyState === FileReader.DONE) {
-            resolve(reader.result as string)
-          }
-        }
-        reader.readAsText(blob, 'utf8')
-      })
-
       // Parse
-      const tdfile: TDFile = JSON.parse(json)
-
+      const tdfile = await fileToJSON<TDFile>(file)
       this.loadDocument(tdfile.document)
+      this.setIsLoading(false)
+      return
+    } else if (isSPECIAL) {
+      // Parse
+      const json = await fileToJSON<TDShape[]>(file)
+      this.createShapes(...json)
       this.setIsLoading(false)
       return
     }

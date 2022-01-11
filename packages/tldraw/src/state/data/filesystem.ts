@@ -137,3 +137,20 @@ export function getSizeFromSrc(src: string): Promise<number[]> {
     img.src = src
   })
 }
+
+export async function fileToJSON<T>(file: File): Promise<T> {
+  // Get JSON from blob
+  const blob = file
+  const json: string = await new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = (e) => {
+      if (reader.readyState === FileReader.DONE) {
+        resolve(reader.result as string)
+      }
+    }
+    reader.readAsText(blob, 'utf8')
+  })
+
+  // Parse
+  return JSON.parse(json)
+}
