@@ -87,3 +87,4 @@ export const isSafari =
   typeof Window === 'undefined' ? false : /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 export const IMAGE_EXTENSIONS = ['.png', '.svg', '.jpg', '.jpeg', '.gif']
 export const VIDEO_EXTENSIONS = isSafari ? [] : ['.mp4', '.webm']
+export const SAVEFILE_EXTENSIONS = ['.tldr']

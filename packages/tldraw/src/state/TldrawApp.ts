@@ -41,6 +41,7 @@ import {
   TDAssets,
   TDExport,
   ImageShape,
+  TDFile,
 } from '~types'
 import {
   migrate,
@@ -64,6 +65,7 @@ import {
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
+  SAVEFILE_EXTENSIONS,
 } from '~constants'
 import type { BaseTool } from './tools/BaseTool'
 import { SelectTool } from './tools/SelectTool'
@@ -2862,7 +2864,42 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!extension) throw Error('No extension')
     const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
     const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
-    if (!(isImage || isVideo)) throw Error('Wrong extension')
+    const isSaveFile = SAVEFILE_EXTENSIONS.includes(extension[0].toLowerCase())
+    if (!(isImage || isVideo || isSaveFile)) throw Error('Wrong extension')
+
+    if (isSaveFile) {
+      if (this.isDirty) {
+        if (this.fileSystemHandle) {
+          if (window.confirm('Do you want to save changes to your current project?')) {
+            await this.saveProject()
+          }
+        } else {
+          if (window.confirm('Do you want to save your current project?')) {
+            await this.saveProject()
+          }
+        }
+      }
+
+      // Get JSON from blob
+      const blob = file
+      const json: string = await new Promise((resolve) => {
+        const reader = new FileReader()
+        reader.onloadend = (e) => {
+          if (reader.readyState === FileReader.DONE) {
+            resolve(reader.result as string)
+          }
+        }
+        reader.readAsText(blob, 'utf8')
+      })
+
+      // Parse
+      const tdfile: TDFile = JSON.parse(json)
+
+      this.loadDocument(tdfile.document)
+      this.setIsLoading(false)
+      return
+    }
+
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
     let src: string | ArrayBuffer | null
