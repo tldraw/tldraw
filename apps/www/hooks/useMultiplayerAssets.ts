@@ -4,7 +4,8 @@ export function useMultiplayerAssets() {
   const onAssetCreate = React.useCallback(
     async (file: File, id: string): Promise<string | false> => {
       const filename = encodeURIComponent(file.name)
-      const res = await fetch(`/api/upload?file=${filename}`)
+      const fileType = encodeURIComponent(file.type)
+      const res = await fetch(`/api/upload?file=${filename}&fileType=${fileType}`)
       const { url, fields } = await res.json()
       const formData = new FormData()
       Object.entries({ ...fields, file }).forEach(([key, value]) => {

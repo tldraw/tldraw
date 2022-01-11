@@ -10,10 +10,11 @@ export default async function handler(req, res) {
 
   const s3 = new aws.S3()
 
-  const post = await s3.createPresignedPost({
+  const post = s3.createPresignedPost({
     Bucket: process.env.TL_AWS_BUCKET_NAME,
     Fields: {
       key: req.query.file,
+      'Content-Type': req.query.fileType,
     },
     Expires: 60, // seconds
     Conditions: [
