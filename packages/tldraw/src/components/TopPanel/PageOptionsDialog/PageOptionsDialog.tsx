@@ -54,6 +54,8 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
     [app]
   )
 
+  const close = React.useCallback(() => setIsOpen(false), [])
+
   function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
     e.stopPropagation()
   }
@@ -85,18 +87,20 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
           </SmallIcon>
         </IconButton>
       </Dialog.Trigger>
-      <StyledDialogOverlay />
-      <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
-        <DialogAction onSelect={handleRename}>Rename</DialogAction>
-        <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
-        <DialogAction disabled={!canDelete} onSelect={handleDelete}>
-          Delete
-        </DialogAction>
-        <Divider />
-        <Dialog.Cancel asChild>
-          <RowButton>Cancel</RowButton>
-        </Dialog.Cancel>
-      </StyledDialogContent>
+      <Dialog.Portal>
+        <StyledDialogOverlay onPointerDown={close} />
+        <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
+          <DialogAction onSelect={handleRename}>Rename</DialogAction>
+          <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
+          <DialogAction disabled={!canDelete} onSelect={handleDelete}>
+            Delete
+          </DialogAction>
+          <Divider />
+          <Dialog.Cancel asChild>
+            <RowButton>Cancel</RowButton>
+          </Dialog.Cancel>
+        </StyledDialogContent>
+      </Dialog.Portal>
     </Dialog.Root>
   )
 }
@@ -127,12 +131,8 @@ export const StyledDialogContent = styled(Dialog.Content, {
 export const StyledDialogOverlay = styled(Dialog.Overlay, {
   backgroundColor: 'rgba(0, 0, 0, .15)',
   position: 'fixed',
-  top: 0,
-  right: 0,
-  bottom: 0,
-  left: 0,
-  width: '100%',
-  height: '100%',
+  pointerEvents: 'all',
+  inset: 0,
 })
 
 function DialogAction({
