@@ -28,28 +28,24 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   }, [])
 
   const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
-    ({ delta: [_, wheelDelta], event: e }) => {
+    ({ delta: wheelDelta, event: e }) => {
       e.preventDefault()
-
       // alt+scroll or ctrl+scroll = zoom
       if ((e.altKey || e.ctrlKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
         const info = inputs.pinch(point, point)
-        const delta = [...point, wheelDelta]
+        const delta = [...point, wheelDelta[1]]
         callbacks.onZoom?.({ ...info, delta }, e)
         return
       }
-
       // otherwise pan
       const delta = e.shiftKey
         ? // shift+scroll = pan horizontally
-          [wheelDelta, 0]
-        : // scroll = pan vertically
-          [0, wheelDelta]
-
+          [wheelDelta[1], 0]
+        : // scroll = pan vertically (or in any direction on a trackpad)
+          [...wheelDelta]
       if (inputs.isPinching) return
       if (Vec.isEqual(delta, [0, 0])) return
-
       const info = inputs.pan(delta, e)
       callbacks.onPan?.(info, e)
     },
