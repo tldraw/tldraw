@@ -43,37 +43,65 @@ export function PreferencesMenu() {
   }, [app])
 
   return (
-    <DMSubMenu label="Preferences">
-      <DMCheckboxItem checked={settings.isDarkMode} onCheckedChange={toggleDarkMode} kbd="#⇧D">
+    <DMSubMenu label="Preferences" id="TD-MenuItem-Preferences">
+      <DMCheckboxItem
+        checked={settings.isDarkMode}
+        onCheckedChange={toggleDarkMode}
+        kbd="#⇧D"
+        id="TD-MenuItem-Preferences-Dark_Mode"
+      >
         Dark Mode
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.isFocusMode} onCheckedChange={toggleFocusMode} kbd="#.">
+      <DMCheckboxItem
+        checked={settings.isFocusMode}
+        onCheckedChange={toggleFocusMode}
+        kbd="#."
+        id="TD-MenuItem-Preferences-Focus_Mode"
+      >
         Focus Mode
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.isDebugMode} onCheckedChange={toggleDebugMode}>
+      <DMCheckboxItem
+        checked={settings.isDebugMode}
+        onCheckedChange={toggleDebugMode}
+        id="TD-MenuItem-Preferences-Debug_Mode"
+      >
         Debug Mode
       </DMCheckboxItem>
       <DMDivider />
-      <DMCheckboxItem checked={settings.showRotateHandles} onCheckedChange={toggleRotateHandle}>
+      <DMCheckboxItem
+        checked={settings.showRotateHandles}
+        onCheckedChange={toggleRotateHandle}
+        id="TD-MenuItem-Preferences-Rotate_Handles"
+      >
         Rotate Handles
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.showBindingHandles}
         onCheckedChange={toggleBoundShapesHandle}
+        id="TD-MenuItem-Preferences-Binding_Handles"
       >
         Binding Handles
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.showCloneHandles} onCheckedChange={toggleCloneControls}>
+      <DMCheckboxItem
+        checked={settings.showCloneHandles}
+        onCheckedChange={toggleCloneControls}
+        id="TD-MenuItem-Preferences-Clone_Handles"
+      >
         Clone Handles
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.showGrid}
         onCheckedChange={toggleGrid}
         kbd="#⇧G"
+        id="TD-MenuItem-Preferences-Grid"
       >
         Grid
       </DMCheckboxItem>
-      <DMCheckboxItem checked={settings.isSnapping} onCheckedChange={toggleisSnapping}>
+      <DMCheckboxItem
+        checked={settings.isSnapping}
+        onCheckedChange={toggleisSnapping}
+        id="TD-MenuItem-Preferences-Always_Show_Snaps"
+      >
         Always Show Snaps
       </DMCheckboxItem>
     </DMSubMenu>

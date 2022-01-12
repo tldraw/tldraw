@@ -8,6 +8,7 @@ export interface DMSubMenuProps {
   size?: 'small'
   disabled?: boolean
   children: React.ReactNode
+  id?: string
 }
 
 export function DMSubMenu({
@@ -15,20 +16,23 @@ export function DMSubMenu({
   size,
   disabled = false,
   label,
+  id,
 }: DMSubMenuProps): JSX.Element {
   return (
-    <Root dir="ltr">
-      <TriggerItem dir="ltr" asChild>
-        <RowButton disabled={disabled} hasArrow>
-          {label}
-        </RowButton>
-      </TriggerItem>
-      <Content dir="ltr" asChild sideOffset={2} alignOffset={-2}>
-        <MenuContent size={size}>
-          {children}
-          <Arrow offset={13} />
-        </MenuContent>
-      </Content>
-    </Root>
+    <span id={id}>
+      <Root dir="ltr">
+        <TriggerItem dir="ltr" asChild>
+          <RowButton disabled={disabled} hasArrow>
+            {label}
+          </RowButton>
+        </TriggerItem>
+        <Content dir="ltr" asChild sideOffset={2} alignOffset={-2}>
+          <MenuContent size={size}>
+            {children}
+            <Arrow offset={13} />
+          </MenuContent>
+        </Content>
+      </Root>
+    </span>
   )
 }

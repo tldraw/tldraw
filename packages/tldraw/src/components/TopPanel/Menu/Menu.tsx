@@ -121,48 +121,58 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon isSponsor={showSponsorLink}>
+      <DMTriggerIcon isSponsor={showSponsorLink} id="TD-MenuIcon">
         <HamburgerMenuIcon />
       </DMTriggerIcon>
-      <DMContent variant="menu">
+      <DMContent variant="menu" id="TD-Menu">
         {showFileMenu && (
-          <DMSubMenu label="File...">
+          <DMSubMenu label="File..." id="TD-MenuItem-File">
             {app.callbacks.onNewProject && (
-              <DMItem onClick={onNewProject} kbd="#N">
+              <DMItem onClick={onNewProject} kbd="#N" id="TD-MenuItem-File-New_Project">
                 New Project
               </DMItem>
             )}
             {app.callbacks.onOpenProject && (
-              <DMItem onClick={onOpenProject} kbd="#O">
+              <DMItem onClick={onOpenProject} kbd="#O" id="TD-MenuItem-File-Open">
                 Open...
               </DMItem>
             )}
             {app.callbacks.onSaveProject && (
-              <DMItem onClick={onSaveProject} kbd="#S">
+              <DMItem onClick={onSaveProject} kbd="#S" id="TD-MenuItem-File-Save">
                 Save
               </DMItem>
             )}
             {app.callbacks.onSaveProjectAs && (
-              <DMItem onClick={onSaveProjectAs} kbd="#⇧S">
+              <DMItem onClick={onSaveProjectAs} kbd="#⇧S" id="TD-MenuItem-File-Save_As">
                 Save As...
               </DMItem>
             )}
             {app.callbacks.onExport && (
               <>
                 <Divider />
-                <DMSubMenu label="Export" size="small">
-                  <DMItem onClick={handleExportPNG}>PNG</DMItem>
-                  <DMItem onClick={handleExportJPG}>JPG</DMItem>
-                  <DMItem onClick={handleExportWEBP}>WEBP</DMItem>
-                  <DMItem onClick={handleExportSVG}>SVG</DMItem>
-                  <DMItem onClick={handleExportJSON}>JSON</DMItem>
+                <DMSubMenu label="Export" size="small" id="TD-MenuItem-File-Export">
+                  <DMItem onClick={handleExportPNG} id="TD-MenuItem-File-Export-PNG">
+                    PNG
+                  </DMItem>
+                  <DMItem onClick={handleExportJPG} id="TD-MenuItem-File-Export-JPG">
+                    JPG
+                  </DMItem>
+                  <DMItem onClick={handleExportWEBP} id="TD-MenuItem-File-Export-WEBP">
+                    WEBP
+                  </DMItem>
+                  <DMItem onClick={handleExportSVG} id="TD-MenuItem-File-Export-SVG">
+                    SVG
+                  </DMItem>
+                  <DMItem onClick={handleExportJSON} id="TD-MenuItem-File-Export-JSON">
+                    JSON
+                  </DMItem>
                 </DMSubMenu>
               </>
             )}
             {!disableAssets && (
               <>
                 <Divider />
-                <DMItem onClick={handleUploadMedia} kbd="#U">
+                <DMItem onClick={handleUploadMedia} kbd="#U" id="TD-MenuItem-File-Upload_Media">
                   Upload Media
                 </DMItem>
               </>
@@ -171,15 +181,31 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         )}
         {!readOnly && (
           <>
-            <DMSubMenu label="Edit...">
-              <DMItem onSelect={preventEvent} onClick={app.undo} kbd="#Z">
+            <DMSubMenu label="Edit..." id="TD-MenuItem-Edit">
+              <DMItem
+                onSelect={preventEvent}
+                onClick={app.undo}
+                kbd="#Z"
+                id="TD-MenuItem-Edit-Undo"
+              >
                 Undo
               </DMItem>
-              <DMItem onSelect={preventEvent} onClick={app.redo} kbd="#⇧Z">
+              <DMItem
+                onSelect={preventEvent}
+                onClick={app.redo}
+                kbd="#⇧Z"
+                id="TD-MenuItem-Edit-Redo"
+              >
                 Redo
               </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={preventEvent} disabled={!hasSelection} onClick={handleCut} kbd="#X">
+              <DMItem
+                onSelect={preventEvent}
+                disabled={!hasSelection}
+                onClick={handleCut}
+                kbd="#X"
+                id="TD-MenuItem-Edit-Cut"
+              >
                 Cut
               </DMItem>
               <DMItem
@@ -187,10 +213,16 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 disabled={!hasSelection}
                 onClick={handleCopy}
                 kbd="#C"
+                id="TD-MenuItem-Edit-Copy"
               >
                 Copy
               </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handlePaste} kbd="#V">
+              <DMItem
+                onSelect={preventEvent}
+                onClick={handlePaste}
+                kbd="#V"
+                id="TD-MenuItem-Edit-Paste"
+              >
                 Paste
               </DMItem>
               <DMDivider dir="ltr" />
@@ -199,30 +231,45 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 disabled={!hasSelection}
                 onClick={handleCopySvg}
                 kbd="#⇧C"
+                id="TD-MenuItem-Edit-Copy_as_SVG"
               >
                 Copy as SVG
               </DMItem>
-              <DMItem onSelect={preventEvent} disabled={!hasSelection} onClick={handleCopyJson}>
+              <DMItem
+                onSelect={preventEvent}
+                disabled={!hasSelection}
+                onClick={handleCopyJson}
+                id="TD-MenuItem-Edit-Copy_as_JSON"
+              >
                 Copy as JSON
               </DMItem>
               <DMDivider dir="ltr" />
-              <DMItem onSelect={preventEvent} onClick={handleSelectAll} kbd="#A">
+              <DMItem
+                onSelect={preventEvent}
+                onClick={handleSelectAll}
+                kbd="#A"
+                id="TD-MenuItem-Select_All"
+              >
                 Select All
               </DMItem>
-              <DMItem onSelect={preventEvent} onClick={handleSelectNone}>
+              <DMItem
+                onSelect={preventEvent}
+                onClick={handleSelectNone}
+                id="TD-MenuItem-Select_None"
+              >
                 Select None
               </DMItem>
             </DMSubMenu>
           </>
         )}
         <a href="https://tldraw.com/r">
-          <DMItem>Create a Multiplayer Room</DMItem>
+          <DMItem id="TD-MenuItem-Create_a_Multiplayer_Room">Create a Multiplayer Room</DMItem>
         </a>
         <DMDivider dir="ltr" />
         <PreferencesMenu />
         <DMDivider dir="ltr" />
         <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
-          <DMItem>
+          <DMItem id="TD-MenuItem-Github">
             GitHub
             <SmallIcon>
               <GitHubLogoIcon />
@@ -230,7 +277,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
           </DMItem>
         </a>
         <a href="https://twitter.com/Tldraw" target="_blank" rel="nofollow">
-          <DMItem>
+          <DMItem id="TD-MenuItem-Twitter">
             Twitter
             <SmallIcon>
               <TwitterLogoIcon />
@@ -238,7 +285,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
           </DMItem>
         </a>
         <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
-          <DMItem>
+          <DMItem id="TD-MenuItem-Discord">
             Discord
             <SmallIcon>
               <DiscordIcon />
@@ -247,7 +294,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         </a>
         {showSponsorLink && (
           <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-            <DMItem isSponsor>
+            <DMItem isSponsor id="TD-MenuItem-Become_a_Sponsor">
               Become a Sponsor{' '}
               <SmallIcon>
                 <HeartIcon />
@@ -258,9 +305,13 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}
-            {app.callbacks.onSignIn && <DMItem onSelect={handleSignIn}>Sign In</DMItem>}
+            {app.callbacks.onSignIn && (
+              <DMItem onSelect={handleSignIn} id="TD-MenuItem-Sign_in">
+                Sign In
+              </DMItem>
+            )}
             {app.callbacks.onSignOut && (
-              <DMItem onSelect={handleSignOut}>
+              <DMItem onSelect={handleSignOut} id="TD-MenuItem-Sign_out">
                 Sign Out
                 <SmallIcon>
                   <ExitIcon />

@@ -47,7 +47,7 @@ export function PageMenu(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
-      <DropdownMenu.Trigger dir="ltr" asChild>
+      <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
         <ToolButton variant="text">{currentPageName || 'Page'}</ToolButton>
       </DropdownMenu.Trigger>
       <DMContent variant="menu" align="start">

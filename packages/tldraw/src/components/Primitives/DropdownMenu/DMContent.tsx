@@ -9,6 +9,7 @@ export interface DMContentProps {
   align?: 'start' | 'center' | 'end'
   sideOffset?: number
   children: React.ReactNode
+  id?: string
 }
 
 export function DMContent({
@@ -16,6 +17,7 @@ export function DMContent({
   children,
   align,
   variant,
+  id,
 }: DMContentProps): JSX.Element {
   return (
     <Content
@@ -24,6 +26,7 @@ export function DMContent({
       sideOffset={sideOffset}
       onEscapeKeyDown={stopPropagation}
       asChild
+      id={id}
     >
       <StyledContent variant={variant}>{children}</StyledContent>
     </Content>
