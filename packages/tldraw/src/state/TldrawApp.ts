@@ -1368,6 +1368,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       },
       'loaded_document'
     )
+    const { point, zoom } = this.pageState.camera
+    this.updateViewport(point, zoom)
     return this
   }
 
