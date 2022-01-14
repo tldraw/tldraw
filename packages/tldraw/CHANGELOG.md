@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.1
+
+- Fix HTML content in text shape
+- Fix text shape bounding box size
+- Fix failed call when deleting assets
+- Fix crash when alt-click-copying image
+- Improves scroll wheel
+- Fixes SVGs in multiplayer
+- Fixes error on Load/Save
+- Fixes bug that could occur when erasing
+
 ## 1.5.0
 
 - Fix context menu bug on mobile.
