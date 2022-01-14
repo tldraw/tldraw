@@ -2585,6 +2585,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
+    ids.forEach((id) => this.getShape(id).assetId && this.callbacks.onAssetDelete?.(id))
     return this.setState(Commands.deleteShapes(this, ids))
   }
 
