@@ -2922,7 +2922,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     switch (e.key) {
       case '/': {
-        if (this.status === 'idle') {
+        if (this.status === 'idle' && !this.pageState.editingId) {
           const { shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
 
           this.onPointerDown(

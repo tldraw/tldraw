@@ -878,7 +878,11 @@ export class TLDR {
   static fixNewLines = /\r?\n|\r/g
 
   static normalizeText(text: string) {
-    return text.replace(TLDR.fixNewLines, '\n')
+    return text
+      .replace(TLDR.fixNewLines, '\n')
+      .split('\n')
+      .map((x) => x || ' ')
+      .join('\n')
   }
 
   /* -------------------------------------------------- */
