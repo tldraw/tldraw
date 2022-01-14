@@ -50,7 +50,8 @@ import {
   saveToFileSystem,
   openAssetFromFileSystem,
   fileToBase64,
-  getSizeFromSrc,
+  getImageSizeFromSrc,
+  getVideoSizeFromSrc,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -2877,11 +2878,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         src = await fileToBase64(file)
       }
       if (typeof src === 'string') {
-        const size = isImage
-          ? await getSizeFromSrc(src).catch((e) => {
-              throw e
-            })
-          : [401.42, 401.42] // special
+        const size = isImage ? await getImageSizeFromSrc(src) : await getVideoSizeFromSrc(src)
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === src
         )
