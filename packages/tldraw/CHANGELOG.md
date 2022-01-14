@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2
+
+- Fix bounds and snapping on first load.
+
 ## 1.5.1
 
 - Fix HTML content in text shape
