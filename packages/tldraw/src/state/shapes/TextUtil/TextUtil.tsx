@@ -225,8 +225,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
       const width = melm.offsetWidth || 1
       const height = melm.offsetHeight || 1
 
-      console.log(width)
-
       return {
         minX: 0,
         maxX: width,
