@@ -16,7 +16,7 @@ function getMeasurementDiv() {
     border: '1px solid transparent',
     padding: '4px',
     margin: '0px',
-    letterSpacing: `${LETTER_SPACING}px`,
+    letterSpacing: LETTER_SPACING,
     opacity: '0',
     position: 'absolute',
     top: '-500px',
@@ -59,7 +59,7 @@ export function getTextLabelSize(text: string, font: string) {
   prevText = text
   prevFont = font
 
-  melm.innerHTML = `${text}&zwj;`
+  melm.textContent = `${text}`
   melm.style.font = font
 
   // In tests, offsetWidth and offsetHeight will be 0
