@@ -58,16 +58,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
         wrapper.style.height = `${height}px`
       }, [size])
 
-      const onImageLoad = React.useCallback(() => {
-        const wrapper = rWrapper.current
-        const image = rImage.current
-        if (!(image && wrapper)) return
-        const { width, height } = image
-        wrapper.style.width = `${width}px`
-        wrapper.style.height = `${height}px`
-        onShapeChange?.({ id: shape.id, size: [width, height] })
-      }, [])
-
       return (
         <HTMLContainer ref={ref} {...events}>
           {isBinding && (
@@ -94,7 +84,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
               src={(asset as TDImageAsset).src}
               alt="tl_image_asset"
               draggable={false}
-              onLoad={onImageLoad}
+              // onLoad={onImageLoad}
             />
           </Wrapper>
         </HTMLContainer>
