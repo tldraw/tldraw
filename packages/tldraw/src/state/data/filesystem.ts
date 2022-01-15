@@ -129,7 +129,7 @@ export function fileToBase64(file: Blob): Promise<string | ArrayBuffer | null> {
   })
 }
 
-export function getSizeFromSrc(src: string): Promise<number[]> {
+export function getImageSizeFromSrc(src: string): Promise<number[]> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     img.onload = () => resolve([img.width, img.height])
@@ -153,4 +153,12 @@ export async function fileToJSON<T>(file: File): Promise<T> {
 
   // Parse
   return JSON.parse(json)
+}
+export function getVideoSizeFromSrc(src: string): Promise<number[]> {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video')
+    video.onloadedmetadata = () => resolve([video.videoWidth, video.videoHeight])
+    video.onerror = () => reject(new Error('Could not get video size'))
+    video.src = src
+  })
 }

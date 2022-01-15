@@ -16,7 +16,6 @@ export function transformRectangle<T extends TLShape & { size: number[] }>(
     const size = Vec.toFixed(
       Vec.mul(initialShape.size, Math.min(Math.abs(scaleX), Math.abs(scaleY)))
     )
-
     const point = Vec.toFixed([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
@@ -24,14 +23,12 @@ export function transformRectangle<T extends TLShape & { size: number[] }>(
         (bounds.height - shape.size[1]) *
           (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
     ])
-
     const rotation =
       (scaleX < 0 && scaleY >= 0) || (scaleY < 0 && scaleX >= 0)
         ? initialShape.rotation
           ? -initialShape.rotation
           : 0
         : initialShape.rotation
-
     return {
       size,
       point,

@@ -62,23 +62,6 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         wrapper.style.height = `${height}px`
       }, [size])
 
-      const onImageLoad = React.useCallback(() => {
-        const wrapper = rWrapper.current
-        const video = rVideo.current
-        if (!(video && wrapper)) return
-        if (!Vec.isEqual(size, [401.42, 401.42])) return
-        const { videoWidth, videoHeight } = video
-        wrapper.style.width = `${videoWidth}px`
-        wrapper.style.height = `${videoHeight}px`
-        const newSize = [videoWidth, videoHeight]
-        const delta = Vec.sub(size, newSize)
-        onShapeChange?.({
-          id: shape.id,
-          point: Vec.add(shape.point, Vec.div(delta, 2)),
-          size: [videoWidth, videoHeight],
-        })
-      }, [size])
-
       React.useLayoutEffect(() => {
         const video = rVideo.current
         if (!video) return
@@ -144,7 +127,6 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               onPlay={handlePlay}
               onPause={handlePause}
               onTimeUpdate={handleSetCurrentTime}
-              onLoadedMetadata={onImageLoad}
             >
               <source src={(asset as TDVideoAsset).src} />
             </VideoElement>

@@ -3,7 +3,6 @@ import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { defaultTextStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
 import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
-import { TextAreaUtils } from '../shared'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
@@ -219,7 +218,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
-      melm.innerHTML = `${shape.text}&zwj;`
+      melm.textContent = shape.text
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0
@@ -334,7 +333,7 @@ function getMeasurementDiv() {
     border: '1px solid transparent',
     padding: '4px',
     margin: '0px',
-    letterSpacing: `${LETTER_SPACING}px`,
+    letterSpacing: LETTER_SPACING,
     opacity: '0',
     position: 'absolute',
     top: '-500px',

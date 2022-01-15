@@ -51,8 +51,9 @@ import {
   saveToFileSystem,
   openAssetFromFileSystem,
   fileToBase64,
-  getSizeFromSrc,
   fileToJSON,
+  getImageSizeFromSrc,
+  getVideoSizeFromSrc,
 } from './data'
 import { TLDR } from './TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -1371,6 +1372,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       },
       'loaded_document'
     )
+    const { point, zoom } = this.pageState.camera
+    this.updateViewport(point, zoom)
     return this
   }
 
@@ -2589,6 +2592,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
+    ids.forEach((id) => this.getShape(id).assetId && this.callbacks.onAssetDelete?.(id))
     return this.setState(Commands.deleteShapes(this, ids))
   }
 
@@ -2908,11 +2912,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         src = await fileToBase64(file)
       }
       if (typeof src === 'string') {
-        const size = isImage
-          ? await getSizeFromSrc(src).catch((e) => {
-              throw e
-            })
-          : [401.42, 401.42] // special
+        const size = isImage ? await getImageSizeFromSrc(src) : await getVideoSizeFromSrc(src)
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === src
         )
@@ -2954,7 +2954,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
     switch (e.key) {
       case '/': {
-        if (this.status === 'idle') {
+        if (this.status === 'idle' && !this.pageState.editingId) {
           const { shiftKey, metaKey, altKey, ctrlKey, spaceKey } = this
 
           this.onPointerDown(
@@ -3596,7 +3596,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isZoomSnap: false,
       isFocusMode: false,
       isSnapping: false,
-      //@ts-ignore
       isDebugMode: process.env.NODE_ENV === 'development',
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
