@@ -3,6 +3,7 @@ import type { TDDocument, TDFile } from '~types'
 import type { FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import minify from 'jsonminify'
 
 const options = { mode: 'readwrite' as const }
 
@@ -34,7 +35,8 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
   }
 
   // Serialize to JSON
-  const json = JSON.stringify(file, null, 2)
+  const jsonStr = JSON.stringify(file, null, 2)
+  const json = process.env.NODE_ENV === 'production' ? JSON.minify(jsonStr) : jsonStr
 
   // Create blob
   const blob = new Blob([json], {

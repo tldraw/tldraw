@@ -447,7 +447,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     // Cleanup assets
-    if (!('assets' in next.document)) next.document.assets = {}
+    // if (!('assets' in next.document)) next.document.assets = {}
 
     Object.keys(next.document.assets).forEach((id) => {
       if (!next.document.assets[id]) {
