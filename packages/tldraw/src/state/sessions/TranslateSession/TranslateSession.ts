@@ -251,9 +251,9 @@ export class TranslateSession extends BaseSession {
             ? Utils.snapBoundsToGrid(Utils.translateBounds(initialCommonBounds, delta), currentGrid)
             : Utils.translateBounds(initialCommonBounds, delta)
         ),
-        (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter(
-          (bounds) => Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
-        ),
+        (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter((bounds) => {
+          return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
+        }),
         SNAP_DISTANCE / camera.zoom
       )
 
