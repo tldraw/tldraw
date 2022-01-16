@@ -2588,8 +2588,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
-    ids.forEach((id) => this.getShape(id).assetId && this.callbacks.onAssetDelete?.(id))
-    return this.setState(Commands.deleteShapes(this, ids))
+    const drawCommand = Commands.deleteShapes(this, ids)
+
+    if (
+      this.callbacks.onAssetDelete &&
+      drawCommand.before.document?.assets &&
+      drawCommand.after.document?.assets
+    ) {
+      const beforeAssetIds = Object.keys(drawCommand.before.document.assets).filter(
+        (k) => !!drawCommand.before.document!.assets![k]
+      )
+      const afterAssetIds = Object.keys(drawCommand.after.document.assets).filter(
+        (k) => !!drawCommand.after.document!.assets![k]
+      )
+
+      const intersection = beforeAssetIds.filter((x) => !afterAssetIds.includes(x))
+      intersection.forEach((id) => this.callbacks.onAssetDelete!(id))
+    }
+
+    return this.setState(drawCommand)
   }
 
   /**
