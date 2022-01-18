@@ -36,7 +36,6 @@
 	"browser": "./dist/web/extension.js",
 	"main": "./dist/web/extension.js",
 	"extensionKind": [
-		"ui",
 		"workspace"
 	],
 	"contributes": {
