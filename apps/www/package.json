@@ -34,6 +34,7 @@
     "next-pwa": "^5.4.4",
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^9.0.0",
+    "puppeteer": "^13.1.1",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
