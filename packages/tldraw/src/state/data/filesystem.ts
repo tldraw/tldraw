@@ -34,9 +34,16 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
     assets: {},
   }
 
-  // Serialize to JSON
-  const jsonStr = JSON.stringify(file, null, 2)
-  const json = process.env.NODE_ENV === 'production' ? JSON.minify(jsonStr) : jsonStr
+  try {
+    minify(JSON.stringify(file))
+  } catch (e) {
+    console.error(e)
+  }
+
+  const json =
+    process.env.NODE_ENV === 'development'
+      ? minify(JSON.stringify(file))
+      : JSON.stringify(file, null, 2)
 
   // Create blob
   const blob = new Blob([json], {
