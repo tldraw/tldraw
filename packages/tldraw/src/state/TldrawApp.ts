@@ -300,7 +300,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns The final state
    */
   protected cleanup = (state: TDSnapshot, prev: TDSnapshot): TDSnapshot => {
-    const next = { ...state }
+    const next: TDSnapshot = { ...state }
 
     // Remove deleted shapes and bindings (in Commands, these will be set to undefined)
     if (next.document !== prev.document) {
