@@ -3427,10 +3427,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const canvas = document.createElement('canvas')
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
-      const canvasContext = canvas.getContext('2d')!
-      canvasContext.drawImage(video, 0, 0)
+      canvas.getContext('2d')!.drawImage(video, 0, 0)
       return canvas.toDataURL('image/png')
     } else throw new Error('Video with id ' + id + ' not found')
+  }
+
+  /**
+   * Get a snapshot of a image (e.g. a GIF) as base64 encoded image
+   * @param id ID of image shape
+   * @returns base64 encoded frame
+   * @throws Error if image shape with given ID does not exist
+   */
+  serializeImage(id: string): string {
+    const image = document.getElementById(id + '_image') as HTMLImageElement
+    if (image) {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.width
+      canvas.height = image.height
+      canvas.getContext('2d')!.drawImage(image, 0, 0)
+      return canvas.toDataURL('image/png')
+    } else throw new Error('Image with id ' + id + ' not found')
   }
 
   patchAssets(assets: TDAssets) {
@@ -3466,15 +3482,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const shape = { ...this.getShape(id) }
 
         if (shape.assetId) {
-          // Patch asset table
-          assets[shape.assetId] = { ...this.document.assets[shape.assetId] }
+          const asset = { ...this.document.assets[shape.assetId] }
+
+          // If the asset is a GIF, then serialize an image
+          if (asset.src.toLowerCase().endsWith('gif')) {
+            asset.src = this.serializeImage(shape.id)
+          }
+
+          // If the asset is an image, then serialize an image
           if (shape.type === TDShapeType.Video) {
-            // Replace videos with serialized snapshots
-            assets[shape.assetId].src = this.serializeVideo(shape.id)
-            assets[shape.assetId].type = TDAssetType.Image
+            asset.src = this.serializeVideo(shape.id)
+            asset.type = TDAssetType.Image
             // Cast shape to image shapes to properly display snapshots
             ;(shape as unknown as ImageShape).type = TDShapeType.Image
           }
+
+          // Patch asset table
+          assets[shape.assetId] = asset
         }
 
         return shape

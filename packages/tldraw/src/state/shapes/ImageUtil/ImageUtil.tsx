@@ -80,6 +80,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
           >
             <ImageElement
+              id={shape.id + '_image'}
               ref={rImage}
               src={(asset as TDImageAsset).src}
               alt="tl_image_asset"
