@@ -29,7 +29,7 @@
     "@tldraw/tldraw": "^1.5.2",
     "@types/next-auth": "^3.15.0",
     "aws-sdk": "^2.1053.0",
-    "chrome-aws-lambda": "^9.0.0",
+    "chrome-aws-lambda": "9.0.0",
     "next": "^12.0.7",
     "next-auth": "^4.0.5",
     "next-pwa": "^5.4.4",
@@ -46,6 +46,7 @@
     "cors": "^2.8.5",
     "eslint": "7.32.0",
     "eslint-config-next": "11.1.2",
+    "puppeteer": "^13.1.1",
     "typescript": "^4.5.2"
   },
   "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"

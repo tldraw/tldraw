@@ -446,12 +446,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       })
     }
 
-    // Cleanup assets
-    if (!('assets' in next.document)) next.document.assets = {}
-
-    Object.keys(next.document.assets).forEach((id) => {
-      if (!next.document.assets[id]) {
-        delete next.document.assets[id]
+    Object.keys(next.document.assets ?? {}).forEach((id) => {
+      if (!next.document.assets?.[id]) {
+        delete next.document.assets?.[id]
       }
     })
 
@@ -3430,10 +3427,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const canvas = document.createElement('canvas')
       canvas.width = video.videoWidth
       canvas.height = video.videoHeight
-      const canvasContext = canvas.getContext('2d')!
-      canvasContext.drawImage(video, 0, 0)
+      canvas.getContext('2d')!.drawImage(video, 0, 0)
       return canvas.toDataURL('image/png')
     } else throw new Error('Video with id ' + id + ' not found')
+  }
+
+  /**
+   * Get a snapshot of a image (e.g. a GIF) as base64 encoded image
+   * @param id ID of image shape
+   * @returns base64 encoded frame
+   * @throws Error if image shape with given ID does not exist
+   */
+  serializeImage(id: string): string {
+    const image = document.getElementById(id + '_image') as HTMLImageElement
+    if (image) {
+      const canvas = document.createElement('canvas')
+      canvas.width = image.width
+      canvas.height = image.height
+      canvas.getContext('2d')!.drawImage(image, 0, 0)
+      return canvas.toDataURL('image/png')
+    } else throw new Error('Image with id ' + id + ' not found')
   }
 
   patchAssets(assets: TDAssets) {
@@ -3458,55 +3471,62 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
+    if (!this.callbacks.onExport) return
+
     this.setIsLoading(true)
-    const assets: TDAssets = {}
-    let shapes = shapeIds.map((id) => ({ ...this.getShape(id) }))
 
-    // Patch asset table. Replace videos with serialized snapshots
-    shapes.forEach((s, i) => {
-      if (s.assetId) {
-        assets[s.assetId] = { ...this.document.assets[s.assetId] }
-        if (s.type === TDShapeType.Video) {
-          assets[s.assetId].src = this.serializeVideo(s.id)
-          assets[s.assetId].type = TDAssetType.Image
+    try {
+      const assets: TDAssets = {}
+
+      const shapes: TDShape[] = shapeIds.map((id) => {
+        const shape = { ...this.getShape(id) }
+
+        if (shape.assetId) {
+          const asset = { ...this.document.assets[shape.assetId] }
+
+          // If the asset is a GIF, then serialize an image
+          if (asset.src.toLowerCase().endsWith('gif')) {
+            asset.src = this.serializeImage(shape.id)
+          }
+
+          // If the asset is an image, then serialize an image
+          if (shape.type === TDShapeType.Video) {
+            asset.src = this.serializeVideo(shape.id)
+            asset.type = TDAssetType.Image
+            // Cast shape to image shapes to properly display snapshots
+            ;(shape as unknown as ImageShape).type = TDShapeType.Image
+          }
+
+          // Patch asset table
+          assets[shape.assetId] = asset
         }
+
+        return shape
+      })
+
+      // Create serialized data for JSON or SVGs
+      let serialized: string | undefined
+      if (type === TDExportTypes.SVG) {
+        serialized = this.copySvg(shapeIds)
+      } else if (type === TDExportTypes.JSON) {
+        serialized = this.copyJson(shapeIds)
       }
-    })
 
-    // Cast exported video shapes to image shapes to properly display snapshots
-    shapes = shapes.map((s) => {
-      if (s.type === TDShapeType.Video) {
-        const shape = s as TDShape
-        shape.type = TDShapeType.Image
-        return shape as ImageShape
-      } else return s
-    })
-
-    let serializedExport
-    if (type == TDExportTypes.SVG) {
-      serializedExport = this.copySvg(shapeIds)
-    } else if (type == TDExportTypes.JSON) {
-      serializedExport = this.copyJson(shapeIds)
-    }
-
-    const exportInfo: TDExport = {
-      name: this.page.name ?? 'export',
-      shapes: shapes,
-      assets: assets,
-      type,
-      size: type === 'png' ? Vec.mul(size, 2) : size,
-      serialized: serializedExport,
-    }
-
-    if (this.callbacks.onExport) {
-      try {
-        this.setIsLoading(true)
-        await this.callbacks.onExport?.(exportInfo)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        this.setIsLoading(false)
+      const exportInfo: TDExport = {
+        currentPageId: this.currentPageId,
+        name: this.page.name ?? 'export',
+        shapes,
+        assets,
+        type,
+        serialized,
+        size: type === 'png' ? Vec.mul(size, 2) : size,
       }
+
+      await this.callbacks.onExport(exportInfo)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      this.setIsLoading(false)
     }
   }
 

@@ -500,6 +500,7 @@ export enum TDExportTypes {
 }
 
 export interface TDExport {
+  currentPageId: string
   name: string
   shapes: TDShape[]
   assets: TDAssets
