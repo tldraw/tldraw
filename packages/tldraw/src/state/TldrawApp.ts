@@ -446,12 +446,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       })
     }
 
-    // Cleanup assets
-    if (!('assets' in next.document)) next.document.assets = {}
-
-    Object.keys(next.document.assets).forEach((id) => {
-      if (!next.document.assets[id]) {
-        delete next.document.assets[id]
+    Object.keys(next.document.assets ?? {}).forEach((id) => {
+      if (!next.document.assets?.[id]) {
+        delete next.document.assets?.[id]
       }
     })
 
@@ -3458,55 +3455,54 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
+    if (!this.callbacks.onExport) return
+
     this.setIsLoading(true)
-    const assets: TDAssets = {}
-    let shapes = shapeIds.map((id) => ({ ...this.getShape(id) }))
 
-    // Patch asset table. Replace videos with serialized snapshots
-    shapes.forEach((s, i) => {
-      if (s.assetId) {
-        assets[s.assetId] = { ...this.document.assets[s.assetId] }
-        if (s.type === TDShapeType.Video) {
-          assets[s.assetId].src = this.serializeVideo(s.id)
-          assets[s.assetId].type = TDAssetType.Image
+    try {
+      const assets: TDAssets = {}
+
+      const shapes: TDShape[] = shapeIds.map((id) => {
+        const shape = { ...this.getShape(id) }
+
+        if (shape.assetId) {
+          // Patch asset table
+          assets[shape.assetId] = { ...this.document.assets[shape.assetId] }
+          if (shape.type === TDShapeType.Video) {
+            // Replace videos with serialized snapshots
+            assets[shape.assetId].src = this.serializeVideo(shape.id)
+            assets[shape.assetId].type = TDAssetType.Image
+            // Cast shape to image shapes to properly display snapshots
+            ;(shape as unknown as ImageShape).type = TDShapeType.Image
+          }
         }
+
+        return shape
+      })
+
+      // Create serialized data for JSON or SVGs
+      let serialized: string | undefined
+      if (type === TDExportTypes.SVG) {
+        serialized = this.copySvg(shapeIds)
+      } else if (type === TDExportTypes.JSON) {
+        serialized = this.copyJson(shapeIds)
       }
-    })
 
-    // Cast exported video shapes to image shapes to properly display snapshots
-    shapes = shapes.map((s) => {
-      if (s.type === TDShapeType.Video) {
-        const shape = s as TDShape
-        shape.type = TDShapeType.Image
-        return shape as ImageShape
-      } else return s
-    })
-
-    let serializedExport
-    if (type == TDExportTypes.SVG) {
-      serializedExport = this.copySvg(shapeIds)
-    } else if (type == TDExportTypes.JSON) {
-      serializedExport = this.copyJson(shapeIds)
-    }
-
-    const exportInfo: TDExport = {
-      name: this.page.name ?? 'export',
-      shapes: shapes,
-      assets: assets,
-      type,
-      size: type === 'png' ? Vec.mul(size, 2) : size,
-      serialized: serializedExport,
-    }
-
-    if (this.callbacks.onExport) {
-      try {
-        this.setIsLoading(true)
-        await this.callbacks.onExport?.(exportInfo)
-      } catch (error) {
-        console.error(error)
-      } finally {
-        this.setIsLoading(false)
+      const exportInfo: TDExport = {
+        currentPageId: this.currentPageId,
+        name: this.page.name ?? 'export',
+        shapes,
+        assets,
+        type,
+        serialized,
+        size: type === 'png' ? Vec.mul(size, 2) : size,
       }
+
+      await this.callbacks.onExport(exportInfo)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      this.setIsLoading(false)
     }
   }
 
