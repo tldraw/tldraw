@@ -75,7 +75,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
 
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
-      <DropdownMenu.Trigger dir="ltr" asChild>
+      <DropdownMenu.Trigger dir="ltr" asChild id="TD-PrimaryTools-Shapes">
         <ToolButton
           disabled={isActive && app.shiftKey} // otherwise this continuously opens and closes on "SpacePanning"
           variant="primary"
@@ -94,6 +94,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
               key={shape}
               label={shape[0].toUpperCase() + shape.slice(1)}
               kbd={(4 + i).toString()}
+              id={`TD-PrimaryTools-Shapes-${shape}`}
             >
               <DropdownMenu.Item asChild>
                 <ToolButton

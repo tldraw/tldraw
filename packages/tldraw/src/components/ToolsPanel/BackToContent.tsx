@@ -17,7 +17,7 @@ export const BackToContent = React.memo(function BackToContent() {
   if (!isEmptyCanvas) return null
 
   return (
-    <BackToContentContainer>
+    <BackToContentContainer id="TD-Tools-Back_to_content">
       <RowButton onClick={app.zoomToContent}>Back to content</RowButton>
     </BackToContentContainer>
   )

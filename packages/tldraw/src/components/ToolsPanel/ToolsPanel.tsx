@@ -20,7 +20,7 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
 
   return (
     <StyledToolsPanelContainer onBlur={onBlur}>
-      <StyledCenterWrap>
+      <StyledCenterWrap id="TD-Tools">
         <BackToContent />
         <StyledPrimaryTools>
           <ActionButton />

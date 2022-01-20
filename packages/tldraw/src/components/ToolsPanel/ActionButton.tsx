@@ -180,7 +180,7 @@ export function ActionButton(): JSX.Element {
 
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
-      <DropdownMenu.Trigger dir="ltr" asChild>
+      <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
         <ToolButton variant="circle">
           <DotsHorizontalIcon />
         </ToolButton>
@@ -189,22 +189,22 @@ export function ActionButton(): JSX.Element {
         <>
           <ButtonsRow>
             <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
-              <Tooltip label="Duplicate" kbd={`#D`}>
+              <Tooltip label="Duplicate" kbd={`#D`} id="TD-Tools-Copy">
                 <CopyIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleRotate}>
-              <Tooltip label="Rotate">
+              <Tooltip label="Rotate" id="TD-Tools-Rotate">
                 <RotateCounterClockwiseIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
-              <Tooltip label="Toggle Locked" kbd={`#L`}>
+              <Tooltip label="Toggle Locked" kbd={`#L`} id="TD-Tools-Lock">
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
-              <Tooltip label="Toggle Aspect Ratio Lock">
+              <Tooltip label="Toggle Aspect Ratio Lock" id="TD-Tools-AspectRatio">
                 {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
               </Tooltip>
             </ToolButton>
@@ -212,70 +212,94 @@ export function ActionButton(): JSX.Element {
               disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
               onClick={handleGroup}
             >
-              <Tooltip label="Group" kbd={`#G`}>
+              <Tooltip label="Group" kbd={`#G`} id="TD-Tools-Group">
                 <GroupIcon />
               </Tooltip>
             </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
             <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
-              <Tooltip label="Move to Back" kbd={`#⇧[`}>
+              <Tooltip label="Move to Back" kbd={`#⇧[`} id="TD-Tools-PinBottom">
                 <PinBottomIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
-              <Tooltip label="Move Backward" kbd={`#[`}>
+              <Tooltip label="Move Backward" kbd={`#[`} id="TD-Tools-ArrowDown">
                 <ArrowDownIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
-              <Tooltip label="Move Forward" kbd={`#]`}>
+              <Tooltip label="Move Forward" kbd={`#]`} id="TD-Tools-ArrowUp">
                 <ArrowUpIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
-              <Tooltip label="Move to Front" kbd={`#⇧]`}>
+              <Tooltip label="Move to Front" kbd={`#⇧]`} id="TD-Tools-PinTop">
                 <PinTopIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
-              <Tooltip label="Reset Angle">
+              <Tooltip label="Reset Angle" id="TD-Tools-ResetAngle">
                 <AngleIcon />
               </Tooltip>
             </ToolButton>
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft} id="TD-Tools-AlignLeft">
               <AlignLeftIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+            <ToolButton
+              disabled={!hasTwoOrMore}
+              onClick={alignCenterHorizontal}
+              id="TD-Tools-AlignCenterHorizontal"
+            >
               <AlignCenterHorizontallyIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight} id="TD-Tools-AlignRight">
               <AlignRightIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+            <ToolButton
+              disabled={!hasTwoOrMore}
+              onClick={stretchHorizontally}
+              id="TD-Tools-StretchHorizontal"
+            >
               <StretchHorizontallyIcon />
             </ToolButton>
-            <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+            <ToolButton
+              disabled={!hasThreeOrMore}
+              onClick={distributeHorizontally}
+              id="TD-Tools-SpaceEvenlyHorizontal"
+            >
               <SpaceEvenlyHorizontallyIcon />
             </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop} id="TD-Tools-AlignTop">
               <AlignTopIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+            <ToolButton
+              disabled={!hasTwoOrMore}
+              onClick={alignCenterVertical}
+              id="TD-Tools-AlignCenterVertical"
+            >
               <AlignCenterVerticallyIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom} id="TD-Tools-AlignBottom">
               <AlignBottomIcon />
             </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+            <ToolButton
+              disabled={!hasTwoOrMore}
+              onClick={stretchVertically}
+              id="TD-Tools-tretchVertical"
+            >
               <StretchVerticallyIcon />
             </ToolButton>
-            <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+            <ToolButton
+              disabled={!hasThreeOrMore}
+              onClick={distributeVertically}
+              id="TD-Tools-SpaceEvenlyVertical"
+            >
               <SpaceEvenlyVerticallyIcon />
             </ToolButton>
           </ButtonsRow>

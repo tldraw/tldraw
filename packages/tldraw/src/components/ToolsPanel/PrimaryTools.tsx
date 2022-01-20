@@ -48,12 +48,13 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
   }, [app])
 
   return (
-    <Panel side="center">
+    <Panel side="center" id="TD-PrimaryTools">
       <ToolButtonWithTooltip
         kbd={'1'}
         label={'select'}
         onClick={selectSelectTool}
         isActive={activeTool === 'select'}
+        id="TD-PrimaryTools-CursorArrow"
       >
         <CursorArrowIcon />
       </ToolButtonWithTooltip>
@@ -62,6 +63,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         label={TDShapeType.Draw}
         onClick={selectDrawTool}
         isActive={activeTool === TDShapeType.Draw}
+        id="TD-PrimaryTools-Pencil"
       >
         <Pencil1Icon />
       </ToolButtonWithTooltip>
@@ -70,6 +72,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         label={'eraser'}
         onClick={selectEraseTool}
         isActive={activeTool === 'erase'}
+        id="TD-PrimaryTools-Eraser"
       >
         <EraserIcon />
       </ToolButtonWithTooltip>
@@ -80,6 +83,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         onClick={selectArrowTool}
         isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Arrow}
+        id="TD-PrimaryTools-ArrowTopRight"
       >
         <ArrowTopRightIcon />
       </ToolButtonWithTooltip>
@@ -89,6 +93,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         onClick={selectTextTool}
         isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Text}
+        id="TD-PrimaryTools-Text"
       >
         <TextIcon />
       </ToolButtonWithTooltip>
@@ -97,6 +102,7 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
         label={TDShapeType.Sticky}
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}
+        id="TD-PrimaryTools-Pencil2"
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>
