@@ -167,7 +167,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   )
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
-      <DropdownMenu.Trigger asChild>
+      <DropdownMenu.Trigger asChild id="TD-Styles">
         <ToolButton variant="text">
           Styles
           <OverlapIcons
@@ -187,11 +187,16 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent>
-        <StyledRow variant="tall">
+        <StyledRow variant="tall" id="TD-Styles-Color-Container">
           <span>Color</span>
           <ColorGrid>
             {Object.keys(strokes.light).map((style: string) => (
-              <DropdownMenu.Item key={style} onSelect={preventEvent} asChild>
+              <DropdownMenu.Item
+                key={style}
+                onSelect={preventEvent}
+                asChild
+                id={`TD-Styles-Color-Swatch-${style}`}
+              >
                 <ToolButton
                   variant="icon"
                   isActive={displayedStyle.color === style}
@@ -214,10 +219,11 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
           variant="styleMenu"
           checked={!!displayedStyle.isFilled}
           onCheckedChange={handleToggleFilled}
+          id="TD-Styles-Fill"
         >
           Fill
         </DMCheckboxItem>
-        <StyledRow>
+        <StyledRow id="TD-Styles-Dash-Container">
           Dash
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
             {Object.values(DashStyle).map((style) => (
@@ -227,13 +233,14 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                 value={style}
                 onSelect={preventEvent}
                 bp={breakpoints}
+                id={`TD-Styles-Dash-${style}`}
               >
                 {DASH_ICONS[style as DashStyle]}
               </DMRadioItem>
             ))}
           </StyledGroup>
         </StyledRow>
-        <StyledRow>
+        <StyledRow id="TD-Styles-Size-Container">
           Size
           <StyledGroup dir="ltr" value={displayedStyle.size} onValueChange={handleSizeChange}>
             {Object.values(SizeStyle).map((sizeStyle) => (
@@ -243,6 +250,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                 value={sizeStyle}
                 onSelect={preventEvent}
                 bp={breakpoints}
+                id={`TD-Styles-Dash-${sizeStyle}`}
               >
                 {SIZE_ICONS[sizeStyle as SizeStyle]}
               </DMRadioItem>
@@ -252,7 +260,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
         {(options === 'text' || options === 'label') && (
           <>
             <Divider />
-            <StyledRow>
+            <StyledRow id="TD-Styles-Font-Container">
               Font
               <StyledGroup dir="ltr" value={displayedStyle.font} onValueChange={handleFontChange}>
                 {Object.values(FontStyle).map((fontStyle) => (
@@ -262,6 +270,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                     value={fontStyle}
                     onSelect={preventEvent}
                     bp={breakpoints}
+                    id={`TD-Styles-Font-${fontStyle}`}
                   >
                     <FontIcon fontStyle={fontStyle}>Aa</FontIcon>
                   </DMRadioItem>
@@ -269,7 +278,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
               </StyledGroup>
             </StyledRow>
             {options === 'text' && (
-              <StyledRow>
+              <StyledRow id="TD-Styles-Align-Container">
                 Align
                 <StyledGroup
                   dir="ltr"
@@ -283,6 +292,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                       value={style}
                       onSelect={preventEvent}
                       bp={breakpoints}
+                      id={`TD-Styles-Align-${style}`}
                     >
                       {ALIGN_ICONS[style]}
                     </DMRadioItem>
