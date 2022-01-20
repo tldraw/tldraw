@@ -1,4 +1,4 @@
-import { TDExport, TDExportTypes } from '@tldraw/tldraw'
+import { TDExport } from '@tldraw/tldraw'
 
 export const EXPORT_ENDPOINT =
   process.env.NODE_ENV === 'development'

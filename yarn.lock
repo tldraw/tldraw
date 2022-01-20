@@ -5278,6 +5278,13 @@ chownr@^1.1.1, chownr@^1.1.2, chownr@^1.1.4:
   resolved "https://registry.yarnpkg.com/chownr/-/chownr-1.1.4.tgz#6fc9d7b42d32a583596337666e7d08084da2cc6b"
   integrity sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==
 
+chrome-aws-lambda@9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/chrome-aws-lambda/-/chrome-aws-lambda-9.0.0.tgz#4a727d1ab38c691912c80a5c552c1667f43c6bad"
+  integrity sha512-9+ZgDNAHlQ18pJL2QpBbPK7Knad/a23IaNYQO3AuJQsjW/XKGQdt8mgyKpP85x0iD3WN1ZDdMgibumCz27jT7Q==
+  dependencies:
+    lambdafs "^2.0.3"
+
 chromium-pickle-js@^0.2.0:
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/chromium-pickle-js/-/chromium-pickle-js-0.2.0.tgz#04a106672c18b085ab774d983dfa3ea138f22205"
@@ -6426,10 +6433,15 @@ detective-typescript-70@^7.0.0:
     node-source-walk "^4.2.0"
     typescript "^3.9.7"
 
-devtools-protocol@0.0.937139:
-  version "0.0.937139"
-  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.937139.tgz#bdee3751fdfdb81cb701fd3afa94b1065dafafcf"
-  integrity sha512-daj+rzR3QSxsPRy5vjjthn58axO8c11j58uY0lG5vvlJk/EiOdCWOptGdkXDjtuRHr78emKq0udHCXM4trhoDQ==
+devtools-protocol@0.0.869402:
+  version "0.0.869402"
+  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.869402.tgz#03ade701761742e43ae4de5dc188bcd80f156d8d"
+  integrity sha512-VvlVYY+VDJe639yHs5PHISzdWTLL3Aw8rO4cvUtwvoxFd6FHbE4OpHHcde52M6096uYYazAmd4l0o5VuFRO2WA==
+
+devtools-protocol@0.0.948846:
+  version "0.0.948846"
+  resolved "https://registry.yarnpkg.com/devtools-protocol/-/devtools-protocol-0.0.948846.tgz#bff47e2d1dba060130fa40ed2e5f78b916ba285f"
+  integrity sha512-5fGyt9xmMqUl2VI7+rnUkKCiAQIpLns8sfQtTENy5L70ktbNw0Z3TFJ1JoFNYdx/jffz4YXU45VF75wKZD7sZQ==
 
 dezalgo@^1.0.0:
   version "1.0.3"
@@ -7455,7 +7467,7 @@ extglob@^2.0.4:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-extract-zip@2.0.1, extract-zip@^2.0.1:
+extract-zip@2.0.1, extract-zip@^2.0.0, extract-zip@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/extract-zip/-/extract-zip-2.0.1.tgz#663dca56fe46df890d5f131ef4a06d22bb8ba13a"
   integrity sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==
@@ -10130,6 +10142,13 @@ koa@^2.13.1:
     type-is "^1.6.16"
     vary "^1.1.2"
 
+lambdafs@^2.0.3:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/lambdafs/-/lambdafs-2.1.1.tgz#4bf8d3037b6c61bbb4a22ab05c73ee47964c25ed"
+  integrity sha512-x5k8JcoJWkWLvCVBzrl4pzvkEHSgSBqFjg3Dpsc4AcTMq7oUMym4cL/gRTZ6VM4mUMY+M0dIbQ+V1c1tsqqanQ==
+  dependencies:
+    tar-fs "^2.1.1"
+
 language-subtag-registry@~0.3.2:
   version "0.3.21"
   resolved "https://registry.yarnpkg.com/language-subtag-registry/-/language-subtag-registry-0.3.21.tgz#04ac218bea46f04cb039084602c6da9e788dd45a"
@@ -12305,7 +12324,7 @@ process@0.11.10, process@^0.11.10:
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
   integrity sha1-czIwDoQBYb2j5podHZGn1LwW8YI=
 
-progress@2.0.3, progress@^2.0.0, progress@^2.0.3:
+progress@2.0.3, progress@^2.0.0, progress@^2.0.1, progress@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
@@ -12461,13 +12480,31 @@ pupa@^2.1.1:
   dependencies:
     escape-goat "^2.0.0"
 
-puppeteer@^13.0.1:
-  version "13.0.1"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-13.0.1.tgz#9cd9bb8ec090bade183ca186bf342396bdffa135"
-  integrity sha512-wqGIx59LzYqWhYcJQphMT+ux0sgatEUbjKG0lbjJxNVqVIT3ZC5m4Bvmq2gHE3qhb63EwS+rNkql08bm4BvO0A==
+puppeteer-core@^9.0.0:
+  version "9.1.1"
+  resolved "https://registry.yarnpkg.com/puppeteer-core/-/puppeteer-core-9.1.1.tgz#0c189c3275967d65c39270e6b146e559baca3d47"
+  integrity sha512-zbedbitVIGhmgz0nt7eIdLsnaoVZSlNJfBivqm2w67T8LR2bU1dvnruDZ8nQO0zn++Iet7zHbAOdnuS5+H2E7A==
+  dependencies:
+    debug "^4.1.0"
+    devtools-protocol "0.0.869402"
+    extract-zip "^2.0.0"
+    https-proxy-agent "^5.0.0"
+    node-fetch "^2.6.1"
+    pkg-dir "^4.2.0"
+    progress "^2.0.1"
+    proxy-from-env "^1.1.0"
+    rimraf "^3.0.2"
+    tar-fs "^2.0.0"
+    unbzip2-stream "^1.3.3"
+    ws "^7.2.3"
+
+puppeteer@^13.1.1:
+  version "13.1.1"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-13.1.1.tgz#63771eb744202aa91918c49123f846e1747da121"
+  integrity sha512-GwdFy1JQ43Hhxj6MraXme+XfCX2CKe18MuwToXTMEAk0txg6vUEgwqBnzErTTqDVZ7sWYrDtDaRCfD2y7ZwgGw==
   dependencies:
     debug "4.3.2"
-    devtools-protocol "0.0.937139"
+    devtools-protocol "0.0.948846"
     extract-zip "2.0.1"
     https-proxy-agent "5.0.0"
     node-fetch "2.6.5"
@@ -14182,7 +14219,7 @@ tapable@^2.2.0:
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.2.1.tgz#1967a73ef4060a82f12ab96af86d52fdb76eeca0"
   integrity sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==
 
-tar-fs@2.1.1, tar-fs@^2.0.0:
+tar-fs@2.1.1, tar-fs@^2.0.0, tar-fs@^2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/tar-fs/-/tar-fs-2.1.1.tgz#489a15ab85f1f0befabb370b7de4f9eb5cbe8784"
   integrity sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==
@@ -14762,7 +14799,7 @@ unbox-primitive@^1.0.1:
     has-symbols "^1.0.2"
     which-boxed-primitive "^1.0.2"
 
-unbzip2-stream@1.4.3, unbzip2-stream@^1.0.9:
+unbzip2-stream@1.4.3, unbzip2-stream@^1.0.9, unbzip2-stream@^1.3.3:
   version "1.4.3"
   resolved "https://registry.yarnpkg.com/unbzip2-stream/-/unbzip2-stream-1.4.3.tgz#b0da04c4371311df771cdc215e87f2130991ace7"
   integrity sha512-mlExGW4w71ebDJviH16lQLtZS32VKqsSfk80GCfUlwT/4/hNRFsoscrF/c++9xinkMzECL1uL9DDwXqFWkruPg==
@@ -15566,7 +15603,7 @@ ws@>=7.4.6:
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.4.0.tgz#f05e982a0a88c604080e8581576e2a063802bed6"
   integrity sha512-IHVsKe2pjajSUIl4KYMQOdlyliovpEPquKkqbwswulszzI7r0SfQrxnXdWAEqOlDCLrVSJzo+O1hAwdog2sKSQ==
 
-ws@^7.4.3, ws@^7.4.6:
+ws@^7.2.3, ws@^7.4.3, ws@^7.4.6:
   version "7.5.6"
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.6.tgz#e59fc509fb15ddfb65487ee9765c5a51dec5fe7b"
   integrity sha512-6GLgCqo2cy2A2rjCNFlxQS6ZljG/coZfZXclldI8FB/1G3CCI36Zd8xy2HrFVACi8tfk5XrgLQEk+P0Tnz9UcA==

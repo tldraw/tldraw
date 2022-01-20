@@ -86,6 +86,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
           }
 
           onShapeChange?.({
+            ...shape,
             id: shape.id,
             point: Vec.sub(shape.point, delta),
             text: TLDR.normalizeText(e.currentTarget.value),
