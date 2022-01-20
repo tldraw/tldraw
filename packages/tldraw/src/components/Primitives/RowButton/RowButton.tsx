@@ -17,6 +17,7 @@ export interface RowButtonProps {
   isWarning?: boolean
   hasIndicator?: boolean
   hasArrow?: boolean
+  id?: string
 }
 
 export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
