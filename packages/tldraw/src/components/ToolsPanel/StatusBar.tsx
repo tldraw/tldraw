@@ -13,7 +13,7 @@ export function StatusBar(): JSX.Element | null {
   const activeTool = app.useStore(activeToolSelector)
 
   return (
-    <StyledStatusBar bp={breakpoints}>
+    <StyledStatusBar bp={breakpoints} id="TD-StatusBar">
       <StyledSection>
         {activeTool} | {status}
       </StyledSection>

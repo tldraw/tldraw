@@ -16,25 +16,30 @@ export const ZoomMenu = React.memo(function ZoomMenu() {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DropdownMenu.Trigger dir="ltr" asChild>
+      <DropdownMenu.Trigger dir="ltr" asChild id="TD-Zoom">
         <FixedWidthToolButton onDoubleClick={app.resetZoom} variant="text">
           {Math.round(zoom * 100)}%
         </FixedWidthToolButton>
       </DropdownMenu.Trigger>
       <DMContent align="end">
-        <DMItem onSelect={preventEvent} onClick={app.zoomIn} kbd="#+">
+        <DMItem onSelect={preventEvent} onClick={app.zoomIn} kbd="#+" id="TD-Zoom-Zoom_In">
           Zoom In
         </DMItem>
-        <DMItem onSelect={preventEvent} onClick={app.zoomOut} kbd="#−">
+        <DMItem onSelect={preventEvent} onClick={app.zoomOut} kbd="#−" id="TD-Zoom-Zoom_Out">
           Zoom Out
         </DMItem>
-        <DMItem onSelect={preventEvent} onClick={app.resetZoom} kbd="⇧0">
+        <DMItem onSelect={preventEvent} onClick={app.resetZoom} kbd="⇧0" id="TD-Zoom-Zoom_To_100%">
           To 100%
         </DMItem>
-        <DMItem onSelect={preventEvent} onClick={app.zoomToFit} kbd="⇧1">
+        <DMItem onSelect={preventEvent} onClick={app.zoomToFit} kbd="⇧1" id="TD-Zoom-To_Fit">
           To Fit
         </DMItem>
-        <DMItem onSelect={preventEvent} onClick={app.zoomToSelection} kbd="⇧2">
+        <DMItem
+          onSelect={preventEvent}
+          onClick={app.zoomToSelection}
+          kbd="⇧2"
+          id="TD-Zoom-To_Selection"
+        >
           To Selection
         </DMItem>
       </DMContent>

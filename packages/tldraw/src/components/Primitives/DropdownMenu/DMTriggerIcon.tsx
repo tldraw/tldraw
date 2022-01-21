@@ -4,11 +4,12 @@ import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
 
 interface DMTriggerIconProps extends ToolButtonProps {
   children: React.ReactNode
+  id?: string
 }
 
-export function DMTriggerIcon({ children, ...rest }: DMTriggerIconProps) {
+export function DMTriggerIcon({ id, children, ...rest }: DMTriggerIconProps) {
   return (
-    <Trigger asChild>
+    <Trigger asChild id={id}>
       <ToolButton {...rest}>{children}</ToolButton>
     </Trigger>
   )

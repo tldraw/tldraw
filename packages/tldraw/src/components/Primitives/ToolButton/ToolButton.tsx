@@ -14,6 +14,7 @@ export interface ToolButtonProps {
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
+  id?: string
   onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
 }
 
@@ -30,6 +31,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       isActive = false,
       isSponsor = false,
       onKeyDown,
+      id,
       ...rest
     },
     ref
@@ -46,6 +48,7 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
         onDoubleClick={onDoubleClick}
         onKeyDown={onKeyDown}
         bp={breakpoints}
+        id={id}
         {...rest}
       >
         <StyledToolButtonInner>{children}</StyledToolButtonInner>

@@ -44,6 +44,7 @@ export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuPro
           onDoubleClick={handleDoubleClick}
           onClick={selectShapeTool}
           isActive={penShapes.includes(activeTool as PenShape)}
+          id="TD-Pen"
         >
           {penShapeIcons[lastActiveTool]}
         </ToolButton>
@@ -55,6 +56,7 @@ export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuPro
               key={shape}
               label={shape[0].toUpperCase() + shape.slice(1)}
               kbd={(1 + i).toString()}
+              id={`TD-Pen-${shape}`}
             >
               <DropdownMenu.Item asChild>
                 <ToolButton

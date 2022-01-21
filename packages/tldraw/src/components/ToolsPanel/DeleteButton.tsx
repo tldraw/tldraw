@@ -18,7 +18,7 @@ export function DeleteButton(): JSX.Element {
   )
 
   return (
-    <Tooltip label="Delete" kbd="⌫">
+    <Tooltip label="Delete" kbd="⌫" id="TD-Delete">
       <ToolButton variant="circle" disabled={!hasSelection} onSelect={handleDelete}>
         <TrashIcon />
       </ToolButton>

@@ -32,7 +32,7 @@ export function TopPanel({
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
-        <Panel side="left">
+        <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
           {showPages && <PageMenu />}
         </Panel>

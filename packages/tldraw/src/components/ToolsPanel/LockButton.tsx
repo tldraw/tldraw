@@ -13,7 +13,7 @@ export function LockButton(): JSX.Element {
   const isToolLocked = app.useStore(isToolLockedSelector)
 
   return (
-    <Tooltip label="Lock Tool" kbd="7">
+    <Tooltip label="Lock Tool" kbd="7" id="TD-Lock">
       <ToolButton variant="circle" isActive={isToolLocked} onSelect={app.toggleToolLock}>
         {isToolLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
       </ToolButton>
