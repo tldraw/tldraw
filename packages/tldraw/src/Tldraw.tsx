@@ -121,6 +121,7 @@ export function Tldraw({
   onAssetCreate,
   onAssetDelete,
   onExport,
+  onExit,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -145,6 +146,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onExit,
     })
     return app
   })
@@ -173,6 +175,7 @@ export function Tldraw({
       onAssetDelete,
       onAssetCreate,
       onExport,
+      onExit,
     })
     setSId(id)
     setApp(newApp)
@@ -227,6 +230,7 @@ export function Tldraw({
       onAssetDelete,
       onAssetCreate,
       onExport,
+      onExit,
     }
   }, [
     onMount,
@@ -248,6 +252,7 @@ export function Tldraw({
     onAssetDelete,
     onAssetCreate,
     onExport,
+    onExit,
   ])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
@@ -438,6 +443,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           onKeyUp={app.onKeyUp}
           onDragOver={app.onDragOver}
           onDrop={app.onDrop}
+          onBeforeUnload={app.onBeforeUnload}
         />
       </ContextMenu>
       {showUI && (
