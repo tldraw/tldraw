@@ -46,6 +46,12 @@ module.exports = withPWA(
         })
       )
 
+      config.module.rules.push({
+        test: /.*packages.*\.js$/,
+        use: ['source-map-loader'],
+        enforce: 'pre',
+      })
+
       if (
         SENTRY_DSN &&
         SENTRY_ORG &&

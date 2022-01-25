@@ -28,6 +28,7 @@ async function main() {
       tsconfig: './tsconfig.json',
       external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
+      sourcemap: true,
     })
 
     const esmResult = esbuild.buildSync({
@@ -42,6 +43,7 @@ async function main() {
       jsxFragment: 'React.Fragment',
       external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
+      sourcemap: true,
     })
 
     const esmSize = Object.values(esmResult.metafile.outputs).reduce(
