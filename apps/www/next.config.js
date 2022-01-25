@@ -47,7 +47,7 @@ module.exports = withPWA(
       )
 
       config.module.rules.push({
-        test: /\.js$/,
+        test: /.*packages.*\.js$/,
         use: ['source-map-loader'],
         enforce: 'pre',
       })
