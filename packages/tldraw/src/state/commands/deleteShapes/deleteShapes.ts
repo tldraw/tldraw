@@ -4,7 +4,7 @@ import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 const removeAssetsFromDocument = (assets: TDAssets, idsToRemove: string[]) => {
   const afterAssets: Record<string, TDAsset | undefined> = { ...assets }
-  idsToRemove.forEach((id) => (afterAssets[id] = undefined))
+  idsToRemove.forEach((id) => afterAssets[id] && (afterAssets[id]!.garbage = true))
   return afterAssets
 }
 

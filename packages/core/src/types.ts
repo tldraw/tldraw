@@ -16,6 +16,7 @@ export type TLAssets = Record<string, TLAsset>
 export interface TLAsset {
   id: string
   type: string
+  garbage: boolean
 }
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
@@ -241,6 +242,7 @@ export interface TLCallbacks<T extends TLShape> {
   onRenderCountChange: (ids: string[]) => void
   onError: (error: Error) => void
   onBoundsChange: (bounds: TLBounds) => void
+  onBeforeUnload: (e: BeforeUnloadEvent) => void
 
   // Keyboard event handlers
   onKeyDown: TLKeyboardEventHandler

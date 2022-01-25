@@ -231,6 +231,7 @@ export class StateManager<T extends Record<string, any>> {
     this.applyPatch(command.after, id)
     if (this.onCommand) this.onCommand(this._state, id)
     this.persist(id)
+
     return this
   }
 

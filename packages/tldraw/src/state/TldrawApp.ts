@@ -15,6 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
+  TLAsset,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -41,6 +42,8 @@ import {
   TDAssets,
   TDExport,
   ImageShape,
+  TDImageAsset,
+  TDVideoAsset,
 } from '~types'
 import {
   migrate,
@@ -163,6 +166,10 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user exports their page or selection.
    */
   onExport?: (info: TDExport) => Promise<void>
+  /**
+   * (optional) A callback to run when the user exits the page.
+   */
+  onExit?: (state: TldrawApp, user: TDUser | undefined) => Promise<void>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -1376,6 +1383,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Create a new project.
    */
   newProject = () => {
+    window.indexedDB.open('gloablDB', 3)
     if (!this.isLocal) return
     this.fileSystemHandle = null
     this.resetDocument()
@@ -2901,11 +2909,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         let assetId: string
         if (!match) {
           assetId = Utils.uniqueId()
-          const asset = {
+          const asset: TDImageAsset | TDVideoAsset = {
             id: assetId,
             type: assetType,
             src,
             size,
+            garbage: false,
           }
           this.patchState({
             document: {
@@ -2914,7 +2923,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             },
           })
-        } else assetId = match.id
+        } else {
+          assetId = match.id
+          this.patchState({
+            document: {
+              assets: {
+                [assetId]: {
+                  garbage: false,
+                },
+              },
+            },
+          })
+        }
         this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
       }
     } catch (error) {
@@ -3528,6 +3548,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } finally {
       this.setIsLoading(false)
     }
+  }
+
+  /* ----------------- Exit ----------------- */
+
+  async onBeforeUnload(e: BeforeUnloadEvent) {
+    // TODO
+
+    await this.callbacks.onExit?.(
+      this,
+      this.state.room ? this.state.room?.users[this.state.room?.userId] : undefined
+    )
   }
 
   get room() {

@@ -30,6 +30,7 @@ import { UsersIndicators } from '~components/UsersIndicators'
 import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
+import { useExitEvents } from '~hooks/useExitEvents'
 
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
@@ -98,6 +99,8 @@ export const Canvas = observer(function _Canvas<
   usePerformanceCss(performanceMode, rContainer)
 
   useKeyEvents()
+
+  useExitEvents()
 
   const events = useCanvasEvents()
 
