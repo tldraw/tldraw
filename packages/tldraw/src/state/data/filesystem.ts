@@ -138,6 +138,22 @@ export function getImageSizeFromSrc(src: string): Promise<number[]> {
   })
 }
 
+export async function fileToJSON<T>(file: File): Promise<T> {
+  // Get JSON from blob
+  const blob = file
+  const json: string = await new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onloadend = (e) => {
+      if (reader.readyState === FileReader.DONE) {
+        resolve(reader.result as string)
+      }
+    }
+    reader.readAsText(blob, 'utf8')
+  })
+
+  // Parse
+  return JSON.parse(json)
+}
 export function getVideoSizeFromSrc(src: string): Promise<number[]> {
   return new Promise((resolve, reject) => {
     const video = document.createElement('video')

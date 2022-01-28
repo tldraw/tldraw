@@ -41,6 +41,7 @@ import {
   TDAssets,
   TDExport,
   ImageShape,
+  TDFile,
 } from '~types'
 import {
   migrate,
@@ -50,6 +51,7 @@ import {
   saveToFileSystem,
   openAssetFromFileSystem,
   fileToBase64,
+  fileToJSON,
   getImageSizeFromSrc,
   getVideoSizeFromSrc,
 } from './data'
@@ -65,6 +67,8 @@ import {
   IMAGE_EXTENSIONS,
   VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
+  SAVEFILE_EXTENSIONS,
+  SPECIAL_EXTENSIONS,
 } from '~constants'
 import type { BaseTool } from './tools/BaseTool'
 import { SelectTool } from './tools/SelectTool'
@@ -2880,7 +2884,35 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!extension) throw Error('No extension')
     const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
     const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
-    if (!(isImage || isVideo)) throw Error('Wrong extension')
+    const isSaveFile = SAVEFILE_EXTENSIONS.includes(extension[0].toLowerCase())
+    const isSPECIAL = SPECIAL_EXTENSIONS.includes(extension[0].toLowerCase())
+    if (!(isImage || isVideo || isSaveFile || isSPECIAL)) throw Error('Wrong extension')
+
+    if (isSaveFile) {
+      if (this.isDirty) {
+        if (this.fileSystemHandle) {
+          if (window.confirm('Do you want to save changes to your current project?')) {
+            await this.saveProject()
+          }
+        } else {
+          if (window.confirm('Do you want to save your current project?')) {
+            await this.saveProject()
+          }
+        }
+      }
+      // Parse
+      const tdfile = await fileToJSON<TDFile>(file)
+      this.loadDocument(tdfile.document)
+      this.setIsLoading(false)
+      return
+    } else if (isSPECIAL) {
+      // Parse
+      const json = await fileToJSON<TDShape[]>(file)
+      this.createShapes(...json)
+      this.setIsLoading(false)
+      return
+    }
+
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
     let src: string | ArrayBuffer | null
