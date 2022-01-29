@@ -38,6 +38,7 @@ import { getTextLabelSize } from '../shared/getTextSize'
 import { StraightArrow } from './components/StraightArrow'
 import { CurvedArrow } from './components/CurvedArrow.tsx'
 import { LabelMask } from '../shared/LabelMask'
+import { TLDR } from '~state/TLDR'
 
 type T = ArrowShape
 type E = HTMLDivElement
@@ -416,67 +417,137 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   onBindingChange = (
     shape: T,
     binding: TDBinding,
-    target: TDShape,
+    targetShape: TDShape,
     targetBounds: TLBounds,
-    expandedBounds: TLBounds,
-    center: number[]
+    targetExpandedBounds: TLBounds,
+    targetCenter: number[],
+    oppositeShape?: TDShape,
+    oppositeShapeBounds?: TLBounds,
+    oppositeShapeExpandedBounds?: TLBounds,
+    oppositeShapeCenter?: number[]
   ): Partial<T> | void => {
     const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
+    const hasDecoration = shape.decorations?.[binding.handleId as 'start' | 'end']
     let handlePoint = Vec.sub(
       Vec.add(
-        [expandedBounds.minX, expandedBounds.minY],
+        [targetExpandedBounds.minX, targetExpandedBounds.minY],
         Vec.mulV(
-          [expandedBounds.width, expandedBounds.height],
-          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
+          [targetExpandedBounds.width, targetExpandedBounds.height],
+          Vec.rotWith(binding.point, [0.5, 0.5], targetShape.rotation || 0)
         )
       ),
       shape.point
     )
+    const pagePoint = Vec.add(handlePoint, shape.point)
+    const oppositeHandle = shape.handles[handle.id === 'start' ? 'end' : 'start']
+    const oppositeHandlePoint = [...oppositeHandle.point]
     if (binding.distance) {
-      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
+      const origin = Vec.add(shape.point, oppositeHandle.point)
+      const intersectBounds = hasDecoration
+        ? Utils.expandBounds(targetBounds, binding.distance)
+        : targetBounds
       // The direction vector starts from the arrow's opposite handle
-      const origin = Vec.add(
-        shape.point,
-        shape.handles[handle.id === 'start' ? 'end' : 'start'].point
-      )
       // And passes through the dragging handle
-      const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
-      if (target.type === TDShapeType.Ellipse) {
-        const hits = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          (target as EllipseShape).radius[0] + binding.distance,
-          (target as EllipseShape).radius[1] + binding.distance,
-          target.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
-      } else if (target.type === TDShapeType.Triangle) {
-        const points = getTrianglePoints(target.size, BINDING_DISTANCE, target.rotation).map((pt) =>
-          Vec.add(pt, target.point)
-        )
-        const segments = Utils.pointsToLineSegments(points, true)
-        const hits = segments
-          .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
-          .filter((intersection) => intersection.didIntersect)
-          .flatMap((intersection) => intersection.points)
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
-      } else {
-        let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
-          .filter((int) => int.didIntersect)
-          .map((int) => int.points[0])
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits.length < 2) {
-          hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
+      const direction = Vec.uni(Vec.sub(pagePoint, origin))
+      switch (targetShape.type) {
+        case TDShapeType.Ellipse: {
+          const hits = intersectRayEllipse(
+            origin,
+            direction,
+            targetCenter,
+            (targetShape as EllipseShape).radius[0] + (hasDecoration ? binding.distance : 0),
+            (targetShape as EllipseShape).radius[1] + (hasDecoration ? binding.distance : 0),
+            targetShape.rotation || 0
+          ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+          if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
+          break
+        }
+        case TDShapeType.Triangle: {
+          const points = getTrianglePoints(
+            targetShape.size,
+            hasDecoration ? BINDING_DISTANCE : 0,
+            targetShape.rotation
+          ).map((pt) => Vec.add(pt, targetShape.point))
+          const segments = Utils.pointsToLineSegments(points, true)
+          const hits = segments
+            .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
+            .filter((intersection) => intersection.didIntersect)
+            .flatMap((intersection) => intersection.points)
+            .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+          if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
+          break
+        }
+        default: {
+          const hits = intersectRayBounds(origin, direction, intersectBounds, targetShape.rotation)
             .filter((int) => int.didIntersect)
             .map((int) => int.points[0])
             .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
+
+          if (
+            oppositeShape &&
+            (hits.length < 2 ||
+              (hits[0] && Math.ceil(Vec.dist(hits[0], origin)) < BINDING_DISTANCE * 2.5) ||
+              Utils.boundsContain(intersectBounds, oppositeShapeBounds!) ||
+              Utils.boundsCollide(intersectBounds, oppositeShapeBounds!))
+          ) {
+            const shortArrowDirection = Vec.uni(Vec.sub(targetCenter, oppositeShapeCenter!))
+            const shortArrowHits = intersectRayBounds(
+              oppositeShapeCenter!,
+              shortArrowDirection,
+              oppositeShapeBounds!,
+              oppositeShape!.rotation
+            )
+              .filter((int) => int.didIntersect)
+              .map((int) => int.points[0])
+
+            return this.onHandleChange(shape, {
+              [oppositeHandle.id]: {
+                ...oppositeHandle,
+                point: Vec.toFixed(Vec.sub(shortArrowHits[0], shape.point)),
+              },
+              [handle.id]: {
+                ...handle,
+                point: Vec.toFixed(
+                  Vec.add(
+                    Vec.sub(shortArrowHits[0], shape.point),
+                    Vec.mul(
+                      shortArrowDirection,
+                      BINDING_DISTANCE *
+                        2.5 *
+                        (Utils.boundsContain(oppositeShapeBounds!, intersectBounds) ? -1 : 1)
+                    )
+                  )
+                ),
+              },
+            })
+          } else if (
+            !oppositeShape &&
+            ((hits[0] && Vec.dist(hits[0], origin) < BINDING_DISTANCE * 2.5) ||
+              Utils.pointInBounds(origin, intersectBounds))
+          ) {
+            const shortArrowDirection = Vec.uni(
+              Vec.sub(targetCenter, Vec.add(oppositeHandlePoint, shape.point))
+            )
+            return this.onHandleChange(shape, {
+              [handle.id]: {
+                ...handle,
+                point: Vec.toFixed(
+                  Vec.add(oppositeHandlePoint, Vec.mul(shortArrowDirection, BINDING_DISTANCE * 2.5))
+                ),
+              },
+            })
+          } else if (hits[0]) {
+            handlePoint = Vec.sub(hits[0], shape.point)
+          }
+          break
         }
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
       }
     }
     return this.onHandleChange(shape, {
+      [oppositeHandle.id]: {
+        ...oppositeHandle,
+        point: Vec.toFixed(oppositeHandlePoint),
+      },
       [handle.id]: {
         ...handle,
         point: Vec.toFixed(handlePoint),

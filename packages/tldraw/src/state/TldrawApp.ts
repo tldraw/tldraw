@@ -41,6 +41,7 @@ import {
   TDAssets,
   TDExport,
   ImageShape,
+  ArrowShape,
 } from '~types'
 import {
   migrate,
@@ -368,7 +369,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
 
             const toShape = page.shapes[binding.toId]
-            const fromShape = page.shapes[binding.fromId]
+            const fromShape = page.shapes[binding.fromId] as ArrowShape
 
             if (!(toShape && fromShape)) {
               delete next.document.pages[pageId].bindings[binding.id]
@@ -378,6 +379,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             const toUtils = TLDR.getShapeUtil(toShape)
             const fromUtils = TLDR.getShapeUtil(fromShape)
 
+            let oppositeShape: TDShape | undefined = undefined
+
+            const oppositeHandle = fromShape.handles[binding.handleId === 'start' ? 'end' : 'start']
+            if (oppositeHandle.bindingId) {
+              const oppositeBinding = page.bindings[oppositeHandle.bindingId]
+              oppositeShape = page.shapes[oppositeBinding.toId]
+            }
+
+            // TODO - Add the missing other shape!
+
             // We only need to update the binding's "from" shape
             const fromDelta = fromUtils.onBindingChange?.(
               fromShape,
@@ -385,7 +396,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               toShape,
               toUtils.getBounds(toShape),
               toUtils.getExpandedBounds(toShape),
-              toUtils.getCenter(toShape)
+              toUtils.getCenter(toShape),
+              oppositeShape,
+              oppositeShape ? TLDR.getShapeUtil(oppositeShape).getBounds(oppositeShape) : undefined,
+              oppositeShape
+                ? TLDR.getShapeUtil(oppositeShape).getExpandedBounds(oppositeShape)
+                : undefined,
+              oppositeShape ? TLDR.getShapeUtil(oppositeShape).getCenter(oppositeShape) : undefined
             )
 
             if (fromDelta) {

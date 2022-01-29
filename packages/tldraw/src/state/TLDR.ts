@@ -247,10 +247,16 @@ export class TLDR {
     return Object.values(page.bindings)
       .filter((binding) => binding.fromId === id || binding.toId === id)
       .reduce((cTDSnapshot, binding) => {
+        let oppositeShape: TDShape | undefined = undefined
+
         if (!beforeShapes[binding.fromId]) {
-          beforeShapes[binding.fromId] = Utils.deepClone(
-            TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
-          )
+          const arrowShape = TLDR.getShape<ArrowShape>(cTDSnapshot, binding.fromId, pageId)
+          beforeShapes[binding.fromId] = Utils.deepClone(arrowShape)
+          const oppositeHandle = arrowShape.handles[binding.handleId === 'start' ? 'end' : 'start']
+          if (oppositeHandle.bindingId) {
+            const oppositeBinding = page.bindings[oppositeHandle.bindingId]
+            oppositeShape = TLDR.getShape(data, oppositeBinding.toId, data.appState.currentPageId)
+          }
         }
 
         if (!beforeShapes[binding.toId]) {
@@ -262,7 +268,8 @@ export class TLDR {
         TLDR.onBindingChange(
           TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
           binding,
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
+          TLDR.getShape(cTDSnapshot, binding.toId, pageId),
+          oppositeShape
         )
 
         afterShapes[binding.fromId] = Utils.deepClone(
@@ -628,17 +635,25 @@ export class TLDR {
     return { ...shape, ...delta }
   }
 
-  static onBindingChange<T extends TDShape>(shape: T, binding: TDBinding, otherShape: TDShape) {
+  static onBindingChange<T extends TDShape>(
+    shape: T,
+    binding: TDBinding,
+    targetShape: TDShape,
+    oppositeShape?: TDShape
+  ) {
     const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
       shape,
       binding,
-      otherShape,
-      TLDR.getShapeUtil(otherShape).getBounds(otherShape),
-      TLDR.getShapeUtil(otherShape).getExpandedBounds(otherShape),
-      TLDR.getShapeUtil(otherShape).getCenter(otherShape)
+      targetShape,
+      TLDR.getShapeUtil(targetShape).getBounds(targetShape),
+      TLDR.getShapeUtil(targetShape).getExpandedBounds(targetShape),
+      TLDR.getShapeUtil(targetShape).getCenter(targetShape),
+      oppositeShape,
+      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getBounds(oppositeShape) : undefined,
+      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getExpandedBounds(oppositeShape) : undefined,
+      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getCenter(oppositeShape) : undefined
     )
     if (!delta) return shape
-
     return { ...shape, ...delta }
   }
 

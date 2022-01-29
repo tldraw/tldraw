@@ -141,12 +141,12 @@ describe('Arrow session', () => {
         .movePointer([200, 200])
         .select('arrow1')
         .startSession(SessionType.Arrow, 'arrow1', 'start')
-      // Move to [50,50]
-      app.movePointer([50, 50])
+        .movePointer([50, 50])
+
       // Both handles will keep the same screen positions, but their points will have changed.
-      expect(app.getShape<ArrowShape>('arrow1').point).toStrictEqual([116, 116])
+      expect(app.getShape<ArrowShape>('arrow1').point).toStrictEqual([100, 100])
       expect(app.getShape<ArrowShape>('arrow1').handles.start.point).toStrictEqual([0, 0])
-      expect(app.getShape<ArrowShape>('arrow1').handles.end.point).toStrictEqual([85, 85])
+      expect(app.getShape<ArrowShape>('arrow1').handles.end.point).toStrictEqual([101, 101])
     })
 
     it.todo('updates the arrow when bound on both sides')
@@ -181,13 +181,13 @@ describe('When creating with an arrow session', () => {
       )
       .selectTool(TDShapeType.Arrow)
       .pointShape('rect1', { x: 210, y: 210 })
-      .movePointer([350, 350])
+    app.movePointer([350, 200])
 
-    expect(app.bindings.length).toBe(1)
+    expect(app.bindings.length).toBe(1) // Start
 
     app.movePointer([450, 450])
 
-    expect(app.bindings.length).toBe(2)
+    expect(app.bindings.length).toBe(2) // Start and end
 
     app.stopPointing()
 

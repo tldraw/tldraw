@@ -164,8 +164,12 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     binding: TDBinding,
     target: TDShape,
     targetBounds: TLBounds,
-    expandedBounds: TLBounds,
-    center: number[]
+    targetExpandedBounds: TLBounds,
+    targetCenter: number[],
+    oppositeShape?: TDShape,
+    oppositeShapeTargetBounds?: TLBounds,
+    oppositeShapeTargetExpandedBounds?: TLBounds,
+    oppositeShapeTargetCenter?: number[]
   ) => Partial<T> | void
 
   onHandleChange?: (

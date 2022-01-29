@@ -42,10 +42,10 @@ export class ArrowSession extends BaseSession {
     this.bindableShapeIds = TLDR.getBindableShapeIds(app.state).filter(
       (id) => !(id === this.initialShape.id || id === this.initialShape.parentId)
     )
+    // TODO: find out why this the oppositeHandleBindingId is sometimes missing
     const oppositeHandleBindingId =
       this.initialShape.handles[handleId === 'start' ? 'end' : 'start']?.bindingId
     if (oppositeHandleBindingId) {
-      // TODO: find out why this the binding here is sometimes missing
       const oppositeToId = page.bindings[oppositeHandleBindingId]?.toId
       if (oppositeToId) {
         this.bindableShapeIds = this.bindableShapeIds.filter((id) => id !== oppositeToId)
@@ -122,6 +122,7 @@ export class ArrowSession extends BaseSession {
     })
     // If the handle changed produced no change, bail here
     if (!handleChange) return
+
     // If nothing changes, we want these to be the same object reference as
     // before. If it does change, we'll redefine this later on. And if we've
     // made it this far, the shape should be a new object reference that
@@ -130,6 +131,17 @@ export class ArrowSession extends BaseSession {
       shape: Utils.deepMerge(shape, handleChange),
       bindings: {},
     }
+    let draggedBinding: ArrowBinding | undefined
+    const draggingHandle = next.shape.handles[this.handleId]
+    const oppositeHandle = next.shape.handles[this.handleId === 'start' ? 'end' : 'start']
+    let oppositeShape: TDShape | undefined = undefined
+    if (oppositeHandle.bindingId) {
+      const oppositeBoundShapeId = this.app.getBinding(oppositeHandle.bindingId).toId
+      if (oppositeBoundShapeId) {
+        oppositeShape = this.app.getShape(oppositeBoundShapeId)
+      }
+    }
+    const oppositeShapeUtils = oppositeShape ? TLDR.getShapeUtil(oppositeShape) : undefined
     if (this.initialBinding) {
       next.bindings[this.initialBinding.id] = undefined
     }
@@ -179,13 +191,24 @@ export class ArrowSession extends BaseSession {
           },
         }
         // Get the changes based on the new handles / target / etc.
+
         const arrowChange = TLDR.getShapeUtil<ArrowShape>(next.shape.type).onBindingChange?.(
           next.shape,
           nextStartBinding,
           startTarget,
           startTargetUtils.getBounds(startTarget),
           startTargetUtils.getExpandedBounds(startTarget),
-          startTargetUtils.getCenter(startTarget)
+          startTargetUtils.getCenter(startTarget),
+          oppositeShape,
+          oppositeShape && oppositeShapeUtils
+            ? oppositeShapeUtils.getBounds(oppositeShape)
+            : undefined,
+          oppositeShape && oppositeShapeUtils
+            ? oppositeShapeUtils.getExpandedBounds(oppositeShape)
+            : undefined,
+          oppositeShape && oppositeShapeUtils
+            ? oppositeShapeUtils.getCenter(oppositeShape)
+            : undefined
         )
 
         // Apply the changes to the next shape
@@ -209,12 +232,9 @@ export class ArrowSession extends BaseSession {
     }
 
     // DRAGGED POINT BINDING
-    let draggedBinding: ArrowBinding | undefined
     if (!metaKey) {
-      const draggedHandle = next.shape.handles[this.handleId]
-      const oppositeHandle = next.shape.handles[this.handleId === 'start' ? 'end' : 'start']
       const rayOrigin = Vec.add(oppositeHandle.point, next.shape.point)
-      const rayPoint = Vec.add(draggedHandle.point, next.shape.point)
+      const rayPoint = Vec.add(draggingHandle.point, next.shape.point)
       const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
       const startPoint = Vec.add(next.shape.point!, next.shape.handles!.start.point!)
       const endPoint = Vec.add(next.shape.point!, next.shape.handles!.end.point!)
@@ -258,7 +278,17 @@ export class ArrowSession extends BaseSession {
         target,
         targetUtils.getBounds(target),
         targetUtils.getExpandedBounds(target),
-        targetUtils.getCenter(target)
+        targetUtils.getCenter(target),
+        oppositeShape,
+        oppositeShape && oppositeShapeUtils
+          ? oppositeShapeUtils.getBounds(oppositeShape)
+          : undefined,
+        oppositeShape && oppositeShapeUtils
+          ? oppositeShapeUtils.getExpandedBounds(oppositeShape)
+          : undefined,
+        oppositeShape && oppositeShapeUtils
+          ? oppositeShapeUtils.getCenter(oppositeShape)
+          : undefined
       )
       if (arrowChange) {
         Object.assign(next.shape, arrowChange)
