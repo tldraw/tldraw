@@ -63,7 +63,7 @@ export class ArrowSession extends BaseSession {
         )
         .sort((a, b) => {
           // TODO - We should be smarter here, what's the right logic?
-          return a.childIndex - b.childIndex
+          return b.childIndex - a.childIndex
         })[0]?.id
       if (this.startBindingShapeId) {
         this.bindableShapeIds.splice(this.bindableShapeIds.indexOf(this.startBindingShapeId), 1)
@@ -143,6 +143,7 @@ export class ArrowSession extends BaseSession {
       const center = startTargetUtils.getCenter(startTarget)
       const startHandle = next.shape.handles.start
       const rayPoint = Vec.add(startHandle.point, next.shape.point)
+      if (Vec.isEqual(rayPoint, center)) rayPoint[1]++ // Fix bug where ray and center are identical
       const rayOrigin = center
       const isInsideShape = startTargetUtils.hitTestPoint(startTarget, currentPoint)
       const rayDirection = Vec.uni(Vec.sub(rayPoint, rayOrigin))
@@ -420,9 +421,14 @@ export class ArrowSession extends BaseSession {
   ) => {
     const util = TLDR.getShapeUtil<TDShape>(target.type)
 
-    const bindingPoint = Vec.isEqual(point, origin)
-      ? { point: [0.5, 0.5], distance: 0 }
-      : util.getBindingPoint(target, shape, point, origin, direction, bindAnywhere)
+    const bindingPoint = util.getBindingPoint(
+      target,
+      shape,
+      point, // fix dead center bug
+      origin,
+      direction,
+      bindAnywhere
+    )
 
     // Not all shapes will produce a binding point
     if (!bindingPoint) return
