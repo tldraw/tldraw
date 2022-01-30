@@ -790,20 +790,35 @@ export class TLDR {
                 .filter((int) => int.didIntersect)
                 .map((int) => int.points[0])
                 .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              let bHit: number[] | undefined = undefined
+              if (B.isBound) {
+                const bHits = intersectRayBounds(
+                  B.point,
+                  direction,
+                  B.intersectBounds,
+                  B.target.rotation
+                )
+                  .filter((int) => int.didIntersect)
+                  .map((int) => int.points[0])
+                  .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+                bHit = bHits[0]
+              }
               if (
                 B.isBound &&
                 (hits.length < 2 ||
-                  (hits[0] && Math.ceil(Vec.dist(hits[0], B.point)) < BINDING_DISTANCE * 2.5) ||
-                  Utils.boundsContain(A.intersectBounds, B.bounds) ||
-                  Utils.boundsCollide(A.intersectBounds, B.bounds))
+                  (bHit &&
+                    hits[0] &&
+                    Math.ceil(Vec.dist(hits[0], bHit)) < BINDING_DISTANCE * 2.5) ||
+                  Utils.boundsContain(A.expandedBounds, B.expandedBounds) ||
+                  Utils.boundsCollide(A.expandedBounds, B.expandedBounds))
               ) {
-                // If the other handle is bound, then...
-                const shortArrowDirection = Vec.uni(Vec.sub(A.center, B.center))
+                // If the other handle is bound, and if we need to fallback to the short arrow method...
+                const shortArrowDirection = Vec.uni(Vec.sub(B.point, A.point))
                 const shortArrowHits = intersectRayBounds(
-                  B.center,
+                  A.point,
                   shortArrowDirection,
-                  B.bounds,
-                  B.target.rotation
+                  A.bounds,
+                  A.target.rotation
                 )
                   .filter((int) => int.didIntersect)
                   .map((int) => int.points[0])
@@ -813,9 +828,12 @@ export class TLDR {
                     Vec.sub(shortArrowHits[0], arrowShape.point),
                     Vec.mul(
                       shortArrowDirection,
-                      BINDING_DISTANCE *
-                        2.5 *
-                        (Utils.boundsContain(B.bounds, A.intersectBounds) ? -1 : 1)
+                      Math.min(
+                        Vec.dist(shortArrowHits[0], B.point),
+                        BINDING_DISTANCE *
+                          2.5 *
+                          (Utils.boundsContain(B.bounds, A.intersectBounds) ? -1 : 1)
+                      )
                     )
                   )
                 )
