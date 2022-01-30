@@ -790,6 +790,7 @@ export class TLDR {
                 .filter((int) => int.didIntersect)
                 .map((int) => int.points[0])
                 .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (!hits[0]) continue
               let bHit: number[] | undefined = undefined
               if (B.isBound) {
                 const bHits = intersectRayBounds(
@@ -822,6 +823,7 @@ export class TLDR {
                 )
                   .filter((int) => int.didIntersect)
                   .map((int) => int.points[0])
+                if (!shortArrowHits[0]) continue
                 result[ID].point = Vec.toFixed(Vec.sub(shortArrowHits[0], arrowShape.point))
                 result[ID === 'start' ? 'end' : 'start'].point = Vec.toFixed(
                   Vec.add(
