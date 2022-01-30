@@ -1426,7 +1426,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Upload media from file
    */
   openAsset = async () => {
-    if (!this.isLocal) return
     if (!this.disableAssets)
       try {
         const file = await openAssetFromFileSystem()
