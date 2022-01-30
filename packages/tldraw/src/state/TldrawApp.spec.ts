@@ -349,8 +349,10 @@ describe('TldrawTestApp', () => {
       .startSession(SessionType.Arrow, 'arrow', 'start')
       .movePointer([10, 10])
       .completeSession()
-      .selectAll()
-      .style({ color: ColorStyle.Red })
+
+    expect(app.bindings.length).toBe(1)
+
+    app.selectAll().style({ color: ColorStyle.Red })
 
     expect(app.getShape('arrow').style.color).toBe(ColorStyle.Red)
     expect(app.getShape('rect').style.color).toBe(ColorStyle.Red)

@@ -48,13 +48,9 @@ export class HandleSession extends BaseSession {
     }
 
     // First update the handle's next point
-    const change = TLDR.getShapeUtil(shape).onHandleChange?.(
-      shape,
-      {
-        [handleId]: handle,
-      },
-      { delta, shiftKey, altKey, metaKey }
-    )
+    const change = TLDR.getShapeUtil(shape).onHandleChange?.(shape, {
+      [handleId]: handle,
+    })
 
     if (!change) return
 

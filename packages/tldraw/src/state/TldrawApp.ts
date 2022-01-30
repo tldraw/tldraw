@@ -79,6 +79,7 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 
@@ -376,34 +377,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               return
             }
 
-            const toUtils = TLDR.getShapeUtil(toShape)
-            const fromUtils = TLDR.getShapeUtil(fromShape)
-
-            let oppositeShape: TDShape | undefined = undefined
-
-            const oppositeHandle = fromShape.handles[binding.handleId === 'start' ? 'end' : 'start']
-            if (oppositeHandle.bindingId) {
-              const oppositeBinding = page.bindings[oppositeHandle.bindingId]
-              oppositeShape = page.shapes[oppositeBinding.toId]
-            }
-
-            // TODO - Add the missing other shape!
-
-            // We only need to update the binding's "from" shape
-            const fromDelta = fromUtils.onBindingChange?.(
-              fromShape,
-              binding,
-              toShape,
-              toUtils.getBounds(toShape),
-              toUtils.getExpandedBounds(toShape),
-              toUtils.getCenter(toShape),
-              oppositeShape,
-              oppositeShape ? TLDR.getShapeUtil(oppositeShape).getBounds(oppositeShape) : undefined,
-              oppositeShape
-                ? TLDR.getShapeUtil(oppositeShape).getExpandedBounds(oppositeShape)
-                : undefined,
-              oppositeShape ? TLDR.getShapeUtil(oppositeShape).getCenter(oppositeShape) : undefined
-            )
+            // We only need to update the binding's "from" shape (an arrow)
+            const fromDelta = TLDR.updateArrowBindings(page, fromShape)
 
             if (fromDelta) {
               const nextShape = {
@@ -812,22 +787,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           return
         }
 
-        const toShape = page.shapes[binding.toId]
-        const fromShape = page.shapes[binding.fromId]
+        const fromShape = page.shapes[binding.fromId] as ArrowShape
 
-        const toUtils = TLDR.getShapeUtil(toShape)
-
-        const fromUtils = TLDR.getShapeUtil(fromShape)
-
-        // We only need to update the binding's "from" shape
-        const fromDelta = fromUtils.onBindingChange?.(
-          fromShape,
-          binding,
-          toShape,
-          toUtils.getBounds(toShape),
-          toUtils.getExpandedBounds(toShape),
-          toUtils.getCenter(toShape)
-        )
+        // We only need to update the binding's "from" shape (an arrow)
+        const fromDelta = TLDR.updateArrowBindings(page, fromShape)
 
         if (fromDelta) {
           const nextShape = {

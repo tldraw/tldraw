@@ -1,4 +1,5 @@
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { TLBounds, TLTransformInfo, Utils, TLPageState, TLHandle } from '@tldraw/core'
 import {
   TDSnapshot,
   ShapeStyles,
@@ -10,10 +11,16 @@ import {
   TldrawPatch,
   TDShapeType,
   ArrowShape,
+  TDHandle,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getShapeUtil } from './shapes'
+import type { TldrawApp } from './TldrawApp'
+import { deepCopy } from './StateManager/copy'
+import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
+import { BINDING_DISTANCE } from '~constants'
 
 const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
@@ -265,12 +272,12 @@ export class TLDR {
           )
         }
 
-        TLDR.onBindingChange(
-          TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
-          binding,
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId),
-          oppositeShape
-        )
+        // TLDR.onBindingChange(
+        //   TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
+        //   binding,
+        //   TLDR.getShape(cTDSnapshot, binding.toId, pageId),
+        //   oppositeShape
+        // )
 
         afterShapes[binding.fromId] = Utils.deepClone(
           TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
@@ -635,26 +642,211 @@ export class TLDR {
     return { ...shape, ...delta }
   }
 
-  static onBindingChange<T extends TDShape>(
-    shape: T,
-    binding: TDBinding,
-    targetShape: TDShape,
-    oppositeShape?: TDShape
-  ) {
-    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
-      shape,
-      binding,
-      targetShape,
-      TLDR.getShapeUtil(targetShape).getBounds(targetShape),
-      TLDR.getShapeUtil(targetShape).getExpandedBounds(targetShape),
-      TLDR.getShapeUtil(targetShape).getCenter(targetShape),
-      oppositeShape,
-      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getBounds(oppositeShape) : undefined,
-      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getExpandedBounds(oppositeShape) : undefined,
-      oppositeShape ? TLDR.getShapeUtil(oppositeShape).getCenter(oppositeShape) : undefined
+  static updateArrowBindings(page: TDPage, arrowShape: ArrowShape) {
+    const result = {
+      start: deepCopy(arrowShape.handles.start),
+      end: deepCopy(arrowShape.handles.end),
+    }
+    type HandleInfo = {
+      handle: TDHandle
+      point: number[] // in page space
+    } & (
+      | {
+          isBound: false
+        }
+      | {
+          isBound: true
+          hasDecoration: boolean
+          binding: TDBinding
+          util: TDShapeUtil<TDShape, any>
+          target: TDShape
+          bounds: TLBounds
+          expandedBounds: TLBounds
+          intersectBounds: TLBounds
+          center: number[]
+        }
     )
-    if (!delta) return shape
-    return { ...shape, ...delta }
+    let start: HandleInfo = {
+      isBound: false,
+      handle: arrowShape.handles.start,
+      point: Vec.add(arrowShape.handles.start.point, arrowShape.point),
+    }
+    let end: HandleInfo = {
+      isBound: false,
+      handle: arrowShape.handles.end,
+      point: Vec.add(arrowShape.handles.end.point, arrowShape.point),
+    }
+    if (arrowShape.handles.start.bindingId) {
+      const hasDecoration = arrowShape.decorations?.start !== undefined
+      const handle = arrowShape.handles.start
+      const binding = page.bindings[arrowShape.handles.start.bindingId]
+      if (!binding) throw Error("Could not find a binding to match the start handle's bindingId")
+      const target = page.shapes[binding.toId]
+      const util = TLDR.getShapeUtil(target)
+      const bounds = util.getBounds(target)
+      const expandedBounds = util.getExpandedBounds(target)
+      const intersectBounds = hasDecoration ? Utils.expandBounds(bounds, binding.distance) : bounds
+      const { minX, minY, width, height } = expandedBounds
+      const anchorPoint = Vec.add(
+        [minX, minY],
+        Vec.mulV([width, height], Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0))
+      )
+      start = {
+        isBound: true,
+        hasDecoration,
+        binding,
+        handle,
+        point: anchorPoint,
+        util,
+        target,
+        bounds,
+        expandedBounds,
+        intersectBounds,
+        center: util.getCenter(target),
+      }
+    }
+    if (arrowShape.handles.end.bindingId) {
+      const hasDecoration = arrowShape.decorations?.end !== undefined
+      const handle = arrowShape.handles.end
+      const binding = page.bindings[arrowShape.handles.end.bindingId]
+      if (!binding) throw Error("Could not find a binding to match the end handle's bindingId")
+      const target = page.shapes[binding.toId]
+      const util = TLDR.getShapeUtil(target)
+      const bounds = util.getBounds(target)
+      const expandedBounds = util.getExpandedBounds(target)
+      const intersectBounds = hasDecoration ? Utils.expandBounds(bounds, binding.distance) : bounds
+      const { minX, minY, width, height } = expandedBounds
+      const anchorPoint = Vec.add(
+        [minX, minY],
+        Vec.mulV([width, height], Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0))
+      )
+      end = {
+        isBound: true,
+        hasDecoration,
+        binding,
+        handle,
+        point: anchorPoint,
+        util,
+        target,
+        bounds,
+        expandedBounds,
+        intersectBounds,
+        center: util.getCenter(target),
+      }
+    }
+
+    for (const ID of ['end', 'start'] as const) {
+      const A = ID === 'start' ? start : end
+      const B = ID === 'start' ? end : start
+      if (A.isBound) {
+        if (!A.binding.distance) {
+          // If the binding distance is zero, then the arrow is bound to a specific point
+          // in the target shape. The resulting handle should be exactly at that point.
+          result[ID].point = Vec.sub(A.point, arrowShape.point)
+        } else {
+          // We'll need to figure out the handle's true point based on some intersections
+          // between the opposite handle point and this handle point. This is different
+          // for each type of shape.
+          const direction = Vec.uni(Vec.sub(A.point, B.point))
+          switch (A.target.type) {
+            case TDShapeType.Ellipse: {
+              const hits = intersectRayEllipse(
+                B.point,
+                direction,
+                A.center,
+                A.target.radius[0] + (A.hasDecoration ? A.binding.distance : 0),
+                A.target.radius[1] + (A.hasDecoration ? A.binding.distance : 0),
+                A.target.rotation || 0
+              ).points.sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (hits[0] !== undefined) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+              break
+            }
+            case TDShapeType.Triangle: {
+              const targetPoint = A.target.point
+              const points = getTrianglePoints(
+                A.target.size,
+                A.hasDecoration ? BINDING_DISTANCE : 0,
+                A.target.rotation
+              ).map((pt) => Vec.add(pt, targetPoint))
+              const hits = Utils.pointsToLineSegments(points, true)
+                .map(([p0, p1]) => intersectRayLineSegment(B.point, direction, p0, p1))
+                .filter((intersection) => intersection.didIntersect)
+                .flatMap((intersection) => intersection.points)
+                .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (hits[0] !== undefined) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+              break
+            }
+            default: {
+              const hits = intersectRayBounds(
+                B.point,
+                direction,
+                A.intersectBounds,
+                A.target.rotation
+              )
+                .filter((int) => int.didIntersect)
+                .map((int) => int.points[0])
+                .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (
+                B.isBound &&
+                (hits.length < 2 ||
+                  (hits[0] && Math.ceil(Vec.dist(hits[0], B.point)) < BINDING_DISTANCE * 2.5) ||
+                  Utils.boundsContain(A.intersectBounds, B.bounds) ||
+                  Utils.boundsCollide(A.intersectBounds, B.bounds))
+              ) {
+                // If the other handle is bound, then...
+                const shortArrowDirection = Vec.uni(Vec.sub(A.center, B.center))
+                const shortArrowHits = intersectRayBounds(
+                  B.center,
+                  shortArrowDirection,
+                  B.bounds,
+                  B.target.rotation
+                )
+                  .filter((int) => int.didIntersect)
+                  .map((int) => int.points[0])
+                result[ID].point = Vec.toFixed(Vec.sub(shortArrowHits[0], arrowShape.point))
+                result[ID === 'start' ? 'end' : 'start'].point = Vec.toFixed(
+                  Vec.add(
+                    Vec.sub(shortArrowHits[0], arrowShape.point),
+                    Vec.mul(
+                      shortArrowDirection,
+                      BINDING_DISTANCE *
+                        2.5 *
+                        (Utils.boundsContain(B.bounds, A.intersectBounds) ? -1 : 1)
+                    )
+                  )
+                )
+              } else if (
+                !B.isBound &&
+                ((hits[0] && Vec.dist(hits[0], B.point) < BINDING_DISTANCE * 2.5) ||
+                  Utils.pointInBounds(B.point, A.intersectBounds))
+              ) {
+                // Short arrow time!
+                const shortArrowDirection = Vec.uni(Vec.sub(A.center, B.point))
+                return TLDR.getShapeUtil<ArrowShape>(arrowShape).onHandleChange?.(arrowShape, {
+                  [ID]: {
+                    ...arrowShape.handles[ID],
+                    point: Vec.toFixed(
+                      Vec.add(
+                        Vec.sub(B.point, arrowShape.point),
+                        Vec.mul(shortArrowDirection, BINDING_DISTANCE * 2.5)
+                      )
+                    ),
+                  },
+                })
+              } else if (hits[0]) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return TLDR.getShapeUtil<ArrowShape>(arrowShape).onHandleChange?.(arrowShape, result)
   }
 
   static transform<T extends TDShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
@@ -705,8 +897,7 @@ export class TLDR {
             const point = Vec.toFixed(Vec.rotWith(handle.point, relativeCenter, delta))
             return [handleId, { ...handle, point }]
           })
-        ) as T['handles'],
-        { shiftKey: false }
+        ) as T['handles']
       )
 
       return change

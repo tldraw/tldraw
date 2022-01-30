@@ -295,7 +295,7 @@ export interface TDBaseShape extends TLShape {
   style: ShapeStyles
   type: TDShapeType
   label?: string
-  handles?: Record<string, TldrawHandle>
+  handles?: Record<string, TDHandle>
 }
 
 export interface DrawShape extends TDBaseShape {
@@ -305,7 +305,7 @@ export interface DrawShape extends TDBaseShape {
 }
 
 // The extended handle (used for arrows)
-export interface TldrawHandle extends TLHandle {
+export interface TDHandle extends TLHandle {
   canBind?: boolean
   bindingId?: string
 }
@@ -336,9 +336,9 @@ export interface ArrowShape extends TDBaseShape {
   type: TDShapeType.Arrow
   bend: number
   handles: {
-    start: TldrawHandle
-    bend: TldrawHandle
-    end: TldrawHandle
+    start: TDHandle
+    bend: TDHandle
+    end: TDHandle
   }
   decorations?: {
     start?: Decoration
