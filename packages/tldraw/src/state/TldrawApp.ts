@@ -41,6 +41,7 @@ import {
   TDAssets,
   TDExport,
   ImageShape,
+  ArrowShape,
 } from '~types'
 import {
   migrate,
@@ -78,6 +79,7 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 
@@ -368,25 +370,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
 
             const toShape = page.shapes[binding.toId]
-            const fromShape = page.shapes[binding.fromId]
+            const fromShape = page.shapes[binding.fromId] as ArrowShape
 
             if (!(toShape && fromShape)) {
               delete next.document.pages[pageId].bindings[binding.id]
               return
             }
 
-            const toUtils = TLDR.getShapeUtil(toShape)
-            const fromUtils = TLDR.getShapeUtil(fromShape)
-
-            // We only need to update the binding's "from" shape
-            const fromDelta = fromUtils.onBindingChange?.(
-              fromShape,
-              binding,
-              toShape,
-              toUtils.getBounds(toShape),
-              toUtils.getExpandedBounds(toShape),
-              toUtils.getCenter(toShape)
-            )
+            // We only need to update the binding's "from" shape (an arrow)
+            const fromDelta = TLDR.updateArrowBindings(page, fromShape)
 
             if (fromDelta) {
               const nextShape = {
@@ -795,22 +787,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           return
         }
 
-        const toShape = page.shapes[binding.toId]
-        const fromShape = page.shapes[binding.fromId]
+        const fromShape = page.shapes[binding.fromId] as ArrowShape
 
-        const toUtils = TLDR.getShapeUtil(toShape)
-
-        const fromUtils = TLDR.getShapeUtil(fromShape)
-
-        // We only need to update the binding's "from" shape
-        const fromDelta = fromUtils.onBindingChange?.(
-          fromShape,
-          binding,
-          toShape,
-          toUtils.getBounds(toShape),
-          toUtils.getExpandedBounds(toShape),
-          toUtils.getCenter(toShape)
-        )
+        // We only need to update the binding's "from" shape (an arrow)
+        const fromDelta = TLDR.updateArrowBindings(page, fromShape)
 
         if (fromDelta) {
           const nextShape = {

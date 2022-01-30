@@ -38,6 +38,7 @@ import { getTextLabelSize } from '../shared/getTextSize'
 import { StraightArrow } from './components/StraightArrow'
 import { CurvedArrow } from './components/CurvedArrow.tsx'
 import { LabelMask } from '../shared/LabelMask'
+import { TLDR } from '~state/TLDR'
 
 type T = ArrowShape
 type E = HTMLDivElement
@@ -413,77 +414,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return this
   }
 
-  onBindingChange = (
-    shape: T,
-    binding: TDBinding,
-    target: TDShape,
-    targetBounds: TLBounds,
-    expandedBounds: TLBounds,
-    center: number[]
-  ): Partial<T> | void => {
-    const handle = shape.handles[binding.handleId as keyof ArrowShape['handles']]
-    let handlePoint = Vec.sub(
-      Vec.add(
-        [expandedBounds.minX, expandedBounds.minY],
-        Vec.mulV(
-          [expandedBounds.width, expandedBounds.height],
-          Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0)
-        )
-      ),
-      shape.point
-    )
-    if (binding.distance) {
-      const intersectBounds = Utils.expandBounds(targetBounds, binding.distance)
-      // The direction vector starts from the arrow's opposite handle
-      const origin = Vec.add(
-        shape.point,
-        shape.handles[handle.id === 'start' ? 'end' : 'start'].point
-      )
-      // And passes through the dragging handle
-      const direction = Vec.uni(Vec.sub(Vec.add(handlePoint, shape.point), origin))
-      if (target.type === TDShapeType.Ellipse) {
-        const hits = intersectRayEllipse(
-          origin,
-          direction,
-          center,
-          (target as EllipseShape).radius[0] + binding.distance,
-          (target as EllipseShape).radius[1] + binding.distance,
-          target.rotation || 0
-        ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
-      } else if (target.type === TDShapeType.Triangle) {
-        const points = getTrianglePoints(target.size, BINDING_DISTANCE, target.rotation).map((pt) =>
-          Vec.add(pt, target.point)
-        )
-        const segments = Utils.pointsToLineSegments(points, true)
-        const hits = segments
-          .map((segment) => intersectRayLineSegment(origin, direction, segment[0], segment[1]))
-          .filter((intersection) => intersection.didIntersect)
-          .flatMap((intersection) => intersection.points)
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
-      } else {
-        let hits = intersectRayBounds(origin, direction, intersectBounds, target.rotation)
-          .filter((int) => int.didIntersect)
-          .map((int) => int.points[0])
-          .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        if (hits.length < 2) {
-          hits = intersectRayBounds(origin, Vec.neg(direction), intersectBounds)
-            .filter((int) => int.didIntersect)
-            .map((int) => int.points[0])
-            .sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))
-        }
-        if (hits[0]) handlePoint = Vec.sub(hits[0], shape.point)
-      }
-    }
-    return this.onHandleChange(shape, {
-      [handle.id]: {
-        ...handle,
-        point: Vec.toFixed(handlePoint),
-      },
-    })
-  }
-
   onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
@@ -549,6 +479,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         handle.point = Vec.toFixed(Vec.sub(handle.point, offset))
       })
       nextShape.point = Vec.toFixed(Vec.add(nextShape.point, offset))
+      if (Vec.isEqual(nextShape.point, [0, 0])) {
+        throw Error('here!')
+      }
     }
     return nextShape
   }
