@@ -3081,7 +3081,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /* ----------------- Pointer Events ----------------- */
 
   updateInputs: TLPointerEventHandler = (info) => {
-    this.currentPoint = [...this.getPagePoint(info.point), info.pressure]
+    this.currentPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.shiftKey = info.shiftKey
     this.altKey = info.altKey
     this.ctrlKey = info.ctrlKey
@@ -3118,7 +3118,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return
     }
     this.isPointing = true
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     if (this.isForcePanning) return
     this.currentTool.onPointerDown?.(info, e)
@@ -3159,7 +3159,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   // Shape
   onPointShape: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onPointShape?.(info, e)
   }
@@ -3170,13 +3170,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onDoubleClickShape: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickShape?.(info, e)
   }
 
   onRightPointShape: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onRightPointShape?.(info, e)
   }
@@ -3198,19 +3198,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   // Bounds (bounding box background)
   onPointBounds: TLBoundsEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onPointBounds?.(info, e)
   }
 
   onDoubleClickBounds: TLBoundsEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickBounds?.(info, e)
   }
 
   onRightPointBounds: TLBoundsEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onRightPointBounds?.(info, e)
   }
@@ -3237,13 +3237,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   // Bounds handles (corners, edges)
   onPointBoundsHandle: TLBoundsHandleEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onPointBoundsHandle?.(info, e)
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickBoundsHandle?.(info, e)
     // hack time to reset the size / clipping of an image
@@ -3264,7 +3264,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onRightPointBoundsHandle: TLBoundsHandleEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onRightPointBoundsHandle?.(info, e)
   }
@@ -3291,19 +3291,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   // Handles (ie the handles of a selected arrow)
   onPointHandle: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onPointHandle?.(info, e)
   }
 
   onDoubleClickHandle: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickHandle?.(info, e)
   }
 
   onRightPointHandle: TLPointerEventHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onRightPointHandle?.(info, e)
   }
@@ -3356,7 +3356,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onShapeClone: TLShapeCloneHandler = (info, e) => {
-    this.originPoint = this.getPagePoint(info.point)
+    this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onShapeClone?.(info, e)
   }

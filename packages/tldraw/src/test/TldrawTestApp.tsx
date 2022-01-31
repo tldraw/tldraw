@@ -6,6 +6,7 @@ interface PointerOptions {
   id?: number
   x?: number
   y?: number
+  pressure?: number
   shiftKey?: boolean
   altKey?: boolean
   ctrlKey?: boolean
@@ -128,14 +129,25 @@ export class TldrawTestApp extends TldrawApp {
   }
 
   getPoint(options: PointerOptions | number[] = {} as PointerOptions): PointerEvent {
-    const opts = Array.isArray(options) ? { x: options[0], y: options[1] } : options
-    const { id = 1, x = 0, y = 0, shiftKey = false, altKey = false, ctrlKey = false } = opts
+    const opts = Array.isArray(options)
+      ? { x: options[0], y: options[1], pressure: options[2] }
+      : options
+    const {
+      id = 1,
+      x = 0,
+      y = 0,
+      pressure = 0.5,
+      shiftKey = false,
+      altKey = false,
+      ctrlKey = false,
+    } = opts
 
     return {
       shiftKey,
       altKey,
       ctrlKey,
       pointerId: id,
+      pressure,
       clientX: x,
       clientY: y,
     } as PointerEvent
