@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.6.0
+
+- Improve arrow binding.
+- Fix bug where input pressure would not be accounted for.
+- Fix bug where upload media button would not work on multiplayer.
+- Adds sourcemap loader.
+- Adds ids to UI components.
+- Adds exports.
+
 ## 1.5.2
 
 - Fix bounds and snapping on first load.
