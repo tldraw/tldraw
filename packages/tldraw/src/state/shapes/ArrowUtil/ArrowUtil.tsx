@@ -2,27 +2,14 @@ import * as React from 'react'
 import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { defaultStyle } from '../shared/shape-styles'
-import {
-  ArrowShape,
-  TransformInfo,
-  Decoration,
-  TDShapeType,
-  TDShape,
-  EllipseShape,
-  TDBinding,
-  DashStyle,
-  TDMeta,
-} from '~types'
+import { ArrowShape, TransformInfo, Decoration, TDShapeType, DashStyle, TDMeta } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
-  intersectRayBounds,
-  intersectRayEllipse,
-  intersectRayLineSegment,
 } from '@tldraw/intersect'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
+import { GHOSTED_OPACITY } from '~constants'
 import {
   getArcLength,
   getArcPoints,
@@ -31,14 +18,12 @@ import {
   getCtp,
   isAngleBetween,
 } from './arrowHelpers'
-import { getTrianglePoints } from '../TriangleUtil/triangleHelpers'
 import { styled } from '~styles'
 import { TextLabel, getFontStyle, getShapeStyle } from '../shared'
 import { getTextLabelSize } from '../shared/getTextSize'
 import { StraightArrow } from './components/StraightArrow'
 import { CurvedArrow } from './components/CurvedArrow.tsx'
 import { LabelMask } from '../shared/LabelMask'
-import { TLDR } from '~state/TLDR'
 
 type T = ArrowShape
 type E = HTMLDivElement
@@ -417,17 +402,16 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
-    nextHandles = {
-      ...nextHandles,
+    nextHandles = Utils.deepMerge(nextHandles, {
       start: {
-        ...nextHandles.start,
         point: Vec.toFixed(nextHandles.start.point),
       },
       end: {
-        ...nextHandles.end,
         point: Vec.toFixed(nextHandles.end.point),
       },
-    }
+    })
+    // This will produce NaN values
+    if (Vec.isEqual(nextHandles.start.point, nextHandles.end.point)) return
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = nextHandles

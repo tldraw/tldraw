@@ -123,7 +123,6 @@ export class ArrowSession extends BaseSession {
     })
     // If the handle changed produced no change, bail here
     if (!handleChange) return
-
     // If nothing changes, we want these to be the same object reference as
     // before. If it does change, we'll redefine this later on. And if we've
     // made it this far, the shape should be a new object reference that
@@ -258,7 +257,7 @@ export class ArrowSession extends BaseSession {
         pages: {
           [this.app.currentPageId]: {
             shapes: {
-              [shape.id]: Utils.deepMerge(next.shape, change ?? {}),
+              [shape.id]: { ...next.shape, ...(change ?? {}) },
             },
             bindings: next.bindings,
           },
