@@ -227,7 +227,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+shift-z,⌘+shift+z',
+    'ctrl+shift+z,⌘+shift+z',
     () => {
       if (!canHandleEvent(true)) return
 
