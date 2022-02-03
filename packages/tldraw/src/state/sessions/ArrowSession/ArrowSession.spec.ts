@@ -286,7 +286,7 @@ describe('When creating with an arrow session', () => {
     expect(arrow.handles?.end.bindingId).toBeDefined()
     expect(arrow.point).toStrictEqual([116, 116])
     expect(arrow.handles.start.point).toStrictEqual([84, 84])
-    expect(arrow.handles.end.point).toStrictEqual([0, 0])
+    expect(arrow.handles.end.point).toStrictEqual([-0, -0])
 
     // Drag the shape away by [10,10]
     app.movePointer([50, 50]).pointShape('arrow1', [50, 50]).movePointer([60, 60]).stopPointing()
@@ -295,7 +295,7 @@ describe('When creating with an arrow session', () => {
     expect(arrow.point).toStrictEqual([126, 126])
     // The handles should be in the same place
     expect(arrow.handles.start.point).toStrictEqual([84, 84])
-    expect(arrow.handles.end.point).toStrictEqual([0, 0])
+    expect(arrow.handles.end.point).toStrictEqual([-0, -0])
     // The bindings should have been removed
     expect(app.bindings.length).toBe(0)
     expect(arrow.handles.start.bindingId).toBe(undefined)

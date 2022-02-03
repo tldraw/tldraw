@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1
+
+- Change `vec.toFixed` to always round to two decimal places. This drops the second parameter, which was previously available for custom precisions, but which was defaulted to 2 (its current behavior).
+
 ## 1.4.3
 
 - Update README

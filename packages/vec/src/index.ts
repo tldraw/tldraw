@@ -368,12 +368,11 @@ export class Vec {
   }
 
   /**
-   * Round a vector to the a given precision.
+   * Round a vector to two decimal places.
    * @param a
-   * @param d
    */
-  static toFixed = (a: number[], d = 2): number[] => {
-    return a.map((v) => +v.toFixed(d))
+  static toFixed = (a: number[]): number[] => {
+    return a.map((v) => Math.round(v * 100) / 100)
   }
 
   /**

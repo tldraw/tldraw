@@ -230,5 +230,8 @@ const TextArea = styled('textarea', {
   background: '$boundsBg',
   userSelect: 'text',
   WebkitUserSelect: 'text',
+  fontSmooth: 'always',
+  WebkitFontSmoothing: 'subpixel-antialiased',
+  MozOsxFontSmoothing: 'auto',
   ...commonTextWrapping,
 })

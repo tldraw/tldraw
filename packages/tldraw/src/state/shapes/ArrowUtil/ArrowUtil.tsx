@@ -112,7 +112,10 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       )
       const offset = React.useMemo(() => {
         const bounds = this.getBounds(shape)
-        const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
+        const offset = Vec.sub(
+          shape.handles.bend.point,
+          Vec.toFixed([bounds.width / 2, bounds.height / 2])
+        )
         return offset
       }, [shape, scale])
       const handleLabelChange = React.useCallback(
@@ -153,7 +156,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                   rx={4 * scale}
                   ry={4 * scale}
                   fill="black"
-                  opacity={Math.max(scale, 0.9)}
+                  opacity={1}
                 />
               </mask>
             </defs>

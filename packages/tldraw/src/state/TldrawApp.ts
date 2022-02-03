@@ -363,6 +363,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           // Get bindings related to the changed shapes
           const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(changedShapes), pageId)
 
+          const visitedShapes = new Set<ArrowShape>()
+
           // Update all of the bindings we've just collected
           bindingsToUpdate.forEach((binding) => {
             if (!page.bindings[binding.id]) {
@@ -377,15 +379,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               return
             }
 
+            if (visitedShapes.has(fromShape)) {
+              return
+            }
+
             // We only need to update the binding's "from" shape (an arrow)
             const fromDelta = TLDR.updateArrowBindings(page, fromShape)
+            visitedShapes.add(fromShape)
 
             if (fromDelta) {
               const nextShape = {
                 ...fromShape,
                 ...fromDelta,
-              } as TDShape
-
+              } as ArrowShape
               page.shapes[fromShape.id] = nextShape
             }
           })
@@ -775,11 +781,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         },
       }
+      const page = next.document.pages[pageId]
 
       // Get bindings related to the changed shapes
       const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(nextShapes), pageId)
 
-      const page = next.document.pages[pageId]
+      const visitedShapes = new Set<ArrowShape>()
 
       // Update all of the bindings we've just collected
       bindingsToUpdate.forEach((binding) => {
@@ -789,8 +796,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         const fromShape = page.shapes[binding.fromId] as ArrowShape
 
+        if (visitedShapes.has(fromShape)) {
+          return
+        }
+
         // We only need to update the binding's "from" shape (an arrow)
         const fromDelta = TLDR.updateArrowBindings(page, fromShape)
+        visitedShapes.add(fromShape)
 
         if (fromDelta) {
           const nextShape = {
