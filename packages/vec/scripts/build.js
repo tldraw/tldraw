@@ -26,6 +26,9 @@ async function main() {
       tsconfig: './tsconfig.build.json',
       metafile: false,
       sourcemap: true,
+      define: {
+        'process.env.NODE_ENV': '"production"',
+      },
     })
 
     const esmResult = esbuild.buildSync({
@@ -38,6 +41,9 @@ async function main() {
       tsconfig: './tsconfig.build.json',
       metafile: true,
       sourcemap: true,
+      define: {
+        'process.env.NODE_ENV': '"production"',
+      },
     })
 
     const esmSize = Object.values(esmResult.metafile.outputs).reduce(

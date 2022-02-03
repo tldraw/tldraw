@@ -29,6 +29,9 @@ async function main() {
       external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
       sourcemap: true,
+      define: {
+        'process.env.NODE_ENV': '"production"',
+      },
     })
 
     const esmResult = esbuild.buildSync({
@@ -44,6 +47,9 @@ async function main() {
       external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
       metafile: true,
       sourcemap: true,
+      define: {
+        'process.env.NODE_ENV': '"production"',
+      },
     })
 
     const esmSize = Object.values(esmResult.metafile.outputs).reduce(
