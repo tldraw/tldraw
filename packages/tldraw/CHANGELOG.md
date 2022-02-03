@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.1
+
+- Fix label colors on arrows and triangles in dark mode
+- Fix label wobble on arrows
+- Fix debug mode when in production mode
+
 ## 1.6.0
 
 - Improve arrow binding.
