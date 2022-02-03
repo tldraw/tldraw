@@ -26,7 +26,7 @@ async function main() {
       jsxFactory: 'React.createElement',
       jsxFragment: 'React.Fragment',
       tsconfig: './tsconfig.build.json',
-      external: Object.keys(pkg.dependencies).concat(Object.keys(pkg.peerDependencies)),
+      external: Object.keys(pkg.dependencies ?? {}).concat(Object.keys(pkg.peerDependencies ?? {})),
       metafile: true,
       sourcemap: true,
     })

@@ -11,6 +11,7 @@
     "docs"
   ],
   "compilerOptions": {
+    "skipLibCheck": true,
     "composite": false,
     "incremental": false,
     "declaration": true,

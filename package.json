@@ -55,7 +55,7 @@
     "@types/react": "^17.0.33",
     "@types/react-dom": "^17.0.10",
     "@types/vscode": "^1.59.0",
-    "@typescript-eslint/eslint-plugin": "^4.19.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^4.19.0",
     "eslint": "^7.32.0",
     "fake-indexeddb": "^3.1.3",

@@ -87,7 +87,9 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
           </SmallIcon>
         </IconButton>
       </Dialog.Trigger>
-      <Dialog.Portal>
+      <Dialog.Portal
+      // container={the current app's tl-container}
+      >
         <StyledDialogOverlay onPointerDown={close} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
           <DialogAction onSelect={handleRename}>Rename</DialogAction>

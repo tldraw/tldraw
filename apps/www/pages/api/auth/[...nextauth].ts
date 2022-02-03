@@ -28,7 +28,7 @@ export default function Auth(
       async signIn() {
         return true
       },
-      async session({ session, token, user }) {
+      async session({ session, token }) {
         if (token) {
           session.isSponsor = await isSignedInUserSponsoringMe()
         }
