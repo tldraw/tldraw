@@ -3,7 +3,6 @@ import { stopPropagation } from '~components/stopPropagation'
 import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
-import { TextAreaUtils } from '.'
 import { getTextLabelSize } from './getTextSize'
 import { useTextKeyboardEvents } from './useTextKeyboardEvents'
 
