@@ -1,5 +1,5 @@
 {
-  "version": "1.5.1",
+  "version": "1.6.1",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -37,8 +37,8 @@
     "test:watch": "jest --watchAll"
   },
   "dependencies": {
-    "@tldraw/intersect": "^1.4.3",
-    "@tldraw/vec": "^1.4.3",
+    "@tldraw/intersect": "^1.6.1",
+    "@tldraw/vec": "^1.6.1",
     "@use-gesture/react": "^10.2.4",
     "mobx-react-lite": "^3.2.3",
     "resize-observer-polyfill": "^1.5.1"
