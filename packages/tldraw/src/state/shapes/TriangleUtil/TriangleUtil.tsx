@@ -72,7 +72,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
     ) => {
       const { id, label = '', size, style, labelPoint = LABEL_POINT } = shape
       const font = getFontStyle(style)
-      const styles = getShapeStyle(style)
+      const styles = getShapeStyle(style, meta.isDarkMode)
       const Component = style.dash === DashStyle.Draw ? DrawTriangle : DashedTriangle
       const handleLabelChange = React.useCallback(
         (label: string) => onShapeChange?.({ id, label }),

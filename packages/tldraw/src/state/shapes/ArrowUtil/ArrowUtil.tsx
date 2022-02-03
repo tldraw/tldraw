@@ -94,7 +94,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       } = shape
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
       const font = getFontStyle(style)
-      const styles = getShapeStyle(style)
+      const styles = getShapeStyle(style, meta.isDarkMode)
       const labelSize = label || isEditing ? getTextLabelSize(label, font) : [0, 0]
       const bounds = this.getBounds(shape)
       const dist = React.useMemo(() => {
@@ -112,7 +112,10 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       )
       const offset = React.useMemo(() => {
         const bounds = this.getBounds(shape)
-        const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
+        const offset = Vec.sub(
+          shape.handles.bend.point,
+          Vec.toFixed([bounds.width / 2, bounds.height / 2])
+        )
         return offset
       }, [shape, scale])
       const handleLabelChange = React.useCallback(
@@ -153,7 +156,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                   rx={4 * scale}
                   ry={4 * scale}
                   fill="black"
-                  opacity={Math.max(scale, 0.9)}
+                  opacity={1}
                 />
               </mask>
             </defs>

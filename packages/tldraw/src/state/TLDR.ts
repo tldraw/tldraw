@@ -243,52 +243,50 @@ export class TLDR {
     return Array.from(visited.values())
   }
 
-  static updateBindings(
-    data: TDSnapshot,
-    id: string,
-    beforeShapes: Record<string, Partial<TDShape>> = {},
-    afterShapes: Record<string, Partial<TDShape>> = {},
-    pageId: string
-  ): TDSnapshot {
-    const page = { ...TLDR.getPage(data, pageId) }
-    return Object.values(page.bindings)
-      .filter((binding) => binding.fromId === id || binding.toId === id)
-      .reduce((cTDSnapshot, binding) => {
-        let oppositeShape: TDShape | undefined = undefined
+  // static updateBindings(
+  //   data: TDSnapshot,
+  //   id: string,
+  //   beforeShapes: Record<string, Partial<TDShape>> = {},
+  //   afterShapes: Record<string, Partial<TDShape>> = {},
+  //   pageId: string
+  // ): TDSnapshot {
+  //   const page = { ...TLDR.getPage(data, pageId) }
+  //   return Object.values(page.bindings)
+  //     .filter((binding) => binding.fromId === id || binding.toId === id)
+  //     .reduce((cTDSnapshot, binding) => {
+  //       let oppositeShape: TDShape | undefined = undefined
 
-        if (!beforeShapes[binding.fromId]) {
-          const arrowShape = TLDR.getShape<ArrowShape>(cTDSnapshot, binding.fromId, pageId)
-          beforeShapes[binding.fromId] = Utils.deepClone(arrowShape)
-          const oppositeHandle = arrowShape.handles[binding.handleId === 'start' ? 'end' : 'start']
-          if (oppositeHandle.bindingId) {
-            const oppositeBinding = page.bindings[oppositeHandle.bindingId]
-            oppositeShape = TLDR.getShape(data, oppositeBinding.toId, data.appState.currentPageId)
-          }
-        }
+  //       if (!beforeShapes[binding.fromId]) {
+  //         const arrowShape = TLDR.getShape<ArrowShape>(cTDSnapshot, binding.fromId, pageId)
+  //         beforeShapes[binding.fromId] = Utils.deepClone(arrowShape)
+  //         const oppositeHandle = arrowShape.handles[binding.handleId === 'start' ? 'end' : 'start']
+  //         if (oppositeHandle.bindingId) {
+  //           const oppositeBinding = page.bindings[oppositeHandle.bindingId]
+  //           oppositeShape = TLDR.getShape(data, oppositeBinding.toId, data.appState.currentPageId)
+  //         }
+  //       }
 
-        if (!beforeShapes[binding.toId]) {
-          beforeShapes[binding.toId] = Utils.deepClone(
-            TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-          )
-        }
+  //       if (!beforeShapes[binding.toId]) {
+  //         beforeShapes[binding.toId] = Utils.deepClone(
+  //           TLDR.getShape(cTDSnapshot, binding.toId, pageId)
+  //         )
+  //       }
 
-        // TLDR.onBindingChange(
-        //   TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
-        //   binding,
-        //   TLDR.getShape(cTDSnapshot, binding.toId, pageId),
-        //   oppositeShape
-        // )
+  //       // Hmm
 
-        afterShapes[binding.fromId] = Utils.deepClone(
-          TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
-        )
-        afterShapes[binding.toId] = Utils.deepClone(
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-        )
+  //       // updateArrowBindings ?
 
-        return cTDSnapshot
-      }, data)
-  }
+  //       afterShapes[binding.fromId] = Utils.deepClone(
+  //         TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
+  //       )
+
+  //       afterShapes[binding.toId] = Utils.deepClone(
+  //         TLDR.getShape(cTDSnapshot, binding.toId, pageId)
+  //       )
+
+  //       return cTDSnapshot
+  //     }, data)
+  // }
 
   static getLinkedShapeIds(
     data: TDSnapshot,
@@ -463,14 +461,11 @@ export class TLDR {
         },
       },
     })
-    const dataWithBindingChanges = ids.reduce<TDSnapshot>((cTDSnapshot, id) => {
-      return TLDR.updateBindings(cTDSnapshot, id, beforeShapes, afterShapes, pageId)
-    }, dataWithMutations)
 
     return {
       before: beforeShapes,
       after: afterShapes,
-      data: dataWithBindingChanges,
+      data: dataWithMutations,
     }
   }
 

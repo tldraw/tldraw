@@ -159,19 +159,6 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
 
   onChildrenChange?: (shape: T, children: TDShape[]) => Partial<T> | void
 
-  // onBindingChange?: (
-  //   shape: T,
-  //   binding: TDBinding,
-  //   target: TDShape,
-  //   targetBounds: TLBounds,
-  //   targetExpandedBounds: TLBounds,
-  //   targetCenter: number[],
-  //   oppositeShape?: TDShape,
-  //   oppositeShapeTargetBounds?: TLBounds,
-  //   oppositeShapeTargetExpandedBounds?: TLBounds,
-  //   oppositeShapeTargetCenter?: number[]
-  // ) => Partial<T> | void
-
   onHandleChange?: (shape: T, handles: Partial<T['handles']>) => Partial<T> | void
 
   onRightPointHandle?: (
