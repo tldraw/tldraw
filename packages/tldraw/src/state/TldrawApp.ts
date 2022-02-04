@@ -1876,7 +1876,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const shapes = ids
       .map((id) => this.getShape(id, pageId))
       .sort((a, b) => a.childIndex - b.childIndex)
-    // Find their common bounding box. S hapes will be positioned relative to this box
+    // Find their common bounding box. Shapes will be positioned relative to this box
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
     // A quick routine to get an SVG element for each shape
     const getSvgElementForShape = (shape: TDShape) => {
