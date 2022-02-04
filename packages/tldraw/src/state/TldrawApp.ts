@@ -1883,6 +1883,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const util = TLDR.getShapeUtil(shape)
       const bounds = util.getBounds(shape)
       const elm = util.getSvgElement(shape)
+      console.log(shape.type, shape.scaleX, shape.scaleY)
       if (!elm) return
 
       // If the element is an image, set the asset src as the xlinkhref
