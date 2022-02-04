@@ -40,8 +40,8 @@
             "parentId": "page",
             "childIndex": 281,
             "point": [
-              7944.11,
-              -1198.57
+              7737.35,
+              -1165.92
             ],
             "rotation": 0,
             "text": "Small Sized (Scaled 2x)",
@@ -62,8 +62,8 @@
             "parentId": "page",
             "childIndex": 397,
             "point": [
-              7452.63,
-              -1289.44
+              7368.46,
+              -1292.97
             ],
             "rotation": 0,
             "bend": 0.4867077545763961,
@@ -127,7 +127,7 @@
               200,
               200
             ],
-            "text": "Hi there and Hi there and Hi there and Hi there and Hi th",
+            "text": "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfs adsfasdf aaasdf asdfasdf asdfasdf",
             "rotation": 0,
             "style": {
               "color": "black",
@@ -138,6 +138,210 @@
               "font": "script",
               "textAlign": "middle"
             }
+          },
+          "88d3e43a-9b36-45a7-31af-9a3470aa01f5": {
+            "id": "88d3e43a-9b36-45a7-31af-9a3470aa01f5",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 402,
+            "point": [
+              7735.78,
+              -983.96
+            ],
+            "rotation": 0,
+            "text": "Medium Sized",
+            "style": {
+              "color": "black",
+              "size": "medium",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "3b3952b0-10cd-4504-0756-18225fcece8b": {
+            "id": "3b3952b0-10cd-4504-0756-18225fcece8b",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 403,
+            "point": [
+              7732.08,
+              -931.05
+            ],
+            "rotation": 0,
+            "text": "Medium Sized (Scaled 2x)",
+            "style": {
+              "color": "black",
+              "size": "medium",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1.8735914982518933,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "05e6ce87-3747-46eb-2302-fb0c73947acf": {
+            "id": "05e6ce87-3747-46eb-2302-fb0c73947acf",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 404,
+            "point": [
+              7728.77,
+              -723.42
+            ],
+            "rotation": 0,
+            "text": "Large Sized",
+            "style": {
+              "color": "black",
+              "size": "large",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "2fb1f884-c6d1-4006-0767-f96956af4717": {
+            "id": "2fb1f884-c6d1-4006-0767-f96956af4717",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 405,
+            "point": [
+              7721.47,
+              -631.46
+            ],
+            "rotation": 0,
+            "text": "Large Sized (Scaled 2x)",
+            "style": {
+              "color": "black",
+              "size": "large",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1.8735914982518933,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "5c6d564e-c010-4c75-26ab-3f2d7622ea1e": {
+            "id": "5c6d564e-c010-4c75-26ab-3f2d7622ea1e",
+            "type": "arrow",
+            "name": "Arrow",
+            "parentId": "page",
+            "childIndex": 406,
+            "point": [
+              7369.35,
+              -1062.08
+            ],
+            "rotation": 0,
+            "bend": 0,
+            "handles": {
+              "start": {
+                "id": "start",
+                "index": 0,
+                "point": [
+                  0,
+                  217.42
+                ],
+                "canBind": true
+              },
+              "end": {
+                "id": "end",
+                "index": 1,
+                "point": [
+                  217.42,
+                  0
+                ],
+                "canBind": true
+              },
+              "bend": {
+                "id": "bend",
+                "index": 2,
+                "point": [
+                  108.71,
+                  108.71
+                ]
+              }
+            },
+            "decorations": {
+              "end": "arrow"
+            },
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": true,
+              "dash": "draw",
+              "scale": 1,
+              "textAlign": "start",
+              "font": "script"
+            },
+            "label": "Hello",
+            "labelPoint": [
+              0.5,
+              0.5
+            ]
+          },
+          "72596c1d-8fe9-4a3a-3a00-41a773ada175": {
+            "id": "72596c1d-8fe9-4a3a-3a00-41a773ada175",
+            "type": "arrow",
+            "name": "Arrow",
+            "parentId": "page",
+            "childIndex": 407,
+            "point": [
+              7380.94,
+              -804.29
+            ],
+            "rotation": 0,
+            "bend": -0.6125011498482242,
+            "handles": {
+              "start": {
+                "id": "start",
+                "index": 0,
+                "point": [
+                  -18.33,
+                  199.09
+                ],
+                "canBind": true
+              },
+              "end": {
+                "id": "end",
+                "index": 1,
+                "point": [
+                  199.09,
+                  -18.33
+                ],
+                "canBind": true
+              },
+              "bend": {
+                "id": "bend",
+                "index": 2,
+                "point": [
+                  156.97,
+                  156.97
+                ]
+              }
+            },
+            "decorations": {
+              "end": "arrow"
+            },
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": true,
+              "dash": "draw",
+              "scale": 1,
+              "textAlign": "start",
+              "font": "script"
+            },
+            "label": "Hello",
+            "labelPoint": [
+              0.5,
+              0.5
+            ]
           }
         },
         "bindings": {}
@@ -149,8 +353,8 @@
         "selectedIds": [],
         "camera": {
           "point": [
-            -5750.28,
-            1609.32
+            -6552.06,
+            1402.77
           ],
           "zoom": 1
         },
