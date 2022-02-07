@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
+import puppeteer from 'puppeteer'
 import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
 
 const cors = Cors({
@@ -20,10 +20,11 @@ function runMiddleware(
   })
 }
 
-const FRONTEND_URL =
-  process.env.NODE_ENV === 'development'
-    ? 'http://localhost:3000/?exportMode'
-    : 'https://www.tldraw.com/?exportMode'
+const isDev = process.env.NODE_ENV === 'development'
+
+const FRONTEND_URL = isDev
+  ? 'http://localhost:3000/?exportMode'
+  : 'https://www.tldraw.com/?exportMode'
 
 declare global {
   interface Window {
@@ -39,15 +40,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     type,
   } = body
   if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
-  try {
-    const browser = await chromium.puppeteer.launch({
-      slowMo: 50,
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      ignoreHTTPSErrors: true,
-    })
 
+  console.log(process.env.BROWSERLESS_API_KEY)
+
+  const getBrowser = () =>
+    false
+      ? puppeteer.launch({ slowMo: 50 })
+      : puppeteer.connect({
+          browserWSEndpoint:
+            'wss://chrome.browserless.io?token=c17b08b8-a616-442f-8597-c4bfb4131653',
+          slowMo: 50,
+        })
+
+  let browser: puppeteer.Browser = null
+  try {
+    browser = await getBrowser()
     const page = await browser.newPage()
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'
@@ -74,26 +81,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         app.selectAll()
         app.zoomToSelection()
         app.selectNone()
-        const tlContainer = document.getElementsByClassName('tl-container').item(0) as HTMLElement;
+        const tlContainer = document.getElementsByClassName('tl-container').item(0) as HTMLElement
         if (tlContainer) {
-          tlContainer.style.background = 'transparent';
+          tlContainer.style.background = 'transparent'
         }
       } catch (e) {
         err = e.message
       }
     }, body)
-    if (err) {
-      throw err
-    }
+    if (err) throw err
     const imageBuffer = await page.screenshot({
       type,
-      omitBackground: true
+      omitBackground: true,
     })
     await browser.close()
     res.status(200).send(imageBuffer)
   } catch (err) {
     console.error(err.message)
     res.status(500).send(err)
+  } finally {
+    if (browser) {
+      browser.close()
+    }
   }
 }
 
