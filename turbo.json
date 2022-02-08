@@ -25,7 +25,8 @@
         "^build"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        ".next/**"
       ]
     },
     "build:packages": {
@@ -49,7 +50,8 @@
         "^build"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        ".next/**"
       ]
     },
     "build:www": {
@@ -57,7 +59,8 @@
         "^build"
       ],
       "outputs": [
-        "dist/**"
+        "dist/**",
+        ".next/**"
       ]
     },
     "test": {
@@ -65,6 +68,14 @@
         "build"
       ],
       "outputs": []
+    },
+    "test:ci": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
     },
     "lint": {
       "dependsOn": [
@@ -78,9 +89,11 @@
     "deploy": {
       "dependsOn": [
         "build",
-        "test",
-        "docs",
-        "build:docs"
+        "test"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
       ]
     }
   }
