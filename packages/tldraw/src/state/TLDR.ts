@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLBounds, TLTransformInfo, Utils, TLPageState, TLHandle } from '@tldraw/core'
+import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import {
   TDSnapshot,
-  ShapeStyles,
   ShapesWithProp,
   TDShape,
   TDBinding,
@@ -16,7 +15,6 @@ import {
 import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getShapeUtil } from './shapes'
-import type { TldrawApp } from './TldrawApp'
 import { deepCopy } from './StateManager/copy'
 import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'

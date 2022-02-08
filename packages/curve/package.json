@@ -19,20 +19,22 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "./dist/index.ts",
   "scripts": {
+    "start": "yarn lask -d",
+    "build": "yarn lask",
     "start:packages": "yarn start",
     "start:core": "yarn start",
-    "start": "node scripts/dev & yarn types:dev",
     "build:core": "yarn build",
     "build:packages": "yarn build",
-    "build": "node scripts/build && yarn types:build",
-    "types:dev": "tsc -w --p tsconfig.build.json",
-    "types:build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
-  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c"
+  "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c",
+  "devDependencies": {
+    "lask": "^0.0.29"
+  }
 }

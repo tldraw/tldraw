@@ -79,7 +79,6 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
-import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 

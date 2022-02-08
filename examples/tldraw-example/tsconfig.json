@@ -3,14 +3,16 @@
   "include": ["src"],
   "exclude": ["node_modules", "dist", "docs"],
   "compilerOptions": {
-    "outDir": "./dist/types",
+    "outDir": "./dist",
     "baseUrl": ".",
     "rootDir": "src",
     "emitDeclarationOnly": false,
     "paths": {
       "~*": ["./src/*"],
       "@tldraw/core": ["../../packages/core"],
-      "@tldraw/tldraw": ["../../packages/tldraw"]
+      "@tldraw/tldraw": ["../../packages/tldraw"],
+      "@tldraw/vec": ["../../packages/vec"],
+      "@tldraw/intersect": ["../../packages/intersect"]
     }
   },
   "references": [

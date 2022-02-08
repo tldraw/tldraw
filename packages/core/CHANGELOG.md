@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+
+- Simplifies monorepo and dependencies.
+
 ## 1.5.0
 
 - Fix propagation on pointer move events.
