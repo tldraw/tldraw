@@ -75,5 +75,8 @@
       "pre-push": "fix:style && eslint && test"
     }
   },
-  "packageManager": "yarn@1.22.17"
+  "packageManager": "yarn@1.22.17",
+  "dependencies": {
+    "@changesets/cli": "^2.20.0"
+  }
 }
