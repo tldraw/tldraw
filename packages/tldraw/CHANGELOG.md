@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+
+- Simplifies monorepo and dependencies.
+
 ## 1.6.1
 
 - Fix label colors on arrows and triangles in dark mode
