@@ -2,7 +2,8 @@
   "fileHandle": null,
   "document": {
     "id": "doc",
-    "version": 13,
+    "name": "New Document",
+    "version": 15.3,
     "pages": {
       "page": {
         "id": "page",
@@ -38,8 +39,8 @@
             "parentId": "page",
             "childIndex": 2,
             "point": [
-              137.22,
-              202.71
+              465.88,
+              436.08
             ],
             "size": [
               249.64,
@@ -51,7 +52,8 @@
               "size": "small",
               "isFilled": false,
               "dash": "draw"
-            }
+            },
+            "label": "Bananas!"
           },
           "640a8876-2e56-45c2-0bdc-7fadde58a6b7": {
             "id": "640a8876-2e56-45c2-0bdc-7fadde58a6b7",
@@ -118,7 +120,8 @@
         },
         "editingId": null
       }
-    }
+    },
+    "assets": {}
   },
   "assets": {}
 }
