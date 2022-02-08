@@ -6,12 +6,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # setup node
-      - name: Setup Node
-        uses: actions/setup-node@v2
-        cache-dependency-path: yarn.lock
-        node-version: '16'
-
       # turbo cache
       - name: Turbo Cache
         id: turbo-cache
