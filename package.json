@@ -26,7 +26,9 @@
     "start:www": "turbo run start --parallel & cd apps/www && yarn dev",
     "start:electron": "turbo run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & turbo run start:vscode --parallel; ",
-    "publish:patch": "yarn build:packages && yarn test && turbo publish",
+    "version": "yarn changeset version",
+    "publish": "yarn changeset publish",
+    "changeset": "changeset",
     "fix:style": "yarn run prettier ./packages/core/src --write && yarn run prettier ./packages/tldraw/src --write",
     "turbo": "turbo",
     "test": "turbo run test --stream",
@@ -75,5 +77,8 @@
       "pre-push": "fix:style && eslint && test"
     }
   },
-  "packageManager": "yarn@1.22.17"
+  "packageManager": "yarn@1.22.17",
+  "dependencies": {
+    "@changesets/cli": "^2.20.0"
+  }
 }

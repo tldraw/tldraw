@@ -2,7 +2,9 @@
 
 ## 1.7.0
 
-- Simplifies monorepo and dependencies.
+### Minor Changes
+
+- Update dependencies and monorepo.
 
 ## 1.4.3
 

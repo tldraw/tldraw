@@ -2,7 +2,15 @@
 
 ## 1.7.0
 
-- Simplifies monorepo and dependencies.
+### Minor Changes
+
+- Update dependencies and monorepo.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/intersect@1.7.0
+  - @tldraw/vec@1.7.0
 
 ## 1.5.0
 

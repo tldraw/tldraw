@@ -2,7 +2,14 @@
 
 ## 1.7.0
 
-- Simplifies monorepo and dependencies.
+### Minor Changes
+
+- Update dependencies and monorepo.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/vec@1.7.0
 
 ## 1.4.3
 
