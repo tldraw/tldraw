@@ -5,12 +5,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+        cache-dependency-path: yarn.lock
+        node-version: '16'
+      # Turbo cache
+      - name: Turbo Cache
+        id: turbo-cache
+        uses: actions/cache@v2
+        with:
+          path: node_modules/.cache/turbo
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.ref_name }}-
+
       # install modules
       - name: Install modules
         run: yarn
       # build
       - name: Build Packages
-        run: yarn build:packages
+        run: yarn build:packages --cache-dir=".turbo"
       # run unit tests
       - name: Jest Annotations & Coverage
         run: yarn test:ci
