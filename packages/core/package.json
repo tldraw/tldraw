@@ -33,7 +33,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "docs": "typedoc"
   },
   "dependencies": {
     "@tldraw/intersect": "^1.6.1",
