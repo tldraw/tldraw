@@ -18,18 +18,17 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "source": "./dist/index.ts",
   "scripts": {
+    "start": "yarn lask -d",
+    "build": "yarn lask",
     "start:core": "yarn start",
     "start:packages": "yarn start",
-    "start": "node scripts/dev & yarn types:dev",
     "build:core": "yarn build",
     "build:packages": "yarn build",
-    "build": "node scripts/build && yarn types:build",
-    "types:dev": "tsc -w --p tsconfig.build.json",
-    "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf dist",
     "test": "jest",
@@ -48,15 +47,10 @@
     "react-dom": "^16.8 || ^17.0"
   },
   "devDependencies": {
-    "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
-    "@types/jest": "^27.4.0",
-    "@types/node": "^17.0.14",
-    "@types/react": "^17.0.38",
-    "@types/react-dom": "^17.0.11",
+    "lask": "^0.0.29",
     "mobx": "^6.3.8",
-    "tsconfig-replace-paths": "^0.0.11"
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0"
   },
   "jest": {
     "setupFilesAfterEnv": [
