@@ -35,7 +35,8 @@
     "docs": "turbo run typedoc",
     "docs:watch": "turbo run typedoc --watch",
     "postinstall": "husky install",
-    "pretty-quick": "pretty-quick"
+    "pretty-quick": "pretty-quick",
+    "clean": "turbo run clean"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
