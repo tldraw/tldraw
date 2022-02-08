@@ -6,10 +6,6 @@
 
 - Update dependencies and monorepo.
 
-## 1.7.0
-
-- Simplifies monorepo and dependencies.
-
 ## 1.4.3
 
 - Update README

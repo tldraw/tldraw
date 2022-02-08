@@ -6,10 +6,6 @@
 
 - Update dependencies and monorepo.
 
-## 1.7.0
-
-- Simplifies monorepo and dependencies.
-
 ## 1.6.1
 
 - Change `vec.toFixed` to always round to two decimal places. This drops the second parameter, which was previously available for custom precisions, but which was defaulted to 2 (its current behavior).
