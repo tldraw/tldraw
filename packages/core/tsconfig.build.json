@@ -10,14 +10,11 @@
     "dist",
     "docs"
   ],
-  "include": ["src/**/*"],
   "compilerOptions": {
     "composite": false,
     "incremental": false,
     "declaration": true,
     "declarationMap": true,
-    "useDefineForClassFields": true,
     "sourceMap": true
-  },
-  "references": [{ "path": "../vec" }, { "path": "../intersect" }]
+  }
 }

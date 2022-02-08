@@ -20,18 +20,18 @@
     "dist/**/*"
   ],
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "source": "./dist/index.ts",
   "scripts": {
     "start": "yarn lask -d",
     "build": "yarn lask",
-    "start:core": "yarn start",
     "start:packages": "yarn start",
+    "start:core": "yarn start",
     "build:core": "yarn build",
     "build:packages": "yarn build",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c",
   "devDependencies": {

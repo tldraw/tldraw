@@ -19,18 +19,18 @@
     "dist/**/*"
   ],
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "source": "./dist/index.ts",
   "scripts": {
     "start": "yarn lask -d",
     "build": "yarn lask",
-    "start:core": "yarn start",
     "start:packages": "yarn start",
+    "start:core": "yarn start",
     "build:core": "yarn build",
     "build:packages": "yarn build",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll"
@@ -47,6 +47,16 @@
     "react-dom": "^16.8 || ^17.0"
   },
   "devDependencies": {
+    "@tldraw/intersect": "*",
+    "@tldraw/vec": "*",
+    "@swc-node/jest": "^1.4.3",
+    "@testing-library/jest-dom": "^5.16.2",
+    "@testing-library/react": "^12.1.2",
+    "@types/node": "^17.0.14",
+    "@types/react": "^17.0.38",
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/parser": "^5.10.2",
+    "eslint": "^8.8.0",
     "lask": "^0.0.29",
     "mobx": "^6.3.8",
     "react": ">=16.8",

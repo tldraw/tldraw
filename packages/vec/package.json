@@ -18,7 +18,7 @@
     "dist/**/*"
   ],
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "source": "./src/index.ts",
   "scripts": {
@@ -29,7 +29,7 @@
     "build:core": "yarn build",
     "build:packages": "yarn build",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
   "devDependencies": {

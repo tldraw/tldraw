@@ -4,7 +4,7 @@
   "compilerOptions": {
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
-    "outDir": "./dist/types",
+    "outDir": "./dist",
     "rootDir": "src",
     "baseUrl": ".",
     "paths": {
