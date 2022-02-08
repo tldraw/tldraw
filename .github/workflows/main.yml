@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         cache-dependency-path: yarn.lock
         node-version: '16'
       # Turbo cache
