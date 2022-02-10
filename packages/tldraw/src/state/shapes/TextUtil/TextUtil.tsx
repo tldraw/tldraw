@@ -137,6 +137,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       React.useEffect(() => {
         if (isEditing) {
+          rTextContent.current = text
           requestAnimationFrame(() => {
             rIsMounted.current = true
             const elm = rInput.current
