@@ -11,7 +11,6 @@ export async function exportToImage(info: TDExport) {
     link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(info.serialized)
     link.download = info.name + '.' + info.type
     link.click()
-
     return
   }
 
