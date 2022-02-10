@@ -52,6 +52,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
 
+      const rTextContent = React.useRef(text)
+
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
@@ -61,6 +63,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
           const currentBounds = this.getBounds(shape)
 
+          rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
+
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
@@ -68,7 +72,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             case AlignStyle.Middle: {
               const nextBounds = this.getBounds({
                 ...shape,
-                text: TLDR.normalizeText(e.currentTarget.value),
+                text: rTextContent.current,
               })
 
               delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
@@ -77,7 +81,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             case AlignStyle.End: {
               const nextBounds = this.getBounds({
                 ...shape,
-                text: TLDR.normalizeText(e.currentTarget.value),
+                text: rTextContent.current,
               })
 
               delta = [nextBounds.width - currentBounds.width, 0]
@@ -89,7 +93,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             ...shape,
             id: shape.id,
             point: Vec.sub(shape.point, delta),
-            text: TLDR.normalizeText(e.currentTarget.value),
+            text: rTextContent.current,
           })
         },
         [shape.id, shape.point]
@@ -97,7 +101,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const onChange = React.useCallback(
         (text: string) => {
-          onShapeChange?.({ id: shape.id, text })
+          rTextContent.current = TLDR.normalizeText(text)
+          onShapeChange?.({ id: shape.id, text: rTextContent.current })
         },
         [shape.id]
       )
