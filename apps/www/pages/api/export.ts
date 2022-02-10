@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import chromium from 'chrome-aws-lambda'
+import chrome from 'chrome-aws-lambda'
 import Cors from 'cors'
 import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
 
@@ -40,12 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = body
   if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
   try {
-    const browser = await chromium.puppeteer.launch({
+    const browser = await chrome.puppeteer.launch({
       slowMo: 50,
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      args: chrome.args,
+      defaultViewport: chrome.defaultViewport,
+      executablePath: await chrome.executablePath,
       ignoreHTTPSErrors: true,
+      headless: chrome.headless,
     })
 
     const page = await browser.newPage()
@@ -74,9 +75,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         app.selectAll()
         app.zoomToSelection()
         app.selectNone()
-        const tlContainer = document.getElementsByClassName('tl-container').item(0) as HTMLElement;
+        const tlContainer = document.getElementsByClassName('tl-container').item(0) as HTMLElement
         if (tlContainer) {
-          tlContainer.style.background = 'transparent';
+          tlContainer.style.background = 'transparent'
         }
       } catch (e) {
         err = e.message
@@ -87,7 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const imageBuffer = await page.screenshot({
       type,
-      omitBackground: true
+      omitBackground: true,
     })
     await browser.close()
     res.status(200).send(imageBuffer)
