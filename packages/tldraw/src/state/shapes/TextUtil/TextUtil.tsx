@@ -192,7 +192,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
-                  defaultValue={text}
+                  defaultValue={rTextContent.current}
                   color={styles.stroke}
                   onFocus={handleFocus}
                   onChange={handleChange}
