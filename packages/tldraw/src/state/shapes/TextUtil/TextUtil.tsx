@@ -51,20 +51,15 @@ export class TextUtil extends TDShapeUtil<T, E> {
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
-
       const rTextContent = React.useRef(text)
-
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           let delta = [0, 0]
-
-          const currentBounds = this.getBounds(shape)
-
           rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
-
+          const currentBounds = this.getBounds(shape, rTextContent.current)
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
@@ -74,7 +69,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
                 ...shape,
                 text: rTextContent.current,
               })
-
               delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
               break
             }
@@ -83,12 +77,10 @@ export class TextUtil extends TDShapeUtil<T, E> {
                 ...shape,
                 text: rTextContent.current,
               })
-
               delta = [nextBounds.width - currentBounds.width, 0]
               break
             }
           }
-
           onShapeChange?.({
             ...shape,
             id: shape.id,
@@ -118,7 +110,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
           if (!isEditing) return
           if (!rIsMounted.current) return
-
           if (document.activeElement === e.currentTarget) {
             e.currentTarget.select()
           }
@@ -219,14 +210,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
     return <rect x={0} y={0} width={width} height={height} />
   })
 
-  getBounds = (shape: T) => {
+  getBounds = (shape: T, text = shape.text) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
-      melm.textContent = shape.text
+      melm.textContent = text
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0
