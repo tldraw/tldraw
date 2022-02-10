@@ -46,43 +46,35 @@ export class TextUtil extends TDShapeUtil<T, E> {
     )
   }
 
+  texts = new Map<string, string>()
+
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
-      const rTextContent = React.useRef(text)
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           let delta = [0, 0]
-          rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
-          const currentBounds = this.getBounds(shape, rTextContent.current)
+          const newText = TLDR.normalizeText(e.currentTarget.value)
+          const currentBounds = this.getBounds(shape)
+          this.texts.set(shape.id, newText)
+          const nextBounds = this.getBounds({
+            ...shape,
+            text: newText,
+          })
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
             }
             case AlignStyle.Middle: {
-              const nextBounds = this.getBounds(
-                {
-                  ...shape,
-                  text: rTextContent.current,
-                },
-                rTextContent.current
-              )
               delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
               break
             }
             case AlignStyle.End: {
-              const nextBounds = this.getBounds(
-                {
-                  ...shape,
-                  text: rTextContent.current,
-                },
-                rTextContent.current
-              )
               delta = [nextBounds.width - currentBounds.width, 0]
               break
             }
@@ -91,7 +83,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             ...shape,
             id: shape.id,
             point: Vec.sub(shape.point, delta),
-            text: rTextContent.current,
+            text: newText,
           })
         },
         [shape.id, shape.point]
@@ -99,8 +91,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const onChange = React.useCallback(
         (text: string) => {
-          rTextContent.current = TLDR.normalizeText(text)
-          onShapeChange?.({ id: shape.id, text: rTextContent.current })
+          this.texts.set(shape.id, TLDR.normalizeText(text))
+          onShapeChange?.({ id: shape.id, text: this.texts.get(shape.id)! })
         },
         [shape.id]
       )
@@ -134,7 +126,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       React.useEffect(() => {
         if (isEditing) {
-          rTextContent.current = text
+          this.texts.set(shape.id, text)
           requestAnimationFrame(() => {
             rIsMounted.current = true
             const elm = rInput.current
@@ -190,8 +182,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
-                  value={rTextContent.current}
-                  defaultValue={rTextContent.current}
+                  defaultValue={text}
                   color={styles.stroke}
                   onFocus={handleFocus}
                   onChange={handleChange}
@@ -216,14 +207,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
     return <rect x={0} y={0} width={width} height={height} />
   })
 
-  getBounds = (shape: T, text = shape.text) => {
+  getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
-      melm.textContent = text
+      melm.textContent = this.texts.get(shape.id) ?? shape.text
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0

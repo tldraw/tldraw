@@ -611,7 +611,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
-  getReservedContent = (ids: string[], pageId = this.currentPageId) => {
+  getReservedContent = (coreReservedIds: string[], pageId = this.currentPageId) => {
     const { bindings } = this.document.pages[pageId]
 
     // We want to know which shapes we need to
@@ -627,8 +627,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Unique set of shape ids that are going to be reserved
     const reservedShapeIds: string[] = []
 
-    if (this.session) ids.forEach((id) => reservedShapeIds.push(id))
-    if (this.pageState.editingId) ids.push(this.pageState.editingId)
+    if (this.session) coreReservedIds.forEach((id) => reservedShapeIds.push(id))
+    if (this.pageState.editingId) reservedShapeIds.push(this.pageState.editingId)
 
     const strongReservedShapeIds = new Set(reservedShapeIds)
 
@@ -687,7 +687,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       const coreReservedIds = [...selectedIds]
 
-      if (editingId) coreReservedIds.push(editingId)
+      const editingShape = editingId && current.document.pages[this.currentPageId].shapes[editingId]
+      if (editingShape) coreReservedIds.push(editingShape.id)
 
       const { reservedShapes, reservedBindings, strongReservedShapeIds } = this.getReservedContent(
         coreReservedIds,
@@ -713,7 +714,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               strongReservedShapeIds.has(reservedShape.id)
             )
           ) {
-            reservedShapes[reservedShape.id] = incomingShape
+            shapes[reservedShape.id] = incomingShape
             return
           }
 
@@ -721,7 +722,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           // Allow decorations (of an arrow) to be changed
           if ('decorations' in incomingShape && 'decorations' in reservedShape) {
-            reservedShape.decorations = incomingShape.decorations
+            shapes[reservedShape.id] = { ...reservedShape, decorations: incomingShape.decorations }
           }
 
           // Allow the shape's style to be changed
@@ -739,6 +740,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const nextShapes = {
         ...shapes,
         ...reservedShapes,
+      }
+
+      if (editingShape) {
+        nextShapes[editingShape.id] = editingShape
       }
 
       const nextBindings = {
