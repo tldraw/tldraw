@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import chrome from 'chrome-aws-lambda'
+import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
 import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
 
@@ -40,13 +40,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } = body
   if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
   try {
-    const browser = await chrome.puppeteer.launch({
+    const browser = await chromium.puppeteer.launch({
       slowMo: 50,
-      args: chrome.args,
-      defaultViewport: chrome.defaultViewport,
-      executablePath: await chrome.executablePath,
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath,
       ignoreHTTPSErrors: true,
-      headless: chrome.headless,
+      headless: chromium.headless,
     })
 
     const page = await browser.newPage()
