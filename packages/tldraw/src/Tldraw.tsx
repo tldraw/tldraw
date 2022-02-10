@@ -150,9 +150,8 @@ export function Tldraw({
   })
 
   // Create a new app if the `id` prop changes.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (id === sId) return
-
     const newApp = new TldrawApp(id, {
       onMount,
       onChange,
@@ -175,6 +174,7 @@ export function Tldraw({
       onExport,
     })
     setSId(id)
+
     setApp(newApp)
   }, [sId, id])
 

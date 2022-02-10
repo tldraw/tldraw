@@ -95,8 +95,13 @@ export class StateManager<T extends Record<string, any>> {
 
               await idb.set(id + '_version', version || -1)
 
+              // why is this necessary? but it is...
+              const prevEmpty = this._state.appState.isEmptyCanvas
+
               this._state = deepCopy(next)
               this._snapshot = deepCopy(next)
+
+              this._state.appState.isEmptyCanvas = prevEmpty
               this.store.setState(this._state, true)
             } else {
               await idb.set(id + '_version', version || -1)
