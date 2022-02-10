@@ -628,6 +628,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const reservedShapeIds: string[] = []
 
     if (this.session) ids.forEach((id) => reservedShapeIds.push(id))
+    if (this.pageState.editingId) ids.push(this.pageState.editingId)
 
     const strongReservedShapeIds = new Set(reservedShapeIds)
 

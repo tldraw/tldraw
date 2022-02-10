@@ -46,38 +46,43 @@ export class TextUtil extends TDShapeUtil<T, E> {
     )
   }
 
-  editingText = ''
-
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
+      const rTextContent = React.useRef(text)
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           let delta = [0, 0]
-          this.editingText = TLDR.normalizeText(e.currentTarget.value)
-          const currentBounds = this.getBounds(shape)
+          rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
+          const currentBounds = this.getBounds(shape, rTextContent.current)
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
             }
             case AlignStyle.Middle: {
-              const nextBounds = this.getBounds({
-                ...shape,
-                text: this.editingText,
-              })
+              const nextBounds = this.getBounds(
+                {
+                  ...shape,
+                  text: rTextContent.current,
+                },
+                rTextContent.current
+              )
               delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
               break
             }
             case AlignStyle.End: {
-              const nextBounds = this.getBounds({
-                ...shape,
-                text: this.editingText,
-              })
+              const nextBounds = this.getBounds(
+                {
+                  ...shape,
+                  text: rTextContent.current,
+                },
+                rTextContent.current
+              )
               delta = [nextBounds.width - currentBounds.width, 0]
               break
             }
@@ -86,7 +91,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             ...shape,
             id: shape.id,
             point: Vec.sub(shape.point, delta),
-            text: this.editingText,
+            text: rTextContent.current,
           })
         },
         [shape.id, shape.point]
@@ -94,8 +99,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const onChange = React.useCallback(
         (text: string) => {
-          this.editingText = TLDR.normalizeText(text)
-          onShapeChange?.({ id: shape.id, text: this.editingText })
+          rTextContent.current = TLDR.normalizeText(text)
+          onShapeChange?.({ id: shape.id, text: rTextContent.current })
         },
         [shape.id]
       )
@@ -129,7 +134,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       React.useEffect(() => {
         if (isEditing) {
-          this.editingText = text
+          rTextContent.current = text
           requestAnimationFrame(() => {
             rIsMounted.current = true
             const elm = rInput.current
@@ -139,7 +144,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
             }
           })
         } else {
-          this.editingText = ''
           onShapeBlur?.()
         }
       }, [isEditing])
@@ -186,8 +190,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   wrap="off"
                   dir="auto"
                   datatype="wysiwyg"
-                  value={this.editingText}
-                  defaultValue={this.editingText}
+                  value={rTextContent.current}
+                  defaultValue={rTextContent.current}
                   color={styles.stroke}
                   onFocus={handleFocus}
                   onChange={handleChange}
@@ -212,14 +216,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
     return <rect x={0} y={0} width={width} height={height} />
   })
 
-  getBounds = (shape: T) => {
+  getBounds = (shape: T, text = shape.text) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       if (!melm) {
         // We're in SSR
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
-      melm.textContent = this.editingText ?? shape.text
+      melm.textContent = text
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0
