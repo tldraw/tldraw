@@ -20,7 +20,6 @@ import type {
   TLShapeBlurHandler,
   TLShapeCloneHandler,
   TLAsset,
-  TLBounds,
 } from '@tldraw/core'
 
 /* -------------------------------------------------- */
