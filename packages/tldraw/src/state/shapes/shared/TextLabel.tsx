@@ -33,9 +33,12 @@ export const TextLabel = React.memo(function TextLabel({
   const rIsMounted = React.useRef(false)
   const size = getTextLabelSize(text, font)
 
+  const rTextContent = React.useRef(text)
+
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange(TLDR.normalizeText(e.currentTarget.value))
+      rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
+      onChange(rTextContent.current)
     },
     [onChange]
   )
@@ -73,6 +76,7 @@ export const TextLabel = React.memo(function TextLabel({
 
   React.useEffect(() => {
     if (isEditing) {
+      rTextContent.current = text
       requestAnimationFrame(() => {
         rIsMounted.current = true
         const elm = rInput.current
@@ -126,7 +130,7 @@ export const TextLabel = React.memo(function TextLabel({
             wrap="off"
             dir="auto"
             datatype="wysiwyg"
-            defaultValue={text}
+            defaultValue={rTextContent.current}
             color={color}
             onFocus={handleFocus}
             onChange={handleChange}

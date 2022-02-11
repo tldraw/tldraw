@@ -86,7 +86,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   const { callbacks, shapeUtils, bounds } = useTLContext()
 
   const rTimeout = React.useRef<unknown>()
-  const rPreviousCount = React.useRef(0)
+  const rPreviousCount = React.useRef(-1)
   const rShapesIdsToRender = React.useRef(new Set<string>())
   const rShapesToRender = React.useRef(new Set<TLShape>())
 
@@ -114,7 +114,9 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   shapesToRender.clear()
   shapesIdsToRender.clear()
 
-  Object.values(page.shapes)
+  const allShapes = Object.values(page.shapes)
+
+  allShapes
     .filter(
       (shape) =>
         // Always render shapes that are flagged as stateful
@@ -139,7 +141,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       shapesToRender.add(page.shapes[shape.parentId])
     })
 
-  // Call onChange callback when number of rendering shapes changes
+  // Call onRenderCountChange callback when number of rendering shapes changes
 
   if (shapesToRender.size !== rPreviousCount.current) {
     // Use a timeout to clear call stack, in case the onChange handler

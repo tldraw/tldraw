@@ -93,11 +93,11 @@ export class Utils {
    * Recursively clone an object or array.
    * @param obj
    */
-  static deepClone<T extends unknown>(obj: T): T {
+  static deepClone<T>(obj: T): T {
     if (obj === null) return obj
 
     if (Array.isArray(obj)) {
-      return [...obj] as T
+      return [...obj] as unknown as T
     }
 
     if (typeof obj === 'object') {
@@ -111,7 +111,7 @@ export class Utils {
               : obj[key as keyof T])
       )
 
-      return clone as T
+      return clone as unknown as T
     }
 
     return obj

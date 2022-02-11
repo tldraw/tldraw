@@ -59,18 +59,21 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
       const rText = React.useRef<HTMLDivElement>(null)
 
+      const rTextContent = React.useRef(shape.text)
+
       const rIsMounted = React.useRef(false)
 
       const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
         e.stopPropagation()
       }, [])
 
-      const handleLabelChange = React.useCallback(
+      const handleTextChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
           onShapeChange?.({
             id: shape.id,
             type: shape.type,
-            text: TLDR.normalizeText(e.currentTarget.value),
+            text: rTextContent.current,
           })
         },
         [onShapeChange]
@@ -115,7 +118,8 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
+            rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
+            onShapeChange?.({ ...shape, text: rTextContent.current })
           }
         },
         [shape, onShapeChange]
@@ -138,6 +142,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
       // Focus when editing changes to true
       React.useEffect(() => {
         if (isEditing) {
+          rTextContent.current = shape.text
           rIsMounted.current = true
           const elm = rTextArea.current!
           elm.focus()
@@ -205,14 +210,14 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               />
             )}
             <StyledText ref={rText} isEditing={isEditing} alignment={shape.style.textAlign}>
-              {shape.text}&#8203;
+              {isEditing ? rTextContent.current : shape.text}&#8203;
             </StyledText>
             {isEditing && (
               <StyledTextArea
                 ref={rTextArea}
                 onPointerDown={handlePointerDown}
-                value={shape.text}
-                onChange={handleLabelChange}
+                value={isEditing ? rTextContent.current : shape.text}
+                onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
                 onBlur={handleBlur}

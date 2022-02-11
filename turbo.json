@@ -76,7 +76,7 @@
     },
     "test": {
       "dependsOn": [
-        "build"
+        "build:packages"
       ],
       "outputs": []
     },

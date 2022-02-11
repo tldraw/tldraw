@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import { createClient } from '@liveblocks/client'
