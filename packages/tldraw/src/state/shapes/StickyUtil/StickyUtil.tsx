@@ -274,27 +274,220 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   }
 
   getSvgElement = (shape: T): SVGElement | void => {
-    const bounds = this.getBounds(shape)
-    const textBounds = Utils.expandBounds(bounds, -PADDING)
-    const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
-    const style = getStickyShapeStyle(shape.style)
-    textElm.setAttribute('fill', style.color)
-    textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
+    const dropShadowPadding = { left: 4, top: 4, right: 4, bottom: 4 };
 
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    rect.setAttribute('width', bounds.width + '')
-    rect.setAttribute('height', bounds.height + '')
-    rect.setAttribute('fill', style.fill)
-    rect.setAttribute('rx', '3')
-    rect.setAttribute('ry', '3')
+    const measurementElement = getMeasurementElement();
 
-    g.appendChild(rect)
-    g.appendChild(textElm)
 
-    return g
+    // const bounds = this.getBounds(shape)
+    // const textBounds = Utils.expandBounds(bounds, -PADDING)
+    // const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
+    //const style = getStickyShapeStyle(shape.style)
+    // textElm.setAttribute('fill', style.color)
+    // textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
+
+    // const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+    // const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+    // rect.setAttribute('width', bounds.width + '')
+    // rect.setAttribute('height', bounds.height + '')
+    // rect.setAttribute('fill', style.fill)
+    // rect.setAttribute('rx', '3')
+    // rect.setAttribute('ry', '3')
+
+    // g.appendChild(rect)
+    // g.appendChild(textElm)
+
+    measurementElement.innerHTML = adjustTextForInnerHTML(
+      shape.text
+    );
+    const layout = computeLayout(measurementElement);
+
+
+
+    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    g.setAttribute("font-family", "Caveat Brush");
+    g.setAttribute("font-size", "24px");
+
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+
+    rect.setAttribute("width", "200px");
+    rect.setAttribute("height", `${layout.height}px`);
+    rect.setAttribute("fill", "rgb(253, 223, 142)");
+    rect.setAttribute("rx", "3px");
+    rect.setAttribute("x", `${dropShadowPadding.left}px`);
+    rect.setAttribute("y", `${dropShadowPadding.top}px`);
+    rect.setAttribute("style", "filter:url(#drop-shadow)");
+    g.appendChild(rect);
+
+    // if (layout.lines.length) {
+    //   layout.lines.forEach((line:any) => {
+    //     const text = document.createElementNS(
+    //       "http://www.w3.org/2000/svg",
+    //       "text"
+    //     );
+    //     const fontSize = parseFloat(
+    //       window.getComputedStyle(measurementElement).fontSize
+    //     );
+    //     text.setAttribute("x", line.left + dropShadowPadding.left);
+    //     // 24 is magic number. we need to analyze why it works
+    //     text.setAttribute("y", line.top + dropShadowPadding.top + fontSize);
+    //     text.setAttribute("font-size", fontSize);
+
+    //     text.textContent = line.text;
+
+    //     g.appendChild(text);
+    //   });
+    // }
+
+    return g;
   }
 }
+
+function getMeasurementElement (){
+  // A div used for measurement
+  document.getElementById('__stickyMeasure')?.remove()
+
+  const stickyMeasurer = document.createElement('span')
+  stickyMeasurer.id = '__stickyMeasure'
+
+  Object.assign(stickyMeasurer.style, {
+    display: 'block',
+    width: '168px',
+    minHeight: '168px',
+    boxShadow: "rgb(0 0 0 / 20%) 2px 3px 12px -2px, rgb(0 0 0 / 16%) 1px 1px 4px",
+    borderRadius: "3px",
+    backgroundColor: "rgb(253, 223, 142)"
+  })
+
+  stickyMeasurer.tabIndex = -1
+
+  document.body.appendChild(stickyMeasurer)
+  return stickyMeasurer
+}
+
+function adjustTextForInnerHTML(text:string) {
+  let adjusted = text;
+
+  // HACK: Why we need to add an extra line, I don't follow.
+  if (adjusted.length && adjusted[adjusted.length - 1] === "\n") {
+    adjusted += "\n";
+  }
+
+  adjusted = adjusted.replace(/ /g, "&nbsp;").replace(/\n/g, "<br>");
+
+  return adjusted;
+}
+
+// Returns an array of lines of text and their layout information.
+const computeLayout = (contentEditable:any, wordsNotLines:any = true):any => {
+  const children = contentEditable.childNodes;
+  const computedStyle = window.getComputedStyle(contentEditable);
+  const textAlign = computedStyle.textAlign;
+  const fontSize = parseFloat(computedStyle.fontSize);
+  const nbspWidth = (5 * fontSize) / 24.0;
+  console.log(fontSize);
+
+  const lines = [];
+
+  const bounds = contentEditable.getBoundingClientRect();
+  const offsetX = bounds.x;
+  const offsetY = bounds.y;
+
+  for (const child of Array.from(children)) {
+    // debugger;
+    const textNode = child.firstChild || child;
+    const spanText = textNode?.textContent;
+    // debugger;
+
+    // It's nice to be able to select and copy/paste text from
+    // sticky notes in the outputted SVG. We create empty text elements
+    // to represent newlines otherwise selected text will drop blank newlines.
+    // We can't create newlines in text nodes, so we have to compromise and use
+    // spaces as placeholders. So this means copied text will have extra spaces in them.
+    // This seems like a better option than dropping newlines as pasted text will look
+    // more like the source.
+    if (textNode.nodeName === "BR") {
+      console.log(last.text);
+      last = {
+        top: last.top + fontSize,
+        right: getLeftOfNewlines(textAlign, nbspWidth) + nbspWidth,
+        bottom: last.bottom + fontSize,
+        left: getLeftOfNewlines(textAlign, nbspWidth),
+        // text: " "
+        text: "&nbsp;"
+      };
+      lines.push(last);
+      console.log("br");
+    }
+    if (!textNode || !spanText) {
+      console.warn(`TEXT is NULL`);
+      continue;
+    }
+
+    const range = document.createRange();
+    const points = Array.from(spanText);
+    console.log(points);
+    let i = 0;
+    let last;
+    for (const text of points) {
+      range.setStart(textNode, i);
+      range.setEnd(textNode, (i += text.length));
+
+      // if (wordsNotLines && /\s+/.test(text)) {
+      //   last = undefined;
+      //   continue;
+      // }
+      const rect =
+        Array.from(range.getClientRects()).find(({ width }) => width > 0) ??
+        range.getBoundingClientRect();
+      const top = truncateToHundredths(rect.top - offsetY);
+      const right = truncateToHundredths(rect.right - offsetX);
+      const bottom = truncateToHundredths(rect.bottom - offsetY);
+      const left = truncateToHundredths(rect.left - offsetX);
+      if (last && last.top === top && last.bottom === bottom) {
+        last.right = right;
+        last.text += text;
+      } else {
+        last = { top, right, bottom, left, text };
+        lines.push(last);
+      }
+    }
+  }
+
+  const parentBounds = contentEditable.parentNode.getBoundingClientRect();
+  const finalBounds = contentEditable.getBoundingClientRect();
+
+  lines.forEach((line) => {
+    line.text = line.text.replace(/&nbsp;/g, " ");
+  });
+
+  return {
+    height: finalBounds.height,
+    lines
+  };
+}
+
+const truncateToHundredths = (num:number):number =>{
+  return parseFloat(num.toFixed(2));
+}
+
+// Placeholders for newlines should be positioned correctly based on the text
+// text alignment. This just calculates that.
+const getLeftOfNewlines = (textAlign:string, nbspWidth:number):number => {
+  // debugger;
+  switch (textAlign) {
+    case "left":
+    case "justify":
+      return 16;
+    case "center":
+      return 168 / 2 - nbspWidth + 16;
+    case "right":
+      return 168 - nbspWidth + 16;
+    default:
+      throw new Error(`Unknown textAlign: ${textAlign}`);
+  }
+}
+
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */

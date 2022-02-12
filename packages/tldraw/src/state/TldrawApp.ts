@@ -1871,6 +1871,31 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
     style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
     defs.appendChild(style)
+
+    //
+    // TODO: ShapeUtils should probably support creating custom defs? For now putting this here, but we
+    // should encapsulate this in StickyUtil/ShapeUtil.
+    //
+    // Add a drop shadow filter for sticky backgrounds
+    const dropShadowFilter = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "filter"
+    );
+    dropShadowFilter.setAttribute("id", "sticky-drop-shadow");
+    const dropShadow = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "feDropShadow"
+    );
+    dropShadow.setAttribute("stdDeviation", 1.6);
+    dropShadow.setAttribute("fld-color", "black");
+    dropShadow.setAttribute("dx", "0.5");
+    dropShadow.setAttribute("dy", "0.5");
+    dropShadow.setAttribute("flood-opacity", "0.55");
+    dropShadowFilter.appendChild(dropShadow);
+    defs.appendChild(dropShadowFilter);
+
+
+
     svg.appendChild(defs)
     // Get the shapes in order
     const shapes = ids
