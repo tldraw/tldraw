@@ -498,6 +498,18 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
+    '⌘+shift+c,ctrl+shift+c',
+    (e) => {
+      if (!canHandleEvent()) return
+
+      app.copySvg()
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
     '⌘+x,ctrl+x',
     () => {
       if (!canHandleEvent()) return
