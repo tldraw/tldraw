@@ -3456,14 +3456,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const initialSelectedIds = [...this.selectedIds]
     this.selectAll()
     const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    const allIds = [...this.selectedIds]
+    const idsToExport = TLDR.getAllEffectedShapeIds(
+      this.state,
+      this.selectedIds,
+      this.currentPageId
+    )
     this.setSelectedIds(initialSelectedIds)
-    await this.exportShapesAs(allIds, [width, height], type)
+    await this.exportShapesAs(idsToExport, [width, height], type)
   }
 
   async exportSelectedShapesAs(type: TDExportTypes) {
     const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    await this.exportShapesAs(this.selectedIds, [width, height], type)
+    const idsToExport = TLDR.getAllEffectedShapeIds(
+      this.state,
+      this.selectedIds,
+      this.currentPageId
+    )
+    await this.exportShapesAs(idsToExport, [width, height], type)
   }
 
   async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
