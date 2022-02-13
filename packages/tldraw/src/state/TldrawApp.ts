@@ -1886,7 +1886,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       "http://www.w3.org/2000/svg",
       "feDropShadow"
     );
-    dropShadow.setAttribute("stdDeviation", 1.6);
+    dropShadow.setAttribute("stdDeviation", "1.6");
     dropShadow.setAttribute("fld-color", "black");
     dropShadow.setAttribute("dx", "0.5");
     dropShadow.setAttribute("dy", "0.5");
