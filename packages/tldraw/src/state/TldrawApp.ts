@@ -3477,23 +3477,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
     if (!this.callbacks.onExport) return
-
     this.setIsLoading(true)
-
     try {
       const assets: TDAssets = {}
-
       const shapes: TDShape[] = shapeIds.map((id) => {
         const shape = { ...this.getShape(id) }
-
         if (shape.assetId) {
           const asset = { ...this.document.assets[shape.assetId] }
-
           // If the asset is a GIF, then serialize an image
           if (asset.src.toLowerCase().endsWith('gif')) {
             asset.src = this.serializeImage(shape.id)
           }
-
           // If the asset is an image, then serialize an image
           if (shape.type === TDShapeType.Video) {
             asset.src = this.serializeVideo(shape.id)
@@ -3501,14 +3495,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             // Cast shape to image shapes to properly display snapshots
             ;(shape as unknown as ImageShape).type = TDShapeType.Image
           }
-
           // Patch asset table
           assets[shape.assetId] = asset
         }
-
         return shape
       })
-
       // Create serialized data for JSON or SVGs
       let serialized: string | undefined
       if (type === TDExportTypes.SVG) {
@@ -3516,7 +3507,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else if (type === TDExportTypes.JSON) {
         serialized = this.copyJson(shapeIds)
       }
-
       const exportInfo: TDExport = {
         currentPageId: this.currentPageId,
         name: this.page.name ?? 'export',
@@ -3526,7 +3516,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         serialized,
         size: type === 'png' ? Vec.mul(size, 2) : size,
       }
-
       await this.callbacks.onExport(exportInfo)
     } catch (error) {
       console.error(error)
