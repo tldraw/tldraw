@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ClipboardIcon, CursorArrowIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
@@ -60,22 +60,16 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon>
-        <MultiplayerIcon />
-      </DMTriggerIcon>
+      <DMTriggerIcon>{room ? <MultiplayerIcon /> : <CursorArrowIcon />}</DMTriggerIcon>
       <DMContent variant="menu" align="start">
-        <DMItem onClick={handleCreateMultiplayerRoom}>
-          <a href="https://tldraw.com/r">Create a Multiplayer Room</a>
+        <DMItem onClick={handleCopySelect} disabled={!room}>
+          Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
-        <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
-        {room && (
-          <>
-            <DMDivider />
-            <DMItem onClick={handleCopySelect}>
-              Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
-            </DMItem>
-          </>
-        )}
+        <DMDivider />
+        <DMItem onClick={handleCreateMultiplayerRoom}>
+          <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
+        </DMItem>
+        {/* <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem> */}
       </DMContent>
     </DropdownMenu.Root>
   )
