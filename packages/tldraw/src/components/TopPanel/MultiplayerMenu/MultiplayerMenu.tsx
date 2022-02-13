@@ -60,16 +60,18 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon>{room ? <MultiplayerIcon /> : <CursorArrowIcon />}</DMTriggerIcon>
-      <DMContent variant="menu" align="start">
-        <DMItem onClick={handleCopySelect} disabled={!room}>
+      <DMTriggerIcon id="TD-MultiplayerMenuIcon">
+        {room ? <MultiplayerIcon /> : <CursorArrowIcon />}
+      </DMTriggerIcon>
+      <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
+        <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
           Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
-        <DMDivider />
-        <DMItem onClick={handleCreateMultiplayerRoom}>
+        <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
+        <DMItem id="TD-Multiplayer-CreateMultiplayerRoom" onClick={handleCreateMultiplayerRoom}>
           <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
         </DMItem>
-        {/* <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem> */}
+        {/* <DMItem id="TD-Multiplayer-CopyToMultiplayerRoom" onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem> */}
       </DMContent>
     </DropdownMenu.Root>
   )

@@ -40,6 +40,10 @@ export interface TldrawProps extends TDCallbacks {
   showMenu?: boolean
 
   /**
+   * (optional) Whether to show the multiplayer menu.
+   */
+  showMultiplayerMenu?: boolean
+  /**
    * (optional) Whether to show the pages UI.
    */
   showPages?: boolean
@@ -94,6 +98,7 @@ export function Tldraw({
   currentPageId,
   autofocus = true,
   showMenu = true,
+  showMultiplayerMenu = true,
   showPages = true,
   showTools = true,
   showZoom = true,
@@ -259,6 +264,7 @@ export function Tldraw({
         autofocus={autofocus}
         showPages={showPages}
         showMenu={showMenu}
+        showMultiplayerMenu={showMultiplayerMenu}
         showStyles={showStyles}
         showZoom={showZoom}
         showTools={showTools}
@@ -275,6 +281,7 @@ interface InnerTldrawProps {
   autofocus: boolean
   showPages: boolean
   showMenu: boolean
+  showMultiplayerMenu: boolean
   showZoom: boolean
   showStyles: boolean
   showUI: boolean
@@ -288,6 +295,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   autofocus,
   showPages,
   showMenu,
+  showMultiplayerMenu,
   showZoom,
   showStyles,
   showTools,
@@ -450,6 +458,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 readOnly={readOnly}
                 showPages={showPages}
                 showMenu={showMenu}
+                showMultiplayerMenu={showMultiplayerMenu}
                 showStyles={showStyles}
                 showZoom={showZoom}
                 showSponsorLink={showSponsorLink}
