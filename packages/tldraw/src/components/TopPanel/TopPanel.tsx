@@ -6,9 +6,11 @@ import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import { MultiplayerIcon, RedoIcon, UndoIcon } from '~components/Primitives/icons'
 import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
+import { CursorArrowIcon } from '@radix-ui/react-icons'
+import { MultiplayerMenu } from './MultiplayerMenu'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -34,6 +36,7 @@ export function TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
+          {showMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}

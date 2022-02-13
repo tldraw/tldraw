@@ -67,7 +67,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
         <DMItem onClick={handleCreateMultiplayerRoom}>
           <a href="https://tldraw.com/r">Create a Multiplayer Room</a>
         </DMItem>
-        <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem>
+        {/* <DMItem onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem> */}
         {room && (
           <>
             <DMDivider />
