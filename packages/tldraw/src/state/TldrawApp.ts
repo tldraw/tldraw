@@ -3085,14 +3085,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TDStatus.Idle) return
-
-    const delta =
-      e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
-        ? info.delta[2] / 50
-        : e.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? info.delta[2] / 50
-        : info.delta[2] / 2
-
+    const delta = info.delta[2] / 50
     this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
