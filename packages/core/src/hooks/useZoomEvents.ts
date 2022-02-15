@@ -28,13 +28,16 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   }, [])
 
   const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
-    ({ delta: wheelDelta, event: e }) => {
+    ({ event: e }) => {
       e.preventDefault()
-      // if (inputs.isPinching) return
+      if (inputs.isPinching) return
+
+      const { offset } = normalizeWheel(e)
+
       // alt+scroll or ctrl+scroll = zoom
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const delta = [...point, wheelDelta[1]]
+        const delta = [...point, offset[1]]
         const info = inputs.pan(delta, e)
         callbacks.onZoom?.({ ...info, delta }, e)
         return
@@ -43,9 +46,9 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       const delta = Vec.mul(
         e.shiftKey
           ? // shift+scroll = pan horizontally
-            [wheelDelta[1], 0]
+            [offset[1], 0]
           : // scroll = pan vertically (or in any direction on a trackpad)
-            [...wheelDelta],
+            [...offset],
         0.5
       )
       if (Vec.isEqual(delta, [0, 0])) return
@@ -126,4 +129,48 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       },
     }
   )
+}
+
+// Reasonable defaults
+const PIXEL_STEP = 10
+const LINE_HEIGHT = 40
+const PAGE_HEIGHT = 800
+
+function normalizeWheel(event: any) {
+  let sX = 0,
+    sY = 0, // spinX, spinY
+    pX = 0,
+    pY = 0 // pixelX, pixelY
+
+  // Legacy
+  if ('detail' in event) sY = event.detail
+  if ('wheelDelta' in event) sY = -event.wheelDelta / 120
+  if ('wheelDeltaY' in event) sY = -event.wheelDeltaY / 120
+  if ('wheelDeltaX' in event) sX = -event.wheelDeltaX / 120
+
+  // side scrolling on FF with DOMMouseScroll
+  if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
+    sX = sY
+    sY = 0
+  }
+
+  pX = 'deltaX' in event ? event.deltaX : sX * PIXEL_STEP
+  pY = 'deltaY' in event ? event.deltaY : sY * PIXEL_STEP
+
+  if ((pX || pY) && event.deltaMode) {
+    if (event.deltaMode == 1) {
+      // delta in LINE units
+      pX *= LINE_HEIGHT
+      pY *= LINE_HEIGHT
+    } else {
+      // delta in PAGE units
+      pX *= PAGE_HEIGHT
+      pY *= PAGE_HEIGHT
+    }
+  }
+
+  // Fall-back if spin cannot be determined
+  if (pX && !sX) sX = pX < 1 ? -1 : 1
+  if (pY && !sY) sY = pY < 1 ? -1 : 1
+  return { spin: [sX, sY], offset: [pX, pY] }
 }
