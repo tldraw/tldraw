@@ -30,21 +30,24 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
     ({ delta: wheelDelta, event: e }) => {
       e.preventDefault()
+      // if (inputs.isPinching) return
       // alt+scroll or ctrl+scroll = zoom
-      if ((e.altKey || e.ctrlKey) && e.buttons === 0) {
+      if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const info = inputs.pinch(point, point)
         const delta = [...point, wheelDelta[1]]
+        const info = inputs.pan(delta, e)
         callbacks.onZoom?.({ ...info, delta }, e)
         return
       }
       // otherwise pan
-      const delta = e.shiftKey
-        ? // shift+scroll = pan horizontally
-          [wheelDelta[1], 0]
-        : // scroll = pan vertically (or in any direction on a trackpad)
-          [...wheelDelta]
-      if (inputs.isPinching) return
+      const delta = Vec.mul(
+        e.shiftKey
+          ? // shift+scroll = pan horizontally
+            [wheelDelta[1], 0]
+          : // scroll = pan vertically (or in any direction on a trackpad)
+            [...wheelDelta],
+        0.5
+      )
       if (Vec.isEqual(delta, [0, 0])) return
       const info = inputs.pan(delta, e)
       callbacks.onPan?.(info, e)
@@ -56,6 +59,7 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
     Handler<'pinch', WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent>
   >(
     ({ origin, event }) => {
+      if (event instanceof WheelEvent) return
       const elm = ref.current
       if (!elm || !(event.target === elm || elm.contains(event.target as Node))) return
       const info = inputs.pinch(origin, origin)
@@ -71,7 +75,8 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   const handlePinch = React.useCallback<
     Handler<'pinch', WheelEvent | PointerEvent | TouchEvent | WebKitGestureEvent>
   >(
-    ({ origin, event, offset }) => {
+    ({ origin, offset, event }) => {
+      if (event instanceof WheelEvent) return
       const elm = ref.current
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       if (!rOriginPoint.current) return
