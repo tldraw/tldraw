@@ -1947,18 +1947,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const elm = getSvgElementForShape(shape)
       if (elm) svg.appendChild(elm)
     })
+    // TODO: Consider not having padding on the export.
+    const svgWidth = commonBounds.width + SVG_EXPORT_PADDING * 2;
+    const svgHeight = commonBounds.height + SVG_EXPORT_PADDING * 2;
     // Resize the elm to the bounding box
     svg.setAttribute(
       'viewBox',
       [
         0,
         0,
-        commonBounds.width + SVG_EXPORT_PADDING * 2,
-        commonBounds.height + SVG_EXPORT_PADDING * 2,
+        svgWidth,
+        svgHeight
       ].join(' ')
     )
-    svg.setAttribute('width', String(commonBounds.width))
-    svg.setAttribute('height', String(commonBounds.height))
+    svg.setAttribute('width', String(svgWidth))
+    svg.setAttribute('height', String(svgHeight))
     svg.setAttribute('fill', 'transparent')
     // Clean up the SVG by removing any hidden elements
     svg

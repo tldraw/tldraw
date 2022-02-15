@@ -5,7 +5,7 @@ import { defaultTextStyle } from '../shared/shape-styles'
 import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle,getFontFace, getFontSize } from '../shared/shape-styles'
+import { getStickyFontStyle, getStickyShapeStyle,getSVGFontFace, getStickyFontSize } from '../shared/shape-styles'
 import { getTextAlign } from '../shared/getTextAlign'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
@@ -277,17 +277,21 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   getSvgElement = (shape: T): SVGElement | void => {
     const dropShadowPadding = { left: 4, top: 4, right: 4, bottom: 4 };
     
- 
+    const style = getStickyShapeStyle(shape.style)
+    const fontSize = getStickyFontSize(shape.style.size)
+    const fontFamily = getSVGFontFace(shape.style.font)
+    const textAlign = getTextAlign(shape.style.textAlign)
 
     const measurementElement = getMeasurementElement();
-    measurementElement.style.font =`${24}px / 1 "Caveat Brush"`;
-    measurementElement.style.textAlign = 'center';
+    measurementElement.style.fontFamily = fontFamily;
+    measurementElement.style.fontSize = `${fontSize.toString()}px`;
+    measurementElement.style.textAlign = textAlign;
 
 
     // const bounds = this.getBounds(shape)
     // const textBounds = Utils.expandBounds(bounds, -PADDING)
     // const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
-    const style = getStickyShapeStyle(shape.style)
+    
     // const fontStyle = getStickyFontStyle(shape.style)
     // textElm.setAttribute('fill', style.color)
     // textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
@@ -309,11 +313,11 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     const layout = computeLayout(measurementElement);
 
 
-    const fontSize = getFontSize(shape.style.size, shape.style.font)
+    
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
     g.setAttribute('font-size', fontSize + '')
-    g.setAttribute('font-family', getFontFace(shape.style.font).slice(1, -1))
-    g.setAttribute('text-align', getTextAlign(shape.style.textAlign))
+    g.setAttribute('font-family', fontFamily)
+    g.setAttribute('text-align', textAlign)
     // g.setAttribute("font-size", "24px");
 
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -334,7 +338,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
           "text"
         );
         
-        text.setAttribute("x", `${line.left+8}px`);
+        text.setAttribute("x", `${line.left}px`);
         // 24 is magic number. we need to analyze why it works
         text.setAttribute("y", `${line.top+ fontSize}`);
         text.setAttribute('fill', style.color)
@@ -349,18 +353,18 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   }
 }
 
-function getMeasurementElement (){
+function getMeasurementElement (): HTMLDivElement {
   // A div used for measurement
   document.getElementById('__stickyMeasure')?.remove()
 
-  const stickyMeasurer = document.createElement('span')
+  const stickyMeasurer = document.createElement('div')
   stickyMeasurer.id = '__stickyMeasure'
   stickyMeasurer.setAttribute('contenteditable', 'true')
 
   Object.assign(stickyMeasurer.style, {
     display: 'block',
-    width: '168px',
-    minHeight: '168px',
+    width: '200px',
+    minHeight: '200px',
     boxShadow: "rgb(0 0 0 / 20%) 2px 3px 12px -2px, rgb(0 0 0 / 16%) 1px 1px 4px",
     borderRadius: "3px",
     backgroundColor: "rgb(253, 223, 142)",
@@ -381,7 +385,7 @@ function adjustTextForInnerHTML(text:string) {
     adjusted += "\n";
   }
 
-  adjusted = adjusted.replace(/ /g, "&nbsp;").replace(/\n/g, "<br>");
+  adjusted = adjusted.replace(/ /g, " ").replace(/\n/g, "<br>");
 
   return adjusted;
 }

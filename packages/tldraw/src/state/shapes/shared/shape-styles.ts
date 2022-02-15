@@ -116,9 +116,17 @@ export function getFontFace(font: FontStyle = FontStyle.Script): string {
   return fontFaces[font]
 }
 
+export function getSVGFontFace(font: FontStyle = FontStyle.Script): string {
+  const fontFamilyMatch = getFontFace(font).match(/\".*\"/g)
+  const fontFamily = fontFamilyMatch?fontFamilyMatch[0].slice(1,-1):"Invalid Font"  
+  return fontFamily
+}
+
 export function getStickyFontSize(size: SizeStyle): number {
   return stickyFontSizes[size]
 }
+
+
 
 export function getFontStyle(style: ShapeStyles): string {
   const fontSize = getFontSize(style.size, style.font)

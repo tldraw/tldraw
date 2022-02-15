@@ -1,6 +1,6 @@
 import type { TLBounds } from '@tldraw/core'
 import { AlignStyle, ShapeStyles } from '~types'
-import { getFontFace, getFontSize } from './shape-styles'
+import { getSVGFontFace, getFontSize } from './shape-styles'
 import { getTextAlign } from './getTextAlign'
 import { LINE_HEIGHT } from '~constants'
 
@@ -16,7 +16,7 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
     return textElm
   })
   g.setAttribute('font-size', fontSize + '')
-  g.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
+  g.setAttribute('font-family', getSVGFontFace(style.font))
   g.setAttribute('text-align', getTextAlign(style.textAlign))
   switch (style.textAlign) {
     case AlignStyle.Middle: {
