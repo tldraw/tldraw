@@ -27,7 +27,6 @@
     "start:electron": "turbo run start:electron --stream --parallel",
     "start:vscode": "code apps/vscode/extension & turbo run start:vscode --parallel; ",
     "version": "yarn changeset version",
-    "publish": "yarn changeset publish",
     "changeset": "changeset",
     "fix:style": "yarn run prettier ./packages/core/src --write && yarn run prettier ./packages/tldraw/src --write",
     "turbo": "turbo",
