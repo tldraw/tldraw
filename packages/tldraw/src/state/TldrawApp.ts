@@ -3059,7 +3059,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  onPinchStart: TLPinchEventHandler = (info, e) => this.currentTool.onPinchStart?.(info, e)
+  onPinchStart: TLPinchEventHandler = (info, e) => {
+    this.currentTool.onPinchStart?.(info, e)
+  }
 
   onPinchEnd: TLPinchEventHandler = (info, e) => this.currentTool.onPinchEnd?.(info, e)
 
@@ -3086,12 +3088,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const delta =
       e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
-        ? info.delta[2] / 500
+        ? info.delta[2] / 50
         : e.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? info.delta[2] / 100
+        ? info.delta[2] / 50
         : info.delta[2] / 2
 
-    this.zoomBy(delta, this.centerPoint)
+    this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
