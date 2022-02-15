@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
+  "version": "1.8.0",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -37,7 +37,7 @@
     "docs": "typedoc"
   },
   "dependencies": {
-    "@tldraw/intersect": "^1.7.0",
+    "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.0",
     "@use-gesture/react": "^10.2.4",
     "mobx-react-lite": "^3.2.3",

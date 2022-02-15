@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.8.0
+
+### Minor Changes
+
+- Improves camera (zoom and pan).
+
+### Patch Changes
+
+- e8dd64ba: Fix text in multiplayer
+- Updated dependencies [e8dd64ba]
+  - @tldraw/intersect@1.7.1
+
 ## 1.7.0
 
 ### Minor Changes

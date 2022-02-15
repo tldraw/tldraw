@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.1
+
+### Patch Changes
+
+- e8dd64ba: Fix text in multiplayer
+
 ## 1.7.0
 
 ### Minor Changes
