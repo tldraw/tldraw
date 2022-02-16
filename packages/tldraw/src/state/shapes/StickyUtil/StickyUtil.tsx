@@ -377,7 +377,7 @@ function getMeasurementElement(): HTMLDivElement {
   // setTimeout(()=>{
   const canvas = document.getElementById('home')
   if (canvas && canvas.children[0]) {
-    canvas.children[0].style.opacity = '0.5'
+    (canvas.children[0] as HTMLCanvasElement).style.opacity = '0.5'
   }
   const tlMenu = document.getElementById('TD-MenuPanel')
   if (tlMenu) {
