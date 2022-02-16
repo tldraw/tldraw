@@ -1951,6 +1951,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
       .forEach((elm) => elm.remove())
+    
+    // TODO: Uncomment or remove this. This appends the generated SVG to the DOM
+    // to make it easy to compare it to the editor's visuals
+    svg.id = "svg-export"
+    const prevSVG = document.getElementById('svg-export');
+    if(prevSVG){
+      prevSVG.remove();
+    }
+    document.getElementById('home')?.appendChild(svg)
+
     // Serialize the SVG to a string
     const svgString = new XMLSerializer()
       .serializeToString(svg)

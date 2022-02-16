@@ -7,7 +7,7 @@ export const GRID_SIZE = 8
 // Right now for example, stickies don't include
 // their drop shadow, which would make them clipped
 // off in the output without this magic padding number
-export const SVG_EXPORT_PADDING = 5
+export const SVG_EXPORT_PADDING = 16
 export const BINDING_DISTANCE = 16
 export const CLONING_DISTANCE = 32
 export const FIT_TO_SCREEN_PADDING = 128

@@ -371,20 +371,17 @@ function getMeasurementElement(): HTMLDivElement {
 
   stickyMeasurer.tabIndex = -1
 
-  // document.body.appendChild(stickyMeasurer)
+  document.body.appendChild(stickyMeasurer)
   // TODO: Comment me out, and uncomment line above
-  document.getElementById('home')?.appendChild(stickyMeasurer)
-  // setTimeout(()=>{
-  const canvas = document.getElementById('home')
-  if (canvas && canvas.children[0]) {
-    (canvas.children[0] as HTMLCanvasElement).style.opacity = '0.5'
-  }
-  const tlMenu = document.getElementById('TD-MenuPanel')
-  if (tlMenu) {
-    tlMenu.style.display = 'none'
-  }
-
-  // },1000)
+  // document.getElementById('home')?.appendChild(stickyMeasurer)
+  // const canvas = document.getElementById('home')
+  // if (canvas && canvas.children[0]) {
+  //   (canvas.children[0] as HTMLCanvasElement).style.opacity = '0.5'
+  // }
+  // const tlMenu = document.getElementById('TD-MenuPanel')
+  // if (tlMenu) {
+  //   tlMenu.style.display = 'none'
+  // }
 
   return stickyMeasurer
 }
