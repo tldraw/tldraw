@@ -9,6 +9,7 @@ import { ToolButton } from '~components/Primitives/ToolButton'
 import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
 import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
+import { MultiplayerMenu } from './MultiplayerMenu'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -16,6 +17,7 @@ interface TopPanelProps {
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
+  showMultiplayerMenu: boolean
   showSponsorLink: boolean
 }
 
@@ -26,6 +28,7 @@ export function TopPanel({
   showStyles,
   showZoom,
   showSponsorLink,
+  showMultiplayerMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
 
@@ -34,6 +37,7 @@ export function TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
+          {showMultiplayerMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}

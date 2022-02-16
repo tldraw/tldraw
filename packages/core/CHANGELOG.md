@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.8.0
+
+### Minor Changes
+
+- Improves camera (zoom and pan).
+
+### Patch Changes
+
+- e8dd64ba: Fix text in multiplayer
+- Updated dependencies [e8dd64ba]
+  - @tldraw/intersect@1.7.1
+
+## 1.7.0
+
+### Minor Changes
+
+- Update dependencies and monorepo.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/intersect@1.7.0
+  - @tldraw/vec@1.7.0
+
 ## 1.5.0
 
 - Fix propagation on pointer move events.

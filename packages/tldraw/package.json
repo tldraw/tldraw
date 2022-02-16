@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.6.1",
+  "version": "1.8.0",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -18,22 +18,23 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "./src/index.ts",
   "scripts": {
-    "start": "node scripts/dev & yarn types:dev",
+    "start": "yarn lask -d",
+    "build": "yarn lask",
     "start:packages": "yarn start",
-    "build": "node scripts/build && yarn types:build",
+    "start:core": "yarn start",
+    "build:core": "yarn build",
     "build:packages": "yarn build",
-    "types:dev": "tsc -w",
-    "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist",
-    "ts-node": "ts-node",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
-    "test:watch": "jest --watchAll"
+    "test:watch": "jest --watchAll",
+    "docs": "typedoc"
   },
   "peerDependencies": {
     "react": ">=16.8",
@@ -48,9 +49,9 @@
     "@radix-ui/react-radio-group": "^0.1.4",
     "@radix-ui/react-tooltip": "^0.1.6",
     "@stitches/react": "^1.2.6",
-    "@tldraw/core": "^1.6.1",
-    "@tldraw/intersect": "^1.6.1",
-    "@tldraw/vec": "^1.6.1",
+    "@tldraw/core": "^1.8.0",
+    "@tldraw/intersect": "^1.7.1",
+    "@tldraw/vec": "^1.7.0",
     "idb-keyval": "^6.1.0",
     "perfect-freehand": "^1.0.16",
     "react-hotkey-hook": "^1.0.2",
@@ -59,16 +60,21 @@
     "zustand": "^3.6.9"
   },
   "devDependencies": {
+    "@tldraw/core": "*",
+    "@tldraw/intersect": "*",
+    "@tldraw/vec": "*",
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
     "@types/node": "^17.0.14",
+    "@types/react": "^17.0.38",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "eslint": "^8.8.0",
-    "lerna": "^4.0.0",
-    "lint-staged": "^12.3.3",
-    "tsconfig-replace-paths": "^0.0.11"
+    "lask": "^0.0.29",
+    "mobx": "^6.3.8",
+    "react": ">=16.8",
+    "react-dom": "^16.8 || ^17.0"
   },
   "jest": {
     "setupFilesAfterEnv": [

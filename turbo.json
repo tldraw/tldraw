@@ -1,0 +1,111 @@
+{
+  "npmClient": "yarn",
+  "baseBranch": "origin/main",
+  "pipeline": {
+    "start": {
+      "cache": false
+    },
+    "start:packages": {
+      "cache": false
+    },
+    "start:core": {
+      "cache": false
+    },
+    "start:apps": {
+      "cache": false
+    },
+    "start:www": {
+      "cache": false
+    },
+    "start:electron": {
+      "cache": false
+    },
+    "start:vscode": {
+      "cache": false
+    },
+    "typedoc": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "docs"
+      ]
+    },
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
+    },
+    "build:packages": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "build:core": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
+    },
+    "build:apps": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
+    },
+    "build:www": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "build:packages"
+      ],
+      "outputs": []
+    },
+    "test:ci": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "build"
+      ],
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    },
+    "deploy": {
+      "dependsOn": [
+        "build",
+        "test"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**"
+      ]
+    }
+  }
+}

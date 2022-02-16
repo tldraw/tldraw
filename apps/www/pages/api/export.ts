@@ -46,6 +46,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       ignoreHTTPSErrors: true,
+      headless: chromium.headless,
     })
 
     const page = await browser.newPage()
@@ -74,6 +75,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         app.selectAll()
         app.zoomToSelection()
         app.selectNone()
+        const tlContainer = document.getElementsByClassName('tl-container').item(0) as HTMLElement
+        if (tlContainer) {
+          tlContainer.style.background = 'transparent'
+        }
       } catch (e) {
         err = e.message
       }
@@ -83,6 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const imageBuffer = await page.screenshot({
       type,
+      omitBackground: true,
     })
     await browser.close()
     res.status(200).send(imageBuffer)

@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.8.0
+
+### Minor Changes
+
+- Improves camera (zoom and pan).
+
+### Patch Changes
+
+- e8dd64ba: Fix text in multiplayer
+- Updated dependencies
+- Updated dependencies [e8dd64ba]
+  - @tldraw/core@1.8.0
+  - @tldraw/intersect@1.7.1
+
+## 1.7.0
+
+### Minor Changes
+
+- Update dependencies and monorepo.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.7.0
+  - @tldraw/intersect@1.7.0
+  - @tldraw/vec@1.7.0
+
 ## 1.6.1
 
 - Fix label colors on arrows and triangles in dark mode

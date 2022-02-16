@@ -108,6 +108,10 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
     app.openAsset()
   }, [app])
 
+  const handleZoomTo100 = React.useCallback(() => {
+    app.zoomTo(1)
+  }, [app])
+
   const showFileMenu =
     app.callbacks.onNewProject ||
     app.callbacks.onOpenProject ||
@@ -262,9 +266,48 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </DMSubMenu>
           </>
         )}
-        <a href="https://tldraw.com/r">
-          <DMItem id="TD-MenuItem-Create_a_Multiplayer_Room">Create a Multiplayer Room</DMItem>
-        </a>
+        <DMSubMenu label="View" id="TD-MenuItem-Edit">
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.zoomIn}
+            kbd="#+"
+            id="TD-MenuItem-View-ZoomIn"
+          >
+            Zoom In
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.zoomOut}
+            kbd="#-"
+            id="TD-MenuItem-View-ZoomOut"
+          >
+            Zoom Out
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={handleZoomTo100}
+            kbd="⇧+0"
+            id="TD-MenuItem-View-ZoomTo100"
+          >
+            Zoom to 100%
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.zoomToFit}
+            kbd="⇧+1"
+            id="TD-MenuItem-View-ZoomToFit"
+          >
+            Zoom to Fit
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.zoomToSelection}
+            kbd="⇧+2"
+            id="TD-MenuItem-View-ZoomToSelection"
+          >
+            Zoom to Selection
+          </DMItem>
+        </DMSubMenu>
         <DMDivider dir="ltr" />
         <PreferencesMenu />
         <DMDivider dir="ltr" />

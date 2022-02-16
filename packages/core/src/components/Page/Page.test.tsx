@@ -8,6 +8,7 @@ describe('page', () => {
       <Page
         page={mockDocument.page}
         pageState={mockDocument.pageState}
+        assets={{}}
         hideBounds={false}
         hideIndicators={false}
         hideHandles={false}

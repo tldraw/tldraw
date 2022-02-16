@@ -16,5 +16,6 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true
-  }
+  },
+  "references": [{ "path": "../vec" }]
 }

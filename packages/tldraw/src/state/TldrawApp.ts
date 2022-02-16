@@ -79,7 +79,6 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
-import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 
@@ -612,7 +611,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
-  getReservedContent = (ids: string[], pageId = this.currentPageId) => {
+  getReservedContent = (coreReservedIds: string[], pageId = this.currentPageId) => {
     const { bindings } = this.document.pages[pageId]
 
     // We want to know which shapes we need to
@@ -628,7 +627,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Unique set of shape ids that are going to be reserved
     const reservedShapeIds: string[] = []
 
-    if (this.session) ids.forEach((id) => reservedShapeIds.push(id))
+    if (this.session) coreReservedIds.forEach((id) => reservedShapeIds.push(id))
+    if (this.pageState.editingId) reservedShapeIds.push(this.pageState.editingId)
 
     const strongReservedShapeIds = new Set(reservedShapeIds)
 
@@ -687,7 +687,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       const coreReservedIds = [...selectedIds]
 
-      if (editingId) coreReservedIds.push(editingId)
+      const editingShape = editingId && current.document.pages[this.currentPageId].shapes[editingId]
+      if (editingShape) coreReservedIds.push(editingShape.id)
 
       const { reservedShapes, reservedBindings, strongReservedShapeIds } = this.getReservedContent(
         coreReservedIds,
@@ -713,7 +714,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               strongReservedShapeIds.has(reservedShape.id)
             )
           ) {
-            reservedShapes[reservedShape.id] = incomingShape
+            shapes[reservedShape.id] = incomingShape
             return
           }
 
@@ -721,7 +722,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           // Allow decorations (of an arrow) to be changed
           if ('decorations' in incomingShape && 'decorations' in reservedShape) {
-            reservedShape.decorations = incomingShape.decorations
+            shapes[reservedShape.id] = { ...reservedShape, decorations: incomingShape.decorations }
           }
 
           // Allow the shape's style to be changed
@@ -739,6 +740,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const nextShapes = {
         ...shapes,
         ...reservedShapes,
+      }
+
+      if (editingShape) {
+        nextShapes[editingShape.id] = editingShape
       }
 
       const nextBindings = {
@@ -3076,7 +3081,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  onPinchStart: TLPinchEventHandler = (info, e) => this.currentTool.onPinchStart?.(info, e)
+  onPinchStart: TLPinchEventHandler = (info, e) => {
+    this.currentTool.onPinchStart?.(info, e)
+  }
 
   onPinchEnd: TLPinchEventHandler = (info, e) => this.currentTool.onPinchEnd?.(info, e)
 
@@ -3100,15 +3107,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TDStatus.Idle) return
-
-    const delta =
-      e.deltaMode === WheelEvent.DOM_DELTA_PIXEL
-        ? info.delta[2] / 500
-        : e.deltaMode === WheelEvent.DOM_DELTA_LINE
-        ? info.delta[2] / 100
-        : info.delta[2] / 2
-
-    this.zoomBy(delta, this.centerPoint)
+    const delta = info.delta[2] / 50
+    this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 
@@ -3473,35 +3473,38 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const initialSelectedIds = [...this.selectedIds]
     this.selectAll()
     const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    const allIds = [...this.selectedIds]
+    const idsToExport = TLDR.getAllEffectedShapeIds(
+      this.state,
+      this.selectedIds,
+      this.currentPageId
+    )
     this.setSelectedIds(initialSelectedIds)
-    await this.exportShapesAs(allIds, [width, height], type)
+    await this.exportShapesAs(idsToExport, [width, height], type)
   }
 
   async exportSelectedShapesAs(type: TDExportTypes) {
     const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    await this.exportShapesAs(this.selectedIds, [width, height], type)
+    const idsToExport = TLDR.getAllEffectedShapeIds(
+      this.state,
+      this.selectedIds,
+      this.currentPageId
+    )
+    await this.exportShapesAs(idsToExport, [width, height], type)
   }
 
   async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
     if (!this.callbacks.onExport) return
-
     this.setIsLoading(true)
-
     try {
       const assets: TDAssets = {}
-
       const shapes: TDShape[] = shapeIds.map((id) => {
         const shape = { ...this.getShape(id) }
-
         if (shape.assetId) {
           const asset = { ...this.document.assets[shape.assetId] }
-
           // If the asset is a GIF, then serialize an image
           if (asset.src.toLowerCase().endsWith('gif')) {
             asset.src = this.serializeImage(shape.id)
           }
-
           // If the asset is an image, then serialize an image
           if (shape.type === TDShapeType.Video) {
             asset.src = this.serializeVideo(shape.id)
@@ -3509,14 +3512,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             // Cast shape to image shapes to properly display snapshots
             ;(shape as unknown as ImageShape).type = TDShapeType.Image
           }
-
           // Patch asset table
           assets[shape.assetId] = asset
         }
-
         return shape
       })
-
       // Create serialized data for JSON or SVGs
       let serialized: string | undefined
       if (type === TDExportTypes.SVG) {
@@ -3524,7 +3524,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else if (type === TDExportTypes.JSON) {
         serialized = this.copyJson(shapeIds)
       }
-
       const exportInfo: TDExport = {
         currentPageId: this.currentPageId,
         name: this.page.name ?? 'export',
@@ -3534,7 +3533,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         serialized,
         size: type === 'png' ? Vec.mul(size, 2) : size,
       }
-
       await this.callbacks.onExport(exportInfo)
     } catch (error) {
       console.error(error)

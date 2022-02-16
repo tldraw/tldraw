@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLBounds, TLTransformInfo, Utils, TLPageState, TLHandle } from '@tldraw/core'
+import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import {
   TDSnapshot,
-  ShapeStyles,
   ShapesWithProp,
   TDShape,
   TDBinding,
@@ -16,7 +15,6 @@ import {
 import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getShapeUtil } from './shapes'
-import type { TldrawApp } from './TldrawApp'
 import { deepCopy } from './StateManager/copy'
 import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
@@ -242,51 +240,6 @@ export class TLDR {
     // Return the unique array of visited shapes
     return Array.from(visited.values())
   }
-
-  // static updateBindings(
-  //   data: TDSnapshot,
-  //   id: string,
-  //   beforeShapes: Record<string, Partial<TDShape>> = {},
-  //   afterShapes: Record<string, Partial<TDShape>> = {},
-  //   pageId: string
-  // ): TDSnapshot {
-  //   const page = { ...TLDR.getPage(data, pageId) }
-  //   return Object.values(page.bindings)
-  //     .filter((binding) => binding.fromId === id || binding.toId === id)
-  //     .reduce((cTDSnapshot, binding) => {
-  //       let oppositeShape: TDShape | undefined = undefined
-
-  //       if (!beforeShapes[binding.fromId]) {
-  //         const arrowShape = TLDR.getShape<ArrowShape>(cTDSnapshot, binding.fromId, pageId)
-  //         beforeShapes[binding.fromId] = Utils.deepClone(arrowShape)
-  //         const oppositeHandle = arrowShape.handles[binding.handleId === 'start' ? 'end' : 'start']
-  //         if (oppositeHandle.bindingId) {
-  //           const oppositeBinding = page.bindings[oppositeHandle.bindingId]
-  //           oppositeShape = TLDR.getShape(data, oppositeBinding.toId, data.appState.currentPageId)
-  //         }
-  //       }
-
-  //       if (!beforeShapes[binding.toId]) {
-  //         beforeShapes[binding.toId] = Utils.deepClone(
-  //           TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-  //         )
-  //       }
-
-  //       // Hmm
-
-  //       // updateArrowBindings ?
-
-  //       afterShapes[binding.fromId] = Utils.deepClone(
-  //         TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
-  //       )
-
-  //       afterShapes[binding.toId] = Utils.deepClone(
-  //         TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-  //       )
-
-  //       return cTDSnapshot
-  //     }, data)
-  // }
 
   static getLinkedShapeIds(
     data: TDSnapshot,

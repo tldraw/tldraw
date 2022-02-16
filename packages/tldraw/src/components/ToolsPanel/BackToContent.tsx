@@ -5,9 +5,12 @@ import { useTldrawApp } from '~hooks'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
 
-const isEmptyCanvasSelector = (s: TDSnapshot) =>
-  Object.keys(s.document.pages[s.appState.currentPageId].shapes).length > 0 &&
-  s.appState.isEmptyCanvas
+const isEmptyCanvasSelector = (s: TDSnapshot) => {
+  return (
+    s.appState.isEmptyCanvas &&
+    Object.keys(s.document.pages[s.appState.currentPageId].shapes).length > 0
+  )
+}
 
 export const BackToContent = React.memo(function BackToContent() {
   const app = useTldrawApp()

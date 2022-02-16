@@ -10,7 +10,6 @@
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": false,
     "importHelpers": true,
-    "importsNotUsedAsValues": "error",
     "resolveJsonModule": true,
     "incremental": true,
     "jsx": "preserve",
@@ -27,6 +26,7 @@
     "strictFunctionTypes": true,
     "strictNullChecks": true,
     "stripInternal": true,
+    "useDefineForClassFields": true,
     "target": "es6",
     "typeRoots": ["node_modules/@types", "node_modules/jest"],
     "types": ["node", "jest", "@testing-library/jest-dom", "@testing-library/react"]

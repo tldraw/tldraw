@@ -1,5 +1,5 @@
 {
-  "version": "1.6.1",
+  "version": "1.7.0",
   "name": "@tldraw/vec",
   "description": "2D vector utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",
@@ -17,20 +17,22 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "./src/index.ts",
   "scripts": {
+    "start": "yarn lask -d",
+    "build": "yarn lask",
     "start:packages": "yarn start",
     "start:core": "yarn start",
-    "start": "node scripts/dev & yarn types:dev",
     "build:core": "yarn build",
     "build:packages": "yarn build",
-    "build": "node scripts/build && yarn types:build",
-    "types:dev": "tsc -w --p tsconfig.build.json",
-    "types:build": "tsc -p tsconfig.build.json",
     "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
-  "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
+  "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
+  "devDependencies": {
+    "lask": "^0.0.29"
+  }
 }

@@ -46,50 +46,44 @@ export class TextUtil extends TDShapeUtil<T, E> {
     )
   }
 
+  texts = new Map<string, string>()
+
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, isBinding, isGhost, isEditing, onShapeBlur, onShapeChange, meta, events }, ref) => {
       const { text, style } = shape
       const styles = getShapeStyle(style, meta.isDarkMode)
       const font = getFontStyle(shape.style)
-
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
       const handleChange = React.useCallback(
         (e: React.ChangeEvent<HTMLTextAreaElement>) => {
           let delta = [0, 0]
-
+          const newText = TLDR.normalizeText(e.currentTarget.value)
           const currentBounds = this.getBounds(shape)
-
+          this.texts.set(shape.id, newText)
+          const nextBounds = this.getBounds({
+            ...shape,
+            text: newText,
+          })
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
             }
             case AlignStyle.Middle: {
-              const nextBounds = this.getBounds({
-                ...shape,
-                text: TLDR.normalizeText(e.currentTarget.value),
-              })
-
               delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
               break
             }
             case AlignStyle.End: {
-              const nextBounds = this.getBounds({
-                ...shape,
-                text: TLDR.normalizeText(e.currentTarget.value),
-              })
-
               delta = [nextBounds.width - currentBounds.width, 0]
               break
             }
           }
-
           onShapeChange?.({
             ...shape,
             id: shape.id,
             point: Vec.sub(shape.point, delta),
-            text: TLDR.normalizeText(e.currentTarget.value),
+            text: newText,
           })
         },
         [shape.id, shape.point]
@@ -97,7 +91,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const onChange = React.useCallback(
         (text: string) => {
-          onShapeChange?.({ id: shape.id, text })
+          this.texts.set(shape.id, TLDR.normalizeText(text))
+          onShapeChange?.({ id: shape.id, text: this.texts.get(shape.id)! })
         },
         [shape.id]
       )
@@ -113,7 +108,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
           if (!isEditing) return
           if (!rIsMounted.current) return
-
           if (document.activeElement === e.currentTarget) {
             e.currentTarget.select()
           }
@@ -132,6 +126,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       React.useEffect(() => {
         if (isEditing) {
+          this.texts.set(shape.id, text)
           requestAnimationFrame(() => {
             rIsMounted.current = true
             const elm = rInput.current
@@ -219,7 +214,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
-      melm.textContent = shape.text
+      melm.textContent = this.texts.get(shape.id) ?? shape.text
       melm.style.font = getFontStyle(shape.style)
 
       // In tests, offsetWidth and offsetHeight will be 0
