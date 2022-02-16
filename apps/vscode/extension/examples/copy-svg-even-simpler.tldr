@@ -1,0 +1,137 @@
+{
+  "name": "New Document",
+  "fileHandle": null,
+  "document": {
+    "id": "doc",
+    "name": "New Document",
+    "version": 15.3,
+    "pages": {
+      "page": {
+        "id": "page",
+        "name": "Page 1",
+        "childIndex": 1,
+        "shapes": {
+          "feaa6b33-ac6c-4daa-363b-06b19ec373f7": {
+            "id": "feaa6b33-ac6c-4daa-363b-06b19ec373f7",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 280,
+            "point": [
+              7739.26,
+              -1199.05
+            ],
+            "rotation": 0,
+            "text": "Small Sized",
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "cbee9502-f269-4823-117a-c0d0b0b6ae40": {
+            "id": "cbee9502-f269-4823-117a-c0d0b0b6ae40",
+            "type": "text",
+            "name": "Text",
+            "parentId": "page",
+            "childIndex": 281,
+            "point": [
+              8002.15,
+              -1294.9
+            ],
+            "rotation": 0,
+            "text": "Small Sized (Scaled 2x)",
+            "style": {
+              "color": "black",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1.8735914982518933,
+              "font": "script",
+              "textAlign": "justify"
+            }
+          },
+          "e5cbd912-57bf-448e-0e27-42d68e9e957d": {
+            "id": "e5cbd912-57bf-448e-0e27-42d68e9e957d",
+            "type": "arrow",
+            "name": "Arrow",
+            "parentId": "page",
+            "childIndex": 397,
+            "point": [
+              7368.46,
+              -1292.97
+            ],
+            "rotation": 0,
+            "bend": 0.4867077545763961,
+            "handles": {
+              "start": {
+                "id": "start",
+                "index": 0,
+                "point": [
+                  1.33,
+                  218.75
+                ],
+                "canBind": true
+              },
+              "end": {
+                "id": "end",
+                "index": 1,
+                "point": [
+                  218.75,
+                  1.33
+                ],
+                "canBind": true
+              },
+              "bend": {
+                "id": "bend",
+                "index": 2,
+                "point": [
+                  57.13,
+                  57.13
+                ]
+              }
+            },
+            "decorations": {
+              "end": "arrow"
+            },
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": true,
+              "dash": "draw",
+              "scale": 1,
+              "textAlign": "start",
+              "font": "script"
+            },
+            "label": "Hello",
+            "labelPoint": [
+              0.5,
+              0.5
+            ]
+          }
+        },
+        "bindings": {}
+      }
+    },
+    "pageStates": {
+      "page": {
+        "id": "page",
+        "selectedIds": [],
+        "camera": {
+          "point": [
+            -6163.93,
+            1461.33
+          ],
+          "zoom": 1
+        },
+        "editingId": null
+      }
+    },
+    "assets": {}
+  },
+  "assets": {}
+}

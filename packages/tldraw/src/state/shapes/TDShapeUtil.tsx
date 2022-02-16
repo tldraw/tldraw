@@ -180,10 +180,6 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
 
   getSvgElement = (shape: T): SVGElement | void => {
     const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
-    // TODO: Consider removing this. We make this have a unique ID from the original shape
-    // so we can add the generated SVG to the running editor for debugging purposes
-    // and not get two elements with the same id.
-    elm.id += '_exported'
     if (!elm) return // possibly in test mode
     if ('label' in shape && (shape as any).label !== undefined) {
       const s = shape as TDShape & { label: string }

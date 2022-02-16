@@ -77,7 +77,7 @@ const strokeWidths = {
 }
 
 const fontSizes = {
-  [SizeStyle.Small]: 28,
+  [SizeStyle.Small]: 24,
   [SizeStyle.Medium]: 48,
   [SizeStyle.Large]: 96,
   auto: 'auto',

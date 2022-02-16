@@ -16,7 +16,6 @@ import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape
@@ -298,25 +297,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
       measurementElement.style.lineHeight = `${fontSize.toString()}px`
     measurementElement.style.textAlign = textAlign
 
-    // const bounds = this.getBounds(shape)
-    // const textBounds = Utils.expandBounds(bounds, -PADDING)
-    // const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
-
-    // const fontStyle = getStickyFontStyle(shape.style)
-    // textElm.setAttribute('fill', style.color)
-    // textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
-
-    // const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-    // const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-    // rect.setAttribute('width', bounds.width + '')
-    // rect.setAttribute('height', bounds.height + '')
-    // rect.setAttribute('fill', style.fill)
-    // rect.setAttribute('rx', '3')
-    // rect.setAttribute('ry', '3')
-
-    // g.appendChild(rect)
-    // g.appendChild(textElm)
-
     measurementElement.innerHTML = adjustTextForInnerHTML(shape.text)
     const layout = computeLayout(measurementElement)
 
@@ -324,7 +304,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     g.setAttribute('font-size', fontSize + '')
     g.setAttribute('font-family', fontFamily)
     g.setAttribute('text-align', textAlign)
-    // g.setAttribute("font-size", "24px");
 
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 
@@ -332,8 +311,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     rect.setAttribute('height', `${Math.max(200, layout.height)}px`)
     rect.setAttribute('fill', 'rgb(253, 223, 142)')
     rect.setAttribute('rx', '3px')
-    // rect.setAttribute("x", `${dropShadowPadding.left}px`);
-    // rect.setAttribute("y", `${dropShadowPadding.top}px`);
     rect.setAttribute('style', 'filter:url(#sticky-drop-shadow)')
     g.appendChild(rect)
 

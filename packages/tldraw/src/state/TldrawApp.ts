@@ -1959,12 +1959,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     
     // TODO: Uncomment or remove this. This appends the generated SVG to the DOM
     // to make it easy to compare it to the editor's visuals
-    svg.id = "svg-export"
-    const prevSVG = document.getElementById('svg-export');
+    svg.id = "svg"
+    const prevSVG = document.getElementById('svg_exported');
     if(prevSVG){
       prevSVG.remove();
     }
-    document.getElementById('home')?.appendChild(svg)
+
+    // document.getElementById('home')?.appendChild(stickyMeasurer)
+    const canvas = document.getElementById('home')
+    if (canvas) {
+      (canvas as HTMLCanvasElement).style.opacity = '0.5'
+    }
+    document.getElementById('home')?.parentNode?.appendChild(svg)
+    
 
     // Serialize the SVG to a string
     const svgString = new XMLSerializer()
