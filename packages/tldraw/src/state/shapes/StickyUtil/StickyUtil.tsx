@@ -284,7 +284,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
     const measurementElement = getMeasurementElement();
     measurementElement.style.fontFamily = fontFamily;
-    measurementElement.style.fontSize = `${fontSize.toString()}px`;
+    measurementElement.style.fontSize = measurementElement.style.lineHeight = `${fontSize.toString()}px`;
     measurementElement.style.textAlign = textAlign;
 
 
@@ -373,7 +373,22 @@ function getMeasurementElement (): HTMLDivElement {
 
   stickyMeasurer.tabIndex = -1
 
-  document.body.appendChild(stickyMeasurer)
+  
+  // document.body.appendChild(stickyMeasurer)
+  // TODO: Comment me out, and uncomment line above
+  document.getElementById('home')?.appendChild(stickyMeasurer)
+  // setTimeout(()=>{
+    const canvas = document.getElementById('home');
+    if(canvas && canvas.children[0]){
+      canvas.children[0].style.opacity = "0.5"
+    }
+    const tlMenu = document.getElementById('TD-MenuPanel');
+    if(tlMenu){
+      tlMenu.style.display = 'none'
+    }
+    
+  // },1000)
+
   return stickyMeasurer
 }
 
