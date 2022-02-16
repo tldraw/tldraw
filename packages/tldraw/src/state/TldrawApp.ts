@@ -1877,24 +1877,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // should encapsulate this in StickyUtil/ShapeUtil.
     //
     // Add a drop shadow filter for sticky backgrounds
-    const dropShadowFilter = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "filter"
-    );
-    dropShadowFilter.setAttribute("id", "sticky-drop-shadow");
-    const dropShadow = document.createElementNS(
-      "http://www.w3.org/2000/svg",
-      "feDropShadow"
-    );
-    dropShadow.setAttribute("stdDeviation", "1.6");
-    dropShadow.setAttribute("fld-color", "black");
-    dropShadow.setAttribute("dx", "0.5");
-    dropShadow.setAttribute("dy", "0.5");
-    dropShadow.setAttribute("flood-opacity", "0.55");
-    dropShadowFilter.appendChild(dropShadow);
-    defs.appendChild(dropShadowFilter);
-
-
+    const dropShadowFilter = document.createElementNS('http://www.w3.org/2000/svg', 'filter')
+    dropShadowFilter.setAttribute('id', 'sticky-drop-shadow')
+    const dropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow')
+    dropShadow.setAttribute('stdDeviation', '1.6')
+    dropShadow.setAttribute('fld-color', 'black')
+    dropShadow.setAttribute('dx', '0.5')
+    dropShadow.setAttribute('dy', '0.5')
+    dropShadow.setAttribute('flood-opacity', '0.55')
+    dropShadowFilter.appendChild(dropShadow)
+    defs.appendChild(dropShadowFilter)
 
     svg.appendChild(defs)
     // Get the shapes in order
@@ -1948,18 +1940,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       if (elm) svg.appendChild(elm)
     })
     // TODO: Consider not having padding on the export.
-    const svgWidth = commonBounds.width + SVG_EXPORT_PADDING * 2;
-    const svgHeight = commonBounds.height + SVG_EXPORT_PADDING * 2;
+    const svgWidth = commonBounds.width + SVG_EXPORT_PADDING * 2
+    const svgHeight = commonBounds.height + SVG_EXPORT_PADDING * 2
     // Resize the elm to the bounding box
-    svg.setAttribute(
-      'viewBox',
-      [
-        0,
-        0,
-        svgWidth,
-        svgHeight
-      ].join(' ')
-    )
+    svg.setAttribute('viewBox', [0, 0, svgWidth, svgHeight].join(' '))
     svg.setAttribute('width', String(svgWidth))
     svg.setAttribute('height', String(svgHeight))
     svg.setAttribute('fill', 'transparent')

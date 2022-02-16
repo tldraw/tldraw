@@ -5,7 +5,7 @@ import { getTextAlign } from './getTextAlign'
 import { LINE_HEIGHT } from '~constants'
 
 export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBounds) {
-  const scale:number = style.scale !== undefined ? style.scale : 1
+  const scale: number = style.scale !== undefined ? style.scale : 1
   const fontSize = getFontSize(style.size, style.font) * scale
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
   const textLines = text.split('\n').map((line, i) => {

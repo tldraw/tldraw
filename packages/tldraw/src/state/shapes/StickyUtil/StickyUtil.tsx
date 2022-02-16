@@ -5,7 +5,12 @@ import { defaultTextStyle } from '../shared/shape-styles'
 import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle,getSVGFontFace, getStickyFontSize } from '../shared/shape-styles'
+import {
+  getStickyFontStyle,
+  getStickyShapeStyle,
+  getSVGFontFace,
+  getStickyFontSize,
+} from '../shared/shape-styles'
 import { getTextAlign } from '../shared/getTextAlign'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
@@ -275,23 +280,23 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   }
 
   getSvgElement = (shape: T): SVGElement | void => {
-    const dropShadowPadding = { left: 4, top: 4, right: 4, bottom: 4 };
-    
+    const dropShadowPadding = { left: 4, top: 4, right: 4, bottom: 4 }
+
     const style = getStickyShapeStyle(shape.style)
     const fontSize = getStickyFontSize(shape.style.size)
     const fontFamily = getSVGFontFace(shape.style.font)
     const textAlign = getTextAlign(shape.style.textAlign)
 
-    const measurementElement = getMeasurementElement();
-    measurementElement.style.fontFamily = fontFamily;
-    measurementElement.style.fontSize = measurementElement.style.lineHeight = `${fontSize.toString()}px`;
-    measurementElement.style.textAlign = textAlign;
-
+    const measurementElement = getMeasurementElement()
+    measurementElement.style.fontFamily = fontFamily
+    measurementElement.style.fontSize =
+      measurementElement.style.lineHeight = `${fontSize.toString()}px`
+    measurementElement.style.textAlign = textAlign
 
     // const bounds = this.getBounds(shape)
     // const textBounds = Utils.expandBounds(bounds, -PADDING)
     // const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
-    
+
     // const fontStyle = getStickyFontStyle(shape.style)
     // textElm.setAttribute('fill', style.color)
     // textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
@@ -307,53 +312,46 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     // g.appendChild(rect)
     // g.appendChild(textElm)
 
-    measurementElement.innerHTML = adjustTextForInnerHTML(
-      shape.text
-    );
-    const layout = computeLayout(measurementElement);
+    measurementElement.innerHTML = adjustTextForInnerHTML(shape.text)
+    const layout = computeLayout(measurementElement)
 
-
-    
-    const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
     g.setAttribute('font-size', fontSize + '')
     g.setAttribute('font-family', fontFamily)
     g.setAttribute('text-align', textAlign)
     // g.setAttribute("font-size", "24px");
 
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 
-    rect.setAttribute("width", "200px");
-    rect.setAttribute("height", `${Math.max(200,layout.height)}px`);
-    rect.setAttribute("fill", "rgb(253, 223, 142)");
-    rect.setAttribute("rx", "3px");
+    rect.setAttribute('width', '200px')
+    rect.setAttribute('height', `${Math.max(200, layout.height)}px`)
+    rect.setAttribute('fill', 'rgb(253, 223, 142)')
+    rect.setAttribute('rx', '3px')
     // rect.setAttribute("x", `${dropShadowPadding.left}px`);
     // rect.setAttribute("y", `${dropShadowPadding.top}px`);
-    rect.setAttribute("style", "filter:url(#sticky-drop-shadow)");
-    g.appendChild(rect);
+    rect.setAttribute('style', 'filter:url(#sticky-drop-shadow)')
+    g.appendChild(rect)
 
     if (layout.lines.length) {
       layout.lines.forEach((line) => {
-        const text = document.createElementNS(  
-          "http://www.w3.org/2000/svg",
-          "text"
-        );
-        
-        text.setAttribute("x", `${line.left}px`);
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+
+        text.setAttribute('x', `${line.left}px`)
         // 24 is magic number. we need to analyze why it works
-        text.setAttribute("y", `${line.top+ fontSize}`);
+        text.setAttribute('y', `${line.top + fontSize}`)
         text.setAttribute('fill', style.color)
 
-        text.textContent = line.text;
+        text.textContent = line.text
 
-        g.appendChild(text);
-      });
+        g.appendChild(text)
+      })
     }
 
-    return g;
+    return g
   }
 }
 
-function getMeasurementElement (): HTMLDivElement {
+function getMeasurementElement(): HTMLDivElement {
   // A div used for measurement
   document.getElementById('__stickyMeasure')?.remove()
 
@@ -365,44 +363,43 @@ function getMeasurementElement (): HTMLDivElement {
     display: 'block',
     width: '200px',
     minHeight: '200px',
-    boxShadow: "rgb(0 0 0 / 20%) 2px 3px 12px -2px, rgb(0 0 0 / 16%) 1px 1px 4px",
-    borderRadius: "3px",
-    backgroundColor: "rgb(253, 223, 142)",
-    padding: "16px",
+    boxShadow: 'rgb(0 0 0 / 20%) 2px 3px 12px -2px, rgb(0 0 0 / 16%) 1px 1px 4px',
+    borderRadius: '3px',
+    backgroundColor: 'rgb(253, 223, 142)',
+    padding: '16px',
   })
 
   stickyMeasurer.tabIndex = -1
 
-  
   // document.body.appendChild(stickyMeasurer)
   // TODO: Comment me out, and uncomment line above
   document.getElementById('home')?.appendChild(stickyMeasurer)
   // setTimeout(()=>{
-    const canvas = document.getElementById('home');
-    if(canvas && canvas.children[0]){
-      canvas.children[0].style.opacity = "0.5"
-    }
-    const tlMenu = document.getElementById('TD-MenuPanel');
-    if(tlMenu){
-      tlMenu.style.display = 'none'
-    }
-    
+  const canvas = document.getElementById('home')
+  if (canvas && canvas.children[0]) {
+    canvas.children[0].style.opacity = '0.5'
+  }
+  const tlMenu = document.getElementById('TD-MenuPanel')
+  if (tlMenu) {
+    tlMenu.style.display = 'none'
+  }
+
   // },1000)
 
   return stickyMeasurer
 }
 
-function adjustTextForInnerHTML(text:string) {
-  let adjusted = text;
+function adjustTextForInnerHTML(text: string) {
+  let adjusted = text
 
   // HACK: Why we need to add an extra line, I don't follow.
-  if (adjusted.length && adjusted[adjusted.length - 1] === "\n") {
-    adjusted += "\n";
+  if (adjusted.length && adjusted[adjusted.length - 1] === '\n') {
+    adjusted += '\n'
   }
 
-  adjusted = adjusted.replace(/ /g, " ").replace(/\n/g, "<br>");
+  adjusted = adjusted.replace(/ /g, ' ').replace(/\n/g, '<br>')
 
-  return adjusted;
+  return adjusted
 }
 
 interface StickyLayoutLine {
@@ -417,54 +414,51 @@ interface StickyLayout {
   lines: StickyLayoutLine[]
 }
 
-
 // Returns an array of lines of text and their layout information.
-function computeLayout(contentEditable:HTMLSpanElement):StickyLayout{
-  
-  const children = contentEditable.childNodes;
-  const computedStyle = window.getComputedStyle(contentEditable);
-  const textAlign = computedStyle.textAlign;
-  const fontSize = parseFloat(computedStyle.fontSize);
-  const nbspWidth = (5 * fontSize) / 24.0;
-  
-  const layout:StickyLayout = {height: 0,lines: []};
+function computeLayout(contentEditable: HTMLSpanElement): StickyLayout {
+  const children = contentEditable.childNodes
+  const computedStyle = window.getComputedStyle(contentEditable)
+  const textAlign = computedStyle.textAlign
+  const fontSize = parseFloat(computedStyle.fontSize)
+  const nbspWidth = (5 * fontSize) / 24.0
 
-  const bounds = contentEditable.getBoundingClientRect();
-  const offsetX = bounds.x;
-  const offsetY = bounds.y;
+  const layout: StickyLayout = { height: 0, lines: [] }
+
+  const bounds = contentEditable.getBoundingClientRect()
+  const offsetX = bounds.x
+  const offsetY = bounds.y
 
   for (const child of Array.from(children)) {
-    const textNode = (child.firstChild || child) as Element;
-    const spanText = textNode?.textContent;
-    let last:StickyLayoutLine | undefined;
+    const textNode = (child.firstChild || child) as Element
+    const spanText = textNode?.textContent
+    let last: StickyLayoutLine | undefined
 
     if (spanText && textNode.getBoundingClientRect) {
-        const text = spanText.replace(/ /g, "&nbsp;");
-      const textBounds = textNode.getBoundingClientRect();
-      const line:StickyLayoutLine = {
+      const text = spanText.replace(/ /g, '&nbsp;')
+      const textBounds = textNode.getBoundingClientRect()
+      const line: StickyLayoutLine = {
         left: textBounds.x - offsetX,
         top: textBounds.y - offsetY,
         right: textBounds.x - offsetX + textBounds.width,
         bottom: textBounds.y - offsetY + textBounds.height,
         text,
-      };
+      }
 
-      if (textAlign === "right") {
-        line.left = line.right - textBounds.width;
-      } else if (textAlign === "center") {
-        line.left = line.left + (line.right - line.left - textBounds.width) / 2;
+      if (textAlign === 'right') {
+        line.left = line.right - textBounds.width
+      } else if (textAlign === 'center') {
+        line.left = line.left + (line.right - line.left - textBounds.width) / 2
       }
 
       if (last) {
-        last.bottom = Math.max(last.bottom, line.bottom);
+        last.bottom = Math.max(last.bottom, line.bottom)
       } else {
-        layout.height = Math.max(layout.height, line.bottom);
+        layout.height = Math.max(layout.height, line.bottom)
       }
 
-      layout.lines.push(line);
-      last = line;
+      layout.lines.push(line)
+      last = line
     }
-  
 
     // It's nice to be able to select and copy/paste text from
     // sticky notes in the outputted SVG. We create empty text elements
@@ -473,82 +467,81 @@ function computeLayout(contentEditable:HTMLSpanElement):StickyLayout{
     // spaces as placeholders. So this means copied text will have extra spaces in them.
     // This seems like a better option than dropping newlines as pasted text will look
     // more like the source.
-    if (textNode.nodeName === "BR" && last !== undefined) {
-      console.log(last.text);
+    if (textNode.nodeName === 'BR' && last !== undefined) {
+      console.log(last.text)
       last = {
         top: last.top + fontSize,
         right: getLeftOfNewlines(textAlign, nbspWidth) + nbspWidth,
         bottom: last.bottom + fontSize,
         left: getLeftOfNewlines(textAlign, nbspWidth),
         // text: " "
-        text: "&nbsp;"
-      };
-      layout.lines.push(last);
-      console.log("br");
+        text: '&nbsp;',
+      }
+      layout.lines.push(last)
+      console.log('br')
     }
     if (!textNode || !spanText) {
-      console.warn(`TEXT is NULL`);
-      continue;
+      console.warn(`TEXT is NULL`)
+      continue
     }
 
-    const range = document.createRange();
-    const points = Array.from(spanText);
-    console.log(points);
-    let i = 0;
-    
+    const range = document.createRange()
+    const points = Array.from(spanText)
+    console.log(points)
+    let i = 0
+
     for (const text of points) {
-      range.setStart(textNode, i);
-      range.setEnd(textNode, (i += text.length));
+      range.setStart(textNode, i)
+      range.setEnd(textNode, (i += text.length))
 
       const rect =
         Array.from(range.getClientRects()).find(({ width }) => width > 0) ??
-        range.getBoundingClientRect();
-      const top = truncateToHundredths(rect.top - offsetY);
-      const right = truncateToHundredths(rect.right - offsetX);
-      const bottom = truncateToHundredths(rect.bottom - offsetY);
-      const left = truncateToHundredths(rect.left - offsetX);
+        range.getBoundingClientRect()
+      const top = truncateToHundredths(rect.top - offsetY)
+      const right = truncateToHundredths(rect.right - offsetX)
+      const bottom = truncateToHundredths(rect.bottom - offsetY)
+      const left = truncateToHundredths(rect.left - offsetX)
       if (last && last.top === top && last.bottom === bottom) {
-        last.right = right;
-        last.text += text;
+        last.right = right
+        last.text += text
       } else {
-        last = { top, right, bottom, left, text };
-        layout.lines.push(last);
+        last = { top, right, bottom, left, text }
+        layout.lines.push(last)
       }
     }
   }
 
-  const finalBounds = contentEditable.getBoundingClientRect();
+  const finalBounds = contentEditable.getBoundingClientRect()
 
   layout.lines.forEach((line) => {
-    line.text = line.text.replace(/&nbsp;/g, " ");
-  });
+    line.text = line.text.replace(/&nbsp;/g, ' ')
+  })
 
   layout.height = finalBounds.height
-  console.log(layout);
+  console.log(layout)
   return layout
 }
 
-const truncateToHundredths = (num:number):number =>{
-  return parseFloat(num.toFixed(2));
+const truncateToHundredths = (num: number): number => {
+  return parseFloat(num.toFixed(2))
 }
 
 // Placeholders for newlines should be positioned correctly based on the text
 // text alignment. This just calculates that.
-const getLeftOfNewlines = (textAlign:string, nbspWidth:number):number => {
+const getLeftOfNewlines = (textAlign: string, nbspWidth: number): number => {
   // debugger;
   switch (textAlign) {
-    case "left":
-    case "justify":
-      return 16;
-    case "center":
-      return 168 / 2 - nbspWidth + 16;
-    case "right":
-      return 168 - nbspWidth + 16;
+    case 'left':
+    case 'justify':
+      return 16
+    case 'center':
+      return 168 / 2 - nbspWidth + 16
+    case 'right':
+      return 168 - nbspWidth + 16
     default:
-      throw new Error(`Unknown textAlign: ${textAlign}`);
+      throw new Error(`Unknown textAlign: ${textAlign}`)
   }
 }
-
 
 /* -------------------------------------------------- */
 /*                       Helpers                      */

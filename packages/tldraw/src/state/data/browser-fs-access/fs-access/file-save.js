@@ -26,41 +26,38 @@ export default async (
   throwIfExistingHandleNotGood = false
 ) => {
   if (!Array.isArray(options)) {
-    options = [options];
+    options = [options]
   }
-  options[0].fileName = options[0].fileName || 'Untitled';
-  const types = [];
+  options[0].fileName = options[0].fileName || 'Untitled'
+  const types = []
   options.forEach((option, i) => {
     types[i] = {
       description: option.description || '',
       accept: {},
-    };
+    }
     if (option.mimeTypes) {
       if (i === 0) {
         if (blobOrResponse.type) {
-          option.mimeTypes.push(blobOrResponse.type);
-        } else if (
-          blobOrResponse.headers &&
-          blobOrResponse.headers.get('content-type')
-        ) {
-          option.mimeTypes.push(blobOrResponse.headers.get('content-type'));
+          option.mimeTypes.push(blobOrResponse.type)
+        } else if (blobOrResponse.headers && blobOrResponse.headers.get('content-type')) {
+          option.mimeTypes.push(blobOrResponse.headers.get('content-type'))
         }
       }
       option.mimeTypes.map((mimeType) => {
-        types[i].accept[mimeType] = option.extensions || [];
-      });
+        types[i].accept[mimeType] = option.extensions || []
+      })
     } else if (blobOrResponse.type) {
-      types[i].accept[blobOrResponse.type] = option.extensions || [];
+      types[i].accept[blobOrResponse.type] = option.extensions || []
     }
-  });
+  })
   if (existingHandle) {
     try {
       // Check if the file still exists.
-      await existingHandle.getFile();
+      await existingHandle.getFile()
     } catch (err) {
-      existingHandle = null;
+      existingHandle = null
       if (throwIfExistingHandleNotGood) {
-        throw err;
+        throw err
       }
     }
   }
@@ -72,20 +69,20 @@ export default async (
       startIn: options[0].startIn,
       types,
       excludeAcceptAllOption: options[0].excludeAcceptAllOption || false,
-    }));
-  const writable = await handle.createWritable();
+    }))
+  const writable = await handle.createWritable()
   // Use streaming on the `Blob` if the browser supports it.
   if ('stream' in blobOrResponse) {
-    const stream = blobOrResponse.stream();
-    await stream.pipeTo(writable);
-    return handle;
+    const stream = blobOrResponse.stream()
+    await stream.pipeTo(writable)
+    return handle
     // Handle passed `ReadableStream`.
   } else if ('body' in blobOrResponse) {
-    await blobOrResponse.body.pipeTo(writable);
-    return handle;
+    await blobOrResponse.body.pipeTo(writable)
+    return handle
   }
   // Default case of `Blob` passed and `Blob.stream()` not supported.
-  await writable.write(blob);
-  await writable.close();
-  return handle;
-};
+  await writable.write(blob)
+  await writable.close()
+  return handle
+}
