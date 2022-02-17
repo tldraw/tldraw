@@ -27,3 +27,8 @@ jobs:
       # run unit tests
       - name: Jest Annotations & Coverage
         run: yarn test:ci
+
+      # Run e2e tests
+      - name: Playwright e2e tests
+        run: yarn test:e2e
+        working-directory: ./packages/tldraw
