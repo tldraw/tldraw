@@ -1982,10 +1982,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (canvas) {
       (canvas as HTMLCanvasElement).style.opacity = '0.5'
     }
-    document.getElementById('home')?.parentNode?.appendChild(svg)
+    document.getElementById('home')?.parentNode?.prepend(svg)
     // Set camera to make canvas align with the generated SVG
-    const bounds = this.selectionBounds()
-    this.setCamera([-bounds.minX+16,-bounds.minY+16],1, "svg alignement")
+    // const bounds = this.selectionBounds()
+    // this.setCamera([-bounds.minX+16,-bounds.minY+16],1, "svg alignement")
+    if((window as any).svgExportSync){
+      clearInterval((window as any).svgExportSync);
+      (window as any).svgExportSync = null;
+    }
+    const syncPosition = () => {
+        var bounds = this.selectionBounds();
+        var x = -(this.viewport.minX-bounds.minX+16);
+        var y = -(this.viewport.minY-bounds.minY+16);
+        var scale = window.innerWidth/(this.viewport.maxX-this.viewport.minX)
+        // console.log(app.viewport.minX, app.viewport.minY, scale);
+        document.getElementById('svg-exported')?.setAttribute('transform', `scale(${scale}) translate(${x},${y})`)
+        document.getElementById('svg-exported')?.setAttribute('transform-origin', `0px 0px`)
+    }
+    (window as any).svgExportSync = setInterval(syncPosition, 10)
+    syncPosition();
     
 
     // Serialize the SVG to a string

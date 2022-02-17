@@ -343,36 +343,6 @@
               0.5
             ]
           },
-          "daff4328-4f14-4fce-26ad-4179a83c9c34": {
-            "id": "daff4328-4f14-4fce-26ad-4179a83c9c34",
-            "type": "triangle",
-            "name": "Triangle",
-            "parentId": "page",
-            "childIndex": 419,
-            "point": [
-              1609.02,
-              -4875.15
-            ],
-            "size": [
-              2.09,
-              2.18
-            ],
-            "rotation": 0,
-            "style": {
-              "color": "white",
-              "size": "large",
-              "isFilled": true,
-              "dash": "draw",
-              "scale": 1,
-              "textAlign": "start",
-              "font": "script"
-            },
-            "label": "",
-            "labelPoint": [
-              0.5,
-              0.5
-            ]
-          },
           "9d251cbd-c2ce-4c3f-01fb-2426f23cd6b1": {
             "id": "9d251cbd-c2ce-4c3f-01fb-2426f23cd6b1",
             "type": "triangle",
@@ -473,10 +443,10 @@
         "selectedIds": [],
         "camera": {
           "point": [
-            -2107.31,
-            4992.97
+            -1512.53,
+            5518.36
           ],
-          "zoom": 1.2974563054900552
+          "zoom": 0.6633027806935834
         },
         "editingId": null
       }
