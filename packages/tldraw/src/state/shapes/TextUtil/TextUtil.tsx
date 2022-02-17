@@ -124,7 +124,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
         [isEditing]
       )
 
-      console.log(`textalign`,getTextAlign(style.textAlign))
       React.useEffect(() => {
         if (isEditing) {
           this.texts.set(shape.id, text)

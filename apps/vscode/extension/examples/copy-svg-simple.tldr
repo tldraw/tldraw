@@ -1,6 +1,6 @@
 {
   "name": "New Document",
-  "fileHandle": null,
+  "fileHandle": {},
   "document": {
     "id": "doc",
     "name": "New Document",
@@ -127,7 +127,7 @@
               200,
               200
             ],
-            "text": "Bake",
+            "text": "a asd fa df ads fa df asdfasdfasdfasdfasdfasdf asdf asd f asdf asd fa sdf sd",
             "rotation": 0,
             "style": {
               "color": "black",
@@ -357,8 +357,7 @@
             1308.9694830938474
           ],
           "zoom": 1
-        },
-        "editingId": null
+        }
       }
     },
     "assets": {}

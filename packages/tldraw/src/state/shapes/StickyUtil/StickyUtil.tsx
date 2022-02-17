@@ -450,7 +450,7 @@ function computeLayout(contentEditable: HTMLSpanElement): StickyLayout {
     // This seems like a better option than dropping newlines as pasted text will look
     // more like the source.
     if (textNode.nodeName === 'BR' && last !== undefined) {
-      console.log(last.text)
+      // console.log(last.text)
       last = {
         top: last.top + fontSize,
         right: getLeftOfNewlines(textAlign, nbspWidth) + nbspWidth,
@@ -460,7 +460,7 @@ function computeLayout(contentEditable: HTMLSpanElement): StickyLayout {
         text: '&nbsp;',
       }
       layout.lines.push(last)
-      console.log('br')
+      // console.log('br')
     }
     if (!textNode || !spanText) {
       console.warn(`TEXT is NULL`)
@@ -469,7 +469,7 @@ function computeLayout(contentEditable: HTMLSpanElement): StickyLayout {
 
     const range = document.createRange()
     const points = Array.from(spanText)
-    console.log(points)
+    // console.log(points)
     let i = 0
 
     for (const text of points) {
@@ -500,7 +500,7 @@ function computeLayout(contentEditable: HTMLSpanElement): StickyLayout {
   })
 
   layout.height = finalBounds.height
-  console.log(layout)
+  // console.log(layout)
   return layout
 }
 
