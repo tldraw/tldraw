@@ -1,4 +1,4 @@
-import { expect, Locator, Page } from '@playwright/test'
+import { Locator, Page } from '@playwright/test'
 
 const SELECTED_ITEM_REGEX = /c-gxLWou-dpQxDE-cv/
 
@@ -13,7 +13,6 @@ export class ToolButton {
 
   async activate() {
     await this.button.click()
-    await expect(this.button).toHaveClass(SELECTED_ITEM_REGEX)
   }
 
   async isActive() {
