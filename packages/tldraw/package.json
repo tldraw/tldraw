@@ -34,6 +34,7 @@
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll",
+    "test:e2e": "playwright test",
     "docs": "typedoc"
   },
   "peerDependencies": {
@@ -60,6 +61,7 @@
     "zustand": "^3.6.9"
   },
   "devDependencies": {
+    "@playwright/test": "^1.19.1",
     "@tldraw/core": "*",
     "@tldraw/intersect": "*",
     "@tldraw/vec": "*",
