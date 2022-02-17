@@ -28,6 +28,10 @@ jobs:
       - name: Jest Annotations & Coverage
         run: yarn test:ci
 
+      # Install Playwright browsers to run e2e tests via
+      - name: Install Playwright browsers
+        run: npx playwright install-deps
+
       # Run e2e tests
       - name: Playwright e2e tests
         run: yarn test:e2e
