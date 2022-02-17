@@ -127,7 +127,7 @@
               200,
               200
             ],
-            "text": "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfs adsfasdf aaasdf asdfasdf asdfasdf",
+            "text": "Bake",
             "rotation": 0,
             "style": {
               "color": "black",
@@ -169,7 +169,7 @@
             "childIndex": 403,
             "point": [
               7732.08,
-              -864.67
+              -877.75
             ],
             "rotation": 0,
             "text": "Medium Sized (Scaled 2x)\nMedium Sized (Scaled 2x)",
@@ -178,7 +178,7 @@
               "size": "medium",
               "isFilled": false,
               "dash": "draw",
-              "scale": 1.8735914982518933,
+              "scale": 2.0028426064119635,
               "font": "script",
               "textAlign": "start"
             }
@@ -213,7 +213,7 @@
             "childIndex": 405,
             "point": [
               7723.17,
-              -386.28
+              -412.32
             ],
             "rotation": 0,
             "text": "Large Sized (Scaled 2x)\nLarge Sized (Scaled 2x)",
@@ -222,7 +222,7 @@
               "size": "large",
               "isFilled": false,
               "dash": "draw",
-              "scale": 1.8735914982518933,
+              "scale": 2.0056942018909854,
               "font": "script",
               "textAlign": "start"
             }
@@ -292,18 +292,18 @@
             "parentId": "page",
             "childIndex": 407,
             "point": [
-              7380.94,
-              -804.29
+              7096.66,
+              -807.24
             ],
             "rotation": 0,
-            "bend": -0.6125011498482242,
+            "bend": -0.6127108783087197,
             "handles": {
               "start": {
                 "id": "start",
                 "index": 0,
                 "point": [
-                  -18.33,
-                  199.09
+                  265.95,
+                  202.04
                 ],
                 "canBind": true
               },
@@ -311,8 +311,8 @@
                 "id": "end",
                 "index": 1,
                 "point": [
-                  199.09,
-                  -18.33
+                  -18.11,
+                  27.43
                 ],
                 "canBind": true
               },
@@ -320,8 +320,8 @@
                 "id": "bend",
                 "index": 2,
                 "point": [
-                  156.97,
-                  156.97
+                  177.41,
+                  27.71
                 ]
               }
             },
@@ -353,13 +353,12 @@
         "selectedIds": [],
         "camera": {
           "point": [
-            -6322.93,
-            1315.71
+            -6878.39,
+            1308.9694830938474
           ],
           "zoom": 1
         },
-        "editingId": null,
-        "hoveredId": "5c6d564e-c010-4c75-26ab-3f2d7622ea1e"
+        "editingId": null
       }
     },
     "assets": {}

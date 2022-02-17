@@ -1861,6 +1861,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  selectionBounds = (): TLBounds => {
+    
+    const pageId = this.currentPageId
+    const selectedIds = this.selectedIds   
+    let ids = this.selectedIds
+    if (ids.length === 0) ids = Object.keys(this.page.shapes)
+    const shapes = ids
+      .map((id) => this.getShape(id, pageId))
+      .sort((a, b) => a.childIndex - b.childIndex)
+    const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
+    return commonBounds
+  }
   /**
    * Copy one or more shapes as SVG.
    * @param ids The ids of the shapes to copy.
@@ -1959,8 +1971,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     
     // TODO: Uncomment or remove this. This appends the generated SVG to the DOM
     // to make it easy to compare it to the editor's visuals
-    svg.id = "svg"
-    const prevSVG = document.getElementById('svg_exported');
+    svg.id = "svg-exported"
+    const prevSVG = document.getElementById(svg.id);
     if(prevSVG){
       prevSVG.remove();
     }
@@ -1971,6 +1983,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       (canvas as HTMLCanvasElement).style.opacity = '0.5'
     }
     document.getElementById('home')?.parentNode?.appendChild(svg)
+    // Set camera to make canvas align with the generated SVG
+    const bounds = this.selectionBounds()
+    this.setCamera([-bounds.minX+16,-bounds.minY+16],1, "svg alignement")
     
 
     // Serialize the SVG to a string

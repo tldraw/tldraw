@@ -17,6 +17,7 @@ import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { stopPropagation } from '~components/stopPropagation'
+import { NONAME } from 'dns'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -343,6 +344,8 @@ function getMeasurementElement(): HTMLDivElement {
 
   Object.assign(stickyMeasurer.style, {
     display: 'block',
+    opacity: 0.0,
+    pointerEvents: 'none',
     width: '200px',
     minHeight: '200px',
     boxShadow: 'rgb(0 0 0 / 20%) 2px 3px 12px -2px, rgb(0 0 0 / 16%) 1px 1px 4px',
