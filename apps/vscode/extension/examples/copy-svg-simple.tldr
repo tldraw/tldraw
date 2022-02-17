@@ -22,7 +22,7 @@
               -1199.05
             ],
             "rotation": 0,
-            "text": "Small Sized",
+            "text": "Small Sized\nSmall Sized",
             "style": {
               "color": "black",
               "size": "small",
@@ -30,7 +30,7 @@
               "dash": "draw",
               "scale": 1,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "cbee9502-f269-4823-117a-c0d0b0b6ae40": {
@@ -40,11 +40,11 @@
             "parentId": "page",
             "childIndex": 281,
             "point": [
-              7737.35,
-              -1165.92
+              7738.53,
+              -1105.46
             ],
             "rotation": 0,
-            "text": "Small Sized (Scaled 2x)",
+            "text": "Small Sized (Scaled 2x)\nSmall Sized (Scaled 2x)",
             "style": {
               "color": "black",
               "size": "small",
@@ -52,7 +52,7 @@
               "dash": "draw",
               "scale": 1.8735914982518933,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "e5cbd912-57bf-448e-0e27-42d68e9e957d": {
@@ -150,7 +150,7 @@
               -983.96
             ],
             "rotation": 0,
-            "text": "Medium Sized",
+            "text": "Medium Sized\nMedium Sized",
             "style": {
               "color": "black",
               "size": "medium",
@@ -158,7 +158,7 @@
               "dash": "draw",
               "scale": 1,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "3b3952b0-10cd-4504-0756-18225fcece8b": {
@@ -169,10 +169,10 @@
             "childIndex": 403,
             "point": [
               7732.08,
-              -931.05
+              -864.67
             ],
             "rotation": 0,
-            "text": "Medium Sized (Scaled 2x)",
+            "text": "Medium Sized (Scaled 2x)\nMedium Sized (Scaled 2x)",
             "style": {
               "color": "black",
               "size": "medium",
@@ -180,7 +180,7 @@
               "dash": "draw",
               "scale": 1.8735914982518933,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "05e6ce87-3747-46eb-2302-fb0c73947acf": {
@@ -190,11 +190,11 @@
             "parentId": "page",
             "childIndex": 404,
             "point": [
-              7728.77,
-              -723.42
+              7726.62,
+              -617.8
             ],
             "rotation": 0,
-            "text": "Large Sized",
+            "text": "Large Sized\nLarge Sized",
             "style": {
               "color": "black",
               "size": "large",
@@ -202,7 +202,7 @@
               "dash": "draw",
               "scale": 1,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "2fb1f884-c6d1-4006-0767-f96956af4717": {
@@ -212,11 +212,11 @@
             "parentId": "page",
             "childIndex": 405,
             "point": [
-              7721.47,
-              -631.46
+              7723.17,
+              -386.28
             ],
             "rotation": 0,
-            "text": "Large Sized (Scaled 2x)",
+            "text": "Large Sized (Scaled 2x)\nLarge Sized (Scaled 2x)",
             "style": {
               "color": "black",
               "size": "large",
@@ -224,7 +224,7 @@
               "dash": "draw",
               "scale": 1.8735914982518933,
               "font": "script",
-              "textAlign": "justify"
+              "textAlign": "start"
             }
           },
           "5c6d564e-c010-4c75-26ab-3f2d7622ea1e": {
@@ -353,12 +353,13 @@
         "selectedIds": [],
         "camera": {
           "point": [
-            -6552.06,
-            1402.77
+            -6322.93,
+            1315.71
           ],
           "zoom": 1
         },
-        "editingId": null
+        "editingId": null,
+        "hoveredId": "5c6d564e-c010-4c75-26ab-3f2d7622ea1e"
       }
     },
     "assets": {}

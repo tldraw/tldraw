@@ -11,7 +11,7 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
   const textLines = text.split('\n').map((line, i) => {
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
-    textElm.setAttribute('y', LINE_HEIGHT * fontSize * (0.5 + i) + '')
+    textElm.setAttribute('y', fontSize * (i+1) + '')
     g.appendChild(textElm)
     return textElm
   })
