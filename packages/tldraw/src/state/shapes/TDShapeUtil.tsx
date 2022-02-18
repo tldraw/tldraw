@@ -14,7 +14,6 @@ import { BINDING_DISTANCE } from '~constants'
 import { getTextSvgElement } from './shared/getTextSvgElement'
 import { getTextLabelSize } from './shared/getTextSize'
 import { getFontStyle, getShapeStyle } from './shared'
-import { styleShapes } from '~state/commands'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,

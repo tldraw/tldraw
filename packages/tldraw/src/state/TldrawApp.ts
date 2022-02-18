@@ -1969,6 +1969,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
       .forEach((elm) => elm.remove())
     
+    
+    
+
+    // Serialize the SVG to a string
+    const svgString = new XMLSerializer()
+      .serializeToString(svg)
+      .replaceAll('&#10;      ', '')
+      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+
     // TODO: Uncomment or remove this. This appends the generated SVG to the DOM
     // to make it easy to compare it to the editor's visuals
     svg.id = "svg-exported"
@@ -1976,16 +1985,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if(prevSVG){
       prevSVG.remove();
     }
-
-    // document.getElementById('home')?.appendChild(stickyMeasurer)
     const canvas = document.getElementById('home')
     if (canvas) {
       (canvas as HTMLCanvasElement).style.opacity = '0.5'
     }
     document.getElementById('home')?.parentNode?.prepend(svg)
-    // Set camera to make canvas align with the generated SVG
-    // const bounds = this.selectionBounds()
-    // this.setCamera([-bounds.minX+16,-bounds.minY+16],1, "svg alignement")
+    // Automatically sync the SVG's position to match the content's position
     if((window as any).svgExportSync){
       clearInterval((window as any).svgExportSync);
       (window as any).svgExportSync = null;
@@ -1995,19 +2000,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         var x = -(this.viewport.minX-bounds.minX+16);
         var y = -(this.viewport.minY-bounds.minY+16);
         var scale = window.innerWidth/(this.viewport.maxX-this.viewport.minX)
-        // console.log(app.viewport.minX, app.viewport.minY, scale);
         document.getElementById('svg-exported')?.setAttribute('transform', `scale(${scale}) translate(${x},${y})`)
         document.getElementById('svg-exported')?.setAttribute('transform-origin', `0px 0px`)
     }
     (window as any).svgExportSync = setInterval(syncPosition, 10)
     syncPosition();
-    
 
-    // Serialize the SVG to a string
-    const svgString = new XMLSerializer()
-      .serializeToString(svg)
-      .replaceAll('&#10;      ', '')
-      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
     // Copy the string to the clipboard
     TLDR.copyStringToClipboard(svgString)
     return svgString

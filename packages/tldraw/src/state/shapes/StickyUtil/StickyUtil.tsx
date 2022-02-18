@@ -17,7 +17,6 @@ import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { stopPropagation } from '~components/stopPropagation'
-import { NONAME } from 'dns'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -357,16 +356,6 @@ function getMeasurementElement(): HTMLDivElement {
   stickyMeasurer.tabIndex = -1
 
   document.body.appendChild(stickyMeasurer)
-  // TODO: Comment me out, and uncomment line above
-  // document.getElementById('home')?.appendChild(stickyMeasurer)
-  // const canvas = document.getElementById('home')
-  // if (canvas && canvas.children[0]) {
-  //   (canvas.children[0] as HTMLCanvasElement).style.opacity = '0.5'
-  // }
-  // const tlMenu = document.getElementById('TD-MenuPanel')
-  // if (tlMenu) {
-  //   tlMenu.style.display = 'none'
-  // }
 
   return stickyMeasurer
 }
