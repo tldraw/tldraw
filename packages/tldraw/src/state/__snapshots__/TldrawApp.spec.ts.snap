@@ -226,3 +226,9 @@ Array [
   "rect3",
 ]
 `;
+
+exports[`TldrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"232\\" height=\\"232\\" fill=\\"transparent\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style><filter id=\\"sticky-drop-shadow\\"><feDropShadow stdDeviation=\\"1.6\\" fld-color=\\"black\\" dx=\\"0.5\\" dy=\\"0.5\\" flood-opacity=\\"0.55\\"/></filter></defs><g/></svg>"`;
+
+exports[`TldrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 236.74 236.74\\" width=\\"236.74\\" height=\\"236.74\\" fill=\\"transparent\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style><filter id=\\"sticky-drop-shadow\\"><feDropShadow stdDeviation=\\"1.6\\" fld-color=\\"black\\" dx=\\"0.5\\" dy=\\"0.5\\" flood-opacity=\\"0.55\\"/></filter></defs></svg>"`;
+
+exports[`TldrawTestApp When copying to SVG Respects child index: copied svg with reordered elements 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"232\\" height=\\"232\\" fill=\\"transparent\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style><filter id=\\"sticky-drop-shadow\\"><feDropShadow stdDeviation=\\"1.6\\" fld-color=\\"black\\" dx=\\"0.5\\" dy=\\"0.5\\" flood-opacity=\\"0.55\\"/></filter></defs></svg>"`;
