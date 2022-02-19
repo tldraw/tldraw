@@ -122,7 +122,7 @@ export const Canvas = observer(function _Canvas<
           {users && userId && (
             <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
           )}
-          {pageState.brush && <Brush brush={pageState.brush} />}
+          {pageState.brush && <Brush brush={pageState.brush} dashed={!pageState.selectByOverlap}/>}
           {users && <Users userId={userId} users={users} />}
         </div>
         <Overlay camera={pageState.camera}>

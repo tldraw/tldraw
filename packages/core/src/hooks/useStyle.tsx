@@ -386,6 +386,10 @@ const tlcss = css`
     contain: layout style size;
   }
 
+  .tl-brush.dashed {
+    stroke-dasharray: calc(2px * var(--tl-scale)), calc(2px * var(--tl-scale));
+  }
+
   .tl-dot {
     fill: var(--tl-background);
     stroke: var(--tl-foreground);

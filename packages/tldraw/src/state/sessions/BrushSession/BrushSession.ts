@@ -49,6 +49,10 @@ export class BrushSession extends BaseSession {
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([originPoint, currentPoint])
+    
+    // Decide weather to select by intersecting or by overlapping
+    // Using a xor to revers the behaviour if the shift key is pressed
+    const selectByOverlap = originPoint[0] < currentPoint[0] ? !this.app.metaKey : this.app.metaKey
 
     // Find ids of brushed shapes
     const hits = new Set<string>()
@@ -56,14 +60,13 @@ export class BrushSession extends BaseSession {
     const selectedIds = new Set(initialSelectedIds)
 
     shapesToTest.forEach(({ id, selectId }) => {
-      const { metaKey } = this.app
 
       const shape = this.app.getShape(id)
 
       if (!hits.has(selectId)) {
         const util = this.app.getShapeUtil(shape)
         if (
-          metaKey
+          selectByOverlap
             ? Utils.boundsContain(brush, util.getBounds(shape))
             : util.hitTestBounds(shape, brush)
         ) {
@@ -92,6 +95,7 @@ export class BrushSession extends BaseSession {
         pageStates: {
           [this.app.currentPageId]: {
             brush,
+            selectByOverlap,
             selectedIds: afterSelectedIds,
           },
         },
@@ -105,6 +109,7 @@ export class BrushSession extends BaseSession {
         pageStates: {
           [this.app.currentPageId]: {
             brush: null,
+            selectByOverlap: null,
             selectedIds: Array.from(this.initialSelectedIds.values()),
           },
         },
@@ -118,6 +123,7 @@ export class BrushSession extends BaseSession {
         pageStates: {
           [this.app.currentPageId]: {
             brush: null,
+            selectByOverlap: null,
             selectedIds: [...this.app.selectedIds],
           },
         },

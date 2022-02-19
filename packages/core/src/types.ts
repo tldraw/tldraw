@@ -41,6 +41,7 @@ export interface TLPageState {
     zoom: number
   }
   brush?: TLBounds | null
+  selectByOverlap?: boolean | null
   pointedId?: string | null
   hoveredId?: string | null
   editingId?: string | null
