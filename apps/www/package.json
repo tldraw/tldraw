@@ -35,7 +35,7 @@
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^9.0.0",
     "chrome-aws-lambda": "8.0.2",
-    "puppeteer-core": "9.0.0",
+    "puppeteer-core": "13.3.2",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },

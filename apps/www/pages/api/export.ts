@@ -39,16 +39,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     type,
   } = body
   if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
+  const browser = await chromium.puppeteer.launch({
+    slowMo: 50,
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath,
+    ignoreHTTPSErrors: true,
+    headless: chromium.headless,
+  })
   try {
-    const browser = await chromium.puppeteer.launch({
-      slowMo: 50,
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      ignoreHTTPSErrors: true,
-      headless: chromium.headless,
-    })
-
     const page = await browser.newPage()
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36'
@@ -86,15 +85,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (err) {
       throw err
     }
+    await page.waitForTimeout(1000 * 3);
     const imageBuffer = await page.screenshot({
       type,
       omitBackground: true,
     })
-    await browser.close()
     res.status(200).send(imageBuffer)
   } catch (err) {
     console.error(err.message)
     res.status(500).send(err)
+  } finally {
+    await browser.close()
   }
 }
 
