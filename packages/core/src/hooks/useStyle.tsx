@@ -67,8 +67,10 @@ const css = (strings: TemplateStringsArray, ...args: unknown[]) =>
 
 const defaultTheme: TLTheme = {
   accent: 'rgb(255, 0, 0)',
-  brushFill: 'rgba(0,0,0,.05)',
-  brushStroke: 'rgba(0,0,0,.25)',
+  brushFillGreen: 'rgba(0,255,0,.05)',
+  brushStrokeGreen: 'rgba(0,255,0,.25)',
+  brushFillBlue: 'rgba(0,0,255,.05)',
+  brushStrokeBlue: 'rgba(0,0,255,.25)',
   selectStroke: 'rgb(66, 133, 244)',
   selectFill: 'rgba(65, 132, 244, 0.05)',
   binding: 'rgba(65, 132, 244, 0.12)',
@@ -379,14 +381,16 @@ const tlcss = css`
   }
 
   .tl-brush {
-    fill: var(--tl-brushFill);
-    stroke: var(--tl-brushStroke);
+    fill: var(--tl-brushFillBlue);
+    stroke: var(--tl-brushStrokeBlue);
     stroke-width: calc(1px * var(--tl-scale));
     pointer-events: none;
     contain: layout style size;
   }
 
   .tl-brush.dashed {
+    fill: var(--tl-brushFillGreen);
+    stroke: var(--tl-brushStrokeGreen);
     stroke-dasharray: calc(2px * var(--tl-scale)), calc(2px * var(--tl-scale));
   }
 

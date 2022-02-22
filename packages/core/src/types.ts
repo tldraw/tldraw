@@ -120,8 +120,10 @@ export interface TLBinding {
 
 export interface TLTheme {
   accent?: string
-  brushFill?: string
-  brushStroke?: string
+  brushFillGreen?: string
+  brushStrokeGreen?: string
+  brushFillBlue?: string
+  brushStrokeBlue?: string
   selectFill?: string
   selectStroke?: string
   binding: string
