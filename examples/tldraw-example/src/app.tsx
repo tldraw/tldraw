@@ -79,9 +79,6 @@ export default function App(): JSX.Element {
                   <Link to="/loading-files">Loading Files</Link>
                 </li>
                 <li>
-                  <Link to="/file-system">Using the File System</Link>
-                </li>
-                <li>
                   <Link to="/controlled">Controlled via Props</Link>
                 </li>
                 <li>
