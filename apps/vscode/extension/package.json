@@ -53,13 +53,14 @@
 		"keybindings": [
 			{
 				"key": "cmd+shift+d",
-				"title": "Zoom In",
+				"title": "Toggle Dark Mode",
 				"command": "tldraw.tldr.toggleDarkMode",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
 				"key": "cmd+numpad_add",
+				"win": "ctrl+numpad_add",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
@@ -67,6 +68,7 @@
 			},
 			{
 				"key": "cmd+=",
+				"win": "ctrl+=",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
@@ -74,6 +76,7 @@
 			},
 			{
 				"key": "cmd+numpad_subtract",
+				"win": "ctrl+numpad_subtract",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
@@ -81,6 +84,7 @@
 			},
 			{
 				"key": "cmd+-",
+				"win": "ctrl+-",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
@@ -88,7 +92,8 @@
 			},
 			{
 				"key": "cmd+numpad0",
-				"title": "Zoom Out",
+				"win": "ctrl+numpad0",
+				"title": "Reset Zoom",
 				"command": "tldraw.tldr.resetZoom",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
