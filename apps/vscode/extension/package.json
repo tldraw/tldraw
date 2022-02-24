@@ -52,47 +52,48 @@
 		],
 		"keybindings": [
 			{
-				"key": "cmd+shift+d",
+				"key": "ctrl+shift+d",
+				"mac": "cmd+shift+d",
 				"title": "Toggle Dark Mode",
 				"command": "tldraw.tldr.toggleDarkMode",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad_add",
-				"win": "ctrl+numpad_add",
+				"key": "ctrl+numpad_add",
+				"mac": "cmd+numpad_add",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+=",
-				"win": "ctrl+=",
+				"key": "ctrl+=",
+				"mac": "cmd+=",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad_subtract",
-				"win": "ctrl+numpad_subtract",
+				"key": "ctrl+numpad_subtract",
+				"mac": "cmd+numpad_subtract",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+-",
-				"win": "ctrl+-",
+				"key": "ctrl+-",
+				"mac": "cmd+-",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad0",
-				"win": "ctrl+numpad0",
+				"key": "ctrl+numpad0",
+				"mac": "cmd+numpad0",
 				"title": "Reset Zoom",
 				"command": "tldraw.tldr.resetZoom",
 				"category": "tldraw",
