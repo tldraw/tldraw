@@ -52,6 +52,8 @@ export function getTextLabelSize(text: string, font: string) {
     return [10, 10]
   }
 
+  if (!melm.parent) document.body.appendChild(melm)
+
   if (text === prevText && font === prevFont) {
     return prevSize
   }
