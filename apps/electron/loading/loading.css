@@ -1,0 +1,33 @@
+.loading {
+  width: 100px;
+  height: 100px;
+  animation: loading 2s infinite linear;
+}
+
+@keyframes loading {
+  /* 0% {
+    transform: rotate(360deg);
+  }
+  25% {
+    transform: rotate(180deg);
+  }
+  50% {
+    transform: rotate(90deg);
+  }
+  75% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: scale(360deg);
+  } */
+  0% {
+    transform: scaleX(1);
+  }
+
+  50% {
+    transform: scaleX(-0.5);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
