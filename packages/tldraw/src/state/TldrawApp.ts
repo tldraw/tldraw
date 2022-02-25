@@ -79,6 +79,7 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import {Font} from 'fonteditor-core'
 
 const uuid = Utils.uniqueId()
 
@@ -1885,9 +1886,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     // Embed our custom fonts
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
-    defs.appendChild(style)
 
     //
     // TODO: ShapeUtils should probably support creating custom defs? For now putting this here, but we
@@ -1970,7 +1968,56 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       .forEach((elm) => elm.remove())
     
     
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
+    // style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
+
+    // Search through all elements in the SVG that display text:
+    //  1. Count each unique character associated with each unique font
+    //  2. Create a subset font for each unique font with the unique characters that use it
+    //  3. Embed those subsetted fonts as DATA URIs
+    var uniqueCharactersPerFont:{[key: string]: number[]} = {}
+    Array.from(svg.querySelectorAll('text')).forEach( textElement => {
+      if(textElement.parentElement !== null){
+        const fontFamily = textElement.parentElement.getAttribute('font-family');
+        if(fontFamily !== null){
+          if(uniqueCharactersPerFont[fontFamily] === undefined){
+            uniqueCharactersPerFont[fontFamily] = [] as number[]
+          }
+        
+          textElement.textContent?.split('').forEach( character=>{
+            const characterCode:number = character.charCodeAt(0);
+            if(uniqueCharactersPerFont[fontFamily].findIndex((c)=>c===characterCode) === -1 ){
+              uniqueCharactersPerFont[fontFamily].push(characterCode)
+            }
+          })
+        }
+      }
+    })
+    Object.keys(uniqueCharactersPerFont).forEach( fontFamily => {
+      console.log(fontFamily)
+      fetch(`fonts/${fontFamily}.ttf`)
+        .then(function(response) {
+          return response.arrayBuffer();
+        }).then(function(buffer) {
+          let font = Font.create(buffer, {
+            type: 'ttf', 
+            subset: '(Scaled2x)\nmizMuLrgTosBykWtCp7+hH'.split('').map((c)=>c.charCodeAt(0)),
+            hinting: true, // save font hinting
+            compound2simple: false, // transform ttf compound glyf to simple
+            combinePath: false, // for svg path
+          });
+          let fontObject = font.get();
+          
+          // to base64 str
+          const base64 = (font.toBase64 as any)({
+            type: 'ttf' // support ttf, woff, woff2, eot, svg
+          });
+          console.log(base64);
+        })
+    })
+    console.log(uniqueCharactersPerFont)
     
+    defs.appendChild(style)
 
     // Serialize the SVG to a string
     const svgString = new XMLSerializer()

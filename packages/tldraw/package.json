@@ -52,6 +52,7 @@
     "@tldraw/core": "^1.8.0",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.0",
+    "fonteditor-core": "^2.1.8",
     "idb-keyval": "^6.1.0",
     "perfect-freehand": "^1.0.16",
     "react-hotkey-hook": "^1.0.2",
