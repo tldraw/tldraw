@@ -56,6 +56,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
 
     shape.children
       .map((id) => shapes[id])
+      .filter(v => v)
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
