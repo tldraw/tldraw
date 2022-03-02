@@ -67,6 +67,7 @@
     },
     "build:www": {
       "dependsOn": [
+        "build:packages",
         "^build"
       ],
       "outputs": [
