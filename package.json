@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "build:www": "turbo run build:www",
+    "build:www": "turbo run build:www --force",
     "build:core": "turbo run build:core",
     "build:packages": "turbo run build:packages --stream",
     "build:apps": "turbo run build:apps",
