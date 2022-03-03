@@ -2896,25 +2896,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         if (isImage) {
           // attempt to get actual svg size from viewBox attribute as
           if (extension[0] == '.svg') {
-            let svgString: string | ArrayBuffer | null
-            let viewBoxAttribute: string | null
             let viewBox: string[]
-            
-            svgString = await fileToText(file)
-            viewBoxAttribute = this.getViewboxFromSVG(svgString)
+            const svgString = await fileToText(file)
+            const viewBoxAttribute = this.getViewboxFromSVG(svgString)
             if (viewBoxAttribute) {
               viewBox = viewBoxAttribute.split(' ')
               size[0] = parseFloat(viewBox[2])
               size[1] = parseFloat(viewBox[3])
             }
           }
-          if (size == [0,0]) {
+          if (Vec.isEqual(size, [0, 0])) {
             size = await getImageSizeFromSrc(src)
           }
         } else {
           size = await getVideoSizeFromSrc(src)
         }
-        
+
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === src
         )
@@ -2948,10 +2945,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   private getViewboxFromSVG = (svgStr: string | ArrayBuffer | null) => {
-    const viewBoxRegex = /.*?viewBox=["'](-?[\d\.]+[, ]+-?[\d\.]+[, ][\d\.]+[, ][\d\.]+)["']/
+    const viewBoxRegex = /.*?viewBox=["'](-?[\d.]+[, ]+-?[\d.]+[, ][\d.]+[, ][\d.]+)["']/
     if (typeof svgStr === 'string') {
       const matches = svgStr.match(viewBoxRegex)
-      return matches && matches.length >= 2 ? matches[1] : null;
+      return matches && matches.length >= 2 ? matches[1] : null
     }
     console.warn('could not get viewbox from svg string')
     this.setIsLoading(false)
