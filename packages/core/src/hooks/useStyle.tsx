@@ -196,7 +196,6 @@ const tlcss = css`
     top: 0px;
     left: 0px;
     transform-origin: center center;
-    pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
