@@ -79,6 +79,7 @@ export class TDEventHandler {
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
+    cadSelection: boolean
     isDarkMode: boolean
     isDebugMode: boolean
     isPenMode: boolean

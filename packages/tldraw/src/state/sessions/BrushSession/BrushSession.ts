@@ -44,15 +44,18 @@ export class BrushSession extends BaseSession {
     const {
       initialSelectedIds,
       shapesToTest,
-      app: { originPoint, currentPoint },
+      app: { originPoint, currentPoint, getAppState },
     } = this
+
+    console.log(this.app.state.settings.cadSelection)
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([originPoint, currentPoint])
     
     // Decide weather to select by intersecting or by overlapping
-    // Using a xor to revers the behaviour if the shift key is pressed
-    const selectByOverlap = originPoint[0] < currentPoint[0] ? !this.app.metaKey : this.app.metaKey
+    // Using a xor to revers the behaviour if the ctrl key is pressed
+    // Do it only if the user choose to enable cad like selection
+    const selectByOverlap = this.app.state.settings.cadSelection && originPoint[0] < currentPoint[0] ? !this.app.metaKey : this.app.metaKey
 
     // Find ids of brushed shapes
     const hits = new Set<string>()

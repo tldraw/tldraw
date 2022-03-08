@@ -42,6 +42,10 @@ export function PreferencesMenu() {
     app.setSetting('showCloneHandles', (v) => !v)
   }, [app])
 
+  const toggleCadSelection = React.useCallback(() => {
+    app.setSetting('cadSelection', (v) => !v)
+  }, [app])
+
   return (
     <DMSubMenu label="Preferences" id="TD-MenuItem-Preferences">
       <DMCheckboxItem
@@ -103,6 +107,13 @@ export function PreferencesMenu() {
         id="TD-MenuItem-Preferences-Always_Show_Snaps"
       >
         Always Show Snaps
+      </DMCheckboxItem>
+      <DMCheckboxItem
+        checked={settings.cadSelection}
+        onCheckedChange={toggleCadSelection}
+        id="TD-MenuItem-Preferences-Cad_Selection"
+      >
+        CAD Like Selection
       </DMCheckboxItem>
     </DMSubMenu>
   )
