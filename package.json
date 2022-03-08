@@ -1,7 +1,7 @@
 {
   "name": "@tldraw/monorepo",
   "private": true,
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "A tiny little drawing app.",
   "author": "@steveruizok",
   "repository": {
@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "turbo run build",
-    "build:www": "turbo run build:www",
+    "build:www": "turbo run build:www --force",
     "build:core": "turbo run build:core",
     "build:packages": "turbo run build:packages --stream",
     "build:apps": "turbo run build:apps",

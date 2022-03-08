@@ -2,7 +2,7 @@
 	"name": "tldraw-vscode",
 	"displayName": "tldraw",
 	"description": "The tldraw Extension for VS Code.",
-	"version": "1.6.1",
+	"version": "1.8.1",
 	"license": "MIT",
 	"publisher": "tldraw-org",
 	"repository": {
@@ -52,43 +52,49 @@
 		],
 		"keybindings": [
 			{
-				"key": "cmd+shift+d",
-				"title": "Zoom In",
+				"key": "ctrl+shift+d",
+				"mac": "cmd+shift+d",
+				"title": "Toggle Dark Mode",
 				"command": "tldraw.tldr.toggleDarkMode",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad_add",
+				"key": "ctrl+numpad_add",
+				"mac": "cmd+numpad_add",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+=",
+				"key": "ctrl+=",
+				"mac": "cmd+=",
 				"title": "Zoom In",
 				"command": "tldraw.tldr.zoomIn",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad_subtract",
+				"key": "ctrl+numpad_subtract",
+				"mac": "cmd+numpad_subtract",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+-",
+				"key": "ctrl+-",
+				"mac": "cmd+-",
 				"title": "Zoom Out",
 				"command": "tldraw.tldr.zoomOut",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"
 			},
 			{
-				"key": "cmd+numpad0",
-				"title": "Zoom Out",
+				"key": "ctrl+numpad0",
+				"mac": "cmd+numpad0",
+				"title": "Reset Zoom",
 				"command": "tldraw.tldr.resetZoom",
 				"category": "tldraw",
 				"when": "resourceExtname == .tldr"

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1
+
+### Patch Changes
+
+- db93ebcc: Fixes text measurement bug.
+
 ## 1.8.0
 
 ### Minor Changes

@@ -214,6 +214,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
         return { minX: 0, minY: 0, maxX: 10, maxY: 10, width: 10, height: 10 }
       }
 
+      if (!melm.parentNode) document.body.appendChild(melm)
       melm.textContent = this.texts.get(shape.id) ?? shape.text
       melm.style.font = getFontStyle(shape.style)
 

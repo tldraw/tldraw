@@ -129,6 +129,18 @@ export function fileToBase64(file: Blob): Promise<string | ArrayBuffer | null> {
   })
 }
 
+export function fileToText(file: Blob): Promise<string | ArrayBuffer | null> {
+  return new Promise((resolve, reject) => {
+    if (file) {
+      const reader = new FileReader()
+      reader.readAsText(file)
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = (error) => reject(error)
+      reader.onabort = (error) => reject(error)
+    }
+  })
+}
+
 export function getImageSizeFromSrc(src: string): Promise<number[]> {
   return new Promise((resolve, reject) => {
     const img = new Image()
