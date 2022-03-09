@@ -343,12 +343,12 @@ const InnerTldraw = React.memo(function InnerTldraw({
     if (isDarkMode) {
       const brushBase = isCadSelectMode
         ? selectByContain
-          ? '168, 175, 189'
-          : '168, 189, 170'
+          ? '69, 155, 255'
+          : '105, 209, 73'
         : '180, 180, 180'
       return {
-        brushFill: `rgba(${brushBase}, .05)`,
-        brushStroke: `rgba(${brushBase}, .25)`,
+        brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+        brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.5 : 0.25})`,
         brushDashStroke: `rgba(${brushBase}, .6)`,
         selected: 'rgba(38, 150, 255, 1.000)',
         selectFill: 'rgba(38, 150, 255, 0.05)',
@@ -360,8 +360,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
     const brushBase = isCadSelectMode ? (selectByContain ? '0, 89, 242' : '51, 163, 23') : '0,0,0'
 
     return {
-      brushFill: `rgba(${brushBase}, .05)`,
-      brushStroke: `rgba(${brushBase}, .25)`,
+      brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+      brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
       brushDashStroke: `rgba(${brushBase}, .6)`,
     }
   }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
