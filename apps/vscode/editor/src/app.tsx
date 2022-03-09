@@ -4,6 +4,7 @@ import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tldraw/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'
+import { exportToImage } from 'utils/export'
 
 // Will be placed in global scope by extension
 declare let currentFile: TDFile
@@ -60,6 +61,7 @@ export default function App(): JSX.Element {
         document={rInitialDocument.current}
         onMount={handleMount}
         onPersist={handlePersist}
+        onExport={exportToImage}
         autofocus
       />
     </div>
