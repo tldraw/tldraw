@@ -121,6 +121,7 @@ export interface TLTheme {
   accent?: string
   brushFill?: string
   brushStroke?: string
+  brushDashStroke?: string
   selectFill?: string
   selectStroke?: string
   binding: string

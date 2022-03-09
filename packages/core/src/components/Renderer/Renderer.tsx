@@ -98,6 +98,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   hideGrid?: boolean
   /**
+   * (optional) When true, the renderer will show a dashed brush.
+   */
+  showDashedBrush?: boolean
+  /**
    * (optional) The size of the grid step.
    */
   grid?: number
@@ -148,6 +152,7 @@ export const Renderer = observer(function _Renderer<
   hideRotateHandles = false,
   hideBounds = false,
   hideGrid = true,
+  showDashedBrush = false,
   ...rest
 }: RendererProps<T, M>): JSX.Element {
   useTLTheme(theme, '#' + id)
@@ -203,6 +208,7 @@ export const Renderer = observer(function _Renderer<
         hideRotateHandle={hideRotateHandles}
         hideResizeHandles={hideResizeHandles}
         hideGrid={hideGrid}
+        showDashedBrush={showDashedBrush}
         onBoundsChange={onBoundsChange}
         performanceMode={performanceMode}
         meta={meta}

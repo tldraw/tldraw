@@ -79,6 +79,7 @@ export class TDEventHandler {
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
+    isCadSelectMode: boolean
     isDarkMode: boolean
     isDebugMode: boolean
     isPenMode: boolean
@@ -105,6 +106,7 @@ export interface TDSnapshot {
     snapLines: TLSnapLine[]
     isLoading: boolean
     disableAssets: boolean
+    selectByContain?: boolean
   }
   document: TDDocument
   room?: {

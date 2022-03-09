@@ -3617,6 +3617,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   static defaultState: TDSnapshot = {
     settings: {
+      isCadSelectMode: false,
       isPenMode: false,
       isDarkMode: false,
       isZoomSnap: false,

@@ -37,6 +37,9 @@ export const StyledContent = styled(MenuContent, {
   width: 'fit-content',
   height: 'fit-content',
   minWidth: 0,
+  '& *': {
+    boxSizing: 'border-box',
+  },
   variants: {
     variant: {
       horizontal: {

@@ -47,6 +47,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideResizeHandles: boolean
   hideRotateHandle: boolean
   hideGrid: boolean
+  showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
   meta?: M
@@ -69,6 +70,7 @@ export const Canvas = observer(function _Canvas<
   meta,
   performanceMode,
   externalContainerRef,
+  showDashedBrush,
   hideHandles,
   hideBounds,
   hideIndicators,
@@ -122,7 +124,9 @@ export const Canvas = observer(function _Canvas<
           {users && userId && (
             <UsersIndicators userId={userId} users={users} page={page} meta={meta} />
           )}
-          {pageState.brush && <Brush brush={pageState.brush} />}
+          {pageState.brush && (
+            <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
+          )}
           {users && <Users userId={userId} users={users} />}
         </div>
         <Overlay camera={pageState.camera}>
