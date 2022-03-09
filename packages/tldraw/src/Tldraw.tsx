@@ -333,13 +333,25 @@ const InnerTldraw = React.memo(function InnerTldraw({
     return { isDarkMode: settings.isDarkMode }
   }, [settings.isDarkMode])
 
+  const showDashedBrush = settings.isCadSelectMode
+    ? !appState.selectByContain
+    : appState.selectByContain
+
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
-    if (settings.isDarkMode) {
+    const { selectByContain } = appState
+    const { isDarkMode, isCadSelectMode } = settings
+
+    if (isDarkMode) {
+      const brushBase = isCadSelectMode
+        ? selectByContain
+          ? '69, 155, 255'
+          : '105, 209, 73'
+        : '180, 180, 180'
       return {
-        brushFill: 'rgba(180, 180, 180, .05)',
-        brushStroke: 'rgba(180, 180, 180, .25)',
-        brushDashStroke: 'rgba(180, 180, 180, .6)',
+        brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+        brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.5 : 0.25})`,
+        brushDashStroke: `rgba(${brushBase}, .6)`,
         selected: 'rgba(38, 150, 255, 1.000)',
         selectFill: 'rgba(38, 150, 255, 0.05)',
         background: '#212529',
@@ -347,8 +359,14 @@ const InnerTldraw = React.memo(function InnerTldraw({
       }
     }
 
-    return {}
-  }, [settings.isDarkMode])
+    const brushBase = isCadSelectMode ? (selectByContain ? '0, 89, 242' : '51, 163, 23') : '0,0,0'
+
+    return {
+      brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+      brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
+      brushDashStroke: `rgba(${brushBase}, .6)`,
+    }
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
 
   const isInSession = app.session !== undefined
 
@@ -395,7 +413,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
-          showDashedBrush={appState.selectByContain}
+          showDashedBrush={showDashedBrush}
           performanceMode={app.session?.performanceMode}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
