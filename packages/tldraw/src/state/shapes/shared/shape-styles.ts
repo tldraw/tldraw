@@ -85,9 +85,9 @@ const fontSizes = {
 
 const fontFaces = {
   [FontStyle.Script]: '"Caveat Brush"',
-  [FontStyle.Sans]: '"Source Sans Pro", sans-serif',
-  [FontStyle.Serif]: '"Crimson Pro", serif',
-  [FontStyle.Mono]: '"Source Code Pro", monospace',
+  [FontStyle.Sans]: '"Source Sans Pro"',
+  [FontStyle.Serif]: '"Crimson Pro"',
+  [FontStyle.Mono]: '"Source Code Pro"',
 }
 
 const fontSizeModifiers = {

@@ -31,7 +31,6 @@ export const TextLabel = React.memo(function TextLabel({
 }: TextLabelProps) {
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
-  const size = getTextLabelSize(text, font)
 
   const rTextContent = React.useRef(text)
 
@@ -95,10 +94,11 @@ export const TextLabel = React.memo(function TextLabel({
   React.useLayoutEffect(() => {
     const elm = rInnerWrapper.current
     if (!elm) return
+    const size = getTextLabelSize(text, font)
     elm.style.transform = `scale(${scale}, ${scale}) translate(${offsetX}px, ${offsetY}px)`
-    elm.style.width = size[0] + 'px'
-    elm.style.height = size[1] + 'px'
-  }, [size, offsetY, offsetX, scale])
+    elm.style.width = size[0] + 1 + 'px'
+    elm.style.height = size[1] + 1 + 'px'
+  }, [text, font, offsetY, offsetX, scale])
 
   return (
     <TextWrapper>

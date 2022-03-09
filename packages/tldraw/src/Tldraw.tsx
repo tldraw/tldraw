@@ -255,6 +255,19 @@ export function Tldraw({
     onExport,
   ])
 
+  React.useLayoutEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.document?.fonts) return
+
+    function refreshBoundingBoxes() {
+      app.refreshBoundingBoxes()
+    }
+    window.document.fonts.addEventListener('loadingdone', refreshBoundingBoxes)
+    return () => {
+      window.document.fonts.removeEventListener('loadingdone', refreshBoundingBoxes)
+    }
+  }, [app])
+
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
