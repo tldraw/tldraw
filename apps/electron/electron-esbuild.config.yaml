@@ -3,9 +3,3 @@ mainConfig:
   path: esbuild.main.config.ts
   src: src/main/main.ts
   output: dist/main
-rendererConfig:
-  type: esbuild
-  path: esbuild.renderer.config.ts
-  html: src/renderer/index.html
-  src: src/renderer/index.tsx
-  output: dist/renderer
