@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.9.1
+
+### Patch Changes
+
+- Fix publish version.
+- Updated dependencies
+  - @tldraw/core@1.9.1
+
+## 1.9.0
+
+### Minor Changes
+
+- - Adds menu item for CAD-selection
+  - Adds scrolling to menus
+  - Fixes "dot" shapes created when clicking with geometric tools
+  - Fixes wrong text bounds when fonts load
+  - Adds export to VS Code extension.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.9.0
+
 ## 1.8.1
 
 ### Patch Changes
