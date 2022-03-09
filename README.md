@@ -1,5 +1,5 @@
 <div style="text-align: center; transform: scale(.5);">
-  <img src="./assets/tldraw.png"/>
+  <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
 ![A screenshot of the tldraw web app](./assets/screenshot.png)
