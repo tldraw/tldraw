@@ -333,13 +333,23 @@ const InnerTldraw = React.memo(function InnerTldraw({
     return { isDarkMode: settings.isDarkMode }
   }, [settings.isDarkMode])
 
+  const showDashedBrush = !settings.isCadSelectMode && appState.selectByContain
+
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
-    if (settings.isDarkMode) {
+    const { selectByContain } = appState
+    const { isDarkMode, isCadSelectMode } = settings
+
+    if (isDarkMode) {
+      const brushBase = isCadSelectMode
+        ? selectByContain
+          ? '168, 175, 189'
+          : '168, 189, 170'
+        : '180, 180, 180'
       return {
-        brushFill: 'rgba(180, 180, 180, .05)',
-        brushStroke: 'rgba(180, 180, 180, .25)',
-        brushDashStroke: 'rgba(180, 180, 180, .6)',
+        brushFill: `rgba(${brushBase}, .05)`,
+        brushStroke: `rgba(${brushBase}, .25)`,
+        brushDashStroke: `rgba(${brushBase}, .6)`,
         selected: 'rgba(38, 150, 255, 1.000)',
         selectFill: 'rgba(38, 150, 255, 0.05)',
         background: '#212529',
@@ -347,8 +357,14 @@ const InnerTldraw = React.memo(function InnerTldraw({
       }
     }
 
-    return {}
-  }, [settings.isDarkMode])
+    const brushBase = isCadSelectMode ? (selectByContain ? '0, 89, 242' : '51, 163, 23') : '0,0,0'
+
+    return {
+      brushFill: `rgba(${brushBase}, .05)`,
+      brushStroke: `rgba(${brushBase}, .25)`,
+      brushDashStroke: `rgba(${brushBase}, .6)`,
+    }
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
 
   const isInSession = app.session !== undefined
 
@@ -368,10 +384,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const hideCloneHandles =
     isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
-
-  const showDashedBrush = settings.isCadSelectMode
-    ? !appState.selectByContain
-    : appState.selectByContain
 
   return (
     <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
