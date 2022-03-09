@@ -7,10 +7,8 @@ const { styled, globalCss, createTheme, getCssText } = createStitches({
   theme: {
     colors: {
       codeHl: 'rgba(144, 144, 144, .15)',
-      brushFillGreen: 'rgba(0,255,0,.05)',
-      brushStrokeGreen: 'rgba(0,255,0,.25)',
-      brushFillBlue: 'rgba(0,0,255,.05)',
-      brushStrokeBlue: 'rgba(0,0,255,.25)',
+      brushFill: 'rgba(0,0,0,.05)',
+      brushStroke: 'rgba(0,0,0,.25)',
       hint: 'rgba(216, 226, 249, 1.000)',
       selected: 'rgba(66, 133, 244, 1.000)',
       bounds: 'rgba(65, 132, 244, 1.000)',
@@ -106,10 +104,8 @@ const light = createTheme({})
 
 const dark = createTheme({
   colors: {
-    brushFillGreen: 'rgba(180, 255, 180, .05)',
-    brushStrokeGreen: 'rgba(180, 255, 180, .25)',
-    brushFillBlue: 'rgba(180, 180, 255, .05)',
-    brushStrokeBlue: 'rgba(180, 180, 255, .25)',
+    brushFill: 'rgba(180, 180, 180, .05)',
+    brushStroke: 'rgba(180, 180, 180, .25)',
     hint: 'rgba(216, 226, 249, 1.000)',
     selected: 'rgba(38, 150, 255, 1.000)',
     bounds: 'rgba(38, 150, 255, 1.000)',
