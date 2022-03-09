@@ -269,6 +269,10 @@ export class TransformSession extends BaseSession {
 
     if (!hasUnlockedShapes) return
 
+    if (this.isCreate && Vec.dist(this.app.originPoint, this.app.currentPoint) < 2) {
+      return this.cancel()
+    }
+
     const beforeShapes: Record<string, TDShape | undefined> = {}
     const afterShapes: Record<string, TDShape> = {}
 

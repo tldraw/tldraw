@@ -452,7 +452,10 @@ describe('TldrawTestApp', () => {
 
       const prevA = app.shapes.map((shape) => shape.id)
 
-      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app
+        .pointCanvas({ x: 0, y: 0 })
+        .movePointer({ x: 100, y: 100 })
+        .stopPointing('canvas', [100, 100])
 
       const newIdA = app.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
       const shapeA = app.getShape(newIdA)
@@ -467,7 +470,10 @@ describe('TldrawTestApp', () => {
 
       const prevB = app.shapes.map((shape) => shape.id)
 
-      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app
+        .pointCanvas({ x: 0, y: 0 })
+        .movePointer({ x: 100, y: 100 })
+        .stopPointing('canvas', [100, 100])
 
       const newIdB = app.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
       const shapeB = app.getShape(newIdB)
