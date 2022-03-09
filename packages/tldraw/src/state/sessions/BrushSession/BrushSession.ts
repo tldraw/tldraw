@@ -44,18 +44,18 @@ export class BrushSession extends BaseSession {
     const {
       initialSelectedIds,
       shapesToTest,
-      app: { originPoint, currentPoint, getAppState },
+      app: { metaKey, settings, originPoint, currentPoint },
     } = this
-
-    console.log(this.app.state.settings.cadSelection)
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([originPoint, currentPoint])
-    
+
     // Decide weather to select by intersecting or by overlapping
     // Using a xor to revers the behaviour if the ctrl key is pressed
     // Do it only if the user choose to enable cad like selection
-    const selectByOverlap = this.app.state.settings.cadSelection && originPoint[0] < currentPoint[0] ? !this.app.metaKey : this.app.metaKey
+    const selectByContain = settings.isCadSelectMode
+      ? !metaKey && originPoint[0] < currentPoint[0]
+      : metaKey
 
     // Find ids of brushed shapes
     const hits = new Set<string>()
@@ -63,13 +63,12 @@ export class BrushSession extends BaseSession {
     const selectedIds = new Set(initialSelectedIds)
 
     shapesToTest.forEach(({ id, selectId }) => {
-
       const shape = this.app.getShape(id)
 
       if (!hits.has(selectId)) {
         const util = this.app.getShapeUtil(shape)
         if (
-          selectByOverlap
+          selectByContain
             ? Utils.boundsContain(brush, util.getBounds(shape))
             : util.hitTestBounds(shape, brush)
         ) {
@@ -94,11 +93,13 @@ export class BrushSession extends BaseSession {
     const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
     return {
+      appState: {
+        selectByContain,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {
             brush,
-            selectByOverlap,
             selectedIds: afterSelectedIds,
           },
         },
@@ -108,11 +109,13 @@ export class BrushSession extends BaseSession {
 
   cancel = (): TldrawPatch | undefined => {
     return {
+      appState: {
+        selectByContain: false,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {
             brush: null,
-            selectByOverlap: null,
             selectedIds: Array.from(this.initialSelectedIds.values()),
           },
         },
@@ -122,11 +125,13 @@ export class BrushSession extends BaseSession {
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     return {
+      appState: {
+        selectByContain: false,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {
             brush: null,
-            selectByOverlap: null,
             selectedIds: [...this.app.selectedIds],
           },
         },

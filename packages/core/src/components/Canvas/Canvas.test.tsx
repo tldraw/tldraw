@@ -16,6 +16,7 @@ describe('page', () => {
         hideResizeHandles={false}
         hideCloneHandles={false}
         hideRotateHandle={false}
+        showDashedBrush={false}
         onBoundsChange={() => {
           // noop
         }}

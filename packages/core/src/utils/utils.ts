@@ -1376,13 +1376,16 @@ left past the initial left edge) then swap points on that axis.
    * @param strokeWidth The shape's stroke-width property.
    * @param style The stroke's style: "dashed" or "dotted" (default "dashed").
    * @param snap An interval for dashes (e.g. 4 will produce arrays with 4, 8, 16, etc dashes).
+   * @param outset Whether to outset the stroke (default false).
+   * @param lengthRatio The ratio to apply to dashed lines (default 2).
    */
   static getPerfectDashProps(
     length: number,
     strokeWidth: number,
     style: 'dashed' | 'dotted' | string,
     snap = 1,
-    outset = true
+    outset = true,
+    lengthRatio = 2
   ): {
     strokeDasharray: string
     strokeDashoffset: string
@@ -1392,7 +1395,7 @@ left past the initial left edge) then swap points on that axis.
     let ratio: number
 
     if (style.toLowerCase() === 'dashed') {
-      dashLength = strokeWidth * 2
+      dashLength = strokeWidth * lengthRatio
       ratio = 1
       strokeDashoffset = outset ? (dashLength / 2).toString() : '0'
     } else if (style.toLowerCase() === 'dotted') {

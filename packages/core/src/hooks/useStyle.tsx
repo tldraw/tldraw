@@ -69,6 +69,7 @@ const defaultTheme: TLTheme = {
   accent: 'rgb(255, 0, 0)',
   brushFill: 'rgba(0,0,0,.05)',
   brushStroke: 'rgba(0,0,0,.25)',
+  brushDashStroke: 'rgba(0,0,0,.6)',
   selectStroke: 'rgb(66, 133, 244)',
   selectFill: 'rgba(65, 132, 244, 0.05)',
   binding: 'rgba(65, 132, 244, 0.12)',
@@ -386,8 +387,15 @@ const tlcss = css`
     contain: layout style size;
   }
 
+  .tl-dashed-brush-line {
+    fill: none;
+    stroke: var(--tl-brushDashStroke);
+    stroke-width: calc(1px * var(--tl-scale));
+    pointer-events: none;
+  }
+
   .tl-brush.dashed {
-    stroke-dasharray: calc(2px * var(--tl-scale)), calc(2px * var(--tl-scale));
+    stroke: none;
   }
 
   .tl-dot {

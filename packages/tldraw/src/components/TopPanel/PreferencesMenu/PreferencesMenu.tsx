@@ -42,8 +42,8 @@ export function PreferencesMenu() {
     app.setSetting('showCloneHandles', (v) => !v)
   }, [app])
 
-  const toggleCadSelection = React.useCallback(() => {
-    app.setSetting('cadSelection', (v) => !v)
+  const toggleCadSelectMode = React.useCallback(() => {
+    app.setSetting('isCadSelectMode', (v) => !v)
   }, [app])
 
   return (
@@ -94,6 +94,13 @@ export function PreferencesMenu() {
         Clone Handles
       </DMCheckboxItem>
       <DMCheckboxItem
+        checked={settings.isCadSelectMode}
+        onCheckedChange={toggleCadSelectMode}
+        id="TD-MenuItem-Preferences-Cad_Selection"
+      >
+        CAD Selection
+      </DMCheckboxItem>
+      <DMCheckboxItem
         checked={settings.showGrid}
         onCheckedChange={toggleGrid}
         kbd="#⇧G"
@@ -107,13 +114,6 @@ export function PreferencesMenu() {
         id="TD-MenuItem-Preferences-Always_Show_Snaps"
       >
         Always Show Snaps
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.cadSelection}
-        onCheckedChange={toggleCadSelection}
-        id="TD-MenuItem-Preferences-Cad_Selection"
-      >
-        CAD Like Selection
       </DMCheckboxItem>
     </DMSubMenu>
   )

@@ -339,6 +339,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
       return {
         brushFill: 'rgba(180, 180, 180, .05)',
         brushStroke: 'rgba(180, 180, 180, .25)',
+        brushDashStroke: 'rgba(180, 180, 180, .6)',
         selected: 'rgba(38, 150, 255, 1.000)',
         selectFill: 'rgba(38, 150, 255, 0.05)',
         background: '#212529',
@@ -394,6 +395,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
+          showDashedBrush={appState.selectByContain}
           performanceMode={app.session?.performanceMode}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
