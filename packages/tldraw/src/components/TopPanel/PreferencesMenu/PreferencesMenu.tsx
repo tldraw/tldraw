@@ -73,6 +73,28 @@ export function PreferencesMenu() {
       </DMCheckboxItem>
       <DMDivider />
       <DMCheckboxItem
+        checked={settings.showGrid}
+        onCheckedChange={toggleGrid}
+        kbd="#⇧G"
+        id="TD-MenuItem-Preferences-Grid"
+      >
+        Show Grid
+      </DMCheckboxItem>
+      <DMCheckboxItem
+        checked={settings.isCadSelectMode}
+        onCheckedChange={toggleCadSelectMode}
+        id="TD-MenuItem-Preferences-Cad_Selection"
+      >
+        Use CAD Selection
+      </DMCheckboxItem>
+      <DMCheckboxItem
+        checked={settings.isSnapping}
+        onCheckedChange={toggleisSnapping}
+        id="TD-MenuItem-Preferences-Always_Show_Snaps"
+      >
+        Always Show Snaps
+      </DMCheckboxItem>
+      <DMCheckboxItem
         checked={settings.showRotateHandles}
         onCheckedChange={toggleRotateHandle}
         id="TD-MenuItem-Preferences-Rotate_Handles"
@@ -92,28 +114,6 @@ export function PreferencesMenu() {
         id="TD-MenuItem-Preferences-Clone_Handles"
       >
         Clone Handles
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.isCadSelectMode}
-        onCheckedChange={toggleCadSelectMode}
-        id="TD-MenuItem-Preferences-Cad_Selection"
-      >
-        CAD Selection
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showGrid}
-        onCheckedChange={toggleGrid}
-        kbd="#⇧G"
-        id="TD-MenuItem-Preferences-Grid"
-      >
-        Grid
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.isSnapping}
-        onCheckedChange={toggleisSnapping}
-        id="TD-MenuItem-Preferences-Always_Show_Snaps"
-      >
-        Always Show Snaps
       </DMCheckboxItem>
     </DMSubMenu>
   )
