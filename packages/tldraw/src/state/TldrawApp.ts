@@ -80,6 +80,7 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { clearPrevSize } from './shapes/shared/getTextSize'
 
 const uuid = Utils.uniqueId()
 
@@ -3073,6 +3074,51 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     this.currentTool.onKeyUp?.(key, info, e)
+  }
+
+  /** Force bounding boxes to reset when the document loads. */
+  refreshBoundingBoxes = () => {
+    // force a change to every text shape
+    const force = this.shapes.map((shape) => {
+      return [
+        shape.id,
+        {
+          point: [...shape.point],
+          ...('label' in shape && { label: '' }),
+        },
+      ]
+    })
+
+    const restore = this.shapes.map((shape) => {
+      return [
+        shape.id,
+        {
+          point: [...shape.point],
+          ...('label' in shape && { label: shape.label }),
+        },
+      ]
+    })
+
+    clearPrevSize()
+
+    this.patchState({
+      document: {
+        pages: {
+          [this.currentPageId]: {
+            shapes: Object.fromEntries(force),
+          },
+        },
+      },
+    })
+    this.patchState({
+      document: {
+        pages: {
+          [this.currentPageId]: {
+            shapes: Object.fromEntries(restore),
+          },
+        },
+      },
+    })
   }
 
   /* ------------- Renderer Event Handlers ------------ */

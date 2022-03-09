@@ -215,8 +215,9 @@ export class TextUtil extends TDShapeUtil<T, E> {
       }
 
       if (!melm.parentNode) document.body.appendChild(melm)
-      melm.textContent = this.texts.get(shape.id) ?? shape.text
+
       melm.style.font = getFontStyle(shape.style)
+      melm.textContent = this.texts.get(shape.id) ?? shape.text
 
       // In tests, offsetWidth and offsetHeight will be 0
       const width = melm.offsetWidth || 1

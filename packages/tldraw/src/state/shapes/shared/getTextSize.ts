@@ -42,6 +42,10 @@ let prevText = ''
 let prevFont = ''
 let prevSize = [0, 0]
 
+export function clearPrevSize() {
+  prevText = ''
+}
+
 export function getTextLabelSize(text: string, font: string) {
   if (!text) {
     return [16, 32]
@@ -61,7 +65,7 @@ export function getTextLabelSize(text: string, font: string) {
   prevText = text
   prevFont = font
 
-  melm.textContent = `${text}`
+  melm.textContent = text
   melm.style.font = font
 
   // In tests, offsetWidth and offsetHeight will be 0
