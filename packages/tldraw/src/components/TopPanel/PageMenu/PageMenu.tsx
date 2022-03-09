@@ -9,7 +9,6 @@ import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { preventEvent } from '~components/preventEvent'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
