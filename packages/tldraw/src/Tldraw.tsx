@@ -369,6 +369,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideCloneHandles =
     isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
 
+  const showDashedBrush = settings.isCadSelectMode
+    ? !appState.selectByContain
+    : appState.selectByContain
+
   return (
     <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
       <Loading />
@@ -395,7 +399,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           hideCloneHandles={hideCloneHandles}
           hideRotateHandles={!settings.showRotateHandles}
           hideGrid={!settings.showGrid}
-          showDashedBrush={appState.selectByContain}
+          showDashedBrush={showDashedBrush}
           performanceMode={app.session?.performanceMode}
           onPinchStart={app.onPinchStart}
           onPinchEnd={app.onPinchEnd}
