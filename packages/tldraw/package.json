@@ -37,8 +37,8 @@
     "docs": "typedoc"
   },
   "peerDependencies": {
-    "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
+    "react": "^17.0",
+    "react-dom": "^17.0"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^0.1.5",
