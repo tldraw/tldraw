@@ -228,6 +228,12 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return
 
+    console.log('completed', this.app.originPoint, this.app.currentPoint)
+
+    if (this.isCreate && Vec.dist(this.app.originPoint, this.app.currentPoint) < 2) {
+      return this.cancel()
+    }
+
     const beforeShapes = {} as Record<string, Partial<TDShape> | undefined>
     const afterShapes = {} as Record<string, Partial<TDShape>>
 

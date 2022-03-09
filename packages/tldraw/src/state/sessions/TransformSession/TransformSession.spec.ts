@@ -216,12 +216,13 @@ describe('Transform session', () => {
 })
 
 describe('When creating with a transform session', () => {
-  it('Deletes the shape on undo', () => {
+  it.only('Deletes the shape on undo', () => {
     const app = new TldrawTestApp()
       .selectTool(TDShapeType.Rectangle)
       .pointCanvas([0, 0])
+      .movePointer([5, 5])
       .movePointer([10, 10])
-      .stopPointing()
+      .stopPointing('canvas', [10, 10])
 
     expect(app.shapes.length).toBe(1)
 
