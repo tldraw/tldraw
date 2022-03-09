@@ -333,7 +333,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
     return { isDarkMode: settings.isDarkMode }
   }, [settings.isDarkMode])
 
-  const showDashedBrush = !settings.isCadSelectMode && appState.selectByContain
+  const showDashedBrush = settings.isCadSelectMode
+    ? !appState.selectByContain
+    : appState.selectByContain
 
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
