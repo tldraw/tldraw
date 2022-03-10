@@ -149,11 +149,13 @@ export function groupShapes(
 
   const { bindings } = app
 
+  const deletedGroupIdsSet = new Set(deletedGroupIds)
+
   // We also need to delete bindings that reference the deleted shapes
   bindings.forEach((binding) => {
     for (const id of [binding.toId, binding.fromId]) {
       // If the binding references a deleted shape...
-      if (afterShapes[id] === undefined) {
+      if (deletedGroupIdsSet.has(id)) {
         // Delete this binding
         beforeBindings[binding.id] = binding
         afterBindings[binding.id] = undefined
