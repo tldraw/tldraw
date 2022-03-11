@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.2
+
+### Patch Changes
+
+- Fixes bug that would remove bindings to shapes when grouped.
+
 ## 1.9.1
 
 ### Patch Changes
