@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Renderer } from '@tldraw/core'
+import { Renderer, TLTheme } from '@tldraw/core'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
@@ -90,6 +90,8 @@ export interface TldrawProps extends TDCallbacks {
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
   disableAssets?: boolean
+
+  theme?: Partial<TLTheme>
 }
 
 export function Tldraw({
@@ -126,6 +128,7 @@ export function Tldraw({
   onAssetCreate,
   onAssetDelete,
   onExport,
+  theme
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -284,6 +287,7 @@ export function Tldraw({
         showUI={showUI}
         showSponsorLink={showSponsorLink}
         readOnly={readOnly}
+        theme={theme}
       />
     </TldrawContext.Provider>
   )
@@ -301,6 +305,7 @@ interface InnerTldrawProps {
   showTools: boolean
   showSponsorLink: boolean
   readOnly: boolean
+  theme?: Partial<TLTheme>
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -315,6 +320,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showSponsorLink,
   readOnly,
   showUI,
+  theme: userTheme = {}
 }: InnerTldrawProps) {
   const app = useTldrawApp()
 
@@ -379,7 +385,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
       brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
       brushDashStroke: `rgba(${brushBase}, .6)`,
     }
-  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain, userTheme])
 
   const isInSession = app.session !== undefined
 
@@ -416,7 +422,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
           grid={GRID_SIZE}
           users={room?.users}
           userId={room?.userId}
-          theme={theme}
+          theme={{...theme, ...userTheme }}
           meta={meta}
           hideBounds={hideBounds}
           hideHandles={hideHandles}

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { AlignStyle, TDShapeType } from '~types'
-import { useFileSystemHandlers, useTldrawApp } from '~hooks'
+import { TDShapeType } from '~types'
+import { useTldrawApp } from '~hooks'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const app = useTldrawApp()
@@ -96,40 +96,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
-  useHotkeys(
-    't,9',
-    () => {
-      if (!canHandleEvent(true)) return
-      app.selectTool(TDShapeType.Text)
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    's,0',
-    () => {
-      if (!canHandleEvent(true)) return
-      app.selectTool(TDShapeType.Sticky)
-    },
-    undefined,
-    [app]
-  )
-
   /* ---------------------- Misc ---------------------- */
-
-  // Dark Mode
-
-  useHotkeys(
-    'ctrl+shift+d,⌘+shift+d',
-    (e) => {
-      if (!canHandleEvent(true)) return
-      app.toggleDarkMode()
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
 
   // Focus Mode
 
@@ -153,172 +120,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
-  // File System
-
-  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs, onOpenMedia } =
-    useFileSystemHandlers()
-
-  useHotkeys(
-    'ctrl+n,⌘+n',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      onNewProject(e)
-    },
-    undefined,
-    [app]
-  )
-  useHotkeys(
-    'ctrl+s,⌘+s',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      onSaveProject(e)
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'ctrl+shift+s,⌘+shift+s',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      onSaveProjectAs(e)
-    },
-    undefined,
-    [app]
-  )
-  useHotkeys(
-    'ctrl+o,⌘+o',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      onOpenProject(e)
-    },
-    undefined,
-    [app]
-  )
-  useHotkeys(
-    'ctrl+u,⌘+u',
-    (e) => {
-      if (!canHandleEvent()) return
-      onOpenMedia(e)
-    },
-    undefined,
-    [app]
-  )
-
-  // Undo Redo
-
-  useHotkeys(
-    '⌘+z,ctrl+z',
-    () => {
-      if (!canHandleEvent(true)) return
-
-      if (app.session) {
-        app.cancelSession()
-      } else {
-        app.undo()
-      }
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'ctrl+shift+z,⌘+shift+z',
-    () => {
-      if (!canHandleEvent(true)) return
-
-      if (app.session) {
-        app.cancelSession()
-      } else {
-        app.redo()
-      }
-    },
-    undefined,
-    [app]
-  )
-
-  // Undo Redo
-
-  useHotkeys(
-    '⌘+u,ctrl+u',
-    () => {
-      if (!canHandleEvent()) return
-      app.undoSelect()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'ctrl+shift-u,⌘+shift+u',
-    () => {
-      if (!canHandleEvent()) return
-      app.redoSelect()
-    },
-    undefined,
-    [app]
-  )
-
   /* -------------------- Commands -------------------- */
-
-  // Camera
-
-  useHotkeys(
-    'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
-    (e) => {
-      if (!canHandleEvent(true)) return
-      app.zoomIn()
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
-    (e) => {
-      if (!canHandleEvent(true)) return
-
-      app.zoomOut()
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'shift+0,ctrl+numpad_0,⌘+numpad_0',
-    () => {
-      if (!canHandleEvent(true)) return
-      app.resetZoom()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'shift+1',
-    () => {
-      if (!canHandleEvent(true)) return
-      app.zoomToFit()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'shift+2',
-    () => {
-      if (!canHandleEvent(true)) return
-      app.zoomToSelection()
-    },
-    undefined,
-    [app]
-  )
 
   // Duplicate
 
@@ -529,32 +331,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
-  // Group & Ungroup
-
-  useHotkeys(
-    '⌘+g,ctrl+g',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      app.group()
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    '⌘+shift+g,ctrl+shift+g',
-    (e) => {
-      if (!canHandleEvent()) return
-
-      app.ungroup()
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
   // Move
 
   useHotkeys(
@@ -604,41 +380,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       if (app.settings.isDebugMode) {
         app.resetDocument()
       }
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  // Text Align
-
-  useHotkeys(
-    'alt+command+l,alt+ctrl+l',
-    (e) => {
-      if (!canHandleEvent(true)) return
-      app.style({ textAlign: AlignStyle.Start })
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'alt+command+t,alt+ctrl+t',
-    (e) => {
-      if (!canHandleEvent(true)) return
-      app.style({ textAlign: AlignStyle.Middle })
-      e.preventDefault()
-    },
-    undefined,
-    [app]
-  )
-
-  useHotkeys(
-    'alt+command+r,alt+ctrl+r',
-    (e) => {
-      if (!canHandleEvent(true)) return
-      app.style({ textAlign: AlignStyle.End })
       e.preventDefault()
     },
     undefined,

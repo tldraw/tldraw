@@ -51,7 +51,7 @@ export function createShapes(
         },
         pageStates: {
           [currentPageId]: {
-            selectedIds: shapes.map((shape) => shape.id),
+            selectedIds: [...app.selectedIds],
           },
         },
       },

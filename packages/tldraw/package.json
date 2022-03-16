@@ -1,6 +1,6 @@
 {
-  "name": "@tldraw/tldraw",
-  "version": "1.9.2",
+  "name": "@modfy/tldraw",
+  "version": "1.9.3",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {

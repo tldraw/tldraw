@@ -263,6 +263,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.callbacks = callbacks
   }
 
+  recalculateViewport = () => {
+    this.viewport = Utils.getBoundsFromPoints([
+      [0, 0],
+      [100, 100],
+    ])
+  
+    this.rendererBounds = Utils.getBoundsFromPoints([
+      [0, 0],
+      [100, 100],
+    ])
+  }
+
   /* -------------------- Internal -------------------- */
 
   protected onReady = () => {
