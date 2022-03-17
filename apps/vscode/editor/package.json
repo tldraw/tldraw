@@ -16,7 +16,7 @@
     "build:apps": "yarn build"
   },
   "devDependencies": {
-    "@tldraw/tldraw": "^1.6.1",
+    "@tldraw/tldraw": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",

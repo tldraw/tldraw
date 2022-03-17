@@ -10,6 +10,7 @@ import { exportToImage } from 'utils/export'
 declare let currentFile: TDFile
 
 export default function App(): JSX.Element {
+  const rLoaded = React.useRef(false)
   const rTldrawApp = React.useRef<TldrawApp>()
   const rInitialDocument = React.useRef<TDDocument>(
     currentFile ? currentFile.document : defaultDocument
@@ -39,7 +40,12 @@ export default function App(): JSX.Element {
         try {
           const { document } = JSON.parse(data.text) as TDFile
           const app = rTldrawApp.current!
-          app.updateDocument(document)
+          if (rLoaded.current) {
+            app.updateDocument(document)
+          } else {
+            app.loadDocument(document)
+            rLoaded.current = true
+          }
           app.zoomToFit()
         } catch (e) {
           console.warn('Failed to parse file:', data.text)
