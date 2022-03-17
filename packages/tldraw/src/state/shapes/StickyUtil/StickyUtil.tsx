@@ -384,6 +384,11 @@ const StyledTextArea = styled('textarea', {
   overflow: 'hidden',
   background: 'none',
   outline: 'none',
+  
+  '&:focus': {
+    outline: 'none !important'
+  },
+
   textAlign: 'left',
   font: 'inherit',
   padding: 0,

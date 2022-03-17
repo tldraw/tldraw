@@ -4,6 +4,7 @@ export const Panel = styled('div', {
   backgroundColor: '$panel',
   display: 'flex',
   flexDirection: 'row',
+  alignItems: 'center',
   boxShadow: '$panel',
   padding: '$2',
   gap: 0,

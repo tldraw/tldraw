@@ -107,6 +107,10 @@ export const StyledRowButton = styled('button', {
   userSelect: 'none',
   margin: 0,
   padding: '0 0',
+  
+  '&:focus': {
+    outline: 'none !important'
+  },
 
   '&[data-disabled]': {
     opacity: 0.3,

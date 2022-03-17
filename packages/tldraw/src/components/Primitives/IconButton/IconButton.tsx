@@ -17,6 +17,10 @@ export const IconButton = styled('button', {
   display: 'grid',
   alignItems: 'center',
   justifyContent: 'center',
+  
+  '&:focus': {
+    outline: 'none !important'
+  },
 
   '& > *': {
     gridRow: 1,

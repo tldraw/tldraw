@@ -320,4 +320,8 @@ export const ButtonsRow = styled('div', {
   alignItems: 'center',
   justifyContent: 'flex-start',
   padding: 0,
+  
+  '&:focus': {
+    outline: 'none !important'
+  },
 })

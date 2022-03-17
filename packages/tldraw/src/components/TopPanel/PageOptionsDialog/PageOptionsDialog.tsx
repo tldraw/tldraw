@@ -126,7 +126,7 @@ export const StyledDialogContent = styled(Dialog.Content, {
   borderRadius: '$2',
   font: '$ui',
   '&:focus': {
-    outline: 'none',
+    outline: 'none !important',
   },
 })
 

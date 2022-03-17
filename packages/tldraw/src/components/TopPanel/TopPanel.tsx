@@ -63,8 +63,8 @@ export function TopPanel({
 const StyledTopPanel = styled('div', {
   width: '100%',
   position: 'absolute',
-  top: 0,
-  left: 0,
+  bottom: 0,
+  left: 'auto',
   right: 0,
   display: 'flex',
   flexDirection: 'row',

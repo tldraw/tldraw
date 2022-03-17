@@ -16,6 +16,10 @@ export const DMRadioItem = styled(RadioItem, {
   pointerEvents: 'all',
   cursor: 'pointer',
 
+  '&:focus': {
+    outline: 'none !important'
+  },
+
   variants: {
     isActive: {
       true: {

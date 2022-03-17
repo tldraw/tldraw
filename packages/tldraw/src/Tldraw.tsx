@@ -6,7 +6,6 @@ import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
-import { TopPanel } from '~components/TopPanel'
 import { ContextMenu } from '~components/ContextMenu'
 import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
@@ -311,13 +310,7 @@ interface InnerTldrawProps {
 const InnerTldraw = React.memo(function InnerTldraw({
   id,
   autofocus,
-  showPages,
-  showMenu,
-  showMultiplayerMenu,
-  showZoom,
-  showStyles,
   showTools,
-  showSponsorLink,
   readOnly,
   showUI,
   theme: userTheme = {}
@@ -493,7 +486,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
             <FocusButton onSelect={app.toggleFocusMode} />
           ) : (
             <>
-              <TopPanel
+              {/* <TopPanel
                 readOnly={readOnly}
                 showPages={showPages}
                 showMenu={showMenu}
@@ -501,7 +494,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 showStyles={showStyles}
                 showZoom={showZoom}
                 showSponsorLink={showSponsorLink}
-              />
+              /> */}
               <StyledSpacer />
               {showTools && !readOnly && <ToolsPanel />}
             </>
@@ -543,6 +536,10 @@ const StyledLayout = styled('div', {
   boxSizing: 'border-box',
   outline: 'none',
 
+  '&:focus': {
+    outline: 'none !important',
+  },
+
   '& .tl-container': {
     position: 'absolute',
     top: 0,
@@ -577,7 +574,7 @@ const StyledUI = styled('div', {
     outline: 'none'
   },
   '& > *:focus': {
-    outline: 'none'
+    outline: 'none !important',
   },
 })
 

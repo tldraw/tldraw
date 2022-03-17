@@ -39,8 +39,8 @@ export function Tooltip({
 }
 
 const StyledContent = styled(RadixTooltip.Content, {
-  borderRadius: 3,
-  padding: '$3 $3 $3 $3',
+  borderRadius: '$2',
+  padding: '$3 $4 $3 $4',
   fontSize: '$1',
   backgroundColor: '$tooltip',
   color: '$tooltipContrast',

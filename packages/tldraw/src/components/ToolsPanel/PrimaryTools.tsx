@@ -10,6 +10,7 @@ import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
 import { EraserIcon } from '~components/Primitives/icons'
+import { StyleMenu } from '~components/TopPanel/StyleMenu'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
@@ -77,6 +78,8 @@ export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
       >
         <ArrowTopRightIcon />
       </ToolButtonWithTooltip>
+
+      <StyleMenu />
     </Panel>
   )
 })

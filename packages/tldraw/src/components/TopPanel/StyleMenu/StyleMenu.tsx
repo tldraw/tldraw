@@ -343,6 +343,10 @@ export const StyledRow = styled('div', {
       },
     },
   },
+  
+  '&:focus': {
+    outline: 'none !important'
+  },
 })
 
 const StyledGroup = styled(DropdownMenu.DropdownMenuRadioGroup, {
