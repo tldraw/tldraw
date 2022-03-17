@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.8.4
+
+### Patch Changes
+
+- Fix bug with missing parents / children.
+
 - Fixed bug that prevented saving.
 
 ## 1.1.9
