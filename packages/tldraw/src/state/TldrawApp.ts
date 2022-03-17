@@ -684,6 +684,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return this
     }
 
+    const page = this.document.pages[this.currentPageId]
+
+    Object.values(shapes).forEach((shape) => {
+      if (shape.parentId !== pageId && !(page.shapes[shape.parentId] || shapes[shape.parentId])) {
+        console.warn('Added a shape without a parent on the page')
+        shape.parentId = pageId
+      }
+    })
+
     this.useStore.setState((current) => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 

@@ -94,8 +94,7 @@
     ],
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
-      "<rootDir>/dist/",
-      "<rootDir>/src/test/"
+      "<rootDir>/dist/"
     ],
     "moduleNameMapper": {
       "@tldraw/tldraw": "<rootDir>/src",

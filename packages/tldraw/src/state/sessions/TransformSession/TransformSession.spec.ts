@@ -216,7 +216,7 @@ describe('Transform session', () => {
 })
 
 describe('When creating with a transform session', () => {
-  it.only('Deletes the shape on undo', () => {
+  it('Deletes the shape on undo', () => {
     const app = new TldrawTestApp()
       .selectTool(TDShapeType.Rectangle)
       .pointCanvas([0, 0])

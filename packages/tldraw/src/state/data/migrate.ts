@@ -4,22 +4,43 @@ import { Decoration, FontStyle, TDDocument, TDShapeType, TextShape } from '~type
 export function migrate(document: TDDocument, newVersion: number): TDDocument {
   const { version = 0 } = document
 
+  if (!('assets' in document)) {
+    document.assets = {}
+  }
+
   // Remove unused assets when loading a document
-  if ('assets' in document) {
-    const assetIdsInUse = new Set<string>()
+  const assetIdsInUse = new Set<string>()
 
-    Object.values(document.pages).forEach((page) =>
-      Object.values(page.shapes).forEach((shape) => {
-        if (shape.assetId) assetIdsInUse.add(shape.assetId)
-      })
-    )
+  Object.values(document.pages).forEach((page) =>
+    Object.values(page.shapes).forEach((shape) => {
+      const { parentId, children, assetId } = shape
 
-    Object.keys(document.assets).forEach((assetId) => {
-      if (!assetIdsInUse.has(assetId)) {
-        delete document.assets[assetId]
+      if (assetId) {
+        assetIdsInUse.add(assetId)
+      }
+
+      // Fix missing parent bug
+      if (parentId !== page.id && !page.shapes[parentId]) {
+        console.warn('Encountered a shape with a missing parent!')
+        shape.parentId = page.id
+      }
+
+      if (children) {
+        children.forEach((childId) => {
+          if (!page.shapes[childId]) {
+            console.warn('Encountered a parent with a missing child!', shape.id, childId)
+            children?.splice(children.indexOf(childId), 1)
+          }
+        })
       }
     })
-  }
+  )
+
+  Object.keys(document.assets).forEach((assetId) => {
+    if (!assetIdsInUse.has(assetId)) {
+      delete document.assets[assetId]
+    }
+  })
 
   if (version === newVersion) return document
 
