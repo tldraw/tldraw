@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
+import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
 
 describe('TldrawTestApp', () => {
@@ -659,38 +660,48 @@ describe('TldrawTestApp', () => {
       const app2 = new TldrawTestApp('migrate_1')
       await app2.ready
       expect(app2.getShape('rect1')).toBeTruthy()
+
       return
     })
   })
 
   describe('When replacing the page content', () => {
-    it('Should update the page with the correct shapes and bindings.', () => {
-      const shapes = mockDocument.pages.page1.shapes
-      const bindings = mockDocument.pages.page1.bindings
+    it('Should update the page with the correct shapes and bindings.', async () => {
+      const shapes = deepCopy(mockDocument.pages.page1.shapes)
+      const bindings = deepCopy(mockDocument.pages.page1.bindings)
       const app = new TldrawTestApp('multiplayer', {
         onChangePage: () => {
           //
         },
-      }).createPage()
+      })
+      await app.ready
+      app.createPage('page2')
+      expect(app.currentPageId).toBe('page2')
       app.replacePageContent(shapes, bindings, {})
-
-      expect(app.shapes).toEqual(Object.values(shapes))
-      expect(app.bindings).toEqual(Object.values(bindings))
+      expect(app.shapes).toMatchObject(
+        Object.values(shapes).map((s) => ({ ...s, parentId: 'page2' }))
+      )
+      expect(app.bindings).toMatchObject(Object.values(bindings))
     })
 
-    it('It should update the page shapes after the settings have been updated', () => {
-      const shapes = mockDocument.pages.page1.shapes
-      const bindings = mockDocument.pages.page1.bindings
+    it('It should update the page shapes after the settings have been updated', async () => {
+      const shapes = deepCopy(mockDocument.pages.page1.shapes)
+      const bindings = deepCopy(mockDocument.pages.page1.bindings)
       const app = new TldrawTestApp('multiplayer', {
         onChangePage: () => {
           //
         },
-      }).createPage()
+      })
+      await app.ready
+      app.createPage('page2')
+      expect(app.currentPageId).toBe('page2')
+      expect(shapes.rect1.parentId).toBe('page1')
       app.setSetting('isDebugMode', true)
       app.replacePageContent(shapes, bindings, {})
-
-      expect(app.shapes).toEqual(Object.values(shapes))
-      expect(app.bindings).toEqual(Object.values(bindings))
+      expect(app.shapes).toMatchObject(
+        Object.values(shapes).map((s) => ({ ...s, parentId: 'page2' }))
+      )
+      expect(app.bindings).toMatchObject(Object.values(bindings))
     })
   })
 
@@ -717,6 +728,7 @@ describe('When adding a video', () => {
 
 describe('When space panning', () => {
   it('pans camera when spacebar is down', () => {
+    // global.console.warn = jest.fn()
     const app = new TldrawTestApp()
     expect(app.pageState.camera.point).toMatchObject([0, 0])
     app.movePointer([0, 0])
@@ -731,6 +743,7 @@ describe('When space panning', () => {
     app.releaseKey(' ')
     app.stopPointing()
     expect(app.pageState.camera.point).toMatchObject([100, 100])
+    // expect(global.console.warn).not.toHaveBeenCalled()
   })
 
   it('pans camera in any state', () => {
