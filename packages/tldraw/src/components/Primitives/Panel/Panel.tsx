@@ -6,7 +6,6 @@ export const Panel = styled('div', {
   flexDirection: 'row',
   boxShadow: '$panel',
   padding: '$2',
-  border: '1px solid $panelContrast',
   gap: 0,
   variants: {
     side: {

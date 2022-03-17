@@ -385,7 +385,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
       brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
       brushDashStroke: `rgba(${brushBase}, .6)`,
     }
-  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain, userTheme])
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
 
   const isInSession = app.session !== undefined
 
@@ -574,6 +574,10 @@ const StyledUI = styled('div', {
   zIndex: 2,
   '& > *': {
     pointerEvents: 'all',
+    outline: 'none'
+  },
+  '& > *:focus': {
+    outline: 'none'
   },
 })
 

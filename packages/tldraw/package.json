@@ -1,6 +1,6 @@
 {
   "name": "@modfy/tldraw",
-  "version": "1.9.4",
+  "version": "1.9.5",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -57,6 +57,7 @@
     "react-hotkey-hook": "^1.0.2",
     "react-hotkeys-hook": "^3.4.4",
     "tslib": "^2.3.1",
+    "twind": "^0.16.16",
     "zustand": "^3.6.9"
   },
   "devDependencies": {

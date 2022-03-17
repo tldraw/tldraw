@@ -205,9 +205,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                   <CircleIcon
                     size={18}
                     strokeWidth={2.5}
-                    fill={
-                     'transparent'
-                    }
+                    fill={'transparent'}
                     stroke={strokes.light[style as ColorStyle]}
                   />
                 </ToolButton>
