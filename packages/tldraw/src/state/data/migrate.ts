@@ -10,7 +10,26 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
 
     Object.values(document.pages).forEach((page) =>
       Object.values(page.shapes).forEach((shape) => {
-        if (shape.assetId) assetIdsInUse.add(shape.assetId)
+        const { parentId, children, assetId } = shape
+
+        if (assetId) {
+          assetIdsInUse.add(assetId)
+        }
+
+        // Fix missing parent bug
+        if (parentId !== page.id && !page.shapes[parentId]) {
+          console.warn('Encountered a shape with a missing parent!', shape.id)
+          shape.parentId = page.id
+        }
+
+        if (children) {
+          children.forEach((childId) => {
+            if (!page.shapes[childId]) {
+              console.warn('Encountered a parent with a missing child!', shape.id, childId)
+              children?.splice(children.indexOf(childId), 1)
+            }
+          })
+        }
       })
     )
 
