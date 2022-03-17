@@ -60,12 +60,12 @@
     "zustand": "^3.6.9"
   },
   "devDependencies": {
-    "@tldraw/core": "*",
-    "@tldraw/intersect": "*",
-    "@tldraw/vec": "*",
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
+    "@tldraw/core": "*",
+    "@tldraw/intersect": "*",
+    "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
@@ -74,7 +74,8 @@
     "lask": "^0.0.29",
     "mobx": "^6.3.8",
     "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
+    "react-dom": "^16.8 || ^17.0",
+    "twind": "^0.16.16"
   },
   "jest": {
     "setupFilesAfterEnv": [

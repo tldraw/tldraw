@@ -206,7 +206,7 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
                     size={18}
                     strokeWidth={2.5}
                     fill={
-                      displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
+                     'transparent'
                     }
                     stroke={strokes.light[style as ColorStyle]}
                   />

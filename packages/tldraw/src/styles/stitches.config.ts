@@ -1,5 +1,7 @@
 import { createStitches, defaultThemeMap } from '@stitches/react'
 
+import * as colors from 'twind/colors'
+
 const { styled, createTheme } = createStitches({
   themeMap: {
     ...defaultThemeMap,
@@ -8,18 +10,18 @@ const { styled, createTheme } = createStitches({
     colors: {
       bounds: 'rgba(65, 132, 244, 1.000)',
       boundsBg: 'rgba(65, 132, 244, 0.05)',
-      hover: '#ececec',
-      overlay: 'rgba(0, 0, 0, 0.15)',
+      hover: colors.blueGray[800],
+      overlay: colors.blueGray[800],
       overlayContrast: 'rgba(255, 255, 255, 0.15)',
-      panel: '#fefefe',
+      panel: colors.blueGray[900],
       panelContrast: '#ffffff',
       selected: 'rgba(66, 133, 244, 1.000)',
       selectedContrast: '#fefefe',
       sponsor: '#ec6cb9',
       sponsorContrast: '#ec6cb944',
-      text: '#333333',
-      tooltip: '#1d1d1d',
-      tooltipContrast: '#ffffff',
+      text: colors.gray['300'],
+      tooltip: colors.black,
+      tooltipContrast: colors.gray[300],
       warn: 'rgba(255, 100, 100, 1)',
     },
     shadows: {
@@ -51,8 +53,8 @@ const { styled, createTheme } = createStitches({
       4: '18px',
     },
     fonts: {
-      ui: '"Recursive", system-ui, sans-serif',
-      body: '"Recursive", system-ui, sans-serif',
+      ui: '"Inter", system-ui, sans-serif',
+      body: '"Inter ", system-ui, sans-serif',
       mono: '"Recursive Mono", monospace',
     },
     fontWeights: {},
@@ -98,15 +100,15 @@ export const dark = createTheme({
   colors: {
     bounds: 'rgba(38, 150, 255, 1.000)',
     boundsBg: 'rgba(38, 150, 255, 0.05)',
-    hover: '#444A50',
+    hover: colors.blueGray[800],
     overlay: 'rgba(0, 0, 0, 0.15)',
     overlayContrast: 'rgba(255, 255, 255, 0.15)',
-    panel: '#363D44',
+    panel: colors.blueGray[900],
     panelContrast: '#49555f',
     selected: 'rgba(38, 150, 255, 1.000)',
     selectedContrast: '#fefefe',
-    text: '#f8f9fa',
-    tooltip: '#1d1d1d',
+    text: colors.gray[100],
+    tooltip: colors.black,
     tooltipContrast: '#ffffff',
   },
   shadows: {
