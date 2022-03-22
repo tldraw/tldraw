@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, TLBounds, Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { TLPageState, TLBounds, Utils } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import {
   Patch,
   TDShape,

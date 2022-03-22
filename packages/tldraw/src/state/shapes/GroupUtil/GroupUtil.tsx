@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import { Utils, SVGContainer } from '@tldraw/core'
+import { Utils, SVGContainer } from '@tlslides/core'
 import { defaultStyle } from '../shared/shape-styles'
 import { TDShapeType, GroupShape, ColorStyle, TDMeta } from '~types'
 import { GHOSTED_OPACITY } from '~constants'

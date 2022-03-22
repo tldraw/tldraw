@@ -20,8 +20,8 @@
     "baseUrl": ".",
     "paths": {
       "*": ["./*"],
-      "@tldraw/core": ["../../packages/core"],
-      "@tldraw/tldraw": ["../../packages/tldraw"]
+      "@tlslides/core": ["../../packages/core"],
+      "@tlslides/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [

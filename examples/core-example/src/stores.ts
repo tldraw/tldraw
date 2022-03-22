@@ -1,5 +1,5 @@
-import { TLBounds, TLPage, TLPageState, Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { TLBounds, TLPage, TLPageState, Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { action, makeAutoObservable } from 'mobx'
 import type { Shape } from './shapes'
 

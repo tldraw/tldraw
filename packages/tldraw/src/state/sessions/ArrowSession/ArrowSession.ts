@@ -10,12 +10,12 @@ import {
   TldrawPatch,
   TldrawCommand,
 } from '~types'
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { deepCopy } from '~state/StateManager/copy'
 
 export class ArrowSession extends BaseSession {

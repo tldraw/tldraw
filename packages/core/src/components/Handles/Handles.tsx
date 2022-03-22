@@ -1,6 +1,6 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import type { TLHandle, TLShape } from '~types'
 import { Handle } from './Handle'
 

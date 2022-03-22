@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
+import { Utils, SVGContainer, TLBounds } from '@tlslides/core'
 import { TriangleShape, TDShapeType, TDMeta, TDShape, DashStyle } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
@@ -13,8 +13,8 @@ import {
   intersectBoundsPolygon,
   intersectLineSegmentPolyline,
   intersectRayLineSegment,
-} from '@tldraw/intersect'
-import Vec from '@tldraw/vec'
+} from '@tlslides/intersect'
+import Vec from '@tlslides/vec'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
 import { styled } from '~styles'

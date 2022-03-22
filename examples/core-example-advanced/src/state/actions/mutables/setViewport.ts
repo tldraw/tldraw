@@ -1,5 +1,5 @@
-import type { TLBounds } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import type { TLBounds } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import type { Action } from 'state/constants'
 import { mutables } from 'state/mutables'
 

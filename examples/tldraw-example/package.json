@@ -1,8 +1,8 @@
 {
-  "name": "@tldraw/tldraw-example",
+  "name": "@tlslides/tldraw-example",
   "version": "1.6.1",
   "private": true,
-  "description": "An example project for @tldraw/tldraw.",
+  "description": "An example project for @tlslides/tldraw.",
   "author": "@steveruizok",
   "license": "MIT",
   "keywords": [

@@ -1,4 +1,4 @@
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import { TldrawTestApp } from '~test'
 import { ArrowShape, SessionType, TDShapeType } from '~types'
 import { Arrow } from '..'

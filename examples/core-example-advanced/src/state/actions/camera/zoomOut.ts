@@ -1,6 +1,6 @@
 import type { Action } from 'state/constants'
-import { Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { mutables } from 'state/mutables'
 
 export const zoomOut: Action = (data) => {

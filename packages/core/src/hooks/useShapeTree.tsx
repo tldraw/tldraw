@@ -11,7 +11,7 @@ import type {
   TLAssets,
 } from '~types'
 import { Utils } from '~utils'
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import { useTLContext } from '~hooks'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(

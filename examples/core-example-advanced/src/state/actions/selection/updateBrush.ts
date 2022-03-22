@@ -1,5 +1,5 @@
 import type { Action } from 'state/constants'
-import { TLPointerInfo, Utils } from '@tldraw/core'
+import { TLPointerInfo, Utils } from '@tlslides/core'
 import { mutables } from '../../mutables'
 import { getPagePoint } from 'state/helpers'
 import { getShapeUtils } from 'shapes'

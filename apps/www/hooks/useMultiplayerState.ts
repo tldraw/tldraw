@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
+import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tlslides/tldraw'
 import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
 import { LiveMap, LiveObject } from '@liveblocks/client'
 

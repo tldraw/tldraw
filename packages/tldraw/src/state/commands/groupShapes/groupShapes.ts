@@ -1,5 +1,5 @@
 import { TDShape, TDShapeType } from '~types'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import type { Patch, TldrawCommand, TDBinding } from '~types'
 import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'

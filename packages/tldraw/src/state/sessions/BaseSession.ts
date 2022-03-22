@@ -1,4 +1,4 @@
-import type { TLPerformanceMode } from '@tldraw/core'
+import type { TLPerformanceMode } from '@tlslides/core'
 import type { SessionType, TldrawCommand, TldrawPatch } from '~types'
 import type { TldrawApp } from '../internal'
 

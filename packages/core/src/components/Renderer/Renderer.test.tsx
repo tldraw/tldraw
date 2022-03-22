@@ -6,7 +6,7 @@ import { action, makeAutoObservable } from 'mobx'
 import type { TLBinding, TLBounds, TLPage, TLPageState } from '~types'
 import Utils from '~utils'
 import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 describe('renderer', () => {
   test('mounts component without crashing', () => {

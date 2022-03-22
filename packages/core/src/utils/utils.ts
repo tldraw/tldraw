@@ -4,7 +4,7 @@
 /* eslint-disable no-redeclare */
 import type React from 'react'
 import { TLBounds, TLBoundsCorner, SnapPoints, Snap, TLBoundsEdge } from '../types'
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import './polyfills'
 import type { Patch, TLBoundsWithCenter } from '~index'
 

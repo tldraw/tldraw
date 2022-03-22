@@ -20,7 +20,7 @@ import type {
   TLShapeBlurHandler,
   TLShapeCloneHandler,
   TLAsset,
-} from '@tldraw/core'
+} from '@tlslides/core'
 
 /* -------------------------------------------------- */
 /*                         App                        */
@@ -79,6 +79,7 @@ export class TDEventHandler {
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
+    isPresentationMode: boolean
     isCadSelectMode: boolean
     isDarkMode: boolean
     isDebugMode: boolean
@@ -89,6 +90,7 @@ export interface TDSnapshot {
     nudgeDistanceLarge: number
     isFocusMode: boolean
     isSnapping: boolean
+    showDeck: boolean
     showRotateHandles: boolean
     showBindingHandles: boolean
     showCloneHandles: boolean

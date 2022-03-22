@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import type { TldrawApp } from '../../internal'
 
 export function distributeShapes(

@@ -9,7 +9,7 @@
     "allowJs": false,
     "emitDeclarationOnly": true,
     "paths": {
-      "@tldraw/tldraw": ["../../packages/tldraw"]
+      "@tlslides/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [

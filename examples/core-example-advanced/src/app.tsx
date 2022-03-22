@@ -6,7 +6,7 @@ import {
   TLPinchEventHandler,
   TLPointerEventHandler,
   TLWheelEventHandler,
-} from '@tldraw/core'
+} from '@tlslides/core'
 import { useStateDesigner } from '@state-designer/react'
 import { shapeUtils } from './shapes'
 import { machine } from './state/machine'

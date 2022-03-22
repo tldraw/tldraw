@@ -170,6 +170,9 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                   <DMItem onClick={handleExportJSON} id="TD-MenuItem-File-Export-JSON">
                     JSON
                   </DMItem>
+                  <DMItem onClick={handleExportPDF} id="TD-MenuItem-File-Export-PDF">
+                    PDF
+                  </DMItem>
                 </DMSubMenu>
               </>
             )}
@@ -311,7 +314,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
         <DMDivider dir="ltr" />
         <PreferencesMenu />
         <DMDivider dir="ltr" />
-        <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
+        <a href="https://github.com/nimeshnayaju/tlslides" target="_blank" rel="nofollow">
           <DMItem id="TD-MenuItem-Github">
             GitHub
             <SmallIcon>
@@ -319,7 +322,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </SmallIcon>
           </DMItem>
         </a>
-        <a href="https://twitter.com/Tldraw" target="_blank" rel="nofollow">
+        <a href="https://twitter.com/nayajunimesh" target="_blank" rel="nofollow">
           <DMItem id="TD-MenuItem-Twitter">
             Twitter
             <SmallIcon>
@@ -327,15 +330,15 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </SmallIcon>
           </DMItem>
         </a>
-        <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
+        {/* <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
           <DMItem id="TD-MenuItem-Discord">
             Discord
             <SmallIcon>
               <DiscordIcon />
             </SmallIcon>
           </DMItem>
-        </a>
-        {showSponsorLink && (
+        </a> */}
+        {/* {showSponsorLink && (
           <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
             <DMItem isSponsor id="TD-MenuItem-Become_a_Sponsor">
               Become a Sponsor{' '}
@@ -362,7 +365,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
               </DMItem>
             )}
           </>
-        )}
+        )} */}
       </DMContent>
     </DropdownMenu.Root>
   )

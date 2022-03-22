@@ -26,7 +26,7 @@
 
 - e8dd64ba: Fix text in multiplayer
 - Updated dependencies [e8dd64ba]
-  - @tldraw/intersect@1.7.1
+  - @tlslides/intersect@1.7.1
 
 ## 1.7.0
 
@@ -37,8 +37,8 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @tldraw/intersect@1.7.0
-  - @tldraw/vec@1.7.0
+  - @tlslides/intersect@1.7.0
+  - @tlslides/vec@1.7.0
 
 ## 1.5.0
 

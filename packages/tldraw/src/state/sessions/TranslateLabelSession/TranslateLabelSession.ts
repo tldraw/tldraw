@@ -11,7 +11,7 @@ import {
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import type { TLBounds } from '@tldraw/core'
+import type { TLBounds } from '@tlslides/core'
 
 export class TranslateLabelSession extends BaseSession {
   type = SessionType.Handle

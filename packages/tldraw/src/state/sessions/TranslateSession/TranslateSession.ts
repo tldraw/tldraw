@@ -6,8 +6,8 @@ import {
   TLSnapLine,
   TLBounds,
   TLPerformanceMode,
-} from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+} from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import {
   TDShape,
   TDBinding,

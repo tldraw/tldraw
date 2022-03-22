@@ -1,5 +1,5 @@
-import { TLBinding, TLPointerInfo, TLSnapLine, Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { TLBinding, TLPointerInfo, TLSnapLine, Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { nanoid } from 'nanoid'
 import { Action, CustomBinding, SNAP_DISTANCE } from 'state/constants'
 import { getPagePoint } from 'state/helpers'

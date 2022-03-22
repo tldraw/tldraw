@@ -1,4 +1,4 @@
-# @tldraw/vscode
+# @tlslides/vscode
 
 This folder contains the source for the tldraw VS Code extension.
 
@@ -8,7 +8,7 @@ This folder contains the source for the tldraw VS Code extension.
 
 - Run `yarn` from the root folder
 
-## 2. Build @tldraw/tldraw
+## 2. Build @tlslides/tldraw
 
 - Run `yarn build:packages` from the root folder.
 

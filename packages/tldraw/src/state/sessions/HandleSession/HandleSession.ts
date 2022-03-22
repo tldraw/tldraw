@@ -1,9 +1,9 @@
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { TLPerformanceMode } from '@tldraw/core'
+import { TLPerformanceMode } from '@tlslides/core'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle

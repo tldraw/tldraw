@@ -1,5 +1,5 @@
-import { Utils, TLBounds } from '@tldraw/core'
-import { intersectLineSegmentBounds } from '@tldraw/intersect'
+import { Utils, TLBounds } from '@tlslides/core'
+import { intersectLineSegmentBounds } from '@tlslides/intersect'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'
 import { BoxComponent } from './BoxComponent'

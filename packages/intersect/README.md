@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/intersect
+# @tlslides/intersect
 
 This package contains the intersection methods used by [tldraw](https://tldraw.com).
 
@@ -11,9 +11,9 @@ This package contains the intersection methods used by [tldraw](https://tldraw.c
 ## Installation
 
 ```bash
-yarn add @tldraw/intersect
+yarn add @tlslides/intersect
 # or
-npm i @tldraw/intersect
+npm i @tlslides/intersect
 ```
 
 ## Community

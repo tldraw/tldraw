@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { Utils } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { TLDR } from '~state/TLDR'
 import type { PagePartial, TldrawCommand, TDShape } from '~types'
 import type { TldrawApp } from '../../internal'

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TDShapeType, Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { TDShapeType, Tldraw, TldrawApp, useFileSystem } from '@tlslides/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 

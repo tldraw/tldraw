@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, SVGContainer } from '@tldraw/core'
+import { Utils, SVGContainer } from '@tlslides/core'
 import { RectangleShape, DashStyle, TDShapeType, TDMeta } from '~types'
 import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'

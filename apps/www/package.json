@@ -1,14 +1,14 @@
 {
-  "name": "@tldraw/www",
+  "name": "@tlslides/www",
   "version": "1.6.2",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git"
+    "url": "git+https://github.com/nimeshnayaju/tlslides.git"
   },
   "license": "MIT",
-  "author": "@steveruizok",
+  "author": "@nimeshnayaju",
   "scripts": {
     "dev": "next dev",
     "build:apps": "yarn build",
@@ -25,24 +25,24 @@
     "@sentry/react": "^6.13.2",
     "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.2.5",
-    "@tldraw/core": "^1.9.1",
-    "@tldraw/tldraw": "^1.9.3",
+    "@tlslides/core": "^1.9.1",
+    "@tlslides/tldraw": "^1.9.3",
     "@types/next-auth": "^3.15.0",
     "aws-sdk": "^2.1053.0",
+    "chrome-aws-lambda": "8.0.2",
     "next": "^12.0.7",
     "next-auth": "^4.0.5",
     "next-pwa": "^5.4.4",
     "next-themes": "^0.0.15",
     "next-transpile-modules": "^9.0.0",
-    "chrome-aws-lambda": "8.0.2",
     "puppeteer-core": "9.0.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
   "devDependencies": {
-    "@tldraw/core": "*",
-    "@tldraw/tldraw": "*",
     "@sentry/webpack-plugin": "^1.17.1",
+    "@tlslides/core": "*",
+    "@tlslides/tldraw": "*",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
     "cors": "^2.8.5",

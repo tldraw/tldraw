@@ -1,4 +1,4 @@
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import { TLDR } from '~state/TLDR'
 import type { TldrawCommand, PagePartial } from '~types'
 import type { TldrawApp } from '../../internal'

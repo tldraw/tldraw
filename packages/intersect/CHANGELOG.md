@@ -15,7 +15,7 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @tldraw/vec@1.7.0
+  - @tlslides/vec@1.7.0
 
 ## 1.4.3
 

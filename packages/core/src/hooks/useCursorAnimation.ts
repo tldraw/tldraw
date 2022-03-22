@@ -1,4 +1,4 @@
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import * as React from 'react'
 
 type AnimationState = 'stopped' | 'idle' | 'animating'

@@ -2,9 +2,9 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/core-example-advanced
+# @tlslides/core-example-advanced
 
-An advanced example project for `@tldraw/core`.
+An advanced example project for `@tlslides/core`.
 
 To start this project:
 

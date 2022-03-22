@@ -1,6 +1,6 @@
 /* eslint-disable no-inner-declarations */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import * as React from 'react'
 import { useCursorAnimation } from '~hooks'
 import type { TLShape, TLUser } from '~types'

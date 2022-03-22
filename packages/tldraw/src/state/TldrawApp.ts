@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -15,7 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
-} from '@tldraw/core'
+} from '@tlslides/core'
 import {
   FlipType,
   TDDocument,
@@ -971,10 +971,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Toggle presentation mode.
+   */
+  togglePresentationMode = (): this => {
+    if (this.session) return this
+    this.patchState(
+      {
+        settings: {
+          isPresentationMode: !this.settings.isPresentationMode,
+          isFocusMode: !this.settings.isPresentationMode,
+        },
+      },
+      `settings:toggled_presentation_mode`
+    )
+    this.readOnly = this.settings.isPresentationMode
+    this.persist()
+    return this
+  }
+
+  /**
    * Toggle pen mode.
    */
   toggleFocusMode = (): this => {
-    if (this.session) return this
+    if (this.session || this.settings.isPresentationMode) return this
     this.patchState(
       {
         settings: {
@@ -1362,6 +1381,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...TldrawApp.defaultState,
         settings: {
           ...this.state.settings,
+          isPresentationMode: false,
+          showDeck: true,
         },
         document: migrate(document, TldrawApp.version),
         appState: {
@@ -1656,6 +1677,30 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   changePage = (pageId: string): this => {
     return this.setState(Commands.changePage(this, pageId))
+  }
+
+  /**
+   * Change the the page before the current page.
+   */
+  previousPage = (): this => {
+    const pages = Object.values(this.document.pages).sort(
+      (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
+    )
+    const index = pages.findIndex((page) => page.id === this.currentPageId)
+    if (index - 1 < 0) return this
+    return this.changePage(pages[index - 1].id)
+  }
+
+  /**
+   * Change the the page after the current page.
+   */
+  nextPage = (): this => {
+    const pages = Object.values(this.document.pages).sort(
+      (a, b) => (a.childIndex || 0) - (b.childIndex || 0)
+    )
+    const index = pages.findIndex((page) => page.id === this.currentPageId)
+    if (index + 1 >= pages.length) return this
+    return this.changePage(pages[index + 1].id)
   }
 
   /**
@@ -3648,17 +3693,32 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     name: 'New Document',
     version: TldrawApp.version,
     pages: {
-      page: {
-        id: 'page',
-        name: 'Page 1',
+      slide1: {
+        id: 'slide1',
+        name: 'Slide 1',
+        childIndex: 1,
+        shapes: {},
+        bindings: {},
+      },
+      slide2: {
+        id: 'slide2',
+        name: 'Slide 2',
         childIndex: 1,
         shapes: {},
         bindings: {},
       },
     },
     pageStates: {
-      page: {
-        id: 'page',
+      slide1: {
+        id: 'slide1',
+        selectedIds: [],
+        camera: {
+          point: [0, 0],
+          zoom: 1,
+        },
+      },
+      slide2: {
+        id: 'slide2',
         selectedIds: [],
         camera: {
           point: [0, 0],
@@ -3671,6 +3731,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   static defaultState: TDSnapshot = {
     settings: {
+      isPresentationMode: false,
       isCadSelectMode: false,
       isPenMode: false,
       isDarkMode: false,
@@ -3681,6 +3742,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
+      showDeck: true,
       showRotateHandles: true,
       showBindingHandles: true,
       showCloneHandles: false,
@@ -3690,7 +3752,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       status: TDStatus.Idle,
       activeTool: 'select',
       hoveredId: undefined,
-      currentPageId: 'page',
+      currentPageId: 'slide1',
       currentStyle: defaultStyle,
       isToolLocked: false,
       isMenuOpen: false,

@@ -1,4 +1,4 @@
-import type { TLBinding } from '@tldraw/core'
+import type { TLBinding } from '@tlslides/core'
 import { nanoid } from 'nanoid'
 import type { Action, CustomBinding } from 'state/constants'
 

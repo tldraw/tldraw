@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, HTMLContainer } from '@tldraw/core'
+import { Utils, HTMLContainer } from '@tlslides/core'
 import { TDShapeType, TDMeta, ImageShape, TDImageAsset } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'

@@ -1,4 +1,4 @@
-import { TDExport } from '@tldraw/tldraw'
+import { TDExport } from '@tlslides/tldraw'
 
 export const EXPORT_ENDPOINT =
   process.env.NODE_ENV === 'development'

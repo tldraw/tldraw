@@ -1,5 +1,5 @@
-import { TLPointerInfo, Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { TLPointerInfo, Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { getShapeUtils } from 'shapes'
 import type { ArrowShape } from 'shapes/arrow'
 import type { Action } from 'state/constants'

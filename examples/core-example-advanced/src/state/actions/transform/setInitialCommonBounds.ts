@@ -1,4 +1,4 @@
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { getShapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
 import { mutables } from 'state/mutables'

@@ -1,4 +1,4 @@
-import { TLBoundsCorner, TLPointerInfo } from '@tldraw/core'
+import { TLBoundsCorner, TLPointerInfo } from '@tlslides/core'
 import { shapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
 import { getPagePoint } from 'state/helpers'

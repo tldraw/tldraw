@@ -1,5 +1,5 @@
-import { TLBoundsCorner, TLPointerInfo, Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { TLBoundsCorner, TLPointerInfo, Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { shapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
 import { getPagePoint } from 'state/helpers'

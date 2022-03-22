@@ -1,7 +1,7 @@
 import { AppData, INITIAL_DATA, PERSIST_DATA } from './constants'
 import { current } from 'immer'
 
-export function makeHistory(ID = '@tldraw/core_advanced_example') {
+export function makeHistory(ID = '@tlslides/core_advanced_example') {
   let initialData = INITIAL_DATA
 
   const saved = localStorage.getItem(ID)

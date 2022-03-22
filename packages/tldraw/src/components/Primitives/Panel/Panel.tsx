@@ -29,6 +29,16 @@ export const Panel = styled('div', {
         borderBottomLeftRadius: '$3',
         borderBottomRightRadius: '$1',
       },
+      lr: {
+        padding: '$4',
+        gap: '$3',
+        borderTop: 0,
+        borderLeft: 0,
+        borderTopRightRadius: '$1',
+        borderTopLeftRadius: '$3',
+        borderBottomLeftRadius: '$3',
+        borderBottomRightRadius: '$1',
+      },
     },
   },
 })

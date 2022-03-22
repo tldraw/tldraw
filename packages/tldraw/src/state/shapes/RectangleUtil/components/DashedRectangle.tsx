@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { BINDING_DISTANCE } from '~constants'
 import type { ShapeStyles } from '~types'
 import { getShapeStyle } from '~state/shapes/shared'

@@ -3,9 +3,9 @@ import { getPagePoint } from 'state/helpers'
 import { getShapeUtils, Shape } from 'shapes'
 import { mutables } from 'state/mutables'
 import { nanoid } from 'nanoid'
-import { TLPointerInfo, Utils } from '@tldraw/core'
+import { TLPointerInfo, Utils } from '@tlslides/core'
 import type { ArrowShape } from 'shapes/arrow'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 export const translateHandle: Action = (data, payload: TLPointerInfo) => {
   const { initialPoint, snapshot, pointedHandleId } = mutables

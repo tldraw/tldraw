@@ -1,5 +1,5 @@
-import type { TLBounds, TLPageState } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import type { TLBounds, TLPageState } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { FIT_TO_SCREEN_PADDING } from './constants'
 
 export function getPagePoint(point: number[], pageState: TLPageState) {

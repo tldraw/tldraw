@@ -1,4 +1,4 @@
-import type { TLBounds } from '@tldraw/core'
+import type { TLBounds } from '@tlslides/core'
 import { AlignStyle, ShapeStyles } from '~types'
 import { getFontFace, getFontSize } from './shape-styles'
 import { getTextAlign } from './getTextAlign'

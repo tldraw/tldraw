@@ -1,4 +1,4 @@
-import { TDDocument, TldrawApp } from '@tldraw/tldraw'
+import { TDDocument, TldrawApp } from '@tlslides/tldraw'
 
 export const defaultDocument: TDDocument = {
   id: 'doc',

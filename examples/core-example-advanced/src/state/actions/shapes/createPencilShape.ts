@@ -1,4 +1,4 @@
-import type { TLPointerInfo } from '@tldraw/core'
+import type { TLPointerInfo } from '@tlslides/core'
 import type { Action } from 'state/constants'
 import { shapeUtils } from 'shapes'
 import { getPagePoint } from 'state/helpers'

@@ -51,7 +51,7 @@ The `Tldraw` React component is the [tldraw](https://tldraw.com) editor exported
 You can use the `useFileSystem` hook to get prepared callbacks for `onNewProject`, `onOpenProject`, `onSaveProject`, and `onSaveProjectAs`. These callbacks allow a user to save files via the [FileSystem](https://developer.mozilla.org/en-US/docs/Web/API/FileSystem) API.
 
 ```ts
-import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, useFileSystem } from '@tlslides/tldraw'
 
 function App() {
   const fileSystemEvents = useFileSystem()
@@ -70,7 +70,7 @@ You can initialize or control the `<Tldraw>` component via its `document` proper
 - `version` - The document's version, used internally for migrations.
 
 ```ts
-import { TDDocument, TldrawApp } from '@tldraw/tldraw'
+import { TDDocument, TldrawApp } from '@tlslides/tldraw'
 
 const myDocument: TDDocument = {
   id: 'doc',
@@ -101,7 +101,7 @@ function App() {
 }
 ```
 
-**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tldraw/core](/packages/core) library.
+**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tlslides/core](/packages/core) library.
 
 **Tip:** The `assets` in tldraw is a table of `TDAssets` (images and videos).
 
@@ -206,7 +206,7 @@ A binding is a connection **from** one shape and **to** another shape. At the mo
 You can change the `tldraw` component's state through an imperative API called `TldrawApp`. To access this API, use the `onMount` callback, or any of the component's callback props, like `onPersist`.
 
 ```tsx
-import { Tldraw, TldrawApp } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp } from '@tlslides/tldraw'
 
 function App() {
   const handleMount = React.useCallback((app: TldrawApp) => {

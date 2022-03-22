@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tlslides/tldraw'
 
 export default function Persisted(): JSX.Element {
   return (

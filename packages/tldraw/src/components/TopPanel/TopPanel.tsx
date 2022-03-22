@@ -5,11 +5,13 @@ import { PageMenu } from './PageMenu'
 import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import { ToolButton, ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
 import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { MultiplayerMenu } from './MultiplayerMenu'
+import { DoubleArrowLeftIcon, DoubleArrowRightIcon, PlayIcon } from '@radix-ui/react-icons'
+import { Tooltip } from '~components/Primitives/Tooltip'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -32,31 +34,59 @@ export function TopPanel({
 }: TopPanelProps) {
   const app = useTldrawApp()
 
+  const toggleDeckVisibility = React.useCallback(() => {
+    app.setSetting('showDeck', (v) => !v)
+  }, [app])
+
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
-          {showMultiplayerMenu && <MultiplayerMenu />}
-          {showPages && <PageMenu />}
+          {/* {showMultiplayerMenu && <MultiplayerMenu />} */}
+          <TopPanelToolButton label="Undo" onClick={app.undo}>
+            <UndoIcon />
+          </TopPanelToolButton>
+          <TopPanelToolButton label="Redo" onClick={app.redo}>
+            <RedoIcon />
+          </TopPanelToolButton>
+          {showStyles && !readOnly && <StyleMenu />}
+          {showZoom && <ZoomMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && !readOnly && <StyleMenu />}
-          <MobileOnly bp={breakpoints}>
-            <ToolButton>
-              <UndoIcon onClick={app.undo} />
+          <Tooltip label="Start presentation mode" kbd="#⇧P">
+            <ToolButton variant="text" onClick={app.togglePresentationMode}>
+              <PlayIcon /> Present
             </ToolButton>
-            <ToolButton>
-              <RedoIcon onClick={app.redo} />
-            </ToolButton>
-          </MobileOnly>
-          {showZoom && <ZoomMenu />}
+          </Tooltip>
+          {showPages && <PageMenu />}
+          <TopPanelToolButton label="Toggle deck" onClick={toggleDeckVisibility}>
+            {app.settings.showDeck ? <DoubleArrowRightIcon /> : <DoubleArrowLeftIcon />}
+          </TopPanelToolButton>
         </Panel>
       )}
     </StyledTopPanel>
+  )
+}
+
+function TopPanelToolButton({
+  label,
+  kbd,
+  onClick,
+  children,
+}: {
+  label: string
+  kbd?: string
+  onClick?: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <Tooltip label={label} kbd={kbd}>
+      <ToolButton onClick={onClick}>{children}</ToolButton>
+    </Tooltip>
   )
 }
 

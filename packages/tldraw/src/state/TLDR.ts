@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tlslides/core'
 import {
   TDSnapshot,
   ShapesWithProp,
@@ -12,11 +12,15 @@ import {
   ArrowShape,
   TDHandle,
 } from '~types'
-import { Vec } from '@tldraw/vec'
+import { Vec } from '@tlslides/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getShapeUtil } from './shapes'
 import { deepCopy } from './StateManager/copy'
-import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import {
+  intersectRayBounds,
+  intersectRayEllipse,
+  intersectRayLineSegment,
+} from '@tlslides/intersect'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
 import { BINDING_DISTANCE } from '~constants'
 

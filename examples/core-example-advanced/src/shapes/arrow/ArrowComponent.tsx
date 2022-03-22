@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { TLShapeUtil, SVGContainer } from '@tldraw/core'
+import { TLShapeUtil, SVGContainer } from '@tlslides/core'
 import type { ArrowShape } from './ArrowShape'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 export const ArrowComponent = TLShapeUtil.Component<ArrowShape, SVGSVGElement>(
   ({ shape, events, isGhost, meta }, ref) => {

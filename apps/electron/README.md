@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/tldraw.png"/>
 </div>
 
-# @tldraw/electron
+# @tlslides/electron
 
 An experimental electron wrapper for [tldraw](https://tldraw.com).
 

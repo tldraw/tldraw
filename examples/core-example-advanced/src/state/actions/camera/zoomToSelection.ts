@@ -1,9 +1,9 @@
 import { Action, FIT_TO_SCREEN_PADDING } from 'state/constants'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { mutables } from 'state/mutables'
 import { getShapeUtils } from 'shapes'
 import { getZoomFitCamera } from 'state/helpers'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 export const zoomToSelection: Action = (data) => {
   const { camera, selectedIds } = data.pageState

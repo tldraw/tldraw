@@ -1,4 +1,4 @@
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import type { TldrawCommand, TDShape } from '~types'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '../../internal'

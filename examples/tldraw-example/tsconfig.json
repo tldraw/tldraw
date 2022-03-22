@@ -9,10 +9,10 @@
     "emitDeclarationOnly": false,
     "paths": {
       "~*": ["./src/*"],
-      "@tldraw/core": ["../../packages/core"],
-      "@tldraw/tldraw": ["../../packages/tldraw"],
-      "@tldraw/vec": ["../../packages/vec"],
-      "@tldraw/intersect": ["../../packages/intersect"]
+      "@tlslides/core": ["../../packages/core"],
+      "@tlslides/tldraw": ["../../packages/tldraw"],
+      "@tlslides/vec": ["../../packages/vec"],
+      "@tlslides/intersect": ["../../packages/intersect"]
     }
   },
   "references": [

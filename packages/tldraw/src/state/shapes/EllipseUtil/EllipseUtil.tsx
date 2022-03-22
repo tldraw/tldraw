@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { Utils, SVGContainer, TLBounds } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { defaultStyle, getShapeStyle, getFontStyle } from '~state/shapes/shared'
 import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
 import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
@@ -9,7 +9,7 @@ import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,
   intersectRayEllipse,
-} from '@tldraw/intersect'
+} from '@tlslides/intersect'
 import { getEllipseIndicatorPath } from './ellipseHelpers'
 import { DrawEllipse } from './components/DrawEllipse'
 import { DashedEllipse } from './components/DashedEllipse'

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { styled } from '~styles'
+import { dark, styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
-import { useTldrawApp } from '~hooks'
+import { useTheme, useTldrawApp } from '~hooks'
 import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportTypes } from '~types'
 import {
   AlignBottomIcon,
@@ -56,6 +56,7 @@ interface InnerContextMenuProps {
 
 const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProps) {
   const app = useTldrawApp()
+  const { theme } = useTheme()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const isDebugMode = app.useStore(isDebugModeSelector)
   const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
@@ -162,6 +163,7 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
       asChild
       tabIndex={-1}
       onBlur={onBlur}
+      className={theme === 'dark' ? dark : ''}
     >
       <MenuContent id="TD-ContextMenu">
         {hasSelection ? (

@@ -1,4 +1,4 @@
-import { TLBounds, TLShape, TLShapeUtil } from '@tldraw/core'
+import { TLBounds, TLShape, TLShapeUtil } from '@tlslides/core'
 
 export abstract class CustomShapeUtil<
   T extends TLShape,

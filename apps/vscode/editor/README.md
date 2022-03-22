@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/vscode-editor
+# @tlslides/vscode-editor
 
 The app for the tldraw VS Code Extension.
 

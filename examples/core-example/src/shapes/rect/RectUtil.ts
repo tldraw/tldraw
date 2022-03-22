@@ -1,4 +1,4 @@
-import { TLBounds, TLShapeUtil } from '@tldraw/core'
+import { TLBounds, TLShapeUtil } from '@tlslides/core'
 import { RectComponent } from './RectComponent'
 import { RectIndicator } from './RectIndicator'
 import type { RectShape } from './RectShape'

@@ -1,6 +1,6 @@
 {
   "version": "1.7.0",
-  "name": "@tldraw/vec",
+  "name": "@tlslides/vec",
   "description": "2D vector utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",
   "repository": {

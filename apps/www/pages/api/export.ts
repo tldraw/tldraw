@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
-import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
+import { TDExport, TDExportTypes, TldrawApp } from '@tlslides/tldraw'
 
 const cors = Cors({
   methods: ['POST'],

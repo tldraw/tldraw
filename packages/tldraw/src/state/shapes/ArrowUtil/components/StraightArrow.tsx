@@ -1,5 +1,5 @@
-import { Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import * as React from 'react'
 import { getShapeStyle } from '~state/shapes/shared'
 import type { Decoration, ShapeStyles } from '~types'

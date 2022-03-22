@@ -3,7 +3,7 @@ import create, { UseBoundStore } from 'zustand'
 import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
 import type { Patch, Command } from '../../types'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 
 export class StateManager<T extends Record<string, any>> {
   /**

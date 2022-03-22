@@ -1,5 +1,5 @@
-import { Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { Utils } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'

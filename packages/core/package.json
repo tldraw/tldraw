@@ -1,6 +1,6 @@
 {
   "version": "1.9.1",
-  "name": "@tldraw/core",
+  "name": "@tlslides/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
   "repository": {
@@ -37,8 +37,8 @@
     "docs": "typedoc"
   },
   "dependencies": {
-    "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.0",
+    "@tlslides/intersect": "^1.7.1",
+    "@tlslides/vec": "^1.7.0",
     "@use-gesture/react": "^10.2.4",
     "mobx-react-lite": "^3.2.3",
     "resize-observer-polyfill": "^1.5.1"
@@ -48,8 +48,8 @@
     "react-dom": "^16.8 || ^17.0"
   },
   "devDependencies": {
-    "@tldraw/intersect": "*",
-    "@tldraw/vec": "*",
+    "@tlslides/intersect": "*",
+    "@tlslides/vec": "*",
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
@@ -92,7 +92,7 @@
       "<rootDir>/src/test/"
     ],
     "moduleNameMapper": {
-      "@tldraw/core": "<rootDir>/src",
+      "@tlslides/core": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }
   },

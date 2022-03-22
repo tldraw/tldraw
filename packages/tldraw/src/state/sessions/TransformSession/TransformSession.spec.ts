@@ -1,5 +1,5 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tlslides/core'
 import { TLDR } from '~state/TLDR'
 import { TDShapeType, TDStatus } from '~types'
 

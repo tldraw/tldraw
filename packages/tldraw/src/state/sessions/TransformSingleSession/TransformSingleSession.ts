@@ -6,8 +6,8 @@ import {
   TLBoundsWithCenter,
   TLBounds,
   TLPerformanceMode,
-} from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+} from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'

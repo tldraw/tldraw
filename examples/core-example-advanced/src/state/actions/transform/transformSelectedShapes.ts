@@ -1,4 +1,4 @@
-import type { TLPointerInfo } from '@tldraw/core'
+import type { TLPointerInfo } from '@tlslides/core'
 import type { Action } from 'state/constants'
 import { mutables } from 'state/mutables'
 import { resizeSelectedShapes } from './resizeSelectedShapes'

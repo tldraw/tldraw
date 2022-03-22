@@ -1,5 +1,5 @@
-import { intersectLineLine } from '@tldraw/intersect'
-import Vec from '@tldraw/vec'
+import { intersectLineLine } from '@tlslides/intersect'
+import Vec from '@tlslides/vec'
 
 const PI2 = Math.PI * 2
 

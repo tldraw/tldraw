@@ -1,5 +1,5 @@
 import type { TldrawCommand } from '~types'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import type { TldrawApp } from '../../internal'
 
 export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {

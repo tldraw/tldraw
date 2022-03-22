@@ -1,8 +1,9 @@
 import * as React from 'react'
 import { Content } from '@radix-ui/react-dropdown-menu'
-import { styled } from '~styles/stitches.config'
+import { dark, styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { stopPropagation } from '~components/stopPropagation'
+import { useTheme } from '~hooks'
 
 export interface DMContentProps {
   variant?: 'menu' | 'horizontal'
@@ -19,8 +20,10 @@ export function DMContent({
   variant,
   id,
 }: DMContentProps): JSX.Element {
+  const { theme } = useTheme()
   return (
     <Content
+      className={theme === 'dark' ? dark : ''}
       dir="ltr"
       align={align}
       sideOffset={sideOffset}
@@ -38,7 +41,7 @@ export const StyledContent = styled(MenuContent, {
   height: 'fit-content',
   minWidth: 0,
   maxHeight: '75vh',
-  overflowY: 'scroll',
+  // overflowY: 'scroll',
   '& *': {
     boxSizing: 'border-box',
   },

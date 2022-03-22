@@ -8,7 +8,7 @@
     "baseUrl": "src",
     "emitDeclarationOnly": false,
     "paths": {
-      "@tldraw/tldraw": ["../../../packages/tldraw"]
+      "@tlslides/tldraw": ["../../../packages/tldraw"]
     }
   },
   "references": [

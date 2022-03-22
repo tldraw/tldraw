@@ -1,5 +1,5 @@
-import { TLPerformanceMode, Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { TLPerformanceMode, Utils } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'

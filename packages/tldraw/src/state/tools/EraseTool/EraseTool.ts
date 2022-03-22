@@ -1,5 +1,5 @@
-import Vec from '@tldraw/vec'
-import type { TLPointerEventHandler } from '@tldraw/core'
+import Vec from '@tlslides/vec'
+import type { TLPointerEventHandler } from '@tlslides/core'
 import { SessionType } from '~types'
 import { BaseTool } from '../BaseTool'
 import { DEAD_ZONE } from '~constants'

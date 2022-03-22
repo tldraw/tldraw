@@ -1,5 +1,5 @@
 {
-  "name": "@tldraw/electron",
+  "name": "@tlslides/electron",
   "version": "1.6.1",
   "private": true,
   "description": "An electron app for tldraw.",
@@ -18,7 +18,7 @@
     "package": "electron-builder"
   },
   "devDependencies": {
-    "@tldraw/tldraw": "^1.6.1",
+    "@tlslides/tldraw": "^1.6.1",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",

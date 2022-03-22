@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { TLDR } from '~state/TLDR'
 import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, SessionType, TDShapeType } from '~types'

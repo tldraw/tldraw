@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tlslides/tldraw'
 
 export default function ChangingId() {
   const [id, setId] = React.useState('example')

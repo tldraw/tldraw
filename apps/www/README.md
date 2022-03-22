@@ -2,6 +2,6 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/www
+# @tlslides/www
 
 The [tldraw](https://tldraw.com) website.

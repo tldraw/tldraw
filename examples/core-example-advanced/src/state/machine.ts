@@ -1,7 +1,7 @@
 import { createState } from '@state-designer/react'
-import type { TLPointerInfo } from '@tldraw/core'
+import type { TLPointerInfo } from '@tlslides/core'
 import { INITIAL_DATA } from './constants'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import * as actions from './actions'
 import { mutables } from './mutables'
 

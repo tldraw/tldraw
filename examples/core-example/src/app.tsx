@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Renderer, TLPointerEventHandler, TLShapeUtilsMap } from '@tldraw/core'
+import { Renderer, TLPointerEventHandler, TLShapeUtilsMap } from '@tlslides/core'
 import { RectUtil, Shape } from './shapes'
 import { Page, PageState } from './stores'
 import { observer } from 'mobx-react-lite'

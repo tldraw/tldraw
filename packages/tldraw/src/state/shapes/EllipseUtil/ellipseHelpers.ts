@@ -1,4 +1,4 @@
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { EASINGS } from '~constants'
 import type { ShapeStyles } from '~types'

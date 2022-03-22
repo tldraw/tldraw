@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Utils, HTMLContainer } from '@tldraw/core'
+import { Utils, HTMLContainer } from '@tlslides/core'
 import { TDShapeType, TDMeta, VideoShape, TDVideoAsset } from '~types'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
@@ -10,7 +10,7 @@ import {
   transformSingleRectangle,
 } from '~state/shapes/shared'
 import { styled } from '@stitches/react'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 type T = VideoShape
 type E = HTMLDivElement

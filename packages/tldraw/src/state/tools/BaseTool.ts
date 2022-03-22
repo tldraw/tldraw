@@ -4,7 +4,7 @@ import {
   TLPointerEventHandler,
   TLWheelEventHandler,
   Utils,
-} from '@tldraw/core'
+} from '@tlslides/core'
 import type { TldrawApp } from '../internal'
 import { TDEventHandler, TDToolType } from '~types'
 

@@ -81,13 +81,13 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
             <DropdownMenu.RadioItem
-              title={page.name || 'Page'}
+              title={page.name || 'Slide'}
               value={page.id}
               key={page.id}
               asChild
             >
               <PageButton>
-                <span>{page.name || 'Page'}</span>
+                <span>{page.name || 'Slide'}</span>
                 <DropdownMenu.ItemIndicator>
                   <SmallIcon>
                     <CheckIcon />
@@ -102,7 +102,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
       <DMDivider />
       <DropdownMenu.Item onSelect={handleCreatePage} asChild>
         <RowButton>
-          <span>Create Page</span>
+          <span>Add Slide</span>
           <SmallIcon>
             <PlusIcon />
           </SmallIcon>

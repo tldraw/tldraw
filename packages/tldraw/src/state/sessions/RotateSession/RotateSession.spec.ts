@@ -1,5 +1,5 @@
-import Vec from '@tldraw/vec'
-import { Utils } from '@tldraw/core'
+import Vec from '@tlslides/vec'
+import { Utils } from '@tlslides/core'
 import { mockDocument, TldrawTestApp } from '~test'
 import { SessionType, TDStatus } from '~types'
 

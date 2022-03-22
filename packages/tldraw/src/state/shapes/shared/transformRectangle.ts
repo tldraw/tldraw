@@ -1,5 +1,5 @@
-import type { TLBounds, TLShape, TLTransformInfo } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import type { TLBounds, TLShape, TLTransformInfo } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 
 /**
  * Transform a rectangular shape.

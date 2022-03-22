@@ -131,6 +131,52 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
+  // Presentation Mode
+
+  useHotkeys(
+    'ctrl+shift+p,⌘+shift+p',
+    (e) => {
+      if (!canHandleEvent(true)) return
+      app.togglePresentationMode()
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'esc',
+    (e) => {
+      if (!canHandleEvent(true) || !app.settings.isPresentationMode) return
+      app.togglePresentationMode()
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'left',
+    (e) => {
+      if (!canHandleEvent(true) || !app.settings.isPresentationMode) return
+      app.previousPage()
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'right',
+    (e) => {
+      if (!canHandleEvent(true) || !app.settings.isPresentationMode) return
+      app.nextPage()
+      e.preventDefault()
+    },
+    undefined,
+    [app]
+  )
+
   // Focus Mode
 
   useHotkeys(

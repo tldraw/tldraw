@@ -5,7 +5,7 @@ const themeSelector = (data: TDSnapshot): Theme => (data.settings.isDarkMode ? '
 
 export function useTheme() {
   const app = useTldrawApp()
-  const theme = app.useStore(themeSelector)
+  const theme: Theme = app.useStore(themeSelector)
 
   return {
     theme,

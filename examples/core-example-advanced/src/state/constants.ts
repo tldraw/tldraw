@@ -1,4 +1,4 @@
-import type { TLBinding, TLPage, TLPageState, TLPerformanceMode, TLSnapLine } from '@tldraw/core'
+import type { TLBinding, TLPage, TLPageState, TLPerformanceMode, TLSnapLine } from '@tlslides/core'
 import type { Shape } from '../shapes'
 import type { S } from '@state-designer/react'
 

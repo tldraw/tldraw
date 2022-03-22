@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withPWA = require('next-pwa')
 const SentryWebpackPlugin = require('@sentry/webpack-plugin')
-const withTM = require('next-transpile-modules')(['@tldraw/tldraw', '@tldraw/core'])
+const withTM = require('next-transpile-modules')(['@tlslides/tldraw', '@tlslides/core'])
 
 const {
   GITHUB_ID,

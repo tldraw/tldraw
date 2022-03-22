@@ -1,5 +1,5 @@
-import { Utils } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { Utils } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
 import type { ShapeStyles } from '~types'
 import { getShapeStyle } from '../shared'

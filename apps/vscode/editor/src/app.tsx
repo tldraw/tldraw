@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tlslides/tldraw'
 import { vscode } from './utils/vscode'
 import { defaultDocument } from './utils/defaultDocument'
 import type { MessageFromExtension, MessageFromWebview } from './types'

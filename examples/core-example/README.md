@@ -1,3 +1,3 @@
-# @tldraw/core Simple Example
+# @tlslides/core Simple Example
 
-A (relatively) simple example project for `@tldraw/core`.
+A (relatively) simple example project for `@tlslides/core`.

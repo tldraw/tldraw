@@ -18,7 +18,7 @@
 
 - Fix publish version.
 - Updated dependencies
-  - @tldraw/core@1.9.1
+  - @tlslides/core@1.9.1
 
 ## 1.9.0
 
@@ -33,7 +33,7 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @tldraw/core@1.9.0
+  - @tlslides/core@1.9.0
 
 ## 1.8.1
 
@@ -52,8 +52,8 @@
 - e8dd64ba: Fix text in multiplayer
 - Updated dependencies
 - Updated dependencies [e8dd64ba]
-  - @tldraw/core@1.8.0
-  - @tldraw/intersect@1.7.1
+  - @tlslides/core@1.8.0
+  - @tlslides/intersect@1.7.1
 
 ## 1.7.0
 
@@ -64,9 +64,9 @@
 ### Patch Changes
 
 - Updated dependencies
-  - @tldraw/core@1.7.0
-  - @tldraw/intersect@1.7.0
-  - @tldraw/vec@1.7.0
+  - @tlslides/core@1.7.0
+  - @tlslides/intersect@1.7.0
+  - @tlslides/vec@1.7.0
 
 ## 1.6.1
 
@@ -165,7 +165,7 @@
 
 ## 1.2.2
 
-- Updates @tldraw/core.
+- Updates @tlslides/core.
 
 ## 1.1.6
 
@@ -320,7 +320,7 @@ New
 
 ### tldraw
 
-- Updated with latest `@tldraw/core`, updated ShapeUtils API.
+- Updated with latest `@tlslides/core`, updated ShapeUtils API.
 
 ## 0.0.130
 

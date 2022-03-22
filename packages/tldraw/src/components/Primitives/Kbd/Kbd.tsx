@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import { Utils } from '@tldraw/core'
+import { Utils } from '@tlslides/core'
 
 /* -------------------------------------------------- */
 /*                  Keyboard Shortcut                 */

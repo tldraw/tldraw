@@ -1,5 +1,5 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
-import Vec from '@tldraw/vec'
+import { Utils, TLPointerEventHandler } from '@tlslides/core'
+import Vec from '@tlslides/vec'
 import { Arrow } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'

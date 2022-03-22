@@ -1,4 +1,4 @@
-import type { TLBinding } from '@tldraw/core'
+import type { TLBinding } from '@tlslides/core'
 import type { Action } from 'state/constants'
 
 export const updateBindings: Action = (

@@ -14,8 +14,8 @@ Welcome to the [tldraw](https://tldraw.com) monorepo.
 
 This repository is a monorepo containing two packages:
 
-- [**packages/tldraw**](https://github.com/tldraw/tldraw/tree/main/packages/tldraw) contains the source for the [@tldraw/tldraw](https://www.npmjs.com/package/@tldraw/tldraw) package. This is an editor as a React component named `<Tldraw>`. You can use this package to embed the tldraw editor in any React application.
-- [**packages/core**](https://github.com/tldraw/tldraw/tree/main/packages/core) contains the source for the [@tldraw/core](https://www.npmjs.com/package/@tldraw/core) package. This is a renderer for React components in a canvas-style UI. It is used by `@tldraw/tldraw` as well as several other projects.
+- [**packages/tldraw**](https://github.com/tldraw/tldraw/tree/main/packages/tldraw) contains the source for the [@tlslides/tldraw](https://www.npmjs.com/package/@tlslides/tldraw) package. This is an editor as a React component named `<Tldraw>`. You can use this package to embed the tldraw editor in any React application.
+- [**packages/core**](https://github.com/tldraw/tldraw/tree/main/packages/core) contains the source for the [@tlslides/core](https://www.npmjs.com/package/@tlslides/core) package. This is a renderer for React components in a canvas-style UI. It is used by `@tlslides/tldraw` as well as several other projects.
 
 ...and three apps:
 
@@ -25,9 +25,9 @@ This repository is a monorepo containing two packages:
 
 ...and three examples:
 
-- [**examples/core-example**](https://github.com/tldraw/tldraw/tree/main/examples/core-example) is a simple example for `@tldraw/core`.
-- [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tldraw/core`.
-- [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tldraw/tldraw`.
+- [**examples/core-example**](https://github.com/tldraw/tldraw/tree/main/examples/core-example) is a simple example for `@tlslides/core`.
+- [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tlslides/core`.
+- [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tlslides/tldraw`.
 
 ## Discussion
 

@@ -1,5 +1,5 @@
 import type { TldrawCommand, TDPage } from '~types'
-import { Utils, TLPageState } from '@tldraw/core'
+import { Utils, TLPageState } from '@tlslides/core'
 import type { TldrawApp } from '~state'
 
 export function createPage(
@@ -16,7 +16,7 @@ export function createPage(
   const nextChildIndex = topPage?.childIndex ? topPage?.childIndex + 1 : 1
 
   // TODO: Iterate the name better
-  const nextName = `New Page`
+  const nextName = `New Slide`
 
   const page: TDPage = {
     id: pageId,

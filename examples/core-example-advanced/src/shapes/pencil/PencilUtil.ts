@@ -1,15 +1,15 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { Utils, TLBounds } from '@tlslides/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
   intersectLineSegmentPolyline,
-} from '@tldraw/intersect'
+} from '@tlslides/intersect'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'
 import { PencilComponent } from './PencilComponent'
 import { PencilIndicator } from './PenclIndicator'
 import type { PencilShape } from './PencilShape'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 
 type T = PencilShape
 type E = SVGSVGElement

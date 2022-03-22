@@ -1,4 +1,4 @@
-import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { TLBoundsCorner, Utils } from '@tlslides/core'
 import { TLDR } from '~state/TLDR'
 import { mockDocument, TldrawTestApp } from '~test'
 import { SessionType, TDShapeType } from '~types'

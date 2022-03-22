@@ -1,12 +1,12 @@
 {
-  "name": "@tldraw/monorepo",
+  "name": "@tlslides/monorepo",
   "private": true,
   "version": "1.6.2",
-  "description": "A tiny little drawing app.",
-  "author": "@steveruizok",
+  "description": "Create slides using tldraw.",
+  "author": "@nimeshnayaju",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tldraw/tldraw.git"
+    "url": "https://github.com/nimeshnayaju/tlslides.git"
   },
   "license": "MIT",
   "workspaces": [

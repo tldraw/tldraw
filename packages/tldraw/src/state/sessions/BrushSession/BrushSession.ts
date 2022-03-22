@@ -1,4 +1,4 @@
-import { TLBounds, Utils } from '@tldraw/core'
+import { TLBounds, Utils } from '@tlslides/core'
 import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'

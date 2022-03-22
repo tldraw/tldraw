@@ -1,5 +1,5 @@
 import { FlipType } from '~types'
-import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { TLBoundsCorner, Utils } from '@tlslides/core'
 import type { TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'

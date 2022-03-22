@@ -8,10 +8,10 @@ import {
   TLKeyboardEventHandler,
   TLShapeCloneHandler,
   Utils,
-} from '@tldraw/core'
+} from '@tlslides/core'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import { TLDR } from '~state/TLDR'
 import { CLONING_DISTANCE, DEAD_ZONE } from '~constants'
 

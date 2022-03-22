@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
+import { Utils, TLBounds, SVGContainer } from '@tlslides/core'
+import { Vec } from '@tlslides/vec'
 import { defaultStyle } from '../shared/shape-styles'
 import { ArrowShape, TransformInfo, Decoration, TDShapeType, DashStyle, TDMeta } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
@@ -8,7 +8,7 @@ import {
   intersectArcBounds,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
-} from '@tldraw/intersect'
+} from '@tlslides/intersect'
 import { GHOSTED_OPACITY } from '~constants'
 import {
   getArcLength,

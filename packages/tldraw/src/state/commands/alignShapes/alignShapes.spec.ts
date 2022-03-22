@@ -1,4 +1,4 @@
-import Vec from '@tldraw/vec'
+import Vec from '@tlslides/vec'
 import { mockDocument, TldrawTestApp } from '~test'
 import { AlignType, TDShapeType } from '~types'
 

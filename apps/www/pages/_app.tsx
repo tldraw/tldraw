@@ -7,10 +7,10 @@ import type React from 'react'
 
 init()
 
-const APP_NAME = 'tldraw'
-const APP_DESCRIPTION = 'A tiny little drawing app.'
-const APP_URL = 'https://tldraw.com'
-const IMAGE = 'https://tldraw.com/social-image.png'
+const APP_NAME = 'tlslides'
+const APP_DESCRIPTION = 'Create slides using tldraw.'
+const APP_URL = 'https://tlslides.com'
+const IMAGE = 'https://tlslides.com/social-image.png'
 
 function MyApp({ Component, pageProps }: AppProps) {
   useGtag()
@@ -26,14 +26,6 @@ function MyApp({ Component, pageProps }: AppProps) {
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="theme-color" content="#fafafa" />
-
-        <meta name="twitter:url" content={APP_URL} />
-        <meta name="twitter:title" content={APP_NAME} />
-        <meta name="twitter:description" content={APP_DESCRIPTION} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:creator" content="@tldraw" />
-        <meta name="twitter:site" content="@tldraw" />
-        <meta name="twitter:image" content={IMAGE} />
 
         <meta property="og:type" content="website" />
         <meta property="og:title" content={APP_NAME} />
@@ -51,7 +43,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
 
-        <title>tldraw</title>
+        <title>tlslides</title>
       </Head>
       <Component {...pageProps} />
     </>

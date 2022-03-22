@@ -1,6 +1,6 @@
-# Welcome to the tldraw contributing guide <!-- omit in toc -->
+# Welcome to the tlslides contributing guide <!-- omit in toc -->
 
-Thank you for investing your time in contributing to our project! Any contribution you make will be reflected in the @tldraw/tldraw package and at [tldraw.com](https://tldraw.com).
+Thank you for investing your time in contributing to our project! Any contribution you make will be reflected in the `@tlslides/tlslides` package and at [tlslides.com](https://tlslides.com).
 
 Read our [Code of Conduct](./CODE_OF_CONDUCT.md) to keep our community approachable and respectable.
 
@@ -15,21 +15,17 @@ To get an overview of the project, read the [README](README.md). Here are some r
 - [Finding ways to contribute to open source on GitHub](https://docs.github.com/en/get-started/exploring-projects-on-github/finding-ways-to-contribute-to-open-source-on-github)
 - [Set up Git](https://docs.github.com/en/get-started/quickstart/set-up-git)
 - [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow)
-- [Collaborating with pull requests](https://docs.github.com/en/github/collaborating-with-pull-requests)
-
-## Getting started
-
-Join the [Discord channel](https://discord.gg/SBBEVCA4PG). If you have questions or feedback, this is the best place to reach the team and other contributors directly.
+- [Collaborating with pull requests](https://docs.github.com/en/github/collaborating-with-pull-requests)directly.
 
 ### Issues
 
 #### Create a new issue
 
-If you spot a problem, [search if an issue already exists](https://github.com/tldraw/tldraw/issues). If a related issue doesn't exist, you can open a new issue using a relevant [issue form](https://github.com/tldraw/tldraw/issues/new/choose).
+If you spot a problem, [search if an issue already exists](https://github.com/nimeshnayaju/tlslides/issues). If a related issue doesn't exist, you can open a new issue using a relevant [issue form](https://github.com/nimeshnayaju/tlslides/issues/new/choose).
 
 #### Solve an issue
 
-Scan through our [existing issues](https://github.com/tldraw/tldraw/issues) to find one that interests you. You can narrow down the search using `labels` as filters. See [Labels](/contributing/how-to-use-labels.md) for more information. If you find an issue to work on, you are welcome to open a PR with a fix.
+Scan through our [existing issues](https://github.com/nimeshnayaju/tlslides/issues) to find one that interests you. You can narrow down the search using `labels` as filters. See [Labels](/contributing/how-to-use-labels.md) for more information. If you find an issue to work on, you are welcome to open a PR with a fix.
 
 ### Make Changes
 
@@ -75,6 +71,6 @@ When you're finished with the changes, create a pull request, also known as a PR
 
 ### Your PR is merged!
 
-Congratulations :tada::tada: The GitHub team thanks you :sparkles:.
+Congratulations :tada::tada:
 
-Once your PR is merged, your contributions will become part of the next tldraw release, and will be visible in the [tldraw app](https://tldraw.com).
+Once your PR is merged, your contributions will become part of the next tlslides release, and will be visible in the [tlslides app](https://tlslides.com).

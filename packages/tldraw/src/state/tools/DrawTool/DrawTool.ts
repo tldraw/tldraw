@@ -1,4 +1,4 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { Utils, TLPointerEventHandler } from '@tlslides/core'
 import { Draw } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool } from '../BaseTool'

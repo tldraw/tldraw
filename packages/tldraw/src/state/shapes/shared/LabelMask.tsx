@@ -1,4 +1,4 @@
-import type { TLBounds } from '@tldraw/core'
+import type { TLBounds } from '@tlslides/core'
 import * as React from 'react'
 
 interface WithLabelMaskProps {

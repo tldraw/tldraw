@@ -1,6 +1,6 @@
 {
   "version": "1.7.1",
-  "name": "@tldraw/intersect",
+  "name": "@tlslides/intersect",
   "description": "2D intersection utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",
   "repository": {
@@ -33,10 +33,10 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@tldraw/vec": "^1.7.0"
+    "@tlslides/vec": "^1.7.0"
   },
   "devDependencies": {
-    "@tldraw/vec": "*",
+    "@tlslides/vec": "*",
     "lask": "^0.0.29"
   },
   "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"

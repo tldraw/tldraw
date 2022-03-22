@@ -1,6 +1,6 @@
 import React from 'react'
 import * as gtag from 'utils/gtag'
-import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tlslides/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { exportToImage } from 'utils/export'
 

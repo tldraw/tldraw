@@ -2,6 +2,8 @@ import * as React from 'react'
 import { Root, TriggerItem, Content, Arrow } from '@radix-ui/react-dropdown-menu'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
+import { useTheme } from '~hooks'
+import { dark } from '~styles'
 
 export interface DMSubMenuProps {
   label: string
@@ -18,6 +20,7 @@ export function DMSubMenu({
   label,
   id,
 }: DMSubMenuProps): JSX.Element {
+  const { theme } = useTheme()
   return (
     <span id={id}>
       <Root dir="ltr">
@@ -26,7 +29,13 @@ export function DMSubMenu({
             {label}
           </RowButton>
         </TriggerItem>
-        <Content dir="ltr" asChild sideOffset={2} alignOffset={-2}>
+        <Content
+          className={theme === 'dark' ? dark : ''}
+          dir="ltr"
+          asChild
+          sideOffset={2}
+          alignOffset={-2}
+        >
           <MenuContent size={size}>
             {children}
             <Arrow offset={13} />

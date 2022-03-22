@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/vec
+# @tlslides/vec
 
 This package contains the vector methods used by [tldraw](https://tldraw.com).
 
@@ -11,9 +11,9 @@ This package contains the vector methods used by [tldraw](https://tldraw.com).
 ## Installation
 
 ```bash
-yarn add @tldraw/vec
+yarn add @tlslides/vec
 # or
-npm i @tldraw/vec
+npm i @tlslides/vec
 ```
 
 ## Community

@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/core
+# @tlslides/core
 
 This package contains the `Renderer` and core utilities used by [tldraw](https://tldraw.com).
 
@@ -12,12 +12,12 @@ You can use this package to build projects like [tldraw](https://tldraw.com), wh
 
 ## Installation
 
-Use your package manager of choice to install `@tldraw/core` and its peer dependencies.
+Use your package manager of choice to install `@tlslides/core` and its peer dependencies.
 
 ```bash
-yarn add @tldraw/core
+yarn add @tlslides/core
 # or
-npm i @tldraw/core
+npm i @tlslides/core
 ```
 
 ## Examples
@@ -26,7 +26,7 @@ There are two examples in this repository.
 
 The **simple** example in the `example` folder shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.
 
-The **advanced** example in the `example-advanced` folder shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tldraw/tldraw](https://tldraw.com) codebase.
+The **advanced** example in the `example-advanced` folder shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tlslides/tldraw](https://tldraw.com) codebase.
 
 If you're working on an app that uses this library, I recommend referring back to the advanced example for tips on how you might implement these features for your own project.
 
@@ -36,7 +36,7 @@ Import the `Renderer` React component and pass it the required props.
 
 ```tsx
 import * as React from "react"
-import { Renderer, TLShape, TLShapeUtil, Vec } from '@tldraw/core'
+import { Renderer, TLShape, TLShapeUtil, Vec } from '@tlslides/core'
 import { BoxShape, BoxUtil } from "./shapes/box"
 
 const shapeUtils = { box: new BoxUtil() }
@@ -166,7 +166,7 @@ The Renderer also accepts many (optional) event callbacks.
 | `onBoundsChange`            | The Renderer's screen bounding box of the component changed |
 | `onError`                   | The Renderer encountered an error                           |
 
-The `@tldraw/core` library provides types for most of the event handlers:
+The `@tlslides/core` library provides types for most of the event handlers:
 
 | Type                         |
 | ---------------------------- |
@@ -216,7 +216,7 @@ An object describing the current page's assets. It contains:
 | `id`     | `string` | A unique id for the asset. |
 | `type`   | `string` | The type of the asset.     |
 
-Assets are used for shared resources, such as serialized images and videos in the `@tldraw/tldraw` app. If a shape has an `assetId` property, its component will receive the corresponding asset in the component's props. Like shapes, this interface is meant to be extended with additional properties relevant to the type of asset used (e.g. size, duration, url).
+Assets are used for shared resources, such as serialized images and videos in the `@tlslides/tldraw` app. If a shape has an `assetId` property, its component will receive the corresponding asset in the component's props. Like shapes, this interface is meant to be extended with additional properties relevant to the type of asset used (e.g. size, duration, url).
 
 ### `TLShape`
 
@@ -298,7 +298,7 @@ Your first task is to define an interface for the shape that extends `TLShape`. 
 
 ```ts
 // BoxShape.ts
-import type { TLShape } from '@tldraw/core'
+import type { TLShape } from '@tlslides/core'
 
 export interface BoxShape extends TLShape {
   type: 'box'
@@ -314,7 +314,7 @@ Next, use `TLShapeUtil.Component` to create a second component for your shape's 
 // BoxComponent.ts
 
 import * as React from 'react'
-import { shapeComponent, SVGContainer } from '@tldraw/core'
+import { shapeComponent, SVGContainer } from '@tlslides/core'
 import type { BoxShape } from './BoxShape'
 
 export const BoxComponent = TLShapeUtil.Component<BoxShape, SVGSVGElement>(
@@ -392,7 +392,7 @@ Next, create a "shape util" for your shape. This is a class that extends `TLShap
 ```ts
 // BoxUtil.ts
 
-import { Utils, TLBounds, TLShapeUtil } from '@tldraw/core'
+import { Utils, TLBounds, TLShapeUtil } from '@tlslides/core'
 import { BoxComponent } from './BoxComponent'
 import { BoxIndicator } from './BoxIndicator'
 import type { BoxShape } from './BoxShape'

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TDShape, Tldraw } from '@tldraw/tldraw'
+import { TDShape, Tldraw } from '@tlslides/tldraw'
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
 import { useMultiplayerState } from './useMultiplayerState'

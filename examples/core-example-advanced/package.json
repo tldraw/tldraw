@@ -1,7 +1,7 @@
 {
   "version": "1.6.1",
-  "name": "@tldraw/core-example-advanced",
-  "description": "An advanced example project for @tldraw/core.",
+  "name": "@tlslides/core-example-advanced",
+  "description": "An advanced example project for @tlslides/core.",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
@@ -18,9 +18,9 @@
   "devDependencies": {
     "@state-designer/react": "^3.0.0",
     "@stitches/react": "^1.2.6",
-    "@tldraw/core": "^1.6.1",
-    "@tldraw/intersect": "^1.6.1",
-    "@tldraw/vec": "^1.6.1",
+    "@tlslides/core": "^1.6.1",
+    "@tlslides/intersect": "^1.6.1",
+    "@tlslides/vec": "^1.6.1",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",

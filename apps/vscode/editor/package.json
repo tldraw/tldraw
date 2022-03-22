@@ -1,5 +1,5 @@
 {
-  "name": "@tldraw/vscode-editor",
+  "name": "@tlslides/vscode-editor",
   "version": "1.7.1",
   "private": true,
   "description": "An an editor for the tldraw vscode extension.",
@@ -16,7 +16,7 @@
     "build:apps": "yarn build"
   },
   "devDependencies": {
-    "@tldraw/tldraw": "*",
+    "@tlslides/tldraw": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",

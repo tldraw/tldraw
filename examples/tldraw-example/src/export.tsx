@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TDExport, Tldraw } from '@tldraw/tldraw'
+import { TDExport, Tldraw } from '@tlslides/tldraw'
 
 export default function Export(): JSX.Element {
   const handleExport = React.useCallback(async (info: TDExport) => {

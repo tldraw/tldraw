@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Renderer } from '@tldraw/core'
+import { Renderer } from '@tlslides/core'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
@@ -12,6 +12,7 @@ import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
 import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
+import { Deck } from '~components/Deck'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -324,6 +325,11 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const { document, settings, appState, room } = state
 
+  React.useEffect(() => {
+    if (!rWrapper.current) return
+    rWrapper.current.focus()
+  }, [settings])
+
   const isSelecting = state.appState.activeTool === 'select'
 
   const page = document.pages[appState.currentPageId]
@@ -482,25 +488,30 @@ const InnerTldraw = React.memo(function InnerTldraw({
         />
       </ContextMenu>
       {showUI && (
-        <StyledUI>
-          {settings.isFocusMode ? (
-            <FocusButton onSelect={app.toggleFocusMode} />
-          ) : (
-            <>
-              <TopPanel
-                readOnly={readOnly}
-                showPages={showPages}
-                showMenu={showMenu}
-                showMultiplayerMenu={showMultiplayerMenu}
-                showStyles={showStyles}
-                showZoom={showZoom}
-                showSponsorLink={showSponsorLink}
-              />
-              <StyledSpacer />
-              {showTools && !readOnly && <ToolsPanel />}
-            </>
+        <>
+          <StyledUI>
+            {settings.isFocusMode ? (
+              !settings.isPresentationMode && <FocusButton onSelect={app.toggleFocusMode} />
+            ) : (
+              <>
+                <TopPanel
+                  readOnly={readOnly}
+                  showPages={showPages}
+                  showMenu={showMenu}
+                  showMultiplayerMenu={showMultiplayerMenu}
+                  showStyles={showStyles}
+                  showZoom={showZoom}
+                  showSponsorLink={showSponsorLink}
+                />
+                <StyledSpacer />
+                {showTools && !readOnly && <ToolsPanel />}
+              </>
+            )}
+          </StyledUI>
+          {!settings.isFocusMode && !settings.isPresentationMode && settings.showDeck && (
+            <Deck showPages={showPages} readOnly={readOnly} />
           )}
-        </StyledUI>
+        </>
       )}
     </StyledLayout>
   )
