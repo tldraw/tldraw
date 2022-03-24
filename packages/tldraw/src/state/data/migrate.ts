@@ -25,13 +25,15 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
         shape.parentId = page.id
       }
 
-      if (children) {
+      if (shape.type === TDShapeType.Group && children) {
         children.forEach((childId) => {
           if (!page.shapes[childId]) {
             console.warn('Encountered a parent with a missing child!', shape.id, childId)
             children?.splice(children.indexOf(childId), 1)
           }
         })
+
+        // TODO: Remove the shape if it has no children
       }
     })
   )

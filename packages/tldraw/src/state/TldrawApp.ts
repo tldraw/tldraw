@@ -265,6 +265,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* -------------------- Internal -------------------- */
 
+  protected migrate = (state: TDSnapshot): TDSnapshot => {
+    return {
+      ...state,
+      document: migrate(state.document, TldrawApp.version),
+    }
+  }
+
   protected onReady = () => {
     this.loadDocument(this.document)
 
