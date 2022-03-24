@@ -39,15 +39,7 @@ const MultiplayerEditor: FC<Props> = ({
 
 // Inner Editor
 
-function Editor({
-  roomId,
-  isUser,
-  isSponsor,
-}: {
-  roomId: string
-  isUser: boolean
-  isSponsor: boolean
-}) {
+function Editor({ roomId, isUser, isSponsor }: Props) {
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
