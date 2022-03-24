@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
 import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
 import { LiveMap, LiveObject } from '@liveblocks/client'
@@ -8,23 +8,23 @@ import { LiveMap, LiveObject } from '@liveblocks/client'
 declare const window: Window & { app: TldrawApp }
 
 export function useMultiplayerState(roomId: string) {
-  const [app, setApp] = React.useState<TldrawApp>()
-  const [error, setError] = React.useState<Error>()
-  const [loading, setLoading] = React.useState(true)
+  const [app, setApp] = useState<TldrawApp>()
+  const [error, setError] = useState<Error>()
+  const [loading, setLoading] = useState(true)
 
   const room = useRoom()
   const onUndo = useUndo()
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  const rLiveShapes = React.useRef<LiveMap<string, TDShape>>()
-  const rLiveBindings = React.useRef<LiveMap<string, TDBinding>>()
-  const rLiveAssets = React.useRef<LiveMap<string, TDAsset>>()
+  const rLiveShapes = useRef<LiveMap<string, TDShape>>()
+  const rLiveBindings = useRef<LiveMap<string, TDBinding>>()
+  const rLiveAssets = useRef<LiveMap<string, TDAsset>>()
 
   // Callbacks --------------
 
   // Put the state into the window, for debugging.
-  const onMount = React.useCallback(
+  const onMount = useCallback(
     (app: TldrawApp) => {
       app.loadRoom(roomId)
       app.pause() // Turn off the app's own undo / redo stack
@@ -35,7 +35,7 @@ export function useMultiplayerState(roomId: string) {
   )
 
   // Update the live shapes when the app's shapes change.
-  const onChangePage = React.useCallback(
+  const onChangePage = useCallback(
     (
       app: TldrawApp,
       shapes: Record<string, TDShape | undefined>,
@@ -78,7 +78,7 @@ export function useMultiplayerState(roomId: string) {
   )
 
   // Handle presence updates when the user's pointer / selection changes
-  const onChangePresence = React.useCallback(
+  const onChangePresence = useCallback(
     (app: TldrawApp, user: TDUser) => {
       updateMyPresence({ id: app.room?.userId, user })
     },

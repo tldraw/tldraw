@@ -1,28 +1,26 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import { Tldraw, TldrawApp, TDFile, TDDocument } from '@tldraw/tldraw'
-import { vscode } from './utils/vscode'
-import { defaultDocument } from './utils/defaultDocument'
-import type { MessageFromExtension, MessageFromWebview } from './types'
+import { TDDocument, TDFile, Tldraw, TldrawApp } from '@tldraw/tldraw'
+import { FC, useCallback, useEffect, useRef } from 'react'
 import { exportToImage } from 'utils/export'
+import type { MessageFromExtension, MessageFromWebview } from './types'
+import { defaultDocument } from './utils/defaultDocument'
+import { vscode } from './utils/vscode'
 
 // Will be placed in global scope by extension
 declare let currentFile: TDFile
 
-export default function App(): JSX.Element {
-  const rLoaded = React.useRef(false)
-  const rTldrawApp = React.useRef<TldrawApp>()
-  const rInitialDocument = React.useRef<TDDocument>(
-    currentFile ? currentFile.document : defaultDocument
-  )
+const App: FC = () => {
+  const rLoaded = useRef(false)
+  const rTldrawApp = useRef<TldrawApp>()
+  const rInitialDocument = useRef<TDDocument>(currentFile ? currentFile.document : defaultDocument)
 
   // When the editor mounts, save the state instance in a ref.
-  const handleMount = React.useCallback((app: TldrawApp) => {
+  const handleMount = useCallback((app: TldrawApp) => {
     rTldrawApp.current = app
   }, [])
 
   // When the editor's document changes, post the stringified document to the vscode extension.
-  const handlePersist = React.useCallback((app: TldrawApp) => {
+  const handlePersist = useCallback((app: TldrawApp) => {
     vscode.postMessage({
       type: 'editorUpdated',
       text: JSON.stringify({
@@ -34,7 +32,7 @@ export default function App(): JSX.Element {
   }, [])
 
   // When the file changes from VS Code's side, update the editor's document.
-  React.useEffect(() => {
+  useEffect(() => {
     function handleMessage({ data }: MessageEvent<MessageFromExtension>) {
       if (data.type === 'openedFile') {
         try {
@@ -73,3 +71,5 @@ export default function App(): JSX.Element {
     </div>
   )
 }
+
+export default App
