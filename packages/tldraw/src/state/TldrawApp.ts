@@ -1377,6 +1377,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.updateViewport(point, zoom)
     return this
   }
+  
+  /**
+   * Load a new document into a Room
+   * @param document The document to load
+   */
+  loadDocumentIntoRoom = (document: TDDocument): this => {
+    this.selectNone()
+    
+    this.patchState(
+      {
+        document: migrate(document, TldrawApp.version),
+      },
+      'loaded_document_into_room'
+    )
+    
+    this.zoomToFit()
+    this.broadcastPageChanges()
+    return this
+  }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?
 
