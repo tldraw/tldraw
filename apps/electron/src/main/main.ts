@@ -1,4 +1,4 @@
-import { app, BrowserView } from 'electron'
+import { app, BrowserView, shell } from 'electron'
 import path from 'path'
 import { is } from 'electron-util'
 import createMainWindow from './createWindow'
@@ -17,6 +17,13 @@ app.whenReady().then(() => {
 
   window.setBrowserView(view)
   view.setBounds({ x: 0, y: 0, width: size[0], height: size[1] })
+
+  // Open external url to default web browser
+  // And not inside electron
+  view.webContents.addListener('new-window', (e, url) => {
+    e.preventDefault()
+    shell.openExternal(url)
+  })
   view.setAutoResize({ width: true, height: true })
   view.webContents.loadURL('https://www.tldraw.com/')
 })
