@@ -1,11 +1,11 @@
-import { styled } from 'styles'
-import { getSession, signIn, signOut, useSession } from 'next-auth/react'
 import type { GetServerSideProps } from 'next'
-import Link from 'next/link'
-import React from 'react'
+import { getSession, signIn, signOut, useSession } from 'next-auth/react'
 import Head from 'next/head'
+import Link from 'next/link'
+import React, { FC } from 'react'
+import { styled } from 'styles'
 
-export default function Sponsorware(): JSX.Element {
+const Sponsorware: FC = () => {
   const { data, status } = useSession()
 
   return (
@@ -85,6 +85,8 @@ export default function Sponsorware(): JSX.Element {
     </>
   )
 }
+
+export default Sponsorware
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)

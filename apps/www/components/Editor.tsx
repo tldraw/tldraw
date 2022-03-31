@@ -1,8 +1,8 @@
-import React from 'react'
-import * as gtag from 'utils/gtag'
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
+import React, { FC } from 'react'
 import { exportToImage } from 'utils/export'
+import * as gtag from 'utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -12,12 +12,12 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-export default function Editor({
+const Editor: FC<EditorProps & Partial<TldrawProps>> = ({
   id = 'home',
   isUser = false,
   isSponsor = false,
   ...rest
-}: EditorProps & Partial<TldrawProps>) {
+}) => {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -53,3 +53,5 @@ export default function Editor({
     </div>
   )
 }
+
+export default Editor
