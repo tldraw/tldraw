@@ -9,6 +9,7 @@ import { Divider } from '~components/Primitives/Divider'
 import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
+import { TextField } from '~components/Primitives/TextField'
 import { preventEvent } from '~components/preventEvent'
 
 const canDeleteSelector = (s: TDSnapshot) => {
@@ -25,6 +26,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   const app = useTldrawApp()
 
   const [isOpen, setIsOpen] = React.useState(false)
+  const [pageName, setPageName] = React.useState(page.name || 'Page')
 
   const canDelete = app.useStore(canDeleteSelector)
 
@@ -61,9 +63,9 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   }
 
   // TODO: Replace with text input
-  function handleRename() {
-    const nextName = window.prompt('New name:', page.name)
-    app.renamePage(page.id, nextName || page.name || 'Page')
+  function handleRename(event: React.ChangeEvent<HTMLInputElement>) {
+    setPageName(event.target.value)
+    app.renamePage(page.id, event.target.value || page.name || 'Page')
   }
 
   React.useEffect(() => {
@@ -92,7 +94,8 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
       >
         <StyledDialogOverlay onPointerDown={close} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
-          <DialogAction onSelect={handleRename}>Rename</DialogAction>
+          <TextField placeholder="Page name" value={pageName} onChange={handleRename} />
+          <Divider />
           <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
             Delete
