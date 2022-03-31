@@ -13,8 +13,7 @@ export const TextField = ({ value, onChange, placeholder = '' }: TextFieldProps)
 
 export const StyledInput = styled('input', {
   color: '$text',
-  border: '1px solid $text',
-  borderRadius: '$2',
+  border: 'none',
   textAlign: 'center',
   width: '100%',
   height: '32px',

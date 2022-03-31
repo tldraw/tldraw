@@ -95,6 +95,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         <StyledDialogOverlay onPointerDown={close} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
           <TextField placeholder="Page name" value={pageName} onChange={handleRename} />
+          <Divider />
           <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
             Delete
