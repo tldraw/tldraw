@@ -98,6 +98,8 @@ export class StateManager<T extends Record<string, any>> {
               // why is this necessary? but it is...
               const prevEmpty = this._state.appState.isEmptyCanvas
 
+              next = this.migrate(next)
+
               this._state = deepCopy(next)
               this._snapshot = deepCopy(next)
 
@@ -159,6 +161,10 @@ export class StateManager<T extends Record<string, any>> {
   }
 
   // Internal API ---------------------------------
+
+  protected migrate = (next: T): T => {
+    return next
+  }
 
   /**
    * Perform any last changes to the state before updating.

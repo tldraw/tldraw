@@ -178,6 +178,7 @@ export function Tldraw({
       onAssetCreate,
       onExport,
     })
+
     setSId(id)
 
     setApp(newApp)
@@ -187,6 +188,7 @@ export function Tldraw({
   // are the same, or else load a new document if the ids are different.
   React.useEffect(() => {
     if (!document) return
+
     if (document.id === app.document.id) {
       app.updateDocument(document)
     } else {
