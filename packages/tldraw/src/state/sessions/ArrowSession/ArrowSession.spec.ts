@@ -395,3 +395,44 @@ describe('When creating arrows inside of other shapes...', () => {
     expect(app.shapes.length).toBe(2)
   })
 })
+
+describe('When holding alt and dragging a handle', () => {
+  it('Applies a delta to both handles', () => {
+    const app = new TldrawTestApp()
+      .selectAll()
+      .delete()
+      .createShapes({ type: TDShapeType.Arrow, id: 'arrow1', point: [0, 0] })
+      .select('arrow1')
+      .movePointer([0, 0])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([-10, -10])
+
+    // Without alt...
+    expect(app.getShape('arrow1')).toMatchObject({
+      point: [-10, -10],
+      handles: {
+        start: {
+          point: [0, 0],
+        },
+        end: {
+          point: [11, 11],
+        },
+      },
+    })
+
+    // With alt...
+    app.movePointer({ x: -10, y: -10, altKey: true })
+
+    expect(app.getShape('arrow1')).toMatchObject({
+      point: [-10, -10],
+      handles: {
+        start: {
+          point: [0, 0],
+        },
+        end: {
+          point: [21, 21], // delta is applied to both handles
+        },
+      },
+    })
+  })
+})

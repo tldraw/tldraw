@@ -3,7 +3,6 @@ import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TDStatus } fro
 import { TLDR } from '~state/TLDR'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
-import { TLPerformanceMode } from '@tldraw/core'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle
@@ -29,7 +28,7 @@ export class HandleSession extends BaseSession {
   update = (): TldrawPatch | undefined => {
     const {
       initialShape,
-      app: { currentPageId, currentPoint, shiftKey, altKey, metaKey },
+      app: { currentPageId, currentPoint },
     } = this
 
     const shape = this.app.getShape<ShapesWithProp<'handles'>>(initialShape.id)
@@ -42,15 +41,15 @@ export class HandleSession extends BaseSession {
 
     const delta = Vec.sub(currentPoint, handles[handleId].point)
 
-    const handle = {
-      ...handles[handleId],
-      point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+    const handleChanges = {
+      [handleId]: {
+        ...handles[handleId],
+        point: Vec.sub(Vec.add(handles[handleId].point, delta), shape.point),
+      },
     }
 
     // First update the handle's next point
-    const change = TLDR.getShapeUtil(shape).onHandleChange?.(shape, {
-      [handleId]: handle,
-    })
+    const change = TLDR.getShapeUtil(shape).onHandleChange?.(shape, handleChanges)
 
     if (!change) return
 

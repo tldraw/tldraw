@@ -405,6 +405,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
   onHandleChange = (shape: T, handles: Partial<T['handles']>): Partial<T> | void => {
     let nextHandles = Utils.deepMerge<ArrowShape['handles']>(shape.handles, handles)
     let nextBend = shape.bend
+
     nextHandles = Utils.deepMerge(nextHandles, {
       start: {
         point: Vec.toFixed(nextHandles.start.point),
@@ -413,31 +414,43 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         point: Vec.toFixed(nextHandles.end.point),
       },
     })
+
     // This will produce NaN values
     if (Vec.isEqual(nextHandles.start.point, nextHandles.end.point)) return
+
     // If the user is moving the bend handle, we want to move the bend point
     if ('bend' in handles) {
       const { start, end, bend } = nextHandles
+
       const distance = Vec.dist(start.point, end.point)
       const midPoint = Vec.med(start.point, end.point)
       const angle = Vec.angle(start.point, end.point)
       const u = Vec.uni(Vec.vec(start.point, end.point))
+
       // Create a line segment perendicular to the line between the start and end points
-      const ap = Vec.add(midPoint, Vec.mul(Vec.per(u), distance / 2))
-      const bp = Vec.sub(midPoint, Vec.mul(Vec.per(u), distance / 2))
+      const ap = Vec.add(midPoint, Vec.mul(Vec.per(u), distance))
+      const bp = Vec.sub(midPoint, Vec.mul(Vec.per(u), distance))
+
       const bendPoint = Vec.nearestPointOnLineSegment(ap, bp, bend.point, true)
+
       // Find the distance between the midpoint and the nearest point on the
       // line segment to the bend handle's dragged point
       const bendDist = Vec.dist(midPoint, bendPoint)
+
       // The shape's "bend" is the ratio of the bend to the distance between
       // the start and end points. If the bend is below a certain amount, the
       // bend should be zero.
-      nextBend = Utils.clamp(bendDist / (distance / 2), -0.99, 0.99)
+      const realBend = bendDist / (distance / 2)
+
+      nextBend = Utils.clamp(realBend, -0.99, 0.99)
+
       // If the point is to the left of the line segment, we make the bend
       // negative, otherwise it's positive.
       const angleToBend = Vec.angle(start.point, bendPoint)
+
       // If resulting bend is low enough that the handle will snap to center,
       // then also snap the bend to center
+
       if (Vec.isEqual(midPoint, getBendPoint(nextHandles, nextBend))) {
         nextBend = 0
       } else if (isAngleBetween(angle, angle + Math.PI, angleToBend)) {
@@ -445,6 +458,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         nextBend *= -1
       }
     }
+
     const nextShape = {
       point: shape.point,
       bend: nextBend,
@@ -456,20 +470,22 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         },
       },
     }
+
     // Zero out the handles to prevent handles with negative points. If a handle's x or y
     // is below zero, we need to move the shape left or up to make it zero.
     const topLeft = shape.point
+
     const nextBounds = this.getBounds({ ...nextShape } as ArrowShape)
+
     const offset = Vec.sub([nextBounds.minX, nextBounds.minY], topLeft)
+
     if (!Vec.isEqual(offset, [0, 0])) {
       Object.values(nextShape.handles).forEach((handle) => {
         handle.point = Vec.toFixed(Vec.sub(handle.point, offset))
       })
       nextShape.point = Vec.toFixed(Vec.add(nextShape.point, offset))
-      if (Vec.isEqual(nextShape.point, [0, 0])) {
-        throw Error('here!')
-      }
     }
+
     return nextShape
   }
 }
