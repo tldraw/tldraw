@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
-import { MixerVerticalIcon } from '@radix-ui/react-icons'
+import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
 import type { TDSnapshot, TDPage } from '~types'
 import { useTldrawApp } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
@@ -94,7 +94,12 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
       >
         <StyledDialogOverlay onPointerDown={close} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
-          <TextField placeholder="Page name" value={pageName} onChange={handleRename} />
+          <TextField
+            placeholder="Page name"
+            value={pageName}
+            onChange={handleRename}
+            icon={<Pencil1Icon />}
+          />
           <Divider />
           <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
