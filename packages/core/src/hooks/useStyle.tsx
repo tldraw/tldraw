@@ -474,6 +474,18 @@ const tlcss = css`
   .tl-grid-dot {
     fill: var(--tl-grid);
   }
+
+  .tl-user-tag {
+    color: white;
+    background: var(--tl-userColor);
+    position: relative;
+    left: 0.5em;
+    top: 1em;
+    padding: 3px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    width: fit-content;
+  }
 `
 
 export function useTLTheme(theme?: Partial<TLTheme>, selector?: string) {
