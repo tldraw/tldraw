@@ -309,6 +309,19 @@ const tlcss = css`
     will-change: transform;
   }
 
+  .tl-user-tag {
+    color: var(--tl-background);
+    position: relative;
+    top: calc(10px * var(--tl-scale));
+    left: calc(10px * var(--tl-scale));
+    pointer-events: none;
+    font-size: calc(0.8em * var(--tl-scale));
+    will-change: transform;
+    border-radius: calc(5px * var(--tl-scale));
+    padding: calc(3px * var(--tl-scale)) calc(5px * var(--tl-scale));
+    width: fit-content;
+  }
+
   .tl-indicator {
     fill: transparent;
     stroke-width: calc(1.5px * var(--tl-scale));
