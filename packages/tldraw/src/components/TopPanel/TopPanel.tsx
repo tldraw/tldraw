@@ -45,14 +45,12 @@ export function TopPanel({
       {(showStyles || showZoom) && (
         <Panel side="right">
           {showStyles && !readOnly && <StyleMenu />}
-          <MobileOnly bp={breakpoints}>
-            <ToolButton>
-              <UndoIcon onClick={app.undo} />
-            </ToolButton>
-            <ToolButton>
-              <RedoIcon onClick={app.redo} />
-            </ToolButton>
-          </MobileOnly>
+          <ToolButton>
+            <UndoIcon onClick={app.undo} />
+          </ToolButton>
+          <ToolButton>
+            <RedoIcon onClick={app.redo} />
+          </ToolButton>
           {showZoom && <ZoomMenu />}
         </Panel>
       )}
@@ -77,19 +75,4 @@ const StyledTopPanel = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
-})
-
-const MobileOnly = styled('div', {
-  display: 'flex',
-  flexDirection: 'row',
-  variants: {
-    bp: {
-      small: {
-        display: 'inherit',
-      },
-      large: {
-        display: 'none',
-      },
-    },
-  },
 })
