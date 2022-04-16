@@ -101,12 +101,19 @@ const optionsSelector = (s: TDSnapshot) => {
 
 export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
   const app = useTldrawApp()
+
   const theme = app.useStore(themeSelector)
+
   const options = app.useStore(optionsSelector)
+
   const currentStyle = app.useStore(currentStyleSelector)
+
   const selectedIds = app.useStore(selectedIdsSelector)
+
   const [displayedStyle, setDisplayedStyle] = React.useState(currentStyle)
+
   const rDisplayedStyle = React.useRef(currentStyle)
+
   React.useEffect(() => {
     const {
       appState: { currentStyle },
@@ -144,27 +151,34 @@ export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
       setDisplayedStyle(commonStyle)
     }
   }, [currentStyle, selectedIds])
+
   const handleToggleFilled = React.useCallback((checked: boolean) => {
     app.style({ isFilled: checked })
   }, [])
+
   const handleDashChange = React.useCallback((value: string) => {
     app.style({ dash: value as DashStyle })
   }, [])
+
   const handleSizeChange = React.useCallback((value: string) => {
     app.style({ size: value as SizeStyle })
   }, [])
+
   const handleFontChange = React.useCallback((value: string) => {
     app.style({ font: value as FontStyle })
   }, [])
+
   const handleTextAlignChange = React.useCallback((value: string) => {
     app.style({ textAlign: value as AlignStyle })
   }, [])
+
   const handleMenuOpenChange = React.useCallback(
     (open: boolean) => {
       app.setMenuOpen(open)
     },
     [app]
   )
+
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger asChild id="TD-Styles">
