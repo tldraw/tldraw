@@ -42,6 +42,8 @@ const { styled, createTheme } = createStitches({
       3: '8px',
       4: '12px',
       5: '16px',
+      6: '32px',
+      7: '48px',
     },
     fontSizes: {
       0: '10px',
