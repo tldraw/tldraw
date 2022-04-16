@@ -12,22 +12,11 @@ export interface TextFieldProps {
 export const TextField = ({ value, onChange, placeholder = '', icon }: TextFieldProps) => {
   return (
     <StyledInputWrapper>
-      {icon ? <StyledInputIcon>{icon}</StyledInputIcon> : null}
       <StyledInput value={value} onChange={onChange} placeholder={placeholder} />
+      {icon ? <StyledInputIcon>{icon}</StyledInputIcon> : null}
     </StyledInputWrapper>
   )
 }
-
-export const StyledInput = styled('input', {
-  color: '$text',
-  border: 'none',
-  textAlign: 'center',
-  width: '100%',
-  height: '32px',
-  outline: 'none',
-  fontFamily: '$ui',
-  fontSize: '$1',
-})
 
 const StyledInputWrapper = styled('div', {
   position: 'relative',
@@ -35,7 +24,29 @@ const StyledInputWrapper = styled('div', {
   height: 'min-content',
 })
 
+const StyledInput = styled('input', {
+  color: '$text',
+  border: 'none',
+  textAlign: 'left',
+  width: '100%',
+  paddingLeft: '$3',
+  paddingRight: '$6',
+
+  height: '32px',
+  outline: 'none',
+  fontFamily: '$ui',
+  fontSize: '$1',
+  '&:focus': {
+    backgroundColor: '$hover',
+  },
+  borderRadius: '$2',
+})
+
 const StyledInputIcon = styled(SmallIcon, {
+  top: 0,
+  right: 0,
   position: 'absolute',
-  left: '$3',
+  paddingLeft: '$3',
+  paddingRight: '$3',
+  pointerEvents: 'none',
 })

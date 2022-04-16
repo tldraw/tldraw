@@ -10,7 +10,6 @@ import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 import { TextField } from '~components/Primitives/TextField'
-import { preventEvent } from '~components/preventEvent'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1
