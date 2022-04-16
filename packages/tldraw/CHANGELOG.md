@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.10.0
+
+### Minor Changes
+
+- c09d6a3a: Adds text field for page rename, undo buttons on all screen sizes, arrow behavior with alt key.
+
 ## 1.9.3
 
 ### Patch Changes

@@ -26,7 +26,7 @@
     "@sentry/tracing": "^6.13.2",
     "@stitches/react": "^1.2.5",
     "@tldraw/core": "^1.9.1",
-    "@tldraw/tldraw": "^1.9.3",
+    "@tldraw/tldraw": "^1.10.0",
     "@types/next-auth": "^3.15.0",
     "aws-sdk": "^2.1053.0",
     "next": "^12.0.7",
