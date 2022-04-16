@@ -76,18 +76,3 @@ const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
 })
-
-const MobileOnly = styled('div', {
-  display: 'flex',
-  flexDirection: 'row',
-  variants: {
-    bp: {
-      small: {
-        display: 'inherit',
-      },
-      large: {
-        display: 'none',
-      },
-    },
-  },
-})
