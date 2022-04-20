@@ -38,7 +38,7 @@ export const StyledContent = styled(MenuContent, {
   height: 'fit-content',
   minWidth: 0,
   maxHeight: '75vh',
-  overflowY: 'scroll',
+  overflowY: 'auto',
   '& *': {
     boxSizing: 'border-box',
   },
