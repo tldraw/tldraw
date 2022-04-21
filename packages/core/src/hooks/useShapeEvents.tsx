@@ -11,7 +11,6 @@ export function useShapeEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (!inputs.pointerIsValid(e)) return
         if (e.button === 2) {
           callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
           return
