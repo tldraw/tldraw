@@ -52,6 +52,7 @@
     "@tldraw/core": "^1.9.1",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.0",
+    "browser-fs-access": "^0.29.1",
     "idb-keyval": "^6.1.0",
     "perfect-freehand": "^1.0.16",
     "react-hotkey-hook": "^1.0.2",
@@ -60,12 +61,12 @@
     "zustand": "^3.6.9"
   },
   "devDependencies": {
-    "@tldraw/core": "*",
-    "@tldraw/intersect": "*",
-    "@tldraw/vec": "*",
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.2",
     "@testing-library/react": "^12.1.2",
+    "@tldraw/core": "*",
+    "@tldraw/intersect": "*",
+    "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
