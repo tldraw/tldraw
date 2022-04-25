@@ -3,8 +3,16 @@ import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
 import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
 
+interface ExportShapeProps {
+  width?: number
+  height?: number
+  body?: any
+  type?: any
+  res: NextApiResponse
+}
+
 const cors = Cors({
-  methods: ['POST'],
+  methods: ['POST', 'GET'],
 })
 
 function runMiddleware(
@@ -31,14 +39,7 @@ declare global {
   }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  await runMiddleware(req, res, cors)
-  const { body } = req
-  const {
-    size: [width, height],
-    type,
-  } = body
-  if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
+async function exportShape({ width, height, body, type, res }: ExportShapeProps) {
   try {
     const browser = await chromium.puppeteer.launch({
       slowMo: 50,
@@ -95,6 +96,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   } catch (err) {
     console.error(err.message)
     res.status(500).send(err)
+  }
+}
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  await runMiddleware(req, res, cors)
+  const {
+    body,
+    method,
+    query: { url },
+  } = req
+  const {
+    size: [width, height],
+    type,
+  } = body
+  if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
+  switch (method) {
+    case 'POST':
+      exportShape({ width, height, body, type, res })
+      break
+    case 'GET':
+      // extract the width / height from the page
+      exportShape({ width: 1000, height: 800, body: undefined, type: 'png', res })
+      break
+    default:
+      res.status(500).send('This endpoint only accept GET and POST method')
   }
 }
 
