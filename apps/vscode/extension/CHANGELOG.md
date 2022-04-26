@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.10.0
+
+### Minor Changes
+
+- Bump underlying packages.
+
 ## 1.9.0
 
 ### Minor Changes

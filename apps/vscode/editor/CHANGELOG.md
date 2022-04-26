@@ -1,5 +1,11 @@
 # @tldraw/vscode-editor
 
+## 1.9.0
+
+### Minor Changes
+
+- Bump underlying packages.
+
 ## 1.8.0
 
 ### Minor Changes

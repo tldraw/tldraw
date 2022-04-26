@@ -10,7 +10,6 @@ import {
   transformSingleRectangle,
 } from '~state/shapes/shared'
 import { styled } from '@stitches/react'
-import Vec from '@tldraw/vec'
 
 type T = VideoShape
 type E = HTMLDivElement
