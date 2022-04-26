@@ -9,6 +9,7 @@
     "emitDeclarationOnly": false,
     "experimentalDecorators": true,
     "useDefineForClassFields": true,
+    "skipLibCheck": true,
     "paths": {
       "*": ["src/*"]
     }

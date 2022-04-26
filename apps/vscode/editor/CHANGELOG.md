@@ -1,5 +1,17 @@
 # @tldraw/vscode-editor
 
+## 1.10.1
+
+### Patch Changes
+
+- Fix build.
+
+## 1.10.0
+
+### Minor Changes
+
+- Fix build error in extension.
+
 ## 1.9.0
 
 ### Minor Changes

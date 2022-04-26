@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vscode-editor",
-  "version": "1.9.0",
+  "version": "1.10.1",
   "private": true,
   "description": "An an editor for the tldraw vscode extension.",
   "author": "@steveruizok",
@@ -23,7 +23,7 @@
     "@types/react-router-dom": "^5.1.8",
     "concurrently": "7.0.0",
     "create-serve": "1.0.1",
-    "esbuild": "^0.14.18",
+    "esbuild": "^0.14.38",
     "esbuild-serve": "^1.0.1",
     "react": ">=16.8",
     "react-dom": "^16.8 || ^17.0",

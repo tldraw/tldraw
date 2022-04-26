@@ -16,6 +16,14 @@ async function main() {
     })
   }
 
+  if (!fs.existsSync('./dist')) {
+    fs.mkdirSync('./dist')
+  }
+
+  fs.copyFile('./src/index.html', './dist/index.html', (err) => {
+    if (err) throw err
+  })
+
   try {
     esbuild.buildSync({
       entryPoints: ['./src/index.tsx'],

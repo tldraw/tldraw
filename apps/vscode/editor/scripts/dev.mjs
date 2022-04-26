@@ -16,6 +16,14 @@ async function main() {
     })
   }
 
+  if (!fs.existsSync('./dist')) {
+    fs.mkdirSync('./dist')
+  }
+
+  fs.copyFile('./src/index.html', './dist/index.html', (err) => {
+    if (err) throw err
+  })
+
   try {
     await esbuildServe(
       {
@@ -25,6 +33,8 @@ async function main() {
         bundle: true,
         incremental: true,
         target: 'es6',
+        jsxFactory: 'React.createElement',
+        jsxFragment: 'React.Fragment',
         define: {
           'process.env.NODE_ENV': '"production"',
         },

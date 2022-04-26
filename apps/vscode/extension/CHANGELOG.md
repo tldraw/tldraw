@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.11.2
+
+### Patch Changes
+
+- Fix build.
+
 ## 1.10.0
 
 ### Minor Changes
