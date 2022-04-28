@@ -67,7 +67,7 @@ export default function App(): JSX.Element {
                   <Link to="/basic">Basic</Link>
                 </li>
                 <li>
-                  <Link to="/basic">Dark Mode</Link>
+                  <Link to="/dark-mode">Dark Mode</Link>
                 </li>
                 <li>
                   <Link to="/ui-options">UI Options</Link>
