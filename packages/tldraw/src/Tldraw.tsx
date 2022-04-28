@@ -107,6 +107,7 @@ export function Tldraw({
   readOnly = false,
   showSponsorLink = false,
   disableAssets = false,
+  darkMode = false,
   onMount,
   onChange,
   onChangePresence,
@@ -211,6 +212,13 @@ export function Tldraw({
   React.useEffect(() => {
     app.readOnly = readOnly
   }, [app, readOnly])
+
+  // Toggle the app's darkMode when the `darkMode` prop changes.
+  React.useEffect(() => {
+    if (darkMode !== app.settings.isDarkMode){
+      app.toggleDarkMode()
+    }
+  }, [app, darkMode])
 
   // Update the app's callbacks when any callback changes.
   React.useEffect(() => {
