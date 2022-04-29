@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 import Basic from './basic'
+import DarkMode from './dark-mode'
 import ReadOnly from './readonly'
 import PropsControl from './props-control'
 import ApiControl from './api-control'
@@ -24,6 +25,8 @@ export default function App(): JSX.Element {
         <Route path="/develop" element={<Develop />} />
 
         <Route path="/basic" element={<Basic />} />
+
+        <Route path="/dark-mode" element={<DarkMode />} />
 
         <Route path="/ui-options" element={<UIOptions />} />
 
@@ -62,6 +65,9 @@ export default function App(): JSX.Element {
                 <hr />
                 <li>
                   <Link to="/basic">Basic</Link>
+                </li>
+                <li>
+                  <Link to="/dark-mode">Dark Mode</Link>
                 </li>
                 <li>
                   <Link to="/ui-options">UI Options</Link>
