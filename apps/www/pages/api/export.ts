@@ -1,7 +1,18 @@
 import { NextApiRequest, NextApiResponse } from 'next'
+import fs from 'fs'
 import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
-import { TDExport, TDExportTypes, TldrawApp } from '@tldraw/tldraw'
+import {
+  ImageShape,
+  TDAssets,
+  TDAssetType,
+  TDExport,
+  TDExportTypes,
+  TDShape,
+  TDShapeType,
+  TldrawApp,
+} from '@tldraw/tldraw'
+import fetch from 'node-fetch'
 
 interface ExportShapeProps {
   width?: number
@@ -99,25 +110,76 @@ async function exportShape({ width, height, body, type, res }: ExportShapeProps)
   }
 }
 
+async function extractFileInfo(filePath: string, res: NextApiResponse, page?: string) {
+  try {
+    const response = await fetch(filePath)
+    const content = JSON.parse(await response.text())
+    const pageIds = Object.keys(content.document.pages)
+    const currentPageId = page ? pageIds[parseInt(page) - 1] : pageIds[0]
+    const shapeIds = Object.keys(content.document.pages[currentPageId].shapes)
+    console.log({ currentPageId, shapeIds })
+    const assets: TDAssets = {}
+    const shapes: TDShape[] = shapeIds.map((id) => {
+      const shape = { ...content.document.pages[currentPageId].shapes[id] }
+      if (shape.assetId) {
+        const asset = { ...content.document.assets[shape.assetId] }
+        // If the asset is a GIF, then serialize an image
+        if (asset.src.toLowerCase().endsWith('gif')) {
+          asset.src = this.serializeImage(shape.id)
+        }
+        // If the asset is an image, then serialize an image
+        if (shape.type === TDShapeType.Video) {
+          asset.src = this.serializeVideo(shape.id)
+          asset.type = TDAssetType.Image
+          // Cast shape to image shapes to properly display snapshots
+          ;(shape as unknown as ImageShape).type = TDShapeType.Image
+        }
+        // Patch asset table
+        assets[shape.assetId] = asset
+      }
+      return shape
+    })
+    const tdExport: TDExport = {
+      currentPageId,
+      name: content.document.pages[currentPageId].name ?? 'export',
+      shapes,
+      type: TDExportTypes.JPG,
+      assets,
+      // Need to extract this from Util
+      size: [],
+    }
+    return tdExport
+  } catch (error) {
+    // we'll returned image here instead
+    console.log({ error })
+  }
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await runMiddleware(req, res, cors)
   const {
     body,
     method,
-    query: { url },
+    query: { url, page },
   } = req
-  const {
-    size: [width, height],
-    type,
-  } = body
-  if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
   switch (method) {
     case 'POST':
+      const {
+        size: [width, height],
+        type,
+      } = body
+      if (type === TDExportTypes.PDF) res.status(500).send('Not implemented yet.')
       exportShape({ width, height, body, type, res })
       break
     case 'GET':
-      // extract the width / height from the page
-      exportShape({ width: 1000, height: 800, body: undefined, type: 'png', res })
+      // Read the content of the file from the passed url
+      // extract the info from the file (Type TDExport)
+      const content = await extractFileInfo(url as string, res, page as string)
+      console.log({ content })
+      // pass it as body
+      // return the exported file
+      res.status(200).send({ url })
+      // exportShape({ width: 1000, height: 800, body: undefined, type: 'png', res })
       break
     default:
       res.status(500).send('This endpoint only accept GET and POST method')
