@@ -123,7 +123,7 @@ export type TldrawCommand = Command<TDSnapshot>
 // The shape of the files stored in JSON
 export interface TDFile {
   name: string
-  fileHandle: FileSystemHandle | null
+  fileHandle: FileSystemFileHandle | null
   document: TDDocument
   assets: Record<string, unknown>
 }
