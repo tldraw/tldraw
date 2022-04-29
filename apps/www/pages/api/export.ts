@@ -110,32 +110,28 @@ async function exportShape({ width, height, body, type, res }: ExportShapeProps)
   }
 }
 
-async function extractFileInfo(filePath: string, res: NextApiResponse, page?: string) {
+async function extractFileInfo(
+  filePath: string,
+  res: NextApiResponse,
+  page?: string
+): Promise<TDExport | string> {
   try {
     const response = await fetch(filePath)
     const content = JSON.parse(await response.text())
     const pageIds = Object.keys(content.document.pages)
     const currentPageId = page ? pageIds[parseInt(page) - 1] : pageIds[0]
     const shapeIds = Object.keys(content.document.pages[currentPageId].shapes)
-    console.log({ currentPageId, shapeIds })
     const assets: TDAssets = {}
     const shapes: TDShape[] = shapeIds.map((id) => {
       const shape = { ...content.document.pages[currentPageId].shapes[id] }
       if (shape.assetId) {
         const asset = { ...content.document.assets[shape.assetId] }
-        // If the asset is a GIF, then serialize an image
-        if (asset.src.toLowerCase().endsWith('gif')) {
-          asset.src = this.serializeImage(shape.id)
-        }
-        // If the asset is an image, then serialize an image
-        if (shape.type === TDShapeType.Video) {
-          asset.src = this.serializeVideo(shape.id)
-          asset.type = TDAssetType.Image
-          // Cast shape to image shapes to properly display snapshots
-          ;(shape as unknown as ImageShape).type = TDShapeType.Image
+        // If the asset is not a GIF, or video pass the assets
+        if (!asset.src.toLowerCase().endsWith('gif') && shape.type == TDAssetType.Image) {
+          // do nothing
+          assets[shape.assetId] = asset
         }
         // Patch asset table
-        assets[shape.assetId] = asset
       }
       return shape
     })
@@ -174,11 +170,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     case 'GET':
       // Read the content of the file from the passed url
       // extract the info from the file (Type TDExport)
-      const content = await extractFileInfo(url as string, res, page as string)
-      console.log({ content })
-      // pass it as body
-      // return the exported file
-      res.status(200).send({ url })
+      const response = await extractFileInfo(url as string, res, page as string)
+      if (typeof response === 'string') res.status(200).send(response)
+      // else we'll call the export shape function
       // exportShape({ width: 1000, height: 800, body: undefined, type: 'png', res })
       break
     default:
