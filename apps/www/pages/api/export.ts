@@ -21,17 +21,10 @@ interface ExportShapeProps {
   res: NextApiResponse
 }
 
-const whiteList = ['https://raw.githubusercontent.com', 'https://www.tldraw.com']
-if (process.env.NODE_ENV === 'development') whiteList.push('http://localhost:3000')
-
-function corsOrigin(origin, callback) {
-  if (whiteList.indexOf(origin) !== -1) callback(null, true)
-  else callback(new Error('Not allowed by CORS'))
-}
+const whiteList = ['https://raw.githubusercontent.com']
 
 const cors = Cors({
   methods: ['POST', 'GET'],
-  origin: corsOrigin,
 })
 
 function runMiddleware(
@@ -118,11 +111,7 @@ async function exportShape({ width, height, body, type, res }: ExportShapeProps)
   }
 }
 
-async function extractFileInfo(
-  filePath: string,
-  res: NextApiResponse,
-  page?: string
-): Promise<TDExport | string> {
+async function extractFileInfo(filePath: string, page?: string): Promise<TDExport | string> {
   try {
     const response = await fetch(filePath)
     const content = JSON.parse(await response.text())
@@ -142,16 +131,16 @@ async function extractFileInfo(
       }
       return shape
     })
-
     const bounds = shapes.map((shape) => {
       return getShapeUtil(shape).getBounds(shape)
     })
+
     const { width, height } = Utils.expandBounds(Utils.getCommonBounds(bounds), 64)
     const tdExport: TDExport = {
       currentPageId,
       name: content.document.pages[currentPageId].name ?? 'export',
       shapes,
-      type: TDExportTypes.JPG,
+      type: TDExportTypes.PNG,
       assets,
       size: [width, height],
     }
@@ -179,16 +168,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       exportShape({ width, height, body, type, res })
       break
     case 'GET':
-      const response = await extractFileInfo(url as string, res, page as string)
-      if (typeof response === 'string') res.status(200).send(response)
-      const { size } = response as TDExport
-      exportShape({
-        width: size[0],
-        height: size[1],
-        body: response,
-        type: TDExportTypes.JPG,
-        res,
-      })
+      const paramUrl = new URL(url as string)
+      // checking if the passed url contain the whitelisted origin
+      if (whiteList.indexOf(paramUrl.origin) !== -1) {
+        const response = await extractFileInfo(url as string, page as string)
+        if (typeof response === 'string') res.status(200).send(response)
+        const { size } = response as TDExport
+        await exportShape({
+          width: size[0],
+          height: size[1],
+          body: response,
+          type: TDExportTypes.PNG,
+          res,
+        })
+      } else
+        res.status(401).send('Blocked by cors, we are currently accepting file from github raw')
       break
     default:
       res.status(500).send('This endpoint only accept GET and POST method')
