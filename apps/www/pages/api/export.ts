@@ -1,17 +1,16 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-import fs from 'fs'
 import chromium from 'chrome-aws-lambda'
 import Cors from 'cors'
 import {
-  ImageShape,
   TDAssets,
   TDAssetType,
   TDExport,
   TDExportTypes,
   TDShape,
-  TDShapeType,
+  getShapeUtil,
   TldrawApp,
 } from '@tldraw/tldraw'
+import { Utils } from '@tldraw/core'
 import fetch from 'node-fetch'
 
 interface ExportShapeProps {
@@ -22,8 +21,17 @@ interface ExportShapeProps {
   res: NextApiResponse
 }
 
+const whiteList = ['https://raw.githubusercontent.com', 'https://www.tldraw.com']
+if (process.env.NODE_ENV === 'development') whiteList.push('http://localhost:3000')
+
+function corsOrigin(origin, callback) {
+  if (whiteList.indexOf(origin) !== -1) callback(null, true)
+  else callback(new Error('Not allowed by CORS'))
+}
+
 const cors = Cors({
   methods: ['POST', 'GET'],
+  origin: corsOrigin,
 })
 
 function runMiddleware(
@@ -128,26 +136,29 @@ async function extractFileInfo(
         const asset = { ...content.document.assets[shape.assetId] }
         // If the asset is not a GIF, or video pass the assets
         if (!asset.src.toLowerCase().endsWith('gif') && shape.type == TDAssetType.Image) {
-          // do nothing
           assets[shape.assetId] = asset
         }
         // Patch asset table
       }
       return shape
     })
+
+    const bounds = shapes.map((shape) => {
+      return getShapeUtil(shape).getBounds(shape)
+    })
+    const { width, height } = Utils.expandBounds(Utils.getCommonBounds(bounds), 64)
     const tdExport: TDExport = {
       currentPageId,
       name: content.document.pages[currentPageId].name ?? 'export',
       shapes,
       type: TDExportTypes.JPG,
       assets,
-      // Need to extract this from Util
-      size: [],
+      size: [width, height],
     }
     return tdExport
   } catch (error) {
     // we'll returned image here instead
-    console.log({ error })
+    return error.message
   }
 }
 
@@ -168,12 +179,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       exportShape({ width, height, body, type, res })
       break
     case 'GET':
-      // Read the content of the file from the passed url
-      // extract the info from the file (Type TDExport)
       const response = await extractFileInfo(url as string, res, page as string)
       if (typeof response === 'string') res.status(200).send(response)
-      // else we'll call the export shape function
-      // exportShape({ width: 1000, height: 800, body: undefined, type: 'png', res })
+      const { size } = response as TDExport
+      exportShape({
+        width: size[0],
+        height: size[1],
+        body: response,
+        type: TDExportTypes.JPG,
+        res,
+      })
       break
     default:
       res.status(500).send('This endpoint only accept GET and POST method')
