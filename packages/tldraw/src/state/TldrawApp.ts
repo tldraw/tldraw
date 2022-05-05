@@ -1764,9 +1764,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
+
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
       const idsMap: Record<string, string> = {}
+
       const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
+
       if (newAssets.length) {
         this.patchState({
           document: {
@@ -1774,25 +1777,33 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         })
       }
+
       shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
+
       bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
+
       let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
+
       const shapesToPaste = shapes
         .sort((a, b) => a.childIndex - b.childIndex)
         .map((shape) => {
           const parentShapeId = idsMap[shape.parentId]
+
           const copy = {
             ...shape,
             id: idsMap[shape.id],
             parentId: parentShapeId || this.currentPageId,
           }
+
           if (shape.children) {
             copy.children = shape.children.map((id) => idsMap[id])
           }
+
           if (!parentShapeId) {
             copy.childIndex = startIndex
             startIndex++
           }
+
           if (copy.handles) {
             Object.values(copy.handles).forEach((handle) => {
               if (handle.bindingId) {
@@ -1802,14 +1813,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           }
           return copy
         })
+
       const bindingsToPaste = bindings.map((binding) => ({
         ...binding,
         id: idsMap[binding.id],
         toId: idsMap[binding.toId],
         fromId: idsMap[binding.fromId],
       }))
+
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
+
       let center = Vec.toFixed(this.getPagePoint(point || this.centerPoint))
+
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
@@ -1820,11 +1835,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.pasteInfo.center = center
         this.pasteInfo.offset = [0, 0]
       }
+
       const centeredBounds = Utils.centerBounds(commonBounds, center)
       const delta = Vec.sub(
         Utils.getBoundsCenter(centeredBounds),
         Utils.getBoundsCenter(commonBounds)
       )
+
       this.create(
         shapesToPaste.map((shape) =>
           TLDR.getShapeUtil(shape.type).create({
@@ -1854,11 +1871,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           bindings: TDBinding[]
           assets: TDAsset[]
         } = JSON.parse(result)
+
         if (data.type === 'tldr/clipboard') {
           pasteInCurrentPage(data.shapes, data.bindings, data.assets)
         } else {
+          console.log(data.type)
+
           TLDR.warn('The selected shape was not a tldraw shape, treating as text.')
+
           const shapeId = Utils.uniqueId()
+
           this.createShapes({
             id: shapeId,
             type: TDShapeType.Text,
@@ -1867,15 +1889,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             point: this.getPagePoint(this.centerPoint, this.currentPageId),
             style: { ...this.appState.currentStyle },
           })
+
           this.select(shapeId)
         }
       })
       .catch(() => {
-        TLDR.warn('Read permissions denied!')
+        // No text on clipboard or read permissions denied.
+
         if (this.clipboard) {
           pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
         }
       })
+
     return this
   }
 
@@ -2886,7 +2911,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  private addMediaFromFile = async (file: File, point = this.centerPoint) => {
+  addMediaFromFile = async (file: File, point = this.centerPoint) => {
     this.setIsLoading(true)
     const id = Utils.uniqueId()
     const pagePoint = this.getPagePoint(point)
