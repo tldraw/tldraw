@@ -4,6 +4,7 @@ import * as React from 'react'
 import { useTLContext } from './useTLContext'
 import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
+import Utils from '~utils'
 
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.RefObject<T>) {
@@ -44,13 +45,14 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       }
       // otherwise pan
       const delta = Vec.mul(
-        e.shiftKey
+        (e.shiftKey && !Utils.isDarwin)
           ? // shift+scroll = pan horizontally
             [offset[1], 0]
           : // scroll = pan vertically (or in any direction on a trackpad)
             [...offset],
         0.5
       )
+    
       if (Vec.isEqual(delta, [0, 0])) return
       const info = inputs.pan(delta, e)
       callbacks.onPan?.(info, e)
