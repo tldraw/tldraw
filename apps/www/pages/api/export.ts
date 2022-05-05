@@ -153,11 +153,7 @@ async function extractFileInfo(filePath: string, page?: string): Promise<TDExpor
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   await runMiddleware(req, res, cors)
-  const {
-    body,
-    method,
-    query: { url, page },
-  } = req
+  const { body, method } = req
   switch (method) {
     case 'POST':
       const {
@@ -168,13 +164,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       exportShape({ width, height, body, type, res })
       break
     case 'GET':
+      const { url, page } = req.query as Record<'url' | 'page', string>
       const paramUrl = new URL(url as string)
       // checking if the passed url contain the whitelisted origin
       if (whiteList.indexOf(paramUrl.origin) !== -1) {
-        const response = await extractFileInfo(url as string, page as string)
+        const response = await extractFileInfo(url, page)
         if (typeof response === 'string') res.status(200).send(response)
         const { size } = response as TDExport
-        await exportShape({
+        exportShape({
           width: size[0],
           height: size[1],
           body: response,
