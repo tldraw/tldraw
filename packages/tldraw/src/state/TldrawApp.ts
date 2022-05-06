@@ -1764,9 +1764,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = (point?: number[]) => {
     if (this.readOnly) return
+
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
       const idsMap: Record<string, string> = {}
+
       const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
+
       if (newAssets.length) {
         this.patchState({
           document: {
@@ -1774,25 +1777,33 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         })
       }
+
       shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
+
       bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
+
       let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
+
       const shapesToPaste = shapes
         .sort((a, b) => a.childIndex - b.childIndex)
         .map((shape) => {
           const parentShapeId = idsMap[shape.parentId]
+
           const copy = {
             ...shape,
             id: idsMap[shape.id],
             parentId: parentShapeId || this.currentPageId,
           }
+
           if (shape.children) {
             copy.children = shape.children.map((id) => idsMap[id])
           }
+
           if (!parentShapeId) {
             copy.childIndex = startIndex
             startIndex++
           }
+
           if (copy.handles) {
             Object.values(copy.handles).forEach((handle) => {
               if (handle.bindingId) {
@@ -1802,14 +1813,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           }
           return copy
         })
+
       const bindingsToPaste = bindings.map((binding) => ({
         ...binding,
         id: idsMap[binding.id],
         toId: idsMap[binding.toId],
         fromId: idsMap[binding.fromId],
       }))
+
       const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
+
       let center = Vec.toFixed(this.getPagePoint(point || this.centerPoint))
+
       if (
         Vec.dist(center, this.pasteInfo.center) < 2 ||
         Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
@@ -1820,11 +1835,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.pasteInfo.center = center
         this.pasteInfo.offset = [0, 0]
       }
+
       const centeredBounds = Utils.centerBounds(commonBounds, center)
       const delta = Vec.sub(
         Utils.getBoundsCenter(centeredBounds),
         Utils.getBoundsCenter(commonBounds)
       )
+
       this.create(
         shapesToPaste.map((shape) =>
           TLDR.getShapeUtil(shape.type).create({
@@ -1854,11 +1871,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           bindings: TDBinding[]
           assets: TDAsset[]
         } = JSON.parse(result)
+
         if (data.type === 'tldr/clipboard') {
           pasteInCurrentPage(data.shapes, data.bindings, data.assets)
         } else {
+          console.log(data.type)
+
           TLDR.warn('The selected shape was not a tldraw shape, treating as text.')
+
           const shapeId = Utils.uniqueId()
+
           this.createShapes({
             id: shapeId,
             type: TDShapeType.Text,
@@ -1867,15 +1889,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             point: this.getPagePoint(this.centerPoint, this.currentPageId),
             style: { ...this.appState.currentStyle },
           })
+
           this.select(shapeId)
         }
       })
       .catch(() => {
-        TLDR.warn('Read permissions denied!')
+        // No text on clipboard or read permissions denied.
+
         if (this.clipboard) {
           pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
         }
       })
+
     return this
   }
 
@@ -2555,6 +2580,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const Shape = shapeUtils[type]
 
+    // Ensure that the pasted shape fits inside of the current viewport
+
+    if (size[0] > this.viewport.width) {
+      let r = size[1] / size[0]
+      size[0] = this.viewport.width - FIT_TO_SCREEN_PADDING
+      size[1] = size[0] * r
+      if (size[1] < 32 || size[1] < 32) {
+        size[1] = 32
+        size[0] = size[1] / r
+      }
+    } else if (size[1] > this.viewport.height) {
+      let r = size[0] / size[1]
+      size[1] = this.viewport.height - FIT_TO_SCREEN_PADDING
+      size[0] = size[1] * r
+      if (size[1] < 32 || size[1] < 32) {
+        size[0] = 32
+        size[1] = size[0] / r
+      }
+    }
+
     const newShape = Shape.create({
       id,
       parentId: currentPageId,
@@ -2566,7 +2611,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     })
 
     const bounds = Shape.getBounds(newShape as never)
+
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+
     this.createShapes(newShape)
 
     return this
@@ -2874,7 +2921,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (groups.length === 0) return this
 
     const command = Commands.ungroupShapes(this, ids, groups as GroupShape[], pageId)
-    if (!command) return this
+
+    if (!command) {
+      return this
+    }
+
     return this.setState(command)
   }
 
@@ -2883,26 +2934,37 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   cancel = (): this => {
     this.currentTool.onCancel?.()
+
     return this
   }
 
-  private addMediaFromFile = async (file: File, point = this.centerPoint) => {
+  addMediaFromFile = async (file: File, point = this.centerPoint) => {
     this.setIsLoading(true)
+
+    console.log(this.viewport.width)
+
     const id = Utils.uniqueId()
     const pagePoint = this.getPagePoint(point)
     const extension = file.name.match(/\.[0-9a-z]+$/i)
+
     if (!extension) throw Error('No extension')
+
     const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
     const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
+
     if (!(isImage || isVideo)) throw Error('Wrong extension')
+
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
+
     let src: string | ArrayBuffer | null
 
     try {
       if (this.callbacks.onAssetCreate) {
         const result = await this.callbacks.onAssetCreate(file, id)
+
         if (!result) throw Error('Asset creation callback returned false')
+
         src = result
       } else {
         src = await fileToBase64(file)
@@ -2916,6 +2978,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             let viewBox: string[]
             const svgString = await fileToText(file)
             const viewBoxAttribute = this.getViewboxFromSVG(svgString)
+
             if (viewBoxAttribute) {
               viewBox = viewBoxAttribute.split(' ')
               size[0] = parseFloat(viewBox[2])
@@ -2932,15 +2995,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === src
         )
+
         let assetId: string
+
         if (!match) {
           assetId = Utils.uniqueId()
+
           const asset = {
             id: assetId,
             type: assetType,
             src,
             size,
           }
+
           this.patchState({
             document: {
               assets: {
@@ -2948,7 +3015,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             },
           })
-        } else assetId = match.id
+        } else {
+          assetId = match.id
+        }
+
         this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
       }
     } catch (error) {
@@ -2963,12 +3033,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   private getViewboxFromSVG = (svgStr: string | ArrayBuffer | null) => {
     const viewBoxRegex = /.*?viewBox=["'](-?[\d.]+[, ]+-?[\d.]+[, ][\d.]+[, ][\d.]+)["']/
+
     if (typeof svgStr === 'string') {
       const matches = svgStr.match(viewBoxRegex)
       return matches && matches.length >= 2 ? matches[1] : null
     }
+
     console.warn('could not get viewbox from svg string')
+
     this.setIsLoading(false)
+
     return null
   }
 
@@ -3684,7 +3758,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isZoomSnap: false,
       isFocusMode: false,
       isSnapping: false,
-      isDebugMode: process.env.NODE_ENV === 'development',
+      isDebugMode: false,
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,

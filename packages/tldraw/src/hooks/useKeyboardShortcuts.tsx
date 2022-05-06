@@ -15,6 +15,27 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [ref]
   )
 
+  React.useEffect(() => {
+    if (!app) return
+    const handlePaste = (e: ClipboardEvent) => {
+      let items = e.clipboardData?.items ?? []
+      for (var index in items) {
+        var item = items[index]
+        if (item.kind === 'file') {
+          var file = item.getAsFile()
+          if (file) {
+            app.addMediaFromFile(file)
+          }
+        }
+      }
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => {
+      document.removeEventListener('paste', handlePaste)
+    }
+  }, [app])
+
   /* ---------------------- Tools --------------------- */
 
   useHotkeys(
@@ -523,6 +544,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     '⌘+v,ctrl+v',
     () => {
       if (!canHandleEvent()) return
+
       app.paste()
     },
     undefined,
