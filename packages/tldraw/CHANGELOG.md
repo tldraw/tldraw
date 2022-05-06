@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.1
+
+### Patch Changes
+
+- Add paste for assets.
+
 ## 1.11.0
 
 ### Minor Changes

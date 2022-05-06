@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.11.3
+
+### Patch Changes
+
+- Add paste for assets.
+
 ## 1.11.2
 
 ### Patch Changes
