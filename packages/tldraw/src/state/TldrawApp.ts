@@ -3758,7 +3758,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isZoomSnap: false,
       isFocusMode: false,
       isSnapping: false,
-      isDebugMode: process.env.NODE_ENV === 'development',
+      isDebugMode: false,
       isReadonlyMode: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
