@@ -2580,6 +2580,26 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const Shape = shapeUtils[type]
 
+    // Ensure that the pasted shape fits inside of the current viewport
+
+    if (size[0] > this.viewport.width) {
+      let r = size[1] / size[0]
+      size[0] = this.viewport.width - FIT_TO_SCREEN_PADDING
+      size[1] = size[0] * r
+      if (size[1] < 32 || size[1] < 32) {
+        size[1] = 32
+        size[0] = size[1] / r
+      }
+    } else if (size[1] > this.viewport.height) {
+      let r = size[0] / size[1]
+      size[1] = this.viewport.height - FIT_TO_SCREEN_PADDING
+      size[0] = size[1] * r
+      if (size[1] < 32 || size[1] < 32) {
+        size[0] = 32
+        size[1] = size[0] / r
+      }
+    }
+
     const newShape = Shape.create({
       id,
       parentId: currentPageId,
@@ -2591,7 +2611,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     })
 
     const bounds = Shape.getBounds(newShape as never)
+
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+
     this.createShapes(newShape)
 
     return this
@@ -2899,7 +2921,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (groups.length === 0) return this
 
     const command = Commands.ungroupShapes(this, ids, groups as GroupShape[], pageId)
-    if (!command) return this
+
+    if (!command) {
+      return this
+    }
+
     return this.setState(command)
   }
 
@@ -2908,26 +2934,37 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   cancel = (): this => {
     this.currentTool.onCancel?.()
+
     return this
   }
 
   addMediaFromFile = async (file: File, point = this.centerPoint) => {
     this.setIsLoading(true)
+
+    console.log(this.viewport.width)
+
     const id = Utils.uniqueId()
     const pagePoint = this.getPagePoint(point)
     const extension = file.name.match(/\.[0-9a-z]+$/i)
+
     if (!extension) throw Error('No extension')
+
     const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
     const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
+
     if (!(isImage || isVideo)) throw Error('Wrong extension')
+
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
+
     let src: string | ArrayBuffer | null
 
     try {
       if (this.callbacks.onAssetCreate) {
         const result = await this.callbacks.onAssetCreate(file, id)
+
         if (!result) throw Error('Asset creation callback returned false')
+
         src = result
       } else {
         src = await fileToBase64(file)
@@ -2941,6 +2978,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             let viewBox: string[]
             const svgString = await fileToText(file)
             const viewBoxAttribute = this.getViewboxFromSVG(svgString)
+
             if (viewBoxAttribute) {
               viewBox = viewBoxAttribute.split(' ')
               size[0] = parseFloat(viewBox[2])
@@ -2957,15 +2995,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const match = Object.values(this.document.assets).find(
           (asset) => asset.type === assetType && asset.src === src
         )
+
         let assetId: string
+
         if (!match) {
           assetId = Utils.uniqueId()
+
           const asset = {
             id: assetId,
             type: assetType,
             src,
             size,
           }
+
           this.patchState({
             document: {
               assets: {
@@ -2973,7 +3015,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               },
             },
           })
-        } else assetId = match.id
+        } else {
+          assetId = match.id
+        }
+
         this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
       }
     } catch (error) {
@@ -2988,12 +3033,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   private getViewboxFromSVG = (svgStr: string | ArrayBuffer | null) => {
     const viewBoxRegex = /.*?viewBox=["'](-?[\d.]+[, ]+-?[\d.]+[, ][\d.]+[, ][\d.]+)["']/
+
     if (typeof svgStr === 'string') {
       const matches = svgStr.match(viewBoxRegex)
       return matches && matches.length >= 2 ? matches[1] : null
     }
+
     console.warn('could not get viewbox from svg string')
+
     this.setIsLoading(false)
+
     return null
   }
 
