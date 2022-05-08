@@ -309,6 +309,19 @@ const tlcss = css`
     will-change: transform;
   }
 
+  .tl-user-tag {
+    color: var(--tl-background);
+    position: relative;
+    top: calc(10px * var(--tl-scale));
+    left: calc(10px * var(--tl-scale));
+    pointer-events: none;
+    font-size: calc(0.8em * var(--tl-scale));
+    will-change: transform;
+    border-radius: calc(5px * var(--tl-scale));
+    padding: calc(3px * var(--tl-scale)) calc(5px * var(--tl-scale));
+    width: fit-content;
+  }
+
   .tl-indicator {
     fill: transparent;
     stroke-width: calc(1.5px * var(--tl-scale));
@@ -460,6 +473,18 @@ const tlcss = css`
 
   .tl-grid-dot {
     fill: var(--tl-grid);
+  }
+
+  .tl-user-tag {
+    color: white;
+    background: var(--tl-userColor);
+    position: relative;
+    left: 0.5em;
+    top: 1em;
+    padding: 3px 5px;
+    border-radius: 5px;
+    font-size: 10px;
+    width: fit-content;
   }
 `
 
