@@ -20,9 +20,11 @@ async function main() {
     fs.mkdirSync('./dist')
   }
 
-  fs.copyFile('./src/index.html', './dist/index.html', (err) => {
-    if (err) throw err
-  })
+  fs.readdirSync('./src/public').forEach((file) =>
+    fs.copyFile(path.join('./src/public', file), path.join('./dist', file), (err) => {
+      if (err) throw err
+    })
+  )
 
   try {
     esbuild.buildSync({

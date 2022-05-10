@@ -1994,15 +1994,36 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (encodeFont) {
       try {
-        const fontJson = await fetch('tldraw-assets.json').then((d) => d.json())
+        const { fonts } = await fetch('tldraw-assets.json').then((d) => d.json())
 
         style.textContent = `
-    @font-face {
-      font-family: 'Caveat Brush';
-      src: url(data:application/x-font-woff;charset=utf-8;base64,${fontJson.caveat}) format('woff');
-      font-weight: 500;
-      font-style: normal;
-    }
+          @font-face {
+            font-family: 'Caveat Brush';
+            src: url(data:application/x-font-woff;charset=utf-8;base64,${fonts.caveat}) format('woff');
+            font-weight: 500;
+            font-style: normal;
+          }
+
+          @font-face {
+            font-family: 'Source Code Pro';
+            src: url(data:application/x-font-woff;charset=utf-8;base64,${fonts.source_code_pro}) format('woff');
+            font-weight: 500;
+            font-style: normal;
+          }
+
+          @font-face {
+            font-family: 'Source Sans Pro';
+            src: url(data:application/x-font-woff;charset=utf-8;base64,${fonts.source_sans_pro}) format('woff');
+            font-weight: 500;
+            font-style: normal;
+          }
+
+          @font-face {
+            font-family: 'Crimson Pro';
+            src: url(data:application/x-font-woff;charset=utf-8;base64,${fonts.crimson_pro}) format('woff');
+            font-weight: 500;
+            font-style: normal;
+          }
           `
       } catch (e) {
         TLDR.warn('Could not find tldraw-assets.json file.')
