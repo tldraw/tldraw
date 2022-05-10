@@ -67,8 +67,8 @@
     "source-map-loader": "^3.0.1",
     "tslib": "^2.3.1",
     "turbo": "^1.1.2",
-    "typedoc": "^0.22.11",
-    "typescript": "^4.5.5",
+    "typedoc": "^0.22.15",
+    "typescript": "^4.6.4",
     "webpack": "^5.68.0"
   },
   "husky": {

@@ -76,7 +76,8 @@
     "lask": "^0.0.29",
     "mobx": "^6.3.8",
     "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
+    "react-dom": "^16.8 || ^17.0",
+    "typescript": "^4.6.4"
   },
   "jest": {
     "setupFilesAfterEnv": [
