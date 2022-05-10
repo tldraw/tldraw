@@ -37,10 +37,8 @@ import {
   TDToolType,
   TDAssetType,
   TDAsset,
-  TDExportTypes,
   TDAssets,
   TDExport,
-  ImageShape,
   ArrowShape,
 } from '~types'
 import {

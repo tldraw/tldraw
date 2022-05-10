@@ -2,6 +2,7 @@
 import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
 import dotenv from 'dotenv'
+import path from 'path'
 
 dotenv.config()
 
