@@ -102,10 +102,6 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
     app.delete()
   }, [app])
 
-  const handleCopyJson = React.useCallback(() => {
-    app.copyJson()
-  }, [app])
-
   const handleCut = React.useCallback(() => {
     app.cut()
   }, [app])
@@ -118,8 +114,16 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
     app.paste()
   }, [app])
 
-  const handleCopySvg = React.useCallback(() => {
+  const handleCopySVG = React.useCallback(() => {
     app.copySvg()
+  }, [app])
+
+  const handleCopyPNG = React.useCallback(() => {
+    app.copyImage('png', 2, 1)
+  }, [app])
+
+  const handleCopyJSON = React.useCallback(async () => {
+    app.copyJson()
   }, [app])
 
   const handleUndo = React.useCallback(() => {
@@ -131,23 +135,23 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
   }, [app])
 
   const handleExportPNG = React.useCallback(async () => {
-    await app.exportSelectedShapesAs(TDExportTypes.PNG)
+    app.exportImage('png', 2, 1)
   }, [app])
 
   const handleExportJPG = React.useCallback(async () => {
-    await app.exportSelectedShapesAs(TDExportTypes.JPG)
+    app.exportImage('jpg', 2, 1)
   }, [app])
 
   const handleExportWEBP = React.useCallback(async () => {
-    await app.exportSelectedShapesAs(TDExportTypes.WEBP)
+    app.exportImage('webp', 2, 1)
   }, [app])
 
   const handleExportSVG = React.useCallback(async () => {
-    await app.exportSelectedShapesAs(TDExportTypes.SVG)
+    app.exportImage('svg', 1, 1)
   }, [app])
 
   const handleExportJSON = React.useCallback(async () => {
-    await app.exportSelectedShapesAs(TDExportTypes.JSON)
+    app.exportJson()
   }, [app])
 
   const hasSelection = numberOfSelectedIds > 0
@@ -212,57 +216,6 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             {hasTwoOrMore && (
               <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
             )}
-            {app.callbacks.onExport ? (
-              <>
-                <Divider />
-                <ContextMenuSubMenu label="Export" size="small" id="TD-ContextMenu-Export">
-                  <CMRowButton onClick={handleExportPNG} id="TD-ContextMenu-Export-PNG">
-                    PNG
-                  </CMRowButton>
-                  <CMRowButton onClick={handleExportJPG} id="TD-ContextMenu-Export-JPG">
-                    JPG
-                  </CMRowButton>
-                  <CMRowButton onClick={handleExportWEBP} id="TD-ContextMenu-Export-WEBP">
-                    WEBP
-                  </CMRowButton>
-                  <CMRowButton onClick={handleExportSVG} id="TD-ContextMenu-Export-SVG">
-                    SVG
-                  </CMRowButton>
-                  <CMRowButton onClick={handleExportJSON} id="TD-ContextMenu-Export-JSON">
-                    JSON
-                  </CMRowButton>
-                  <Divider />
-                  <CMRowButton
-                    onClick={handleCopySvg}
-                    kbd="#⇧C"
-                    id="TD-ContextMenu-Export-Copy_as_SVG"
-                  >
-                    Copy as SVG
-                  </CMRowButton>
-                  {isDebugMode && (
-                    <CMRowButton onClick={handleCopyJson} id="TD-ContextMenu-Export-Copy_as_JSON">
-                      Copy as JSON
-                    </CMRowButton>
-                  )}
-                </ContextMenuSubMenu>
-              </>
-            ) : (
-              <>
-                <Divider />
-                <CMRowButton
-                  onClick={handleCopySvg}
-                  kbd="#⇧C"
-                  id="TD-ContextMenu-Export-Copy_as_SVG"
-                >
-                  Copy as SVG
-                </CMRowButton>
-                {isDebugMode && (
-                  <CMRowButton onClick={handleCopyJson} id="TD-ContextMenu-Export-Copy_as_JSON">
-                    Copy as JSON
-                  </CMRowButton>
-                )}
-              </>
-            )}
             <Divider />
             <CMRowButton onClick={handleCut} kbd="#X" id="TD-ContextMenu-Cut">
               Cut
@@ -273,7 +226,39 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             <CMRowButton onClick={handlePaste} kbd="#V" id="TD-ContextMenu-Paste">
               Paste
             </CMRowButton>
-
+            <Divider />
+            <ContextMenuSubMenu label="Copy as..." size="small" id="TD-ContextMenu-Copy-As">
+              <CMRowButton onClick={handleCopySVG} id="TD-ContextMenu-Copy-as-SVG">
+                SVG
+              </CMRowButton>
+              <CMRowButton onClick={handleCopyPNG} id="TD-ContextMenu-Copy-As-PNG">
+                PNG
+              </CMRowButton>
+              {isDebugMode && (
+                <CMRowButton onClick={handleCopyJSON} id="TD-ContextMenu-Copy_as_JSON">
+                  JSON
+                </CMRowButton>
+              )}
+            </ContextMenuSubMenu>
+            <ContextMenuSubMenu label="Export as..." size="small" id="TD-ContextMenu-Export">
+              <CMRowButton onClick={handleExportSVG} id="TD-ContextMenu-Export-SVG">
+                SVG
+              </CMRowButton>
+              <CMRowButton onClick={handleExportPNG} id="TD-ContextMenu-Export-PNG">
+                PNG
+              </CMRowButton>
+              <CMRowButton onClick={handleExportJPG} id="TD-ContextMenu-Export-JPG">
+                JPG
+              </CMRowButton>
+              <CMRowButton onClick={handleExportWEBP} id="TD-ContextMenu-Export-WEBP">
+                WEBP
+              </CMRowButton>
+              {isDebugMode && (
+                <CMRowButton onClick={handleExportJSON} id="TD-ContextMenu-Export-JSON">
+                  JSON
+                </CMRowButton>
+              )}
+            </ContextMenuSubMenu>
             <Divider />
             <CMRowButton onClick={handleDelete} kbd="⌫" id="TD-ContextMenu-Delete">
               Delete

@@ -1698,22 +1698,31 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /*                      Clipboard                     */
   /* -------------------------------------------------- */
 
-  /**
-   * Copy one or more shapes to the clipboard.
-   * @param ids The ids of the shapes to copy.
-   */
-  copy = (ids = this.selectedIds): this => {
+  private getClipboard(
+    ids = this.selectedIds,
+    pageId = this.currentPageId
+  ):
+    | {
+        shapes: TDShape[]
+        bindings: TDBinding[]
+        assets: TDAsset[]
+      }
+    | undefined {
     const copyingShapeIds = ids.flatMap((id) =>
       TLDR.getDocumentBranch(this.state, id, this.currentPageId)
     )
+
     const copyingShapes = copyingShapeIds.map((id) =>
       Utils.deepClone(this.getShape(id, this.currentPageId))
     )
-    if (copyingShapes.length === 0) return this
+
+    if (copyingShapes.length === 0) return
+
     const copyingBindings: TDBinding[] = Object.values(this.page.bindings).filter(
       (binding) =>
         copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
     )
+
     const copyingAssets = copyingShapes
       .map((shape) => {
         if (!shape.assetId) return
@@ -1721,11 +1730,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         return this.document.assets[shape.assetId]
       })
       .filter(Boolean) as TDAsset[]
-    this.clipboard = {
+
+    return {
       shapes: copyingShapes,
       bindings: copyingBindings,
       assets: copyingAssets,
     }
+  }
+
+  /**
+   * Copy one or more shapes to the clipboard.
+   * @param ids The ids of the shapes to copy.
+   */
+  copy = (ids = this.selectedIds, pageId = this.currentPageId): this => {
+    this.clipboard = this.getClipboard(ids, pageId)
+
     try {
       const text = JSON.stringify({
         type: 'tldr/clipboard',
@@ -1743,8 +1762,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } catch (e) {
       // Browser does not support copying to clipboard
     }
+
     this.pasteInfo.offset = [0, 0]
     this.pasteInfo.center = [0, 0]
+
     return this
   }
 
@@ -1811,6 +1832,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               }
             })
           }
+
           return copy
         })
 
@@ -1837,6 +1859,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
 
       const centeredBounds = Utils.centerBounds(commonBounds, center)
+
       const delta = Vec.sub(
         Utils.getBoundsCenter(centeredBounds),
         Utils.getBoundsCenter(commonBounds)
@@ -1894,7 +1917,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
       })
       .catch(() => {
-        // No text on clipboard or read permissions denied.
+        TLDR.warn('Read permissions denied!')
 
         if (this.clipboard) {
           pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
@@ -1904,33 +1927,60 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  /**
-   * Copy one or more shapes as SVG.
-   * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
-   * @returns A string containing the JSON.
-   */
-  copySvg = (ids = this.selectedIds, pageId = this.currentPageId) => {
-    if (ids.length === 0) ids = Object.keys(this.page.shapes)
+  getSvg = async (
+    ids = this.selectedIds,
+    pageId = this.currentPageId,
+    encodeFont = false
+  ): Promise<SVGElement | undefined> => {
+    const page = this.document.pages[pageId]
+
+    if (ids.length === 0) ids = Object.keys(page.shapes)
     if (ids.length === 0) return
+
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
     // Embed our custom fonts
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-    style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
-    defs.appendChild(style)
-    svg.appendChild(defs)
+    // style.type = 'text/css'
+    // style.textContent = stylesheet.innerHTML.toString() + '\n' + customFonts.innerHTML.toString() // `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
+
+    if (encodeFont) {
+      try {
+        const fontJson = await fetch('tldraw-assets.json').then((d) => d.json())
+
+        style.textContent = `
+    @font-face {
+      font-family: 'Caveat Brush';
+      src: url(data:application/x-font-woff;charset=utf-8;base64,${fontJson.caveat}) format('woff');
+      font-weight: 500;
+      font-style: normal;
+    }
+          `
+      } catch (e) {
+        TLDR.warn('Could not find tldraw-assets.json file.')
+      }
+    } else {
+      style.textContent = `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
+    }
+
+    defs.append(style)
+    svg.append(defs)
+
     // Get the shapes in order
     const shapes = ids
       .map((id) => this.getShape(id, pageId))
       .sort((a, b) => a.childIndex - b.childIndex)
-    // Find their common bounding box. S hapes will be positioned relative to this box
+
+    // Find their common bounding box. Shapes will be positioned relative to this box
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
+
     // A quick routine to get an SVG element for each shape
     const getSvgElementForShape = (shape: TDShape) => {
       const util = TLDR.getShapeUtil(shape)
       const bounds = util.getBounds(shape)
       const elm = util.getSvgElement(shape)
+
       if (!elm) return
 
       // If the element is an image, set the asset src as the xlinkhref
@@ -1939,37 +1989,53 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } else if (shape.type === TDShapeType.Video) {
         elm.setAttribute('xlink:href', this.serializeVideo(shape.id))
       }
+
       // Put the element in the correct position relative to the common bounds
       elm.setAttribute(
         'transform',
-        `translate(${SVG_EXPORT_PADDING + shape.point[0] - commonBounds.minX}, ${
-          SVG_EXPORT_PADDING + shape.point[1] - commonBounds.minY
-        }) rotate(${((shape.rotation || 0) * 180) / Math.PI}, ${bounds.width / 2}, ${
-          bounds.height / 2
-        })`
+        `translate(${(SVG_EXPORT_PADDING + shape.point[0] - commonBounds.minX).toFixed(2)}, ${(
+          SVG_EXPORT_PADDING +
+          shape.point[1] -
+          commonBounds.minY
+        ).toFixed(2)}) rotate(${(((shape.rotation || 0) * 180) / Math.PI).toFixed(2)}, ${(
+          bounds.width / 2
+        ).toFixed(2)}, ${(bounds.height / 2).toFixed(2)})`
       )
+
       return elm
     }
+
     // Assemble the final SVG by iterating through each shape and its children
     shapes.forEach((shape) => {
       // The shape is a group! Just add the children.
       if (shape.children?.length) {
         // Create a group <g> elm for shape
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
         // Get the shape's children as elms and add them to the group
         shape.children.forEach((childId) => {
           const shape = this.getShape(childId, pageId)
           const elm = getSvgElementForShape(shape)
-          if (elm) g.appendChild(elm)
+
+          if (elm) {
+            g.append(elm)
+          }
         })
+
         // Add the group elm to the SVG
-        svg.appendChild(g)
+        svg.append(g)
+
         return
       }
+
       // Just add the shape's element to the
       const elm = getSvgElementForShape(shape)
-      if (elm) svg.appendChild(elm)
+
+      if (elm) {
+        svg.append(elm)
+      }
     })
+
     // Resize the elm to the bounding box
     svg.setAttribute(
       'viewBox',
@@ -1980,20 +2046,57 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         commonBounds.height + SVG_EXPORT_PADDING * 2,
       ].join(' ')
     )
-    svg.setAttribute('width', String(commonBounds.width))
-    svg.setAttribute('height', String(commonBounds.height))
-    svg.setAttribute('fill', 'transparent')
+
     // Clean up the SVG by removing any hidden elements
+    svg.setAttribute('width', commonBounds.width.toString())
+    svg.setAttribute('height', commonBounds.height.toString())
+    svg.setAttribute('fill', 'transparent')
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
       .forEach((elm) => elm.remove())
-    // Serialize the SVG to a string
-    const svgString = new XMLSerializer()
-      .serializeToString(svg)
-      .replaceAll('&#10;      ', '')
-      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
-    // Copy the string to the clipboard
+
+    return svg
+  }
+
+  getImage = async (
+    format: 'png' | 'jpg' | 'svg' | 'webp',
+    scale: number,
+    quality: number,
+    ids = this.selectedIds,
+    pageId = this.currentPageId
+  ): Promise<Blob | undefined> => {
+    const svg = await this.getSvg(ids, pageId, format !== 'svg')
+
+    if (!svg) return
+
+    if (format === 'svg') {
+      const svgString = TLDR.getSvgString(svg, 1)
+      const blob = new Blob([svgString], { type: 'image/svg+xml' })
+      return blob
+    }
+
+    const imageBlob = await TLDR.getImageForSvg(svg, format, scale, quality)
+
+    if (!imageBlob) return
+
+    return imageBlob
+  }
+
+  /**
+   * Copy one or more shapes as SVG.
+   * @param ids The ids of the shapes to copy.
+   * @param pageId The page from which to copy the shapes.
+   * @returns A string containing the JSON.
+   */
+  copySvg = async (ids = this.selectedIds, pageId = this.currentPageId) => {
+    const svg = await this.getSvg(ids, pageId)
+
+    if (!svg) return
+
+    const svgString = TLDR.getSvgString(svg, 1)
+
     TLDR.copyStringToClipboard(svgString)
+
     return svgString
   }
 
@@ -2005,11 +2108,75 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
     if (ids.length === 0) ids = Object.keys(this.page.shapes)
+
     if (ids.length === 0) return
+
     const shapes = ids.map((id) => this.getShape(id, pageId))
     const json = JSON.stringify(shapes, null, 2)
+
     TLDR.copyStringToClipboard(json)
+
     return json
+  }
+
+  copyImage = async (
+    format: 'svg' | 'png',
+    scale = 2,
+    quality = 1,
+    ids = this.selectedIds,
+    pageId = this.currentPageId
+  ) => {
+    if (!navigator.clipboard) return
+
+    const blob = await this.getImage(format, scale, quality, ids, pageId)
+
+    if (!blob) return
+
+    navigator.clipboard.write([
+      new ClipboardItem({
+        [blob.type]: blob,
+      }),
+    ])
+  }
+
+  exportImage = async (
+    format: 'svg' | 'png' | 'jpg' | 'webp' = 'png',
+    scale = 2,
+    quality = 1,
+    ids = this.selectedIds,
+    pageId = this.currentPageId
+  ) => {
+    const blob = await this.getImage(format, scale, quality, ids, pageId)
+
+    if (!blob) return
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `export.${format}`
+    link.click()
+  }
+
+  /**
+   * Export one or more shapes as JSON.
+   * @param ids The ids of the shapes to copy.
+   * @param pageId The page from which to copy the shapes.
+   * @returns A string containing the JSON.
+   */
+  exportJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
+    if (ids.length === 0) ids = Object.keys(this.page.shapes)
+
+    if (ids.length === 0) return
+
+    const shapes = ids.map((id) => this.getShape(id, pageId))
+    const json = JSON.stringify(shapes, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `export.json`
+    link.click()
   }
 
   /* -------------------------------------------------- */
@@ -3614,77 +3781,80 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
   }
 
-  async exportAllShapesAs(type: TDExportTypes) {
-    const initialSelectedIds = [...this.selectedIds]
-    this.selectAll()
-    const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    const idsToExport = TLDR.getAllEffectedShapeIds(
-      this.state,
-      this.selectedIds,
-      this.currentPageId
-    )
-    this.setSelectedIds(initialSelectedIds)
-    await this.exportShapesAs(idsToExport, [width, height], type)
-  }
+  // async exportAllShapesAs(type: TDExportTypes) {
+  //   const initialSelectedIds = [...this.selectedIds]
+  //   this.selectAll()
+  //   const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
+  //   const idsToExport = TLDR.getAllEffectedShapeIds(
+  //     this.state,
+  //     this.selectedIds,
+  //     this.currentPageId
+  //   )
+  //   this.setSelectedIds(initialSelectedIds)
+  //   await this.exportShapesAs(idsToExport, [width, height], type)
+  // }
 
-  async exportSelectedShapesAs(type: TDExportTypes) {
-    const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-    const idsToExport = TLDR.getAllEffectedShapeIds(
-      this.state,
-      this.selectedIds,
-      this.currentPageId
-    )
-    await this.exportShapesAs(idsToExport, [width, height], type)
-  }
+  // async exportSelectedShapesAs(type: TDExportTypes) {
+  //   const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
+  //   const idsToExport = TLDR.getAllEffectedShapeIds(
+  //     this.state,
+  //     this.selectedIds,
+  //     this.currentPageId
+  //   )
+  //   await this.exportShapesAs(idsToExport, [width, height], type)
+  // }
 
-  async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
-    if (!this.callbacks.onExport) return
-    this.setIsLoading(true)
-    try {
-      const assets: TDAssets = {}
-      const shapes: TDShape[] = shapeIds.map((id) => {
-        const shape = { ...this.getShape(id) }
-        if (shape.assetId) {
-          const asset = { ...this.document.assets[shape.assetId] }
-          // If the asset is a GIF, then serialize an image
-          if (asset.src.toLowerCase().endsWith('gif')) {
-            asset.src = this.serializeImage(shape.id)
-          }
-          // If the asset is an image, then serialize an image
-          if (shape.type === TDShapeType.Video) {
-            asset.src = this.serializeVideo(shape.id)
-            asset.type = TDAssetType.Image
-            // Cast shape to image shapes to properly display snapshots
-            ;(shape as unknown as ImageShape).type = TDShapeType.Image
-          }
-          // Patch asset table
-          assets[shape.assetId] = asset
-        }
-        return shape
-      })
-      // Create serialized data for JSON or SVGs
-      let serialized: string | undefined
-      if (type === TDExportTypes.SVG) {
-        serialized = this.copySvg(shapeIds)
-      } else if (type === TDExportTypes.JSON) {
-        serialized = this.copyJson(shapeIds)
-      }
-      const exportInfo: TDExport = {
-        currentPageId: this.currentPageId,
-        name: this.page.name ?? 'export',
-        shapes,
-        assets,
-        type,
-        serialized,
-        size: type === 'png' ? Vec.mul(size, 2) : size,
-      }
-      await this.callbacks.onExport(exportInfo)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      this.setIsLoading(false)
-    }
-  }
+  // async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
+  //   if (!this.callbacks.onExport) return
+  //   this.setIsLoading(true)
+  //   try {
+  //     const assets: TDAssets = {}
+  //     const shapes: TDShape[] = shapeIds.map((id) => {
+  //       const shape = { ...this.getShape(id) }
+  //       if (shape.assetId) {
+  //         const asset = { ...this.document.assets[shape.assetId] }
+  //         // If the asset is a GIF, then serialize an image
+  //         if (asset.src.toLowerCase().endsWith('gif')) {
+  //           asset.src = this.serializeImage(shape.id)
+  //         }
+  //         // If the asset is an image, then serialize an image
+  //         if (shape.type === TDShapeType.Video) {
+  //           asset.src = this.serializeVideo(shape.id)
+  //           asset.type = TDAssetType.Image
+  //           // Cast shape to image shapes to properly display snapshots
+  //           ;(shape as unknown as ImageShape).type = TDShapeType.Image
+  //         }
+  //         // Patch asset table
+  //         assets[shape.assetId] = asset
+  //       }
+  //       return shape
+  //     })
+  //     // Create serialized data for JSON or SVGs
+  //     let serialized: string | undefined
+  //     if (type === TDExportTypes.SVG) {
+  //       const svg = await this.getSvg()
+  //       if (!svg) return
+  //       const svgString = TLDR.getSvgString(svg, 1)
+  //       serialized = svgString
+  //     } else if (type === TDExportTypes.JSON) {
+  //       serialized = this.copyJson(shapeIds)
+  //     }
+  //     const exportInfo: TDExport = {
+  //       currentPageId: this.currentPageId,
+  //       name: this.page.name ?? 'export',
+  //       shapes,
+  //       assets,
+  //       type,
+  //       serialized,
+  //       size: type === 'png' ? Vec.mul(size, 2) : size,
+  //     }
+  //     await this.callbacks.onExport(exportInfo)
+  //   } catch (error) {
+  //     console.error(error)
+  //   } finally {
+  //     this.setIsLoading(false)
+  //   }
+  // }
 
   get room() {
     return this.state.room

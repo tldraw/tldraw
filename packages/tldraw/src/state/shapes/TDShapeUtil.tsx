@@ -180,7 +180,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
   getSvgElement = (shape: T): SVGElement | void => {
     const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
     if (!elm) return // possibly in test mode
-    if ('label' in shape && (shape as any).label !== undefined) {
+    if ('label' in shape && (shape as any).label) {
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       const bounds = this.getBounds(shape)
@@ -191,8 +191,10 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       labelElm.setAttribute('transform-origin', 'top left')
       labelElm.setAttribute(
         'transform',
-        `translate(${(bounds.width - size[0]) / 2}, ${(bounds.height - size[1]) / 2})`
+        `translate(${bounds.width / 2}, ${(bounds.height - size[1]) / 2})`
       )
+      g.setAttribute('text-align', 'center')
+      g.setAttribute('text-anchor', 'middle')
       g.appendChild(elm)
       g.appendChild(labelElm)
       return g

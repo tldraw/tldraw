@@ -569,8 +569,8 @@ describe('TldrawTestApp', () => {
   })
 
   describe('When copying to SVG', () => {
-    it('Copies shapes.', () => {
-      const result = new TldrawTestApp()
+    it('Copies shapes.', async () => {
+      const result = await new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1')
         .rotate(0.1)
@@ -579,8 +579,8 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg')
     })
 
-    it('Copies grouped shapes.', () => {
-      const result = new TldrawTestApp()
+    it('Copies grouped shapes.', async () => {
+      const result = await new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
@@ -590,8 +590,8 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with group')
     })
 
-    it('Respects child index', () => {
-      const result = new TldrawTestApp()
+    it('Respects child index', async () => {
+      const result = await new TldrawTestApp()
         .loadDocument(mockDocument)
         .moveToBack(['rect2'])
         .selectAll()
@@ -600,10 +600,10 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with reordered elements')
     })
 
-    it('Copies Text shapes as <text> elements.', () => {
+    it('Copies Text shapes as <text> elements.', async () => {
       const state2 = new TldrawTestApp()
 
-      const svgString = state2
+      const svgString = await state2
         .createShapes({
           id: 'text1',
           type: TDShapeType.Text,
