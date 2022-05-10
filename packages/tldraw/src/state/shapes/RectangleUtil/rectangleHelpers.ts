@@ -30,8 +30,8 @@ function getRectangleDrawPoints(id: string, style: ShapeStyles, size: number[]) 
   const rm = Math.round(Math.abs(getRandom() * 2 * 4))
 
   // Corner radii
-  const rx = Math.min(w / 2, sw * 2)
-  const ry = Math.min(h / 2, sw * 2)
+  const rx = Math.min(w / 4, sw * 2)
+  const ry = Math.min(h / 4, sw * 2)
 
   // Number of points per side
   const px = Math.max(8, Math.floor(w / 16))
