@@ -2,6 +2,7 @@
 import fs from 'fs'
 import esbuild from 'esbuild'
 import { createRequire } from 'module'
+import path from 'path'
 
 const pkg = createRequire(import.meta.url)('../package.json')
 
