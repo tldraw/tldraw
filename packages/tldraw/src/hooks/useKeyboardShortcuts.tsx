@@ -17,17 +17,9 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   React.useEffect(() => {
     if (!app) return
+
     const handlePaste = (e: ClipboardEvent) => {
-      let items = e.clipboardData?.items ?? []
-      for (var index in items) {
-        var item = items[index]
-        if (item.kind === 'file') {
-          var file = item.getAsFile()
-          if (file) {
-            app.addMediaFromFile(file)
-          }
-        }
-      }
+      app.paste(e)
     }
 
     document.addEventListener('paste', handlePaste)

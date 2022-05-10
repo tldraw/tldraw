@@ -6,7 +6,6 @@ import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
 import { FC } from 'react'
 import { styled } from 'styles'
-import { exportToImage } from 'utils/export'
 
 const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
@@ -56,7 +55,6 @@ function Editor({ roomId, isUser, isSponsor }: Props) {
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
-        onExport={exportToImage}
         onAssetCreate={onAssetCreate}
         onAssetDelete={onAssetDelete}
         {...fileSystemEvents}

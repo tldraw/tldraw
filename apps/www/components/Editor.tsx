@@ -1,7 +1,6 @@
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import React, { FC } from 'react'
-import { exportToImage } from 'utils/export'
 import * as gtag from 'utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
@@ -46,7 +45,6 @@ const Editor: FC<EditorProps & Partial<TldrawProps>> = ({
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
-        onExport={exportToImage}
         {...fileSystemEvents}
         {...rest}
       />

@@ -1739,6 +1739,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Cut (copy and delete) one or more shapes to the clipboard.
+   * @param ids The ids of the shapes to cut.
+   */
+  cut = (ids = this.selectedIds): this => {
+    this.copy(ids)
+    this.delete(ids)
+    return this
+  }
+
+  /**
    * Copy one or more shapes to the clipboard.
    * @param ids The ids of the shapes to copy.
    */
@@ -1751,14 +1761,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...this.clipboard,
       })
 
-      navigator.clipboard.writeText(text).then(
-        () => {
-          // success
-        },
-        () => {
-          // failure
-        }
-      )
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([text], { type: 'text/html' }),
+        }),
+      ])
     } catch (e) {
       // Browser does not support copying to clipboard
     }
@@ -1770,20 +1777,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Cut (copy and delete) one or more shapes to the clipboard.
-   * @param ids The ids of the shapes to cut.
-   */
-  cut = (ids = this.selectedIds): this => {
-    this.copy(ids)
-    this.delete(ids)
-    return this
-  }
-
-  /**
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
    */
-  paste = (point?: number[]) => {
+  paste = (e?: ClipboardEvent, point?: number[]) => {
     if (this.readOnly) return
 
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
@@ -1877,52 +1874,102 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
-    if (!('clipboard' in navigator && navigator.clipboard.readText)) {
+    if (e !== undefined) {
+      let items = e.clipboardData?.items ?? []
+      for (var index in items) {
+        var item = items[index]
+        if (item.kind === 'file') {
+          var file = item.getAsFile()
+          if (file) {
+            // at the moment, just paste one image from the clipboard
+            this.addMediaFromFile(file)
+            return
+          }
+        }
+      }
+    }
+
+    if (navigator.clipboard) {
+      navigator.clipboard.read().then(async (items) => {
+        try {
+          const items = await navigator.clipboard.read()
+          if (items.length === 0) return
+          for (const item of items) {
+            for (const type of item.types) {
+              const data = await item.getType(type)
+              if (data) {
+                switch (type) {
+                  case 'image/gif': {
+                    const file = new File([data], 'image.gif')
+                    this.addMediaFromFile(file)
+                    // this.pastePng(dataUri)
+                    continue
+                  }
+                  case 'image/png': {
+                    const file = new File([data], 'image.png')
+                    this.addMediaFromFile(file)
+                    // this.pastePng(dataUri)
+                    continue
+                  }
+                  case 'image/svg+xml': {
+                    const file = new File([data], 'image.svg')
+                    this.addMediaFromFile(file)
+                    // this.pasteSvg(dataUri)
+                    continue
+                  }
+                  case 'text/html': {
+                    let html = await data.text()
+                    html = html.slice('<meta charset="utf-8">'.length)
+
+                    const json: {
+                      type: string
+                      shapes: TDShape[]
+                      bindings: TDBinding[]
+                      assets: TDAsset[]
+                    } = JSON.parse(html)
+
+                    if (json.type === 'tldr/clipboard') {
+                      pasteInCurrentPage(json.shapes, json.bindings, json.assets)
+                    }
+
+                    // this.pasteHtml(html)
+                    // TODO paste text as text shape
+                    continue
+                  }
+                  case 'text/plain': {
+                    // TODO paste text as text shape
+                    const text = await data.text()
+                    text.trim()
+                    if (text) {
+                      const shapeId = Utils.uniqueId()
+
+                      this.createShapes({
+                        id: shapeId,
+                        type: TDShapeType.Text,
+                        parentId: this.appState.currentPageId,
+                        text: TLDR.normalizeText(text),
+                        point: this.getPagePoint(this.centerPoint, this.currentPageId),
+                        style: { ...this.appState.currentStyle },
+                      })
+
+                      this.select(shapeId)
+                    }
+                    continue
+                  }
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // noop
+        }
+      })
+    } else {
       TLDR.warn('This browser does not support the Clipboard API!')
       if (this.clipboard) {
         pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
       }
-      return
     }
-
-    navigator.clipboard
-      .readText()
-      .then((result) => {
-        const data: {
-          type: string
-          shapes: TDShape[]
-          bindings: TDBinding[]
-          assets: TDAsset[]
-        } = JSON.parse(result)
-
-        if (data.type === 'tldr/clipboard') {
-          pasteInCurrentPage(data.shapes, data.bindings, data.assets)
-        } else {
-          console.log(data.type)
-
-          TLDR.warn('The selected shape was not a tldraw shape, treating as text.')
-
-          const shapeId = Utils.uniqueId()
-
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Text,
-            parentId: this.appState.currentPageId,
-            text: TLDR.normalizeText(result),
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
-
-          this.select(shapeId)
-        }
-      })
-      .catch(() => {
-        TLDR.warn('Read permissions denied!')
-
-        if (this.clipboard) {
-          pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
-        }
-      })
 
     return this
   }
@@ -2150,11 +2197,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (!blob) return
 
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `export.${format}`
-    link.click()
+    const name = this.document.pages[pageId].name ?? 'export'
+
+    if (this.callbacks.onExport) {
+      this.callbacks.onExport({
+        name,
+        type: format,
+        blob,
+      })
+    } else {
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${name}.${format}`
+      link.click()
+    }
   }
 
   /**
@@ -3108,8 +3165,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   addMediaFromFile = async (file: File, point = this.centerPoint) => {
     this.setIsLoading(true)
 
-    console.log(this.viewport.width)
-
     const id = Utils.uniqueId()
     const pagePoint = this.getPagePoint(point)
     const extension = file.name.match(/\.[0-9a-z]+$/i)
@@ -3592,15 +3647,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickBoundsHandle?.(info, e)
+
     // hack time to reset the size / clipping of an image
     if (this.selectedIds.length !== 1) return
+
     const shape = this.getShape(this.selectedIds[0])
+
     if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
       const asset = this.document.assets[shape.assetId]
       const util = TLDR.getShapeUtil(shape)
       const centerA = util.getCenter(shape)
       const centerB = util.getCenter({ ...shape, size: asset.size })
       const delta = Vec.sub(centerB, centerA)
+
       this.updateShapes({
         id: shape.id,
         point: Vec.sub(shape.point, delta),
@@ -3780,81 +3839,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       ...assets,
     }
   }
-
-  // async exportAllShapesAs(type: TDExportTypes) {
-  //   const initialSelectedIds = [...this.selectedIds]
-  //   this.selectAll()
-  //   const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-  //   const idsToExport = TLDR.getAllEffectedShapeIds(
-  //     this.state,
-  //     this.selectedIds,
-  //     this.currentPageId
-  //   )
-  //   this.setSelectedIds(initialSelectedIds)
-  //   await this.exportShapesAs(idsToExport, [width, height], type)
-  // }
-
-  // async exportSelectedShapesAs(type: TDExportTypes) {
-  //   const { width, height } = Utils.expandBounds(TLDR.getSelectedBounds(this.state), 64)
-  //   const idsToExport = TLDR.getAllEffectedShapeIds(
-  //     this.state,
-  //     this.selectedIds,
-  //     this.currentPageId
-  //   )
-  //   await this.exportShapesAs(idsToExport, [width, height], type)
-  // }
-
-  // async exportShapesAs(shapeIds: string[], size: number[], type: TDExportTypes) {
-  //   if (!this.callbacks.onExport) return
-  //   this.setIsLoading(true)
-  //   try {
-  //     const assets: TDAssets = {}
-  //     const shapes: TDShape[] = shapeIds.map((id) => {
-  //       const shape = { ...this.getShape(id) }
-  //       if (shape.assetId) {
-  //         const asset = { ...this.document.assets[shape.assetId] }
-  //         // If the asset is a GIF, then serialize an image
-  //         if (asset.src.toLowerCase().endsWith('gif')) {
-  //           asset.src = this.serializeImage(shape.id)
-  //         }
-  //         // If the asset is an image, then serialize an image
-  //         if (shape.type === TDShapeType.Video) {
-  //           asset.src = this.serializeVideo(shape.id)
-  //           asset.type = TDAssetType.Image
-  //           // Cast shape to image shapes to properly display snapshots
-  //           ;(shape as unknown as ImageShape).type = TDShapeType.Image
-  //         }
-  //         // Patch asset table
-  //         assets[shape.assetId] = asset
-  //       }
-  //       return shape
-  //     })
-  //     // Create serialized data for JSON or SVGs
-  //     let serialized: string | undefined
-  //     if (type === TDExportTypes.SVG) {
-  //       const svg = await this.getSvg()
-  //       if (!svg) return
-  //       const svgString = TLDR.getSvgString(svg, 1)
-  //       serialized = svgString
-  //     } else if (type === TDExportTypes.JSON) {
-  //       serialized = this.copyJson(shapeIds)
-  //     }
-  //     const exportInfo: TDExport = {
-  //       currentPageId: this.currentPageId,
-  //       name: this.page.name ?? 'export',
-  //       shapes,
-  //       assets,
-  //       type,
-  //       serialized,
-  //       size: type === 'png' ? Vec.mul(size, 2) : size,
-  //     }
-  //     await this.callbacks.onExport(exportInfo)
-  //   } catch (error) {
-  //     console.error(error)
-  //   } finally {
-  //     this.setIsLoading(false)
-  //   }
-  // }
 
   get room() {
     return this.state.room

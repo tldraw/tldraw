@@ -495,19 +495,14 @@ export enum TDExportTypes {
   PNG = 'png',
   JPG = 'jpeg',
   WEBP = 'webp',
-  PDF = 'pdf',
   SVG = 'svg',
   JSON = 'json',
 }
 
 export interface TDExport {
-  currentPageId: string
   name: string
-  shapes: TDShape[]
-  assets: TDAssets
-  type: TDExportTypes
-  size: number[]
-  serialized?: string
+  type: string
+  blob: Blob
 }
 
 /* -------------------------------------------------- */

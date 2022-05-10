@@ -67,7 +67,6 @@ const App: React.FC = () => {
         document={rInitialDocument.current}
         onMount={handleMount}
         onPersist={handlePersist}
-        onExport={exportToImage}
         autofocus
       />
     </div>
