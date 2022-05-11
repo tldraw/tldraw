@@ -1,33 +1,62 @@
 import * as React from 'react'
-import { TDExport, Tldraw } from '@tldraw/tldraw'
+import { TldrawApp, TDExport, TDExportType, Tldraw } from '@tldraw/tldraw'
+
+const ACTION = 'download' as 'download' | 'open'
 
 export default function Export(): JSX.Element {
-  const handleExport = React.useCallback(async (info: TDExport) => {
-    if (info.serialized) {
-      const link = document.createElement('a')
-      link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(info.serialized)
-      link.download = info.name + '.' + info.type
-      link.click()
+  const handleExport = React.useCallback(async (app: TldrawApp, info: TDExport) => {
+    // When a user exports, the default behavior is to download
+    // the exported data as a file. If the onExport callback is
+    // provided, it will be called instead.
 
-      return
+    switch (ACTION) {
+      case 'download': {
+        // Download the file
+        const blobUrl = URL.createObjectURL(info.blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = info.name + '.' + info.type
+        link.click()
+        break
+      }
+      case 'open': {
+        // Open the file in a new tab
+        const blobUrl = URL.createObjectURL(info.blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.target = '_blank'
+        link.click()
+        break
+      }
     }
+  }, [])
 
-    const response = await fetch('some_serverless_endpoint', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(info),
-    })
-    const blob = await response.blob()
-    const blobUrl = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = info.name + '.' + info.type
-    link.click()
+  const [app, setApp] = React.useState<TldrawApp>()
+
+  const handleExportSVG = React.useCallback(() => {
+    app?.exportImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleExportPNG = React.useCallback(() => {
+    app?.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+  }, [app])
+
+  const handleExportJPG = React.useCallback(() => {
+    app?.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    setApp(app)
   }, [])
 
   return (
     <div className="tldraw">
-      <Tldraw onExport={handleExport} />
+      <Tldraw id="export_example" onMount={handleMount} onExport={handleExport} />
+      <div style={{ position: 'fixed', top: 128, left: 32, zIndex: 100 }}>
+        <button onClick={handleExportPNG}>Export as PNG</button>
+        <button onClick={handleExportSVG}>Export as SVG</button>
+        <button onClick={handleExportJPG}>Export as JPG</button>
+      </div>
     </div>
   )
 }

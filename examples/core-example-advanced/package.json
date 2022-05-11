@@ -37,7 +37,7 @@
     "react-dom": "^17.0.2",
     "react-feather": "^2.0.9",
     "rimraf": "^3.0.2",
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.4"
   },
   "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

@@ -2,6 +2,7 @@
 import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
 import dotenv from 'dotenv'
+import path from 'path'
 
 dotenv.config()
 
@@ -20,9 +21,11 @@ async function main() {
     fs.mkdirSync('./dist')
   }
 
-  fs.copyFile('./src/index.html', './dist/index.html', (err) => {
-    if (err) throw err
-  })
+  fs.readdirSync('./src/public').forEach((file) =>
+    fs.copyFile(path.join('./src/public', file), path.join('./dist', file), (err) => {
+      if (err) throw err
+    })
+  )
 
   try {
     await esbuildServe(

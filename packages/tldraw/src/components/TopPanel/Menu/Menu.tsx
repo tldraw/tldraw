@@ -15,7 +15,7 @@ import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
-import { TDExportTypes, TDSnapshot } from '~types'
+import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
@@ -44,28 +44,40 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
 
+  const handleDelete = React.useCallback(() => {
+    app.delete()
+  }, [app])
+
+  const handleCopySVG = React.useCallback(() => {
+    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleCopyPNG = React.useCallback(() => {
+    app.copyImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+  }, [app])
+
   const handleExportPNG = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.PNG)
+    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
   }, [app])
 
   const handleExportJPG = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.JPG)
+    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleExportWEBP = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.WEBP)
-  }, [app])
-
-  const handleExportPDF = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.PDF)
+    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleExportSVG = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.SVG)
+    app.exportImage(TDExportType.SVG, { scale: 2, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleCopyJSON = React.useCallback(async () => {
+    app.copyJson()
   }, [app])
 
   const handleExportJSON = React.useCallback(async () => {
-    await app.exportAllShapesAs(TDExportTypes.JSON)
+    app.exportJson()
   }, [app])
 
   const handleSignIn = React.useCallback(() => {
@@ -86,14 +98,6 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   const handlePaste = React.useCallback(() => {
     app.paste()
-  }, [app])
-
-  const handleCopySvg = React.useCallback(() => {
-    app.copySvg()
-  }, [app])
-
-  const handleCopyJson = React.useCallback(() => {
-    app.copyJson()
   }, [app])
 
   const handleSelectAll = React.useCallback(() => {
@@ -151,28 +155,6 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
                 Save As...
               </DMItem>
             )}
-            {app.callbacks.onExport && (
-              <>
-                <Divider />
-                <DMSubMenu label="Export" size="small" id="TD-MenuItem-File-Export">
-                  <DMItem onClick={handleExportPNG} id="TD-MenuItem-File-Export-PNG">
-                    PNG
-                  </DMItem>
-                  <DMItem onClick={handleExportJPG} id="TD-MenuItem-File-Export-JPG">
-                    JPG
-                  </DMItem>
-                  <DMItem onClick={handleExportWEBP} id="TD-MenuItem-File-Export-WEBP">
-                    WEBP
-                  </DMItem>
-                  <DMItem onClick={handleExportSVG} id="TD-MenuItem-File-Export-SVG">
-                    SVG
-                  </DMItem>
-                  <DMItem onClick={handleExportJSON} id="TD-MenuItem-File-Export-JSON">
-                    JSON
-                  </DMItem>
-                </DMSubMenu>
-              </>
-            )}
             {!disableAssets && (
               <>
                 <Divider />
@@ -183,89 +165,104 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             )}
           </DMSubMenu>
         )}
-        {!readOnly && (
-          <>
-            <DMSubMenu label="Edit..." id="TD-MenuItem-Edit">
-              <DMItem
-                onSelect={preventEvent}
-                onClick={app.undo}
-                kbd="#Z"
-                id="TD-MenuItem-Edit-Undo"
-              >
-                Undo
-              </DMItem>
-              <DMItem
-                onSelect={preventEvent}
-                onClick={app.redo}
-                kbd="#⇧Z"
-                id="TD-MenuItem-Edit-Redo"
-              >
-                Redo
-              </DMItem>
-              <DMDivider dir="ltr" />
-              <DMItem
-                onSelect={preventEvent}
-                disabled={!hasSelection}
-                onClick={handleCut}
-                kbd="#X"
-                id="TD-MenuItem-Edit-Cut"
-              >
-                Cut
-              </DMItem>
-              <DMItem
-                onSelect={preventEvent}
-                disabled={!hasSelection}
-                onClick={handleCopy}
-                kbd="#C"
-                id="TD-MenuItem-Edit-Copy"
-              >
-                Copy
-              </DMItem>
-              <DMItem
-                onSelect={preventEvent}
-                onClick={handlePaste}
-                kbd="#V"
-                id="TD-MenuItem-Edit-Paste"
-              >
-                Paste
-              </DMItem>
-              <DMDivider dir="ltr" />
-              <DMItem
-                onSelect={preventEvent}
-                disabled={!hasSelection}
-                onClick={handleCopySvg}
-                kbd="#⇧C"
-                id="TD-MenuItem-Edit-Copy_as_SVG"
-              >
-                Copy as SVG
-              </DMItem>
-              <DMItem
-                onSelect={preventEvent}
-                disabled={!hasSelection}
-                onClick={handleCopyJson}
-                id="TD-MenuItem-Edit-Copy_as_JSON"
-              >
-                Copy as JSON
-              </DMItem>
-              <DMDivider dir="ltr" />
-              <DMItem
-                onSelect={preventEvent}
-                onClick={handleSelectAll}
-                kbd="#A"
-                id="TD-MenuItem-Select_All"
-              >
-                Select All
-              </DMItem>
-              <DMItem
-                onSelect={preventEvent}
-                onClick={handleSelectNone}
-                id="TD-MenuItem-Select_None"
-              >
-                Select None
-              </DMItem>
-            </DMSubMenu>
-          </>
-        )}
+        <DMSubMenu label="Edit..." id="TD-MenuItem-Edit">
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.undo}
+            disabled={readOnly}
+            kbd="#Z"
+            id="TD-MenuItem-Edit-Undo"
+          >
+            Undo
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={app.redo}
+            disabled={readOnly}
+            kbd="#⇧Z"
+            id="TD-MenuItem-Edit-Redo"
+          >
+            Redo
+          </DMItem>
+          <DMDivider dir="ltr" />
+          <DMItem
+            onSelect={preventEvent}
+            disabled={!hasSelection || readOnly}
+            onClick={handleCut}
+            kbd="#X"
+            id="TD-MenuItem-Edit-Cut"
+          >
+            Cut
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            disabled={!hasSelection}
+            onClick={handleCopy}
+            kbd="#C"
+            id="TD-MenuItem-Edit-Copy"
+          >
+            Copy
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            onClick={handlePaste}
+            kbd="#V"
+            id="TD-MenuItem-Edit-Paste"
+          >
+            Paste
+          </DMItem>
+          <DMDivider dir="ltr" />
+          <DMSubMenu label="Copy as..." size="small" id="TD-MenuItem-Copy-As">
+            <DMItem onClick={handleCopySVG} id="TD-MenuItem-Copy-as-SVG">
+              SVG
+            </DMItem>
+            <DMItem onClick={handleCopyPNG} id="TD-MenuItem-Copy-As-PNG">
+              PNG
+            </DMItem>
+            <DMItem onClick={handleCopyJSON} id="TD-MenuItem-Copy_as_JSON">
+              JSON
+            </DMItem>
+          </DMSubMenu>
+          <DMSubMenu label="Export as..." size="small" id="TD-MenuItem-Export">
+            <DMItem onClick={handleExportSVG} id="TD-MenuItem-Export-SVG">
+              SVG
+            </DMItem>
+            <DMItem onClick={handleExportPNG} id="TD-MenuItem-Export-PNG">
+              PNG
+            </DMItem>
+            <DMItem onClick={handleExportJPG} id="TD-MenuItem-Export-JPG">
+              JPG
+            </DMItem>
+            <DMItem onClick={handleExportWEBP} id="TD-MenuItem-Export-WEBP">
+              WEBP
+            </DMItem>
+            <DMItem onClick={handleExportJSON} id="TD-MenuItem-Export-JSON">
+              JSON
+            </DMItem>
+          </DMSubMenu>
+
+          <DMDivider dir="ltr" />
+          <DMItem
+            onSelect={preventEvent}
+            onClick={handleSelectAll}
+            kbd="#A"
+            id="TD-MenuItem-Select_All"
+          >
+            Select All
+          </DMItem>
+          <DMItem
+            onSelect={preventEvent}
+            disabled={!hasSelection}
+            onClick={handleSelectNone}
+            id="TD-MenuItem-Select_None"
+          >
+            Select None
+          </DMItem>
+          <DMDivider dir="ltr" />
+          <DMItem onSelect={handleDelete} disabled={!hasSelection} kbd="⌫" id="TD-MenuItem-Delete">
+            Delete
+          </DMItem>
+        </DMSubMenu>
         <DMSubMenu label="View" id="TD-MenuItem-Edit">
           <DMItem
             onSelect={preventEvent}

@@ -17,6 +17,7 @@ import UIOptions from './ui-options'
 import { Multiplayer } from './multiplayer'
 import { Multiplayer as MultiplayerWithImages } from './multiplayer-with-images'
 import './styles.css'
+import Export from '~export'
 
 export default function App(): JSX.Element {
   return (
@@ -49,6 +50,8 @@ export default function App(): JSX.Element {
         <Route path="/embedded" element={<Embedded />} />
 
         <Route path="/no-size-embedded" element={<NoSizeEmbedded />} />
+
+        <Route path="/export" element={<Export />} />
 
         <Route path="/multiplayer" element={<Multiplayer />} />
 
@@ -101,6 +104,9 @@ export default function App(): JSX.Element {
                 </li>
                 <li>
                   <Link to="/no-size-embedded">Embedded (without explicit size)</Link>
+                </li>
+                <li>
+                  <Link to="/export">Export</Link>
                 </li>
                 <li>
                   <Link to="/multiplayer">Multiplayer</Link>

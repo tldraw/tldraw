@@ -11,6 +11,7 @@ import {
   TDShapeType,
   ArrowShape,
   TDHandle,
+  TDExportType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
@@ -986,7 +987,13 @@ export class TLDR {
 
   static copyStringToClipboard = (string: string) => {
     try {
-      navigator.clipboard.writeText(string)
+      if (navigator.clipboard) {
+        navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([string], { type: 'text/plain' }),
+          }),
+        ])
+      }
     } catch (e) {
       const textarea = document.createElement('textarea')
       textarea.setAttribute('position', 'fixed')
@@ -1081,5 +1088,79 @@ export class TLDR {
     if (isDev) {
       console.error(e)
     }
+  }
+
+  /* -------------------------------------------------- */
+  /*                       Export                       */
+  /* -------------------------------------------------- */
+
+  static getSvgString(svg: SVGElement, scale = 1) {
+    const clone = svg.cloneNode(true) as SVGGraphicsElement
+
+    svg.setAttribute('width', +svg.getAttribute('width')! * scale + '')
+    svg.setAttribute('height', +svg.getAttribute('height')! * scale + '')
+
+    return new XMLSerializer()
+      .serializeToString(clone)
+      .replaceAll('&#10;      ', '')
+      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+  }
+
+  static getSvgAsDataUrl(svg: SVGElement, scale = 1) {
+    const svgString = TLDR.getSvgString(svg, scale)
+
+    const base64SVG = window.btoa(unescape(svgString))
+
+    return `data:image/svg+xml;base64,${base64SVG}`
+  }
+
+  static async getImageForSvg(
+    svg: SVGElement,
+    type: Exclude<TDExportType, TDExportType.JSON> = TDExportType.PNG,
+    opts = {} as Partial<{
+      scale: number
+      quality: number
+    }>
+  ) {
+    const { scale = 2, quality = 1 } = opts
+
+    const svgString = TLDR.getSvgString(svg, scale)
+
+    const width = +svg.getAttribute('width')!
+    const height = +svg.getAttribute('height')!
+
+    if (!svgString) return
+
+    const canvas = await new Promise<HTMLCanvasElement>((resolve) => {
+      const image = new Image()
+
+      image.crossOrigin = 'anonymous'
+
+      const base64SVG = window.btoa(unescape(svgString))
+
+      const dataUrl = `data:image/svg+xml;base64,${base64SVG}`
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas') as HTMLCanvasElement
+        const context = canvas.getContext('2d')!
+
+        canvas.width = width
+        canvas.height = height
+
+        context.drawImage(image, 0, 0, width, height)
+
+        URL.revokeObjectURL(dataUrl)
+
+        resolve(canvas)
+      }
+
+      image.src = dataUrl
+    })
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((blob) => resolve(blob!), 'image/' + type, quality)
+    )
+
+    return blob
   }
 }

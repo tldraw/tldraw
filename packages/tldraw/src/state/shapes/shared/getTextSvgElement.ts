@@ -7,21 +7,27 @@ import { LINE_HEIGHT } from '~constants'
 export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBounds) {
   const fontSize = getFontSize(style.size, style.font)
   const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+
   const textLines = text.split('\n').map((line, i) => {
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
     textElm.setAttribute('y', LINE_HEIGHT * fontSize * (0.5 + i) + '')
+    textElm.setAttribute('letter-spacing', '-0.03px')
+    textElm.setAttribute('font-size', fontSize + 'px')
+    textElm.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
+    textElm.setAttribute('text-align', getTextAlign(style.textAlign))
     g.appendChild(textElm)
+
     return textElm
   })
-  g.setAttribute('font-size', fontSize + '')
-  g.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
-  g.setAttribute('text-align', getTextAlign(style.textAlign))
+
   switch (style.textAlign) {
     case AlignStyle.Middle: {
       g.setAttribute('text-align', 'center')
       g.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width / 2 + ''))
+      textLines.forEach((textElm) => {
+        textElm.setAttribute('x', bounds.width / 2 + '')
+      })
       break
     }
     case AlignStyle.End: {
@@ -35,5 +41,6 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
       g.setAttribute('alignment-baseline', 'central')
     }
   }
+
   return g
 }
