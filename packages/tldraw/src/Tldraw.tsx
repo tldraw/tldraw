@@ -215,7 +215,7 @@ export function Tldraw({
 
   // Toggle the app's darkMode when the `darkMode` prop changes.
   React.useEffect(() => {
-    if (darkMode !== app.settings.isDarkMode){
+    if (darkMode !== app.settings.isDarkMode) {
       app.toggleDarkMode()
     }
   }, [app, darkMode])
