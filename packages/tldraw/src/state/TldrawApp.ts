@@ -1961,6 +1961,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             item.getAsString(async (text) => {
               if (text.startsWith('<svg')) {
                 pasteTextAsSvg(text)
+              } else if (text.startsWith('<meta')) {
+                pasteAsHTML(text)
               } else {
                 pasteTextAsShape(text)
               }
