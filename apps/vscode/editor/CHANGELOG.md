@@ -1,5 +1,11 @@
 # @tldraw/vscode-editor
 
+## 1.10.2
+
+### Patch Changes
+
+- Fix tldraw assets for vscode extension.
+
 ## 1.10.1
 
 ### Patch Changes

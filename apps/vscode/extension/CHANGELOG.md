@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.12.1
+
+### Patch Changes
+
+- Fix tldraw assets for vscode extension.
+
 ## 1.12.0
 
 ### Minor Changes
