@@ -1794,7 +1794,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
    */
-  paste = (point?: number[], e?: ClipboardEvent) => {
+  paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
@@ -1888,99 +1888,150 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
+    const pasteTextAsSvg = async (text: string) => {
+      const div = document.createElement('div')
+      div.innerHTML = text
+      const svg = div.firstChild as SVGSVGElement
+
+      svg.style.setProperty('background-color', 'transparent')
+
+      const imageBlob = await TLDR.getImageForSvg(svg, TDExportType.SVG, {
+        scale: 1,
+        quality: 1,
+      })
+
+      if (imageBlob) {
+        const file = new File([imageBlob], 'image.svg')
+        this.addMediaFromFile(file)
+      } else {
+        pasteTextAsShape(text)
+      }
+    }
+
+    const pasteTextAsShape = (text: string) => {
+      const shapeId = Utils.uniqueId()
+
+      this.createShapes({
+        id: shapeId,
+        type: TDShapeType.Text,
+        parentId: this.appState.currentPageId,
+        text: TLDR.normalizeText(text),
+        point: this.getPagePoint(this.centerPoint, this.currentPageId),
+        style: { ...this.appState.currentStyle },
+      })
+
+      this.select(shapeId)
+    }
+
+    const pasteAsHTML = (html: string) => {
+      try {
+        const maybeJson = html.slice('<meta charset="utf-8">'.length)
+
+        const json: {
+          type: string
+          shapes: TDShape[]
+          bindings: TDBinding[]
+          assets: TDAsset[]
+        } = JSON.parse(maybeJson)
+
+        if (json.type === 'tldr/clipboard') {
+          pasteInCurrentPage(json.shapes, json.bindings, json.assets)
+          return
+        } else {
+          throw Error('Not tldraw data!')
+        }
+      } catch (e) {
+        pasteTextAsShape(html)
+        return
+      }
+    }
+
     if (e !== undefined) {
       let items = e.clipboardData?.items ?? []
       for (var index in items) {
         var item = items[index]
-        if (item.kind === 'file') {
-          var file = item.getAsFile()
-          if (file) {
-            // at the moment, just paste one image from the clipboard
-            this.addMediaFromFile(file)
+        switch (item.kind) {
+          case 'string': {
+            // TODO: This is also where Figma puts SVG images. Consider creating images for this text.
+            item.getAsString(async (text) => {
+              if (text.startsWith('<svg')) {
+                pasteTextAsSvg(text)
+              } else {
+                pasteTextAsShape(text)
+              }
+            })
             return
+          }
+          case 'file': {
+            var file = item.getAsFile()
+            if (file) {
+              // at the moment, just paste one image from the clipboard
+              this.addMediaFromFile(file)
+              return
+            }
           }
         }
       }
     }
 
     if (navigator.clipboard) {
-      navigator.clipboard.read().then(async (items) => {
-        try {
-          const items = await navigator.clipboard.read()
-          if (items.length === 0) return
-          for (const item of items) {
-            for (const type of item.types) {
-              const data = await item.getType(type)
-              if (data) {
-                switch (type) {
-                  case 'image/gif': {
-                    const file = new File([data], 'image.gif')
-                    this.addMediaFromFile(file)
-                    // this.pastePng(dataUri)
-                    continue
-                  }
-                  case 'image/png': {
-                    const file = new File([data], 'image.png')
-                    this.addMediaFromFile(file)
-                    // this.pastePng(dataUri)
-                    continue
-                  }
-                  case 'image/svg+xml': {
-                    const file = new File([data], 'image.svg')
-                    this.addMediaFromFile(file)
-                    // this.pasteSvg(dataUri)
-                    continue
-                  }
-                  case 'text/html': {
-                    let html = await data.text()
-                    html = html.slice('<meta charset="utf-8">'.length)
+      const items = await navigator.clipboard.read()
 
-                    const json: {
-                      type: string
-                      shapes: TDShape[]
-                      bindings: TDBinding[]
-                      assets: TDAsset[]
-                    } = JSON.parse(html)
+      if (items.length === 0) return
 
-                    if (json.type === 'tldr/clipboard') {
-                      pasteInCurrentPage(json.shapes, json.bindings, json.assets)
-                      return
-                    }
+      try {
+        for (const item of items) {
+          // First, look for tldraw json in html.
 
-                    // this.pasteHtml(html)
-                    // TODO paste text as text shape
-                    continue
-                  }
-                  case 'text/plain': {
-                    // TODO paste text as text shape
-                    const text = await data.text()
-                    text.trim()
-                    console.log(text)
-                    if (text) {
-                      const shapeId = Utils.uniqueId()
+          const htmlData = await item.getType('text/html')
 
-                      this.createShapes({
-                        id: shapeId,
-                        type: TDShapeType.Text,
-                        parentId: this.appState.currentPageId,
-                        text: TLDR.normalizeText(text),
-                        point: this.getPagePoint(this.centerPoint, this.currentPageId),
-                        style: { ...this.appState.currentStyle },
-                      })
+          if (htmlData) {
+            let html = await htmlData.text()
 
-                      this.select(shapeId)
-                      return
-                    }
-                    continue
-                  }
-                }
-              }
-            }
+            pasteAsHTML(html)
           }
-        } catch (e) {
-          // noop
+
+          // Next, look for plain text data.
+
+          const textData = await item.getType('text/plain')
+
+          if (textData) {
+            // TODO: Paste as an SVG image if the incoming data is an SVG.
+            const text = await textData.text()
+            text.trim()
+
+            if (text.startsWith('<svg')) {
+              pasteTextAsSvg(text)
+            } else {
+              pasteTextAsShape(text)
+            }
+
+            return
+          }
+
+          // Next, look for png data.
+
+          const pngData = await item.getType('text/png')
+
+          if (pngData) {
+            const file = new File([pngData], 'image.png')
+            this.addMediaFromFile(file)
+            return
+          }
+
+          // Finally, look for svg data.
+
+          const svgData = await item.getType('image/svg+xml')
+
+          if (svgData) {
+            const file = new File([svgData], 'image.svg')
+            this.addMediaFromFile(file)
+            return
+          }
         }
-      })
+      } catch (e) {
+        // noop
+      }
     } else {
       TLDR.warn('This browser does not support the Clipboard API!')
       if (this.clipboard) {
@@ -2154,13 +2205,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   copySvg = async (
     ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes)
   ) => {
+    if (ids.length === 0) return
+
     const svg = await this.getSvg(ids)
 
     if (!svg) return
 
     const svgString = TLDR.getSvgString(svg, 1)
 
-    TLDR.copyStringToClipboard(svgString)
+    this.clipboard = this.getClipboard(ids)
+
+    const tldrawString = JSON.stringify({
+      type: 'tldr/clipboard',
+      ...this.clipboard,
+    })
+
+    if (navigator.clipboard) {
+      navigator.clipboard.write([
+        new ClipboardItem({
+          'text/html': new Blob([tldrawString], { type: 'text/html' }),
+          'text/plain': new Blob([svgString], { type: 'text/plain' }),
+        }),
+      ])
+    }
 
     return svgString
   }
@@ -2266,6 +2333,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   ) => {
     if (format === TDExportType.SVG) {
       this.copySvg(opts.ids)
+      return
     }
 
     if (!navigator.clipboard) return
@@ -3269,6 +3337,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       if (typeof src === 'string') {
         let size = [0, 0]
+
         if (isImage) {
           // attempt to get actual svg size from viewBox attribute as
           if (extension[0] == '.svg') {
