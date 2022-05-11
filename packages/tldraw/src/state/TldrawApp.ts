@@ -86,59 +86,59 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the component mounts.
    */
-  onMount?: (state: TldrawApp) => void
+  onMount?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the component's state changes.
    */
-  onChange?: (state: TldrawApp, reason?: string) => void
+  onChange?: (app: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
-  onNewProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+  onNewProject?: (app: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
-  onSaveProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+  onSaveProject?: (app: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
    */
-  onSaveProjectAs?: (state: TldrawApp, e?: KeyboardEvent) => void
+  onSaveProjectAs?: (app: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
-  onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
+  onOpenProject?: (app: TldrawApp, e?: KeyboardEvent) => void
   /**
    * (optional) A callback to run when the opens a file to upload.
    */
-  onOpenMedia?: (state: TldrawApp) => void
+  onOpenMedia?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the user signs in via the menu.
    */
-  onSignIn?: (state: TldrawApp) => void
+  onSignIn?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the user signs out via the menu.
    */
-  onSignOut?: (state: TldrawApp) => void
+  onSignOut?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (state: TldrawApp, reason?: string) => void
+  onPatch?: (app: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (state: TldrawApp, reason?: string) => void
+  onCommand?: (app: TldrawApp, reason?: string) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
-  onPersist?: (state: TldrawApp) => void
+  onPersist?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the user undos.
    */
-  onUndo?: (state: TldrawApp) => void
+  onUndo?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the user redos.
    */
-  onRedo?: (state: TldrawApp) => void
+  onRedo?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the user changes the current page's shapes.
    */
@@ -151,19 +151,19 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project.
    */
-  onChangePresence?: (state: TldrawApp, user: TDUser) => void
+  onChangePresence?: (app: TldrawApp, user: TDUser) => void
   /**
    * (optional) A callback to run when an asset will be deleted.
    */
-  onAssetDelete?: (assetId: string) => void
+  onAssetDelete?: (app: TldrawApp, assetId: string) => void
   /**
    * (optional) A callback to run when an asset will be created. Should return the value for the image/video's `src` property.
    */
-  onAssetCreate?: (file: File, id: string) => Promise<string | false>
+  onAssetCreate?: (app: TldrawApp, file: File, id: string) => Promise<string | false>
   /**
    * (optional) A callback to run when the user exports their page or selection.
    */
-  onExport?: (info: TDExport) => Promise<void>
+  onExport?: (app: TldrawApp, info: TDExport) => Promise<void>
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -495,11 +495,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return next
   }
 
-  onPatch = (state: TDSnapshot, id?: string) => {
+  onPatch = (app: TDSnapshot, id?: string) => {
     this.callbacks.onPatch?.(this, id)
   }
 
-  onCommand = (state: TDSnapshot, id?: string) => {
+  onCommand = (app: TDSnapshot, id?: string) => {
     this.clearSelectHistory()
     this.isDirty = true
     this.callbacks.onCommand?.(this, id)
@@ -535,7 +535,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param state
    * @param id
    */
-  protected onStateDidChange = (_state: TDSnapshot, id?: string): void => {
+  protected onStateDidChange = (_app: TDSnapshot, id?: string): void => {
     this.callbacks.onChange?.(this, id)
 
     if (this.room && this.selectedIds !== this.prevSelectedIds) {
@@ -2219,7 +2219,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const name = this.document.pages[pageId].name ?? 'export'
 
     if (this.callbacks.onExport) {
-      this.callbacks.onExport({
+      this.callbacks.onExport(this, {
         name,
         type: format,
         blob,
@@ -2904,7 +2904,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
 
       const intersection = beforeAssetIds.filter((x) => !afterAssetIds.includes(x))
-      intersection.forEach((id) => this.callbacks.onAssetDelete!(id))
+      intersection.forEach((id) => this.callbacks.onAssetDelete!(this, id))
     }
 
     return this.setState(drawCommand)
@@ -3202,7 +3202,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     try {
       if (this.callbacks.onAssetCreate) {
-        const result = await this.callbacks.onAssetCreate(file, id)
+        const result = await this.callbacks.onAssetCreate(this, file, id)
 
         if (!result) throw Error('Asset creation callback returned false')
 
