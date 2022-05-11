@@ -1950,9 +1950,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       let items = e.clipboardData?.items ?? []
       for (var index in items) {
         var item = items[index]
+
+        // TODO
+        // We could eventually support pasting multiple files / images,
+        // and tiling them out on the canvas. At the moment, let's just
+        // support pasting one file / image.
+
         switch (item.kind) {
           case 'string': {
-            // TODO: This is also where Figma puts SVG images. Consider creating images for this text.
             item.getAsString(async (text) => {
               if (text.startsWith('<svg')) {
                 pasteTextAsSvg(text)
@@ -1965,7 +1970,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           case 'file': {
             var file = item.getAsFile()
             if (file) {
-              // at the moment, just paste one image from the clipboard
               this.addMediaFromFile(file)
               return
             }
