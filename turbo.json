@@ -23,7 +23,7 @@
     "start:vscode": {
       "cache": false
     },
-    "typedoc": {
+    "docs": {
       "dependsOn": [
         "^build"
       ],

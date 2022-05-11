@@ -7,6 +7,8 @@ describe('brush', () => {
   test('mounts component without crashing', () => {
     renderWithSvg(
       <Brush
+        zoom={1}
+        dashed={false}
         brush={{
           minX: 0,
           maxX: 100,
@@ -23,6 +25,8 @@ describe('brush', () => {
 test('validate attributes for brush component', () => {
   renderWithSvg(
     <Brush
+      zoom={1}
+      dashed={false}
       brush={{
         minX: 0,
         maxX: 100,

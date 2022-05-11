@@ -34,8 +34,8 @@
     "test": "turbo run test --stream",
     "test:ci": "turbo run test:ci --stream",
     "test:watch": "turbo run test:watch --stream",
-    "docs": "turbo run typedoc",
-    "docs:watch": "turbo run typedoc --watch",
+    "docs": "turbo run docs",
+    "docs:watch": "turbo run docs --watch",
     "postinstall": "husky install",
     "pretty-quick": "pretty-quick",
     "clean": "turbo run clean"

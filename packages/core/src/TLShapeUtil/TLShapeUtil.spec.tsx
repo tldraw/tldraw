@@ -95,6 +95,7 @@ describe('When creating a minimal ShapeUtil', () => {
       <Box.Component
         ref={ref}
         shape={boxShape}
+        bounds={Box.getBounds(boxShape)}
         isEditing={false}
         isBinding={false}
         isHovered={false}
@@ -214,6 +215,7 @@ describe('When creating a realistic API around TLShapeUtil', () => {
       <Box.Component
         ref={ref}
         shape={box}
+        bounds={Box.getBounds(box)}
         isEditing={false}
         isBinding={false}
         isHovered={false}
