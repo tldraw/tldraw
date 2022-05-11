@@ -18,12 +18,36 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   React.useEffect(() => {
     if (!app) return
 
-    const handlePaste = (e: ClipboardEvent) => {
-      app.paste(e)
+    const handleCut = (e: ClipboardEvent) => {
+      if (!canHandleEvent(true)) return
+
+      if (app.readOnly) {
+        app.copy(undefined, undefined, e)
+        return
+      }
+
+      app.cut(undefined, undefined, e)
     }
 
+    const handleCopy = (e: ClipboardEvent) => {
+      if (!canHandleEvent(true)) return
+
+      app.copy(undefined, undefined, e)
+    }
+
+    const handlePaste = (e: ClipboardEvent) => {
+      if (!canHandleEvent(true)) return
+      if (app.readOnly) return
+
+      app.paste(undefined, e)
+    }
+
+    document.addEventListener('cut', handleCut)
+    document.addEventListener('copy', handleCopy)
     document.addEventListener('paste', handlePaste)
     return () => {
+      document.removeEventListener('cut', handleCut)
+      document.removeEventListener('copy', handleCopy)
       document.removeEventListener('paste', handlePaste)
     }
   }, [app])
@@ -500,15 +524,15 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   // Copy, Cut & Paste
 
-  useHotkeys(
-    '⌘+c,ctrl+c',
-    () => {
-      if (!canHandleEvent()) return
-      app.copy()
-    },
-    undefined,
-    [app]
-  )
+  // useHotkeys(
+  //   '⌘+c,ctrl+c',
+  //   () => {
+  //     if (!canHandleEvent()) return
+  //     app.copy()
+  //   },
+  //   undefined,
+  //   [app]
+  // )
 
   useHotkeys(
     '⌘+shift+c,ctrl+shift+c',
@@ -522,26 +546,26 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     [app]
   )
 
-  useHotkeys(
-    '⌘+x,ctrl+x',
-    () => {
-      if (!canHandleEvent()) return
-      app.cut()
-    },
-    undefined,
-    [app]
-  )
+  // useHotkeys(
+  //   '⌘+x,ctrl+x',
+  //   () => {
+  //     if (!canHandleEvent()) return
+  //     app.cut()
+  //   },
+  //   undefined,
+  //   [app]
+  // )
 
-  useHotkeys(
-    '⌘+v,ctrl+v',
-    () => {
-      if (!canHandleEvent()) return
+  // useHotkeys(
+  //   '⌘+v,ctrl+v',
+  //   () => {
+  //     if (!canHandleEvent()) return
 
-      app.paste()
-    },
-    undefined,
-    [app]
-  )
+  //     app.paste()
+  //   },
+  //   undefined,
+  //   [app]
+  // )
 
   // Group & Ungroup
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
 import { useTldrawApp } from '~hooks'
-import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportTypes } from '~types'
+import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -115,15 +115,11 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
   }, [app])
 
   const handleCopySVG = React.useCallback(() => {
-    app.copySvg()
+    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleCopyPNG = React.useCallback(() => {
-    app.copyImage('png', 2, 1)
-  }, [app])
-
-  const handleCopyJSON = React.useCallback(async () => {
-    app.copyJson()
+    app.copyImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
   }, [app])
 
   const handleUndo = React.useCallback(() => {
@@ -135,19 +131,23 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
   }, [app])
 
   const handleExportPNG = React.useCallback(async () => {
-    app.exportImage('png', 2, 1)
+    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
   }, [app])
 
   const handleExportJPG = React.useCallback(async () => {
-    app.exportImage('jpg', 2, 1)
+    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleExportWEBP = React.useCallback(async () => {
-    app.exportImage('webp', 2, 1)
+    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleExportSVG = React.useCallback(async () => {
-    app.exportImage('svg', 1, 1)
+    app.exportImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleCopyJSON = React.useCallback(async () => {
+    app.copyJson()
   }, [app])
 
   const handleExportJSON = React.useCallback(async () => {

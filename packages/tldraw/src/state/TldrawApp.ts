@@ -40,6 +40,7 @@ import {
   TDAssets,
   TDExport,
   ArrowShape,
+  TDExportType,
 } from '~types'
 import {
   migrate,
@@ -886,7 +887,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   updateBounds = (bounds: TLBounds) => {
     this.rendererBounds = bounds
-    const { point, zoom } = this.pageState.camera
+    const { point, zoom } = this.camera
     this.updateViewport(point, zoom)
 
     if (!this.readOnly && this.session) {
@@ -1378,7 +1379,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       },
       'loaded_document'
     )
-    const { point, zoom } = this.pageState.camera
+    const { point, zoom } = this.camera
     this.updateViewport(point, zoom)
     return this
   }
@@ -1634,6 +1635,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this.state.document.pageStates[this.currentPageId]
   }
 
+  get camera(): {
+    point: number[]
+    zoom: number
+  } {
+    return this.pageState.camera
+  }
+
+  get zoom(): number {
+    return this.pageState.camera.zoom
+  }
+
   /**
    * The page's current selected ids.
    */
@@ -1740,9 +1752,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Cut (copy and delete) one or more shapes to the clipboard.
    * @param ids The ids of the shapes to cut.
    */
-  cut = (ids = this.selectedIds): this => {
-    this.copy(ids)
-    this.delete(ids)
+  cut = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
+    this.copy(ids, pageId, e)
+    if (!this.readOnly) {
+      this.delete(ids)
+    }
     return this
   }
 
@@ -1750,22 +1764,24 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Copy one or more shapes to the clipboard.
    * @param ids The ids of the shapes to copy.
    */
-  copy = (ids = this.selectedIds, pageId = this.currentPageId): this => {
+  copy = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
     this.clipboard = this.getClipboard(ids, pageId)
 
-    try {
-      const text = JSON.stringify({
-        type: 'tldr/clipboard',
-        ...this.clipboard,
-      })
+    const tldrawString = JSON.stringify({
+      type: 'tldr/clipboard',
+      ...this.clipboard,
+    })
 
+    if (e) {
+      e.clipboardData?.setData('text/hmtl', tldrawString)
+    }
+
+    if (navigator.clipboard) {
       navigator.clipboard.write([
         new ClipboardItem({
-          'text/html': new Blob([text], { type: 'text/html' }),
+          'text/html': new Blob([tldrawString], { type: 'text/html' }),
         }),
       ])
-    } catch (e) {
-      // Browser does not support copying to clipboard
     }
 
     this.pasteInfo.offset = [0, 0]
@@ -1778,7 +1794,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
    */
-  paste = (e?: ClipboardEvent, point?: number[]) => {
+  paste = (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
     const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
@@ -1928,6 +1944,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
                     if (json.type === 'tldr/clipboard') {
                       pasteInCurrentPage(json.shapes, json.bindings, json.assets)
+                      return
                     }
 
                     // this.pasteHtml(html)
@@ -1938,6 +1955,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                     // TODO paste text as text shape
                     const text = await data.text()
                     text.trim()
+                    console.log(text)
                     if (text) {
                       const shapeId = Utils.uniqueId()
 
@@ -1951,6 +1969,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                       })
 
                       this.select(shapeId)
+                      return
                     }
                     continue
                   }
@@ -1973,13 +1992,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   getSvg = async (
-    ids = this.selectedIds,
-    pageId = this.currentPageId,
-    encodeFont = false
+    ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes),
+    opts = {} as Partial<{ transparentBackground: boolean; includeFonts: boolean }>
   ): Promise<SVGElement | undefined> => {
-    const page = this.document.pages[pageId]
-
-    if (ids.length === 0) ids = Object.keys(page.shapes)
     if (ids.length === 0) return
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
@@ -1990,7 +2005,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // style.type = 'text/css'
     // style.textContent = stylesheet.innerHTML.toString() + '\n' + customFonts.innerHTML.toString() // `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
 
-    if (encodeFont) {
+    if (opts.includeFonts) {
       try {
         const { fonts } = await fetch('tldraw-assets.json').then((d) => d.json())
 
@@ -2035,7 +2050,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // Get the shapes in order
     const shapes = ids
-      .map((id) => this.getShape(id, pageId))
+      .map((id) => this.getShape(id, this.currentPageId))
       .sort((a, b) => a.childIndex - b.childIndex)
 
     // Find their common bounding box. Shapes will be positioned relative to this box
@@ -2080,7 +2095,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         // Get the shape's children as elms and add them to the group
         shape.children.forEach((childId) => {
-          const shape = this.getShape(childId, pageId)
+          const shape = this.getShape(childId, this.currentPageId)
           const elm = getSvgElementForShape(shape)
 
           if (elm) {
@@ -2116,36 +2131,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Clean up the SVG by removing any hidden elements
     svg.setAttribute('width', commonBounds.width.toString())
     svg.setAttribute('height', commonBounds.height.toString())
-    svg.setAttribute('fill', 'transparent')
+
+    if (opts.transparentBackground) {
+      svg.style.setProperty('background-color', 'transparent')
+    } else {
+      svg.style.setProperty('background-color', '#ffffff')
+    }
+
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
       .forEach((elm) => elm.remove())
 
     return svg
-  }
-
-  getImage = async (
-    format: 'png' | 'jpg' | 'svg' | 'webp',
-    scale: number,
-    quality: number,
-    ids = this.selectedIds,
-    pageId = this.currentPageId
-  ): Promise<Blob | undefined> => {
-    const svg = await this.getSvg(ids, pageId, format !== 'svg')
-
-    if (!svg) return
-
-    if (format === 'svg') {
-      const svgString = TLDR.getSvgString(svg, 1)
-      const blob = new Blob([svgString], { type: 'image/svg+xml' })
-      return blob
-    }
-
-    const imageBlob = await TLDR.getImageForSvg(svg, format, scale, quality)
-
-    if (!imageBlob) return
-
-    return imageBlob
   }
 
   /**
@@ -2154,8 +2151,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
-  copySvg = async (ids = this.selectedIds, pageId = this.currentPageId) => {
-    const svg = await this.getSvg(ids, pageId)
+  copySvg = async (
+    ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes)
+  ) => {
+    const svg = await this.getSvg(ids)
 
     if (!svg) return
 
@@ -2185,16 +2184,93 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return json
   }
 
-  copyImage = async (
-    format: 'svg' | 'png',
-    scale = 2,
-    quality = 1,
-    ids = this.selectedIds,
-    pageId = this.currentPageId
+  /**
+   * Export one or more shapes as JSON.
+   * @param ids The ids of the shapes to copy from the current page.
+   * @returns A string containing the JSON.
+   */
+  exportJson = (
+    ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes)
   ) => {
+    if (ids.length === 0) return
+
+    const shapes = ids.map((id) => this.getShape(id, this.currentPageId))
+    const json = JSON.stringify(shapes, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `export.json`
+    link.click()
+  }
+
+  /**
+   * Get an image of the selected shapes.
+   *
+   * @param format The format to export the image as.
+   * @param opts (optional) An object containing options for the image.
+   * @param opts.ids (optional) The ids of the shapes (on the current page) to get an image for.
+   * @param opts.scale (optional) The id of the page from which to get an image.
+   * @param opts.quality (optional) The quality (between 0 and 1) for the image if lossy format.
+   */
+  getImage = async (
+    format: Exclude<TDExportType, TDExportType.JSON> = TDExportType.PNG,
+    opts = {} as Partial<{
+      ids: string[]
+      scale: number
+      quality: number
+      transparentBackground: boolean
+    }>
+  ): Promise<Blob | undefined> => {
+    const { ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes) } =
+      opts
+
+    const svg = await this.getSvg(ids, {
+      includeFonts: format !== TDExportType.SVG,
+      transparentBackground: format === TDExportType.PNG,
+    })
+
+    if (!svg) return
+
+    if (format === TDExportType.SVG) {
+      const svgString = TLDR.getSvgString(svg, 1)
+      const blob = new Blob([svgString], { type: 'image/svg+xml' })
+      return blob
+    }
+
+    const imageBlob = await TLDR.getImageForSvg(svg, format, opts)
+
+    if (!imageBlob) return
+
+    return imageBlob
+  }
+
+  /**
+   * Copy an image of the selected shapes.
+   *
+   * @param format The format to export the image as.
+   * @param opts (optional) An object containing options for the image.
+   * @param opts.ids (optional) The ids of the shapes (on the current page) to get an image for.
+   * @param opts.scale (optional) The id of the page from which to get an image.
+   * @param opts.quality (optional) The quality (between 0 and 1) for the image if lossy format.
+   */
+  copyImage = async (
+    format: TDExportType.PNG | TDExportType.SVG = TDExportType.PNG,
+    opts = {} as Partial<{
+      ids: string[]
+      scale: number
+      quality: number
+      transparentBackground: boolean
+    }>
+  ) => {
+    if (format === TDExportType.SVG) {
+      this.copySvg(opts.ids)
+    }
+
     if (!navigator.clipboard) return
 
-    const blob = await this.getImage(format, scale, quality, ids, pageId)
+    const blob = await this.getImage(format, opts)
 
     if (!blob) return
 
@@ -2206,13 +2282,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   exportImage = async (
-    format: 'svg' | 'png' | 'jpg' | 'webp' = 'png',
-    scale = 2,
-    quality = 1,
-    ids = this.selectedIds,
-    pageId = this.currentPageId
+    format: Exclude<TDExportType, TDExportType.JSON> = TDExportType.PNG,
+    opts = {} as Partial<{
+      ids: string[]
+      pageId: string
+      scale: number
+      quality: number
+      transparentBackground: boolean
+    }>
   ) => {
-    const blob = await this.getImage(format, scale, quality, ids, pageId)
+    const { scale = 2, quality = 1, ids = this.selectedIds, pageId = this.currentPageId } = opts
+
+    const blob = await this.getImage(format, opts)
 
     if (!blob) return
 
@@ -2231,28 +2312,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       link.download = `${name}.${format}`
       link.click()
     }
-  }
-
-  /**
-   * Export one or more shapes as JSON.
-   * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
-   * @returns A string containing the JSON.
-   */
-  exportJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
-    if (ids.length === 0) ids = Object.keys(this.page.shapes)
-
-    if (ids.length === 0) return
-
-    const shapes = ids.map((id) => this.getShape(id, pageId))
-    const json = JSON.stringify(shapes, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
-
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `export.json`
-    link.click()
   }
 
   /* -------------------------------------------------- */
@@ -2321,7 +2380,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param center The point to zoom towards (defaults to screen center).
    */
   zoomTo = (next: number, center = this.centerPoint): this => {
-    const { zoom, point } = this.pageState.camera
+    const { zoom, point } = this.camera
     const p0 = Vec.sub(Vec.div(center, zoom), point)
     const p1 = Vec.sub(Vec.div(center, next), point)
     return this.setCamera(Vec.toFixed(Vec.add(point, Vec.sub(p1, p0))), next, `zoomed_camera`)
@@ -2331,7 +2390,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom out by 25%
    */
   zoomIn = (): this => {
-    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    const i = Math.round((this.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
     return this.zoomTo(nextZoom)
   }
@@ -2340,7 +2399,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom in by 25%.
    */
   zoomOut = (): this => {
-    const i = Math.round((this.pageState.camera.zoom * 100) / 25)
+    const i = Math.round((this.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
     return this.zoomTo(nextZoom)
   }
@@ -2388,10 +2447,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     )
 
-    zoom =
-      this.pageState.camera.zoom === zoom || this.pageState.camera.zoom < 1
-        ? Math.min(1, zoom)
-        : zoom
+    zoom = this.camera.zoom === zoom || this.camera.zoom < 1 ? Math.min(1, zoom) : zoom
 
     const mx = (rendererBounds.width - selectedBounds.width * zoom) / 2 / zoom
     const my = (rendererBounds.height - selectedBounds.height * zoom) / 2 / zoom
@@ -2421,7 +2477,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     return this.setCamera(
       Vec.toFixed(Vec.sub([mx, my], [commonBounds.minX, commonBounds.minY])),
-      this.pageState.camera.zoom,
+      this.camera.zoom,
       `zoomed_to_content`
     )
   }
@@ -2439,7 +2495,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param center The point to zoom toward.
    */
   zoomBy = Utils.throttle((delta: number, center?: number[]): this => {
-    const { zoom } = this.pageState.camera
+    const { zoom } = this.camera
     const nextZoom = TLDR.getCameraZoom(zoom - delta * zoom)
     return this.zoomTo(nextZoom, center)
   }, 16)
@@ -2827,7 +2883,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (size[0] > this.viewport.width) {
       let r = size[1] / size[0]
-      size[0] = this.viewport.width - FIT_TO_SCREEN_PADDING
+      size[0] = this.viewport.width - (FIT_TO_SCREEN_PADDING / this.camera.zoom) * 2
       size[1] = size[0] * r
       if (size[1] < 32 || size[1] < 32) {
         size[1] = 32
@@ -2835,7 +2891,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     } else if (size[1] > this.viewport.height) {
       let r = size[0] / size[1]
-      size[1] = this.viewport.height - FIT_TO_SCREEN_PADDING
+      size[1] = this.viewport.height - (FIT_TO_SCREEN_PADDING / this.camera.zoom) * 2
       size[0] = size[1] * r
       if (size[1] < 32 || size[1] < 32) {
         size[0] = 32
@@ -3480,8 +3536,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.appState.status === 'pinching') return
     // TODO: Pan and pinchzoom are firing at the same time. Considering turning one of them off!
 
-    const delta = Vec.div(info.delta, this.pageState.camera.zoom)
-    const prev = this.pageState.camera.point
+    const delta = Vec.div(info.delta, this.camera.zoom)
+    const prev = this.camera.point
     const next = Vec.sub(prev, delta)
 
     if (Vec.isEqual(next, prev)) return
@@ -3883,7 +3939,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   get currentGrid() {
-    const { zoom } = this.pageState.camera
+    const { zoom } = this.camera
     if (zoom < 0.15) {
       return GRID_SIZE * 16
     } else if (zoom < 1) {

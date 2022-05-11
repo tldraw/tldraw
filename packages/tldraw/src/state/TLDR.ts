@@ -11,6 +11,7 @@ import {
   TDShapeType,
   ArrowShape,
   TDHandle,
+  TDExportType,
 } from '~types'
 import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
@@ -1108,17 +1109,21 @@ export class TLDR {
   static getSvgAsDataUrl(svg: SVGElement, scale = 1) {
     const svgString = TLDR.getSvgString(svg, scale)
 
-    const base64SVG = window.btoa(svgString)
+    const base64SVG = window.btoa(unescape(svgString))
 
     return `data:image/svg+xml;base64,${base64SVG}`
   }
 
   static async getImageForSvg(
     svg: SVGElement,
-    type: 'png' | 'jpg' | 'webp' = 'png',
-    scale = 1,
-    quality = 1
+    type: Exclude<TDExportType, TDExportType.JSON> = TDExportType.PNG,
+    opts = {} as Partial<{
+      scale: number
+      quality: number
+    }>
   ) {
+    const { scale = 2, quality = 1 } = opts
+
     const svgString = TLDR.getSvgString(svg, scale)
 
     const width = +svg.getAttribute('width')!
@@ -1131,7 +1136,7 @@ export class TLDR {
 
       image.crossOrigin = 'anonymous'
 
-      const base64SVG = window.btoa(svgString)
+      const base64SVG = window.btoa(unescape(svgString))
 
       const dataUrl = `data:image/svg+xml;base64,${base64SVG}`
 

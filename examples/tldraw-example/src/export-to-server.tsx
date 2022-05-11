@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   TldrawApp,
   ImageShape,
-  TDExportTypes,
+  TDExportType,
   TDAssets,
   TDAssetType,
   TDShapeType,
@@ -15,7 +15,7 @@ import { Utils } from '@tldraw/core'
 
 export default function Export(): JSX.Element {
   const handleExport = React.useCallback(async (app: TldrawApp) => {
-    exportViaServer(app, TDExportTypes.PNG)
+    exportViaServer(app, TDExportType.PNG)
   }, [])
 
   return (
@@ -25,7 +25,7 @@ export default function Export(): JSX.Element {
   )
 }
 
-async function exportViaServer(app: TldrawApp, type: TDExportTypes) {
+async function exportViaServer(app: TldrawApp, type: TDExportType) {
   app.setIsLoading(true)
 
   const name = app.page.name ?? 'export'
@@ -71,8 +71,12 @@ async function exportViaServer(app: TldrawApp, type: TDExportTypes) {
     let serialized: string | undefined
 
     switch (type) {
-      case TDExportTypes.SVG: {
-        const svg = await app.getSvg()
+      case TDExportType.SVG: {
+        const svg = await app.getSvg(shapeIds, {
+          transparentBackground: true,
+          includeFonts: true,
+        })
+
         if (!svg) {
           throw Error('Could not get an SVG.')
         }
@@ -80,7 +84,7 @@ async function exportViaServer(app: TldrawApp, type: TDExportTypes) {
         serialized = TLDR.getSvgString(svg, 1)
         break
       }
-      case TDExportTypes.JSON: {
+      case TDExportType.JSON: {
         serialized = JSON.stringify(shapes, null, 2)
         break
       }

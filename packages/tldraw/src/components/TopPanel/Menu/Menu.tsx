@@ -15,7 +15,7 @@ import { useFileSystemHandlers } from '~hooks'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
 import { DiscordIcon } from '~components/Primitives/icons'
-import { TDExportTypes, TDSnapshot } from '~types'
+import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
@@ -49,37 +49,35 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
   }, [app])
 
   const handleCopySVG = React.useCallback(() => {
-    app.copySvg()
+    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleCopyPNG = React.useCallback(() => {
-    app.copyImage('png', 2, 1)
+    app.copyImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+  }, [app])
+
+  const handleExportPNG = React.useCallback(async () => {
+    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+  }, [app])
+
+  const handleExportJPG = React.useCallback(async () => {
+    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleExportWEBP = React.useCallback(async () => {
+    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleExportSVG = React.useCallback(async () => {
+    app.exportImage(TDExportType.SVG, { scale: 2, quality: 1, transparentBackground: false })
   }, [app])
 
   const handleCopyJSON = React.useCallback(async () => {
     app.copyJson()
   }, [app])
 
-  const handleExportPNG = React.useCallback(async () => {
-    app.exportImage('png', 2, 1)
-  }, [app])
-
-  const handleExportJPG = React.useCallback(async () => {
-    app.exportImage('jpg', 2, 1)
-  }, [app])
-
-  const handleExportWEBP = React.useCallback(async () => {
-    app.exportImage('webp', 2, 1)
-  }, [app])
-
-  const handleExportSVG = React.useCallback(async () => {
-    // await app.exportAllShapesAs(TDExportTypes.SVG)
-    app.exportImage('svg', 1, 1)
-  }, [app])
-
   const handleExportJSON = React.useCallback(async () => {
     app.exportJson()
-    // await app.exportAllShapesAs(TDExportTypes.JSON)
   }, [app])
 
   const handleSignIn = React.useCallback(() => {
@@ -100,18 +98,6 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   const handlePaste = React.useCallback(() => {
     app.paste()
-  }, [app])
-
-  const handleCopySvg = React.useCallback(() => {
-    app.copySvg()
-  }, [app])
-
-  const handleCopyPng = React.useCallback(() => {
-    app.copyImage('png', 2, 1)
-  }, [app])
-
-  const handleCopyJson = React.useCallback(() => {
-    app.copyJson()
   }, [app])
 
   const handleSelectAll = React.useCallback(() => {

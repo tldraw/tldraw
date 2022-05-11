@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TldrawApp, TDExport, Tldraw } from '@tldraw/tldraw'
+import { TldrawApp, TDExport, TDExportType, Tldraw } from '@tldraw/tldraw'
 
 const ACTION = 'download' as 'download' | 'open'
 
@@ -31,9 +31,32 @@ export default function Export(): JSX.Element {
     }
   }, [])
 
+  const [app, setApp] = React.useState<TldrawApp>()
+
+  const handleExportSVG = React.useCallback(() => {
+    app?.exportImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleExportPNG = React.useCallback(() => {
+    app?.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+  }, [app])
+
+  const handleExportJPG = React.useCallback(() => {
+    app?.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleMount = React.useCallback((app: TldrawApp) => {
+    setApp(app)
+  }, [])
+
   return (
     <div className="tldraw">
-      <Tldraw onExport={handleExport} />
+      <Tldraw id="export_example" onMount={handleMount} onExport={handleExport} />
+      <div style={{ position: 'fixed', top: 128, left: 32, zIndex: 100 }}>
+        <button onClick={handleExportPNG}>Export as PNG</button>
+        <button onClick={handleExportSVG}>Export as SVG</button>
+        <button onClick={handleExportJPG}>Export as JPG</button>
+      </div>
     </div>
   )
 }

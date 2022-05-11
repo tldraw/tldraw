@@ -491,7 +491,7 @@ export type TDAssets = Record<string, TDAsset>
 /*                    Export                          */
 /* -------------------------------------------------- */
 
-export enum TDExportTypes {
+export enum TDExportType {
   PNG = 'png',
   JPG = 'jpeg',
   WEBP = 'webp',
