@@ -2054,17 +2054,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   ): Promise<SVGElement | undefined> => {
     if (ids.length === 0) return
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
     // Embed our custom fonts
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
-    // style.type = 'text/css'
-    // style.textContent = stylesheet.innerHTML.toString() + '\n' + customFonts.innerHTML.toString() // `@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Source+Code+Pro&family=Source+Sans+Pro&family=Crimson+Pro&display=block');`
+
+    window.focus() // weird but necessary
 
     if (opts.includeFonts) {
       try {
-        const { fonts } = await fetch('tldraw-assets.json').then((d) => d.json())
+        const { fonts } = await fetch(TldrawApp.assetSrc, { mode: 'no-cors' }).then((d) => d.json())
 
         style.textContent = `
           @font-face {
@@ -4086,4 +4085,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     },
     document: TldrawApp.defaultDocument,
   }
+
+  static assetSrc = 'tldraw-assets.json'
 }

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { TDFile } from '@tldraw/tldraw'
 import { MessageFromWebview, MessageFromExtension } from './types'
+import * as path from 'path'
 
 /**
  * When a new editor is opened, an instance of this class will
@@ -120,8 +121,12 @@ export class TldrawWebviewManager {
     const { document, context, webviewPanel } = this
 
     let documentContent: string
-    let cssUrl: string | vscode.Uri
-    let jsUrl: string | vscode.Uri
+
+    let cssSrc: string | vscode.Uri
+    let jsSrc: string | vscode.Uri
+    const assetSrc = webviewPanel.webview.asWebviewUri(
+      vscode.Uri.joinPath(context.extensionUri, 'editor/', 'tldraw-assets.json')
+    )
 
     try {
       JSON.parse(document.getText())
@@ -135,16 +140,16 @@ export class TldrawWebviewManager {
     }
 
     if (process.env.NODE_ENV === 'production') {
-      cssUrl = webviewPanel.webview.asWebviewUri(
+      cssSrc = webviewPanel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.css')
       )
-      jsUrl = webviewPanel.webview.asWebviewUri(
+      jsSrc = webviewPanel.webview.asWebviewUri(
         vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.js')
       )
     } else {
       const localhost = 'http://localhost:5420/'
-      cssUrl = `${localhost}index.css`
-      jsUrl = `${localhost}index.js`
+      cssSrc = `${localhost}index.css`
+      jsSrc = `${localhost}index.js`
     }
 
     return `
@@ -152,15 +157,18 @@ export class TldrawWebviewManager {
       <html lang="en">
         <head>
           <meta charset="utf-8" />
-          <link rel="stylesheet" href="${cssUrl}" />
+          <link rel="stylesheet" href="${cssSrc}" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <title>tldraw</title>
         </head>
         <body>
           <div id="root"></div>
           <noscript>You need to enable JavaScript to run this app.</noscript>
-          <script>var currentFile = ${documentContent};</script>
-          <script src="${jsUrl}"></script>
+          <script>
+            var currentFile = ${documentContent};
+            var assetSrc = "${assetSrc}";
+          </script>
+          <script src="${jsSrc}"></script>
         </body>
       </html>
     `

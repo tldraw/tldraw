@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import * as path from 'path'
 import { TldrawWebviewManager } from './TldrawWebviewManager'
 
 /**
@@ -43,7 +44,9 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       this.viewType,
       new TldrawEditorProvider(context),
       {
-        webviewOptions: { retainContextWhenHidden: true },
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
         supportsMultipleEditorsPerDocument: true,
       }
     )

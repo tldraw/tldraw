@@ -21,6 +21,7 @@ async function main() {
       bundle: true,
       format: 'cjs',
       target: 'es6',
+      platform: 'node',
       define: {
         'process.env.NODE_ENV': '"production"',
       },

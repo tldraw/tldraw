@@ -22,6 +22,7 @@ async function main() {
       format: 'cjs',
       target: 'es6',
       sourcemap: 'inline',
+      platform: 'node',
       define: {
         'process.env.NODE_ENV': '"development"',
       },

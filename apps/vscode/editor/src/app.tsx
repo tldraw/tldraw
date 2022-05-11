@@ -8,6 +8,7 @@ import { vscode } from './utils/vscode'
 
 // Will be placed in global scope by extension
 declare let currentFile: TDFile
+declare let assetSrc: string
 
 const App: React.FC = () => {
   const rLoaded = React.useRef(false)
@@ -18,6 +19,7 @@ const App: React.FC = () => {
 
   // When the editor mounts, save the state instance in a ref.
   const handleMount = React.useCallback((app: TldrawApp) => {
+    TldrawApp.assetSrc = assetSrc ?? 'tldraw-assets.json'
     rTldrawApp.current = app
   }, [])
 
