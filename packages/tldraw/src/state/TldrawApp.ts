@@ -1753,6 +1753,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to cut.
    */
   cut = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
+    e?.preventDefault()
+
     this.copy(ids, pageId, e)
     if (!this.readOnly) {
       this.delete(ids)
@@ -1765,6 +1767,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to copy.
    */
   copy = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
+    e?.preventDefault()
+
     this.clipboard = this.getClipboard(ids, pageId)
 
     const tldrawString = JSON.stringify({
@@ -1773,7 +1777,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     })
 
     if (e) {
-      e.clipboardData?.setData('text/hmtl', tldrawString)
+      e.clipboardData?.setData('text/html', tldrawString)
     }
 
     if (navigator.clipboard) {
@@ -1925,7 +1929,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const pasteAsHTML = (html: string) => {
       try {
-        const maybeJson = html.slice('<meta charset="utf-8">'.length)
+        const maybeJson = html.startsWith('<') ? html.match(/({".*})$|</g)?.[1] : html
+
+        if (!maybeJson) return
 
         const json: {
           type: string
@@ -1956,24 +1962,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         // and tiling them out on the canvas. At the moment, let's just
         // support pasting one file / image.
 
-        switch (item.kind) {
-          case 'string': {
-            item.getAsString(async (text) => {
-              if (text.startsWith('<svg')) {
-                pasteTextAsSvg(text)
-              } else if (text.startsWith('<meta')) {
-                pasteAsHTML(text)
-              } else {
-                pasteTextAsShape(text)
-              }
-            })
-            return
-          }
-          case 'file': {
-            var file = item.getAsFile()
-            if (file) {
-              this.addMediaFromFile(file)
+        if (item.type === 'text/html') {
+          item.getAsString(async (text) => {
+            pasteAsHTML(text)
+          })
+          return
+        } else {
+          switch (item.kind) {
+            case 'string': {
+              item.getAsString(async (text) => {
+                if (text.startsWith('<svg')) {
+                  pasteTextAsSvg(text)
+                } else {
+                  pasteTextAsShape(text)
+                }
+              })
               return
+            }
+            case 'file': {
+              var file = item.getAsFile()
+              if (file) {
+                this.addMediaFromFile(file)
+                return
+              }
             }
           }
         }
