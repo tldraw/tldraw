@@ -1998,7 +1998,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     getClipboard().then((clipboard) => {
       if (clipboard) {
-        console.log('hey!')
         pasteAsHTML(clipboard)
       }
     })
@@ -2013,8 +2012,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           // look for png data.
 
           const pngData = await item.getType('text/png')
-
-          console.log(pngData)
 
           if (pngData) {
             const file = new File([pngData], 'image.png')
