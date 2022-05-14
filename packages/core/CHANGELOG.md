@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.1
+
+### Patch Changes
+
+- Improve clipboard, SVG text.
+
 ## 1.11.0
 
 ### Minor Changes

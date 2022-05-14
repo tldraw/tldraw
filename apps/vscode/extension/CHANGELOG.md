@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.12.5
+
+### Patch Changes
+
+- Improve clipboard, SVG text.
+
 ## 1.12.4
 
 ### Patch Changes

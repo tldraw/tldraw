@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.5
+
+### Patch Changes
+
+- Improve clipboard, SVG text.
+- Updated dependencies
+  - @tldraw/core@1.11.1
+
 ## 1.12.4
 
 ### Patch Changes
