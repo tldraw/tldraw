@@ -142,13 +142,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
       }, [isEditing])
 
       return (
-        <HTMLContainer
-          ref={ref}
-          {...events}
-          onCopy={stopPropagation}
-          onPaste={stopPropagation}
-          onCut={stopPropagation}
-        >
+        <HTMLContainer ref={ref} {...events}>
           <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
             <InnerWrapper
               style={{
