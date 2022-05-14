@@ -80,6 +80,7 @@ import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
+import { getClipboard, setClipboard } from './IdbClipboard'
 
 const uuid = Utils.uniqueId()
 
@@ -1778,6 +1779,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const tldrawString = `<tldraw>${jsonString}</tldraw>`
 
+    setClipboard(tldrawString)
+
     if (e) {
       e.clipboardData?.setData('text/html', tldrawString)
     }
@@ -1993,6 +1996,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
+    getClipboard().then((clipboard) => {
+      if (clipboard) {
+        pasteAsHTML(clipboard)
+      }
+    })
+
     if (navigator.clipboard) {
       const items = await navigator.clipboard.read()
 
@@ -2002,12 +2011,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         for (const item of items) {
           // First, look for tldraw json in html.
 
-          const htmlData = await item.getType('text/html')
+          // const htmlData = await item.getType('text/html')
 
-          if (htmlData) {
-            let html = await htmlData.text()
-            pasteAsHTML(html)
-          }
+          // if (htmlData) {
+          //   let html = await htmlData.text()
+          //   pasteAsHTML(html)
+          // }
 
           // Next, look for plain text data.
 
