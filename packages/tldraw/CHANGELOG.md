@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.4
+
+### Patch Changes
+
+- Fix export on dark mode.
+
 ## 1.12.3
 
 ### Patch Changes
