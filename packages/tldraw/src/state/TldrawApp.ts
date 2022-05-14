@@ -1966,7 +1966,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         if (item.type === 'text/html') {
           item.getAsString(async (text) => {
-            console.log(text)
             pasteAsHTML(text)
           })
           return
@@ -2007,7 +2006,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           if (htmlData) {
             let html = await htmlData.text()
-            console.log(html)
             pasteAsHTML(html)
           }
 

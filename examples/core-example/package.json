@@ -15,8 +15,8 @@
   },
   "files": [],
   "devDependencies": {
-    "@tldraw/core": "^1.6.1",
-    "@tldraw/vec": "^1.6.1",
+    "@tldraw/core": "*",
+    "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",

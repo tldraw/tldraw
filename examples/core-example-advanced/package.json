@@ -18,9 +18,9 @@
   "devDependencies": {
     "@state-designer/react": "^3.0.0",
     "@stitches/react": "^1.2.6",
-    "@tldraw/core": "^1.6.1",
-    "@tldraw/intersect": "^1.6.1",
-    "@tldraw/vec": "^1.6.1",
+    "@tldraw/core": "*",
+    "@tldraw/intersect": "*",
+    "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
