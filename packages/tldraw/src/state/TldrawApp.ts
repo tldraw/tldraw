@@ -1771,10 +1771,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.clipboard = this.getClipboard(ids, pageId)
 
-    const tldrawString = JSON.stringify({
+    const jsonString = JSON.stringify({
       type: 'tldr/clipboard',
       ...this.clipboard,
     })
+
+    const tldrawString = `<tldraw>${jsonString}</tldraw>`
 
     if (e) {
       e.clipboardData?.setData('text/html', tldrawString)
@@ -1929,7 +1931,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const pasteAsHTML = (html: string) => {
       try {
-        const maybeJson = html.startsWith('<') ? html.match(/({".*})$|</g)?.[1] : html
+        const maybeJson = html.match(/<tldraw>(.*)<\/tldraw>/)?.[1]
 
         if (!maybeJson) return
 
@@ -1964,6 +1966,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         if (item.type === 'text/html') {
           item.getAsString(async (text) => {
+            console.log(text)
             pasteAsHTML(text)
           })
           return
@@ -2004,7 +2007,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
           if (htmlData) {
             let html = await htmlData.text()
-
+            console.log(html)
             pasteAsHTML(html)
           }
 

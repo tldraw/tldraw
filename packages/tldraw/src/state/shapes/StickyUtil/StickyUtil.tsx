@@ -222,6 +222,9 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 spellCheck={true}
                 alignment={shape.style.textAlign}
                 onContextMenu={stopPropagation}
+                onCopy={stopPropagation}
+                onPaste={stopPropagation}
+                onCut={stopPropagation}
               />
             )}
           </StyledStickyContainer>
