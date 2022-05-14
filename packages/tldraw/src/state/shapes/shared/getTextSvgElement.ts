@@ -12,10 +12,12 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
     textElm.setAttribute('y', LINE_HEIGHT * fontSize * (0.5 + i) + '')
-    textElm.setAttribute('letter-spacing', '-0.03px')
+    textElm.setAttribute('letter-spacing', fontSize * -0.03 + '')
     textElm.setAttribute('font-size', fontSize + 'px')
     textElm.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
     textElm.setAttribute('text-align', getTextAlign(style.textAlign))
+    textElm.setAttribute('text-align', getTextAlign(style.textAlign))
+    textElm.setAttribute('alignment-baseline', 'central')
     g.appendChild(textElm)
 
     return textElm
@@ -37,8 +39,8 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
       break
     }
     case AlignStyle.Start: {
+      g.setAttribute('text-align', 'left')
       g.setAttribute('text-anchor', 'start')
-      g.setAttribute('alignment-baseline', 'central')
     }
   }
 
