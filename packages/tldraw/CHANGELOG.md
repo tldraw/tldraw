@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.3
+
+### Patch Changes
+
+- Fix clipboard events in editing text in vscode extension, fix outline for editing text in vscode extension.
+
 ## 1.12.2
 
 ### Patch Changes
