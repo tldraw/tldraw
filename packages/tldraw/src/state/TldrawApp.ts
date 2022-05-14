@@ -1785,7 +1785,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       e.clipboardData?.setData('text/html', tldrawString)
     }
 
-    if (navigator.clipboard) {
+    if (navigator.clipboard && window.ClipboardItem) {
       navigator.clipboard.write([
         new ClipboardItem({
           'text/html': new Blob([tldrawString], { type: 'text/html' }),
@@ -1998,6 +1998,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     getClipboard().then((clipboard) => {
       if (clipboard) {
+        console.log('hey!')
         pasteAsHTML(clipboard)
       }
     })
@@ -2009,16 +2010,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       try {
         for (const item of items) {
-          // First, look for tldraw json in html.
+          // look for png data.
 
-          // const htmlData = await item.getType('text/html')
+          const pngData = await item.getType('text/png')
 
-          // if (htmlData) {
-          //   let html = await htmlData.text()
-          //   pasteAsHTML(html)
-          // }
+          console.log(pngData)
 
-          // Next, look for plain text data.
+          if (pngData) {
+            const file = new File([pngData], 'image.png')
+            this.addMediaFromFile(file)
+            return
+          }
+
+          // look for svg data.
+
+          const svgData = await item.getType('image/svg+xml')
+
+          if (svgData) {
+            const file = new File([svgData], 'image.svg')
+            this.addMediaFromFile(file)
+            return
+          }
+
+          // look for plain text data.
 
           const textData = await item.getType('text/plain')
 
@@ -2033,26 +2047,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               pasteTextAsShape(text)
             }
 
-            return
-          }
-
-          // Next, look for png data.
-
-          const pngData = await item.getType('text/png')
-
-          if (pngData) {
-            const file = new File([pngData], 'image.png')
-            this.addMediaFromFile(file)
-            return
-          }
-
-          // Finally, look for svg data.
-
-          const svgData = await item.getType('image/svg+xml')
-
-          if (svgData) {
-            const file = new File([svgData], 'image.svg')
-            this.addMediaFromFile(file)
             return
           }
         }
@@ -2249,7 +2243,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       ...this.clipboard,
     })
 
-    if (navigator.clipboard) {
+    if (navigator.clipboard && window.ClipboardItem) {
       navigator.clipboard.write([
         new ClipboardItem({
           'text/html': new Blob([tldrawString], { type: 'text/html' }),
@@ -2365,7 +2359,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return
     }
 
-    if (!navigator.clipboard) return
+    if (!(navigator.clipboard && window.ClipboardItem)) {
+      console.warn('Sorry, your browser does not support copying images.')
+      return
+    }
 
     const blob = await this.getImage(format, opts)
 
