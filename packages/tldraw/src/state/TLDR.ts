@@ -1136,7 +1136,7 @@ export class TLDR {
 
       image.crossOrigin = 'anonymous'
 
-      const base64SVG = window.btoa(unescape(svgString))
+      const base64SVG = window.btoa(unescape(encodeURIComponent(svgString)))
 
       const dataUrl = `data:image/svg+xml;base64,${base64SVG}`
 
@@ -1152,6 +1152,10 @@ export class TLDR {
         URL.revokeObjectURL(dataUrl)
 
         resolve(canvas)
+      }
+
+      image.onerror = () => {
+        console.warn('Could not convert that SVG to an image.')
       }
 
       image.src = dataUrl
