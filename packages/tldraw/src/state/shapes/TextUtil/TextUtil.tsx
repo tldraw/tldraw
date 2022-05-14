@@ -333,10 +333,11 @@ export class TextUtil extends TDShapeUtil<T, E> {
     }
   }
 
-  getSvgElement = (shape: T): SVGElement | void => {
+  getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
+    const style = getShapeStyle(shape.style, isDarkMode)
     const elm = getTextSvgElement(shape.text, shape.style, bounds)
-    elm.setAttribute('fill', getShapeStyle(shape.style).stroke)
+    elm.setAttribute('fill', style.stroke)
     return elm
   }
 }
