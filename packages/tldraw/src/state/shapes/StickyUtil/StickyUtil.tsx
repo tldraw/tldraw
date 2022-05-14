@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultTextStyle } from '../shared/shape-styles'
 import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { getBoundsRectangle, TextAreaUtils } from '../shared'
+import { defaultTextStyle, getBoundsRectangle, TextAreaUtils } from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
@@ -59,24 +58,28 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
       const rText = React.useRef<HTMLDivElement>(null)
 
-      const rTextContent = React.useRef(shape.text)
-
       const rIsMounted = React.useRef(false)
 
       const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
         e.stopPropagation()
       }, [])
 
-      const handleTextChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-          rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
+      const onChange = React.useCallback(
+        (text: string) => {
           onShapeChange?.({
             id: shape.id,
             type: shape.type,
-            text: rTextContent.current,
+            text: TLDR.normalizeText(text),
           })
         },
-        [onShapeChange]
+        [shape.id]
+      )
+
+      const handleTextChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onChange(e.currentTarget.value)
+        },
+        [onShapeChange, onChange]
       )
 
       const handleKeyDown = React.useCallback(
@@ -88,15 +91,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             return
           }
 
-          // If this keydown was just the meta key or a shortcut
-          // that includes holding the meta key like (Command+V)
-          // then leave the event untouched. We also have to explicitly
-          // Implement undo/redo for some reason in order to get this working
-          // in the vscode extension. Without the below code the following doesn't work
-          //
-          // - You can't cut/copy/paste when when text-editing/focused
-          // - You can't undo/redo when when text-editing/focused
-          // - You can't use Command+A to select all the text, when when text-editing/focused
           if (!(e.key === 'Meta' || e.metaKey)) {
             e.stopPropagation()
           } else if (e.key === 'z' && e.metaKey) {
@@ -118,8 +112,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               TextAreaUtils.indent(e.currentTarget)
             }
 
-            rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
-            onShapeChange?.({ ...shape, text: rTextContent.current })
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
           }
         },
         [shape, onShapeChange]
@@ -142,7 +135,6 @@ export class StickyUtil extends TDShapeUtil<T, E> {
       // Focus when editing changes to true
       React.useEffect(() => {
         if (isEditing) {
-          rTextContent.current = shape.text
           rIsMounted.current = true
           const elm = rTextArea.current!
           elm.focus()
@@ -210,13 +202,13 @@ export class StickyUtil extends TDShapeUtil<T, E> {
               />
             )}
             <StyledText ref={rText} isEditing={isEditing} alignment={shape.style.textAlign}>
-              {isEditing ? rTextContent.current : shape.text}&#8203;
+              {shape.text}&#8203;
             </StyledText>
             {isEditing && (
               <StyledTextArea
                 ref={rTextArea}
                 onPointerDown={handlePointerDown}
-                value={isEditing ? rTextContent.current : shape.text}
+                value={shape.text}
                 onChange={handleTextChange}
                 onKeyDown={handleKeyDown}
                 onFocus={handleFocus}
@@ -407,5 +399,9 @@ const StyledTextArea = styled('textarea', {
         textAlign: 'justify',
       },
     },
+  },
+  '&:focus': {
+    outline: 'none',
+    border: 'none',
   },
 })
