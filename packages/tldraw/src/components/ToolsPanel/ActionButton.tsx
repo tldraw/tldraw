@@ -72,7 +72,7 @@ const hasMultipleSelectionSelector = (s: TDSnapshot) => {
   return selectedIds.length > 1
 }
 
-export function ActionButton(): JSX.Element {
+export function ActionButton() {
   const app = useTldrawApp()
 
   const isAllLocked = app.useStore(isAllLockedSelector)

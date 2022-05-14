@@ -33,13 +33,11 @@
     "next-auth": "^4.0.5",
     "next-pwa": "^5.4.4",
     "next-themes": "^0.0.15",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react": "^17.0",
+    "react-dom": "^17.0"
   },
   "devDependencies": {
     "@sentry/webpack-plugin": "^1.17.1",
-    "@tldraw/core": "*",
-    "@tldraw/tldraw": "*",
     "@types/react": "^17.0.19",
     "@types/react-dom": "^17.0.9",
     "eslint": "^8.8.0",

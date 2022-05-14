@@ -45,14 +45,14 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       }
       // otherwise pan
       const delta = Vec.mul(
-        (e.shiftKey && !Utils.isDarwin)
+        e.shiftKey && !Utils.isDarwin
           ? // shift+scroll = pan horizontally
             [offset[1], 0]
           : // scroll = pan vertically (or in any direction on a trackpad)
             [...offset],
         0.5
       )
-    
+
       if (Vec.isEqual(delta, [0, 0])) return
       const info = inputs.pan(delta, e)
       callbacks.onPan?.(info, e)
@@ -126,7 +126,7 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       target: ref,
       eventOptions: { passive: false },
       pinch: {
-        from: zoom,
+        from: [0, zoom],
         scaleBounds: () => ({ from: inputs.zoom, max: 5, min: 0.1 }),
       },
     }

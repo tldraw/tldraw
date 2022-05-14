@@ -2,7 +2,7 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
 
-export default function RandomRoomPage(): JSX.Element {
+export default function RandomRoomPage() {
   return (
     <>
       <Head>

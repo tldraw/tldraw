@@ -9,7 +9,7 @@ export const Brush = observer<{
   brush: TLBounds
   zoom: number
   dashed: boolean | null | undefined
-}>(function Brush({ brush, zoom, dashed }): JSX.Element | null {
+}>(function Brush({ brush, zoom, dashed }) {
   return (
     <Container bounds={brush} rotation={0}>
       <SVGContainer>

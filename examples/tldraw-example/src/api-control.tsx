@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/tldraw'
 
-export default function Imperative(): JSX.Element {
+export default function Imperative() {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   const handleMount = React.useCallback((app: TldrawApp) => {

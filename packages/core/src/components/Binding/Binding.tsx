@@ -5,7 +5,7 @@ interface BindingProps {
   type: string
 }
 
-export function Binding({ point: [x, y], type }: BindingProps): JSX.Element {
+export function Binding({ point: [x, y], type }: BindingProps) {
   return (
     <g pointerEvents="none">
       {type === 'center' && (

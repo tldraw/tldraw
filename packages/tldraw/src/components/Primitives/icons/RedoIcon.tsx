@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export function RedoIcon(props: React.SVGProps<SVGSVGElement>): JSX.Element {
+export function RedoIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       width={32}

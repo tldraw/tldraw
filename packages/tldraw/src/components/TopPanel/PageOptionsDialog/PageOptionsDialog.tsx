@@ -21,7 +21,7 @@ interface PageOptionsDialogProps {
   onClose?: () => void
 }
 
-export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps): JSX.Element {
+export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps) {
   const app = useTldrawApp()
 
   const [isOpen, setIsOpen] = React.useState(false)

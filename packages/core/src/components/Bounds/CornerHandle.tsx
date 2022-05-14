@@ -24,7 +24,7 @@ export const CornerHandle = observer(function CornerHandle({
   isHidden,
   corner,
   bounds,
-}: CornerHandleProps): JSX.Element {
+}: CornerHandleProps) {
   const events = useBoundsHandleEvents(corner)
 
   const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight

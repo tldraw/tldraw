@@ -41,7 +41,7 @@ interface ContextMenuProps {
   children: React.ReactNode
 }
 
-export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
+export const ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
   return (
     <RadixContextMenu.Root dir="ltr">
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
@@ -417,7 +417,7 @@ const StyledGridContent = styled(MenuContent, {
 const currentPageIdSelector = (s: TDSnapshot) => s.appState.currentPageId
 const documentPagesSelector = (s: TDSnapshot) => s.document.pages
 
-function MoveToPageMenu(): JSX.Element | null {
+function MoveToPageMenu() {
   const app = useTldrawApp()
   const currentPageId = app.useStore(currentPageIdSelector)
   const documentPages = app.useStore(documentPagesSelector)
@@ -458,12 +458,7 @@ export interface ContextMenuSubMenuProps {
   id?: string
 }
 
-export function ContextMenuSubMenu({
-  children,
-  label,
-  size,
-  id,
-}: ContextMenuSubMenuProps): JSX.Element {
+export function ContextMenuSubMenu({ children, label, size, id }: ContextMenuSubMenuProps) {
   return (
     <span id={id}>
       <RadixContextMenu.Root dir="ltr">
@@ -487,7 +482,7 @@ const CMArrow = styled(RadixContextMenu.ContextMenuArrow, {
 
 /* ------------------- IconButton ------------------- */
 
-function CMIconButton({ onSelect, ...rest }: ToolButtonProps): JSX.Element {
+function CMIconButton({ onSelect, ...rest }: ToolButtonProps) {
   return (
     <RadixContextMenu.ContextMenuItem dir="ltr" onSelect={onSelect} asChild>
       <ToolButton {...rest} />

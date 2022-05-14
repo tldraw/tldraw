@@ -17,7 +17,7 @@ const currentPageNameSelector = (s: TDSnapshot) => s.document.pages[s.appState.c
 
 const currentPageIdSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId].id
 
-export function PageMenu(): JSX.Element {
+export function PageMenu() {
   const app = useTldrawApp()
 
   const rIsOpen = React.useRef(false)

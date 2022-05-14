@@ -13,7 +13,7 @@ import {
 import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 
-export default function Export(): JSX.Element {
+export default function Export() {
   const handleExport = React.useCallback(async (app: TldrawApp) => {
     exportViaServer(app, TDExportType.PNG)
   }, [])

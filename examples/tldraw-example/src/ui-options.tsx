@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Tldraw } from '@tldraw/tldraw'
 
-export default function UIOptions(): JSX.Element {
+export default function UIOptions() {
   return (
     <div className="tldraw">
       <Tldraw

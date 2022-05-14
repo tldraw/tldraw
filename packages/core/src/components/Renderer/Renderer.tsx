@@ -154,7 +154,7 @@ export const Renderer = observer(function _Renderer<
   hideGrid = true,
   showDashedBrush = false,
   ...rest
-}: RendererProps<T, M>): JSX.Element {
+}: RendererProps<T, M>) {
   useTLTheme(theme, '#' + id)
 
   const rSelectionBounds = React.useRef<TLBounds>(null)

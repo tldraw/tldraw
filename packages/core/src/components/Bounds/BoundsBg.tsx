@@ -12,11 +12,7 @@ interface BoundsBgProps {
   isHidden: boolean
 }
 
-export const BoundsBg = observer<BoundsBgProps>(function BoundsBg({
-  bounds,
-  rotation,
-  isHidden,
-}): JSX.Element {
+export const BoundsBg = observer<BoundsBgProps>(function BoundsBg({ bounds, rotation, isHidden }) {
   const events = useBoundsEvents()
 
   return (

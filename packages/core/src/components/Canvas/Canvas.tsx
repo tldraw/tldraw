@@ -80,7 +80,7 @@ export const Canvas = observer(function _Canvas<
   hideRotateHandle,
   hideGrid,
   onBoundsChange,
-}: CanvasProps<T, M>): JSX.Element {
+}: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
   const rLayer = React.useRef<HTMLDivElement>(null)

@@ -7,7 +7,7 @@ import type { TDSnapshot } from '~types'
 
 const isToolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 
-export function LockButton(): JSX.Element {
+export function LockButton() {
   const app = useTldrawApp()
 
   const isToolLocked = app.useStore(isToolLockedSelector)

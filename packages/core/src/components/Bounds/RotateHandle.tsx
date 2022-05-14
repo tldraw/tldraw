@@ -15,7 +15,7 @@ export const RotateHandle = observer<RotateHandleProps>(function RotateHandle({
   targetSize,
   size,
   isHidden,
-}): JSX.Element {
+}) {
   const events = useBoundsHandleEvents('rotate')
 
   return (

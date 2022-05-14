@@ -9,10 +9,7 @@ interface HandlesProps {
   zoom: number
 }
 
-export const Handles = observer(function Handles({
-  shape,
-  zoom,
-}: HandlesProps): JSX.Element | null {
+export const Handles = observer(function Handles({ shape, zoom }: HandlesProps) {
   if (shape.handles === undefined) {
     return null
   }

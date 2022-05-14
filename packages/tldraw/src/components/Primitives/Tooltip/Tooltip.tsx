@@ -15,13 +15,7 @@ interface TooltipProps {
   side?: 'bottom' | 'left' | 'right' | 'top'
 }
 
-export function Tooltip({
-  children,
-  label,
-  kbd: kbdProp,
-  id,
-  side = 'top',
-}: TooltipProps): JSX.Element {
+export function Tooltip({ children, label, kbd: kbdProp, id, side = 'top' }: TooltipProps) {
   return (
     <span id={id}>
       <RadixTooltip.Root>

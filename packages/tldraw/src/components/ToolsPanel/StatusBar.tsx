@@ -7,7 +7,7 @@ import { breakpoints } from '~components/breakpoints'
 const statusSelector = (s: TDSnapshot) => s.appState.status
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 
-export function StatusBar(): JSX.Element | null {
+export function StatusBar() {
   const app = useTldrawApp()
   const status = app.useStore(statusSelector)
   const activeTool = app.useStore(activeToolSelector)
