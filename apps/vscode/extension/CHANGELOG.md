@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.12.2
+
+### Patch Changes
+
+- Update to include 1.12.2.
+
 ## 1.12.1
 
 ### Patch Changes

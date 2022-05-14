@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.12.2
+
+### Patch Changes
+
+- Prevent clipboard events inside of text from reaching the document. Fix various clipboard-related bugs in tldraw.
+- Updated dependencies
+  - @tldraw/core@1.11.0
+
 ## 1.12.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.0
+
+### Minor Changes
+
+- Prevent clipboard events inside of text from reaching the document. Fix various clipboard-related bugs in tldraw.
+
 ## 1.10.0
 
 ### Minor Changes
