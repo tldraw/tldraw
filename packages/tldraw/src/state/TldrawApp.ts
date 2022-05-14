@@ -2127,7 +2127,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const getSvgElementForShape = (shape: TDShape) => {
       const util = TLDR.getShapeUtil(shape)
       const bounds = util.getBounds(shape)
-      const elm = util.getSvgElement(shape)
+      const elm = util.getSvgElement(shape, this.settings.isDarkMode)
 
       if (!elm) return
 
@@ -2202,7 +2202,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (opts.transparentBackground) {
       svg.style.setProperty('background-color', 'transparent')
     } else {
-      svg.style.setProperty('background-color', '#ffffff')
+      svg.style.setProperty('background-color', this.settings.isDarkMode ? '#212529' : '#ffffff')
     }
 
     svg

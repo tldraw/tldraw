@@ -270,11 +270,11 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     return shape
   }
 
-  getSvgElement = (shape: T): SVGElement | void => {
+  getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
     const textBounds = Utils.expandBounds(bounds, -PADDING)
     const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
-    const style = getStickyShapeStyle(shape.style)
+    const style = getStickyShapeStyle(shape.style, isDarkMode)
     textElm.setAttribute('fill', style.color)
     textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
 
