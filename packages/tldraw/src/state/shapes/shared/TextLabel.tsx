@@ -101,7 +101,7 @@ export const TextLabel = React.memo(function TextLabel({
   }, [text, font, offsetY, offsetX, scale])
 
   return (
-    <TextWrapper>
+    <TextWrapper onCopy={stopPropagation} onPaste={stopPropagation} onCut={stopPropagation}>
       <InnerWrapper
         ref={rInnerWrapper}
         hasText={!!text}

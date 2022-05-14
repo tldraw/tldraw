@@ -12,6 +12,7 @@ import { getTextAlign } from '../shared/getTextAlign'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { stopPropagation } from '~components/stopPropagation'
 import { useTextKeyboardEvents } from '../shared/useTextKeyboardEvents'
+import { preventEvent } from '~components/preventEvent'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -141,7 +142,13 @@ export class TextUtil extends TDShapeUtil<T, E> {
       }, [isEditing])
 
       return (
-        <HTMLContainer ref={ref} {...events}>
+        <HTMLContainer
+          ref={ref}
+          {...events}
+          onCopy={stopPropagation}
+          onPaste={stopPropagation}
+          onCut={stopPropagation}
+        >
           <Wrapper isGhost={isGhost} isEditing={isEditing} onPointerDown={handlePointerDown}>
             <InnerWrapper
               style={{

@@ -189,7 +189,13 @@ export class StickyUtil extends TDShapeUtil<T, E> {
       }
 
       return (
-        <HTMLContainer ref={ref} {...events}>
+        <HTMLContainer
+          ref={ref}
+          {...events}
+          onCopy={stopPropagation}
+          onPaste={stopPropagation}
+          onCut={stopPropagation}
+        >
           <StyledStickyContainer
             ref={rContainer}
             isDarkMode={meta.isDarkMode}
