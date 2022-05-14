@@ -267,4 +267,8 @@ const TextArea = styled('textarea', {
   WebkitFontSmoothing: 'subpixel-antialiased',
   MozOsxFontSmoothing: 'auto',
   ...commonTextWrapping,
+  '&:focus': {
+    outline: 'none',
+    border: 'none',
+  },
 })

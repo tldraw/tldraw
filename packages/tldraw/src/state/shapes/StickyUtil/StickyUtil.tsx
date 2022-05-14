@@ -400,4 +400,8 @@ const StyledTextArea = styled('textarea', {
       },
     },
   },
+  '&:focus': {
+    outline: 'none',
+    border: 'none',
+  },
 })

@@ -463,4 +463,8 @@ const TextArea = styled('textarea', {
   userSelect: 'text',
   WebkitUserSelect: 'text',
   ...commonTextWrapping,
+  '&:focus': {
+    outline: 'none',
+    border: 'none',
+  },
 })
