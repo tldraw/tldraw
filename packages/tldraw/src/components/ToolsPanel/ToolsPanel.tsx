@@ -14,7 +14,7 @@ interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler
 }
 
-export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps): JSX.Element {
+export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
   const isDebugMode = app.useStore(isDebugModeSelector)
 

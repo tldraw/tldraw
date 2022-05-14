@@ -99,7 +99,7 @@ const optionsSelector = (s: TDSnapshot) => {
   return false
 }
 
-export const StyleMenu = React.memo(function ColorMenu(): JSX.Element {
+export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
 
   const theme = app.useStore(themeSelector)

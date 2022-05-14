@@ -26,6 +26,6 @@ export const Wrapper: React.FC = ({ children }) => {
   )
 }
 
-export const renderWithContext = (children: JSX.Element) => {
+export const renderWithContext = (children: React.ReactNode) => {
   return render(<Wrapper>{children}</Wrapper>)
 }

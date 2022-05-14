@@ -6,7 +6,7 @@ export function DMItem({
   onSelect,
   id,
   ...rest
-}: RowButtonProps & { onSelect?: (event: Event) => void; id?: string }): JSX.Element {
+}: RowButtonProps & { onSelect?: (event: Event) => void; id?: string }) {
   return (
     <Item dir="ltr" asChild onSelect={onSelect} id={id}>
       <RowButton {...rest} />

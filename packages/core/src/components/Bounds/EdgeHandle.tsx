@@ -23,7 +23,7 @@ export const EdgeHandle = observer<EdgeHandleProps>(function EdgeHandle({
   isHidden,
   bounds,
   edge,
-}: EdgeHandleProps): JSX.Element {
+}: EdgeHandleProps) {
   const events = useBoundsHandleEvents(edge)
 
   const isHorizontal = edge === TLBoundsEdge.Top || edge === TLBoundsEdge.Bottom

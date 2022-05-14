@@ -1,7 +1,7 @@
 import { Tldraw } from '@tldraw/tldraw'
 import * as React from 'react'
 
-export default function Embedded(): JSX.Element {
+export default function Embedded() {
   return (
     <div style={{ padding: '2% 10%', width: 'calc(100% - 100px)' }}>
       <div

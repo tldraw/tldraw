@@ -22,7 +22,7 @@ interface BoundsProps {
   hideBindingHandles: boolean
   hideResizeHandles: boolean
   viewportWidth: number
-  children?: React.ReactNode
+  children?: React.ReactElement
 }
 
 export const Bounds = observer<BoundsProps>(function Bounds({
@@ -36,7 +36,7 @@ export const Bounds = observer<BoundsProps>(function Bounds({
   hideResizeHandles,
   hideRotateHandle,
   hideBindingHandles,
-}: BoundsProps): JSX.Element {
+}: BoundsProps) {
   // Touch target size
   const targetSize = (viewportWidth < 768 ? 16 : 8) / zoom
   // Handle size
@@ -58,7 +58,7 @@ export const Bounds = observer<BoundsProps>(function Bounds({
     <Container bounds={bounds} rotation={rotation}>
       <SVGContainer>
         <CenterHandle bounds={bounds} isLocked={isLocked} isHidden={isHidden} />
-        {showResizeHandles && (
+        {showResizeHandles ? (
           <>
             <EdgeHandle
               targetSize={targetSize}
@@ -117,7 +117,7 @@ export const Bounds = observer<BoundsProps>(function Bounds({
               corner={TLBoundsCorner.BottomLeft}
             />
           </>
-        )}
+        ) : null}
         {showRotateHandle && (
           <RotateHandle
             targetSize={targetSize}

@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { FC, useMemo } from 'react'
 
-const Editor = dynamic(() => import('components/Editor'), { ssr: false })
+const Editor = dynamic(() => import('components/Editor'), { ssr: false }) as any
 
 interface PageProps {
   isUser: boolean

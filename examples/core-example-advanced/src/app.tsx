@@ -177,7 +177,7 @@ interface AppProps {
   onMount?: (api: Api) => void
 }
 
-export default function App({ onMount }: AppProps): JSX.Element {
+export default function App({ onMount }: AppProps) {
   const appState = useStateDesigner(machine)
 
   React.useEffect(() => {

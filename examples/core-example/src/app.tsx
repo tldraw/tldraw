@@ -27,7 +27,7 @@ const shapeUtils: TLShapeUtilsMap<Shape> = {
   rect: new RectUtil(),
 }
 
-export default observer(function App(): JSX.Element {
+export default observer(function App() {
   const onHoverShape: TLPointerEventHandler = (e) => {
     pageState.setHoveredId(e.target)
   }

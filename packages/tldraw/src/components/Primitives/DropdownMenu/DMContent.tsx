@@ -12,13 +12,7 @@ export interface DMContentProps {
   id?: string
 }
 
-export function DMContent({
-  sideOffset = 8,
-  children,
-  align,
-  variant,
-  id,
-}: DMContentProps): JSX.Element {
+export function DMContent({ sideOffset = 8, children, align, variant, id }: DMContentProps) {
   return (
     <Content
       dir="ltr"

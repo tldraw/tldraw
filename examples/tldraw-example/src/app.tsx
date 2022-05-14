@@ -19,7 +19,7 @@ import { Multiplayer as MultiplayerWithImages } from './multiplayer-with-images'
 import './styles.css'
 import Export from '~export'
 
-export default function App(): JSX.Element {
+export default function App() {
   return (
     <main>
       <Routes>

@@ -4,7 +4,7 @@ import { useTldrawApp } from '~hooks'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { TrashIcon } from '~components/Primitives/icons'
 
-export function DeleteButton(): JSX.Element {
+export function DeleteButton() {
   const app = useTldrawApp()
 
   const handleDelete = React.useCallback(() => {

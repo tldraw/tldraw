@@ -54,7 +54,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
   /* --------------------- Static --------------------- */
 
   static Component = <T extends TLShape, E extends Element = any, M = any>(
-    component: (props: TLComponentProps<T, E, M>, ref: TLForwardedRef<E>) => JSX.Element
+    component: (props: TLComponentProps<T, E, M>, ref: TLForwardedRef<E>) => React.ReactElement
   ) => {
     return React.forwardRef(component)
   }
@@ -66,6 +66,6 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
       isHovered: boolean
       isSelected: boolean
       bounds: TLBounds
-    }) => JSX.Element
+    }) => React.ReactElement
   ) => component
 }

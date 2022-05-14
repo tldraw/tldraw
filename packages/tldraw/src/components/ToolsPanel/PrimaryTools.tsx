@@ -16,7 +16,7 @@ import { EraserIcon } from '~components/Primitives/icons'
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 
-export const PrimaryTools = React.memo(function PrimaryTools(): JSX.Element {
+export const PrimaryTools = React.memo(function PrimaryTools() {
   const app = useTldrawApp()
 
   const activeTool = app.useStore(activeToolSelector)

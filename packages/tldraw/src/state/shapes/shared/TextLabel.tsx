@@ -167,6 +167,9 @@ export const TextLabel = React.memo(function TextLabel({
             onBlur={handleBlur}
             onPointerDown={handlePointerDown}
             onContextMenu={stopPropagation}
+            onCopy={stopPropagation}
+            onPaste={stopPropagation}
+            onCut={stopPropagation}
           />
         ) : (
           text

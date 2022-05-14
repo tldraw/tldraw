@@ -80,7 +80,7 @@ export const Canvas = observer(function _Canvas<
   hideRotateHandle,
   hideGrid,
   onBoundsChange,
-}: CanvasProps<T, M>): JSX.Element {
+}: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
   const rContainer = React.useRef<HTMLDivElement>(null)
   const rLayer = React.useRef<HTMLDivElement>(null)
@@ -107,14 +107,7 @@ export const Canvas = observer(function _Canvas<
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
         {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
-        <div
-          ref={rLayer}
-          className="tl-absolute tl-layer"
-          data-testid="layer"
-          onCopy={stopPropagation}
-          onPaste={stopPropagation}
-          onCut={stopPropagation}
-        >
+        <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
           <Page
             page={page}
             pageState={pageState}

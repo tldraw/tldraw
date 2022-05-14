@@ -3,7 +3,7 @@ import { getCssText } from 'styles'
 import { GA_TRACKING_ID } from 'utils/gtag'
 
 class MyDocument extends NextDocument {
-  static async getInitialProps(ctx: DocumentContext) {
+  static async getInitialProps(ctx: DocumentContext): Promise<any> {
     const initialProps = await NextDocument.getInitialProps(ctx)
 
     return {
@@ -17,7 +17,7 @@ class MyDocument extends NextDocument {
     }
   }
 
-  render(): JSX.Element {
+  render() {
     return (
       <Html lang="en">
         <Head>

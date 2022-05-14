@@ -1,7 +1,7 @@
 import { Tldraw, TDFile } from '@tldraw/tldraw'
 import * as React from 'react'
 
-export default function LoadingFiles(): JSX.Element {
+export default function LoadingFiles() {
   const [file, setFile] = React.useState<TDFile>()
 
   React.useEffect(() => {

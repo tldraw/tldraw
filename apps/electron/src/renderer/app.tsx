@@ -4,7 +4,7 @@ import type { Message, TldrawBridgeApi } from 'src/types'
 
 declare const window: Window & { TldrawBridgeApi: TldrawBridgeApi }
 
-export default function App(): JSX.Element {
+export default function App() {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   // When the editor mounts, save the state instance in a ref.

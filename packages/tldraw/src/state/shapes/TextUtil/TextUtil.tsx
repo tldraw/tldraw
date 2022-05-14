@@ -220,6 +220,9 @@ export class TextUtil extends TDShapeUtil<T, E> {
                   onBlur={handleBlur}
                   onPointerDown={handlePointerDown}
                   onContextMenu={stopPropagation}
+                  onCopy={stopPropagation}
+                  onPaste={stopPropagation}
+                  onCut={stopPropagation}
                 />
               ) : (
                 text

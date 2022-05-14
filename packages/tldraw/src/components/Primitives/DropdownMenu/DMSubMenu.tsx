@@ -11,13 +11,7 @@ export interface DMSubMenuProps {
   id?: string
 }
 
-export function DMSubMenu({
-  children,
-  size,
-  disabled = false,
-  label,
-  id,
-}: DMSubMenuProps): JSX.Element {
+export function DMSubMenu({ children, size, disabled = false, label, id }: DMSubMenuProps) {
   return (
     <span id={id}>
       <Root dir="ltr">

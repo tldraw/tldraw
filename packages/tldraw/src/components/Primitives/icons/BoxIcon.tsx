@@ -8,7 +8,7 @@ export function BoxIcon({
   fill?: string
   stroke?: string
   strokeWidth?: number
-}): JSX.Element {
+}) {
   return (
     <svg
       width="24"

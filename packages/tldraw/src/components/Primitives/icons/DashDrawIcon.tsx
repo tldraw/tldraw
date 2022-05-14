@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export function DashDrawIcon(): JSX.Element {
+export function DashDrawIcon() {
   return (
     <svg
       width="24"

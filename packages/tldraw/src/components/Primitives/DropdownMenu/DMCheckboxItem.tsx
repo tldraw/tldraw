@@ -21,7 +21,7 @@ export function DMCheckboxItem({
   kbd,
   id,
   children,
-}: DMCheckboxItemProps): JSX.Element {
+}: DMCheckboxItemProps) {
   return (
     <CheckboxItem
       dir="ltr"

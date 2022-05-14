@@ -3,7 +3,7 @@ import { TldrawApp, TDExport, TDExportType, Tldraw } from '@tldraw/tldraw'
 
 const ACTION = 'download' as 'download' | 'open'
 
-export default function Export(): JSX.Element {
+export default function Export() {
   const handleExport = React.useCallback(async (app: TldrawApp, info: TDExport) => {
     // When a user exports, the default behavior is to download
     // the exported data as a file. If the onExport callback is

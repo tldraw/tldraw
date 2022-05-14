@@ -39,7 +39,7 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
   hideRotateHandle,
   hideResizeHandles,
   meta,
-}: PageProps<T, M>): JSX.Element {
+}: PageProps<T, M>) {
   const { bounds: rendererBounds, shapeUtils } = useTLContext()
 
   const shapeTree = useShapeTree(page, pageState, assets, meta)
