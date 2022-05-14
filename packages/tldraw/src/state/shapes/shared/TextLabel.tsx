@@ -4,7 +4,7 @@ import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { getTextLabelSize } from './getTextSize'
-import { useTextKeyboardEvents } from './useTextKeyboardEvents'
+import { TextAreaUtils } from './TextAreaUtils'
 
 export interface TextLabelProps {
   font: string
@@ -32,17 +32,47 @@ export const TextLabel = React.memo(function TextLabel({
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
 
-  const rTextContent = React.useRef(text)
-
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      rTextContent.current = TLDR.normalizeText(e.currentTarget.value)
-      onChange(rTextContent.current)
+      onChange(TLDR.normalizeText(e.currentTarget.value))
     },
     [onChange]
   )
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Escape') return
 
-  const handleKeyDown = useTextKeyboardEvents(onChange)
+      if (e.key === 'Tab' && text.length === 0) {
+        e.preventDefault()
+        return
+      }
+
+      if (!(e.key === 'Meta' || e.metaKey)) {
+        e.stopPropagation()
+      } else if (e.key === 'z' && e.metaKey) {
+        if (e.shiftKey) {
+          document.execCommand('redo', false)
+        } else {
+          document.execCommand('undo', false)
+        }
+        e.stopPropagation()
+        e.preventDefault()
+        return
+      }
+
+      if (e.key === 'Tab') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          TextAreaUtils.unindent(e.currentTarget)
+        } else {
+          TextAreaUtils.indent(e.currentTarget)
+        }
+
+        onChange?.(TLDR.normalizeText(e.currentTarget.value))
+      }
+    },
+    [onChange]
+  )
 
   const handleBlur = React.useCallback(
     (e: React.FocusEvent<HTMLTextAreaElement>) => {
@@ -75,7 +105,6 @@ export const TextLabel = React.memo(function TextLabel({
 
   React.useEffect(() => {
     if (isEditing) {
-      rTextContent.current = text
       requestAnimationFrame(() => {
         rIsMounted.current = true
         const elm = rInput.current
@@ -130,7 +159,7 @@ export const TextLabel = React.memo(function TextLabel({
             wrap="off"
             dir="auto"
             datatype="wysiwyg"
-            defaultValue={rTextContent.current}
+            defaultValue={text}
             color={color}
             onFocus={handleFocus}
             onChange={handleChange}

@@ -1,18 +1,21 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultTextStyle, getShapeStyle, getFontStyle } from '../shared/shape-styles'
 import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import { getTextAlign } from '../shared/getTextAlign'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { stopPropagation } from '~components/stopPropagation'
-import { useTextKeyboardEvents } from '../shared/useTextKeyboardEvents'
-import { preventEvent } from '~components/preventEvent'
+import {
+  getTextSvgElement,
+  TextAreaUtils,
+  defaultTextStyle,
+  getShapeStyle,
+  getFontStyle,
+  getTextAlign,
+} from '../shared'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -90,15 +93,41 @@ export class TextUtil extends TDShapeUtil<T, E> {
         [shape.id, shape.point]
       )
 
-      const onChange = React.useCallback(
-        (text: string) => {
-          this.texts.set(shape.id, TLDR.normalizeText(text))
-          onShapeChange?.({ id: shape.id, text: this.texts.get(shape.id)! })
-        },
-        [shape.id]
-      )
+      const handleKeyDown = React.useCallback(
+        (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Escape') return
 
-      const handleKeyDown = useTextKeyboardEvents(onChange)
+          if (e.key === 'Tab' && shape.text.length === 0) {
+            e.preventDefault()
+            return
+          }
+
+          if (!(e.key === 'Meta' || e.metaKey)) {
+            e.stopPropagation()
+          } else if (e.key === 'z' && e.metaKey) {
+            if (e.shiftKey) {
+              document.execCommand('redo', false)
+            } else {
+              document.execCommand('undo', false)
+            }
+            e.stopPropagation()
+            e.preventDefault()
+            return
+          }
+
+          if (e.key === 'Tab') {
+            e.preventDefault()
+            if (e.shiftKey) {
+              TextAreaUtils.unindent(e.currentTarget)
+            } else {
+              TextAreaUtils.indent(e.currentTarget)
+            }
+
+            onShapeChange?.({ ...shape, text: TLDR.normalizeText(e.currentTarget.value) })
+          }
+        },
+        [shape, onShapeChange]
+      )
 
       const handleBlur = React.useCallback((e: React.FocusEvent<HTMLTextAreaElement>) => {
         e.currentTarget.setSelectionRange(0, 0)
