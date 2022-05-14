@@ -2202,7 +2202,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (opts.transparentBackground) {
       svg.style.setProperty('background-color', 'transparent')
     } else {
-      svg.style.setProperty('background-color', this.settings.isDarkMode ? '#212529' : '#ffffff')
+      svg.style.setProperty(
+        'background-color',
+        this.settings.isDarkMode ? '#212529' : 'rgb(248, 249, 250)'
+      )
     }
 
     svg
