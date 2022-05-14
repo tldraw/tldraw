@@ -1919,7 +1919,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         id: shapeId,
         type: TDShapeType.Text,
         parentId: this.appState.currentPageId,
-        text: TLDR.normalizeText(text),
+        text: TLDR.normalizeText(text.trim()),
         point: this.getPagePoint(this.centerPoint, this.currentPageId),
         style: { ...this.appState.currentStyle },
       })
