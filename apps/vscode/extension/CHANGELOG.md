@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.12.6
+
+### Patch Changes
+
+- Improve image export for files that include scaled or rotated text.
+
 ## 1.12.5
 
 ### Patch Changes
