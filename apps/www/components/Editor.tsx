@@ -1,5 +1,6 @@
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
+import { useUploadAssets } from 'hooks/useUploadAssets'
 import React, { FC } from 'react'
 import * as gtag from 'utils/gtag'
 
@@ -35,6 +36,8 @@ const Editor: FC<EditorProps & Partial<TldrawProps>> = ({
 
   const { onSignIn, onSignOut } = useAccountHandlers()
 
+  const { onAssetUpload } = useUploadAssets()
+
   return (
     <div className="tldraw">
       <Tldraw
@@ -45,6 +48,7 @@ const Editor: FC<EditorProps & Partial<TldrawProps>> = ({
         showSponsorLink={!isSponsor}
         onSignIn={isSponsor ? undefined : onSignIn}
         onSignOut={isUser ? onSignOut : undefined}
+        onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
         {...rest}
       />

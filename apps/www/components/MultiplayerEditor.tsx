@@ -42,7 +42,7 @@ function Editor({ roomId, isUser, isSponsor }: Props) {
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
-  const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
+  const { onAssetCreate, onAssetUpload, onAssetDelete } = useMultiplayerAssets()
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
@@ -57,6 +57,7 @@ function Editor({ roomId, isUser, isSponsor }: Props) {
         onSignOut={isUser ? onSignOut : undefined}
         onAssetCreate={onAssetCreate}
         onAssetDelete={onAssetDelete}
+        onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
         {...events}
       />

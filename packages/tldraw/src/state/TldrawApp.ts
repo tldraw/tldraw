@@ -163,6 +163,10 @@ export interface TDCallbacks {
    */
   onAssetCreate?: (app: TldrawApp, file: File, id: string) => Promise<string | false>
   /**
+   * (optional) A callback to run when an asset will be uploaded. Should return the value for the image/video's `src` property.
+   */
+  onAssetUpload?: (app: TldrawApp, id: string, asset: TDAsset) => Promise<string | false>
+  /**
    * (optional) A callback to run when the user exports their page or selection.
    */
   onExport?: (app: TldrawApp, info: TDExport) => Promise<void>
