@@ -3348,7 +3348,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
-    const fileName = file.name
 
     let src: string | ArrayBuffer | null
 
@@ -3398,7 +3397,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           const asset = {
             id: assetId,
             type: assetType,
-            name: fileName,
+            name: file.name,
             src,
             size,
           }

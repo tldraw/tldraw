@@ -45,38 +45,38 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   const handleCopyToMultiplayerRoom = React.useCallback(async () => {
     const nextDocument = { ...app.document }
 
-    if (app.callbacks.onAssetUpload) {
-      for (const id in nextDocument.assets) {
-        const asset = nextDocument.assets[id]
-        if (asset.src.includes('base64')) {
-          const file = dataURLtoFile(
-            asset.src,
-            asset.fileName ?? asset.type === TDAssetType.Video ? 'image.png' : 'image.mp4'
-          )
-          const newSrc = await app.callbacks.onAssetUpload(app, file, id)
-          if (newSrc) {
-            asset.src = newSrc
-          } else {
-            asset.src = ''
-          }
-        }
-      }
-    }
-
-    const body = JSON.stringify({
-      roomId: Utils.uniqueId(),
-      pageId: app.currentPageId,
-      document: nextDocument,
-    })
-
-    const myHeaders = new Headers({
-      'Access-Control-Allow-Origin': '*',
-      'Content-Type': 'application/json',
-    })
-
     app.setIsLoading(true)
 
     try {
+      if (app.callbacks.onAssetUpload) {
+        for (const id in nextDocument.assets) {
+          const asset = nextDocument.assets[id]
+          if (asset.src.includes('base64')) {
+            const file = dataURLtoFile(
+              asset.src,
+              asset.fileName ?? asset.type === TDAssetType.Video ? 'image.png' : 'image.mp4'
+            )
+            const newSrc = await app.callbacks.onAssetUpload(app, file, id)
+            if (newSrc) {
+              asset.src = newSrc
+            } else {
+              asset.src = ''
+            }
+          }
+        }
+      }
+
+      const body = JSON.stringify({
+        roomId: Utils.uniqueId(),
+        pageId: app.currentPageId,
+        document: nextDocument,
+      })
+
+      const myHeaders = new Headers({
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json',
+      })
+
       const res = await fetch(`/api/create`, {
         headers: myHeaders,
         method: 'POST',
@@ -90,7 +90,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
         TLDR.warn(res.message)
       }
     } catch (e) {
-      TLDR.warn(e.message)
+      TLDR.warn((e as any).message)
     }
 
     app.setIsLoading(false)
