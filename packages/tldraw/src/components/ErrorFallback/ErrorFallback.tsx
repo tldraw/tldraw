@@ -35,11 +35,10 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
     <Container>
       <InnerContainer>
         <div>We've encountered an error!</div>
-        <pre>
+        <pre onClick={copyError}>
           <code>{error.message}</code>
         </pre>
         <Buttons>
-          <RowButton onClick={copyError}>Copy Error</RowButton>
           <RowButton onClick={refreshPage}>Refresh Page</RowButton>
         </Buttons>
         <Divider />
@@ -48,7 +47,10 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
           <a onClick={downloadBackup} title="Download your project">
             Download your project
           </a>{' '}
-          as a backup and then{' '}
+          as a backup and ask for help on the <a href="https://discord.gg/SBBEVCA4PG">discord</a>.
+          <br />
+          <br />
+          You can also{' '}
           <a onClick={resetDocument} title="Reset the document">
             reset the document
           </a>
