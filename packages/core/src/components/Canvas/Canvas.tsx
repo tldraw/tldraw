@@ -82,18 +82,22 @@ export const Canvas = observer(function _Canvas<
   onBoundsChange,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
-  const rContainer = React.useRef<HTMLDivElement>(null)
-  const rLayer = React.useRef<HTMLDivElement>(null)
 
-  inputs.zoom = pageState.camera.zoom
+  const rZoomRef = React.useRef(pageState.camera.zoom)
+
+  rZoomRef.current = pageState.camera.zoom
+
+  useZoomEvents(rZoomRef, externalContainerRef || rCanvas)
 
   useResizeObserver(rCanvas, onBoundsChange)
-
-  useZoomEvents(pageState.camera.zoom, externalContainerRef || rCanvas)
 
   useSafariFocusOutFix()
 
   usePreventNavigationCss(rCanvas)
+
+  const rContainer = React.useRef<HTMLDivElement>(null)
+
+  const rLayer = React.useRef<HTMLDivElement>(null)
 
   useCameraCss(rLayer, rContainer, pageState)
 
