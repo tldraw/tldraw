@@ -7,7 +7,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { MultiplayerIcon } from '~components/Primitives/icons'
 import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
-import { compress } from 'lz-string'
+import { Utils } from '@tldraw/core'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -43,6 +43,12 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   }, [])
 
   const handleCopyToMultiplayerRoom = React.useCallback(async () => {
+    const body = JSON.stringify({
+      roomId: Utils.uniqueId(),
+      pageId: app.currentPageId,
+      document: app.document,
+    })
+
     const myHeaders = new Headers({
       'Access-Control-Allow-Origin': '*',
       'Content-Type': 'application/json',
@@ -52,7 +58,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       headers: myHeaders,
       method: 'POST',
       mode: 'no-cors',
-      body: JSON.stringify(app.document),
+      body,
     }).then((res) => res.json())
 
     if (res?.roomId) {
