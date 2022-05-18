@@ -138,8 +138,14 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       // If the shape's parent is a different shape (e.g. a group),
       // add the parent to the sets of shapes to render. The parent's
       // children will all be rendered.
-      shapesIdsToRender.add(shape.parentId)
-      shapesToRender.add(page.shapes[shape.parentId])
+      const parent = page.shapes[shape.parentId]
+
+      if (parent === undefined) {
+        throw Error(`A shape (${shape.id}) has a parent (${shape.parentId}) that does not exist!`)
+      } else {
+        shapesIdsToRender.add(parent.id)
+        shapesToRender.add(parent)
+      }
     })
 
   // Call onRenderCountChange callback when number of rendering shapes changes
@@ -163,7 +169,11 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   const tree: IShapeTreeNode<T, M>[] = []
 
-  shapesToRender.forEach((shape) =>
+  shapesToRender.forEach((shape) => {
+    if (shape === undefined) {
+      throw Error('Rendered shapes included a missing shape')
+    }
+
     addToShapeTree(
       shape,
       tree,
@@ -174,7 +184,7 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       false,
       meta
     )
-  )
+  })
 
   tree.sort((a, b) => a.shape.childIndex - b.shape.childIndex)
 
