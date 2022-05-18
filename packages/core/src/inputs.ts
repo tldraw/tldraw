@@ -23,8 +23,6 @@ export class Inputs {
     height: 480,
   }
 
-  zoom = 1
-
   pointerUpTime = 0
 
   activePointer?: number

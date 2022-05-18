@@ -7,7 +7,10 @@ import { Vec } from '@tldraw/vec'
 import Utils from '~utils'
 
 // Capture zoom gestures (pinches, wheels and pans)
-export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.RefObject<T>) {
+export function useZoomEvents<T extends HTMLElement>(
+  zoomRef: React.RefObject<number>,
+  ref: React.RefObject<T>
+) {
   const rOriginPoint = React.useRef<number[] | undefined>(undefined)
   const rPinchPoint = React.useRef<number[] | undefined>(undefined)
   const rDelta = React.useRef<number[]>([0, 0])
@@ -38,11 +41,13 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       // alt+scroll or ctrl+scroll = zoom
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const delta = [...point, offset[1]]
+        const delta = [...point, offset[1] * 0.618]
         const info = inputs.pan(delta, e)
+
         callbacks.onZoom?.({ ...info, delta }, e)
         return
       }
+
       // otherwise pan
       const delta = Vec.mul(
         e.shiftKey && !Utils.isDarwin
@@ -54,7 +59,9 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       )
 
       if (Vec.isEqual(delta, [0, 0])) return
+
       const info = inputs.pan(delta, e)
+
       callbacks.onPan?.(info, e)
     },
     [callbacks, inputs, bounds]
@@ -65,6 +72,7 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   >(
     ({ origin, event }) => {
       if (event instanceof WheelEvent) return
+
       const elm = ref.current
       if (!elm || !(event.target === elm || elm.contains(event.target as Node))) return
       const info = inputs.pinch(origin, origin)
@@ -82,12 +90,14 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
   >(
     ({ origin, offset, event }) => {
       if (event instanceof WheelEvent) return
+
       const elm = ref.current
       if (!(event.target === elm || elm?.contains(event.target as Node))) return
       if (!rOriginPoint.current) return
       const info = inputs.pinch(origin, rOriginPoint.current)
       const trueDelta = Vec.sub(info.delta, rDelta.current)
       rDelta.current = info.delta
+
       callbacks.onPinch?.(
         {
           ...info,
@@ -126,8 +136,10 @@ export function useZoomEvents<T extends HTMLElement>(zoom: number, ref: React.Re
       target: ref,
       eventOptions: { passive: false },
       pinch: {
-        from: [0, zoom],
-        scaleBounds: () => ({ from: inputs.zoom, max: 5, min: 0.1 }),
+        from: [zoomRef.current!, 0],
+        scaleBounds: () => {
+          return { from: zoomRef.current!, max: 5, min: 0.1 }
+        },
       },
     }
   )
