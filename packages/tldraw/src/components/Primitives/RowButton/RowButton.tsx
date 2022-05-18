@@ -29,7 +29,6 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
       hasIndicator = false,
       hasArrow = false,
       disabled = false,
-      isSponsor = false,
       variant,
       kbd,
       children,
@@ -43,7 +42,6 @@ export const RowButton = React.forwardRef<HTMLButtonElement, RowButtonProps>(
         bp={breakpoints}
         isWarning={isWarning}
         isActive={isActive}
-        isSponsor={isSponsor}
         disabled={disabled}
         onClick={onClick}
         variant={variant}
@@ -88,6 +86,10 @@ const StyledRowButtonInner = styled('div', {
     stroke: '$overlay',
     strokeWidth: 1,
     zIndex: 1,
+  },
+
+  [`& > ${SmallIcon}`]: {
+    paddingLeft: '$3',
   },
 })
 

@@ -129,7 +129,7 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon isSponsor={showSponsorLink} id="TD-MenuIcon">
+      <DMTriggerIcon id="TD-MenuIcon">
         <HamburgerMenuIcon />
       </DMTriggerIcon>
       <DMContent variant="menu" id="TD-Menu">
