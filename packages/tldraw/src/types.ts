@@ -473,12 +473,14 @@ export enum TDAssetType {
 
 export interface TDImageAsset extends TLAsset {
   type: TDAssetType.Image
+  fileName: string
   src: string
   size: number[]
 }
 
 export interface TDVideoAsset extends TLAsset {
   type: TDAssetType.Video
+  fileName: string
   src: string
   size: number[]
 }

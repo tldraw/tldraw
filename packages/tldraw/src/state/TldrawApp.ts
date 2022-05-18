@@ -163,6 +163,10 @@ export interface TDCallbacks {
    */
   onAssetCreate?: (app: TldrawApp, file: File, id: string) => Promise<string | false>
   /**
+   * (optional) A callback to run when an asset will be uploaded. Should return the value for the image/video's `src` property.
+   */
+  onAssetUpload?: (app: TldrawApp, file: File, id: string) => Promise<string | false>
+  /**
    * (optional) A callback to run when the user exports their page or selection.
    */
   onExport?: (app: TldrawApp, info: TDExport) => Promise<void>
@@ -3344,6 +3348,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
     const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
+    const fileName = file.name
 
     let src: string | ArrayBuffer | null
 
@@ -3393,6 +3398,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           const asset = {
             id: assetId,
             type: assetType,
+            name: fileName,
             src,
             size,
           }

@@ -5,7 +5,7 @@ import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { MultiplayerIcon } from '~components/Primitives/icons'
-import type { TDSnapshot } from '~types'
+import { TDAssetType, TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import { Utils } from '@tldraw/core'
 
@@ -43,6 +43,26 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   }, [])
 
   const handleCopyToMultiplayerRoom = React.useCallback(async () => {
+    const nextDocument = { ...app.document }
+
+    if (app.callbacks.onAssetUpload) {
+      for (const id in nextDocument.assets) {
+        const asset = nextDocument.assets[id]
+        if (asset.src.includes('base64')) {
+          const file = dataURLtoFile(
+            asset.src,
+            asset.fileName ?? asset.type === TDAssetType.Video ? 'image.png' : 'image.mp4'
+          )
+          const newSrc = await app.callbacks.onAssetUpload(app, file, id)
+          if (newSrc) {
+            asset.src = newSrc
+          } else {
+            asset.src = ''
+          }
+        }
+      }
+    }
+
     const body = JSON.stringify({
       roomId: Utils.uniqueId(),
       pageId: app.currentPageId,
@@ -86,3 +106,17 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     </DropdownMenu.Root>
   )
 })
+
+function dataURLtoFile(dataurl: string, filename: string) {
+  const arr = dataurl.split(',')
+  const mime = arr[0]?.match(/:(.*?);/)?.[1]
+  const bstr = window.atob(arr[1])
+  let n = bstr.length
+  const u8arr = new Uint8Array(n)
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n)
+  }
+
+  return new File([u8arr], filename, { type: mime })
+}
