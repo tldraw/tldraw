@@ -1,10 +1,10 @@
 import { createClient } from '@liveblocks/client'
 import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
-import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
-import { FC } from 'react'
+import React, { FC } from 'react'
 import { styled } from 'styles'
 
 const client = createClient({
