@@ -42,7 +42,7 @@ export default function Develop() {
         onSignIn={handleSignIn}
         onSignOut={handleSignOut}
         onPersist={handlePersist}
-        showSponsorLink={false}
+        showSponsorLink={true}
       />
     </div>
   )

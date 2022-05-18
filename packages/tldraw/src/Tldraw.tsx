@@ -107,9 +107,9 @@ export function Tldraw({
   showStyles = true,
   showUI = true,
   readOnly = false,
-  showSponsorLink = false,
   disableAssets = false,
   darkMode = false,
+  showSponsorLink,
   onMount,
   onChange,
   onChangePresence,
@@ -304,6 +304,7 @@ export function Tldraw({
 interface InnerTldrawProps {
   id?: string
   autofocus: boolean
+  readOnly: boolean
   showPages: boolean
   showMenu: boolean
   showMultiplayerMenu: boolean
@@ -311,8 +312,7 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
-  showSponsorLink: boolean
-  readOnly: boolean
+  showSponsorLink?: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -508,7 +508,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 showMultiplayerMenu={showMultiplayerMenu}
                 showStyles={showStyles}
                 showZoom={showZoom}
-                showSponsorLink={showSponsorLink}
+                sponsor={showSponsorLink}
               />
               <StyledSpacer />
               {showTools && !readOnly && <ToolsPanel />}

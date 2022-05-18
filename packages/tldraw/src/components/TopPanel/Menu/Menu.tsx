@@ -1,5 +1,11 @@
 import * as React from 'react'
-import { ExitIcon, GitHubLogoIcon, HamburgerMenuIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
+import {
+  ExitIcon,
+  GitHubLogoIcon,
+  HamburgerMenuIcon,
+  HeartFilledIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from '../PreferencesMenu'
@@ -19,7 +25,7 @@ import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
 interface MenuProps {
-  showSponsorLink: boolean
+  sponsor: boolean | undefined
   readOnly: boolean
 }
 
@@ -31,7 +37,7 @@ const disableAssetsSelector = (s: TDSnapshot) => {
   return s.appState.disableAssets
 }
 
-export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: MenuProps) {
+export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
   const app = useTldrawApp()
 
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
@@ -123,13 +129,13 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
     app.callbacks.onSaveProjectAs ||
     app.callbacks.onExport
 
-  const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut || showSponsorLink
+  const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut
 
   const hasSelection = numberOfSelectedIds > 0
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon isSponsor={showSponsorLink} id="TD-MenuIcon">
+      <DMTriggerIcon id="TD-MenuIcon">
         <HamburgerMenuIcon />
       </DMTriggerIcon>
       <DMContent variant="menu" id="TD-Menu">
@@ -332,12 +338,22 @@ export const Menu = React.memo(function Menu({ showSponsorLink, readOnly }: Menu
             </SmallIcon>
           </DMItem>
         </a>
-        {showSponsorLink && (
+        {sponsor === false && (
           <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
             <DMItem isSponsor id="TD-MenuItem-Become_a_Sponsor">
               Become a Sponsor{' '}
               <SmallIcon>
                 <HeartIcon />
+              </SmallIcon>
+            </DMItem>
+          </a>
+        )}
+        {sponsor === true && (
+          <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
+            <DMItem id="TD-MenuItem-is_a_Sponsor">
+              Sponsored!
+              <SmallIcon>
+                <HeartFilledIcon />
               </SmallIcon>
             </DMItem>
           </a>
