@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
+import { observer } from 'mobx-react-lite'
 import {
   usePreventNavigationCss,
   useZoomEvents,
@@ -136,5 +136,3 @@ export const Canvas = observer(function _Canvas<
     </div>
   )
 })
-
-const stopPropagation: React.ClipboardEventHandler<HTMLDivElement> = (e) => e.stopPropagation()

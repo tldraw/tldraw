@@ -21,6 +21,7 @@ const { styled, createTheme } = createStitches({
       tooltip: '#1d1d1d',
       tooltipContrast: '#ffffff',
       warn: 'rgba(255, 100, 100, 1)',
+      canvas: 'rgb(248, 249, 250)',
     },
     shadows: {
       2: '0px 1px 1px rgba(0, 0, 0, 0.14)',
@@ -110,6 +111,7 @@ export const dark = createTheme({
     text: '#f8f9fa',
     tooltip: '#1d1d1d',
     tooltipContrast: '#ffffff',
+    canvas: '#212529',
   },
   shadows: {
     2: '0px 1px 1px rgba(0, 0, 0, 0.24)',
