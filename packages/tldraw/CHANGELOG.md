@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.13.0
+
+### Minor Changes
+
+- Fixes zooming and pinching bugs. Adds ErrorBoundary to Tldraw component. Cleans up sponosrship feature in menu.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.12.0
+
 ## 1.12.6
 
 ### Patch Changes
