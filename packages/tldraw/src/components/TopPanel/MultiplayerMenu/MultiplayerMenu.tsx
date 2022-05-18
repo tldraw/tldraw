@@ -62,6 +62,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       roomId: Utils.uniqueId(),
       pageId: app.currentPageId,
       document: nextDocument,
+    })
 
     const myHeaders = new Headers({
       'Access-Control-Allow-Origin': '*',
