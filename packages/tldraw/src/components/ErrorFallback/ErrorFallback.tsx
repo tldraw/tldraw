@@ -44,12 +44,12 @@ export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
         </Buttons>
         <Divider />
         <p>
-          Keep seeing this screen?{' '}
-          <a href="#" onClick={downloadBackup} title="Download your project">
+          Keep getting this error?{' '}
+          <a onClick={downloadBackup} title="Download your project">
             Download your project
           </a>{' '}
           as a backup and then{' '}
-          <a href="#" onClick={resetDocument} title="Reset the document">
+          <a onClick={resetDocument} title="Reset the document">
             reset the document
           </a>
           .
@@ -104,6 +104,8 @@ const InnerContainer = styled('div', {
   },
   '& a': {
     color: '$text',
+    cursor: 'pointer',
+    textDecoration: 'underline',
   },
   '& hr': {
     marginLeft: '-$5',
