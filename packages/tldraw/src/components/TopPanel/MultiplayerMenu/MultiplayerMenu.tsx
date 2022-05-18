@@ -7,6 +7,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { MultiplayerIcon } from '~components/Primitives/icons'
 import type { TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
+import { compress } from 'lz-string'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -47,15 +48,16 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       'Content-Type': 'application/json',
     })
 
-    const res = await fetch('http://tldraw.com/api/create-multiplayer-room', {
+    const res = await fetch(`/api/create`, {
       headers: myHeaders,
       method: 'POST',
-      mode: 'cors',
-      cache: 'no-cache',
+      mode: 'no-cors',
       body: JSON.stringify(app.document),
     }).then((res) => res.json())
 
-    window.location.href = `http://tldraw.com/r/${res.roomId}`
+    if (res?.roomId) {
+      window.location.href = `/r/${res.roomId}`
+    }
   }, [])
 
   return (
@@ -71,7 +73,9 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
         <DMItem id="TD-Multiplayer-CreateMultiplayerRoom" onClick={handleCreateMultiplayerRoom}>
           <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
         </DMItem>
-        {/* <DMItem id="TD-Multiplayer-CopyToMultiplayerRoom" onClick={handleCopyToMultiplayerRoom}>Copy to Multiplayer Room</DMItem> */}
+        <DMItem id="TD-Multiplayer-CopyToMultiplayerRoom" onClick={handleCopyToMultiplayerRoom}>
+          Copy to Multiplayer Room
+        </DMItem>
       </DMContent>
     </DropdownMenu.Root>
   )

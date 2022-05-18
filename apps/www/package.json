@@ -29,6 +29,8 @@
     "@tldraw/tldraw": "^1.12.4",
     "@types/next-auth": "^3.15.0",
     "aws-sdk": "^2.1053.0",
+    "lz-string": "^1.4.4",
+    "nanoid": "^3.3.4",
     "next": "^12.0.7",
     "next-auth": "^4.0.5",
     "next-pwa": "^5.4.4",

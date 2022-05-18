@@ -19,6 +19,7 @@ export default function Room({ id, isUser, isSponsor }: RoomProps) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const session = await getSession(context)
   const id = context.query.id?.toString()
+
   return {
     props: {
       id,

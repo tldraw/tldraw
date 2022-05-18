@@ -209,9 +209,16 @@ export function useMultiplayerState(roomId: string) {
         // Update the document with initial content
         handleChanges()
 
+        // Zoom to fit the content
+        app.zoomToFit()
+        if (app.zoom > 1) {
+          app.resetZoom()
+        }
+
         setLoading(false)
       }
     }
+
     setupDocument()
 
     return () => {
