@@ -41,11 +41,13 @@ export function useZoomEvents<T extends HTMLElement>(
       // alt+scroll or ctrl+scroll = zoom
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const delta = [...point, offset[1]]
+        const delta = [...point, offset[1] * 0.618]
         const info = inputs.pan(delta, e)
+
         callbacks.onZoom?.({ ...info, delta }, e)
         return
       }
+
       // otherwise pan
       const delta = Vec.mul(
         e.shiftKey && !Utils.isDarwin
@@ -57,7 +59,9 @@ export function useZoomEvents<T extends HTMLElement>(
       )
 
       if (Vec.isEqual(delta, [0, 0])) return
+
       const info = inputs.pan(delta, e)
+
       callbacks.onPan?.(info, e)
     },
     [callbacks, inputs, bounds]
