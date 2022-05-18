@@ -128,6 +128,7 @@ export function Tldraw({
   onChangePage,
   onAssetCreate,
   onAssetDelete,
+  onAssetUpload,
   onExport,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
@@ -153,6 +154,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onAssetUpload,
     })
     return app
   })
@@ -179,6 +181,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onAssetUpload,
       onExport,
     })
 
@@ -243,6 +246,7 @@ export function Tldraw({
       onChangePage,
       onAssetDelete,
       onAssetCreate,
+      onAssetUpload,
       onExport,
     }
   }, [
@@ -264,6 +268,7 @@ export function Tldraw({
     onChangePage,
     onAssetDelete,
     onAssetCreate,
+    onAssetUpload,
     onExport,
   ])
 

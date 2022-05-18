@@ -51,7 +51,7 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
     //   },
     // }).then((d) => d.json())
 
-    //POST
+    // POST
     const result = await fetch(`https://liveblocks.net/api/v1/room/${roomId}/storage`, {
       method: 'POST',
       mode: 'cors',
@@ -64,10 +64,12 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
     })
 
     if (result.status === 200) {
-      res.send({ status: 'success', roomId })
+      res.send({ status: 'success', message: result.statusText, roomId })
+    } else {
+      res.send({ status: 'error', message: result.statusText })
     }
   } catch (e) {
-    res.send({ status: 'error' })
+    res.send({ status: 'error', message: e.message })
     // noop
   }
 }

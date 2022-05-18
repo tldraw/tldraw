@@ -66,7 +66,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     const body = JSON.stringify({
       roomId: Utils.uniqueId(),
       pageId: app.currentPageId,
-      document: app.document,
+      document: nextDocument,
     })
 
     const myHeaders = new Headers({
@@ -74,16 +74,26 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       'Content-Type': 'application/json',
     })
 
-    const res = await fetch(`/api/create`, {
-      headers: myHeaders,
-      method: 'POST',
-      mode: 'no-cors',
-      body,
-    }).then((res) => res.json())
+    app.setIsLoading(true)
 
-    if (res?.roomId) {
-      window.location.href = `/r/${res.roomId}`
+    try {
+      const res = await fetch(`/api/create`, {
+        headers: myHeaders,
+        method: 'POST',
+        mode: 'no-cors',
+        body,
+      }).then(res => res.json())
+
+      if (res?.roomId) {
+        window.location.href = `/r/${res.roomId}`
+      } else {
+        TLDR.warn(res.message)
+      }
+    } catch (e) {
+      TLDR.warn(e.message)
     }
+
+    app.setIsLoading(false)
   }, [])
 
   return (

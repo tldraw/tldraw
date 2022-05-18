@@ -32,5 +32,6 @@ export function useUploadAssets() {
     },
     []
   )
+
   return { onAssetUpload }
 }
