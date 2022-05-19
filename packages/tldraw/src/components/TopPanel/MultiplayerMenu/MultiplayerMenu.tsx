@@ -24,7 +24,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     setTimeout(() => setCopied(false), 1200)
   }, [])
 
-  const handleCreateMultiplayerRoom = React.useCallback(async () => {
+  const handleCreateMultiplayerProject = React.useCallback(async () => {
     if (app.isDirty) {
       if (app.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
@@ -42,7 +42,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     }
   }, [])
 
-  const handleCopyToMultiplayerRoom = React.useCallback(async () => {
+  const handleCopyToMultiplayerProject = React.useCallback(async () => {
     const nextDocument = { ...app.document }
 
     app.setIsLoading(true)
@@ -102,11 +102,17 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
           Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
         <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
-        <DMItem id="TD-Multiplayer-CreateMultiplayerRoom" onClick={handleCreateMultiplayerRoom}>
+        <DMItem
+          id="TD-Multiplayer-CreateMultiplayerProject"
+          onClick={handleCreateMultiplayerProject}
+        >
           <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
         </DMItem>
-        <DMItem id="TD-Multiplayer-CopyToMultiplayerRoom" onClick={handleCopyToMultiplayerRoom}>
-          Copy to Multiplayer Room
+        <DMItem
+          id="TD-Multiplayer-CopyToMultiplayerProject"
+          onClick={handleCopyToMultiplayerProject}
+        >
+          Copy to Multiplayer Project
         </DMItem>
       </DMContent>
     </DropdownMenu.Root>
