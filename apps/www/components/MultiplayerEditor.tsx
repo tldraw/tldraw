@@ -4,6 +4,7 @@ import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
+import { useUploadAssets } from 'hooks/useUploadAssets'
 import React, { FC } from 'react'
 import { styled } from 'styles'
 
@@ -42,7 +43,8 @@ function Editor({ roomId, isUser, isSponsor }: Props) {
   const fileSystemEvents = useFileSystem()
   const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
-  const { onAssetCreate, onAssetUpload, onAssetDelete } = useMultiplayerAssets()
+  const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
+  const { onAssetUpload } = useUploadAssets()
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
