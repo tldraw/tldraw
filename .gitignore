@@ -8,3 +8,4 @@ docs/
 .DS_Store
 coverage
 *.log
+apps/www/.env
