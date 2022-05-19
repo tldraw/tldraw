@@ -61,7 +61,7 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
     })
 
     if (result.status === 200) {
-      // If success, send back the url for the new room
+      // If success, send back the url for the new multiplayer project
       res.send({ status: 'success', message: result.statusText, url: '/r/' + roomId })
     } else {
       throw Error(result.statusText)
