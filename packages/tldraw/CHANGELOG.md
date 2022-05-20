@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.14.2
+
+### Patch Changes
+
+- Fix keyboard events when style menu is open.
+
+## 1.14.1
+
+### Patch Changes
+
+- Move style panel to right corner.
+
 ## 1.14.0
 
 ### Minor Changes

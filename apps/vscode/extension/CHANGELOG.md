@@ -1,5 +1,17 @@
 ## 1.2.4
 
+## 1.13.3
+
+### Patch Changes
+
+- Fix keyboard events when style menu is open.
+
+## 1.13.2
+
+### Patch Changes
+
+- Move style panel to right corner.
+
 ## 1.13.1
 
 ### Patch Changes
