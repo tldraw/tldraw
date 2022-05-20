@@ -171,6 +171,29 @@ export function getShapeStyle(
   }
 }
 
+export function getDrawStyle(
+  style: ShapeStyles,
+  isDarkMode?: boolean
+): {
+  stroke: string
+  fill: string
+  strokeWidth: number
+  drawColor: string
+} {
+  const { color, size, isFilled, drawColor } = style
+
+  const strokeWidth = getStrokeWidth(size)
+
+  const theme: Theme = isDarkMode ? 'dark' : 'light'
+
+  return {
+    stroke: strokes[theme][color],
+    fill: isFilled ? fills[theme][color] : 'none',
+    strokeWidth,
+    drawColor: drawColor!,
+  }
+}
+
 export const defaultStyle: ShapeStyles = {
   color: ColorStyle.Black,
   size: SizeStyle.Small,

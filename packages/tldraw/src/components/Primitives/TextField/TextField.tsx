@@ -2,17 +2,17 @@ import * as React from 'react'
 import { styled } from '~styles'
 import { SmallIcon } from '../SmallIcon'
 
-export interface TextFieldProps {
+export interface TextFieldProps extends React.InputHTMLAttributes<HTMLInputElement> {
   value: string
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
   placeholder?: string
   icon?: React.ReactElement
 }
 
-export const TextField = ({ value, onChange, placeholder = '', icon }: TextFieldProps) => {
+export const TextField = ({ value, onChange, placeholder = '', icon, ...rest }: TextFieldProps) => {
   return (
     <StyledInputWrapper>
-      <StyledInput value={value} onChange={onChange} placeholder={placeholder} />
+      <StyledInput value={value} onChange={onChange} placeholder={placeholder} {...rest} />
       {icon ? <StyledInputIcon>{icon}</StyledInputIcon> : null}
     </StyledInputWrapper>
   )

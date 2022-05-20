@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
+import { defaultStyle, getDrawStyle } from '../shared/shape-styles'
 import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
@@ -65,8 +65,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
           : getSolidStrokePathTDSnapshot(shape)
       }, [points, style.size, style.dash, isComplete])
 
-      const styles = getShapeStyle(style, meta.isDarkMode)
-      const { stroke, fill, strokeWidth } = styles
+      const styles = getDrawStyle(style, meta.isDarkMode)
+      const { stroke, fill, strokeWidth, drawColor } = styles
 
       // For very short lines, draw a point instead of a line
       const bounds = this.getBounds(shape)
@@ -80,8 +80,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
           <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
             <circle
               r={sw}
-              fill={stroke}
-              stroke={stroke}
+              fill={drawColor}
+              stroke={drawColor}
               pointerEvents="all"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
             />
@@ -106,7 +106,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
                 <path
                   d={polygonPathTDSnapshot}
                   stroke="none"
-                  fill={fill}
+                  fill={drawColor}
                   strokeLinejoin="round"
                   strokeLinecap="round"
                   pointerEvents="none"
@@ -114,8 +114,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
               )}
               <path
                 d={pathTDSnapshot}
-                fill={stroke}
-                stroke={stroke}
+                fill={drawColor}
+                stroke={drawColor}
                 strokeWidth={strokeWidth / 2}
                 strokeLinejoin="round"
                 strokeLinecap="round"

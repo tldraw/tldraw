@@ -29,11 +29,13 @@ import { breakpoints } from '~components/breakpoints'
 import { Divider } from '~components/Primitives/Divider'
 import { preventEvent } from '~components/preventEvent'
 import {
+  Pencil1Icon,
   TextAlignCenterIcon,
   TextAlignJustifyIcon,
   TextAlignLeftIcon,
   TextAlignRightIcon,
 } from '@radix-ui/react-icons'
+import { TextField } from '~components/Primitives/TextField'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -106,11 +108,14 @@ export const StyleMenu = React.memo(function ColorMenu() {
 
   const options = app.useStore(optionsSelector)
 
+  const isDrawing = app.useStore((s) => s.appState.activeTool === 'draw')
+
   const currentStyle = app.useStore(currentStyleSelector)
 
   const selectedIds = app.useStore(selectedIdsSelector)
 
   const [displayedStyle, setDisplayedStyle] = React.useState(currentStyle)
+  const [penColor, setPenColor] = React.useState(currentStyle.drawColor!)
 
   const rDisplayedStyle = React.useRef(currentStyle)
 
@@ -150,7 +155,13 @@ export const StyleMenu = React.memo(function ColorMenu() {
       rDisplayedStyle.current = commonStyle
       setDisplayedStyle(commonStyle)
     }
+    setPenColor(currentStyle.drawColor!)
   }, [currentStyle, selectedIds])
+
+  const handleDrawColorChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    app.style({ drawColor: event.target.value })
+    setPenColor(event.target.value)
+  }, [])
 
   const handleToggleFilled = React.useCallback((checked: boolean) => {
     app.style({ isFilled: checked })
@@ -186,16 +197,17 @@ export const StyleMenu = React.memo(function ColorMenu() {
           Styles
           <OverlapIcons
             style={{
-              color: strokes[theme][displayedStyle.color as ColorStyle],
+              color: isDrawing ? penColor : strokes[theme][displayedStyle.color as ColorStyle],
             }}
           >
-            {displayedStyle.isFilled && (
-              <CircleIcon
-                size={16}
-                stroke="none"
-                fill={fills[theme][displayedStyle.color as ColorStyle]}
-              />
-            )}
+            {displayedStyle.isFilled ||
+              (isDrawing && (
+                <CircleIcon
+                  size={16}
+                  stroke="none"
+                  fill={isDrawing ? penColor : fills[theme][displayedStyle.color as ColorStyle]}
+                />
+              ))}
             {DASH_ICONS[displayedStyle.dash]}
           </OverlapIcons>
         </ToolButton>
@@ -203,31 +215,43 @@ export const StyleMenu = React.memo(function ColorMenu() {
       <DMContent>
         <StyledRow variant="tall" id="TD-Styles-Color-Container">
           <span>Color</span>
-          <ColorGrid>
-            {Object.keys(strokes.light).map((style: string) => (
-              <DropdownMenu.Item
-                key={style}
-                onSelect={preventEvent}
-                asChild
-                id={`TD-Styles-Color-Swatch-${style}`}
-              >
-                <ToolButton
-                  variant="icon"
-                  isActive={displayedStyle.color === style}
-                  onClick={() => app.style({ color: style as ColorStyle })}
+          {isDrawing ? (
+            <StyledGroup dir="ltr">
+              <StyledTextField
+                value={penColor}
+                onChange={handleDrawColorChange}
+                placeholder="Pen color"
+                icon={<Pencil1Icon width={8} height={8} />}
+              />
+              <StyledColorInput value={penColor} onChange={handleDrawColorChange} type="color" />
+            </StyledGroup>
+          ) : (
+            <ColorGrid>
+              {Object.keys(strokes.light).map((style: string) => (
+                <DropdownMenu.Item
+                  key={style}
+                  onSelect={preventEvent}
+                  asChild
+                  id={`TD-Styles-Color-Swatch-${style}`}
                 >
-                  <CircleIcon
-                    size={18}
-                    strokeWidth={2.5}
-                    fill={
-                      displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
-                    }
-                    stroke={strokes.light[style as ColorStyle]}
-                  />
-                </ToolButton>
-              </DropdownMenu.Item>
-            ))}
-          </ColorGrid>
+                  <ToolButton
+                    variant="icon"
+                    isActive={displayedStyle.color === style}
+                    onClick={() => app.style({ color: style as ColorStyle })}
+                  >
+                    <CircleIcon
+                      size={18}
+                      strokeWidth={2.5}
+                      fill={
+                        displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
+                      }
+                      stroke={strokes.light[style as ColorStyle]}
+                    />
+                  </ToolButton>
+                </DropdownMenu.Item>
+              ))}
+            </ColorGrid>
+          )}
         </StyledRow>
         <DMCheckboxItem
           variant="styleMenu"
@@ -271,6 +295,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             ))}
           </StyledGroup>
         </StyledRow>
+
         {(options === 'text' || options === 'label') && (
           <>
             <Divider />
@@ -398,4 +423,16 @@ const FontIcon = styled('div', {
       },
     },
   },
+})
+
+const StyledTextField = styled(TextField, {
+  width: '90px !important',
+  paddingRight: 8,
+})
+
+const StyledColorInput = styled('input', {
+  width: '40px',
+  height: '28px',
+  padding: 0,
+  border: 'none',
 })
