@@ -1,18 +1,28 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
+import { NextApiRequest, NextApiResponse } from 'next'
 import { TDDocument } from '@tldraw/tldraw'
+import { Utils } from '@tldraw/core'
+
+type RequestBody = {
+  pageId: string
+  document: TDDocument
+}
 
 export default async function CreateMultiplayerRoom(req: NextApiRequest, res: NextApiResponse) {
-  const { body } = req
-
   try {
-    const json = JSON.parse(body) as {
-      roomId: string
-      pageId: string
-      document: TDDocument
-    }
-    const { roomId, pageId, document } = json
+    // 1. Get an authentication token from Liveblocks
 
-    const requestBody = {
+    const { token } = await fetch('https://liveblocks.io/api/authorize', {
+      headers: {
+        Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    }).then(d => d.json())
+
+    // 2. Create the Liveblocks storage JSON
+
+    const { pageId, document } = JSON.parse(req.body) as RequestBody
+
+    const storageJson = {
       liveblocksType: 'LiveObject',
       data: {
         version: 2.1,
@@ -31,45 +41,32 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
       },
     }
 
-    requestBody.data.shapes.data = document.pages[pageId].shapes ?? {}
-    requestBody.data.bindings.data = document.pages[pageId].bindings ?? {}
-    requestBody.data.assets.data = document.assets ?? {}
+    const page = document.pages[pageId]
 
-    const auth = await fetch('https://liveblocks.io/api/authorize', {
-      headers: {
-        Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET_KEY}`,
-        'Content-Type': 'application/json',
-      },
-    }).then((d) => d.json())
+    storageJson.data.shapes.data = page.shapes ?? {}
+    storageJson.data.bindings.data = page.bindings ?? {}
+    storageJson.data.assets.data = document.assets ?? {}
 
-    // // GET
-    // const result = await fetch(`https://liveblocks.net/api/v1/room/1652883688619/storage`, {
-    //   method: 'GET',
-    //   headers: {
-    //     Authorization: `Bearer ${auth.token}`,
-    //     'Content-Type': 'application/json',
-    //   },
-    // }).then((d) => d.json())
+    // 3. Post the JSON and token to Liveblocks
 
-    // POST
+    const roomId = Utils.uniqueId()
+
     const result = await fetch(`https://liveblocks.net/api/v1/room/${roomId}/storage`, {
       method: 'POST',
-      mode: 'cors',
-      cache: 'no-cache',
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(storageJson),
       headers: {
-        Authorization: `Bearer ${auth.token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     })
 
     if (result.status === 200) {
-      res.send({ status: 'success', message: result.statusText, roomId })
+      // If success, send back the url for the new multiplayer project
+      res.send({ status: 'success', message: result.statusText, url: '/r/' + roomId })
     } else {
-      res.send({ status: 'error', message: result.statusText })
+      throw Error(result.statusText)
     }
   } catch (e) {
     res.send({ status: 'error', message: e.message })
-    // noop
   }
 }

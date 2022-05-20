@@ -4086,6 +4086,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isSnapping: false,
       isDebugMode: false,
       isReadonlyMode: false,
+      keepStyleMenuOpen: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
       showRotateHandles: true,

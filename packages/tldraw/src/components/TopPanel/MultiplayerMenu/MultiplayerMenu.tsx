@@ -24,7 +24,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     setTimeout(() => setCopied(false), 1200)
   }, [])
 
-  const handleCreateMultiplayerRoom = React.useCallback(async () => {
+  const handleCreateMultiplayerProject = React.useCallback(async () => {
     if (app.isDirty) {
       if (app.fileSystemHandle) {
         if (window.confirm('Do you want to save changes to your current project?')) {
@@ -42,7 +42,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
     }
   }, [])
 
-  const handleCopyToMultiplayerRoom = React.useCallback(async () => {
+  const handleCopyToMultiplayerProject = React.useCallback(async () => {
     const nextDocument = { ...app.document }
 
     app.setIsLoading(true)
@@ -66,28 +66,24 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
         }
       }
 
-      const body = JSON.stringify({
-        roomId: Utils.uniqueId(),
-        pageId: app.currentPageId,
-        document: nextDocument,
-      })
-
-      const myHeaders = new Headers({
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      })
-
-      const res = await fetch(`/api/create`, {
-        headers: myHeaders,
+      const result = await fetch(`/api/create`, {
         method: 'POST',
         mode: 'no-cors',
-        body,
-      }).then(res => res.json())
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomId: Utils.uniqueId(),
+          pageId: app.currentPageId,
+          document: nextDocument,
+        }),
+      }).then(d => d.json())
 
-      if (res?.roomId) {
-        window.location.href = `/r/${res.roomId}`
+      if (result?.url) {
+        window.location.href = result.url
       } else {
-        TLDR.warn(res.message)
+        TLDR.warn(result?.message)
       }
     } catch (e) {
       TLDR.warn((e as any).message)
@@ -106,11 +102,17 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
           Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
         <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
-        <DMItem id="TD-Multiplayer-CreateMultiplayerRoom" onClick={handleCreateMultiplayerRoom}>
+        <DMItem
+          id="TD-Multiplayer-CreateMultiplayerProject"
+          onClick={handleCreateMultiplayerProject}
+        >
           <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
         </DMItem>
-        <DMItem id="TD-Multiplayer-CopyToMultiplayerRoom" onClick={handleCopyToMultiplayerRoom}>
-          Copy to Multiplayer Room
+        <DMItem
+          id="TD-Multiplayer-CopyToMultiplayerProject"
+          onClick={handleCopyToMultiplayerProject}
+        >
+          Copy to Multiplayer Project
         </DMItem>
       </DMContent>
     </DropdownMenu.Root>
