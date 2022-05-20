@@ -44,7 +44,6 @@ export function TopPanel({
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && !readOnly && <StyleMenu />}
           <ToolButton>
             <UndoIcon onClick={app.undo} />
           </ToolButton>
@@ -52,6 +51,7 @@ export function TopPanel({
             <RedoIcon onClick={app.redo} />
           </ToolButton>
           {showZoom && <ZoomMenu />}
+          {showStyles && !readOnly && <StyleMenu />}
         </Panel>
       )}
     </StyledTopPanel>
