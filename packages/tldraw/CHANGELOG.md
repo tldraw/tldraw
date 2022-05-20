@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.0
+
+### Minor Changes
+
+- Add option to keep style panel open.
+
 ## 1.13.0
 
 ### Minor Changes

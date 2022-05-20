@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.13.1
+
+### Patch Changes
+
+- Add option to keep style panel open.
+
 ## 1.13.0
 
 ### Minor Changes
