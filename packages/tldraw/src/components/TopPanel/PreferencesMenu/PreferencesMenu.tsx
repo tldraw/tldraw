@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import type { TDSnapshot } from '~types'
+import { TDSnapshot } from '~types'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
@@ -11,39 +11,43 @@ export function PreferencesMenu() {
   const settings = app.useStore(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
-    app.setSetting('isDebugMode', (v) => !v)
+    app.setSetting('isDebugMode', v => !v)
   }, [app])
 
   const toggleDarkMode = React.useCallback(() => {
-    app.setSetting('isDarkMode', (v) => !v)
+    app.setSetting('isDarkMode', v => !v)
   }, [app])
 
   const toggleFocusMode = React.useCallback(() => {
-    app.setSetting('isFocusMode', (v) => !v)
+    app.setSetting('isFocusMode', v => !v)
   }, [app])
 
   const toggleRotateHandle = React.useCallback(() => {
-    app.setSetting('showRotateHandles', (v) => !v)
+    app.setSetting('showRotateHandles', v => !v)
   }, [app])
 
   const toggleGrid = React.useCallback(() => {
-    app.setSetting('showGrid', (v) => !v)
+    app.setSetting('showGrid', v => !v)
   }, [app])
 
   const toggleBoundShapesHandle = React.useCallback(() => {
-    app.setSetting('showBindingHandles', (v) => !v)
+    app.setSetting('showBindingHandles', v => !v)
   }, [app])
 
   const toggleisSnapping = React.useCallback(() => {
-    app.setSetting('isSnapping', (v) => !v)
+    app.setSetting('isSnapping', v => !v)
+  }, [app])
+
+  const toggleKeepStyleMenuOpen = React.useCallback(() => {
+    app.setSetting('keepStyleMenuOpen', v => !v)
   }, [app])
 
   const toggleCloneControls = React.useCallback(() => {
-    app.setSetting('showCloneHandles', (v) => !v)
+    app.setSetting('showCloneHandles', v => !v)
   }, [app])
 
   const toggleCadSelectMode = React.useCallback(() => {
-    app.setSetting('isCadSelectMode', (v) => !v)
+    app.setSetting('isCadSelectMode', v => !v)
   }, [app])
 
   return (
@@ -86,6 +90,13 @@ export function PreferencesMenu() {
         id="TD-MenuItem-Preferences-Cad_Selection"
       >
         Use CAD Selection
+      </DMCheckboxItem>
+      <DMCheckboxItem
+        checked={settings.keepStyleMenuOpen}
+        onCheckedChange={toggleKeepStyleMenuOpen}
+        id="TD-MenuItem-Preferences-Style_menu"
+      >
+        Keep Style Menu Open
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isSnapping}
