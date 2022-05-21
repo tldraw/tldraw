@@ -17,7 +17,7 @@ async function main() {
     await esbuildServe(
       {
         entryPoints: ['src/index.tsx'],
-        outfile: 'dist/bundle.js',
+        outfile: 'dist/index.js',
         bundle: true,
         minify: false,
         sourcemap: true,
