@@ -95,40 +95,22 @@ export function useMultiplayerState(roomId: string) {
 
     // Handle changes to other users' presence
     unsubs.push(
-      room.subscribe('others', (others) => {
-        app.updateUsers(
-          others
-            .toArray()
-            .filter((other) => other.presence)
-            .map((other) => other.presence!.user)
-            .filter(Boolean)
-        )
+      room.subscribe('others', (others, event) => {
+        if (event.type === 'leave') {
+          if (event.user.presence) {
+            app?.removeUser(event.user.presence.id)
+          }
+        } else {
+          app.updateUsers(
+            others
+              .toArray()
+              .filter((other) => other.presence)
+              .map((other) => other.presence!.user)
+              .filter(Boolean)
+          )
+        }
       })
     )
-
-    // Handle events from the room
-    unsubs.push(
-      room.subscribe(
-        'event',
-        (e: { connectionId: number; event: { name: string; userId: string } }) => {
-          switch (e.event.name) {
-            case 'exit': {
-              app?.removeUser(e.event.userId)
-              break
-            }
-          }
-        }
-      )
-    )
-
-    // Send the exit event when the tab closes
-    function handleExit() {
-      if (!(room && app?.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
-    }
-
-    window.addEventListener('beforeunload', handleExit)
-    unsubs.push(() => window.removeEventListener('beforeunload', handleExit))
 
     let stillAlive = true
 
