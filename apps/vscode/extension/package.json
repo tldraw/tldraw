@@ -46,6 +46,9 @@
 				"selector": [
 					{
 						"filenamePattern": "*.tldr"
+					},
+					{
+						"filenamePattern": "*.tldr.json"
 					}
 				]
 			}
