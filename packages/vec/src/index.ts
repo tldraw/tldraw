@@ -515,7 +515,7 @@ export class Vec {
    * Get a vector comprised of the minimum of two or more vectors.
    */
   static min = (...v: number[][]) => {
-    return [Math.max(...v.map((a) => a[0])), Math.max(...v.map((a) => a[1]))]
+    return [Math.min(...v.map((a) => a[0])), Math.min(...v.map((a) => a[1]))]
   }
 }
 
