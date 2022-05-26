@@ -9,6 +9,9 @@ function canvasToScreen(point: number[], camera: TLPageState['camera']): number[
 }
 
 function getShapeUtils<T extends TLShape>(shapeUtils: TLShapeUtilsMap<T>, shape: T) {
+  if (shape?.type === undefined) {
+    throw Error(`Shape does not have a type: ${JSON.stringify(shape, null, 2)}`)
+  }
   return shapeUtils[shape.type as T['type']] as unknown as TLShapeUtil<T>
 }
 

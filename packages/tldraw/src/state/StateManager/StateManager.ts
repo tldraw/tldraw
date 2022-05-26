@@ -198,10 +198,10 @@ export class StateManager<T extends Record<string, any>> {
    * @param patch The patch to apply.
    * @param id (optional) An id for this patch.
    */
-  protected patchState = (patch: Patch<T>, id?: string): this => {
+  patchState = (patch: Patch<T>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
-      this.onPatch(this._state, id)
+      this.onPatch(this._state, id, patch)
     }
     return this
   }
@@ -240,7 +240,7 @@ export class StateManager<T extends Record<string, any>> {
     this.stack.push({ ...command, id })
     this.pointer = this.stack.length - 1
     this.applyPatch(command.after, id)
-    if (this.onCommand) this.onCommand(this._state, id)
+    if (this.onCommand) this.onCommand(this._state, id, command)
     this.persist(id)
     return this
   }
@@ -264,12 +264,12 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A callback fired when a patch is applied.
    */
-  public onPatch?: (state: T, id?: string) => void
+  public onPatch?: (state: T, id: string | undefined, patch: Patch<T>) => void
 
   /**
    * A callback fired when a patch is applied.
    */
-  public onCommand?: (state: T, id?: string) => void
+  public onCommand?: (state: T, reason: string | undefined, patch: Command<T>) => void
 
   /**
    * A callback fired when the state is persisted.

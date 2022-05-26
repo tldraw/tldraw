@@ -10,7 +10,7 @@ const client = createClient({
   throttle: 100,
 })
 
-const roomId = 'mp-test-8'
+const roomId = 'mp-test-SPECIAL-9'
 
 export function Multiplayer() {
   return (

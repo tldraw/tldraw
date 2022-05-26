@@ -78,8 +78,10 @@ const optionsSelector = (s: TDSnapshot) => {
       let hasText = false
       let hasLabel = false
       for (const id of s.document.pageStates[pageId].selectedIds) {
-        if ('text' in page.shapes[id]) hasText = true
-        if ('label' in page.shapes[id]) hasLabel = true
+        const shape = page.shapes[id]
+        if (!shape) continue
+        if ('text' in shape) hasText = true
+        if ('label' in shape) hasLabel = true
       }
       return hasText ? 'text' : hasLabel ? 'label' : ''
     }
@@ -106,7 +108,7 @@ const optionsSelector = (s: TDSnapshot) => {
   return false
 }
 
-export const StyleMenu = React.memo(function ColorMenu() {
+export const StyleMenu = React.memo(function StyleMenu() {
   const app = useTldrawApp()
 
   const theme = app.useStore(themeSelector)
@@ -135,9 +137,10 @@ export const StyleMenu = React.memo(function ColorMenu() {
     } else {
       const overrides = new Set<string>([])
       app.selectedIds
-        .map(id => page.shapes[id])
-        .forEach(shape => {
-          STYLE_KEYS.forEach(key => {
+        .map((id) => page.shapes[id])
+        .filter(Boolean)
+        .forEach((shape) => {
+          STYLE_KEYS.forEach((key) => {
             if (overrides.has(key)) return
             if (commonStyle[key] === undefined) {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -258,7 +261,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
         <StyledRow id="TD-Styles-Dash-Container">
           Dash
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
-            {Object.values(DashStyle).map(style => (
+            {Object.values(DashStyle).map((style) => (
               <DMRadioItem
                 key={style}
                 isActive={style === displayedStyle.dash}
@@ -275,7 +278,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
         <StyledRow id="TD-Styles-Size-Container">
           Size
           <StyledGroup dir="ltr" value={displayedStyle.size} onValueChange={handleSizeChange}>
-            {Object.values(SizeStyle).map(sizeStyle => (
+            {Object.values(SizeStyle).map((sizeStyle) => (
               <DMRadioItem
                 key={sizeStyle}
                 isActive={sizeStyle === displayedStyle.size}
@@ -295,7 +298,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             <StyledRow id="TD-Styles-Font-Container">
               Font
               <StyledGroup dir="ltr" value={displayedStyle.font} onValueChange={handleFontChange}>
-                {Object.values(FontStyle).map(fontStyle => (
+                {Object.values(FontStyle).map((fontStyle) => (
                   <DMRadioItem
                     key={fontStyle}
                     isActive={fontStyle === displayedStyle.font}
@@ -317,7 +320,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
                   value={displayedStyle.textAlign}
                   onValueChange={handleTextAlignChange}
                 >
-                  {Object.values(AlignStyle).map(style => (
+                  {Object.values(AlignStyle).map((style) => (
                     <DMRadioItem
                       key={style}
                       isActive={style === displayedStyle.textAlign}

@@ -41,6 +41,8 @@ import {
   TDExport,
   ArrowShape,
   TDExportType,
+  Patch,
+  Command,
 } from '~types'
 import {
   migrate,
@@ -124,11 +126,11 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (app: TldrawApp, reason?: string) => void
+  onPatch?: (app: TldrawApp, reason: string | undefined, patch: Patch<TDSnapshot>) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (app: TldrawApp, reason?: string) => void
+  onCommand?: (app: TldrawApp, reason: string | undefined, patch: Patch<TDSnapshot>) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
@@ -340,7 +342,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           Object.entries(page.shapes).forEach(([id, shape]) => {
             let parentId: string
 
-            if (!shape) {
+            if (!shape || !shape.type) {
               parentId = prevPage?.shapes[id]?.parentId
               delete page.shapes[id]
             } else {
@@ -501,14 +503,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return next
   }
 
-  onPatch = (app: TDSnapshot, id?: string) => {
-    this.callbacks.onPatch?.(this, id)
+  onPatch = (state: TDSnapshot, reason: string | undefined, patch: Patch<TDSnapshot>) => {
+    this.callbacks.onPatch?.(this, reason, patch)
   }
 
-  onCommand = (app: TDSnapshot, id?: string) => {
+  onCommand = (state: TDSnapshot, reason: string | undefined, command: Command<TDSnapshot>) => {
     this.clearSelectHistory()
     this.isDirty = true
-    this.callbacks.onCommand?.(this, id)
+    this.callbacks.onCommand?.(this, reason, command.after)
   }
 
   onReplace = () => {
@@ -2878,7 +2880,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             },
           },
         },
-        `session:complete:${session.constructor.name}`
+        `session:cancel:${session.constructor.name}`
       )
     }
 
@@ -2919,6 +2921,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this.setState(
       Commands.updateShapes(this, shapesToUpdate, this.currentPageId),
       'updated_shapes'
+    )
+  }
+
+  /**
+   * Manually update a set of shapes.
+   * @param shapes An array of shape partials, containing the changes to be made to each shape.
+   * @command
+   */
+  multiplayerPatchShapes = (...shapes: ({ id: string } & Partial<TDShape>)[]): this => {
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    if (shapesToUpdate.length === 0) return this
+
+    return this.patchState(
+      Commands.updateShapes(this, shapesToUpdate, this.currentPageId).after,
+      'multiplayer_patched_states'
     )
   }
 

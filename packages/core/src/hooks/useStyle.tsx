@@ -248,6 +248,7 @@ export const TLCSS = css`
     transform: scale(var(--tl-scale));
     pointer-events: none;
     will-change: transform;
+    transition: transform 0.5s cubic-bezier(0.17, 0.93, 0.38, 1);
   }
   .tl-indicator {
     fill: transparent;

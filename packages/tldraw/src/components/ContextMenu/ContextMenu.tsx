@@ -30,7 +30,7 @@ const isDebugModeSelector = (s: TDSnapshot) => {
 
 const hasGroupSelectedSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
-    (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
+    (id) => s.document.pages[s.appState.currentPageId].shapes[id]?.children !== undefined
   )
 }
 

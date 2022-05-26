@@ -118,6 +118,13 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   const allShapes = Object.values(page.shapes)
 
   allShapes
+    .filter((shape) => {
+      if (shape?.type === undefined) {
+        console.error(`Shape ${shape.id} is corrupt, ${JSON.stringify(shape, null, 2)}`)
+        return false
+      }
+      return true
+    })
     .filter(
       (shape) =>
         // Always render shapes that are flagged as stateful

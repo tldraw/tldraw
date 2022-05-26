@@ -11,10 +11,11 @@ interface UserProps {
 
 export function User({ user }: UserProps) {
   const rCursor = React.useRef<SVGSVGElement>(null)
-  useCursorAnimation(rCursor, user.point)
+  // useCursorAnimation(rCursor, user.point)
   return (
     <svg
       ref={rCursor}
+      style={{ transform: `translate(${user.point[0]}px, ${user.point[1]}px)` }}
       className="tl-absolute tl-user tl-counter-scaled"
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 35 35"
