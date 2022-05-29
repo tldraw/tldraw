@@ -8,6 +8,7 @@ import { MultiplayerIcon } from '~components/Primitives/icons'
 import { TDAssetType, TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import { Utils } from '@tldraw/core'
+import { FormattedMessage } from 'react-intl'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -78,7 +79,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
           pageId: app.currentPageId,
           document: nextDocument,
         }),
-      }).then(d => d.json())
+      }).then((d) => d.json())
 
       if (result?.url) {
         window.location.href = result.url
@@ -99,20 +100,23 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       </DMTriggerIcon>
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
-          Copy Invite Link<SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
+          <FormattedMessage id="copy.invite.link" />
+          <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
         <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
         <DMItem
           id="TD-Multiplayer-CreateMultiplayerProject"
           onClick={handleCreateMultiplayerProject}
         >
-          <a href="https://tldraw.com/r">Create a Multiplayer Project</a>
+          <a href="https://tldraw.com/r">
+            <FormattedMessage id="create.multiplayer.project" />
+          </a>
         </DMItem>
         <DMItem
           id="TD-Multiplayer-CopyToMultiplayerProject"
           onClick={handleCopyToMultiplayerProject}
         >
-          Copy to Multiplayer Project
+          <FormattedMessage id="copy.multiplayer.project" />
         </DMItem>
       </DMContent>
     </DropdownMenu.Root>

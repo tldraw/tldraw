@@ -52,5 +52,14 @@
   "open": "Ouvrir",
   "save": "Enregistrer",
   "save.as": "Enregistrer en tant que",
-  "upload.media": "Uploader Un Média"
+  "upload.media": "Uploader Un Média",
+
+  "create.page": "Créer une Page",
+  "new.page": "Nouvelle Page",
+  "page.name": "Nom de la Page",
+  "duplicate": "Dupliquer",
+  "cancel": "Annuler",
+  "copy.invite.link": "Copier le Lien d'Invitation",
+  "create.multiplayer.project": "Créer un Project Multi-joueurs",
+  "copy.multiplayer.project": "Copier dans un Projet Multi-joueurs"
 }

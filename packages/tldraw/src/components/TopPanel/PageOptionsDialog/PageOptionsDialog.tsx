@@ -10,6 +10,7 @@ import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 import { TextField } from '~components/Primitives/TextField'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1
@@ -23,6 +24,7 @@ interface PageOptionsDialogProps {
 
 export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogProps) {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const [isOpen, setIsOpen] = React.useState(false)
   const [pageName, setPageName] = React.useState(page.name || 'Page')
@@ -94,19 +96,23 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         <StyledDialogOverlay onPointerDown={close} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
           <TextField
-            placeholder="Page name"
+            placeholder={intl.formatMessage({ id: 'page.name' })}
             value={pageName}
             onChange={handleRename}
             icon={<Pencil1Icon />}
           />
           <Divider />
-          <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
+          <DialogAction onSelect={handleDuplicate}>
+            <FormattedMessage id="duplicate" />
+          </DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
-            Delete
+            <FormattedMessage id="delete" />
           </DialogAction>
           <Divider />
           <Dialog.Cancel asChild>
-            <RowButton>Cancel</RowButton>
+            <RowButton>
+              <FormattedMessage id="cancel" />
+            </RowButton>
           </Dialog.Cancel>
         </StyledDialogContent>
       </Dialog.Portal>
