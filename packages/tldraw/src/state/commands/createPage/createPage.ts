@@ -1,7 +1,6 @@
 import type { TldrawCommand, TDPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
 import type { TldrawApp } from '~state'
-import { useIntl } from 'react-intl'
 
 export function createPage(
   app: TldrawApp,
@@ -9,7 +8,6 @@ export function createPage(
   pageId = Utils.uniqueId()
 ): TldrawCommand {
   const { currentPageId } = app
-  const intl = useIntl()
 
   const topPage = Object.values(app.state.document.pages).sort(
     (a, b) => (b.childIndex || 0) - (a.childIndex || 0)
@@ -18,7 +16,7 @@ export function createPage(
   const nextChildIndex = topPage?.childIndex ? topPage?.childIndex + 1 : 1
 
   // TODO: Iterate the name better
-  const nextName = `${intl.formatMessage({ id: 'new.page' })}`
+  const nextName = `New Page`
 
   const page: TDPage = {
     id: pageId,

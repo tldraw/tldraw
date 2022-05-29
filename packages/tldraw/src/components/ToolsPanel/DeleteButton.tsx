@@ -3,9 +3,11 @@ import { Tooltip } from '~components/Primitives/Tooltip'
 import { useTldrawApp } from '~hooks'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { TrashIcon } from '~components/Primitives/icons'
+import { useIntl } from 'react-intl'
 
 export function DeleteButton() {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const handleDelete = React.useCallback(() => {
     app.delete()
@@ -18,7 +20,7 @@ export function DeleteButton() {
   )
 
   return (
-    <Tooltip label="Delete" kbd="⌫" id="TD-Delete">
+    <Tooltip label={intl.formatMessage({ id: 'delete' })} kbd="⌫" id="TD-Delete">
       <ToolButton variant="circle" disabled={!hasSelection} onSelect={handleDelete}>
         <TrashIcon />
       </ToolButton>

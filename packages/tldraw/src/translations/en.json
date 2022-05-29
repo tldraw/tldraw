@@ -61,5 +61,16 @@
   "cancel": "Cancel",
   "copy.invite.link": "Copy Invite Link",
   "create.multiplayer.project": "Create a Multiplayer Project",
-  "copy.multiplayer.project": "Copy to Multiplayer Project"
+  "copy.multiplayer.project": "Copy to Multiplayer Project",
+
+  "select": "Select",
+  "eraser": "Eraser",
+  "draw": "Draw",
+  "arrow": "Arrow",
+  "text": "Text",
+  "sticky": "Sticky",
+  "Rectangle": "Rectangle",
+  "Ellipse": "Ellipse",
+  "Triangle": "Triangle",
+  "Line": "Line"
 }

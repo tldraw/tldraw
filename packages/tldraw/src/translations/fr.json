@@ -61,5 +61,16 @@
   "cancel": "Annuler",
   "copy.invite.link": "Copier le Lien d'Invitation",
   "create.multiplayer.project": "Créer un Project Multi-joueurs",
-  "copy.multiplayer.project": "Copier dans un Projet Multi-joueurs"
+  "copy.multiplayer.project": "Copier dans un Projet Multi-joueurs",
+
+  "select": "Selection",
+  "eraser": "Gomme",
+  "draw": "Crayon",
+  "arrow": "Flèche",
+  "text": "Text",
+  "sticky": "Papier collant",
+  "Rectangle": "Rectangle",
+  "Ellipse": "Cercle",
+  "Triangle": "Triangle",
+  "Line": "Ligne"
 }

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useIntl } from 'react-intl'
 import {
   ArrowTopRightIcon,
   CursorArrowIcon,
@@ -18,6 +19,7 @@ const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 
 export const PrimaryTools = React.memo(function PrimaryTools() {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const activeTool = app.useStore(activeToolSelector)
 
@@ -51,7 +53,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     <Panel side="center" id="TD-PrimaryTools">
       <ToolButtonWithTooltip
         kbd={'1'}
-        label={'select'}
+        label={intl.formatMessage({ id: 'select' })}
         onClick={selectSelectTool}
         isActive={activeTool === 'select'}
         id="TD-PrimaryTools-CursorArrow"
@@ -60,7 +62,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'2'}
-        label={TDShapeType.Draw}
+        label={intl.formatMessage({ id: 'draw' })}
         onClick={selectDrawTool}
         isActive={activeTool === TDShapeType.Draw}
         id="TD-PrimaryTools-Pencil"
@@ -69,7 +71,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'3'}
-        label={'eraser'}
+        label={intl.formatMessage({ id: 'eraser' })}
         onClick={selectEraseTool}
         isActive={activeTool === 'erase'}
         id="TD-PrimaryTools-Eraser"
@@ -79,7 +81,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
       <ToolButtonWithTooltip
         kbd={'8'}
-        label={TDShapeType.Arrow}
+        label={intl.formatMessage({ id: 'arrow' })}
         onClick={selectArrowTool}
         isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Arrow}
@@ -89,7 +91,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'9'}
-        label={TDShapeType.Text}
+        label={intl.formatMessage({ id: 'text' })}
         onClick={selectTextTool}
         isLocked={isToolLocked}
         isActive={activeTool === TDShapeType.Text}
@@ -99,7 +101,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'0'}
-        label={TDShapeType.Sticky}
+        label={intl.formatMessage({ id: 'sticky' })}
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}
         id="TD-PrimaryTools-Pencil2"
