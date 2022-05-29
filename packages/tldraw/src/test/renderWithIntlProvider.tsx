@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { IntlProvider } from 'react-intl'
 import messages_en from '~translations/en.json'
 import messages_fr from '~translations/fr.json'
