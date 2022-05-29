@@ -9,7 +9,7 @@ import React, { FC } from 'react'
 import { styled } from 'styles'
 
 const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
+  publicApiKey: 'pk_live_T4O-0BrzOGeGS3Y4XgjgSFu4',
   throttle: 80,
 })
 

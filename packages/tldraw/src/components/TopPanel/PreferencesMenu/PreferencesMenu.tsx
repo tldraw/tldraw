@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
 import { TDSnapshot } from '~types'
@@ -7,58 +8,59 @@ const settingsSelector = (s: TDSnapshot) => s.settings
 
 export function PreferencesMenu() {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const settings = app.useStore(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
-    app.setSetting('isDebugMode', v => !v)
+    app.setSetting('isDebugMode', (v) => !v)
   }, [app])
 
   const toggleDarkMode = React.useCallback(() => {
-    app.setSetting('isDarkMode', v => !v)
+    app.setSetting('isDarkMode', (v) => !v)
   }, [app])
 
   const toggleFocusMode = React.useCallback(() => {
-    app.setSetting('isFocusMode', v => !v)
+    app.setSetting('isFocusMode', (v) => !v)
   }, [app])
 
   const toggleRotateHandle = React.useCallback(() => {
-    app.setSetting('showRotateHandles', v => !v)
+    app.setSetting('showRotateHandles', (v) => !v)
   }, [app])
 
   const toggleGrid = React.useCallback(() => {
-    app.setSetting('showGrid', v => !v)
+    app.setSetting('showGrid', (v) => !v)
   }, [app])
 
   const toggleBoundShapesHandle = React.useCallback(() => {
-    app.setSetting('showBindingHandles', v => !v)
+    app.setSetting('showBindingHandles', (v) => !v)
   }, [app])
 
   const toggleisSnapping = React.useCallback(() => {
-    app.setSetting('isSnapping', v => !v)
+    app.setSetting('isSnapping', (v) => !v)
   }, [app])
 
   const toggleKeepStyleMenuOpen = React.useCallback(() => {
-    app.setSetting('keepStyleMenuOpen', v => !v)
+    app.setSetting('keepStyleMenuOpen', (v) => !v)
   }, [app])
 
   const toggleCloneControls = React.useCallback(() => {
-    app.setSetting('showCloneHandles', v => !v)
+    app.setSetting('showCloneHandles', (v) => !v)
   }, [app])
 
   const toggleCadSelectMode = React.useCallback(() => {
-    app.setSetting('isCadSelectMode', v => !v)
+    app.setSetting('isCadSelectMode', (v) => !v)
   }, [app])
 
   return (
-    <DMSubMenu label="Preferences" id="TD-MenuItem-Preferences">
+    <DMSubMenu label={intl.formatMessage({ id: 'menu.preferences' })} id="TD-MenuItem-Preferences">
       <DMCheckboxItem
         checked={settings.isDarkMode}
         onCheckedChange={toggleDarkMode}
         kbd="#⇧D"
         id="TD-MenuItem-Preferences-Dark_Mode"
       >
-        Dark Mode
+        <FormattedMessage id="preferences.dark.mode" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isFocusMode}
@@ -66,14 +68,14 @@ export function PreferencesMenu() {
         kbd="#."
         id="TD-MenuItem-Preferences-Focus_Mode"
       >
-        Focus Mode
+        <FormattedMessage id="preferences.focus.mode" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isDebugMode}
         onCheckedChange={toggleDebugMode}
         id="TD-MenuItem-Preferences-Debug_Mode"
       >
-        Debug Mode
+        <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
       <DMDivider />
       <DMCheckboxItem
@@ -82,49 +84,49 @@ export function PreferencesMenu() {
         kbd="#⇧G"
         id="TD-MenuItem-Preferences-Grid"
       >
-        Show Grid
+        <FormattedMessage id="preferences.show.grid" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isCadSelectMode}
         onCheckedChange={toggleCadSelectMode}
         id="TD-MenuItem-Preferences-Cad_Selection"
       >
-        Use CAD Selection
+        <FormattedMessage id="preferences.use.cad.selection" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.keepStyleMenuOpen}
         onCheckedChange={toggleKeepStyleMenuOpen}
         id="TD-MenuItem-Preferences-Style_menu"
       >
-        Keep Style Menu Open
+        <FormattedMessage id="preferences.keep.stylemenu.open" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isSnapping}
         onCheckedChange={toggleisSnapping}
         id="TD-MenuItem-Preferences-Always_Show_Snaps"
       >
-        Always Show Snaps
+        <FormattedMessage id="preferences.always.show.snaps" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.showRotateHandles}
         onCheckedChange={toggleRotateHandle}
         id="TD-MenuItem-Preferences-Rotate_Handles"
       >
-        Rotate Handles
+        <FormattedMessage id="preferences.rotate.handles" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.showBindingHandles}
         onCheckedChange={toggleBoundShapesHandle}
         id="TD-MenuItem-Preferences-Binding_Handles"
       >
-        Binding Handles
+        <FormattedMessage id="preferences.binding.handles" />
       </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.showCloneHandles}
         onCheckedChange={toggleCloneControls}
         id="TD-MenuItem-Preferences-Clone_Handles"
       >
-        Clone Handles
+        <FormattedMessage id="preferences.clone.handles" />
       </DMCheckboxItem>
     </DMSubMenu>
   )

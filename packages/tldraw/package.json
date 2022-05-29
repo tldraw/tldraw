@@ -59,6 +59,7 @@
     "react-error-boundary": "^3.1.4",
     "react-hotkey-hook": "^1.0.2",
     "react-hotkeys-hook": "^3.4.4",
+    "react-intl": "^6.0.3",
     "tslib": "^2.3.1",
     "zustand": "^3.6.9"
   },

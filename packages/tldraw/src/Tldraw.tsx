@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
+import { IntlProvider } from 'react-intl'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
@@ -14,6 +15,9 @@ import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
 import { ErrorBoundary } from 'react-error-boundary'
 import { ErrorFallback } from '~components/ErrorFallback'
+
+import messages_en from '~translations/en.json'
+import messages_fr from '~translations/fr.json'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -285,24 +289,33 @@ export function Tldraw({
     }
   }, [app])
 
+  const messages = {
+    en: messages_en,
+    fr: messages_fr,
+  }
+  const language = navigator.language.split(/[-_]/)[0]
+
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
-    <TldrawContext.Provider value={app}>
-      <InnerTldraw
-        key={sId || 'Tldraw'}
-        id={sId}
-        autofocus={autofocus}
-        showPages={showPages}
-        showMenu={showMenu}
-        showMultiplayerMenu={showMultiplayerMenu}
-        showStyles={showStyles}
-        showZoom={showZoom}
-        showTools={showTools}
-        showUI={showUI}
-        showSponsorLink={showSponsorLink}
-        readOnly={readOnly}
-      />
-    </TldrawContext.Provider>
+    // @ts-ignore
+    <IntlProvider locale={language} messages={messages[language]}>
+      <TldrawContext.Provider value={app}>
+        <InnerTldraw
+          key={sId || 'Tldraw'}
+          id={sId}
+          autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
+          showMultiplayerMenu={showMultiplayerMenu}
+          showStyles={showStyles}
+          showZoom={showZoom}
+          showTools={showTools}
+          showUI={showUI}
+          showSponsorLink={showSponsorLink}
+          readOnly={readOnly}
+        />
+      </TldrawContext.Provider>
+    </IntlProvider>
   )
 }
 
