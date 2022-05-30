@@ -4,7 +4,28 @@ import * as React from 'react'
 import { Utils } from '../utils'
 import type { TLBounds } from '../types'
 
-export function useResizeObserver<T extends Element>(
+// Credits: from excalidraw
+// https://github.com/excalidraw/excalidraw/blob/07ebd7c68ce6ff92ddbc22d1c3d215f2b21328d6/src/utils.ts#L542-L563
+const getNearestScrollableContainer = (element: HTMLElement): HTMLElement | Document => {
+  let parent = element.parentElement
+  while (parent) {
+    if (parent === document.body) {
+      return document
+    }
+    const { overflowY } = window.getComputedStyle(parent)
+    const hasScrollableContent = parent.scrollHeight > parent.clientHeight
+    if (
+      hasScrollableContent &&
+      (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay')
+    ) {
+      return parent
+    }
+    parent = parent.parentElement
+  }
+  return document
+}
+
+export function useResizeObserver<T extends HTMLElement>(
   ref: React.RefObject<T>,
   onBoundsChange: (bounds: TLBounds) => void
 ) {
@@ -41,11 +62,12 @@ export function useResizeObserver<T extends Element>(
   }, [ref, inputs, callbacks.onBoundsChange])
 
   React.useEffect(() => {
+    const scrollingAnchor = ref.current ? getNearestScrollableContainer(ref.current) : document
     const debouncedupdateBounds = Utils.debounce(updateBounds, 100)
-    window.addEventListener('scroll', debouncedupdateBounds)
+    scrollingAnchor.addEventListener('scroll', debouncedupdateBounds)
     window.addEventListener('resize', debouncedupdateBounds)
     return () => {
-      window.removeEventListener('scroll', debouncedupdateBounds)
+      scrollingAnchor.removeEventListener('scroll', debouncedupdateBounds)
       window.removeEventListener('resize', debouncedupdateBounds)
     }
   }, [])
