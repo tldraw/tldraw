@@ -12,7 +12,7 @@ export type UiEraseLineComponent = (props: UiEraseLintProps) => any | null
 export const EraseLine = observer(function EraserLine({ points }: UiEraseLintProps) {
   if (points.length === 0) return null
 
-  const d = Utils.getSvgPathFromStroke(getStroke(points, { size: 16, start: { taper: 200 } }))
+  const d = Utils.getSvgPathFromStroke(getStroke(points, { size: 16, start: { taper: true } }))
 
   return <path d={d} className="tl-erase-line" />
 })

@@ -41,7 +41,7 @@
     "@tldraw/vec": "^1.7.0",
     "@use-gesture/react": "^10.2.14",
     "mobx-react-lite": "^3.2.3",
-    "perfect-freehand": "^1.0.16",
+    "perfect-freehand": "^1.1.0",
     "resize-observer-polyfill": "^1.5.1"
   },
   "peerDependencies": {
