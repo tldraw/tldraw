@@ -32,7 +32,7 @@
     "immer": "^9.0.12",
     "lodash": "^4.17.21",
     "nanoid": "^3.1.31",
-    "perfect-freehand": "^1.0.16",
+    "perfect-freehand": "^1.1.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-feather": "^2.0.9",

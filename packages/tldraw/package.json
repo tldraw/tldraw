@@ -55,7 +55,7 @@
     "@types/lz-string": "^1.3.34",
     "idb-keyval": "^6.1.0",
     "lz-string": "^1.4.4",
-    "perfect-freehand": "^1.0.16",
+    "perfect-freehand": "^1.1.0",
     "react-error-boundary": "^3.1.4",
     "react-hotkey-hook": "^1.0.2",
     "react-hotkeys-hook": "^3.4.4",

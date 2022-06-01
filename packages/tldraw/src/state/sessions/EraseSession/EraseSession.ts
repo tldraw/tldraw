@@ -22,12 +22,56 @@ export class EraseSession extends BaseSession {
   initialSelectedShapes: TDShape[]
   erasableShapes: Set<TDShape>
   prevPoint: number[]
+  prevEraseShapesSize = 0
 
   constructor(app: TldrawApp) {
     super(app)
     this.prevPoint = [...app.originPoint]
     this.initialSelectedShapes = this.app.selectedIds.map((id) => this.app.getShape(id))
     this.erasableShapes = new Set(this.app.shapes.filter((shape) => !shape.isLocked))
+    this.interval = this.loop()
+  }
+
+  interval: any
+  timestamp1 = 0
+  timestamp2 = 0
+  prevErasePoint: number[] = []
+
+  loop = () => {
+    const now = Date.now()
+    const elapsed1 = now - this.timestamp1
+    const elapsed2 = now - this.timestamp2
+    const { eraseLine } = this.app.appState
+
+    let next = [...eraseLine]
+    let didUpdate = false
+
+    if (elapsed1 > 16 && this.prevErasePoint !== this.prevPoint) {
+      didUpdate = true
+      next = [...eraseLine, this.prevPoint]
+      this.prevErasePoint = this.prevPoint
+    }
+
+    if (elapsed2 > 32) {
+      if (next.length > 1) {
+        didUpdate = true
+        next.splice(0, Math.ceil(next.length * 0.1))
+        this.timestamp2 = now
+      }
+    }
+
+    if (didUpdate) {
+      this.app.patchState(
+        {
+          appState: {
+            eraseLine: next,
+          },
+        },
+        'eraseline'
+      )
+    }
+
+    this.interval = requestAnimationFrame(this.loop)
   }
 
   start = (): TldrawPatch | undefined => void null
@@ -100,6 +144,12 @@ export class EraseSession extends BaseSession {
 
     this.prevPoint = newPoint
 
+    if (erasedShapes.length === this.prevEraseShapesSize) {
+      return
+    }
+
+    this.prevEraseShapesSize = erasedShapes.length
+
     return {
       document: {
         pages: {
@@ -113,6 +163,8 @@ export class EraseSession extends BaseSession {
 
   cancel = (): TldrawPatch | undefined => {
     const { page } = this.app
+
+    cancelAnimationFrame(this.interval)
 
     this.erasedShapes.forEach((shape) => {
       if (!this.app.getShape(shape.id)) {
@@ -136,11 +188,16 @@ export class EraseSession extends BaseSession {
           },
         },
       },
+      appState: {
+        eraseLine: [],
+      },
     }
   }
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     const { page } = this.app
+
+    cancelAnimationFrame(this.interval)
 
     this.erasedShapes.forEach((shape) => {
       if (!this.app.getShape(shape.id)) {
@@ -217,6 +274,9 @@ export class EraseSession extends BaseSession {
             },
           },
         },
+        appState: {
+          eraseLine: [],
+        },
       },
       after: {
         document: {
@@ -231,6 +291,9 @@ export class EraseSession extends BaseSession {
                 .map((shape) => shape.id),
             },
           },
+        },
+        appState: {
+          eraseLine: [],
         },
       },
     }

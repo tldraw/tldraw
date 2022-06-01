@@ -30,12 +30,14 @@ import { UsersIndicators } from '~components/UsersIndicators'
 import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
+import { EraseLine } from '~components/EraseLine'
 
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   assets: TLAssets
   snapLines?: TLSnapLine[]
+  eraseLine?: number[][]
   grid?: number
   users?: TLUsers<T>
   userId?: string
@@ -64,6 +66,7 @@ export const Canvas = observer(function _Canvas<
   pageState,
   assets,
   snapLines,
+  eraseLine,
   grid,
   users,
   userId,
@@ -134,6 +137,7 @@ export const Canvas = observer(function _Canvas<
           {users && <Users userId={userId} users={users} />}
         </div>
         <Overlay camera={pageState.camera}>
+          {eraseLine && <EraseLine points={eraseLine} />}
           {snapLines && <SnapLines snapLines={snapLines} />}
         </Overlay>
       </div>

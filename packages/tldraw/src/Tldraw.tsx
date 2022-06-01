@@ -431,6 +431,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
             pageState={pageState}
             assets={assets}
             snapLines={appState.snapLines}
+            eraseLine={appState.eraseLine}
             grid={GRID_SIZE}
             users={room?.users}
             userId={room?.userId}

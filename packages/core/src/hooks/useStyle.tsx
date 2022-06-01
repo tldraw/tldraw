@@ -367,6 +367,13 @@ export const TLCSS = css`
   .tl-grid-dot {
     fill: var(--tl-grid);
   }
+  .tl-erase-line {
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+    fill: var(--tl-grid);
+    opacity: 0.32;
+  }
 `
 
 export function useTLTheme(theme?: Partial<TLTheme>, selector?: string) {
