@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.0
+
+### Minor Changes
+
+- Add erase line, bump dependencies.
+
 ## 1.12.0
 
 ### Minor Changes

@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.15.0
+
+### Minor Changes
+
+- Add erase line, bump dependencies.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.13.0
+
 ## 1.14.2
 
 ### Patch Changes

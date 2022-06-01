@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.14.0
+
+### Minor Changes
+
+- Add erase line, bump dependencies.
+
 ## 1.13.3
 
 ### Patch Changes
