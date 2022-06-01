@@ -276,8 +276,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     const ptB = Vec.sub(B, point)
     const bounds = this.getBounds(shape)
 
-    if (points.length <= 2) {
-      return Vec.distanceToLineSegment(A, B, shape.point) < 4
+    if (bounds.width < 8 && bounds.height < 8) {
+      return Vec.distanceToLineSegment(A, B, Utils.getBoundsCenter(bounds)) < 5
     }
 
     if (intersectLineSegmentBounds(ptA, ptB, bounds)) {
