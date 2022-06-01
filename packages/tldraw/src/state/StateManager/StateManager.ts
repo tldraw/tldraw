@@ -198,7 +198,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param patch The patch to apply.
    * @param id (optional) An id for this patch.
    */
-  protected patchState = (patch: Patch<T>, id?: string): this => {
+  patchState = (patch: Patch<T>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
       this.onPatch(this._state, id)

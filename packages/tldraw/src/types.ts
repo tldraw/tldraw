@@ -105,6 +105,7 @@ export interface TDSnapshot {
     isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
+    eraseLine: number[][]
     isLoading: boolean
     disableAssets: boolean
     selectByContain?: boolean

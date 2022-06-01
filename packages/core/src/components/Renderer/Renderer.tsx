@@ -57,6 +57,10 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   snapLines?: TLSnapLine[]
   /**
+   * (optional) The current erase line to render.
+   */
+  eraseLine?: number[][]
+  /**
    * (optional) The current user's id, used to identify the user.
    */
   userId?: string
@@ -141,6 +145,7 @@ export const Renderer = observer(function _Renderer<
   theme,
   meta,
   snapLines,
+  eraseLine,
   grid,
   containerRef,
   performanceMode,
@@ -196,6 +201,7 @@ export const Renderer = observer(function _Renderer<
         pageState={pageState}
         assets={assets}
         snapLines={snapLines}
+        eraseLine={eraseLine}
         grid={grid}
         users={users}
         userId={userId}

@@ -4103,6 +4103,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isToolLocked: false,
       isMenuOpen: false,
       isEmptyCanvas: false,
+      eraseLine: [],
       snapLines: [],
       isLoading: false,
       disableAssets: false,
