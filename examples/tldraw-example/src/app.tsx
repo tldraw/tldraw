@@ -12,6 +12,7 @@ import ChangingId from './changing-id'
 import Persisted from './persisted'
 import Develop from './develop'
 import Api from './api'
+import Scroll from './scroll'
 import FileSystem from './file-system'
 import UIOptions from './ui-options'
 import { Multiplayer } from './multiplayer'
@@ -19,98 +20,59 @@ import { Multiplayer as MultiplayerWithImages } from './multiplayer-with-images'
 import './styles.css'
 import Export from '~export'
 
+const pages: ({ path: string; component: any; title: string } | '---')[] = [
+  { path: '/develop', component: Develop, title: 'Develop' },
+  '---',
+  { path: '/basic', component: Basic, title: 'Basic' },
+  { path: '/dark-mode', component: DarkMode, title: 'Dark mode' },
+  { path: '/ui-options', component: UIOptions, title: 'Customizing user interfcace' },
+  { path: '/persisted', component: Persisted, title: 'Persisting state with an ID' },
+  { path: '/loading-files', component: LoadingFiles, title: 'Using the file system' },
+  { path: '/file-system', component: FileSystem, title: 'Loading files' },
+  { path: '/api', component: Api, title: 'Using the TldrawApp API' },
+  { path: '/readonly', component: ReadOnly, title: 'Readonly mode' },
+  { path: '/controlled', component: PropsControl, title: 'Controlled via props' },
+  { path: '/imperative', component: ApiControl, title: 'Controlled via the TldrawApp API' },
+  { path: '/changing-id', component: ChangingId, title: 'Changing ID' },
+  { path: '/embedded', component: Embedded, title: 'Embedded' },
+  {
+    path: '/no-size-embedded',
+    component: NoSizeEmbedded,
+    title: 'Embedded (without explicit size)',
+  },
+  { path: '/export', component: Export, title: 'Export' },
+  { path: '/scroll', component: Scroll, title: 'In a scrolling container' },
+  { path: '/multiplayer', component: Multiplayer, title: 'Multiplayer' },
+  {
+    path: '/multiplayer-with-images',
+    component: MultiplayerWithImages,
+    title: 'Multiplayer (with images)',
+  },
+]
+
 export default function App() {
   return (
     <main>
       <Routes>
-        <Route path="/develop" element={<Develop />} />
+        {pages.map((page) =>
+          page === '---' ? null : <Route path={page.path} element={<page.component />} />
+        )}
 
-        <Route path="/basic" element={<Basic />} />
-
-        <Route path="/dark-mode" element={<DarkMode />} />
-
-        <Route path="/ui-options" element={<UIOptions />} />
-
-        <Route path="/persisted" element={<Persisted />} />
-
-        <Route path="/loading-files" element={<LoadingFiles />} />
-
-        <Route path="/file-system" element={<FileSystem />} />
-
-        <Route path="/api" element={<Api />} />
-
-        <Route path="/readonly" element={<ReadOnly />} />
-
-        <Route path="/controlled" element={<PropsControl />} />
-
-        <Route path="/imperative" element={<ApiControl />} />
-
-        <Route path="/changing-id" element={<ChangingId />} />
-
-        <Route path="/embedded" element={<Embedded />} />
-
-        <Route path="/no-size-embedded" element={<NoSizeEmbedded />} />
-
-        <Route path="/export" element={<Export />} />
-
-        <Route path="/multiplayer" element={<Multiplayer />} />
-
-        <Route path="/multiplayer-with-images" element={MultiplayerWithImages} />
         <Route
           path="/"
           element={
             <div>
               <img className="hero" src="./card-repo.png" />
               <ul className="links">
-                <li>
-                  <Link to="/develop">Develop</Link>
-                </li>
-                <hr />
-                <li>
-                  <Link to="/basic">Basic</Link>
-                </li>
-                <li>
-                  <Link to="/dark-mode">Dark Mode</Link>
-                </li>
-                <li>
-                  <Link to="/ui-options">UI Options</Link>
-                </li>
-                <li>
-                  <Link to="/persisted">Persisting State with an ID</Link>
-                </li>
-                <li>
-                  <Link to="/file-system">Using the File System</Link>
-                </li>
-                <li>
-                  <Link to="/readonly">Readonly Mode</Link>
-                </li>
-                <li>
-                  <Link to="/loading-files">Loading Files</Link>
-                </li>
-                <li>
-                  <Link to="/controlled">Controlled via Props</Link>
-                </li>
-                <li>
-                  <Link to="/api">Using the TldrawApp API</Link>
-                </li>
-                <li>
-                  <Link to="/imperative">Controlled via TldrawApp API</Link>
-                </li>
-                <li>
-                  <Link to="/changing-id">Changing ID</Link>
-                </li>
-                <li>
-                  <Link to="/embedded">Embedded</Link>
-                </li>
-                <li>
-                  <Link to="/no-size-embedded">Embedded (without explicit size)</Link>
-                </li>
-                <li>
-                  <Link to="/export">Export</Link>
-                </li>
-                <li>
-                  <Link to="/multiplayer">Multiplayer</Link>
-                </li>
+                {pages.map((page, i) =>
+                  page === '---' ? (
+                    <hr key={i} />
+                  ) : (
+                    <li key={i}>
+                      <Link to={page.path}>{page.title}</Link>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
           }
