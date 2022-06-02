@@ -78,11 +78,21 @@
   "lock.aspect.ratio": "Lock Aspect Ratio",
   "unlock.aspect.ratio": "Unlock Aspect Ratio",
   "group": "Group",
+  "ungroup": "Ungroup",
   "move.to.back": "Move to Back",
   "move.backward": "Move Backward",
   "move.forward": "Move Forward",
   "move.to.front": "Move to Front",
   "reset.angle": "Reset Angle",
   "lock": "Lock",
-  "unlock": "Unlock"
+  "unlock": "Unlock",
+
+  "move.to.page": "Move to Page",
+  "flip.horizontal": "Flip Horizontal",
+  "flip.vertical": "Flip Vertical",
+  "move": "Move",
+  "to.front": "To Front",
+  "forward": "Forward",
+  "backward": "Backward",
+  "back": "Back"
 }

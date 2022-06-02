@@ -78,11 +78,20 @@
   "lock.aspect.ratio": "Verouiller l'Aspect Ratio",
   "unlock.aspect.ratio": "Déverouiller l'Aspect Ratio",
   "group": "Grouper",
+  "ungroup": "Dégrouper",
   "move.to.back": "Envoyer vers l'arrière",
   "move.backward": "Mettre en arrière-plan",
   "move.forward": "Mettre au premier plan",
   "move.to.front": "Envoyer vers l'avant",
   "reset.angle": "Réinitialiser l'Angle",
   "lock": "Verouiller",
-  "unlock": "Déverouiller"
+  "unlock": "Déverouiller",
+  "move.to.page": "Déplacer vers la page",
+  "flip.horizontal": "Retourner Horizontalement",
+  "flip.vertical": "Retourner Verticalement",
+  "move": "Mettre",
+  "to.front": "À l'avant",
+  "forward": "Au premier plan",
+  "backward": "En arrière plan",
+  "back": "À l'arrière"
 }
