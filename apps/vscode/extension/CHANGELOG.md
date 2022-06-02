@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.14.1
+
+### Patch Changes
+
+- Improve eraser scribble.
+
 ## 1.14.0
 
 ### Minor Changes

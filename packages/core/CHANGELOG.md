@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.1
+
+### Patch Changes
+
+- Improve eraser scribble.
+
 ## 1.13.0
 
 ### Minor Changes
