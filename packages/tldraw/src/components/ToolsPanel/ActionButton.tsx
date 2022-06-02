@@ -32,6 +32,7 @@ import {
 import { DMContent } from '~components/Primitives/DropdownMenu'
 import { Divider } from '~components/Primitives/Divider'
 import { ToolButton } from '~components/Primitives/ToolButton'
+import { useIntl } from 'react-intl'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -74,6 +75,9 @@ const hasMultipleSelectionSelector = (s: TDSnapshot) => {
 
 export function ActionButton() {
   const app = useTldrawApp()
+  const intl = useIntl()
+
+  const isFrenchLang = navigator.language === 'fr'
 
   const isAllLocked = app.useStore(isAllLockedSelector)
 
@@ -189,22 +193,35 @@ export function ActionButton() {
         <>
           <ButtonsRow>
             <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
-              <Tooltip label="Duplicate" kbd={`#D`} id="TD-Tools-Copy">
+              <Tooltip
+                label={intl.formatMessage({ id: 'duplicate' })}
+                kbd={`#D`}
+                id="TD-Tools-Copy"
+              >
                 <CopyIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleRotate}>
-              <Tooltip label="Rotate" id="TD-Tools-Rotate">
+              <Tooltip label={intl.formatMessage({ id: 'rotate' })} id="TD-Tools-Rotate">
                 <RotateCounterClockwiseIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
-              <Tooltip label="Toggle Locked" kbd={`#L`} id="TD-Tools-Lock">
+              <Tooltip
+                label={intl.formatMessage({ id: isAllLocked ? 'unlock' : 'lock' })}
+                kbd={`#L`}
+                id="TD-Tools-Lock"
+              >
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
-              <Tooltip label="Toggle Aspect Ratio Lock" id="TD-Tools-AspectRatio">
+              <Tooltip
+                label={intl.formatMessage({
+                  id: isAllAspectLocked ? 'unlock.aspect.ratio' : 'lock.aspect.ratio',
+                })}
+                id="TD-Tools-AspectRatio"
+              >
                 {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
               </Tooltip>
             </ToolButton>
@@ -212,34 +229,50 @@ export function ActionButton() {
               disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
               onClick={handleGroup}
             >
-              <Tooltip label="Group" kbd={`#G`} id="TD-Tools-Group">
+              <Tooltip label={intl.formatMessage({ id: 'group' })} kbd={`#G`} id="TD-Tools-Group">
                 <GroupIcon />
               </Tooltip>
             </ToolButton>
           </ButtonsRow>
           <ButtonsRow>
             <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
-              <Tooltip label="Move to Back" kbd={`#⇧[`} id="TD-Tools-PinBottom">
+              <Tooltip
+                label={intl.formatMessage({ id: 'move.to.back' })}
+                kbd={`#⇧[`}
+                id="TD-Tools-PinBottom"
+              >
                 <PinBottomIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
-              <Tooltip label="Move Backward" kbd={`#[`} id="TD-Tools-ArrowDown">
+              <Tooltip
+                label={intl.formatMessage({ id: 'move.backward' })}
+                kbd={`#[`}
+                id="TD-Tools-ArrowDown"
+              >
                 <ArrowDownIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
-              <Tooltip label="Move Forward" kbd={`#]`} id="TD-Tools-ArrowUp">
+              <Tooltip
+                label={intl.formatMessage({ id: 'move.forward' })}
+                kbd={`#]`}
+                id="TD-Tools-ArrowUp"
+              >
                 <ArrowUpIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
-              <Tooltip label="Move to Front" kbd={`#⇧]`} id="TD-Tools-PinTop">
+              <Tooltip
+                label={intl.formatMessage({ id: 'move.to.front' })}
+                kbd={`#⇧]`}
+                id="TD-Tools-PinTop"
+              >
                 <PinTopIcon />
               </Tooltip>
             </ToolButton>
             <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
-              <Tooltip label="Reset Angle" id="TD-Tools-ResetAngle">
+              <Tooltip label={intl.formatMessage({ id: 'reset.angle' })} id="TD-Tools-ResetAngle">
                 <AngleIcon />
               </Tooltip>
             </ToolButton>

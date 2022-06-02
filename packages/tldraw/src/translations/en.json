@@ -72,5 +72,17 @@
   "Rectangle": "Rectangle",
   "Ellipse": "Ellipse",
   "Triangle": "Triangle",
-  "Line": "Line"
+  "Line": "Line",
+
+  "rotate": "Rotate",
+  "lock.aspect.ratio": "Lock Aspect Ratio",
+  "unlock.aspect.ratio": "Unlock Aspect Ratio",
+  "group": "Group",
+  "move.to.back": "Move to Back",
+  "move.backward": "Move Backward",
+  "move.forward": "Move Forward",
+  "move.to.front": "Move to Front",
+  "reset.angle": "Reset Angle",
+  "lock": "Lock",
+  "unlock": "Unlock"
 }

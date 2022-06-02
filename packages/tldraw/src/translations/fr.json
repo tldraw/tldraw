@@ -72,5 +72,17 @@
   "Rectangle": "Rectangle",
   "Ellipse": "Cercle",
   "Triangle": "Triangle",
-  "Line": "Ligne"
+  "Line": "Ligne",
+
+  "rotate": "Retourner",
+  "lock.aspect.ratio": "Verouiller l'Aspect Ratio",
+  "unlock.aspect.ratio": "Déverouiller l'Aspect Ratio",
+  "group": "Grouper",
+  "move.to.back": "Envoyer vers l'arrière",
+  "move.backward": "Mettre en arrière-plan",
+  "move.forward": "Mettre au premier plan",
+  "move.to.front": "Envoyer vers l'avant",
+  "reset.angle": "Réinitialiser l'Angle",
+  "lock": "Verouiller",
+  "unlock": "Déverouiller"
 }
