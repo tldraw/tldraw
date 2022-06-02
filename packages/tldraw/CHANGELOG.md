@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.15.1
+
+### Patch Changes
+
+- Improve eraser scribble.
+- Updated dependencies
+  - @tldraw/core@1.13.1
+
 ## 1.15.0
 
 ### Minor Changes

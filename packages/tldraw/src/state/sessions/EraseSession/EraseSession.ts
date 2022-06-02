@@ -77,10 +77,10 @@ export class EraseSession extends BaseSession {
   start = (): TldrawPatch | undefined => void null
 
   update = (): TldrawPatch | undefined => {
-    const { page, shiftKey, originPoint, currentPoint } = this.app
+    const { page, shiftKey, originPoint, currentPoint, zoom } = this.app
 
     if (shiftKey) {
-      if (!this.isLocked && Vec.dist(originPoint, currentPoint) > 4) {
+      if (!this.isLocked && Vec.dist(originPoint, currentPoint) > 4 / zoom) {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {

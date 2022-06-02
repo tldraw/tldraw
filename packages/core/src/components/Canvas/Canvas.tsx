@@ -137,7 +137,7 @@ export const Canvas = observer(function _Canvas<
           {users && <Users userId={userId} users={users} />}
         </div>
         <Overlay camera={pageState.camera}>
-          {eraseLine && <EraseLine points={eraseLine} />}
+          {eraseLine && <EraseLine points={eraseLine} zoom={pageState.camera.zoom} />}
           {snapLines && <SnapLines snapLines={snapLines} />}
         </Overlay>
       </div>

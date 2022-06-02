@@ -30,11 +30,11 @@ export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): Tld
         {
           prev: point,
           next: {
-            [AlignType.CenterVertical]: [point[0], midY - bounds.height / 2],
-            [AlignType.CenterHorizontal]: [midX - bounds.width / 2, point[1]],
             [AlignType.Top]: [point[0], commonBounds.minY],
+            [AlignType.CenterVertical]: [point[0], midY - bounds.height / 2],
             [AlignType.Bottom]: [point[0], commonBounds.maxY - bounds.height],
             [AlignType.Left]: [commonBounds.minX, point[1]],
+            [AlignType.CenterHorizontal]: [midX - bounds.width / 2, point[1]],
             [AlignType.Right]: [commonBounds.maxX - bounds.width, point[1]],
           }[type],
         },
