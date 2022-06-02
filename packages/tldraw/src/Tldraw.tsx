@@ -18,6 +18,7 @@ import { ErrorFallback } from '~components/ErrorFallback'
 
 import messages_en from '~translations/en.json'
 import messages_fr from '~translations/fr.json'
+import messages_it from '~translations/it.json'
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -292,6 +293,7 @@ export function Tldraw({
   const messages = {
     en: messages_en,
     fr: messages_fr,
+    it: messages_it,
   }
   const language = navigator.language.split(/[-_]/)[0]
 
