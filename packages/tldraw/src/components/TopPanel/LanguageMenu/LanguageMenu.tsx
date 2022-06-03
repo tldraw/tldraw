@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { useIntl } from 'react-intl'
 import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TDSnapshot } from '~types'
@@ -13,6 +14,7 @@ type ILang = {
 export function LanguageMenu() {
   const app = useTldrawApp()
   const setting = app.useStore(settingsSelector)
+  const intl = useIntl()
 
   const languages: ILang[] = [
     { label: 'English', code: 'en' },
@@ -28,7 +30,7 @@ export function LanguageMenu() {
   )
 
   return (
-    <DMSubMenu label="Languages">
+    <DMSubMenu label={intl.formatMessage({ id: 'language' })}>
       {languages.map((language) => (
         <DMCheckboxItem
           checked={setting.language === language.code}
