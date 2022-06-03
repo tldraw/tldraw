@@ -4093,6 +4093,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showBindingHandles: true,
       showCloneHandles: false,
       showGrid: false,
+      language: 'en',
     },
     appState: {
       status: TDStatus.Idle,

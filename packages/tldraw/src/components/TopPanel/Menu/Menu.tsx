@@ -24,6 +24,7 @@ import { DiscordIcon } from '~components/Primitives/icons'
 import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { LanguageMenu } from '../LanguageMenu/LanguageMenu'
 
 interface MenuProps {
   sponsor: boolean | undefined
@@ -325,6 +326,8 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
         </DMSubMenu>
         <DMDivider dir="ltr" />
         <PreferencesMenu />
+        <DMDivider dir="ltr" />
+        <LanguageMenu />
         <DMDivider dir="ltr" />
         <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
           <DMItem id="TD-MenuItem-Github">
