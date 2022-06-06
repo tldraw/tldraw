@@ -3,9 +3,18 @@
 import React, { useState, useRef, useCallback } from 'react'
 import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
 import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
-import { LiveMap, LiveObject } from '@liveblocks/client'
+import { LiveMap, LiveObject, Lson, LsonObject } from '@liveblocks/client'
 
 declare const window: Window & { app: TldrawApp }
+
+type TDLsonShape = TDShape & Lson
+type TDLsonBinding = TDBinding & Lson
+type TDLsonAsset = TDAsset & Lson
+type LsonDoc = {
+  uuid: string
+  document: TDDocument
+  migrated?: boolean
+} & LsonObject
 
 export function useMultiplayerState(roomId: string) {
   const [app, setApp] = useState<TldrawApp>()
@@ -17,9 +26,9 @@ export function useMultiplayerState(roomId: string) {
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  const rLiveShapes = useRef<LiveMap<string, TDShape>>()
-  const rLiveBindings = useRef<LiveMap<string, TDBinding>>()
-  const rLiveAssets = useRef<LiveMap<string, TDAsset>>()
+  const rLiveShapes = useRef<LiveMap<string, TDLsonShape>>()
+  const rLiveBindings = useRef<LiveMap<string, TDLsonBinding>>()
+  const rLiveAssets = useRef<LiveMap<string, TDLsonAsset>>()
 
   // Callbacks --------------
 
@@ -53,7 +62,7 @@ export function useMultiplayerState(roomId: string) {
           if (!shape) {
             lShapes.delete(id)
           } else {
-            lShapes.set(shape.id, shape)
+            lShapes.set(shape.id, shape as TDLsonShape)
           }
         })
 
@@ -61,7 +70,7 @@ export function useMultiplayerState(roomId: string) {
           if (!binding) {
             lBindings.delete(id)
           } else {
-            lBindings.set(binding.id, binding)
+            lBindings.set(binding.id, binding as TDLsonBinding)
           }
         })
 
@@ -69,7 +78,7 @@ export function useMultiplayerState(roomId: string) {
           if (!asset) {
             lAssets.delete(id)
           } else {
-            lAssets.set(asset.id, asset)
+            lAssets.set(asset.id, asset as TDLsonAsset)
           }
         })
       })
@@ -95,7 +104,7 @@ export function useMultiplayerState(roomId: string) {
 
     // Handle changes to other users' presence
     unsubs.push(
-      room.subscribe('others', (others, event) => {
+      room.subscribe<{ id: string; user: TDUser }>('others', (others, event) => {
         if (event.type === 'leave') {
           if (event.user.presence) {
             app?.removeUser(event.user.presence.id)
@@ -123,23 +132,23 @@ export function useMultiplayerState(roomId: string) {
 
       // Initialize (get or create) maps for shapes/bindings/assets
 
-      let lShapes: LiveMap<string, TDShape> = storage.root.get('shapes')
+      let lShapes: LiveMap<string, TDLsonShape> = storage.root.get('shapes')
       if (!lShapes || !('_serialize' in lShapes)) {
-        storage.root.set('shapes', new LiveMap<string, TDShape>())
+        storage.root.set('shapes', new LiveMap<string, TDLsonShape>())
         lShapes = storage.root.get('shapes')
       }
       rLiveShapes.current = lShapes
 
-      let lBindings: LiveMap<string, TDBinding> = storage.root.get('bindings')
+      let lBindings: LiveMap<string, TDLsonBinding> = storage.root.get('bindings')
       if (!lBindings || !('_serialize' in lBindings)) {
-        storage.root.set('bindings', new LiveMap<string, TDBinding>())
+        storage.root.set('bindings', new LiveMap<string, TDLsonBinding>())
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
 
-      let lAssets: LiveMap<string, TDAsset> = storage.root.get('assets')
+      let lAssets: LiveMap<string, TDLsonAsset> = storage.root.get('assets')
       if (!lAssets || !('_serialize' in lAssets)) {
-        storage.root.set('assets', new LiveMap<string, TDAsset>())
+        storage.root.set('assets', new LiveMap<string, TDLsonAsset>())
         lAssets = storage.root.get('assets')
       }
       rLiveAssets.current = lAssets
@@ -150,11 +159,7 @@ export function useMultiplayerState(roomId: string) {
         // document was a single LiveObject named 'doc'. If we find a doc,
         // then we need to move the shapes and bindings over to the new structures
         // and then mark the doc as migrated.
-        const doc = storage.root.get('doc') as LiveObject<{
-          uuid: string
-          document: TDDocument
-          migrated?: boolean
-        }>
+        const doc = storage.root.get('doc') as LiveObject<LsonDoc>
 
         // No doc? No problem. This was likely a newer document
         if (doc) {
@@ -167,9 +172,11 @@ export function useMultiplayerState(roomId: string) {
             },
           } = doc.toObject()
 
-          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
-          Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
-          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset))
+          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape as TDLsonShape))
+          Object.values(bindings).forEach((binding) =>
+            lBindings.set(binding.id, binding as TDLsonBinding)
+          )
+          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset as TDLsonAsset))
         }
       }
 

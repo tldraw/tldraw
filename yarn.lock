@@ -2711,7 +2711,7 @@
   dependencies:
     "@state-designer/core" latest
 
-"@stitches/react@^1.2.5", "@stitches/react@^1.2.6":
+"@stitches/react@^1.2.6":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.6.tgz#61f2a3d1110334ecd33bcb7463650127d42470cb"
   integrity sha512-gRVITYj8W4jJmoiVxWDv72yCvd12VvtUUAnTzs07EqmtvGCVgKZu3Dx0x5KVCcb0b6tfgvvNH2L84YrzdM4Mag==
