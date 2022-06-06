@@ -1,4 +1,3 @@
-export * from './DMArrow'
 export * from './DMItem'
 export * from './DMCheckboxItem'
 export * from './DMContent'

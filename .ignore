@@ -5,3 +5,5 @@ node_modules
 *.d.ts
 *.js
 *.md
+*.lock
+*.tsbuildinfo

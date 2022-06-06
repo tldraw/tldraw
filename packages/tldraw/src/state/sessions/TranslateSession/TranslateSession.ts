@@ -1,12 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  TLPageState,
-  Utils,
-  TLBoundsWithCenter,
-  TLSnapLine,
-  TLBounds,
-  TLPerformanceMode,
-} from '@tldraw/core'
+import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
   TDShape,

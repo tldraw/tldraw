@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
-import { IntlProvider } from 'react-intl'
+import { IntlConfig, IntlProvider } from 'react-intl'
 import { styled, dark } from '~styles'
-import { TDDocument, TDLanguage, TDStatus } from '~types'
+import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -13,12 +13,14 @@ import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
 import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
-import { ErrorBoundary } from 'react-error-boundary'
+import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { ErrorFallback } from '~components/ErrorFallback'
 
-import messages_en from '~translations/en.json'
-import messages_fr from '~translations/fr.json'
-import messages_it from '~translations/it.json'
+import messages_en from './translations/en.json'
+import messages_fr from './translations/fr.json'
+import messages_it from './translations/it.json'
+
+const ErrorBoundary = _Errorboundary as any
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -428,13 +430,13 @@ const InnerTldraw = React.memo(function InnerTldraw({
     it: messages_it,
   }
 
-  const defaultLanguage = settings.language
-    ? settings.language
-    : navigator.language.split(/[-_]/)[0]
+  const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
 
   return (
-    // @ts-ignore
-    <IntlProvider locale={defaultLanguage} messages={messages[defaultLanguage]}>
+    <IntlProvider
+      locale={defaultLanguage}
+      messages={messages[defaultLanguage] as IntlConfig['messages']}
+    >
       <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
         <Loading />
         <OneOff focusableRef={rWrapper} autofocus={autofocus} />

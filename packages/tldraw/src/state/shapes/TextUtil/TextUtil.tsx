@@ -146,7 +146,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
       )
 
       const handlePointerDown = React.useCallback(
-        (e) => {
+        (e: React.PointerEvent<HTMLDivElement | HTMLTextAreaElement>) => {
           if (isEditing) {
             e.stopPropagation()
           }

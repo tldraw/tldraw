@@ -29,7 +29,13 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "rimraf": "^3.0.2",
-    "typescript": "^4.6.4"
+    "typescript": "^4.7.3"
   },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6",
+  "dependencies": {
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  }
 }
