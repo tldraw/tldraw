@@ -9,30 +9,30 @@ import { Music } from './Music'
 export interface GridProps {
   type: 'dots' | 'squares' | 'lines' | 'iso' | 'music', 
   camera: TLPageState['camera']; 
-  grid: number 
+  size: number 
 }
 
-export function Grid({ type, grid, camera }: GridProps) {
+export function Grid({ type, size, camera }: GridProps) {
   switch (type) {
     case 'dots':
       return (
-        <Dots grid={grid} camera={camera} />
+        <Dots space={size} camera={camera} />
       )
     case 'squares':
       return (
-        <Squares grid={grid} camera={camera} />
+        <Squares space={size} camera={camera} />
       )
     case 'lines':
       return (
-        <Lines grid={grid} camera={camera} />
+        <Lines space={size} camera={camera} />
       )
     case 'iso':
       return (
-        <Iso grid={grid} camera={camera} />
+        <Iso space={size} camera={camera} />
       )
     case 'music':
       return (
-        <Music grid={grid} camera={camera} />
+        <Music space={size} camera={camera} />
       )
   }
 }

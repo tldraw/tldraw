@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
+import * as ToggleGroup from '@radix-ui/react-toggle-group';
 import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
 import type { TDSnapshot, TDPage } from '~types'
 import { useTldrawApp } from '~hooks'
@@ -32,6 +33,10 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   const canDelete = app.useStore(canDeleteSelector)
 
   const rInput = React.useRef<HTMLInputElement>(null)
+
+  const handleGridTypeChange = React.useCallback((v) => {
+    app.setGridType(page.id, v == 'none' ? undefined : v);
+  }, [app]);
 
   const handleDuplicate = React.useCallback(() => {
     app.duplicatePage(page.id)
@@ -102,9 +107,27 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
             icon={<Pencil1Icon />}
           />
           <Divider />
-          <DialogAction onSelect={handleDuplicate}>
-            <FormattedMessage id="duplicate" />
-          </DialogAction>
+          <ToggleGroup.Root type="single" value={page.gridType} onValueChange={handleGridTypeChange}>
+            <ToggleGroup.Item
+              value='none'
+            />
+            <ToggleGroup.Item
+              value='dots'
+            />
+            <ToggleGroup.Item
+              value='squares'
+            />
+            <ToggleGroup.Item
+              value='lines'
+            />
+            <ToggleGroup.Item
+              value='iso'
+            />
+            <ToggleGroup.Item
+              value='music'
+            />
+          </ToggleGroup.Root>
+          <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
             <FormattedMessage id="delete" />
           </DialogAction>

@@ -1,4 +1,5 @@
 import { TDDocument, TldrawApp } from '@tldraw/tldraw'
+import { GRID_SIZE } from '@tldraw/tldraw/src/constants'
 
 export const defaultDocument: TDDocument = {
   id: 'doc',
@@ -11,6 +12,7 @@ export const defaultDocument: TDDocument = {
       childIndex: 1,
       shapes: {},
       bindings: {},
+      gridSize: GRID_SIZE,
     },
   },
   pageStates: {

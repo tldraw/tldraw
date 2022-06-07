@@ -16,7 +16,6 @@ import type {
 } from '../../types'
 import { Canvas } from '../Canvas'
 import { Inputs } from '../../inputs'
-import { GridProps } from '~components/Grid'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 import type { TLShapeUtilsMap } from '../../TLShapeUtil'
 
@@ -99,17 +98,9 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   hideIndicators?: boolean
   /**
-   * (optional) When true, the renderer will not show the grid.
-   */
-  gridType?: GridProps["type"]
-  /**
    * (optional) When true, the renderer will show a dashed brush.
    */
   showDashedBrush?: boolean
-  /**
-   * (optional) The size of the grid step.
-   */
-  grid?: number
   /**
    * (optional) Use a performance mode.
    */
@@ -147,8 +138,6 @@ export const Renderer = observer(function _Renderer<
   meta,
   snapLines,
   eraseLine,
-  grid,
-  gridType = undefined,
   containerRef,
   performanceMode,
   hideHandles = false,
@@ -203,8 +192,6 @@ export const Renderer = observer(function _Renderer<
         assets={assets}
         snapLines={snapLines}
         eraseLine={eraseLine}
-        grid={grid}
-        gridType={gridType}
         users={users}
         userId={userId}
         externalContainerRef={containerRef}

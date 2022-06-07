@@ -3,6 +3,7 @@
 /* --------------------- Primary -------------------- */
 
 import type React from 'react'
+import type { GridProps } from '~components/Grid'
 
 export enum TLPerformanceMode {
   TransformSelected = 'transform_selected',
@@ -31,6 +32,8 @@ export interface TLPage<T extends TLShape = TLShape, B extends TLBinding = TLBin
   childIndex?: number
   shapes: Record<string, T>
   bindings: Record<string, B>
+  gridType?: GridProps["type"]
+  gridSize?: number
 }
 
 export interface TLPageState {

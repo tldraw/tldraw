@@ -81,6 +81,7 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
+import { GridProps } from '@tldraw/core/src/components/Grid'
 
 const uuid = Utils.uniqueId()
 
@@ -1090,17 +1091,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Toggle grids.
-   * TODO: rework
-   */
-  /*toggleGrid = (): this => {
-    if (this.session) return this
-    this.patchState({ settings: { showGrid: !this.settings.showGrid } }, 'settings:toggled_grid')
-    this.persist()
-    return this
-  }*/
-
-  /**
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
@@ -1708,6 +1698,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.readOnly) return this
     if (Object.values(this.document.pages).length <= 1) return this
     return this.setState(Commands.deletePage(this, pageId ? pageId : this.currentPageId))
+  }
+
+  /**
+   * Set grid type.
+   */
+  setGridType = (pageId: string, gridType:GridProps["type"] | undefined): this => {
+    if (this.session) return this
+    this.patchState({document: { pages[pageId]: { gridType : gridType }}}, 'page:gridType');
+    this.persist()
+    return this
   }
 
   /* -------------------------------------------------- */

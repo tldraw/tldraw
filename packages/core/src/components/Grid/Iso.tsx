@@ -9,12 +9,12 @@ const STEPS = [
   [0.7, 2.5, 1],
 ]
 
-export function Iso({ grid, camera }: { camera: TLPageState['camera']; grid: number }) {
+export function Iso({ space, camera }: { camera: TLPageState['camera']; space: number }) {
   return (
     <svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
         {STEPS.map(([min, mid, size], i) => {
-          const s = size * grid * camera.zoom 
+          const s = size * space * camera.zoom 
           const xo = camera.point[0] * camera.zoom
           const yo = camera.point[1] * camera.zoom
           const gxo = xo > 0 ? xo % (s*2) : s*2 + (xo % (s*2))

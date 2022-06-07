@@ -45,6 +45,8 @@
     "@radix-ui/react-context-menu": "^0.1.6",
     "@radix-ui/react-dropdown-menu": "^0.1.6",
     "@radix-ui/react-icons": "^1.1.1",
+    "@radix-ui/react-radio-group": "^0.1.5",
+    "@radix-ui/react-toggle-group": "^0.1.5",
     "@radix-ui/react-tooltip": "^0.1.7",
     "@stitches/react": "^1.2.8",
     "@testing-library/react": "^13.3.0",
