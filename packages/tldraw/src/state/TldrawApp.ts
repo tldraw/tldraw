@@ -1705,7 +1705,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   setGridType = (pageId: string, gridType:GridProps["type"] | undefined): this => {
     if (this.session) return this
-    this.patchState({document: { pages[pageId]: { gridType : gridType }}}, 'page:gridType');
+    this.patchState({
+      document: { 
+        pages: {
+          [pageId]: {
+            gridType: gridType
+          }
+        }
+      }
+    }, 'page:gridType');
     this.persist()
     return this
   }
