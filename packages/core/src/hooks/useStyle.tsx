@@ -367,6 +367,9 @@ export const TLCSS = css`
   .tl-grid-dot {
     fill: var(--tl-grid);
   }
+  .tl-grid-line {
+    stroke: var(--tl-grid);
+  }
   .tl-erase-line {
     stroke-linejoin: round;
     stroke-linecap: round;

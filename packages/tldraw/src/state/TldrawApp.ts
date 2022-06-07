@@ -1091,13 +1091,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Toggle grids.
+   * TODO: rework
    */
-  toggleGrid = (): this => {
+  /*toggleGrid = (): this => {
     if (this.session) return this
     this.patchState({ settings: { showGrid: !this.settings.showGrid } }, 'settings:toggled_grid')
     this.persist()
     return this
-  }
+  }*/
 
   /**
    * Select a tool.

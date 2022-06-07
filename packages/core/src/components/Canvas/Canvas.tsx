@@ -28,7 +28,7 @@ import { useResizeObserver } from '~hooks/useResizeObserver'
 import { inputs } from '~inputs'
 import { UsersIndicators } from '~components/UsersIndicators'
 import { SnapLines } from '~components/SnapLines/SnapLines'
-import { Grid } from '~components/Grid'
+import { Grid, GridProps } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
 import { EraseLine } from '~components/EraseLine'
 
@@ -39,6 +39,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   snapLines?: TLSnapLine[]
   eraseLine?: number[][]
   grid?: number
+  gridType?: GridProps["type"]
   users?: TLUsers<T>
   userId?: string
   hideBounds: boolean
@@ -48,7 +49,6 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideCloneHandles: boolean
   hideResizeHandles: boolean
   hideRotateHandle: boolean
-  hideGrid: boolean
   showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
@@ -81,7 +81,7 @@ export const Canvas = observer(function _Canvas<
   hideCloneHandles,
   hideResizeHandles,
   hideRotateHandle,
-  hideGrid,
+  gridType,
   onBoundsChange,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
@@ -113,7 +113,7 @@ export const Canvas = observer(function _Canvas<
   return (
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
-        {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
+        {gridType != undefined && grid && <Grid grid={grid} camera={pageState.camera} type={gridType}/>}
         <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
           <Page
             page={page}

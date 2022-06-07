@@ -16,6 +16,7 @@ import type {
 } from '../../types'
 import { Canvas } from '../Canvas'
 import { Inputs } from '../../inputs'
+import { GridProps } from '~components/Grid'
 import { useTLTheme, TLContext, TLContextType } from '../../hooks'
 import type { TLShapeUtilsMap } from '../../TLShapeUtil'
 
@@ -100,7 +101,7 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
   /**
    * (optional) When true, the renderer will not show the grid.
    */
-  hideGrid?: boolean
+  gridType?: GridProps["type"]
   /**
    * (optional) When true, the renderer will show a dashed brush.
    */
@@ -147,6 +148,7 @@ export const Renderer = observer(function _Renderer<
   snapLines,
   eraseLine,
   grid,
+  gridType = undefined,
   containerRef,
   performanceMode,
   hideHandles = false,
@@ -156,7 +158,6 @@ export const Renderer = observer(function _Renderer<
   hideResizeHandles = false,
   hideRotateHandles = false,
   hideBounds = false,
-  hideGrid = true,
   showDashedBrush = false,
   ...rest
 }: RendererProps<T, M>) {
@@ -203,6 +204,7 @@ export const Renderer = observer(function _Renderer<
         snapLines={snapLines}
         eraseLine={eraseLine}
         grid={grid}
+        gridType={gridType}
         users={users}
         userId={userId}
         externalContainerRef={containerRef}
@@ -213,7 +215,6 @@ export const Renderer = observer(function _Renderer<
         hideBindingHandles={hideBindingHandles}
         hideRotateHandle={hideRotateHandles}
         hideResizeHandles={hideResizeHandles}
-        hideGrid={hideGrid}
         showDashedBrush={showDashedBrush}
         onBoundsChange={onBoundsChange}
         performanceMode={performanceMode}

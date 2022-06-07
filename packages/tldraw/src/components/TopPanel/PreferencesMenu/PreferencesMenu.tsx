@@ -28,10 +28,6 @@ export function PreferencesMenu() {
     app.setSetting('showRotateHandles', (v) => !v)
   }, [app])
 
-  const toggleGrid = React.useCallback(() => {
-    app.setSetting('showGrid', (v) => !v)
-  }, [app])
-
   const toggleBoundShapesHandle = React.useCallback(() => {
     app.setSetting('showBindingHandles', (v) => !v)
   }, [app])
@@ -78,14 +74,6 @@ export function PreferencesMenu() {
         <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
       <DMDivider />
-      <DMCheckboxItem
-        checked={settings.showGrid}
-        onCheckedChange={toggleGrid}
-        kbd="#⇧G"
-        id="TD-MenuItem-Preferences-Grid"
-      >
-        <FormattedMessage id="preferences.show.grid" />
-      </DMCheckboxItem>
       <DMCheckboxItem
         checked={settings.isCadSelectMode}
         onCheckedChange={toggleCadSelectMode}
