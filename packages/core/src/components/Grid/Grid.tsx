@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLPageState } from '~types'
+import { TLPageState } from '~types'
 import { Dots } from './Dots'
 import { Squares } from './Squares'
 import { Lines } from './Lines'

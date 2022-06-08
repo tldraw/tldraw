@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLPageState } from '~types'
+import { TLPageState } from '~types'
 import Utils from '~utils'
 
 const STEPS = [

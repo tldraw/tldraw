@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLPageState } from '~types'
+import { TLPageState } from '~types'
 
 const STEPS = [
   [-1, 0.15, 64],
