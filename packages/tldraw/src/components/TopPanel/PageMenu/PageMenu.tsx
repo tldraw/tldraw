@@ -1,7 +1,16 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as ToggleGroup from '@radix-ui/react-toggle-group'
-import { PlusIcon, CheckIcon, Cross2Icon, DragHandleDots2Icon, FrameIcon, TextAlignJustifyIcon, TriangleRightIcon, SpeakerLoudIcon } from '@radix-ui/react-icons'
+import {
+  PlusIcon,
+  CheckIcon,
+  Cross2Icon,
+  DragHandleDots2Icon,
+  FrameIcon,
+  TextAlignJustifyIcon,
+  TriangleRightIcon,
+  SpeakerLoudIcon,
+} from '@radix-ui/react-icons'
 import { PageOptionsDialog } from '../PageOptionsDialog'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
@@ -11,6 +20,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { FormattedMessage } from 'react-intl'
+import { GridType } from '@tldraw/core'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -63,7 +73,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const currentPage = app.useStore(currentPageSelector)
 
-  const [gridType, setGridType] = React.useState(currentPage.gridType || 'none')
+  const [gridType, setGridType] = React.useState<GridType | 'none'>(currentPage.gridType || 'none')
 
   const handleCreatePage = React.useCallback(() => {
     app.createPage()
@@ -77,32 +87,42 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     [app]
   )
 
-  const handleGridTypeChange = React.useCallback((v) => {
-    setGridType(v)
-    app.setGridType(currentPage.id, v == 'none' ? undefined : v);
-  }, [app, setGridType, currentPage]);
+  const handleGridTypeChange = React.useCallback(
+    (v) => {
+      setGridType(v)
+      app.setGridType(currentPage.id, v == 'none' ? undefined : v)
+    },
+    [app, setGridType, currentPage]
+  )
 
   return (
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPage.id} onValueChange={handleChangePage}>
-        <DropdownMenu.Label asChild><TitleBox>Grid style</TitleBox></DropdownMenu.Label>
-        <StyledToggleGroup type="single" value={gridType} onValueChange={handleGridTypeChange} orientation='horizontal'>
-          <StyledToggleItem value='none'>
-            <Cross2Icon/>
+        <DropdownMenu.Label asChild>
+          <TitleBox>Grid style</TitleBox>
+        </DropdownMenu.Label>
+        <StyledToggleGroup
+          type="single"
+          value={gridType}
+          onValueChange={handleGridTypeChange}
+          orientation="horizontal"
+        >
+          <StyledToggleItem value="none">
+            <Cross2Icon />
           </StyledToggleItem>
-          <StyledToggleItem value='dots'>
+          <StyledToggleItem value="dots">
             <DragHandleDots2Icon />
           </StyledToggleItem>
-          <StyledToggleItem value='squares'>
+          <StyledToggleItem value="squares">
             <FrameIcon />
           </StyledToggleItem>
-          <StyledToggleItem value='lines'>
+          <StyledToggleItem value="lines">
             <TextAlignJustifyIcon />
           </StyledToggleItem>
-          <StyledToggleItem value='iso'>
+          <StyledToggleItem value="iso">
             <TriangleRightIcon />
           </StyledToggleItem>
-          <StyledToggleItem value='music'>
+          <StyledToggleItem value="music">
             <SpeakerLoudIcon />
           </StyledToggleItem>
         </StyledToggleGroup>
@@ -164,7 +184,7 @@ export const PageButton = styled(RowButton, {
 export const TitleBox = styled(RowButton, {
   '&:focus': {
     backgroundColor: 'transparent',
-  }
+  },
 })
 
 export const StyledToggleGroup = styled(ToggleGroup.Root, {
@@ -188,7 +208,7 @@ export const StyledToggleItem = styled(ToggleGroup.Item, {
   justifyContent: 'center',
   borderRadius: 4,
 
-  '&[data-state=on]' : {
+  '&[data-state=on]': {
     backgroundColor: '$hover',
-  }
-});
+  },
+})

@@ -32,9 +32,11 @@ export interface TLPage<T extends TLShape = TLShape, B extends TLBinding = TLBin
   childIndex?: number
   shapes: Record<string, T>
   bindings: Record<string, B>
-  gridType?: GridProps["type"]
+  gridType?: GridProps['type']
   gridSize?: number
 }
+
+export type GridType = 'dots' | 'squares' | 'lines' | 'iso' | 'music'
 
 export interface TLPageState {
   id: string

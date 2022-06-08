@@ -1,12 +1,10 @@
 import * as React from 'react'
-import type { TLPageState } from '~types'
+import type { GridType, TLPageState } from '~types'
 import { Dots } from './Dots'
 import { Squares } from './Squares'
 import { Lines } from './Lines'
 import { Iso } from './Iso'
 import { Music } from './Music'
-
-export type GridType = 'dots' | 'squares' | 'lines' | 'iso' | 'music'
 
 export interface GridProps {
   type: GridType

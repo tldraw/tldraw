@@ -15,6 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
+  GridType,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -81,7 +82,6 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
-import { GridProps, GridType } from '@tldraw/core/src/components/Grid'
 
 const uuid = Utils.uniqueId()
 
