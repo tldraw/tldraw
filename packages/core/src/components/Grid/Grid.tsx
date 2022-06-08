@@ -6,33 +6,25 @@ import { Lines } from './Lines'
 import { Iso } from './Iso'
 import { Music } from './Music'
 
+export type GridType = 'dots' | 'squares' | 'lines' | 'iso' | 'music'
+
 export interface GridProps {
-  type: 'dots' | 'squares' | 'lines' | 'iso' | 'music', 
-  camera: TLPageState['camera']; 
-  size: number 
+  type: GridType
+  camera: TLPageState['camera']
+  size: number
 }
 
 export function Grid({ type, size, camera }: GridProps) {
   switch (type) {
     case 'dots':
-      return (
-        <Dots space={size} camera={camera} />
-      )
+      return <Dots space={size} camera={camera} />
     case 'squares':
-      return (
-        <Squares space={size} camera={camera} />
-      )
+      return <Squares space={size} camera={camera} />
     case 'lines':
-      return (
-        <Lines space={size} camera={camera} />
-      )
+      return <Lines space={size} camera={camera} />
     case 'iso':
-      return (
-        <Iso space={size} camera={camera} />
-      )
+      return <Iso space={size} camera={camera} />
     case 'music':
-      return (
-        <Music space={size} camera={camera} />
-      )
+      return <Music space={size} camera={camera} />
   }
 }

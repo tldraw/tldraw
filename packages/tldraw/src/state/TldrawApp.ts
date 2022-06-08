@@ -81,7 +81,7 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
-import { GridProps } from '@tldraw/core/src/components/Grid'
+import { GridProps, GridType } from '@tldraw/core/src/components/Grid'
 
 const uuid = Utils.uniqueId()
 
@@ -1703,20 +1703,31 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Set grid type.
    */
-  setGridType = (pageId: string, gridType:GridProps["type"] | undefined): this => {
+  setGridType = (pageId: string, gridType?: GridType): this => {
     if (this.session) return this
-    this.patchState({
-      document: { 
-        pages: {
-          [pageId]: {
-            gridType: gridType,
-            gridSize: this.page.gridSize || GRID_SIZE,
-          }
-        }
-      }
-    }, 'page:gridType');
+    this.patchState(
+      {
+        document: {
+          pages: {
+            [pageId]: {
+              gridType: gridType,
+              gridSize: this.page.gridSize || GRID_SIZE,
+            },
+          },
+        },
+      },
+      'page:gridType'
+    )
     this.persist()
     return this
+  }
+
+  toggleGrid = () => {
+    this.patchState({
+      settings: {
+        showGrid: !this.state.settings.showGrid,
+      },
+    })
   }
 
   /* -------------------------------------------------- */
@@ -4089,6 +4100,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   static defaultState: TDSnapshot = {
     settings: {
+      showGrid: false,
       isCadSelectMode: false,
       isPenMode: false,
       isDarkMode: false,
