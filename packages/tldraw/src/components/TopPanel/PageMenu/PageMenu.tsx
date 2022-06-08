@@ -85,26 +85,27 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   return (
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPage.id} onValueChange={handleChangePage}>
-        <ToggleGroup.Root type="single" value={gridType} onValueChange={handleGridTypeChange} orientation='horizontal'>
-          <ToggleGroup.Item value='none'>
+        <DropdownMenu.Label asChild><TitleBox>Grid style</TitleBox></DropdownMenu.Label>
+        <StyledToggleGroup type="single" value={gridType} onValueChange={handleGridTypeChange} orientation='horizontal'>
+          <StyledToggleItem value='none'>
             <Cross2Icon/>
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value='dots'>
+          </StyledToggleItem>
+          <StyledToggleItem value='dots'>
             <DragHandleDots2Icon />
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value='squares'>
+          </StyledToggleItem>
+          <StyledToggleItem value='squares'>
             <FrameIcon />
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value='lines'>
+          </StyledToggleItem>
+          <StyledToggleItem value='lines'>
             <TextAlignJustifyIcon />
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value='iso'>
+          </StyledToggleItem>
+          <StyledToggleItem value='iso'>
             <TriangleRightIcon />
-          </ToggleGroup.Item>
-          <ToggleGroup.Item value='music'>
+          </StyledToggleItem>
+          <StyledToggleItem value='music'>
             <SpeakerLoudIcon />
-          </ToggleGroup.Item>
-        </ToggleGroup.Root>
+          </StyledToggleItem>
+        </StyledToggleGroup>
         <DMDivider />
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
@@ -159,3 +160,35 @@ const ButtonWithOptions = styled('div', {
 export const PageButton = styled(RowButton, {
   minWidth: 128,
 })
+
+export const TitleBox = styled(RowButton, {
+  '&:focus': {
+    backgroundColor: 'transparent',
+  }
+})
+
+export const StyledToggleGroup = styled(ToggleGroup.Root, {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: 0,
+  margin: 0,
+  border: 0,
+  backgroundColor: 'transparent',
+  height: '32px',
+})
+
+export const StyledToggleItem = styled(ToggleGroup.Item, {
+  border: 'none',
+  backgroundColor: 'transparent',
+  height: '32px',
+  width: '32px',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: 4,
+
+  '&[data-state=on]' : {
+    backgroundColor: '$hover',
+  }
+});

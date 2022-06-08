@@ -1709,7 +1709,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       document: { 
         pages: {
           [pageId]: {
-            gridType: gridType
+            gridType: gridType,
+            gridSize: this.page.gridSize || GRID_SIZE,
           }
         }
       }
