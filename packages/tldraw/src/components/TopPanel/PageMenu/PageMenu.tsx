@@ -21,6 +21,8 @@ import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { FormattedMessage } from 'react-intl'
 import { GridType } from '@tldraw/core'
+import { GRID_SIZE } from '~constants'
+import { NumberInput } from '~components/Primitives/NumberInput'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -74,6 +76,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   const currentPage = app.useStore(currentPageSelector)
 
   const [gridType, setGridType] = React.useState<GridType | 'none'>(currentPage.gridType || 'none')
+  const [gridSize, setGridSize] = React.useState(currentPage.gridSize || GRID_SIZE)
 
   const handleCreatePage = React.useCallback(() => {
     app.createPage()
@@ -94,6 +97,11 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     },
     [app, setGridType, currentPage]
   )
+
+  const handleGridSizeChange = React.useCallback((v) => {
+    setGridSize(v)
+    app.setGridSize(currentPage.id, v);
+  }, [app, setGridSize, currentPage]);
 
   return (
     <>
@@ -126,6 +134,8 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
             <SpeakerLoudIcon />
           </StyledToggleItem>
         </StyledToggleGroup>
+        <DropdownMenu.Label asChild><TitleBox>Grid size</TitleBox></DropdownMenu.Label>
+        <NumberInput value={gridSize} onChange={handleGridSizeChange} min={4} max={16} />
         <DMDivider />
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>

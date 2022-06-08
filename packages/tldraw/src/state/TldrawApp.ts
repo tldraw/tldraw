@@ -1711,7 +1711,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           pages: {
             [pageId]: {
               gridType: gridType,
-              gridSize: this.page.gridSize || GRID_SIZE,
+              gridSize: this.page.gridSize || GRID_SIZE, // this is to fix a bug when a page doesn't have a preset grid size
             },
           },
         },
@@ -1722,6 +1722,29 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  
+  /**
+   * Set grid size.
+   */
+   setGridSize = (pageId: string, gridSize:number | undefined): this => {
+    if (this.session) return this
+    this.patchState({
+      document: { 
+        pages: {
+          [pageId]: {
+            gridSize: gridSize
+          }
+        }
+      }
+    }, 'page:gridSize');
+    this.persist()
+    return this
+  }
+  
+  /**
+   * Set grid size.
+   * NOTE: this is kept for backward compatibility
+   */
   toggleGrid = () => {
     this.patchState({
       settings: {
