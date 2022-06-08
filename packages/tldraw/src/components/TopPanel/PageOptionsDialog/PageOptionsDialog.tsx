@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
-import * as ToggleGroup from '@radix-ui/react-toggle-group';
-import { MixerVerticalIcon, Pencil1Icon, Cross2Icon, DragHandleDots2Icon, FrameIcon, TextAlignJustifyIcon, TriangleRightIcon, SpeakerLoudIcon } from '@radix-ui/react-icons'
+import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
 import type { TDSnapshot, TDPage } from '~types'
 import { useTldrawApp } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
@@ -29,16 +28,10 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
 
   const [isOpen, setIsOpen] = React.useState(false)
   const [pageName, setPageName] = React.useState(page.name || 'Page')
-  const [gridType, setGridType] = React.useState(page.gridType || 'none')
 
   const canDelete = app.useStore(canDeleteSelector)
 
   const rInput = React.useRef<HTMLInputElement>(null)
-
-  const handleGridTypeChange = React.useCallback((v) => {
-    setGridType(v)
-    app.setGridType(page.id, v == 'none' ? undefined : v);
-  }, [app]);
 
   const handleDuplicate = React.useCallback(() => {
     app.duplicatePage(page.id)
@@ -109,26 +102,6 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
             icon={<Pencil1Icon />}
           />
           <Divider />
-          <ToggleGroup.Root type="single" value={gridType} onValueChange={handleGridTypeChange} orientation='horizontal'>
-            <ToggleGroup.Item value='none'>
-              <Cross2Icon/>
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='dots'>
-              <DragHandleDots2Icon />
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='squares'>
-              <FrameIcon />
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='lines'>
-              <TextAlignJustifyIcon />
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='iso'>
-              <TriangleRightIcon />
-            </ToggleGroup.Item>
-            <ToggleGroup.Item value='music'>
-              <SpeakerLoudIcon />
-            </ToggleGroup.Item>
-          </ToggleGroup.Root>
           <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
             <FormattedMessage id="delete" />
