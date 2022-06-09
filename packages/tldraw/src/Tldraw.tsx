@@ -19,6 +19,7 @@ import { ErrorFallback } from '~components/ErrorFallback'
 import messages_en from './translations/en.json'
 import messages_fr from './translations/fr.json'
 import messages_it from './translations/it.json'
+import messages_zh_cn from './translations/zh-cn.json'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -433,6 +434,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
     en: messages_en,
     fr: messages_fr,
     it: messages_it,
+    'zh-cn': messages_zh_cn
   }
 
   const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]

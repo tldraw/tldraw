@@ -76,7 +76,7 @@ export class TDEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
-export type TDLanguage = 'en' | 'fr' | 'it'
+export type TDLanguage = 'en' | 'fr' | 'it' | 'zh-cn'
 
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
