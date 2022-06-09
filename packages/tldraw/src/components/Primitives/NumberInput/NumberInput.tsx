@@ -1,3 +1,4 @@
+import { MinusIcon, PlusIcon } from '@radix-ui/react-icons';
 import * as React from 'react';
 import { styled } from '~styles';
 import { ToolButton } from "../ToolButton";
@@ -17,7 +18,8 @@ export function NumberInput({
 }) {
 
     const handleChange = React.useCallback((e) => {
-        onChange(parseFloat(e.target.value));
+        let v = parseFloat(e.target.value)
+        onChange(min && v < min ? min : (max && v > max ? max : v));
     }, [onChange]);
 
     const increase = React.useCallback(() => {
@@ -30,9 +32,9 @@ export function NumberInput({
 
     return (
         <StyledContainer>
-            <ToolButton onClick={decrease}> - </ToolButton>
+            <ToolButton onClick={decrease}> <MinusIcon/> </ToolButton>
             <StyledInput type="number" value={value} onChange={handleChange} min={min} max={max} step={step}/>
-            <ToolButton onClick={increase}> + </ToolButton>
+            <ToolButton onClick={increase}> <PlusIcon/> </ToolButton>
         </StyledContainer>
     );
 }

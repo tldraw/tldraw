@@ -23,6 +23,8 @@ import { FormattedMessage } from 'react-intl'
 import { GridType } from '@tldraw/core'
 import { GRID_SIZE } from '~constants'
 import { NumberInput } from '~components/Primitives/NumberInput'
+import { Tooltip } from '~components/Primitives/Tooltip'
+import { StyledRow } from '../StyleMenu'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -92,6 +94,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const handleGridTypeChange = React.useCallback(
     (v) => {
+      if (v == '') v = 'none'
       setGridType(v)
       app.setGridType(currentPage.id, v == 'none' ? undefined : v)
     },
@@ -116,26 +119,41 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
           orientation="horizontal"
         >
           <StyledToggleItem value="none">
-            <Cross2Icon />
+            <Tooltip label="None" side="bottom">
+              <Cross2Icon />
+            </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="dots">
-            <DragHandleDots2Icon />
+            <Tooltip label="Dots" side="bottom">
+              <DragHandleDots2Icon />
+            </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="squares">
-            <FrameIcon />
+            <Tooltip label="Squares" side="bottom">
+              <FrameIcon />
+            </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="lines">
-            <TextAlignJustifyIcon />
+            <Tooltip label="Lines" side="bottom">
+              <TextAlignJustifyIcon />
+            </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="iso">
-            <TriangleRightIcon />
+            <Tooltip label="Isometric" side="bottom">
+              <TriangleRightIcon />
+            </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="music">
-            <SpeakerLoudIcon />
+            <Tooltip label="Music sheet" side="bottom">
+              <SpeakerLoudIcon />
+            </Tooltip>
           </StyledToggleItem>
         </StyledToggleGroup>
-        <DropdownMenu.Label asChild><TitleBox>Grid size</TitleBox></DropdownMenu.Label>
-        <NumberInput value={gridSize} onChange={handleGridSizeChange} min={4} max={16} />
+        <StyledRow>
+          <span>Grid size</span>
+          <NumberInput value={gridSize} onChange={handleGridSizeChange} min={4} max={16} />
+        </StyledRow>
+        
         <DMDivider />
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
@@ -191,10 +209,24 @@ export const PageButton = styled(RowButton, {
   minWidth: 128,
 })
 
-export const TitleBox = styled(RowButton, {
-  '&:focus': {
-    backgroundColor: 'transparent',
-  },
+export const TitleBox = styled('div', {
+  position: 'relative',
+  width: '100%',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  height: '32px',
+  outline: 'none',
+  color: '$text',
+  fontFamily: '$ui',
+  fontWeight: 400,
+  fontSize: '$1',
+  borderRadius: 4,
+  userSelect: 'none',
+  margin: '0 0 0 $3',
+  padding: '0 0',
+  display: 'flex',
+  alignItems: 'center',
 })
 
 export const StyledToggleGroup = styled(ToggleGroup.Root, {
