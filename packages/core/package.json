@@ -1,5 +1,5 @@
 {
-  "version": "1.13.1",
+  "version": "1.14.0-next.0",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
