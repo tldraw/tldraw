@@ -1713,10 +1713,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /*                      Clipboard                     */
   /* -------------------------------------------------- */
 
-  private getClipboard(
-    ids = this.selectedIds,
-    pageId = this.currentPageId
-  ):
+  private getClipboard(ids = this.selectedIds):
     | {
         shapes: TDShape[]
         bindings: TDBinding[]
@@ -1757,10 +1754,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Cut (copy and delete) one or more shapes to the clipboard.
    * @param ids The ids of the shapes to cut.
    */
-  cut = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
+  cut = (ids = this.selectedIds, e?: ClipboardEvent): this => {
     e?.preventDefault()
 
-    this.copy(ids, pageId, e)
+    this.copy(ids, e)
     if (!this.readOnly) {
       this.delete(ids)
     }
@@ -1771,10 +1768,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Copy one or more shapes to the clipboard.
    * @param ids The ids of the shapes to copy.
    */
-  copy = (ids = this.selectedIds, pageId = this.currentPageId, e?: ClipboardEvent): this => {
+  copy = (ids = this.selectedIds, e?: ClipboardEvent): this => {
     e?.preventDefault()
 
-    this.clipboard = this.getClipboard(ids, pageId)
+    this.clipboard = this.getClipboard(ids)
 
     const jsonString = JSON.stringify({
       type: 'tldr/clipboard',
@@ -1962,9 +1959,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     if (e !== undefined) {
-      let items = e.clipboardData?.items ?? []
-      for (var index in items) {
-        var item = items[index]
+      const items = e.clipboardData?.items ?? []
+      for (const index in items) {
+        const item = items[index]
 
         // TODO
         // We could eventually support pasting multiple files / images,
@@ -1989,7 +1986,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               return
             }
             case 'file': {
-              var file = item.getAsFile()
+              const file = item.getAsFile()
               if (file) {
                 this.addMediaFromFile(file)
                 return
@@ -2386,7 +2383,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       transparentBackground: boolean
     }>
   ) => {
-    const { scale = 2, quality = 1, ids = this.selectedIds, pageId = this.currentPageId } = opts
+    const { pageId = this.currentPageId } = opts
 
     const blob = await this.getImage(format, opts)
 
@@ -2977,7 +2974,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Ensure that the pasted shape fits inside of the current viewport
 
     if (size[0] > this.viewport.width) {
-      let r = size[1] / size[0]
+      const r = size[1] / size[0]
       size[0] = this.viewport.width - (FIT_TO_SCREEN_PADDING / this.camera.zoom) * 2
       size[1] = size[0] * r
       if (size[1] < 32 || size[1] < 32) {
@@ -2985,7 +2982,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         size[0] = size[1] / r
       }
     } else if (size[1] > this.viewport.height) {
-      let r = size[0] / size[1]
+      const r = size[0] / size[1]
       size[1] = this.viewport.height - (FIT_TO_SCREEN_PADDING / this.camera.zoom) * 2
       size[0] = size[1] * r
       if (size[1] < 32 || size[1] < 32) {
@@ -4093,6 +4090,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showBindingHandles: true,
       showCloneHandles: false,
       showGrid: false,
+      language: 'en',
     },
     appState: {
       status: TDStatus.Idle,

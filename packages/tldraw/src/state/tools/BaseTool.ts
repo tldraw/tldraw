@@ -2,7 +2,6 @@ import {
   TLKeyboardEventHandler,
   TLPinchEventHandler,
   TLPointerEventHandler,
-  TLWheelEventHandler,
   Utils,
 } from '@tldraw/core'
 import type { TldrawApp } from '../internal'

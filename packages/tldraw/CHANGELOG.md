@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.16.0-next.0
+
+### Minor Changes
+
+- Bump dependencies, add international support.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.14.0-next.0
+
 ## 1.15.1
 
 ### Patch Changes

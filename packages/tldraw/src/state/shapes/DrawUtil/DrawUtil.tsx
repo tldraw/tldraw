@@ -277,7 +277,7 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     const bounds = this.getBounds(shape)
 
     if (bounds.width < 8 && bounds.height < 8) {
-      return Vec.distanceToLineSegment(A, B, Utils.getBoundsCenter(bounds)) < 5
+      return Vec.distanceToLineSegment(A, B, Utils.getBoundsCenter(bounds)) < 5 // divide by zoom
     }
 
     if (intersectLineSegmentBounds(ptA, ptB, bounds)) {

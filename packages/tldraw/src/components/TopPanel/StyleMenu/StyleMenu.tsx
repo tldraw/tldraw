@@ -1,6 +1,7 @@
 import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
+import { FormattedMessage } from 'react-intl'
 import { useTldrawApp } from '~hooks'
 import {
   DMCheckboxItem,
@@ -135,9 +136,9 @@ export const StyleMenu = React.memo(function ColorMenu() {
     } else {
       const overrides = new Set<string>([])
       app.selectedIds
-        .map(id => page.shapes[id])
-        .forEach(shape => {
-          STYLE_KEYS.forEach(key => {
+        .map((id) => page.shapes[id])
+        .forEach((shape) => {
+          STYLE_KEYS.forEach((key) => {
             if (overrides.has(key)) return
             if (commonStyle[key] === undefined) {
               // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -201,7 +202,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
     >
       <DropdownMenu.Trigger asChild id="TD-Styles">
         <ToolButton variant="text">
-          Styles
+          <FormattedMessage id="styles" />
           <OverlapIcons
             style={{
               color: strokes[theme][displayedStyle.color as ColorStyle],
@@ -220,7 +221,9 @@ export const StyleMenu = React.memo(function ColorMenu() {
       </DropdownMenu.Trigger>
       <DMContent>
         <StyledRow variant="tall" id="TD-Styles-Color-Container">
-          <span>Color</span>
+          <span>
+            <FormattedMessage id="style.menu.color" />
+          </span>
           <ColorGrid>
             {Object.keys(strokes.light).map((style: string) => (
               <DropdownMenu.Item
@@ -253,12 +256,12 @@ export const StyleMenu = React.memo(function ColorMenu() {
           onCheckedChange={handleToggleFilled}
           id="TD-Styles-Fill"
         >
-          Fill
+          <FormattedMessage id="style.menu.fill" />
         </DMCheckboxItem>
         <StyledRow id="TD-Styles-Dash-Container">
-          Dash
+          <FormattedMessage id="style.menu.dash" />
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
-            {Object.values(DashStyle).map(style => (
+            {Object.values(DashStyle).map((style) => (
               <DMRadioItem
                 key={style}
                 isActive={style === displayedStyle.dash}
@@ -273,9 +276,9 @@ export const StyleMenu = React.memo(function ColorMenu() {
           </StyledGroup>
         </StyledRow>
         <StyledRow id="TD-Styles-Size-Container">
-          Size
+          <FormattedMessage id="style.menu.size" />
           <StyledGroup dir="ltr" value={displayedStyle.size} onValueChange={handleSizeChange}>
-            {Object.values(SizeStyle).map(sizeStyle => (
+            {Object.values(SizeStyle).map((sizeStyle) => (
               <DMRadioItem
                 key={sizeStyle}
                 isActive={sizeStyle === displayedStyle.size}
@@ -293,9 +296,9 @@ export const StyleMenu = React.memo(function ColorMenu() {
           <>
             <Divider />
             <StyledRow id="TD-Styles-Font-Container">
-              Font
+              <FormattedMessage id="style.menu.font" />
               <StyledGroup dir="ltr" value={displayedStyle.font} onValueChange={handleFontChange}>
-                {Object.values(FontStyle).map(fontStyle => (
+                {Object.values(FontStyle).map((fontStyle) => (
                   <DMRadioItem
                     key={fontStyle}
                     isActive={fontStyle === displayedStyle.font}
@@ -311,13 +314,13 @@ export const StyleMenu = React.memo(function ColorMenu() {
             </StyledRow>
             {options === 'text' && (
               <StyledRow id="TD-Styles-Align-Container">
-                Align
+                <FormattedMessage id="style.menu.align" />
                 <StyledGroup
                   dir="ltr"
                   value={displayedStyle.textAlign}
                   onValueChange={handleTextAlignChange}
                 >
-                  {Object.values(AlignStyle).map(style => (
+                  {Object.values(AlignStyle).map((style) => (
                     <DMRadioItem
                       key={style}
                       isActive={style === displayedStyle.textAlign}
@@ -341,7 +344,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
           onCheckedChange={handleToggleKeepOpen}
           id="TD-Styles-Keep-Open"
         >
-          Keep Open
+          <FormattedMessage id="style.menu.keep.open" />
         </DMCheckboxItem>
       </DMContent>
     </DropdownMenu.Root>

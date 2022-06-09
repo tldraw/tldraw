@@ -1,5 +1,11 @@
 # @tldraw/vscode-editor
 
+## 1.11.0-next.0
+
+### Minor Changes
+
+- Bump dependencies, add international support.
+
 ## 1.10.2
 
 ### Patch Changes

@@ -5,7 +5,7 @@ import { RowButton } from '~components/Primitives/RowButton'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 
-export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+export function ErrorFallback({ error, resetErrorBoundary }: FallbackProps): any {
   const app = useTldrawApp()
 
   const refreshPage = () => {

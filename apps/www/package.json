@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "1.6.7",
+  "version": "1.7.0-next.0",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {
@@ -18,33 +18,31 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@liveblocks/client": "^0.14.0",
-    "@liveblocks/react": "^0.14.0",
+    "@sentry/webpack-plugin": "^1.17.1",
+    "@types/next-auth": "^3.15.0",
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
+    "eslint": "^8.8.0",
+    "eslint-config-next": "^12.0.10",
+    "typescript": "^4.7.3",
+    "@liveblocks/client": "^0.16.17",
+    "@liveblocks/react": "^0.16.17",
     "@sentry/integrations": "^6.13.2",
     "@sentry/node": "^6.13.2",
     "@sentry/react": "^6.13.2",
     "@sentry/tracing": "^6.13.2",
-    "@stitches/react": "^1.2.5",
+    "@stitches/react": "^1.2.8",
     "@tldraw/core": "*",
     "@tldraw/tldraw": "*",
     "aws-sdk": "^2.1053.0",
     "lz-string": "^1.4.4",
     "nanoid": "^3.3.4",
-    "next": "^12.0.7",
+    "next": "^12.1.6",
     "next-auth": "^4.0.5",
-    "next-pwa": "^5.4.4",
+    "next-pwa": "^5.5.4",
     "next-themes": "^0.0.15",
-    "react": "^17.0",
-    "react-dom": "^17.0"
-  },
-  "devDependencies": {
-    "@types/next-auth": "^3.15.0",
-    "@sentry/webpack-plugin": "^1.17.1",
-    "@types/react": "^17.0.19",
-    "@types/react-dom": "^17.0.9",
-    "eslint": "^8.8.0",
-    "eslint-config-next": "^12.0.10",
-    "typescript": "^4.5.2"
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
   },
   "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
 }

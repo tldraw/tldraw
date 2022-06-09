@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
-import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
+import { GHOSTED_OPACITY,  LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { getTextLabelSize } from './getTextSize'
@@ -95,7 +95,7 @@ export const TextLabel = React.memo(function TextLabel({
   )
 
   const handlePointerDown = React.useCallback(
-    (e) => {
+    (e: React.PointerEvent<HTMLTextAreaElement | HTMLDivElement>) => {
       if (isEditing) {
         e.stopPropagation()
       }

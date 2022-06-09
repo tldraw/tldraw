@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.15.0-next.0
+
+### Minor Changes
+
+- Bump dependencies, add international support.
+
 ## 1.14.1
 
 ### Patch Changes

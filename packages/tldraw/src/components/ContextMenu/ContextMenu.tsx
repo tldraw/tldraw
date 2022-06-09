@@ -19,6 +19,7 @@ import { Divider } from '~components/Primitives/Divider'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -56,6 +57,7 @@ interface InnerContextMenuProps {
 
 const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProps) {
   const app = useTldrawApp()
+  const intl = useIntl()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const isDebugMode = app.useStore(isDebugModeSelector)
   const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
@@ -171,45 +173,46 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
         {hasSelection ? (
           <>
             <CMRowButton onClick={handleDuplicate} kbd="#D" id="TD-ContextMenu-Duplicate">
-              Duplicate
+              <FormattedMessage id="duplicate" />
             </CMRowButton>
             <CMRowButton
               onClick={handleFlipHorizontal}
               kbd="⇧H"
               id="TD-ContextMenu-Flip_Horizontal"
             >
-              Flip Horizontal
+              <FormattedMessage id="flip.horizontal" />
             </CMRowButton>
             <CMRowButton onClick={handleFlipVertical} kbd="⇧V" id="TD-ContextMenu-Flip_Vertical">
-              Flip Vertical
+              <FormattedMessage id="flip.vertical" />
             </CMRowButton>
             <CMRowButton onClick={handleLock} kbd="#⇧L" id="TD-ContextMenu- Lock_Unlock">
-              Lock / Unlock
+              <FormattedMessage id="lock" /> / <FormattedMessage id="unlock" />
             </CMRowButton>
             {(hasTwoOrMore || hasGroupSelected) && <Divider />}
             {hasTwoOrMore && (
               <CMRowButton onClick={handleGroup} kbd="#G" id="TD-ContextMenu-Group">
-                Group
+                <FormattedMessage id="group" />
               </CMRowButton>
             )}
             {hasGroupSelected && (
               <CMRowButton onClick={handleGroup} kbd="#G" id="TD-ContextMenu-Ungroup">
-                Ungroup
+                <FormattedMessage id="ungroup" />
+                <FormattedMessage id="ungroup" />
               </CMRowButton>
             )}
             <Divider />
-            <ContextMenuSubMenu label="Move" id="TD-ContextMenu-Move">
+            <ContextMenuSubMenu label={intl.formatMessage({ id: 'move' })} id="TD-ContextMenu-Move">
               <CMRowButton onClick={handleMoveToFront} kbd="⇧]" id="TD-ContextMenu-Move-To_Front">
-                To Front
+                <FormattedMessage id="to.front" />
               </CMRowButton>
               <CMRowButton onClick={handleMoveForward} kbd="]" id="TD-ContextMenu-Move-Forward">
-                Forward
+                <FormattedMessage id="forward" />
               </CMRowButton>
               <CMRowButton onClick={handleMoveBackward} kbd="[" id="TD-ContextMenu-Move-Backward">
-                Backward
+                <FormattedMessage id="backward" />
               </CMRowButton>
               <CMRowButton onClick={handleMoveToBack} kbd="⇧[" id="TD-ContextMenu-Move-To_Back">
-                To Back
+                <FormattedMessage id="back" />
               </CMRowButton>
             </ContextMenuSubMenu>
             <MoveToPageMenu />
@@ -218,16 +221,20 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             )}
             <Divider />
             <CMRowButton onClick={handleCut} kbd="#X" id="TD-ContextMenu-Cut">
-              Cut
+              <FormattedMessage id="cut" />
             </CMRowButton>
             <CMRowButton onClick={handleCopy} kbd="#C" id="TD-ContextMenu-Copy">
-              Copy
+              <FormattedMessage id="copy" />
             </CMRowButton>
             <CMRowButton onClick={handlePaste} kbd="#V" id="TD-ContextMenu-Paste">
-              Paste
+              <FormattedMessage id="paste" />
             </CMRowButton>
             <Divider />
-            <ContextMenuSubMenu label="Copy as..." size="small" id="TD-ContextMenu-Copy-As">
+            <ContextMenuSubMenu
+              label={`${intl.formatMessage({ id: 'copy.as' })}...`}
+              size="small"
+              id="TD-ContextMenu-Copy-As"
+            >
               <CMRowButton onClick={handleCopySVG} id="TD-ContextMenu-Copy-as-SVG">
                 SVG
               </CMRowButton>
@@ -240,7 +247,11 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
                 </CMRowButton>
               )}
             </ContextMenuSubMenu>
-            <ContextMenuSubMenu label="Export as..." size="small" id="TD-ContextMenu-Export">
+            <ContextMenuSubMenu
+              label={`${intl.formatMessage({ id: 'export.as' })}...`}
+              size="small"
+              id="TD-ContextMenu-Export"
+            >
               <CMRowButton onClick={handleExportSVG} id="TD-ContextMenu-Export-SVG">
                 SVG
               </CMRowButton>
@@ -261,19 +272,19 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             </ContextMenuSubMenu>
             <Divider />
             <CMRowButton onClick={handleDelete} kbd="⌫" id="TD-ContextMenu-Delete">
-              Delete
+              <FormattedMessage id="delete" />
             </CMRowButton>
           </>
         ) : (
           <>
             <CMRowButton onClick={handlePaste} kbd="#V" id="TD-ContextMenu-Paste">
-              Paste
+              <FormattedMessage id="paste" />
             </CMRowButton>
             <CMRowButton onClick={handleUndo} kbd="#Z" id="TD-ContextMenu-Undo">
-              Undo
+              <FormattedMessage id="undo" />
             </CMRowButton>
             <CMRowButton onClick={handleRedo} kbd="#⇧Z" id="TD-ContextMenu-Redo">
-              Redo
+              <FormattedMessage id="redo" />
             </CMRowButton>
           </>
         )}
@@ -430,7 +441,9 @@ function MoveToPageMenu() {
 
   return (
     <RadixContextMenu.Root dir="ltr">
-      <CMTriggerButton isSubmenu>Move To Page</CMTriggerButton>
+      <CMTriggerButton isSubmenu>
+        <FormattedMessage id="move.to.page" />
+      </CMTriggerButton>
       <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
         <MenuContent>
           {sorted.map(({ id, name }, i) => (

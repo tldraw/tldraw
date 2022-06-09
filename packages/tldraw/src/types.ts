@@ -76,6 +76,8 @@ export class TDEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
+export type TDLanguage = 'en' | 'fr' | 'it'
+
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
@@ -94,6 +96,7 @@ export interface TDSnapshot {
     showBindingHandles: boolean
     showCloneHandles: boolean
     showGrid: boolean
+    language: TDLanguage
   }
   appState: {
     currentStyle: ShapeStyles

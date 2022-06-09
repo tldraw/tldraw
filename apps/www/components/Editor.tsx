@@ -1,7 +1,7 @@
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { useUploadAssets } from 'hooks/useUploadAssets'
-import React, { FC } from 'react'
+import * as React from 'react'
 import * as gtag from 'utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
@@ -12,7 +12,7 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-const Editor: FC<EditorProps & Partial<TldrawProps>> = ({
+const Editor: React.FC<EditorProps & Partial<TldrawProps>> = ({
   id = 'home',
   isUser = false,
   isSponsor = false,

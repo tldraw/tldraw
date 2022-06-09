@@ -22,17 +22,17 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
       if (!canHandleEvent(true)) return
 
       if (app.readOnly) {
-        app.copy(undefined, undefined, e)
+        app.copy(undefined, e)
         return
       }
 
-      app.cut(undefined, undefined, e)
+      app.cut(undefined, e)
     }
 
     const handleCopy = (e: ClipboardEvent) => {
       if (!canHandleEvent(true)) return
 
-      app.copy(undefined, undefined, e)
+      app.copy(undefined, e)
     }
 
     const handlePaste = (e: ClipboardEvent) => {
@@ -159,7 +159,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+shift+d,⌘+shift+d',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
       app.toggleDarkMode()
       e.preventDefault()
@@ -192,17 +192,12 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   // File System
 
-  const {
-    onNewProject,
-    onOpenProject,
-    onSaveProject,
-    onSaveProjectAs,
-    onOpenMedia,
-  } = useFileSystemHandlers()
+  const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs, onOpenMedia } =
+    useFileSystemHandlers()
 
   useHotkeys(
     'ctrl+n,⌘+n',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       onNewProject(e)
@@ -212,7 +207,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
   useHotkeys(
     'ctrl+s,⌘+s',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       onSaveProject(e)
@@ -223,7 +218,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+shift+s,⌘+shift+s',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       onSaveProjectAs(e)
@@ -233,7 +228,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
   useHotkeys(
     'ctrl+o,⌘+o',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       onOpenProject(e)
@@ -243,7 +238,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
   useHotkeys(
     'ctrl+u,⌘+u',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
       onOpenMedia(e)
     },
@@ -311,7 +306,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
       app.zoomIn()
       e.preventDefault()
@@ -322,7 +317,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
 
       app.zoomOut()
@@ -366,7 +361,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+d,⌘+d',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       app.duplicate()
@@ -541,7 +536,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     '⌘+shift+c,ctrl+shift+c',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       app.copySvg()
@@ -576,7 +571,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     '⌘+g,ctrl+g',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       app.group()
@@ -588,7 +583,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     '⌘+shift+g,ctrl+shift+g',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
 
       app.ungroup()
@@ -642,7 +637,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'ctrl+shift+backspace,⌘+shift+backspace',
-    e => {
+    (e) => {
       if (!canHandleEvent()) return
       if (app.settings.isDebugMode) {
         app.resetDocument()
@@ -657,7 +652,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'alt+command+l,alt+ctrl+l',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.Start })
       e.preventDefault()
@@ -668,7 +663,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'alt+command+t,alt+ctrl+t',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.Middle })
       e.preventDefault()
@@ -679,7 +674,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     'alt+command+r,alt+ctrl+r',
-    e => {
+    (e) => {
       if (!canHandleEvent(true)) return
       app.style({ textAlign: AlignStyle.End })
       e.preventDefault()

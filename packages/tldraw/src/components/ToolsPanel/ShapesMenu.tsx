@@ -7,6 +7,7 @@ import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { LineIcon } from '~components/Primitives/icons'
+import { useIntl } from 'react-intl'
 
 interface ShapesMenuProps {
   activeTool: TDToolType
@@ -44,6 +45,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   isToolLocked,
 }: ShapesMenuProps) {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const status = app.useStore(statusSelector)
 
@@ -92,7 +94,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           {shapeShapes.map((shape, i) => (
             <Tooltip
               key={shape}
-              label={shape[0].toUpperCase() + shape.slice(1)}
+              label={intl.formatMessage({ id: shape[0].toUpperCase() + shape.slice(1) })}
               kbd={(4 + i).toString()}
               id={`TD-PrimaryTools-Shapes-${shape}`}
             >

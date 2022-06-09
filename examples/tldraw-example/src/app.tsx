@@ -55,7 +55,9 @@ export default function App() {
     <main>
       <Routes>
         {pages.map((page) =>
-          page === '---' ? null : <Route path={page.path} element={<page.component />} />
+          page === '---' ? null : (
+            <Route key={page.path} path={page.path} element={<page.component />} />
+          )
         )}
 
         <Route

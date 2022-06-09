@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "exclude": ["node_modules", "dist", "docs"],
-  "include": ["src"],
+  "include": ["src", "./src/translations/*.json"],
   "compilerOptions": {
     "skipLibCheck": true,
     "outDir": "./dist",

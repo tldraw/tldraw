@@ -147,7 +147,7 @@ export class StateManager<T extends Record<string, any>> {
    */
   private applyPatch = (patch: Patch<T>, id?: string) => {
     const prev = this._state
-    const next = Utils.deepMerge(this._state, patch)
+    const next = Utils.deepMerge(this._state, patch as any)
     const final = this.cleanup(next, prev, patch, id)
     if (this.onStateWillChange) {
       this.onStateWillChange(final, id)
@@ -175,7 +175,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param id (optional) An id for the just-applied patch.
    * @returns The final new state to apply.
    */
-  protected cleanup = (nextState: T, prevState: T, patch: Patch<T>, id?: string): T => nextState
+  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T>, _id?: string): T => nextState
 
   /**
    * A life-cycle method called when the state is about to change.
