@@ -33,9 +33,9 @@
   "preferences.use.cad.selection": "使用 CAD 选择",
   "preferences.keep.stylemenu.open": "保持样式菜单常开",
   "preferences.always.show.snaps": "总是展示对齐线",
-  "preferences.rotate.handles": "旋转把手",
-  "preferences.binding.handles": "捆绑把手",
-  "preferences.clone.handles": "克隆把手",
+  "preferences.rotate.handles": "旋转手柄",
+  "preferences.binding.handles": "捆绑手柄",
+  "preferences.clone.handles": "克隆手柄",
 
   "undo": "撤销",
   "redo": "重做",
