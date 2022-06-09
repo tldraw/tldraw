@@ -27,9 +27,9 @@ export class StickyTool extends BaseTool {
     if (this.status === Status.Idle) {
       const {
         currentPoint,
-        currentGrid,
-        settings: { showGrid },
         appState: { currentPageId, currentStyle },
+        isShowingGrid,
+        getClosestGridSnap,
       } = this.app
 
       const childIndex = this.getNextChildIndex()
@@ -42,7 +42,7 @@ export class StickyTool extends BaseTool {
         id,
         parentId: currentPageId,
         childIndex,
-        point: showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
+        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint) : currentPoint,
         style: { ...currentStyle },
       })
 

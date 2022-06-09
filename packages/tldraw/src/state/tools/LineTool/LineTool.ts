@@ -15,9 +15,9 @@ export class LineTool extends BaseTool {
 
     const {
       currentPoint,
-      currentGrid,
-      settings: { showGrid },
       appState: { currentPageId, currentStyle },
+      isShowingGrid,
+      getClosestGridSnap,
     } = this.app
 
     const childIndex = this.getNextChildIndex()
@@ -28,7 +28,7 @@ export class LineTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
+      point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint) : currentPoint,
       decorations: {
         start: undefined,
         end: undefined,

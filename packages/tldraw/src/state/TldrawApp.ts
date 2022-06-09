@@ -1722,6 +1722,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  isShowingGrid = (pageId: string): boolean => {
+    return this.document.pages[pageId].gridType != undefined
+  }
+
+  // this needs to improve and adapt to non standard grids
+  getClosestGridSnap = (pageId: string, point: number[]): number[] => {
+    const { gridSize = GRID_SIZE, gridType } = this.document.pages[pageId]
+    const [ x, y ] = point
+    return [Math.round(x / gridSize) * gridSize, Math.round(y / gridSize) * gridSize]
+  }
+
   
   /**
    * Set grid size.

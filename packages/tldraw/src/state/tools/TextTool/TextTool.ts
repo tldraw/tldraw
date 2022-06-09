@@ -35,11 +35,12 @@ export class TextTool extends BaseTool {
     if (this.status === Status.Idle) {
       const {
         currentPoint,
-        currentGrid,
-        settings: { showGrid },
+        appState: { currentPageId },
+        isShowingGrid,
+        getClosestGridSnap,
       } = this.app
 
-      this.app.createTextShapeAtPoint(showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint)
+      this.app.createTextShapeAtPoint(isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint) : currentPoint)
       this.setStatus(Status.Creating)
       return
     }

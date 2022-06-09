@@ -102,8 +102,9 @@ export class ArrowSession extends BaseSession {
       shiftKey,
       altKey,
       metaKey,
-      currentGrid,
-      settings: { showGrid },
+      currentPageId,
+      isShowingGrid,
+      getClosestGridSnap,
     } = this.app
 
     const shape = this.app.getShape<ArrowShape>(initialShape.id)
@@ -139,7 +140,7 @@ export class ArrowSession extends BaseSession {
     const handleChanges = {
       [handleId]: {
         ...handles[handleId],
-        point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
+        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint) : Vec.toFixed(nextPoint),
         bindingId: undefined,
       },
     }
@@ -153,7 +154,7 @@ export class ArrowSession extends BaseSession {
 
       handleChanges[oppositeHandleId] = {
         ...handles[oppositeHandleId],
-        point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
+        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint) : Vec.toFixed(nextPoint),
         bindingId: undefined,
       }
     }
