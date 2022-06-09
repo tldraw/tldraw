@@ -50,7 +50,7 @@ export class SelectTool extends BaseTool<Status> {
   /* --------------------- Methods -------------------- */
 
   private deselect(id: string) {
-    this.app.select(...this.app.selectedIds.filter((oid) => oid !== id))
+    this.app.select(...this.app.selectedIds.filter(oid => oid !== id))
   }
 
   private select(id: string) {
@@ -59,7 +59,7 @@ export class SelectTool extends BaseTool<Status> {
 
   private pushSelect(id: string) {
     const shape = this.app.getShape(id)
-    this.app.select(...this.app.selectedIds.filter((oid) => oid !== shape.parentId), id)
+    this.app.select(...this.app.selectedIds.filter(oid => oid !== shape.parentId), id)
   }
 
   private selectNone() {
@@ -77,7 +77,7 @@ export class SelectTool extends BaseTool<Status> {
   clonePaint = (point: number[]) => {
     if (this.app.selectedIds.length === 0) return
 
-    const shapes = this.app.selectedIds.map((id) => this.app.getShape(id))
+    const shapes = this.app.selectedIds.map(id => this.app.getShape(id))
 
     const bounds = Utils.expandBounds(Utils.getCommonBounds(shapes.map(TLDR.getBounds)), 16)
 
@@ -92,7 +92,7 @@ export class SelectTool extends BaseTool<Status> {
 
     const centeredBounds = Utils.centerBounds(bounds, gridPoint)
 
-    const hit = this.app.shapes.some((shape) =>
+    const hit = this.app.shapes.some(shape =>
       TLDR.getShapeUtil(shape).hitTestBounds(shape, centeredBounds)
     )
 
@@ -187,6 +187,8 @@ export class SelectTool extends BaseTool<Status> {
         break
       }
       case 'Tab': {
+        if (this.app.readOnly) return
+
         if (
           !this.app.pageState.editingId &&
           this.status === Status.Idle &&
@@ -213,6 +215,8 @@ export class SelectTool extends BaseTool<Status> {
         break
       }
       case 'Enter': {
+        if (this.app.readOnly) return
+
         const { pageState } = this.app
         if (pageState.selectedIds.length === 1 && !pageState.editingId) {
           this.app.setEditingId(pageState.selectedIds[0])
@@ -239,7 +243,8 @@ export class SelectTool extends BaseTool<Status> {
 
   // Pointer Events (generic)
 
-  onPointerMove: TLPointerEventHandler = (info, e) => {
+  onPointerMove: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     const { originPoint, currentPoint } = this.app
 
     switch (this.status) {
@@ -260,7 +265,7 @@ export class SelectTool extends BaseTool<Status> {
           } else {
             // Stat a transform session
             this.setStatus(Status.Transforming)
-            const idsToTransform = this.app.selectedIds.flatMap((id) =>
+            const idsToTransform = this.app.selectedIds.flatMap(id =>
               TLDR.getDocumentBranch(this.app.state, id, this.app.currentPageId)
             )
             if (idsToTransform.length === 1) {
@@ -367,7 +372,7 @@ export class SelectTool extends BaseTool<Status> {
     }
   }
 
-  onPointerUp: TLPointerEventHandler = (info) => {
+  onPointerUp: TLPointerEventHandler = info => {
     if (this.status === Status.TranslatingClone || this.status === Status.PointingClone) {
       if (this.pointedId) {
         this.app.completeSession()
@@ -420,6 +425,7 @@ export class SelectTool extends BaseTool<Status> {
   // Canvas
 
   onDoubleClickCanvas: TLCanvasEventHandler = () => {
+    if (this.app.readOnly) return
     // Needs debugging
     // const { currentPoint } = this.app
     // this.app.selectTool(TDShapeType.Text)
@@ -523,7 +529,9 @@ export class SelectTool extends BaseTool<Status> {
     }
   }
 
-  onDoubleClickShape: TLPointerEventHandler = (info) => {
+  onDoubleClickShape: TLPointerEventHandler = info => {
+    if (this.app.readOnly) return
+
     const shape = this.app.getShape(info.target)
 
     if (shape.isLocked) {
@@ -548,17 +556,17 @@ export class SelectTool extends BaseTool<Status> {
     this.app.select(info.target)
   }
 
-  onRightPointShape: TLPointerEventHandler = (info) => {
+  onRightPointShape: TLPointerEventHandler = info => {
     if (!this.app.isSelected(info.target)) {
       this.app.select(info.target)
     }
   }
 
-  onHoverShape: TLPointerEventHandler = (info) => {
+  onHoverShape: TLPointerEventHandler = info => {
     this.app.setHoveredId(info.target)
   }
 
-  onUnhoverShape: TLPointerEventHandler = (info) => {
+  onUnhoverShape: TLPointerEventHandler = info => {
     const { currentPageId: oldCurrentPageId } = this.app
 
     // Wait a frame; and if we haven't changed the hovered id,
@@ -575,7 +583,7 @@ export class SelectTool extends BaseTool<Status> {
 
   /* --------------------- Bounds --------------------- */
 
-  onPointBounds: TLBoundsEventHandler = (info) => {
+  onPointBounds: TLBoundsEventHandler = info => {
     if (info.metaKey) {
       if (!info.shiftKey) {
         this.selectNone()
@@ -604,12 +612,12 @@ export class SelectTool extends BaseTool<Status> {
 
   /* ----------------- Bounds Handles ----------------- */
 
-  onPointBoundsHandle: TLBoundsHandleEventHandler = (info) => {
+  onPointBoundsHandle: TLBoundsHandleEventHandler = info => {
     this.pointedBoundsHandle = info.target
     this.setStatus(Status.PointingBoundsHandle)
   }
 
-  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info) => {
+  onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = info => {
     switch (info.target) {
       case 'center':
       case 'left':
@@ -642,12 +650,12 @@ export class SelectTool extends BaseTool<Status> {
 
   /* --------------------- Handles -------------------- */
 
-  onPointHandle: TLPointerEventHandler = (info) => {
+  onPointHandle: TLPointerEventHandler = info => {
     this.pointedHandleId = info.target as 'start' | 'end'
     this.setStatus(Status.PointingHandle)
   }
 
-  onDoubleClickHandle: TLPointerEventHandler = (info) => {
+  onDoubleClickHandle: TLPointerEventHandler = info => {
     if (info.target === 'bend') {
       const { selectedIds } = this.app
       if (selectedIds.length !== 1) return
@@ -670,7 +678,7 @@ export class SelectTool extends BaseTool<Status> {
 
   /* ---------------------- Misc ---------------------- */
 
-  onShapeClone: TLShapeCloneHandler = (info) => {
+  onShapeClone: TLShapeCloneHandler = info => {
     const selectedShapeId = this.app.selectedIds[0]
 
     const clonedShape = this.getShapeClone(selectedShapeId, info.target)

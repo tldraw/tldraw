@@ -13,6 +13,7 @@ export class StickyTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     if (this.status === Status.Creating) {
       this.setStatus(Status.Idle)
 
@@ -58,6 +59,7 @@ export class StickyTool extends BaseTool {
   }
 
   onPointerUp: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     if (this.status === Status.Creating) {
       this.setStatus(Status.Idle)
       this.app.completeSession()

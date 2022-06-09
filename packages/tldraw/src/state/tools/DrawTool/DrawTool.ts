@@ -36,8 +36,9 @@ export class DrawTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = (info) => {
+  onPointerDown: TLPointerEventHandler = info => {
     if (this.status !== Status.Idle) return
+    if (this.app.readOnly) return
     const {
       currentPoint,
       appState: { currentPageId, currentStyle },
@@ -66,6 +67,8 @@ export class DrawTool extends BaseTool {
   }
 
   onPointerMove: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
+
     switch (this.status) {
       case Status.Extending:
       case Status.Creating: {
