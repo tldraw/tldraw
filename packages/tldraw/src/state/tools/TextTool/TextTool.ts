@@ -51,6 +51,7 @@ export class TextTool extends BaseTool {
   }
 
   onPointShape: TLPointerEventHandler = (info) => {
+    if (this.app.readOnly) return
     const shape = this.app.getShape(info.target)
     if (shape.type === TDShapeType.Text) {
       this.setStatus(Status.Idle)
@@ -59,6 +60,7 @@ export class TextTool extends BaseTool {
   }
 
   onShapeBlur = () => {
+      if (this.app.readOnly) return
     this.stopEditingShape()
   }
 }

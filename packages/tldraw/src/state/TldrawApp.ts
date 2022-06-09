@@ -1758,9 +1758,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     e?.preventDefault()
 
     this.copy(ids, e)
+    
     if (!this.readOnly) {
       this.delete(ids)
     }
+
     return this
   }
 
@@ -1769,6 +1771,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to copy.
    */
   copy = (ids = this.selectedIds, e?: ClipboardEvent): this => {
+    // Allow when in readOnly mode
+    
     e?.preventDefault()
 
     this.clipboard = this.getClipboard(ids)

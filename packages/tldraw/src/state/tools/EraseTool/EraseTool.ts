@@ -18,12 +18,14 @@ export class EraseTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     if (this.status !== Status.Idle) return
 
     this.setStatus(Status.Pointing)
   }
 
   onPointerMove: TLPointerEventHandler = (info) => {
+    if (this.app.readOnly) return
     switch (this.status) {
       case Status.Pointing: {
         if (Vec.dist(info.origin, info.point) > DEAD_ZONE) {
@@ -40,6 +42,7 @@ export class EraseTool extends BaseTool {
   }
 
   onPointerUp: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     switch (this.status) {
       case Status.Pointing: {
         const shapeIdsAtPoint = this.app.shapes

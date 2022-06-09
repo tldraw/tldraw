@@ -10,6 +10,7 @@ export class TriangleTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
     if (this.status !== Status.Idle) return
 
     const {
