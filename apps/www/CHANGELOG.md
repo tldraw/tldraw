@@ -1,5 +1,18 @@
 # @tldraw/www
 
+## 1.7.0
+
+### Minor Changes
+
+- d919bd27: Bump dependencies, add international support.
+
+### Patch Changes
+
+- Updated dependencies [d919bd27]
+- Updated dependencies
+  - @tldraw/core@1.14.0
+  - @tldraw/tldraw@1.16.0
+
 ## 1.7.0-next.0
 
 ### Minor Changes

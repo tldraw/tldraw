@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw-example",
-  "version": "1.7.0-next.0",
+  "version": "1.7.0",
   "private": true,
   "description": "An example project for @tldraw/tldraw.",
   "author": "@steveruizok",

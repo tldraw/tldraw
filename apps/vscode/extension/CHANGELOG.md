@@ -1,5 +1,15 @@
 ## 1.2.4
 
+## 1.15.0
+
+### Minor Changes
+
+- d919bd27: Bump dependencies, add international support.
+
+### Patch Changes
+
+- Add internationalization, improve readonly mode, bump dependencies for React 18
+
 ## 1.15.0-next.0
 
 ### Minor Changes
