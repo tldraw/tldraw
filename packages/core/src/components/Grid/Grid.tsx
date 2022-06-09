@@ -8,21 +8,22 @@ import { Music } from './Music'
 
 export interface GridProps {
   type: GridType
+  subgrid?: boolean
   camera: TLPageState['camera']
   size: number
 }
 
-export function Grid({ type, size, camera }: GridProps) {
+export function Grid({ type, subgrid, size, camera }: GridProps) {
   switch (type) {
     case 'dots':
-      return <Dots space={size} camera={camera} />
+      return <Dots space={size} subgrid={subgrid} camera={camera} />
     case 'squares':
-      return <Squares space={size} camera={camera} />
+      return <Squares space={size} subgrid={subgrid} camera={camera} />
     case 'lines':
-      return <Lines space={size} camera={camera} />
+      return <Lines space={size} subgrid={subgrid} camera={camera} />
     case 'iso':
-      return <Iso space={size} camera={camera} />
+      return <Iso space={size} subgrid={subgrid} camera={camera} />
     case 'music':
-      return <Music space={size} camera={camera} />
+      return <Music space={size} subgrid={subgrid} camera={camera} />
   }
 }

@@ -15,7 +15,7 @@ import { PageOptionsDialog } from '../PageOptionsDialog'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import type { TDSnapshot } from '~types'
-import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
@@ -106,6 +106,10 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     app.setGridSize(currentPage.id, v);
   }, [app, setGridSize, currentPage]);
 
+  const handleToggleSubgrid = React.useCallback(() => {
+    app.toggleSubgrid(currentPage.id)
+  }, [app, currentPage]);
+
   return (
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPage.id} onValueChange={handleChangePage}>
@@ -153,7 +157,12 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
           <span>Grid size</span>
           <NumberInput value={gridSize} onChange={handleGridSizeChange} min={4} max={16} />
         </StyledRow>
-        
+        <DMCheckboxItem
+          checked={currentPage.showSubgrid || false}
+          onCheckedChange={handleToggleSubgrid}
+        >
+          Show Subgrid
+        </DMCheckboxItem>
         <DMDivider />
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>

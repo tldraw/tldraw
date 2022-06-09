@@ -1751,6 +1751,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.persist()
     return this
   }
+
+  toggleSubgrid = (pageId: string) => {
+    this.patchState({
+      document: { 
+        pages: {
+          [pageId]: {
+            showSubgrid: !this.document.pages[pageId].showSubgrid
+          }
+        }
+      }
+    }, 'page:subgrid');
+    this.persist()
+  }
   
   /**
    * Set grid size.

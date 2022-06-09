@@ -109,7 +109,7 @@ export const Canvas = observer(function _Canvas<
   return (
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
-        {page.gridType && page.gridSize && <Grid size={page.gridSize} camera={pageState.camera} type={page.gridType}/>}
+        {page.gridType && page.gridSize && <Grid size={page.gridSize} camera={pageState.camera} type={page.gridType} subgrid={page.showSubgrid}/>}
         <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
           <Page
             page={page}

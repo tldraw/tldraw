@@ -9,11 +9,12 @@ const STEPS = [
   [0.7, 2.5, 1],
 ]
 
-export function Squares({ space, camera }: { camera: TLPageState['camera']; space: number }) {
+export function Squares({ space, subgrid, camera }: { space: number, subgrid?: boolean, camera: TLPageState['camera'] }) {
   return (
     <svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
       <defs>
         {STEPS.map(([min, mid, size], i) => {
+          if (!subgrid && i != 2) return
           const s = size * space * camera.zoom
           const xo = camera.point[0] * camera.zoom
           const yo = camera.point[1] * camera.zoom

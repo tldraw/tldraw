@@ -34,6 +34,7 @@ export interface TLPage<T extends TLShape = TLShape, B extends TLBinding = TLBin
   bindings: Record<string, B>
   gridType?: GridProps['type']
   gridSize?: number
+  showSubgrid?: boolean
 }
 
 export type GridType = 'dots' | 'squares' | 'lines' | 'iso' | 'music'

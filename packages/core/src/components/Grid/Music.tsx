@@ -8,7 +8,7 @@ const STEPS = [
   [0.7, 2.5, 1],
 ]
 
-export function Music({ space, camera }: { camera: TLPageState['camera']; space: number }) {
+export function Music({ space, subgrid, camera }: { space: number, subgrid?: boolean, camera: TLPageState['camera'] }) {
   const s = space * camera.zoom
   const sw = 1000 * camera.zoom
   const sh = 24 * s
@@ -19,8 +19,8 @@ export function Music({ space, camera }: { camera: TLPageState['camera']; space:
 
   let lines = []
   for (let i = 0; i < 12; i++) {
-    lines.push(<line className={`tl-grid-line`} x1={(8*s+gxo)%sw} y1={(gyo+s*i*2)%sh} x2={(8*s+gxo)%sw+sw-8*s} y2={(gyo+s*i*2)%sh} opacity={(i < 4 || i > 8) ? (camera.zoom > 2 ? 0.1 : 0) : 1} key={i*2}/>);
-    lines.push(<line className={`tl-grid-line`} x1={(8*s+gxo)%sw-sw} y1={(gyo+s*i*2)%sh} x2={(8*s+gxo)%sw+sw-8*s-sw} y2={(gyo+s*i*2)%sh} opacity={(i < 4 || i > 8) ? (camera.zoom > 2 ? 0.1 : 0) : 1} key={i*2+1} />);
+    lines.push(<line className={`tl-grid-line`} x1={(8*s+gxo)%sw} y1={(gyo+s*i*2)%sh} x2={(8*s+gxo)%sw+sw-8*s} y2={(gyo+s*i*2)%sh} opacity={(i < 4 || i > 8) ? (camera.zoom > 2 && subgrid? 0.1 : 0) : 1} key={i*2}/>);
+    lines.push(<line className={`tl-grid-line`} x1={(8*s+gxo)%sw-sw} y1={(gyo+s*i*2)%sh} x2={(8*s+gxo)%sw+sw-8*s-sw} y2={(gyo+s*i*2)%sh} opacity={(i < 4 || i > 8) ? (camera.zoom > 2 && subgrid? 0.1 : 0) : 1} key={i*2+1} />);
   }
   return (
     <svg className="tl-grid" version="1.1" xmlns="http://www.w3.org/2000/svg">
