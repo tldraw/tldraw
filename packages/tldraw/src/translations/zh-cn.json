@@ -11,7 +11,7 @@
   "zoom.in": "放大",
   "zoom.out": "缩小",
   "to": "缩放至",
-  "to.selection": "选中",
+  "to.selection": "缩放选中",
   "to.fit": "自适应缩放",
 
   "menu.file": "文件",
