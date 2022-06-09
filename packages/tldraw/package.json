@@ -47,6 +47,7 @@
     "@radix-ui/react-icons": "^1.1.1",
     "@radix-ui/react-tooltip": "^0.1.7",
     "@stitches/react": "^1.2.8",
+    "@testing-library/react": "^13.3.0",
     "@tldraw/core": "^1.14.0-next.0",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.0",
