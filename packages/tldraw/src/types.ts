@@ -96,7 +96,6 @@ export interface TDSnapshot {
     showRotateHandles: boolean
     showBindingHandles: boolean
     showCloneHandles: boolean
-    showGrid: boolean
     language: TDLanguage
   }
   appState: {

@@ -19,7 +19,7 @@ import { DMCheckboxItem, DMContent, DMDivider } from '~components/Primitives/Dro
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { GridType } from '@tldraw/core'
 import { GRID_SIZE } from '~constants'
 import { NumberInput } from '~components/Primitives/NumberInput'
@@ -72,6 +72,7 @@ export function PageMenu() {
 
 function PageMenuContent({ onClose }: { onClose: () => void }) {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const sortedPages = app.useStore(sortedSelector)
 
@@ -93,7 +94,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   )
 
   const handleGridTypeChange = React.useCallback(
-    (v) => {
+    (v: GridType | 'none' | '') => {
       if (v == '') v = 'none'
       setGridType(v)
       app.setGridType(currentPage.id, v == 'none' ? undefined : v)
@@ -101,7 +102,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     [app, setGridType, currentPage]
   )
 
-  const handleGridSizeChange = React.useCallback((v) => {
+  const handleGridSizeChange = React.useCallback((v: number) => {
     setGridSize(v)
     app.setGridSize(currentPage.id, v);
   }, [app, setGridSize, currentPage]);
@@ -114,7 +115,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPage.id} onValueChange={handleChangePage}>
         <DropdownMenu.Label asChild>
-          <TitleBox>Grid style</TitleBox>
+          <TitleBox><FormattedMessage id="grid.type"/></TitleBox>
         </DropdownMenu.Label>
         <StyledToggleGroup
           type="single"
@@ -123,57 +124,57 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
           orientation="horizontal"
         >
           <StyledToggleItem value="none">
-            <Tooltip label="None" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.none' })} side="bottom">
               <Cross2Icon />
             </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="dots">
-            <Tooltip label="Dots" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.dots' })} side="bottom">
               <DragHandleDots2Icon />
             </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="squares">
-            <Tooltip label="Squares" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.squares' })} side="bottom">
               <FrameIcon />
             </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="lines">
-            <Tooltip label="Lines" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.lines' })} side="bottom">
               <TextAlignJustifyIcon />
             </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="iso">
-            <Tooltip label="Isometric" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.iso' })} side="bottom">
               <TriangleRightIcon />
             </Tooltip>
           </StyledToggleItem>
           <StyledToggleItem value="music">
-            <Tooltip label="Music sheet" side="bottom">
+            <Tooltip label={intl.formatMessage({ id: 'grid.music' })} side="bottom">
               <SpeakerLoudIcon />
             </Tooltip>
           </StyledToggleItem>
         </StyledToggleGroup>
         <StyledRow>
-          <span>Grid size</span>
+          <span><FormattedMessage id="grid.size"/></span>
           <NumberInput value={gridSize} onChange={handleGridSizeChange} min={4} max={16} />
         </StyledRow>
         <DMCheckboxItem
           checked={currentPage.showSubgrid || false}
           onCheckedChange={handleToggleSubgrid}
         >
-          Show Subgrid
+          <FormattedMessage id="show.subgrid"/>
         </DMCheckboxItem>
         <DMDivider />
         {sortedPages.map((page) => (
           <ButtonWithOptions key={page.id}>
             <DropdownMenu.RadioItem
-              title={page.name || 'Page'}
+              title={page.name || intl.formatMessage({ id: 'page' })}
               value={page.id}
               key={page.id}
               asChild
             >
               <PageButton>
-                <span>{page.name || 'Page'}</span>
+                <span>{page.name || intl.formatMessage({ id: 'page' })}</span>
                 <DropdownMenu.ItemIndicator>
                   <SmallIcon>
                     <CheckIcon />

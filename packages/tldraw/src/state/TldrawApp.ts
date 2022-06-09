@@ -4162,7 +4162,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showRotateHandles: true,
       showBindingHandles: true,
       showCloneHandles: false,
-      showGrid: false,
       language: 'en',
     },
     appState: {
