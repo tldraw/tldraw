@@ -38,7 +38,6 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   assets: TLAssets
   snapLines?: TLSnapLine[]
   eraseLine?: number[][]
-  grid?: number
   users?: TLUsers<T>
   userId?: string
   hideBounds: boolean
@@ -48,7 +47,6 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   hideCloneHandles: boolean
   hideResizeHandles: boolean
   hideRotateHandle: boolean
-  hideGrid: boolean
   showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
@@ -67,7 +65,6 @@ export const Canvas = observer(function _Canvas<
   assets,
   snapLines,
   eraseLine,
-  grid,
   users,
   userId,
   meta,
@@ -81,7 +78,6 @@ export const Canvas = observer(function _Canvas<
   hideCloneHandles,
   hideResizeHandles,
   hideRotateHandle,
-  hideGrid,
   onBoundsChange,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
@@ -113,7 +109,7 @@ export const Canvas = observer(function _Canvas<
   return (
     <div id={id} className="tl-container" ref={rContainer}>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
-        {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
+        {page.gridType && page.gridSize && <Grid size={page.gridSize} camera={pageState.camera} type={page.gridType} subgrid={page.showSubgrid}/>}
         <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
           <Page
             page={page}

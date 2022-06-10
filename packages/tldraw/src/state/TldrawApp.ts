@@ -15,6 +15,7 @@ import {
   Utils,
   TLBounds,
   TLDropEventHandler,
+  GridType,
 } from '@tldraw/core'
 import {
   FlipType,
@@ -1090,16 +1091,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
-   * Toggle grids.
-   */
-  toggleGrid = (): this => {
-    if (this.session) return this
-    this.patchState({ settings: { showGrid: !this.settings.showGrid } }, 'settings:toggled_grid')
-    this.persist()
-    return this
-  }
-
-  /**
    * Select a tool.
    * @param tool The tool to select, or "select".
    */
@@ -1707,6 +1698,99 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.readOnly) return this
     if (Object.values(this.document.pages).length <= 1) return this
     return this.setState(Commands.deletePage(this, pageId ? pageId : this.currentPageId))
+  }
+
+  /**
+   * Set grid type.
+   */
+  setGridType = (pageId: string, gridType?: GridType): this => {
+    if (this.session) return this
+    this.patchState(
+      {
+        document: {
+          pages: {
+            [pageId]: {
+              gridType: gridType,
+              gridSize: this.page.gridSize || GRID_SIZE, // this is to fix a bug when a page doesn't have a preset grid size
+            },
+          },
+        },
+      },
+      'page:gridType'
+    )
+    this.persist()
+    return this
+  }
+
+  isShowingGrid = (pageId: string): boolean => {
+    return this.document.pages[pageId].gridType != undefined
+  }
+
+  // this needs to improve and adapt to non standard grids
+  getClosestGridSnap = (pageId: string, point: number[]): {point: number[], distance: number} => {
+    const { gridSize = GRID_SIZE, gridType } = this.document.pages[pageId]
+    const [ x, y ] = point
+    const result = [Math.round(x / gridSize) * gridSize, Math.round(y / gridSize) * gridSize]
+    return {
+      point: result,
+      distance: Vec.len(Vec.sub(point, result)),
+    }
+  }
+
+  snapBoundsToGrid = (pageId: string, bounds: TLBounds): TLBounds => {
+    const [ minX, minY ] = this.getClosestGridSnap(pageId, [bounds.minX, bounds.minY]).point
+    const [ maxX, maxY ] = this.getClosestGridSnap(pageId, [bounds.maxX, bounds.maxY]).point
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+    }
+  }
+
+  
+  /**
+   * Set grid size.
+   */
+   setGridSize = (pageId: string, gridSize:number | undefined): this => {
+    if (this.session) return this
+    this.patchState({
+      document: { 
+        pages: {
+          [pageId]: {
+            gridSize: gridSize
+          }
+        }
+      }
+    }, 'page:gridSize');
+    this.persist()
+    return this
+  }
+
+  toggleSubgrid = (pageId: string) => {
+    this.patchState({
+      document: { 
+        pages: {
+          [pageId]: {
+            showSubgrid: !this.document.pages[pageId].showSubgrid
+          }
+        }
+      }
+    }, 'page:subgrid');
+    this.persist()
+  }
+  
+  /**
+   * Set grid size.
+   * NOTE: this is kept for backward compatibility
+   */
+  toggleGrid = () => {
+    if (this.page.gridType != undefined)
+      this.setGridType(this.currentPageId, undefined)
+    else
+      this.setGridType(this.currentPageId, 'dots')
   }
 
   /* -------------------------------------------------- */
@@ -3190,11 +3274,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   nudge = (delta: number[], isMajor = false, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
     const size = isMajor
-      ? this.settings.showGrid
-        ? this.currentGrid * 4
+      ? this.page.gridType != undefined
+        ? (this.page.gridSize || GRID_SIZE) * 4
         : 10
-      : this.settings.showGrid
-      ? this.currentGrid
+      : this.page.gridType != undefined
+      ? (this.page.gridSize || GRID_SIZE)
       : 1
 
     return this.setState(Commands.translateShapes(this, ids, Vec.mul(delta, size)))
@@ -4093,7 +4177,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showRotateHandles: true,
       showBindingHandles: true,
       showCloneHandles: false,
-      showGrid: false,
       language: 'en',
     },
     appState: {

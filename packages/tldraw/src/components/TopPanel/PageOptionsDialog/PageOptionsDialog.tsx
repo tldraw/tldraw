@@ -102,9 +102,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
             icon={<Pencil1Icon />}
           />
           <Divider />
-          <DialogAction onSelect={handleDuplicate}>
-            <FormattedMessage id="duplicate" />
-          </DialogAction>
+          <DialogAction onSelect={handleDuplicate}>Duplicate</DialogAction>
           <DialogAction disabled={!canDelete} onSelect={handleDelete}>
             <FormattedMessage id="delete" />
           </DialogAction>

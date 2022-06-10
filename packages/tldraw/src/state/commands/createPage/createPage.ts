@@ -7,7 +7,7 @@ export function createPage(
   center: number[],
   pageId = Utils.uniqueId()
 ): TldrawCommand {
-  const { currentPageId } = app
+  const { currentPageId, page: currentPage } = app
 
   const topPage = Object.values(app.state.document.pages).sort(
     (a, b) => (b.childIndex || 0) - (a.childIndex || 0)
@@ -24,6 +24,8 @@ export function createPage(
     childIndex: nextChildIndex,
     shapes: {},
     bindings: {},
+    gridType: currentPage.gridType,
+    gridSize: currentPage.gridSize,
   }
 
   const pageState: TLPageState = {

@@ -98,17 +98,9 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
    */
   hideIndicators?: boolean
   /**
-   * (optional) When true, the renderer will not show the grid.
-   */
-  hideGrid?: boolean
-  /**
    * (optional) When true, the renderer will show a dashed brush.
    */
   showDashedBrush?: boolean
-  /**
-   * (optional) The size of the grid step.
-   */
-  grid?: number
   /**
    * (optional) Use a performance mode.
    */
@@ -146,7 +138,6 @@ export const Renderer = observer(function _Renderer<
   meta,
   snapLines,
   eraseLine,
-  grid,
   containerRef,
   performanceMode,
   hideHandles = false,
@@ -156,7 +147,6 @@ export const Renderer = observer(function _Renderer<
   hideResizeHandles = false,
   hideRotateHandles = false,
   hideBounds = false,
-  hideGrid = true,
   showDashedBrush = false,
   ...rest
 }: RendererProps<T, M>) {
@@ -202,7 +192,6 @@ export const Renderer = observer(function _Renderer<
         assets={assets}
         snapLines={snapLines}
         eraseLine={eraseLine}
-        grid={grid}
         users={users}
         userId={userId}
         externalContainerRef={containerRef}
@@ -213,7 +202,6 @@ export const Renderer = observer(function _Renderer<
         hideBindingHandles={hideBindingHandles}
         hideRotateHandle={hideRotateHandles}
         hideResizeHandles={hideResizeHandles}
-        hideGrid={hideGrid}
         showDashedBrush={showDashedBrush}
         onBoundsChange={onBoundsChange}
         performanceMode={performanceMode}
