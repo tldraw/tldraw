@@ -1727,10 +1727,27 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   // this needs to improve and adapt to non standard grids
-  getClosestGridSnap = (pageId: string, point: number[]): number[] => {
+  getClosestGridSnap = (pageId: string, point: number[]): {point: number[], distance: number} => {
     const { gridSize = GRID_SIZE, gridType } = this.document.pages[pageId]
     const [ x, y ] = point
-    return [Math.round(x / gridSize) * gridSize, Math.round(y / gridSize) * gridSize]
+    const result = [Math.round(x / gridSize) * gridSize, Math.round(y / gridSize) * gridSize]
+    return {
+      point: result,
+      distance: Vec.len(Vec.sub(point, result)),
+    }
+  }
+
+  snapBoundsToGrid = (pageId: string, bounds: TLBounds): TLBounds => {
+    const [ minX, minY ] = this.getClosestGridSnap(pageId, [bounds.minX, bounds.minY]).point
+    const [ maxX, maxY ] = this.getClosestGridSnap(pageId, [bounds.maxX, bounds.maxY]).point
+    return {
+      minX,
+      minY,
+      maxX,
+      maxY,
+      width: Math.max(1, maxX - minX),
+      height: Math.max(1, maxY - minY),
+    }
   }
 
   
@@ -1770,11 +1787,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * NOTE: this is kept for backward compatibility
    */
   toggleGrid = () => {
-    this.patchState({
-      settings: {
-        showGrid: !this.state.settings.showGrid,
-      },
-    })
+    if (this.page.gridType != undefined)
+      this.setGridType(this.currentPageId, undefined)
+    else
+      this.setGridType(this.currentPageId, 'dots')
   }
 
   /* -------------------------------------------------- */
@@ -3258,11 +3274,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   nudge = (delta: number[], isMajor = false, ids = this.selectedIds): this => {
     if (ids.length === 0) return this
     const size = isMajor
-      ? this.settings.showGrid
-        ? this.currentGrid * 4
+      ? this.page.gridType != undefined
+        ? (this.page.gridSize || GRID_SIZE) * 4
         : 10
-      : this.settings.showGrid
-      ? this.currentGrid
+      : this.page.gridType != undefined
+      ? (this.page.gridSize || GRID_SIZE)
       : 1
 
     return this.setState(Commands.translateShapes(this, ids, Vec.mul(delta, size)))
@@ -4147,7 +4163,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   static defaultState: TDSnapshot = {
     settings: {
-      showGrid: false,
       isCadSelectMode: false,
       isPenMode: false,
       isDarkMode: false,

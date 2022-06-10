@@ -27,7 +27,7 @@ export class ArrowTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint) : currentPoint,
+      point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint).point : currentPoint,
       style: { ...currentStyle },
     })
 

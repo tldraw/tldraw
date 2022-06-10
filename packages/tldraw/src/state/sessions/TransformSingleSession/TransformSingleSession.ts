@@ -72,17 +72,19 @@ export class TransformSingleSession extends BaseSession {
       initialShape,
       initialShapeBounds,
       app: {
-        settings: { isSnapping, showGrid },
+        settings: { isSnapping },
         currentPageId,
         pageState: { camera },
         viewport,
         currentPoint,
         previousPoint,
         originPoint,
-        currentGrid,
         shiftKey,
         altKey,
         metaKey,
+        isShowingGrid,
+        getClosestGridSnap,
+        snapBoundsToGrid,
       },
     } = this
 
@@ -113,10 +115,10 @@ export class TransformSingleSession extends BaseSession {
       }
     }
 
-    if (showGrid) {
+    if (isShowingGrid(currentPageId)) {
       newBounds = {
         ...newBounds,
-        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
+        ...snapBoundsToGrid(currentPageId ,newBounds), // TODO: make 
       }
     }
 
@@ -169,8 +171,8 @@ export class TransformSingleSession extends BaseSession {
       shapes[shape.id] = afterShape
     }
 
-    if (showGrid && afterShape && afterShape.point) {
-      afterShape.point = Vec.snap(afterShape.point, currentGrid)
+    if (isShowingGrid(currentPageId) && afterShape && afterShape.point) {
+      afterShape.point = getClosestGridSnap(currentPageId, afterShape.point).point
     }
 
     return {

@@ -114,8 +114,10 @@ export class TransformSession extends BaseSession {
         shiftKey,
         altKey,
         metaKey,
-        currentGrid,
-        settings: { isSnapping, showGrid },
+        settings: { isSnapping },
+        isShowingGrid,
+        getClosestGridSnap,
+        snapBoundsToGrid,
       },
     } = this
 
@@ -140,10 +142,10 @@ export class TransformSession extends BaseSession {
       }
     }
 
-    if (showGrid) {
+    if (isShowingGrid(currentPageId)) {
       newBounds = {
         ...newBounds,
-        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
+        ...snapBoundsToGrid(currentPageId ,newBounds),
       }
     }
 
@@ -197,8 +199,8 @@ export class TransformSession extends BaseSession {
         this.scaleY < 0
       )
 
-      if (showGrid) {
-        newShapeBounds = Utils.snapBoundsToGrid(newShapeBounds, currentGrid)
+      if (isShowingGrid(currentPageId)) {
+        newShapeBounds = snapBoundsToGrid(currentPageId, newShapeBounds)
       }
 
       const afterShape = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {

@@ -40,7 +40,7 @@ export class TextTool extends BaseTool {
         getClosestGridSnap,
       } = this.app
 
-      this.app.createTextShapeAtPoint(isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint) : currentPoint)
+      this.app.createTextShapeAtPoint(isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, currentPoint).point : currentPoint)
       this.setStatus(Status.Creating)
       return
     }

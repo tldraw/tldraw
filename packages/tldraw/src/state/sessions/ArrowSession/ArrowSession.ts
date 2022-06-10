@@ -140,7 +140,7 @@ export class ArrowSession extends BaseSession {
     const handleChanges = {
       [handleId]: {
         ...handles[handleId],
-        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint) : Vec.toFixed(nextPoint),
+        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint).point : Vec.toFixed(nextPoint),
         bindingId: undefined,
       },
     }
@@ -154,7 +154,7 @@ export class ArrowSession extends BaseSession {
 
       handleChanges[oppositeHandleId] = {
         ...handles[oppositeHandleId],
-        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint) : Vec.toFixed(nextPoint),
+        point: isShowingGrid(currentPageId) ? getClosestGridSnap(currentPageId, nextPoint).point : Vec.toFixed(nextPoint),
         bindingId: undefined,
       }
     }

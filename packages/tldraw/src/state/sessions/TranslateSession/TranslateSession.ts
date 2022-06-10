@@ -175,7 +175,7 @@ export class TranslateSession extends BaseSession {
       bindingsToDelete,
       app: {
         pageState: { camera },
-        settings: { isSnapping, showGrid },
+        settings: { isSnapping },
         currentPageId,
         viewport,
         selectedIds,
@@ -185,7 +185,9 @@ export class TranslateSession extends BaseSession {
         altKey,
         shiftKey,
         metaKey,
-        currentGrid,
+        isShowingGrid,
+        getClosestGridSnap,
+        snapBoundsToGrid,
       },
     } = this
 
@@ -240,8 +242,8 @@ export class TranslateSession extends BaseSession {
     ) {
       const snapResult = Utils.getSnapPoints(
         Utils.getBoundsWithCenter(
-          showGrid
-            ? Utils.snapBoundsToGrid(Utils.translateBounds(initialCommonBounds, delta), currentGrid)
+          isShowingGrid(currentPageId)
+            ? snapBoundsToGrid(currentPageId, Utils.translateBounds(initialCommonBounds, delta))
             : Utils.translateBounds(initialCommonBounds, delta)
         ),
         (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter((bounds) => {
@@ -317,8 +319,8 @@ export class TranslateSession extends BaseSession {
         clones.forEach((clone) => {
           nextShapes[clone.id] = {
             ...clone,
-            point: showGrid
-              ? Vec.snap(Vec.toFixed(Vec.add(clone.point, delta)), currentGrid)
+            point: isShowingGrid(currentPageId)
+              ? getClosestGridSnap(currentPageId, Vec.toFixed(Vec.add(clone.point, delta))).point
               : Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
@@ -329,8 +331,8 @@ export class TranslateSession extends BaseSession {
 
         clones.forEach((clone) => {
           nextShapes[clone.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.toFixed(Vec.add(clone.point, delta)), currentGrid)
+            point: isShowingGrid(currentPageId)
+              ? getClosestGridSnap(currentPageId, Vec.toFixed(Vec.add(clone.point, delta))).point
               : Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
@@ -365,8 +367,8 @@ export class TranslateSession extends BaseSession {
         // Move the original shapes back to the cursor position
         initialShapes.forEach((shape) => {
           nextShapes[shape.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.toFixed(Vec.add(shape.point, delta)), currentGrid)
+            point: isShowingGrid(currentPageId)
+              ? getClosestGridSnap(currentPageId, Vec.toFixed(Vec.add(shape.point, delta))).point
               : Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
@@ -384,8 +386,8 @@ export class TranslateSession extends BaseSession {
           // const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
 
           nextShapes[shape.id] = {
-            point: showGrid
-              ? Vec.snap(Vec.toFixed(Vec.add(shape.point, delta)), currentGrid)
+            point: isShowingGrid(currentPageId)
+              ? getClosestGridSnap(currentPageId, Vec.toFixed(Vec.add(shape.point, delta))).point
               : Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
