@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.16.0
+
+### Minor Changes
+
+- d919bd27: Bump dependencies, add international support.
+
+### Patch Changes
+
+- Add internationalization, improve readonly mode, bump dependencies for React 18
+- Updated dependencies [d919bd27]
+- Updated dependencies
+  - @tldraw/core@1.14.0
+
 ## 1.16.0-next.0
 
 ### Minor Changes
