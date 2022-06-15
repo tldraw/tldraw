@@ -9,7 +9,7 @@ import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -59,13 +59,14 @@ export function PageMenu() {
 
 function PageMenuContent({ onClose }: { onClose: () => void }) {
   const app = useTldrawApp()
+  const intl = useIntl()
 
   const sortedPages = app.useStore(sortedSelector)
 
   const currentPageId = app.useStore(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
-    app.createPage()
+    app.createPage(undefined, intl.formatMessage({ id: 'new.page' }))
   }, [app])
 
   const handleChangePage = React.useCallback(

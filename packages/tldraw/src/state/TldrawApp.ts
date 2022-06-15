@@ -1666,10 +1666,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Create a new page.
    * @param pageId (optional) The new page's id.
    */
-  createPage = (id?: string): this => {
+  createPage = (id?: string, name?: string): this => {
     if (this.readOnly) return this
     const { width, height } = this.rendererBounds
-    return this.setState(Commands.createPage(this, [-width / 2, -height / 2], id))
+    return this.setState(Commands.createPage(this, [-width / 2, -height / 2], id, name))
   }
 
   /**
@@ -1758,7 +1758,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     e?.preventDefault()
 
     this.copy(ids, e)
-    
+
     if (!this.readOnly) {
       this.delete(ids)
     }
@@ -1772,7 +1772,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   copy = (ids = this.selectedIds, e?: ClipboardEvent): this => {
     // Allow when in readOnly mode
-    
+
     e?.preventDefault()
 
     this.clipboard = this.getClipboard(ids)
