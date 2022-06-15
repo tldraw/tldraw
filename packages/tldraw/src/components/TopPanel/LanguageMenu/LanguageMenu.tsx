@@ -20,6 +20,7 @@ export function LanguageMenu() {
     { label: 'English', code: 'en' },
     { label: 'Français', code: 'fr' },
     { label: 'Italiano', code: 'it' },
+    { label: 'Chinese - Simplified', code: 'zh-cn' },
   ]
 
   const handleChangeLanguage = React.useCallback(
