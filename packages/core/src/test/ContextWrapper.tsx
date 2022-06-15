@@ -6,7 +6,7 @@ import { useTLTheme, TLContext, TLContextType } from '../hooks'
 import { Inputs } from '~inputs'
 import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 
-export const ContextWrapper: React.FC = ({ children }) => {
+export const ContextWrapper = ({ children }: { children: any }) => {
   useTLTheme()
   const rSelectionBounds = React.useRef<TLBounds>(null)
   const rPageState = React.useRef<TLPageState>(mockDocument.pageState)

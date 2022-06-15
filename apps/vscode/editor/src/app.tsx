@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TDDocument, TDFile, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
-import { exportToImage } from 'utils/export'
 import type { MessageFromExtension, MessageFromWebview } from './types'
 import { defaultDocument } from './utils/defaultDocument'
 import { vscode } from './utils/vscode'
@@ -10,7 +9,7 @@ import { vscode } from './utils/vscode'
 declare let currentFile: TDFile
 declare let assetSrc: string
 
-const App: React.FC = () => {
+const App = () => {
   const rLoaded = React.useRef(false)
   const rTldrawApp = React.useRef<TldrawApp>()
   const rInitialDocument = React.useRef<TDDocument>(
