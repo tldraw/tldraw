@@ -6,7 +6,7 @@ export function createPage(
   app: TldrawApp,
   center: number[],
   pageId = Utils.uniqueId(),
-  pageName?: string
+  pageName = 'New page'
 ): TldrawCommand {
   const { currentPageId } = app
 
@@ -17,11 +17,10 @@ export function createPage(
   const nextChildIndex = topPage?.childIndex ? topPage?.childIndex + 1 : 1
 
   // TODO: Iterate the name better
-  const nextName = pageName ?? 'New page'
 
   const page: TDPage = {
     id: pageId,
-    name: nextName,
+    name: pageName,
     childIndex: nextChildIndex,
     shapes: {},
     bindings: {},
