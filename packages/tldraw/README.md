@@ -2,7 +2,7 @@
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-![A screenshot of the tldraw web app](./assets/screenshot.png)
+![A screenshot of the tldraw web app](https://github.com/tldraw/tldraw/raw/main/assets/screenshot.png)
 
 Welcome to the [tldraw](https://tldraw.com) monorepo.
 
