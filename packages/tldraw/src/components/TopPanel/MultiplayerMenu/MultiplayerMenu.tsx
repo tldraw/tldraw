@@ -44,7 +44,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   }, [])
 
   const handleCopyToMultiplayerProject = React.useCallback(async () => {
-    const nextDocument = { ...app.document }
+    const nextDocument = Utils.deepClone(app.document)
 
     app.setIsLoading(true)
 
