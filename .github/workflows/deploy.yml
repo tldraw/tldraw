@@ -1,0 +1,37 @@
+name: deploy-npm
+
+# on events
+on:
+  # Only trigger this manually
+  workflow_dispatch:
+
+# env
+env:
+  FONTAWESOME_TOKEN: ${{ secrets.FONTAWESOME_TOKEN }}
+  REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
+
+jobs:
+  build-and-deploy:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v2
+      # Setup .npmrc file to publish to GitHub Packages
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14.x'
+          registry-url: 'https://npm.pkg.github.com'
+          # Defaults to the user or organization that owns the workflow file
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Build dist
+        run: yarn run build
+
+      - name: Publish
+        run: cd packages/tldraw && npm publish

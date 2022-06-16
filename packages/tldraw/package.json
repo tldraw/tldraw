@@ -1,11 +1,11 @@
 {
-  "name": "@tldraw/tldraw",
+  "name": "@gamma-app/tldraw",
   "version": "1.16.0",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tldraw/tldraw.git"
+    "url": "git+https://github.com/gamma-app/tldraw.git"
   },
   "license": "MIT",
   "keywords": [
