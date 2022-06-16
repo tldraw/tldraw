@@ -24,8 +24,8 @@
   "types": "./dist/index.d.ts",
   "source": "./dist/index.ts",
   "scripts": {
-    "start": "yarn lask -d",
-    "build": "yarn lask",
+    "start": "yarn lfg -d",
+    "build": "yarn lfg",
     "start:packages": "yarn start",
     "start:core": "yarn start",
     "build:core": "yarn build",
@@ -35,6 +35,6 @@
   },
   "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c",
   "devDependencies": {
-    "lask": "^0.1.1"
+    "@tldraw/lfg": "latest"
   }
 }

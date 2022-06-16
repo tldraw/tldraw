@@ -23,8 +23,8 @@
   "types": "./dist/index.d.ts",
   "source": "./dist/index.ts",
   "scripts": {
-    "start": "yarn lask -d",
-    "build": "yarn lask",
+    "start": "yarn lfg -d",
+    "build": "yarn lfg",
     "start:packages": "yarn start",
     "start:core": "yarn start",
     "build:core": "yarn build",
@@ -60,7 +60,7 @@
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "eslint": "^8.8.0",
-    "lask": "^0.1.1",
+    "@tldraw/lfg": "latest",
     "mobx": "^6.3.8",
     "react": "^18.1.0",
     "react-dom": "^18.1.0"

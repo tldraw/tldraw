@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Content } from '@radix-ui/react-dropdown-menu'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { stopPropagation } from '~components/stopPropagation'
@@ -14,7 +14,7 @@ export interface DMContentProps {
 
 export function DMContent({ sideOffset = 8, children, align, variant, id }: DMContentProps) {
   return (
-    <Content
+    <DropdownMenu.Content
       dir="ltr"
       align={align}
       sideOffset={sideOffset}
@@ -23,7 +23,7 @@ export function DMContent({ sideOffset = 8, children, align, variant, id }: DMCo
       id={id}
     >
       <StyledContent variant={variant}>{children}</StyledContent>
-    </Content>
+    </DropdownMenu.Content>
   )
 }
 

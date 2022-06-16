@@ -2912,6 +2912,18 @@
     "@testing-library/dom" "^8.5.0"
     "@types/react-dom" "^18.0.0"
 
+"@tldraw/lfg@latest":
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.3.tgz#23b36664dc5057902f7f2ad0b68f5cfd5b9cc133"
+  integrity sha512-wzN5l6OaAgqgtoefHY03zT05XrQL4/ry07j8gLvmvJLMQocNXWR75zORzXKbWtUmM6jKcaO6iAB8tonaGUREYw==
+  dependencies:
+    commander "^2.20.0"
+    dotenv "^16.0.0"
+    esbuild "^0.14.18"
+    tsconfig-paths "^3.12.0"
+    tsconfig-replace-paths "^0.0.11"
+    zlib "^1.0.5"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
@@ -5244,6 +5256,11 @@ dotenv@10.0.0:
   version "10.0.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-10.0.0.tgz#3d4227b8fb95f81096cdd2b66653fb2c7085ba81"
   integrity sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==
+
+dotenv@^16.0.0:
+  version "16.0.1"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.0.1.tgz#8f8f9d94876c35dac989876a5d3a82a267fdce1d"
+  integrity sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==
 
 dotenv@^9.0.2:
   version "9.0.2"
@@ -8017,17 +8034,6 @@ language-tags@^1.0.5:
   integrity sha1-0yHbxNowuovzAk4ED6XBRmH5GTo=
   dependencies:
     language-subtag-registry "~0.3.2"
-
-lask@^0.1.1:
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/lask/-/lask-0.1.1.tgz#b896deed1661e87af0c9f29aec96690c314d6cd0"
-  integrity sha512-dmBE6wQ4J8UuYSWuJiyy147AvZDyzeWCwgOH8h5rkCljdaE3cXOxVbt4kSAOcy2eNoD4JM3fZHi5BHxMJj+c4A==
-  dependencies:
-    commander "^2.20.0"
-    esbuild "^0.14.18"
-    tsconfig-paths "^3.12.0"
-    tsconfig-replace-paths "^0.0.11"
-    zlib "^1.0.5"
 
 latest-version@^5.1.0:
   version "5.1.0"
