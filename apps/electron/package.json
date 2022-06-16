@@ -20,8 +20,8 @@
   "devDependencies": {
     "@tldraw/tldraw": "^1.16.0",
     "@types/node": "^17.0.14",
-    "@types/react": "^17.0.38",
-    "@types/react-dom": "^17.0.11",
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
     "@types/react-router-dom": "^5.1.8",
     "electron": "17.0.0",
     "electron-builder": "^22.13.1",
