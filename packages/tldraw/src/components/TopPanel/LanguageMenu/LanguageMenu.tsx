@@ -34,6 +34,7 @@ export function LanguageMenu() {
     <DMSubMenu label={intl.formatMessage({ id: 'language' })}>
       {languages.map((language) => (
         <DMCheckboxItem
+          key={language.code}
           checked={setting.language === language.code}
           onCheckedChange={() => handleChangeLanguage(language.code)}
           id={`TD-MenuItem-Language-${language}`}
