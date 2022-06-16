@@ -35,6 +35,6 @@
   },
   "gitHead": "3ab5db27b9e83736fdae934474e80e90c854922c",
   "devDependencies": {
-    "lask": "^0.0.29"
+    "lask": "^0.1.1"
   }
 }

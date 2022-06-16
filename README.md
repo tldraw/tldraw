@@ -12,11 +12,18 @@ Welcome to the [tldraw](https://tldraw.com) monorepo.
 
 Thanks to our corporate sponsors:
 
+<div style="display: flex; flex-wrap: wrap; gap: 32px;">
 <a href="https://sentry.io"><img src="./assets/sentry.svg"></img></a>
 
 <a href="https://vercel.com/?utm_source=team-slug&utm_campaign=oss"><img src="./assets/vercel.svg"></img></a>
 
 <a href="https://oppizi.com"><img src="./assets/oppizi.png" width="212"></img></a>
+
+<a href="https://logseq.com"><img src="./assets/logseq.svg" width="80"></img></a>
+
+<a href="https://blindsidenetworks.com/"><img src="./assets/blindside.png" width="212"></img></a>
+
+</div>
 
 ...and to our [individual sponsors](https://github.com/sponsors/steveruizok#sponsors)!
 

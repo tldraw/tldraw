@@ -8018,10 +8018,10 @@ language-tags@^1.0.5:
   dependencies:
     language-subtag-registry "~0.3.2"
 
-lask@^0.0.29:
-  version "0.0.29"
-  resolved "https://registry.yarnpkg.com/lask/-/lask-0.0.29.tgz#3aa585f8d7c82adaeee3e11e9f15235f5d554244"
-  integrity sha512-cWsngbRFdUEzpTmvhELkq8AExj9zFQN2C6QOXjjRm+CT8MD68HvmsVbG3dN4k7PCWwZxBWeIflXMtzyM3LNWNg==
+lask@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/lask/-/lask-0.1.1.tgz#b896deed1661e87af0c9f29aec96690c314d6cd0"
+  integrity sha512-dmBE6wQ4J8UuYSWuJiyy147AvZDyzeWCwgOH8h5rkCljdaE3cXOxVbt4kSAOcy2eNoD4JM3fZHi5BHxMJj+c4A==
   dependencies:
     commander "^2.20.0"
     esbuild "^0.14.18"
