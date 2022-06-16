@@ -12,12 +12,12 @@ interface EditorProps {
   isSponsor?: boolean
 }
 
-const Editor: React.FC<EditorProps & Partial<TldrawProps>> = ({
+const Editor = ({
   id = 'home',
   isUser = false,
   isSponsor = false,
   ...rest
-}) => {
+}: EditorProps & Partial<TldrawProps>) => {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])

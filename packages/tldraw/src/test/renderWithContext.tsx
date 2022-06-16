@@ -4,7 +4,7 @@ import { useKeyboardShortcuts, TldrawContext } from '~hooks'
 import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
 
-export const Wrapper: React.FC = ({ children }) => {
+export const Wrapper = ({ children }: { children: any }) => {
   const [app] = React.useState(() => new TldrawApp())
   const [context] = React.useState(() => {
     return app
