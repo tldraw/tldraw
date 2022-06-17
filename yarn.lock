@@ -2912,6 +2912,30 @@
     "@testing-library/dom" "^8.5.0"
     "@types/react-dom" "^18.0.0"
 
+"@tldraw/tldraw@*", "@tldraw/tldraw@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@tldraw/tldraw/-/tldraw-1.16.0.tgz#21150ae8425d10fafd2268d2bf403c5c93608d57"
+  integrity sha512-ZpRNpeISekQ5k1uLuVhG4mG4Xf2wgsGWGaoGTsj9T/AymgfybycUltkCpaUoVkSNaSjL33wa/mJgNllRlsFd6g==
+  dependencies:
+    "@radix-ui/react-alert-dialog" "^0.1.7"
+    "@radix-ui/react-context-menu" "^0.1.6"
+    "@radix-ui/react-dropdown-menu" "^0.1.6"
+    "@radix-ui/react-icons" "^1.1.1"
+    "@radix-ui/react-tooltip" "^0.1.7"
+    "@stitches/react" "^1.2.8"
+    "@testing-library/react" "^13.3.0"
+    "@tldraw/core" "^1.14.0"
+    "@tldraw/intersect" "^1.7.1"
+    "@tldraw/vec" "^1.7.0"
+    idb-keyval "^6.1.0"
+    lz-string "^1.4.4"
+    perfect-freehand "^1.1.0"
+    react-error-boundary "^3.1.4"
+    react-hotkeys-hook "^3.4.4"
+    react-intl "^6.0.3"
+    tslib "^2.4.0"
+    zustand "^3.6.9"
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"

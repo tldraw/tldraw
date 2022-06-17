@@ -41,11 +41,6 @@
     "react-dom": ">=16.8"
   },
   "dependencies": {
-    "@radix-ui/react-alert-dialog": "^0.1.7",
-    "@radix-ui/react-context-menu": "^0.1.6",
-    "@radix-ui/react-dropdown-menu": "^0.1.6",
-    "@radix-ui/react-icons": "^1.1.1",
-    "@radix-ui/react-tooltip": "^0.1.7",
     "@stitches/react": "^1.2.8",
     "@testing-library/react": "^13.3.0",
     "@tldraw/core": "^1.14.0",
@@ -61,6 +56,11 @@
     "zustand": "^3.6.9"
   },
   "devDependencies": {
+    "@radix-ui/react-alert-dialog": "^0.1.7",
+    "@radix-ui/react-context-menu": "^0.1.6",
+    "@radix-ui/react-dropdown-menu": "^0.1.6",
+    "@radix-ui/react-icons": "^1.1.1",
+    "@radix-ui/react-tooltip": "^0.1.7",
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.4",
     "@testing-library/react": "^12.1.2",
