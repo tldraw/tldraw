@@ -2260,7 +2260,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return svgString
   }
 
-  getJson = (ids?: string[]) => {
+  /**
+   * Get the shapes and bindings for the current selection, if any, or else the current page.
+   *
+   * @param ids The ids of the shapes to get content for.
+   */
+  getContent = (ids?: string[]) => {
     const page = this.getPage(this.currentPageId)
 
     // If ids is explicitly empty ([]) return
@@ -2275,9 +2280,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // If the page was empty, return
     if (ids.length === 0) return
 
-    const idsSet = new Set(ids)
+    const shapes = ids
+      .map((id) => page.shapes[id])
+      .flatMap((shape) => [shape, ...(shape.children ?? []).map((childId) => page.shapes[childId])])
+      .map(deepCopy)
 
-    const shapes = deepCopy(ids.map((id) => page.shapes[id]))
+    const idsSet = new Set(shapes.map((s) => s.id))
 
     shapes.forEach((shape) => {
       if (shape.parentId === this.currentPageId) {
@@ -2291,9 +2299,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     )
 
-    const json = { shapes, bindings }
-
-    return json
+    return { shapes, bindings }
   }
 
   /**
@@ -2303,10 +2309,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns A string containing the JSON.
    */
   copyJson = (ids = this.selectedIds) => {
-    const json = this.getJson(ids)
+    const content = this.getContent(ids)
 
-    if (json) {
-      TLDR.copyStringToClipboard(JSON.stringify(json))
+    if (content) {
+      TLDR.copyStringToClipboard(JSON.stringify(content))
     }
 
     return this
@@ -2318,10 +2324,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @returns A string containing the JSON.
    */
   exportJson = (ids = this.selectedIds) => {
-    const json = this.getJson(ids)
+    const content = this.getContent(ids)
 
-    if (json) {
-      const blob = new Blob([JSON.stringify(json)], { type: 'application/json' })
+    if (content) {
+      const blob = new Blob([JSON.stringify(content)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url

@@ -93,6 +93,15 @@ export function insertContent(
     after.shapes[shape.id] = shape
   }
 
+  Object.values(after.shapes).forEach((shape) => {
+    // If the shape used to have children, but no longer does have children,
+    // then delete the shape. This prevents inserting groups without children.
+    if (shape!.children && shape!.children.length === 0) {
+      delete before.shapes[shape!.id!]
+      delete after.shapes[shape!.id!]
+    }
+  })
+
   // Insert bindings
   if (content.bindings) {
     content.bindings.forEach((binding) => {

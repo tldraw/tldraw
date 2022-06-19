@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TDShapeType } from '~types'
+import { ColorStyle, DashStyle, SessionType, SizeStyle, TDShapeType } from '~types'
 
 let app: TldrawTestApp
 
@@ -11,37 +11,37 @@ beforeEach(() => {
 
 describe('insert command', () => {
   it('Inserts shapes, bindings, etc. into the current page', () => {
-    const json = app.getJson()!
+    const content = app.getContent()!
     const size = app.shapes.length
-    app.insertContent(json)
+    app.insertContent(content)
     expect(app.shapes.length).toBe(size * 2)
   })
 
   it('does nothing when ids are explicitly empty', () => {
-    const json = app.getJson([])
-    expect(json).toBe(undefined)
+    const content = app.getContent([])
+    expect(content).toBe(undefined)
   })
 
   it('uses the selected ids when no ids provided', () => {
     app.select('rect1')
-    const json = app.getJson()!
+    const content = app.getContent()!
     const size = app.shapes.length
-    app.insertContent(json)
+    app.insertContent(content)
     expect(app.shapes.length).toBe(size + 1)
   })
 
   it('uses all shape ids from the page when no selection, either', () => {
     app.selectNone()
-    const json = app.getJson()!
+    const content = app.getContent()!
     const size = app.shapes.length
-    app.insertContent(json)
+    app.insertContent(content)
     expect(app.shapes.length).toBe(size * 2)
   })
 
   it('does nothing if the page has no shapes, either', () => {
     app.deleteAll()
-    const json = app.getJson()
-    expect(json).toBe(undefined)
+    const content = app.getContent()
+    expect(content).toBe(undefined)
   })
 
   it('includes bindings', () => {
@@ -60,11 +60,100 @@ describe('insert command', () => {
 
     expect(app.bindings.length).toBe(1)
 
-    const json = app.getJson()!
+    const content = app.getContent()!
     const size = app.shapes.length
 
-    app.insertContent(json)
+    app.insertContent(content)
     expect(app.bindings.length).toBe(2)
     expect(app.shapes.length).toBe(size * 2)
+  })
+
+  it('removes bindings when only one shape is inserted', () => {
+    app
+      .createShapes({
+        type: TDShapeType.Arrow,
+        id: 'arrow1',
+        point: [200, 200],
+      })
+      .select('arrow1')
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([50, 50])
+      .completeSession()
+
+    expect(app.bindings.length).toBe(1) // arrow1 -> rect3
+
+    app.select('rect3') // select only rect3, not arrow1
+
+    const content = app.getContent()!
+
+    // getContent does include the incomplete binding
+    expect(Object.values(content.bindings).length).toBe(1)
+
+    app.insertContent(content)
+
+    // insertContent discards the incomplete binding
+    expect(app.bindings.length).toBe(1)
+  })
+
+  it('works with groups', () => {
+    app.select('rect1', 'rect2').group().selectAll()
+
+    const content = app.getContent()!
+
+    const size = app.shapes.length
+
+    app.insertContent(content)
+
+    expect(app.shapes.length).toBe(size * 2)
+  })
+
+  it('if a shapes parent is not inserted, inserts to the page instead', () => {
+    app.select('rect1', 'rect2').group().select('rect1')
+
+    const content = app.getContent()!
+
+    // insertContent discards the incomplete binding
+    const size = app.shapes.length
+
+    const before = [...app.shapes]
+
+    app.insertContent(content)
+
+    expect(app.shapes.length).toBe(size + 1)
+
+    const inserted = [...app.shapes].filter((s) => !before.includes(s))[0]
+
+    expect(inserted.parentId).toBe(app.currentPageId)
+  })
+
+  it('does not add groups without children', () => {
+    // insertContent discards the incomplete binding
+    const size = app.shapes.length
+
+    app.insertContent({
+      shapes: [
+        {
+          id: '935ff424-bf40-4e2d-3bfb-d26061150b03',
+          type: TDShapeType.Group,
+          name: 'Group',
+          parentId: 'currentPageId',
+          childIndex: 1,
+          point: [0, 0],
+          size: [100, 100],
+          rotation: 0,
+          children: [],
+          style: {
+            color: ColorStyle.Black,
+            size: SizeStyle.Small,
+            isFilled: false,
+            dash: DashStyle.Dashed,
+            scale: 1,
+          },
+        },
+      ],
+    })
+
+    expect(app.shapes.length).toBe(size)
   })
 })
