@@ -81,6 +81,7 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
+import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 
@@ -2076,7 +2077,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
 
-    window.focus() // weird but necessary
+    if (typeof window !== 'undefined') {
+      window.focus() // weird but necessary
+    }
 
     if (opts.includeFonts) {
       try {
@@ -2257,23 +2260,56 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return svgString
   }
 
+  getJson = (ids?: string[]) => {
+    const page = this.getPage(this.currentPageId)
+
+    // If ids is explicitly empty ([]) return
+    if (ids && ids.length === 0) return
+
+    // If ids was not provided, use the selected ids
+    if (!ids) ids = this.selectedIds
+
+    // If there are no selected ids, use all the page's shape ids
+    if (ids.length === 0) ids = Object.keys(page.shapes)
+
+    // If the page was empty, return
+    if (ids.length === 0) return
+
+    const idsSet = new Set(ids)
+
+    const shapes = deepCopy(ids.map((id) => page.shapes[id]))
+
+    shapes.forEach((shape) => {
+      if (shape.parentId === this.currentPageId) {
+        shape.parentId = 'currentPageId'
+      }
+    })
+
+    const bindings = deepCopy(
+      Object.values(page.bindings).filter(
+        (binding) => idsSet.has(binding.fromId) || idsSet.has(binding.toId)
+      )
+    )
+
+    const json = { shapes, bindings }
+
+    return json
+  }
+
   /**
    * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
    * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
-  copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
-    if (ids.length === 0) ids = Object.keys(this.page.shapes)
+  copyJson = (ids = this.selectedIds) => {
+    const json = this.getJson(ids)
 
-    if (ids.length === 0) return
+    if (json) {
+      TLDR.copyStringToClipboard(JSON.stringify(json))
+    }
 
-    const shapes = ids.map((id) => this.getShape(id, pageId))
-    const json = JSON.stringify(shapes, null, 2)
-
-    TLDR.copyStringToClipboard(json)
-
-    return json
+    return this
   }
 
   /**
@@ -2281,20 +2317,30 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to copy from the current page.
    * @returns A string containing the JSON.
    */
-  exportJson = (
-    ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes)
-  ) => {
-    if (ids.length === 0) return
+  exportJson = (ids = this.selectedIds) => {
+    const json = this.getJson(ids)
 
-    const shapes = ids.map((id) => this.getShape(id, this.currentPageId))
-    const json = JSON.stringify(shapes, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
+    if (json) {
+      const blob = new Blob([JSON.stringify(json)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `export.json`
+      link.click()
+    }
 
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `export.json`
-    link.click()
+    return this
+  }
+
+  /**
+   * Insert content.
+   *
+   * @param content The content to insert.
+   * @param content.shapes An array of TDShape objects.
+   * @param content.bindings An array of TDBinding objects.
+   */
+  insertContent = (content: { shapes: TDShape[]; bindings?: TDBinding[] }) => {
+    return this.setState(Commands.insertContent(this, content), 'insert_content')
   }
 
   /**

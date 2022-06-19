@@ -4,6 +4,8 @@ import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
 
+window.focus = jest.fn()
+
 describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
