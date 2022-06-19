@@ -5,6 +5,7 @@ import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
 
 window.focus = jest.fn()
+global.console.warn = jest.fn()
 
 describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
