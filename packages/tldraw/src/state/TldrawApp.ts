@@ -81,6 +81,7 @@ import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
+import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 
@@ -1713,43 +1714,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /*                      Clipboard                     */
   /* -------------------------------------------------- */
 
-  private getClipboard(ids = this.selectedIds):
-    | {
-        shapes: TDShape[]
-        bindings: TDBinding[]
-        assets: TDAsset[]
-      }
-    | undefined {
-    const copyingShapeIds = ids.flatMap((id) =>
-      TLDR.getDocumentBranch(this.state, id, this.currentPageId)
-    )
-
-    const copyingShapes = copyingShapeIds.map((id) =>
-      Utils.deepClone(this.getShape(id, this.currentPageId))
-    )
-
-    if (copyingShapes.length === 0) return
-
-    const copyingBindings: TDBinding[] = Object.values(this.page.bindings).filter(
-      (binding) =>
-        copyingShapeIds.includes(binding.fromId) && copyingShapeIds.includes(binding.toId)
-    )
-
-    const copyingAssets = copyingShapes
-      .map((shape) => {
-        if (!shape.assetId) return
-
-        return this.document.assets[shape.assetId]
-      })
-      .filter(Boolean) as TDAsset[]
-
-    return {
-      shapes: copyingShapes,
-      bindings: copyingBindings,
-      assets: copyingAssets,
-    }
-  }
-
   /**
    * Cut (copy and delete) one or more shapes to the clipboard.
    * @param ids The ids of the shapes to cut.
@@ -1775,7 +1739,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     e?.preventDefault()
 
-    this.clipboard = this.getClipboard(ids)
+    this.clipboard = this.getContent(ids)
 
     const jsonString = JSON.stringify({
       type: 'tldr/clipboard',
@@ -1810,97 +1774,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
-
-    const pasteInCurrentPage = (shapes: TDShape[], bindings: TDBinding[], assets: TDAsset[]) => {
-      const idsMap: Record<string, string> = {}
-
-      const newAssets = assets.filter((asset) => this.document.assets[asset.id] === undefined)
-
-      if (newAssets.length) {
-        this.patchState({
-          document: {
-            assets: Object.fromEntries(newAssets.map((asset) => [asset.id, asset])),
-          },
-        })
-      }
-
-      shapes.forEach((shape) => (idsMap[shape.id] = Utils.uniqueId()))
-
-      bindings.forEach((binding) => (idsMap[binding.id] = Utils.uniqueId()))
-
-      let startIndex = TLDR.getTopChildIndex(this.state, this.currentPageId)
-
-      const shapesToPaste = shapes
-        .sort((a, b) => a.childIndex - b.childIndex)
-        .map((shape) => {
-          const parentShapeId = idsMap[shape.parentId]
-
-          const copy = {
-            ...shape,
-            id: idsMap[shape.id],
-            parentId: parentShapeId || this.currentPageId,
-          }
-
-          if (shape.children) {
-            copy.children = shape.children.map((id) => idsMap[id])
-          }
-
-          if (!parentShapeId) {
-            copy.childIndex = startIndex
-            startIndex++
-          }
-
-          if (copy.handles) {
-            Object.values(copy.handles).forEach((handle) => {
-              if (handle.bindingId) {
-                handle.bindingId = idsMap[handle.bindingId]
-              }
-            })
-          }
-
-          return copy
-        })
-
-      const bindingsToPaste = bindings.map((binding) => ({
-        ...binding,
-        id: idsMap[binding.id],
-        toId: idsMap[binding.toId],
-        fromId: idsMap[binding.fromId],
-      }))
-
-      const commonBounds = Utils.getCommonBounds(shapesToPaste.map(TLDR.getBounds))
-
-      let center = Vec.toFixed(this.getPagePoint(point || this.centerPoint))
-
-      if (
-        Vec.dist(center, this.pasteInfo.center) < 2 ||
-        Vec.dist(center, Vec.toFixed(Utils.getBoundsCenter(commonBounds))) < 2
-      ) {
-        center = Vec.add(center, this.pasteInfo.offset)
-        this.pasteInfo.offset = Vec.add(this.pasteInfo.offset, [GRID_SIZE, GRID_SIZE])
-      } else {
-        this.pasteInfo.center = center
-        this.pasteInfo.offset = [0, 0]
-      }
-
-      const centeredBounds = Utils.centerBounds(commonBounds, center)
-
-      const delta = Vec.sub(
-        Utils.getBoundsCenter(centeredBounds),
-        Utils.getBoundsCenter(commonBounds)
-      )
-
-      this.create(
-        shapesToPaste.map((shape) =>
-          TLDR.getShapeUtil(shape.type).create({
-            ...shape,
-            point: Vec.toFixed(Vec.add(shape.point, delta)),
-            parentId: shape.parentId || this.currentPageId,
-          })
-        ),
-        bindingsToPaste
-      )
-    }
 
     const pasteTextAsSvg = async (text: string) => {
       const div = document.createElement('div')
@@ -1951,7 +1824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         } = JSON.parse(maybeJson)
 
         if (json.type === 'tldr/clipboard') {
-          pasteInCurrentPage(json.shapes, json.bindings, json.assets)
+          this.insertContent(json, { point, select: true })
           return
         } else {
           throw Error('Not tldraw data!')
@@ -2058,7 +1931,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } else {
       TLDR.warn('This browser does not support the Clipboard API!')
       if (this.clipboard) {
-        pasteInCurrentPage(this.clipboard.shapes, this.clipboard.bindings, this.clipboard.assets)
+        this.insertContent(this.clipboard, { point, select: true })
       }
     }
 
@@ -2076,7 +1949,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
     const style = document.createElementNS('http://www.w3.org/2000/svg', 'style')
 
-    window.focus() // weird but necessary
+    if (typeof window !== 'undefined') {
+      window.focus() // weird but necessary
+    }
 
     if (opts.includeFonts) {
       try {
@@ -2238,7 +2113,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const svgString = TLDR.getSvgString(svg, 1)
 
-    this.clipboard = this.getClipboard(ids)
+    this.clipboard = this.getContent(ids)
 
     const tldrawString = JSON.stringify({
       type: 'tldr/clipboard',
@@ -2258,22 +2133,103 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Get the shapes and bindings for the current selection, if any, or else the current page.
+   *
+   * @param ids The ids of the shapes to get content for.
+   */
+  getContent = (ids?: string[]) => {
+    const page = this.getPage(this.currentPageId)
+
+    // If ids is explicitly empty ([]) return
+    if (ids && ids.length === 0) return
+
+    // If ids was not provided, use the selected ids
+    if (!ids) ids = this.selectedIds
+
+    // If there are no selected ids, use all the page's shape ids
+    if (ids.length === 0) ids = Object.keys(page.shapes)
+
+    // If the page was empty, return
+    if (ids.length === 0) return
+
+    const shapes = ids
+      .map((id) => page.shapes[id])
+      .flatMap((shape) => [shape, ...(shape.children ?? []).map((childId) => page.shapes[childId])])
+      .map(deepCopy)
+
+    const idsSet = new Set(shapes.map((s) => s.id))
+
+    shapes.forEach((shape) => {
+      if (shape.parentId === this.currentPageId) {
+        shape.parentId = 'currentPageId'
+      }
+    })
+
+    // If a binding's from and to are included, then include the binding;
+    // but if only one shape is included, discard the binding
+    const bindings = Object.values(page.bindings)
+      .filter((binding) => {
+        if (idsSet.has(binding.fromId) && idsSet.has(binding.toId)) {
+          return true
+        }
+
+        if (idsSet.has(binding.fromId)) {
+          const shape = shapes.find((s) => s.id === binding.fromId)
+          const handles = shape!.handles
+          if (handles) {
+            Object.values(handles).forEach((handle) => {
+              if (handle!.bindingId === binding.id) {
+                handle!.bindingId = undefined
+              }
+            })
+          }
+        }
+
+        if (idsSet.has(binding.toId)) {
+          const shape = shapes.find((s) => s.id === binding.toId)
+          const handles = shape!.handles
+          if (handles) {
+            Object.values(handles).forEach((handle) => {
+              if (handle!.bindingId === binding.id) {
+                handle!.bindingId = undefined
+              }
+            })
+          }
+        }
+
+        return false
+      })
+      .map(deepCopy)
+
+    const assets = [
+      ...new Set(
+        shapes
+          .map((shape) => {
+            if (!shape.assetId) return
+            return this.document.assets[shape.assetId]
+          })
+          .filter(Boolean)
+          .map(deepCopy)
+      ),
+    ] as TDAsset[]
+
+    return { shapes, bindings, assets }
+  }
+
+  /**
    * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
    * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
-  copyJson = (ids = this.selectedIds, pageId = this.currentPageId) => {
-    if (ids.length === 0) ids = Object.keys(this.page.shapes)
+  copyJson = (ids = this.selectedIds) => {
+    const content = this.getContent(ids)
 
-    if (ids.length === 0) return
+    if (content) {
+      TLDR.copyStringToClipboard(JSON.stringify(content))
+    }
 
-    const shapes = ids.map((id) => this.getShape(id, pageId))
-    const json = JSON.stringify(shapes, null, 2)
-
-    TLDR.copyStringToClipboard(json)
-
-    return json
+    return this
   }
 
   /**
@@ -2281,20 +2237,37 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The ids of the shapes to copy from the current page.
    * @returns A string containing the JSON.
    */
-  exportJson = (
-    ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes)
+  exportJson = (ids = this.selectedIds) => {
+    const content = this.getContent(ids)
+
+    if (content) {
+      const blob = new Blob([JSON.stringify(content)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `export.json`
+      link.click()
+    }
+
+    return this
+  }
+
+  /**
+   * Insert content.
+   *
+   * @param content The content to insert.
+   * @param content.shapes An array of TDShape objects.
+   * @param content.bindings (optional) An array of TDBinding objects.
+   * @param content.assets (optional) An array of TDAsset objects.
+   * @param opts (optional) An options object
+   * @param opts.point (optional) A point at which to paste the content.
+   * @param opts.select (optional) When true, the inserted shapes will be selected.
+   */
+  insertContent = (
+    content: { shapes: TDShape[]; bindings?: TDBinding[]; assets?: TDAsset[] },
+    opts = {} as { point?: number[]; select?: boolean }
   ) => {
-    if (ids.length === 0) return
-
-    const shapes = ids.map((id) => this.getShape(id, this.currentPageId))
-    const json = JSON.stringify(shapes, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
-
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `export.json`
-    link.click()
+    return this.setState(Commands.insertContent(this, content, opts), 'insert_content')
   }
 
   /**
