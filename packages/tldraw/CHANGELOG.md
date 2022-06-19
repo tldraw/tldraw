@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0
+
+### Minor Changes
+
+- Add getContent / insertContent, improve copy and paste position logic
+
 ## 1.16.0
 
 ### Minor Changes
