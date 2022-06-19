@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import { GRID_SIZE } from '~constants'
 import { TLDR } from '~state/TLDR'
-import type { PagePartial, TldrawCommand, TDShape, TDBinding } from '~types'
+import type { PagePartial, TldrawCommand, TDShape, TDBinding, TDAsset } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function insertContent(
   app: TldrawApp,
-  content: { shapes: TDShape[]; bindings?: TDBinding[] },
-  point?: number[]
+  content: { shapes: TDShape[]; bindings?: TDBinding[]; assets?: TDAsset[] },
+  opts = {} as { point?: number[]; select?: boolean }
 ): TldrawCommand {
   const { currentPageId } = app
 
@@ -179,21 +180,40 @@ export function insertContent(
 
   const shapesToMove = Object.values(after.shapes) as TDShape[]
 
-  if (point) {
-    // Move the shapes so that they're centered on the given point
-    const commonBounds = Utils.getCommonBounds(shapesToMove.map((shape) => TLDR.getBounds(shape)))
-    const center = Utils.getBoundsCenter(commonBounds)
-    shapesToMove.forEach((shape) => {
-      if (!shape.point) return
-      shape.point = Vec.sub(point, Vec.sub(center, shape.point))
-    })
-  } else {
-    // Move the shapes so that they're centered in the viewport
-    const offset = [16, 16]
-    shapesToMove.forEach((shape) => {
-      if (!shape.point) return
-      shape.point = Vec.add(shape.point, offset)
-    })
+  const { point, select } = opts
+
+  if (shapesToMove.length > 0) {
+    if (point) {
+      // Move the shapes so that they're centered on the given point
+      const commonBounds = Utils.getCommonBounds(shapesToMove.map((shape) => TLDR.getBounds(shape)))
+      const center = Utils.getBoundsCenter(commonBounds)
+      shapesToMove.forEach((shape) => {
+        if (!shape.point) return
+        shape.point = Vec.sub(point, Vec.sub(center, shape.point))
+      })
+    } else {
+      const commonBounds = Utils.getCommonBounds(shapesToMove.map(TLDR.getBounds))
+
+      if (
+        !(
+          Utils.boundsContain(app.viewport, commonBounds) ||
+          Utils.boundsCollide(app.viewport, commonBounds)
+        )
+      ) {
+        const center = Vec.toFixed(app.getPagePoint(app.centerPoint))
+
+        const centeredBounds = Utils.centerBounds(commonBounds, center)
+
+        const delta = Vec.sub(
+          Utils.getBoundsCenter(centeredBounds),
+          Utils.getBoundsCenter(commonBounds)
+        )
+
+        shapesToMove.forEach((shape) => {
+          shape.point = Vec.toFixed(Vec.add(shape.point, delta))
+        })
+      }
+    }
   }
 
   return {
@@ -203,12 +223,27 @@ export function insertContent(
         pages: {
           [currentPageId]: before,
         },
+        pageStates: {
+          [currentPageId]: { selectedIds: [...app.selectedIds] },
+        },
       },
     },
     after: {
       document: {
         pages: {
           [currentPageId]: after,
+        },
+        assets: content.assets
+          ? Object.fromEntries(
+              content.assets
+                .filter((asset) => !app.document.assets[asset.id])
+                .map((asset) => [asset.id, asset])
+            )
+          : {},
+        pageStates: {
+          [currentPageId]: {
+            selectedIds: select ? Object.keys(after.shapes) : [...app.selectedIds],
+          },
         },
       },
     },

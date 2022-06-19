@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Utils } from '@tldraw/core'
+import { TLDR } from '~state/TLDR'
 import { mockDocument, TldrawTestApp } from '~test'
 import { ColorStyle, DashStyle, SessionType, SizeStyle, TDShapeType } from '~types'
 
@@ -15,6 +17,32 @@ describe('insert command', () => {
     const size = app.shapes.length
     app.insertContent(content)
     expect(app.shapes.length).toBe(size * 2)
+  })
+
+  it('Selects content when opts.select is true', () => {
+    const content = app.getContent()!
+    const size = app.shapes.length
+    const prevSelectedIds = [...app.selectedIds]
+    app.insertContent(content, { select: true })
+    expect(app.shapes.length).toBe(size * 2)
+    expect(app.selectedIds).not.toMatchObject(prevSelectedIds)
+  })
+
+  it('Centers inserted content at a point', () => {
+    app.select('rect1')
+    const content = app.getContent()!
+
+    const before = [...app.shapes]
+
+    const point = [222, 444]
+
+    app.insertContent(content, { point })
+
+    const inserted = [...app.shapes].filter((s) => !before.includes(s))
+
+    expect(
+      Utils.getBoundsCenter(Utils.getCommonBounds(inserted.map(TLDR.getBounds)))
+    ).toMatchObject(point)
   })
 
   it('does nothing when ids are explicitly empty', () => {
@@ -87,12 +115,12 @@ describe('insert command', () => {
 
     const content = app.getContent()!
 
-    // getContent does include the incomplete binding
-    expect(Object.values(content.bindings).length).toBe(1)
+    // getContent does not include the incomplete binding
+    expect(Object.values(content.bindings).length).toBe(0)
 
     app.insertContent(content)
 
-    // insertContent discards the incomplete binding
+    // insertContent does not paste in the discarded binding
     expect(app.bindings.length).toBe(1)
   })
 
