@@ -2530,7 +2530,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Zoom to the selected shapes.
    */
-  zoomToSelection = (): this => {
+  zoomToSelection = (paddingPx: number = FIT_TO_SCREEN_PADDING): this => {
     if (this.selectedIds.length === 0) return this
 
     const { rendererBounds } = this
@@ -2538,8 +2538,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     let zoom = TLDR.getCameraZoom(
       Math.min(
-        (rendererBounds.width - FIT_TO_SCREEN_PADDING) / selectedBounds.width,
-        (rendererBounds.height - FIT_TO_SCREEN_PADDING) / selectedBounds.height
+        (rendererBounds.width - paddingPx) / selectedBounds.width,
+        (rendererBounds.height - paddingPx) / selectedBounds.height
       )
     )
 

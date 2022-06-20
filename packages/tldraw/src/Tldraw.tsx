@@ -6,15 +6,9 @@ import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
-import { ToolsPanel } from '~components/ToolsPanel'
-import { TopPanel } from '~components/TopPanel'
-import { ContextMenu } from '~components/ContextMenu'
-import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
 import { GRID_SIZE } from '~constants'
-import { Loading } from '~components/Loading'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
-import { ErrorFallback } from '~components/ErrorFallback'
 
 import messages_en from './translations/en.json'
 import messages_fr from './translations/fr.json'
@@ -445,10 +439,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
       messages={messages[defaultLanguage] as IntlConfig['messages']}
     >
       <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
-        <Loading />
         <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-        <ContextMenu>
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
+        
+          <ErrorBoundary FallbackComponent={<span></span>}>
             <Renderer
               id={id}
               containerRef={rWrapper}
@@ -526,28 +519,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
               onDrop={app.onDrop}
             />
           </ErrorBoundary>
-        </ContextMenu>
-        {showUI && (
-          <StyledUI>
-            {settings.isFocusMode ? (
-              <FocusButton onSelect={app.toggleFocusMode} />
-            ) : (
-              <>
-                <TopPanel
-                  readOnly={readOnly}
-                  showPages={showPages}
-                  showMenu={showMenu}
-                  showMultiplayerMenu={showMultiplayerMenu}
-                  showStyles={showStyles}
-                  showZoom={showZoom}
-                  sponsor={showSponsorLink}
-                />
-                <StyledSpacer />
-                {showTools && !readOnly && <ToolsPanel />}
-              </>
-            )}
-          </StyledUI>
-        )}
       </StyledLayout>
     </IntlProvider>
   )
