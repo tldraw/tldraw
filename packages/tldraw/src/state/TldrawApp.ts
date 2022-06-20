@@ -1881,7 +1881,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     })
 
     if (navigator.clipboard) {
-      const items = await navigator.clipboard.read()
+      const items = 'read' in navigator.clipboard ? await navigator.clipboard.read() : []
 
       if (items.length === 0) return
 
