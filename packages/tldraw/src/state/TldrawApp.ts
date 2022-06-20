@@ -2169,7 +2169,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // but if only one shape is included, discard the binding
     const bindings = Object.values(page.bindings)
       .filter((binding) => {
-        if (idsSet.has(binding.fromId) && idsSet.has(binding.toId)) {
+        if (idsSet.has(binding.fromId) || idsSet.has(binding.toId)) {
           return true
         }
 
@@ -2261,11 +2261,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param content.assets (optional) An array of TDAsset objects.
    * @param opts (optional) An options object
    * @param opts.point (optional) A point at which to paste the content.
-   * @param opts.select (optional) When true, the inserted shapes will be selected.
+   * @param opts.select (optional) When true, the inserted shapes will be selected. Defaults to false.
+   * @param opts.overwrite (optional) When true, the inserted shapes and bindings will overwrite any existing shapes and bindings. Defaults to false.
    */
   insertContent = (
     content: { shapes: TDShape[]; bindings?: TDBinding[]; assets?: TDAsset[] },
-    opts = {} as { point?: number[]; select?: boolean }
+    opts = {} as { point?: number[]; select?: boolean; overwrite?: boolean }
   ) => {
     return this.setState(Commands.insertContent(this, content, opts), 'insert_content')
   }
