@@ -1,24 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Tldraw } from '@tldraw/tldraw'
-import { createClient } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
+import { RoomProvider } from './liveblocks.config'
 import { useMultiplayerState } from './useMultiplayerState'
-
-const client = createClient({
-  publicApiKey: process.env.LIVEBLOCKS_PUBLIC_API_KEY || '',
-  throttle: 100,
-})
 
 const roomId = 'mp-test-8'
 
 export function Multiplayer() {
   return (
-    <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId}>
-        <Editor roomId={roomId} />
-      </RoomProvider>
-    </LiveblocksProvider>
+    <RoomProvider id={roomId}>
+      <Editor roomId={roomId} />
+    </RoomProvider>
   )
 }
 
