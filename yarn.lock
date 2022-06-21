@@ -1863,25 +1863,15 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@liveblocks/client@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.14.0.tgz#2a5f7bd243d3aea7b95cf62737e49dc13df1b69b"
-  integrity sha512-I1nykCqYSpuBQhP1kZplYqL6L0+C1JocW01UKgPz+tthOOGdTdsNBHPcMigxou4vsOQutUuEJUcaDsd1or4A+Q==
+"@liveblocks/client@^0.17.0-beta2":
+  version "0.17.0-beta2"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.17.0-beta2.tgz#0cd14dd29350a29765bfa41c5d7a2185010ab791"
+  integrity sha512-V8LOv6BIDQvLl2LLcdDWIK6Ow3hMSpmIYk5T+NbNC34MM04bdhBU3C4EHg4qRnTPtOxm4NylRiVbNDwfwmMNjw==
 
-"@liveblocks/client@^0.16.17":
-  version "0.16.17"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.16.17.tgz#38f8392d7baaf20b34237d06fe3cb53586cea8f0"
-  integrity sha512-mWX/EGQNoWwzkEdUfdt82w9OMA5kKV3BraBt2YhZO4Zn04mfNmcOkr7V4S+EmJ4LyQ5QVNKYvA4gJQU1ahn5mQ==
-
-"@liveblocks/react@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.14.0.tgz#1a29ff10e88ea04d029f553f8b14a6cff4584f70"
-  integrity sha512-KGuEEmifh3A9OEHTYaR3+yxIQOhdAQG59d0eOqKbyV/I0X6IoX4kAtXZjnZllrWrTwnnSY2aPFESthtt19t6EQ==
-
-"@liveblocks/react@^0.16.17":
-  version "0.16.17"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.16.17.tgz#e3d5c591ad284f84cf5689ad2b8f4d0d0e1ef1ba"
-  integrity sha512-I0WvNI+X/I+ymbVF/+W4GOCaZnsaqje01Mp9BGt7u7joL1ZNBQuva1zWPINE6pNWTk75y/pmG4o56YoC+ek4FQ==
+"@liveblocks/react@^0.17.0-beta2":
+  version "0.17.0-beta2"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.17.0-beta2.tgz#e148f9c1eb03a40db350ca2ccef180248e6d3afc"
+  integrity sha512-g7XSias4M2nl6eao8JxS5ynyjTvkV4FF8PavvAd9aO5sLz++1qrPW0XCXq2jle2sOyM9act/nMX35FedXvXPFA==
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
