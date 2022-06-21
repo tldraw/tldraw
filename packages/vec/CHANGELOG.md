@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.7.1
+
+### Patch Changes
+
+- - Adds `Vec.nearestPointOnBounds`
+  - Adds `Vec.distanceToBounds`
+
 ## 1.7.0
 
 ### Minor Changes

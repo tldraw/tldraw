@@ -49,7 +49,7 @@
     "@stitches/react": "^1.2.8",
     "@tldraw/core": "^1.14.0",
     "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.0",
+    "@tldraw/vec": "^1.7.1",
     "idb-keyval": "^6.1.0",
     "lz-string": "^1.4.4",
     "perfect-freehand": "^1.1.0",

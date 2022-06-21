@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.0",
+    "@tldraw/vec": "^1.7.1",
     "@use-gesture/react": "^10.2.14",
     "mobx-react-lite": "^3.2.3",
     "perfect-freehand": "^1.1.0",
