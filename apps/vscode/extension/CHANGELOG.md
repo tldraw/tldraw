@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.16.1
+
+### Patch Changes
+
+- Fix clipboard bug in Firefox, add overwite option to `insertContent`.
+
 ## 1.16.0
 
 ### Minor Changes
