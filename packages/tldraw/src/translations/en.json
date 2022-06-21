@@ -73,6 +73,7 @@
   "Ellipse": "Ellipse",
   "Triangle": "Triangle",
   "Line": "Line",
+  "Sun": "Sun",
 
   "rotate": "Rotate",
   "lock.aspect.ratio": "Lock Aspect Ratio",

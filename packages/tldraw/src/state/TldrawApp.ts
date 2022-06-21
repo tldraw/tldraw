@@ -78,6 +78,7 @@ import { TriangleTool } from './tools/TriangleTool'
 import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
+import { SunTool } from './tools/SunTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
@@ -187,6 +188,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
+    [TDShapeType.Sun]: new SunTool(this),
   }
 
   currentTool: BaseTool = this.tools.select

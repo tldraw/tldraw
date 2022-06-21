@@ -222,6 +222,7 @@ export type TDToolType =
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
+  | TDShapeType.Sun
 
 export type Easing =
   | 'linear'
@@ -291,6 +292,7 @@ export enum TDShapeType {
   Group = 'group',
   Image = 'image',
   Video = 'video',
+  Sun = 'sun'
 }
 
 export enum Decoration {
@@ -396,6 +398,10 @@ export interface GroupShape extends TDBaseShape {
   size: number[]
   children: string[]
 }
+export interface SunShape extends TDBaseShape {
+  type: TDShapeType.Sun
+  size: number[]
+}
 
 // A union of all shapes
 export type TDShape =
@@ -409,6 +415,7 @@ export type TDShape =
   | StickyShape
   | ImageShape
   | VideoShape
+  | SunShape
 
 /* ------------------ Shape Styles ------------------ */
 
