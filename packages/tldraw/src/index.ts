@@ -1,6 +1,7 @@
 export * from './Tldraw'
 export * from './types'
 export * from './state/shapes'
+export * as shapeStyleHelpers from './state/shapes/shared/shape-styles'
 export * from './state/TLDR'
 export { TldrawApp } from './state'
 export { useFileSystem } from './hooks'
