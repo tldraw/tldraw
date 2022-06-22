@@ -193,7 +193,7 @@ export function useMultiplayerState(roomId: string) {
       stillAlive = false
       unsubs.forEach((unsub) => unsub())
     }
-  }, [app])
+  }, [app, room])
 
   return {
     onUndo,
