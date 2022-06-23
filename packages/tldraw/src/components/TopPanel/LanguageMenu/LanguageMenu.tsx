@@ -17,7 +17,7 @@ export function LanguageMenu() {
   const intl = useIntl()
 
   const languages: ILang[] = [
-    { label: 'Arabic', code: 'ar' },
+    { label: 'عربي', code: 'ar' },
     { label: 'English', code: 'en' },
     { label: 'Français', code: 'fr' },
     { label: 'Italiano', code: 'it' },
