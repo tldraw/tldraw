@@ -16,6 +16,7 @@ import { Loading } from '~components/Loading'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { ErrorFallback } from '~components/ErrorFallback'
 
+import messages_ar from './translations/ar.json'
 import messages_en from './translations/en.json'
 import messages_fr from './translations/fr.json'
 import messages_it from './translations/it.json'
