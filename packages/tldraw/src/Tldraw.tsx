@@ -432,6 +432,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
     isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
 
   const messages = {
+    ar: messages_ar,
     en: messages_en,
     fr: messages_fr,
     it: messages_it,
