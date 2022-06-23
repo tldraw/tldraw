@@ -4,7 +4,7 @@ import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { FaceIcon, ExitIcon, SunIcon } from '@radix-ui/react-icons'
+import { FaceIcon, ExitIcon, SunIcon, ChatBubbleIcon, PaperPlaneIcon, CameraIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { useIntl } from 'react-intl'
 import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
@@ -15,23 +15,20 @@ interface SunsMenuProps {
 }
 
 type ShapeShape =
-  | TDShapeType.Sun
-  | TDShapeType.Ellipse
-  | TDShapeType.Triangle
-  | TDShapeType.Line
+  | TDShapeType.Comment
+  | TDShapeType.Content
+  | TDShapeType.Video
 
 const shapeShapes: ShapeShape[] = [
-  TDShapeType.Sun,
-  TDShapeType.Ellipse,
-  TDShapeType.Triangle,
-  TDShapeType.Line,
+  TDShapeType.Comment,
+  TDShapeType.Content,
+  TDShapeType.Video,
 ]
 
 const shapeShapeIcons = {
-  [TDShapeType.Sun]: <SunIcon />,
-  [TDShapeType.Ellipse]: <FaceIcon />,
-  [TDShapeType.Triangle]: <ExitIcon />,
-  [TDShapeType.Line]: <HeartIcon />,
+  [TDShapeType.Comment]: <ChatBubbleIcon />,
+  [TDShapeType.Content]: <PaperPlaneIcon />,
+  [TDShapeType.Video]: <CameraIcon />,
 }
 
 const statusSelector = (s: TDSnapshot) => s.appState.status
@@ -49,7 +46,7 @@ export const SunMenu = React.memo(function ShapesMenu({
 
   const status = app.useStore(statusSelector)
 
-  const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Sun)
+  const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Comment)
 
   React.useEffect(() => {
     if (shapeShapes.includes(activeTool as ShapeShape) && lastActiveTool !== activeTool) {
@@ -95,7 +92,6 @@ export const SunMenu = React.memo(function ShapesMenu({
             <Tooltip
               key={shape}
               label={intl.formatMessage({ id: shape[0].toUpperCase() + shape.slice(1) })}
-              kbd={(4 + i).toString()}
               id={`TD-PrimaryTools-Shapes-${shape}`}
             >
               <DropdownMenu.Item asChild>

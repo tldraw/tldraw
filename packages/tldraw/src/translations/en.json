@@ -73,7 +73,9 @@
   "Ellipse": "Ellipse",
   "Triangle": "Triangle",
   "Line": "Line",
-  "Sun": "Sun",
+  "Comment": "Comment",
+  "Content": "Content",
+  "Video" : "Video",
 
   "rotate": "Rotate",
   "lock.aspect.ratio": "Lock Aspect Ratio",

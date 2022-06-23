@@ -10,7 +10,8 @@ import { DrawUtil } from './DrawUtil'
 import { ImageUtil } from './ImageUtil'
 import { TDShape, TDShapeType } from '~types'
 import { VideoUtil } from './VideoUtil'
-import { SunUtil } from './SunUtil'
+import { CommentUtil } from './CommentUtil'
+import { ContentUtil } from './ContentUtil'
 
 
 export const Rectangle = new RectangleUtil()
@@ -23,7 +24,8 @@ export const Group = new GroupUtil()
 export const Sticky = new StickyUtil()
 export const Image = new ImageUtil()
 export const Video = new VideoUtil()
-export const Sun = new SunUtil()
+export const Comment = new CommentUtil()
+export const Content = new ContentUtil()
 
 
 export const shapeUtils = {
@@ -37,7 +39,8 @@ export const shapeUtils = {
   [TDShapeType.Sticky]: Sticky,
   [TDShapeType.Image]: Image,
   [TDShapeType.Video]: Video,
-  [TDShapeType.Sun]: Sun,
+  [TDShapeType.Comment]: Comment,
+  [TDShapeType.Content]: Content,
 }
 
 export const getShapeUtil = <T extends TDShape>(shape: T | T['type']) => {

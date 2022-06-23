@@ -9,7 +9,11 @@ import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
 import { TextTool } from './TextTool'
 import { EraseTool } from './EraseTool'
-import { SunTool } from './SunTool'
+import { Content } from '@radix-ui/react-dropdown-menu'
+import { Video } from '~state/shapes'
+import { CommentTool } from './CommentTool'
+import { ContentTool } from './ContentTool'
+import { VideoTool } from './VideoTool'
 
 export interface ToolsMap {
   select: typeof SelectTool
@@ -22,7 +26,9 @@ export interface ToolsMap {
   [TDShapeType.Line]: typeof LineTool
   [TDShapeType.Arrow]: typeof ArrowTool
   [TDShapeType.Sticky]: typeof StickyTool
-  [TDShapeType.Sun]: typeof SunTool
+  [TDShapeType.Comment]: typeof CommentTool
+  [TDShapeType.Content]: typeof ContentTool
+  [TDShapeType.Video]: typeof VideoTool
 }
 
 export type ToolOfType<K extends TDToolType> = ToolsMap[K]
@@ -40,5 +46,7 @@ export const tools: { [K in TDToolType]: ToolsMap[K] } = {
   [TDShapeType.Line]: LineTool,
   [TDShapeType.Arrow]: ArrowTool,
   [TDShapeType.Sticky]: StickyTool,
-  [TDShapeType.Sun]: SunTool
+  [TDShapeType.Comment]: CommentTool,
+  [TDShapeType.Content]: ContentTool,
+  [TDShapeType.Video]: VideoTool,
 }

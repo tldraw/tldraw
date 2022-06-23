@@ -78,11 +78,13 @@ import { TriangleTool } from './tools/TriangleTool'
 import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
-import { SunTool } from './tools/SunTool'
 import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
+import { CommentTool } from './tools/CommentTool'
+import { VideoTool } from './tools/VideoTool'
+import { ContentTool } from './tools/ContentTool'
 
 const uuid = Utils.uniqueId()
 
@@ -188,7 +190,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
-    [TDShapeType.Sun]: new SunTool(this),
+    [TDShapeType.Comment]: new CommentTool(this),
+    [TDShapeType.Video]: new VideoTool(this),
+    [TDShapeType.Content]: new ContentTool(this),
   }
 
   currentTool: BaseTool = this.tools.select
