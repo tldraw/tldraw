@@ -90,19 +90,21 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                 }}
               />
             )}
-                   
+
             <div style={{
             }}>
               <div style={{
                 fontSize: 32,
                 fontWeight: 800,
-                position: 'relative'
+                position: 'relative',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 <img src='https://s20.directupload.net/images/220623/cbirvcix.png' style={{ height: 'auto', width: '100%', display: 'block' }}></img>
-                <div style={{ 
+                <div style={{
                   position: 'absolute',
                   bottom: 0,
-                  right:0,
+                  right: 0,
                   display: 'flex',
                   color: 'white',
                   justifyContent: 'center',
@@ -114,10 +116,12 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                 </div>
               </div>
             </div>
-            <div style={{ padding: '.5em' }}>    
+            <div style={{ padding: '.5em' }}>
               <div style={{
                 fontSize: 40,
                 fontWeight: 800,
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 Titel des Beitrags
               </div>

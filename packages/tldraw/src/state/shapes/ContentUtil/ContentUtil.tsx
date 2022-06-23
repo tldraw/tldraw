@@ -90,24 +90,26 @@ export class ContentUtil extends TDShapeUtil<T, E> {
                 }}
               />
             )}
-                <div style={{ 
-                  position: 'absolute',
-                  top: 0,
-                  right:0,
-                  display: 'flex',
-                  color: 'white',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  padding: '0.25em',
-                  backgroundColor: '#E20000'
-                }}>
-                  <PaperPlaneIcon style={{ width: 25, height: 25 }}></PaperPlaneIcon>
-                </div>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              display: 'flex',
+              color: 'white',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '0.25em',
+              backgroundColor: '#E20000'
+            }}>
+              <PaperPlaneIcon style={{ width: 25, height: 25 }}></PaperPlaneIcon>
+            </div>
             <div style={{ padding: '.5em' }}>
               <div style={{
                 paddingTop: '1em',
                 fontSize: 40,
                 fontWeight: 800,
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 Titel des Beitrags
               </div>
@@ -120,7 +122,9 @@ export class ContentUtil extends TDShapeUtil<T, E> {
                 whiteSpace: 'normal',
                 WebkitLineClamp: 15,
                 display: '-webkit-box',
-                WebkitBoxOrient: 'vertical'
+                WebkitBoxOrient: 'vertical',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua
               </div>

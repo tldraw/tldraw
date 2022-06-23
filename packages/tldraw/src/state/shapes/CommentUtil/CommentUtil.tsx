@@ -90,19 +90,21 @@ export class CommentUtil extends TDShapeUtil<T, E> {
                 }}
               />
             )}
-                   
+
             <div style={{
             }}>
               <div style={{
                 fontSize: 32,
                 fontWeight: 800,
-                position: 'relative'
+                position: 'relative',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 <img src='https://s20.directupload.net/images/220621/o6z3noj3.png' style={{ height: 'auto', width: '100%', display: 'block' }}></img>
-                <div style={{ 
+                <div style={{
                   position: 'absolute',
                   bottom: 0,
-                  right:0,
+                  right: 0,
                   display: 'flex',
                   color: 'white',
                   justifyContent: 'center',
@@ -114,10 +116,12 @@ export class CommentUtil extends TDShapeUtil<T, E> {
                 </div>
               </div>
             </div>
-            <div style={{ padding: '.5em' }}>    
+            <div style={{ padding: '.5em' }}>
               <div style={{
                 fontSize: 40,
                 fontWeight: 800,
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 Titel des Beitrags
               </div>
@@ -130,7 +134,9 @@ export class CommentUtil extends TDShapeUtil<T, E> {
                 whiteSpace: 'normal',
                 WebkitLineClamp: 3,
                 display: '-webkit-box',
-                WebkitBoxOrient: 'vertical'
+                WebkitBoxOrient: 'vertical',
+                pointerEvents: 'none',
+                userSelect: 'none',
               }}>
                 Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua...
               </div>
