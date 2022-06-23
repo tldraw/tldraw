@@ -8,6 +8,7 @@ import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
+import { PaperPlaneIcon } from '@radix-ui/react-icons'
 
 type T = ContentShape
 type E = HTMLDivElement
@@ -89,28 +90,40 @@ export class ContentUtil extends TDShapeUtil<T, E> {
                 }}
               />
             )}
-            <div style={{
-            }}>
-            </div>
-            <div style={{
-              paddingTop: '1em',
-              fontSize: 40,
-              fontWeight: 400,
-            }}>
-              Titel des Beitragsss
-            </div>
-            <div style={{
-              paddingTop: '2em',
-              fontSize: 14,
-              fontWeight: 400,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'normal',
-              WebkitLineClamp: 15,
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical'
-            }}>
-              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua
+                <div style={{ 
+                  position: 'absolute',
+                  top: 0,
+                  right:0,
+                  display: 'flex',
+                  color: 'white',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '0.25em',
+                  backgroundColor: '#E20000'
+                }}>
+                  <PaperPlaneIcon style={{ width: 25, height: 25 }}></PaperPlaneIcon>
+                </div>
+            <div style={{ padding: '.5em' }}>
+              <div style={{
+                paddingTop: '1em',
+                fontSize: 40,
+                fontWeight: 800,
+              }}>
+                Titel des Beitrags
+              </div>
+              <div style={{
+                paddingTop: '2em',
+                fontSize: 14,
+                fontWeight: 400,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                WebkitLineClamp: 15,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical'
+              }}>
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua
+              </div>
             </div>
           </StyledStickyContainer>
         </HTMLContainer >
@@ -187,10 +200,9 @@ const StyledStickyContainer = styled('div', {
   flexDirection: 'column',
   position: 'relative',
   backgroundColor: 'rgba(255, 220, 100)',
-  fontFamily: 'sans-serif',
+  fontFamily: '"Source Sans Pro", "Lucida Grande", sans-serif !important',
   height: '100%',
   width: '100%',
-  padding: PADDING + 'px',
   borderRadius: '3px',
   perspective: '800px',
   variants: {

@@ -8,6 +8,7 @@ import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
+import { ChatBubbleIcon } from '@radix-ui/react-icons'
 
 type T = CommentShape
 type E = HTMLDivElement
@@ -89,34 +90,50 @@ export class CommentUtil extends TDShapeUtil<T, E> {
                 }}
               />
             )}
+                   
             <div style={{
             }}>
               <div style={{
                 fontSize: 32,
                 fontWeight: 800,
-                paddingBottom: 20
+                position: 'relative'
               }}>
-                <img src='https://s20.directupload.net/images/220621/o6z3noj3.png' style={{ height: 'auto', width: '100%' }}></img>
+                <img src='https://s20.directupload.net/images/220621/o6z3noj3.png' style={{ height: 'auto', width: '100%', display: 'block' }}></img>
+                <div style={{ 
+                  position: 'absolute',
+                  bottom: 0,
+                  right:0,
+                  display: 'flex',
+                  color: 'white',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  padding: '0.25em',
+                  backgroundColor: '#E20000'
+                }}>
+                  <ChatBubbleIcon style={{ width: 25, height: 25 }}></ChatBubbleIcon>
+                </div>
               </div>
             </div>
-            <div style={{
-              fontSize: 40,
-              fontWeight: 400,
-            }}>
-              Titel des Beitrags
-            </div>
-            <div style={{
-              paddingTop: '2em',
-              fontSize: 14,
-              fontWeight: 400,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'normal',
-              WebkitLineClamp: 3,
-              display: '-webkit-box',
-              WebkitBoxOrient: 'vertical'
-            }}>
-              Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua...
+            <div style={{ padding: '.5em' }}>    
+              <div style={{
+                fontSize: 40,
+                fontWeight: 800,
+              }}>
+                Titel des Beitrags
+              </div>
+              <div style={{
+                paddingTop: '2em',
+                fontSize: 14,
+                fontWeight: 400,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                WebkitLineClamp: 3,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical'
+              }}>
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua...
+              </div>
             </div>
           </StyledStickyContainer>
         </HTMLContainer >
@@ -193,10 +210,9 @@ const StyledStickyContainer = styled('div', {
   flexDirection: 'column',
   position: 'relative',
   backgroundColor: 'rgba(255, 220, 100)',
-  fontFamily: 'Open Sans!important',
+  fontFamily: '"Source Sans Pro", "Lucida Grande", sans-serif !important',
   height: '100%',
   width: '100%',
-  padding: PADDING + 'px',
   borderRadius: '3px',
   perspective: '800px',
   variants: {
