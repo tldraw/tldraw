@@ -95,12 +95,8 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon id="TD-MultiplayerMenuIcon">
-        {room ? (
-          <PersonIcon strokeWidth={0.5} stroke={'black'} />
-        ) : (
-          <PersonIcon strokeWidth={0.25} stroke={'black'} />
-        )}
+      <DMTriggerIcon id="TD-MultiplayerMenuIcon" isActive={!!room}>
+        <PersonIcon />
       </DMTriggerIcon>
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
