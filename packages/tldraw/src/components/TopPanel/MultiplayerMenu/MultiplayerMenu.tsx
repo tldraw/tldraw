@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CheckIcon, ClipboardIcon, CursorArrowIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ClipboardIcon, CursorArrowIcon, PersonIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
@@ -96,7 +96,11 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon id="TD-MultiplayerMenuIcon">
-        {room ? <MultiplayerIcon /> : <CursorArrowIcon />}
+        {room ? (
+          <PersonIcon strokeWidth={0.5} stroke={'black'} />
+        ) : (
+          <PersonIcon strokeWidth={0.25} stroke={'black'} />
+        )}
       </DMTriggerIcon>
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
