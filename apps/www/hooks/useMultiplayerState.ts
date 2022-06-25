@@ -2,7 +2,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { useState, useRef, useCallback } from 'react'
 import type { TldrawApp, TDUser, TDShape, TDBinding, TDAsset } from '@tldraw/tldraw'
-import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '../utils/liveblocks'
+import {
+  Storage,
+  useRedo,
+  useUndo,
+  useRoom,
+  useHistory,
+  useUpdateMyPresence,
+} from '../utils/liveblocks'
 import { LiveMap } from '@liveblocks/client'
 
 declare const window: Window & { app: TldrawApp }
@@ -15,7 +22,10 @@ export function useMultiplayerState(roomId: string) {
   const room = useRoom()
   const onUndo = useUndo()
   const onRedo = useRedo()
+  const history = useHistory()
   const updateMyPresence = useUpdateMyPresence()
+
+  const rIsPaused = useRef(false)
 
   const rLiveShapes = useRef<Storage['shapes']>()
   const rLiveBindings = useRef<Storage['bindings']>()
@@ -208,11 +218,13 @@ export function useMultiplayerState(roomId: string) {
   const onSessionStart = React.useCallback(() => {
     if (!room) return
     room.history.pause()
+    rIsPaused.current = true
   }, [room])
 
   const onSessionEnd = React.useCallback(() => {
     if (!room) return
     room.history.resume()
+    rIsPaused.current = false
   }, [room])
 
   return {

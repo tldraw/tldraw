@@ -42,10 +42,11 @@ export type Storage = {
 // room.
 // type RoomEvent = {};
 
-const { RoomProvider, useRedo, useUndo, useRoom, useUpdateMyPresence } = createRoomContext<
-  Presence,
-  Storage
-  /* UserMeta, RoomEvent */
->(client)
+const { RoomProvider, useHistory, useRedo, useUndo, useRoom, useUpdateMyPresence } =
+  createRoomContext<
+    Presence,
+    Storage
+    /* UserMeta, RoomEvent */
+  >(client)
 
-export { RoomProvider, useRedo, useUndo, useRoom, useUpdateMyPresence }
+export { RoomProvider, useHistory, useRedo, useUndo, useRoom, useUpdateMyPresence }

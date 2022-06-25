@@ -2752,7 +2752,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Start a new session.
-   * @param session The new session
+   * @param type The session type
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
@@ -2772,6 +2772,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.patchState(result, `session:start_${this.session!.constructor.name}`)
     }
 
+    console.log('starting session!')
     this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
 
     return this
@@ -2806,11 +2807,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:cancel:${session.constructor.name}`)
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
     }
 
     this.setEditingId()
 
+    console.log('ending session!')
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
@@ -2848,9 +2849,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
-
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
-      return this
     } else if ('after' in result) {
       // Session ended with a command
 
@@ -2927,6 +2925,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
+    console.log('ending session!')
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
