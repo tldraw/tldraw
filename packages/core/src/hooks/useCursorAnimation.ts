@@ -30,7 +30,6 @@ export function useCursorAnimation(ref: any, point: number[], skip = false) {
 
       rState.current = 'stopped'
       rPrevPoint.current = point
-      console.log('updating')
       elm.style.setProperty('transform', `translate(${point[0]}px, ${point[1]}px)`)
       return
     }

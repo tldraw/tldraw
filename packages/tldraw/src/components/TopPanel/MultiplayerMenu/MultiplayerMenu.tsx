@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { CheckIcon, ClipboardIcon, CursorArrowIcon, PersonIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { MultiplayerIcon } from '~components/Primitives/icons'
 import { TDAssetType, TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import { Utils } from '@tldraw/core'
 import { FormattedMessage } from 'react-intl'
+import { MultiplayerIcon2 } from '~components/Primitives/icons/MultiplayerIcon2'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -96,7 +96,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   return (
     <DropdownMenu.Root dir="ltr">
       <DMTriggerIcon id="TD-MultiplayerMenuIcon" isActive={!!room}>
-        <PersonIcon />
+        <MultiplayerIcon2 />
       </DMTriggerIcon>
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
