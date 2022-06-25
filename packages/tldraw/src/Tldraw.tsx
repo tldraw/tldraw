@@ -434,7 +434,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
     en: messages_en,
     fr: messages_fr,
     it: messages_it,
-    'zh-cn': messages_zh_cn
+    'zh-cn': messages_zh_cn,
   }
 
   const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]

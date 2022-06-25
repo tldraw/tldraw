@@ -205,10 +205,22 @@ export function useMultiplayerState(roomId: string) {
     }
   }, [room, app])
 
+  const onSessionStart = React.useCallback(() => {
+    if (!room) return
+    room.history.pause()
+  }, [room])
+
+  const onSessionEnd = React.useCallback(() => {
+    if (!room) return
+    room.history.resume()
+  }, [room])
+
   return {
     onUndo,
     onRedo,
     onMount,
+    onSessionStart,
+    onSessionEnd,
     onChangePage,
     onChangePresence,
     error,
