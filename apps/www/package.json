@@ -42,6 +42,7 @@
     "next-themes": "^0.0.15",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
+    "react-hotkeys-hook": "^3.4.6",
     "typescript": "^4.7.3"
   },
   "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2",

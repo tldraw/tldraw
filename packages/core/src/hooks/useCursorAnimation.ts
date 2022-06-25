@@ -145,6 +145,11 @@ class Spline {
       q2 = 3 * ttt - 5 * tt + 2,
       q3 = -3 * ttt + 4 * tt + t,
       q4 = ttt - tt
+
+    if (!(points[p0] && points[p1] && points[p2] && points[p3])) {
+      return [0, 0]
+    }
+
     return [
       0.5 * (points[p0][0] * q1 + points[p1][0] * q2 + points[p2][0] * q3 + points[p3][0] * q4),
       0.5 * (points[p0][1] * q1 + points[p1][1] * q2 + points[p2][1] * q3 + points[p3][1] * q4),

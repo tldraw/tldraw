@@ -10,6 +10,7 @@ import {
   useHistory,
   useUpdateMyPresence,
 } from '../utils/liveblocks'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { LiveMap } from '@liveblocks/client'
 
 declare const window: Window & { app: TldrawApp }
@@ -22,7 +23,6 @@ export function useMultiplayerState(roomId: string) {
   const room = useRoom()
   const onUndo = useUndo()
   const onRedo = useRedo()
-  const history = useHistory()
   const updateMyPresence = useUpdateMyPresence()
 
   const rIsPaused = useRef(false)
@@ -226,6 +226,34 @@ export function useMultiplayerState(roomId: string) {
     room.history.resume()
     rIsPaused.current = false
   }, [room])
+
+  useHotkeys(
+    'ctrl+shift+l;,⌘+shift+l',
+    () => {
+      if (window.confirm('Reset the document?')) {
+        room.batch(() => {
+          const lShapes = rLiveShapes.current
+          const lBindings = rLiveBindings.current
+          const lAssets = rLiveAssets.current
+
+          if (!(lShapes && lBindings && lAssets)) return
+
+          lShapes.forEach((shape) => {
+            lShapes.delete(shape.id)
+          })
+
+          lBindings.forEach((shape) => {
+            lBindings.delete(shape.id)
+          })
+
+          lAssets.forEach((shape) => {
+            lAssets.delete(shape.id)
+          })
+        })
+      }
+    },
+    []
+  )
 
   return {
     onUndo,
