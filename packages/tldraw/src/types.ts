@@ -21,6 +21,7 @@ import type {
   TLShapeCloneHandler,
   TLAsset,
 } from '@tldraw/core'
+import { TDLanguage } from '~translations'
 
 /* -------------------------------------------------- */
 /*                         App                        */
@@ -75,8 +76,6 @@ export class TDEventHandler {
   onShapeBlur?: TLShapeBlurHandler
   onShapeClone?: TLShapeCloneHandler
 }
-
-export type TDLanguage = 'ar' | 'en' | 'fr' | 'it' | 'zh-cn'
 
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
