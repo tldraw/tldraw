@@ -973,10 +973,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Set or clear the editing id
    * @param id [string]
    */
-  setEditingId = (id?: string) => {
+  setEditingId = (id?: string, isCreating = false) => {
     if (this.readOnly) return
 
+    if (id) {
+      // Start a new editing session
+      this.startSession(SessionType.Edit, id, isCreating)
+    } else {
+      // If we're clearing the editing id and we don't have one, bail
+      if (!this.pageState.editingId) return
+
+      // If we're clearing the editing id and we do have one, complete the session
+      this.completeSession()
+    }
+
     this.editingStartTime = performance.now()
+
     this.patchState(
       {
         document: {
@@ -2745,22 +2757,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
     if (this.readOnly && type !== SessionType.Brush) return this
+
     if (this.session) {
       TLDR.warn(`Already in a session! (${this.session.constructor.name})`)
       this.cancelSession()
     }
 
-    const Session = getSession(type)
-
-    // @ts-ignore
+    const Session = getSession(type) as any
     this.session = new Session(this, ...args)
 
-    const result = this.session.start()
+    const result = this.session!.start()
 
     if (result) {
-      this.patchState(result, `session:start_${this.session.constructor.name}`)
-      this.callbacks.onSessionStart?.(this, this.session.constructor.name)
+      this.patchState(result, `session:start_${this.session!.constructor.name}`)
     }
+
+    this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
 
     return this
     // return this.setStatus(this.session.status)
@@ -2794,8 +2806,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:cancel:${session.constructor.name}`)
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
     }
+
+    this.setEditingId()
+
+    this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
   }
@@ -2808,6 +2823,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const { session } = this
 
     if (!session) return this
+
     this.session = undefined
     const result = session.complete()
 
@@ -2831,9 +2847,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
-
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
-      return this
     } else if ('after' in result) {
       // Session ended with a command
 
@@ -2910,6 +2923,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
+    this.callbacks.onSessionEnd?.(this, session.constructor.name)
+
     return this
   }
 
@@ -2950,7 +2965,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     )
   }
 
-  createTextShapeAtPoint(point: number[], id?: string): this {
+  createTextShapeAtPoint(point: number[], id?: string, patch?: boolean): this {
     const {
       shapes,
       appState: { currentPageId, currentStyle },
@@ -2975,8 +2990,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const bounds = Text.getBounds(newShape)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-    this.createShapes(newShape)
-    this.setEditingId(newShape.id)
+
+    if (patch) {
+      this.patchCreate([TLDR.getShapeUtil(newShape.type).create(newShape)])
+    } else {
+      this.createShapes(newShape)
+    }
+
+    this.setEditingId(newShape.id, true)
 
     return this
   }
@@ -3934,7 +3955,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onShapeChange = (shape: { id: string } & Partial<TDShape>) => {
-    this.updateShapes(shape)
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapeToUpdate = { ...(pageShapes[shape.id] as any), ...shape }
+    const patch = Commands.updateShapes(this, [shapeToUpdate], this.currentPageId).after
+    return this.patchState(patch, 'patched_shapes')
+    // this.updateShapes(shape)
   }
 
   onShapeBlur = () => {

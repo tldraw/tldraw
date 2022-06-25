@@ -44,6 +44,19 @@ export class TldrawTestApp extends TldrawApp {
     return this
   }
 
+  doubleClickCanvas = (options?: PointerOptions | number[]) => {
+    this.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.onDoubleClickCanvas(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), 'canvas'), {} as React.PointerEvent)
+    return this
+  }
+
   doubleClickShape = (id: string, options?: PointerOptions | number[]) => {
     this.onPointerDown(
       inputs.pointerDown(this.getPoint(options), 'canvas'),

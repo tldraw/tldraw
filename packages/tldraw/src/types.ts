@@ -193,6 +193,7 @@ export enum SessionType {
   Rotate = 'rotate',
   Handle = 'handle',
   Grid = 'grid',
+  Edit = 'edit',
 }
 
 export enum TDStatus {
