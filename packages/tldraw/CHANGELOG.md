@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.2
+
+### Patch Changes
+
+- Replace multiplayer icon.
+
 ## 1.17.1
 
 ### Patch Changes

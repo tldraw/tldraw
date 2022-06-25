@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.16.2
+
+### Patch Changes
+
+- Replace multiplayer icon.
+
 ## 1.16.1
 
 ### Patch Changes
