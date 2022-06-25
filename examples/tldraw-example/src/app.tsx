@@ -16,7 +16,6 @@ import Scroll from './scroll'
 import FileSystem from './file-system'
 import UIOptions from './ui-options'
 import { Multiplayer } from './multiplayer'
-import { Multiplayer as MultiplayerWithImages } from './multiplayer-with-images'
 import './styles.css'
 import Export from '~export'
 
@@ -43,11 +42,6 @@ const pages: ({ path: string; component: any; title: string } | '---')[] = [
   { path: '/export', component: Export, title: 'Export' },
   { path: '/scroll', component: Scroll, title: 'In a scrolling container' },
   { path: '/multiplayer', component: Multiplayer, title: 'Multiplayer' },
-  {
-    path: '/multiplayer-with-images',
-    component: MultiplayerWithImages,
-    title: 'Multiplayer (with images)',
-  },
 ]
 
 export default function App() {

@@ -1,5 +1,14 @@
 ## 1.2.4
 
+## 1.17.0
+
+### Minor Changes
+
+- 8ef86c19: - Updates multiplayer implementation.
+  - Adds translation guide.
+  - Fixes bug on text shape
+  - Updates undo redo for text shapes.
+
 ## 1.16.2
 
 ### Patch Changes

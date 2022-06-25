@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.18.0
+
+### Minor Changes
+
+- 8ef86c19: - Updates multiplayer implementation.
+  - Adds translation guide.
+  - Fixes bug on text shape
+  - Updates undo redo for text shapes.
+
 ## 1.17.2
 
 ### Patch Changes
