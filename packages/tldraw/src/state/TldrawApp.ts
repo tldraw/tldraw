@@ -602,6 +602,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.callbacks.onChangePresence?.(this, {
         ...this.room.users[this.room.userId],
         selectedIds: this.selectedIds,
+        session: !!this.session,
       })
       this.prevSelectedIds = this.selectedIds
     }
@@ -3729,6 +3730,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.callbacks.onChangePresence?.(this, {
         ...users[userId],
         point: this.getPagePoint(info.point),
+        session: !!this.session,
       })
     }
   }

@@ -178,6 +178,7 @@ export enum TDUserStatus {
 export interface TDUser extends TLUser<TDShape> {
   activeShapes: TDShape[]
   status: TDUserStatus
+  session?: boolean
 }
 
 export type Theme = 'dark' | 'light'

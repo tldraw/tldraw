@@ -52,6 +52,7 @@ export interface TLUser<T extends TLShape> {
   color: string
   point: number[]
   selectedIds: string[]
+  session?: boolean
 }
 
 export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
