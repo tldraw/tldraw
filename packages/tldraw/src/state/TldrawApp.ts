@@ -2772,7 +2772,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.patchState(result, `session:start_${this.session!.constructor.name}`)
     }
 
-    console.log('starting session!')
     this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
 
     return this
@@ -2811,7 +2810,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.setEditingId()
 
-    console.log('ending session!')
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
@@ -2925,7 +2923,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
-    console.log('ending session!')
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
