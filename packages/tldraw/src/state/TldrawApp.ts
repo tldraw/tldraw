@@ -171,6 +171,14 @@ export interface TDCallbacks {
    * (optional) A callback to run when the user exports their page or selection.
    */
   onExport?: (app: TldrawApp, info: TDExport) => Promise<void>
+  /**
+   * (optional) A callback to run when a session begins.
+   */
+  onSessionStart?: (app: TldrawApp, id: string) => void
+  /**
+   * (optional) A callback to run when a session ends.
+   */
+  onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
 export class TldrawApp extends StateManager<TDSnapshot> {
@@ -2711,6 +2719,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:start_${this.session.constructor.name}`)
+      this.callbacks.onSessionStart?.(this, this.session.constructor.name)
     }
 
     return this
@@ -2745,6 +2754,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:cancel:${session.constructor.name}`)
+      this.callbacks.onSessionEnd?.(this, session.constructor.name)
     }
 
     return this
@@ -2764,7 +2774,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (result === undefined) {
       this.isCreating = false
 
-      return this.patchState(
+      this.patchState(
         {
           appState: {
             status: TDStatus.Idle,
@@ -2781,6 +2791,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
+
+      this.callbacks.onSessionEnd?.(this, session.constructor.name)
+      return this
     } else if ('after' in result) {
       // Session ended with a command
 
