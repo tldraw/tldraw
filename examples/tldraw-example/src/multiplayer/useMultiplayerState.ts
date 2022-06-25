@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import type { TldrawApp, TDUser, TDShape, TDBinding } from '@tldraw/tldraw'
+import React, { useState, useRef, useCallback } from 'react'
+import type { TldrawApp, TDUser, TDShape, TDBinding, TDAsset } from '@tldraw/tldraw'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { LiveMap } from '@liveblocks/client'
 
 import { useRedo, useUndo, useRoom, useUpdateMyPresence } from './liveblocks.config'
@@ -10,22 +11,25 @@ import type { Storage } from './liveblocks.config'
 declare const window: Window & { app: TldrawApp }
 
 export function useMultiplayerState(roomId: string) {
-  const [app, setApp] = React.useState<TldrawApp>()
-  const [error, setError] = React.useState<Error>()
-  const [loading, setLoading] = React.useState(true)
+  const [app, setApp] = useState<TldrawApp>()
+  const [error, setError] = useState<Error>()
+  const [loading, setLoading] = useState(true)
 
   const room = useRoom()
   const onUndo = useUndo()
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  const rLiveShapes = React.useRef<Storage['shapes'] | undefined>()
-  const rLiveBindings = React.useRef<Storage['bindings'] | undefined>()
+  const rIsPaused = useRef(false)
+
+  const rLiveShapes = useRef<Storage['shapes']>()
+  const rLiveBindings = useRef<Storage['bindings']>()
+  const rLiveAssets = useRef<Storage['assets']>()
 
   // Callbacks --------------
 
   // Put the state into the window, for debugging.
-  const onMount = React.useCallback(
+  const onMount = useCallback(
     (app: TldrawApp) => {
       app.loadRoom(roomId)
       app.pause() // Turn off the app's own undo / redo stack
@@ -36,17 +40,19 @@ export function useMultiplayerState(roomId: string) {
   )
 
   // Update the live shapes when the app's shapes change.
-  const onChangePage = React.useCallback(
+  const onChangePage = useCallback(
     (
       app: TldrawApp,
       shapes: Record<string, TDShape | undefined>,
-      bindings: Record<string, TDBinding | undefined>
+      bindings: Record<string, TDBinding | undefined>,
+      assets: Record<string, TDAsset | undefined>
     ) => {
       room.batch(() => {
         const lShapes = rLiveShapes.current
         const lBindings = rLiveBindings.current
+        const lAssets = rLiveAssets.current
 
-        if (!(lShapes && lBindings)) return
+        if (!(lShapes && lBindings && lAssets)) return
 
         Object.entries(shapes).forEach(([id, shape]) => {
           if (!shape) {
@@ -63,13 +69,21 @@ export function useMultiplayerState(roomId: string) {
             lBindings.set(binding.id, binding)
           }
         })
+
+        Object.entries(assets).forEach(([id, asset]) => {
+          if (!asset) {
+            lAssets.delete(id)
+          } else {
+            lAssets.set(asset.id, asset)
+          }
+        })
       })
     },
     [room]
   )
 
   // Handle presence updates when the user's pointer / selection changes
-  const onChangePresence = React.useCallback(
+  const onChangePresence = useCallback(
     (app: TldrawApp, user: TDUser) => {
       updateMyPresence({ id: app.room?.userId, user })
     },
@@ -86,37 +100,23 @@ export function useMultiplayerState(roomId: string) {
 
     // Handle changes to other users' presence
     unsubs.push(
-      room.subscribe('others', (others) => {
-        app.updateUsers(
-          others
-            .toArray()
-            .filter((other) => other.presence)
-            .map((other) => other.presence!.user)
-            .filter(Boolean)
-        )
-      })
-    )
-
-    // Handle events from the room
-    unsubs.push(
-      room.subscribe('event', (e) => {
-        switch (e.event.name) {
-          case 'exit': {
-            app?.removeUser(e.event.userId)
-            break
+      room.subscribe('others', (others, event) => {
+        if (event.type === 'leave') {
+          const { presence } = event.user
+          if (presence) {
+            app?.removeUser(presence.id!)
           }
+        } else {
+          app.updateUsers(
+            others
+              .toArray()
+              .filter((other) => other.presence)
+              .map((other) => other.presence!.user)
+              .filter(Boolean)
+          )
         }
       })
     )
-
-    // Send the exit event when the tab closes
-    function handleExit() {
-      if (!(room && app?.room)) return
-      room?.broadcastEvent({ name: 'exit', userId: app.room.userId })
-    }
-
-    window.addEventListener('beforeunload', handleExit)
-    unsubs.push(() => window.removeEventListener('beforeunload', handleExit))
 
     let stillAlive = true
 
@@ -124,24 +124,31 @@ export function useMultiplayerState(roomId: string) {
     async function setupDocument() {
       const storage = await room.getStorage()
 
-      // Initialize (get or create) shapes and bindings maps
+      // Migrate previous versions
+      const version = storage.root.get('version')
+
+      // Initialize (get or create) maps for shapes/bindings/assets
 
       let lShapes = storage.root.get('shapes')
-      if (!lShapes) {
+      if (!lShapes || !('_serialize' in lShapes)) {
         storage.root.set('shapes', new LiveMap())
         lShapes = storage.root.get('shapes')
       }
       rLiveShapes.current = lShapes
 
       let lBindings = storage.root.get('bindings')
-      if (!lBindings) {
+      if (!lBindings || !('_serialize' in lBindings)) {
         storage.root.set('bindings', new LiveMap())
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
 
-      // Migrate previous versions
-      const version = storage.root.get('version')
+      let lAssets = storage.root.get('assets')
+      if (!lAssets || !('_serialize' in lAssets)) {
+        storage.root.set('assets', new LiveMap())
+        lAssets = storage.root.get('assets')
+      }
+      rLiveAssets.current = lAssets
 
       if (!version) {
         // The doc object will only be present if the document was created
@@ -158,23 +165,25 @@ export function useMultiplayerState(roomId: string) {
               pages: {
                 page: { shapes, bindings },
               },
+              assets,
             },
           } = doc.toObject()
 
           Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
           Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
+          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset))
         }
       }
 
       // Save the version number for future migrations
-      storage.root.set('version', 2)
+      storage.root.set('version', 2.1)
 
       // Subscribe to changes
       const handleChanges = () => {
         app?.replacePageContent(
           Object.fromEntries(lShapes.entries()),
           Object.fromEntries(lBindings.entries()),
-          {}
+          Object.fromEntries(lAssets.entries())
         )
       }
 
@@ -183,6 +192,15 @@ export function useMultiplayerState(roomId: string) {
 
         // Update the document with initial content
         handleChanges()
+
+        // Zoom to fit the content
+        if (app) {
+          app.zoomToFit()
+          if (app.zoom > 1) {
+            app.resetZoom()
+          }
+        }
+
         setLoading(false)
       }
     }
@@ -193,12 +211,54 @@ export function useMultiplayerState(roomId: string) {
       stillAlive = false
       unsubs.forEach((unsub) => unsub())
     }
-  }, [app, room])
+  }, [room, app])
+
+  const onSessionStart = React.useCallback(() => {
+    if (!room) return
+    room.history.pause()
+    rIsPaused.current = true
+  }, [room])
+
+  const onSessionEnd = React.useCallback(() => {
+    if (!room) return
+    room.history.resume()
+    rIsPaused.current = false
+  }, [room])
+
+  useHotkeys(
+    'ctrl+shift+l;,⌘+shift+l',
+    () => {
+      if (window.confirm('Reset the document?')) {
+        room.batch(() => {
+          const lShapes = rLiveShapes.current
+          const lBindings = rLiveBindings.current
+          const lAssets = rLiveAssets.current
+
+          if (!(lShapes && lBindings && lAssets)) return
+
+          lShapes.forEach((shape) => {
+            lShapes.delete(shape.id)
+          })
+
+          lBindings.forEach((shape) => {
+            lBindings.delete(shape.id)
+          })
+
+          lAssets.forEach((shape) => {
+            lAssets.delete(shape.id)
+          })
+        })
+      }
+    },
+    []
+  )
 
   return {
     onUndo,
     onRedo,
     onMount,
+    onSessionStart,
+    onSessionEnd,
     onChangePage,
     onChangePresence,
     error,

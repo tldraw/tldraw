@@ -2,14 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import React, { useState, useRef, useCallback } from 'react'
 import type { TldrawApp, TDUser, TDShape, TDBinding, TDAsset } from '@tldraw/tldraw'
-import {
-  Storage,
-  useRedo,
-  useUndo,
-  useRoom,
-  useHistory,
-  useUpdateMyPresence,
-} from '../utils/liveblocks'
+import { Storage, useRedo, useUndo, useRoom, useUpdateMyPresence } from '../utils/liveblocks'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { LiveMap } from '@liveblocks/client'
 
