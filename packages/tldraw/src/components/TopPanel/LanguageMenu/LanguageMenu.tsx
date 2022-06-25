@@ -2,27 +2,15 @@ import * as React from 'react'
 import { useIntl } from 'react-intl'
 import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import { TDLanguage, TDSnapshot } from '~types'
+import { TDLanguage, TRANSLATIONS } from '~translations'
+import { TDSnapshot } from '~types'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
-
-type ILang = {
-  label: string
-  code: TDLanguage
-}
 
 export function LanguageMenu() {
   const app = useTldrawApp()
   const setting = app.useStore(settingsSelector)
   const intl = useIntl()
-
-  const languages: ILang[] = [
-    { label: 'عربي', code: 'ar' },
-    { label: 'English', code: 'en' },
-    { label: 'Français', code: 'fr' },
-    { label: 'Italiano', code: 'it' },
-    { label: 'Chinese - Simplified', code: 'zh-cn' },
-  ]
 
   const handleChangeLanguage = React.useCallback(
     (code: TDLanguage) => {
@@ -33,14 +21,14 @@ export function LanguageMenu() {
 
   return (
     <DMSubMenu label={intl.formatMessage({ id: 'language' })}>
-      {languages.map((language) => (
+      {TRANSLATIONS.map(({ code, label }) => (
         <DMCheckboxItem
-          key={language.code}
-          checked={setting.language === language.code}
-          onCheckedChange={() => handleChangeLanguage(language.code)}
-          id={`TD-MenuItem-Language-${language}`}
+          key={code}
+          checked={setting.language === code}
+          onCheckedChange={() => handleChangeLanguage(code)}
+          id={`TD-MenuItem-Language-${code}`}
         >
-          {language.label}
+          {label}
         </DMCheckboxItem>
       ))}
     </DMSubMenu>

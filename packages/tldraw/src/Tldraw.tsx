@@ -15,12 +15,7 @@ import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { ErrorFallback } from '~components/ErrorFallback'
-
-import messages_ar from './translations/ar.json'
-import messages_en from './translations/en.json'
-import messages_fr from './translations/fr.json'
-import messages_it from './translations/it.json'
-import messages_zh_cn from './translations/zh-cn.json'
+import { TRANSLATIONS } from './translations'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -441,21 +436,14 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideCloneHandles =
     isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
 
-  const messages = {
-    ar: messages_ar,
-    en: messages_en,
-    fr: messages_fr,
-    it: messages_it,
-    'zh-cn': messages_zh_cn,
-  }
-
   const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
 
+  const language =
+    TRANSLATIONS.find((t) => t.code === defaultLanguage) ??
+    TRANSLATIONS.find((t) => t.code === 'en')!
+
   return (
-    <IntlProvider
-      locale={defaultLanguage}
-      messages={messages[defaultLanguage] as IntlConfig['messages']}
-    >
+    <IntlProvider locale={defaultLanguage} messages={language.messages as IntlConfig['messages']}>
       <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
         <Loading />
         <OneOff focusableRef={rWrapper} autofocus={autofocus} />
