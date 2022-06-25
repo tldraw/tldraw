@@ -41,6 +41,7 @@ import {
   TDExport,
   ArrowShape,
   TDExportType,
+  TldrawPatch,
 } from '~types'
 import {
   migrate,
@@ -125,11 +126,11 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the state is patched.
    */
-  onPatch?: (app: TldrawApp, reason?: string) => void
+  onPatch?: (app: TldrawApp, patch: TldrawPatch, reason?: string) => void
   /**
    * (optional) A callback to run when the state is changed with a command.
    */
-  onCommand?: (app: TldrawApp, reason?: string) => void
+  onCommand?: (app: TldrawApp, command: TldrawCommand, reason?: string) => void
   /**
    * (optional) A callback to run when the state is persisted.
    */
@@ -149,7 +150,8 @@ export interface TDCallbacks {
     app: TldrawApp,
     shapes: Record<string, TDShape | undefined>,
     bindings: Record<string, TDBinding | undefined>,
-    assets: Record<string, TDAsset | undefined>
+    assets: Record<string, TDAsset | undefined>,
+    addToHistory: boolean
   ) => void
   /**
    * (optional) A callback to run when the user creates a new project.
@@ -510,14 +512,58 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return next
   }
 
-  onPatch = (app: TDSnapshot, id?: string) => {
-    this.callbacks.onPatch?.(this, id)
+  private broadcastPatch = (patch: TldrawPatch, addToHistory: boolean) => {
+    const changedShapes: Record<string, TDShape | undefined> = {}
+    const changedBindings: Record<string, TDBinding | undefined> = {}
+    const changedAssets: Record<string, TDAsset | undefined> = {}
+
+    const shapes = patch?.document?.pages?.[this.currentPageId]?.shapes
+    const bindings = patch?.document?.pages?.[this.currentPageId]?.bindings
+    const assets = patch?.document?.assets
+
+    if (shapes) {
+      Object.keys(shapes).forEach((id) => {
+        changedShapes[id!] = this.getShape(id, this.currentPageId)
+      })
+    }
+
+    if (bindings) {
+      Object.keys(bindings).forEach((id) => {
+        changedBindings[id] = this.getBinding(id, this.currentPageId)
+      })
+    }
+
+    if (assets) {
+      Object.keys(assets).forEach((id) => {
+        changedAssets[id] = this.document.assets[id]
+      })
+    }
+
+    this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets, addToHistory)
   }
 
-  onCommand = (app: TDSnapshot, id?: string) => {
+  onPatch = (state: TDSnapshot, patch: TldrawPatch, id?: string) => {
+    if (
+      (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
+      patch?.document?.assets
+    ) {
+      if (
+        this.session &&
+        this.session.type !== SessionType.Brush &&
+        this.session.type !== SessionType.Erase &&
+        this.session.type !== SessionType.Draw
+      ) {
+        this.broadcastPatch(patch, false)
+      }
+    }
+
+    this.callbacks.onPatch?.(this, patch, id)
+  }
+
+  onCommand = (state: TDSnapshot, command: TldrawCommand, id?: string) => {
     this.clearSelectHistory()
     this.isDirty = true
-    this.callbacks.onCommand?.(this, id)
+    this.callbacks.onCommand?.(this, command, id)
   }
 
   onReplace = () => {
@@ -535,12 +581,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.callbacks.onRedo?.(this)
   }
 
-  onPersist = () => {
+  onPersist = (state: TDSnapshot, patch: TldrawPatch) => {
     // If we are part of a room, send our changes to the server
-    if (this.callbacks.onChangePage) {
-      this.broadcastPageChanges()
-    }
+
     this.callbacks.onPersist?.(this)
+    this.broadcastPatch(patch, true)
   }
 
   private prevSelectedIds = this.selectedIds
@@ -550,13 +595,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param state
    * @param id
    */
-  protected onStateDidChange = (_app: TDSnapshot, id?: string): void => {
+  protected onStateDidChange = (_state: TDSnapshot, id?: string): void => {
     this.callbacks.onChange?.(this, id)
 
     if (this.room && this.selectedIds !== this.prevSelectedIds) {
       this.callbacks.onChangePresence?.(this, {
         ...this.room.users[this.room.userId],
         selectedIds: this.selectedIds,
+        session: !!this.session,
       })
       this.prevSelectedIds = this.selectedIds
     }
@@ -569,69 +615,69 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   private prevBindings = this.page.bindings
   private prevAssets = this.document.assets
 
-  private broadcastPageChanges = () => {
-    const visited = new Set<string>()
+  // private broadcastPageChanges = () => {
+  //   const visited = new Set<string>()
 
-    const changedShapes: Record<string, TDShape | undefined> = {}
-    const changedBindings: Record<string, TDBinding | undefined> = {}
-    const changedAssets: Record<string, TDAsset | undefined> = {}
+  //   const changedShapes: Record<string, TDShape | undefined> = {}
+  //   const changedBindings: Record<string, TDBinding | undefined> = {}
+  //   const changedAssets: Record<string, TDAsset | undefined> = {}
 
-    this.shapes.forEach((shape) => {
-      visited.add(shape.id)
-      if (this.prevShapes[shape.id] !== shape) {
-        changedShapes[shape.id] = shape
-      }
-    })
+  //   this.shapes.forEach((shape) => {
+  //     visited.add(shape.id)
+  //     if (this.prevShapes[shape.id] !== shape) {
+  //       changedShapes[shape.id] = shape
+  //     }
+  //   })
 
-    Object.keys(this.prevShapes)
-      .filter((id) => !visited.has(id))
-      .forEach((id) => {
-        // After visiting all the current shapes, if we haven't visited a
-        // previously present shape, then it was deleted
-        changedShapes[id] = undefined
-      })
+  //   Object.keys(this.prevShapes)
+  //     .filter((id) => !visited.has(id))
+  //     .forEach((id) => {
+  //       // After visiting all the current shapes, if we haven't visited a
+  //       // previously present shape, then it was deleted
+  //       changedShapes[id] = undefined
+  //     })
 
-    this.bindings.forEach((binding) => {
-      visited.add(binding.id)
-      if (this.prevBindings[binding.id] !== binding) {
-        changedBindings[binding.id] = binding
-      }
-    })
+  //   this.bindings.forEach((binding) => {
+  //     visited.add(binding.id)
+  //     if (this.prevBindings[binding.id] !== binding) {
+  //       changedBindings[binding.id] = binding
+  //     }
+  //   })
 
-    Object.keys(this.prevBindings)
-      .filter((id) => !visited.has(id))
-      .forEach((id) => {
-        // After visiting all the current bindings, if we haven't visited a
-        // previously present shape, then it was deleted
-        changedBindings[id] = undefined
-      })
+  //   Object.keys(this.prevBindings)
+  //     .filter((id) => !visited.has(id))
+  //     .forEach((id) => {
+  //       // After visiting all the current bindings, if we haven't visited a
+  //       // previously present shape, then it was deleted
+  //       changedBindings[id] = undefined
+  //     })
 
-    this.assets.forEach((asset) => {
-      visited.add(asset.id)
-      if (this.prevAssets[asset.id] !== asset) {
-        changedAssets[asset.id] = asset
-      }
-    })
+  //   this.assets.forEach((asset) => {
+  //     visited.add(asset.id)
+  //     if (this.prevAssets[asset.id] !== asset) {
+  //       changedAssets[asset.id] = asset
+  //     }
+  //   })
 
-    Object.keys(this.prevAssets)
-      .filter((id) => !visited.has(id))
-      .forEach((id) => {
-        changedAssets[id] = undefined
-      })
+  //   Object.keys(this.prevAssets)
+  //     .filter((id) => !visited.has(id))
+  //     .forEach((id) => {
+  //       changedAssets[id] = undefined
+  //     })
 
-    // Only trigger update if shapes or bindings have changed
-    if (
-      Object.keys(changedBindings).length > 0 ||
-      Object.keys(changedShapes).length > 0 ||
-      Object.keys(changedAssets).length > 0
-    ) {
-      this.justSent = true
-      this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets)
-      this.prevShapes = this.page.shapes
-      this.prevBindings = this.page.bindings
-      this.prevAssets = this.document.assets
-    }
-  }
+  //   // Only trigger update if shapes or bindings have changed
+  //   if (
+  //     Object.keys(changedBindings).length > 0 ||
+  //     Object.keys(changedShapes).length > 0 ||
+  //     Object.keys(changedAssets).length > 0
+  //   ) {
+  //     this.justSent = true
+  //     this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets,)
+  //     this.prevShapes = this.page.shapes
+  //     this.prevBindings = this.page.bindings
+  //     this.prevAssets = this.document.assets
+  //   }
+  // }
 
   getReservedContent = (coreReservedIds: string[], pageId = this.currentPageId) => {
     const { bindings } = this.document.pages[pageId]
@@ -928,10 +974,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Set or clear the editing id
    * @param id [string]
    */
-  setEditingId = (id?: string) => {
+  setEditingId = (id?: string, isCreating = false) => {
     if (this.readOnly) return
 
+    if (id) {
+      // Start a new editing session
+      this.startSession(SessionType.Edit, id, isCreating)
+    } else {
+      // If we're clearing the editing id and we don't have one, bail
+      if (!this.pageState.editingId) return
+
+      // If we're clearing the editing id and we do have one, complete the session
+      this.completeSession()
+    }
+
     this.editingStartTime = performance.now()
+
     this.patchState(
       {
         document: {
@@ -978,15 +1036,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   ): this => {
     if (this.session) return this
 
-    this.patchState(
-      {
-        settings: {
-          [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
-        },
+    const patch = {
+      settings: {
+        [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
       },
-      `settings:${name}`
-    )
-    this.persist()
+    }
+
+    this.patchState(patch, `settings:${name}`)
+
+    this.persist(patch)
     return this
   }
 
@@ -995,15 +1053,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleFocusMode = (): this => {
     if (this.session) return this
-    this.patchState(
-      {
-        settings: {
-          isFocusMode: !this.settings.isFocusMode,
-        },
+    const patch = {
+      settings: {
+        isFocusMode: !this.settings.isFocusMode,
       },
-      `settings:toggled_focus_mode`
-    )
-    this.persist()
+    }
+
+    this.patchState(patch, `settings:toggled_focus_mode`)
+
+    this.persist(patch)
     return this
   }
 
@@ -1012,15 +1070,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   togglePenMode = (): this => {
     if (this.session) return this
-    this.patchState(
-      {
-        settings: {
-          isPenMode: !this.settings.isPenMode,
-        },
+    const patch = {
+      settings: {
+        isPenMode: !this.settings.isPenMode,
       },
-      `settings:toggled_pen_mode`
-    )
-    this.persist()
+    }
+    this.patchState(patch, `settings:toggled_pen_mode`)
+    this.persist(patch)
     return this
   }
 
@@ -1029,11 +1085,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleDarkMode = (): this => {
     if (this.session) return this
-    this.patchState(
-      { settings: { isDarkMode: !this.settings.isDarkMode } },
-      `settings:toggled_dark_mode`
-    )
-    this.persist()
+    const patch = { settings: { isDarkMode: !this.settings.isDarkMode } }
+    this.patchState(patch, `settings:toggled_dark_mode`)
+    this.persist(patch)
     return this
   }
 
@@ -1042,11 +1096,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleZoomSnap = () => {
     if (this.session) return this
-    this.patchState(
-      { settings: { isZoomSnap: !this.settings.isZoomSnap } },
-      `settings:toggled_zoom_snap`
-    )
-    this.persist()
+    const patch = { settings: { isZoomSnap: !this.settings.isZoomSnap } }
+    this.patchState(patch, `settings:toggled_zoom_snap`)
+    this.persist(patch)
     return this
   }
 
@@ -1055,11 +1107,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleDebugMode = () => {
     if (this.session) return this
-    this.patchState(
-      { settings: { isDebugMode: !this.settings.isDebugMode } },
-      `settings:toggled_debug`
-    )
-    this.persist()
+    const patch = { settings: { isDebugMode: !this.settings.isDebugMode } }
+    this.patchState(patch, `settings:toggled_debug`)
+    this.persist(patch)
     return this
   }
 
@@ -1067,8 +1117,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Toggles the state if menu is opened
    */
   setMenuOpen = (isOpen: boolean): this => {
-    this.patchState({ appState: { isMenuOpen: isOpen } }, 'ui:toggled_menu_opened')
-    this.persist()
+    const patch = { appState: { isMenuOpen: isOpen } }
+    this.patchState(patch, 'ui:toggled_menu_opened')
+    this.persist(patch)
     return this
   }
 
@@ -1076,8 +1127,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Toggles the state if something is loading
    */
   setIsLoading = (isLoading: boolean): this => {
-    this.patchState({ appState: { isLoading } }, 'ui:toggled_is_loading')
-    this.persist()
+    const patch = { appState: { isLoading } }
+    this.patchState(patch, 'ui:toggled_is_loading')
+    this.persist(patch)
     return this
   }
 
@@ -1103,8 +1155,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleGrid = (): this => {
     if (this.session) return this
-    this.patchState({ settings: { showGrid: !this.settings.showGrid } }, 'settings:toggled_grid')
-    this.persist()
+    const patch = { settings: { showGrid: !this.settings.showGrid } }
+    this.patchState(patch, 'settings:toggled_grid')
+    this.persist(patch)
     return this
   }
 
@@ -1175,7 +1228,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.resetHistory()
       .clearSelectHistory()
       .loadDocument(migrate(TldrawApp.defaultDocument, TldrawApp.version))
-      .persist()
+      .persist({})
 
     return this
   }
@@ -1420,7 +1473,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.fileSystemHandle
       )
       this.fileSystemHandle = fileHandle
-      this.persist()
+      this.persist({})
       this.isDirty = false
     } catch (e: any) {
       // Likely cancelled
@@ -1436,7 +1489,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     try {
       const fileHandle = await saveToFileSystem(this.document, null)
       this.fileSystemHandle = fileHandle
-      this.persist()
+      this.persist({})
       this.isDirty = false
     } catch (e: any) {
       // Likely cancelled
@@ -1462,11 +1515,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.loadDocument(document)
       this.fileSystemHandle = fileHandle
       this.zoomToFit()
-      this.persist()
+      this.persist({})
     } catch (e) {
       console.error(e)
     } finally {
-      this.persist()
+      this.persist({})
     }
   }
 
@@ -1482,7 +1535,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       } catch (e) {
         console.error(e)
       } finally {
-        this.persist()
+        this.persist({})
       }
   }
 
@@ -2700,27 +2753,27 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Start a new session.
-   * @param session The new session
+   * @param type The session type
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
     if (this.readOnly && type !== SessionType.Brush) return this
+
     if (this.session) {
       TLDR.warn(`Already in a session! (${this.session.constructor.name})`)
       this.cancelSession()
     }
 
-    const Session = getSession(type)
-
-    // @ts-ignore
+    const Session = getSession(type) as any
     this.session = new Session(this, ...args)
 
-    const result = this.session.start()
+    const result = this.session!.start()
 
     if (result) {
-      this.patchState(result, `session:start_${this.session.constructor.name}`)
-      this.callbacks.onSessionStart?.(this, this.session.constructor.name)
+      this.patchState(result, `session:start_${this.session!.constructor.name}`)
     }
+
+    this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
 
     return this
     // return this.setStatus(this.session.status)
@@ -2754,8 +2807,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:cancel:${session.constructor.name}`)
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
     }
+
+    this.setEditingId()
+
+    this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
     return this
   }
@@ -2768,6 +2824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const { session } = this
 
     if (!session) return this
+
     this.session = undefined
     const result = session.complete()
 
@@ -2791,9 +2848,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
-
-      this.callbacks.onSessionEnd?.(this, session.constructor.name)
-      return this
     } else if ('after' in result) {
       // Session ended with a command
 
@@ -2870,6 +2924,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       )
     }
 
+    this.callbacks.onSessionEnd?.(this, session.constructor.name)
+
     return this
   }
 
@@ -2910,7 +2966,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     )
   }
 
-  createTextShapeAtPoint(point: number[], id?: string): this {
+  createTextShapeAtPoint(point: number[], id?: string, patch?: boolean): this {
     const {
       shapes,
       appState: { currentPageId, currentStyle },
@@ -2935,8 +2991,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const bounds = Text.getBounds(newShape)
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-    this.createShapes(newShape)
-    this.setEditingId(newShape.id)
+
+    if (patch) {
+      this.patchCreate([TLDR.getShapeUtil(newShape.type).create(newShape)])
+    } else {
+      this.createShapes(newShape)
+    }
+
+    this.setEditingId(newShape.id, true)
 
     return this
   }
@@ -3668,6 +3730,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.callbacks.onChangePresence?.(this, {
         ...users[userId],
         point: this.getPagePoint(info.point),
+        session: !!this.session,
       })
     }
   }
@@ -3894,7 +3957,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onShapeChange = (shape: { id: string } & Partial<TDShape>) => {
-    this.updateShapes(shape)
+    const pageShapes = this.document.pages[this.currentPageId].shapes
+    const shapeToUpdate = { ...(pageShapes[shape.id] as any), ...shape }
+    const patch = Commands.updateShapes(this, [shapeToUpdate], this.currentPageId).after
+    return this.patchState(patch, 'patched_shapes')
+    // this.updateShapes(shape)
   }
 
   onShapeBlur = () => {

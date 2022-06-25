@@ -92,6 +92,17 @@ export class BrushSession extends BaseSession {
 
     const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
+    if (!didChange)
+      return {
+        document: {
+          pageStates: {
+            [this.app.currentPageId]: {
+              brush,
+            },
+          },
+        },
+      }
+
     return {
       appState: {
         selectByContain,

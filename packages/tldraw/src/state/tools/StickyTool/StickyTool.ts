@@ -50,7 +50,7 @@ export class StickyTool extends BaseTool {
 
       newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
 
-      this.app.createShapes(newShape)
+      this.app.patchCreate([newShape])
 
       this.app.startSession(SessionType.Translate)
 

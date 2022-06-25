@@ -18,23 +18,22 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@sentry/webpack-plugin": "^1.17.1",
-    "@types/next-auth": "^3.15.0",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "eslint": "^8.8.0",
-    "eslint-config-next": "^12.0.10",
-    "typescript": "^4.7.3",
-    "@liveblocks/client": "^0.16.17",
-    "@liveblocks/react": "^0.16.17",
+    "@liveblocks/client": "^0.17.0-beta2",
+    "@liveblocks/react": "^0.17.0-beta2",
     "@sentry/integrations": "^6.13.2",
     "@sentry/node": "^6.13.2",
     "@sentry/react": "^6.13.2",
     "@sentry/tracing": "^6.13.2",
+    "@sentry/webpack-plugin": "^1.17.1",
     "@stitches/react": "^1.2.8",
     "@tldraw/core": "*",
     "@tldraw/tldraw": "*",
+    "@types/next-auth": "^3.15.0",
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
     "aws-sdk": "^2.1053.0",
+    "eslint": "^8.8.0",
+    "eslint-config-next": "^12.0.10",
     "lz-string": "^1.4.4",
     "nanoid": "^3.3.4",
     "next": "^12.1.6",
@@ -42,7 +41,12 @@
     "next-pwa": "^5.5.4",
     "next-themes": "^0.0.15",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react-dom": "^18.1.0",
+    "react-hotkeys-hook": "^3.4.6",
+    "typescript": "^4.7.3"
   },
-  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2"
+  "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2",
+  "devDependencies": {
+    "next-transpile-modules": "^9.0.0"
+  }
 }

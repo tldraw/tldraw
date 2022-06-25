@@ -1,28 +1,20 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import { TDShape, Tldraw } from '@tldraw/tldraw'
-import { createClient } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
+import { Tldraw } from '@tldraw/tldraw'
+import { RoomProvider } from './liveblocks.config'
 import { useMultiplayerState } from './useMultiplayerState'
 // import { initializeApp } from 'firebase/app'
 // import firebaseConfig from '../firebase.config'
 // import { useMemo } from 'react'
 // import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 
-const client = createClient({
-  publicApiKey: process.env.LIVEBLOCKS_PUBLIC_API_KEY || '',
-  throttle: 100,
-})
-
 const roomId = 'mp-test-images-1'
 
 export function Multiplayer() {
   return (
-    <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId}>
-        <Editor roomId={roomId} />
-      </RoomProvider>
-    </LiveblocksProvider>
+    <RoomProvider id={roomId}>
+      <Editor roomId={roomId} />
+    </RoomProvider>
   )
 }
 

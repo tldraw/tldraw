@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument } from '@tldraw/tldraw'
-import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
-import { LiveMap, LiveObject } from '@liveblocks/client'
+import type { TldrawApp, TDUser, TDShape, TDBinding } from '@tldraw/tldraw'
+import { LiveMap } from '@liveblocks/client'
+
+import { useRedo, useUndo, useRoom, useUpdateMyPresence } from './liveblocks.config'
+import type { Storage } from './liveblocks.config'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -17,8 +19,8 @@ export function useMultiplayerState(roomId: string) {
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  const rLiveShapes = React.useRef<LiveMap<string, TDShape>>()
-  const rLiveBindings = React.useRef<LiveMap<string, TDBinding>>()
+  const rLiveShapes = React.useRef<Storage['shapes'] | undefined>()
+  const rLiveBindings = React.useRef<Storage['bindings'] | undefined>()
 
   // Callbacks --------------
 
@@ -97,17 +99,14 @@ export function useMultiplayerState(roomId: string) {
 
     // Handle events from the room
     unsubs.push(
-      room.subscribe(
-        'event',
-        (e: { connectionId: number; event: { name: string; userId: string } }) => {
-          switch (e.event.name) {
-            case 'exit': {
-              app?.removeUser(e.event.userId)
-              break
-            }
+      room.subscribe('event', (e) => {
+        switch (e.event.name) {
+          case 'exit': {
+            app?.removeUser(e.event.userId)
+            break
           }
         }
-      )
+      })
     )
 
     // Send the exit event when the tab closes
@@ -123,20 +122,20 @@ export function useMultiplayerState(roomId: string) {
 
     // Setup the document's storage and subscriptions
     async function setupDocument() {
-      const storage = await room.getStorage<any>()
+      const storage = await room.getStorage()
 
       // Initialize (get or create) shapes and bindings maps
 
-      let lShapes: LiveMap<string, TDShape> = storage.root.get('shapes')
+      let lShapes = storage.root.get('shapes')
       if (!lShapes) {
-        storage.root.set('shapes', new LiveMap<string, TDShape>())
+        storage.root.set('shapes', new LiveMap())
         lShapes = storage.root.get('shapes')
       }
       rLiveShapes.current = lShapes
 
-      let lBindings: LiveMap<string, TDBinding> = storage.root.get('bindings')
+      let lBindings = storage.root.get('bindings')
       if (!lBindings) {
-        storage.root.set('bindings', new LiveMap<string, TDBinding>())
+        storage.root.set('bindings', new LiveMap())
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
@@ -150,11 +149,7 @@ export function useMultiplayerState(roomId: string) {
         // document was a single LiveObject named 'doc'. If we find a doc,
         // then we need to move the shapes and bindings over to the new structures
         // and then mark the doc as migrated.
-        const doc = storage.root.get('doc') as LiveObject<{
-          uuid: string
-          document: TDDocument
-          migrated?: boolean
-        }>
+        const doc = storage.root.get('doc')
 
         // No doc? No problem. This was likely a newer document
         if (doc) {
@@ -198,7 +193,7 @@ export function useMultiplayerState(roomId: string) {
       stillAlive = false
       unsubs.forEach((unsub) => unsub())
     }
-  }, [app])
+  }, [app, room])
 
   return {
     onUndo,

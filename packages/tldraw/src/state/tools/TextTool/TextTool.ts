@@ -39,7 +39,11 @@ export class TextTool extends BaseTool {
         settings: { showGrid },
       } = this.app
 
-      this.app.createTextShapeAtPoint(showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint)
+      this.app.createTextShapeAtPoint(
+        showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
+        undefined,
+        true
+      )
       this.setStatus(Status.Creating)
       return
     }
@@ -60,7 +64,7 @@ export class TextTool extends BaseTool {
   }
 
   onShapeBlur = () => {
-      if (this.app.readOnly) return
+    if (this.app.readOnly) return
     this.stopEditingShape()
   }
 }

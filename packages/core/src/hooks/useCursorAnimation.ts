@@ -13,7 +13,7 @@ type Animation = {
   duration: number
 }
 
-export function useCursorAnimation(ref: any, point: number[]) {
+export function useCursorAnimation(ref: any, point: number[], skip = false) {
   const rState = React.useRef<AnimationState>('idle')
   const rPrevPoint = React.useRef(point)
   const rQueue = React.useRef<Animation[]>([])
@@ -22,9 +22,19 @@ export function useCursorAnimation(ref: any, point: number[]) {
   const rTimeoutId = React.useRef<any>(0)
   const [spline] = React.useState(() => new Spline())
 
-  // Animate an animation
-  const animateNext = React.useCallback(
-    (animation: Animation) => {
+  // When the point changes, add a new animation
+  React.useLayoutEffect(() => {
+    if (skip) {
+      const elm = ref.current
+      if (!elm) return
+
+      rState.current = 'stopped'
+      rPrevPoint.current = point
+      elm.style.setProperty('transform', `translate(${point[0]}px, ${point[1]}px)`)
+      return
+    }
+
+    const animateNext = (animation: Animation) => {
       const start = performance.now()
       function loop() {
         const t = (performance.now() - start) / animation.duration
@@ -50,19 +60,18 @@ export function useCursorAnimation(ref: any, point: number[]) {
         }
       }
       loop()
-    },
-    [spline]
-  )
+    }
 
-  // When the point changes, add a new animation
-  React.useLayoutEffect(() => {
     const now = performance.now()
+
     if (rState.current === 'stopped') {
       rTimestamp.current = now
       rPrevPoint.current = point
       spline.clear()
     }
+
     spline.addPoint(point)
+
     const animation: Animation = {
       distance: spline.totalLength,
       curve: spline.points.length > 3,
@@ -72,8 +81,9 @@ export function useCursorAnimation(ref: any, point: number[]) {
       timeStamp: now,
       duration: Math.min(now - rTimestamp.current, 300),
     }
-    rPrevPoint.current = point
+
     rTimestamp.current = now
+
     switch (rState.current) {
       case 'stopped': {
         rPrevPoint.current = point
@@ -86,12 +96,21 @@ export function useCursorAnimation(ref: any, point: number[]) {
         break
       }
       case 'animating': {
+        rPrevPoint.current = point
         rQueue.current.push(animation)
         break
       }
     }
     return () => clearTimeout(rTimeoutId.current)
-  }, [point, spline])
+  }, [skip, point, spline])
+
+  // React.useLayoutEffect(() => {
+  //   const cursor = rCursor.current
+  //   if (!cursor) return
+
+  //   const [x, y] = user.point
+  //   cursor.style.transform = `translate(${x}px, ${y}px)`
+  // }, [skip, point])
 }
 
 class Spline {
@@ -126,6 +145,11 @@ class Spline {
       q2 = 3 * ttt - 5 * tt + 2,
       q3 = -3 * ttt + 4 * tt + t,
       q4 = ttt - tt
+
+    if (!(points[p0] && points[p1] && points[p2] && points[p3])) {
+      return [0, 0]
+    }
+
     return [
       0.5 * (points[p0][0] * q1 + points[p1][0] * q2 + points[p2][0] * q3 + points[p3][0] * q4),
       0.5 * (points[p0][1] * q1 + points[p1][1] * q2 + points[p2][1] * q3 + points[p3][1] * q4),

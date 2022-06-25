@@ -1863,25 +1863,15 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
-"@liveblocks/client@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.14.0.tgz#2a5f7bd243d3aea7b95cf62737e49dc13df1b69b"
-  integrity sha512-I1nykCqYSpuBQhP1kZplYqL6L0+C1JocW01UKgPz+tthOOGdTdsNBHPcMigxou4vsOQutUuEJUcaDsd1or4A+Q==
+"@liveblocks/client@^0.17.0-beta2":
+  version "0.17.0-beta2"
+  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.17.0-beta2.tgz#0cd14dd29350a29765bfa41c5d7a2185010ab791"
+  integrity sha512-V8LOv6BIDQvLl2LLcdDWIK6Ow3hMSpmIYk5T+NbNC34MM04bdhBU3C4EHg4qRnTPtOxm4NylRiVbNDwfwmMNjw==
 
-"@liveblocks/client@^0.16.17":
-  version "0.16.17"
-  resolved "https://registry.yarnpkg.com/@liveblocks/client/-/client-0.16.17.tgz#38f8392d7baaf20b34237d06fe3cb53586cea8f0"
-  integrity sha512-mWX/EGQNoWwzkEdUfdt82w9OMA5kKV3BraBt2YhZO4Zn04mfNmcOkr7V4S+EmJ4LyQ5QVNKYvA4gJQU1ahn5mQ==
-
-"@liveblocks/react@^0.14.0":
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.14.0.tgz#1a29ff10e88ea04d029f553f8b14a6cff4584f70"
-  integrity sha512-KGuEEmifh3A9OEHTYaR3+yxIQOhdAQG59d0eOqKbyV/I0X6IoX4kAtXZjnZllrWrTwnnSY2aPFESthtt19t6EQ==
-
-"@liveblocks/react@^0.16.17":
-  version "0.16.17"
-  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.16.17.tgz#e3d5c591ad284f84cf5689ad2b8f4d0d0e1ef1ba"
-  integrity sha512-I0WvNI+X/I+ymbVF/+W4GOCaZnsaqje01Mp9BGt7u7joL1ZNBQuva1zWPINE6pNWTk75y/pmG4o56YoC+ek4FQ==
+"@liveblocks/react@^0.17.0-beta2":
+  version "0.17.0-beta2"
+  resolved "https://registry.yarnpkg.com/@liveblocks/react/-/react-0.17.0-beta2.tgz#e148f9c1eb03a40db350ca2ccef180248e6d3afc"
+  integrity sha512-g7XSias4M2nl6eao8JxS5ynyjTvkV4FF8PavvAd9aO5sLz++1qrPW0XCXq2jle2sOyM9act/nMX35FedXvXPFA==
 
 "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.1"
@@ -5411,6 +5401,14 @@ enhanced-resolve@^5.0.0:
     graceful-fs "^4.2.4"
     tapable "^2.2.0"
 
+enhanced-resolve@^5.7.0:
+  version "5.9.3"
+  resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.9.3.tgz#44a342c012cbc473254af5cc6ae20ebd0aae5d88"
+  integrity sha512-Bq9VSor+kjvW3f9/MiiR4eE3XYgOl7/rS8lnSxbRbF3kS0B2r+Y9w5krBWxZgDxASVZbdYrn5wT4j/Wb0J9qow==
+  dependencies:
+    graceful-fs "^4.2.4"
+    tapable "^2.2.0"
+
 enhanced-resolve@^5.8.3:
   version "5.9.0"
   resolved "https://registry.yarnpkg.com/enhanced-resolve/-/enhanced-resolve-5.9.0.tgz#49ac24953ac8452ed8fed2ef1340fc8e043667ee"
@@ -6768,6 +6766,11 @@ hotkeys-js@3.8.7:
   version "3.8.7"
   resolved "https://registry.yarnpkg.com/hotkeys-js/-/hotkeys-js-3.8.7.tgz#c16cab978b53d7242f860ca3932e976b92399981"
   integrity sha512-ckAx3EkUr5XjDwjEHDorHxRO2Kb7z6Z2Sxul4MbBkN8Nho7XDslQsgMJT+CiJ5Z4TgRxxvKHEpuLE3imzqy4Lg==
+
+hotkeys-js@3.9.3:
+  version "3.9.3"
+  resolved "https://registry.yarnpkg.com/hotkeys-js/-/hotkeys-js-3.9.3.tgz#4b755cc695b388d7f93a83aff4b0c2a45719996c"
+  integrity sha512-s+f0xyvDmf6+DyrFQ2SY+eA7lbvMbjqkqi0I0SpMgnN5tZx7DeH8nsWhkJR4KEq3pxDPHJppDUhdt1rZFW5LeQ==
 
 html-encoding-sniffer@^2.0.1:
   version "2.0.1"
@@ -8678,6 +8681,14 @@ next-themes@^0.0.15:
   resolved "https://registry.yarnpkg.com/next-themes/-/next-themes-0.0.15.tgz#ab0cee69cd763b77d41211f631e108beab39bf7d"
   integrity sha512-LTmtqYi03c4gMTJmWwVK9XkHL7h0/+XrtR970Ujvtu3s0kZNeJN24aJsi4rkZOI8i19+qq6f8j+8Duwy5jqcrQ==
 
+next-transpile-modules@^9.0.0:
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/next-transpile-modules/-/next-transpile-modules-9.0.0.tgz#133b1742af082e61cc76b02a0f12ffd40ce2bf90"
+  integrity sha512-VCNFOazIAnXn1hvgYYSTYMnoWgKgwlYh4lm1pKbSfiB3kj5ZYLcKVhfh3jkPOg1cnd9DP+pte9yCUocdPEUBTQ==
+  dependencies:
+    enhanced-resolve "^5.7.0"
+    escalade "^3.1.1"
+
 next@^12.1.6:
   version "12.1.6"
   resolved "https://registry.yarnpkg.com/next/-/next-12.1.6.tgz#eb205e64af1998651f96f9df44556d47d8bbc533"
@@ -9552,6 +9563,13 @@ react-hotkeys-hook@^3.4.4:
   integrity sha512-vaORq07rWgmuF3owWRhgFV/3VL8/l2q9lz0WyVEddJnWTtKW+AOgU5YgYKuwN6h6h7bCcLG3MFsJIjCrM/5DvQ==
   dependencies:
     hotkeys-js "3.8.7"
+
+react-hotkeys-hook@^3.4.6:
+  version "3.4.6"
+  resolved "https://registry.yarnpkg.com/react-hotkeys-hook/-/react-hotkeys-hook-3.4.6.tgz#21eda8e97121583a14056479e3eea9e51d2e2a69"
+  integrity sha512-SiGKHnauaAQglRA7qeiW5LTa0KoT2ssv8YGYKZQoM3P9v5JFEHJdXOSFml1N6K86oKQ8dLCLlxqBqGlSJWGmxQ==
+  dependencies:
+    hotkeys-js "3.9.3"
 
 react-intl@^6.0.3:
   version "6.0.3"
