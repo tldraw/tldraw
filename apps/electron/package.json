@@ -23,7 +23,7 @@
     "@types/react": "^18.0.12",
     "@types/react-dom": "^18.0.5",
     "@types/react-router-dom": "^5.1.8",
-    "electron": "17.0.0",
+    "electron": "17.2.0",
     "electron-builder": "^22.13.1",
     "electron-esbuild": "^5.0.0",
     "electron-util": "^0.17.2",
