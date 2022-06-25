@@ -1,4 +1,5 @@
-import { TDAsset, TldrawApp } from '@tldraw/tldraw'
+import { Utils } from '@tldraw/core'
+import { TldrawApp } from '@tldraw/tldraw'
 import { useCallback } from 'react'
 
 export function useUploadAssets() {
@@ -7,7 +8,7 @@ export function useUploadAssets() {
     // respond with the URL of the uploaded file.
 
     async (app: TldrawApp, file: File, id: string): Promise<string | false> => {
-      const filename = encodeURIComponent(file.name)
+      const filename = encodeURIComponent((id ?? Utils.uniqueId()) + file.name)
 
       const fileType = encodeURIComponent(file.type)
 

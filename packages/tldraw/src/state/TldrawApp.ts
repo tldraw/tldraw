@@ -2806,6 +2806,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (result) {
       this.patchState(result, `session:cancel:${session.constructor.name}`)
+      this.callbacks.onSessionEnd?.(this, session.constructor.name)
     }
 
     this.setEditingId()
@@ -2847,6 +2848,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
         `session:complete:${session.constructor.name}`
       )
+
+      this.callbacks.onSessionEnd?.(this, session.constructor.name)
+      return this
     } else if ('after' in result) {
       // Session ended with a command
 
