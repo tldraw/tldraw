@@ -13,10 +13,8 @@ import zh_cn from './zh-cn.json'
 // translation instead.
 
 export const TRANSLATIONS: TDTranslations = [
-  // Default language:
-  { code: 'en', label: 'English', messages: en },
-  // Translations:
   { code: 'ar', label: 'عربي', messages: ar },
+  { code: 'en', label: 'English', messages: en },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
   { code: 'ja', label: '日本語', messages: ja },
@@ -25,7 +23,9 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
 ]
 
-/* ---------- Derived Types (do not change) --------- */
+/* ----------------- (do not change) ---------------- */
+
+TRANSLATIONS.sort((a, b) => (a.code < b.code ? -1 : 1))
 
 export type TDTranslation = {
   readonly code: string
