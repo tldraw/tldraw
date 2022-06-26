@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TRANSLATIONS, DEFAULT_TRANSLATION, TDLanguage } from '../translations/translations'
+import { TRANSLATIONS, TDLanguage } from '../translations/translations'
 
 export function useTranslation(code?: TDLanguage) {
   return React.useMemo(() => {
@@ -8,7 +8,7 @@ export function useTranslation(code?: TDLanguage) {
     const translation = TRANSLATIONS.find((t) => t.code === locale)
 
     const messages = {
-      ...DEFAULT_TRANSLATION.messages,
+      ...TRANSLATIONS[0].messages,
       ...translation?.messages,
     }
 
