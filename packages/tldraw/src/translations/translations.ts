@@ -5,6 +5,7 @@ import it from './it.json'
 import ko_kr from './ko-kr.json'
 import zh_cn from './zh-cn.json'
 import no from './no.json'
+import ja from './ja.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -21,6 +22,7 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
   { code: 'no', label: 'Norwegian', messages: no },
+  { code: 'ja', label: '日本語', messages: ja },
 ]
 
 /* ---------- Derived Types (do not change) --------- */
