@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.17.1
+
+### Patch Changes
+
+- Add additional translations.
+
 ## 1.17.0
 
 ### Minor Changes
