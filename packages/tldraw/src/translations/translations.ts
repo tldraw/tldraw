@@ -10,7 +10,7 @@ export const TRANSLATIONS = [
   { code: 'ar', label: 'عربي', messages: ar },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
-  { code: 'ko-kr', label: '한국어', message: ko_kr },
+  { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
 ] as const
 
