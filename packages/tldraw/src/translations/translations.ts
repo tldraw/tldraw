@@ -21,8 +21,8 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'ja', label: '日本語', messages: ja },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'no', label: 'Norwegian', messages: no },
-  { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
   { code: 'tr', label: 'Türkçe', messages: tr },
+  { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
 ]
 
 /* ----------------- (do not change) ---------------- */
