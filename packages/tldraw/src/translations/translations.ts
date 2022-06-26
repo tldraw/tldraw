@@ -1,8 +1,10 @@
 import ar from './ar.json'
-import en from './en.json'
+import en from './main.json'
 import fr from './fr.json'
 import it from './it.json'
+import ja from './ja.json'
 import ko_kr from './ko-kr.json'
+import no from './no.json'
 import zh_cn from './zh-cn.json'
 import es from './es.json'
 
@@ -12,18 +14,20 @@ import es from './es.json'
 // translation instead.
 
 export const TRANSLATIONS: TDTranslations = [
-  // Default language:
-  { code: 'en', label: 'English', messages: en },
-  // Translations:
   { code: 'ar', label: 'عربي', messages: ar },
+  { code: 'en', label: 'English', messages: en },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
+  { code: 'ja', label: '日本語', messages: ja },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
+  { code: 'no', label: 'Norwegian', messages: no },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
   { code: 'es', label: 'Español', messages: es },
 ]
 
-/* ---------- Derived Types (do not change) --------- */
+/* ----------------- (do not change) ---------------- */
+
+TRANSLATIONS.sort((a, b) => (a.code < b.code ? -1 : 1))
 
 export type TDTranslation = {
   readonly code: string
