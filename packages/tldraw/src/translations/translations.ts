@@ -26,7 +26,7 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'it', label: 'Italiano', messages: it },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
-  { code: 'tr', label: 'Turkish', messages: tr },
+  { code: 'tr', label: 'Türkçe', messages: tr },
 ]
 
 /* ---------- Derived Types (do not change) --------- */
