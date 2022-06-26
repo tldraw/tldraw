@@ -7,8 +7,10 @@ export function useTranslation(code?: TDLanguage) {
 
     const translation = TRANSLATIONS.find((t) => t.code === locale)
 
+    const defaultTranslation = TRANSLATIONS.find((t) => t.code === 'en')!
+
     const messages = {
-      ...TRANSLATIONS[0].messages,
+      ...defaultTranslation.messages,
       ...translation?.messages,
     }
 
