@@ -7,13 +7,11 @@
   "style.menu.font": "Font",
   "style.menu.align": "Allineamento",
   "styles": "Stile",
-
   "zoom.in": "Ingrandisci",
   "zoom.out": "Rimpicciolisci",
   "to": "Imposta",
   "to.selection": "Adatta alla selezione",
   "to.fit": "Adatta",
-
   "menu.file": "File",
   "menu.edit": "Modifica",
   "menu.view": "Visualizzazione",
@@ -25,7 +23,6 @@
   "zoom.to.selection": "Adatta alla selezione",
   "zoom.to.fit": "Adatta",
   "zoom.to": "Ingrandisci",
-
   "preferences.dark.mode": "Modalità scura",
   "preferences.focus.mode": "Modalità zen",
   "preferences.debug.mode": "Modalità sviluppatore",
@@ -36,7 +33,6 @@
   "preferences.rotate.handles": "Controlli d'inclinazione",
   "preferences.binding.handles": "Controlli d'associazione",
   "preferences.clone.handles": "Controlli di clonazione",
-
   "undo": "Annulla",
   "redo": "Ripristina",
   "cut": "Taglia",
@@ -47,13 +43,11 @@
   "select.all": "Seleziona tutto",
   "select.none": "Deseleziona tutto",
   "delete": "Elimina",
-
   "new.project": "Nuovo progetto",
   "open": "Apri",
   "save": "Salva",
   "save.as": "Salva come",
   "upload.media": "Carica contenuti multimediali",
-
   "create.page": "Crea nuova pagina",
   "new.page": "Nuova pagina",
   "page.name": "Nome pagina",
@@ -62,7 +56,6 @@
   "copy.invite.link": "Copia link invito",
   "create.multiplayer.project": "Crea progetto multiplayer",
   "copy.multiplayer.project": "Trasforma in progetto multiplayer",
-
   "select": "Seleziona",
   "eraser": "Gomma",
   "draw": "Matita",
@@ -73,11 +66,11 @@
   "Ellipse": "Ellisse",
   "Triangle": "Triangolo",
   "Line": "Linea",
-
   "rotate": "Ruota",
   "lock.aspect.ratio": "Blocca rapporto lati",
   "unlock.aspect.ratio": "Sblocca rapporto lati",
   "group": "Raggruppa",
+  "ungroup": "Separa",
   "move.to.back": "Muovi in fondo",
   "move.backward": "Sposta indietro",
   "move.forward": "Sposta avanti",
@@ -85,7 +78,6 @@
   "reset.angle": "Reimposta angolo",
   "lock": "Blocca",
   "unlock": "Sblocca",
-
   "move.to.page": "Trasferisci a pagina",
   "flip.horizontal": "Ribalta orizzontalmente",
   "flip.vertical": "Ribalta verticalmente",

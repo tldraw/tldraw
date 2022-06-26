@@ -7,13 +7,11 @@
   "style.menu.font": "الخط",
   "style.menu.align": "محاذاة",
   "styles": "الأنماط",
-
   "zoom.in": "تكبير",
   "zoom.out": "تصغير",
   "to": "إلى",
   "to.selection": "للاختيار",
   "to.fit": "تناسب",
-
   "menu.file": "ملف",
   "menu.edit": "تحرير",
   "menu.view": "معاينة",
@@ -25,7 +23,6 @@
   "zoom.to.selection": "تكبير للتحديد",
   "zoom.to.fit": "تكبير لتناسب",
   "zoom.to": "تكبير إلى",
-
   "preferences.dark.mode": "الوضع الداكن",
   "preferences.focus.mode": "وضع التركيز",
   "preferences.debug.mode": "وضع التصحيح",
@@ -36,7 +33,6 @@
   "preferences.rotate.handles": "تدوير المقابض",
   "preferences.binding.handles": "مقابض ملزمة",
   "preferences.clone.handles": "مقابض استنساخ",
-
   "undo": "الغاء",
   "redo": "إعادة",
   "cut": "قطع",
@@ -47,13 +43,11 @@
   "select.all": "اختر الكل",
   "select.none": "لا تختر شيء",
   "delete": "حذف",
-
   "new.project": "مشروع جديد",
   "open": "فتح",
   "save": "حفظ",
   "save.as": "حفظ باسم",
   "upload.media": "تحميل الوسائط",
-
   "create.page": "إنشاء صفحة",
   "new.page": "صفحة جديدة",
   "page.name": "اسم الصفحة",
@@ -62,7 +56,6 @@
   "copy.invite.link": "نسخ رابط الدعوة",
   "create.multiplayer.project": "قم بإنشاء مشروع متعدد اللاعبين",
   "copy.multiplayer.project": "نسخ إلى مشروع متعدد اللاعبين",
-
   "select": "اختر",
   "eraser": "ممحاة",
   "draw": "رسم",
@@ -73,7 +66,6 @@
   "Ellipse": "بيضاوي",
   "Triangle": "مثلث",
   "Line": "خط",
-
   "rotate": "دوّر",
   "lock.aspect.ratio": "قفل نسبة الابعاد",
   "unlock.aspect.ratio": "فتح قفل نسبة الابعاد",
@@ -86,7 +78,6 @@
   "reset.angle": "إعادة ضبط الزاوية",
   "lock": "قفل",
   "unlock": "الغاء القفل",
-
   "move.to.page": "انقل إلى الصفحة",
   "flip.horizontal": "انعكاس أفقي",
   "flip.vertical": "انعكاس عمودي",

@@ -5,16 +5,23 @@ import it from './it.json'
 import ko_kr from './ko-kr.json'
 import zh_cn from './zh-cn.json'
 
-export const TRANSLATIONS = [
+export const TRANSLATIONS: TDTranslations = [
   { code: 'en', label: 'English', messages: en },
   { code: 'ar', label: 'عربي', messages: ar },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
-] as const
+]
 
 /* ---------- Derived Types (do not change) --------- */
 
-export type TDTranslations = typeof TRANSLATIONS
+export type TDTranslation = {
+  readonly code: string
+  readonly label: string
+  readonly messages: typeof en
+}
+
+export type TDTranslations = TDTranslation[]
+
 export type TDLanguage = TDTranslations[number]['code']
