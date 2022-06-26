@@ -20,7 +20,7 @@ Want to add a new language to our translations?
 
 Create a new branch on Github.
 
-In the `packages/tldraw/src/translations` folder, duplicate the `en.json` file. 
+In the `packages/tldraw/src/translations` folder, duplicate the `main.json` file. 
 
 Rename the new file to the [language code](https://gist.github.com/wpsmith/7604842) for that language. For example, if you were making an Esperanto translation, name the new file `eo.json`.
 
