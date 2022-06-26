@@ -16,13 +16,13 @@ import es from './es.json'
 export const TRANSLATIONS: TDTranslations = [
   { code: 'ar', label: 'عربي', messages: ar },
   { code: 'en', label: 'English', messages: en },
+  { code: 'es', label: 'Español', messages: es },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
   { code: 'ja', label: '日本語', messages: ja },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
   { code: 'no', label: 'Norwegian', messages: no },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
-  { code: 'es', label: 'Español', messages: es },
 ]
 
 /* ----------------- (do not change) ---------------- */
