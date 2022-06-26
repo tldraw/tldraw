@@ -21,7 +21,7 @@
   "sponsored": "支援",
   "become.a.sponsor": "支援する",
   "zoom.to.selection": "選択したアイテムに合わせて拡大",
-  "zoom.to.fit": "すべて表示するように拡大",
+  "zoom.to.fit": "拡大してすべてを表示",
   "zoom.to": " ",
   "preferences.dark.mode": "ダークモード",
   "preferences.focus.mode": "フォーカスモード",
@@ -74,7 +74,7 @@
   "move.to.back": "最後面に移動",
   "move.backward": "ひとつ後ろに移動",
   "move.forward": "ひとつ前に移動",
-  "move.to.front": "最前面に移動",
+  "move.to.front": "最背面に移動",
   "reset.angle": "角度を初期化",
   "lock": "ロック",
   "unlock": "アンロック",
@@ -85,6 +85,6 @@
   "to.front": "最前面へ",
   "forward": "ひとつ前へ",
   "backward": "ひとつ後ろへ",
-  "back": "最後面へ",
+  "back": "最背面へ",
   "language": "言語"
 }
