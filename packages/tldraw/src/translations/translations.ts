@@ -1,5 +1,5 @@
 import ar from './ar.json'
-import en from './en.json'
+import en from './main.json'
 import fr from './fr.json'
 import it from './it.json'
 import ja from './ja.json'
