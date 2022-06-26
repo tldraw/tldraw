@@ -1,10 +1,16 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
-import { IntlConfig, IntlProvider } from 'react-intl'
+import { defineMessages, IntlConfig, IntlProvider } from 'react-intl'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
-import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
+import {
+  TldrawContext,
+  useStylesheet,
+  useTranslation,
+  useKeyboardShortcuts,
+  useTldrawApp,
+} from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
@@ -15,7 +21,6 @@ import { GRID_SIZE } from '~constants'
 import { Loading } from '~components/Loading'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { ErrorFallback } from '~components/ErrorFallback'
-import { TRANSLATIONS } from './translations'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -436,14 +441,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideCloneHandles =
     isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
 
-  const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
-
-  const language =
-    TRANSLATIONS.find((t) => t.code === defaultLanguage) ??
-    TRANSLATIONS.find((t) => t.code === 'en')!
+  const translation = useTranslation(settings.language)
 
   return (
-    <IntlProvider locale={defaultLanguage} messages={language.messages as IntlConfig['messages']}>
+    <IntlProvider locale={translation.locale} messages={translation.messages}>
       <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
         <Loading />
         <OneOff focusableRef={rWrapper} autofocus={autofocus} />

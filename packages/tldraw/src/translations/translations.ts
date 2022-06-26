@@ -1,3 +1,5 @@
+import * as React from 'react'
+
 import ar from './ar.json'
 import en from './en.json'
 import fr from './fr.json'
@@ -5,8 +7,19 @@ import it from './it.json'
 import ko_kr from './ko-kr.json'
 import zh_cn from './zh-cn.json'
 
+// The default language (english) must have a value for every message.
+// Other languages may have missing messages. If the application finds
+// a missing message for the current language, it will use the english
+// translation instead.
+
+export const DEFAULT_TRANSLATION = {
+  code: 'en',
+  label: 'English',
+  messages: en,
+}
+
 export const TRANSLATIONS: TDTranslations = [
-  { code: 'en', label: 'English', messages: en },
+  DEFAULT_TRANSLATION,
   { code: 'ar', label: 'عربي', messages: ar },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
@@ -19,7 +32,7 @@ export const TRANSLATIONS: TDTranslations = [
 export type TDTranslation = {
   readonly code: string
   readonly label: string
-  readonly messages: typeof en
+  readonly messages: Partial<typeof DEFAULT_TRANSLATION['messages']>
 }
 
 export type TDTranslations = TDTranslation[]
