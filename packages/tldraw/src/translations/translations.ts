@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import ar from './ar.json'
 import en from './en.json'
 import fr from './fr.json'
@@ -13,14 +11,10 @@ import tr from './tr.json'
 // a missing message for the current language, it will use the english
 // translation instead.
 
-export const DEFAULT_TRANSLATION = {
-  code: 'en',
-  label: 'English',
-  messages: en,
-}
-
 export const TRANSLATIONS: TDTranslations = [
-  DEFAULT_TRANSLATION,
+  // Default language:
+  { code: 'en', label: 'English', messages: en },
+  // Translations:
   { code: 'ar', label: 'عربي', messages: ar },
   { code: 'fr', label: 'Français', messages: fr },
   { code: 'it', label: 'Italiano', messages: it },
@@ -34,7 +28,7 @@ export const TRANSLATIONS: TDTranslations = [
 export type TDTranslation = {
   readonly code: string
   readonly label: string
-  readonly messages: Partial<typeof DEFAULT_TRANSLATION['messages']>
+  readonly messages: Partial<typeof en>
 }
 
 export type TDTranslations = TDTranslation[]
