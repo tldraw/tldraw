@@ -40,6 +40,8 @@ export const TRANSLATIONS: TDTranslations = [
 ]
 ```
 
+Translate the messages in the new file from English to your language.
+
 That's it!
 
 Submit your branch as a PR on Github.
