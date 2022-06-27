@@ -25,7 +25,7 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'it', label: 'Italiano', messages: it },
   { code: 'ja', label: '日本語', messages: ja },
   { code: 'ko-kr', label: '한국어', messages: ko_kr },
-  { code: 'ne', label: 'नेपाली', messages: ne }
+  { code: 'ne', label: 'नेपाली', messages: ne },
   { code: 'no', label: 'Norwegian', messages: no },
   { code: 'pl', label: 'Polski', messages: pl },
   { code: 'pt-br', label: 'Português - Brasil', messages: pt_br },
