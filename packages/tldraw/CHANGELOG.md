@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.18.1
+
+### Patch Changes
+
+- Add additional translations.
+
 ## 1.18.0
 
 ### Minor Changes
