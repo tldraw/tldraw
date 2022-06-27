@@ -30,13 +30,20 @@ export class DrawSession extends BaseSession {
     this.isExtending = initialPoints.length > 0
     const newPoints: number[][] = []
     if (this.isExtending) {
-      const prevPoint = initialPoints[initialPoints.length - 1]
-      newPoints.push(prevPoint, prevPoint)
       // Continuing with shift
-      const len = Math.ceil(Vec.dist(prevPoint, currentPoint) / 16)
-      for (let i = 0; i < len; i++) {
-        const t = i / (len - 1)
-        newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+      const prevPoint = initialPoints[initialPoints.length - 1]
+      if (prevPoint) {
+        newPoints.push(prevPoint, prevPoint)
+        const len = Math.floor(Vec.dist(prevPoint, currentPoint) / 16)
+
+        if (len > 1) {
+          for (let i = 0; i < len; i++) {
+            const t = i / (len - 1)
+            newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+          }
+        } else {
+          newPoints.push(currentPoint, currentPoint)
+        }
       }
     } else {
       newPoints.push(currentPoint)
