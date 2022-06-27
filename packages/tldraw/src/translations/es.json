@@ -25,7 +25,7 @@
   "zoom.to": "Acercar a",
   "preferences.dark.mode": "Modo oscuro",
   "preferences.focus.mode": "Modo concentración",
-  "preferences.debug.mode": "Modo debug",
+  "preferences.debug.mode": "Modo depuración",
   "preferences.show.grid": "Mostrar cuadrícula",
   "preferences.use.cad.selection": "Usar selección CAD",
   "preferences.keep.stylemenu.open": "Mantener menú de estilos abierto",
