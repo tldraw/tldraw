@@ -548,10 +548,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       patch?.document?.assets
     ) {
       if (
-        this.session &&
-        this.session.type !== SessionType.Brush &&
-        this.session.type !== SessionType.Erase &&
-        this.session.type !== SessionType.Draw
+        patch?.document?.assets ||
+        (this.session &&
+          this.session.type !== SessionType.Brush &&
+          this.session.type !== SessionType.Erase &&
+          this.session.type !== SessionType.Draw)
       ) {
         this.broadcastPatch(patch, false)
       }
