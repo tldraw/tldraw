@@ -1751,8 +1751,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   movePage = (pageId: string, index: number): this => {
     if (this.readOnly) return this
 
-    if (this.page.childIndex === index) return this
-
     return this.setState(Commands.movePage(this, pageId, index))
   }
 
