@@ -77,36 +77,63 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     [app]
   )
 
-  const [dragId, setDragId] = React.useState<string | undefined>();
+  const [dragId, setDragId] = React.useState<null | string>(null)
 
-  const handleDrag = (ev: React.DragEvent<HTMLDivElement>) => {
-    setDragId(ev.currentTarget.id);
-  };
+  const [dropIndex, setDropIndex] = React.useState<null | number>(null)
 
-  const handleDrop = (ev: React.DragEvent<HTMLDivElement>) => {
-    const dragBox = sortedPages.find(p => p.id === dragId);
-    const dropBox = sortedPages.find(p => p.id === ev.currentTarget.id);
+  const handleDragStart = React.useCallback((ev: React.DragEvent<HTMLDivElement>) => {
+    setDragId(ev.currentTarget.id)
 
-    if (dragBox && dropBox) {
-      app.movePage(dragBox.id, dropBox.childIndex || 0);
+    ev.dataTransfer.effectAllowed = 'move'
+  }, [])
+
+  const handleDrag = React.useCallback(
+    (ev: React.DragEvent<HTMLDivElement>) => {
+      ev.preventDefault()
+
+      const dropBox = sortedPages.find((p) => p.id === ev.currentTarget.id)
+
+      if (!dropBox) return
+
+      const indices = sortedPages.map((p) => p.childIndex ?? 0).sort()
+      const index = indices.indexOf(dropBox.childIndex ?? 0)
+
+      const rect = ev.currentTarget.getBoundingClientRect()
+      const ny = (ev.clientY - rect.top) / rect.height
+      const dropIndex = ny < 0.5 ? index : index + 1
+
+      setDropIndex(dropIndex)
+    },
+    [dragId, sortedPages]
+  )
+
+  const handleDrop = React.useCallback(() => {
+    if (dragId !== null && dropIndex !== null) {
+      app.movePage(dragId, dropIndex)
     }
-    
-    setDragId(undefined);
-  };
+
+    setDragId(null)
+    setDropIndex(null)
+  }, [dragId, dropIndex])
 
   return (
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPageId} onValueChange={handleChangePage}>
-        {sortedPages.map((page) => (
-          <ButtonWithOptions key={page.id}>
+        {sortedPages.map((page, i) => (
+          <ButtonWithOptions
+            key={page.id}
+            isDropAbove={i === dropIndex && i === 0}
+            isDropBelow={dropIndex !== null && i === dropIndex - 1}
+          >
             <DropdownMenu.RadioItem
               title={page.name || 'Page'}
               value={page.id}
               key={page.id}
               id={page.id}
               asChild
-              onDragOver={(ev) => ev.preventDefault()}
-              onDragStartCapture={handleDrag}
+              onDragOver={handleDrag}
+              onDragStart={handleDragStart}
+              // onDrag={handleDrag}
               onDrop={handleDrop}
               draggable={true}
             >
@@ -139,9 +166,11 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 }
 
 const ButtonWithOptions = styled('div', {
+  position: 'relative',
   display: 'grid',
   gridTemplateColumns: '1fr auto',
   gridAutoFlow: 'column',
+  margin: 0,
 
   '& > *[data-shy="true"]': {
     opacity: 0,
@@ -149,6 +178,39 @@ const ButtonWithOptions = styled('div', {
 
   '&:hover > *[data-shy="true"]': {
     opacity: 1,
+  },
+
+  variants: {
+    isDropAbove: {
+      true: {
+        '&::after': {
+          content: '',
+          display: 'block',
+          position: 'absolute',
+          top: 0,
+          width: '100%',
+          height: '1px',
+          backgroundColor: '$selected',
+          zIndex: 999,
+          pointerEvents: 'none',
+        },
+      },
+    },
+    isDropBelow: {
+      true: {
+        '&::after': {
+          content: '',
+          display: 'block',
+          position: 'absolute',
+          width: '100%',
+          height: '1px',
+          top: '100%',
+          backgroundColor: '$selected',
+          zIndex: 999,
+          pointerEvents: 'none',
+        },
+      },
+    },
   },
 })
 

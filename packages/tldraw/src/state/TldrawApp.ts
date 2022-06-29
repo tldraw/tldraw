@@ -1746,11 +1746,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Move a page above another.
    * @param pageId The page to move.
-   * @param aboveId The page above which to move.
+   * @param index The page above which to move.
    */
-  movePage = (pageId: string, i: number): this => {
+  movePage = (pageId: string, index: number): this => {
     if (this.readOnly) return this
-    return this.setState(Commands.movePage(this, pageId, i))
+
+    if (this.page.childIndex === index) return this
+
+    return this.setState(Commands.movePage(this, pageId, index))
   }
 
   /**
