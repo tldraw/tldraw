@@ -30,4 +30,34 @@ describe('Create page command', () => {
     expect(app.page.id).toBe(nextId)
     expect(app.pageState).toEqual(nextPageState)
   })
+
+  it('increments page names', () => {
+    app.loadDocument(mockDocument)
+
+    app.createPage()
+
+    expect(app.page.name).toBe('New page')
+
+    app.createPage()
+
+    expect(app.page.name).toBe('New page (1)')
+
+    app.createPage()
+
+    expect(app.page.name).toBe('New page (2)')
+
+    app.renamePage(app.page.id, 'New page!')
+
+    app.createPage()
+
+    expect(app.page.name).toBe('New page (2)')
+
+    app.deletePage(app.page.id)
+
+    expect(app.page.name).toBe('New page!')
+
+    app.createPage(undefined, 'New page!')
+
+    expect(app.page.name).toBe('New page! (1)')
+  })
 })
