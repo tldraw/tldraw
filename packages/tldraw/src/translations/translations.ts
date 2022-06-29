@@ -12,6 +12,7 @@ import pl from './pl.json'
 import pt_br from './pt-br.json'
 import ne from './ne.json'
 import da from './da.json'
+import de from './de.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -33,6 +34,7 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'tr', label: 'Türkçe', messages: tr },
   { code: 'zh-cn', label: 'Chinese - Simplified', messages: zh_cn },
   { code: 'da', label: 'Danish', messages: da },
+  { code: 'de', label: 'Deutsch', messages: de},
 ]
 
 /* ----------------- (do not change) ---------------- */
