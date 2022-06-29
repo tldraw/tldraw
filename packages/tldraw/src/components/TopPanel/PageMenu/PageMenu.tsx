@@ -77,6 +77,23 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     [app]
   )
 
+  const [dragId, setDragId] = React.useState<string | undefined>();
+
+  const handleDrag = (ev: React.DragEvent<HTMLDivElement>) => {
+    setDragId(ev.currentTarget.id);
+  };
+
+  const handleDrop = (ev: React.DragEvent<HTMLDivElement>) => {
+    const dragBox = sortedPages.find(p => p.id === dragId);
+    const dropBox = sortedPages.find(p => p.id === ev.currentTarget.id);
+
+    if (dragBox && dropBox) {
+      app.movePage(dragBox.id, dropBox.childIndex || 0);
+    }
+    
+    setDragId(undefined);
+  };
+
   return (
     <>
       <DropdownMenu.RadioGroup dir="ltr" value={currentPageId} onValueChange={handleChangePage}>
@@ -86,10 +103,15 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
               title={page.name || 'Page'}
               value={page.id}
               key={page.id}
+              id={page.id}
               asChild
+              onDragOver={(ev) => ev.preventDefault()}
+              onDragStartCapture={handleDrag}
+              onDrop={handleDrop}
+              draggable={true}
             >
               <PageButton>
-                <span>{page.name || 'Page'}</span>
+                <span id={page.id}>{page.name || 'Page'}</span>
                 <DropdownMenu.ItemIndicator>
                   <SmallIcon>
                     <CheckIcon />

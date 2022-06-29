@@ -1744,6 +1744,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Move a page above another.
+   * @param pageId The page to move.
+   * @param aboveId The page above which to move.
+   */
+  movePage = (pageId: string, i: number): this => {
+    if (this.readOnly) return this
+    return this.setState(Commands.movePage(this, pageId, i))
+  }
+
+  /**
    * Rename a page.
    * @param pageId The id of the page to rename.
    * @param name The page's new name
