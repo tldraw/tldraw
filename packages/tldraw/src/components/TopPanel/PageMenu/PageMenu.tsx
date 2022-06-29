@@ -105,7 +105,6 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const handleDrop = React.useCallback(() => {
     if (dragId !== null && dropIndex !== null) {
-      console.log('moving page', app.document.pages[dragId].name, dropIndex)
       app.movePage(dragId, dropIndex)
     }
 
