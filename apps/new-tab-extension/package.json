@@ -8,6 +8,7 @@
     "type": "git",
     "url": "https://github.com/tldraw/tldraw.git"
   },
+  "license": "MIT",
   "scripts": {
     "dev:extension": "vite --host",
     "build:extension": "yarn build",
