@@ -2,9 +2,8 @@
   "name": "tldraw",
   "description": "A tiny little drawing app for your new tab screen.",
   "version": "1.0",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "permissions": [
-    "storage",
     "unlimitedStorage"
   ],
   "default_icon": {
