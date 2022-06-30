@@ -9,6 +9,7 @@ import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler
@@ -17,12 +18,24 @@ interface ToolsPanelProps {
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
   const isDebugMode = app.useStore(isDebugModeSelector)
+  const dockPosition = app.useStore(dockPositionState)
+
+  const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0 }
+  const rightStyle = { width: 'min-content', height: '100%', right: 0 }
+  const leftStyle = { width: 'min-content', height: '100%', left: 0 }
+  const style =
+    dockPosition === 'bottom' ? bottomStyle : dockPosition === 'left' ? leftStyle : rightStyle
 
   return (
-    <StyledToolsPanelContainer onBlur={onBlur}>
+    <StyledToolsPanelContainer
+      style={{
+        ...style,
+      }}
+      onBlur={onBlur}
+    >
       <StyledCenterWrap id="TD-Tools">
         <BackToContent />
-        <StyledPrimaryTools>
+        <StyledPrimaryTools style={{ flexDirection: dockPosition === 'bottom' ? 'row' : 'column' }}>
           <ActionButton />
           <PrimaryTools />
           <DeleteButton />
@@ -40,8 +53,6 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
 const StyledToolsPanelContainer = styled('div', {
   position: 'absolute',
   bottom: 0,
-  left: 0,
-  right: 0,
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',

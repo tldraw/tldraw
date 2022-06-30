@@ -4161,6 +4161,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showCloneHandles: false,
       showGrid: false,
       language: 'en',
+      dockPosition: 'bottom',
     },
     appState: {
       status: TDStatus.Idle,

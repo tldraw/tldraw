@@ -16,6 +16,7 @@ import { EraserIcon } from '~components/Primitives/icons'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 export const PrimaryTools = React.memo(function PrimaryTools() {
   const app = useTldrawApp()
@@ -24,6 +25,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   const activeTool = app.useStore(activeToolSelector)
 
   const isToolLocked = app.useStore(toolLockedSelector)
+  const dockPosition = app.useStore(dockPositionState)
 
   const selectSelectTool = React.useCallback(() => {
     app.selectTool('select')
@@ -50,7 +52,11 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   return (
-    <Panel side="center" id="TD-PrimaryTools">
+    <Panel
+      side="center"
+      id="TD-PrimaryTools"
+      style={{ flexDirection: dockPosition === 'bottom' ? 'row' : 'column' }}
+    >
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}

@@ -86,5 +86,9 @@
   "forward": "Au premier plan",
   "backward": "En arrière plan",
   "back": "À l'arrière",
-  "language": "Langage"
+  "language": "Langage",
+  "dock.position": "Position du dock",
+  "bottom": "En bas",
+  "left": "Gauche",
+  "right": "Droite"
 }

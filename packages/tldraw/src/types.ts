@@ -77,6 +77,8 @@ export class TDEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
+export type TDDockPosition = 'bottom' | 'left' | 'right'
+
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
@@ -96,6 +98,7 @@ export interface TDSnapshot {
     showCloneHandles: boolean
     showGrid: boolean
     language: TDLanguage
+    dockPosition: TDDockPosition
   }
   appState: {
     currentStyle: ShapeStyles
