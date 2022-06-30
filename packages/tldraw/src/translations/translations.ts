@@ -1,5 +1,6 @@
+import main from './main.json'
 import ar from './ar.json'
-import en from './main.json'
+import en from './en.json'
 import fr from './fr.json'
 import it from './it.json'
 import ja from './ja.json'
@@ -44,7 +45,7 @@ TRANSLATIONS.sort((a, b) => (a.code < b.code ? -1 : 1))
 export type TDTranslation = {
   readonly code: string
   readonly label: string
-  readonly messages: Partial<typeof en>
+  readonly messages: Partial<typeof main>
 }
 
 export type TDTranslations = TDTranslation[]
