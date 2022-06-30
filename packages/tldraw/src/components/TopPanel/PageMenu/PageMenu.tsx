@@ -83,7 +83,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const handleDragStart = React.useCallback((ev: React.DragEvent<HTMLDivElement>) => {
     setDragId(ev.currentTarget.id)
-
+    setDropIndex(sortedPages.findIndex((p) => p.id === ev.currentTarget.id))
     ev.dataTransfer.effectAllowed = 'move'
   }, [])
 
@@ -91,16 +91,12 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
     (ev: React.DragEvent<HTMLDivElement>) => {
       ev.preventDefault()
 
-      const dropBox = sortedPages.find((p) => p.id === ev.currentTarget.id)
-
-      if (!dropBox) return
-
-      const indices = sortedPages.map((p) => p.childIndex ?? 0).sort()
-      const index = indices.indexOf(dropBox.childIndex ?? 0)
+      let dropIndex = sortedPages.findIndex((p) => p.id === ev.currentTarget.id)
 
       const rect = ev.currentTarget.getBoundingClientRect()
       const ny = (ev.clientY - rect.top) / rect.height
-      const dropIndex = ny < 0.5 ? index : index + 1
+
+      dropIndex = ny < 0.5 ? dropIndex : dropIndex + 1
 
       setDropIndex(dropIndex)
     },

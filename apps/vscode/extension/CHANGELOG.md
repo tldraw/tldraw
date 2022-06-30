@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.17.2
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+
 ## 1.17.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.1
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+
 ## 1.14.0
 
 ### Minor Changes
