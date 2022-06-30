@@ -134,9 +134,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
               draggable={true}
             >
               <PageButton>
-                <span id={page.id}>
-                  {page.name || 'Page'} - {page.childIndex}
-                </span>
+                <span id={page.id}>{page.name || 'Page'}</span>
                 <DropdownMenu.ItemIndicator>
                   <SmallIcon>
                     <CheckIcon />
