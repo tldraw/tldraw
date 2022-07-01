@@ -22,7 +22,7 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
 
   const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0 }
   const rightStyle = { width: 'min-content', height: '100%', right: 0 }
-  const leftStyle = { width: 'min-content', height: '100%', left: 0 }
+  const leftStyle = { width: 'min-content', height: '100%', left: 10 }
   const style =
     dockPosition === 'bottom' ? bottomStyle : dockPosition === 'left' ? leftStyle : rightStyle
 
@@ -33,7 +33,13 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
       }}
       onBlur={onBlur}
     >
-      <StyledCenterWrap id="TD-Tools">
+      <StyledCenterWrap
+        id="TD-Tools"
+        style={{
+          gridRow: dockPosition === 'bottom' ? 1 : 2,
+          gridColumn: dockPosition === 'bottom' ? 2 : 1,
+        }}
+      >
         <BackToContent />
         <StyledPrimaryTools style={{ flexDirection: dockPosition === 'bottom' ? 'row' : 'column' }}>
           <ActionButton />
