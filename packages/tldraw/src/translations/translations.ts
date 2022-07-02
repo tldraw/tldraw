@@ -21,6 +21,7 @@ import de from './de.json'
 
 export const TRANSLATIONS: TDTranslations = [
   { code: 'ar', label: 'عربي', messages: ar },
+  { code: 'fa', label: 'فارسی', messages: fa }
   { code: 'en', label: 'English', messages: en },
   { code: 'es', label: 'Español', messages: es },
   { code: 'fr', label: 'Français', messages: fr },
