@@ -7,7 +7,7 @@ import { styled } from '~styles'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
-const DockPosition = ['bottom', 'left', 'right']
+const DockPosition = ['bottom', 'left', 'right', 'top']
 
 export function PreferencesMenu() {
   const app = useTldrawApp()

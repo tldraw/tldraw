@@ -51,12 +51,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     app.selectTool(TDShapeType.Sticky)
   }, [app])
 
+  const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
+
   return (
-    <Panel
-      side="center"
-      id="TD-PrimaryTools"
-      style={{ flexDirection: dockPosition === 'bottom' ? 'row' : 'column' }}
-    >
+    <Panel side="center" id="TD-PrimaryTools" style={{ flexDirection: panelStyle }}>
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}

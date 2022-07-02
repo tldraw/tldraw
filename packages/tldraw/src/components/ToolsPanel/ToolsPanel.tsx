@@ -20,11 +20,31 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
   const isDebugMode = app.useStore(isDebugModeSelector)
   const dockPosition = app.useStore(dockPositionState)
 
-  const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0 }
+  const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0, bottom: 0 }
+  const topStyle = { width: '100%', height: 'min-content', left: 0, right: 0, top: 10 }
   const rightStyle = { width: 'min-content', height: '100%', right: 0 }
   const leftStyle = { width: 'min-content', height: '100%', left: 10 }
-  const style =
-    dockPosition === 'bottom' ? bottomStyle : dockPosition === 'left' ? leftStyle : rightStyle
+
+  const toolStyle = () => {
+    switch (dockPosition) {
+      case 'bottom':
+        return bottomStyle
+      case 'left':
+        return leftStyle
+      case 'right':
+        return rightStyle
+      case 'top':
+        return topStyle
+      default:
+        return bottomStyle
+    }
+  }
+  const style = toolStyle()
+  const centerWrapStyle =
+    dockPosition === 'bottom' || dockPosition === 'top'
+      ? { gridRow: 1, gridColumn: 2 }
+      : { gridRow: 2, gridColumn: 1 }
+  const primaryToolStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
     <StyledToolsPanelContainer
@@ -36,12 +56,11 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
       <StyledCenterWrap
         id="TD-Tools"
         style={{
-          gridRow: dockPosition === 'bottom' ? 1 : 2,
-          gridColumn: dockPosition === 'bottom' ? 2 : 1,
+          ...centerWrapStyle,
         }}
       >
         <BackToContent />
-        <StyledPrimaryTools style={{ flexDirection: dockPosition === 'bottom' ? 'row' : 'column' }}>
+        <StyledPrimaryTools style={{ flexDirection: primaryToolStyle }}>
           <ActionButton />
           <PrimaryTools />
           <DeleteButton />
@@ -58,7 +77,6 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
 
 const StyledToolsPanelContainer = styled('div', {
   position: 'absolute',
-  bottom: 0,
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
