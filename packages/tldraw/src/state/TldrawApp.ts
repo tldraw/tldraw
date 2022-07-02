@@ -83,6 +83,7 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
+import { getTranslation } from '~translations'
 
 const uuid = Utils.uniqueId()
 
@@ -1461,6 +1462,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!this.isLocal) return
     this.fileSystemHandle = null
     this.resetDocument()
+
+    // setting the name of the first page depending on the language
+    let translation = getTranslation(this.settings.language)
+    this.renamePage('page', translation.messages['page'] + ' 1' || 'Page 1')
   }
 
   /**

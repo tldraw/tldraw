@@ -1487,7 +1487,7 @@ left past the initial left edge) then swap points on that axis.
   }
 
   /**
-   * Get an incremented name (e.g. New page (2)) from a name (e.g. New page), based on an array of existing names.
+   * Get an incremented name (e.g. Page 2) from a name (e.g. Page 1), based on an array of existing names.
    *
    * @param name The name to increment.
    * @param others The array of existing names.
@@ -1495,10 +1495,10 @@ left past the initial left edge) then swap points on that axis.
   static getIncrementedName(name: string, others: string[]) {
     let result = name
 
-    while (others.includes(result)) {
-      result = /\s\((\d+)\)$/.exec(result)?.[1]
-        ? result.replace(/\d+(?=\)$)/, (m) => (+m + 1).toString())
-        : `${result} (1)`
+    while (others.includes(result) || !(/^.*(\d+)\D*?$/.exec(result)?.[1])) {
+      result = /^.*(\d+)\D*?$/.exec(result)?.[1]
+        ? result.replace(/(\d+)(?=\D*?$)/, (m) => (+m + 1).toString())
+        : `${result} 1`
     }
 
     return result

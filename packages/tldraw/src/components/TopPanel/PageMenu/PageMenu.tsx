@@ -66,7 +66,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   const currentPageId = app.useStore(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
-    app.createPage(undefined, intl.formatMessage({ id: 'new.page' }))
+    app.createPage(undefined, app.document.pages[currentPageId].name || intl.formatMessage({ id: 'page' }))
   }, [app])
 
   const handleChangePage = React.useCallback(
