@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
-import { useTldrawApp } from '~hooks'
+import { useMediaQuery, useTldrawApp } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
@@ -19,9 +19,16 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
   const app = useTldrawApp()
   const isDebugMode = app.useStore(isDebugModeSelector)
   const dockPosition = app.useStore(dockPositionState)
+  const isMobile = useMediaQuery('(max-width: 900px)')
 
   const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0, bottom: 0 }
-  const topStyle = { width: '100%', height: 'min-content', left: 0, right: 0, top: 10 }
+  const topStyle = {
+    width: '100%',
+    height: 'min-content',
+    left: 0,
+    right: 0,
+    top: isMobile ? 60 : 10,
+  }
   const rightStyle = { width: 'min-content', height: '100%', right: 0 }
   const leftStyle = { width: 'min-content', height: '100%', left: 10 }
 
