@@ -46,3 +46,16 @@ body {
 .links a:hover {
   background-color: rgba(144, 144, 144, 0.1);
 }
+
+/* Example of overriding styles, for local testing */
+/* [data-color=violet] {
+  color: green !important;
+}
+
+[data-color=violet] [stroke] {
+  stroke: green !important;
+}
+
+[data-color=violet] [fill] {
+  fill: green !important;
+} */
