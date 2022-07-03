@@ -137,8 +137,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             isEditing={isEditing}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
+            shape={shape}
           />
-          <SVGContainer id={shape.id + '_svg'}>
+          <SVGContainer id={shape.id + '_svg'} shapeStyle={style}>
             <defs>
               <mask id={shape.id + '_clip'}>
                 <rect

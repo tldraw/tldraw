@@ -94,8 +94,13 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
             isEditing={isEditing}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
+            shape={shape}
           />
-          <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
+          <SVGContainer
+            id={shape.id + '_svg'}
+            opacity={isGhost ? GHOSTED_OPACITY : 1}
+            shapeStyle={style}
+          >
             {isBinding && <TriangleBindingIndicator size={size} />}
             <Component
               id={id}
