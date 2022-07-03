@@ -341,7 +341,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
     const bounds = this.getBounds(shape)
     const style = getShapeStyle(shape.style, isDarkMode)
     const elm = getTextSvgElement(shape.text, shape.style, bounds)
-    elm.setAttribute('data-fill', style.stroke)
     elm.setAttribute('data-color', shape.style.color)
 
     return elm
