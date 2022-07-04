@@ -1,14 +1,15 @@
 import ar from './ar.json'
 import en from './main.json'
+import es from './es.json'
 import fr from './fr.json'
 import it from './it.json'
 import ja from './ja.json'
 import ko_kr from './ko-kr.json'
 import no from './no.json'
-import zh_cn from './zh-cn.json'
-import tr from './tr.json'
-import es from './es.json'
 import pl from './pl.json'
+import ru from './ru.json'
+import tr from './tr.json'
+import zh_cn from './zh-cn.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
