@@ -10,17 +10,20 @@ export function createPage(
 ): TldrawCommand {
   const { currentPageId } = app
 
-  const topPage = Object.values(app.state.document.pages).sort(
-    (a, b) => (b.childIndex || 0) - (a.childIndex || 0)
-  )[0]
+  const pages = Object.values(app.state.document.pages).sort(
+    (a, b) => (a.childIndex ?? 0) - (b.childIndex ?? 0)
+  )
+
+  const topPage = pages[pages.length - 1]
 
   const nextChildIndex = topPage?.childIndex ? topPage?.childIndex + 1 : 1
 
-  // TODO: Iterate the name better
-
   const page: TDPage = {
     id: pageId,
-    name: pageName,
+    name: Utils.getIncrementedName(
+      pageName,
+      pages.map((p) => p.name ?? '')
+    ),
     childIndex: nextChildIndex,
     shapes: {},
     bindings: {},

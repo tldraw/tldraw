@@ -1,0 +1,24 @@
+{
+  "name": "tldraw",
+  "description": "A tiny little drawing app for your new tab screen.",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": [
+    "unlimitedStorage"
+  ],
+  "default_icon": {
+    "16": "16.png",
+    "32": "32.png",
+    "48": "48.png",
+    "128": "128.png"
+  },
+  "icons": {
+    "16": "16.png",
+    "32": "32.png",
+    "48": "48.png",
+    "128": "128.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  }
+}

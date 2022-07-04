@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
-import { GHOSTED_OPACITY,  LETTER_SPACING } from '~constants'
+import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { getTextLabelSize } from './getTextSize'
@@ -40,7 +40,12 @@ export const TextLabel = React.memo(function TextLabel({
   )
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Escape') return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        onBlur?.()
+        return
+      }
 
       if (e.key === 'Tab' && text.length === 0) {
         e.preventDefault()

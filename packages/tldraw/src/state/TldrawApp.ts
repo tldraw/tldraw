@@ -548,10 +548,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       patch?.document?.assets
     ) {
       if (
-        this.session &&
-        this.session.type !== SessionType.Brush &&
-        this.session.type !== SessionType.Erase &&
-        this.session.type !== SessionType.Draw
+        patch?.document?.assets ||
+        (this.session &&
+          this.session.type !== SessionType.Brush &&
+          this.session.type !== SessionType.Erase &&
+          this.session.type !== SessionType.Draw)
       ) {
         this.broadcastPatch(patch, false)
       }
@@ -1740,6 +1741,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   changePage = (pageId: string): this => {
     return this.setState(Commands.changePage(this, pageId))
+  }
+
+  /**
+   * Move a page above another.
+   * @param pageId The page to move.
+   * @param index The page above which to move.
+   */
+  movePage = (pageId: string, index: number): this => {
+    if (this.readOnly) return this
+
+    return this.setState(Commands.movePage(this, pageId, index))
   }
 
   /**
