@@ -1,12 +1,13 @@
 import type { TldrawCommand, TDPage } from '~types'
 import { Utils, TLPageState } from '@tldraw/core'
 import type { TldrawApp } from '~state'
+import { getIncrementedName } from '../shared/getIncrementedName'
 
 export function createPage(
   app: TldrawApp,
   center: number[],
   pageId = Utils.uniqueId(),
-  pageName = 'New page'
+  pageName = 'Page'
 ): TldrawCommand {
   const { currentPageId } = app
 
@@ -20,7 +21,7 @@ export function createPage(
 
   const page: TDPage = {
     id: pageId,
-    name: Utils.getIncrementedName(
+    name: getIncrementedName(
       pageName,
       pages.map((p) => p.name ?? '')
     ),

@@ -13,6 +13,7 @@ export const defaultDocument: TDDocument = {
       bindings: {},
     },
   },
+  assets: {},
   pageStates: {
     page: {
       id: 'page',
