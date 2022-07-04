@@ -34,6 +34,8 @@ import { Divider } from '~components/Primitives/Divider'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { useIntl } from 'react-intl'
 
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
+
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
@@ -77,8 +79,6 @@ export function ActionButton() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const isFrenchLang = navigator.language === 'fr'
-
   const isAllLocked = app.useStore(isAllLockedSelector)
 
   const isAllAspectLocked = app.useStore(isAllAspectLockedSelector)
@@ -90,6 +90,8 @@ export function ActionButton() {
   const hasMultipleSelection = app.useStore(hasMultipleSelectionSelector)
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)
+
+  const dockPosition = app.useStore(dockPositionState)
 
   const hasTwoOrMore = selectedShapesCount > 1
 
@@ -182,6 +184,8 @@ export function ActionButton() {
     [app]
   )
 
+  const contentSide = dockPosition === 'bottom' || dockPosition === 'top' ? 'top' : dockPosition
+
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
@@ -189,7 +193,7 @@ export function ActionButton() {
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent sideOffset={16}>
+      <DMContent sideOffset={16} side={contentSide}>
         <>
           <ButtonsRow>
             <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>

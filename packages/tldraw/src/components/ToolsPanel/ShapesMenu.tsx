@@ -40,6 +40,8 @@ enum Status {
   SpacePanning = 'spacePanning',
 }
 
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
+
 export const ShapesMenu = React.memo(function ShapesMenu({
   activeTool,
   isToolLocked,
@@ -47,7 +49,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const status = app.useStore(statusSelector)
+  const dockPosition = app.useStore(dockPositionState)
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 
@@ -74,6 +76,9 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   }, [])
 
   const isActive = shapeShapes.includes(activeTool as ShapeShape)
+  const contentSide = dockPosition === 'bottom' || dockPosition === 'top' ? 'top' : dockPosition
+
+  const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
@@ -89,8 +94,8 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           {shapeShapeIcons[lastActiveTool]}
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content asChild dir="ltr" side="top" sideOffset={12}>
-        <Panel side="center">
+      <DropdownMenu.Content asChild dir="ltr" side={contentSide} sideOffset={12}>
+        <Panel side="center" style={{ flexDirection: panelStyle }}>
           {shapeShapes.map((shape, i) => (
             <Tooltip
               key={shape}
