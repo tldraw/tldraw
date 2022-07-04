@@ -1227,9 +1227,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.pasteInfo.offset = [0, 0]
     this.currentTool = this.tools.select
 
+    const doc = TldrawApp.defaultDocument
+
+    // Set the default page name to the localized version of "Page 1"
+    const translation = getTranslation(this.settings.language)
+    doc.pages['page'].name = translation.messages['page'] + ' 1' || 'Page 1'
+
     this.resetHistory()
       .clearSelectHistory()
-      .loadDocument(migrate(TldrawApp.defaultDocument, TldrawApp.version))
+      .loadDocument(migrate(doc, TldrawApp.version))
       .persist({})
 
     return this
@@ -1462,10 +1468,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!this.isLocal) return
     this.fileSystemHandle = null
     this.resetDocument()
-
-    // setting the name of the first page depending on the language
-    let translation = getTranslation(this.settings.language)
-    this.renamePage('page', translation.messages['page'] + ' 1' || 'Page 1')
   }
 
   /**

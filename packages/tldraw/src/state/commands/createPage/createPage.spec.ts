@@ -1,8 +1,12 @@
 import { mockDocument, TldrawTestApp } from '~test'
 
-describe('Create page command', () => {
-  const app = new TldrawTestApp()
+let app: TldrawTestApp
 
+beforeEach(() => {
+  app = new TldrawTestApp()
+})
+
+describe('Create page command', () => {
   it('does, undoes and redoes command', () => {
     app.loadDocument(mockDocument)
 
@@ -31,33 +35,115 @@ describe('Create page command', () => {
     expect(app.pageState).toEqual(nextPageState)
   })
 
-  it('increments page names', () => {
+  // it('increments page names', () => {
+  //   app.loadDocument(mockDocument)
+
+  //   app.createPage()
+
+  //   expect(app.page.name).toBe('Page 1')
+
+  //   app.createPage()
+
+  //   expect(app.page.name).toBe('Page 2')
+
+  //   app.createPage()
+
+  //   expect(app.page.name).toBe('Page 2')
+
+  //   app.renamePage(app.page.id, 'Page!')
+
+  //   app.createPage()
+
+  //   expect(app.page.name).toBe('Page 2')
+
+  //   app.deletePage(app.page.id)
+
+  //   expect(app.page.name).toBe('Page!')
+
+  //   app.createPage(undefined, 'Page!')
+
+  //   expect(app.page.name).toBe('Page! 1')
+  // })
+})
+
+describe('when the page name exists', () => {
+  it('when others is empty', () => {
     app.loadDocument(mockDocument)
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple')
+  })
 
-    app.createPage()
+  it('when others has no match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple')
+  })
 
-    expect(app.page.name).toBe('New page')
+  it('when others has one match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 1')
+  })
 
-    app.createPage()
+  it('when others has two matches', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple 1')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 2')
+  })
 
-    expect(app.page.name).toBe('New page (1)')
+  it('when others has a near match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple ()')
+    app.createPage(undefined, 'Apples')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 1')
+  })
 
-    app.createPage()
+  it('when others has a near match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple 1!')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 1')
+  })
 
-    expect(app.page.name).toBe('New page (2)')
+  it('when others has a near match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple 1!')
+    app.createPage(undefined, 'Apple 1!')
+    expect(app.page.name).toBe('Apple 1! 1')
+  })
 
-    app.renamePage(app.page.id, 'New page!')
+  it('when others has a near match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple 1')
+    app.createPage(undefined, 'Apple 2')
+    app.createPage(undefined, 'Apple 3')
+    app.createPage(undefined, 'Apple 5')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 4')
+  })
 
-    app.createPage()
-
-    expect(app.page.name).toBe('New page (2)')
-
-    app.deletePage(app.page.id)
-
-    expect(app.page.name).toBe('New page!')
-
-    app.createPage(undefined, 'New page!')
-
-    expect(app.page.name).toBe('New page! (1)')
+  it('when others has a near match', () => {
+    app.createPage(undefined, 'Orange')
+    app.createPage(undefined, 'Apple')
+    app.createPage(undefined, 'Apple 1')
+    app.createPage(undefined, 'Apple 2')
+    app.createPage(undefined, 'Apple 3')
+    app.createPage(undefined, 'Apple 4')
+    app.createPage(undefined, 'Apple 5')
+    app.createPage(undefined, 'Apple 6')
+    app.createPage(undefined, 'Apple 7')
+    app.createPage(undefined, 'Apple 8')
+    app.createPage(undefined, 'Apple 9')
+    app.createPage(undefined, 'Apple 10')
+    app.createPage(undefined, 'Apple')
+    expect(app.page.name).toBe('Apple 11')
   })
 })
