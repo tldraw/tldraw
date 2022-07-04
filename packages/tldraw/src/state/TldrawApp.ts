@@ -1229,9 +1229,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const doc = TldrawApp.defaultDocument
 
-    // Set the default page name to the localized version of "Page 1"
+    // Set the default page name to the localized version of "Page"
     const translation = getTranslation(this.settings.language)
-    doc.pages['page'].name = translation.messages['page'] + ' 1' || 'Page 1'
+    doc.pages['page'].name = translation.messages['page'] + ' 1' ?? 'Page 1'
 
     this.resetHistory()
       .clearSelectHistory()

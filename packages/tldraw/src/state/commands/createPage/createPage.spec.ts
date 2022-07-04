@@ -6,6 +6,11 @@ beforeEach(() => {
   app = new TldrawTestApp()
 })
 
+function createPageWithName(app: TldrawTestApp) {
+  const pageName = 'Page' + ' ' + (Object.keys(app.document.pages).length + 1)
+  app.createPage(undefined, pageName)
+}
+
 describe('Create page command', () => {
   it('does, undoes and redoes command', () => {
     app.loadDocument(mockDocument)
@@ -35,35 +40,39 @@ describe('Create page command', () => {
     expect(app.pageState).toEqual(nextPageState)
   })
 
-  // it('increments page names', () => {
-  //   app.loadDocument(mockDocument)
+  it('increments page names', () => {
+    app.loadDocument(mockDocument)
 
-  //   app.createPage()
+    createPageWithName(app)
 
-  //   expect(app.page.name).toBe('Page 1')
+    expect(app.page.name).toBe('Page 2')
 
-  //   app.createPage()
+    createPageWithName(app)
 
-  //   expect(app.page.name).toBe('Page 2')
+    expect(app.page.name).toBe('Page 3')
 
-  //   app.createPage()
+    app.deletePage(app.page.id)
 
-  //   expect(app.page.name).toBe('Page 2')
+    createPageWithName(app)
 
-  //   app.renamePage(app.page.id, 'Page!')
+    expect(app.page.name).toBe('Page 3')
 
-  //   app.createPage()
+    createPageWithName(app)
 
-  //   expect(app.page.name).toBe('Page 2')
+    expect(app.page.name).toBe('Page 4')
 
-  //   app.deletePage(app.page.id)
+    app.renamePage(app.page.id, 'Page!')
 
-  //   expect(app.page.name).toBe('Page!')
+    createPageWithName(app)
 
-  //   app.createPage(undefined, 'Page!')
+    expect(app.page.name).toBe('Page 5')
 
-  //   expect(app.page.name).toBe('Page! 1')
-  // })
+    app.renamePage(app.page.id, 'Page 6')
+
+    createPageWithName(app)
+
+    expect(app.page.name).toBe('Page 7')
+  })
 })
 
 describe('when the page name exists', () => {
