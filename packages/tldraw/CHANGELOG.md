@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.18.3
+
+### Patch Changes
+
+- Fix bug when pressing escape while exiting text.
+
+## 1.18.2
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+- Updated dependencies
+  - @tldraw/core@1.14.1
+
 ## 1.18.1
 
 ### Patch Changes

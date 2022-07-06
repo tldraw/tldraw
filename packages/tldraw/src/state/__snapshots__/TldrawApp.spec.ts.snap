@@ -406,6 +406,7 @@ TldrawTestApp {
   "migrate": [Function],
   "moveBackward": [Function],
   "moveForward": [Function],
+  "movePage": [Function],
   "movePointer": [Function],
   "moveToBack": [Function],
   "moveToFront": [Function],

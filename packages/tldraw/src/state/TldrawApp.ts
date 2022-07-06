@@ -83,6 +83,7 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
+import { getTranslation } from '~translations'
 
 const uuid = Utils.uniqueId()
 
@@ -548,10 +549,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       patch?.document?.assets
     ) {
       if (
-        this.session &&
-        this.session.type !== SessionType.Brush &&
-        this.session.type !== SessionType.Erase &&
-        this.session.type !== SessionType.Draw
+        patch?.document?.assets ||
+        (this.session &&
+          this.session.type !== SessionType.Brush &&
+          this.session.type !== SessionType.Erase &&
+          this.session.type !== SessionType.Draw)
       ) {
         this.broadcastPatch(patch, false)
       }
@@ -1225,9 +1227,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.pasteInfo.offset = [0, 0]
     this.currentTool = this.tools.select
 
+    const doc = TldrawApp.defaultDocument
+
+    // Set the default page name to the localized version of "Page"
+    const translation = getTranslation(this.settings.language)
+    doc.pages['page'].name = translation.messages['page'] + ' 1' ?? 'Page 1'
+
     this.resetHistory()
       .clearSelectHistory()
-      .loadDocument(migrate(TldrawApp.defaultDocument, TldrawApp.version))
+      .loadDocument(migrate(doc, TldrawApp.version))
       .persist({})
 
     return this
@@ -1740,6 +1748,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   changePage = (pageId: string): this => {
     return this.setState(Commands.changePage(this, pageId))
+  }
+
+  /**
+   * Move a page above another.
+   * @param pageId The page to move.
+   * @param index The page above which to move.
+   */
+  movePage = (pageId: string, index: number): this => {
+    if (this.readOnly) return this
+
+    return this.setState(Commands.movePage(this, pageId, index))
   }
 
   /**

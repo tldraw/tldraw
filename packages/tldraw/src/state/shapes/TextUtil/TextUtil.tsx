@@ -131,7 +131,12 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const handleKeyDown = React.useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            onShapeBlur?.()
+            return
+          }
 
           if (e.key === 'Tab' && shape.text.length === 0) {
             e.preventDefault()

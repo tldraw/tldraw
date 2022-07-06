@@ -250,7 +250,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     '⌘+z,ctrl+z',
-    () => {
+    (e) => {
+      e.preventDefault();
       if (!canHandleEvent(true)) return
 
       if (app.session) {
