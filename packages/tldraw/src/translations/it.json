@@ -87,5 +87,9 @@
   "forward": "Sposta avanti",
   "backward": "Sposta indietro",
   "back": "In fondo",
-  "language": "Lingua"
+  "language": "Lingua",
+  "dock.position": "Posizione dock",
+  "bottom": "In basso",
+  "left": "Sinistra",
+  "right": "Destra"
 }
