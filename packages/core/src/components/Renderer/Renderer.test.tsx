@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { mockDocument, mockUtils } from '~test'
-import { render } from '@testing-library/react'
+import { act, render } from '@testing-library/react'
 import { Renderer } from './Renderer'
 import { action, makeAutoObservable } from 'mobx'
 import type { TLBinding, TLBounds, TLPage, TLPageState } from '~types'
@@ -83,14 +83,15 @@ describe('When passing observables', () => {
 
     const wrapper = render(<Renderer shapeUtils={mockUtils} page={page} pageState={pageState} />)
 
-    // PageState
-
     expect(wrapper.getByTestId('layer')).toHaveProperty(
       'style.transform',
       `scale(1) translateX(0px) translateY(0px)`
     )
 
-    pageState.pan([10, 10])
+    act(() => {
+      // PageState
+      pageState.pan([10, 10])
+    })
 
     expect(wrapper.getByTestId('layer')).toHaveProperty(
       'style.transform',
@@ -109,7 +110,9 @@ describe('When passing observables', () => {
     rotate(0rad)`
     )
 
-    page.moveShape('box1', [10, 10])
+    act(() => {
+      page.moveShape('box1', [10, 10])
+    })
 
     expect(wrapper.getByTestId('container')).toHaveProperty(
       'style.transform',
