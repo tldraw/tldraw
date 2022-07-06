@@ -90,6 +90,7 @@
   "language": "Langage",
   "dock.position": "Position du dock",
   "bottom": "En bas",
-  "left": "Gauche",
-  "right": "Droite"
+  "left": "À Gauche",
+  "right": "À Droite",
+  "top": "En Haut"
 }

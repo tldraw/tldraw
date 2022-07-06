@@ -91,5 +91,6 @@
   "dock.position": "Dock Position",
   "bottom": "Bottom",
   "left": "Left",
-  "right": "Right"
+  "right": "Right",
+  "top": "Top"
 }

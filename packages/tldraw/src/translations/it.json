@@ -91,5 +91,6 @@
   "dock.position": "Posizione dock",
   "bottom": "In basso",
   "left": "Sinistra",
-  "right": "Destra"
+  "right": "Destra",
+  "top": "In Alto"
 }
