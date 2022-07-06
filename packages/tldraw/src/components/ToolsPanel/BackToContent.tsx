@@ -12,15 +12,33 @@ const isEmptyCanvasSelector = (s: TDSnapshot) => {
   )
 }
 
+const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
+
 export const BackToContent = React.memo(function BackToContent() {
   const app = useTldrawApp()
 
   const isEmptyCanvas = app.useStore(isEmptyCanvasSelector)
+  const dockPosition = app.useStore(dockPositionState)
+  const isDebugMode = app.useStore(isDebugModeSelector)
+
+  const style = {
+    bottom:
+      dockPosition === 'bottom' && isDebugMode
+        ? 120
+        : dockPosition === 'bottom'
+        ? 80
+        : isDebugMode
+        ? 60
+        : 20,
+    left: '50%',
+    transform: 'translate(-50%,0)',
+  }
 
   if (!isEmptyCanvas) return null
 
   return (
-    <BackToContentContainer id="TD-Tools-Back_to_content">
+    <BackToContentContainer id="TD-Tools-Back_to_content" style={{ ...style }}>
       <RowButton onClick={app.zoomToContent}>Back to content</RowButton>
     </BackToContentContainer>
   )
@@ -30,7 +48,9 @@ const BackToContentContainer = styled(MenuContent, {
   pointerEvents: 'all',
   width: 'fit-content',
   minWidth: 0,
-  gridRow: 1,
-  flexGrow: 2,
-  display: 'block',
+  // gridRow: 1,
+  // flexGrow: 2,
+  // display: 'block',
+  position: 'fixed',
+  bottom: 0,
 })

@@ -21,7 +21,13 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
   const dockPosition = app.useStore(dockPositionState)
   const isMobile = useMediaQuery('(max-width: 900px)')
 
-  const bottomStyle = { width: '100%', height: 'min-content', left: 0, right: 0, bottom: 0 }
+  const bottomStyle = {
+    width: '100%',
+    height: 'min-content',
+    left: 0,
+    right: 0,
+    bottom: isDebugMode ? 40 : 0,
+  }
   const topStyle = {
     width: '100%',
     height: 'min-content',
@@ -112,8 +118,12 @@ const StyledCenterWrap = styled('div', {
 })
 
 const StyledStatusWrap = styled('div', {
-  gridRow: 2,
-  gridColumn: '1 / span 3',
+  position: 'fixed',
+  bottom: 0,
+  left: 0,
+  right: 0,
+  width: '100%',
+  maxWidth: '100%',
 })
 
 const StyledPrimaryTools = styled('div', {
