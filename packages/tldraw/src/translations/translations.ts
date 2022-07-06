@@ -62,10 +62,8 @@ export type TDLanguage = TDTranslations[number]['code']
 export function getTranslation(code: TDLanguage): TDTranslation {
   const translation = TRANSLATIONS.find((t) => t.code === code)
 
-  const defaultTranslation = TRANSLATIONS.find((t) => t.code === 'en')!
-
   const messages = {
-    ...defaultTranslation.messages,
+    ...main,
     ...translation?.messages,
   }
 
