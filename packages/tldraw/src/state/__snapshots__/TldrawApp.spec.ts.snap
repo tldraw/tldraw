@@ -53,6 +53,7 @@ TldrawTestApp {
       "version": 15.3,
     },
     "settings": Object {
+      "dockPosition": "bottom",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -203,6 +204,7 @@ TldrawTestApp {
       "version": 15.3,
     },
     "settings": Object {
+      "dockPosition": "bottom",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -374,6 +376,7 @@ TldrawTestApp {
       "version": 15.3,
     },
     "settings": Object {
+      "dockPosition": "bottom",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,

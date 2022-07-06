@@ -51,6 +51,7 @@
   "create.page": "Crea nuova pagina",
   "new.page": "Nuova pagina",
   "page.name": "Nome pagina",
+  "page": "Pagina",
   "duplicate": "Duplica",
   "cancel": "Chiudi",
   "copy.invite.link": "Copia link invito",
@@ -86,5 +87,9 @@
   "forward": "Sposta avanti",
   "backward": "Sposta indietro",
   "back": "In fondo",
-  "language": "Lingua"
+  "language": "Lingua",
+  "dock.position": "Posizione dock",
+  "bottom": "In basso",
+  "left": "Sinistra",
+  "right": "Destra"
 }

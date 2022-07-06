@@ -20,5 +20,17 @@ export const MenuContent = styled('div', {
         minWidth: 72,
       },
     },
+    overflow: {
+      true: {
+        maxHeight: '60vh',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+      },
+    },
+  },
+  '-ms-overflow-style': 'none' /* for Internet Explorer, Edge */,
+  scrollbarWidth: 'none',
+  '&::webkit-scrollbar': {
+    display: 'none',
   },
 })
