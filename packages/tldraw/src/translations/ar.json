@@ -86,5 +86,10 @@
   "forward": "للخلف",
   "backward": "للوراء",
   "back": "خلف",
-  "language": "لغة"
+  "language": "لغة",
+  "dock.position": "موقع الادوات",
+  "bottom": "اسفل",
+  "left": "يسار",
+  "right": "يمين",
+  "top": "أعلى"
 }
