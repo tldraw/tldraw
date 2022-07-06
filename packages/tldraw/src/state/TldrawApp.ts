@@ -1775,6 +1775,48 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
+    let domain = '';
+    let path = '';
+
+    const textIsEdubreakLink = (text: string) => {
+      console.log('is this an edubreak link? ', text);
+      // https://alpha.test.edubreak.dev20.ghostthinker.de/en/course-347479/video/360178/test-videoooo
+
+      const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
+      const regMatches = text.matchAll(regexp);
+      const matches = [];
+      for (const regMatch of regMatches) {
+          matches.push(regMatch)
+      }
+      domain = matches[0][2];
+      path = matches[0][3];
+
+      return domain.includes('.edubreak.') && IsNodeType(path);
+    }
+
+    const IsNodeType = (path: string) => {
+      const types = [
+        'video',
+        'videocomment',
+        'blog',
+        'document'
+      ]
+
+      for (const type of types) {
+        const pathType = '/' + type + '/'
+        if (path.includes(pathType)) {
+          return true
+        }
+      }
+
+      return false;
+    }
+
+
+    const pasteTextAsEdubreakLink = (type: string, url: string) => {
+      console.log('this is the node type: ', type);
+    }
+
     const pasteTextAsSvg = async (text: string) => {
       const div = document.createElement('div')
       div.innerHTML = text
@@ -1854,6 +1896,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           switch (item.kind) {
             case 'string': {
               item.getAsString(async (text) => {
+                // check if the text is an edubreak link
+                if (textIsEdubreakLink(text)) {
+                  // TODO: get node type here and handle Request in this function
+                  pasteTextAsEdubreakLink('type', text)
+                }
                 if (text.startsWith('<svg')) {
                   pasteTextAsSvg(text)
                 } else {
