@@ -34,8 +34,6 @@ const shapeShapeIcons = {
   [TDShapeType.Line]: <LineIcon />,
 }
 
-const statusSelector = (s: TDSnapshot) => s.appState.status
-
 enum Status {
   SpacePanning = 'spacePanning',
 }
