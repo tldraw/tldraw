@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Renderer } from '@tldraw/core'
-import { defineMessages, IntlConfig, IntlProvider } from 'react-intl'
+import { IntlProvider } from 'react-intl'
 import { styled, dark } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
@@ -443,9 +443,19 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const translation = useTranslation(settings.language)
 
+  // Put the theme on the body. This means that components with
+  // multiple editors cannot have different themes.
+  React.useLayoutEffect(() => {
+    if (settings.isDarkMode) {
+      window.document.body.classList.add(dark)
+    } else {
+      window.document.body.classList.remove(dark)
+    }
+  }, [settings.isDarkMode])
+
   return (
     <IntlProvider locale={translation.locale} messages={translation.messages}>
-      <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
+      <StyledLayout ref={rWrapper} tabIndex={-0}>
         <Loading />
         <OneOff focusableRef={rWrapper} autofocus={autofocus} />
         <ContextMenu>

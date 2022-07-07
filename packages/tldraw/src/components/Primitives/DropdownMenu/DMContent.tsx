@@ -10,9 +10,17 @@ export interface DMContentProps {
   sideOffset?: number
   children: React.ReactNode
   id?: string
+  side?: 'top' | 'left' | 'right' | 'bottom' | undefined
 }
 
-export function DMContent({ sideOffset = 8, children, align, variant, id }: DMContentProps) {
+export function DMContent({
+  sideOffset = 8,
+  children,
+  align,
+  variant,
+  id,
+  side = 'bottom',
+}: DMContentProps) {
   return (
     <DropdownMenu.Content
       dir="ltr"
@@ -21,6 +29,7 @@ export function DMContent({ sideOffset = 8, children, align, variant, id }: DMCo
       onEscapeKeyDown={stopPropagation}
       asChild
       id={id}
+      side={side}
     >
       <StyledContent variant={variant}>{children}</StyledContent>
     </DropdownMenu.Content>
