@@ -86,5 +86,10 @@
   "forward": "Forward",
   "backward": "Backward",
   "back": "Back",
-  "language": "Language"
+  "language": "Language",
+  "dock.position": "Dock Position",
+  "bottom": "Bottom",
+  "left": "Left",
+  "right": "Right",
+  "top": "Top"
 }
