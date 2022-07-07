@@ -345,7 +345,9 @@ function AlignDistributeSubMenu({
   return (
     <span id="TD-ContextMenu-Align_Duplicate">
       <RadixContextMenu.Root dir="ltr">
-        <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
+        <CMTriggerButton isSubmenu>
+          <FormattedMessage id="align.distribute" />
+        </CMTriggerButton>
         <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
           <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
             <CMIconButton onClick={alignLeft} id="TD-ContextMenu-Align_Duplicate-AlignLeft">
