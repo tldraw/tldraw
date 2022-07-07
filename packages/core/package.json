@@ -50,8 +50,8 @@
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
     "@tldraw/intersect": "*",
     "@tldraw/vec": "*",
     "@types/node": "^17.0.14",

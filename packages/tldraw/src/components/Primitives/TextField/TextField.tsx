@@ -30,6 +30,7 @@ const StyledInput = styled('input', {
   width: '100%',
   paddingLeft: '$3',
   paddingRight: '$6',
+  backgroundColor: '$background',
 
   height: '32px',
   outline: 'none',
@@ -48,4 +49,5 @@ const StyledInputIcon = styled(SmallIcon, {
   paddingLeft: '$3',
   paddingRight: '$3',
   pointerEvents: 'none',
+  color: '$text',
 })

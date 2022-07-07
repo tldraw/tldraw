@@ -2,9 +2,12 @@ import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import { TDSnapshot } from '~types'
+import { TDDockPosition, TDSnapshot } from '~types'
+import { styled } from '~styles'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
+
+const DockPosition = ['bottom', 'left', 'right', 'top']
 
 export function PreferencesMenu() {
   const app = useTldrawApp()
@@ -51,6 +54,13 @@ export function PreferencesMenu() {
   const toggleCadSelectMode = React.useCallback(() => {
     app.setSetting('isCadSelectMode', (v) => !v)
   }, [app])
+
+  const handleChangeDockPosition = React.useCallback(
+    (position: TDDockPosition) => {
+      app.setSetting('dockPosition', position)
+    },
+    [app]
+  )
 
   return (
     <DMSubMenu label={intl.formatMessage({ id: 'menu.preferences' })} id="TD-MenuItem-Preferences">
@@ -128,6 +138,24 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.clone.handles" />
       </DMCheckboxItem>
+      <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })}>
+        {DockPosition.map((position) => (
+          <DMCheckboxItem
+            key={position}
+            checked={settings.dockPosition === position}
+            onCheckedChange={() => handleChangeDockPosition(position as TDDockPosition)}
+            id={`TD-MenuItem-DockPosition-${position}`}
+          >
+            <StyledText>
+              <FormattedMessage id={position} />
+            </StyledText>
+          </DMCheckboxItem>
+        ))}
+      </DMSubMenu>
     </DMSubMenu>
   )
 }
+
+const StyledText = styled('span', {
+  textTransform: 'capitalize',
+})

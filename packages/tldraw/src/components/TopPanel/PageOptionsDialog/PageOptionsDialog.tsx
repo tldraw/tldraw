@@ -191,7 +191,7 @@ export const StyledDialogContent = styled(Dialog.Content, {
   marginTop: '-5vh',
   pointerEvents: 'all',
   backgroundColor: '$panel',
-  padding: '$0',
+  padding: '$1',
   borderRadius: '$2',
   font: '$ui',
   '&:focus': {
