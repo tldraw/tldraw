@@ -5,6 +5,7 @@ import en from './en.json'
 import es from './es.json'
 import fa from './fa.json'
 import fr from './fr.json'
+import he from './he.json'
 import it from './it.json'
 import ja from './ja.json'
 import ko_kr from './ko-kr.json'
@@ -25,10 +26,13 @@ import zh_cn from './zh-cn.json'
 
 export const TRANSLATIONS: TDTranslations = [
   { locale: 'ar', label: 'عربي', messages: ar },
+  { locale: 'da', label: 'Danish', messages: da },
+  { locale: 'de', label: 'Deutsch', messages: de },
   { locale: 'en', label: 'English', messages: en },
   { locale: 'es', label: 'Español', messages: es },
-  { locale: 'fr', label: 'Français', messages: fr },
   { locale: 'fa', label: 'فارسی', messages: fa },
+  { locale: 'fr', label: 'Français', messages: fr },
+  { locale: 'he', label: 'עברית', messages: he },
   { locale: 'it', label: 'Italiano', messages: it },
   { locale: 'ja', label: '日本語', messages: ja },
   { locale: 'ko-kr', label: '한국어', messages: ko_kr },
@@ -36,12 +40,10 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'no', label: 'Norwegian', messages: no },
   { locale: 'pl', label: 'Polski', messages: pl },
   { locale: 'pt-br', label: 'Português - Brasil', messages: pt_br },
-  { locale: 'tr', label: 'Türkçe', messages: tr },
-  { locale: 'zh-ch', label: 'Chinese - Simplified', messages: zh_cn },
-  { locale: 'da', label: 'Danish', messages: da },
-  { locale: 'de', label: 'Deutsch', messages: de },
   { locale: 'ru', label: 'Russian', messages: ru },
+  { locale: 'tr', label: 'Türkçe', messages: tr },
   { locale: 'uk', label: 'Ukrainian', messages: uk },
+  { locale: 'zh-ch', label: 'Chinese - Simplified', messages: zh_cn },
 ]
 
 /* ----------------- (do not change) ---------------- */
