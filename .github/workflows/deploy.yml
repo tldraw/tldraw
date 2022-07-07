@@ -1,4 +1,4 @@
-name: deploy-npm
+name: deploy-tldraw
 
 # on events
 on:

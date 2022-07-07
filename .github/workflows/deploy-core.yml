@@ -1,4 +1,4 @@
-name: deploy-npm
+name: deploy-core
 
 # on events
 on:

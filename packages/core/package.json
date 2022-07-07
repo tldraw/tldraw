@@ -1,11 +1,11 @@
 {
-  "version": "1.15.0",
+  "version": "1.14.1",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/tldraw/tldraw.git"
+    "url": "https://github.com/gamma-app/tldraw.git"
   },
   "license": "MIT",
   "keywords": [
