@@ -38,3 +38,6 @@ jobs:
           cd packages/tldraw
           node -e "let pkg=require('./package.json'); pkg.name='@gamma-app/tldraw'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
           npm publish
+          cd ../core
+          node -e "let pkg=require('./package.json'); pkg.name='@gamma-app/tldraw-core'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          npm publish
