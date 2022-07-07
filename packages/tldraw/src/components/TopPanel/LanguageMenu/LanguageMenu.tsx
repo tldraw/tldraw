@@ -1,6 +1,9 @@
+import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { useIntl } from 'react-intl'
-import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { FormattedMessage, useIntl } from 'react-intl'
+import { DMCheckboxItem, DMDivider, DMItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
 import { TDSnapshot } from '~types'
@@ -31,6 +34,19 @@ export function LanguageMenu() {
           {label}
         </DMCheckboxItem>
       ))}
+      <DMDivider />
+      <a
+        href="https://github.com/tldraw/tldraw/blob/develop/guides/translation.md"
+        target="_blank"
+        rel="nofollow"
+      >
+        <DMItem id="TD-MenuItem-Translation-Link">
+          <FormattedMessage id="translation.link" />
+          <SmallIcon>
+            <ExternalLinkIcon />
+          </SmallIcon>
+        </DMItem>
+      </a>
     </DMSubMenu>
   )
 }
