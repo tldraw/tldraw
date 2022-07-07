@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "^1.14.1",
+    "@tldraw/core": "npm:@gamma-app/tldraw-core@1.15.0",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
     "idb-keyval": "^6.1.0",
