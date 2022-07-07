@@ -1,5 +1,18 @@
 ## 1.2.4
 
+## 1.18.0
+
+### Minor Changes
+
+- - Adds Ukrainian translations
+  - Adds Farsi translation
+  - Adds Hebrew translation
+  - Adds option for dock position
+  - Improves page numbering
+  - Support dark mode in menus
+  - Make language menu scrollable
+  - Adds link to translation guide
+
 ## 1.17.2
 
 ### Patch Changes
