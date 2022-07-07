@@ -1,10 +1,8 @@
 import * as React from 'react'
 import { getTranslation, TDLanguage } from '../translations/translations'
 
-export function useTranslation(code?: TDLanguage) {
+export function useTranslation(locale?: TDLanguage) {
   return React.useMemo(() => {
-    const locale = code ?? navigator.language.split(/[-_]/)[0]
-
-    return getTranslation(locale)
-  }, [code])
+    return getTranslation(locale ?? navigator.language.split(/[-_]/)[0])
+  }, [locale])
 }
