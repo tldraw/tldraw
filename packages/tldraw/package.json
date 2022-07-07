@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.16.5",
+  "version": "1.16.6",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "^1.14.0",
+    "@tldraw/core": "npm:@gamma-app/tldraw-core@1.14.1",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.0",
     "idb-keyval": "^6.1.0",
