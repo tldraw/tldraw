@@ -2912,6 +2912,18 @@
     "@testing-library/dom" "^8.5.0"
     "@types/react-dom" "^18.0.0"
 
+"@tldraw/core@npm:@gamma-app/tldraw-core@1.14.1":
+  version "1.14.1"
+  resolved "https://npm.pkg.github.com/download/@gamma-app/tldraw-core/1.14.1/c026940a048af083e9a2d07e265a9770e5cdab130d0de9b543bea895de29dc31#a9e8814e5b49a3387ce25ea2a669564356572e0b"
+  integrity sha512-JFix4il/Ap6tQP0ce7xxM2CrSMGv1rWZnTG8rPAB1A3oF4+2d14pP8YLWJTwWB0qSRuhD7gFOfBgQRKXbSbSrg==
+  dependencies:
+    "@tldraw/intersect" "^1.7.1"
+    "@tldraw/vec" "^1.7.0"
+    "@use-gesture/react" "^10.2.14"
+    mobx-react-lite "^3.2.3"
+    perfect-freehand "^1.1.0"
+    resize-observer-polyfill "^1.5.1"
+
 "@tldraw/lfg@latest":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.3.tgz#23b36664dc5057902f7f2ad0b68f5cfd5b9cc133"
