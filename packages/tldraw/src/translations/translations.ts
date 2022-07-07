@@ -5,6 +5,7 @@ import en from './main.json'
 import es from './es.json'
 import fa from './fa.json'
 import fr from './fr.json'
+import he from './he.json'
 import it from './it.json'
 import ja from './ja.json'
 import ko_kr from './ko-kr.json'
@@ -15,7 +16,6 @@ import pt_br from './pt-br.json'
 import ru from './ru.json'
 import tr from './tr.json'
 import zh_cn from './zh-cn.json'
-import he from './he.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -27,8 +27,8 @@ export const TRANSLATIONS: TDTranslations = [
   { code: 'en', locale: 'en', label: 'English', messages: en },
   { code: 'es', locale: 'es', label: 'Español', messages: es },
   { code: 'fr', locale: 'fr', label: 'Français', messages: fr },
-  { code: 'he', locale: 'he', label: 'עברית', messages: he },
   { code: 'fa', locale:'fa', label: 'فارسی', messages: fa },
+  { code: 'he', locale: 'he', label: 'עברית', messages: he },
   { code: 'it', locale: 'it', label: 'Italiano', messages: it },
   { code: 'ja', locale: 'ja', label: '日本語', messages: ja },
   { code: 'ko-kr', locale: 'ko-kr', label: '한국어', messages: ko_kr },
