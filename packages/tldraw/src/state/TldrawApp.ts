@@ -2775,7 +2775,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
-    console.log(type)
     if (this.readOnly && type !== SessionType.Brush) return this
 
     if (this.session) {
