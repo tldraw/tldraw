@@ -18,33 +18,29 @@ interface ToolsPanelProps {
 
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
+  const side = app.useStore(dockPositionState)
   const isDebugMode = app.useStore(isDebugModeSelector)
-  const dockPosition = app.useStore(dockPositionState)
-
-  const orientation =
-    dockPosition === 'bottom' || dockPosition === 'top' ? 'horizontal' : 'vertical'
 
   return (
-    <StyledToolsPanelContainer
-      side={dockPosition}
-      onBlur={onBlur}
-      bp={breakpoints}
-      debug={isDebugMode}
-    >
-      <StyledCenterWrap id="TD-Tools" orientation={orientation}>
-        <BackToContent />
-        <StyledPrimaryTools orientation={orientation}>
-          <ActionButton />
-          <PrimaryTools />
-          <DeleteButton />
-        </StyledPrimaryTools>
-      </StyledCenterWrap>
+    <>
+      <StyledToolsPanelContainer side={side} onBlur={onBlur} bp={breakpoints} debug={isDebugMode}>
+        <StyledCenterWrap id="TD-Tools">
+          <BackToContent />
+          <StyledPrimaryTools
+            orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
+          >
+            <ActionButton />
+            <PrimaryTools />
+            <DeleteButton />
+          </StyledPrimaryTools>
+        </StyledCenterWrap>
+      </StyledToolsPanelContainer>
       {isDebugMode && (
         <StyledStatusWrap>
           <StatusBar />
         </StyledStatusWrap>
       )}
-    </StyledToolsPanelContainer>
+    </>
   )
 })
 
@@ -53,13 +49,13 @@ const StyledToolsPanelContainer = styled('div', {
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
-  display: 'grid',
-  gridTemplateColumns: 'auto auto auto',
-  gridTemplateRows: 'auto auto',
-  justifyContent: 'space-between',
-  padding: '0',
+  height: '64px',
   gap: '$4',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
   zIndex: 200,
+  overflow: 'hidden',
   pointerEvents: 'none',
   '& > div > *': {
     pointerEvents: 'all',
@@ -78,20 +74,19 @@ const StyledToolsPanelContainer = styled('div', {
     side: {
       top: {
         width: '100%',
-        height: 'min-content',
+        height: 64,
         left: 0,
         right: 0,
-        top: 60,
+        top: 45,
       },
-      right: { width: 'min-content', height: '100%', right: 0 },
+      right: { width: 64, height: '100%', top: 0, right: 0 },
       bottom: {
         width: '100%',
-        height: 'min-content',
         left: 0,
         right: 0,
         bottom: 0,
       },
-      left: { width: 'min-content', height: '100%', left: 10 },
+      left: { width: 64, height: '100%', left: 0 },
     },
   },
   compoundVariants: [
@@ -99,7 +94,7 @@ const StyledToolsPanelContainer = styled('div', {
       side: 'top',
       bp: 'large',
       css: {
-        top: 10,
+        top: '10px',
       },
     },
     {
@@ -113,27 +108,21 @@ const StyledToolsPanelContainer = styled('div', {
 })
 
 const StyledCenterWrap = styled('div', {
-  gridRow: 1,
-  gridColumn: 2,
   display: 'flex',
   width: 'fit-content',
+  height: 'fit-content',
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
   gap: '$4',
-  variants: {
-    orientation: {
-      horizontal: { gridRow: 1, gridColumn: 2 },
-      vertical: { gridRow: 2, gridColumn: 1 },
-    },
-  },
 })
 
 const StyledStatusWrap = styled('div', {
-  position: 'fixed',
+  position: 'absolute',
   bottom: 0,
   left: 0,
   right: 0,
+  height: '40px',
   width: '100%',
   maxWidth: '100%',
 })
@@ -142,7 +131,8 @@ const StyledPrimaryTools = styled('div', {
   position: 'relative',
   display: 'flex',
   alignItems: 'center',
-  gap: '$2',
+  height: 'fit-content',
+  gap: '$3',
   variants: {
     orientation: {
       horizontal: {

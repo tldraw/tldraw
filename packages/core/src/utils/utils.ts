@@ -1504,8 +1504,3 @@ left past the initial left edge) then swap points on that axis.
 }
 
 export default Utils
-
-// const t = '1657287720324'
-// const a = Utils.lns(t)
-// const b = Utils.lns(a)
-// console.log(t, a, b, b === t)
