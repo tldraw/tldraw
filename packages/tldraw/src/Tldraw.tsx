@@ -618,7 +618,7 @@ const StyledUI = styled('div', {
   left: 0,
   height: '100%',
   width: '100%',
-  padding: '0',
+  padding: '8px 8px 0 8px',
   display: 'flex',
   alignItems: 'flex-start',
   justifyContent: 'flex-start',

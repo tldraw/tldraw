@@ -267,13 +267,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   constructor(id?: string, callbacks = {} as TDCallbacks) {
     super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
-      return migrate(
-        {
-          ...next,
-          document: { ...next.document, ...prev.document, version: prevVersion },
-        },
-        TldrawApp.version
-      )
+      return {
+        ...next,
+        document: migrate(
+          { ...next.document, ...prev.document, version: prevVersion },
+          TldrawApp.version
+        ),
+      }
     })
 
     this.callbacks = callbacks
@@ -282,7 +282,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /* -------------------- Internal -------------------- */
 
   protected migrate = (state: TDSnapshot): TDSnapshot => {
-    return migrate(state, TldrawApp.version)
+    return {
+      ...state,
+      document: migrate(state.document, TldrawApp.version),
+    }
   }
 
   protected onReady = () => {
@@ -294,10 +297,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     try {
       this.patchState({
-        ...migrate(this.state, TldrawApp.version),
         appState: {
           status: TDStatus.Idle,
         },
+        document: migrate(this.document, TldrawApp.version),
       })
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
@@ -1229,7 +1232,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Set the default page name to the localized version of "Page"
     doc.pages['page'].name = 'Page 1'
 
-    this.resetHistory().clearSelectHistory().loadDocument(TldrawApp.defaultDocument).persist({})
+    this.resetHistory()
+      .clearSelectHistory()
+      .loadDocument(migrate(doc, TldrawApp.version))
+      .persist({})
 
     return this
   }
@@ -1267,17 +1273,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // If it's a new document, do a full change.
     if (this.document.id !== document.id) {
       this.replaceState({
-        ...migrate(
-          {
-            ...this.state,
-            document,
-          },
-          TldrawApp.version
-        ),
+        ...this.state,
         appState: {
           ...this.appState,
           currentPageId: Object.keys(document.pages)[0],
         },
+        document: migrate(document, TldrawApp.version),
       })
       return this
     }
@@ -1339,11 +1340,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     return this.replaceState(
       {
-        ...migrate(
-          { ...this.state, document: { ...document, pageStates: currentPageStates } },
-          TldrawApp.version
-        ),
+        ...this.state,
         appState: nextAppState,
+        document: {
+          ...migrate(document, TldrawApp.version),
+          pageStates: currentPageStates,
+        },
       },
       'merge'
     )
@@ -1356,7 +1358,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   updateDocument = (document: TDDocument, reason = 'updated_document'): this => {
     const prevState = this.state
 
-    let nextState = { ...prevState, document: { ...prevState.document } }
+    const nextState = { ...prevState, document: { ...prevState.document } }
 
     if (!document.pages[this.currentPageId]) {
       nextState.appState = {
@@ -1397,10 +1399,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
-    return this.replaceState(
-      migrate(nextState, nextState.document.version || 0),
-      `${reason}:${document.id}`
-    )
+    nextState.document = migrate(nextState.document, nextState.document.version || 0)
+
+    return this.replaceState(nextState, `${reason}:${document.id}`)
   }
 
   /**
@@ -1436,21 +1437,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.clearSelectHistory()
     this.session = undefined
 
-    const state = {
-      ...TldrawApp.defaultState,
-      settings: {
-        ...this.state.settings,
+    this.replaceState(
+      {
+        ...TldrawApp.defaultState,
+        settings: {
+          ...this.state.settings,
+        },
+        document: migrate(document, TldrawApp.version),
+        appState: {
+          ...TldrawApp.defaultState.appState,
+          ...this.state.appState,
+          currentPageId: Object.keys(document.pages)[0],
+          disableAssets: this.disableAssets,
+        },
       },
-      document,
-      appState: {
-        ...TldrawApp.defaultState.appState,
-        ...this.state.appState,
-        currentPageId: Object.keys(document.pages)[0],
-        disableAssets: this.disableAssets,
-      },
-    }
-
-    this.replaceState(migrate(state, TldrawApp.version), 'loaded_document')
+      'loaded_document'
+    )
     const { point, zoom } = this.camera
     this.updateViewport(point, zoom)
     return this
@@ -1474,7 +1476,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.readOnly) return
     try {
       const fileHandle = await saveToFileSystem(
-        migrate(this.state, TldrawApp.version).document,
+        migrate(this.document, TldrawApp.version),
         this.fileSystemHandle
       )
       this.fileSystemHandle = fileHandle
@@ -4119,7 +4121,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getShapeUtil = TLDR.getShapeUtil
 
-  static version = 15.4
+  static version = 15.3
 
   static defaultDocument: TDDocument = {
     id: 'doc',

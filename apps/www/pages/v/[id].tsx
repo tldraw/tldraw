@@ -3,6 +3,7 @@ import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import { Utils } from '@tldraw/core'
+import { IFrameWarning } from 'components/IFrameWarning'
 const ReadOnlyMultiplayerEditor = dynamic(() => import('components/ReadOnlyMultiplayerEditor'), {
   ssr: false,
 }) as any
@@ -14,6 +15,10 @@ interface RoomProps {
 }
 
 export default function Room({ id, isUser, isSponsor }: RoomProps) {
+  if (typeof window !== 'undefined') {
+    return <IFrameWarning url={`https://tldraw.com/v/${id}`} />
+  }
+
   return <ReadOnlyMultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} />
 }
 

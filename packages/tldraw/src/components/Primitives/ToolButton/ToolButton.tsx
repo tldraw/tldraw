@@ -119,7 +119,7 @@ export const StyledToolButton = styled('button', {
   color: '$text',
   fontSize: '$0',
   background: 'none',
-  margin: 0,
+  margin: '0',
   padding: '$2',
   display: 'flex',
   alignItems: 'center',
@@ -158,9 +158,7 @@ export const StyledToolButton = styled('button', {
         },
       },
       circle: {
-        padding: '0',
-        height: 32,
-        width: 32,
+        padding: '$2',
         [`& ${StyledToolButtonInner}`]: {
           border: '1px solid $panelContrast',
           borderRadius: '100%',

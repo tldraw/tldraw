@@ -50,7 +50,7 @@ TldrawTestApp {
           "shapes": Object {},
         },
       },
-      "version": 15.4,
+      "version": 15.3,
     },
     "settings": Object {
       "dockPosition": "bottom",
@@ -201,7 +201,7 @@ TldrawTestApp {
           },
         },
       },
-      "version": 15.4,
+      "version": 15.3,
     },
     "settings": Object {
       "dockPosition": "bottom",
@@ -373,7 +373,7 @@ TldrawTestApp {
           "shapes": Object {},
         },
       },
-      "version": 15.4,
+      "version": 15.3,
     },
     "settings": Object {
       "dockPosition": "bottom",
