@@ -2,7 +2,8 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
-const MultiplayerEditor = dynamic(() => import('components/MultiplayerEditor'), {
+import { Utils } from '@tldraw/core'
+const ReadOnlyMultiplayerEditor = dynamic(() => import('components/ReadOnlyMultiplayerEditor'), {
   ssr: false,
 }) as any
 
@@ -13,7 +14,7 @@ interface RoomProps {
 }
 
 export default function Room({ id, isUser, isSponsor }: RoomProps) {
-  return <MultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} isReadOnly={true} />
+  return <ReadOnlyMultiplayerEditor isUser={isUser} isSponsor={isSponsor} roomId={id} />
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -22,7 +23,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   return {
     props: {
-      id,
+      id: Utils.lns(id),
       isUser: session?.user ? true : false,
       isSponsor: session?.isSponsor ?? false,
     },
