@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
-import { useMediaQuery, useTldrawApp } from '~hooks'
+import { useTldrawApp } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
+import { breakpoints } from '~components/breakpoints'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -19,61 +20,20 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
   const app = useTldrawApp()
   const isDebugMode = app.useStore(isDebugModeSelector)
   const dockPosition = app.useStore(dockPositionState)
-  const isMobile = useMediaQuery('(max-width: 900px)')
 
-  const bottomStyle = {
-    width: '100%',
-    height: 'min-content',
-    left: 0,
-    right: 0,
-    bottom: isDebugMode ? 40 : 0,
-  }
-  const topStyle = {
-    width: '100%',
-    height: 'min-content',
-    left: 0,
-    right: 0,
-    top: isMobile ? 60 : 10,
-  }
-  const rightStyle = { width: 'min-content', height: '100%', right: 0 }
-  const leftStyle = { width: 'min-content', height: '100%', left: 10 }
-
-  const toolStyle = () => {
-    switch (dockPosition) {
-      case 'bottom':
-        return bottomStyle
-      case 'left':
-        return leftStyle
-      case 'right':
-        return rightStyle
-      case 'top':
-        return topStyle
-      default:
-        return bottomStyle
-    }
-  }
-  const style = toolStyle()
-  const centerWrapStyle =
-    dockPosition === 'bottom' || dockPosition === 'top'
-      ? { gridRow: 1, gridColumn: 2 }
-      : { gridRow: 2, gridColumn: 1 }
-  const primaryToolStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
+  const orientation =
+    dockPosition === 'bottom' || dockPosition === 'top' ? 'horizontal' : 'vertical'
 
   return (
     <StyledToolsPanelContainer
-      style={{
-        ...style,
-      }}
+      side={dockPosition}
       onBlur={onBlur}
+      bp={breakpoints}
+      debug={isDebugMode}
     >
-      <StyledCenterWrap
-        id="TD-Tools"
-        style={{
-          ...centerWrapStyle,
-        }}
-      >
+      <StyledCenterWrap id="TD-Tools" orientation={orientation}>
         <BackToContent />
-        <StyledPrimaryTools style={{ flexDirection: primaryToolStyle }}>
+        <StyledPrimaryTools orientation={orientation}>
           <ActionButton />
           <PrimaryTools />
           <DeleteButton />
@@ -104,6 +64,52 @@ const StyledToolsPanelContainer = styled('div', {
   '& > div > *': {
     pointerEvents: 'all',
   },
+  variants: {
+    debug: {
+      true: {},
+      false: {},
+    },
+    bp: {
+      mobile: {},
+      small: {},
+      medium: {},
+      large: {},
+    },
+    side: {
+      top: {
+        width: '100%',
+        height: 'min-content',
+        left: 0,
+        right: 0,
+        top: 60,
+      },
+      right: { width: 'min-content', height: '100%', right: 0 },
+      bottom: {
+        width: '100%',
+        height: 'min-content',
+        left: 0,
+        right: 0,
+        bottom: 0,
+      },
+      left: { width: 'min-content', height: '100%', left: 10 },
+    },
+  },
+  compoundVariants: [
+    {
+      side: 'top',
+      bp: 'large',
+      css: {
+        top: 10,
+      },
+    },
+    {
+      side: 'bottom',
+      debug: true,
+      css: {
+        bottom: 40,
+      },
+    },
+  ],
 })
 
 const StyledCenterWrap = styled('div', {
@@ -115,6 +121,12 @@ const StyledCenterWrap = styled('div', {
   justifyContent: 'center',
   flexDirection: 'column',
   gap: '$4',
+  variants: {
+    orientation: {
+      horizontal: { gridRow: 1, gridColumn: 2 },
+      vertical: { gridRow: 2, gridColumn: 1 },
+    },
+  },
 })
 
 const StyledStatusWrap = styled('div', {
@@ -131,4 +143,14 @@ const StyledPrimaryTools = styled('div', {
   display: 'flex',
   alignItems: 'center',
   gap: '$2',
+  variants: {
+    orientation: {
+      horizontal: {
+        flexDirection: 'row',
+      },
+      vertical: {
+        flexDirection: 'column',
+      },
+    },
+  },
 })
