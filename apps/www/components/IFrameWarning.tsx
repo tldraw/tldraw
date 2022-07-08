@@ -31,6 +31,8 @@ const StyledContainer = styled('a', {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
+  fontFamily: '$body',
+  fontWeight: 'normal',
   margin: 0,
   padding: 0,
   gap: '$1',
