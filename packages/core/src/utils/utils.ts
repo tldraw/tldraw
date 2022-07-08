@@ -1491,15 +1491,14 @@ left past the initial left edge) then swap points on that axis.
    * @param str string
    */
   static lns(str: string) {
-    const result = str.split('')
+    const result = str
+      .split('')
+      .map((n) => (Number.isNaN(+n) ? n : +n < 5 ? 5 + +n : +n > 5 ? +n - 5 : +n))
     result.push(...result.splice(0, Math.round(result.length / 5)))
     result.push(...result.splice(0, Math.round(result.length / 4)))
     result.push(...result.splice(0, Math.round(result.length / 3)))
     result.push(...result.splice(0, Math.round(result.length / 2)))
-    return result
-      .reverse()
-      .map((n) => (+n ? (+n < 5 ? 5 + +n : +n > 5 ? +n - 5 : n) : n))
-      .join('')
+    return result.reverse().join('')
   }
 }
 

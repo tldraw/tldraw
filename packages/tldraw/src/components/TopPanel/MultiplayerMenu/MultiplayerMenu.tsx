@@ -119,7 +119,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
         <DMItem
           id="TD-Multiplayer-CopyReadOnlyLink"
           onClick={handleCopyReadOnlySelect}
-          disabled={!room}
+          disabled={false}
         >
           <FormattedMessage id="copy.readonly.link" />
           <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
