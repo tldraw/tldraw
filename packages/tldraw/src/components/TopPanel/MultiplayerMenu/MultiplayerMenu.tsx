@@ -31,6 +31,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
   const handleCopyReadOnlySelect = React.useCallback(() => {
     setCopied(true)
     const segs = window.location.href.split('/')
+    segs[segs.length - 2] = 'v'
     segs[segs.length - 1] = Utils.lns(segs[segs.length - 1])
     TLDR.copyStringToClipboard(segs.join('/'))
     clearTimeout(rTimeout.current)
