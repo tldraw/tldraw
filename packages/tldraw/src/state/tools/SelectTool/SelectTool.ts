@@ -244,8 +244,19 @@ export class SelectTool extends BaseTool<Status> {
   // Pointer Events (generic)
 
   onPointerMove: TLPointerEventHandler = () => {
-    if (this.app.readOnly) return
     const { originPoint, currentPoint } = this.app
+
+    if (this.app.readOnly && this.app.isPointing) {
+      if (this.app.session) {
+        this.app.updateSession()
+      } else {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.app.startSession(SessionType.Brush)
+          this.setStatus(Status.Brushing)
+        }
+      }
+      return
+    }
 
     switch (this.status) {
       case Status.PointingBoundsHandle: {

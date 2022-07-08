@@ -1230,8 +1230,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const doc = TldrawApp.defaultDocument
 
     // Set the default page name to the localized version of "Page"
-    const translation = getTranslation(this.settings.language)
-    doc.pages['page'].name = translation.messages['page'] + ' 1' ?? 'Page 1'
+    doc.pages['page'].name = 'Page 1'
 
     this.resetHistory()
       .clearSelectHistory()
@@ -2776,6 +2775,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param args arguments of the session's start method.
    */
   startSession = <T extends SessionType>(type: T, ...args: SessionArgsOfType<T>): this => {
+    console.log(type)
     if (this.readOnly && type !== SessionType.Brush) return this
 
     if (this.session) {

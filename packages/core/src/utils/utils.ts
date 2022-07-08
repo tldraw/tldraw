@@ -1485,6 +1485,16 @@ left past the initial left edge) then swap points on that axis.
   static metaKey(e: KeyboardEvent | React.KeyboardEvent): boolean {
     return Utils.isDarwin() ? e.metaKey : e.ctrlKey
   }
+
+  /**
+   * Reversable psuedo hash.
+   * @param str string
+   */
+  static lns(str: string) {
+    let k = ''
+    for (const n of str) k += +n < 5 ? 5 + +n : +n > 5 ? +n - 5 : +n
+    return k
+  }
 }
 
 export default Utils

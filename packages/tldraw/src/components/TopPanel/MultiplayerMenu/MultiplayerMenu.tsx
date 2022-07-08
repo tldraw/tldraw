@@ -19,10 +19,23 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   const [copied, setCopied] = React.useState(false)
 
+  const rTimeout = React.useRef<any>(0)
+
   const handleCopySelect = React.useCallback(() => {
     setCopied(true)
     TLDR.copyStringToClipboard(window.location.href)
-    setTimeout(() => setCopied(false), 1200)
+    clearTimeout(rTimeout.current)
+    rTimeout.current = setTimeout(() => setCopied(false), 1200)
+  }, [])
+
+  const handleCopyReadOnlySelect = React.useCallback(() => {
+    setCopied(true)
+    const segs = window.location.href.split('/')
+    segs[segs.length - 2] = 'v'
+    segs[segs.length - 1] = Utils.lns(segs[segs.length - 1])
+    TLDR.copyStringToClipboard(segs.join('/'))
+    clearTimeout(rTimeout.current)
+    rTimeout.current = setTimeout(() => setCopied(false), 1200)
   }, [])
 
   const handleCreateMultiplayerProject = React.useCallback(async () => {
@@ -101,6 +114,14 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
           <FormattedMessage id="copy.invite.link" />
+          <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
+        </DMItem>
+        <DMItem
+          id="TD-Multiplayer-CopyReadOnlyLink"
+          onClick={handleCopyReadOnlySelect}
+          disabled={false}
+        >
+          <FormattedMessage id="copy.readonly.link" />
           <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
         <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />

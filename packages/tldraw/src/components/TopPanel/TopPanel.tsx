@@ -7,7 +7,6 @@ import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
-import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { MultiplayerMenu } from './MultiplayerMenu'
 
@@ -44,12 +43,19 @@ export function TopPanel({
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          <ToolButton>
-            <UndoIcon onClick={app.undo} />
-          </ToolButton>
-          <ToolButton>
-            <RedoIcon onClick={app.redo} />
-          </ToolButton>
+          {app.readOnly ? (
+            <ReadOnlyLabel>Read Only</ReadOnlyLabel>
+          ) : (
+            <>
+              {' '}
+              <ToolButton>
+                <UndoIcon onClick={app.undo} />
+              </ToolButton>
+              <ToolButton>
+                <RedoIcon onClick={app.redo} />
+              </ToolButton>
+            </>
+          )}
           {showZoom && <ZoomMenu />}
           {showStyles && !readOnly && <StyleMenu />}
         </Panel>
@@ -75,4 +81,16 @@ const StyledTopPanel = styled('div', {
 const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
+})
+
+const ReadOnlyLabel = styled('div', {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontFamily: '$ui',
+  fontSize: '$1',
+  paddingLeft: '$4',
+  paddingRight: '$1',
+  userSelect: 'none',
 })
