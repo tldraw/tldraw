@@ -35,5 +35,5 @@ const StyledContainer = styled('a', {
   fontWeight: 'normal',
   margin: 0,
   padding: 0,
-  gap: '$1',
+  gap: '$2',
 })
