@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.19.0",
+  "version": "1.19.1",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -47,7 +47,7 @@
     "@radix-ui/react-icons": "^1.1.1",
     "@radix-ui/react-tooltip": "^0.1.7",
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "^1.14.1",
+    "@tldraw/core": "^1.14.2",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
     "idb-keyval": "^6.1.0",

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.19.1
+
+### Patch Changes
+
+- Fix toolbar placement.
+- Updated dependencies
+  - @tldraw/core@1.14.2
+
 ## 1.19.0
 
 ### Minor Changes

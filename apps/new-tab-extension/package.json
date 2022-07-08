@@ -1,7 +1,7 @@
 {
   "name": "@tldraw/new-tab-extension",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tiny little new tab extension for tldraw.",
   "author": "@steveruizok",
   "repository": {

@@ -1,5 +1,11 @@
 # @tldraw/vscode-editor
 
+## 1.11.1
+
+### Patch Changes
+
+- Fix toolbar placement.
+
 ## 1.11.0
 
 ### Minor Changes

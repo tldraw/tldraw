@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.14.2
+
+### Patch Changes
+
+- Fix toolbar placement.
+
 ## 1.14.1
 
 ### Patch Changes
