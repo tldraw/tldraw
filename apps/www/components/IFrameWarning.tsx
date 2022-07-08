@@ -2,7 +2,7 @@ import { styled } from 'styles'
 
 export function IFrameWarning({ url = 'https://tldraw.com' }: { url?: string }) {
   return (
-    <StyledContainer href={url}>
+    <StyledContainer href={url} target="_parent">
       Visit this page on tldraw.com{' '}
       <svg
         width="15"
