@@ -53,7 +53,7 @@ TRANSLATIONS.sort((a, b) => (a.locale < b.locale ? -1 : 1))
 export type TDTranslation = {
   readonly locale: string
   readonly label: string
-  readonly messages: Partial<typeof en>
+  readonly messages: Partial<typeof main>
 }
 
 export type TDTranslations = TDTranslation[]

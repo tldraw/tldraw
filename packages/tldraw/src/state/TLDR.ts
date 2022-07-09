@@ -1015,6 +1015,7 @@ export class TLDR {
           sel.addRange(range)
           textarea.setSelectionRange(0, textarea.value.length)
         }
+        document.execCommand('copy')
       } catch (err) {
         null // Could not copy to clipboard
       } finally {
