@@ -9,7 +9,7 @@ export const machine = createState({
   data: INITIAL_DATA,
   onEnter: ['restoreSavedDocument', 'updateBoundShapes'],
   on: {
-    MOVED_POINTER: 'updatePointer',
+    WIGGLE: 'updatePointer',
     SELECTED_TOOL: { to: (_, payload) => payload.name },
     STARTED_POINTING: ['setInitialPoint', 'setSnapshot'],
     PANNED: 'panCamera',
@@ -88,14 +88,14 @@ export const machine = createState({
                 STOPPED_POINTING: {
                   to: 'select.idle',
                 },
-                MOVED_POINTER: {
+                WIGGLE: {
                   to: 'brushSelecting',
                 },
               },
             },
             boundsHandle: {
               on: {
-                MOVED_POINTER: {
+                WIGGLE: {
                   if: 'hasLeftDeadZone',
                   to: 'transforming',
                 },
@@ -106,7 +106,7 @@ export const machine = createState({
             },
             bounds: {
               on: {
-                MOVED_POINTER: {
+                WIGGLE: {
                   if: 'hasLeftDeadZone',
                   to: 'translating.shapes',
                 },
@@ -118,7 +118,7 @@ export const machine = createState({
             },
             shape: {
               on: {
-                MOVED_POINTER: {
+                WIGGLE: {
                   if: 'hasLeftDeadZone',
                   to: 'translating.shapes',
                 },
@@ -135,7 +135,7 @@ export const machine = createState({
             },
             handle: {
               on: {
-                MOVED_POINTER: {
+                WIGGLE: {
                   if: 'hasLeftDeadZone',
                   to: 'translating.handle',
                 },
@@ -166,14 +166,14 @@ export const machine = createState({
               onEnter: 'removePartialBindings',
               on: {
                 TOGGLED_MODIFIER: ['translateSelectedShapes', 'updateBoundShapes'],
-                MOVED_POINTER: ['translateSelectedShapes', 'updateBoundShapes'],
+                WIGGLE: ['translateSelectedShapes', 'updateBoundShapes'],
                 PANNED: ['translateSelectedShapes', 'updateBoundShapes'],
               },
             },
             handle: {
               on: {
                 TOGGLED_MODIFIER: ['translateHandle', 'updateBoundShapes'],
-                MOVED_POINTER: ['translateHandle', 'updateBoundShapes'],
+                WIGGLE: ['translateHandle', 'updateBoundShapes'],
                 PANNED: ['translateHandle', 'updateBoundShapes'],
               },
             },
@@ -184,7 +184,7 @@ export const machine = createState({
           onExit: ['clearSnapInfo', 'clearSnapLines', 'clearPointedBoundsHandle'],
           on: {
             TOGGLED_MODIFIER: ['transformSelectedShapes', 'updateBoundShapes'],
-            MOVED_POINTER: ['transformSelectedShapes', 'updateBoundShapes'],
+            WIGGLE: ['transformSelectedShapes', 'updateBoundShapes'],
             PANNED: ['transformSelectedShapes', 'updateBoundShapes'],
             CANCELLED: {
               do: 'restoreSnapshot',
@@ -200,7 +200,7 @@ export const machine = createState({
           onExit: 'clearBrush',
           on: {
             TOGGLED_MODIFIER: 'updateBrush',
-            MOVED_POINTER: 'updateBrush',
+            WIGGLE: 'updateBrush',
             PANNED: 'updateBrush',
             CANCELLED: {
               to: 'select.idle',
@@ -231,7 +231,7 @@ export const machine = createState({
         },
         pointing: {
           on: {
-            MOVED_POINTER: {
+            WIGGLE: {
               if: 'hasLeftDeadZone',
               to: 'eraser.erasing',
             },
@@ -244,7 +244,7 @@ export const machine = createState({
         erasing: {
           onEnter: ['setSnapshot'],
           on: {
-            MOVED_POINTER: 'eraseShapes',
+            WIGGLE: 'eraseShapes',
             PANNED: 'eraseShapes',
             CANCELLED: {
               do: 'restoreSnapshot',
@@ -280,7 +280,7 @@ export const machine = createState({
           onEnter: ['createPencilShape', 'setSnapshot'],
           on: {
             TOGGLED_MODIFIER: 'extendPencilShape',
-            MOVED_POINTER: 'extendPencilShape',
+            WIGGLE: 'extendPencilShape',
             PANNED: 'extendPencilShape',
             CANCELLED: {
               do: 'deleteSelectedShapes',
@@ -307,7 +307,7 @@ export const machine = createState({
         },
         pointing: {
           on: {
-            MOVED_POINTER: {
+            WIGGLE: {
               if: 'hasLeftDeadZone',
               to: 'box.creating',
             },
@@ -320,7 +320,7 @@ export const machine = createState({
           onEnter: ['createBoxShape', 'setSnapshot'],
           on: {
             TOGGLED_MODIFIER: 'transformSelectedShapes',
-            MOVED_POINTER: 'transformSelectedShapes',
+            WIGGLE: 'transformSelectedShapes',
             PANNED: 'transformSelectedShapes',
             CANCELLED: {
               do: 'deleteSelectedShapes',
@@ -351,7 +351,7 @@ export const machine = createState({
         pointing: {
           onEnter: 'setInitialPoint',
           on: {
-            MOVED_POINTER: {
+            WIGGLE: {
               if: 'hasLeftDeadZone',
               to: 'arrow.creating',
             },
@@ -365,7 +365,7 @@ export const machine = createState({
           onEnter: ['createArrowShape', 'updateBoundShapes', 'setSnapshot'],
           on: {
             TOGGLED_MODIFIER: ['translateHandle', 'updateBoundShapes'],
-            MOVED_POINTER: ['translateHandle', 'updateBoundShapes'],
+            WIGGLE: ['translateHandle', 'updateBoundShapes'],
             PANNED: ['translateHandle', 'updateBoundShapes'],
             CANCELLED: {
               do: 'deleteSelectedShapes',

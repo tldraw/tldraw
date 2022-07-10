@@ -51,7 +51,7 @@ const onPointerUp: TLPointerEventHandler = (info, e) => {
 }
 
 const onPointerMove: TLPointerEventHandler = (info, e) => {
-  machine.send('MOVED_POINTER', info)
+  machine.send('WIGGLE', info)
 }
 
 const onPan: TLWheelEventHandler = (info, e) => {
