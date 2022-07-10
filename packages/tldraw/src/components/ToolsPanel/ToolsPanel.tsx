@@ -101,7 +101,7 @@ const StyledToolsPanelContainer = styled('div', {
       side: 'bottom',
       debug: true,
       css: {
-        bottom: 40,
+        bottom: '40px',
       },
     },
   ],
@@ -119,9 +119,9 @@ const StyledCenterWrap = styled('div', {
 
 const StyledStatusWrap = styled('div', {
   position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
+  bottom: '0px',
+  left: '0px',
+  right: '0px',
   height: '40px',
   width: '100%',
   maxWidth: '100%',

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Decoration, FontStyle, TDDocument, TDShapeType, TextShape } from '~types'
+import { Decoration, FontStyle, TDDocument, TDShapeType, TDSnapshot, TextShape } from '~types'
 
-export function migrate(document: TDDocument, newVersion: number): TDDocument {
+export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
+  const { document, settings } = state
   const { version = 0 } = document
 
   if (!('assets' in document)) {
@@ -11,8 +12,8 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
   // Remove unused assets when loading a document
   const assetIdsInUse = new Set<string>()
 
-  Object.values(document.pages).forEach(page =>
-    Object.values(page.shapes).forEach(shape => {
+  Object.values(document.pages).forEach((page) =>
+    Object.values(page.shapes).forEach((shape) => {
       const { parentId, children, assetId } = shape
 
       if (assetId) {
@@ -26,7 +27,7 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
       }
 
       if (shape.type === TDShapeType.Group && children) {
-        children.forEach(childId => {
+        children.forEach((childId) => {
           if (!page.shapes[childId]) {
             console.warn('Encountered a parent with a missing child!', shape.id, childId)
             children?.splice(children.indexOf(childId), 1)
@@ -38,31 +39,31 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     })
   )
 
-  Object.keys(document.assets).forEach(assetId => {
+  Object.keys(document.assets).forEach((assetId) => {
     if (!assetIdsInUse.has(assetId)) {
       delete document.assets[assetId]
     }
   })
 
-  if (version === newVersion) return document
+  if (version === newVersion) return state
 
   if (version < 14) {
-    Object.values(document.pages).forEach(page => {
+    Object.values(document.pages).forEach((page) => {
       Object.values(page.shapes)
-        .filter(shape => shape.type === TDShapeType.Text)
-        .forEach(shape => (shape as TextShape).style.font === FontStyle.Script)
+        .filter((shape) => shape.type === TDShapeType.Text)
+        .forEach((shape) => (shape as TextShape).style.font === FontStyle.Script)
     })
   }
 
   // Lowercase styles, move binding meta to binding
   if (version <= 13) {
-    Object.values(document.pages).forEach(page => {
-      Object.values(page.bindings).forEach(binding => {
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.bindings).forEach((binding) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Object.assign(binding, (binding as any).meta)
       })
 
-      Object.values(page.shapes).forEach(shape => {
+      Object.values(page.shapes).forEach((shape) => {
         Object.entries(shape.style).forEach(([id, style]) => {
           if (typeof style === 'string') {
             // @ts-ignore
@@ -95,8 +96,8 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     document.assets = {}
   }
 
-  Object.values(document.pages).forEach(page => {
-    Object.values(page.shapes).forEach(shape => {
+  Object.values(document.pages).forEach((page) => {
+    Object.values(page.shapes).forEach((shape) => {
       if (version < 15.2) {
         if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
           shape.style.isFilled = true
@@ -117,9 +118,13 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
     })
   })
 
+  if (version < 15.4) {
+    settings.dockPosition = 'bottom'
+  }
+
   // Cleanup
-  Object.values(document.pageStates).forEach(pageState => {
-    pageState.selectedIds = pageState.selectedIds.filter(id => {
+  Object.values(document.pageStates).forEach((pageState) => {
+    pageState.selectedIds = pageState.selectedIds.filter((id) => {
       return document.pages[pageState.id].shapes[id] !== undefined
     })
     pageState.bindingId = undefined
@@ -130,5 +135,5 @@ export function migrate(document: TDDocument, newVersion: number): TDDocument {
 
   document.version = newVersion
 
-  return document
+  return state
 }
