@@ -103,6 +103,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
             ...shape,
             text: newText,
           })
+
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
@@ -162,7 +163,9 @@ export class TextUtil extends TDShapeUtil<T, E> {
             e.preventDefault()
             return
           }
-
+          if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+            e.preventDefault()
+          }
           if (e.key === 'Tab') {
             e.preventDefault()
             if (e.shiftKey) {
