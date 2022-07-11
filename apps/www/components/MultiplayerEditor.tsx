@@ -1,5 +1,4 @@
-import { createClient } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
+import { RoomProvider } from '../utils/liveblocks'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
@@ -7,11 +6,6 @@ import { useMultiplayerState } from 'hooks/useMultiplayerState'
 import { useUploadAssets } from 'hooks/useUploadAssets'
 import React, { FC } from 'react'
 import { styled } from 'styles'
-
-const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
-  throttle: 80,
-})
 
 interface Props {
   roomId: string
@@ -29,11 +23,9 @@ const MultiplayerEditor: FC<Props> = ({
   isSponsor: boolean
 }) => {
   return (
-    <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId}>
-        <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
-      </RoomProvider>
-    </LiveblocksProvider>
+    <RoomProvider id={roomId}>
+      <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
+    </RoomProvider>
   )
 }
 

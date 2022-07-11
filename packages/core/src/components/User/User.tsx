@@ -11,7 +11,8 @@ interface UserProps {
 
 export function User({ user }: UserProps) {
   const rCursor = React.useRef<SVGSVGElement>(null)
-  useCursorAnimation(rCursor, user.point)
+  useCursorAnimation(rCursor, user.point, user.session)
+
   return (
     <svg
       ref={rCursor}

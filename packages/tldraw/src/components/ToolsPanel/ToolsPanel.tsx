@@ -7,8 +7,10 @@ import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
+import { breakpoints } from '~components/breakpoints'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler
@@ -16,53 +18,99 @@ interface ToolsPanelProps {
 
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
+  const side = app.useStore(dockPositionState)
   const isDebugMode = app.useStore(isDebugModeSelector)
 
   return (
-    <StyledToolsPanelContainer onBlur={onBlur}>
-      <StyledCenterWrap id="TD-Tools">
-        <BackToContent />
-        <StyledPrimaryTools>
-          <ActionButton />
-          <PrimaryTools />
-          <DeleteButton />
-        </StyledPrimaryTools>
-      </StyledCenterWrap>
+    <>
+      <StyledToolsPanelContainer side={side} onBlur={onBlur} bp={breakpoints} debug={isDebugMode}>
+        <StyledCenterWrap id="TD-Tools">
+          <BackToContent />
+          <StyledPrimaryTools
+            orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
+          >
+            <ActionButton />
+            <PrimaryTools />
+            <DeleteButton />
+          </StyledPrimaryTools>
+        </StyledCenterWrap>
+      </StyledToolsPanelContainer>
       {isDebugMode && (
         <StyledStatusWrap>
           <StatusBar />
         </StyledStatusWrap>
       )}
-    </StyledToolsPanelContainer>
+    </>
   )
 })
 
 const StyledToolsPanelContainer = styled('div', {
   position: 'absolute',
-  bottom: 0,
-  left: 0,
-  right: 0,
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
-  display: 'grid',
-  gridTemplateColumns: 'auto auto auto',
-  gridTemplateRows: 'auto auto',
-  justifyContent: 'space-between',
-  padding: '0',
+  height: '64px',
   gap: '$4',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
   zIndex: 200,
+  overflow: 'hidden',
   pointerEvents: 'none',
   '& > div > *': {
     pointerEvents: 'all',
   },
+  variants: {
+    debug: {
+      true: {},
+      false: {},
+    },
+    bp: {
+      mobile: {},
+      small: {},
+      medium: {},
+      large: {},
+    },
+    side: {
+      top: {
+        width: '100%',
+        height: 64,
+        left: 0,
+        right: 0,
+        top: 45,
+      },
+      right: { width: 64, height: '100%', top: 0, right: 0 },
+      bottom: {
+        width: '100%',
+        left: 0,
+        right: 0,
+        bottom: 0,
+      },
+      left: { width: 64, height: '100%', left: 0 },
+    },
+  },
+  compoundVariants: [
+    {
+      side: 'top',
+      bp: 'large',
+      css: {
+        top: '10px',
+      },
+    },
+    {
+      side: 'bottom',
+      debug: true,
+      css: {
+        bottom: '40px',
+      },
+    },
+  ],
 })
 
 const StyledCenterWrap = styled('div', {
-  gridRow: 1,
-  gridColumn: 2,
   display: 'flex',
   width: 'fit-content',
+  height: 'fit-content',
   alignItems: 'center',
   justifyContent: 'center',
   flexDirection: 'column',
@@ -70,13 +118,29 @@ const StyledCenterWrap = styled('div', {
 })
 
 const StyledStatusWrap = styled('div', {
-  gridRow: 2,
-  gridColumn: '1 / span 3',
+  position: 'absolute',
+  bottom: '0px',
+  left: '0px',
+  right: '0px',
+  height: '40px',
+  width: '100%',
+  maxWidth: '100%',
 })
 
 const StyledPrimaryTools = styled('div', {
   position: 'relative',
   display: 'flex',
   alignItems: 'center',
-  gap: '$2',
+  height: 'fit-content',
+  gap: '$3',
+  variants: {
+    orientation: {
+      horizontal: {
+        flexDirection: 'row',
+      },
+      vertical: {
+        flexDirection: 'column',
+      },
+    },
+  },
 })

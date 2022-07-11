@@ -34,6 +34,7 @@ export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape
         'tl-absolute',
         isSelected && !user ? 'tl-selected' : 'tl-hovered',
         isEditing ? 'tl-editing' : '',
+        shape.isLocked ? 'tl-locked' : '',
       ].join(' ')}
     >
       <svg width="100%" height="100%">

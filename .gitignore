@@ -19,3 +19,4 @@ apps/www/public/sw.js.map
 .envrc
 firebase.config.*.turbo
 .turbo
+apps/new-tab-extension/tsconfig.tsbuildinfo

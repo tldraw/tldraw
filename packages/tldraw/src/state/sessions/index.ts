@@ -9,6 +9,7 @@ import { TransformSingleSession } from './TransformSingleSession'
 import { TranslateSession } from './TranslateSession'
 import { EraseSession } from './EraseSession'
 import { GridSession } from './GridSession'
+import { EditSession } from './EditSession'
 
 export type TldrawSession =
   | ArrowSession
@@ -21,6 +22,7 @@ export type TldrawSession =
   | TranslateSession
   | EraseSession
   | GridSession
+  | EditSession
 
 export interface SessionsMap {
   [SessionType.Arrow]: typeof ArrowSession
@@ -33,6 +35,7 @@ export interface SessionsMap {
   [SessionType.TransformSingle]: typeof TransformSingleSession
   [SessionType.Translate]: typeof TranslateSession
   [SessionType.Grid]: typeof GridSession
+  [SessionType.Edit]: typeof EditSession
 }
 
 export type SessionOfType<K extends SessionType> = SessionsMap[K]
@@ -52,6 +55,7 @@ export const sessions: { [K in SessionType]: SessionsMap[K] } = {
   [SessionType.TransformSingle]: TransformSingleSession,
   [SessionType.Translate]: TranslateSession,
   [SessionType.Grid]: GridSession,
+  [SessionType.Edit]: EditSession,
 }
 
 export const getSession = <K extends SessionType>(type: K): SessionOfType<K> => {

@@ -1,5 +1,57 @@
 ## 1.2.4
 
+## 1.18.0
+
+### Minor Changes
+
+- - Adds Ukrainian translations
+  - Adds Farsi translation
+  - Adds Hebrew translation
+  - Adds option for dock position
+  - Improves page numbering
+  - Support dark mode in menus
+  - Make language menu scrollable
+  - Adds link to translation guide
+
+## 1.17.2
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+
+## 1.17.1
+
+### Patch Changes
+
+- Add additional translations.
+
+## 1.17.0
+
+### Minor Changes
+
+- 8ef86c19: - Updates multiplayer implementation.
+  - Adds translation guide.
+  - Fixes bug on text shape
+  - Updates undo redo for text shapes.
+
+## 1.16.2
+
+### Patch Changes
+
+- Replace multiplayer icon.
+
+## 1.16.1
+
+### Patch Changes
+
+- Fix clipboard bug in Firefox, add overwite option to `insertContent`.
+
+## 1.16.0
+
+### Minor Changes
+
+- Add getContent / insertContent, improve copy and paste position logic
+
 ## 1.15.0
 
 ### Minor Changes

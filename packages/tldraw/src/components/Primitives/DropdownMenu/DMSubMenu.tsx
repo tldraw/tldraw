@@ -20,8 +20,8 @@ export function DMSubMenu({ children, size, disabled = false, label, id }: DMSub
             {label}
           </RowButton>
         </TriggerItem>
-        <Content dir="ltr" asChild sideOffset={2} alignOffset={-2}>
-          <MenuContent size={size}>
+        <Content dir="ltr" asChild sideOffset={2} alignOffset={-2} align="start">
+          <MenuContent size={size} overflow>
             {children}
             <Arrow offset={13} />
           </MenuContent>

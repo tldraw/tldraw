@@ -7,13 +7,11 @@
   "style.menu.font": "Font",
   "style.menu.align": "Alignement",
   "styles": "Styles",
-
   "zoom.in": "Zoomer",
   "zoom.out": "Dézoomer",
   "to": "À",
   "to.selection": "Sélection",
   "to.fit": "Adapter",
-
   "menu.file": "Fichier",
   "menu.edit": "Modifier",
   "menu.view": "Vue",
@@ -25,7 +23,6 @@
   "zoom.to.selection": "Zoomer sur la sélection",
   "zoom.to.fit": "Zoomer pour adapter",
   "zoom.to": "Réinitialiser le zoom à",
-
   "preferences.dark.mode": "Mode Sombre",
   "preferences.focus.mode": "Mode Focus",
   "preferences.debug.mode": "Débogage Mode",
@@ -36,7 +33,6 @@
   "preferences.rotate.handles": "Manipuler La Rotation",
   "preferences.binding.handles": "Manipuler La Liaison",
   "preferences.clone.handles": "Manipuler Le Clonage",
-
   "undo": "Annuler",
   "redo": "Refaire",
   "cut": "Couper",
@@ -47,22 +43,20 @@
   "select.all": "Sélectionner tout",
   "select.none": "Sélectionner aucun",
   "delete": "Supprimer",
-
   "new.project": "Nouveau Project",
   "open": "Ouvrir",
   "save": "Enregistrer",
   "save.as": "Enregistrer en tant que",
   "upload.media": "Uploader Un Média",
-
   "create.page": "Créer une Page",
   "new.page": "Nouvelle Page",
   "page.name": "Nom de la Page",
+  "page": "Page",
   "duplicate": "Dupliquer",
   "cancel": "Annuler",
   "copy.invite.link": "Copier le Lien d'Invitation",
   "create.multiplayer.project": "Créer un Project Multi-joueurs",
   "copy.multiplayer.project": "Copier dans un Projet Multi-joueurs",
-
   "select": "Selection",
   "eraser": "Gomme",
   "draw": "Crayon",
@@ -73,7 +67,6 @@
   "Ellipse": "Cercle",
   "Triangle": "Triangle",
   "Line": "Ligne",
-
   "rotate": "Retourner",
   "lock.aspect.ratio": "Verouiller l'Aspect Ratio",
   "unlock.aspect.ratio": "Déverouiller l'Aspect Ratio",
@@ -94,5 +87,10 @@
   "forward": "Au premier plan",
   "backward": "En arrière plan",
   "back": "À l'arrière",
-  "language": "Langage"
+  "language": "Langage",
+  "dock.position": "Position du dock",
+  "bottom": "En bas",
+  "left": "À Gauche",
+  "right": "À Droite",
+  "top": "En Haut"
 }

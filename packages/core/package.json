@@ -1,5 +1,5 @@
 {
-  "version": "1.14.2",
+  "version": "1.14.3",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.0",
+    "@tldraw/vec": "^1.7.1",
     "@use-gesture/react": "^10.2.14",
     "mobx-react-lite": "^3.2.3",
     "perfect-freehand": "^1.1.0",
@@ -50,8 +50,8 @@
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
+    "@testing-library/jest-dom": "^5.16.4",
+    "@testing-library/react": "^13.3.0",
     "@tldraw/intersect": "*",
     "@tldraw/vec": "*",
     "@types/node": "^17.0.14",

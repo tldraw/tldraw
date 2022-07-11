@@ -33,7 +33,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@tldraw/vec": "^1.7.0"
+    "@tldraw/vec": "^1.7.1"
   },
   "devDependencies": {
     "@tldraw/vec": "*",

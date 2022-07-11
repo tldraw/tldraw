@@ -197,7 +197,6 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
             {hasGroupSelected && (
               <CMRowButton onClick={handleGroup} kbd="#G" id="TD-ContextMenu-Ungroup">
                 <FormattedMessage id="ungroup" />
-                <FormattedMessage id="ungroup" />
               </CMRowButton>
             )}
             <Divider />

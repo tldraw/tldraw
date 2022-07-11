@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { CheckIcon, ClipboardIcon, CursorArrowIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { DMItem, DMContent, DMDivider, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { MultiplayerIcon } from '~components/Primitives/icons'
 import { TDAssetType, TDSnapshot } from '~types'
 import { TLDR } from '~state/TLDR'
 import { Utils } from '@tldraw/core'
 import { FormattedMessage } from 'react-intl'
+import { MultiplayerIcon2 } from '~components/Primitives/icons/MultiplayerIcon2'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -19,10 +19,23 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   const [copied, setCopied] = React.useState(false)
 
+  const rTimeout = React.useRef<any>(0)
+
   const handleCopySelect = React.useCallback(() => {
     setCopied(true)
     TLDR.copyStringToClipboard(window.location.href)
-    setTimeout(() => setCopied(false), 1200)
+    clearTimeout(rTimeout.current)
+    rTimeout.current = setTimeout(() => setCopied(false), 1200)
+  }, [])
+
+  const handleCopyReadOnlySelect = React.useCallback(() => {
+    setCopied(true)
+    const segs = window.location.href.split('/')
+    segs[segs.length - 2] = 'v'
+    segs[segs.length - 1] = Utils.lns(segs[segs.length - 1])
+    TLDR.copyStringToClipboard(segs.join('/'))
+    clearTimeout(rTimeout.current)
+    rTimeout.current = setTimeout(() => setCopied(false), 1200)
   }, [])
 
   const handleCreateMultiplayerProject = React.useCallback(async () => {
@@ -95,12 +108,20 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
 
   return (
     <DropdownMenu.Root dir="ltr">
-      <DMTriggerIcon id="TD-MultiplayerMenuIcon">
-        {room ? <MultiplayerIcon /> : <CursorArrowIcon />}
+      <DMTriggerIcon id="TD-MultiplayerMenuIcon" isActive={!!room}>
+        <MultiplayerIcon2 />
       </DMTriggerIcon>
       <DMContent variant="menu" align="start" id="TD-MultiplayerMenu">
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={handleCopySelect} disabled={!room}>
           <FormattedMessage id="copy.invite.link" />
+          <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
+        </DMItem>
+        <DMItem
+          id="TD-Multiplayer-CopyReadOnlyLink"
+          onClick={handleCopyReadOnlySelect}
+          disabled={!room}
+        >
+          <FormattedMessage id="copy.readonly.link" />
           <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
         <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />

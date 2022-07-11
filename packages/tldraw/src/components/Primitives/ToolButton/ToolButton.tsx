@@ -158,7 +158,9 @@ export const StyledToolButton = styled('button', {
         },
       },
       circle: {
-        padding: '$2',
+        padding: 0,
+        height: 32,
+        width: 32,
         [`& ${StyledToolButtonInner}`]: {
           border: '1px solid $panelContrast',
           borderRadius: '100%',

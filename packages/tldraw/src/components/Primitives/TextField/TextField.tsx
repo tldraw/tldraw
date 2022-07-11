@@ -2,21 +2,20 @@ import * as React from 'react'
 import { styled } from '~styles'
 import { SmallIcon } from '../SmallIcon'
 
-export interface TextFieldProps {
-  value: string
-  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
+export interface TextFieldProps extends React.HTMLProps<HTMLInputElement> {
   icon?: React.ReactElement
 }
 
-export const TextField = ({ value, onChange, placeholder = '', icon }: TextFieldProps) => {
-  return (
-    <StyledInputWrapper>
-      <StyledInput value={value} onChange={onChange} placeholder={placeholder} />
-      {icon ? <StyledInputIcon>{icon}</StyledInputIcon> : null}
-    </StyledInputWrapper>
-  )
-}
+export const TextField = React.forwardRef<HTMLInputElement, TextFieldProps>(
+  ({ icon, ...rest }, ref) => {
+    return (
+      <StyledInputWrapper>
+        <StyledInput {...rest} ref={ref} />
+        {icon ? <StyledInputIcon>{icon}</StyledInputIcon> : null}
+      </StyledInputWrapper>
+    )
+  }
+)
 
 const StyledInputWrapper = styled('div', {
   position: 'relative',
@@ -31,6 +30,7 @@ const StyledInput = styled('input', {
   width: '100%',
   paddingLeft: '$3',
   paddingRight: '$6',
+  backgroundColor: '$background',
 
   height: '32px',
   outline: 'none',
@@ -49,4 +49,5 @@ const StyledInputIcon = styled(SmallIcon, {
   paddingLeft: '$3',
   paddingRight: '$3',
   pointerEvents: 'none',
+  color: '$text',
 })

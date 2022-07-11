@@ -21,6 +21,7 @@ import type {
   TLShapeCloneHandler,
   TLAsset,
 } from '@tldraw/core'
+import { TDLanguage } from '~translations'
 
 /* -------------------------------------------------- */
 /*                         App                        */
@@ -76,7 +77,7 @@ export class TDEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
-export type TDLanguage = 'en' | 'fr' | 'it' | 'zh-cn'
+export type TDDockPosition = 'bottom' | 'left' | 'right' | 'top'
 
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
@@ -97,6 +98,7 @@ export interface TDSnapshot {
     showCloneHandles: boolean
     showGrid: boolean
     language: TDLanguage
+    dockPosition: TDDockPosition
   }
   appState: {
     currentStyle: ShapeStyles
@@ -178,6 +180,7 @@ export enum TDUserStatus {
 export interface TDUser extends TLUser<TDShape> {
   activeShapes: TDShape[]
   status: TDUserStatus
+  session?: boolean
 }
 
 export type Theme = 'dark' | 'light'
@@ -193,6 +196,7 @@ export enum SessionType {
   Rotate = 'rotate',
   Handle = 'handle',
   Grid = 'grid',
+  Edit = 'edit',
 }
 
 export enum TDStatus {

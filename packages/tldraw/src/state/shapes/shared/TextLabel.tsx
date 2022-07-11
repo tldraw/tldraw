@@ -43,7 +43,12 @@ export const TextLabel = React.memo(function TextLabel({
   )
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Escape') return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        onBlur?.()
+        return
+      }
 
       if (e.key === 'Tab' && text.length === 0) {
         e.preventDefault()
@@ -61,6 +66,10 @@ export const TextLabel = React.memo(function TextLabel({
         e.stopPropagation()
         e.preventDefault()
         return
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+        e.preventDefault()
       }
 
       if (e.key === 'Tab') {

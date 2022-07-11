@@ -1,5 +1,62 @@
 # @tldraw/www
 
+## 1.7.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.19.0
+
+## 1.7.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.18.3
+
+## 1.7.6
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.14.1
+  - @tldraw/tldraw@1.18.2
+
+## 1.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.18.1
+
+## 1.7.4
+
+### Patch Changes
+
+- Updated dependencies [8ef86c19]
+  - @tldraw/tldraw@1.18.0
+
+## 1.7.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.17.2
+
+## 1.7.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.17.1
+
+## 1.7.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/tldraw@1.17.0
+
 ## 1.7.0
 
 ### Minor Changes

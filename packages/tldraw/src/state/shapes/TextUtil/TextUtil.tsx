@@ -60,16 +60,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
-      const handleChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const rEditedText = React.useRef(text)
+
+      React.useLayoutEffect(() => {
+        if (text !== rEditedText.current) {
           let delta = [0, 0]
-          const newText = TLDR.normalizeText(e.currentTarget.value)
+          this.texts.set(shape.id, text)
           const currentBounds = this.getBounds(shape)
-          this.texts.set(shape.id, newText)
-          const nextBounds = this.getBounds({
-            ...shape,
-            text: newText,
-          })
+          const nextBounds = this.getBounds(shape)
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
@@ -83,6 +81,45 @@ export class TextUtil extends TDShapeUtil<T, E> {
               break
             }
           }
+
+          rEditedText.current = text
+
+          onShapeChange?.({
+            ...shape,
+            id: shape.id,
+            point: Vec.sub(shape.point, delta),
+            text,
+          })
+        }
+      }, [text])
+
+      const handleChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          let delta = [0, 0]
+          const newText = TLDR.normalizeText(e.currentTarget.value)
+          const currentBounds = this.getBounds(shape)
+          this.texts.set(shape.id, newText)
+          const nextBounds = this.getBounds({
+            ...shape,
+            text: newText,
+          })
+
+          switch (shape.style.textAlign) {
+            case AlignStyle.Start: {
+              break
+            }
+            case AlignStyle.Middle: {
+              delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
+              break
+            }
+            case AlignStyle.End: {
+              delta = [nextBounds.width - currentBounds.width, 0]
+              break
+            }
+          }
+
+          rEditedText.current = newText
+
           onShapeChange?.({
             ...shape,
             id: shape.id,
@@ -95,10 +132,22 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const handleKeyDown = React.useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            onShapeBlur?.()
+            return
+          }
 
           if (e.key === 'Tab' && shape.text.length === 0) {
             e.preventDefault()
+            return
+          }
+
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault()
+            e.stopPropagation()
+            rInput.current!.blur()
             return
           }
 
@@ -114,7 +163,9 @@ export class TextUtil extends TDShapeUtil<T, E> {
             e.preventDefault()
             return
           }
-
+          if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+            e.preventDefault()
+          }
           if (e.key === 'Tab') {
             e.preventDefault()
             if (e.shiftKey) {

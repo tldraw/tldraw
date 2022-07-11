@@ -7,13 +7,11 @@
   "style.menu.font": "字体",
   "style.menu.align": "对齐",
   "styles": "样式",
-
   "zoom.in": "放大",
   "zoom.out": "缩小",
   "to": "缩放至",
   "to.selection": "缩放选中",
   "to.fit": "自适应缩放",
-
   "menu.file": "文件",
   "menu.edit": "编辑",
   "menu.view": "视图",
@@ -25,7 +23,6 @@
   "zoom.to.selection": "缩放选中",
   "zoom.to.fit": "自适应缩放",
   "zoom.to": "缩放至",
-
   "preferences.dark.mode": "暗黑模式",
   "preferences.focus.mode": "专注模式",
   "preferences.debug.mode": "调试模式",
@@ -36,7 +33,6 @@
   "preferences.rotate.handles": "旋转手柄",
   "preferences.binding.handles": "捆绑手柄",
   "preferences.clone.handles": "克隆手柄",
-
   "undo": "撤销",
   "redo": "重做",
   "cut": "剪切",
@@ -47,13 +43,11 @@
   "select.all": "选中全部",
   "select.none": "取消选中",
   "delete": "删除",
-
   "new.project": "新工程",
   "open": "打开",
   "save": "保存",
   "save.as": "保存为",
   "upload.media": "上传媒体文件",
-
   "create.page": "创建页面",
   "new.page": "新页面",
   "page.name": "页面名称",
@@ -62,7 +56,6 @@
   "copy.invite.link": "复制邀请链接",
   "create.multiplayer.project": "创建多人工程",
   "copy.multiplayer.project": "复制到多人工程",
-
   "select": "选择",
   "eraser": "橡皮",
   "draw": "画笔",
@@ -73,7 +66,6 @@
   "Ellipse": "椭圆形",
   "Triangle": "三角形",
   "Line": "直线",
-
   "rotate": "旋转",
   "lock.aspect.ratio": "锁定宽高比",
   "unlock.aspect.ratio": "解锁宽高比",
@@ -86,7 +78,6 @@
   "reset.angle": "重置旋转角度",
   "lock": "锁定",
   "unlock": "解锁",
-
   "move.to.page": "移动到页面",
   "flip.horizontal": "水平翻转",
   "flip.vertical": "垂直翻转",
