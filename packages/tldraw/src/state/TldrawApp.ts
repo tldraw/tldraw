@@ -82,6 +82,7 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
+import EdubreakService, {NodeTypeEnum} from "~state/services/EdubreakService";
 
 const uuid = Utils.uniqueId()
 
@@ -1777,17 +1778,17 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     let domain = '';
     let path = '';
+    let nodeType = '';
 
     const textIsEdubreakLink = (text: string) => {
-      console.log('is this an edubreak link? ', text);
-      // https://alpha.test.edubreak.dev20.ghostthinker.de/en/course-347479/video/360178/test-videoooo
-
+      // check if the pasted text is an edubreak link and set domain and path accordingly
       const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
       const regMatches = text.matchAll(regexp);
       const matches = [];
       for (const regMatch of regMatches) {
           matches.push(regMatch)
       }
+      if (matches[0].length < 4) {return false;}
       domain = matches[0][2];
       path = matches[0][3];
 
@@ -1795,16 +1796,18 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     const IsNodeType = (path: string) => {
+      // checks if there is a node type in our pasted edubreak link
       const types = [
-        'video',
-        'videocomment',
-        'blog',
-        'document'
+        NodeTypeEnum.VIDEO,
+        NodeTypeEnum.VIDEOCOMMENT,
+        NodeTypeEnum.BLOG,
+        NodeTypeEnum.DOCUMENT
       ]
 
       for (const type of types) {
         const pathType = '/' + type + '/'
         if (path.includes(pathType)) {
+          nodeType = type;
           return true
         }
       }
@@ -1812,9 +1815,22 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return false;
     }
 
+    const getEdubreakIds = (edubreakPath: string) => {
+      // gets nid and og_id from pasted node edubreak link
+      const regexp = /[\w.,@?^=%&:\/~+#-]*course-([0-9]*)[\w@?^=%&\/~+#-]*\/([0-9]+)/g;
+      const regMatches = edubreakPath.matchAll(regexp);
+      const matches = [];
+      for (const regMatch of regMatches) {
+        matches.push(regMatch)
+      }
+      return matches;
+    }
 
-    const pasteTextAsEdubreakLink = (type: string, url: string) => {
-      console.log('this is the node type: ', type);
+    const pasteTextAsEdubreakLink = async (options: any) => {
+      // handle pasted edubreak node link
+      console.log('edubreak options: ', options);
+      await EdubreakService.getNodeAsJSON(options);
+
     }
 
     const pasteTextAsSvg = async (text: string) => {
@@ -1899,7 +1915,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                 // check if the text is an edubreak link
                 if (textIsEdubreakLink(text)) {
                   // TODO: get node type here and handle Request in this function
-                  pasteTextAsEdubreakLink('type', text)
+                  let edubreakIds = getEdubreakIds(path)
+                  let edubreakOptions = {
+                    isEdubreakLink: true,
+                    type: nodeType,
+                    og_id: edubreakIds[0][1],
+                    nid: edubreakIds[0][2]
+                  }
+                  pasteTextAsEdubreakLink(edubreakOptions);
                 }
                 if (text.startsWith('<svg')) {
                   pasteTextAsSvg(text)
