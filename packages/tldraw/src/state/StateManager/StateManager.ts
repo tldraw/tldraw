@@ -126,7 +126,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * Save the current state to indexdb.
    */
-  protected persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
+  persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
     if (this._status !== 'ready') return
 
     if (this.onPersist) {
@@ -213,7 +213,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param state The new state.
    * @param id An id for this change.
    */
-  protected replaceState = (state: T, id?: string): this => {
+  replaceState = (state: T, id?: string): this => {
     const final = this.cleanup(state, this._state, state, id)
     if (this.onStateWillChange) {
       this.onStateWillChange(final, 'replace')
@@ -233,7 +233,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param command The command to apply and add to the undo/redo stack.
    * @param id (optional) An id for this command.
    */
-  protected setState = (command: Command<T>, id = command.id) => {
+  setState = (command: Command<T>, id = command.id) => {
     if (this.pointer < this.stack.length - 1) {
       this.stack = this.stack.slice(0, this.pointer + 1)
     }

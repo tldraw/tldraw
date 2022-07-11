@@ -2017,7 +2017,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getSvg = async (
     ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes),
-    opts = {} as Partial<{ transparentBackground: boolean; includeFonts: boolean }>
+    opts = {} as Partial<{ transparentBackground: boolean; includeFonts: boolean; padding: number }>
   ): Promise<SVGElement | undefined> => {
     if (ids.length === 0) return
 
@@ -2078,6 +2078,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Find their common bounding box. Shapes will be positioned relative to this box
     const commonBounds = Utils.getCommonBounds(shapes.map(TLDR.getRotatedBounds))
 
+    const exportPadding = opts.padding || SVG_EXPORT_PADDING
+
     // A quick routine to get an SVG element for each shape
     const getSvgElementForShape = (shape: TDShape) => {
       const util = TLDR.getShapeUtil(shape)
@@ -2096,8 +2098,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // Put the element in the correct position relative to the common bounds
       elm.setAttribute(
         'transform',
-        `translate(${(SVG_EXPORT_PADDING + shape.point[0] - commonBounds.minX).toFixed(2)}, ${(
-          SVG_EXPORT_PADDING +
+        `translate(${(exportPadding + shape.point[0] - commonBounds.minX).toFixed(2)}, ${(
+          exportPadding +
           shape.point[1] -
           commonBounds.minY
         ).toFixed(2)}) rotate(${(((shape.rotation || 0) * 180) / Math.PI).toFixed(2)}, ${(
@@ -2142,12 +2144,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Resize the elm to the bounding box
     svg.setAttribute(
       'viewBox',
-      [
-        0,
-        0,
-        commonBounds.width + SVG_EXPORT_PADDING * 2,
-        commonBounds.height + SVG_EXPORT_PADDING * 2,
-      ].join(' ')
+      [0, 0, commonBounds.width + exportPadding * 2, commonBounds.height + exportPadding * 2].join(
+        ' '
+      )
     )
 
     // Clean up the SVG by removing any hidden elements
