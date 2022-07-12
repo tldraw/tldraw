@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useIntl } from 'react-intl'
+import { FormattedMessage } from 'react-intl'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
 import { useTldrawApp } from '~hooks'
@@ -18,7 +18,6 @@ const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 export const BackToContent = React.memo(function BackToContent() {
   const app = useTldrawApp()
-  const intl = useIntl()
 
   const isEmptyCanvas = app.useStore(isEmptyCanvasSelector)
   const dockPosition = app.useStore(dockPositionState)
@@ -42,7 +41,7 @@ export const BackToContent = React.memo(function BackToContent() {
   return (
     <BackToContentContainer id="TD-Tools-Back_to_content" style={{ ...style }}>
       <RowButton onClick={app.zoomToContent}>
-        {intl.formatMessage({ id: 'zoom.to.content' })}
+        <FormattedMessage id="zoom.to.content" />
       </RowButton>
     </BackToContentContainer>
   )
