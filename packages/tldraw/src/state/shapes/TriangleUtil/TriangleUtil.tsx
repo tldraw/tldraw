@@ -22,6 +22,8 @@ import { DrawTriangle } from './components/DrawTriangle'
 import { DashedTriangle } from './components/DashedTriangle'
 import { TextLabel, getShapeStyle } from '../shared'
 import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'
+import { getTextLabelSize } from '../shared/getTextSize'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
 
 type T = TriangleShape
 type E = HTMLDivElement
@@ -78,11 +80,7 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
         (label: string) => onShapeChange?.({ id, label }),
         [onShapeChange]
       )
-      const offsetY = React.useMemo(() => {
-        const center = Vec.div(size, 2)
-        const centroid = getTriangleCentroid(size)
-        return (centroid[1] - center[1]) * 0.72
-      }, [size])
+      const offsetY = React.useMemo(() => this.getLabelOffsetY(shape), [size])
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -237,6 +235,40 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
   transform = transformRectangle
 
   transformSingle = transformSingleRectangle
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
+    if (!elm) return // possibly in test mode
+    if ('label' in shape && (shape as any).label !== undefined) {
+      const s = shape as TDShape & { label: string }
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      const bounds = this.getBounds(shape)
+      const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
+      labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
+      const font = getFontStyle(shape.style)
+      const scale: number = shape.style.scale !== undefined ? shape.style.scale : 1
+      const size = getTextLabelSize(s['label'], font)
+      labelElm.setAttribute('transform-origin', 'top left')
+
+      // Put the label at the bend point with text aligned centered
+      labelElm.setAttribute(
+        'transform',
+        `translate(${(bounds.width - size[0] * scale) / 2}, ${
+          (bounds.height - size[1] * scale) / 2 + this.getLabelOffsetY(shape)
+        })`
+      )
+      g.appendChild(elm)
+      g.appendChild(labelElm)
+      return g
+    }
+    return elm
+  }
+
+  getLabelOffsetY = (shape: TriangleShape): number => {
+    const center = Vec.div(shape.size, 2)
+    const centroid = getTriangleCentroid(shape.size)
+    return (centroid[1] - center[1]) * 0.72
+  }
 }
 
 const FullWrapper = styled('div', { width: '100%', height: '100%' })
