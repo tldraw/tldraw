@@ -8,6 +8,7 @@ import { PrimaryTools } from './PrimaryTools'
 import { ActionButton } from './ActionButton'
 import { DeleteButton } from './DeleteButton'
 import { breakpoints } from '~components/breakpoints'
+import { HelpPanel } from './HelpPanel'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -34,6 +35,7 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
             <DeleteButton />
           </StyledPrimaryTools>
         </StyledCenterWrap>
+        <HelpPanel />
       </StyledToolsPanelContainer>
       {isDebugMode && (
         <StyledStatusWrap>
