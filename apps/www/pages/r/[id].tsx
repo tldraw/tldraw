@@ -2,7 +2,11 @@ import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
-import { IFrameWarning } from 'components/IFrameWarning'
+
+const IFrameWarning = dynamic(() => import('components/IFrameWarning'), {
+  ssr: false,
+}) as any
+
 const MultiplayerEditor = dynamic(() => import('components/MultiplayerEditor'), {
   ssr: false,
 }) as any
