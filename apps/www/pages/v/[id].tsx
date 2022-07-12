@@ -3,7 +3,11 @@ import type { GetServerSideProps } from 'next'
 import { getSession } from 'next-auth/react'
 import dynamic from 'next/dynamic'
 import { Utils } from '@tldraw/core'
-import { IFrameWarning } from 'components/IFrameWarning'
+
+const IFrameWarning = dynamic(() => import('components/IFrameWarning'), {
+  ssr: false,
+}) as any
+
 const ReadOnlyMultiplayerEditor = dynamic(() => import('components/ReadOnlyMultiplayerEditor'), {
   ssr: false,
 }) as any
