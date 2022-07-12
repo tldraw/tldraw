@@ -18,6 +18,7 @@ import ru from './ru.json'
 import tr from './tr.json'
 import uk from './uk.json'
 import zh_cn from './zh-cn.json'
+import zh_tw from './zh-tw.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -44,6 +45,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'tr', label: 'Türkçe', messages: tr },
   { locale: 'uk', label: 'Ukrainian', messages: uk },
   { locale: 'zh-ch', label: 'Chinese - Simplified', messages: zh_cn },
+  { locale: 'zh-tw', label: '繁體中文 (台灣)', messages: zh_tw },
 ]
 
 /* ----------------- (do not change) ---------------- */
