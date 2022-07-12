@@ -3,8 +3,8 @@ import * as React from 'react'
 export function QuestionMarkIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
-      width="12"
-      height="24"
+      width="8"
+      height="16"
       viewBox="0 0 4 8"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

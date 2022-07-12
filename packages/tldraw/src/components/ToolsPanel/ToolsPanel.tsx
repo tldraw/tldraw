@@ -35,8 +35,8 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
             <DeleteButton />
           </StyledPrimaryTools>
         </StyledCenterWrap>
-        <HelpPanel />
       </StyledToolsPanelContainer>
+      <HelpPanel />
       {isDebugMode && (
         <StyledStatusWrap>
           <StatusBar />
