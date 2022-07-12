@@ -1,13 +1,14 @@
 import * as React from 'react'
-import { Separator } from '@radix-ui/react-dropdown-menu'
 import * as Popover from '@radix-ui/react-popover'
 import { useIntl } from 'react-intl'
-import { QuestionMarkIcon } from '~components/Primitives/icons'
-import { Kbd } from '~components/Primitives/Kbd'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import { TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
+import { QuestionMarkIcon } from '@radix-ui/react-icons'
+import { RowButton } from '~components/Primitives/RowButton'
+import { MenuContent } from '~components/Primitives/MenuContent'
+import { DMDivider } from '~components/Primitives/DropdownMenu'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -24,32 +25,36 @@ export function HelpPanel() {
     { label: intl.formatMessage({ id: 'save' }), kbd: '#S' },
     { label: intl.formatMessage({ id: 'save.as' }), kbd: '#⇧S' },
     { label: intl.formatMessage({ id: 'upload.media' }), kbd: '#U' },
-    { label: intl.formatMessage({ id: 'undo' }), kbd: '#Z', newSection: true },
+    '---',
+    { label: intl.formatMessage({ id: 'undo' }), kbd: '#Z' },
     { label: intl.formatMessage({ id: 'redo' }), kbd: '#⇧Z' },
     { label: intl.formatMessage({ id: 'cut' }), kbd: '#X' },
     { label: intl.formatMessage({ id: 'copy' }), kbd: '#C' },
     { label: intl.formatMessage({ id: 'paste' }), kbd: '#V' },
     { label: intl.formatMessage({ id: 'select.all' }), kbd: '#A' },
     { label: intl.formatMessage({ id: 'delete' }), kbd: '⌫' },
-    { label: intl.formatMessage({ id: 'zoom.in' }), kbd: '#+', newSection: true },
+    '---',
+    { label: intl.formatMessage({ id: 'zoom.in' }), kbd: '#+' },
     { label: intl.formatMessage({ id: 'zoom.out' }), kbd: '#-' },
     { label: `${intl.formatMessage({ id: 'zoom.to' })} 100%`, kbd: '⇧+0' },
     { label: intl.formatMessage({ id: 'zoom.to.fit' }), kbd: '⇧+1' },
     { label: intl.formatMessage({ id: 'zoom.to.selection' }), kbd: '⇧+2' },
-    { label: intl.formatMessage({ id: 'preferences.dark.mode' }), kbd: '#⇧D', newSection: true },
+    '---',
+    { label: intl.formatMessage({ id: 'preferences.dark.mode' }), kbd: '#⇧D' },
     { label: intl.formatMessage({ id: 'preferences.focus.mode' }), kbd: '#.' },
     { label: intl.formatMessage({ id: 'preferences.show.grid' }), kbd: '#⇧G' },
-    { label: intl.formatMessage({ id: 'duplicate' }), kbd: '#D', newSection: true },
+    '---',
+    { label: intl.formatMessage({ id: 'duplicate' }), kbd: '#D' },
     { label: intl.formatMessage({ id: 'flip.horizontal' }), kbd: '⇧H' },
     { label: intl.formatMessage({ id: 'flip.vertical' }), kbd: '⇧V' },
     {
       label: `${intl.formatMessage({ id: 'lock' })} / ${intl.formatMessage({ id: 'unlock' })}`,
       kbd: '#⇧L',
     },
+    '---',
     {
       label: `${intl.formatMessage({ id: 'move' })} ${intl.formatMessage({ id: 'to.front' })}`,
       kbd: '⇧]',
-      newSection: true,
     },
     {
       label: `${intl.formatMessage({ id: 'move' })} ${intl.formatMessage({ id: 'forward' })}`,
@@ -66,27 +71,27 @@ export function HelpPanel() {
   ]
 
   return (
-    <Popover.Root>
-      <PopoverAnchor>
-        <Popover.Trigger asChild>
+    <Popover.Root modal={false}>
+      <PopoverAnchor dir="ltr">
+        <Popover.Trigger asChild dir="ltr">
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <PopoverContent>
-        <ListItems>
-          {shortcuts.map((shortcut) => (
-            <div key={shortcut.label}>
-              {shortcut.newSection && <Divider />}
-              <ListItem key={shortcut.label}>
-                <Text>{shortcut.label}</Text>
-                <Kbd variant="menu">{shortcut.kbd}</Kbd>
-              </ListItem>
-            </div>
-          ))}
-        </ListItems>
-      </PopoverContent>
+      <Popover.Content asChild dir="ltr">
+        <StyledContent>
+          {shortcuts.map((shortcut, i) =>
+            typeof shortcut === 'string' ? (
+              <DMDivider key={i} />
+            ) : (
+              <RowButton key={shortcut.label} kbd={shortcut.kbd} variant="wide">
+                {shortcut.label}
+              </RowButton>
+            )
+          )}
+        </StyledContent>
+      </Popover.Content>
     </Popover.Root>
   )
 }
@@ -103,6 +108,7 @@ const HelpButton = styled('button', {
   backgroundColor: 'white',
   cursor: 'pointer',
   boxShadow: '$panel',
+  bottom: 10,
   variants: {
     debug: {
       true: {},
@@ -115,18 +121,10 @@ const HelpButton = styled('button', {
       large: {},
     },
     side: {
-      top: {
-        bottom: 10,
-      },
-      left: {
-        bottom: 10,
-      },
-      right: {
-        bottom: 10,
-      },
-      bottom: {
-        bottom: 10,
-      },
+      top: {},
+      left: {},
+      right: {},
+      bottom: {},
     },
   },
   compoundVariants: [
@@ -135,7 +133,14 @@ const HelpButton = styled('button', {
       side: 'bottom',
       debug: false,
       css: {
-        bottom: 60,
+        bottom: 70,
+      },
+    },
+    {
+      bp: 'mobile',
+      debug: true,
+      css: {
+        bottom: 50, // 40 + 10
       },
     },
     {
@@ -143,11 +148,11 @@ const HelpButton = styled('button', {
       side: 'bottom',
       debug: true,
       css: {
-        bottom: 100,
+        bottom: 110,
       },
     },
     {
-      bp: 'large',
+      bp: 'small',
       side: 'bottom',
       debug: true,
       css: {
@@ -155,8 +160,7 @@ const HelpButton = styled('button', {
       },
     },
     {
-      bp: 'large',
-      side: 'bottom',
+      bp: 'small',
       debug: false,
       css: {
         bottom: 10,
@@ -165,39 +169,25 @@ const HelpButton = styled('button', {
   ],
 })
 
-const ListItems = styled('ul', {
-  width: '100%',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  paddingLeft: 0,
-  margin: 0,
-  gap: 14,
-})
-
-const ListItem = styled('li', {
-  width: '100%',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  height: 'auto',
-})
-
-const Text = styled('h3', {
-  fontSize: '$1',
-  fontWeight: '400',
-  margin: 0,
-  fontFamily: '$ui',
-})
-
-const PopoverContent = styled(Popover.Content, {
-  boxShadow: '1px 1px 8px -2px rgba(0, 0, 0, 0.25)',
-  borderRadius: 8,
-  padding: 12,
-  backgroundColor: '#fff',
+export const StyledContent = styled(MenuContent, {
+  width: 'fit-content',
+  height: 'fit-content',
   minWidth: 200,
   maxHeight: 380,
   overflowY: 'auto',
+  '& *': {
+    boxSizing: 'border-box',
+  },
+  variants: {
+    variant: {
+      horizontal: {
+        flexDirection: 'row',
+      },
+      menu: {
+        minWidth: 128,
+      },
+    },
+  },
 })
 
 const PopoverAnchor = styled(Popover.Anchor, {
@@ -205,13 +195,4 @@ const PopoverAnchor = styled(Popover.Anchor, {
   right: 10,
   zIndex: 999,
   bottom: 50,
-})
-
-const Divider = styled(Separator, {
-  backgroundColor: '$hover',
-  height: 1,
-  marginTop: '$2',
-  marginRight: '-$2',
-  marginBottom: '$2',
-  marginLeft: '-$2',
 })
