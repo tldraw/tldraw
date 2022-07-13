@@ -55,6 +55,7 @@ export default function UIOptions() {
         showPages={false}
         showMenu={false}
       />
+      {/* When we have an app, show the custom UI */}
       {app && (
         <AppContext.Provider value={app}>
           <div
