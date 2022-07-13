@@ -1,23 +1,32 @@
 import { TDShapeType, TDToolType, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
 
+const AppContext = React.createContext<TldrawApp>({} as any)
+
+function useApp() {
+  return React.useContext(AppContext)
+}
+
 function SelectButton({
   type,
-  tldrawApp,
   children,
 }: React.PropsWithChildren<{
   type: TDToolType
   tldrawApp?: TldrawApp
 }>) {
+  const app = useApp()
+
+  // App.useStore is the same as a Zustand store's useStore hook!
+  const isActive = app.useStore((app) => {
+    return app.appState.activeTool === type
+  })
+
   return (
     <button
-      onClick={() => {
-        tldrawApp?.selectTool(type)
-      }}
+      onClick={() => app.selectTool(type)}
       style={{
         border: '1px solid #333',
-        // @TODO: have the button re-render when tldrawApp.currentTool.type changes, else active states won't work
-        background: tldrawApp?.currentTool?.type === type ? 'papayawhip' : 'transparent',
+        background: isActive ? 'papayawhip' : 'transparent',
         fontSize: '1.5rem',
         padding: '0.3em 0.8em',
         borderRadius: '0.15em',
@@ -29,7 +38,7 @@ function SelectButton({
 }
 
 export default function UIOptions() {
-  const [tldrawApp, setApp] = React.useState<TldrawApp>()
+  const [app, setApp] = React.useState<TldrawApp>()
 
   const handleMount = React.useCallback((app: TldrawApp) => {
     setApp(app)
@@ -37,27 +46,6 @@ export default function UIOptions() {
 
   return (
     <div className="tldraw">
-      <div
-        style={{
-          position: 'absolute',
-          display: 'flex',
-          gap: '1em',
-          zIndex: 100,
-          bottom: '1em',
-          left: '1em',
-        }}
-      >
-        <SelectButton type="select" tldrawApp={tldrawApp}>
-          Select
-        </SelectButton>
-        <SelectButton type="erase" tldrawApp={tldrawApp}>
-          Erase
-        </SelectButton>
-        <SelectButton type={TDShapeType.Sticky} tldrawApp={tldrawApp}>
-          Card
-        </SelectButton>
-      </div>
-
       <Tldraw
         onMount={handleMount}
         showUI={true}
@@ -67,6 +55,24 @@ export default function UIOptions() {
         showPages={false}
         showMenu={false}
       />
+      {app && (
+        <AppContext.Provider value={app}>
+          <div
+            style={{
+              position: 'absolute',
+              display: 'flex',
+              gap: '1em',
+              zIndex: 100,
+              bottom: '1em',
+              left: '1em',
+            }}
+          >
+            <SelectButton type="select">Select</SelectButton>
+            <SelectButton type="erase">Erase</SelectButton>
+            <SelectButton type={TDShapeType.Sticky}>Card</SelectButton>
+          </div>
+        </AppContext.Provider>
+      )}
     </div>
   )
 }
