@@ -1895,13 +1895,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         const json: {
           type: string
-          shapes: TDShape[]
+          shapes: (TDShape & { text: string })[]
           bindings: TDBinding[]
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
-
         if (json.type === 'tldr/clipboard') {
-          this.insertContent(json, { point, select: true })
+          const shapes = json.shapes.map(shape => ({
+            ...shape,
+            text: shape.text.replaceAll('&amp;', '&'),
+          }))
+          this.insertContent({ ...json, shapes }, { point, select: true })
           return
         } else {
           throw Error('Not tldraw data!')
