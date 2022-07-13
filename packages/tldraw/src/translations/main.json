@@ -94,5 +94,7 @@
   "left": "Left",
   "right": "Right",
   "top": "Top",
-  "page": "Page"
+  "page": "Page",
+  "keyboard.shortcuts": "Keyboard shortcuts",
+  "search": "Search"
 }

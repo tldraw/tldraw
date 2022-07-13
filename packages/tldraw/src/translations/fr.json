@@ -92,5 +92,7 @@
   "bottom": "En bas",
   "left": "À Gauche",
   "right": "À Droite",
-  "top": "En Haut"
+  "top": "En Haut",
+  "keyboard.shortcuts": "Raccourci clavier",
+  "search": "Rechercher"
 }

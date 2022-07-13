@@ -1,11 +1,12 @@
-import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
+import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { DMCheckboxItem, DMDivider, DMItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
 import { TDSnapshot } from '~types'
+import { styled } from '~styles'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 
@@ -22,7 +23,7 @@ export function LanguageMenu() {
   )
 
   return (
-    <DMSubMenu label={intl.formatMessage({ id: 'language' })}>
+    <Container>
       {TRANSLATIONS.map(({ locale, label }) => (
         <DMCheckboxItem
           key={locale}
@@ -46,6 +47,13 @@ export function LanguageMenu() {
           </SmallIcon>
         </DMItem>
       </a>
-    </DMSubMenu>
+    </Container>
   )
 }
+
+const Container = styled('div', {
+  maxHeight: 400,
+  overflowY: 'auto',
+  width: 'min-content',
+  minWidth: 160,
+})
