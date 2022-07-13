@@ -83,7 +83,6 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
-import { getTranslation } from '~translations'
 
 const uuid = Utils.uniqueId()
 
@@ -288,7 +287,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   protected onReady = () => {
     this.loadDocument(this.document)
 
-    loadFileHandle().then((fileHandle) => {
+    loadFileHandle().then(fileHandle => {
       this.fileSystemHandle = fileHandle
     })
 
@@ -373,7 +372,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           })
 
           // If binding is undefined, delete the binding
-          Object.keys(page.bindings).forEach((id) => {
+          Object.keys(page.bindings).forEach(id => {
             if (!page.bindings[id]) {
               delete page.bindings[id]
             }
@@ -387,7 +386,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           const visitedShapes = new Set<ArrowShape>()
 
           // Update all of the bindings we've just collected
-          bindingsToUpdate.forEach((binding) => {
+          bindingsToUpdate.forEach(binding => {
             if (!page.bindings[binding.id]) {
               return
             }
@@ -417,15 +416,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             }
           })
 
-          groupsToUpdate.forEach((group) => {
+          groupsToUpdate.forEach(group => {
             if (!group) throw Error('no group!')
-            const children = group.children.filter((id) => page.shapes[id] !== undefined)
+            const children = group.children.filter(id => page.shapes[id] !== undefined)
 
             const commonBounds = Utils.getCommonBounds(
               children
-                .map((id) => page.shapes[id])
+                .map(id => page.shapes[id])
                 .filter(Boolean)
-                .map((shape) => TLDR.getRotatedBounds(shape))
+                .map(shape => TLDR.getRotatedBounds(shape))
             )
 
             page.shapes[group.id] = {
@@ -465,7 +464,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       })
     }
 
-    Object.keys(next.document.assets ?? {}).forEach((id) => {
+    Object.keys(next.document.assets ?? {}).forEach(id => {
       if (!next.document.assets?.[id]) {
         delete next.document.assets?.[id]
       }
@@ -482,7 +481,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       if (prev.room) {
         Object.values(prev.room.users)
           .filter(Boolean)
-          .forEach((user) => {
+          .forEach(user => {
             if (room.users[user.id] === undefined) {
               delete room.users[user.id]
             }
@@ -520,19 +519,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const assets = patch?.document?.assets
 
     if (shapes) {
-      Object.keys(shapes).forEach((id) => {
+      Object.keys(shapes).forEach(id => {
         changedShapes[id!] = this.getShape(id, this.currentPageId)
       })
     }
 
     if (bindings) {
-      Object.keys(bindings).forEach((id) => {
+      Object.keys(bindings).forEach(id => {
         changedBindings[id] = this.getBinding(id, this.currentPageId)
       })
     }
 
     if (assets) {
-      Object.keys(assets).forEach((id) => {
+      Object.keys(assets).forEach(id => {
         changedAssets[id] = this.document.assets[id]
       })
     }
@@ -687,14 +686,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // Quick lookup maps for bindings
     const bindingsArr = Object.values(bindings)
-    const boundTos = new Map(bindingsArr.map((binding) => [binding.toId, binding]))
-    const boundFroms = new Map(bindingsArr.map((binding) => [binding.fromId, binding]))
+    const boundTos = new Map(bindingsArr.map(binding => [binding.toId, binding]))
+    const boundFroms = new Map(bindingsArr.map(binding => [binding.fromId, binding]))
     const bindingMaps = [boundTos, boundFroms]
 
     // Unique set of shape ids that are going to be reserved
     const reservedShapeIds: string[] = []
 
-    if (this.session) coreReservedIds.forEach((id) => reservedShapeIds.push(id))
+    if (this.session) coreReservedIds.forEach(id => reservedShapeIds.push(id))
     if (this.pageState.editingId) reservedShapeIds.push(this.pageState.editingId)
 
     const strongReservedShapeIds = new Set(reservedShapeIds)
@@ -723,9 +722,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // If there are binding for this shape, reserve the bindings and
       // add its related shapes to the list of ids to process
       bindingMaps
-        .map((map) => map.get(shape.id)!)
+        .map(map => map.get(shape.id)!)
         .filter(Boolean)
-        .forEach((binding) => {
+        .forEach(binding => {
           reservedBindings[binding.id] = binding
           reservedShapeIds.push(binding.toId, binding.fromId)
         })
@@ -751,14 +750,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const page = this.document.pages[this.currentPageId]
 
-    Object.values(shapes).forEach((shape) => {
+    Object.values(shapes).forEach(shape => {
       if (shape.parentId !== pageId && !(page.shapes[shape.parentId] || shapes[shape.parentId])) {
         console.warn('Added a shape without a parent on the page')
         shape.parentId = pageId
       }
     })
 
-    this.useStore.setState((current) => {
+    this.useStore.setState(current => {
       const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
       const coreReservedIds = [...selectedIds]
@@ -774,8 +773,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // Merge in certain changes to reserved shapes
       Object.values(reservedShapes)
         // Don't merge updates to shapes with text (Text or Sticky)
-        .filter((reservedShape) => !('text' in reservedShape))
-        .forEach((reservedShape) => {
+        .filter(reservedShape => !('text' in reservedShape))
+        .forEach(reservedShape => {
           const incomingShape = shapes[reservedShape.id]
           if (!incomingShape) return
 
@@ -846,7 +845,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             ...current.document.pageStates,
             [pageId]: {
               ...current.document.pageStates[pageId],
-              selectedIds: selectedIds.filter((id) => nextShapes[id] !== undefined),
+              selectedIds: selectedIds.filter(id => nextShapes[id] !== undefined),
               hoveredId: hoveredId
                 ? nextShapes[hoveredId] === undefined
                   ? undefined
@@ -870,7 +869,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const visitedShapes = new Set<ArrowShape>()
 
       // Update all of the bindings we've just collected
-      bindingsToUpdate.forEach((binding) => {
+      bindingsToUpdate.forEach(binding => {
         if (!page.bindings[binding.id]) {
           return
         }
@@ -895,16 +894,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
       })
 
-      Object.values(nextShapes).forEach((shape) => {
+      Object.values(nextShapes).forEach(shape => {
         if (shape.type !== TDShapeType.Group) return
 
-        const children = shape.children.filter((id) => page.shapes[id] !== undefined)
+        const children = shape.children.filter(id => page.shapes[id] !== undefined)
 
         const commonBounds = Utils.getCommonBounds(
           children
-            .map((id) => page.shapes[id])
+            .map(id => page.shapes[id])
             .filter(Boolean)
-            .map((shape) => TLDR.getRotatedBounds(shape))
+            .map(shape => TLDR.getRotatedBounds(shape))
         )
 
         page.shapes[shape.id] = {
@@ -1229,7 +1228,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Set the default page name to the localized version of "Page"
     doc.pages['page'].name = 'Page 1'
 
-    this.resetHistory().clearSelectHistory().loadDocument(TldrawApp.defaultDocument).persist({})
+    this.resetHistory()
+      .clearSelectHistory()
+      .loadDocument(TldrawApp.defaultDocument)
+      .persist({})
 
     return this
   }
@@ -1242,7 +1244,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.patchState(
       {
         room: {
-          users: Object.fromEntries(users.map((user) => [user.id, user])),
+          users: Object.fromEntries(users.map(user => [user.id, user])),
         },
       },
       isOwnUpdate ? 'room:self:update' : 'room:user:update'
@@ -1302,14 +1304,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Reset the history (for now)
     this.resetHistory()
 
-    Object.keys(this.document.pages).forEach((pageId) => {
+    Object.keys(this.document.pages).forEach(pageId => {
       if (!document.pages[pageId]) {
         if (pageId === this.appState.currentPageId) {
           this.cancelSession()
           this.selectNone()
         }
 
-        currentPageStates[pageId] = undefined as unknown as TLPageState
+        currentPageStates[pageId] = (undefined as unknown) as TLPageState
       }
     })
 
@@ -1317,14 +1319,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // they've been removed, put them back in the client's document.
     if (this.session) {
       this.selectedIds
-        .filter((id) => !document.pages[this.currentPageId].shapes[id])
-        .forEach((id) => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
+        .filter(id => !document.pages[this.currentPageId].shapes[id])
+        .forEach(id => (document.pages[this.currentPageId].shapes[id] = this.page.shapes[id]))
     }
 
     // For other pages, remove any selected ids that were deleted.
     Object.entries(currentPageStates).forEach(([pageId, pageState]) => {
       pageState.selectedIds = pageState.selectedIds.filter(
-        (id) => !!document.pages[pageId].shapes[id]
+        id => !!document.pages[pageId].shapes[id]
       )
     })
 
@@ -1392,7 +1394,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
 
         nextPageState.selectedIds = nextPageState.selectedIds.filter(
-          (id) => !!document.pages[nextPage.id].shapes[id]
+          id => !!document.pages[nextPage.id].shapes[id]
         )
       }
     }
@@ -1853,6 +1855,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.readOnly) return
 
     const pasteTextAsSvg = async (text: string) => {
+      console.log('line 1857', text)
       const div = document.createElement('div')
       div.innerHTML = text
       const svg = div.firstChild as SVGSVGElement
@@ -1874,7 +1877,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const pasteTextAsShape = (text: string) => {
       const shapeId = Utils.uniqueId()
-
       this.createShapes({
         id: shapeId,
         type: TDShapeType.Text,
@@ -1895,13 +1897,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         const json: {
           type: string
-          shapes: TDShape[]
+          shapes: (TDShape & { text: string })[]
           bindings: TDBinding[]
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
-
         if (json.type === 'tldr/clipboard') {
-          this.insertContent(json, { point, select: true })
+          const shapes = json.shapes.map(shape => ({
+            ...shape,
+            text: shape.text.replaceAll('&amp;', '&'),
+          }))
+          this.insertContent({ ...json, shapes }, { point, select: true })
           return
         } else {
           throw Error('Not tldraw data!')
@@ -1923,14 +1928,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         // support pasting one file / image.
 
         if (item.type === 'text/html') {
-          item.getAsString(async (text) => {
+          item.getAsString(async text => {
             pasteAsHTML(text)
           })
           return
         } else {
           switch (item.kind) {
             case 'string': {
-              item.getAsString(async (text) => {
+              item.getAsString(async text => {
                 if (text.startsWith('<svg')) {
                   pasteTextAsSvg(text)
                 } else {
@@ -1951,7 +1956,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
-    getClipboard().then((clipboard) => {
+    getClipboard().then(clipboard => {
       if (clipboard) {
         pasteAsHTML(clipboard)
       }
@@ -2032,7 +2037,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (opts.includeFonts) {
       try {
-        const { fonts } = await fetch(TldrawApp.assetSrc, { mode: 'no-cors' }).then((d) => d.json())
+        const { fonts } = await fetch(TldrawApp.assetSrc, { mode: 'no-cors' }).then(d => d.json())
 
         style.textContent = `
           @font-face {
@@ -2072,7 +2077,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // Get the shapes in order
     const shapes = ids
-      .map((id) => this.getShape(id, this.currentPageId))
+      .map(id => this.getShape(id, this.currentPageId))
       .sort((a, b) => a.childIndex - b.childIndex)
 
     // Find their common bounding box. Shapes will be positioned relative to this box
@@ -2109,14 +2114,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     // Assemble the final SVG by iterating through each shape and its children
-    shapes.forEach((shape) => {
+    shapes.forEach(shape => {
       // The shape is a group! Just add the children.
       if (shape.children?.length) {
         // Create a group <g> elm for shape
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
         // Get the shape's children as elms and add them to the group
-        shape.children.forEach((childId) => {
+        shape.children.forEach(childId => {
           const shape = this.getShape(childId, this.currentPageId)
           const elm = getSvgElementForShape(shape)
 
@@ -2165,7 +2170,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     svg
       .querySelectorAll('.tl-fill-hitarea, .tl-stroke-hitarea, .tl-binding-indicator')
-      .forEach((elm) => elm.remove())
+      .forEach(elm => elm.remove())
 
     return svg
   }
@@ -2227,13 +2232,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (ids.length === 0) return
 
     const shapes = ids
-      .map((id) => page.shapes[id])
-      .flatMap((shape) => [shape, ...(shape.children ?? []).map((childId) => page.shapes[childId])])
+      .map(id => page.shapes[id])
+      .flatMap(shape => [shape, ...(shape.children ?? []).map(childId => page.shapes[childId])])
       .map(deepCopy)
 
-    const idsSet = new Set(shapes.map((s) => s.id))
+    const idsSet = new Set(shapes.map(s => s.id))
 
-    shapes.forEach((shape) => {
+    shapes.forEach(shape => {
       if (shape.parentId === this.currentPageId) {
         shape.parentId = 'currentPageId'
       }
@@ -2242,16 +2247,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // If a binding's from and to are included, then include the binding;
     // but if only one shape is included, discard the binding
     const bindings = Object.values(page.bindings)
-      .filter((binding) => {
+      .filter(binding => {
         if (idsSet.has(binding.fromId) || idsSet.has(binding.toId)) {
           return true
         }
 
         if (idsSet.has(binding.fromId)) {
-          const shape = shapes.find((s) => s.id === binding.fromId)
+          const shape = shapes.find(s => s.id === binding.fromId)
           const handles = shape!.handles
           if (handles) {
-            Object.values(handles).forEach((handle) => {
+            Object.values(handles).forEach(handle => {
               if (handle!.bindingId === binding.id) {
                 handle!.bindingId = undefined
               }
@@ -2260,10 +2265,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
 
         if (idsSet.has(binding.toId)) {
-          const shape = shapes.find((s) => s.id === binding.toId)
+          const shape = shapes.find(s => s.id === binding.toId)
           const handles = shape!.handles
           if (handles) {
-            Object.values(handles).forEach((handle) => {
+            Object.values(handles).forEach(handle => {
               if (handle!.bindingId === binding.id) {
                 handle!.bindingId = undefined
               }
@@ -2278,7 +2283,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const assets = [
       ...new Set(
         shapes
-          .map((shape) => {
+          .map(shape => {
             if (!shape.assetId) return
             return this.document.assets[shape.assetId]
           })
@@ -2363,8 +2368,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       transparentBackground: boolean
     }>
   ): Promise<Blob | undefined> => {
-    const { ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes) } =
-      opts
+    const {
+      ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes),
+    } = opts
 
     const svg = await this.getSvg(ids, {
       includeFonts: format !== TDExportType.SVG,
@@ -2721,7 +2727,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param ids The shape ids to select.
    */
   select = (...ids: string[]): this => {
-    ids.forEach((id) => {
+    ids.forEach(id => {
       if (!this.page.shapes[id]) {
         throw Error(`That shape does not exist on page ${this.currentPageId}`)
       }
@@ -2740,8 +2746,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Select only shapes that are the direct child of the page
     this.setSelectedIds(
       Object.values(this.document.pages[pageId].shapes)
-        .filter((shape) => shape.parentId === pageId)
-        .map((shape) => shape.id)
+        .filter(shape => shape.parentId === pageId)
+        .map(shape => shape.id)
     )
 
     this.addToSelectHistory(this.selectedIds)
@@ -2876,7 +2882,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           document: {
             pages: {
               [this.currentPageId]: {
-                shapes: Object.fromEntries(this.selectedIds.map((id) => [id, undefined])),
+                shapes: Object.fromEntries(this.selectedIds.map(id => [id, undefined])),
               },
             },
             pageStates: {
@@ -2955,7 +2961,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (shapes.length === 0) return this
 
     return this.create(
-      shapes.map((shape) => {
+      shapes.map(shape => {
         return TLDR.getShapeUtil(shape.type).create({
           parentId: this.currentPageId,
           ...shape,
@@ -2971,7 +2977,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   updateShapes = (...shapes: ({ id: string } & Partial<TDShape>)[]): this => {
     const pageShapes = this.document.pages[this.currentPageId].shapes
-    const shapesToUpdate = shapes.filter((shape) => pageShapes[shape.id])
+    const shapesToUpdate = shapes.filter(shape => pageShapes[shape.id])
     if (shapesToUpdate.length === 0) return this
     return this.setState(
       Commands.updateShapes(this, shapesToUpdate, this.currentPageId),
@@ -2989,7 +2995,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       shapes.length === 0
         ? 1
         : shapes
-            .filter((shape) => shape.parentId === currentPageId)
+            .filter(shape => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
     const Text = shapeUtils[TDShapeType.Text]
@@ -3032,7 +3038,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       shapes.length === 0
         ? 1
         : shapes
-            .filter((shape) => shape.parentId === currentPageId)
+            .filter(shape => shape.parentId === currentPageId)
             .sort((a, b) => b.childIndex - a.childIndex)[0].childIndex + 1
 
     const Shape = shapeUtils[type]
@@ -3111,14 +3117,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       drawCommand.after.document?.assets
     ) {
       const beforeAssetIds = Object.keys(drawCommand.before.document.assets).filter(
-        (k) => !!drawCommand.before.document!.assets![k]
+        k => !!drawCommand.before.document!.assets![k]
       )
       const afterAssetIds = Object.keys(drawCommand.after.document.assets).filter(
-        (k) => !!drawCommand.after.document!.assets![k]
+        k => !!drawCommand.after.document!.assets![k]
       )
 
-      const intersection = beforeAssetIds.filter((x) => !afterAssetIds.includes(x))
-      intersection.forEach((id) => this.callbacks.onAssetDelete!(this, id))
+      const intersection = beforeAssetIds.filter(x => !afterAssetIds.includes(x))
+      intersection.forEach(id => this.callbacks.onAssetDelete!(this, id))
     }
 
     return this.setState(drawCommand)
@@ -3372,8 +3378,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.readOnly) return this
 
     const groups = ids
-      .map((id) => this.getShape(id, pageId))
-      .filter((shape) => shape.type === TDShapeType.Group)
+      .map(id => this.getShape(id, pageId))
+      .filter(shape => shape.type === TDShapeType.Group)
 
     if (groups.length === 0) return this
 
@@ -3449,7 +3455,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         }
 
         const match = Object.values(this.document.assets).find(
-          (asset) => asset.type === assetType && asset.src === src
+          asset => asset.type === assetType && asset.src === src
         )
 
         let assetId: string
@@ -3529,14 +3535,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
               altKey,
               spaceKey,
             },
-            {
+            ({
               shiftKey,
               altKey,
               ctrlKey,
               pointerId: 0,
               clientX: info.point[0],
               clientY: info.point[1],
-            } as unknown as React.PointerEvent<HTMLDivElement>
+            } as unknown) as React.PointerEvent<HTMLDivElement>
           )
         }
         break
@@ -3590,14 +3596,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             altKey,
             spaceKey,
           },
-          {
+          ({
             shiftKey,
             altKey,
             ctrlKey,
             pointerId: 0,
             clientX: currentPoint[0],
             clientY: currentPoint[1],
-          } as unknown as React.PointerEvent<HTMLDivElement>
+          } as unknown) as React.PointerEvent<HTMLDivElement>
         )
         break
       }
@@ -3626,7 +3632,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /** Force bounding boxes to reset when the document loads. */
   refreshBoundingBoxes = () => {
     // force a change to every text shape
-    const force = this.shapes.map((shape) => {
+    const force = this.shapes.map(shape => {
       return [
         shape.id,
         {
@@ -3636,7 +3642,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       ]
     })
 
-    const restore = this.shapes.map((shape) => {
+    const restore = this.shapes.map(shape => {
       return [
         shape.id,
         {
@@ -3670,11 +3676,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /* ------------- Renderer Event Handlers ------------ */
 
-  onDragOver: TLDropEventHandler = (e) => {
+  onDragOver: TLDropEventHandler = e => {
     e.preventDefault()
   }
 
-  onDrop: TLDropEventHandler = async (e) => {
+  onDrop: TLDropEventHandler = async e => {
     e.preventDefault()
     if (this.disableAssets) return this
     if (e.dataTransfer.files?.length) {
@@ -3705,19 +3711,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.pan(delta)
 
     // When panning, we also want to call onPointerMove, except when "force panning" via spacebar / middle wheel button (it's called elsewhere in that case)
-    if (!this.isForcePanning) this.onPointerMove(info, e as unknown as React.PointerEvent)
+    if (!this.isForcePanning) this.onPointerMove(info, (e as unknown) as React.PointerEvent)
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TDStatus.Idle) return
     const delta = info.delta[2] / 50
     this.zoomBy(delta, info.point)
-    this.onPointerMove(info, e as unknown as React.PointerEvent)
+    this.onPointerMove(info, (e as unknown) as React.PointerEvent)
   }
 
   /* ----------------- Pointer Events ----------------- */
 
-  updateInputs: TLPointerEventHandler = (info) => {
+  updateInputs: TLPointerEventHandler = info => {
     this.currentPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.shiftKey = info.shiftKey
     this.altKey = info.altKey
@@ -3729,7 +3735,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.previousPoint = this.currentPoint
     this.updateInputs(info, e)
     if (this.isForcePanning && this.isPointing) {
-      this.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
+      this.onPan?.({ ...info, delta: Vec.neg(info.delta) }, (e as unknown) as WheelEvent)
       return
     }
 
