@@ -1,40 +1,32 @@
+import {AccessToken} from "~state/services/DONOTPUSH_ACCESSTOKEN";
+import {get} from "http";
+
 export enum NodeTypeEnum {
     VIDEO = 'video',
     VIDEOCOMMENT = 'videocomment',
     BLOG = 'blog',
-    DOCUMENT = 'document'
+    DOCUMENT = 'cmap'
 }
 
 const EdubreakService = {
     getEdubreakEndpointFromType: async function(options: any) {
         switch (options.type) {
             case NodeTypeEnum.VIDEO: return '/videos/';
-            case NodeTypeEnum.VIDEOCOMMENT: return '/content/videocomment/';
-            case NodeTypeEnum.BLOG: return '/content/blog/';
-            case NodeTypeEnum.DOCUMENT: return '/content/document/';
+            case NodeTypeEnum.VIDEOCOMMENT: return '/content/';
+            case NodeTypeEnum.BLOG: return '/content/';
+            case NodeTypeEnum.DOCUMENT: return '/content/';
             default: return '';
         }
     },
 
     getNodeAsJSON: async function(options: any) {
         // TODO: endpoint auslagern oder universellen api endpoint einfuegen
-        // fetch('https://codeception.manukla.edubreak.dev20.ghostthinker.de/api/rest')
         let endpoint = await this.getEdubreakEndpointFromType(options)
-        fetch('https://ghostthinker.edubreak.de/api/rest' + endpoint + options.nid)
-            .then(async response => {
-                const data = await response.json();
-                console.log('response from request: ', data);
-                // check for error response
-                if (!response.ok) {
-                    // get error message from body or default to response statusText
-                    const error = (data && data.message) || response.statusText;
-                    return Promise.reject(error);
-                }
-                return Promise.resolve()
-            })
-            .catch(error => {
-                console.error('There was an error!', error);
-            });
+        const headers = { Authorization: 'Bearer ' + AccessToken.TOKEN }
+        const data = await fetch('https://alpha.manukla.edubreak.dev20.ghostthinker.de/api/rest' + endpoint + options.nid, { headers })
+            .then(response => {return response.json()})
+        console.log('RESPONSE DATA IS: ', data)
+        return data;
     },
 };
 

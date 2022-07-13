@@ -222,6 +222,8 @@ export type TDToolType =
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
+  | TDShapeType.Video
+  | TDShapeType.Content
 
 export type Easing =
   | 'linear'
@@ -291,6 +293,7 @@ export enum TDShapeType {
   Group = 'group',
   Image = 'image',
   Video = 'video',
+  Content = 'content'
 }
 
 export enum Decoration {
@@ -372,9 +375,9 @@ export interface ImageShape extends TDBaseShape {
 export interface VideoShape extends TDBaseShape {
   type: TDShapeType.Video
   size: number[]
-  assetId: string
-  isPlaying: boolean
-  currentTime: number
+  title: string,
+  thumbnail: string,
+  body: string
 }
 
 // The shape created by the text tool
@@ -397,6 +400,14 @@ export interface GroupShape extends TDBaseShape {
   children: string[]
 }
 
+export interface ContentShape extends TDBaseShape {
+  type: TDShapeType.Content
+  title: string
+  body: string
+  size: number[]
+  nodeType: string
+}
+
 // A union of all shapes
 export type TDShape =
   | RectangleShape
@@ -409,6 +420,7 @@ export type TDShape =
   | StickyShape
   | ImageShape
   | VideoShape
+  | ContentShape
 
 /* ------------------ Shape Styles ------------------ */
 

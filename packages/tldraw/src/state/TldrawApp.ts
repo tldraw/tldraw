@@ -79,6 +79,8 @@ import { LineTool } from './tools/LineTool'
 import { ArrowTool } from './tools/ArrowTool'
 import { StickyTool } from './tools/StickyTool'
 import { StateManager } from './StateManager'
+import { ContentTool } from './tools/ContentTool'
+import { VideoTool } from './tools/VideoTool'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
@@ -188,6 +190,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
+    [TDShapeType.Video]: new VideoTool(this),
+    [TDShapeType.Content]: new ContentTool(this),
   }
 
   currentTool: BaseTool = this.tools.select
@@ -1103,7 +1107,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Select a tool.
-   * @param tool The tool to select, or "select".
+   * @param type
    */
   selectTool = (type: TDToolType): this => {
     if (this.readOnly || this.session) return this
@@ -1781,18 +1785,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     let nodeType = '';
 
     const textIsEdubreakLink = (text: string) => {
-      // check if the pasted text is an edubreak link and set domain and path accordingly
-      const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
-      const regMatches = text.matchAll(regexp);
-      const matches = [];
-      for (const regMatch of regMatches) {
+      if (text.length < 1) {return;}
+      try { // check if the pasted text is an edubreak link and set domain and path accordingly
+        const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
+        const regMatches = text.matchAll(regexp);
+        const matches = [];
+        for (const regMatch of regMatches) {
           matches.push(regMatch)
-      }
-      if (matches[0].length < 4) {return false;}
-      domain = matches[0][2];
-      path = matches[0][3];
+        }
+        if (matches.length < 1 || matches[0].length < 4) {return false;}
+        domain = matches[0][2];
+        path = matches[0][3];
 
-      return domain.includes('.edubreak.') && IsNodeType(path);
+        return domain.includes('.edubreak.') && IsNodeType(path);
+      } catch (e) {
+        console.error(e)
+        return false;
+      }
     }
 
     const IsNodeType = (path: string) => {
@@ -1829,8 +1838,57 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const pasteTextAsEdubreakLink = async (options: any) => {
       // handle pasted edubreak node link
       console.log('edubreak options: ', options);
-      await EdubreakService.getNodeAsJSON(options);
+      const edubreakContent = await EdubreakService.getNodeAsJSON(options);
+      const shapeId = Utils.uniqueId()
 
+      switch (options.type) {
+        case 'blog': this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Content,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          nodeType: 'blog',
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        });
+          break;
+        case 'cmap':
+          this.createShapes({
+            id: shapeId,
+            type: TDShapeType.Content,
+            parentId: this.appState.currentPageId,
+            title: TLDR.normalizeText(edubreakContent.title.trim()),
+            body: TLDR.normalizeText(edubreakContent.body.trim()),
+            nodeType: 'document',
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
+            style: { ...this.appState.currentStyle },
+          }); break;
+        case 'video':
+          this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Video,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: '',
+          thumbnail: edubreakContent.linkVideoThumbnail,
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        }); break;
+        case 'videocomment':
+          this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Video,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          thumbnail: edubreakContent.video_comment_thumbnail_image,
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        }); break;
+      }
+
+      this.select(shapeId)
     }
 
     const pasteTextAsSvg = async (text: string) => {
@@ -1922,7 +1980,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                     og_id: edubreakIds[0][1],
                     nid: edubreakIds[0][2]
                   }
-                  pasteTextAsEdubreakLink(edubreakOptions);
+                  await pasteTextAsEdubreakLink(edubreakOptions);
+                  return;
                 }
                 if (text.startsWith('<svg')) {
                   pasteTextAsSvg(text)
@@ -3869,7 +3928,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const shape = this.getShape(this.selectedIds[0])
 
-    if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+    if (shape.type === TDShapeType.Image) {
       const asset = this.document.assets[shape.assetId]
       const util = TLDR.getShapeUtil(shape)
       const centerA = util.getCenter(shape)

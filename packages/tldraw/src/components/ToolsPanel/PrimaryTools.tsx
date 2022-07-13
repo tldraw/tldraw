@@ -6,6 +6,7 @@ import {
   Pencil1Icon,
   Pencil2Icon,
   TextIcon,
+    RocketIcon
 } from '@radix-ui/react-icons'
 import { TDSnapshot, TDShapeType } from '~types'
 import { useTldrawApp } from '~hooks'
@@ -13,6 +14,7 @@ import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
 import { EraserIcon } from '~components/Primitives/icons'
+import { EdubreakMenu } from './EdubreakMenu'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
@@ -108,6 +110,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>
+        <EdubreakMenu activeTool={activeTool} isToolLocked={isToolLocked} />
     </Panel>
   )
 })
