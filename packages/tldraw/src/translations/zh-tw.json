@@ -54,6 +54,7 @@
   "duplicate": "複製",
   "cancel": "取消",
   "copy.invite.link": "複製邀請連結",
+  "copy.readonly.link": "複製唯讀連結",
   "create.multiplayer.project": "建立多人專案",
   "copy.multiplayer.project": "複製至多人專案",
   "select": "選取",
@@ -86,5 +87,12 @@
   "forward": "到上一層",
   "backward": "到下一層",
   "back": "到最下層",
-  "language": "語言"
+  "language": "語言",
+  "translation.link": "了解詳情",
+  "dock.position": "工具列位置",
+  "bottom": "下方",
+  "left": "左側",
+  "right": "右側",
+  "top": "上方",
+  "page": "頁面"
 }
