@@ -1,7 +1,7 @@
 import React from 'react'
 import { styled } from 'styles'
 
-export function IFrameWarning({ url = 'https://tldraw.com' }: { url?: string }) {
+export default function IFrameWarning({ url = 'https://tldraw.com' }: { url?: string }) {
   const [copied, setCopied] = React.useState(false)
   const rTimeout = React.useRef<any>(0)
 
@@ -93,6 +93,8 @@ const StyledContainer = styled('div', {
   fontSize: '$3',
   gap: '$5',
   flexDirection: 'column',
+  border: '1px solid $hover',
+  borderRadius: '$2',
 })
 
 const StyledUrlLink = styled('a', {
