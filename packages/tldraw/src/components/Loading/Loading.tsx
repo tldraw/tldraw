@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { FormattedMessage } from 'react-intl'
 import { Panel } from '~components/Primitives/Panel'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
@@ -10,7 +11,11 @@ export function Loading() {
   const app = useTldrawApp()
   const isLoading = app.useStore(loadingSelector)
 
-  return <StyledLoadingPanelContainer hidden={!isLoading}>Loading...</StyledLoadingPanelContainer>
+  return (
+    <StyledLoadingPanelContainer hidden={false}>
+      <FormattedMessage id="loading" values={{ dots: '...' }} />
+    </StyledLoadingPanelContainer>
+  )
 }
 
 const StyledLoadingPanelContainer = styled('div', {

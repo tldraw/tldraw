@@ -94,5 +94,6 @@
   "left": "À Gauche",
   "right": "À Droite",
   "top": "En Haut",
-  "page": "Page"
+  "page": "Page",
+  "loading": "Chargement{dots}"
 }
