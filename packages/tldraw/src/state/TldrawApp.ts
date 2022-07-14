@@ -1900,10 +1900,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
         if (json.type === 'tldr/clipboard') {
-          const shapes = json.shapes.map(shape => ({
-            ...shape,
-            text: shape.text.replaceAll('&amp;', '&'),
-          }))
+          const shapes = json.shapes.map((shape) => {
+            if (shape.name === 'Text') {
+              return {
+                ...shape,
+                text: shape.text.replaceAll('&amp;', '&'),
+              }
+            } else {
+              return {
+                ...shape,
+                label: shape.label?.replaceAll('&amp;', '&'),
+              }
+            }
+          })
           this.insertContent({ ...json, shapes }, { point, select: true })
           return
         } else {
