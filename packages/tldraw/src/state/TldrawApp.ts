@@ -1900,22 +1900,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
         if (json.type === 'tldr/clipboard') {
-          const elm = document.createElement('textarea')
-
-          json.shapes.forEach((shape) => {
-            if (shape.text !== undefined) {
-              elm.innerHTML = shape.text
-              shape.text = elm.value
-            }
-
-            if (shape.label !== undefined) {
-              elm.innerHTML = shape.label
-              shape.text = elm.value
-            }
-          })
-
-          elm.remove()
-
           this.insertContent(json, { point, select: true })
           return
         } else {

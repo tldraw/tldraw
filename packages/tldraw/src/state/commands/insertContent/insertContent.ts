@@ -246,6 +246,22 @@ export function insertContent(
     }
   }
 
+  const elm = document.createElement('textarea')
+
+  Object.values(after.shapes as Record<string, TDShape>).forEach((shape) => {
+    if ('text' in shape) {
+      elm.innerHTML = shape.text
+      shape.text = elm.value
+    }
+
+    if ('label' in shape) {
+      elm.innerHTML = shape.label!
+      shape.label = elm.value
+    }
+  })
+
+  elm.remove()
+
   return {
     id: 'insert',
     before: {
