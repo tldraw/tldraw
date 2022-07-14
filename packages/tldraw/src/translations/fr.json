@@ -52,10 +52,10 @@
   "create.page": "Créer une Page",
   "new.page": "Nouvelle Page",
   "page.name": "Nom de la Page",
-  "page": "Page",
   "duplicate": "Dupliquer",
   "cancel": "Annuler",
-  "copy.invite.link": "Copier le Lien d'Invitation",
+  "copy.invite.link": "Copier le lien d'invitation",
+  "copy.readonly.link": "Copier le lien en lecture seule d'invitation",
   "create.multiplayer.project": "Créer un Project Multi-joueurs",
   "copy.multiplayer.project": "Copier dans un Projet Multi-joueurs",
   "select": "Selection",
@@ -93,5 +93,6 @@
   "bottom": "En bas",
   "left": "À Gauche",
   "right": "À Droite",
-  "top": "En Haut"
+  "top": "En Haut",
+  "page": "Page"
 }
