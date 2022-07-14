@@ -1895,11 +1895,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
         const json: {
           type: string
-          shapes: TDShape[]
+          shapes: (TDShape & { text: string })[]
           bindings: TDBinding[]
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
-
         if (json.type === 'tldr/clipboard') {
           this.insertContent(json, { point, select: true })
           return
