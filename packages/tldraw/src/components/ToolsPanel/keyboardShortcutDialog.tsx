@@ -5,6 +5,7 @@ import { FormattedMessage, useIntl } from 'react-intl'
 import { IconButton } from '~components/Primitives/IconButton'
 import { RowButton } from '~components/Primitives/RowButton'
 import { styled } from '~styles'
+import { breakpoints } from '~components/breakpoints'
 
 export function KeyboardShortcutDialog() {
   const intl = useIntl()
@@ -88,7 +89,7 @@ export function KeyboardShortcutDialog() {
           <DialogTitle>
             <FormattedMessage id="keyboard.shortcuts" />
           </DialogTitle>
-          <Content>
+          <Content bp={breakpoints}>
             {Object.entries(shortcuts).map(([key, value]) => (
               <div>
                 <Label>{key}</Label>
@@ -118,8 +119,23 @@ const Content = styled('div', {
   maxHeight: '74vh',
   overflowY: 'auto',
   display: 'grid',
-  gridTemplateColumns: 'repeat(2, 1fr)',
   gap: 20,
+  variants: {
+    bp: {
+      small: {
+        gridTemplateColumns: '1fr',
+      },
+      mobile: {
+        gridTemplateColumns: '1fr',
+      },
+      medium: {
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      },
+      large: {
+        gridTemplateColumns: 'repeat(2, 1fr)',
+      },
+    },
+  },
 })
 
 const Label = styled('h3', {
