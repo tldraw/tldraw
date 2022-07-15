@@ -25,7 +25,7 @@ const pages: ({ path: string; component: any; title: string } | '---')[] = [
   '---',
   { path: '/basic', component: Basic, title: 'Basic' },
   { path: '/dark-mode', component: DarkMode, title: 'Dark mode' },
-  { path: '/ui-options', component: UIOptions, title: 'Customizing user interfcace' },
+  { path: '/ui-options', component: UIOptions, title: 'Custom UI' },
   { path: '/persisted', component: Persisted, title: 'Persisting state with an ID' },
   { path: '/loading-files', component: LoadingFiles, title: 'Using the file system' },
   { path: '/file-system', component: FileSystem, title: 'Loading files' },
