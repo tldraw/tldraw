@@ -1019,11 +1019,14 @@ left past the initial left edge) then swap points on that axis.
 
     const minX = bounds.minX + bounds.width * nx
     const minY = bounds.minY + bounds.height * ny
-    const width = bounds.width * nw
+    const width = initialBounds.width * nw
     const height = bounds.height * nh
 
     return {
-      minX,
+      // when there's more than 2 shapes, the second shape
+      // get the position of the first or the overway around
+      // we need to keep the exact position of each shape
+      minX: isFlippedX ? initialShapeBounds.minX : minX,
       minY,
       maxX: minX + width,
       maxY: minY + height,

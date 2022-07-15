@@ -33,9 +33,9 @@ describe('Transform session', () => {
     expect(getShapeBounds(app, 'rect1')).toMatchObject({
       minX: 10,
       minY: 10,
-      maxX: 105,
+      maxX: 110,
       maxY: 105,
-      width: 95,
+      width: 100,
       height: 95,
     })
 
@@ -112,18 +112,18 @@ describe('Transform session', () => {
       expect(getShapeBounds(app, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
-        maxX: 105,
+        maxX: 110,
         maxY: 105,
-        width: 95,
+        width: 100,
         height: 95,
       })
 
       expect(getShapeBounds(app, 'rect2')).toMatchObject({
         minX: 105,
         minY: 105,
-        maxX: 200,
+        maxX: 205,
         maxY: 200,
-        width: 95,
+        width: 100,
         height: 95,
       })
     })
@@ -139,18 +139,18 @@ describe('Transform session', () => {
       expect(getShapeBounds(app, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
-        maxX: 105,
+        maxX: 110,
         maxY: 105,
-        width: 95,
+        width: 100,
         height: 95,
       })
 
       expect(getShapeBounds(app, 'rect2')).toMatchObject({
         minX: 105,
         minY: 105,
-        maxX: 200,
+        maxX: 205,
         maxY: 200,
-        width: 95,
+        width: 100,
         height: 95,
       })
     })
@@ -197,18 +197,18 @@ describe('Transform session', () => {
       expect(getShapeBounds(app, 'rect1')).toMatchObject({
         minX: 10,
         minY: 10,
-        maxX: 105,
+        maxX: 110,
         maxY: 105,
-        width: 95,
+        width: 100,
         height: 95,
       })
 
       expect(getShapeBounds(app, 'rect2')).toMatchObject({
         minX: 105,
         minY: 105,
-        maxX: 200,
+        maxX: 205,
         maxY: 200,
-        width: 95,
+        width: 100,
         height: 95,
       })
     })

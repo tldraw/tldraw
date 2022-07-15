@@ -22,7 +22,7 @@ describe('Flip command', () => {
     app.select('rect1', 'rect2')
     app.flipHorizontal()
 
-    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
 
     app.undo()
 
@@ -30,14 +30,14 @@ describe('Flip command', () => {
 
     app.redo()
 
-    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
   })
 
   it('flips horizontally', () => {
     app.select('rect1', 'rect2')
     app.flipHorizontal()
 
-    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
+    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
   })
 
   it('flips vertically', () => {
