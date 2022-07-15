@@ -23,6 +23,8 @@ export function HelpPanel() {
   const isDebugMode = app.useStore(isDebugModeSelector)
   const side = app.useStore(dockPositionState)
 
+  const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = React.useState(false)
+
   return (
     <Popover.Root>
       <PopoverAnchor dir="ltr">
@@ -33,47 +35,49 @@ export function HelpPanel() {
         </Popover.Trigger>
       </PopoverAnchor>
       <Popover.Content dir="ltr">
-        <StyledContent>
-          <DropdownMenu.Root dir="ltr">
-            <DMTriggerText>
-              <DMButton>
-                <FormattedMessage id="language" />
-              </DMButton>
-            </DMTriggerText>
-            <DMContent variant="menu" id="language-menu" side="left" sideOffset={2}>
-              <LanguageMenu />
-            </DMContent>
-          </DropdownMenu.Root>
-          <KeyboardShortcutDialog />
+        <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
+          <LanguageMenuDropdown />
+          <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
           <DMDivider />
-          <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
-            <RowButton id="TD-HelpItem-Github">
-              GitHub
-              <SmallIcon>
-                <GitHubLogoIcon />
-              </SmallIcon>
-            </RowButton>
-          </a>
-          <a href="https://twitter.com/Tldraw" target="_blank" rel="nofollow">
-            <RowButton id="TD-HelpItem-Twitter">
-              Twitter
-              <SmallIcon>
-                <TwitterLogoIcon />
-              </SmallIcon>
-            </RowButton>
-          </a>
-          <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
-            <RowButton id="TD-HelpItem-Discord">
-              Discord
-              <SmallIcon>
-                <DiscordIcon />
-              </SmallIcon>
-            </RowButton>
-          </a>
+          <Links />
         </StyledContent>
       </Popover.Content>
     </Popover.Root>
   )
+}
+
+const LanguageMenuDropdown = () => {
+  return (
+    <DropdownMenu.Root dir="ltr">
+      <DropdownMenu.Trigger asChild>
+        <RowButton variant="wide" hasArrow>
+          <FormattedMessage id="language" />
+        </RowButton>
+      </DropdownMenu.Trigger>
+      <DMContent variant="menu" id="language-menu" side="left" sideOffset={8}>
+        <LanguageMenu />
+      </DMContent>
+    </DropdownMenu.Root>
+  )
+}
+
+const linksData = [
+  { id: 'github', title: 'Github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
+  { id: 'twitter', title: 'Twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
+  { id: 'discord', title: 'Discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
+]
+
+const Links = () => {
+  return linksData.map((item) => (
+    <a key={item.id} href={item.url} target="_blank" rel="nofollow">
+      <RowButton id={`TD-Link-${item.id}`} variant="wide">
+        {item.title}
+        <SmallIcon>
+          <item.icon />
+        </SmallIcon>
+      </RowButton>
+    </a>
+  ))
 }
 
 const HelpButton = styled('button', {
@@ -175,29 +179,4 @@ const PopoverAnchor = styled(Popover.Anchor, {
   right: 10,
   zIndex: 999,
   bottom: 50,
-})
-
-const DMTriggerText = styled(DropdownMenu.Trigger, {
-  border: 'none',
-  padding: '$2',
-  borderRadius: 4,
-  background: 'none',
-})
-
-const DMButton = styled('button', {
-  position: 'relative',
-  color: '$text',
-  fontSize: '$1',
-  background: 'none',
-  fontWeight: 500,
-  fontFamily: '$body',
-  margin: '0',
-  padding: '$2',
-  display: 'flex',
-  alignItems: 'flex-start',
-  justifyContent: 'center',
-  outline: 'none',
-  cursor: 'pointer',
-  pointerEvents: 'all',
-  border: 'none',
 })

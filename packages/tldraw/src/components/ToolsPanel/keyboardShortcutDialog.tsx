@@ -6,31 +6,16 @@ import { IconButton } from '~components/Primitives/IconButton'
 import { RowButton } from '~components/Primitives/RowButton'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
+import { Kbd } from '~components/Primitives/Kbd'
 
-export function KeyboardShortcutDialog() {
+export function KeyboardShortcutDialog({
+  onOpenChange,
+}: {
+  onOpenChange?: (open: boolean) => void
+}) {
   const intl = useIntl()
 
   const shortcuts = {
-    View: [
-      { label: intl.formatMessage({ id: 'zoom.in' }), kbd: '#+' },
-      { label: intl.formatMessage({ id: 'zoom.out' }), kbd: '#-' },
-      { label: `${intl.formatMessage({ id: 'zoom.to' })} 100%`, kbd: '⇧+0' },
-      { label: intl.formatMessage({ id: 'zoom.to.fit' }), kbd: '⇧+1' },
-      { label: intl.formatMessage({ id: 'zoom.to.selection' }), kbd: '⇧+2' },
-      { label: intl.formatMessage({ id: 'preferences.dark.mode' }), kbd: '#⇧D' },
-      { label: intl.formatMessage({ id: 'preferences.focus.mode' }), kbd: '#.' },
-      { label: intl.formatMessage({ id: 'preferences.show.grid' }), kbd: '#⇧G' },
-    ],
-    Edit: [
-      { label: intl.formatMessage({ id: 'undo' }), kbd: '#Z' },
-      { label: intl.formatMessage({ id: 'redo' }), kbd: '#⇧Z' },
-      { label: intl.formatMessage({ id: 'cut' }), kbd: '#X' },
-      { label: intl.formatMessage({ id: 'copy' }), kbd: '#C' },
-      { label: intl.formatMessage({ id: 'paste' }), kbd: '#V' },
-      { label: intl.formatMessage({ id: 'select.all' }), kbd: '#A' },
-      { label: intl.formatMessage({ id: 'delete' }), kbd: '⌫' },
-      { label: intl.formatMessage({ id: 'duplicate' }), kbd: '#D' },
-    ],
     Tools: [
       { label: intl.formatMessage({ id: 'select' }), kbd: '1' },
       { label: intl.formatMessage({ id: 'draw' }), kbd: '2' },
@@ -42,6 +27,16 @@ export function KeyboardShortcutDialog() {
       { label: intl.formatMessage({ id: 'arrow' }), kbd: '8' },
       { label: intl.formatMessage({ id: 'text' }), kbd: '9' },
       { label: intl.formatMessage({ id: 'sticky' }), kbd: '0' },
+    ],
+    View: [
+      { label: intl.formatMessage({ id: 'zoom.in' }), kbd: '#+' },
+      { label: intl.formatMessage({ id: 'zoom.out' }), kbd: '#-' },
+      { label: `${intl.formatMessage({ id: 'zoom.to' })} 100%`, kbd: '⇧+0' },
+      { label: intl.formatMessage({ id: 'zoom.to.fit' }), kbd: '⇧+1' },
+      { label: intl.formatMessage({ id: 'zoom.to.selection' }), kbd: '⇧+2' },
+      { label: intl.formatMessage({ id: 'preferences.dark.mode' }), kbd: '#⇧D' },
+      { label: intl.formatMessage({ id: 'preferences.focus.mode' }), kbd: '#.' },
+      { label: intl.formatMessage({ id: 'preferences.show.grid' }), kbd: '#⇧G' },
     ],
     Transform: [
       { label: intl.formatMessage({ id: 'flip.horizontal' }), kbd: '⇧H' },
@@ -74,12 +69,22 @@ export function KeyboardShortcutDialog() {
       { label: intl.formatMessage({ id: 'save.as' }), kbd: '#⇧S' },
       { label: intl.formatMessage({ id: 'upload.media' }), kbd: '#U' },
     ],
+    Edit: [
+      { label: intl.formatMessage({ id: 'undo' }), kbd: '#Z' },
+      { label: intl.formatMessage({ id: 'redo' }), kbd: '#⇧Z' },
+      { label: intl.formatMessage({ id: 'cut' }), kbd: '#X' },
+      { label: intl.formatMessage({ id: 'copy' }), kbd: '#C' },
+      { label: intl.formatMessage({ id: 'paste' }), kbd: '#V' },
+      { label: intl.formatMessage({ id: 'select.all' }), kbd: '#A' },
+      { label: intl.formatMessage({ id: 'delete' }), kbd: '⌫' },
+      { label: intl.formatMessage({ id: 'duplicate' }), kbd: '#D' },
+    ],
   }
 
   return (
-    <Dialog.Root>
+    <Dialog.Root onOpenChange={onOpenChange}>
       <Dialog.Trigger asChild>
-        <RowButton id="TD-HelpItem-Keyboard">
+        <RowButton id="TD-HelpItem-Keyboard" variant="wide">
           <FormattedMessage id="keyboard.shortcuts" />
         </RowButton>
       </Dialog.Trigger>
@@ -88,71 +93,69 @@ export function KeyboardShortcutDialog() {
         <DialogContent>
           <DialogTitle>
             <FormattedMessage id="keyboard.shortcuts" />
+            <Dialog.Close asChild>
+              <DialogIconButton>
+                <Cross2Icon />
+              </DialogIconButton>
+            </Dialog.Close>
           </DialogTitle>
-          <Content bp={breakpoints}>
+          <StyledColumns bp={breakpoints}>
             {Object.entries(shortcuts).map(([key, value]) => (
-              <div>
+              <StyledSection key={key}>
                 <Label>{key}</Label>
                 <ContentItem>
                   {value.map((shortcut) => (
-                    <RowButton key={shortcut.label} kbd={shortcut.kbd} variant="wide">
+                    <StyledItem key={shortcut.label}>
                       {shortcut.label}
-                    </RowButton>
+                      <Kbd variant="menu">{shortcut.kbd}</Kbd>
+                    </StyledItem>
                   ))}
                 </ContentItem>
-              </div>
+              </StyledSection>
             ))}
-          </Content>
-          <Dialog.Close asChild>
-            <DialogIconButton>
-              <Cross2Icon />
-            </DialogIconButton>
-          </Dialog.Close>
+          </StyledColumns>
         </DialogContent>
       </Dialog.Portal>
     </Dialog.Root>
   )
 }
 
-const Content = styled('div', {
-  width: '100%',
-  maxHeight: '74vh',
-  overflowY: 'auto',
-  display: 'grid',
-  gap: 20,
-  variants: {
-    bp: {
-      small: {
-        gridTemplateColumns: '1fr',
-      },
-      mobile: {
-        gridTemplateColumns: '1fr',
-      },
-      medium: {
-        gridTemplateColumns: 'repeat(2, 1fr)',
-      },
-      large: {
-        gridTemplateColumns: 'repeat(2, 1fr)',
-      },
-    },
-  },
-})
-
 const Label = styled('h3', {
   fontSize: '$2',
   color: '$text',
   fontFamily: '$ui',
+  margin: 0,
+  paddingBottom: '$5',
 })
 
-const ContentItem = styled('div', {
+const StyledSection = styled('div', {
+  breakInside: 'avoid',
+  paddingBottom: 24,
+})
+
+const ContentItem = styled('ul', {
+  listStyleType: 'none',
   width: '100%',
+  padding: 0,
+  margin: 0,
+})
+
+const StyledItem = styled('li', {
   display: 'flex',
-  flexDirection: 'column',
-  height: 'min-content',
-  gap: 4,
-  '&> button > div': {
-    paddingLeft: 0,
-  },
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  height: 32,
+  minHeight: 32,
+  width: '100%',
+  outline: 'none',
+  color: '$text',
+  fontFamily: '$ui',
+  fontWeight: 400,
+  fontSize: '$1',
+  borderRadius: 4,
+  userSelect: 'none',
+  margin: 0,
+  padding: '0 0',
 })
 
 const DialogContent = styled(Dialog.Content, {
@@ -163,12 +166,42 @@ const DialogContent = styled(Dialog.Content, {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '90vw',
-  maxWidth: '900px',
-  minHeight: '85vh',
-  maxHeight: '85vh',
+  width: 'fit-content',
+  maxWidth: '90vw',
+  maxHeight: '74vh',
+  overflowY: 'auto',
   padding: 25,
   '&:focus': { outline: 'none' },
+})
+
+const StyledColumns = styled('div', {
+  maxWidth: '100%',
+  width: 'fit-content',
+  height: 'fit-content',
+  overflowY: 'auto',
+  columnGap: 64,
+  variants: {
+    bp: {
+      mobile: {
+        columns: 1,
+        [`& ${StyledSection}`]: {
+          minWidth: '0px',
+        },
+      },
+      small: {
+        columns: 2,
+        [`& ${StyledSection}`]: {
+          minWidth: '200px',
+        },
+      },
+      medium: {
+        columns: 3,
+      },
+      large: {
+        columns: 3,
+      },
+    },
+  },
 })
 
 const DialogOverlay = styled(Dialog.Overlay, {
@@ -178,7 +211,6 @@ const DialogOverlay = styled(Dialog.Overlay, {
 })
 
 const DialogIconButton = styled(IconButton, {
-  all: 'unset',
   fontFamily: 'inherit',
   borderRadius: '100%',
   height: 25,
@@ -187,9 +219,6 @@ const DialogIconButton = styled(IconButton, {
   alignItems: 'center',
   justifyContent: 'center',
   color: '$text',
-  position: 'absolute',
-  top: 36,
-  right: 26,
   cursor: 'pointer',
   '&:hover': { backgroundColor: '$hover' },
 })
@@ -198,4 +227,9 @@ const DialogTitle = styled(Dialog.Title, {
   fontFamily: '$body',
   fontSize: '$3',
   color: '$text',
+  paddingBottom: 32,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  margin: 0,
 })
