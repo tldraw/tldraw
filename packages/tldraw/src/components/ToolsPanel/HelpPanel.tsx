@@ -68,16 +68,20 @@ const linksData = [
 ]
 
 const Links = () => {
-  return linksData.map((item) => (
-    <a key={item.id} href={item.url} target="_blank" rel="nofollow">
-      <RowButton id={`TD-Link-${item.id}`} variant="wide">
-        {item.title}
-        <SmallIcon>
-          <item.icon />
-        </SmallIcon>
-      </RowButton>
-    </a>
-  ))
+  return (
+    <>
+      {linksData.map((item) => (
+        <a key={item.id} href={item.url} target="_blank" rel="nofollow">
+          <RowButton id={`TD-Link-${item.id}`} variant="wide">
+            {item.title}
+            <SmallIcon>
+              <item.icon />
+            </SmallIcon>
+          </RowButton>
+        </a>
+      ))}
+    </>
+  )
 }
 
 const HelpButton = styled('button', {
