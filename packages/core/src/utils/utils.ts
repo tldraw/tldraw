@@ -1027,7 +1027,7 @@ left past the initial left edge) then swap points on that axis.
       //the second shape gets the position of the first,
       //or the over way around we need to keep the exact position of each shape
       minX: isFlippedX ? initialShapeBounds.minX : minX,
-      minY,
+      minY: isFlippedY ? initialShapeBounds.minY : minY,
       maxX: minX + width,
       maxY: minY + height,
       width,
