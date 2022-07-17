@@ -3,7 +3,6 @@ import { FormattedMessage, useIntl } from 'react-intl'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
 import { TDDockPosition, TDSnapshot } from '~types'
-import { styled } from '~styles'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
@@ -146,16 +145,10 @@ export function PreferencesMenu() {
             onCheckedChange={() => handleChangeDockPosition(position as TDDockPosition)}
             id={`TD-MenuItem-DockPosition-${position}`}
           >
-            <StyledText>
-              <FormattedMessage id={position} />
-            </StyledText>
+            <FormattedMessage id={position} />
           </DMCheckboxItem>
         ))}
       </DMSubMenu>
     </DMSubMenu>
   )
 }
-
-const StyledText = styled('span', {
-  textTransform: 'capitalize',
-})
