@@ -97,7 +97,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           {shapeShapes.map((shape, i) => (
             <Tooltip
               key={shape}
-              label={intl.formatMessage({ id: shape[0].toUpperCase() + shape.slice(1) })}
+              label={intl.formatMessage({ id: shape })}
               kbd={(4 + i).toString()}
               id={`TD-PrimaryTools-Shapes-${shape}`}
             >
