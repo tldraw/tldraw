@@ -1780,117 +1780,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
-    let domain = '';
-    let path = '';
-    let nodeType = '';
-
-    const textIsEdubreakLink = (text: string) => {
-      if (text.length < 1) {return;}
-      try { // check if the pasted text is an edubreak link and set domain and path accordingly
-        const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
-        const regMatches = text.matchAll(regexp);
-        const matches = [];
-        for (const regMatch of regMatches) {
-          matches.push(regMatch)
-        }
-        if (matches.length < 1 || matches[0].length < 4) {return false;}
-        domain = matches[0][2];
-        path = matches[0][3];
-
-        return domain.includes('.edubreak.') && IsNodeType(path);
-      } catch (e) {
-        console.error(e)
-        return false;
-      }
-    }
-
-    const IsNodeType = (path: string) => {
-      // checks if there is a node type in our pasted edubreak link
-      const types = [
-        NodeTypeEnum.VIDEO,
-        NodeTypeEnum.VIDEOCOMMENT,
-        NodeTypeEnum.BLOG,
-        NodeTypeEnum.DOCUMENT
-      ]
-
-      for (const type of types) {
-        const pathType = '/' + type + '/'
-        if (path.includes(pathType)) {
-          nodeType = type;
-          return true
-        }
-      }
-
-      return false;
-    }
-
-    const getEdubreakIds = (edubreakPath: string) => {
-      // gets nid and og_id from pasted node edubreak link
-      const regexp = /[\w.,@?^=%&:\/~+#-]*course-([0-9]*)[\w@?^=%&\/~+#-]*\/([0-9]+)/g;
-      const regMatches = edubreakPath.matchAll(regexp);
-      const matches = [];
-      for (const regMatch of regMatches) {
-        matches.push(regMatch)
-      }
-      return matches;
-    }
-
-    const pasteTextAsEdubreakLink = async (options: any) => {
-      // handle pasted edubreak node link
-      console.log('edubreak options: ', options);
-      const edubreakContent = await EdubreakService.getNodeAsJSON(options);
-      const shapeId = Utils.uniqueId()
-
-      switch (options.type) {
-        case 'blog': this.createShapes({
-          id: shapeId,
-          type: TDShapeType.Content,
-          parentId: this.appState.currentPageId,
-          title: TLDR.normalizeText(edubreakContent.title.trim()),
-          body: TLDR.normalizeText(edubreakContent.body.trim()),
-          nodeType: 'blog',
-          point: this.getPagePoint(this.centerPoint, this.currentPageId),
-          style: { ...this.appState.currentStyle },
-        });
-          break;
-        case 'cmap':
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Content,
-            parentId: this.appState.currentPageId,
-            title: TLDR.normalizeText(edubreakContent.title.trim()),
-            body: TLDR.normalizeText(edubreakContent.body.trim()),
-            nodeType: 'document',
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          }); break;
-        case 'video':
-          this.createShapes({
-          id: shapeId,
-          type: TDShapeType.Video,
-          parentId: this.appState.currentPageId,
-          title: TLDR.normalizeText(edubreakContent.title.trim()),
-          body: '',
-          thumbnail: edubreakContent.linkVideoThumbnail,
-          point: this.getPagePoint(this.centerPoint, this.currentPageId),
-          style: { ...this.appState.currentStyle },
-        }); break;
-        case 'videocomment':
-          this.createShapes({
-          id: shapeId,
-          type: TDShapeType.Video,
-          parentId: this.appState.currentPageId,
-          title: TLDR.normalizeText(edubreakContent.title.trim()),
-          body: TLDR.normalizeText(edubreakContent.body.trim()),
-          thumbnail: edubreakContent.video_comment_thumbnail_image,
-          point: this.getPagePoint(this.centerPoint, this.currentPageId),
-          style: { ...this.appState.currentStyle },
-        }); break;
-      }
-
-      this.select(shapeId)
-    }
-
     const pasteTextAsSvg = async (text: string) => {
       const div = document.createElement('div')
       div.innerHTML = text
@@ -1951,6 +1840,62 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
+    const pasteTextAsEdubreakLink = async (options: any) => {
+      // handle pasted edubreak node link
+      console.log('edubreak options: ', options);
+      const edubreakContent = await EdubreakService.getNodeAsJSON(options);
+      const shapeId = Utils.uniqueId()
+
+      switch (options.type) {
+        case 'blog': this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Content,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          nodeType: 'blog',
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        });
+          break;
+        case 'cmap':
+          this.createShapes({
+            id: shapeId,
+            type: TDShapeType.Content,
+            parentId: this.appState.currentPageId,
+            title: TLDR.normalizeText(edubreakContent.title.trim()),
+            body: TLDR.normalizeText(edubreakContent.body.trim()),
+            nodeType: 'document',
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
+            style: { ...this.appState.currentStyle },
+          }); break;
+        case 'video':
+          this.createShapes({
+            id: shapeId,
+            type: TDShapeType.Video,
+            parentId: this.appState.currentPageId,
+            title: TLDR.normalizeText(edubreakContent.title.trim()),
+            body: '',
+            thumbnail: edubreakContent.linkVideoThumbnail,
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
+            style: { ...this.appState.currentStyle },
+          }); break;
+        case 'videocomment':
+          this.createShapes({
+            id: shapeId,
+            type: TDShapeType.Video,
+            parentId: this.appState.currentPageId,
+            title: TLDR.normalizeText(edubreakContent.title.trim()),
+            body: TLDR.normalizeText(edubreakContent.body.trim()),
+            thumbnail: edubreakContent.video_comment_thumbnail_image,
+            point: this.getPagePoint(this.centerPoint, this.currentPageId),
+            style: { ...this.appState.currentStyle },
+          }); break;
+      }
+
+      this.select(shapeId)
+    }
+
     if (e !== undefined) {
       const items = e.clipboardData?.items ?? []
       for (const index in items) {
@@ -1971,15 +1916,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             case 'string': {
               item.getAsString(async (text) => {
                 // check if the text is an edubreak link
-                if (textIsEdubreakLink(text)) {
-                  // TODO: get node type here and handle Request in this function
-                  let edubreakIds = getEdubreakIds(path)
-                  let edubreakOptions = {
-                    isEdubreakLink: true,
-                    type: nodeType,
-                    og_id: edubreakIds[0][1],
-                    nid: edubreakIds[0][2]
-                  }
+                if (EdubreakService.textIsEdubreakLink(text)) {
+                  let edubreakOptions = EdubreakService.parseEdubreakLink(text)
                   await pasteTextAsEdubreakLink(edubreakOptions);
                   return;
                 }

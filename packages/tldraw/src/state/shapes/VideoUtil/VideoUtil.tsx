@@ -133,6 +133,8 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                     fontWeight: 800,
                     pointerEvents: 'none',
                     userSelect: 'none',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
                   }}>
                     {shape.title}
                   </div>
