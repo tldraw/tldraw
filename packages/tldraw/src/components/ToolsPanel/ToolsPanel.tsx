@@ -86,7 +86,7 @@ const StyledToolsPanelContainer = styled('div', {
         width: '100%',
         left: 0,
         right: 0,
-        bottom: 0,
+        bottom: 4,
       },
       left: { width: 64, height: '100%', left: 0 },
     },
@@ -103,7 +103,7 @@ const StyledToolsPanelContainer = styled('div', {
       side: 'bottom',
       debug: true,
       css: {
-        bottom: '40px',
+        bottom: 44,
       },
     },
   ],

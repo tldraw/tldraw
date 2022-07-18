@@ -8,10 +8,18 @@ export interface DMSubMenuProps {
   size?: 'small'
   disabled?: boolean
   children: React.ReactNode
+  overflow?: boolean
   id?: string
 }
 
-export function DMSubMenu({ children, size, disabled = false, label, id }: DMSubMenuProps) {
+export function DMSubMenu({
+  children,
+  size,
+  overflow = false,
+  disabled = false,
+  label,
+  id,
+}: DMSubMenuProps) {
   return (
     <span id={id}>
       <Root dir="ltr">
@@ -21,7 +29,7 @@ export function DMSubMenu({ children, size, disabled = false, label, id }: DMSub
           </RowButton>
         </TriggerItem>
         <Content dir="ltr" asChild sideOffset={2} alignOffset={-2} align="start">
-          <MenuContent size={size} overflow>
+          <MenuContent size={size} overflow={overflow}>
             {children}
             <Arrow offset={13} />
           </MenuContent>

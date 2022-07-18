@@ -14,6 +14,14 @@ export const MenuContent = styled('div', {
   padding: '$2 $2',
   borderRadius: '$3',
   font: '$ui',
+  maxHeight: '100vh',
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  '&::webkit-scrollbar': {
+    display: 'none',
+  },
+  '-ms-overflow-style': 'none' /* for Internet Explorer, Edge */,
+  scrollbarWidth: 'none',
   variants: {
     size: {
       small: {
@@ -23,14 +31,7 @@ export const MenuContent = styled('div', {
     overflow: {
       true: {
         maxHeight: '60vh',
-        overflowY: 'auto',
-        overflowX: 'hidden',
       },
     },
-  },
-  '-ms-overflow-style': 'none' /* for Internet Explorer, Edge */,
-  scrollbarWidth: 'none',
-  '&::webkit-scrollbar': {
-    display: 'none',
   },
 })

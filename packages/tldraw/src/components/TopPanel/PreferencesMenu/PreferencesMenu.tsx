@@ -138,7 +138,7 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.clone.handles" />
       </DMCheckboxItem>
-      <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })}>
+      <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })} overflow={false}>
         {DockPosition.map((position) => (
           <DMCheckboxItem
             key={position}

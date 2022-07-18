@@ -54,9 +54,7 @@ const LanguageMenuDropdown = () => {
           <FormattedMessage id="language" />
         </RowButton>
       </DropdownMenu.Trigger>
-      <DMContent variant="menu" id="language-menu" side="left" sideOffset={8}>
-        <LanguageMenu />
-      </DMContent>
+      <LanguageMenu />
     </DropdownMenu.Root>
   )
 }
