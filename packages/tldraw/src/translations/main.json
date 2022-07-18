@@ -97,5 +97,6 @@
   "top": "Top",
   "page": "Page",
   "keyboard.shortcuts": "Keyboard shortcuts",
-  "search": "Search"
+  "search": "Search",
+  "loading": "Loading{dots}"
 }
