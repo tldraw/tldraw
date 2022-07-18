@@ -95,5 +95,6 @@
   "left": "Left",
   "right": "Right",
   "top": "Top",
-  "page": "Page"
+  "page": "Page",
+  "loading": "Loading{dots}"
 }
