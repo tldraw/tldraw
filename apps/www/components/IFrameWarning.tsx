@@ -34,8 +34,6 @@ export default function IFrameWarning({ url = 'https://tldraw.com' }: { url?: st
       }
       document.execCommand('copy')
     } catch (err) {
-      console.log('nope')
-
       null // Could not copy to clipboard
     } finally {
       document.body.removeChild(textarea)
