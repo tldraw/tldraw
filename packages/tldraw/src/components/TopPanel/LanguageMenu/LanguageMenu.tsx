@@ -36,7 +36,7 @@ export function LanguageMenu() {
       ))}
       <DMDivider />
       <a
-        href="https://github.com/tldraw/tldraw/blob/develop/guides/translation.md"
+        href="https://github.com/tldraw/tldraw/blob/main/guides/translation.md"
         target="_blank"
         rel="nofollow"
       >
