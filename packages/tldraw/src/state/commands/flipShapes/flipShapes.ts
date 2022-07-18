@@ -5,9 +5,13 @@ import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
 
 export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): TldrawCommand {
-  const { selectedIds, currentPageId, shapes } = app
+  const {
+    selectedIds,
+    currentPageId,
+    page: { shapes },
+  } = app
 
-  const boundsForShapes = shapes.map((shape) => TLDR.getBounds(shape))
+  const boundsForShapes = ids.map((id) => TLDR.getBounds(shapes[id]))
 
   const commonBounds = Utils.getCommonBounds(boundsForShapes)
 
