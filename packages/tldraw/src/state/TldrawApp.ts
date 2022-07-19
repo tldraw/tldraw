@@ -1531,12 +1531,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Upload media from file
    */
-  openAsset = async () => {
+  openAsset = async (multiple = false) => {
     if (!this.disableAssets)
       try {
-        const file = await openAssetFromFileSystem()
-        if (!file) return
-        this.addMediaFromFile(file)
+        const file = await openAssetFromFileSystem(multiple)
+        if (Array.isArray(file)) {
+          for (const item of file) {
+            if (!file) return
+            this.addMediaFromFile(item)
+          }
+          setTimeout(() => this.zoomToFit(), 100)
+        } else {
+          if (!file) return
+          this.addMediaFromFile(file)
+        }
       } catch (e) {
         console.error(e)
       } finally {
@@ -3069,6 +3077,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const bounds = Shape.getBounds(newShape as never)
 
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
+    // The Y point should always be the same for all the medias
+    // to stack them horizontally
+    newShape.point = [newShape.point[0], point[1]]
 
     this.createShapes(newShape)
 
@@ -3394,7 +3405,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  addMediaFromFile = async (file: File, point = this.centerPoint) => {
+  lastElemSize: number[] = []
+  lastElemPoint: number[] = []
+  addMediaFromFile = async (file: File, point = this.centerPoint, elemIndex?: number) => {
     this.setIsLoading(true)
 
     const id = Utils.uniqueId()
@@ -3474,8 +3487,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         } else {
           assetId = match.id
         }
+        if (elemIndex === 1) {
+          this.lastElemPoint = pagePoint
+          this.lastElemSize = size
+        } else {
+          this.lastElemSize = size
+          this.lastElemPoint = [pagePoint[0] + this.lastElemSize[0], pagePoint[1]]
+        }
 
-        this.createImageOrVideoShapeAtPoint(id, shapeType, pagePoint, size, assetId)
+        this.createImageOrVideoShapeAtPoint(id, shapeType, this.lastElemPoint, size, assetId)
       }
     } catch (error) {
       console.warn(error)
