@@ -11,8 +11,10 @@ export function Loading() {
   const app = useTldrawApp()
   const isLoading = app.useStore(loadingSelector)
 
+  if (!isLoading) return null
+
   return (
-    <StyledLoadingPanelContainer hidden={false}>
+    <StyledLoadingPanelContainer>
       <FormattedMessage id="loading" values={{ dots: '...' }} />
     </StyledLoadingPanelContainer>
   )
