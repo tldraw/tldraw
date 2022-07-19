@@ -1536,9 +1536,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       try {
         const file = await openAssetFromFileSystem(multiple)
         if (Array.isArray(file)) {
+          let lastElem = false
           for (const item of file) {
             if (!file) return
-            this.addMediaFromFile(item)
+            if (file.indexOf(item) === file.length) lastElem = true
+            this.addMediaFromFile(item, this.centerPoint, lastElem)
           }
           setTimeout(() => this.zoomToFit(), 100)
         } else {
@@ -3079,7 +3081,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
     // The Y point should always be the same for all the medias
     // to stack them horizontally
-    newShape.point = [newShape.point[0], point[1]]
+    newShape.point = point
 
     this.createShapes(newShape)
 
@@ -3405,9 +3407,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  lastElemSize: number[] = []
   lastElemPoint: number[] = []
-  addMediaFromFile = async (file: File, point = this.centerPoint, elemIndex?: number) => {
+  lastElemSize: number[] = []
+  addMediaFromFile = async (file: File, point = this.centerPoint, lastElem?: boolean) => {
     this.setIsLoading(true)
 
     const id = Utils.uniqueId()
@@ -3487,15 +3489,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         } else {
           assetId = match.id
         }
-        if (elemIndex === 1) {
-          this.lastElemPoint = pagePoint
-          this.lastElemSize = size
-        } else {
-          this.lastElemSize = size
-          this.lastElemPoint = [pagePoint[0] + this.lastElemSize[0], pagePoint[1]]
-        }
-
+        this.lastElemPoint = this.lastElemPoint.length
+          ? [this.lastElemPoint[0] + this.lastElemSize[0], point[1]]
+          : point
+        this.lastElemSize = size
         this.createImageOrVideoShapeAtPoint(id, shapeType, this.lastElemPoint, size, assetId)
+        if (lastElem) {
+          console.log('lastElem', lastElem)
+          this.lastElemPoint = this.lastElemSize = []
+        }
       }
     } catch (error) {
       console.warn(error)
