@@ -51,9 +51,6 @@ const BackToContentContainer = styled(MenuContent, {
   pointerEvents: 'all',
   width: 'fit-content',
   minWidth: 0,
-  // gridRow: 1,
-  // flexGrow: 2,
-  // display: 'block',
   position: 'fixed',
   bottom: 0,
 })

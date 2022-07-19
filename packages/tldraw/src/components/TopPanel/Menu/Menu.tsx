@@ -24,7 +24,6 @@ import { DiscordIcon } from '~components/Primitives/icons'
 import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 import { FormattedMessage, useIntl } from 'react-intl'
-import { LanguageMenu } from '../LanguageMenu/LanguageMenu'
 
 interface MenuProps {
   sponsor: boolean | undefined
@@ -326,53 +325,6 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
         </DMSubMenu>
         <DMDivider dir="ltr" />
         <PreferencesMenu />
-        <DMDivider dir="ltr" />
-        <LanguageMenu />
-        <DMDivider dir="ltr" />
-        <a href="https://github.com/Tldraw/Tldraw" target="_blank" rel="nofollow">
-          <DMItem id="TD-MenuItem-Github">
-            GitHub
-            <SmallIcon>
-              <GitHubLogoIcon />
-            </SmallIcon>
-          </DMItem>
-        </a>
-        <a href="https://twitter.com/Tldraw" target="_blank" rel="nofollow">
-          <DMItem id="TD-MenuItem-Twitter">
-            Twitter
-            <SmallIcon>
-              <TwitterLogoIcon />
-            </SmallIcon>
-          </DMItem>
-        </a>
-        <a href="https://discord.gg/SBBEVCA4PG" target="_blank" rel="nofollow">
-          <DMItem id="TD-MenuItem-Discord">
-            Discord
-            <SmallIcon>
-              <DiscordIcon />
-            </SmallIcon>
-          </DMItem>
-        </a>
-        {sponsor === false && (
-          <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-            <DMItem isSponsor id="TD-MenuItem-Become_a_Sponsor">
-              <FormattedMessage id="become.a.sponsor" />{' '}
-              <SmallIcon>
-                <HeartIcon />
-              </SmallIcon>
-            </DMItem>
-          </a>
-        )}
-        {sponsor === true && (
-          <a href="https://github.com/sponsors/steveruizok" target="_blank" rel="nofollow">
-            <DMItem id="TD-MenuItem-is_a_Sponsor">
-              <FormattedMessage id="sponsored" />!
-              <SmallIcon>
-                <HeartFilledIcon />
-              </SmallIcon>
-            </DMItem>
-          </a>
-        )}
         {showSignInOutMenu && (
           <>
             <DMDivider dir="ltr" />{' '}

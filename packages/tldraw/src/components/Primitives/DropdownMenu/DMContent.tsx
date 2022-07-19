@@ -9,6 +9,7 @@ export interface DMContentProps {
   align?: 'start' | 'center' | 'end'
   sideOffset?: number
   children: React.ReactNode
+  overflow?: boolean
   id?: string
   side?: 'top' | 'left' | 'right' | 'bottom' | undefined
 }
@@ -19,6 +20,7 @@ export function DMContent({
   align,
   variant,
   id,
+  overflow = false,
   side = 'bottom',
 }: DMContentProps) {
   return (
@@ -31,7 +33,9 @@ export function DMContent({
       id={id}
       side={side}
     >
-      <StyledContent variant={variant}>{children}</StyledContent>
+      <StyledContent variant={variant} overflow={overflow}>
+        {children}
+      </StyledContent>
     </DropdownMenu.Content>
   )
 }
@@ -40,11 +44,14 @@ export const StyledContent = styled(MenuContent, {
   width: 'fit-content',
   height: 'fit-content',
   minWidth: 0,
-  maxHeight: '75vh',
+  maxHeight: '100vh',
   overflowY: 'auto',
-  '& *': {
-    boxSizing: 'border-box',
+  overflowX: 'hidden',
+  '&::webkit-scrollbar': {
+    display: 'none',
   },
+  '-ms-overflow-style': 'none' /* for Internet Explorer, Edge */,
+  scrollbarWidth: 'none',
   variants: {
     variant: {
       horizontal: {
@@ -52,6 +59,11 @@ export const StyledContent = styled(MenuContent, {
       },
       menu: {
         minWidth: 128,
+      },
+    },
+    overflow: {
+      true: {
+        maxHeight: '60vh',
       },
     },
   },
