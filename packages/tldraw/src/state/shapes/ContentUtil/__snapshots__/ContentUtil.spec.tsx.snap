@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Edubreak Content Shape Creates a shape: content 1`] = `
+Object {
+  "body": "body",
+  "childIndex": 1,
+  "id": "content",
+  "name": "Content",
+  "nodeType": "",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "rotation": 0,
+  "size": Array [
+    400,
+    400,
+  ],
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "font": "script",
+    "isFilled": false,
+    "scale": 1,
+    "size": "small",
+    "textAlign": "middle",
+  },
+  "title": "title",
+  "type": "content",
+}
+`;

@@ -1,8 +1,8 @@
 import { Content } from '..'
 
-describe('Post-It shape', () => {
+describe('Edubreak Content Shape', () => {
   it('Creates a shape', () => {
     expect(Content.create).toBeDefined()
-    // expect(Sticky.create({ id: 'sticky' })).toMatchSnapshot('sticky')
+    expect(Content.create({ id: 'content' })).toMatchSnapshot('content')
   })
 })

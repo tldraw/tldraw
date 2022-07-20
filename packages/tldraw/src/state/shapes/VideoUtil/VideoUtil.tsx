@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { VideoShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { defaultTextStyle, getBoundsRectangle } from '../shared'
+import {defaultTextStyle, getBoundsRectangle, transformRectangle, transformSingleRectangle} from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
@@ -38,7 +38,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
           thumbnail: '',
           childIndex: 1,
           point: [0, 0],
-          size: [400, 350],
+          size: [800, 700],
           rotation: 0,
           style: defaultTextStyle,
         },
@@ -74,15 +74,15 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
         function Icon() {
           if (!shape.body) {
-            return <VideoIcon style={{ width: 25, height: 25 }}></VideoIcon>
+            return <VideoIcon style={{ width: 50, height: 50 }}></VideoIcon>
           } else {
-            return <ChatBubbleIcon style={{ width: 25, height: 25 }}></ChatBubbleIcon>
+            return <ChatBubbleIcon style={{ width: 50, height: 50 }}></ChatBubbleIcon>
           }
         }
 
         return (
             <HTMLContainer ref={ref} {...events}>
-              <StyledStickyContainer
+              <StyledVideoContainer
                   ref={rContainer}
                   isDarkMode={meta.isDarkMode}
                   isGhost={isGhost}
@@ -127,13 +127,18 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                     </div>
                   </div>
                 </div>
-                <div style={{ padding: '.5em' }}>
+                <div style={{
+                  padding: '.5em',
+                }}>
                   <div style={{
-                    fontSize: 40,
+                    fontSize: 32,
                     fontWeight: 800,
                     pointerEvents: 'none',
                     userSelect: 'none',
                     overflow: 'hidden',
+                    WebkitLineClamp: 2,
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                   }}>
                     {shape.title}
@@ -145,16 +150,16 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'normal',
-                    WebkitLineClamp: 15,
                     display: '-webkit-box',
+                    WebkitLineClamp: 15,
                     WebkitBoxOrient: 'vertical',
                     pointerEvents: 'none',
-                    userSelect: 'none',
+                    userSelect: 'none'
                   }}
-                       dangerouslySetInnerHTML={{ __html: shape.body }}>
+                    dangerouslySetInnerHTML={{ __html: shape.body }}>
                   </div>
                 </div>
-              </StyledStickyContainer>
+              </StyledVideoContainer>
             </HTMLContainer >
         )
       }
@@ -221,10 +226,11 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 /* -------------------------------------------------- */
 
 const PADDING = 16
-const MIN_CONTAINER_HEIGHT = 250
+const MIN_CONTAINER_HEIGHT = 800
 
-const StyledStickyContainer = styled('div', {
-  pointerEvents: 'all',
+
+const StyledVideoContainer = styled('div', {
+  pointerEvents: 'none',
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',

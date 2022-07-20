@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { ContentShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { defaultTextStyle, getBoundsRectangle } from '../shared'
+import {defaultTextStyle, getBoundsRectangle, transformRectangle, transformSingleRectangle} from '../shared'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 import { styled } from '~styles'
@@ -165,27 +165,9 @@ export class ContentUtil extends TDShapeUtil<T, E> {
         return next.size !== prev.size || next.style !== prev.style
     }
 
-    transform = (
-        shape: T,
-        bounds: TLBounds,
-        { scaleX, scaleY, transformOrigin }: TransformInfo<T>
-    ): Partial<T> => {
-        const point = Vec.toFixed([
-            bounds.minX +
-            (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
-            bounds.minY +
-            (bounds.height - shape.size[1]) *
-            (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
-        ])
+    transform = transformRectangle
 
-        return {
-            point,
-        }
-    }
-
-    transformSingle = (shape: T): Partial<T> => {
-        return shape
-    }
+    transformSingle = transformSingleRectangle
 
     getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
         const bounds = this.getBounds(shape)
