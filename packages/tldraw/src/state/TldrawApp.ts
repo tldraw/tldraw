@@ -3509,7 +3509,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       this.createShapes(...shapesToCreate)
 
       // Are the common bounds too big for the viewport?
-      if (Utils.boundsContain(this.viewport, commonBounds)) {
+      if (!Utils.boundsContain(this.viewport, commonBounds)) {
         this.zoomToSelection()
         if (this.zoom > 1) {
           this.resetZoom()
