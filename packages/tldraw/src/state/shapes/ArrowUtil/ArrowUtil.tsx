@@ -93,7 +93,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         style,
       } = shape
 
-      const hasLabel = !!(label?.trim()?.length ?? 0 > 0)
+      const hasLabel = label?.trim()?.length ?? 0 > 0
 
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
 
@@ -205,7 +205,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       handles: { start, bend, end },
     } = shape
 
-    const hasLabel = !!(label?.trim()?.length ?? 0 > 0)
+    const hasLabel = label?.trim()?.length ?? 0 > 0
 
     const font = getFontStyle(style)
     const labelSize = hasLabel ? getTextLabelSize(label!, font) : [0, 0]
