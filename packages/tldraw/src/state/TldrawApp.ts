@@ -3504,9 +3504,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         currentPoint[0] += bounds.width
       })
 
+      const commonBounds = Utils.getCommonBounds(shapesToCreate.map(TLDR.getBounds))
+
       this.createShapes(...shapesToCreate)
 
-      if (shapesToCreate.length > 1) {
+      // Are the common bounds too big for the viewport?
+      if (Utils.boundsContain(this.viewport, commonBounds)) {
         this.zoomToSelection()
         if (this.zoom > 1) {
           this.resetZoom()
