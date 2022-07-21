@@ -1533,7 +1533,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const file = await openAssetsFromFileSystem()
         if (Array.isArray(file)) {
           this.addMediaFromFiles(file, this.centerPoint)
-          // setTimeout(() => this.zoomToFit(), 100)
         } else {
           if (!file) return
           this.addMediaFromFiles([file])
