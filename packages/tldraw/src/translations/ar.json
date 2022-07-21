@@ -95,5 +95,8 @@
   "left": "يسار",
   "right": "يمين",
   "top": "أعلى",
-  "page": "صفحة"
+  "page": "صفحة",
+  "keyboard.shortcuts": "اختصارات لوحة المفاتيح",
+  "search": "بحث",
+  "loading": "{dots}تحميل "
 }
