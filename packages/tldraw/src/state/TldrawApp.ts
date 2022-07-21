@@ -1537,12 +1537,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         const file = await openAssetFromFileSystem(multiple)
         if (Array.isArray(file)) {
           let lastElem = false
+          this.elemIds = []
           for (const item of file) {
             if (!file) return
-            if (file.indexOf(item) === file.length) lastElem = true
+            if (file.indexOf(item) === file.length - 1) lastElem = true
             this.addMediaFromFile(item, this.centerPoint, lastElem)
           }
-          setTimeout(() => this.zoomToFit(), 100)
+          // setTimeout(() => this.zoomToFit(), 100)
         } else {
           if (!file) return
           this.addMediaFromFile(file)
@@ -3030,7 +3031,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     type: TDShapeType.Image | TDShapeType.Video,
     point: number[],
     size: number[],
-    assetId: string
+    assetId: string,
+    resetLastPoint: () => void
   ): this {
     const {
       shapes,
@@ -3084,6 +3086,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     newShape.point = point
 
     this.createShapes(newShape)
+    // To avoid calling it directly before
+    // all the shape has been created
+    setTimeout(() => resetLastPoint(), 200)
 
     return this
   }
@@ -3409,6 +3414,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   lastElemPoint: number[] = []
   lastElemSize: number[] = []
+  elemIds: string[] = []
+
   addMediaFromFile = async (file: File, point = this.centerPoint, lastElem?: boolean) => {
     this.setIsLoading(true)
 
@@ -3490,14 +3497,25 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           assetId = match.id
         }
         this.lastElemPoint = this.lastElemPoint.length
-          ? [this.lastElemPoint[0] + this.lastElemSize[0], point[1]]
-          : point
+          ? [this.lastElemPoint[0] + this.lastElemSize[0], pagePoint[1]]
+          : pagePoint
         this.lastElemSize = size
-        this.createImageOrVideoShapeAtPoint(id, shapeType, this.lastElemPoint, size, assetId)
-        if (lastElem) {
-          console.log('lastElem', lastElem)
-          this.lastElemPoint = this.lastElemSize = []
-        }
+        this.elemIds.push(id)
+
+        this.createImageOrVideoShapeAtPoint(
+          id,
+          shapeType,
+          this.lastElemPoint,
+          size,
+          assetId,
+          () => {
+            if (lastElem) {
+              this.lastElemPoint = this.lastElemSize = []
+              this.setSelectedIds(this.elemIds)
+              this.zoomToSelection()
+            }
+          }
+        )
       }
     } catch (error) {
       console.warn(error)

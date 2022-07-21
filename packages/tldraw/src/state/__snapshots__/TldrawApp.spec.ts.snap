@@ -300,6 +300,7 @@ TldrawTestApp {
   "duplicate": [Function],
   "duplicatePage": [Function],
   "editingStartTime": -1,
+  "elemIds": Array [],
   "expectSelectedIdsToBe": [Function],
   "expectShapesToBeAtPoints": [Function],
   "expectShapesToHaveProps": [Function],
