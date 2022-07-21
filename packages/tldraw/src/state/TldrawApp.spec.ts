@@ -110,7 +110,7 @@ describe('TldrawTestApp', () => {
       expect(app.bindings.length).toBe(2)
     })
 
-    it('removes bindings from copied shape handles', () => {
+    it.only('removes bindings from copied shape handles', () => {
       const app = new TldrawTestApp()
 
       app

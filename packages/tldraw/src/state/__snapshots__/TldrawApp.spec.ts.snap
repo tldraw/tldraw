@@ -224,7 +224,7 @@ TldrawTestApp {
     },
   },
   "_status": "ready",
-  "addMediaFromFile": [Function],
+  "addMediaFromFiles": [Function],
   "addToSelectHistory": [Function],
   "align": [Function],
   "altKey": false,
@@ -482,16 +482,6 @@ TldrawTestApp {
   ],
   "pan": [Function],
   "paste": [Function],
-  "pasteInfo": Object {
-    "center": Array [
-      0,
-      0,
-    ],
-    "offset": Array [
-      0,
-      0,
-    ],
-  },
   "patchCreate": [Function],
   "patchState": [Function],
   "persist": [Function],
@@ -828,156 +818,3 @@ TldrawTestApp {
   "zoomToSelection": [Function],
 }
 `;
-
-exports[`TldrawTestApp Exposes undo/redo stack: history 1`] = `
-Array [
-  Object {
-    "after": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect1",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect1": Object {
-                "childIndex": 1,
-                "id": "rect1",
-                "label": "",
-                "labelPoint": Array [
-                  0.5,
-                  0.5,
-                ],
-                "name": "Rectangle",
-                "parentId": "page1",
-                "point": Array [
-                  0,
-                  0,
-                ],
-                "rotation": 0,
-                "size": Array [
-                  100,
-                  200,
-                ],
-                "style": Object {
-                  "color": "black",
-                  "dash": "draw",
-                  "isFilled": false,
-                  "scale": 1,
-                  "size": "small",
-                },
-                "type": "rectangle",
-              },
-            },
-          },
-        },
-      },
-    },
-    "before": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect1": undefined,
-            },
-          },
-        },
-      },
-    },
-    "id": "create",
-  },
-  Object {
-    "after": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect2",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect2": Object {
-                "childIndex": 1,
-                "id": "rect2",
-                "label": "",
-                "labelPoint": Array [
-                  0.5,
-                  0.5,
-                ],
-                "name": "Rectangle",
-                "parentId": "page1",
-                "point": Array [
-                  0,
-                  0,
-                ],
-                "rotation": 0,
-                "size": Array [
-                  100,
-                  200,
-                ],
-                "style": Object {
-                  "color": "black",
-                  "dash": "draw",
-                  "isFilled": false,
-                  "scale": 1,
-                  "size": "small",
-                },
-                "type": "rectangle",
-              },
-            },
-          },
-        },
-      },
-    },
-    "before": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect1",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect2": undefined,
-            },
-          },
-        },
-      },
-    },
-    "id": "create",
-  },
-]
-`;
-
-exports[`TldrawTestApp Selection When selecting all selects all: selected all 1`] = `
-Array [
-  "rect1",
-  "rect2",
-  "rect3",
-]
-`;
-
-exports[`TldrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"200\\" height=\\"200\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs><g/></svg>"`;
-
-exports[`TldrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;
-
-exports[`TldrawTestApp When copying to SVG Respects child index: copied svg with reordered elements 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"200\\" height=\\"200\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;
