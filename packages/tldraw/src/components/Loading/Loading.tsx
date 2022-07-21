@@ -12,7 +12,7 @@ export function Loading() {
   const isLoading = app.useStore(loadingSelector)
 
   return (
-    <StyledLoadingPanelContainer hidden={false}>
+    <StyledLoadingPanelContainer hidden={!isLoading}>
       <FormattedMessage id="loading" values={{ dots: '...' }} />
     </StyledLoadingPanelContainer>
   )
