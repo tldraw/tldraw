@@ -52,7 +52,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   const uploadMedias = React.useCallback(async () => {
-    app.openAsset(true)
+    app.openAsset()
   }, [app])
 
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'

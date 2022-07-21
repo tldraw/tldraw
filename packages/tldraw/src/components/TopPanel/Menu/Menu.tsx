@@ -109,7 +109,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
   }, [app])
 
   const handleUploadMedia = React.useCallback(() => {
-    app.openAsset(true)
+    app.openAsset()
   }, [app])
 
   const handleZoomTo100 = React.useCallback(() => {

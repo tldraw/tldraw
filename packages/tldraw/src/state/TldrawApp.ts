@@ -42,6 +42,7 @@ import {
   ArrowShape,
   TDExportType,
   TldrawPatch,
+  AlignStyle,
 } from '~types'
 import {
   migrate,
@@ -49,7 +50,7 @@ import {
   loadFileHandle,
   openFromFileSystem,
   saveToFileSystem,
-  openAssetFromFileSystem,
+  openAssetsFromFileSystem,
   fileToBase64,
   fileToText,
   getImageSizeFromSrc,
@@ -84,6 +85,7 @@ import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
 import { getTranslation } from '~translations'
+import { TextUtil } from './shapes/TextUtil'
 
 const uuid = Utils.uniqueId()
 
@@ -258,11 +260,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   rotationInfo = {
     selectedIds: [] as string[],
     center: [0, 0],
-  }
-
-  pasteInfo = {
-    center: [0, 0],
-    offset: [0, 0],
   }
 
   constructor(id?: string, callbacks = {} as TDCallbacks) {
@@ -1221,7 +1218,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   resetDocument = (): this => {
     if (this.session) return this
     this.session = undefined
-    this.pasteInfo.offset = [0, 0]
     this.currentTool = this.tools.select
 
     const doc = TldrawApp.defaultDocument
@@ -1531,22 +1527,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Upload media from file
    */
-  openAsset = async (multiple = false) => {
+  openAsset = async () => {
     if (!this.disableAssets)
       try {
-        const file = await openAssetFromFileSystem(multiple)
+        const file = await openAssetsFromFileSystem()
         if (Array.isArray(file)) {
-          let lastElem = false
-          this.elemIds = []
-          for (const item of file) {
-            if (!file) return
-            if (file.indexOf(item) === file.length - 1) lastElem = true
-            this.addMediaFromFile(item, this.centerPoint, lastElem)
-          }
+          this.addMediaFromFiles(file, this.centerPoint)
           // setTimeout(() => this.zoomToFit(), 100)
         } else {
           if (!file) return
-          this.addMediaFromFile(file)
+          this.addMediaFromFiles([file])
         }
       } catch (e) {
         console.error(e)
@@ -1850,9 +1840,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       ])
     }
 
-    this.pasteInfo.offset = [0, 0]
-    this.pasteInfo.center = [0, 0]
-
     return this
   }
 
@@ -1863,12 +1850,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
-    const pasteTextAsSvg = async (text: string) => {
+    const shapesToCreate: TDShape[] = []
+
+    const filesToPaste: File[] = []
+
+    let clipboardData: any
+
+    const getSvgFromText = async (text: string) => {
       const div = document.createElement('div')
       div.innerHTML = text
       const svg = div.firstChild as SVGSVGElement
 
       svg.style.setProperty('background-color', 'transparent')
+
+      console.log(text)
 
       const imageBlob = await TLDR.getImageForSvg(svg, TDExportType.SVG, {
         scale: 1,
@@ -1877,28 +1872,33 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       if (imageBlob) {
         const file = new File([imageBlob], 'image.svg')
-        this.addMediaFromFile(file)
+        filesToPaste.push(file)
       } else {
-        pasteTextAsShape(text)
+        getShapeFromText(text)
       }
     }
 
-    const pasteTextAsShape = (text: string) => {
-      const shapeId = Utils.uniqueId()
+    const getShapeFromText = (text: string) => {
+      const pagePoint = this.getPagePoint(point ?? this.centerPoint, this.currentPageId)
 
-      this.createShapes({
-        id: shapeId,
-        type: TDShapeType.Text,
-        parentId: this.appState.currentPageId,
-        text: TLDR.normalizeText(text.trim()),
-        point: this.getPagePoint(this.centerPoint, this.currentPageId),
-        style: { ...this.appState.currentStyle },
-      })
+      const isMultiline = text.includes('\n')
 
-      this.select(shapeId)
+      shapesToCreate.push(
+        TLDR.getShapeUtil(TDShapeType.Text).getShape({
+          id: Utils.uniqueId(),
+          type: TDShapeType.Text,
+          parentId: this.appState.currentPageId,
+          text: TLDR.normalizeText(text.trim()),
+          point: pagePoint,
+          style: {
+            ...this.appState.currentStyle,
+            textAlign: isMultiline ? AlignStyle.Start : this.appState.currentStyle.textAlign,
+          },
+        })
+      )
     }
 
-    const pasteAsHTML = (html: string) => {
+    const getShapeFromHtml = (html: string) => {
       try {
         const maybeJson = html.match(/<tldraw>(.*)<\/tldraw>/)?.[1]
 
@@ -1911,115 +1911,103 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           assets: TDAsset[]
         } = JSON.parse(maybeJson)
         if (json.type === 'tldr/clipboard') {
-          this.insertContent(json, { point, select: true })
+          clipboardData = json
           return
         } else {
           throw Error('Not tldraw data!')
         }
       } catch (e) {
-        pasteTextAsShape(html)
-        return
+        getShapeFromText(html)
       }
     }
 
     if (e !== undefined) {
-      const items = e.clipboardData?.items ?? []
-      for (const index in items) {
-        const item = items[index]
+      const items = Array.from(e.clipboardData?.items ?? [])
 
-        // TODO
-        // We could eventually support pasting multiple files / images,
-        // and tiling them out on the canvas. At the moment, let's just
-        // support pasting one file / image.
+      await Promise.all(
+        items.map(async (item) => {
+          const { type, kind } = item
 
-        if (item.type === 'text/html') {
-          item.getAsString(async (text) => {
-            pasteAsHTML(text)
-          })
-          return
-        } else {
-          switch (item.kind) {
+          switch (kind) {
             case 'string': {
-              item.getAsString(async (text) => {
-                if (text.startsWith('<svg')) {
-                  pasteTextAsSvg(text)
-                } else {
-                  pasteTextAsShape(text)
+              const str: string = await new Promise((resolve) => item.getAsString(resolve))
+
+              switch (type) {
+                case 'text/html': {
+                  if (str.match(/<tldraw>(.*)<\/tldraw>/)?.[1]) {
+                    getShapeFromHtml(str)
+                    return
+                  }
+                  break
                 }
-              })
-              return
+                case 'text/plain': {
+                  console.log(str)
+                  if (str.startsWith('<svg')) {
+                    getSvgFromText(str)
+                  } else {
+                    getShapeFromText(str)
+                  }
+                  // return
+                  break
+                }
+              }
+
+              break
             }
             case 'file': {
               const file = item.getAsFile()
-              if (file) {
-                this.addMediaFromFile(file)
-                return
-              }
+              if (file) filesToPaste.push(file)
+              break
             }
           }
-        }
-      }
+        })
+      )
     }
 
-    getClipboard().then((clipboard) => {
-      if (clipboard) {
-        pasteAsHTML(clipboard)
-      }
-    })
+    if (clipboardData) {
+      this.insertContent(clipboardData, { point, select: true })
+      return this
+    }
 
-    if (navigator.clipboard) {
-      const items = 'read' in navigator.clipboard ? await navigator.clipboard.read() : []
+    if (filesToPaste.length) {
+      this.addMediaFromFiles(filesToPaste, point)
+      return this
+    }
 
-      if (items.length === 0) return
+    if (shapesToCreate.length) {
+      const pagePoint = this.getPagePoint(point ?? this.centerPoint, this.currentPageId)
 
-      try {
-        for (const item of items) {
-          // look for png data.
+      const currentPoint = Vec.add(pagePoint, [0, 0])
 
-          const pngData = await item.getType('text/png')
+      shapesToCreate.forEach((shape, i) => {
+        const bounds = TLDR.getBounds(shape)
 
-          if (pngData) {
-            const file = new File([pngData], 'image.png')
-            this.addMediaFromFile(file)
-            return
-          }
-
-          // look for svg data.
-
-          const svgData = await item.getType('image/svg+xml')
-
-          if (svgData) {
-            const file = new File([svgData], 'image.svg')
-            this.addMediaFromFile(file)
-            return
-          }
-
-          // look for plain text data.
-
-          const textData = await item.getType('text/plain')
-
-          if (textData) {
-            // TODO: Paste as an SVG image if the incoming data is an SVG.
-            const text = await textData.text()
-            text.trim()
-
-            if (text.startsWith('<svg')) {
-              pasteTextAsSvg(text)
-            } else {
-              pasteTextAsShape(text)
-            }
-
-            return
-          }
+        if (i === 0) {
+          // For the first shape, offset the current point so
+          // that the first shape's center is at the page point
+          currentPoint[0] -= bounds.width / 2
+          currentPoint[1] -= bounds.height / 2
         }
-      } catch (e) {
-        // noop
-      }
+
+        // Set the shape's point the current point
+        shape.point = [...currentPoint]
+
+        // Then bump the page current point by this shape's width
+        currentPoint[0] += bounds.width
+      })
+
+      this.createShapes(...shapesToCreate)
+      return this
+    }
+
+    if (this.clipboard) {
+      // try to get clipboard data from the scene itself
+      this.insertContent(this.clipboard)
     } else {
-      TLDR.warn('This browser does not support the Clipboard API!')
-      if (this.clipboard) {
-        this.insertContent(this.clipboard, { point, select: true })
-      }
+      // last chance to get the clipboard data, is it in storage?
+      getClipboard().then((text) => {
+        if (text) getShapeFromHtml(text)
+      })
     }
 
     return this
@@ -3026,14 +3014,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  createImageOrVideoShapeAtPoint(
+  getImageOrVideoShapeAtPoint(
     id: string,
     type: TDShapeType.Image | TDShapeType.Video,
     point: number[],
     size: number[],
-    assetId: string,
-    resetLastPoint: () => void
-  ): this {
+    assetId: string
+  ) {
     const {
       shapes,
       appState: { currentPageId, currentStyle },
@@ -3078,19 +3065,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       assetId,
     })
 
-    const bounds = Shape.getBounds(newShape as never)
-
-    newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
-    // The Y point should always be the same for all the medias
-    // to stack them horizontally
-    newShape.point = point
-
-    this.createShapes(newShape)
-    // To avoid calling it directly before
-    // all the shape has been created
-    setTimeout(() => resetLastPoint(), 200)
-
-    return this
+    return newShape
   }
 
   /**
@@ -3412,115 +3387,132 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
-  lastElemPoint: number[] = []
-  lastElemSize: number[] = []
-  elemIds: string[] = []
-
-  addMediaFromFile = async (file: File, point = this.centerPoint, lastElem?: boolean) => {
+  addMediaFromFiles = async (files: File[], point = this.centerPoint) => {
     this.setIsLoading(true)
 
-    const id = Utils.uniqueId()
+    // Rather than creating each shape individually (which will produce undo / redo entries
+    // for each shape), create an array of all the shapes that we'll need to create. We'll
+    // iterate through these at the bottom of the function to set their points, then create
+    // them through a single call to `createShapes`.
+
+    const shapesToCreate: TDShape[] = []
+
     const pagePoint = this.getPagePoint(point)
-    const extension = file.name.match(/\.[0-9a-z]+$/i)
 
-    if (!extension) throw Error('No extension')
+    for (const file of files) {
+      const id = Utils.uniqueId()
+      const extension = file.name.match(/\.[0-9a-z]+$/i)
 
-    const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
-    const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
+      if (!extension) throw Error('No extension')
 
-    if (!(isImage || isVideo)) throw Error('Wrong extension')
+      const isImage = IMAGE_EXTENSIONS.includes(extension[0].toLowerCase())
+      const isVideo = VIDEO_EXTENSIONS.includes(extension[0].toLowerCase())
 
-    const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
-    const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
+      if (!(isImage || isVideo)) throw Error('Wrong extension')
 
-    let src: string | ArrayBuffer | null
+      const shapeType = isImage ? TDShapeType.Image : TDShapeType.Video
+      const assetType = isImage ? TDAssetType.Image : TDAssetType.Video
 
-    try {
-      if (this.callbacks.onAssetCreate) {
-        const result = await this.callbacks.onAssetCreate(this, file, id)
+      let src: string | ArrayBuffer | null
 
-        if (!result) throw Error('Asset creation callback returned false')
+      try {
+        if (this.callbacks.onAssetCreate) {
+          const result = await this.callbacks.onAssetCreate(this, file, id)
 
-        src = result
-      } else {
-        src = await fileToBase64(file)
-      }
+          if (!result) throw Error('Asset creation callback returned false')
 
-      if (typeof src === 'string') {
-        let size = [0, 0]
-
-        if (isImage) {
-          // attempt to get actual svg size from viewBox attribute as
-          if (extension[0] == '.svg') {
-            let viewBox: string[]
-            const svgString = await fileToText(file)
-            const viewBoxAttribute = this.getViewboxFromSVG(svgString)
-
-            if (viewBoxAttribute) {
-              viewBox = viewBoxAttribute.split(' ')
-              size[0] = parseFloat(viewBox[2])
-              size[1] = parseFloat(viewBox[3])
-            }
-          }
-          if (Vec.isEqual(size, [0, 0])) {
-            size = await getImageSizeFromSrc(src)
-          }
+          src = result
         } else {
-          size = await getVideoSizeFromSrc(src)
+          src = await fileToBase64(file)
         }
 
-        const match = Object.values(this.document.assets).find(
-          (asset) => asset.type === assetType && asset.src === src
-        )
+        if (typeof src === 'string') {
+          let size = [0, 0]
 
-        let assetId: string
+          if (isImage) {
+            // attempt to get actual svg size from viewBox attribute as
+            if (extension[0] == '.svg') {
+              let viewBox: string[]
+              const svgString = await fileToText(file)
+              const viewBoxAttribute = this.getViewboxFromSVG(svgString)
 
-        if (!match) {
-          assetId = Utils.uniqueId()
-
-          const asset = {
-            id: assetId,
-            type: assetType,
-            name: file.name,
-            src,
-            size,
+              if (viewBoxAttribute) {
+                viewBox = viewBoxAttribute.split(' ')
+                size[0] = parseFloat(viewBox[2])
+                size[1] = parseFloat(viewBox[3])
+              }
+            }
+            if (Vec.isEqual(size, [0, 0])) {
+              size = await getImageSizeFromSrc(src)
+            }
+          } else {
+            size = await getVideoSizeFromSrc(src)
           }
 
-          this.patchState({
-            document: {
-              assets: {
-                [assetId]: asset,
+          const match = Object.values(this.document.assets).find(
+            (asset) => asset.type === assetType && asset.src === src
+          )
+
+          let assetId: string
+
+          if (!match) {
+            assetId = Utils.uniqueId()
+
+            const asset = {
+              id: assetId,
+              type: assetType,
+              name: file.name,
+              src,
+              size,
+            }
+
+            this.patchState({
+              document: {
+                assets: {
+                  [assetId]: asset,
+                },
               },
-            },
-          })
-        } else {
-          assetId = match.id
-        }
-        this.lastElemPoint = this.lastElemPoint.length
-          ? [this.lastElemPoint[0] + this.lastElemSize[0], pagePoint[1]]
-          : pagePoint
-        this.lastElemSize = size
-        this.elemIds.push(id)
-
-        this.createImageOrVideoShapeAtPoint(
-          id,
-          shapeType,
-          this.lastElemPoint,
-          size,
-          assetId,
-          () => {
-            if (lastElem) {
-              this.lastElemPoint = this.lastElemSize = []
-              this.setSelectedIds(this.elemIds)
-              this.zoomToSelection()
-            }
+            })
+          } else {
+            assetId = match.id
           }
-        )
+
+          shapesToCreate.push(this.getImageOrVideoShapeAtPoint(id, shapeType, point, size, assetId))
+        }
+      } catch (error) {
+        // Even if one shape errors, keep going (we might have had other shapes that didn't error)
+        console.warn(error)
       }
-    } catch (error) {
-      console.warn(error)
-      this.setIsLoading(false)
-      return this
+    }
+
+    if (shapesToCreate.length) {
+      const currentPoint = Vec.add(pagePoint, [0, 0])
+
+      shapesToCreate.forEach((shape, i) => {
+        const bounds = TLDR.getBounds(shape)
+
+        if (i === 0) {
+          // For the first shape, offset the current point so
+          // that the first shape's center is at the page point
+          currentPoint[0] -= bounds.width / 2
+          currentPoint[1] -= bounds.height / 2
+        }
+
+        // Set the shape's point the current point
+        shape.point = [...currentPoint]
+
+        // Then bump the page current point by this shape's width
+        currentPoint[0] += bounds.width
+      })
+
+      this.createShapes(...shapesToCreate)
+
+      if (shapesToCreate.length > 1) {
+        this.zoomToSelection()
+        if (this.zoom > 1) {
+          this.resetZoom()
+        }
+      }
     }
 
     this.setIsLoading(false)
@@ -3717,8 +3709,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     e.preventDefault()
     if (this.disableAssets) return this
     if (e.dataTransfer.files?.length) {
-      const file = e.dataTransfer.files[0]
-      this.addMediaFromFile(file, [e.clientX, e.clientY])
+      this.addMediaFromFiles(Object.values(e.dataTransfer.files), [e.clientX, e.clientY])
     }
     return this
   }
