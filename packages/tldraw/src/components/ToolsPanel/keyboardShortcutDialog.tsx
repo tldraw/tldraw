@@ -102,7 +102,9 @@ export function KeyboardShortcutDialog({
           <StyledColumns bp={breakpoints}>
             {Object.entries(shortcuts).map(([key, value]) => (
               <StyledSection key={key}>
-                <Label>{key}</Label>
+                <Label>
+                  <FormattedMessage id={`menu.${key.toLocaleLowerCase()}`} />
+                </Label>
                 <ContentItem>
                   {value.map((shortcut) => (
                     <StyledItem key={shortcut.label}>
