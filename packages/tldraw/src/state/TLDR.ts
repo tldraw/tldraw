@@ -1063,7 +1063,7 @@ export class TLDR {
     return text
       .replace(TLDR.fixNewLines, '\n')
       .split('\n')
-      .map((x) => x || ' ')
+      .map((x) => x || '')
       .join('\n')
   }
 
