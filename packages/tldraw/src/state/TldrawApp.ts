@@ -1543,7 +1543,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             if (file.indexOf(item) === file.length - 1) lastElem = true
             this.addMediaFromFile(item, this.centerPoint, lastElem)
           }
-          // setTimeout(() => this.zoomToFit(), 100)
         } else {
           if (!file) return
           this.addMediaFromFile(file)
