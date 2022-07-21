@@ -1,11 +1,5 @@
 import * as React from 'react'
-import {
-  ExitIcon,
-  GitHubLogoIcon,
-  HamburgerMenuIcon,
-  HeartFilledIcon,
-  TwitterLogoIcon,
-} from '@radix-ui/react-icons'
+import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from '../PreferencesMenu'
@@ -18,9 +12,7 @@ import {
 } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
-import { HeartIcon } from '~components/Primitives/icons/HeartIcon'
 import { preventEvent } from '~components/preventEvent'
-import { DiscordIcon } from '~components/Primitives/icons'
 import { TDExportType, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 import { FormattedMessage, useIntl } from 'react-intl'
@@ -117,7 +109,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
   }, [app])
 
   const handleUploadMedia = React.useCallback(() => {
-    app.openAsset()
+    app.openAsset(true)
   }, [app])
 
   const handleZoomTo100 = React.useCallback(() => {
