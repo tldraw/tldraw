@@ -92,11 +92,19 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         decorations = {},
         style,
       } = shape
+
+      const hasLabel = label?.trim()?.length ?? 0 > 0
+
       const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
+
       const font = getFontStyle(style)
+
       const styles = getShapeStyle(style, meta.isDarkMode)
-      const labelSize = label || isEditing ? getTextLabelSize(label, font) : [0, 0]
+
+      const labelSize = hasLabel || isEditing ? getTextLabelSize(label, font) : [0, 0]
+
       const bounds = this.getBounds(shape)
+
       const dist = React.useMemo(() => {
         const { start, bend, end } = shape.handles
         if (isStraightLine) return Vec.dist(start.point, end.point)
@@ -106,10 +114,12 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         const length = getArcLength(center, radius, start.point, end.point)
         return Math.abs(length)
       }, [shape.handles])
+
       const scale = Math.max(
         0.5,
         Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
       )
+
       const offset = React.useMemo(() => {
         const bounds = this.getBounds(shape)
         const offset = Vec.sub(
@@ -118,13 +128,16 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         )
         return offset
       }, [shape, scale])
+
       const handleLabelChange = React.useCallback(
         (label: string) => {
           onShapeChange?.({ id, label })
         },
         [onShapeChange]
       )
+
       const Component = isStraightLine ? StraightArrow : CurvedArrow
+
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -163,7 +176,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             <g
               pointerEvents="none"
               opacity={isGhost ? GHOSTED_OPACITY : 1}
-              mask={label || isEditing ? `url(#${shape.id}_clip)` : ``}
+              mask={hasLabel || isEditing ? `url(#${shape.id}_clip)` : ``}
             >
               <Component
                 id={id}
@@ -191,9 +204,13 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       label,
       handles: { start, bend, end },
     } = shape
+
+    const hasLabel = label?.trim()?.length ?? 0 > 0
+
     const font = getFontStyle(style)
-    const labelSize = label ? getTextLabelSize(label, font) : [0, 0]
+    const labelSize = hasLabel ? getTextLabelSize(label!, font) : [0, 0]
     const isStraightLine = Vec.dist(bend.point, Vec.toFixed(Vec.med(start.point, end.point))) < 1
+
     const dist = React.useMemo(() => {
       const { start, bend, end } = shape.handles
       if (isStraightLine) return Vec.dist(start.point, end.point)
@@ -203,24 +220,29 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
       const length = getArcLength(center, radius, start.point, end.point)
       return Math.abs(length)
     }, [shape.handles])
+
     const scale = Math.max(
       0.5,
       Math.min(1, Math.max(dist / (labelSize[1] + 128), dist / (labelSize[0] + 128)))
     )
+
     const offset = React.useMemo(() => {
       const bounds = this.getBounds(shape)
       const offset = Vec.sub(shape.handles.bend.point, [bounds.width / 2, bounds.height / 2])
       return offset
     }, [shape, scale])
+
     return (
       <>
-        <LabelMask
-          id={shape.id}
-          scale={scale}
-          offset={offset}
-          bounds={bounds}
-          labelSize={labelSize}
-        />
+        {hasLabel && (
+          <LabelMask
+            id={shape.id}
+            scale={scale}
+            offset={offset}
+            bounds={bounds}
+            labelSize={labelSize}
+          />
+        )}
         <path
           d={getArrowPath(
             style,
@@ -230,9 +252,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             decorations?.start,
             decorations?.end
           )}
-          mask={label ? `url(#${shape.id}_clip)` : ``}
+          mask={hasLabel ? `url(#${shape.id}_clip)` : ``}
         />
-        {label && (
+        {hasLabel && (
           <rect
             x={bounds.width / 2 - (labelSize[0] / 2) * scale + offset[0]}
             y={bounds.height / 2 - (labelSize[1] / 2) * scale + offset[1]}
