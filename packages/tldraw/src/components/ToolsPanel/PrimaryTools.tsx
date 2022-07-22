@@ -3,6 +3,7 @@ import { useIntl } from 'react-intl'
 import {
   ArrowTopRightIcon,
   CursorArrowIcon,
+  ImageIcon,
   Pencil1Icon,
   Pencil2Icon,
   TextIcon,
@@ -12,7 +13,7 @@ import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
-import { EraserIcon, ImageIcon } from '~components/Primitives/icons'
+import { EraserIcon } from '~components/Primitives/icons'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
