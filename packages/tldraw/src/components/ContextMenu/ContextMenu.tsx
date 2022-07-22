@@ -46,7 +46,9 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
   return (
     <RadixContextMenu.Root dir="ltr">
       <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
-      <InnerMenu onBlur={onBlur} />
+      <RadixContextMenu.Portal>
+        <InnerMenu onBlur={onBlur} />
+      </RadixContextMenu.Portal>
     </RadixContextMenu.Root>
   )
 }
@@ -162,7 +164,6 @@ const InnerMenu = React.memo(function InnerMenu({ onBlur }: InnerContextMenuProp
 
   return (
     <RadixContextMenu.Content
-      dir="ltr"
       ref={rContent}
       onEscapeKeyDown={preventDefault}
       asChild
@@ -346,7 +347,7 @@ function AlignDistributeSubMenu({
     <span id="TD-ContextMenu-Align_Duplicate">
       <RadixContextMenu.Root dir="ltr">
         <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
-        <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
+        <RadixContextMenu.Content asChild alignOffset={-2}>
           <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
             <CMIconButton onClick={alignLeft} id="TD-ContextMenu-Align_Duplicate-AlignLeft">
               <AlignLeftIcon />
@@ -443,7 +444,7 @@ function MoveToPageMenu() {
       <CMTriggerButton isSubmenu>
         <FormattedMessage id="move.to.page" />
       </CMTriggerButton>
-      <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
+      <RadixContextMenu.Content alignOffset={-2} asChild>
         <MenuContent>
           {sorted.map(({ id, name }, i) => (
             <CMRowButton
@@ -475,12 +476,14 @@ export function ContextMenuSubMenu({ children, label, size, id }: ContextMenuSub
     <span id={id}>
       <RadixContextMenu.Root dir="ltr">
         <CMTriggerButton isSubmenu>{label}</CMTriggerButton>
-        <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
-          <MenuContent size={size}>
-            {children}
-            <CMArrow offset={13} />
-          </MenuContent>
-        </RadixContextMenu.Content>
+        <RadixContextMenu.Portal>
+          <RadixContextMenu.Content alignOffset={-2} asChild>
+            <MenuContent size={size}>
+              {children}
+              <CMArrow offset={13} />
+            </MenuContent>
+          </RadixContextMenu.Content>
+        </RadixContextMenu.Portal>
       </RadixContextMenu.Root>
     </span>
   )
@@ -520,8 +523,8 @@ interface CMTriggerButtonProps extends RowButtonProps {
 
 export const CMTriggerButton = ({ isSubmenu, ...rest }: CMTriggerButtonProps) => {
   return (
-    <RadixContextMenu.ContextMenuTriggerItem asChild>
+    <RadixContextMenu.Trigger asChild>
       <RowButton hasArrow={isSubmenu} {...rest} />
-    </RadixContextMenu.ContextMenuTriggerItem>
+    </RadixContextMenu.Trigger>
   )
 }

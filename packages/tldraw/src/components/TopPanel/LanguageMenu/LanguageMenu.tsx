@@ -9,7 +9,7 @@ import { TDSnapshot } from '~types'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 
-export function LanguageMenu() {
+const LanguageMenu = React.forwardRef(() => {
   const app = useTldrawApp()
   const language = app.useStore(languageSelector)
 
@@ -47,4 +47,6 @@ export function LanguageMenu() {
       </a>
     </DMContent>
   )
-}
+})
+
+export default LanguageMenu

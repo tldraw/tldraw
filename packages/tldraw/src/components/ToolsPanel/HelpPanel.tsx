@@ -9,10 +9,10 @@ import { breakpoints } from '~components/breakpoints'
 import { GitHubLogoIcon, QuestionMarkIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
-import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
+import { DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
-import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
+import LanguageMenu from '~components/TopPanel/LanguageMenu/LanguageMenu'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
@@ -54,7 +54,9 @@ const LanguageMenuDropdown = () => {
           <FormattedMessage id="language" />
         </RowButton>
       </DropdownMenu.Trigger>
-      <LanguageMenu />
+      <DropdownMenu.Portal>
+        <LanguageMenu />
+      </DropdownMenu.Portal>
     </DropdownMenu.Root>
   )
 }
@@ -91,10 +93,11 @@ const HelpButton = styled('button', {
   display: 'grid',
   placeItems: 'center',
   border: 'none',
-  backgroundColor: 'white',
+  backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
   bottom: 10,
+  color: '$text',
   variants: {
     debug: {
       true: {},

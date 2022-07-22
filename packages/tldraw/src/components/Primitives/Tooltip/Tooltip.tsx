@@ -18,16 +18,18 @@ interface TooltipProps {
 export function Tooltip({ children, label, kbd: kbdProp, id, side = 'top' }: TooltipProps) {
   return (
     <span id={id}>
-      <RadixTooltip.Root>
-        <RadixTooltip.Trigger dir="ltr" asChild={true}>
-          <span>{children}</span>
-        </RadixTooltip.Trigger>
-        <StyledContent dir="ltr" side={side} sideOffset={8}>
-          {label}
-          {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
-          <StyledArrow />
-        </StyledContent>
-      </RadixTooltip.Root>
+      <RadixTooltip.Provider>
+        <RadixTooltip.Root>
+          <RadixTooltip.Trigger dir="ltr" asChild={true}>
+            <span>{children}</span>
+          </RadixTooltip.Trigger>
+          <StyledContent dir="ltr" side={side} sideOffset={8}>
+            {label}
+            {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
+            <StyledArrow />
+          </StyledContent>
+        </RadixTooltip.Root>
+      </RadixTooltip.Provider>
     </span>
   )
 }

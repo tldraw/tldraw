@@ -132,7 +132,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
       <DMTriggerIcon id="TD-MenuIcon">
         <HamburgerMenuIcon />
       </DMTriggerIcon>
-      <DMContent variant="menu" id="TD-Menu">
+      <DMContent variant="menu" id="TD-Menu" align="end" sideOffset={5}>
         {showFileMenu && (
           <DMSubMenu label={`${intl.formatMessage({ id: 'menu.file' })}...`} id="TD-MenuItem-File">
             {app.callbacks.onNewProject && (

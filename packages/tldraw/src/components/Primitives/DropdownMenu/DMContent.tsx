@@ -24,19 +24,20 @@ export function DMContent({
   side = 'bottom',
 }: DMContentProps) {
   return (
-    <DropdownMenu.Content
-      dir="ltr"
-      align={align}
-      sideOffset={sideOffset}
-      onEscapeKeyDown={stopPropagation}
-      asChild
-      id={id}
-      side={side}
-    >
-      <StyledContent variant={variant} overflow={overflow}>
-        {children}
-      </StyledContent>
-    </DropdownMenu.Content>
+    <DropdownMenu.Portal>
+      <DropdownMenu.Content
+        align={align}
+        sideOffset={sideOffset}
+        onEscapeKeyDown={stopPropagation}
+        asChild
+        id={id}
+        side={side}
+      >
+        <StyledContent variant={variant} overflow={overflow}>
+          {children}
+        </StyledContent>
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
   )
 }
 

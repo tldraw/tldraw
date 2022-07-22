@@ -49,7 +49,7 @@ export const PenMenu = React.memo(function PenMenu({ activeTool }: ShapesMenuPro
           {penShapeIcons[lastActiveTool]}
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Content asChild dir="ltr" side="top" sideOffset={12}>
+      <DropdownMenu.Content asChild side="top" sideOffset={12}>
         <Panel side="center">
           {penShapes.map((shape, i) => (
             <Tooltip

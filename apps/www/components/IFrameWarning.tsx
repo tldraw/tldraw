@@ -23,7 +23,7 @@ export default function IFrameWarning({ url = 'https://tldraw.com' }: { url?: st
     textarea.focus()
     textarea.select()
     //tldraw.com/r/hasdasdsad sad sadaasdasdasdsdasdadssdadadsd as ello
-    https: try {
+    try {
       const range = document.createRange()
       range.selectNodeContents(textarea)
       const sel = window.getSelection()

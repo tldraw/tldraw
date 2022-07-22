@@ -171,6 +171,8 @@ const DialogContent = styled(Dialog.Content, {
   maxHeight: '74vh',
   overflowY: 'auto',
   padding: 25,
+  background: '$background',
+  zIndex: '999',
   '&:focus': { outline: 'none' },
 })
 
