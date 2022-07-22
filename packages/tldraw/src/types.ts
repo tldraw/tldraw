@@ -99,6 +99,7 @@ export interface TDSnapshot {
     showGrid: boolean
     language: TDLanguage
     dockPosition: TDDockPosition
+    exportBackground: TDExportBackground
   }
   appState: {
     currentStyle: ShapeStyles
@@ -514,6 +515,13 @@ export interface TDExport {
   name: string
   type: string
   blob: Blob
+}
+
+export enum TDExportBackground {
+  Transparent = 'transparent',
+  Auto = 'auto',
+  Light = 'light',
+  Dark = 'dark'
 }
 
 /* -------------------------------------------------- */

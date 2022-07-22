@@ -42,6 +42,7 @@ import {
   ArrowShape,
   TDExportType,
   TldrawPatch,
+  TDExportBackground,
 } from '~types'
 import {
   migrate,
@@ -2016,7 +2017,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getSvg = async (
     ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes),
-    opts = {} as Partial<{ transparentBackground: boolean; includeFonts: boolean }>
+    opts = {} as Partial<{ includeFonts: boolean }>
   ): Promise<SVGElement | undefined> => {
     if (ids.length === 0) return
 
@@ -2153,13 +2154,32 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     svg.setAttribute('width', commonBounds.width.toString())
     svg.setAttribute('height', commonBounds.height.toString())
 
-    if (opts.transparentBackground) {
-      svg.style.setProperty('background-color', 'transparent')
-    } else {
-      svg.style.setProperty(
-        'background-color',
-        this.settings.isDarkMode ? '#212529' : 'rgb(248, 249, 250)'
-      )
+    // Set export background
+    const exportBackground: TDExportBackground = this.settings.exportBackground;
+    const darkBackground = '#212529';
+    const lightBackground = 'rgb(248, 249, 250)'
+
+    switch(exportBackground) {
+      case TDExportBackground.Auto: {
+        svg.style.setProperty(
+          'background-color',
+          this.settings.isDarkMode ? darkBackground : lightBackground
+        )
+        break;
+      }
+      case TDExportBackground.Dark: {
+        svg.style.setProperty('background-color', darkBackground)
+        break;
+      }
+      case TDExportBackground.Light: {
+        svg.style.setProperty('background-color', lightBackground)
+        break;
+      }
+      case TDExportBackground.Transparent: 
+      default: {
+        svg.style.setProperty('background-color', 'transparent')
+        break;
+      }
     }
 
     svg
@@ -2366,8 +2386,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       opts
 
     const svg = await this.getSvg(ids, {
-      includeFonts: format !== TDExportType.SVG,
-      transparentBackground: format === TDExportType.PNG,
+      includeFonts: format !== TDExportType.SVG
     })
 
     if (!svg) return
@@ -2431,7 +2450,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       pageId: string
       scale: number
       quality: number
-      transparentBackground: boolean
     }>
   ) => {
     const { pageId = this.currentPageId } = opts
@@ -4162,6 +4180,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showGrid: false,
       language: 'en',
       dockPosition: 'bottom',
+      exportBackground: TDExportBackground.Transparent
     },
     appState: {
       status: TDStatus.Idle,

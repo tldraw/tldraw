@@ -65,19 +65,19 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
   }, [app])
 
   const handleExportPNG = React.useCallback(async () => {
-    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1 })
   }, [app])
 
   const handleExportJPG = React.useCallback(async () => {
-    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
+    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1 })
   }, [app])
 
   const handleExportWEBP = React.useCallback(async () => {
-    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1, transparentBackground: false })
+    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1 })
   }, [app])
 
   const handleExportSVG = React.useCallback(async () => {
-    app.exportImage(TDExportType.SVG, { scale: 2, quality: 1, transparentBackground: false })
+    app.exportImage(TDExportType.SVG, { scale: 2, quality: 1 })
   }, [app])
 
   const handleCopyJSON = React.useCallback(async () => {
