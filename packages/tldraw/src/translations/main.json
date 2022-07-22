@@ -12,6 +12,8 @@
   "to": "To",
   "to.selection": "To Selection",
   "to.fit": "To Fit",
+  "menu.tools": "Tools",
+  "menu.transform": "Transform",
   "menu.file": "File",
   "menu.edit": "Edit",
   "menu.view": "View",
