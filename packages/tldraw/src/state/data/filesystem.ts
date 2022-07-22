@@ -106,14 +106,14 @@ export async function openFromFileSystem(): Promise<null | {
   }
 }
 
-export async function openAssetFromFileSystem() {
+export async function openAssetsFromFileSystem() {
   // @ts-ignore
   const browserFS = await import('./browser-fs-access')
   const fileOpen = browserFS.fileOpen
   return fileOpen({
     description: 'Image or Video',
     extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],
-    multiple: false,
+    multiple: true,
   })
 }
 

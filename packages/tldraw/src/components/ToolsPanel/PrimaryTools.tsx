@@ -12,7 +12,7 @@ import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
-import { EraserIcon } from '~components/Primitives/icons'
+import { EraserIcon, ImageIcon } from '~components/Primitives/icons'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
@@ -49,6 +49,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
+  }, [app])
+
+  const uploadMedias = React.useCallback(async () => {
+    app.openAsset()
   }, [app])
 
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
@@ -111,6 +115,9 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         id="TD-PrimaryTools-Pencil2"
       >
         <Pencil2Icon />
+      </ToolButtonWithTooltip>
+      <ToolButtonWithTooltip label="Image" onClick={uploadMedias} id="TD-PrimaryTools-Image">
+        <ImageIcon />
       </ToolButtonWithTooltip>
     </Panel>
   )
