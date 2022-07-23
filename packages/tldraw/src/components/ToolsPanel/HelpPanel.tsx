@@ -88,13 +88,16 @@ const HelpButton = styled('button', {
   borderRadius: '100%',
   position: 'fixed',
   right: 10,
-  display: 'grid',
-  placeItems: 'center',
+  padding: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
   border: 'none',
   backgroundColor: 'white',
   cursor: 'pointer',
   boxShadow: '$panel',
   bottom: 10,
+  color: '$text',
   variants: {
     debug: {
       true: {},

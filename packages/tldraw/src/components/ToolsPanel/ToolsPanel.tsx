@@ -51,7 +51,7 @@ const StyledToolsPanelContainer = styled('div', {
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
-  height: '64px',
+  height: 64,
   gap: '$4',
   display: 'flex',
   justifyContent: 'center',
@@ -96,7 +96,7 @@ const StyledToolsPanelContainer = styled('div', {
       side: 'top',
       bp: 'large',
       css: {
-        top: '10px',
+        top: 10,
       },
     },
     {
