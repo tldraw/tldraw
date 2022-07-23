@@ -112,6 +112,8 @@ export const StyledToolButtonInner = styled('div', {
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 })
 
 export const StyledToolButton = styled('button', {
@@ -130,6 +132,8 @@ export const StyledToolButton = styled('button', {
   border: 'none',
   height: '40px',
   width: '40px',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 
   [`&:disabled ${StyledToolButtonInner}`]: {
     opacity: 0.618,
@@ -184,7 +188,9 @@ export const StyledToolButton = styled('button', {
       false: {},
     },
     bp: {
-      mobile: {},
+      mobile: {
+        padding: 0,
+      },
       small: {},
     },
   },
@@ -193,8 +199,8 @@ export const StyledToolButton = styled('button', {
       variant: 'primary',
       bp: 'mobile',
       css: {
-        height: '40px',
-        width: '40px',
+        height: 40,
+        width: 36,
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 16,
           height: 16,
