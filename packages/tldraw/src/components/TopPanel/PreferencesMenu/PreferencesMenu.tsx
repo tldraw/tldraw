@@ -2,7 +2,7 @@ import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import { TDDockPosition, TDSnapshot } from '~types'
+import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
 import { styled } from '~styles'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
@@ -58,6 +58,13 @@ export function PreferencesMenu() {
   const handleChangeDockPosition = React.useCallback(
     (position: TDDockPosition) => {
       app.setSetting('dockPosition', position)
+    },
+    [app]
+  )
+
+  const selectExportBackground = React.useCallback(
+    (background: TDExportBackground) => {
+      app.setSetting('exportBackground', background)
     },
     [app]
   )
@@ -148,6 +155,20 @@ export function PreferencesMenu() {
           >
             <StyledText>
               <FormattedMessage id={position} />
+            </StyledText>
+          </DMCheckboxItem>
+        ))}
+      </DMSubMenu>
+      <DMSubMenu label={intl.formatMessage({ id: 'export.background' })} overflow={false}>
+        {Object.values(TDExportBackground).map((exportBackground) => (
+          <DMCheckboxItem
+            key={exportBackground}
+            checked={settings.exportBackground === exportBackground}
+            onCheckedChange={() => selectExportBackground(exportBackground as TDExportBackground)}
+            id={`TD-MenuItem-ExportBackground-${exportBackground}`}
+          >
+            <StyledText>
+              <FormattedMessage id={exportBackground as string} />
             </StyledText>
           </DMCheckboxItem>
         ))}

@@ -54,6 +54,7 @@ TldrawTestApp {
     },
     "settings": Object {
       "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -205,6 +206,7 @@ TldrawTestApp {
     },
     "settings": Object {
       "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -377,6 +379,7 @@ TldrawTestApp {
     },
     "settings": Object {
       "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,

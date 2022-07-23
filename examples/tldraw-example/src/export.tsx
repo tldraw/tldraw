@@ -34,15 +34,15 @@ export default function Export() {
   const [app, setApp] = React.useState<TldrawApp>()
 
   const handleExportSVG = React.useCallback(() => {
-    app?.exportImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+    app?.exportImage(TDExportType.SVG, { scale: 1, quality: 1 })
   }, [app])
 
   const handleExportPNG = React.useCallback(() => {
-    app?.exportImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
+    app?.exportImage(TDExportType.PNG, { scale: 2, quality: 1 })
   }, [app])
 
   const handleExportJPG = React.useCallback(() => {
-    app?.exportImage(TDExportType.JPG, { scale: 2, quality: 1, transparentBackground: false })
+    app?.exportImage(TDExportType.JPG, { scale: 2, quality: 1 })
   }, [app])
 
   const handleMount = React.useCallback((app: TldrawApp) => {

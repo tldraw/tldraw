@@ -100,5 +100,10 @@
   "page": "Page",
   "keyboard.shortcuts": "Keyboard shortcuts",
   "search": "Search",
-  "loading": "Loading{dots}"
+  "loading": "Loading{dots}",
+  "export.background": "Export Background",
+  "transparent": "Transparent",
+  "auto": "Auto",
+  "light": "Light",
+  "dark": "Dark"
 }
