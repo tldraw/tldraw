@@ -30,10 +30,10 @@ export const ZoomMenu = React.memo(function ZoomMenu() {
           <FormattedMessage id="zoom.out" />
         </DMItem>
         <DMItem onSelect={preventEvent} onClick={app.resetZoom} kbd="⇧0" id="TD-Zoom-Zoom_To_100%">
-          <FormattedMessage id="to" /> 100%
+          <FormattedMessage id="zoom.to" /> 100%
         </DMItem>
         <DMItem onSelect={preventEvent} onClick={app.zoomToFit} kbd="⇧1" id="TD-Zoom-To_Fit">
-          <FormattedMessage id="to.fit" />
+          <FormattedMessage id="zoom.to.fit" />
         </DMItem>
         <DMItem
           onSelect={preventEvent}
@@ -41,7 +41,7 @@ export const ZoomMenu = React.memo(function ZoomMenu() {
           kbd="⇧2"
           id="TD-Zoom-To_Selection"
         >
-          <FormattedMessage id="to.selection" />
+          <FormattedMessage id="zoom.to.selection" />
         </DMItem>
       </DMContent>
     </DropdownMenu.Root>
