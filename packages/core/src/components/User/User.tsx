@@ -1,8 +1,6 @@
 /* eslint-disable no-inner-declarations */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import Vec from '@tldraw/vec'
 import * as React from 'react'
-import { useCursorAnimation } from '~hooks'
 import type { TLShape, TLUser } from '~types'
 
 interface UserProps {
@@ -11,12 +9,17 @@ interface UserProps {
 
 export function User({ user }: UserProps) {
   const rCursor = React.useRef<SVGSVGElement>(null)
-  useCursorAnimation(rCursor, user.point, user.session)
+
+  React.useLayoutEffect(() => {
+    if (rCursor.current) {
+      rCursor.current.style.transform = `translate(${user.point[0]}px, ${user.point[1]}px)`
+    }
+  }, [user.point])
 
   return (
     <svg
       ref={rCursor}
-      className="tl-absolute tl-user tl-counter-scaled"
+      className={`tl-absolute tl-user tl-counter-scaled ${user.session ? '' : 'tl-animated'}`}
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 35 35"
       fill="none"

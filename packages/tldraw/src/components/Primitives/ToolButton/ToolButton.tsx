@@ -126,9 +126,9 @@ export const StyledToolButton = styled('button', {
   outline: 'none',
   cursor: 'pointer',
   pointerEvents: 'all',
-  border: 'none',
   height: '40px',
   width: '40px',
+  border: '1px solid $panel',
   '-webkit-tap-highlight-color': 'transparent',
   'tap-highlight-color': 'transparent',
 
@@ -163,7 +163,6 @@ export const StyledToolButton = styled('button', {
         height: 32,
         width: 32,
         [`& ${StyledToolButtonInner}`]: {
-          border: '1px solid $panelContrast',
           borderRadius: '100%',
           boxShadow: '$panel',
         },
@@ -224,7 +223,6 @@ export const StyledToolButton = styled('button', {
       css: {
         [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',
-          border: '1px solid $panel',
         },
         [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',

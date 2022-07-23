@@ -495,10 +495,7 @@ TldrawTestApp {
   "pointShape": [Function],
   "pointer": -1,
   "pressKey": [Function],
-  "prevAssets": Object {},
-  "prevBindings": Object {},
   "prevSelectedIds": Array [],
-  "prevShapes": Object {},
   "previousPoint": Array [
     0,
     0,

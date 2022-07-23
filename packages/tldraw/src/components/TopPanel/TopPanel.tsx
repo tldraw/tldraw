@@ -49,7 +49,7 @@ export function TopPanel({
                 <UndoIcon onClick={app.undo} />
               </ToolButton>
               <ToolButton>
-                <UndoIcon onClick={app.redo} flip />
+                <UndoIcon onClick={app.redo} flipHorizontal />
               </ToolButton>
             </>
           )}

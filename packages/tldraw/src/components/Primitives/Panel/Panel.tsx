@@ -8,6 +8,7 @@ export const Panel = styled('div', {
   padding: '$2',
   border: '1px solid $panelContrast',
   gap: 0,
+  overflow: 'hidden',
   variants: {
     side: {
       center: {
