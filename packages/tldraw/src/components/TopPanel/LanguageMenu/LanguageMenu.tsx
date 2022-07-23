@@ -32,7 +32,7 @@ export function LanguageMenu() {
           {label}
         </DMCheckboxItem>
       ))}
-      <DMDivider />
+      <hr />
       <a
         href="https://github.com/tldraw/tldraw/blob/main/guides/translation.md"
         target="_blank"

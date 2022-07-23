@@ -94,7 +94,7 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
-      <DMDivider />
+      <hr />
       <DMCheckboxItem
         checked={settings.showGrid}
         onCheckedChange={toggleGrid}

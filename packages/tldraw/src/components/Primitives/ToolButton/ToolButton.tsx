@@ -10,7 +10,6 @@ export interface ToolButtonProps {
   onDoubleClick?: () => void
   disabled?: boolean
   isActive?: boolean
-  isSponsor?: boolean
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
@@ -29,7 +28,6 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       isToolLocked = false,
       disabled = false,
       isActive = false,
-      isSponsor = false,
       onKeyDown,
       id,
       ...rest
@@ -40,7 +38,6 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       <StyledToolButton
         ref={ref}
         isActive={isActive}
-        isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
         disabled={disabled}
@@ -173,13 +170,6 @@ export const StyledToolButton = styled('button', {
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 14,
           height: 14,
-        },
-      },
-    },
-    isSponsor: {
-      true: {
-        [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$sponsorContrast',
         },
       },
     },

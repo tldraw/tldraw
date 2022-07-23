@@ -35,15 +35,7 @@ export default function Develop() {
 
   return (
     <div className="tldraw">
-      <Tldraw
-        id="develop"
-        {...fileSystemEvents}
-        onMount={handleMount}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
-        onPersist={handlePersist}
-        showSponsorLink={true}
-      />
+      <Tldraw id="develop" {...fileSystemEvents} onMount={handleMount} onPersist={handlePersist} />
     </div>
   )
 }

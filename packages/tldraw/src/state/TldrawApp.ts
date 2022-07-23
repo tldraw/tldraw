@@ -120,14 +120,6 @@ export interface TDCallbacks {
    */
   onOpenMedia?: (app: TldrawApp) => void
   /**
-   * (optional) A callback to run when the user signs in via the menu.
-   */
-  onSignIn?: (app: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user signs out via the menu.
-   */
-  onSignOut?: (app: TldrawApp) => void
-  /**
    * (optional) A callback to run when the state is patched.
    */
   onPatch?: (app: TldrawApp, patch: TldrawPatch, reason?: string) => void

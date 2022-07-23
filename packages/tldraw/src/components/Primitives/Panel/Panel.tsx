@@ -31,4 +31,10 @@ export const Panel = styled('div', {
       },
     },
   },
+  '& hr': {
+    height: 10,
+    width: '100%',
+    backgroundColor: 'red',
+    border: 'none',
+  },
 })

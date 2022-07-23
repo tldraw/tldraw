@@ -75,11 +75,6 @@ export interface TldrawProps extends TDCallbacks {
   showTools?: boolean
 
   /**
-   * (optional) Whether to show a sponsor link for Tldraw.
-   */
-  showSponsorLink?: boolean
-
-  /**
    * (optional) Whether to show the UI.
    */
   showUI?: boolean
@@ -118,7 +113,6 @@ export function Tldraw({
   readOnly = false,
   disableAssets = false,
   darkMode = false,
-  showSponsorLink,
   onMount,
   onChange,
   onChangePresence,
@@ -127,8 +121,6 @@ export function Tldraw({
   onSaveProjectAs,
   onOpenProject,
   onOpenMedia,
-  onSignOut,
-  onSignIn,
   onUndo,
   onRedo,
   onPersist,
@@ -155,8 +147,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -184,8 +174,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -256,8 +244,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -280,8 +266,6 @@ export function Tldraw({
     onSaveProjectAs,
     onOpenProject,
     onOpenMedia,
-    onSignOut,
-    onSignIn,
     onUndo,
     onRedo,
     onPersist,
@@ -323,7 +307,6 @@ export function Tldraw({
         showZoom={showZoom}
         showTools={showTools}
         showUI={showUI}
-        showSponsorLink={showSponsorLink}
         readOnly={readOnly}
       />
     </TldrawContext.Provider>
@@ -341,7 +324,6 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
-  showSponsorLink?: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -353,7 +335,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showZoom,
   showStyles,
   showTools,
-  showSponsorLink,
   readOnly,
   showUI,
 }: InnerTldrawProps) {
@@ -551,7 +532,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
                   showMultiplayerMenu={showMultiplayerMenu}
                   showStyles={showStyles}
                   showZoom={showZoom}
-                  sponsor={showSponsorLink}
                 />
                 <StyledSpacer />
                 {showTools && !readOnly && <ToolsPanel />}

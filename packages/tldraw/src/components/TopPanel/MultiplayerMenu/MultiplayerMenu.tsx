@@ -124,7 +124,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
           <FormattedMessage id="copy.readonly.link" />
           <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
-        <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
+        <hr />
         <DMItem
           id="TD-Multiplayer-CreateMultiplayerProject"
           onClick={handleCreateMultiplayerProject}

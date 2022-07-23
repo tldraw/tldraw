@@ -10,6 +10,7 @@ export const MenuContent = styled('div', {
   minWidth: 180,
   pointerEvents: 'all',
   backgroundColor: '$panel',
+  border: '1px solid $panelContrast',
   boxShadow: '$panel',
   padding: '$2 $2',
   borderRadius: '$3',
@@ -33,5 +34,13 @@ export const MenuContent = styled('div', {
         maxHeight: '60vh',
       },
     },
+  },
+  hr: {
+    height: 0,
+    paddingTop: 1,
+    width: 'calc(100%+8px)',
+    backgroundColor: '$hover',
+    border: 'none',
+    margin: '$2 -4px',
   },
 })

@@ -148,7 +148,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
           </ButtonWithOptions>
         ))}
       </DropdownMenu.RadioGroup>
-      <DMDivider />
+      <hr />
       <DropdownMenu.Item onSelect={handleCreatePage} asChild>
         <RowButton>
           <span>

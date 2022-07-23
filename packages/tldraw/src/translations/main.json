@@ -20,7 +20,6 @@
   "menu.preferences": "Preferences",
   "menu.sign.in": "Sign In",
   "menu.sign.out": "Sign Out",
-  "sponsored": "Sponsored",
   "become.a.sponsor": "Become a Sponsor",
   "zoom.to.content": "Back to content",
   "zoom.to.selection": "Zoom to Selection",
@@ -105,5 +104,8 @@
   "transparent": "Transparent",
   "auto": "Auto",
   "light": "Light",
-  "dark": "Dark"
+  "dark": "Dark",
+  "github": "Github",
+  "twitter": "Twitter",
+  "discord": "Discord"
 }

@@ -6,7 +6,12 @@ import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import { TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
-import { GitHubLogoIcon, QuestionMarkIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
+import {
+  GitHubLogoIcon,
+  HeartFilledIcon,
+  QuestionMarkIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
@@ -38,7 +43,7 @@ export function HelpPanel() {
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
-          <DMDivider />
+          <hr />
           <Links />
         </StyledContent>
       </Popover.Content>
@@ -60,9 +65,14 @@ const LanguageMenuDropdown = () => {
 }
 
 const linksData = [
-  { id: 'github', title: 'Github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
-  { id: 'twitter', title: 'Twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
-  { id: 'discord', title: 'Discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
+  { id: 'github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
+  { id: 'twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
+  { id: 'discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
+  {
+    id: 'become.a.sponsor',
+    icon: HeartFilledIcon,
+    url: 'https://github.com/sponsors/steveruizok',
+  },
 ]
 
 const Links = () => {
@@ -71,7 +81,7 @@ const Links = () => {
       {linksData.map((item) => (
         <a key={item.id} href={item.url} target="_blank" rel="nofollow">
           <RowButton id={`TD-Link-${item.id}`} variant="wide">
-            {item.title}
+            <FormattedMessage id={item.id} />
             <SmallIcon>
               <item.icon />
             </SmallIcon>
@@ -92,10 +102,10 @@ const HelpButton = styled('button', {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  border: 'none',
-  backgroundColor: 'white',
+  backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
+  border: '1px solid $panelContrast',
   bottom: 10,
   color: '$text',
   variants: {

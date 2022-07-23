@@ -6,16 +6,9 @@ declare const window: Window & { app: TldrawApp }
 
 interface EditorProps {
   id?: string
-  isUser?: boolean
-  isSponsor?: boolean
 }
 
-const Editor = ({
-  id = 'home',
-  isUser = false,
-  isSponsor = false,
-  ...rest
-}: EditorProps & Partial<TldrawProps>) => {
+const Editor = ({ id = 'home', ...rest }: EditorProps & Partial<TldrawProps>) => {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -30,7 +23,6 @@ const Editor = ({
         id={id}
         autofocus
         onMount={handleMount}
-        showSponsorLink={!isSponsor}
         onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
         {...rest}

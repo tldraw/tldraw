@@ -17,7 +17,6 @@ interface TopPanelProps {
   showStyles: boolean
   showZoom: boolean
   showMultiplayerMenu: boolean
-  sponsor?: boolean
 }
 
 export function TopPanel({
@@ -26,7 +25,6 @@ export function TopPanel({
   showMenu,
   showStyles,
   showZoom,
-  sponsor,
   showMultiplayerMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
@@ -35,7 +33,7 @@ export function TopPanel({
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
-          {showMenu && <Menu sponsor={sponsor} readOnly={readOnly} />}
+          {showMenu && <Menu readOnly={readOnly} />}
           {showMultiplayerMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>

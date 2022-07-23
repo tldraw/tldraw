@@ -337,7 +337,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             )}
           </>
         )}
-        <DMDivider />
+        <hr />
         <DMCheckboxItem
           variant="styleMenu"
           checked={keepOpen}
