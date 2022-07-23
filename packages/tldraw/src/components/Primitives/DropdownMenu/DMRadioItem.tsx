@@ -20,7 +20,7 @@ export const DMRadioItem = styled(RadioItem, {
     isActive: {
       true: {
         backgroundColor: '$selected',
-        color: '$panel',
+        color: 'white',
       },
       false: {},
     },

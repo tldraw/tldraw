@@ -15,7 +15,7 @@ export default function Scroll() {
   return (
     <div style={{ height: 1600, width: 1600, padding: 200 }}>
       <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-        <Tldraw id="develop" onMount={handleMount} showSponsorLink={true} />
+        <Tldraw id="develop" onMount={handleMount} />
       </div>
     </div>
   )

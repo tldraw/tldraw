@@ -83,6 +83,7 @@ export function KeyboardShortcutDialog({
 
   return (
     <Dialog.Root onOpenChange={onOpenChange}>
+      {/* // todo: hide if no keyboard is attached */}
       <Dialog.Trigger asChild>
         <RowButton id="TD-HelpItem-Keyboard" variant="wide">
           <FormattedMessage id="keyboard.shortcuts" />

@@ -4,6 +4,7 @@ import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/Dro
 import { useTldrawApp } from '~hooks'
 import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
 import { styled } from '~styles'
+import { Divider } from '~components/Primitives/Divider'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
@@ -94,7 +95,7 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
-      <DMDivider />
+      <Divider />
       <DMCheckboxItem
         checked={settings.showGrid}
         onCheckedChange={toggleGrid}
@@ -116,34 +117,6 @@ export function PreferencesMenu() {
         id="TD-MenuItem-Preferences-Style_menu"
       >
         <FormattedMessage id="preferences.keep.stylemenu.open" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.isSnapping}
-        onCheckedChange={toggleisSnapping}
-        id="TD-MenuItem-Preferences-Always_Show_Snaps"
-      >
-        <FormattedMessage id="preferences.always.show.snaps" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showRotateHandles}
-        onCheckedChange={toggleRotateHandle}
-        id="TD-MenuItem-Preferences-Rotate_Handles"
-      >
-        <FormattedMessage id="preferences.rotate.handles" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showBindingHandles}
-        onCheckedChange={toggleBoundShapesHandle}
-        id="TD-MenuItem-Preferences-Binding_Handles"
-      >
-        <FormattedMessage id="preferences.binding.handles" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showCloneHandles}
-        onCheckedChange={toggleCloneControls}
-        id="TD-MenuItem-Preferences-Clone_Handles"
-      >
-        <FormattedMessage id="preferences.clone.handles" />
       </DMCheckboxItem>
       <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })} overflow={false}>
         {DockPosition.map((position) => (

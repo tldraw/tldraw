@@ -1426,11 +1426,6 @@ left past the initial left edge) then swap points on that axis.
     }
   }
 
-  static isMobileSize() {
-    if (typeof window === 'undefined') return false
-    return window.innerWidth < 768
-  }
-
   static isMobileSafari() {
     if (typeof window === 'undefined') return false
     const ua = window.navigator.userAgent

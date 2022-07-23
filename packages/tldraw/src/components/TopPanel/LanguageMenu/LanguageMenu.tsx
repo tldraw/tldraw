@@ -6,6 +6,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
 import { TDSnapshot } from '~types'
+import { Divider } from '~components/Primitives/Divider'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 
@@ -32,7 +33,7 @@ export function LanguageMenu() {
           {label}
         </DMCheckboxItem>
       ))}
-      <DMDivider />
+      <Divider />
       <a
         href="https://github.com/tldraw/tldraw/blob/main/guides/translation.md"
         target="_blank"

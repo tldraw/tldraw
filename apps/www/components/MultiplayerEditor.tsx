@@ -1,39 +1,27 @@
+import * as React from 'react'
 import { RoomProvider } from '../utils/liveblocks'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
-import { useAccountHandlers } from 'hooks/useAccountHandlers'
 import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
 import { useMultiplayerState } from 'hooks/useMultiplayerState'
 import { useUploadAssets } from 'hooks/useUploadAssets'
-import React, { FC } from 'react'
 import { styled } from 'styles'
 
 interface Props {
   roomId: string
-  isUser: boolean
-  isSponsor: boolean
 }
 
-const MultiplayerEditor: FC<Props> = ({
-  roomId,
-  isUser = false,
-  isSponsor = false,
-}: {
-  roomId: string
-  isUser: boolean
-  isSponsor: boolean
-}) => {
+const MultiplayerEditor = ({ roomId }: Props) => {
   return (
     <RoomProvider id={roomId}>
-      <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
+      <Editor roomId={roomId} />
     </RoomProvider>
   )
 }
 
 // Inner Editor
 
-function Editor({ roomId, isUser, isSponsor }: Props) {
+function Editor({ roomId }: Props) {
   const fileSystemEvents = useFileSystem()
-  const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
   const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
   const { onAssetUpload } = useUploadAssets()
@@ -46,9 +34,6 @@ function Editor({ roomId, isUser, isSponsor }: Props) {
         autofocus
         disableAssets={false}
         showPages={false}
-        showSponsorLink={!isSponsor}
-        onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={isUser ? onSignOut : undefined}
         onAssetCreate={onAssetCreate}
         onAssetDelete={onAssetDelete}
         onAssetUpload={onAssetUpload}

@@ -20,7 +20,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   canEdit = true
   canClone = true
   isAspectRatioLocked = true
-  showCloneHandles = true
+  showCloneHandles = false
   isStateful = true // don't unmount
 
   getShape = (props: Partial<T>): T => {

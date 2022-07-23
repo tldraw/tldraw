@@ -136,7 +136,7 @@ const StyledPanel = styled(Panel, {
     bp: {
       mobile: {
         padding: '$0',
-        borderRadius: '$3',
+        borderRadius: '10px',
       },
       small: {
         padding: '$2',

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ExitIcon, HamburgerMenuIcon } from '@radix-ui/react-icons'
+import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from '../PreferencesMenu'
@@ -10,7 +10,6 @@ import {
   DMSubMenu,
   DMTriggerIcon,
 } from '~components/Primitives/DropdownMenu'
-import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
 import { preventEvent } from '~components/preventEvent'
 import { TDExportType, TDSnapshot } from '~types'
@@ -18,7 +17,6 @@ import { Divider } from '~components/Primitives/Divider'
 import { FormattedMessage, useIntl } from 'react-intl'
 
 interface MenuProps {
-  sponsor: boolean | undefined
   readOnly: boolean
 }
 
@@ -30,7 +28,7 @@ const disableAssetsSelector = (s: TDSnapshot) => {
   return s.appState.disableAssets
 }
 
-export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
+export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   const app = useTldrawApp()
   const intl = useIntl()
 
@@ -80,14 +78,6 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
     app.exportJson()
   }, [app])
 
-  const handleSignIn = React.useCallback(() => {
-    app.callbacks.onSignIn?.(app)
-  }, [app])
-
-  const handleSignOut = React.useCallback(() => {
-    app.callbacks.onSignOut?.(app)
-  }, [app])
-
   const handleCut = React.useCallback(() => {
     app.cut()
   }, [app])
@@ -122,8 +112,6 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
     app.callbacks.onSaveProject ||
     app.callbacks.onSaveProjectAs ||
     app.callbacks.onExport
-
-  const showSignInOutMenu = app.callbacks.onSignIn || app.callbacks.onSignOut
 
   const hasSelection = numberOfSelectedIds > 0
 
@@ -186,7 +174,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
           >
             <FormattedMessage id="redo" />
           </DMItem>
-          <DMDivider dir="ltr" />
+          <Divider />
           <DMItem
             onSelect={preventEvent}
             disabled={!hasSelection || readOnly}
@@ -213,7 +201,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
           >
             <FormattedMessage id="paste" />
           </DMItem>
-          <DMDivider dir="ltr" />
+          <Divider />
           <DMSubMenu
             label={`${intl.formatMessage({ id: 'copy.as' })}...`}
             size="small"
@@ -251,7 +239,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
             </DMItem>
           </DMSubMenu>
 
-          <DMDivider dir="ltr" />
+          <Divider />
           <DMItem
             onSelect={preventEvent}
             onClick={handleSelectAll}
@@ -268,7 +256,7 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
           >
             <FormattedMessage id="select.none" />
           </DMItem>
-          <DMDivider dir="ltr" />
+          <Divider />
           <DMItem onSelect={handleDelete} disabled={!hasSelection} kbd="⌫" id="TD-MenuItem-Delete">
             <FormattedMessage id="delete" />
           </DMItem>
@@ -315,26 +303,8 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
             <FormattedMessage id="zoom.to.selection" />
           </DMItem>
         </DMSubMenu>
-        <DMDivider dir="ltr" />
+        <Divider />
         <PreferencesMenu />
-        {showSignInOutMenu && (
-          <>
-            <DMDivider dir="ltr" />{' '}
-            {app.callbacks.onSignIn && (
-              <DMItem onSelect={handleSignIn} id="TD-MenuItem-Sign_in">
-                <FormattedMessage id="menu.sign.in" />
-              </DMItem>
-            )}
-            {app.callbacks.onSignOut && (
-              <DMItem onSelect={handleSignOut} id="TD-MenuItem-Sign_out">
-                <FormattedMessage id="menu.sign.out" />
-                <SmallIcon>
-                  <ExitIcon />
-                </SmallIcon>
-              </DMItem>
-            )}
-          </>
-        )}
       </DMContent>
     </DropdownMenu.Root>
   )

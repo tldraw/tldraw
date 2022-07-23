@@ -10,7 +10,6 @@ export interface ToolButtonProps {
   onDoubleClick?: () => void
   disabled?: boolean
   isActive?: boolean
-  isSponsor?: boolean
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
@@ -29,7 +28,6 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       isToolLocked = false,
       disabled = false,
       isActive = false,
-      isSponsor = false,
       onKeyDown,
       id,
       ...rest
@@ -40,7 +38,6 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       <StyledToolButton
         ref={ref}
         isActive={isActive}
-        isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
         disabled={disabled}
@@ -129,9 +126,9 @@ export const StyledToolButton = styled('button', {
   outline: 'none',
   cursor: 'pointer',
   pointerEvents: 'all',
-  border: 'none',
   height: '40px',
   width: '40px',
+  border: '1px solid $panel',
   '-webkit-tap-highlight-color': 'transparent',
   'tap-highlight-color': 'transparent',
 
@@ -165,6 +162,7 @@ export const StyledToolButton = styled('button', {
         padding: 0,
         height: 32,
         width: 32,
+        border: 'none',
         [`& ${StyledToolButtonInner}`]: {
           border: '1px solid $panelContrast',
           borderRadius: '100%',
@@ -173,13 +171,6 @@ export const StyledToolButton = styled('button', {
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 14,
           height: 14,
-        },
-      },
-    },
-    isSponsor: {
-      true: {
-        [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$sponsorContrast',
         },
       },
     },
@@ -234,7 +225,6 @@ export const StyledToolButton = styled('button', {
       css: {
         [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',
-          border: '1px solid $panel',
         },
         [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',

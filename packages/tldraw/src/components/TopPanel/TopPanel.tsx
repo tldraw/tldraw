@@ -6,7 +6,7 @@ import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import { UndoIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
 import { MultiplayerMenu } from './MultiplayerMenu'
 
@@ -17,7 +17,6 @@ interface TopPanelProps {
   showStyles: boolean
   showZoom: boolean
   showMultiplayerMenu: boolean
-  sponsor?: boolean
 }
 
 export function TopPanel({
@@ -26,7 +25,6 @@ export function TopPanel({
   showMenu,
   showStyles,
   showZoom,
-  sponsor,
   showMultiplayerMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
@@ -35,7 +33,7 @@ export function TopPanel({
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
-          {showMenu && <Menu sponsor={sponsor} readOnly={readOnly} />}
+          {showMenu && <Menu readOnly={readOnly} />}
           {showMultiplayerMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>
@@ -47,12 +45,11 @@ export function TopPanel({
             <ReadOnlyLabel>Read Only</ReadOnlyLabel>
           ) : (
             <>
-              {' '}
               <ToolButton>
                 <UndoIcon onClick={app.undo} />
               </ToolButton>
               <ToolButton>
-                <RedoIcon onClick={app.redo} />
+                <UndoIcon onClick={app.redo} flipHorizontal />
               </ToolButton>
             </>
           )}

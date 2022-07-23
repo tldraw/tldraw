@@ -10,6 +10,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
 
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
@@ -148,7 +149,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
           </ButtonWithOptions>
         ))}
       </DropdownMenu.RadioGroup>
-      <DMDivider />
+      <Divider />
       <DropdownMenu.Item onSelect={handleCreatePage} asChild>
         <RowButton>
           <span>

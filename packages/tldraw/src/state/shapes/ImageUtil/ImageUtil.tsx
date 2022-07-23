@@ -23,7 +23,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
 
   isAspectRatioLocked = true
 
-  showCloneHandles = true
+  showCloneHandles = false
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -46,6 +46,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
   Component = TDShapeUtil.Component<T, E, TDMeta>(
     ({ shape, asset = { src: '' }, isBinding, isGhost, meta, events, onShapeChange }, ref) => {
       const { size, style } = shape
+      const { bindingDistance } = this
 
       const rImage = React.useRef<HTMLImageElement>(null)
       const rWrapper = React.useRef<HTMLDivElement>(null)
@@ -65,10 +66,10 @@ export class ImageUtil extends TDShapeUtil<T, E> {
               className="tl-binding-indicator"
               style={{
                 position: 'absolute',
-                top: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
-                left: `calc(${-this.bindingDistance}px * var(--tl-zoom))`,
-                width: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
-                height: `calc(100% + ${this.bindingDistance * 2}px * var(--tl-zoom))`,
+                top: `calc(${-bindingDistance}px * var(--tl-zoom))`,
+                left: `calc(${-bindingDistance}px * var(--tl-zoom))`,
+                width: `calc(100% + ${bindingDistance * 2}px * var(--tl-zoom))`,
+                height: `calc(100% + ${bindingDistance * 2}px * var(--tl-zoom))`,
                 backgroundColor: 'var(--tl-selectFill)',
               }}
             />
@@ -85,7 +86,6 @@ export class ImageUtil extends TDShapeUtil<T, E> {
               src={(asset as TDImageAsset).src}
               alt="tl_image_asset"
               draggable={false}
-              // onLoad={onImageLoad}
             />
           </Wrapper>
         </HTMLContainer>

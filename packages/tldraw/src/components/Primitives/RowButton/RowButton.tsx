@@ -12,7 +12,6 @@ export interface RowButtonProps {
   disabled?: boolean
   kbd?: string
   variant?: 'wide' | 'styleMenu'
-  isSponsor?: boolean
   isActive?: boolean
   isWarning?: boolean
   hasIndicator?: boolean
@@ -147,12 +146,6 @@ export const StyledRowButton = styled('button', {
         width: 'auto',
       },
     },
-    isSponsor: {
-      true: {
-        color: '#eb30a2',
-      },
-      false: {},
-    },
     isWarning: {
       true: {
         color: '$warn',
@@ -165,34 +158,4 @@ export const StyledRowButton = styled('button', {
       false: {},
     },
   },
-  compoundVariants: [
-    {
-      isActive: false,
-      isSponsor: true,
-      bp: 'small',
-      css: {
-        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
-          backgroundColor: '$sponsorContrast',
-          border: '1px solid $panel',
-          '& *[data-shy="true"]': {
-            opacity: 1,
-          },
-        },
-      },
-    },
-    {
-      isActive: false,
-      isSponsor: false,
-      bp: 'small',
-      css: {
-        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
-          backgroundColor: '$hover',
-          border: '1px solid $panel',
-          '& *[data-shy="true"]': {
-            opacity: 1,
-          },
-        },
-      },
-    },
-  ],
 })
