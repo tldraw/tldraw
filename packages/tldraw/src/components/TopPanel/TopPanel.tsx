@@ -6,7 +6,7 @@ import { ZoomMenu } from './ZoomMenu'
 import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import { UndoIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
 import { MultiplayerMenu } from './MultiplayerMenu'
 
@@ -45,12 +45,11 @@ export function TopPanel({
             <ReadOnlyLabel>Read Only</ReadOnlyLabel>
           ) : (
             <>
-              {' '}
               <ToolButton>
                 <UndoIcon onClick={app.undo} />
               </ToolButton>
               <ToolButton>
-                <RedoIcon onClick={app.redo} />
+                <UndoIcon onClick={app.redo} flip />
               </ToolButton>
             </>
           )}

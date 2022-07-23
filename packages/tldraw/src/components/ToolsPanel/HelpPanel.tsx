@@ -14,7 +14,6 @@ import {
 } from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
-import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
@@ -33,13 +32,13 @@ export function HelpPanel() {
   return (
     <Popover.Root>
       <PopoverAnchor dir="ltr">
-        <Popover.Trigger asChild dir="ltr">
+        <Popover.Trigger dir="ltr" asChild>
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <Popover.Content dir="ltr">
+      <Popover.Content dir="ltr" asChild>
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
