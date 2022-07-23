@@ -403,7 +403,6 @@ const OverlapIcons = styled('div', {
     gridColumn: 1,
     gridRow: 1,
   },
-  backgroundColor: '$panel',
 })
 
 const FontIcon = styled('div', {
