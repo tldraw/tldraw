@@ -112,6 +112,8 @@ export const StyledToolButtonInner = styled('div', {
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 })
 
 export const StyledToolButton = styled('button', {
@@ -130,6 +132,8 @@ export const StyledToolButton = styled('button', {
   border: 'none',
   height: '40px',
   width: '40px',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 
   [`&:disabled ${StyledToolButtonInner}`]: {
     opacity: 0.618,
