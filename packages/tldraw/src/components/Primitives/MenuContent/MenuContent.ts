@@ -35,12 +35,4 @@ export const MenuContent = styled('div', {
       },
     },
   },
-  hr: {
-    height: 0,
-    paddingTop: 1,
-    width: 'calc(100%+8px)',
-    backgroundColor: '$hover',
-    border: 'none',
-    margin: '$2 -4px',
-  },
 })

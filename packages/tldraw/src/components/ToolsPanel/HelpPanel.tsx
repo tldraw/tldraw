@@ -18,6 +18,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
+import { Divider } from '~components/Primitives/Divider'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -42,7 +43,7 @@ export function HelpPanel() {
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
-          <hr />
+          <Divider />
           <Links />
         </StyledContent>
       </Popover.Content>

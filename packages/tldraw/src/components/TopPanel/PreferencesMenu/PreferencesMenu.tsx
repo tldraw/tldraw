@@ -4,6 +4,7 @@ import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/Dro
 import { useTldrawApp } from '~hooks'
 import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
 import { styled } from '~styles'
+import { Divider } from '~components/Primitives/Divider'
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
@@ -94,7 +95,7 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
-      <hr />
+      <Divider />
       <DMCheckboxItem
         checked={settings.showGrid}
         onCheckedChange={toggleGrid}
