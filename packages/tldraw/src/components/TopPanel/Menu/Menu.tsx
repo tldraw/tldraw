@@ -174,7 +174,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
           >
             <FormattedMessage id="redo" />
           </DMItem>
-          <hr />
+          <Divider />
           <DMItem
             onSelect={preventEvent}
             disabled={!hasSelection || readOnly}
@@ -201,7 +201,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
           >
             <FormattedMessage id="paste" />
           </DMItem>
-          <hr />
+          <Divider />
           <DMSubMenu
             label={`${intl.formatMessage({ id: 'copy.as' })}...`}
             size="small"
@@ -239,7 +239,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
             </DMItem>
           </DMSubMenu>
 
-          <hr />
+          <Divider />
           <DMItem
             onSelect={preventEvent}
             onClick={handleSelectAll}
@@ -256,7 +256,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
           >
             <FormattedMessage id="select.none" />
           </DMItem>
-          <hr />
+          <Divider />
           <DMItem onSelect={handleDelete} disabled={!hasSelection} kbd="⌫" id="TD-MenuItem-Delete">
             <FormattedMessage id="delete" />
           </DMItem>
@@ -303,7 +303,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
             <FormattedMessage id="zoom.to.selection" />
           </DMItem>
         </DMSubMenu>
-        <hr />
+        <Divider />
         <PreferencesMenu />
       </DMContent>
     </DropdownMenu.Root>

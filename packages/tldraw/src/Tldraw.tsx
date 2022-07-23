@@ -419,8 +419,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideIndicators =
     (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
-  const hideCloneHandles =
-    isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
+  const hideCloneHandles = isInSession || !isSelecting || pageState.camera.zoom < 0.2
 
   const translation = useTranslation(settings.language)
 

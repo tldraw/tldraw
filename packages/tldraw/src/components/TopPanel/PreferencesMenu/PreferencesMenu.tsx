@@ -118,34 +118,6 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.keep.stylemenu.open" />
       </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.isSnapping}
-        onCheckedChange={toggleisSnapping}
-        id="TD-MenuItem-Preferences-Always_Show_Snaps"
-      >
-        <FormattedMessage id="preferences.always.show.snaps" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showRotateHandles}
-        onCheckedChange={toggleRotateHandle}
-        id="TD-MenuItem-Preferences-Rotate_Handles"
-      >
-        <FormattedMessage id="preferences.rotate.handles" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showBindingHandles}
-        onCheckedChange={toggleBoundShapesHandle}
-        id="TD-MenuItem-Preferences-Binding_Handles"
-      >
-        <FormattedMessage id="preferences.binding.handles" />
-      </DMCheckboxItem>
-      <DMCheckboxItem
-        checked={settings.showCloneHandles}
-        onCheckedChange={toggleCloneControls}
-        id="TD-MenuItem-Preferences-Clone_Handles"
-      >
-        <FormattedMessage id="preferences.clone.handles" />
-      </DMCheckboxItem>
       <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })} overflow={false}>
         {DockPosition.map((position) => (
           <DMCheckboxItem
