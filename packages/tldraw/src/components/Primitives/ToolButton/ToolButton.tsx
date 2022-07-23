@@ -162,7 +162,9 @@ export const StyledToolButton = styled('button', {
         padding: 0,
         height: 32,
         width: 32,
+        border: 'none',
         [`& ${StyledToolButtonInner}`]: {
+          border: '1px solid $panelContrast',
           borderRadius: '100%',
           boxShadow: '$panel',
         },
