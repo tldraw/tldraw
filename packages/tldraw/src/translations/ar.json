@@ -97,5 +97,13 @@
   "page": "صفحة",
   "keyboard.shortcuts": "اختصارات لوحة المفاتيح",
   "search": "بحث",
-  "loading": "{dots}تحميل "
+  "loading": "{dots}تحميل ",
+  "export.background": "تصدير الخلفية",
+  "transparent": "شـفاف",
+  "auto": "ذاتي",
+  "light": "خفيف",
+  "dark": "غامق",
+  "github": "Github",
+  "twitter": "تويتر",
+  "discord": "دسكورد"
 }
