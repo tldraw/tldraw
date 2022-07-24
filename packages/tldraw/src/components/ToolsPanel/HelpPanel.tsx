@@ -4,7 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { FormattedMessage } from 'react-intl'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
-import { TDDockPosition, TDSnapshot } from '~types'
+import { TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
@@ -16,7 +16,7 @@ import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
-import LanguageMenu from '~components/TopPanel/LanguageMenu/LanguageMenu'
+import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
 import { Divider } from '~components/Primitives/Divider'
 

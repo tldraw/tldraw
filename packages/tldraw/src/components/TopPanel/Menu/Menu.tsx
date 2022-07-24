@@ -3,13 +3,7 @@ import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from '../PreferencesMenu'
-import {
-  DMItem,
-  DMContent,
-  DMDivider,
-  DMSubMenu,
-  DMTriggerIcon,
-} from '~components/Primitives/DropdownMenu'
+import { DMItem, DMContent, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
 import { useFileSystemHandlers } from '~hooks'
 import { preventEvent } from '~components/preventEvent'
 import { TDExportType, TDSnapshot } from '~types'
