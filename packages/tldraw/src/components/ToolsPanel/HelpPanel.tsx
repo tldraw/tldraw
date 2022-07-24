@@ -32,14 +32,14 @@ export function HelpPanel() {
 
   return (
     <Popover.Root>
-      <PopoverAnchor dir="ltr">
+      <PopoverAnchor dir="ltr" debug={isDebugMode}>
         <Popover.Trigger dir="ltr" asChild>
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <Popover.Content dir="ltr" align="end" side={'top'} alignOffset={10} sideOffset={8} asChild>
+      <Popover.Content dir="ltr" align="end" side="top" alignOffset={10} sideOffset={8} asChild>
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
@@ -130,37 +130,13 @@ const HelpButton = styled('button', {
     {
       bp: 'mobile',
       side: 'bottom',
-      debug: false,
       css: {
         bottom: 70,
       },
     },
     {
-      bp: 'mobile',
-      debug: true,
-      css: {
-        bottom: 50,
-      },
-    },
-    {
-      bp: 'mobile',
-      side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 110,
-      },
-    },
-    {
       bp: 'small',
       side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 50,
-      },
-    },
-    {
-      bp: 'small',
-      debug: false,
       css: {
         bottom: 10,
       },
@@ -199,4 +175,11 @@ const PopoverAnchor = styled(Popover.Anchor, {
   bottom: 0,
   width: 40,
   height: 40,
+  variants: {
+    debug: {
+      true: {
+        bottom: 40,
+      },
+    },
+  },
 })

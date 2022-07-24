@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Trigger, Arrow, Sub, SubContent, SubTrigger } from '@radix-ui/react-dropdown-menu'
+import { Arrow, Sub, SubContent, SubTrigger } from '@radix-ui/react-dropdown-menu'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
 
