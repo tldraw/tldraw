@@ -341,7 +341,7 @@ function AlignDistributeSubMenu({
   return (
     <RadixContextMenu.Sub>
       <CMSubTriggerButton id="TD-ContextMenu-Align-Distribute-Trigger">
-        Align / Distribute
+        <FormattedMessage id="align.distribute" />
       </CMSubTriggerButton>
       <RadixContextMenu.Portal container={container.current}>
         <RadixContextMenu.SubContent asChild sideOffset={4} alignOffset={-2}>
