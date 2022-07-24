@@ -1783,8 +1783,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       svg.style.setProperty('background-color', 'transparent')
 
-      console.log(text)
-
       const imageBlob = await TLDR.getImageForSvg(svg, TDExportType.SVG, {
         scale: 1,
         quality: 1,

@@ -10,7 +10,7 @@ import { FormattedMessage } from 'react-intl'
 
 const zoomSelector = (s: TDSnapshot) => s.document.pageStates[s.appState.currentPageId].camera.zoom
 
-export const ZoomMenu = React.memo(function ZoomMenu() {
+export const ZoomMenu = function ZoomMenu() {
   const app = useTldrawApp()
 
   const zoom = app.useStore(zoomSelector)
@@ -46,7 +46,7 @@ export const ZoomMenu = React.memo(function ZoomMenu() {
       </DMContent>
     </DropdownMenu.Root>
   )
-})
+}
 
 const FixedWidthToolButton = styled(ToolButton, {
   minWidth: 56,

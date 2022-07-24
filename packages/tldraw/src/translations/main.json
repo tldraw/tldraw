@@ -79,6 +79,7 @@
   "reset.angle": "Reset Angle",
   "lock": "Lock",
   "unlock": "Unlock",
+  "align.distribute": "Align / Distribute",
   "move.to.page": "Move to Page",
   "flip.horizontal": "Flip Horizontal",
   "flip.vertical": "Flip Vertical",

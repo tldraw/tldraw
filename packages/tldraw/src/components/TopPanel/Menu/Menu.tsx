@@ -3,13 +3,7 @@ import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
 import { PreferencesMenu } from '../PreferencesMenu'
-import {
-  DMItem,
-  DMContent,
-  DMDivider,
-  DMSubMenu,
-  DMTriggerIcon,
-} from '~components/Primitives/DropdownMenu'
+import { DMItem, DMContent, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
 import { useFileSystemHandlers } from '~hooks'
 import { preventEvent } from '~components/preventEvent'
 import { TDExportType, TDSnapshot } from '~types'
@@ -120,7 +114,14 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
       <DMTriggerIcon id="TD-MenuIcon">
         <HamburgerMenuIcon />
       </DMTriggerIcon>
-      <DMContent variant="menu" id="TD-Menu">
+      <DMContent
+        variant="menu"
+        id="TD-Menu"
+        side="bottom"
+        align="start"
+        sideOffset={4}
+        alignOffset={4}
+      >
         {showFileMenu && (
           <DMSubMenu label={`${intl.formatMessage({ id: 'menu.file' })}...`} id="TD-MenuItem-File">
             {app.callbacks.onNewProject && (

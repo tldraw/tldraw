@@ -3,10 +3,12 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { styled } from '~styles/stitches.config'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { stopPropagation } from '~components/stopPropagation'
+import { useContainer } from '~hooks'
 
 export interface DMContentProps {
   variant?: 'menu' | 'horizontal'
   align?: 'start' | 'center' | 'end'
+  alignOffset?: number
   sideOffset?: number
   children: React.ReactNode
   overflow?: boolean
@@ -15,7 +17,8 @@ export interface DMContentProps {
 }
 
 export function DMContent({
-  sideOffset = 8,
+  sideOffset = 4,
+  alignOffset = 0,
   children,
   align,
   variant,
@@ -23,20 +26,24 @@ export function DMContent({
   overflow = false,
   side = 'bottom',
 }: DMContentProps) {
+  const container = useContainer()
+
   return (
-    <DropdownMenu.Content
-      dir="ltr"
-      align={align}
-      sideOffset={sideOffset}
-      onEscapeKeyDown={stopPropagation}
-      asChild
-      id={id}
-      side={side}
-    >
-      <StyledContent variant={variant} overflow={overflow}>
-        {children}
-      </StyledContent>
-    </DropdownMenu.Content>
+    <DropdownMenu.Portal container={container.current} dir="ltr">
+      <DropdownMenu.Content
+        align={align}
+        alignOffset={alignOffset}
+        sideOffset={sideOffset}
+        onEscapeKeyDown={stopPropagation}
+        asChild
+        id={id}
+        side={side}
+      >
+        <StyledContent variant={variant} overflow={overflow}>
+          {children}
+        </StyledContent>
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
   )
 }
 
