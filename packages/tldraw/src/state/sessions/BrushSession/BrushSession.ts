@@ -57,6 +57,7 @@ export class BrushSession extends BaseSession {
       ? !metaKey && originPoint[0] < currentPoint[0]
       : metaKey
 
+
     // Find ids of brushed shapes
     const hits = new Set<string>()
 
@@ -94,6 +95,9 @@ export class BrushSession extends BaseSession {
 
     if (!didChange)
       return {
+        appState: {
+          selectByContain,
+        },
         document: {
           pageStates: {
             [this.app.currentPageId]: {

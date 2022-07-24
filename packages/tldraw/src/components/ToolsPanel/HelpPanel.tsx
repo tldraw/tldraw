@@ -4,7 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { FormattedMessage } from 'react-intl'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
-import { TDSnapshot } from '~types'
+import { TDDockPosition, TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
@@ -14,7 +14,6 @@ import {
 } from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
-import { DMDivider } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import LanguageMenu from '~components/TopPanel/LanguageMenu/LanguageMenu'
@@ -40,7 +39,7 @@ export function HelpPanel() {
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <Popover.Content dir="ltr" asChild>
+      <Popover.Content dir="ltr" align="end" side={'top'} alignOffset={10} sideOffset={8} asChild>
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
@@ -60,9 +59,7 @@ const LanguageMenuDropdown = () => {
           <FormattedMessage id="language" />
         </RowButton>
       </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <LanguageMenu />
-      </DropdownMenu.Portal>
+      <LanguageMenu />
     </DropdownMenu.Root>
   )
 }
@@ -99,15 +96,17 @@ const HelpButton = styled('button', {
   width: 28,
   height: 28,
   borderRadius: '100%',
-  position: 'fixed',
+  position: 'absolute',
   right: 10,
-  display: 'grid',
-  placeItems: 'center',
-  border: 'none',
+  bottom: 10,
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  outline: 'none',
   backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
-  bottom: 10,
+  border: '1px solid $panelContrast',
   color: '$text',
   variants: {
     debug: {
@@ -140,7 +139,7 @@ const HelpButton = styled('button', {
       bp: 'mobile',
       debug: true,
       css: {
-        bottom: 50, // 40 + 10
+        bottom: 50,
       },
     },
     {
@@ -178,6 +177,9 @@ export const StyledContent = styled(MenuContent, {
   '& *': {
     boxSizing: 'border-box',
   },
+  '& a': {
+    outline: 'none',
+  },
   variants: {
     variant: {
       horizontal: {
@@ -192,7 +194,9 @@ export const StyledContent = styled(MenuContent, {
 
 const PopoverAnchor = styled(Popover.Anchor, {
   position: 'absolute',
-  right: 10,
   zIndex: 999,
-  bottom: 50,
+  right: 0,
+  bottom: 0,
+  width: 40,
+  height: 40,
 })

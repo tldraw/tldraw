@@ -3,14 +3,15 @@ import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import { FormattedMessage } from 'react-intl'
 import { DMCheckboxItem, DMContent, DMDivider, DMItem } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { useTldrawApp } from '~hooks'
+import { useContainer, useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
 import { TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 
-const LanguageMenu = React.forwardRef(() => {
+const LanguageMenu = React.forwardRef((props, ref) => {
   const app = useTldrawApp()
   const language = app.useStore(languageSelector)
 

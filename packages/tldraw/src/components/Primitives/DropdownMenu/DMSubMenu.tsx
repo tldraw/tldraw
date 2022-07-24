@@ -27,7 +27,7 @@ export function DMSubMenu({
           {label}
         </RowButton>
       </SubTrigger>
-      <SubContent asChild sideOffset={2} alignOffset={-2}>
+      <SubContent asChild sideOffset={4} alignOffset={-4}>
         <MenuContent size={size} overflow={overflow}>
           {children}
           <Arrow offset={13} />

@@ -51,7 +51,7 @@ export function PageMenu() {
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
         <ToolButton variant="text">{currentPageName || 'Page'}</ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent variant="menu" align="start">
+      <DMContent variant="menu" align="start" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
       </DMContent>
     </DropdownMenu.Root>

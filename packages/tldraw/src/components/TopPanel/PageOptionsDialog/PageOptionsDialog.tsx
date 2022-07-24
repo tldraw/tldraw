@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
 import type { TDSnapshot, TDPage } from '~types'
-import { useTldrawApp } from '~hooks'
+import { useContainer, useTldrawApp } from '~hooks'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { styled } from '~styles'
 import { Divider } from '~components/Primitives/Divider'
@@ -11,6 +11,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { breakpoints } from '~components/breakpoints'
 import { TextField } from '~components/Primitives/TextField'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { Container } from '@tldraw/core/src/components/Container'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1
@@ -135,6 +136,8 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
     }
   }, [isOpen])
 
+  const container = useContainer()
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild data-shy="true">
@@ -144,9 +147,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
           </SmallIcon>
         </IconButton>
       </Dialog.Trigger>
-      <Dialog.Portal
-      // container={the current app's tl-container}
-      >
+      <Dialog.Portal container={container.current}>
         <StyledDialogOverlay onPointerDown={handleClose} />
         <StyledDialogContent dir="ltr" onKeyDown={stopPropagation} onKeyUp={stopPropagation}>
           <TextField
@@ -181,7 +182,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
 /* -------------------------------------------------- */
 
 export const StyledDialogContent = styled(Dialog.Content, {
-  position: 'fixed',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -194,6 +195,7 @@ export const StyledDialogContent = styled(Dialog.Content, {
   padding: '$1',
   borderRadius: '$2',
   font: '$ui',
+  zIndex: 999999,
   '&:focus': {
     outline: 'none',
   },
@@ -201,9 +203,10 @@ export const StyledDialogContent = styled(Dialog.Content, {
 
 export const StyledDialogOverlay = styled(Dialog.Overlay, {
   backgroundColor: 'rgba(0, 0, 0, .15)',
-  position: 'fixed',
+  position: 'absolute',
   pointerEvents: 'all',
   inset: 0,
+  zIndex: 999998,
 })
 
 function DialogAction({
