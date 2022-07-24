@@ -336,69 +336,73 @@ function AlignDistributeSubMenu({
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
+  const container = useContainer()
+
   return (
-    <span id="TD-ContextMenu-Align_Duplicate">
-      <RadixContextMenu.Root dir="ltr">
-        <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
-        <RadixContextMenu.Content asChild alignOffset={-2}>
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton id="TD-ContextMenu-Align-Distribute-Trigger">
+        Align / Distribute
+      </CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent asChild sideOffset={4} alignOffset={-2}>
           <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
-            <CMIconButton onClick={alignLeft} id="TD-ContextMenu-Align_Duplicate-AlignLeft">
+            <CMIconButton onClick={alignLeft} id="TD-ContextMenu-Align_Distribute-AlignLeft">
               <AlignLeftIcon />
             </CMIconButton>
             <CMIconButton
               onClick={alignCenterHorizontal}
-              id="TD-ContextMenu-Align_Duplicate-AlignCenterHorizontal"
+              id="TD-ContextMenu-Align_Distribute-AlignCenterHorizontal"
             >
               <AlignCenterHorizontallyIcon />
             </CMIconButton>
-            <CMIconButton onClick={alignRight} id="TD-ContextMenu-Align_Duplicate-AlignRight">
+            <CMIconButton onClick={alignRight} id="TD-ContextMenu-Align_Distribute-AlignRight">
               <AlignRightIcon />
             </CMIconButton>
             <CMIconButton
               onClick={stretchHorizontally}
-              id="TD-ContextMenu-Align_Duplicate-StretchHorizontal"
+              id="TD-ContextMenu-Align_Distribute-StretchHorizontal"
             >
               <StretchHorizontallyIcon />
             </CMIconButton>
             {hasThreeOrMore && (
               <CMIconButton
                 onClick={distributeHorizontally}
-                id="TD-ContextMenu-Align_Duplicate-SpaceEvenlyHorizontal"
+                id="TD-ContextMenu-Align_Distribute-SpaceEvenlyHorizontal"
               >
                 <SpaceEvenlyHorizontallyIcon />
               </CMIconButton>
             )}
-            <CMIconButton onClick={alignTop} id="TD-ContextMenu-Align_Duplicate-AlignTop">
+            <CMIconButton onClick={alignTop} id="TD-ContextMenu-Align_Distribute-AlignTop">
               <AlignTopIcon />
             </CMIconButton>
             <CMIconButton
               onClick={alignCenterVertical}
-              id="TD-ContextMenu-Align_Duplicate-AlignCenterVertical"
+              id="TD-ContextMenu-Align_Distribute-AlignCenterVertical"
             >
               <AlignCenterVerticallyIcon />
             </CMIconButton>
-            <CMIconButton onClick={alignBottom} id="TD-ContextMenu-Align_Duplicate-AlignBottom">
+            <CMIconButton onClick={alignBottom} id="TD-ContextMenu-Align_Distribute-AlignBottom">
               <AlignBottomIcon />
             </CMIconButton>
             <CMIconButton
               onClick={stretchVertically}
-              id="TD-ContextMenu-Align_Duplicate-StretchVertical"
+              id="TD-ContextMenu-Align_Distribute-StretchVertical"
             >
               <StretchVerticallyIcon />
             </CMIconButton>
             {hasThreeOrMore && (
               <CMIconButton
                 onClick={distributeVertically}
-                id="TD-ContextMenu-Align_Duplicate-SpaceEvenlyVertical"
+                id="TD-ContextMenu-Align_Distribute-SpaceEvenlyVertical"
               >
                 <SpaceEvenlyVerticallyIcon />
               </CMIconButton>
             )}
             <CMArrow offset={13} />
           </StyledGridContent>
-        </RadixContextMenu.Content>
-      </RadixContextMenu.Root>
-    </span>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -430,28 +434,32 @@ function MoveToPageMenu() {
     .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
     .filter((a) => a.id !== currentPageId)
 
+  const container = useContainer()
+
   if (sorted.length === 0) return null
 
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <CMTriggerButton isSubmenu>
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton>
         <FormattedMessage id="move.to.page" />
-      </CMTriggerButton>
-      <RadixContextMenu.Content alignOffset={-2} asChild>
-        <MenuContent>
-          {sorted.map(({ id, name }, i) => (
-            <CMRowButton
-              key={id}
-              disabled={id === currentPageId}
-              onClick={() => app.moveToPage(id)}
-            >
-              {name || `Page ${i}`}
-            </CMRowButton>
-          ))}
-          <CMArrow offset={13} />
-        </MenuContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+      </CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent sideOffset={4} alignOffset={-2} asChild>
+          <MenuContent>
+            {sorted.map(({ id, name }, i) => (
+              <CMRowButton
+                key={id}
+                disabled={id === currentPageId}
+                onClick={() => app.moveToPage(id)}
+              >
+                {name || `Page ${i}`}
+              </CMRowButton>
+            ))}
+            <CMArrow offset={13} />
+          </MenuContent>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -465,20 +473,19 @@ export interface ContextMenuSubMenuProps {
 }
 
 export function ContextMenuSubMenu({ children, label, size, id }: ContextMenuSubMenuProps) {
+  const container = useContainer()
   return (
-    <span id={id}>
-      <RadixContextMenu.Root dir="ltr">
-        <CMTriggerButton isSubmenu>{label}</CMTriggerButton>
-        <RadixContextMenu.Portal>
-          <RadixContextMenu.Content alignOffset={-2} asChild>
-            <MenuContent size={size}>
-              {children}
-              <CMArrow offset={13} />
-            </MenuContent>
-          </RadixContextMenu.Content>
-        </RadixContextMenu.Portal>
-      </RadixContextMenu.Root>
-    </span>
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton>{label}</CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent sideOffset={4} alignOffset={-2} asChild>
+          <MenuContent size={size}>
+            {children}
+            <CMArrow offset={13} />
+          </MenuContent>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -510,14 +517,10 @@ const CMRowButton = ({ id, ...rest }: RowButtonProps) => {
 
 /* ----------------- Trigger Button ----------------- */
 
-interface CMTriggerButtonProps extends RowButtonProps {
-  isSubmenu?: boolean
-}
-
-export const CMTriggerButton = ({ isSubmenu, ...rest }: CMTriggerButtonProps) => {
+export const CMSubTriggerButton = ({ id, ...rest }: RowButtonProps) => {
   return (
-    <RadixContextMenu.Trigger asChild>
-      <RowButton hasArrow={isSubmenu} {...rest} />
-    </RadixContextMenu.Trigger>
+    <RadixContextMenu.SubTrigger asChild id={id}>
+      <RowButton hasArrow {...rest} />
+    </RadixContextMenu.SubTrigger>
   )
 }
