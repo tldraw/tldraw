@@ -10,6 +10,7 @@ export const MenuContent = styled('div', {
   minWidth: 180,
   pointerEvents: 'all',
   backgroundColor: '$panel',
+  border: '1px solid $panelContrast',
   boxShadow: '$panel',
   padding: '$2 $2',
   borderRadius: '$3',

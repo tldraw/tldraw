@@ -241,7 +241,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
                     size={18}
                     strokeWidth={2.5}
                     fill={
-                      displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
+                      displayedStyle.isFilled ? fills[theme][style as ColorStyle] : 'transparent'
                     }
                     stroke={strokes.light[style as ColorStyle]}
                   />
@@ -337,7 +337,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             )}
           </>
         )}
-        <DMDivider />
+        <Divider />
         <DMCheckboxItem
           variant="styleMenu"
           checked={keepOpen}

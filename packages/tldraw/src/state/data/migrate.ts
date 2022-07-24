@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-import { Decoration, FontStyle, TDDocument, TDShapeType, TDSnapshot, TextShape } from '~types'
+import {
+  Decoration,
+  FontStyle,
+  TDDocument,
+  TDExportBackground,
+  TDShapeType,
+  TDSnapshot,
+  TextShape,
+} from '~types'
 
 export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
   const { document, settings } = state
@@ -120,6 +128,10 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
 
   if (version < 15.4) {
     settings.dockPosition = 'bottom'
+  }
+
+  if (version < 15.5) {
+    settings.exportBackground = TDExportBackground.Transparent
   }
 
   // Cleanup

@@ -249,6 +249,9 @@ export const TLCSS = css`
     pointer-events: none;
     will-change: transform;
   }
+  .tl-animated {
+    transition: transform 200ms linear;
+  }
   .tl-indicator {
     fill: transparent;
     stroke-width: calc(1.5px * var(--tl-scale));

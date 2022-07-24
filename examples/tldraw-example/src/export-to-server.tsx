@@ -73,7 +73,6 @@ async function exportViaServer(app: TldrawApp, type: TDExportType) {
     switch (type) {
       case TDExportType.SVG: {
         const svg = await app.getSvg(shapeIds, {
-          transparentBackground: true,
           includeFonts: true,
         })
 

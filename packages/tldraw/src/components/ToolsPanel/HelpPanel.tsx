@@ -6,7 +6,11 @@ import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import { TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
-import { GitHubLogoIcon, QuestionMarkIcon, TwitterLogoIcon } from '@radix-ui/react-icons'
+import {
+  GitHubLogoIcon,
+  QuestionMarkIcon,
+  TwitterLogoIcon,
+} from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { DMDivider } from '~components/Primitives/DropdownMenu'
@@ -14,6 +18,7 @@ import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import LanguageMenu from '~components/TopPanel/LanguageMenu/LanguageMenu'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
+import { Divider } from '~components/Primitives/Divider'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -28,17 +33,17 @@ export function HelpPanel() {
   return (
     <Popover.Root>
       <PopoverAnchor dir="ltr">
-        <Popover.Trigger asChild dir="ltr">
+        <Popover.Trigger dir="ltr" asChild>
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <Popover.Content dir="ltr">
+      <Popover.Content dir="ltr" asChild>
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
-          <DMDivider />
+          <Divider />
           <Links />
         </StyledContent>
       </Popover.Content>
@@ -62,9 +67,14 @@ const LanguageMenuDropdown = () => {
 }
 
 const linksData = [
-  { id: 'github', title: 'Github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
-  { id: 'twitter', title: 'Twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
-  { id: 'discord', title: 'Discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
+  { id: 'github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
+  { id: 'twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
+  { id: 'discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
+  {
+    id: 'become.a.sponsor',
+    icon: HeartFilledIcon,
+    url: 'https://github.com/sponsors/steveruizok',
+  },
 ]
 
 const Links = () => {
@@ -73,7 +83,7 @@ const Links = () => {
       {linksData.map((item) => (
         <a key={item.id} href={item.url} target="_blank" rel="nofollow">
           <RowButton id={`TD-Link-${item.id}`} variant="wide">
-            {item.title}
+            <FormattedMessage id={item.id} />
             <SmallIcon>
               <item.icon />
             </SmallIcon>
@@ -96,6 +106,7 @@ const HelpButton = styled('button', {
   backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
+  border: '1px solid $panelContrast',
   bottom: 10,
   color: '$text',
   variants: {

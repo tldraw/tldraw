@@ -3,6 +3,7 @@ import { useIntl } from 'react-intl'
 import {
   ArrowTopRightIcon,
   CursorArrowIcon,
+  ImageIcon,
   Pencil1Icon,
   Pencil2Icon,
   TextIcon,
@@ -12,7 +13,9 @@ import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
-import { EraserIcon, ImageIcon } from '~components/Primitives/icons'
+import { EraserIcon } from '~components/Primitives/icons'
+import { styled } from '~styles/stitches.config'
+import { breakpoints } from '~components/breakpoints'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
@@ -58,7 +61,12 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
-    <Panel side="center" id="TD-PrimaryTools" style={{ flexDirection: panelStyle }}>
+    <StyledPanel
+      side="center"
+      id="TD-PrimaryTools"
+      style={{ flexDirection: panelStyle }}
+      bp={breakpoints}
+    >
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}
@@ -119,6 +127,20 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       <ToolButtonWithTooltip label="Image" onClick={uploadMedias} id="TD-PrimaryTools-Image">
         <ImageIcon />
       </ToolButtonWithTooltip>
-    </Panel>
+    </StyledPanel>
   )
+})
+
+const StyledPanel = styled(Panel, {
+  variants: {
+    bp: {
+      mobile: {
+        padding: '$0',
+        borderRadius: '10px',
+      },
+      small: {
+        padding: '$2',
+      },
+    },
+  },
 })

@@ -1,37 +1,25 @@
+import * as React from 'react'
 import { RoomProvider } from '../utils/liveblocks'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
-import { useAccountHandlers } from 'hooks/useAccountHandlers'
-import React, { FC } from 'react'
 import { styled } from 'styles'
 import { useReadOnlyMultiplayerState } from 'hooks/useReadOnlyMultiplayerState'
 
 interface Props {
   roomId: string
-  isUser: boolean
-  isSponsor: boolean
 }
 
-const ReadOnlyMultiplayerEditor: FC<Props> = ({
-  roomId,
-  isUser = false,
-  isSponsor = false,
-}: {
-  roomId: string
-  isUser: boolean
-  isSponsor: boolean
-}) => {
+const ReadOnlyMultiplayerEditor = ({ roomId }: Props) => {
   return (
     <RoomProvider id={roomId}>
-      <ReadOnlyEditor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
+      <ReadOnlyEditor roomId={roomId} />
     </RoomProvider>
   )
 }
 
 // Inner Editor
 
-function ReadOnlyEditor({ roomId, isUser, isSponsor }: Props) {
+function ReadOnlyEditor({ roomId }: Props) {
   const { onSaveProjectAs, onSaveProject } = useFileSystem()
-  const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useReadOnlyMultiplayerState(roomId)
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
@@ -42,9 +30,6 @@ function ReadOnlyEditor({ roomId, isUser, isSponsor }: Props) {
         autofocus
         disableAssets={false}
         showPages={false}
-        showSponsorLink={!isSponsor}
-        onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={isUser ? onSignOut : undefined}
         onSaveProjectAs={onSaveProjectAs}
         onSaveProject={onSaveProject}
         readOnly

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.20.0
+
+### Minor Changes
+
+- - restores the sponsor link
+  - removes sign in / sign out / authentication / next-auth
+  - removes sponsorware page
+  - removes unused translation keys
+  - fixes dark mode on help icon
+  - improves border radius on panels
+  - fixes dividers on panels
+  - removes animated cursors (replace with CSS transitions for performance when - many cursors are present)
+  - removes unused icons
+  - adds migration for export default background option
+  - correctly normalizes mouse wheel
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.15.0
+
 ## 1.19.0
 
 ### Minor Changes

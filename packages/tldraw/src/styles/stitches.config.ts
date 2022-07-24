@@ -15,8 +15,6 @@ const { styled, createTheme } = createStitches({
       panelContrast: '#ffffff',
       selected: 'rgba(66, 133, 244, 1.000)',
       selectedContrast: '#fefefe',
-      sponsor: '#ec6cb9',
-      sponsorContrast: '#ec6cb944',
       text: '#333333',
       tooltip: '#1d1d1d',
       tooltipContrast: '#ffffff',

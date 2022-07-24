@@ -83,6 +83,7 @@ export function KeyboardShortcutDialog({
 
   return (
     <Dialog.Root onOpenChange={onOpenChange}>
+      {/* // todo: hide if no keyboard is attached */}
       <Dialog.Trigger asChild>
         <RowButton id="TD-HelpItem-Keyboard" variant="wide">
           <FormattedMessage id="keyboard.shortcuts" />
@@ -102,7 +103,9 @@ export function KeyboardShortcutDialog({
           <StyledColumns bp={breakpoints}>
             {Object.entries(shortcuts).map(([key, value]) => (
               <StyledSection key={key}>
-                <Label>{key}</Label>
+                <Label>
+                  <FormattedMessage id={`menu.${key.toLocaleLowerCase()}`} />
+                </Label>
                 <ContentItem>
                   {value.map((shortcut) => (
                     <StyledItem key={shortcut.label}>

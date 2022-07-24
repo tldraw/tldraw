@@ -9,6 +9,7 @@ import { TLDR } from '~state/TLDR'
 import { Utils } from '@tldraw/core'
 import { FormattedMessage } from 'react-intl'
 import { MultiplayerIcon2 } from '~components/Primitives/icons/MultiplayerIcon2'
+import { Divider } from '~components/Primitives/Divider'
 
 const roomSelector = (state: TDSnapshot) => state.room
 
@@ -124,7 +125,7 @@ export const MultiplayerMenu = React.memo(function MultiplayerMenu() {
           <FormattedMessage id="copy.readonly.link" />
           <SmallIcon>{copied ? <CheckIcon /> : <ClipboardIcon />}</SmallIcon>
         </DMItem>
-        <DMDivider id="TD-Multiplayer-CopyInviteLinkDivider" />
+        <Divider />
         <DMItem
           id="TD-Multiplayer-CreateMultiplayerProject"
           onClick={handleCreateMultiplayerProject}

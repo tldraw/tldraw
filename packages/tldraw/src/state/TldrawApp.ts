@@ -42,6 +42,7 @@ import {
   ArrowShape,
   TDExportType,
   TldrawPatch,
+  TDExportBackground,
   AlignStyle,
 } from '~types'
 import {
@@ -118,14 +119,6 @@ export interface TDCallbacks {
    * (optional) A callback to run when the opens a file to upload.
    */
   onOpenMedia?: (app: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user signs in via the menu.
-   */
-  onSignIn?: (app: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user signs out via the menu.
-   */
-  onSignOut?: (app: TldrawApp) => void
   /**
    * (optional) A callback to run when the state is patched.
    */
@@ -607,73 +600,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /* ----------- Managing Multiplayer State ----------- */
 
   private justSent = false
-  private prevShapes = this.page.shapes
-  private prevBindings = this.page.bindings
-  private prevAssets = this.document.assets
-
-  // private broadcastPageChanges = () => {
-  //   const visited = new Set<string>()
-
-  //   const changedShapes: Record<string, TDShape | undefined> = {}
-  //   const changedBindings: Record<string, TDBinding | undefined> = {}
-  //   const changedAssets: Record<string, TDAsset | undefined> = {}
-
-  //   this.shapes.forEach((shape) => {
-  //     visited.add(shape.id)
-  //     if (this.prevShapes[shape.id] !== shape) {
-  //       changedShapes[shape.id] = shape
-  //     }
-  //   })
-
-  //   Object.keys(this.prevShapes)
-  //     .filter((id) => !visited.has(id))
-  //     .forEach((id) => {
-  //       // After visiting all the current shapes, if we haven't visited a
-  //       // previously present shape, then it was deleted
-  //       changedShapes[id] = undefined
-  //     })
-
-  //   this.bindings.forEach((binding) => {
-  //     visited.add(binding.id)
-  //     if (this.prevBindings[binding.id] !== binding) {
-  //       changedBindings[binding.id] = binding
-  //     }
-  //   })
-
-  //   Object.keys(this.prevBindings)
-  //     .filter((id) => !visited.has(id))
-  //     .forEach((id) => {
-  //       // After visiting all the current bindings, if we haven't visited a
-  //       // previously present shape, then it was deleted
-  //       changedBindings[id] = undefined
-  //     })
-
-  //   this.assets.forEach((asset) => {
-  //     visited.add(asset.id)
-  //     if (this.prevAssets[asset.id] !== asset) {
-  //       changedAssets[asset.id] = asset
-  //     }
-  //   })
-
-  //   Object.keys(this.prevAssets)
-  //     .filter((id) => !visited.has(id))
-  //     .forEach((id) => {
-  //       changedAssets[id] = undefined
-  //     })
-
-  //   // Only trigger update if shapes or bindings have changed
-  //   if (
-  //     Object.keys(changedBindings).length > 0 ||
-  //     Object.keys(changedShapes).length > 0 ||
-  //     Object.keys(changedAssets).length > 0
-  //   ) {
-  //     this.justSent = true
-  //     this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets,)
-  //     this.prevShapes = this.page.shapes
-  //     this.prevBindings = this.page.bindings
-  //     this.prevAssets = this.document.assets
-  //   }
-  // }
 
   getReservedContent = (coreReservedIds: string[], pageId = this.currentPageId) => {
     const { bindings } = this.document.pages[pageId]
@@ -806,9 +732,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       // will have changed. This is important because we want to restore
       // related shapes that may not have changed on our side, but which
       // were deleted on the server.
-      this.prevShapes = shapes
-      this.prevBindings = bindings
-      this.prevAssets = assets
 
       const nextShapes = {
         ...shapes,
@@ -913,8 +836,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       })
 
       this.state.document = next.document
-      // this.prevShapes = nextShapes
-      // this.prevBindings = nextBindings
 
       return next
     }, true)
@@ -1940,7 +1861,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                   break
                 }
                 case 'text/plain': {
-                  console.log(str)
                   if (str.startsWith('<svg')) {
                     getSvgFromText(str)
                   } else {
@@ -2014,7 +1934,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getSvg = async (
     ids = this.selectedIds.length ? this.selectedIds : Object.keys(this.page.shapes),
-    opts = {} as Partial<{ transparentBackground: boolean; includeFonts: boolean }>
+    opts = {} as Partial<{ includeFonts: boolean }>
   ): Promise<SVGElement | undefined> => {
     if (ids.length === 0) return
 
@@ -2151,13 +2071,32 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     svg.setAttribute('width', commonBounds.width.toString())
     svg.setAttribute('height', commonBounds.height.toString())
 
-    if (opts.transparentBackground) {
-      svg.style.setProperty('background-color', 'transparent')
-    } else {
-      svg.style.setProperty(
-        'background-color',
-        this.settings.isDarkMode ? '#212529' : 'rgb(248, 249, 250)'
-      )
+    // Set export background
+    const exportBackground: TDExportBackground = this.settings.exportBackground
+    const darkBackground = '#212529'
+    const lightBackground = 'rgb(248, 249, 250)'
+
+    switch (exportBackground) {
+      case TDExportBackground.Auto: {
+        svg.style.setProperty(
+          'background-color',
+          this.settings.isDarkMode ? darkBackground : lightBackground
+        )
+        break
+      }
+      case TDExportBackground.Dark: {
+        svg.style.setProperty('background-color', darkBackground)
+        break
+      }
+      case TDExportBackground.Light: {
+        svg.style.setProperty('background-color', lightBackground)
+        break
+      }
+      case TDExportBackground.Transparent:
+      default: {
+        svg.style.setProperty('background-color', 'transparent')
+        break
+      }
     }
 
     svg
@@ -2365,7 +2304,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const svg = await this.getSvg(ids, {
       includeFonts: format !== TDExportType.SVG,
-      transparentBackground: format === TDExportType.PNG,
     })
 
     if (!svg) return
@@ -2429,7 +2367,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       pageId: string
       scale: number
       quality: number
-      transparentBackground: boolean
     }>
   ) => {
     const { pageId = this.currentPageId } = opts
@@ -4148,7 +4085,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   getShapeUtil = TLDR.getShapeUtil
 
-  static version = 15.4
+  static version = 15.5
 
   static defaultDocument: TDDocument = {
     id: 'doc',
@@ -4195,6 +4132,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showGrid: false,
       language: 'en',
       dockPosition: 'bottom',
+      exportBackground: TDExportBackground.Transparent,
     },
     appState: {
       status: TDStatus.Idle,
