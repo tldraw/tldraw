@@ -9,6 +9,7 @@ import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
   QuestionMarkIcon,
+  HeartFilledIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
@@ -106,7 +107,6 @@ const HelpButton = styled('button', {
   backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
-  border: '1px solid $panelContrast',
   bottom: 10,
   color: '$text',
   variants: {
