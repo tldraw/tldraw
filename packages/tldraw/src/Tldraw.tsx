@@ -373,12 +373,17 @@ const InnerTldraw = React.memo(function InnerTldraw({
     ? !appState.selectByContain
     : appState.selectByContain
 
+  // localStorage.isDarkMode = true
+
+  const isLocalDarkMode = localStorage.getItem('isDarkMode')
   // Custom theme, based on darkmode
   const theme = React.useMemo(() => {
     const { selectByContain } = appState
     const { isDarkMode, isCadSelectMode } = settings
 
-    if (isDarkMode) {
+    console.log({ isDarkMode })
+
+    if (isDarkMode || isLocalDarkMode) {
       const brushBase = isCadSelectMode
         ? selectByContain
           ? '69, 155, 255'
@@ -402,7 +407,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
       brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
       brushDashStroke: `rgba(${brushBase}, .6)`,
     }
-  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain, isLocalDarkMode])
 
   const isInSession = app.session !== undefined
 
@@ -429,12 +434,12 @@ const InnerTldraw = React.memo(function InnerTldraw({
   React.useLayoutEffect(() => {
     const elm = rWrapper.current
     if (!elm) return
-    if (settings.isDarkMode) {
+    if (settings.isDarkMode || isLocalDarkMode) {
       elm.classList.add(dark)
     } else {
       elm.classList.remove(dark)
     }
-  }, [settings.isDarkMode])
+  }, [settings.isDarkMode, isLocalDarkMode])
 
   return (
     <ContainerContext.Provider value={rWrapper}>

@@ -85,8 +85,6 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
-import { getTranslation } from '~translations'
-import { TextUtil } from './shapes/TextUtil'
 
 const uuid = Utils.uniqueId()
 
@@ -281,6 +279,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     loadFileHandle().then((fileHandle) => {
       this.fileSystemHandle = fileHandle
     })
+
+    localStorage.settings = JSON.stringify(this.state.settings)
 
     try {
       this.patchState({
@@ -960,8 +960,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     }
 
     this.patchState(patch, `settings:${name}`)
+    console.log('persisting patch', patch)
 
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -978,7 +979,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     this.patchState(patch, `settings:toggled_focus_mode`)
 
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -993,7 +994,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       },
     }
     this.patchState(patch, `settings:toggled_pen_mode`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1004,7 +1005,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.session) return this
     const patch = { settings: { isDarkMode: !this.settings.isDarkMode } }
     this.patchState(patch, `settings:toggled_dark_mode`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1015,7 +1016,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.session) return this
     const patch = { settings: { isZoomSnap: !this.settings.isZoomSnap } }
     this.patchState(patch, `settings:toggled_zoom_snap`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1026,7 +1027,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.session) return this
     const patch = { settings: { isDebugMode: !this.settings.isDebugMode } }
     this.patchState(patch, `settings:toggled_debug`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1074,7 +1075,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (this.session) return this
     const patch = { settings: { showGrid: !this.settings.showGrid } }
     this.patchState(patch, 'settings:toggled_grid')
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1355,9 +1356,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const state = {
       ...TldrawApp.defaultState,
-      settings: {
-        ...this.state.settings,
-      },
+      // should be global not here
+      // MOVE IT
+      // settings: {
+      //   ...this.state.settings,
+      // },
       document,
       appState: {
         ...TldrawApp.defaultState.appState,

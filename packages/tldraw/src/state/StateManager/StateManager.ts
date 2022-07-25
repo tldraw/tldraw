@@ -134,8 +134,23 @@ export class StateManager<T extends Record<string, any>> {
     }
 
     if (this._idbId) {
+      console.log('setting state')
+
       return idb.set(this._idbId, this._state).catch((e) => console.error(e))
     }
+  }
+
+  /**
+   * Save the current settings to localStorage
+   */
+  protected persistSetting = (patch: Patch<T>) => {
+    if (this._status !== 'ready') return
+    const settings = JSON.parse(localStorage.getItem('settings') as string)
+    let entries = Object.entries(patch.settings as any)
+    entries.map(([key, value]) => {
+      settings[key] = value
+    })
+    localStorage.settings = JSON.stringify(settings)
   }
 
   /**
