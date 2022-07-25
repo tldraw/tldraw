@@ -57,11 +57,41 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
         const rContainer = React.useRef<HTMLDivElement>(null)
 
-
         const rIsMounted = React.useRef(false)
+
+        const rTitle = React.useRef<HTMLDivElement>(null)
+
+        const rBody = React.useRef<HTMLDivElement>(null)
+
+        const rTextContainer = React.useRef<HTMLDivElement>(null)
+
+        const rVideoContainer = React.useRef<HTMLDivElement>(null)
 
         const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
           e.stopPropagation()
+        }, [])
+
+        // Resize to fit text
+        React.useEffect(() => {
+          const textContainer = rTextContainer.current!
+          const videoContainer = rVideoContainer.current!
+          const title = rTitle.current!
+          const body = rBody.current!
+
+          const { size } = shape
+          const { offsetHeight: currTitleHeight } = title
+          const { offsetHeight: currBodyHeight } = body
+          const { clientHeight: currTextContainerHeight } = textContainer
+          const currTextHeight = currTitleHeight + currBodyHeight
+          const minTextHeight = currTextContainerHeight - PADDING * 2
+
+          if (currTextHeight > minTextHeight) {
+            // Snap the size to the text content if the text only when the
+            // text is larger than the minimum text height.
+            // 25.07.2022 - 10:28 - MK: musste 450 als konstante für das video image einbinden, weil er mir für die höhe hier immer null ausgegeben hat. Wenn das Mal resized werden soll, müssen wir halt noch eine Lösung dafür finden.
+            onShapeChange?.({ id: shape.id, size: [size[0], 450 + currTextHeight + PADDING * 2] })
+            return
+          }
         }, [])
 
         const style = {
@@ -104,14 +134,14 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
                 <div style={{
                 }}>
-                  <div style={{
+                  <div ref={rVideoContainer} style={{
                     fontSize: 32,
                     fontWeight: 800,
                     position: 'relative',
                     pointerEvents: 'none',
                     userSelect: 'none',
                   }}>
-                    <img src={shape.thumbnail} style={{ height: 'auto', width: '100%', display: 'block' }}></img>
+                    <img id="video-img" src={shape.thumbnail} style={{ height: 'auto', width: '100%', display: 'block' }}></img>
                     <div style={{
                       position: 'absolute',
                       bottom: 0,
@@ -127,23 +157,22 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                     </div>
                   </div>
                 </div>
-                <div style={{
+                <div ref={rTextContainer} style={{
                   padding: '.5em',
                 }}>
-                  <div style={{
+                  <div ref={rTitle} style={{
                     fontSize: 32,
                     fontWeight: 800,
                     pointerEvents: 'none',
                     userSelect: 'none',
                     overflow: 'hidden',
-                    WebkitLineClamp: 2,
                     display: '-webkit-box',
                     WebkitBoxOrient: 'vertical',
                     textOverflow: 'ellipsis',
                   }}>
                     {shape.title}
                   </div>
-                  <div style={{
+                  <div ref={rBody} style={{
                     paddingTop: '2em',
                     fontSize: 14,
                     fontWeight: 400,
@@ -151,7 +180,6 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                     textOverflow: 'ellipsis',
                     whiteSpace: 'normal',
                     display: '-webkit-box',
-                    WebkitLineClamp: 15,
                     WebkitBoxOrient: 'vertical',
                     pointerEvents: 'none',
                     userSelect: 'none'
@@ -226,7 +254,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 /* -------------------------------------------------- */
 
 const PADDING = 16
-const MIN_CONTAINER_HEIGHT = 800
+const MIN_CONTAINER_HEIGHT = 700
 
 
 const StyledVideoContainer = styled('div', {

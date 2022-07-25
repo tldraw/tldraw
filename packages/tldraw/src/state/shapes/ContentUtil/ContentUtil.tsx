@@ -57,11 +57,35 @@ export class ContentUtil extends TDShapeUtil<T, E> {
 
             const rContainer = React.useRef<HTMLDivElement>(null)
 
-
             const rIsMounted = React.useRef(false)
+
+            const rTitle = React.useRef<HTMLDivElement>(null)
+
+            const rBody = React.useRef<HTMLDivElement>(null)
+
 
             const handlePointerDown = React.useCallback((e: React.PointerEvent) => {
                 e.stopPropagation()
+            }, [])
+
+            // Resize to fit text
+            React.useEffect(() => {
+                const title = rTitle.current!
+                const body = rBody.current!
+
+                const { size } = shape
+                const { offsetHeight: currTitleHeight } = title
+                const { offsetHeight: currBodyHeight } = body
+                const currTextHeight = currTitleHeight + currBodyHeight
+                const minTextHeight = MIN_CONTAINER_HEIGHT - PADDING * 2
+
+                if (currTextHeight > minTextHeight) {
+                    // Snap the size to the text content if the text only when the
+                    // text is larger than the minimum text height.
+                    // 25.07.2022 - 10:28 - MK: musste 450 als konstante für das video image einbinden, weil er mir für die höhe hier immer null ausgegeben hat. Wenn das Mal resized werden soll, müssen wir halt noch eine Lösung dafür finden.
+                    onShapeChange?.({ id: shape.id, size: [size[0], currTextHeight + PADDING * 2] })
+                    return
+                }
             }, [])
 
             const style = {
@@ -115,7 +139,7 @@ export class ContentUtil extends TDShapeUtil<T, E> {
                             <Icon></Icon>
                         </div>
                         <div style={{ padding: '.5em' }}>
-                            <div style={{
+                            <div ref={rTitle} style={{
                                 paddingTop: '1em',
                                 fontSize: 40,
                                 fontWeight: 800,
@@ -126,14 +150,13 @@ export class ContentUtil extends TDShapeUtil<T, E> {
                             }}>
                                 {shape.title}
                             </div>
-                            <div style={{
+                            <div ref={rBody} style={{
                                 paddingTop: '2em',
                                 fontSize: 14,
                                 fontWeight: 400,
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
                                 whiteSpace: 'normal',
-                                WebkitLineClamp: 15,
                                 display: '-webkit-box',
                                 WebkitBoxOrient: 'vertical',
                                 pointerEvents: 'none',
