@@ -1,4 +1,3 @@
-import {AccessToken} from "~state/services/DONOTPUSH_ACCESSTOKEN";
 import {environment} from "~environment";
 
 export enum NodeTypeEnum {
@@ -21,10 +20,43 @@ const EdubreakService = {
         }
     },
 
+    getEdubreakApiUrl() {
+        const metaTag = document.head.querySelector("[itemprop~=edubreakAPIUrl][content]");
+        // @ts-ignore
+        if (metaTag['content']! !== null || metaTag['content'].length > 0) {
+            if (metaTag) {
+                // @ts-ignore
+                return metaTag['content']
+            }
+        }
+        if (environment.API_URL.length > 0) {
+            return environment.API_URL
+        }
+        throw 'Edubreak API URL not set'
+    },
+
+    getEdubreakAccessToken() {
+        const metaTag = document.head.querySelector("[itemprop~=accesstoken][content]");
+        // @ts-ignore
+        if (metaTag['content']! !== null || metaTag['content'].length > 0) {
+            if (metaTag) {
+                // @ts-ignore
+                return metaTag['content']
+            }
+        }
+        if (environment.ACCESS_TOKEN.length > 0) {
+            return environment.ACCESS_TOKEN
+        }
+        throw 'Edubreak Access Token not set'
+    },
+
     getNodeAsJSON: async function(options: any) {
         let endpoint = await this.getEdubreakEndpointFromType(options)
-        const headers = { Authorization: 'Bearer ' + AccessToken.TOKEN }
-        const data = await fetch(environment.API_URL + endpoint + options.nid, { headers })
+        // TODO: remove after Testing
+        console.log('access token is: ', this.getEdubreakAccessToken());
+        console.log('api url is: ', this.getEdubreakApiUrl());
+        const headers = { Authorization: 'Bearer ' + this.getEdubreakAccessToken() }
+        const data = await fetch( this.getEdubreakApiUrl() + endpoint + options.nid, { headers })
             .then(response => {return response.json()})
         console.log('RESPONSE DATA IS: ', data)
         return data;

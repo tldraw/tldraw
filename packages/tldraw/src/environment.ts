@@ -3,4 +3,5 @@ export const environment = {
     APP_NAME: 'tldraw',
     API_VERSION: 1,
     API_URL: 'https://codeception.manukla.edubreak.dev20.ghostthinker.de/api/rest',
+    ACCESS_TOKEN: ''
 };
