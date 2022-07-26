@@ -3029,6 +3029,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
+
+    if (this.session) return this
     const drawCommand = Commands.deleteShapes(this, ids)
 
     if (
