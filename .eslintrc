@@ -1,8 +1,16 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "plugins": ["@typescript-eslint", "jest"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:jest/recommended"
+  ],
+  "rules": {
+    "jest/no-export": "warn",
+    "jest/no-identical-title": "warn"
+  },
   "overrides": [
     {
       // enable the rule specifically for TypeScript files
