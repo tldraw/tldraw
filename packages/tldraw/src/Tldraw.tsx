@@ -139,55 +139,77 @@ export function Tldraw({
 
   // Create a new app when the component mounts.
   const [app, setApp] = React.useState(() => {
-    const app = new TldrawApp(id, {
-      onMount,
-      onChange,
-      onChangePresence,
-      onNewProject,
-      onSaveProject,
-      onSaveProjectAs,
-      onOpenProject,
-      onOpenMedia,
-      onUndo,
-      onRedo,
-      onPersist,
-      onPatch,
-      onCommand,
-      onChangePage,
-      onAssetDelete,
-      onAssetCreate,
-      onAssetUpload,
-      onSessionStart,
-      onSessionEnd,
-    })
+    const app = new TldrawApp(
+      id,
+      {
+        onMount,
+        onChange,
+        onChangePresence,
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onOpenMedia,
+        onUndo,
+        onRedo,
+        onPersist,
+        onPatch,
+        onCommand,
+        onChangePage,
+        onAssetDelete,
+        onAssetCreate,
+        onAssetUpload,
+        onSessionStart,
+        onSessionEnd,
+      },
+      {
+        ...TldrawApp.defaultState,
+        document: document ?? TldrawApp.defaultDocument,
+        appState: {
+          ...TldrawApp.defaultState.appState,
+          currentPageId: currentPageId ?? TldrawApp.defaultState.appState.currentPageId,
+        },
+      }
+    )
     return app
   })
 
   // Create a new app if the `id` prop changes.
   React.useLayoutEffect(() => {
     if (id === sId) return
-    const newApp = new TldrawApp(id, {
-      onMount,
-      onChange,
-      onChangePresence,
-      onNewProject,
-      onSaveProject,
-      onSaveProjectAs,
-      onOpenProject,
-      onOpenMedia,
-      onUndo,
-      onRedo,
-      onPersist,
-      onPatch,
-      onCommand,
-      onChangePage,
-      onAssetDelete,
-      onAssetCreate,
-      onAssetUpload,
-      onExport,
-      onSessionStart,
-      onSessionEnd,
-    })
+    const newApp = new TldrawApp(
+      id,
+      {
+        onMount,
+        onChange,
+        onChangePresence,
+        onNewProject,
+        onSaveProject,
+        onSaveProjectAs,
+        onOpenProject,
+        onOpenMedia,
+        onUndo,
+        onRedo,
+        onPersist,
+        onPatch,
+        onCommand,
+        onChangePage,
+        onAssetDelete,
+        onAssetCreate,
+        onAssetUpload,
+        onExport,
+        onSessionStart,
+        onSessionEnd,
+      },
+      {
+        ...TldrawApp.defaultState,
+        document: document ?? TldrawApp.defaultDocument,
+        appState: {
+          ...TldrawApp.defaultState.appState,
+          currentPageId: currentPageId ?? TldrawApp.defaultState.appState.currentPageId,
+        },
+      }
+    )
 
     setSId(id)
 

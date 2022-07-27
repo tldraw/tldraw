@@ -250,8 +250,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     center: [0, 0],
   }
 
-  constructor(id?: string, callbacks = {} as TDCallbacks) {
-    super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
+  constructor(id?: string, callbacks = {} as TDCallbacks, initialState = TldrawApp.defaultState) {
+    super(initialState, id, TldrawApp.version, (prev, next, prevVersion) => {
       return migrate(
         {
           ...next,

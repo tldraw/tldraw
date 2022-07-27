@@ -1,5 +1,5 @@
-import { TldrawTestApp, mockDocument } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import { ArrowShape, ColorStyle, SessionType, TDDocument, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
 
@@ -767,5 +767,65 @@ describe('When space panning', () => {
     app.releaseKey(' ')
     app.stopPointing()
     expect(app.currentTool.status).toBe('idle')
+  })
+})
+
+describe('initial state', () => {
+  it('should have a default state', () => {
+    const app = new TldrawTestApp()
+    expect(app.state).toEqual(TldrawTestApp.defaultState)
+  })
+
+  it('should allow for overriding the default state', () => {
+    const document: TDDocument = {
+      id: 'some-doc',
+      name: 'Some Doc',
+      version: TldrawTestApp.version,
+      assets: {},
+      pages: {
+        page1: {
+          id: 'page1',
+          name: 'Page 1',
+          shapes: {},
+          bindings: {},
+        },
+        page2: {
+          id: 'page2',
+          name: 'Page 2',
+          shapes: {},
+          bindings: {},
+        },
+      },
+      pageStates: {
+        page1: {
+          id: 'page1',
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+          selectedIds: [],
+        },
+        page2: {
+          id: 'page2',
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+          selectedIds: [],
+        },
+      },
+    }
+
+    const app = new TldrawTestApp(undefined, undefined, {
+      ...TldrawTestApp.defaultState,
+      document,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        currentPageId: 'page2',
+      },
+    })
+
+    expect(app.currentPageId).toBe('page2')
+    expect(app.document).toEqual(document)
   })
 })
