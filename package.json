@@ -29,7 +29,6 @@
     "start:vscode": "code apps/vscode/extension & turbo run start:vscode --parallel; ",
     "version": "yarn changeset version",
     "changeset": "changeset",
-    "fix:style": "yarn run prettier ./packages/core/src --write && yarn run prettier ./packages/tldraw/src --write",
     "turbo": "turbo",
     "test": "turbo run test --stream",
     "test:ci": "turbo run test:ci --stream",
@@ -37,8 +36,9 @@
     "docs": "turbo run docs",
     "docs:watch": "turbo run docs --watch",
     "postinstall": "husky install",
-    "pretty-quick": "pretty-quick",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "pre-commit": "lint-staged",
+    "pre-push": "yarn test"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
@@ -58,7 +58,6 @@
     "lint-staged": "^12.3.3",
     "mobx": "^6.3.8",
     "prettier": "^2.5.1",
-    "pretty-quick": "^3.1.3",
     "resize-observer-polyfill": "^1.5.1",
     "source-map-loader": "^3.0.1",
     "tslib": "^2.4.0",
@@ -67,11 +66,9 @@
     "typescript": "^4.7.3",
     "webpack": "^5.68.0"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "pretty-quick --staged",
-      "pre-push": "fix:style && eslint && test"
-    }
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write",
+    "*.{ts,tsx}": "eslint --fix"
   },
   "packageManager": "yarn@1.22.17",
   "dependencies": {
