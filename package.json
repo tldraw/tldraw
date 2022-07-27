@@ -38,7 +38,8 @@
     "docs:watch": "turbo run docs --watch",
     "postinstall": "husky install",
     "pretty-quick": "pretty-quick",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "lint": "turbo run lint --stream"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
