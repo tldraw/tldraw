@@ -24,89 +24,47 @@
       "cache": false
     },
     "docs": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "docs"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["docs"]
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "build:packages": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "build:core": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "build:apps": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "build:www": {
-      "dependsOn": [
-        "build:packages",
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["build:packages", "^build"],
+      "outputs": ["dist/**", ".next/**"]
     },
     "test": {
-      "dependsOn": [
-        "build:packages"
-      ],
+      "dependsOn": ["build:packages"],
       "outputs": []
     },
     "test:ci": {
-      "dependsOn": [
-        "build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ]
+      "dependsOn": ["build"],
+      "outputs": ["coverage/**"]
     },
     "lint": {
-      "dependsOn": [
-        "build"
-      ],
+      "dependsOn": ["build"],
       "outputs": []
     },
     "clean": {
       "cache": false
     },
     "deploy": {
-      "dependsOn": [
-        "build",
-        "test"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+      "dependsOn": ["build", "test"],
+      "outputs": ["dist/**", ".next/**"]
     }
   }
 }

@@ -16,10 +16,10 @@
 // @license © 2020 Google LLC. Licensed under the Apache License, Version 2.0.
 
 const getFileWithHandle = async (handle) => {
-  const file = await handle.getFile();
-  file.handle = handle;
-  return file;
-};
+  const file = await handle.getFile()
+  file.handle = handle
+  return file
+}
 
 /**
  * Opens a file from disk using the File System Access API.
@@ -27,32 +27,32 @@ const getFileWithHandle = async (handle) => {
  */
 export default async (options = [{}]) => {
   if (!Array.isArray(options)) {
-    options = [options];
+    options = [options]
   }
-  const types = [];
+  const types = []
   options.forEach((option, i) => {
     types[i] = {
       description: option.description || '',
       accept: {},
-    };
+    }
     if (option.mimeTypes) {
       option.mimeTypes.map((mimeType) => {
-        types[i].accept[mimeType] = option.extensions || [];
-      });
+        types[i].accept[mimeType] = option.extensions || []
+      })
     } else {
-      types[i].accept['*/*'] = option.extensions || [];
+      types[i].accept['*/*'] = option.extensions || []
     }
-  });
+  })
   const handleOrHandles = await window.showOpenFilePicker({
     id: options[0].id,
     startIn: options[0].startIn,
     types,
     multiple: options[0].multiple || false,
     excludeAcceptAllOption: options[0].excludeAcceptAllOption || false,
-  });
-  const files = await Promise.all(handleOrHandles.map(getFileWithHandle));
+  })
+  const files = await Promise.all(handleOrHandles.map(getFileWithHandle))
   if (options[0].multiple) {
-    return files;
+    return files
   }
-  return files[0];
-};
+  return files[0]
+}

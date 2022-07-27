@@ -16,7 +16,7 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
         Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
-    }).then(d => d.json())
+    }).then((d) => d.json())
 
     // 2. Create the Liveblocks storage JSON
 
