@@ -103,8 +103,5 @@
   "transparent": "Transparent",
   "auto": "Auto",
   "light": "Light",
-  "dark": "Dark",
-  "github": "Github",
-  "twitter": "Twitter",
-  "discord": "Discord"
+  "dark": "Dark"
 }
