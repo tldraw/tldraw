@@ -543,7 +543,7 @@ TldrawTestApp {
   "setShapeProps": [Function],
   "setSnapshot": [Function],
   "setState": [Function],
-  "settingStore": Object {
+  "settingsStore": Object {
     "destroy": [Function],
     "getState": [Function],
     "setState": [Function],

@@ -8,7 +8,7 @@ import {
   Pencil2Icon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import { TDSnapshot, TDShapeType } from '~types'
+import { TDSnapshot, TDShapeType, TDSettings } from '~types'
 import { useTldrawApp } from '~hooks'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import { Panel } from '~components/Primitives/Panel'
@@ -19,6 +19,7 @@ import { breakpoints } from '~components/breakpoints'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
+const dockPositionSelector = (s: TDSettings) => s.dockPosition
 
 export const PrimaryTools = React.memo(function PrimaryTools() {
   const app = useTldrawApp()
@@ -27,7 +28,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   const activeTool = app.useStore(activeToolSelector)
 
   const isToolLocked = app.useStore(toolLockedSelector)
-  const dockPosition = app.settings.dockPosition
+  const dockPosition = app.useSettingStore(dockPositionSelector)
 
   const selectSelectTool = React.useCallback(() => {
     app.selectTool('select')

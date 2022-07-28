@@ -79,7 +79,7 @@ export class TDEventHandler {
 
 export type TDDockPosition = 'bottom' | 'left' | 'right' | 'top'
 
-export interface TDSetting {
+export interface TDSettings {
   isCadSelectMode: boolean
   isDarkMode: boolean
   isDebugMode: boolean
@@ -125,7 +125,7 @@ export interface TDSnapshot {
   }
 }
 
-export type TldrawPatch = Patch<TDSnapshot | TDSetting>
+export type TldrawPatch = Patch<TDSnapshot | TDSettings>
 
 export type TldrawCommand = Command<TDSnapshot>
 

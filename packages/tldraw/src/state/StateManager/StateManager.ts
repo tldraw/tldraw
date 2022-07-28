@@ -2,7 +2,7 @@ import createVanilla, { StoreApi } from 'zustand/vanilla'
 import create, { UseBoundStore } from 'zustand'
 import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
-import type { Patch, Command } from '../../types'
+import type { Patch, Command, TDSettings } from '../../types'
 import { Utils } from '@tldraw/core'
 
 export class StateManager<T extends Record<string, any>, U extends Record<string, any>> {
@@ -29,7 +29,7 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
   /**
    * A zustand store to holds the settings state
    */
-  private settingStore: StoreApi<U>
+  private settingsStore: StoreApi<U>
 
   /**
    * The index of the current command.
@@ -89,23 +89,25 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
     this._state = deepCopy(initialState)
     this._settingState = deepCopy(initialSetting)
     this._snapshot = deepCopy(initialState)
+
     this.initialState = deepCopy(initialState)
-    this.initialSetting = deepCopy(initialSetting)
     this.store = createVanilla(() => this._state)
-    this.settingStore = createVanilla(() => this._settingState)
-    this.useSettingStore = create(this.settingStore)
     this.useStore = create(this.store)
+
+    this.initialSetting = deepCopy(initialSetting)
+    this.settingsStore = createVanilla(() => this._settingState)
+    this.useSettingStore = create(this.settingsStore)
 
     this.ready = new Promise<'none' | 'restored' | 'migrated'>((resolve) => {
       let message: 'none' | 'restored' | 'migrated' = 'none'
 
-      if (localStorage.settings) {
+      const localSettings = localStorage.getItem('settings')
+
+      try {
         message = 'restored'
-        let next = localStorage.settings
-        next = this.migrate(next)
-        this._settingState = deepCopy(next)
-      } else {
-        localStorage.settings = JSON.stringify(this._settingState)
+        this._settingState = JSON.parse(localSettings!)
+      } catch (e) {
+        localStorage.setItem('settings', JSON.stringify(this._settingState))
       }
 
       if (this._idbId) {
@@ -179,12 +181,12 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
     if (this._status !== 'ready') return
     if (this.onPersist) {
       this.onPersist(this._state, patch, id)
-      const settings = JSON.parse(localStorage.getItem('settings') as string)
+      const settings = this._settingState
       let entries = Object.entries(patch as any)
       entries.map(([key, value]) => {
         settings[key] = value
       })
-      localStorage.settings = JSON.stringify(settings)
+      localStorage.setItem('settings', JSON.stringify(settings))
     }
   }
 
@@ -249,11 +251,26 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    * @param patch The patch to apply.
    * @param id (optional) An id for this patch.
    */
-  patchState = (patch: Patch<T> | Patch<U>, id?: string): this => {
+  patchState = (patch: Patch<T>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
       this.onPatch(this._state, patch, id)
     }
+    return this
+  }
+
+  /**
+   * Apply a patch to the current settings state.
+   * This does not effect the undo/redo stack.
+   * This does not persist the state.
+   * @param patch The patch to apply.
+   */
+  patchSettings = (patch: Patch<U>, id?: string): this => {
+    const prev = this._settingState
+    const next = Utils.deepMerge(prev, patch as any)
+
+    this._settingState = next
+    this.settingsStore.setState(next, true)
     return this
   }
 
@@ -477,5 +494,12 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    */
   protected get snapshot(): T {
     return this._snapshot
+  }
+
+  /**
+   * The current settings state.
+   */
+  get settings(): U {
+    return this._settingState
   }
 }

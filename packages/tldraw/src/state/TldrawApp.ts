@@ -44,7 +44,7 @@ import {
   TldrawPatch,
   TDExportBackground,
   AlignStyle,
-  TDSetting,
+  TDSettings,
 } from '~types'
 import {
   migrate,
@@ -178,7 +178,7 @@ export interface TDCallbacks {
   onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
-export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
+export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
   callbacks: TDCallbacks = {}
 
   tools = {
@@ -963,7 +963,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   /**
    * Set a setting.
    */
-  setSetting = <T extends keyof TDSetting, V extends TDSetting[T]>(
+  setSetting = <T extends keyof TDSettings, V extends TDSettings[T]>(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
@@ -973,8 +973,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
       [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
     }
 
-    this.patchState(patch, `settings:${name}`)
-
+    this.patchSettings(patch, `settings:${name}`)
     this.persistSetting(patch)
     return this
   }
@@ -988,8 +987,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
       isFocusMode: !this.settings.isFocusMode,
     }
 
-    this.patchState(patch, `settings:toggled_focus_mode`)
-
+    this.patchSettings(patch, `settings:toggled_focus_mode`)
     this.persistSetting(patch)
     return this
   }
@@ -1002,7 +1000,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
     const patch = {
       isPenMode: !this.settings.isPenMode,
     }
-    this.patchState(patch, `settings:toggled_pen_mode`)
+    this.patchSettings(patch, `settings:toggled_pen_mode`)
     this.persistSetting(patch)
     return this
   }
@@ -1013,7 +1011,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   toggleDarkMode = (): this => {
     if (this.session) return this
     const patch = { isDarkMode: !this.settings.isDarkMode }
-    this.patchState(patch, `settings:toggled_dark_mode`)
+    this.patchSettings(patch, `settings:toggled_dark_mode`)
     this.persistSetting(patch)
     return this
   }
@@ -1024,7 +1022,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   toggleZoomSnap = () => {
     if (this.session) return this
     const patch = { isZoomSnap: !this.settings.isZoomSnap }
-    this.patchState(patch, `settings:toggled_zoom_snap`)
+    this.patchSettings(patch, `settings:toggled_zoom_snap`)
     this.persistSetting(patch)
     return this
   }
@@ -1035,7 +1033,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   toggleDebugMode = () => {
     if (this.session) return this
     const patch = { isDebugMode: !this.settings.isDebugMode }
-    this.patchState(patch, `settings:toggled_debug`)
+    this.patchSettings(patch, `settings:toggled_debug`)
     this.persistSetting(patch)
     return this
   }
@@ -1582,13 +1580,6 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   /**
    * The current app state.
    */
-  get settings(): TDSetting {
-    return JSON.parse(localStorage.settings) as TDSetting
-  }
-
-  /**
-   * The current app state.
-   */
   get appState(): TDSnapshot['appState'] {
     return this.state.appState
   }
@@ -1659,7 +1650,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
 
   /**
    * Create a new page.
-   * @param pageId (optional) The new page's id.
+   * @param id (optional) The new page's id.
    */
   createPage = (id?: string, name?: string): this => {
     if (this.readOnly) return this
@@ -4119,7 +4110,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
     assets: {},
   }
 
-  static defaultSetting: TDSetting = {
+  static defaultSetting: TDSettings = {
     isCadSelectMode: false,
     isPenMode: false,
     isDarkMode: false,

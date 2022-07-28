@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '~styles'
-import type { TDSnapshot } from '~types'
+import type { TDSettings, TDSnapshot } from '~types'
 import { useTldrawApp } from '~hooks'
 import { StatusBar } from './StatusBar'
 import { BackToContent } from './BackToContent'
@@ -14,10 +14,15 @@ interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler
 }
 
+const dockPositionSelector = (settings: TDSettings) => settings.dockPosition
+const isDebugModeSelector = (settings: TDSettings) => settings.isDebugMode
+
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
-  const side = app.settings.dockPosition
-  const isDebugMode = app.settings.isDebugMode
+  const side = app.useSettingStore(dockPositionSelector)
+  const isDebugMode = app.useSettingStore(isDebugModeSelector)
+
+  console.log(side)
 
   return (
     <>
