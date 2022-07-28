@@ -34,8 +34,6 @@ import { Divider } from '~components/Primitives/Divider'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { useIntl } from 'react-intl'
 
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
 
@@ -91,7 +89,7 @@ export function ActionButton() {
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)
 
-  const dockPosition = app.useStore(dockPositionState)
+  const dockPosition = app.settings.dockPosition
 
   const hasTwoOrMore = selectedShapesCount > 1
 

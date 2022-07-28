@@ -10,7 +10,7 @@ import {
 } from '~types'
 
 export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
-  const { document, settings } = state
+  const { document } = state
   const { version = 0 } = document
 
   if (!('assets' in document)) {
@@ -126,13 +126,13 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
     })
   })
 
-  if (version < 15.4) {
-    settings.dockPosition = 'bottom'
-  }
+  // if (version < 15.4) {
+  //   settings.dockPosition = 'bottom'
+  // }
 
-  if (version < 15.5) {
-    settings.exportBackground = TDExportBackground.Transparent
-  }
+  // if (version < 15.5) {
+  //   settings.exportBackground = TDExportBackground.Transparent
+  // }
 
   // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {

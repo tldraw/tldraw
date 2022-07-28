@@ -6,15 +6,13 @@ import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
 import { styled } from '~styles'
 import { Divider } from '~components/Primitives/Divider'
 
-const settingsSelector = (s: TDSnapshot) => s.settings
-
 const DockPosition = ['bottom', 'left', 'right', 'top']
 
 export function PreferencesMenu() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const settings = app.useStore(settingsSelector)
+  const settings = app.useSettingStore((state) => state)
 
   const toggleDebugMode = React.useCallback(() => {
     app.setSetting('isDebugMode', (v) => !v)

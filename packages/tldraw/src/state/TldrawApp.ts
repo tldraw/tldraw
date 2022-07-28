@@ -44,6 +44,7 @@ import {
   TldrawPatch,
   TDExportBackground,
   AlignStyle,
+  TDSetting,
 } from '~types'
 import {
   migrate,
@@ -85,8 +86,6 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
-import { getTranslation } from '~translations'
-import { TextUtil } from './shapes/TextUtil'
 
 const uuid = Utils.uniqueId()
 
@@ -179,7 +178,7 @@ export interface TDCallbacks {
   onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
-export class TldrawApp extends StateManager<TDSnapshot> {
+export class TldrawApp extends StateManager<TDSnapshot, TDSetting> {
   callbacks: TDCallbacks = {}
 
   tools = {
@@ -256,15 +255,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   constructor(id?: string, callbacks = {} as TDCallbacks) {
-    super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
-      return migrate(
-        {
-          ...next,
-          document: { ...next.document, ...prev.document, version: prevVersion },
-        },
-        TldrawApp.version
-      )
-    })
+    super(
+      TldrawApp.defaultState,
+      TldrawApp.defaultSetting,
+      id,
+      TldrawApp.version,
+      (prev, next, prevVersion) => {
+        return migrate(
+          {
+            ...next,
+            document: { ...next.document, ...prev.document, version: prevVersion },
+          },
+          TldrawApp.version
+        )
+      }
+    )
 
     this.callbacks = callbacks
   }
@@ -504,10 +509,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const changedShapes: Record<string, TDShape | undefined> = {}
     const changedBindings: Record<string, TDBinding | undefined> = {}
     const changedAssets: Record<string, TDAsset | undefined> = {}
+    let shapes: any = {}
+    let bindings: any = {}
+    let assets: any = {}
 
-    const shapes = patch?.document?.pages?.[this.currentPageId]?.shapes
-    const bindings = patch?.document?.pages?.[this.currentPageId]?.bindings
-    const assets = patch?.document?.assets
+    if ('document' in patch) {
+      shapes = patch?.document?.pages?.[this.currentPageId]?.shapes
+      bindings = patch?.document?.pages?.[this.currentPageId]?.bindings
+      assets = patch?.document?.assets
+    }
 
     if (shapes) {
       Object.keys(shapes).forEach((id) => {
@@ -531,18 +541,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPatch = (state: TDSnapshot, patch: TldrawPatch, id?: string) => {
-    if (
-      (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
-      patch?.document?.assets
-    ) {
+    if ('document' in patch) {
       if (
-        patch?.document?.assets ||
-        (this.session &&
-          this.session.type !== SessionType.Brush &&
-          this.session.type !== SessionType.Erase &&
-          this.session.type !== SessionType.Draw)
+        (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
+        patch?.document?.assets
       ) {
-        this.broadcastPatch(patch, false)
+        if (
+          patch?.document?.assets ||
+          (this.session &&
+            this.session.type !== SessionType.Brush &&
+            this.session.type !== SessionType.Erase &&
+            this.session.type !== SessionType.Draw)
+        ) {
+          this.broadcastPatch(patch, false)
+        }
       }
     }
 
@@ -840,6 +852,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return next
     }, true)
 
+    this.useSettingStore.setState((current) => {
+      return current
+    }, true)
+
     return this
   }
 
@@ -947,21 +963,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Set a setting.
    */
-  setSetting = <T extends keyof TDSnapshot['settings'], V extends TDSnapshot['settings'][T]>(
+  setSetting = <T extends keyof TDSetting, V extends TDSetting[T]>(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
     if (this.session) return this
 
     const patch = {
-      settings: {
-        [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
-      },
+      [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
     }
 
     this.patchState(patch, `settings:${name}`)
 
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -971,14 +985,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   toggleFocusMode = (): this => {
     if (this.session) return this
     const patch = {
-      settings: {
-        isFocusMode: !this.settings.isFocusMode,
-      },
+      isFocusMode: !this.settings.isFocusMode,
     }
 
     this.patchState(patch, `settings:toggled_focus_mode`)
 
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -988,12 +1000,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   togglePenMode = (): this => {
     if (this.session) return this
     const patch = {
-      settings: {
-        isPenMode: !this.settings.isPenMode,
-      },
+      isPenMode: !this.settings.isPenMode,
     }
     this.patchState(patch, `settings:toggled_pen_mode`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1002,9 +1012,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleDarkMode = (): this => {
     if (this.session) return this
-    const patch = { settings: { isDarkMode: !this.settings.isDarkMode } }
+    const patch = { isDarkMode: !this.settings.isDarkMode }
     this.patchState(patch, `settings:toggled_dark_mode`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1013,9 +1023,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleZoomSnap = () => {
     if (this.session) return this
-    const patch = { settings: { isZoomSnap: !this.settings.isZoomSnap } }
+    const patch = { isZoomSnap: !this.settings.isZoomSnap }
     this.patchState(patch, `settings:toggled_zoom_snap`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1024,9 +1034,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleDebugMode = () => {
     if (this.session) return this
-    const patch = { settings: { isDebugMode: !this.settings.isDebugMode } }
+    const patch = { isDebugMode: !this.settings.isDebugMode }
     this.patchState(patch, `settings:toggled_debug`)
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1072,9 +1082,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   toggleGrid = (): this => {
     if (this.session) return this
-    const patch = { settings: { showGrid: !this.settings.showGrid } }
+    const patch = { showGrid: !this.settings.showGrid }
     this.patchState(patch, 'settings:toggled_grid')
-    this.persist(patch)
+    this.persistSetting(patch)
     return this
   }
 
@@ -1273,7 +1283,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   updateDocument = (document: TDDocument, reason = 'updated_document'): this => {
     const prevState = this.state
 
-    let nextState = { ...prevState, document: { ...prevState.document } }
+    const nextState = { ...prevState, document: { ...prevState.document } }
 
     if (!document.pages[this.currentPageId]) {
       nextState.appState = {
@@ -1355,9 +1365,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const state = {
       ...TldrawApp.defaultState,
-      settings: {
-        ...this.state.settings,
-      },
       document,
       appState: {
         ...TldrawApp.defaultState.appState,
@@ -1575,8 +1582,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * The current app state.
    */
-  get settings(): TDSnapshot['settings'] {
-    return this.state.settings
+  get settings(): TDSetting {
+    return JSON.parse(localStorage.settings) as TDSetting
   }
 
   /**
@@ -2848,18 +2855,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       this.setState(result, `session:complete:${session.constructor.name}`)
     } else {
+      let patchResult = result as TDSnapshot
       this.patchState(
         {
           ...result,
           appState: {
-            ...result.appState,
+            ...patchResult.appState,
             status: TDStatus.Idle,
           },
           document: {
-            ...result.document,
+            ...patchResult.document,
             pageStates: {
               [this.currentPageId]: {
-                ...result.document?.pageStates?.[this.currentPageId],
+                ...patchResult.document?.pageStates?.[this.currentPageId],
                 editingId: null,
               },
             },
@@ -4111,27 +4119,28 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     assets: {},
   }
 
+  static defaultSetting: TDSetting = {
+    isCadSelectMode: false,
+    isPenMode: false,
+    isDarkMode: false,
+    isZoomSnap: false,
+    isFocusMode: false,
+    isSnapping: false,
+    isDebugMode: false,
+    isReadonlyMode: false,
+    keepStyleMenuOpen: false,
+    nudgeDistanceLarge: 16,
+    nudgeDistanceSmall: 1,
+    showRotateHandles: true,
+    showBindingHandles: true,
+    showCloneHandles: false,
+    showGrid: false,
+    language: 'en',
+    dockPosition: 'bottom',
+    exportBackground: TDExportBackground.Transparent,
+  }
+
   static defaultState: TDSnapshot = {
-    settings: {
-      isCadSelectMode: false,
-      isPenMode: false,
-      isDarkMode: false,
-      isZoomSnap: false,
-      isFocusMode: false,
-      isSnapping: false,
-      isDebugMode: false,
-      isReadonlyMode: false,
-      keepStyleMenuOpen: false,
-      nudgeDistanceLarge: 16,
-      nudgeDistanceSmall: 1,
-      showRotateHandles: true,
-      showBindingHandles: true,
-      showCloneHandles: false,
-      showGrid: false,
-      language: 'en',
-      dockPosition: 'bottom',
-      exportBackground: TDExportBackground.Transparent,
-    },
     appState: {
       status: TDStatus.Idle,
       activeTool: 'select',

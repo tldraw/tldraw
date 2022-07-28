@@ -79,28 +79,29 @@ export class TDEventHandler {
 
 export type TDDockPosition = 'bottom' | 'left' | 'right' | 'top'
 
+export interface TDSetting {
+  isCadSelectMode: boolean
+  isDarkMode: boolean
+  isDebugMode: boolean
+  isPenMode: boolean
+  isReadonlyMode: boolean
+  isZoomSnap: boolean
+  keepStyleMenuOpen: boolean
+  nudgeDistanceSmall: number
+  nudgeDistanceLarge: number
+  isFocusMode: boolean
+  isSnapping: boolean
+  showRotateHandles: boolean
+  showBindingHandles: boolean
+  showCloneHandles: boolean
+  showGrid: boolean
+  language: TDLanguage
+  dockPosition: TDDockPosition
+  exportBackground: TDExportBackground
+}
+
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
-  settings: {
-    isCadSelectMode: boolean
-    isDarkMode: boolean
-    isDebugMode: boolean
-    isPenMode: boolean
-    isReadonlyMode: boolean
-    isZoomSnap: boolean
-    keepStyleMenuOpen: boolean
-    nudgeDistanceSmall: number
-    nudgeDistanceLarge: number
-    isFocusMode: boolean
-    isSnapping: boolean
-    showRotateHandles: boolean
-    showBindingHandles: boolean
-    showCloneHandles: boolean
-    showGrid: boolean
-    language: TDLanguage
-    dockPosition: TDDockPosition
-    exportBackground: TDExportBackground
-  }
   appState: {
     currentStyle: ShapeStyles
     currentPageId: string
@@ -124,7 +125,7 @@ export interface TDSnapshot {
   }
 }
 
-export type TldrawPatch = Patch<TDSnapshot>
+export type TldrawPatch = Patch<TDSnapshot | TDSetting>
 
 export type TldrawCommand = Command<TDSnapshot>
 
@@ -521,7 +522,7 @@ export enum TDExportBackground {
   Transparent = 'transparent',
   Auto = 'auto',
   Light = 'light',
-  Dark = 'dark'
+  Dark = 'dark',
 }
 
 /* -------------------------------------------------- */

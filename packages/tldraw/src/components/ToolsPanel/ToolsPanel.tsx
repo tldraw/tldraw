@@ -10,17 +10,14 @@ import { DeleteButton } from './DeleteButton'
 import { breakpoints } from '~components/breakpoints'
 import { HelpPanel } from './HelpPanel'
 
-const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler
 }
 
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
-  const side = app.useStore(dockPositionState)
-  const isDebugMode = app.useStore(isDebugModeSelector)
+  const side = app.settings.dockPosition
+  const isDebugMode = app.settings.isDebugMode
 
   return (
     <>

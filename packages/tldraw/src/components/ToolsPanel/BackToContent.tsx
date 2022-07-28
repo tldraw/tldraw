@@ -13,15 +13,12 @@ const isEmptyCanvasSelector = (s: TDSnapshot) => {
   )
 }
 
-const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 export const BackToContent = React.memo(function BackToContent() {
   const app = useTldrawApp()
 
   const isEmptyCanvas = app.useStore(isEmptyCanvasSelector)
-  const dockPosition = app.useStore(dockPositionState)
-  const isDebugMode = app.useStore(isDebugModeSelector)
+  const dockPosition = app.settings.dockPosition
+  const isDebugMode = app.settings.isDebugMode
 
   const style = {
     bottom:

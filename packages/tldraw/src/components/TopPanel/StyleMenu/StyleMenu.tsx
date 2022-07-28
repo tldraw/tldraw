@@ -67,10 +67,6 @@ const ALIGN_ICONS = {
   [AlignStyle.Justify]: <TextAlignJustifyIcon />,
 }
 
-const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
-
-const keepOpenSelector = (s: TDSnapshot) => s.settings.keepStyleMenuOpen
-
 const optionsSelector = (s: TDSnapshot) => {
   const { activeTool, currentPageId: pageId } = s.appState
   switch (activeTool) {
@@ -110,9 +106,9 @@ const optionsSelector = (s: TDSnapshot) => {
 export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
 
-  const theme = app.useStore(themeSelector)
+  const theme = app.settings.isDarkMode ? 'dark' : 'light'
 
-  const keepOpen = app.useStore(keepOpenSelector)
+  const keepOpen = app.settings.keepStyleMenuOpen
 
   const options = app.useStore(optionsSelector)
 

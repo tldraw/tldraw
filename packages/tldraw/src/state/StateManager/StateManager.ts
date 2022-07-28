@@ -5,7 +5,7 @@ import { deepCopy } from './copy'
 import type { Patch, Command } from '../../types'
 import { Utils } from '@tldraw/core'
 
-export class StateManager<T extends Record<string, any>> {
+export class StateManager<T extends Record<string, any>, U extends Record<string, any>> {
   /**
    * An ID used to persist state in indexdb.
    */
@@ -17,9 +17,19 @@ export class StateManager<T extends Record<string, any>> {
   private initialState: T
 
   /**
+   * Initial settings
+   */
+  private initialSetting: U
+
+  /**
    * A zustand store that also holds the state.
    */
   private store: StoreApi<T>
+
+  /**
+   * A zustand store to holds the settings state
+   */
+  private settingStore: StoreApi<U>
 
   /**
    * The index of the current command.
@@ -30,6 +40,11 @@ export class StateManager<T extends Record<string, any>> {
    * The current state.
    */
   private _state: T
+
+  /**
+   * The current settings
+   */
+  private _settingState: U
 
   /**
    * The state manager's current status, with regard to restoring persisted state.
@@ -52,6 +67,11 @@ export class StateManager<T extends Record<string, any>> {
   public readonly useStore: UseBoundStore<T>
 
   /**
+   * A React hook for accessing the settings store (zustand)
+   */
+  public readonly useSettingStore: UseBoundStore<U>
+
+  /**
    * A promise that will resolve when the state manager has loaded any peristed state.
    */
   public ready: Promise<'none' | 'restored' | 'migrated'>
@@ -60,19 +80,33 @@ export class StateManager<T extends Record<string, any>> {
 
   constructor(
     initialState: T,
+    initialSetting: U,
     id?: string,
     version?: number,
     update?: (prev: T, next: T, prevVersion: number) => T
   ) {
     this._idbId = id
     this._state = deepCopy(initialState)
+    this._settingState = deepCopy(initialSetting)
     this._snapshot = deepCopy(initialState)
     this.initialState = deepCopy(initialState)
+    this.initialSetting = deepCopy(initialSetting)
     this.store = createVanilla(() => this._state)
+    this.settingStore = createVanilla(() => this._settingState)
+    this.useSettingStore = create(this.settingStore)
     this.useStore = create(this.store)
 
     this.ready = new Promise<'none' | 'restored' | 'migrated'>((resolve) => {
       let message: 'none' | 'restored' | 'migrated' = 'none'
+
+      if (localStorage.settings) {
+        message = 'restored'
+        let next = localStorage.settings
+        next = this.migrate(next)
+        this._settingState = deepCopy(next)
+      } else {
+        localStorage.settings = JSON.stringify(this._settingState)
+      }
 
       if (this._idbId) {
         message = 'restored'
@@ -124,7 +158,7 @@ export class StateManager<T extends Record<string, any>> {
   }
 
   /**
-   * Save the current state to indexdb.
+   * Save the current state to indexdb
    */
   protected persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
     if (this._status !== 'ready') return
@@ -139,13 +173,29 @@ export class StateManager<T extends Record<string, any>> {
   }
 
   /**
+   * Save the setting to localStorage
+   */
+  protected persistSetting = (patch: Patch<U>, id?: string) => {
+    if (this._status !== 'ready') return
+    if (this.onPersist) {
+      this.onPersist(this._state, patch, id)
+      const settings = JSON.parse(localStorage.getItem('settings') as string)
+      let entries = Object.entries(patch as any)
+      entries.map(([key, value]) => {
+        settings[key] = value
+      })
+      localStorage.settings = JSON.stringify(settings)
+    }
+  }
+
+  /**
    * Apply a patch to the current state.
    * This does not effect the undo/redo stack.
    * This does not persist the state.
    * @param patch The patch to apply.
    * @param id (optional) An id for the patch.
    */
-  private applyPatch = (patch: Patch<T>, id?: string) => {
+  private applyPatch = (patch: Patch<T> | Patch<U>, id?: string) => {
     const prev = this._state
     const next = Utils.deepMerge(this._state, patch as any)
     const final = this.cleanup(next, prev, patch, id)
@@ -175,7 +225,8 @@ export class StateManager<T extends Record<string, any>> {
    * @param id (optional) An id for the just-applied patch.
    * @returns The final new state to apply.
    */
-  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T>, _id?: string): T => nextState
+  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T> | Patch<U>, _id?: string): T =>
+    nextState
 
   /**
    * A life-cycle method called when the state is about to change.
@@ -198,7 +249,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param patch The patch to apply.
    * @param id (optional) An id for this patch.
    */
-  patchState = (patch: Patch<T>, id?: string): this => {
+  patchState = (patch: Patch<T> | Patch<U>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
       this.onPatch(this._state, patch, id)
@@ -264,7 +315,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A callback fired when a patch is applied.
    */
-  public onPatch?: (state: T, patch: Patch<T>, id?: string) => void
+  public onPatch?: (state: T, patch: Patch<T | U>, id?: string) => void
 
   /**
    * A callback fired when a patch is applied.
@@ -274,7 +325,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A callback fired when the state is persisted.
    */
-  public onPersist?: (state: T, patch: Patch<T>, id?: string) => void
+  public onPersist?: (state: T, patch: Patch<T | U>, id?: string) => void
 
   /**
    * A callback fired when the state is replaced.

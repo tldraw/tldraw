@@ -5,14 +5,14 @@ import { DMCheckboxItem, DMContent, DMItem } from '~components/Primitives/Dropdo
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
-import { TDSnapshot } from '~types'
+import { TDSetting, TDSnapshot } from '~types'
 import { Divider } from '~components/Primitives/Divider'
 
-const languageSelector = (s: TDSnapshot) => s.settings.language
+const languageSelector = (s: TDSetting) => s.language
 
 export const LanguageMenu = React.forwardRef((props, ref) => {
   const app = useTldrawApp()
-  const language = app.useStore(languageSelector)
+  const language = app.useSettingStore(languageSelector)
 
   const handleChangeLanguage = React.useCallback(
     (locale: TDLanguage) => {

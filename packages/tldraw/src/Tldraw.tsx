@@ -345,7 +345,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const state = app.useStore()
 
-  const { document, settings, appState, room } = state
+  const { document, appState, room } = state
+
+  const settings = app.settings
 
   const isSelecting = state.appState.activeTool === 'select'
 

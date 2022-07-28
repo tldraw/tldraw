@@ -38,8 +38,6 @@ enum Status {
   SpacePanning = 'spacePanning',
 }
 
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 export const ShapesMenu = React.memo(function ShapesMenu({
   activeTool,
   isToolLocked,
@@ -47,7 +45,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const dockPosition = app.useStore(dockPositionState)
+  const dockPosition = app.settings.dockPosition
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 

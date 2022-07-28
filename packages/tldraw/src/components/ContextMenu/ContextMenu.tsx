@@ -25,10 +25,6 @@ const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length
 }
 
-const isDebugModeSelector = (s: TDSnapshot) => {
-  return s.settings.isDebugMode
-}
-
 const hasGroupSelectedSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.some(
     (id) => s.document.pages[s.appState.currentPageId].shapes[id].children !== undefined
@@ -68,7 +64,7 @@ const InnerMenu = React.memo(function InnerMenu() {
   const app = useTldrawApp()
   const intl = useIntl()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
-  const isDebugMode = app.useStore(isDebugModeSelector)
+  const isDebugMode = app.useSettingStore((s) => s.isDebugMode)
   const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
 
   const handleFlipHorizontal = React.useCallback(() => {
