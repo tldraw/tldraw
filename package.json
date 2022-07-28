@@ -30,6 +30,7 @@
     "version": "yarn changeset version",
     "changeset": "changeset",
     "turbo": "turbo",
+    "lint": "turbo run lint",
     "test": "turbo run test --stream",
     "test:ci": "turbo run test:ci --stream",
     "test:watch": "turbo run test:watch --stream",
