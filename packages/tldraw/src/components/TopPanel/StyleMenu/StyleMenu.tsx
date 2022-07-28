@@ -3,12 +3,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { FormattedMessage } from 'react-intl'
 import { useTldrawApp } from '~hooks'
-import {
-  DMCheckboxItem,
-  DMContent,
-  DMDivider,
-  DMRadioItem,
-} from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,

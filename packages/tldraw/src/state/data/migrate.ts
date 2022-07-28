@@ -2,7 +2,6 @@
 import {
   Decoration,
   FontStyle,
-  TDDocument,
   TDExportBackground,
   TDShapeType,
   TDSnapshot,

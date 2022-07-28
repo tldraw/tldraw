@@ -85,8 +85,6 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
-import { getTranslation } from '~translations'
-import { TextUtil } from './shapes/TextUtil'
 
 const uuid = Utils.uniqueId()
 

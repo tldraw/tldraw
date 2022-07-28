@@ -1,4 +1,3 @@
-import * as React from 'react'
 import { styled } from '~styles'
 
 export const Divider = styled('hr', {

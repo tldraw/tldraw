@@ -34,10 +34,6 @@ const shapeShapeIcons = {
   [TDShapeType.Line]: <LineIcon />,
 }
 
-enum Status {
-  SpacePanning = 'spacePanning',
-}
-
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 export const ShapesMenu = React.memo(function ShapesMenu({

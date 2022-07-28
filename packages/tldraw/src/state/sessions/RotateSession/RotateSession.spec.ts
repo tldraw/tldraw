@@ -1,7 +1,7 @@
 import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TDStatus } from '~types'
+import { TDStatus } from '~types'
 
 describe('Rotate session', () => {
   const app = new TldrawTestApp()
