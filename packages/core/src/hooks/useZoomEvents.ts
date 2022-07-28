@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'

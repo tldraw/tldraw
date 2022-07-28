@@ -988,21 +988,13 @@ export function intersectEllipseRectangle(
  * @param _r2
  */
 export function intersectEllipseEllipse(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _c1: number[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _rx1: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _ry1: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _r1: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _c2: number[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _rx2: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _ry2: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _r2: number
 ): TLIntersection {
   // TODO

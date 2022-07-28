@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import {
   Decoration,
   FontStyle,
@@ -66,7 +65,6 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
   if (version <= 13) {
     Object.values(document.pages).forEach((page) => {
       Object.values(page.bindings).forEach((binding) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Object.assign(binding, (binding as any).meta)
       })
 

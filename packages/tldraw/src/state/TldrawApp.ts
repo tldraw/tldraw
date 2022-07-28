@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -2730,7 +2727,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const { session } = this
     if (!session) return this
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const patch = session.update()
     if (!patch) return this

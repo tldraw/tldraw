@@ -97,7 +97,6 @@ export class TransformSession extends BaseSession {
     return void null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (): TldrawPatch | undefined => {
     const {
       transformType,

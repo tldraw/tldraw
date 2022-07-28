@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import type { TLShape, TLBounds, TLComponentProps } from '../types'
 import { TLShapeUtil } from './TLShapeUtil'
 import { render } from '@testing-library/react'

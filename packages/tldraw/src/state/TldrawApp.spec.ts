@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'

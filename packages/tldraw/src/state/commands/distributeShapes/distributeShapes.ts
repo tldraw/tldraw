@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'

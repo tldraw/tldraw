@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { badDocument } from './documents/badDocument'
 import { TldrawTestApp } from './TldrawTestApp'
 

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-types */
 import type {
   TLPage,
   TLUser,
@@ -528,7 +526,6 @@ export enum TDExportBackground {
 /*                    Type Helpers                    */
 /* -------------------------------------------------- */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
 
 export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
@@ -536,7 +533,6 @@ export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U :
 export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
 
 export type PropsOfType<U> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof TDShape]: TDShape[K] extends any ? (TDShape[K] extends U ? K : never) : never
 }[keyof TDShape]
 
