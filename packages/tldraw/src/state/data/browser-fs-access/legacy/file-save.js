@@ -21,40 +21,37 @@
  */
 export default async (blobOrResponse, options = {}) => {
   if (Array.isArray(options)) {
-    options = options[0];
+    options = options[0]
   }
-  const a = document.createElement('a');
-  let data = blobOrResponse;
+  const a = document.createElement('a')
+  let data = blobOrResponse
   // Handle the case where input is a `ReadableStream`.
   if ('body' in blobOrResponse) {
-    data = await streamToBlob(
-      blobOrResponse.body,
-      blobOrResponse.headers.get('content-type')
-    );
+    data = await streamToBlob(blobOrResponse.body, blobOrResponse.headers.get('content-type'))
   }
-  a.download = options.fileName || 'Untitled';
-  a.href = URL.createObjectURL(data);
+  a.download = options.fileName || 'Untitled'
+  a.href = URL.createObjectURL(data)
 
-  const _reject = () => cleanupListenersAndMaybeReject(reject);
+  const _reject = () => cleanupListenersAndMaybeReject(reject)
   const _resolve = () => {
     if (typeof cleanupListenersAndMaybeReject === 'function') {
-      cleanupListenersAndMaybeReject();
+      cleanupListenersAndMaybeReject()
     }
-  };
+  }
   // ToDo: Remove this workaround once
   // https://github.com/whatwg/html/issues/6376 is specified and supported.
   const cleanupListenersAndMaybeReject =
-    options.legacySetup && options.legacySetup(_resolve, _reject, a);
+    options.legacySetup && options.legacySetup(_resolve, _reject, a)
 
   a.addEventListener('click', () => {
     // `setTimeout()` due to
     // https://github.com/LLK/scratch-gui/issues/1783#issuecomment-426286393
-    setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000);
-    _resolve(null);
-  });
-  a.click();
-  return null;
-};
+    setTimeout(() => URL.revokeObjectURL(a.href), 30 * 1000)
+    _resolve(null)
+  })
+  a.click()
+  return null
+}
 
 /**
  * Converts a passed `ReadableStream` to a `Blob`.
@@ -63,10 +60,10 @@ export default async (blobOrResponse, options = {}) => {
  * @returns {Promise<Blob>}
  */
 async function streamToBlob(stream, type) {
-  const reader = stream.getReader();
+  const reader = stream.getReader()
   const pumpedStream = new ReadableStream({
     start(controller) {
-      return pump();
+      return pump()
       /**
        * Recursively pumps data chunks out of the `ReadableStream`.
        * @type { () => Promise<void> }
@@ -74,17 +71,17 @@ async function streamToBlob(stream, type) {
       async function pump() {
         return reader.read().then(({ done, value }) => {
           if (done) {
-            controller.close();
-            return;
+            controller.close()
+            return
           }
-          controller.enqueue(value);
-          return pump();
-        });
+          controller.enqueue(value)
+          return pump()
+        })
       }
     },
-  });
+  })
 
-  const res = new Response(pumpedStream);
-  reader.releaseLock();
-  return new Blob([await res.blob()], { type });
+  const res = new Response(pumpedStream)
+  reader.releaseLock()
+  return new Blob([await res.blob()], { type })
 }
