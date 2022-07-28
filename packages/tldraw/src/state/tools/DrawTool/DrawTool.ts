@@ -36,7 +36,7 @@ export class DrawTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = info => {
+  onPointerDown: TLPointerEventHandler = (info) => {
     if (this.status !== Status.Idle) return
     if (this.app.readOnly) return
     const {

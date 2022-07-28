@@ -94,6 +94,9 @@ export class BrushSession extends BaseSession {
 
     if (!didChange)
       return {
+        appState: {
+          selectByContain,
+        },
         document: {
           pageStates: {
             [this.app.currentPageId]: {

@@ -6,7 +6,7 @@ export const MenuContent = styled('div', {
   userSelect: 'none',
   display: 'flex',
   flexDirection: 'column',
-  zIndex: 180,
+  zIndex: 99997,
   minWidth: 180,
   pointerEvents: 'all',
   backgroundColor: '$panel',

@@ -1273,7 +1273,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   updateDocument = (document: TDDocument, reason = 'updated_document'): this => {
     const prevState = this.state
 
-    let nextState = { ...prevState, document: { ...prevState.document } }
+    const nextState = { ...prevState, document: { ...prevState.document } }
 
     if (!document.pages[this.currentPageId]) {
       nextState.appState = {
@@ -1782,8 +1782,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const svg = div.firstChild as SVGSVGElement
 
       svg.style.setProperty('background-color', 'transparent')
-
-      console.log(text)
 
       const imageBlob = await TLDR.getImageForSvg(svg, TDExportType.SVG, {
         scale: 1,
@@ -3031,6 +3029,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
+
+    if (this.session) return this
     const drawCommand = Commands.deleteShapes(this, ids)
 
     if (

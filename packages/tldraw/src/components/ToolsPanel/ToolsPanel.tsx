@@ -96,7 +96,7 @@ const StyledToolsPanelContainer = styled('div', {
       side: 'top',
       bp: 'large',
       css: {
-        top: 10,
+        top: 0,
       },
     },
     {

@@ -8,8 +8,8 @@ import { TDSnapshot } from '~types'
 import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
-  HeartFilledIcon,
   QuestionMarkIcon,
+  HeartFilledIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons'
 import { RowButton } from '~components/Primitives/RowButton'
@@ -32,14 +32,14 @@ export function HelpPanel() {
 
   return (
     <Popover.Root>
-      <PopoverAnchor dir="ltr">
+      <PopoverAnchor dir="ltr" debug={isDebugMode}>
         <Popover.Trigger dir="ltr" asChild>
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
       </PopoverAnchor>
-      <Popover.Content dir="ltr" asChild>
+      <Popover.Content dir="ltr" align="end" side="top" alignOffset={10} sideOffset={8} asChild>
         <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
           <LanguageMenuDropdown />
           <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
@@ -96,17 +96,17 @@ const HelpButton = styled('button', {
   width: 28,
   height: 28,
   borderRadius: '100%',
-  position: 'fixed',
+  position: 'absolute',
   right: 10,
-  padding: 0,
+  bottom: 10,
   display: 'flex',
-  alignItems: 'center',
   justifyContent: 'center',
+  alignItems: 'center',
+  outline: 'none',
   backgroundColor: '$panel',
   cursor: 'pointer',
   boxShadow: '$panel',
   border: '1px solid $panelContrast',
-  bottom: 10,
   color: '$text',
   variants: {
     debug: {
@@ -130,37 +130,13 @@ const HelpButton = styled('button', {
     {
       bp: 'mobile',
       side: 'bottom',
-      debug: false,
       css: {
         bottom: 70,
       },
     },
     {
-      bp: 'mobile',
-      debug: true,
-      css: {
-        bottom: 50, // 40 + 10
-      },
-    },
-    {
-      bp: 'mobile',
-      side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 110,
-      },
-    },
-    {
       bp: 'small',
       side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 50,
-      },
-    },
-    {
-      bp: 'small',
-      debug: false,
       css: {
         bottom: 10,
       },
@@ -177,6 +153,9 @@ export const StyledContent = styled(MenuContent, {
   '& *': {
     boxSizing: 'border-box',
   },
+  '& a': {
+    outline: 'none',
+  },
   variants: {
     variant: {
       horizontal: {
@@ -191,7 +170,16 @@ export const StyledContent = styled(MenuContent, {
 
 const PopoverAnchor = styled(Popover.Anchor, {
   position: 'absolute',
-  right: 10,
   zIndex: 999,
-  bottom: 50,
+  right: 0,
+  bottom: 0,
+  width: 40,
+  height: 40,
+  variants: {
+    debug: {
+      true: {
+        bottom: 40,
+      },
+    },
+  },
 })

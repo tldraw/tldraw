@@ -5,7 +5,7 @@ import { PageOptionsDialog } from '../PageOptionsDialog'
 import { styled } from '~styles'
 import { useTldrawApp } from '~hooks'
 import type { TDSnapshot } from '~types'
-import { DMContent, DMDivider } from '~components/Primitives/DropdownMenu'
+import { DMContent } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { RowButton } from '~components/Primitives/RowButton'
 import { ToolButton } from '~components/Primitives/ToolButton'
@@ -51,7 +51,7 @@ export function PageMenu() {
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
         <ToolButton variant="text">{currentPageName || 'Page'}</ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent variant="menu" align="start">
+      <DMContent variant="menu" align="start" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
       </DMContent>
     </DropdownMenu.Root>

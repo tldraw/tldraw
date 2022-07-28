@@ -128,7 +128,7 @@ describe('Rotate session', () => {
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
@@ -156,7 +156,7 @@ describe('Rotate session', () => {
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
 
       app.selectAll().nudge([10, 10])
