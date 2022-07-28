@@ -521,7 +521,7 @@ export enum TDExportBackground {
   Transparent = 'transparent',
   Auto = 'auto',
   Light = 'light',
-  Dark = 'dark'
+  Dark = 'dark',
 }
 
 /* -------------------------------------------------- */

@@ -16,15 +16,9 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/src/extension.ts"
       ],
-      "outFiles": [
-        "${workspaceFolder}/dist/web/**/*.js",
-        "!**/node_modules/**"
-      ],
-      "skipFiles": [
-        "<node_internals>/**",
-        "**/node_modules/**"
-      ],
-      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/dist/web/**/*.js", "!**/node_modules/**"],
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "sourceMaps": true
     }
   ]
 }

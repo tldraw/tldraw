@@ -3,9 +3,7 @@
   "description": "A tiny little drawing app for your new tab screen.",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": [
-    "unlimitedStorage"
-  ],
+  "permissions": ["unlimitedStorage"],
   "default_icon": {
     "16": "16.png",
     "32": "32.png",
