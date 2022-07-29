@@ -1,6 +1,14 @@
 {
   "root": true,
   "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "tsconfigRootDir": "__dirname",
+    "project": [
+      "./apps/*/tsconfig.json",
+      "./apps/vscode/*/tsconfig.json",
+      "./packages/*/tsconfig.json"
+    ]
+  },
   "plugins": ["@typescript-eslint", "jest"],
   "extends": [
     "eslint:recommended",
