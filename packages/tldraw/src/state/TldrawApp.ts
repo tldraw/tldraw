@@ -970,7 +970,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
       [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
     }
 
-    this.patchSettings(patch, `settings:${name}`)
+    this.patchSettings(patch)
     this.persistSetting(patch)
     return this
   }
@@ -978,64 +978,27 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
   /**
    * Toggle pen mode.
    */
-  toggleFocusMode = (): this => {
-    if (this.session) return this
-    const patch = {
-      isFocusMode: !this.settings.isFocusMode,
-    }
-
-    this.patchSettings(patch, `settings:toggled_focus_mode`)
-    this.persistSetting(patch)
-    return this
-  }
+  toggleFocusMode = (): this => this.setSetting('isFocusMode', !this.settings.isFocusMode)
 
   /**
    * Toggle pen mode.
    */
-  togglePenMode = (): this => {
-    if (this.session) return this
-    const patch = {
-      isPenMode: !this.settings.isPenMode,
-    }
-    this.patchSettings(patch, `settings:toggled_pen_mode`)
-    this.persistSetting(patch)
-    return this
-  }
+  togglePenMode = (): this => this.setSetting('isPenMode', !this.settings.isPenMode)
 
   /**
    * Toggle dark mode.
    */
-  toggleDarkMode = (): this => {
-    if (this.session) return this
-    const patch = { isDarkMode: !this.settings.isDarkMode }
-    this.patchSettings(patch, `settings:toggled_dark_mode`)
-    console.log({ patch })
-
-    this.persistSetting(patch)
-    return this
-  }
+  toggleDarkMode = (): this => this.setSetting('isDarkMode', !this.settings.isDarkMode)
 
   /**
    * Toggle zoom snap.
    */
-  toggleZoomSnap = () => {
-    if (this.session) return this
-    const patch = { isZoomSnap: !this.settings.isZoomSnap }
-    this.patchSettings(patch, `settings:toggled_zoom_snap`)
-    this.persistSetting(patch)
-    return this
-  }
+  toggleZoomSnap = (): this => this.setSetting('isZoomSnap', !this.settings.isZoomSnap)
 
   /**
    * Toggle debug mode.
    */
-  toggleDebugMode = () => {
-    if (this.session) return this
-    const patch = { isDebugMode: !this.settings.isDebugMode }
-    this.patchSettings(patch, `settings:toggled_debug`)
-    this.persistSetting(patch)
-    return this
-  }
+  toggleDebugMode = (): this => this.setSetting('isDebugMode', !this.settings.isDebugMode)
 
   /**
    * Toggles the state if menu is opened
@@ -1077,13 +1040,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
   /**
    * Toggle grids.
    */
-  toggleGrid = (): this => {
-    if (this.session) return this
-    const patch = { showGrid: !this.settings.showGrid }
-    this.patchSettings(patch, 'settings:toggled_grid')
-    this.persistSetting(patch)
-    return this
-  }
+  toggleGrid = (): this => this.setSetting('showGrid', !this.settings.showGrid)
 
   /**
    * Select a tool.

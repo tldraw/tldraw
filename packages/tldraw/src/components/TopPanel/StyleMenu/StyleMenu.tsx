@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { FormattedMessage } from 'react-intl'
-import { useTldrawApp } from '~hooks'
+import { useTheme, useTldrawApp } from '~hooks'
 import {
   DMCheckboxItem,
   DMContent,
@@ -29,6 +29,7 @@ import {
   FontStyle,
   AlignStyle,
   TDShapeType,
+  TDSettings,
 } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
@@ -103,14 +104,13 @@ const optionsSelector = (s: TDSnapshot) => {
   return false
 }
 
+const keepStyleMenuOpenSelector = (state: TDSettings) => state.keepStyleMenuOpen
+
 export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
+  const { theme } = useTheme()
 
-  const settings = app.useSettingStore((state) => state)
-
-  const theme = settings.isDarkMode ? 'dark' : 'light'
-
-  const keepOpen = settings.keepStyleMenuOpen
+  const keepOpen = app.useSettingStore(keepStyleMenuOpenSelector)
 
   const options = app.useStore(optionsSelector)
 

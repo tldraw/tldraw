@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDShapeType, TDSnapshot, TDToolType } from '~types'
+import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
@@ -32,10 +32,6 @@ const shapeShapeIcons = {
   [TDShapeType.Ellipse]: <CircleIcon />,
   [TDShapeType.Triangle]: <VercelLogoIcon />,
   [TDShapeType.Line]: <LineIcon />,
-}
-
-enum Status {
-  SpacePanning = 'spacePanning',
 }
 
 export const ShapesMenu = React.memo(function ShapesMenu({

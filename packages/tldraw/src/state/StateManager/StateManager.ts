@@ -2,7 +2,7 @@ import createVanilla, { StoreApi } from 'zustand/vanilla'
 import create, { UseBoundStore } from 'zustand'
 import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
-import type { Patch, Command } from '../../types'
+import type { Patch, Command, TDSettings } from '../../types'
 import { Utils } from '@tldraw/core'
 
 export class StateManager<T extends Record<string, any>, U extends Record<string, any>> {
@@ -171,14 +171,13 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
   /**
    * Save the setting to localStorage
    */
-  protected persistSetting = (patch: Patch<U>, id?: string) => {
+  protected persistSetting = (patch: Patch<U>) => {
     if (this._status !== 'ready') return
     if (this.onPersist) {
-      this.onPersist(this._state, patch, id)
       const settings = this._settingState
       Object.entries(patch).map(([key, value]) => {
-        // @ts-expect-error
-        settings[key] = value
+        let objKey = settings[key] as any
+        objKey = value
       })
       localStorage.setItem('settings', JSON.stringify(settings))
     }
@@ -258,14 +257,11 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    * This does not persist the state.
    * @param patch The patch to apply.
    */
-  patchSettings = (patch: Patch<U>, id?: string): this => {
+  patchSettings = (patch: Patch<U>): this => {
     const prev = this._settingState
     const next = Utils.deepMerge(prev, patch as any)
     this._settingState = next
     this.settingsStore.setState(this._settingState, true)
-    if (this.onPatch) {
-      this.onPatch(this._settingState, patch, id)
-    }
     return this
   }
 

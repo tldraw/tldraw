@@ -126,14 +126,6 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
     })
   })
 
-  // if (version < 15.4) {
-  //   settings.dockPosition = 'bottom'
-  // }
-
-  // if (version < 15.5) {
-  //   settings.exportBackground = TDExportBackground.Transparent
-  // }
-
   // Cleanup
   Object.values(document.pageStates).forEach((pageState) => {
     pageState.selectedIds = pageState.selectedIds.filter((id) => {
