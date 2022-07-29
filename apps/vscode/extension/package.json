@@ -118,7 +118,7 @@
     "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
     "package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
     "publish": "yarn package && vsce publish",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src/ --ext ts"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.10.2",
