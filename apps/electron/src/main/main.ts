@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { app, BrowserWindow } from 'electron'
 import { is } from 'electron-util'
 import type { Message } from 'src/types'

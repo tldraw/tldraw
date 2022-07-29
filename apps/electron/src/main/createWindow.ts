@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import path from 'path'
-import { format } from 'url'
 import { BrowserWindow } from 'electron'
 import { is } from 'electron-util'
 
