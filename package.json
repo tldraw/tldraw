@@ -34,8 +34,6 @@
     "test": "turbo run test --stream",
     "test:ci": "turbo run test:ci --stream",
     "test:watch": "turbo run test:watch --stream",
-    "docs": "turbo run docs",
-    "docs:watch": "turbo run docs --watch",
     "postinstall": "husky install",
     "clean": "turbo run clean",
     "pre-commit": "lint-staged",
@@ -64,7 +62,6 @@
     "source-map-loader": "^3.0.1",
     "tslib": "^2.4.0",
     "turbo": "^1.1.2",
-    "typedoc": "^0.22.15",
     "typescript": "^4.7.3",
     "webpack": "^5.68.0"
   },
