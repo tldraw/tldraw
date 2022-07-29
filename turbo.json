@@ -23,10 +23,6 @@
     "start:vscode": {
       "cache": false
     },
-    "docs": {
-      "dependsOn": ["^build"],
-      "outputs": ["docs"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
