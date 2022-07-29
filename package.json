@@ -49,7 +49,7 @@
     "@types/vscode": "^1.63.2",
     "@typescript-eslint/eslint-plugin": "^5.17.0",
     "@typescript-eslint/parser": "^5.17.0",
-    "eslint": "^8.8.0",
+    "eslint": "^8.20.0",
     "eslint-plugin-jest": "^26.6.0",
     "fake-indexeddb": "^3.1.7",
     "husky": "^7.0.4",
