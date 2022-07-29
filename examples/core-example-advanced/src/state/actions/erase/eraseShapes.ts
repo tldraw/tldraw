@@ -1,6 +1,5 @@
 import type { TLPointerInfo } from '@tldraw/core'
 import type { Action } from 'state/constants'
-import { getPagePoint } from 'state/helpers'
 import { getShapeUtils } from 'shapes'
 import { mutables } from 'state/mutables'
 

@@ -6,7 +6,7 @@ export const updateShapes: Action = (
   payload: { shapes: (Partial<Shape> & Pick<Shape, 'id'>)[] }
 ) => {
   try {
-    payload.shapes.forEach((partial, i) => {
+    payload.shapes.forEach((partial) => {
       Object.assign(data.page.shapes[partial.id], partial)
     })
   } catch (e: any) {

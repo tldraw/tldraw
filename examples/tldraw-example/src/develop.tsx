@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { TDShapeType, Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -19,14 +19,6 @@ export default function Develop() {
     //   point: [200, 200],
     //   size: [200, 200],
     // })
-  }, [])
-
-  const handleSignOut = React.useCallback(() => {
-    // noop
-  }, [])
-
-  const handleSignIn = React.useCallback(() => {
-    // noop
   }, [])
 
   const handlePersist = React.useCallback(() => {

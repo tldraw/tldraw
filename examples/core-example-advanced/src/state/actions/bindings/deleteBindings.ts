@@ -2,7 +2,7 @@ import type { Action } from 'state/constants'
 
 export const deleteBindings: Action = (data, payload: { ids: string[] }) => {
   try {
-    payload.ids.forEach((id, i) => {
+    payload.ids.forEach((id) => {
       delete data.page.bindings[id]
     })
   } catch (e: any) {
