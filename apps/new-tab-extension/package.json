@@ -33,8 +33,6 @@
     "@types/react-dom": "^18.0.5",
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^1.0.7",
-    "config": "*",
-    "tsconfig": "*",
     "typescript": "^4.7.2",
     "vite": "^2.9.8"
   }

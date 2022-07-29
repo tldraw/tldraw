@@ -45,6 +45,7 @@
   },
   "gitHead": "838fabdbff1a66d4d7ee8aa5c5d117bc55acbff2",
   "devDependencies": {
-    "next-transpile-modules": "^9.0.0"
+    "next-transpile-modules": "^9.0.0",
+    "source-map-loader": "^3.0.1"
   }
 }
