@@ -110,5 +110,5 @@ export async function createMenu(send: (message: Message) => Promise<void>) {
 
   const menu = Menu.buildFromTemplate(template)
 
-  Menu.seicationMenu(menu)
+  Menu.setApplicationMenu(menu)
 }
