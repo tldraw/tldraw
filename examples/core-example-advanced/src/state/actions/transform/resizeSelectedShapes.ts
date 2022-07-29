@@ -16,13 +16,13 @@ export const resizeSelectedShapes: Action = (data, payload: TLPointerInfo) => {
   )
 
   let rotation = 0
-  let delta = Vec.sub(mutables.currentPoint, initialPoint)
+  const delta = Vec.sub(mutables.currentPoint, initialPoint)
 
   if (selectedIds.length === 1) {
     rotation = snapshot.page.shapes[selectedIds[0]].rotation || 0
   }
 
-  let nextCommonBounds = Utils.getTransformedBoundingBox(
+  const nextCommonBounds = Utils.getTransformedBoundingBox(
     initialCommonBounds,
     pointedBoundsHandleId as TLBoundsCorner | TLBoundsEdge,
     delta,
