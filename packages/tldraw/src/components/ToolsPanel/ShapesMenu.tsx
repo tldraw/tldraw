@@ -45,7 +45,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const dockPosition = app.settings.dockPosition
+  const dockPosition = app.useSettingStore((state) => state.dockPosition)
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 

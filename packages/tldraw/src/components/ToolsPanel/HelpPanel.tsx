@@ -22,8 +22,8 @@ import { Divider } from '~components/Primitives/Divider'
 
 export function HelpPanel() {
   const app = useTldrawApp()
-  const isDebugMode = app.settings.isDebugMode
-  const side = app.settings.dockPosition
+  const isDebugMode = app.useSettingStore((state) => state.isDebugMode)
+  const side = app.useSettingStore((state) => state.dockPosition)
 
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = React.useState(false)
 

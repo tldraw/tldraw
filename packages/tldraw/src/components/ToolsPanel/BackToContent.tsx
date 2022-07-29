@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
 import { styled } from '~styles'
-import type { TDSnapshot } from '~types'
+import type { TDSettings, TDSnapshot } from '~types'
 import { useTldrawApp } from '~hooks'
 import { RowButton } from '~components/Primitives/RowButton'
 import { MenuContent } from '~components/Primitives/MenuContent'
@@ -13,12 +13,15 @@ const isEmptyCanvasSelector = (s: TDSnapshot) => {
   )
 }
 
+const isDebugModeSelector = (s: TDSettings) => s.isDebugMode
+const dockPositionSelector = (s: TDSettings) => s.dockPosition
+
 export const BackToContent = React.memo(function BackToContent() {
   const app = useTldrawApp()
 
   const isEmptyCanvas = app.useStore(isEmptyCanvasSelector)
-  const dockPosition = app.settings.dockPosition
-  const isDebugMode = app.settings.isDebugMode
+  const dockPosition = app.useSettingStore(dockPositionSelector)
+  const isDebugMode = app.useSettingStore(isDebugModeSelector)
 
   const style = {
     bottom:

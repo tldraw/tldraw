@@ -2,7 +2,7 @@ import createVanilla, { StoreApi } from 'zustand/vanilla'
 import create, { UseBoundStore } from 'zustand'
 import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
-import type { Patch, Command, TDSettings } from '../../types'
+import type { Patch, Command } from '../../types'
 import { Utils } from '@tldraw/core'
 
 export class StateManager<T extends Record<string, any>, U extends Record<string, any>> {
@@ -15,11 +15,6 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    * The initial state.
    */
   private initialState: T
-
-  /**
-   * Initial settings
-   */
-  private initialSetting: U
 
   /**
    * A zustand store that also holds the state.
@@ -94,7 +89,6 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
     this.store = createVanilla(() => this._state)
     this.useStore = create(this.store)
 
-    this.initialSetting = deepCopy(initialSetting)
     this.settingsStore = createVanilla(() => this._settingState)
     this.useSettingStore = create(this.settingsStore)
 
@@ -103,10 +97,10 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
 
       const localSettings = localStorage.getItem('settings')
 
-      try {
-        message = 'restored'
+      if (localSettings) {
         this._settingState = JSON.parse(localSettings!)
-      } catch (e) {
+        this.settingsStore.setState(this._settingState, true)
+      } else {
         localStorage.setItem('settings', JSON.stringify(this._settingState))
       }
 
@@ -182,8 +176,8 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
     if (this.onPersist) {
       this.onPersist(this._state, patch, id)
       const settings = this._settingState
-      let entries = Object.entries(patch as any)
-      entries.map(([key, value]) => {
+      Object.entries(patch).map(([key, value]) => {
+        // @ts-expect-error
         settings[key] = value
       })
       localStorage.setItem('settings', JSON.stringify(settings))
@@ -197,7 +191,7 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    * @param patch The patch to apply.
    * @param id (optional) An id for the patch.
    */
-  private applyPatch = (patch: Patch<T> | Patch<U>, id?: string) => {
+  private applyPatch = (patch: Patch<T>, id?: string) => {
     const prev = this._state
     const next = Utils.deepMerge(this._state, patch as any)
     const final = this.cleanup(next, prev, patch, id)
@@ -227,8 +221,7 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
    * @param id (optional) An id for the just-applied patch.
    * @returns The final new state to apply.
    */
-  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T> | Patch<U>, _id?: string): T =>
-    nextState
+  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T>, _id?: string): T => nextState
 
   /**
    * A life-cycle method called when the state is about to change.
@@ -268,9 +261,11 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
   patchSettings = (patch: Patch<U>, id?: string): this => {
     const prev = this._settingState
     const next = Utils.deepMerge(prev, patch as any)
-
     this._settingState = next
-    this.settingsStore.setState(next, true)
+    this.settingsStore.setState(this._settingState, true)
+    if (this.onPatch) {
+      this.onPatch(this._settingState, patch, id)
+    }
     return this
   }
 
@@ -332,7 +327,7 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
   /**
    * A callback fired when a patch is applied.
    */
-  public onPatch?: (state: T, patch: Patch<T | U>, id?: string) => void
+  public onPatch?: (state: T | U, patch: Patch<T | U>, id?: string) => void
 
   /**
    * A callback fired when a patch is applied.
@@ -499,7 +494,7 @@ export class StateManager<T extends Record<string, any>, U extends Record<string
   /**
    * The current settings state.
    */
-  get settings(): U {
+  public get settings(): U {
     return this._settingState
   }
 }

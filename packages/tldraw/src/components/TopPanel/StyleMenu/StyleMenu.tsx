@@ -106,9 +106,11 @@ const optionsSelector = (s: TDSnapshot) => {
 export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
 
-  const theme = app.settings.isDarkMode ? 'dark' : 'light'
+  const settings = app.useSettingStore((state) => state)
 
-  const keepOpen = app.settings.keepStyleMenuOpen
+  const theme = settings.isDarkMode ? 'dark' : 'light'
+
+  const keepOpen = settings.keepStyleMenuOpen
 
   const options = app.useStore(optionsSelector)
 

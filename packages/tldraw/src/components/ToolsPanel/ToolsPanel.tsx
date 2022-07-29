@@ -22,8 +22,6 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
   const side = app.useSettingStore(dockPositionSelector)
   const isDebugMode = app.useSettingStore(isDebugModeSelector)
 
-  console.log(side)
-
   return (
     <>
       <StyledToolsPanelContainer side={side} onBlur={onBlur} bp={breakpoints} debug={isDebugMode}>

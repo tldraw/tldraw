@@ -294,10 +294,11 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
           status: TDStatus.Idle,
         },
       })
+      this.patchSettings(this.settings)
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
       localStorage.setItem(this.document.id + '_corrupted', JSON.stringify(this.document))
-
+      this.patchSettings(TldrawApp.defaultSetting)
       this.patchState({
         ...TldrawApp.defaultState,
         appState: {
@@ -540,7 +541,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets, addToHistory)
   }
 
-  onPatch = (state: TDSnapshot, patch: TldrawPatch, id?: string) => {
+  onPatch = (state: TDSnapshot | TDSettings, patch: TldrawPatch, id?: string) => {
     if ('document' in patch) {
       if (
         (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
@@ -852,10 +853,6 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
       return next
     }, true)
 
-    this.useSettingStore.setState((current) => {
-      return current
-    }, true)
-
     return this
   }
 
@@ -1012,6 +1009,8 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     if (this.session) return this
     const patch = { isDarkMode: !this.settings.isDarkMode }
     this.patchSettings(patch, `settings:toggled_dark_mode`)
+    console.log({ patch })
+
     this.persistSetting(patch)
     return this
   }
@@ -1081,7 +1080,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
   toggleGrid = (): this => {
     if (this.session) return this
     const patch = { showGrid: !this.settings.showGrid }
-    this.patchState(patch, 'settings:toggled_grid')
+    this.patchSettings(patch, 'settings:toggled_grid')
     this.persistSetting(patch)
     return this
   }
@@ -2713,7 +2712,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     const result = this.session!.start()
 
     if (result) {
-      this.patchState(result, `session:start_${this.session!.constructor.name}`)
+      this.patchState(result as TDSnapshot, `session:start_${this.session!.constructor.name}`)
     }
 
     this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
@@ -2734,7 +2733,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     // @ts-ignore
     const patch = session.update()
     if (!patch) return this
-    return this.patchState(patch, `session:${session?.constructor.name}`)
+    return this.patchState(patch as TDSnapshot, `session:${session?.constructor.name}`)
   }
 
   /**
@@ -2749,7 +2748,7 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     const result = session.cancel()
 
     if (result) {
-      this.patchState(result, `session:cancel:${session.constructor.name}`)
+      this.patchState(result as TDSnapshot, `session:cancel:${session.constructor.name}`)
     }
 
     this.setEditingId()

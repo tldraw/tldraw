@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
-import { DMCheckboxItem, DMDivider, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
 import { useTldrawApp } from '~hooks'
-import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
+import { TDDockPosition, TDExportBackground } from '~types'
 import { styled } from '~styles'
 import { Divider } from '~components/Primitives/Divider'
 

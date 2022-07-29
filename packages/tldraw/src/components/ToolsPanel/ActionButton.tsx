@@ -89,7 +89,7 @@ export function ActionButton() {
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)
 
-  const dockPosition = app.settings.dockPosition
+  const dockPosition = app.useSettingStore((state) => state.dockPosition)
 
   const hasTwoOrMore = selectedShapesCount > 1
 
