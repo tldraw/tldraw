@@ -25,9 +25,6 @@
       "files": ["*.ts", "*.tsx"],
       "rules": {
         "@typescript-eslint/explicit-module-boundary-types": [0],
-        "no-non-null-assertion": "off",
-        "no-fallthrough": "off",
-        "@typescript-eslint/no-fallthrough": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/ban-ts-comment": "off",
