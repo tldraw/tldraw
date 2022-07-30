@@ -10,7 +10,7 @@ import { Divider } from '~components/Primitives/Divider'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 
-export const LanguageMenu = React.forwardRef((props, ref) => {
+export const LanguageMenu = () => {
   const app = useTldrawApp()
   const language = app.useStore(languageSelector)
 
@@ -48,4 +48,4 @@ export const LanguageMenu = React.forwardRef((props, ref) => {
       </a>
     </DMContent>
   )
-})
+}

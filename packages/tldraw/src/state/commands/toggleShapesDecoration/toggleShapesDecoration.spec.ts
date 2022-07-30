@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp } from '~test'
 import { ArrowShape, Decoration, TDShapeType } from '~types'
 
 describe('Toggle decoration command', () => {

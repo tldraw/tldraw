@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
-import { Panel } from '~components/Primitives/Panel'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'

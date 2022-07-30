@@ -1,4 +1,4 @@
-import { TLBounds, TLBoundsCorner, TLBoundsEdge, TLPerformanceMode, Utils } from '@tldraw/core'
+import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
@@ -97,7 +97,6 @@ export class TransformSession extends BaseSession {
     return void null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (): TldrawPatch | undefined => {
     const {
       transformType,

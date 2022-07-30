@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Vec } from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
 import { AlignType, TldrawCommand, TDShapeType } from '~types'

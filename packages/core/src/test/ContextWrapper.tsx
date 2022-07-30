@@ -27,6 +27,5 @@ export const ContextWrapper = ({ children }: { children: any }) => {
     },
   }))
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return <TLContext.Provider value={context as any}>{children}</TLContext.Provider>
 }

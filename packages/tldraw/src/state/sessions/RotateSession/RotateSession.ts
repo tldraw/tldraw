@@ -1,4 +1,4 @@
-import { TLPerformanceMode, Utils } from '@tldraw/core'
+import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'

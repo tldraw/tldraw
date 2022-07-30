@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import {
@@ -25,7 +24,6 @@ import { Brush } from '~components/Brush'
 import { Page } from '~components/Page'
 import { Users } from '~components/Users'
 import { useResizeObserver } from '~hooks/useResizeObserver'
-import { inputs } from '~inputs'
 import { UsersIndicators } from '~components/UsersIndicators'
 import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Grid } from '~components/Grid'

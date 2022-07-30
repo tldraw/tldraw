@@ -13,7 +13,6 @@ export enum Status {
   Pinching = 'pinching',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BaseTool<T extends string = any> extends TDEventHandler {
   type: TDToolType = 'select' as const
 

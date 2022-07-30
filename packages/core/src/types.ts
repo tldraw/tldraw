@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
 
 import type React from 'react'
@@ -353,7 +351,6 @@ export interface IShapeTreeNode<T extends TLShape, M = any> {
 /* -------------------------------------------------- */
 
 export type MappedByType<K extends string, T extends { type: K }> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 

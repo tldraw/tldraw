@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -85,8 +82,6 @@ import { StateManager } from './StateManager'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
-import { getTranslation } from '~translations'
-import { TextUtil } from './shapes/TextUtil'
 
 const uuid = Utils.uniqueId()
 
@@ -2732,7 +2727,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const { session } = this
     if (!session) return this
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const patch = session.update()
     if (!patch) return this
