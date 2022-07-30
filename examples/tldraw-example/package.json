@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "start": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "lint": "eslint src/ --ext .ts,.tsx"
   },
   "devDependencies": {
     "@liveblocks/client": "^0.17.0-beta2",

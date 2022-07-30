@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { GitHub } from 'react-feather'
 import styled from 'stitches.config'
 
 export function TitleLinks() {

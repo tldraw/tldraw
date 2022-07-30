@@ -2,7 +2,6 @@ import { TLBoundsCorner, TLBoundsEdge, TLPointerInfo, Utils } from '@tldraw/core
 import Vec from '@tldraw/vec'
 import { getShapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
-import { getPagePoint } from 'state/helpers'
 import { mutables } from 'state/mutables'
 
 export const resizeSelectedShapes: Action = (data, payload: TLPointerInfo) => {
@@ -16,13 +15,13 @@ export const resizeSelectedShapes: Action = (data, payload: TLPointerInfo) => {
   )
 
   let rotation = 0
-  let delta = Vec.sub(mutables.currentPoint, initialPoint)
+  const delta = Vec.sub(mutables.currentPoint, initialPoint)
 
   if (selectedIds.length === 1) {
     rotation = snapshot.page.shapes[selectedIds[0]].rotation || 0
   }
 
-  let nextCommonBounds = Utils.getTransformedBoundingBox(
+  const nextCommonBounds = Utils.getTransformedBoundingBox(
     initialCommonBounds,
     pointedBoundsHandleId as TLBoundsCorner | TLBoundsEdge,
     delta,

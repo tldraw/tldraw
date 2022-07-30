@@ -74,7 +74,6 @@
     "@types/react-dom": "^18.0.5",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
-    "eslint": "^8.8.0",
     "mobx": "^6.3.8",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",

@@ -52,7 +52,6 @@
       "outputs": ["coverage/**"]
     },
     "lint": {
-      "dependsOn": ["build"],
       "outputs": []
     },
     "clean": {
