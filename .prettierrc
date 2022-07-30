@@ -2,5 +2,11 @@
   "trailingComma": "es5",
   "singleQuote": true,
   "semi": false,
-  "printWidth": 100
+  "printWidth": 100,
+  "importOrder": ["^@tldraw/(.*)$", "~(.*)$", "^[./]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true,
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderCaseInsensitive": true,
+  "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"]
 }
