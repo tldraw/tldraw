@@ -3,7 +3,7 @@
   "singleQuote": true,
   "semi": false,
   "printWidth": 100,
-  "importOrder": ["^@tldraw/(.*)$", "~(.*)$", "^[./]"],
+  "importOrder": ["^@tldraw/(.*)$", "^[~]", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true,
   "importOrderGroupNamespaceSpecifiers": true,

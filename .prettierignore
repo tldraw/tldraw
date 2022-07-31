@@ -1,7 +1,7 @@
 assets
 **/assets
 **/dist
-**/editor
+**/extension/editor
 **/out
 **/public
 
