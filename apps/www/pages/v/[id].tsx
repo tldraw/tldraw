@@ -1,7 +1,7 @@
 import * as React from 'react'
+import { Utils } from '@tldraw/core'
 import type { GetServerSideProps } from 'next'
 import dynamic from 'next/dynamic'
-import { Utils } from '@tldraw/core'
 
 const IFrameWarning = dynamic(() => import('components/IFrameWarning'), {
   ssr: false,
