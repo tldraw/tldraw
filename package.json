@@ -67,6 +67,9 @@
     "typescript": "^4.7.3",
     "webpack": "^5.68.0"
   },
+  "resolutions": {
+    "@trivago/prettier-plugin-sort-imports/**/@babel/parser": "^7.17.0"
+  },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
     "*.{ts,tsx}": "eslint --fix"
