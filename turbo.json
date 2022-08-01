@@ -1,5 +1,5 @@
 {
-  "npmClient": "yarn",
+  "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
   "pipeline": {
     "start": {
