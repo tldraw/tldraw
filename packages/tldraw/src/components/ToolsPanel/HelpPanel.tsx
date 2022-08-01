@@ -20,13 +20,10 @@ import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
 import { Divider } from '~components/Primitives/Divider'
 
-const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 export function HelpPanel() {
   const app = useTldrawApp()
-  const isDebugMode = app.useStore(isDebugModeSelector)
-  const side = app.useStore(dockPositionState)
+  const isDebugMode = app.useSettingStore((state) => state.isDebugMode)
+  const side = app.useSettingStore((state) => state.dockPosition)
 
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = React.useState(false)
 

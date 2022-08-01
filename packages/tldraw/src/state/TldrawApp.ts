@@ -41,6 +41,7 @@ import {
   TldrawPatch,
   TDExportBackground,
   AlignStyle,
+  TDSettings,
 } from '~types'
 import {
   migrate,
@@ -174,7 +175,7 @@ export interface TDCallbacks {
   onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
-export class TldrawApp extends StateManager<TDSnapshot> {
+export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
   callbacks: TDCallbacks = {}
 
   tools = {
@@ -251,15 +252,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   constructor(id?: string, callbacks = {} as TDCallbacks) {
-    super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
-      return migrate(
-        {
-          ...next,
-          document: { ...next.document, ...prev.document, version: prevVersion },
-        },
-        TldrawApp.version
-      )
-    })
+    super(
+      TldrawApp.defaultState,
+      TldrawApp.defaultSetting,
+      id,
+      TldrawApp.version,
+      (prev, next, prevVersion) => {
+        return migrate(
+          {
+            ...next,
+            document: { ...next.document, ...prev.document, version: prevVersion },
+          },
+          TldrawApp.version
+        )
+      }
+    )
 
     this.callbacks = callbacks
   }
@@ -284,10 +291,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           status: TDStatus.Idle,
         },
       })
+      this.patchSettings(this.settings)
     } catch (e) {
       console.error('The data appears to be corrupted. Resetting!', e)
       localStorage.setItem(this.document.id + '_corrupted', JSON.stringify(this.document))
-
+      this.patchSettings(TldrawApp.defaultSetting)
       this.patchState({
         ...TldrawApp.defaultState,
         appState: {
@@ -499,10 +507,15 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const changedShapes: Record<string, TDShape | undefined> = {}
     const changedBindings: Record<string, TDBinding | undefined> = {}
     const changedAssets: Record<string, TDAsset | undefined> = {}
+    let shapes: any = {}
+    let bindings: any = {}
+    let assets: any = {}
 
-    const shapes = patch?.document?.pages?.[this.currentPageId]?.shapes
-    const bindings = patch?.document?.pages?.[this.currentPageId]?.bindings
-    const assets = patch?.document?.assets
+    if ('document' in patch) {
+      shapes = patch?.document?.pages?.[this.currentPageId]?.shapes
+      bindings = patch?.document?.pages?.[this.currentPageId]?.bindings
+      assets = patch?.document?.assets
+    }
 
     if (shapes) {
       Object.keys(shapes).forEach((id) => {
@@ -525,19 +538,21 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.callbacks.onChangePage?.(this, changedShapes, changedBindings, changedAssets, addToHistory)
   }
 
-  onPatch = (state: TDSnapshot, patch: TldrawPatch, id?: string) => {
-    if (
-      (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
-      patch?.document?.assets
-    ) {
+  onPatch = (state: TDSnapshot | TDSettings, patch: TldrawPatch, id?: string) => {
+    if ('document' in patch) {
       if (
-        patch?.document?.assets ||
-        (this.session &&
-          this.session.type !== SessionType.Brush &&
-          this.session.type !== SessionType.Erase &&
-          this.session.type !== SessionType.Draw)
+        (this.callbacks.onChangePage && patch?.document?.pages?.[this.currentPageId]) ||
+        patch?.document?.assets
       ) {
-        this.broadcastPatch(patch, false)
+        if (
+          patch?.document?.assets ||
+          (this.session &&
+            this.session.type !== SessionType.Brush &&
+            this.session.type !== SessionType.Erase &&
+            this.session.type !== SessionType.Draw)
+        ) {
+          this.broadcastPatch(patch, false)
+        }
       }
     }
 
@@ -942,88 +957,45 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Set a setting.
    */
-  setSetting = <T extends keyof TDSnapshot['settings'], V extends TDSnapshot['settings'][T]>(
+  setSetting = <T extends keyof TDSettings, V extends TDSettings[T]>(
     name: T,
     value: V | ((value: V) => V)
   ): this => {
     if (this.session) return this
 
     const patch = {
-      settings: {
-        [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
-      },
+      [name]: typeof value === 'function' ? value(this.settings[name] as V) : value,
     }
 
-    this.patchState(patch, `settings:${name}`)
-
-    this.persist(patch)
+    this.patchSettings(patch)
+    this.persistSetting(patch)
     return this
   }
 
   /**
    * Toggle pen mode.
    */
-  toggleFocusMode = (): this => {
-    if (this.session) return this
-    const patch = {
-      settings: {
-        isFocusMode: !this.settings.isFocusMode,
-      },
-    }
-
-    this.patchState(patch, `settings:toggled_focus_mode`)
-
-    this.persist(patch)
-    return this
-  }
+  toggleFocusMode = (): this => this.setSetting('isFocusMode', !this.settings.isFocusMode)
 
   /**
    * Toggle pen mode.
    */
-  togglePenMode = (): this => {
-    if (this.session) return this
-    const patch = {
-      settings: {
-        isPenMode: !this.settings.isPenMode,
-      },
-    }
-    this.patchState(patch, `settings:toggled_pen_mode`)
-    this.persist(patch)
-    return this
-  }
+  togglePenMode = (): this => this.setSetting('isPenMode', !this.settings.isPenMode)
 
   /**
    * Toggle dark mode.
    */
-  toggleDarkMode = (): this => {
-    if (this.session) return this
-    const patch = { settings: { isDarkMode: !this.settings.isDarkMode } }
-    this.patchState(patch, `settings:toggled_dark_mode`)
-    this.persist(patch)
-    return this
-  }
+  toggleDarkMode = (): this => this.setSetting('isDarkMode', !this.settings.isDarkMode)
 
   /**
    * Toggle zoom snap.
    */
-  toggleZoomSnap = () => {
-    if (this.session) return this
-    const patch = { settings: { isZoomSnap: !this.settings.isZoomSnap } }
-    this.patchState(patch, `settings:toggled_zoom_snap`)
-    this.persist(patch)
-    return this
-  }
+  toggleZoomSnap = (): this => this.setSetting('isZoomSnap', !this.settings.isZoomSnap)
 
   /**
    * Toggle debug mode.
    */
-  toggleDebugMode = () => {
-    if (this.session) return this
-    const patch = { settings: { isDebugMode: !this.settings.isDebugMode } }
-    this.patchState(patch, `settings:toggled_debug`)
-    this.persist(patch)
-    return this
-  }
+  toggleDebugMode = (): this => this.setSetting('isDebugMode', !this.settings.isDebugMode)
 
   /**
    * Toggles the state if menu is opened
@@ -1065,13 +1037,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Toggle grids.
    */
-  toggleGrid = (): this => {
-    if (this.session) return this
-    const patch = { settings: { showGrid: !this.settings.showGrid } }
-    this.patchState(patch, 'settings:toggled_grid')
-    this.persist(patch)
-    return this
-  }
+  toggleGrid = (): this => this.setSetting('showGrid', !this.settings.showGrid)
 
   /**
    * Select a tool.
@@ -1350,9 +1316,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const state = {
       ...TldrawApp.defaultState,
-      settings: {
-        ...this.state.settings,
-      },
       document,
       appState: {
         ...TldrawApp.defaultState.appState,
@@ -1570,13 +1533,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * The current app state.
    */
-  get settings(): TDSnapshot['settings'] {
-    return this.state.settings
-  }
-
-  /**
-   * The current app state.
-   */
   get appState(): TDSnapshot['appState'] {
     return this.state.appState
   }
@@ -1647,7 +1603,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Create a new page.
-   * @param pageId (optional) The new page's id.
+   * @param id (optional) The new page's id.
    */
   createPage = (id?: string, name?: string): this => {
     if (this.readOnly) return this
@@ -2710,7 +2666,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const result = this.session!.start()
 
     if (result) {
-      this.patchState(result, `session:start_${this.session!.constructor.name}`)
+      this.patchState(result as TDSnapshot, `session:start_${this.session!.constructor.name}`)
     }
 
     this.callbacks.onSessionStart?.(this, this.session!.constructor.name)
@@ -2730,7 +2686,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // @ts-ignore
     const patch = session.update()
     if (!patch) return this
-    return this.patchState(patch, `session:${session?.constructor.name}`)
+    return this.patchState(patch as TDSnapshot, `session:${session?.constructor.name}`)
   }
 
   /**
@@ -2745,7 +2701,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const result = session.cancel()
 
     if (result) {
-      this.patchState(result, `session:cancel:${session.constructor.name}`)
+      this.patchState(result as TDSnapshot, `session:cancel:${session.constructor.name}`)
     }
 
     this.setEditingId()
@@ -2842,18 +2798,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
       this.setState(result, `session:complete:${session.constructor.name}`)
     } else {
+      let patchResult = result as TDSnapshot
       this.patchState(
         {
           ...result,
           appState: {
-            ...result.appState,
+            ...patchResult.appState,
             status: TDStatus.Idle,
           },
           document: {
-            ...result.document,
+            ...patchResult.document,
             pageStates: {
               [this.currentPageId]: {
-                ...result.document?.pageStates?.[this.currentPageId],
+                ...patchResult.document?.pageStates?.[this.currentPageId],
                 editingId: null,
               },
             },
@@ -4107,27 +4064,28 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     assets: {},
   }
 
+  static defaultSetting: TDSettings = {
+    isCadSelectMode: false,
+    isPenMode: false,
+    isDarkMode: false,
+    isZoomSnap: false,
+    isFocusMode: false,
+    isSnapping: false,
+    isDebugMode: false,
+    isReadonlyMode: false,
+    keepStyleMenuOpen: false,
+    nudgeDistanceLarge: 16,
+    nudgeDistanceSmall: 1,
+    showRotateHandles: true,
+    showBindingHandles: true,
+    showCloneHandles: false,
+    showGrid: false,
+    language: 'en',
+    dockPosition: 'bottom',
+    exportBackground: TDExportBackground.Transparent,
+  }
+
   static defaultState: TDSnapshot = {
-    settings: {
-      isCadSelectMode: false,
-      isPenMode: false,
-      isDarkMode: false,
-      isZoomSnap: false,
-      isFocusMode: false,
-      isSnapping: false,
-      isDebugMode: false,
-      isReadonlyMode: false,
-      keepStyleMenuOpen: false,
-      nudgeDistanceLarge: 16,
-      nudgeDistanceSmall: 1,
-      showRotateHandles: true,
-      showBindingHandles: true,
-      showCloneHandles: false,
-      showGrid: false,
-      language: 'en',
-      dockPosition: 'bottom',
-      exportBackground: TDExportBackground.Transparent,
-    },
     appState: {
       status: TDStatus.Idle,
       activeTool: 'select',

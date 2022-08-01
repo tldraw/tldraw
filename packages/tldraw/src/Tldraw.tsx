@@ -227,11 +227,11 @@ export function Tldraw({
     }
   }, [app, readOnly])
 
+  const isDarkMode = app.useSettingStore((s) => s.isDarkMode)
+
   // Toggle the app's darkMode when the `darkMode` prop changes.
   React.useEffect(() => {
-    if (darkMode !== app.settings.isDarkMode) {
-      app.toggleDarkMode()
-    }
+    app.setSetting('isDarkMode', isDarkMode ?? darkMode)
   }, [app, darkMode])
 
   // Update the app's callbacks when any callback changes.
@@ -344,8 +344,13 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const state = app.useStore()
+  const settings = app.useSettingStore()
 
-  const { document, settings, appState, room } = state
+  const isDarkMode = app.useSettingStore((s) => s.isDarkMode)
+
+  // console.log({ isDarkMode })
+
+  const { document, appState, room } = state
 
   const isSelecting = state.appState.activeTool === 'select'
 

@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDShapeType, TDSnapshot, TDToolType } from '~types'
+import { TDShapeType, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
 import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
@@ -34,8 +34,6 @@ const shapeShapeIcons = {
   [TDShapeType.Line]: <LineIcon />,
 }
 
-const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
-
 export const ShapesMenu = React.memo(function ShapesMenu({
   activeTool,
   isToolLocked,
@@ -43,7 +41,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const dockPosition = app.useStore(dockPositionState)
+  const dockPosition = app.useSettingStore((state) => state.dockPosition)
 
   const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
 

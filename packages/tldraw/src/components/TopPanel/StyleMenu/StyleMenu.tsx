@@ -2,8 +2,13 @@ import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { FormattedMessage } from 'react-intl'
-import { useTldrawApp } from '~hooks'
-import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
+import { useTheme, useTldrawApp } from '~hooks'
+import {
+  DMCheckboxItem,
+  DMContent,
+  DMDivider,
+  DMRadioItem,
+} from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -24,6 +29,7 @@ import {
   FontStyle,
   AlignStyle,
   TDShapeType,
+  TDSettings,
 } from '~types'
 import { styled } from '~styles'
 import { breakpoints } from '~components/breakpoints'
@@ -62,10 +68,6 @@ const ALIGN_ICONS = {
   [AlignStyle.Justify]: <TextAlignJustifyIcon />,
 }
 
-const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
-
-const keepOpenSelector = (s: TDSnapshot) => s.settings.keepStyleMenuOpen
-
 const optionsSelector = (s: TDSnapshot) => {
   const { activeTool, currentPageId: pageId } = s.appState
   switch (activeTool) {
@@ -102,12 +104,13 @@ const optionsSelector = (s: TDSnapshot) => {
   return false
 }
 
+const keepStyleMenuOpenSelector = (state: TDSettings) => state.keepStyleMenuOpen
+
 export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
+  const { theme } = useTheme()
 
-  const theme = app.useStore(themeSelector)
-
-  const keepOpen = app.useStore(keepOpenSelector)
+  const keepOpen = app.useSettingStore(keepStyleMenuOpenSelector)
 
   const options = app.useStore(optionsSelector)
 
