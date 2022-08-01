@@ -22,9 +22,10 @@ const EdubreakService = {
 
     getEdubreakApiUrl() {
         const metaTag = document.head.querySelector("[itemprop~=edubreakAPIUrl][content]");
-        // @ts-ignore
-        if (metaTag['content']! !== null || metaTag['content'].length > 0) {
-            if (metaTag) {
+        if (metaTag) {
+            // @ts-ignore
+            if (metaTag['content']! !== null || metaTag['content'].length > 0) {
+
                 // @ts-ignore
                 return metaTag['content']
             }
@@ -37,9 +38,9 @@ const EdubreakService = {
 
     getEdubreakAccessToken() {
         const metaTag = document.head.querySelector("[itemprop~=accesstoken][content]");
-        // @ts-ignore
-        if (metaTag['content']! !== null || metaTag['content'].length > 0) {
-            if (metaTag) {
+        if (metaTag) {
+            // @ts-ignore
+            if (metaTag['content']! !== null || metaTag['content'].length > 0) {
                 // @ts-ignore
                 return metaTag['content']
             }

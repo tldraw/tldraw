@@ -4,7 +4,7 @@ import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { PaperPlaneIcon, CameraIcon } from '@radix-ui/react-icons'
+import { ReaderIcon, VideoIcon, AllSidesIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { useIntl } from 'react-intl'
 
@@ -16,15 +16,18 @@ interface EdubreaksMenuProps {
 type ShapeShape =
     | TDShapeType.Content
     | TDShapeType.Video
+    | TDShapeType.ViewZone
 
 const shapeShapes: ShapeShape[] = [
   TDShapeType.Content,
   TDShapeType.Video,
+  TDShapeType.ViewZone,
 ]
 
 const shapeShapeIcons = {
-  [TDShapeType.Content]: <PaperPlaneIcon />,
-  [TDShapeType.Video]: <CameraIcon />,
+  [TDShapeType.Content]: <ReaderIcon />,
+  [TDShapeType.Video]: <VideoIcon />,
+  [TDShapeType.ViewZone]: <AllSidesIcon />,
 }
 
 const statusSelector = (s: TDSnapshot) => s.appState.status

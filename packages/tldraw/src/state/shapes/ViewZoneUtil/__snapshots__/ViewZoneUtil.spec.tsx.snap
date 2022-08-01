@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Viewzone shape Creates a shape: viewzone 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "viewzone",
+  "label": "",
+  "labelPoint": Array [
+    0.5,
+    0.5,
+  ],
+  "name": "ViewZone",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "rotation": 0,
+  "size": Array [
+    1,
+    1,
+  ],
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "isFilled": true,
+    "scale": 1,
+    "size": "small",
+  },
+  "type": "viewzone",
+}
+`;

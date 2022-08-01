@@ -19,6 +19,7 @@ import {
   SizeMediumIcon,
   SizeSmallIcon,
 } from '~components/Primitives/icons'
+import { ValueNoneIcon } from '@radix-ui/react-icons'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import {
   TDSnapshot,
@@ -58,6 +59,7 @@ const SIZE_ICONS = {
   [SizeStyle.Small]: <SizeSmallIcon />,
   [SizeStyle.Medium]: <SizeMediumIcon />,
   [SizeStyle.Large]: <SizeLargeIcon />,
+  [SizeStyle.None]: <ValueNoneIcon />,
 }
 
 const ALIGN_ICONS = {

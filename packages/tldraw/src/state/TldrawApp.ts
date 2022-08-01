@@ -85,6 +85,7 @@ import { clearPrevSize } from './shapes/shared/getTextSize'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { deepCopy } from './StateManager/copy'
 import EdubreakService, {NodeTypeEnum} from "~state/services/EdubreakService";
+import {ViewZoneTool} from "~state/tools/ViewZoneTool";
 
 const uuid = Utils.uniqueId()
 
@@ -192,6 +193,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Sticky]: new StickyTool(this),
     [TDShapeType.Video]: new VideoTool(this),
     [TDShapeType.Content]: new ContentTool(this),
+    [TDShapeType.ViewZone]: new ViewZoneTool(this),
   }
 
   currentTool: BaseTool = this.tools.select

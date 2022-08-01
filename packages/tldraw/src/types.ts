@@ -224,6 +224,7 @@ export type TDToolType =
   | TDShapeType.Sticky
   | TDShapeType.Video
   | TDShapeType.Content
+  | TDShapeType.ViewZone
 
 export type Easing =
   | 'linear'
@@ -293,7 +294,8 @@ export enum TDShapeType {
   Group = 'group',
   Image = 'image',
   Video = 'video',
-  Content = 'content'
+  Content = 'content',
+  ViewZone = 'viewzone'
 }
 
 export enum Decoration {
@@ -408,6 +410,13 @@ export interface ContentShape extends TDBaseShape {
   nodeType: string
 }
 
+export interface ViewZoneShape extends TDBaseShape {
+  type: TDShapeType.ViewZone
+  size: number[]
+  label?: string
+  labelPoint?: number[]
+}
+
 // A union of all shapes
 export type TDShape =
   | RectangleShape
@@ -421,6 +430,7 @@ export type TDShape =
   | ImageShape
   | VideoShape
   | ContentShape
+  | ViewZoneShape
 
 /* ------------------ Shape Styles ------------------ */
 
@@ -443,6 +453,7 @@ export enum SizeStyle {
   Small = 'small',
   Medium = 'medium',
   Large = 'large',
+  None = 'none',
 }
 
 export enum DashStyle {

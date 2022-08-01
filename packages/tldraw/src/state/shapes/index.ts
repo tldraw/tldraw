@@ -11,6 +11,7 @@ import { ImageUtil } from './ImageUtil'
 import { TDShape, TDShapeType } from '~types'
 import { VideoUtil } from './VideoUtil'
 import {ContentUtil} from "./ContentUtil";
+import {ViewZoneUtil} from "./ViewZoneUtil";
 
 export const Rectangle = new RectangleUtil()
 export const Triangle = new TriangleUtil()
@@ -23,6 +24,7 @@ export const Sticky = new StickyUtil()
 export const Image = new ImageUtil()
 export const Video = new VideoUtil()
 export const Content = new ContentUtil()
+export const ViewZone = new ViewZoneUtil()
 
 export const shapeUtils = {
   [TDShapeType.Rectangle]: Rectangle,
@@ -36,6 +38,7 @@ export const shapeUtils = {
   [TDShapeType.Image]: Image,
   [TDShapeType.Video]: Video,
   [TDShapeType.Content]: Content,
+  [TDShapeType.ViewZone]: ViewZone,
 }
 
 export const getShapeUtil = <T extends TDShape>(shape: T | T['type']) => {

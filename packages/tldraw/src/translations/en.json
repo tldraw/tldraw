@@ -75,6 +75,7 @@
   "Line": "Line",
   "Content": "Content",
   "Video" : "Video",
+  "Viewzone" : "Viewzone",
 
   "rotate": "Rotate",
   "lock.aspect.ratio": "Lock Aspect Ratio",

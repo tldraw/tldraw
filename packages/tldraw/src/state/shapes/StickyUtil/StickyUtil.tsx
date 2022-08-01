@@ -9,7 +9,7 @@ import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { getTextSvgElement } from '~state/shapes/shared'
 import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape

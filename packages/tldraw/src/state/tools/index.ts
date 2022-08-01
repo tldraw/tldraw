@@ -9,6 +9,9 @@ import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
 import { TextTool } from './TextTool'
 import { EraseTool } from './EraseTool'
+import {VideoTool} from "~state/tools/VideoTool";
+import {ContentTool} from "~state/tools/ContentTool";
+import {ViewZoneTool} from "~state/tools/ViewZoneTool";
 
 export interface ToolsMap {
   select: typeof SelectTool
@@ -21,6 +24,9 @@ export interface ToolsMap {
   [TDShapeType.Line]: typeof LineTool
   [TDShapeType.Arrow]: typeof ArrowTool
   [TDShapeType.Sticky]: typeof StickyTool
+  [TDShapeType.Video]: typeof VideoTool
+  [TDShapeType.Content]: typeof ContentTool
+  [TDShapeType.ViewZone]: typeof ViewZoneTool
 }
 
 export type ToolOfType<K extends TDToolType> = ToolsMap[K]
@@ -38,4 +44,7 @@ export const tools: { [K in TDToolType]: ToolsMap[K] } = {
   [TDShapeType.Line]: LineTool,
   [TDShapeType.Arrow]: ArrowTool,
   [TDShapeType.Sticky]: StickyTool,
+  [TDShapeType.Video]: VideoTool,
+  [TDShapeType.Content]: ContentTool,
+  [TDShapeType.ViewZone]: ViewZoneTool,
 }

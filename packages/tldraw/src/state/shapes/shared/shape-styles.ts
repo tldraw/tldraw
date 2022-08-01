@@ -74,12 +74,14 @@ const strokeWidths = {
   [SizeStyle.Small]: 2,
   [SizeStyle.Medium]: 3.5,
   [SizeStyle.Large]: 5,
+  [SizeStyle.None]: 0,
 }
 
 const fontSizes = {
   [SizeStyle.Small]: 28,
   [SizeStyle.Medium]: 48,
   [SizeStyle.Large]: 96,
+  [SizeStyle.None]: 0,
   auto: 'auto',
 }
 
@@ -101,6 +103,7 @@ const stickyFontSizes = {
   [SizeStyle.Small]: 24,
   [SizeStyle.Medium]: 36,
   [SizeStyle.Large]: 48,
+  [SizeStyle.None]: 0,
   auto: 'auto',
 }
 
