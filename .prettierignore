@@ -15,7 +15,3 @@ assets
 *.lock
 *.log
 *.yaml
-
-// Workaround for @trivago/prettier-plugin-sort-imports
-// https://github.com/trivago/prettier-plugin-sort-imports/issues/156
-packages/tldraw/src/state/data/browser-fs-access/index.d.ts
