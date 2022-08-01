@@ -4,7 +4,6 @@
   "semi": false,
   "printWidth": 100,
   "importOrder": ["^[~]", "^[./]"],
-  "importOrderSeparation": false,
   "importOrderSortSpecifiers": true,
   "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"]
 }
