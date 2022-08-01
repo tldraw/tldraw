@@ -2,7 +2,7 @@ import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import { useReadOnlyMultiplayerState } from 'hooks/useReadOnlyMultiplayerState'
 import * as React from 'react'
 import { styled } from 'styles'
-import { RoomProvider } from '../utils/liveblocks'
+import { RoomProvider } from 'utils/liveblocks'
 
 interface Props {
   roomId: string

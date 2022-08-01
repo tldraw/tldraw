@@ -4,7 +4,7 @@ import { useMultiplayerState } from 'hooks/useMultiplayerState'
 import { useUploadAssets } from 'hooks/useUploadAssets'
 import * as React from 'react'
 import { styled } from 'styles'
-import { RoomProvider } from '../utils/liveblocks'
+import { RoomProvider } from 'utils/liveblocks'
 
 interface Props {
   roomId: string

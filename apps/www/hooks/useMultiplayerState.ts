@@ -2,7 +2,7 @@ import { LiveMap } from '@liveblocks/client'
 import type { TDAsset, TDBinding, TDShape, TDUser, TldrawApp } from '@tldraw/tldraw'
 import React, { useCallback, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { Storage, useRedo, useRoom, useUndo, useUpdateMyPresence } from '../utils/liveblocks'
+import { Storage, useRedo, useRoom, useUndo, useUpdateMyPresence } from 'utils/liveblocks'
 
 declare const window: Window & { app: TldrawApp }
 
