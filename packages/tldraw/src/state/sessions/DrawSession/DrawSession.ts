@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import type { TldrawApp } from '~state/TldrawApp'
 import { DrawShape, SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
-import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class DrawSession extends BaseSession {

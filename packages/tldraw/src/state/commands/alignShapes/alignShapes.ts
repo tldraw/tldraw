@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import { AlignType, TDShapeType, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
 
 export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): TldrawCommand {
   const { currentPageId } = app

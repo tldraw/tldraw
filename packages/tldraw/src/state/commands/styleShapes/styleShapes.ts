@@ -1,7 +1,7 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import { Patch, ShapeStyles, TDShape, TDShapeType, TextShape, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
 
 export function styleShapes(
   app: TldrawApp,

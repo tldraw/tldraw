@@ -2,7 +2,7 @@ import { Utils } from '@tldraw/core'
 import * as idb from 'idb-keyval'
 import create, { UseBoundStore } from 'zustand'
 import createVanilla, { StoreApi } from 'zustand/vanilla'
-import type { Command, Patch } from '../../types'
+import type { Command, Patch } from '~types'
 import { deepCopy } from './copy'
 
 export class StateManager<T extends Record<string, any>> {

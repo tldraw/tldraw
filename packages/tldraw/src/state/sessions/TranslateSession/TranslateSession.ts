@@ -2,6 +2,7 @@ import { TLBounds, TLBoundsWithCenter, TLPageState, TLSnapLine, Utils } from '@t
 import { Vec } from '@tldraw/vec'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import {
   ArrowBinding,
   ArrowShape,
@@ -15,7 +16,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 type CloneInfo =

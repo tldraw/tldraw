@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import type { TDShape, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
 
 const PI2 = Math.PI * 2
 

@@ -1,5 +1,5 @@
+import type { TldrawApp } from '~state/TldrawApp'
 import { SessionType, TDShape, TldrawCommand, TldrawPatch } from '~types'
-import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class EditSession extends BaseSession {

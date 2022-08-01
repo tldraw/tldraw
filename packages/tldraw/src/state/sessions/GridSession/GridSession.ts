@@ -1,5 +1,6 @@
 import { TLBounds, TLPageState, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import type { TldrawApp } from '~state/TldrawApp'
 import {
   Patch,
   SessionType,
@@ -9,7 +10,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class GridSession extends BaseSession {

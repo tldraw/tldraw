@@ -1,5 +1,5 @@
+import type { TldrawApp } from '~state/TldrawApp'
 import type { TDAsset, TDAssets, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
 import { removeShapesFromPage } from '../shared/removeShapesFromPage'
 
 const removeAssetsFromDocument = (assets: TDAssets, idsToRemove: string[]) => {

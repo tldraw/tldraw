@@ -2,6 +2,7 @@ import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { deepCopy } from '~state/StateManager/copy'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import { shapeUtils } from '~state/shapes'
 import {
   ArrowBinding,
@@ -14,7 +15,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 
 export class ArrowSession extends BaseSession {
