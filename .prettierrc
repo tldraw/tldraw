@@ -6,7 +6,5 @@
   "importOrder": ["^[~]", "^[./]"],
   "importOrderSeparation": false,
   "importOrderSortSpecifiers": true,
-  "importOrderGroupNamespaceSpecifiers": true,
-  "importOrderCaseInsensitive": true,
   "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"]
 }
