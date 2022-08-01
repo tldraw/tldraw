@@ -1,7 +1,7 @@
 import { intersectPolygonBounds } from '@tldraw/intersect'
 import * as React from 'react'
-import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '../types'
-import Utils from '../utils'
+import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '~types'
+import Utils from '~utils'
 
 export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M = any> {
   refMap = new Map<string, React.RefObject<E>>()

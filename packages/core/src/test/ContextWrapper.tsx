@@ -1,8 +1,8 @@
 import * as React from 'react'
 import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
+import { TLContext, TLContextType, useTLTheme } from '~hooks'
 import { Inputs } from '~inputs'
-import { TLContext, TLContextType, useTLTheme } from '../hooks'
-import type { TLBounds, TLPageState } from '../types'
+import type { TLBounds, TLPageState } from '~types'
 import { mockDocument } from './mockDocument'
 import { mockUtils } from './mockUtils'
 

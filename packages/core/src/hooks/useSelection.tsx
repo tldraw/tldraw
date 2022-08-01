@@ -1,7 +1,7 @@
 import * as React from 'react'
-import type { TLShapeUtil, TLShapeUtilsMap } from '../TLShapeUtil'
-import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape } from '../types'
-import Utils from '../utils'
+import type { TLShapeUtil, TLShapeUtilsMap } from '~TLShapeUtil'
+import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape } from '~types'
+import Utils from '~utils'
 import { useTLContext } from './useTLContext'
 
 function canvasToScreen(point: number[], camera: TLPageState['camera']): number[] {

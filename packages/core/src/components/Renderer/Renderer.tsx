@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLShapeUtilsMap } from '../../TLShapeUtil'
-import { TLContext, TLContextType, useTLTheme } from '../../hooks'
-import { Inputs } from '../../inputs'
+import type { TLShapeUtilsMap } from '~TLShapeUtil'
+import { TLContext, TLContextType, useTLTheme } from '~hooks'
+import { Inputs } from '~inputs'
 import type {
   TLAssets,
   TLBinding,
