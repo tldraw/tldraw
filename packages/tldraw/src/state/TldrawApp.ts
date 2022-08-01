@@ -22,7 +22,7 @@ import {
   VIDEO_EXTENSIONS,
 } from '~constants'
 import { shapeUtils } from '~state/shapes'
-import { defaultStyle } from '~state/shapes/shared/shape-styles'
+import { defaultStyle } from '~state/shapes/shared'
 import {
   AlignStyle,
   AlignType,

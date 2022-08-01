@@ -29,7 +29,8 @@ In the `packages/tldraw/src/translations/translations.ts` file, import your file
 ```ts
 import ar from './ar.json'
 import en from './en.json'
-import eo from './eo.json' // <-- import here
+// import here ↲
+import eo from './eo.json'
 
 export const TRANSLATIONS: TDTranslations = [
   // Default language:

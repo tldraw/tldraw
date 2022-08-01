@@ -23,7 +23,7 @@ import {
 import { breakpoints } from '~components/breakpoints'
 import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
-import { defaultTextStyle, fills, strokes } from '~state/shapes/shared/shape-styles'
+import { defaultTextStyle, fills, strokes } from '~state/shapes/shared'
 import { styled } from '~styles'
 import {
   AlignStyle,
