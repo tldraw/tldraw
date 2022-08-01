@@ -2,11 +2,11 @@ import type { GetServerSideProps } from 'next'
 import dynamic from 'next/dynamic'
 import * as React from 'react'
 
-const IFrameWarning = dynamic(() => import('components/IFrameWarning'), {
+const IFrameWarning = dynamic(() => import('~components/IFrameWarning'), {
   ssr: false,
 }) as any
 
-const MultiplayerEditor = dynamic(() => import('components/MultiplayerEditor'), {
+const MultiplayerEditor = dynamic(() => import('~components/MultiplayerEditor'), {
   ssr: false,
 }) as any
 
