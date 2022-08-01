@@ -13,7 +13,8 @@
   "scripts": {
     "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@liveblocks/client": "^0.17.0-beta2",
