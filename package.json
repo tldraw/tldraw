@@ -57,7 +57,6 @@
     "prettier": "^2.5.1",
     "resize-observer-polyfill": "^1.5.1",
     "turbo": "^1.1.2",
-    "typedoc": "^0.22.15",
     "typescript": "^4.7.3"
   },
   "lint-staged": {
