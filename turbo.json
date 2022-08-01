@@ -27,10 +27,6 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
     },
-    "build:packages": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
-    },
     "build:core": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]

@@ -19,7 +19,7 @@
     "build": "turbo run build",
     "build:www": "turbo run build:www --force",
     "build:core": "turbo run build:core",
-    "build:packages": "turbo run build:packages",
+    "build:packages": "turbo run build --filter=./packages/*",
     "build:apps": "turbo run build:apps",
     "start": "turbo run start --parallel",
     "start:core": "turbo run start:core --parallel",
