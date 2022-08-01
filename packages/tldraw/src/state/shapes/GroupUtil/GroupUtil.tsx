@@ -1,11 +1,10 @@
 import { SVGContainer, Utils } from '@tldraw/core'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { defaultStyle, getBoundsRectangle } from '~state/shapes/shared'
 import { styled } from '~styles'
 import { ColorStyle, GroupShape, TDMeta, TDShapeType } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { getBoundsRectangle } from '../shared'
-import { defaultStyle } from '../shared/shape-styles'
 
 type T = GroupShape
 type E = SVGSVGElement

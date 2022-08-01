@@ -4,12 +4,17 @@ import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import {
+  TextAreaUtils,
+  defaultTextStyle,
+  getBoundsRectangle,
+  getStickyFontStyle,
+  getStickyShapeStyle,
+  getTextSvgElement,
+} from '~state/shapes/shared'
 import { styled } from '~styles'
 import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { TextAreaUtils, defaultTextStyle, getBoundsRectangle } from '../shared'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
-import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
 
 type T = StickyShape
 type E = HTMLDivElement

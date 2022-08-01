@@ -3,6 +3,7 @@ import { Vec } from '@tldraw/vec'
 import { deepCopy } from '~state/StateManager/copy'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
 import { shapeUtils } from '~state/shapes'
 import {
   ArrowBinding,
@@ -15,7 +16,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import { BaseSession } from '../BaseSession'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow

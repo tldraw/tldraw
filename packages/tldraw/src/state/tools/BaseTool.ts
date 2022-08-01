@@ -4,8 +4,8 @@ import {
   TLPointerEventHandler,
   Utils,
 } from '@tldraw/core'
+import type { TldrawApp } from '~state/TldrawApp'
 import { TDEventHandler, TDToolType } from '~types'
-import type { TldrawApp } from '../internal'
 
 export enum Status {
   Idle = 'idle',

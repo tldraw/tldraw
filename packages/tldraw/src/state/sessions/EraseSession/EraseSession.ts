@@ -1,5 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
 import {
   PagePartial,
   SessionType,
@@ -9,7 +10,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import { BaseSession } from '../BaseSession'
 
 export class EraseSession extends BaseSession {
   type = SessionType.Draw

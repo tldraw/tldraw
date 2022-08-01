@@ -8,9 +8,9 @@ import {
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import { DashStyle, DrawShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {
   getDrawStrokePathTDSnapshot,
   getFillPath,

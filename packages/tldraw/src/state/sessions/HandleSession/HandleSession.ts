@@ -1,8 +1,8 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
 import { SessionType, ShapesWithProp, TDStatus, TldrawCommand, TldrawPatch } from '~types'
-import { BaseSession } from '../BaseSession'
 
 export class HandleSession extends BaseSession {
   type = SessionType.Handle

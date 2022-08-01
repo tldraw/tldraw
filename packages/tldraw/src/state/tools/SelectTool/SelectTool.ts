@@ -12,8 +12,8 @@ import {
 import Vec from '@tldraw/vec'
 import { CLONING_DISTANCE, DEAD_ZONE } from '~constants'
 import { TLDR } from '~state/TLDR'
+import { BaseTool } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
 
 enum Status {
   Idle = 'idle',

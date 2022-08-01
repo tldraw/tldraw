@@ -7,13 +7,17 @@ import {
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import {
+  LabelMask,
+  TextLabel,
+  defaultStyle,
+  getFontStyle,
+  getShapeStyle,
+  getTextLabelSize,
+} from '~state/shapes/shared'
 import { styled } from '~styles'
 import { ArrowShape, DashStyle, Decoration, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { TextLabel, getFontStyle, getShapeStyle } from '../shared'
-import { LabelMask } from '../shared/LabelMask'
-import { getTextLabelSize } from '../shared/getTextSize'
-import { defaultStyle } from '../shared/shape-styles'
 import {
   getArcLength,
   getArcPoints,

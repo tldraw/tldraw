@@ -3,6 +3,7 @@ import { Vec } from '@tldraw/vec'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
 import {
   ArrowBinding,
   ArrowShape,
@@ -16,7 +17,6 @@ import {
   TldrawCommand,
   TldrawPatch,
 } from '~types'
-import { BaseSession } from '../BaseSession'
 
 type CloneInfo =
   | {

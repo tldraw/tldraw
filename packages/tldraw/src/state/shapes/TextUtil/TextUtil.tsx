@@ -4,9 +4,7 @@ import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { styled } from '~styles'
-import { AlignStyle, TDMeta, TDShapeType, TextShape, TransformInfo } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
   TextAreaUtils,
   defaultTextStyle,
@@ -14,7 +12,9 @@ import {
   getShapeStyle,
   getTextAlign,
   getTextSvgElement,
-} from '../shared'
+} from '~state/shapes/shared'
+import { styled } from '~styles'
+import { AlignStyle, TDMeta, TDShapeType, TextShape, TransformInfo } from '~types'
 
 type T = TextShape
 type E = HTMLDivElement

@@ -7,17 +7,18 @@ import {
 import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
+  TextLabel,
   defaultStyle,
   getBoundsRectangle,
   getFontStyle,
+  getShapeStyle,
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
 import { styled } from '~styles'
 import { DashStyle, TDMeta, TDShape, TDShapeType, TriangleShape } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { TextLabel, getShapeStyle } from '../shared'
 import { DashedTriangle } from './components/DashedTriangle'
 import { DrawTriangle } from './components/DrawTriangle'
 import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'

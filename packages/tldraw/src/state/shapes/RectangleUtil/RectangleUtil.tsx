@@ -1,7 +1,9 @@
 import { SVGContainer, Utils } from '@tldraw/core'
 import * as React from 'react'
 import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
+  TextLabel,
   defaultStyle,
   getBoundsRectangle,
   getFontStyle,
@@ -11,8 +13,6 @@ import {
 } from '~state/shapes/shared'
 import { styled } from '~styles'
 import { DashStyle, RectangleShape, TDMeta, TDShapeType } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { TextLabel } from '../shared/TextLabel'
 import { BindingIndicator } from './components/BindingIndicator'
 import { DashedRectangle } from './components/DashedRectangle'
 import { DrawRectangle } from './components/DrawRectangle'
