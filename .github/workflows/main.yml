@@ -24,6 +24,10 @@ jobs:
       - name: Build Packages
         run: yarn build:packages --cache-dir=".turbo"
 
+      # lint
+      - name: Lint
+        run: yarn lint
+
       # run unit tests
       - name: Jest Annotations & Coverage
         run: yarn test:ci

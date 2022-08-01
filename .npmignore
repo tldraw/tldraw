@@ -4,7 +4,6 @@
 /build/
 /tmp/
 .idea/*
-/docs/
 
 coverage
 *.log

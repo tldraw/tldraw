@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
@@ -548,13 +547,10 @@ export class TranslateSession extends BaseSession {
             afterShapes[id] = { ...afterShapes[id], handles: {} }
 
             // There should be before and after shapes
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             beforeShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
               bindingId: binding.id,
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             afterShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
               bindingId: undefined,
             }

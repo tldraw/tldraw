@@ -1,5 +1,4 @@
 import * as React from 'react'
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ShapeIndicator } from '~components/ShapeIndicator'
 import type { TLPage, TLShape, TLUsers } from '~types'
 import Utils from '~utils'

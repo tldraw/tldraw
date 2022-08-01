@@ -1,5 +1,4 @@
 import type { Action } from 'state/constants'
-import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { mutables } from 'state/mutables'
 

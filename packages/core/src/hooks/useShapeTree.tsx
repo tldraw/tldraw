@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import type {
   IShapeTreeNode,
@@ -59,7 +57,6 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
       .filter(Boolean) // TODO: Find cases where shapes would be missing.
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         addToShapeTree(
           childShape,
           node.children!,

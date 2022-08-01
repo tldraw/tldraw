@@ -116,7 +116,6 @@ export function groupShapes(
     const shape = otherEffectedGroups.pop()
     if (!shape) break
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nextChildren = (beforeShapes[shape.id]?.children || shape.children)!.filter(
       (childId) => childId && !(idsToGroup.includes(childId) || deletedGroupIds.includes(childId))
     )

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { mockDocument, TldrawTestApp } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'
@@ -110,7 +109,7 @@ describe('TldrawTestApp', () => {
       expect(app.bindings.length).toBe(2)
     })
 
-    it.only('removes bindings from copied shape handles', () => {
+    it('removes bindings from copied shape handles', () => {
       const app = new TldrawTestApp()
 
       app
@@ -326,12 +325,12 @@ describe('TldrawTestApp', () => {
     })
   })
 
-  describe('Copies to JSON', () => {
+  test('Copies to JSON', () => {
     const app = new TldrawTestApp().loadDocument(mockDocument).selectAll()
     expect(app.copyJson()).toMatchSnapshot('copied json')
   })
 
-  describe('Mutates bound shapes', () => {
+  test('Mutates bound shapes', () => {
     const app = new TldrawTestApp()
       .createShapes(
         {
@@ -687,7 +686,7 @@ describe('TldrawTestApp', () => {
       expect(app.bindings).toMatchObject(Object.values(bindings))
     })
 
-    it('It should update the page shapes after the settings have been updated', async () => {
+    it('should update the page shapes after the settings have been updated', async () => {
       const shapes = deepCopy(mockDocument.pages.page1.shapes)
       const bindings = deepCopy(mockDocument.pages.page1.bindings)
       const app = new TldrawTestApp('multiplayer', {

@@ -1,136 +1,135 @@
 {
-	"name": "tldraw-vscode",
-	"displayName": "tldraw",
-	"description": "The tldraw Extension for VS Code.",
-	"version": "1.19.0",
-	"license": "MIT",
-	"publisher": "tldraw-org",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/tldraw/tldraw"
-	},
-	"engines": {
-		"vscode": "^1.59.0"
-	},
-	"keywords": [
-		"diagram",
-		"draw",
-		"drawing",
-		"sketch",
-		"design",
-		"documentation",
-		"tldraw"
-	],
-	"icon": "icon.png",
-	"galleryBanner": {
-		"color": "#1d1d1d",
-		"theme": "dark"
-	},
-	"categories": [
-		"Visualization"
-	],
-	"activationEvents": [
-		"onCustomEditor:tldraw.tldr",
-		"onCommand:tldraw.tldr.new"
-	],
-	"browser": "./dist/web/extension.js",
-	"main": "./dist/web/extension.js",
-	"extensionKind": [
-		"workspace"
-	],
-	"contributes": {
-		"customEditors": [
-			{
-				"viewType": "tldraw.tldr",
-				"displayName": "tldraw",
-				"selector": [
-					{
-						"filenamePattern": "*.tldr"
-					},
-					{
-						"filenamePattern": "*.tldr.json"
-					}
-				]
-			}
-		],
-		"keybindings": [
-			{
-				"key": "ctrl+shift+d",
-				"mac": "cmd+shift+d",
-				"title": "Toggle Dark Mode",
-				"command": "tldraw.tldr.toggleDarkMode",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			},
-			{
-				"key": "ctrl+numpad_add",
-				"mac": "cmd+numpad_add",
-				"title": "Zoom In",
-				"command": "tldraw.tldr.zoomIn",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			},
-			{
-				"key": "ctrl+=",
-				"mac": "cmd+=",
-				"title": "Zoom In",
-				"command": "tldraw.tldr.zoomIn",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			},
-			{
-				"key": "ctrl+numpad_subtract",
-				"mac": "cmd+numpad_subtract",
-				"title": "Zoom Out",
-				"command": "tldraw.tldr.zoomOut",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			},
-			{
-				"key": "ctrl+-",
-				"mac": "cmd+-",
-				"title": "Zoom Out",
-				"command": "tldraw.tldr.zoomOut",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			},
-			{
-				"key": "ctrl+numpad0",
-				"mac": "cmd+numpad0",
-				"title": "Reset Zoom",
-				"command": "tldraw.tldr.resetZoom",
-				"category": "tldraw",
-				"when": "resourceExtname == .tldr"
-			}
-		],
-		"commands": [
-			{
-				"command": "tldraw.tldr.new",
-				"title": "New File",
-				"category": "tldraw"
-			}
-		]
-	},
-	"scripts": {
-		"start:vscode": "node scripts/dev",
-		"build:apps": "yarn build",
-		"build": "yarn package",
-		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
-		"package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
-		"publish": "yarn package && vsce publish",
-		"lint": "eslint src --ext ts"
-	},
-	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "^5.10.2",
-		"@typescript-eslint/parser": "^5.10.2",
-		"assert": "^2.0.0",
-		"eslint": "^8.8.0",
-		"mocha": "^9.1.1",
-		"process": "^0.11.10",
-		"ts-loader": "^9.2.5",
-		"tslib": "^2.4.0",
-		"typescript": "^4.7.3",
-		"vsce": "^2.2.0"
-	},
-	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
+  "name": "tldraw-vscode",
+  "displayName": "tldraw",
+  "description": "The tldraw Extension for VS Code.",
+  "version": "1.19.0",
+  "license": "MIT",
+  "publisher": "tldraw-org",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tldraw/tldraw"
+  },
+  "engines": {
+    "vscode": "^1.59.0"
+  },
+  "keywords": [
+    "diagram",
+    "draw",
+    "drawing",
+    "sketch",
+    "design",
+    "documentation",
+    "tldraw"
+  ],
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1d1d1d",
+    "theme": "dark"
+  },
+  "categories": [
+    "Visualization"
+  ],
+  "activationEvents": [
+    "onCustomEditor:tldraw.tldr",
+    "onCommand:tldraw.tldr.new"
+  ],
+  "browser": "./dist/web/extension.js",
+  "main": "./dist/web/extension.js",
+  "extensionKind": [
+    "workspace"
+  ],
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "tldraw.tldr",
+        "displayName": "tldraw",
+        "selector": [
+          {
+            "filenamePattern": "*.tldr"
+          },
+          {
+            "filenamePattern": "*.tldr.json"
+          }
+        ]
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d",
+        "title": "Toggle Dark Mode",
+        "command": "tldraw.tldr.toggleDarkMode",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      },
+      {
+        "key": "ctrl+numpad_add",
+        "mac": "cmd+numpad_add",
+        "title": "Zoom In",
+        "command": "tldraw.tldr.zoomIn",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      },
+      {
+        "key": "ctrl+=",
+        "mac": "cmd+=",
+        "title": "Zoom In",
+        "command": "tldraw.tldr.zoomIn",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      },
+      {
+        "key": "ctrl+numpad_subtract",
+        "mac": "cmd+numpad_subtract",
+        "title": "Zoom Out",
+        "command": "tldraw.tldr.zoomOut",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      },
+      {
+        "key": "ctrl+-",
+        "mac": "cmd+-",
+        "title": "Zoom Out",
+        "command": "tldraw.tldr.zoomOut",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      },
+      {
+        "key": "ctrl+numpad0",
+        "mac": "cmd+numpad0",
+        "title": "Reset Zoom",
+        "command": "tldraw.tldr.resetZoom",
+        "category": "tldraw",
+        "when": "resourceExtname == .tldr"
+      }
+    ],
+    "commands": [
+      {
+        "command": "tldraw.tldr.new",
+        "title": "New File",
+        "category": "tldraw"
+      }
+    ]
+  },
+  "scripts": {
+    "start:vscode": "node scripts/dev",
+    "build:apps": "yarn build",
+    "build": "yarn package",
+    "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
+    "package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
+    "publish": "yarn package && vsce publish",
+    "lint": "eslint src/ --ext ts"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.10.2",
+    "@typescript-eslint/parser": "^5.10.2",
+    "assert": "^2.0.0",
+    "mocha": "^9.1.1",
+    "process": "^0.11.10",
+    "ts-loader": "^9.2.5",
+    "tslib": "^2.4.0",
+    "typescript": "^4.7.3",
+    "vsce": "^2.2.0"
+  },
+  "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
 }

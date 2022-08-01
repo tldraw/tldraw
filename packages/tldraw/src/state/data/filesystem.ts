@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import type { TDDocument, TDFile } from '~types'
 import type { FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'

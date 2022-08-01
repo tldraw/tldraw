@@ -33,8 +33,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
-    "test:watch": "jest --watchAll",
-    "docs": "typedoc"
+    "test:watch": "jest --watchAll"
   },
   "dependencies": {
     "@tldraw/intersect": "^1.7.1",
@@ -59,7 +58,6 @@
     "@types/react-dom": "^18.0.5",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
-    "eslint": "^8.8.0",
     "@tldraw/lfg": "latest",
     "mobx": "^6.3.8",
     "react": "^18.1.0",

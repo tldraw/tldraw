@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
@@ -2686,7 +2683,6 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
     const { session } = this
     if (!session) return this
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     const patch = session.update()
     if (!patch) return this
@@ -2984,6 +2980,8 @@ export class TldrawApp extends StateManager<TDSnapshot, TDSettings> {
    */
   delete = (ids = this.selectedIds): this => {
     if (ids.length === 0) return this
+
+    if (this.session) return this
     const drawCommand = Commands.deleteShapes(this, ids)
 
     if (

@@ -7,8 +7,7 @@
     "**/*.spec.tsx",
     "**/*.spec.ts",
     "src/test",
-    "dist",
-    "docs"
+    "dist"
   ],
   "compilerOptions": {
     "composite": false,

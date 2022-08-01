@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { StretchType, TDShapeType } from '~types'
 import type { TldrawCommand } from '~types'

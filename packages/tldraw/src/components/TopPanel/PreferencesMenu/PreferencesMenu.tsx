@@ -26,28 +26,12 @@ export function PreferencesMenu() {
     app.setSetting('isFocusMode', (v) => !v)
   }, [app])
 
-  const toggleRotateHandle = React.useCallback(() => {
-    app.setSetting('showRotateHandles', (v) => !v)
-  }, [app])
-
   const toggleGrid = React.useCallback(() => {
     app.setSetting('showGrid', (v) => !v)
   }, [app])
 
-  const toggleBoundShapesHandle = React.useCallback(() => {
-    app.setSetting('showBindingHandles', (v) => !v)
-  }, [app])
-
-  const toggleisSnapping = React.useCallback(() => {
-    app.setSetting('isSnapping', (v) => !v)
-  }, [app])
-
   const toggleKeepStyleMenuOpen = React.useCallback(() => {
     app.setSetting('keepStyleMenuOpen', (v) => !v)
-  }, [app])
-
-  const toggleCloneControls = React.useCallback(() => {
-    app.setSetting('showCloneHandles', (v) => !v)
   }, [app])
 
   const toggleCadSelectMode = React.useCallback(() => {

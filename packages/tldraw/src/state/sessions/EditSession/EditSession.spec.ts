@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp } from '~test'
 import {
   ColorStyle,
   DashStyle,

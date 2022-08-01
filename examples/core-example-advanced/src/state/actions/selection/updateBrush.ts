@@ -1,7 +1,6 @@
 import type { Action } from 'state/constants'
 import { TLPointerInfo, Utils } from '@tldraw/core'
 import { mutables } from '../../mutables'
-import { getPagePoint } from 'state/helpers'
 import { getShapeUtils } from 'shapes'
 
 export const updateBrush: Action = (data, payload: TLPointerInfo) => {

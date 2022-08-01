@@ -1,5 +1,4 @@
 import type { Action, CustomBinding } from 'state/constants'
-import { getPagePoint } from 'state/helpers'
 import { getShapeUtils, Shape } from 'shapes'
 import { mutables } from 'state/mutables'
 import { nanoid } from 'nanoid'

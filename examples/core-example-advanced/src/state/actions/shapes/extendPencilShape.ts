@@ -1,8 +1,6 @@
-import { TLBoundsCorner, TLPointerInfo, Utils } from '@tldraw/core'
+import { TLPointerInfo, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
-import { shapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
-import { getPagePoint } from 'state/helpers'
 import { mutables } from 'state/mutables'
 
 export const extendPencilShape: Action = (data, payload: TLPointerInfo) => {

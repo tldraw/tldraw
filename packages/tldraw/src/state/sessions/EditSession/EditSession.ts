@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TDShape, SessionType, TldrawPatch, TldrawCommand } from '~types'
 import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'

@@ -1,8 +1,7 @@
 import { nanoid } from 'nanoid'
 import Vec from '@tldraw/vec'
-import { TLBinding, TLPointerInfo, Utils } from '@tldraw/core'
+import { TLPointerInfo, Utils } from '@tldraw/core'
 import { getShapeUtils, Shape, shapeUtils } from 'shapes'
-import { getPagePoint } from 'state/helpers'
 import { mutables } from 'state/mutables'
 import type { Action, CustomBinding } from 'state/constants'
 

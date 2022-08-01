@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const LETTER_SPACING = '-0.03em'
 export const LINE_HEIGHT = 1
 export const GRID_SIZE = 8

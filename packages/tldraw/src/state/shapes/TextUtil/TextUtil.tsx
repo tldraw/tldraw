@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
@@ -401,7 +400,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any
 
 function getMeasurementDiv() {
