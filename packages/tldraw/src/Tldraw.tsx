@@ -163,11 +163,9 @@ export function Tldraw({
         onSessionEnd,
       },
       {
-        ...TldrawApp.defaultState,
-        document: document ?? TldrawApp.defaultDocument,
+        document,
         appState: {
-          ...TldrawApp.defaultState.appState,
-          currentPageId: currentPageId ?? TldrawApp.defaultState.appState.currentPageId,
+          currentPageId,
         },
       }
     )
@@ -202,11 +200,9 @@ export function Tldraw({
         onSessionEnd,
       },
       {
-        ...TldrawApp.defaultState,
-        document: document ?? TldrawApp.defaultDocument,
+        document,
         appState: {
-          ...TldrawApp.defaultState.appState,
-          currentPageId: currentPageId ?? TldrawApp.defaultState.appState.currentPageId,
+          currentPageId,
         },
       }
     )

@@ -1,6 +1,15 @@
 import { mockDocument, TldrawTestApp } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TDDocument, TDShapeType } from '~types'
+import {
+  ArrowShape,
+  ColorStyle,
+  Patch,
+  SessionType,
+  TDDocument,
+  TDShapeType,
+  TDSnapshot,
+} from '~types'
 import { deepCopy } from './StateManager/copy'
+import { createInitialState } from './TldrawApp'
 import type { SelectTool } from './tools/SelectTool'
 
 window.focus = jest.fn()
@@ -827,5 +836,95 @@ describe('initial state', () => {
 
     expect(app.currentPageId).toBe('page2')
     expect(app.document).toEqual(document)
+  })
+})
+
+describe('createInitialState', () => {
+  test('replaces default document', () => {
+    const document: TDDocument = {
+      id: 'id',
+      name: 'name',
+      version: 1,
+      pages: {},
+      pageStates: {},
+      assets: {},
+    }
+    expect(createInitialState({ document })).toEqual({
+      ...TldrawTestApp.defaultState,
+      document,
+    })
+  })
+
+  test('deeply merges appState', () => {
+    const appState: Patch<TDSnapshot['appState']> = {
+      currentStyle: {
+        color: ColorStyle.Orange,
+      },
+    }
+    expect(createInitialState({ appState })).toEqual({
+      ...TldrawTestApp.defaultState,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        currentStyle: {
+          ...TldrawTestApp.defaultState.appState.currentStyle,
+          color: ColorStyle.Orange,
+        },
+      },
+    })
+  })
+
+  test('merges settings', () => {
+    const settings: Partial<TDSnapshot['settings']> = {
+      isDarkMode: true,
+    }
+    expect(createInitialState({ settings })).toEqual({
+      ...TldrawTestApp.defaultState,
+      settings: {
+        ...TldrawTestApp.defaultState.settings,
+        isDarkMode: true,
+      },
+    })
+  })
+
+  test('ignores undefined values', () => {
+    expect(
+      createInitialState({
+        appState: undefined,
+        document: undefined,
+        settings: undefined,
+      })
+    ).toEqual(TldrawTestApp.defaultState)
+  })
+
+  test('ignores nested undefined values in appState', () => {
+    expect(
+      createInitialState({
+        appState: {
+          currentStyle: undefined,
+        },
+      })
+    ).toEqual(TldrawTestApp.defaultState)
+  })
+
+  test('handles arrays', () => {
+    expect(
+      createInitialState({
+        appState: {
+          eraseLine: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      })
+    ).toEqual({
+      ...TldrawTestApp.defaultState,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        eraseLine: [
+          [0, 0],
+          [1, 1],
+        ],
+      },
+    })
   })
 })

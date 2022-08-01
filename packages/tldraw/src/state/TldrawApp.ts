@@ -51,6 +51,7 @@ import {
   TDUser,
   TldrawCommand,
   TldrawPatch,
+  Patch,
 } from '~types'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { StateManager } from './StateManager'
@@ -82,6 +83,7 @@ import { SelectTool } from './tools/SelectTool'
 import { StickyTool } from './tools/StickyTool'
 import { TextTool } from './tools/TextTool'
 import { TriangleTool } from './tools/TriangleTool'
+import { safeMerge } from './utils'
 
 const uuid = Utils.uniqueId()
 
@@ -174,6 +176,14 @@ export interface TDCallbacks {
   onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
+/**
+ * Overrides for `TldrawApp` initial state. `appState` and `settings` overrides
+ * are deeply merged into `TldrawApp.defaultState`. `document` override replaces
+ * `TldrawApp.defaultState.document`.
+ */
+export type InitialStateOverrides = Omit<Partial<TDSnapshot>, 'appState' | 'settings'> &
+  Patch<Pick<TDSnapshot, 'appState' | 'settings'>>
+
 export class TldrawApp extends StateManager<TDSnapshot> {
   callbacks: TDCallbacks = {}
 
@@ -250,7 +260,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     center: [0, 0],
   }
 
-  constructor(id?: string, callbacks = {} as TDCallbacks, initialState = TldrawApp.defaultState) {
+  constructor(
+    id?: string,
+    callbacks = {} as TDCallbacks,
+    initialStateOverrides?: InitialStateOverrides
+  ) {
+    const initialState = createInitialState(initialStateOverrides)
+
     super(initialState, id, TldrawApp.version, (prev, next, prevVersion) => {
       return migrate(
         {
@@ -4146,4 +4162,20 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   static assetSrc = 'tldraw-assets.json'
+}
+
+/**
+ * Creates
+ * @param overrides Overrides for `TldrawApp` initial state.
+ */
+export function createInitialState(overrides?: InitialStateOverrides): TDSnapshot {
+  if (!overrides) {
+    return TldrawApp.defaultState
+  }
+
+  return {
+    appState: safeMerge(TldrawApp.defaultState.appState, overrides.appState ?? {}),
+    document: overrides.document ?? TldrawApp.defaultState.document,
+    settings: safeMerge(TldrawApp.defaultState.settings, overrides.settings ?? {}),
+  }
 }
