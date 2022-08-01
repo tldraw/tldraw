@@ -22,7 +22,6 @@
     "build:packages": "turbo run build:packages",
     "build:apps": "turbo run build:apps",
     "start": "turbo run start --parallel",
-    "start:all": "turbo run start:all --parallel",
     "start:core": "turbo run start:core --parallel",
     "start:www": "turbo run start --parallel & cd apps/www && yarn dev",
     "start:electron": "turbo run start:electron --parallel",
