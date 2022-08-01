@@ -1,24 +1,24 @@
-import * as React from 'react'
-import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { FormattedMessage } from 'react-intl'
-import { styled } from '~styles'
-import { useTldrawApp } from '~hooks'
-import { TDSnapshot } from '~types'
-import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
   QuestionMarkIcon,
   HeartFilledIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons'
-import { RowButton } from '~components/Primitives/RowButton'
+import * as Popover from '@radix-ui/react-popover'
+import * as React from 'react'
+import { FormattedMessage } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
 import { MenuContent } from '~components/Primitives/MenuContent'
+import { RowButton } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
+import { breakpoints } from '~components/breakpoints'
+import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { TDSnapshot } from '~types'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
-import { Divider } from '~components/Primitives/Divider'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition

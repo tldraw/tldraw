@@ -1,8 +1,8 @@
-import type { ArrowShape, PagePartial, TldrawCommand, TDShape } from '~types'
-import type { TldrawApp } from '../../internal'
-import { TLDR } from '~state/TLDR'
 import { Utils, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import { TLDR } from '~state/TLDR'
+import type { ArrowShape, PagePartial, TldrawCommand, TDShape } from '~types'
+import type { TldrawApp } from '../../internal'
 
 export function moveShapesToPage(
   app: TldrawApp,

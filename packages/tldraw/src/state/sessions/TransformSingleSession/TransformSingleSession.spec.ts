@@ -1,7 +1,7 @@
-import { mockDocument, TldrawTestApp } from '~test'
 import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
-import { TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
+import { mockDocument, TldrawTestApp } from '~test'
+import { TDStatus } from '~types'
 
 describe('Transform single session', () => {
   it('begins, updateSession', () => {

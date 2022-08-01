@@ -1,5 +1,5 @@
-import type { RectangleShape } from '~types'
 import { mockDocument, TldrawTestApp } from '~test'
+import type { RectangleShape } from '~types'
 
 describe('Toggle command', () => {
   const app = new TldrawTestApp()

@@ -1,4 +1,4 @@
-import * as React from 'react'
+import { Utils } from '@tldraw/core'
 import {
   TldrawApp,
   ImageShape,
@@ -11,7 +11,7 @@ import {
   TLDR,
 } from '@tldraw/tldraw'
 import Vec from '@tldraw/vec'
-import { Utils } from '@tldraw/core'
+import * as React from 'react'
 
 export default function Export() {
   const handleExport = React.useCallback(async (app: TldrawApp) => {

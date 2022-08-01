@@ -1,7 +1,7 @@
 import * as React from 'react'
+import type { TLShapeUtilsMap } from '~TLShapeUtil'
 import type { Inputs } from '~inputs'
 import type { TLCallbacks, TLShape, TLBounds, TLPageState } from '~types'
-import type { TLShapeUtilsMap } from '~TLShapeUtil'
 
 export interface TLContextType<T extends TLShape> {
   id?: string

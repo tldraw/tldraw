@@ -1,5 +1,5 @@
-import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { mockDocument, TldrawTestApp } from '~test'
 import { TDStatus } from '~types'
 

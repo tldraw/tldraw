@@ -1,7 +1,12 @@
-import * as React from 'react'
 import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { TriangleShape, TDShapeType, TDMeta, TDShape, DashStyle } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
+import {
+  intersectBoundsPolygon,
+  intersectLineSegmentPolyline,
+  intersectRayLineSegment,
+} from '@tldraw/intersect'
+import Vec from '@tldraw/vec'
+import * as React from 'react'
+import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import {
   defaultStyle,
   getBoundsRectangle,
@@ -9,19 +14,14 @@ import {
   transformSingleRectangle,
   getFontStyle,
 } from '~state/shapes/shared'
-import {
-  intersectBoundsPolygon,
-  intersectLineSegmentPolyline,
-  intersectRayLineSegment,
-} from '@tldraw/intersect'
-import Vec from '@tldraw/vec'
-import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
-import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
 import { styled } from '~styles'
-import { DrawTriangle } from './components/DrawTriangle'
-import { DashedTriangle } from './components/DashedTriangle'
+import { TriangleShape, TDShapeType, TDMeta, TDShape, DashStyle } from '~types'
+import { TDShapeUtil } from '../TDShapeUtil'
 import { TextLabel, getShapeStyle } from '../shared'
+import { DashedTriangle } from './components/DashedTriangle'
+import { DrawTriangle } from './components/DrawTriangle'
 import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'
+import { getTriangleCentroid, getTrianglePoints } from './triangleHelpers'
 
 type T = TriangleShape
 type E = HTMLDivElement

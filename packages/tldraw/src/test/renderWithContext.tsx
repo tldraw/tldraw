@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { TldrawApp } from '~state'
-import { useKeyboardShortcuts, TldrawContext } from '~hooks'
-import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
+import * as React from 'react'
+import { useKeyboardShortcuts, TldrawContext } from '~hooks'
+import { TldrawApp } from '~state'
+import { mockDocument } from './mockDocument'
 
 export const Wrapper = ({ children }: { children: any }) => {
   const [app] = React.useState(() => new TldrawApp())

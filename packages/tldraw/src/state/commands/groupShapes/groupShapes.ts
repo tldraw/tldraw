@@ -1,8 +1,8 @@
-import { TDShape, TDShapeType } from '~types'
 import { Utils } from '@tldraw/core'
+import { TLDR } from '~state/TLDR'
+import { TDShape, TDShapeType } from '~types'
 import type { Patch, TldrawCommand, TDBinding } from '~types'
 import type { TldrawApp } from '../../internal'
-import { TLDR } from '~state/TLDR'
 
 export function groupShapes(
   app: TldrawApp,

@@ -1,15 +1,15 @@
-import * as React from 'react'
+import { styled } from '@stitches/react'
 import { Utils, HTMLContainer } from '@tldraw/core'
-import { TDShapeType, TDMeta, VideoShape, TDVideoAsset } from '~types'
+import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
-import { TDShapeUtil } from '../TDShapeUtil'
 import {
   defaultStyle,
   getBoundsRectangle,
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { styled } from '@stitches/react'
+import { TDShapeType, TDMeta, VideoShape, TDVideoAsset } from '~types'
+import { TDShapeUtil } from '../TDShapeUtil'
 
 type T = VideoShape
 type E = HTMLDivElement

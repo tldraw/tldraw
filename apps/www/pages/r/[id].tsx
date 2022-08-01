@@ -1,6 +1,6 @@
-import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import dynamic from 'next/dynamic'
+import * as React from 'react'
 
 const IFrameWarning = dynamic(() => import('components/IFrameWarning'), {
   ssr: false,

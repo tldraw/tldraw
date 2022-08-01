@@ -1,7 +1,7 @@
-import * as React from 'react'
 import { Arrow, Sub, SubContent, SubTrigger } from '@radix-ui/react-dropdown-menu'
-import { RowButton } from '~components/Primitives/RowButton'
+import * as React from 'react'
 import { MenuContent } from '~components/Primitives/MenuContent'
+import { RowButton } from '~components/Primitives/RowButton'
 
 export interface DMSubMenuProps {
   label: string

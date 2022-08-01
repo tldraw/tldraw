@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import type { HTMLProps } from 'react'
 import * as React from 'react'
-import type { TLBounds } from '~types'
 import { usePosition } from '~hooks'
+import type { TLBounds } from '~types'
 
 interface ContainerProps extends HTMLProps<HTMLDivElement> {
   id?: string

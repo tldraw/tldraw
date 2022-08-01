@@ -1,6 +1,6 @@
-import * as React from 'react'
 import { observer } from 'mobx-react-lite'
 import getStroke from 'perfect-freehand'
+import * as React from 'react'
 import Utils from '~utils'
 
 export interface UiEraseLintProps {

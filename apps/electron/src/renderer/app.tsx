@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { Tldraw, TldrawApp } from '@tldraw/tldraw'
+import * as React from 'react'
 import type { Message, TldrawBridgeApi } from 'src/types'
 
 declare const window: Window & { TldrawBridgeApi: TldrawBridgeApi }

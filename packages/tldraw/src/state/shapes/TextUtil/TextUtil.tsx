@@ -1,12 +1,12 @@
-import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { styled } from '~styles'
 import { Vec } from '@tldraw/vec'
-import { TLDR } from '~state/TLDR'
+import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
+import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
+import { TLDR } from '~state/TLDR'
+import { styled } from '~styles'
+import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
+import { TDShapeUtil } from '../TDShapeUtil'
 import {
   getTextSvgElement,
   TextAreaUtils,

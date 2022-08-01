@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { useTLContext } from './useTLContext'
-import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
+import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'
+import * as React from 'react'
 import Utils from '~utils'
+import { useTLContext } from './useTLContext'
 
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents<T extends HTMLElement>(

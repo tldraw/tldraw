@@ -1,10 +1,10 @@
-import type { Action, CustomBinding } from 'state/constants'
-import { getShapeUtils, Shape } from 'shapes'
-import { mutables } from 'state/mutables'
-import { nanoid } from 'nanoid'
 import { TLPointerInfo, Utils } from '@tldraw/core'
-import type { ArrowShape } from 'shapes/arrow'
 import Vec from '@tldraw/vec'
+import { nanoid } from 'nanoid'
+import { getShapeUtils, Shape } from 'shapes'
+import type { ArrowShape } from 'shapes/arrow'
+import type { Action, CustomBinding } from 'state/constants'
+import { mutables } from 'state/mutables'
 
 export const translateHandle: Action = (data, payload: TLPointerInfo) => {
   const { initialPoint, snapshot, pointedHandleId } = mutables

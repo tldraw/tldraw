@@ -1,9 +1,9 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
-import { BaseSession } from '../BaseSession'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import type { TldrawApp } from '../../internal'
+import { BaseSession } from '../BaseSession'
 
 export class RotateSession extends BaseSession {
   type = SessionType.Rotate

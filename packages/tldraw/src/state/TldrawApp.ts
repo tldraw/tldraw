@@ -1,4 +1,3 @@
-import { Vec } from '@tldraw/vec'
 import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
@@ -13,6 +12,17 @@ import {
   TLBounds,
   TLDropEventHandler,
 } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import {
+  USER_COLORS,
+  FIT_TO_SCREEN_PADDING,
+  GRID_SIZE,
+  IMAGE_EXTENSIONS,
+  VIDEO_EXTENSIONS,
+  SVG_EXPORT_PADDING,
+} from '~constants'
+import { shapeUtils } from '~state/shapes'
+import { defaultStyle } from '~state/shapes/shared/shape-styles'
 import {
   FlipType,
   TDDocument,
@@ -42,6 +52,11 @@ import {
   TDExportBackground,
   AlignStyle,
 } from '~types'
+import { getClipboard, setClipboard } from './IdbClipboard'
+import { StateManager } from './StateManager'
+import { deepCopy } from './StateManager/copy'
+import { TLDR } from './TLDR'
+import * as Commands from './commands'
 import {
   migrate,
   FileSystemHandle,
@@ -54,34 +69,19 @@ import {
   getImageSizeFromSrc,
   getVideoSizeFromSrc,
 } from './data'
-import { TLDR } from './TLDR'
-import { shapeUtils } from '~state/shapes'
-import { defaultStyle } from '~state/shapes/shared/shape-styles'
-import * as Commands from './commands'
 import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
-import {
-  USER_COLORS,
-  FIT_TO_SCREEN_PADDING,
-  GRID_SIZE,
-  IMAGE_EXTENSIONS,
-  VIDEO_EXTENSIONS,
-  SVG_EXPORT_PADDING,
-} from '~constants'
+import { clearPrevSize } from './shapes/shared/getTextSize'
+import { ArrowTool } from './tools/ArrowTool'
 import type { BaseTool } from './tools/BaseTool'
-import { SelectTool } from './tools/SelectTool'
-import { EraseTool } from './tools/EraseTool'
-import { TextTool } from './tools/TextTool'
 import { DrawTool } from './tools/DrawTool'
 import { EllipseTool } from './tools/EllipseTool'
-import { RectangleTool } from './tools/RectangleTool'
-import { TriangleTool } from './tools/TriangleTool'
+import { EraseTool } from './tools/EraseTool'
 import { LineTool } from './tools/LineTool'
-import { ArrowTool } from './tools/ArrowTool'
+import { RectangleTool } from './tools/RectangleTool'
+import { SelectTool } from './tools/SelectTool'
 import { StickyTool } from './tools/StickyTool'
-import { StateManager } from './StateManager'
-import { clearPrevSize } from './shapes/shared/getTextSize'
-import { getClipboard, setClipboard } from './IdbClipboard'
-import { deepCopy } from './StateManager/copy'
+import { TextTool } from './tools/TextTool'
+import { TriangleTool } from './tools/TriangleTool'
 
 const uuid = Utils.uniqueId()
 

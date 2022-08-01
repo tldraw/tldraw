@@ -1,6 +1,6 @@
+import type { S } from '@state-designer/react'
 import type { TLBinding, TLPage, TLPageState, TLPerformanceMode, TLSnapLine } from '@tldraw/core'
 import type { Shape } from '../shapes'
-import type { S } from '@state-designer/react'
 
 export const VERSION = 1
 export const PERSIST_DATA = true

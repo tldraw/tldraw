@@ -9,8 +9,8 @@ import {
   TldrawPatch,
   TldrawCommand,
 } from '~types'
-import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
+import { BaseSession } from '../BaseSession'
 
 export class GridSession extends BaseSession {
   type = SessionType.Grid

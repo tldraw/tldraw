@@ -9,11 +9,11 @@ import {
   TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
+import Vec from '@tldraw/vec'
+import { CLONING_DISTANCE, DEAD_ZONE } from '~constants'
+import { TLDR } from '~state/TLDR'
 import { SessionType, TDShapeType } from '~types'
 import { BaseTool } from '../BaseTool'
-import Vec from '@tldraw/vec'
-import { TLDR } from '~state/TLDR'
-import { CLONING_DISTANCE, DEAD_ZONE } from '~constants'
 
 enum Status {
   Idle = 'idle',

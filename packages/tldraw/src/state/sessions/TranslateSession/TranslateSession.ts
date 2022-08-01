@@ -1,5 +1,7 @@
 import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
+import { TLDR } from '~state/TLDR'
 import {
   TDShape,
   TDBinding,
@@ -13,10 +15,8 @@ import {
   TldrawPatch,
   TDShapeType,
 } from '~types'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
-import { TLDR } from '~state/TLDR'
-import { BaseSession } from '../BaseSession'
 import type { TldrawApp } from '../../internal'
+import { BaseSession } from '../BaseSession'
 
 type CloneInfo =
   | {

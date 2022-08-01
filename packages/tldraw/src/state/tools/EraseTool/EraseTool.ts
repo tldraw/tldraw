@@ -1,8 +1,8 @@
-import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
+import Vec from '@tldraw/vec'
+import { DEAD_ZONE } from '~constants'
 import { SessionType } from '~types'
 import { BaseTool } from '../BaseTool'
-import { DEAD_ZONE } from '~constants'
 
 enum Status {
   Idle = 'idle',

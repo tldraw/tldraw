@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { AlignStyle, TDShapeType } from '~types'
 import { useFileSystemHandlers, useTldrawApp } from '~hooks'
+import { AlignStyle, TDShapeType } from '~types'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const app = useTldrawApp()
