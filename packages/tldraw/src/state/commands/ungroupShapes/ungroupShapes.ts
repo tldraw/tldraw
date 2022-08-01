@@ -1,5 +1,5 @@
 import { TLDR } from '~state/TLDR'
-import type { Patch, GroupShape, TDBinding, TDShape } from '~types'
+import type { GroupShape, Patch, TDBinding, TDShape } from '~types'
 import type { TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 

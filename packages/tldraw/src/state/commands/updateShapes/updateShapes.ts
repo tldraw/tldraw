@@ -1,5 +1,5 @@
 import { TLDR } from '~state/TLDR'
-import type { TldrawCommand, TDShape } from '~types'
+import type { TDShape, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function updateShapes(

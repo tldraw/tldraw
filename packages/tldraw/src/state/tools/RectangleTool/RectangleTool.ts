@@ -1,4 +1,4 @@
-import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
+import { TLBoundsCorner, TLPointerEventHandler, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { Rectangle } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'

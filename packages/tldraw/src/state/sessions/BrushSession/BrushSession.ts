@@ -1,5 +1,5 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
+import { SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 

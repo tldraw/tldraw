@@ -1,5 +1,5 @@
 import { ItemIndicator } from '@radix-ui/react-dropdown-menu'
-import { ChevronRightIcon, CheckIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { Kbd } from '~components/Primitives/Kbd'
 import { SmallIcon } from '~components/Primitives/SmallIcon'

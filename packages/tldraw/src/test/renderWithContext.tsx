@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import * as React from 'react'
-import { useKeyboardShortcuts, TldrawContext } from '~hooks'
+import { TldrawContext, useKeyboardShortcuts } from '~hooks'
 import { TldrawApp } from '~state'
 import { mockDocument } from './mockDocument'
 

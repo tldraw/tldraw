@@ -23,17 +23,17 @@ import {
 import { breakpoints } from '~components/breakpoints'
 import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
-import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
+import { defaultTextStyle, fills, strokes } from '~state/shapes/shared/shape-styles'
 import { styled } from '~styles'
 import {
-  TDSnapshot,
+  AlignStyle,
   ColorStyle,
   DashStyle,
-  SizeStyle,
-  ShapeStyles,
   FontStyle,
-  AlignStyle,
+  ShapeStyles,
+  SizeStyle,
   TDShapeType,
+  TDSnapshot,
 } from '~types'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle

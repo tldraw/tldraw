@@ -1,4 +1,4 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { TLPointerEventHandler, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { Arrow } from '~state/shapes'
 import { SessionType, TDShapeType } from '~types'

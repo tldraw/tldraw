@@ -1,4 +1,4 @@
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,
@@ -7,9 +7,9 @@ import {
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
-import { defaultStyle, getShapeStyle, getFontStyle } from '~state/shapes/shared'
+import { defaultStyle, getFontStyle, getShapeStyle } from '~state/shapes/shared'
 import { styled } from '~styles'
-import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
+import { DashStyle, EllipseShape, TDMeta, TDShape, TDShapeType, TransformInfo } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { TextLabel } from '../shared/TextLabel'
 import { DashedEllipse } from './components/DashedEllipse'

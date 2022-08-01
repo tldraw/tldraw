@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { PlusIcon, CheckIcon } from '@radix-ui/react-icons'
+import { CheckIcon, PlusIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'

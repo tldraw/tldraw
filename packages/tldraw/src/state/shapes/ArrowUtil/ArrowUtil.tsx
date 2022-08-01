@@ -1,4 +1,4 @@
-import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
@@ -8,7 +8,7 @@ import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
 import { styled } from '~styles'
-import { ArrowShape, TransformInfo, Decoration, TDShapeType, DashStyle, TDMeta } from '~types'
+import { ArrowShape, DashStyle, Decoration, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { TextLabel, getFontStyle, getShapeStyle } from '../shared'
 import { LabelMask } from '../shared/LabelMask'

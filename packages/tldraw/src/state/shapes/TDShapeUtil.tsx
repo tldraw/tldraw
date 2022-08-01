@@ -1,5 +1,5 @@
-import { Utils, TLShapeUtil } from '@tldraw/core'
-import type { TLPointerInfo, TLBounds } from '@tldraw/core'
+import { TLShapeUtil, Utils } from '@tldraw/core'
+import type { TLBounds, TLPointerInfo } from '@tldraw/core'
 import {
   intersectLineSegmentBounds,
   intersectLineSegmentPolyline,

@@ -295,7 +295,7 @@ Next, use `TLShapeUtil.Component` to create a second component for your shape's 
 
 ```tsx
 // BoxComponent.ts
-import { shapeComponent, SVGContainer } from '@tldraw/core'
+import { SVGContainer, shapeComponent } from '@tldraw/core'
 import * as React from 'react'
 import type { BoxShape } from './BoxShape'
 
@@ -373,7 +373,7 @@ Next, create a "shape util" for your shape. This is a class that extends `TLShap
 
 ```ts
 // BoxUtil.ts
-import { Utils, TLBounds, TLShapeUtil } from '@tldraw/core'
+import { TLBounds, TLShapeUtil, Utils } from '@tldraw/core'
 import { BoxComponent } from './BoxComponent'
 import { BoxIndicator } from './BoxIndicator'
 import type { BoxShape } from './BoxShape'

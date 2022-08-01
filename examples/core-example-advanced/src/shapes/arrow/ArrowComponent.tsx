@@ -1,4 +1,4 @@
-import { TLShapeUtil, SVGContainer } from '@tldraw/core'
+import { SVGContainer, TLShapeUtil } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import * as React from 'react'
 import type { ArrowShape } from './ArrowShape'

@@ -1,5 +1,5 @@
 import { Vec } from '@tldraw/vec'
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { GroupShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Translate session', () => {

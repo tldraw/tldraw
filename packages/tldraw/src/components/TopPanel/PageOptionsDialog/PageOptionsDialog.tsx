@@ -10,7 +10,7 @@ import { TextField } from '~components/Primitives/TextField'
 import { breakpoints } from '~components/breakpoints'
 import { useContainer, useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import type { TDSnapshot, TDPage } from '~types'
+import type { TDPage, TDSnapshot } from '~types'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1

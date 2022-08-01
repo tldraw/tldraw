@@ -1,4 +1,4 @@
-import NextDocument, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
+import NextDocument, { DocumentContext, Head, Html, Main, NextScript } from 'next/document'
 import { getCssText } from 'styles'
 import { GA_TRACKING_ID } from 'utils/gtag'
 

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { getTranslation, TDLanguage } from '../translations/translations'
+import { TDLanguage, getTranslation } from '../translations/translations'
 
 export function useTranslation(locale?: TDLanguage) {
   return React.useMemo(() => {

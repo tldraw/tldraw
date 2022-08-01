@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
+import { CircleIcon, SquareIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { useIntl } from 'react-intl'
 import { Panel } from '~components/Primitives/Panel'

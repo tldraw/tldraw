@@ -1,19 +1,19 @@
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLPageState, TLTransformInfo, Utils } from '@tldraw/core'
 import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
 import { BINDING_DISTANCE } from '~constants'
 import {
-  TDSnapshot,
+  ArrowShape,
   ShapesWithProp,
-  TDShape,
   TDBinding,
+  TDExportType,
+  TDHandle,
   TDPage,
+  TDShape,
+  TDShapeType,
+  TDSnapshot,
   TldrawCommand,
   TldrawPatch,
-  TDShapeType,
-  ArrowShape,
-  TDHandle,
-  TDExportType,
 } from '~types'
 import { deepCopy } from './StateManager/copy'
 import { getShapeUtil } from './shapes'

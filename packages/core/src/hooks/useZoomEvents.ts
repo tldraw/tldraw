@@ -1,5 +1,5 @@
 import { Vec } from '@tldraw/vec'
-import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'
+import { Handler, WebKitGestureEvent, useGesture } from '@use-gesture/react'
 import * as React from 'react'
 import Utils from '~utils'
 import { useTLContext } from './useTLContext'

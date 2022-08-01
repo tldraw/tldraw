@@ -1,6 +1,6 @@
 import { TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { TDShapeType, TDStatus } from '~types'
 
 function getShapeBounds(app: TldrawTestApp, ...ids: string[]) {

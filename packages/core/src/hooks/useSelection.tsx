@@ -1,6 +1,6 @@
 import * as React from 'react'
 import type { TLShapeUtil, TLShapeUtilsMap } from '../TLShapeUtil'
-import type { TLPage, TLPageState, TLShape, TLBounds, TLBinding } from '../types'
+import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape } from '../types'
 import Utils from '../utils'
 import { useTLContext } from './useTLContext'
 

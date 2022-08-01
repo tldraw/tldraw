@@ -1,56 +1,56 @@
 import {
+  TLBounds,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
-  TLKeyboardEventHandler,
-  TLShapeCloneHandler,
   TLCanvasEventHandler,
+  TLDropEventHandler,
+  TLKeyboardEventHandler,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
+  TLShapeCloneHandler,
   TLWheelEventHandler,
   Utils,
-  TLBounds,
-  TLDropEventHandler,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import {
-  USER_COLORS,
   FIT_TO_SCREEN_PADDING,
   GRID_SIZE,
   IMAGE_EXTENSIONS,
-  VIDEO_EXTENSIONS,
   SVG_EXPORT_PADDING,
+  USER_COLORS,
+  VIDEO_EXTENSIONS,
 } from '~constants'
 import { shapeUtils } from '~state/shapes'
 import { defaultStyle } from '~state/shapes/shared/shape-styles'
 import {
-  FlipType,
-  TDDocument,
-  MoveType,
+  AlignStyle,
   AlignType,
-  StretchType,
+  ArrowShape,
   DistributeType,
+  FlipType,
+  GroupShape,
+  MoveType,
+  SessionType,
   ShapeStyles,
+  StretchType,
+  TDAsset,
+  TDAssetType,
+  TDAssets,
+  TDBinding,
+  TDDocument,
+  TDExport,
+  TDExportBackground,
+  TDExportType,
+  TDPage,
   TDShape,
   TDShapeType,
   TDSnapshot,
   TDStatus,
-  TDPage,
-  TDBinding,
-  GroupShape,
-  TldrawCommand,
-  TDUser,
-  SessionType,
   TDToolType,
-  TDAssetType,
-  TDAsset,
-  TDAssets,
-  TDExport,
-  ArrowShape,
-  TDExportType,
+  TDUser,
+  TldrawCommand,
   TldrawPatch,
-  TDExportBackground,
-  AlignStyle,
 } from '~types'
 import { getClipboard, setClipboard } from './IdbClipboard'
 import { StateManager } from './StateManager'
@@ -58,18 +58,18 @@ import { deepCopy } from './StateManager/copy'
 import { TLDR } from './TLDR'
 import * as Commands from './commands'
 import {
-  migrate,
   FileSystemHandle,
-  loadFileHandle,
-  openFromFileSystem,
-  saveToFileSystem,
-  openAssetsFromFileSystem,
   fileToBase64,
   fileToText,
   getImageSizeFromSrc,
   getVideoSizeFromSrc,
+  loadFileHandle,
+  migrate,
+  openAssetsFromFileSystem,
+  openFromFileSystem,
+  saveToFileSystem,
 } from './data'
-import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
+import { SessionArgsOfType, TldrawSession, getSession } from './sessions'
 import { clearPrevSize } from './shapes/shared/getTextSize'
 import { ArrowTool } from './tools/ArrowTool'
 import type { BaseTool } from './tools/BaseTool'

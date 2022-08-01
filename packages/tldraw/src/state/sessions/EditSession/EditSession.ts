@@ -1,4 +1,4 @@
-import { TDShape, SessionType, TldrawPatch, TldrawCommand } from '~types'
+import { SessionType, TDShape, TldrawCommand, TldrawPatch } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 

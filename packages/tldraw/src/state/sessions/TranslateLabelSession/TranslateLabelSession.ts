@@ -1,14 +1,14 @@
 import type { TLBounds } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import {
+  ArrowShape,
+  EllipseShape,
+  RectangleShape,
   SessionType,
+  TDStatus,
   TldrawCommand,
   TldrawPatch,
-  TDStatus,
-  RectangleShape,
   TriangleShape,
-  EllipseShape,
-  ArrowShape,
 } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'

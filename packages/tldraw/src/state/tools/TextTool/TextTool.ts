@@ -1,4 +1,4 @@
-import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
+import type { TLKeyboardEventHandler, TLPointerEventHandler } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { TDShapeType } from '~types'
 import { BaseTool, Status } from '../BaseTool'

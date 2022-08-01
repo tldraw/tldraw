@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/tldraw'
+import { ColorStyle, TDShapeType, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
 
 export default function Imperative() {

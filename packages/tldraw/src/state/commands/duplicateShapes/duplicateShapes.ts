@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { PagePartial, TldrawCommand, TDShape } from '~types'
+import type { PagePartial, TDShape, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function duplicateShapes(app: TldrawApp, ids: string[], point?: number[]): TldrawCommand {

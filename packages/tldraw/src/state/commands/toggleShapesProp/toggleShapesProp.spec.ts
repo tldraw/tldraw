@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import type { RectangleShape } from '~types'
 
 describe('Toggle command', () => {

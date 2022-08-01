@@ -1,5 +1,5 @@
-import { mockDocument, TldrawTestApp } from '~test'
-import { StretchType, RectangleShape, TDShapeType } from '~types'
+import { TldrawTestApp, mockDocument } from '~test'
+import { RectangleShape, StretchType, TDShapeType } from '~types'
 
 describe('Stretch command', () => {
   const app = new TldrawTestApp()

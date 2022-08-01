@@ -1,12 +1,12 @@
 import { Vec } from '@tldraw/vec'
 import {
-  SessionType,
-  TDStatus,
-  TDShape,
   PagePartial,
+  SessionType,
   TDBinding,
-  TldrawPatch,
+  TDShape,
+  TDStatus,
   TldrawCommand,
+  TldrawPatch,
 } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'

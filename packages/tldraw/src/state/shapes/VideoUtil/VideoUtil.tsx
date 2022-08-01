@@ -1,5 +1,5 @@
 import { styled } from '@stitches/react'
-import { Utils, HTMLContainer } from '@tldraw/core'
+import { HTMLContainer, Utils } from '@tldraw/core'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
 import {
@@ -8,7 +8,7 @@ import {
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { TDShapeType, TDMeta, VideoShape, TDVideoAsset } from '~types'
+import { TDMeta, TDShapeType, TDVideoAsset, VideoShape } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 
 type T = VideoShape

@@ -9,13 +9,13 @@ import { SnapLines } from '~components/SnapLines/SnapLines'
 import { Users } from '~components/Users'
 import { UsersIndicators } from '~components/UsersIndicators'
 import {
-  usePreventNavigationCss,
-  useZoomEvents,
-  useSafariFocusOutFix,
-  useCanvasEvents,
   useCameraCss,
+  useCanvasEvents,
   useKeyEvents,
   usePerformanceCss,
+  usePreventNavigationCss,
+  useSafariFocusOutFix,
+  useZoomEvents,
 } from '~hooks'
 import { useResizeObserver } from '~hooks/useResizeObserver'
 import type {

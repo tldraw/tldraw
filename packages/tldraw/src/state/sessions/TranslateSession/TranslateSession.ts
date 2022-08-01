@@ -1,19 +1,19 @@
-import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
+import { TLBounds, TLBoundsWithCenter, TLPageState, TLSnapLine, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
 import {
-  TDShape,
-  TDBinding,
-  TldrawCommand,
-  TDStatus,
-  ArrowShape,
-  Patch,
-  GroupShape,
-  SessionType,
   ArrowBinding,
-  TldrawPatch,
+  ArrowShape,
+  GroupShape,
+  Patch,
+  SessionType,
+  TDBinding,
+  TDShape,
   TDShapeType,
+  TDStatus,
+  TldrawCommand,
+  TldrawPatch,
 } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'

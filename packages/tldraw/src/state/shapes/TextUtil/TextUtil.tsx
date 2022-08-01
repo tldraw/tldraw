@@ -1,19 +1,19 @@
-import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
+import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
-import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
+import { AlignStyle, TDMeta, TDShapeType, TextShape, TransformInfo } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import {
-  getTextSvgElement,
   TextAreaUtils,
   defaultTextStyle,
-  getShapeStyle,
   getFontStyle,
+  getShapeStyle,
   getTextAlign,
+  getTextSvgElement,
 } from '../shared'
 
 type T = TextShape

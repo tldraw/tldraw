@@ -1,6 +1,6 @@
-import { Utils, TLPageState } from '@tldraw/core'
+import { TLPageState, Utils } from '@tldraw/core'
 import type { TldrawApp } from '~state'
-import type { TldrawCommand, TDPage } from '~types'
+import type { TDPage, TldrawCommand } from '~types'
 import { getIncrementedName } from '../shared/getIncrementedName'
 
 export function createPage(

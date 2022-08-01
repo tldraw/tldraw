@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import { SessionType, ShapesWithProp, TldrawCommand, TldrawPatch, TDStatus } from '~types'
+import { SessionType, ShapesWithProp, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
 

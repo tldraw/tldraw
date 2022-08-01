@@ -1,4 +1,4 @@
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
@@ -8,7 +8,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
-import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
+import { DashStyle, DrawShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
 import {

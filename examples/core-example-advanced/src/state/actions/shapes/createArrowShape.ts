@@ -1,7 +1,7 @@
 import { TLPointerInfo, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { nanoid } from 'nanoid'
-import { getShapeUtils, Shape, shapeUtils } from 'shapes'
+import { Shape, getShapeUtils, shapeUtils } from 'shapes'
 import type { Action, CustomBinding } from 'state/constants'
 import { mutables } from 'state/mutables'
 

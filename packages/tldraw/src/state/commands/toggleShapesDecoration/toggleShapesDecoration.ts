@@ -1,5 +1,5 @@
 import { Decoration } from '~types'
-import type { Patch, ArrowShape, TldrawCommand } from '~types'
+import type { ArrowShape, Patch, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function toggleShapesDecoration(

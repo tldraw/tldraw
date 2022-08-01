@@ -19,7 +19,7 @@ import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
 import { useContainer, useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportType } from '~types'
+import { AlignType, DistributeType, StretchType, TDExportType, TDSnapshot } from '~types'
 
 const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length

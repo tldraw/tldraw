@@ -4,8 +4,8 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
-  TLPointerEventHandler,
   TLKeyboardEventHandler,
+  TLPointerEventHandler,
   TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'

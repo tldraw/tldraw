@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { TldrawCommand, PagePartial } from '~types'
+import type { PagePartial, TldrawCommand } from '~types'
 import type { TldrawApp } from '../../internal'
 
 export function translateShapes(app: TldrawApp, ids: string[], delta: number[]): TldrawCommand {

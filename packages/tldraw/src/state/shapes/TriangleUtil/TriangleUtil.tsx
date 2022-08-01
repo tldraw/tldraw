@@ -1,4 +1,4 @@
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsPolygon,
   intersectLineSegmentPolyline,
@@ -10,12 +10,12 @@ import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import {
   defaultStyle,
   getBoundsRectangle,
+  getFontStyle,
   transformRectangle,
   transformSingleRectangle,
-  getFontStyle,
 } from '~state/shapes/shared'
 import { styled } from '~styles'
-import { TriangleShape, TDShapeType, TDMeta, TDShape, DashStyle } from '~types'
+import { DashStyle, TDMeta, TDShape, TDShapeType, TriangleShape } from '~types'
 import { TDShapeUtil } from '../TDShapeUtil'
 import { TextLabel, getShapeStyle } from '../shared'
 import { DashedTriangle } from './components/DashedTriangle'

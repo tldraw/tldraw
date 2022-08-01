@@ -1,8 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
   GitHubLogoIcon,
-  QuestionMarkIcon,
   HeartFilledIcon,
+  QuestionMarkIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons'
 import * as Popover from '@radix-ui/react-popover'

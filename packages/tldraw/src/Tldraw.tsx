@@ -10,17 +10,17 @@ import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
 import { GRID_SIZE } from '~constants'
 import {
-  TldrawContext,
-  useStylesheet,
-  useTranslation,
-  useKeyboardShortcuts,
-  useTldrawApp,
   ContainerContext,
+  TldrawContext,
+  useKeyboardShortcuts,
+  useStylesheet,
+  useTldrawApp,
+  useTranslation,
 } from '~hooks'
-import { TldrawApp, TDCallbacks } from '~state'
+import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
-import { styled, dark } from '~styles'
+import { dark, styled } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any

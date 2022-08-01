@@ -3,12 +3,12 @@ import * as React from 'react'
 import { useTLContext } from '~hooks'
 import type {
   IShapeTreeNode,
+  TLAssets,
+  TLBinding,
+  TLBounds,
   TLPage,
   TLPageState,
   TLShape,
-  TLBinding,
-  TLBounds,
-  TLAssets,
 } from '~types'
 import { Utils } from '~utils'
 

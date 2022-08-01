@@ -2,7 +2,7 @@
 import { Vec } from '@tldraw/vec'
 import type React from 'react'
 import type { Patch, TLBoundsWithCenter } from '~index'
-import { TLBounds, TLBoundsCorner, SnapPoints, Snap, TLBoundsEdge } from '../types'
+import { Snap, SnapPoints, TLBounds, TLBoundsCorner, TLBoundsEdge } from '../types'
 import './polyfills'
 
 const TAU = Math.PI * 2

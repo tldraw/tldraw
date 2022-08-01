@@ -1,4 +1,4 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,

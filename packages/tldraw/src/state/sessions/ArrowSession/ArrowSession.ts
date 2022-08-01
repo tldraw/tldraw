@@ -6,13 +6,13 @@ import { shapeUtils } from '~state/shapes'
 import {
   ArrowBinding,
   ArrowShape,
-  TDShape,
-  TDBinding,
-  TDStatus,
   SessionType,
+  TDBinding,
+  TDShape,
   TDShapeType,
-  TldrawPatch,
+  TDStatus,
   TldrawCommand,
+  TldrawPatch,
 } from '~types'
 import type { TldrawApp } from '../../internal'
 import { BaseSession } from '../BaseSession'
