@@ -32,7 +32,7 @@ export function HelpPanel() {
 
   return (
     <Popover.Root>
-      <PopoverAnchor dir="ltr" debug={isDebugMode}>
+      <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
         <Popover.Trigger dir="ltr" asChild>
           <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
@@ -93,13 +93,11 @@ const Links = () => {
 }
 
 const HelpButton = styled('button', {
-  width: 28,
-  height: 28,
+  width: 32,
+  height: 32,
   borderRadius: '100%',
-  position: 'absolute',
-  right: 10,
-  bottom: 10,
   display: 'flex',
+  padding: 0,
   justifyContent: 'center',
   alignItems: 'center',
   outline: 'none',
@@ -108,42 +106,10 @@ const HelpButton = styled('button', {
   boxShadow: '$panel',
   border: '1px solid $panelContrast',
   color: '$text',
-  variants: {
-    debug: {
-      true: {},
-      false: {},
-    },
-    bp: {
-      mobile: {},
-      small: {},
-      medium: {},
-      large: {},
-    },
-    side: {
-      top: {},
-      left: {},
-      right: {},
-      bottom: {},
-    },
+  '& svg': {
+    height: 12,
+    width: 12,
   },
-  compoundVariants: [
-    {
-      bp: 'mobile',
-      side: 'bottom',
-      css: {
-        bottom: 70,
-        width: 36,
-        height: 36,
-      },
-    },
-    {
-      bp: 'small',
-      side: 'bottom',
-      css: {
-        bottom: 10,
-      },
-    },
-  ],
 })
 
 export const StyledContent = styled(MenuContent, {
@@ -173,15 +139,48 @@ export const StyledContent = styled(MenuContent, {
 const PopoverAnchor = styled(Popover.Anchor, {
   position: 'absolute',
   zIndex: 999,
-  right: 0,
-  bottom: 0,
-  width: 40,
-  height: 40,
+  right: 10,
+  bottom: 10,
+  width: 32,
+  height: 32,
   variants: {
     debug: {
-      true: {
-        bottom: 40,
+      true: {},
+      false: {},
+    },
+    bp: {
+      mobile: {
+        bottom: 50,
       },
+      small: {
+        bottom: 10,
+      },
+      medium: {},
+      large: {},
+    },
+    side: {
+      top: {},
+      left: {},
+      right: {},
+      bottom: {},
     },
   },
+  compoundVariants: [
+    {
+      bp: 'mobile',
+      side: 'bottom',
+      debug: true,
+      css: {
+        bottom: 104,
+      },
+    },
+    {
+      bp: 'small',
+      side: 'bottom',
+      debug: true,
+      css: {
+        bottom: 50,
+      },
+    },
+  ],
 })
