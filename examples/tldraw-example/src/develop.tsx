@@ -10,6 +10,7 @@ export default function Develop() {
   const fileSystemEvents = useFileSystem()
 
   const handleMount = React.useCallback((app: TldrawApp) => {
+    console.log('hello')
     window.app = app
     rTldrawApp.current = app
     // app.reset()

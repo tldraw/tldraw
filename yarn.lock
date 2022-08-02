@@ -3165,18 +3165,6 @@
     "@testing-library/dom" "^8.5.0"
     "@types/react-dom" "^18.0.0"
 
-"@tldraw/lfg@^1.1.5":
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.5.tgz#f44d19e5a22d767f717a9a7a137535672a4e8048"
-  integrity sha512-tGvuWgcESbw+UbdSdUUM6dIKV7z94g/vDchuhUUeYrJy6HkiJD3naA5CZEnBs1xZZ+kI9aQUD7Ek2ewol/Sbtw==
-  dependencies:
-    commander "^2.20.0"
-    dotenv "^16.0.0"
-    esbuild "^0.14.18"
-    tsconfig-paths "^3.12.0"
-    tsconfig-replace-paths "^0.0.11"
-    zlib "^1.0.5"
-
 "@tldraw/lfg@latest":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.3.tgz#23b36664dc5057902f7f2ad0b68f5cfd5b9cc133"
@@ -6401,10 +6389,10 @@ eslint-plugin-import@^2.25.2:
     resolve "^1.20.0"
     tsconfig-paths "^3.12.0"
 
-eslint-plugin-jest@^26.6.0:
-  version "26.6.0"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-26.6.0.tgz#546804fa42da75d7d58d4d3b278d5186abd3f6c0"
-  integrity sha512-f8n46/97ZFdU4KqeQYqO8AEVGIhHWvkpgNBWHH3jrM28/y8llnbf3IjfIKv6p2pZIMinK1PCqbbROxs9Eud02Q==
+eslint-plugin-jest@^26.7.0:
+  version "26.7.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-26.7.0.tgz#41d405ac9143e1284a3401282db47ed459436778"
+  integrity sha512-/YNitdfG3o3cC6juZziAdkk6nfJt01jXVfj4AgaYVLs7bupHzRDL5K+eipdzhDXtQsiqaX1TzfwSuRlEgeln1A==
   dependencies:
     "@typescript-eslint/utils" "^5.10.0"
 
@@ -8701,13 +8689,13 @@ lint-staged@^12.3.3:
     supports-color "^9.2.1"
     yaml "^1.10.2"
 
-liquorstore@^0.2.3:
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/liquorstore/-/liquorstore-0.2.3.tgz#60f9caa71dcf603515052f0f4fd16082d1f02408"
-  integrity sha512-ZDoOBKFFm2acaSgnQ7g+FB6b8IULDVIhFVkdd41t8d+fxDhjV44QDOZ6W8BlZ/WiPtdP/9bMxVj8A0fYwcEUVA==
+liquorstore@^0.2.7:
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/liquorstore/-/liquorstore-0.2.7.tgz#754d75a8017ade67ac2d0a0a495137589f6394f6"
+  integrity sha512-FLqUlfzPvItyQwEyu55MdRMk2s6DGvCA6VZ0fUEeCJQTy3GRLS+vm93YjPjM/RCs3iOFQaUh9meW9YDs9EQDXg==
   dependencies:
-    "@tldraw/lfg" "^1.1.5"
     eventemitter3 "^4.0.7"
+    lodash.clonedeep "^4.5.0"
     react "^18"
 
 listr2@^4.0.1:
@@ -8796,6 +8784,11 @@ lodash.camelcase@^4.3.0:
   version "4.3.0"
   resolved "https://registry.yarnpkg.com/lodash.camelcase/-/lodash.camelcase-4.3.0.tgz#b28aa6288a2b9fc651035c7711f65ab6190331a6"
   integrity sha1-soqmKIorn8ZRA1x3EfZathkDMaY=
+
+lodash.clonedeep@^4.5.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.clonedeep/-/lodash.clonedeep-4.5.0.tgz#e23f3f9c4f8fbdde872529c1071857a086e5ccef"
+  integrity sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==
 
 lodash.debounce@^4.0.8:
   version "4.0.8"

@@ -42,23 +42,23 @@ const selectedShapesCountSelector = (s: TDSnapshot) =>
 const isAllLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
-  return selectedIds.every((id) => page.shapes[id].isLocked)
+  return selectedIds.every(id => page.shapes[id].isLocked)
 }
 
 const isAllAspectLockedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
-  return selectedIds.every((id) => page.shapes[id].isAspectRatioLocked)
+  return selectedIds.every(id => page.shapes[id].isAspectRatioLocked)
 }
 
 const isAllGroupedSelector = (s: TDSnapshot) => {
   const page = s.document.pages[s.appState.currentPageId]
   const selectedShapes = s.document.pageStates[s.appState.currentPageId].selectedIds.map(
-    (id) => page.shapes[id]
+    id => page.shapes[id]
   )
 
   return selectedShapes.every(
-    (shape) =>
+    shape =>
       shape.children !== undefined ||
       (shape.parentId === selectedShapes[0].parentId &&
         selectedShapes[0].parentId !== s.appState.currentPageId)

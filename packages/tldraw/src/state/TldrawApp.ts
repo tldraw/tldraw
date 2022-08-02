@@ -263,10 +263,13 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     // })
 
     this.callbacks = callbacks
+    this.onReady()
   }
 
   patchState = (patch: TldrawPatch, reason?: string) => {
     this.mutate((s) => {
+      const next = Utils.deepMerge(s, patch)
+      console.log(next)
       Object.assign(s, Utils.deepMerge(s, patch))
     })
     return this
