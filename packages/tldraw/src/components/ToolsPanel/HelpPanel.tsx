@@ -81,7 +81,7 @@ const Links = () => {
       {linksData.map((item) => (
         <a key={item.id} href={item.url} target="_blank" rel="nofollow">
           <RowButton id={`TD-Link-${item.id}`} variant="wide">
-            <FormattedMessage id={item.id} />
+            {item.id}
             <SmallIcon>
               <item.icon />
             </SmallIcon>
