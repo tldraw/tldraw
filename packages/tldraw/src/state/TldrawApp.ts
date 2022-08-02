@@ -1679,7 +1679,10 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
    * @param pageId The new current page's id.
    */
   changePage = (pageId: string): this => {
-    return this.setState(Commands.changePage(this, pageId))
+     this.mutate(s => {
+      s.appState.currentPageId = pageId
+    })
+    return this
   }
 
   /**
@@ -2723,9 +2726,11 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
       this.cancelSession()
     }
 
+    this.pause()
+    
     const Session = getSession(type) as any
     this.session = new Session(this, ...args)
-
+    
     const result = this.session!.start()
 
     if (result) {
@@ -2771,6 +2776,7 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
 
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
 
+    this.resume()
     return this
   }
 
@@ -2883,6 +2889,8 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     }
 
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
+
+    this.resume()
 
     return this
   }

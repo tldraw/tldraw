@@ -12,12 +12,9 @@ import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
 import { PageOptionsDialog } from '../PageOptionsDialog'
 
-const sortedSelector = (s: TDSnapshot) =>
-  Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
+const pagesSelector = (s: TDSnapshot) => s.document.pages
 
-const currentPageNameSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId].name
-
-const currentPageIdSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId].id
+const currentPageSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId]
 
 export function PageMenu() {
   const app = useTldrawApp()
@@ -44,12 +41,13 @@ export function PageMenu() {
     },
     [setIsOpen]
   )
-  const currentPageName = app.useSelector(currentPageNameSelector)
+
+  const currentPage = app.useSelector(currentPageSelector)
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
-        <ToolButton variant="text">{currentPageName || 'Page'}</ToolButton>
+        <ToolButton variant="text">{currentPage.name || 'Page'}</ToolButton>
       </DropdownMenu.Trigger>
       <DMContent variant="menu" align="start" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
@@ -62,9 +60,10 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const sortedPages = app.useSelector(sortedSelector)
+  const pages = app.useSelector(pagesSelector)
+  const sortedPages = Object.values(pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
-  const currentPageId = app.useSelector(currentPageIdSelector)
+  const currentPage = app.useSelector(currentPageSelector)
 
   const handleCreatePage = React.useCallback(() => {
     const pageName =
@@ -117,7 +116,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <DropdownMenu.RadioGroup dir="ltr" value={currentPageId} onValueChange={handleChangePage}>
+      <DropdownMenu.RadioGroup dir="ltr" value={currentPage.id} onValueChange={handleChangePage}>
         {sortedPages.map((page, i) => (
           <ButtonWithOptions
             key={page.id}
