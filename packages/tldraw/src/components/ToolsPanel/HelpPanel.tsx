@@ -132,6 +132,8 @@ const HelpButton = styled('button', {
       side: 'bottom',
       css: {
         bottom: 70,
+        width: 36,
+        height: 36,
       },
     },
     {
