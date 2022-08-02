@@ -39,10 +39,6 @@
       "dependsOn": ["@tldraw/vscode-editor#build"],
       "outputs": ["dist/**", "editor/**", "temp/**"]
     },
-    "build:www": {
-      "dependsOn": ["build:packages", "^build"],
-      "outputs": ["dist/**", ".next/**"]
-    },
     "test": {
       "dependsOn": ["build:packages"],
       "outputs": []
