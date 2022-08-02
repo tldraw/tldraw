@@ -1,22 +1,22 @@
+import { SVGContainer, Utils } from '@tldraw/core'
 import * as React from 'react'
-import { Utils, SVGContainer } from '@tldraw/core'
-import { RectangleShape, DashStyle, TDShapeType, TDMeta } from '~types'
 import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
+  TextLabel,
   defaultStyle,
-  getShapeStyle,
   getBoundsRectangle,
-  transformRectangle,
   getFontStyle,
+  getShapeStyle,
+  transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { TextLabel } from '../shared/TextLabel'
-import { getRectangleIndicatorPathTDSnapshot } from './rectangleHelpers'
-import { DrawRectangle } from './components/DrawRectangle'
-import { DashedRectangle } from './components/DashedRectangle'
-import { BindingIndicator } from './components/BindingIndicator'
 import { styled } from '~styles'
+import { DashStyle, RectangleShape, TDMeta, TDShapeType } from '~types'
+import { BindingIndicator } from './components/BindingIndicator'
+import { DashedRectangle } from './components/DashedRectangle'
+import { DrawRectangle } from './components/DrawRectangle'
+import { getRectangleIndicatorPathTDSnapshot } from './rectangleHelpers'
 
 type T = RectangleShape
 type E = HTMLDivElement

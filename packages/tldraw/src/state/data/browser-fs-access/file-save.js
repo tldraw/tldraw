@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 // @license © 2020 Google LLC. Licensed under the Apache License, Version 2.0.
-
 import supported from './supported.js'
 
 const implementation = !supported

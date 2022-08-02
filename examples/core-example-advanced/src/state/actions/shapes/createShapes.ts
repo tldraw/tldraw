@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid'
-import { getShapeUtils, Shape } from 'shapes'
+import { Shape, getShapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
 
 export const createShapes: Action = (

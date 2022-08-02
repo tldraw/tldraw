@@ -1,7 +1,7 @@
-import type { TDDocument, TDFile } from '~types'
-import type { FileSystemHandle } from './browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import type { TDDocument, TDFile } from '~types'
+import type { FileSystemHandle } from './browser-fs-access'
 
 const options = { mode: 'readwrite' as const }
 

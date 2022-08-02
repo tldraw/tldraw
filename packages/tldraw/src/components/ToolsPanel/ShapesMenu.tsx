@@ -1,13 +1,13 @@
-import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { CircleIcon, SquareIcon, VercelLogoIcon } from '@radix-ui/react-icons'
+import * as React from 'react'
+import { useIntl } from 'react-intl'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { TDShapeType, TDSnapshot, TDToolType } from '~types'
-import { useTldrawApp } from '~hooks'
-import { SquareIcon, CircleIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { LineIcon } from '~components/Primitives/icons'
-import { useIntl } from 'react-intl'
+import { useTldrawApp } from '~hooks'
+import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 
 interface ShapesMenuProps {
   activeTool: TDToolType

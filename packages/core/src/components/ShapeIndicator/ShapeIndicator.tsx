@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLShape, TLUser } from '~types'
 import { usePosition, useTLContext } from '~hooks'
+import type { TLShape, TLUser } from '~types'
 
 interface IndicatorProps<T extends TLShape, M = unknown> {
   shape: T

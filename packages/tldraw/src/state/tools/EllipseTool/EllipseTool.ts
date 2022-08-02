@@ -1,8 +1,8 @@
-import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
+import { TLBoundsCorner, TLPointerEventHandler, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { Ellipse } from '~state/shapes'
+import { BaseTool, Status } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool, Status } from '../BaseTool'
 
 export class EllipseTool extends BaseTool {
   type = TDShapeType.Ellipse as const

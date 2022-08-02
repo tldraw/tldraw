@@ -15,7 +15,8 @@
     "build:www": "yarn build",
     "build": "next build",
     "serve": "next serve",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
     "@liveblocks/client": "^0.17.0-beta2",

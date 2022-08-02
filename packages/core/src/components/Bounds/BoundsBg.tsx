@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLBounds } from '~types'
-import { useBoundsEvents } from '~hooks'
 import { Container } from '~components/Container'
 import { SVGContainer } from '~components/SVGContainer'
+import { useBoundsEvents } from '~hooks'
+import type { TLBounds } from '~types'
 
 interface BoundsBgProps {
   bounds: TLBounds

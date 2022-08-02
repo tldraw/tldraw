@@ -1,17 +1,17 @@
+import type { TLBounds } from '@tldraw/core'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
 import {
+  ArrowShape,
+  EllipseShape,
+  RectangleShape,
   SessionType,
+  TDStatus,
   TldrawCommand,
   TldrawPatch,
-  TDStatus,
-  RectangleShape,
   TriangleShape,
-  EllipseShape,
-  ArrowShape,
 } from '~types'
-import { TLDR } from '~state/TLDR'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
-import type { TLBounds } from '@tldraw/core'
 
 export class TranslateLabelSession extends BaseSession {
   type = SessionType.Handle

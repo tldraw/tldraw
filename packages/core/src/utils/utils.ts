@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-extra-semi */
-import type React from 'react'
-import { TLBounds, TLBoundsCorner, SnapPoints, Snap, TLBoundsEdge } from '../types'
 import { Vec } from '@tldraw/vec'
-import './polyfills'
+import type React from 'react'
 import type { Patch, TLBoundsWithCenter } from '~index'
+import { Snap, SnapPoints, TLBounds, TLBoundsCorner, TLBoundsEdge } from '~types'
+import './polyfills'
 
 const TAU = Math.PI * 2
 

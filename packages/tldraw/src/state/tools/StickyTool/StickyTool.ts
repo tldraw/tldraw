@@ -1,9 +1,9 @@
-import Vec from '@tldraw/vec'
 import type { TLPointerEventHandler } from '@tldraw/core'
 import { Utils } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { Sticky } from '~state/shapes'
+import { BaseTool, Status } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool, Status } from '../BaseTool'
 
 export class StickyTool extends BaseTool {
   type = TDShapeType.Sticky as const

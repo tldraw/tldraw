@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getShapeStyle } from '../shared'
 
 function getRectangleDrawPoints(id: string, style: ShapeStyles, size: number[]) {
   const styles = getShapeStyle(style)

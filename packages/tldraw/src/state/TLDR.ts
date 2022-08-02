@@ -1,24 +1,24 @@
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLPageState, TLTransformInfo, Utils } from '@tldraw/core'
+import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import { BINDING_DISTANCE } from '~constants'
 import {
-  TDSnapshot,
+  ArrowShape,
   ShapesWithProp,
-  TDShape,
   TDBinding,
+  TDExportType,
+  TDHandle,
   TDPage,
+  TDShape,
+  TDShapeType,
+  TDSnapshot,
   TldrawCommand,
   TldrawPatch,
-  TDShapeType,
-  ArrowShape,
-  TDHandle,
-  TDExportType,
 } from '~types'
-import { Vec } from '@tldraw/vec'
-import type { TDShapeUtil } from './shapes/TDShapeUtil'
-import { getShapeUtil } from './shapes'
 import { deepCopy } from './StateManager/copy'
-import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { getShapeUtil } from './shapes'
+import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
-import { BINDING_DISTANCE } from '~constants'
 
 const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {

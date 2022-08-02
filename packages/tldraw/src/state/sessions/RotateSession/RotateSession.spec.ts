@@ -1,6 +1,6 @@
-import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
-import { mockDocument, TldrawTestApp } from '~test'
+import Vec from '@tldraw/vec'
+import { TldrawTestApp, mockDocument } from '~test'
 import { TDStatus } from '~types'
 
 describe('Rotate session', () => {

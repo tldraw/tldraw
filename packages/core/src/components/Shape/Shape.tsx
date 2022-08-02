@@ -1,11 +1,11 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
+import type { TLShapeUtil } from '~TLShapeUtil'
+import { Container } from '~components/Container'
 import { useShapeEvents } from '~hooks'
+import { useTLContext } from '~hooks'
 import type { IShapeTreeNode, TLShape } from '~types'
 import { RenderedShape } from './RenderedShape'
-import { Container } from '~components/Container'
-import { useTLContext } from '~hooks'
-import type { TLShapeUtil } from '~TLShapeUtil'
 
 interface ShapeProps<T extends TLShape, E extends Element, M> extends IShapeTreeNode<T, M> {
   utils: TLShapeUtil<T, E, M>

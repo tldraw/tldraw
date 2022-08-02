@@ -13,12 +13,15 @@
   "scripts": {
     "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@liveblocks/client": "^0.17.0-beta2",
     "@liveblocks/react": "^0.17.0-beta2",
     "@types/node": "^17.0.14",
+    "@types/react": "^18.0.12",
+    "@types/react-dom": "^18.0.5",
     "@types/react-router-dom": "^5.3.3",
     "concurrently": "^7.0.0",
     "create-serve": "^1.0.1",
@@ -26,14 +29,12 @@
     "esbuild-envfile-plugin": "^1.0.2",
     "esbuild-serve": "^1.0.1",
     "firebase": "^9.6.5",
-    "react-router": "^6.2.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
     "rimraf": "^3.0.2",
-    "typescript": "^4.7.3",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-router-dom": "^6.3.0"
+    "typescript": "^4.7.3"
   },
   "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
 }

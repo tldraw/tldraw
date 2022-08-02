@@ -1,4 +1,4 @@
-import { shell, Menu, MenuItemConstructorOptions } from 'electron'
+import { Menu, MenuItemConstructorOptions, shell } from 'electron'
 import type { Message } from 'src/types'
 
 export async function createMenu(send: (message: Message) => Promise<void>) {

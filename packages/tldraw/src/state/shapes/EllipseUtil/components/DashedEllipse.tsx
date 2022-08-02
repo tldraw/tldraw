@@ -1,7 +1,7 @@
-import * as React from 'react'
 import { Utils } from '@tldraw/core'
-import type { ShapeStyles } from '~types'
+import * as React from 'react'
 import { getShapeStyle } from '~state/shapes/shared'
+import type { ShapeStyles } from '~types'
 
 interface EllipseSvgProps {
   radius: number[]
