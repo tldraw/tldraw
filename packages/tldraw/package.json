@@ -27,7 +27,6 @@
     "build": "yarn lfg",
     "start:packages": "yarn start",
     "start:core": "yarn start",
-    "build:core": "yarn build",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
