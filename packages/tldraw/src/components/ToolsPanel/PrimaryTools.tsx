@@ -25,10 +25,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const activeTool = app.useStore(activeToolSelector)
+  const activeTool = app.useSelector(activeToolSelector)
 
-  const isToolLocked = app.useStore(toolLockedSelector)
-  const dockPosition = app.useStore(dockPositionState)
+  const isToolLocked = app.useSelector(toolLockedSelector)
+  const dockPosition = app.useSelector(dockPositionState)
 
   const selectSelectTool = React.useCallback(() => {
     app.selectTool('select')

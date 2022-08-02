@@ -13,7 +13,7 @@ export function DeleteButton() {
     app.delete()
   }, [app])
 
-  const hasSelection = app.useStore(
+  const hasSelection = app.useSelector(
     (s) =>
       s.appState.status === 'idle' &&
       s.document.pageStates[s.appState.currentPageId].selectedIds.length > 0

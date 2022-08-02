@@ -26,9 +26,9 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
+  const numberOfSelectedIds = app.useSelector(numberOfSelectedIdsSelector)
 
-  const disableAssets = app.useStore(disableAssetsSelector)
+  const disableAssets = app.useSelector(disableAssetsSelector)
 
   const [_, setForce] = React.useState(0)
 

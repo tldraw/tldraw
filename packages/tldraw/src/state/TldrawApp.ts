@@ -13,6 +13,7 @@ import {
   Utils,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import { LiquorStore } from 'liquorstore'
 import {
   FIT_TO_SCREEN_PADDING,
   GRID_SIZE,
@@ -53,7 +54,6 @@ import {
   TldrawPatch,
 } from '~types'
 import { getClipboard, setClipboard } from './IdbClipboard'
-import { StateManager } from './StateManager'
 import { deepCopy } from './StateManager/copy'
 import { TLDR } from './TLDR'
 import * as Commands from './commands'
@@ -174,7 +174,7 @@ export interface TDCallbacks {
   onSessionEnd?: (app: TldrawApp, id: string) => void
 }
 
-export class TldrawApp extends StateManager<TDSnapshot> {
+export class TldrawApp extends LiquorStore<TDSnapshot> {
   callbacks: TDCallbacks = {}
 
   tools = {
@@ -251,17 +251,47 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   constructor(id?: string, callbacks = {} as TDCallbacks) {
-    super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
-      return migrate(
-        {
-          ...next,
-          document: { ...next.document, ...prev.document, version: prevVersion },
-        },
-        TldrawApp.version
-      )
-    })
+    super(TldrawApp.defaultState)
+    // super(TldrawApp.defaultState, id, TldrawApp.version, (prev, next, prevVersion) => {
+    //   return migrate(
+    //     {
+    //       ...next,
+    //       document: { ...next.document, ...prev.document, version: prevVersion },
+    //     },
+    //     TldrawApp.version
+    //   )
+    // })
 
     this.callbacks = callbacks
+  }
+
+  patchState = (patch: TldrawPatch, reason?: string) => {
+    this.mutate((s) => {
+      Object.assign(s, Utils.deepMerge(s, patch))
+    })
+    return this
+  }
+
+  setState = (command: TldrawCommand, reason?: string) => {
+    this.mutate((s) => {
+      Object.assign(s, Utils.deepMerge(s, command.after))
+    })
+    return this
+  }
+
+  replaceState = (state: TDSnapshot, reason?: string) => {
+    this.mutate((s) => {
+      Object.assign(s, state)
+    })
+    return this
+  }
+
+  persist = (patch?: TldrawPatch, reason?: string) => {
+    return this
+  }
+
+  resetHistory = () => {
+    return this
   }
 
   /* -------------------- Internal -------------------- */
@@ -652,191 +682,191 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return { reservedShapes, reservedBindings, strongReservedShapeIds }
   }
 
-  /**
-   * Manually patch in page content.
-   */
-  public replacePageContent = (
-    shapes: Record<string, TDShape>,
-    bindings: Record<string, TDBinding>,
-    assets: Record<string, TDAsset>,
-    pageId = this.currentPageId
-  ): this => {
-    if (this.justSent) {
-      // The incoming update was caused by an update that the client sent, noop.
-      this.justSent = false
-      return this
-    }
+  // /**
+  //  * Manually patch in page content.
+  //  */
+  // public replacePageContent = (
+  //   shapes: Record<string, TDShape>,
+  //   bindings: Record<string, TDBinding>,
+  //   assets: Record<string, TDAsset>,
+  //   pageId = this.currentPageId
+  // ): this => {
+  //   if (this.justSent) {
+  //     // The incoming update was caused by an update that the client sent, noop.
+  //     this.justSent = false
+  //     return this
+  //   }
 
-    const page = this.document.pages[this.currentPageId]
+  //   const page = this.document.pages[this.currentPageId]
 
-    Object.values(shapes).forEach((shape) => {
-      if (shape.parentId !== pageId && !(page.shapes[shape.parentId] || shapes[shape.parentId])) {
-        console.warn('Added a shape without a parent on the page')
-        shape.parentId = pageId
-      }
-    })
+  //   Object.values(shapes).forEach((shape) => {
+  //     if (shape.parentId !== pageId && !(page.shapes[shape.parentId] || shapes[shape.parentId])) {
+  //       console.warn('Added a shape without a parent on the page')
+  //       shape.parentId = pageId
+  //     }
+  //   })
 
-    this.useStore.setState((current) => {
-      const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
+  //   this.useStore.setState((current) => {
+  //     const { hoveredId, editingId, bindingId, selectedIds } = current.document.pageStates[pageId]
 
-      const coreReservedIds = [...selectedIds]
+  //     const coreReservedIds = [...selectedIds]
 
-      const editingShape = editingId && current.document.pages[this.currentPageId].shapes[editingId]
-      if (editingShape) coreReservedIds.push(editingShape.id)
+  //     const editingShape = editingId && current.document.pages[this.currentPageId].shapes[editingId]
+  //     if (editingShape) coreReservedIds.push(editingShape.id)
 
-      const { reservedShapes, reservedBindings, strongReservedShapeIds } = this.getReservedContent(
-        coreReservedIds,
-        this.currentPageId
-      )
+  //     const { reservedShapes, reservedBindings, strongReservedShapeIds } = this.getReservedContent(
+  //       coreReservedIds,
+  //       this.currentPageId
+  //     )
 
-      // Merge in certain changes to reserved shapes
-      Object.values(reservedShapes)
-        // Don't merge updates to shapes with text (Text or Sticky)
-        .filter((reservedShape) => !('text' in reservedShape))
-        .forEach((reservedShape) => {
-          const incomingShape = shapes[reservedShape.id]
-          if (!incomingShape) return
+  //     // Merge in certain changes to reserved shapes
+  //     Object.values(reservedShapes)
+  //       // Don't merge updates to shapes with text (Text or Sticky)
+  //       .filter((reservedShape) => !('text' in reservedShape))
+  //       .forEach((reservedShape) => {
+  //         const incomingShape = shapes[reservedShape.id]
+  //         if (!incomingShape) return
 
-          // If the shape isn't "strongly reserved", then use the incoming shape;
-          // note that this is only if the incoming shape exists! If the shape was
-          // deleted in the incoming shapes, then we'll keep out reserved shape.
-          // This logic would need more work for arrows, because the incoming shape
-          // include a binding change that we'll need to resolve with our reserved bindings.
-          if (
-            !(
-              reservedShape.type === TDShapeType.Arrow ||
-              strongReservedShapeIds.has(reservedShape.id)
-            )
-          ) {
-            shapes[reservedShape.id] = incomingShape
-            return
-          }
+  //         // If the shape isn't "strongly reserved", then use the incoming shape;
+  //         // note that this is only if the incoming shape exists! If the shape was
+  //         // deleted in the incoming shapes, then we'll keep out reserved shape.
+  //         // This logic would need more work for arrows, because the incoming shape
+  //         // include a binding change that we'll need to resolve with our reserved bindings.
+  //         if (
+  //           !(
+  //             reservedShape.type === TDShapeType.Arrow ||
+  //             strongReservedShapeIds.has(reservedShape.id)
+  //           )
+  //         ) {
+  //           shapes[reservedShape.id] = incomingShape
+  //           return
+  //         }
 
-          // Only allow certain merges.
+  //         // Only allow certain merges.
 
-          // Allow decorations (of an arrow) to be changed
-          if ('decorations' in incomingShape && 'decorations' in reservedShape) {
-            shapes[reservedShape.id] = { ...reservedShape, decorations: incomingShape.decorations }
-          }
+  //         // Allow decorations (of an arrow) to be changed
+  //         if ('decorations' in incomingShape && 'decorations' in reservedShape) {
+  //           shapes[reservedShape.id] = { ...reservedShape, decorations: incomingShape.decorations }
+  //         }
 
-          // Allow the shape's style to be changed
-          reservedShape.style = incomingShape.style
-        })
+  //         // Allow the shape's style to be changed
+  //         reservedShape.style = incomingShape.style
+  //       })
 
-      // Use the incoming shapes / bindings as comparisons for what
-      // will have changed. This is important because we want to restore
-      // related shapes that may not have changed on our side, but which
-      // were deleted on the server.
+  //     // Use the incoming shapes / bindings as comparisons for what
+  //     // will have changed. This is important because we want to restore
+  //     // related shapes that may not have changed on our side, but which
+  //     // were deleted on the server.
 
-      const nextShapes = {
-        ...shapes,
-        ...reservedShapes,
-      }
+  //     const nextShapes = {
+  //       ...shapes,
+  //       ...reservedShapes,
+  //     }
 
-      if (editingShape) {
-        nextShapes[editingShape.id] = editingShape
-      }
+  //     if (editingShape) {
+  //       nextShapes[editingShape.id] = editingShape
+  //     }
 
-      const nextBindings = {
-        ...bindings,
-        ...reservedBindings,
-      }
-      const nextAssets = {
-        ...assets,
-      }
+  //     const nextBindings = {
+  //       ...bindings,
+  //       ...reservedBindings,
+  //     }
+  //     const nextAssets = {
+  //       ...assets,
+  //     }
 
-      const next: TDSnapshot = {
-        ...current,
-        document: {
-          ...current.document,
-          pages: {
-            [pageId]: {
-              ...current.document.pages[pageId],
-              shapes: nextShapes,
-              bindings: nextBindings,
-            },
-          },
-          assets: nextAssets,
-          pageStates: {
-            ...current.document.pageStates,
-            [pageId]: {
-              ...current.document.pageStates[pageId],
-              selectedIds: selectedIds.filter((id) => nextShapes[id] !== undefined),
-              hoveredId: hoveredId
-                ? nextShapes[hoveredId] === undefined
-                  ? undefined
-                  : hoveredId
-                : undefined,
-              editingId: editingId,
-              bindingId: bindingId
-                ? nextBindings[bindingId] === undefined
-                  ? undefined
-                  : bindingId
-                : undefined,
-            },
-          },
-        },
-      }
-      const page = next.document.pages[pageId]
+  //     const next: TDSnapshot = {
+  //       ...current,
+  //       document: {
+  //         ...current.document,
+  //         pages: {
+  //           [pageId]: {
+  //             ...current.document.pages[pageId],
+  //             shapes: nextShapes,
+  //             bindings: nextBindings,
+  //           },
+  //         },
+  //         assets: nextAssets,
+  //         pageStates: {
+  //           ...current.document.pageStates,
+  //           [pageId]: {
+  //             ...current.document.pageStates[pageId],
+  //             selectedIds: selectedIds.filter((id) => nextShapes[id] !== undefined),
+  //             hoveredId: hoveredId
+  //               ? nextShapes[hoveredId] === undefined
+  //                 ? undefined
+  //                 : hoveredId
+  //               : undefined,
+  //             editingId: editingId,
+  //             bindingId: bindingId
+  //               ? nextBindings[bindingId] === undefined
+  //                 ? undefined
+  //                 : bindingId
+  //               : undefined,
+  //           },
+  //         },
+  //       },
+  //     }
+  //     const page = next.document.pages[pageId]
 
-      // Get bindings related to the changed shapes
-      const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(nextShapes), pageId)
+  //     // Get bindings related to the changed shapes
+  //     const bindingsToUpdate = TLDR.getRelatedBindings(next, Object.keys(nextShapes), pageId)
 
-      const visitedShapes = new Set<ArrowShape>()
+  //     const visitedShapes = new Set<ArrowShape>()
 
-      // Update all of the bindings we've just collected
-      bindingsToUpdate.forEach((binding) => {
-        if (!page.bindings[binding.id]) {
-          return
-        }
+  //     // Update all of the bindings we've just collected
+  //     bindingsToUpdate.forEach((binding) => {
+  //       if (!page.bindings[binding.id]) {
+  //         return
+  //       }
 
-        const fromShape = page.shapes[binding.fromId] as ArrowShape
+  //       const fromShape = page.shapes[binding.fromId] as ArrowShape
 
-        if (visitedShapes.has(fromShape)) {
-          return
-        }
+  //       if (visitedShapes.has(fromShape)) {
+  //         return
+  //       }
 
-        // We only need to update the binding's "from" shape (an arrow)
-        const fromDelta = TLDR.updateArrowBindings(page, fromShape)
-        visitedShapes.add(fromShape)
+  //       // We only need to update the binding's "from" shape (an arrow)
+  //       const fromDelta = TLDR.updateArrowBindings(page, fromShape)
+  //       visitedShapes.add(fromShape)
 
-        if (fromDelta) {
-          const nextShape = {
-            ...fromShape,
-            ...fromDelta,
-          } as TDShape
+  //       if (fromDelta) {
+  //         const nextShape = {
+  //           ...fromShape,
+  //           ...fromDelta,
+  //         } as TDShape
 
-          page.shapes[fromShape.id] = nextShape
-        }
-      })
+  //         page.shapes[fromShape.id] = nextShape
+  //       }
+  //     })
 
-      Object.values(nextShapes).forEach((shape) => {
-        if (shape.type !== TDShapeType.Group) return
+  //     Object.values(nextShapes).forEach((shape) => {
+  //       if (shape.type !== TDShapeType.Group) return
 
-        const children = shape.children.filter((id) => page.shapes[id] !== undefined)
+  //       const children = shape.children.filter((id) => page.shapes[id] !== undefined)
 
-        const commonBounds = Utils.getCommonBounds(
-          children
-            .map((id) => page.shapes[id])
-            .filter(Boolean)
-            .map((shape) => TLDR.getRotatedBounds(shape))
-        )
+  //       const commonBounds = Utils.getCommonBounds(
+  //         children
+  //           .map((id) => page.shapes[id])
+  //           .filter(Boolean)
+  //           .map((shape) => TLDR.getRotatedBounds(shape))
+  //       )
 
-        page.shapes[shape.id] = {
-          ...shape,
-          point: [commonBounds.minX, commonBounds.minY],
-          size: [commonBounds.width, commonBounds.height],
-          children,
-        }
-      })
+  //       page.shapes[shape.id] = {
+  //         ...shape,
+  //         point: [commonBounds.minX, commonBounds.minY],
+  //         size: [commonBounds.width, commonBounds.height],
+  //         children,
+  //       }
+  //     })
 
-      this.state.document = next.document
+  //     this.state.document = next.document
 
-      return next
-    }, true)
+  //     return next
+  //   }, true)
 
-    return this
-  }
+  //   return this
+  // }
 
   /**
    * Set the current status.
@@ -1544,20 +1574,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   getPagePoint = (point: number[], pageId = this.currentPageId): number[] => {
     const { camera } = this.getPageState(pageId)
     return Vec.sub(Vec.div(point, camera.zoom), camera.point)
-  }
-
-  /**
-   * Get the current undo/redo stack.
-   */
-  get history() {
-    return this.stack.slice(0, this.pointer + 1)
-  }
-
-  /**
-   * Replace the current history stack.
-   */
-  set history(commands: TldrawCommand[]) {
-    this.replaceHistory(commands)
   }
 
   /**

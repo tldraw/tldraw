@@ -25,8 +25,8 @@ const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 export function HelpPanel() {
   const app = useTldrawApp()
-  const isDebugMode = app.useStore(isDebugModeSelector)
-  const side = app.useStore(dockPositionState)
+  const isDebugMode = app.useSelector(isDebugModeSelector)
+  const side = app.useSelector(dockPositionState)
 
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = React.useState(false)
 
@@ -34,7 +34,7 @@ export function HelpPanel() {
     <Popover.Root>
       <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
         <Popover.Trigger dir="ltr" asChild>
-          <HelpButton debug={isDebugMode}>
+          <HelpButton>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>

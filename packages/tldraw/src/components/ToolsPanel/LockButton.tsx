@@ -10,7 +10,7 @@ const isToolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked
 export function LockButton() {
   const app = useTldrawApp()
 
-  const isToolLocked = app.useStore(isToolLockedSelector)
+  const isToolLocked = app.useSelector(isToolLockedSelector)
 
   return (
     <Tooltip label="Lock Tool" kbd="7" id="TD-Lock">

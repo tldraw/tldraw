@@ -16,7 +16,7 @@ const roomSelector = (state: TDSnapshot) => state.room
 export const MultiplayerMenu = function MultiplayerMenu() {
   const app = useTldrawApp()
 
-  const room = app.useStore(roomSelector)
+  const room = app.useSelector(roomSelector)
 
   const [copied, setCopied] = React.useState(false)
 

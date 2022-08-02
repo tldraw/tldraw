@@ -29,7 +29,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
   const [isOpen, setIsOpen] = React.useState(false)
   const [pageName, setPageName] = React.useState(page.name || 'Page')
 
-  const canDelete = app.useStore(canDeleteSelector)
+  const canDelete = app.useSelector(canDeleteSelector)
 
   const rInput = React.useRef<HTMLInputElement>(null)
 

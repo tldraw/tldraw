@@ -13,7 +13,7 @@ const zoomSelector = (s: TDSnapshot) => s.document.pageStates[s.appState.current
 export const ZoomMenu = function ZoomMenu() {
   const app = useTldrawApp()
 
-  const zoom = app.useStore(zoomSelector)
+  const zoom = app.useSelector(zoomSelector)
 
   return (
     <DropdownMenu.Root dir="ltr">

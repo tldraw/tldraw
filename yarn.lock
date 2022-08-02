@@ -3165,6 +3165,18 @@
     "@testing-library/dom" "^8.5.0"
     "@types/react-dom" "^18.0.0"
 
+"@tldraw/lfg@^1.1.5":
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.5.tgz#f44d19e5a22d767f717a9a7a137535672a4e8048"
+  integrity sha512-tGvuWgcESbw+UbdSdUUM6dIKV7z94g/vDchuhUUeYrJy6HkiJD3naA5CZEnBs1xZZ+kI9aQUD7Ek2ewol/Sbtw==
+  dependencies:
+    commander "^2.20.0"
+    dotenv "^16.0.0"
+    esbuild "^0.14.18"
+    tsconfig-paths "^3.12.0"
+    tsconfig-replace-paths "^0.0.11"
+    zlib "^1.0.5"
+
 "@tldraw/lfg@latest":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@tldraw/lfg/-/lfg-1.1.3.tgz#23b36664dc5057902f7f2ad0b68f5cfd5b9cc133"
@@ -6616,7 +6628,7 @@ esutils@^2.0.2:
   resolved "https://registry.yarnpkg.com/esutils/-/esutils-2.0.3.tgz#74d2eb4de0b8da1293711910d50775b9b710ef64"
   integrity sha512-kVscqXk4OCp68SZ0dkgEKVi6/8ij300KBWTJq32P/dYeWTSwK41WyTxalN1eRmA5Z9UU/LX9D7FWSmV9SAYx6g==
 
-eventemitter3@^4.0.0:
+eventemitter3@^4.0.0, eventemitter3@^4.0.7:
   version "4.0.7"
   resolved "https://registry.yarnpkg.com/eventemitter3/-/eventemitter3-4.0.7.tgz#2de9b68f6528d5644ef5c59526a1b4a07306169f"
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
@@ -8689,6 +8701,15 @@ lint-staged@^12.3.3:
     supports-color "^9.2.1"
     yaml "^1.10.2"
 
+liquorstore@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/liquorstore/-/liquorstore-0.2.3.tgz#60f9caa71dcf603515052f0f4fd16082d1f02408"
+  integrity sha512-ZDoOBKFFm2acaSgnQ7g+FB6b8IULDVIhFVkdd41t8d+fxDhjV44QDOZ6W8BlZ/WiPtdP/9bMxVj8A0fYwcEUVA==
+  dependencies:
+    "@tldraw/lfg" "^1.1.5"
+    eventemitter3 "^4.0.7"
+    react "^18"
+
 listr2@^4.0.1:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/listr2/-/listr2-4.0.4.tgz#d098a1c419284fb26e184b5d5889b235e8912245"
@@ -10170,14 +10191,7 @@ react@^17.0:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
 
-react@^18.1.0:
-  version "18.1.0"
-  resolved "https://registry.yarnpkg.com/react/-/react-18.1.0.tgz#6f8620382decb17fdc5cc223a115e2adbf104890"
-  integrity sha512-4oL8ivCz5ZEPyclFQXaNksK3adutVS8l2xzZU0cqEFrE9Sb7fC0EFK5uEk74wIreL1DERyjvsU915j1pcT2uEQ==
-  dependencies:
-    loose-envify "^1.1.0"
-
-react@^18.2.0:
+react@^18, react@^18.1.0, react@^18.2.0:
   version "18.2.0"
   resolved "https://registry.yarnpkg.com/react/-/react-18.2.0.tgz#555bd98592883255fa00de14f1151a917b5d77d5"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==

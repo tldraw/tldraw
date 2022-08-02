@@ -14,7 +14,7 @@ export function PreferencesMenu() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const settings = app.useStore(settingsSelector)
+  const settings = app.useSelector(settingsSelector)
 
   const toggleDebugMode = React.useCallback(() => {
     app.setSetting('isDebugMode', (v) => !v)

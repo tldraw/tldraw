@@ -9,8 +9,8 @@ const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 
 export function StatusBar() {
   const app = useTldrawApp()
-  const status = app.useStore(statusSelector)
-  const activeTool = app.useStore(activeToolSelector)
+  const status = app.useSelector(statusSelector)
+  const activeTool = app.useSelector(activeToolSelector)
 
   return (
     <StyledStatusBar bp={breakpoints} id="TD-StatusBar">

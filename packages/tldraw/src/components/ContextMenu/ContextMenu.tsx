@@ -67,9 +67,9 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
 const InnerMenu = React.memo(function InnerMenu() {
   const app = useTldrawApp()
   const intl = useIntl()
-  const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
-  const isDebugMode = app.useStore(isDebugModeSelector)
-  const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
+  const numberOfSelectedIds = app.useSelector(numberOfSelectedIdsSelector)
+  const isDebugMode = app.useSelector(isDebugModeSelector)
+  const hasGroupSelected = app.useSelector(hasGroupSelectedSelector)
 
   const handleFlipHorizontal = React.useCallback(() => {
     app.flipHorizontal()
@@ -427,8 +427,8 @@ const documentPagesSelector = (s: TDSnapshot) => s.document.pages
 
 function MoveToPageMenu() {
   const app = useTldrawApp()
-  const currentPageId = app.useStore(currentPageIdSelector)
-  const documentPages = app.useStore(documentPagesSelector)
+  const currentPageId = app.useSelector(currentPageIdSelector)
+  const documentPages = app.useSelector(documentPagesSelector)
 
   const sorted = Object.values(documentPages)
     .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))

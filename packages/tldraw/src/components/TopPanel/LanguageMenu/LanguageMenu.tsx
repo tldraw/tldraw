@@ -12,7 +12,7 @@ const languageSelector = (s: TDSnapshot) => s.settings.language
 
 export const LanguageMenu = () => {
   const app = useTldrawApp()
-  const language = app.useStore(languageSelector)
+  const language = app.useSelector(languageSelector)
 
   const handleChangeLanguage = React.useCallback(
     (locale: TDLanguage) => {

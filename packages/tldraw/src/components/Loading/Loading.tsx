@@ -8,7 +8,7 @@ const loadingSelector = (s: TDSnapshot) => s.appState.isLoading
 
 export function Loading() {
   const app = useTldrawApp()
-  const isLoading = app.useStore(loadingSelector)
+  const isLoading = app.useSelector(loadingSelector)
 
   return (
     <StyledLoadingPanelContainer hidden={!isLoading}>

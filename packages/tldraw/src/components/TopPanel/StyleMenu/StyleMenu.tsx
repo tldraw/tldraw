@@ -105,15 +105,15 @@ const optionsSelector = (s: TDSnapshot) => {
 export const StyleMenu = React.memo(function ColorMenu() {
   const app = useTldrawApp()
 
-  const theme = app.useStore(themeSelector)
+  const theme = app.useSelector(themeSelector)
 
-  const keepOpen = app.useStore(keepOpenSelector)
+  const keepOpen = app.useSelector(keepOpenSelector)
 
-  const options = app.useStore(optionsSelector)
+  const options = app.useSelector(optionsSelector)
 
-  const currentStyle = app.useStore(currentStyleSelector)
+  const currentStyle = app.useSelector(currentStyleSelector)
 
-  const selectedIds = app.useStore(selectedIdsSelector)
+  const selectedIds = app.useSelector(selectedIdsSelector)
 
   const [displayedStyle, setDisplayedStyle] = React.useState(currentStyle)
 

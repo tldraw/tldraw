@@ -44,7 +44,7 @@ export function PageMenu() {
     },
     [setIsOpen]
   )
-  const currentPageName = app.useStore(currentPageNameSelector)
+  const currentPageName = app.useSelector(currentPageNameSelector)
 
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
@@ -62,9 +62,9 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const sortedPages = app.useStore(sortedSelector)
+  const sortedPages = app.useSelector(sortedSelector)
 
-  const currentPageId = app.useStore(currentPageIdSelector)
+  const currentPageId = app.useSelector(currentPageIdSelector)
 
   const handleCreatePage = React.useCallback(() => {
     const pageName =

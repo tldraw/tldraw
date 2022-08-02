@@ -79,19 +79,19 @@ export function ActionButton() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const isAllLocked = app.useStore(isAllLockedSelector)
+  const isAllLocked = app.useSelector(isAllLockedSelector)
 
-  const isAllAspectLocked = app.useStore(isAllAspectLockedSelector)
+  const isAllAspectLocked = app.useSelector(isAllAspectLockedSelector)
 
-  const isAllGrouped = app.useStore(isAllGroupedSelector)
+  const isAllGrouped = app.useSelector(isAllGroupedSelector)
 
-  const hasSelection = app.useStore(hasSelectionSelector)
+  const hasSelection = app.useSelector(hasSelectionSelector)
 
-  const hasMultipleSelection = app.useStore(hasMultipleSelectionSelector)
+  const hasMultipleSelection = app.useSelector(hasMultipleSelectionSelector)
 
-  const selectedShapesCount = app.useStore(selectedShapesCountSelector)
+  const selectedShapesCount = app.useSelector(selectedShapesCountSelector)
 
-  const dockPosition = app.useStore(dockPositionState)
+  const dockPosition = app.useSelector(dockPositionState)
 
   const hasTwoOrMore = selectedShapesCount > 1
 

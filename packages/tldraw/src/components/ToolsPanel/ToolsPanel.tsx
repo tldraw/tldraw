@@ -19,8 +19,8 @@ interface ToolsPanelProps {
 
 export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
   const app = useTldrawApp()
-  const side = app.useStore(dockPositionState)
-  const isDebugMode = app.useStore(isDebugModeSelector)
+  const side = app.useSelector(dockPositionState)
+  const isDebugMode = app.useSelector(isDebugModeSelector)
 
   return (
     <>
