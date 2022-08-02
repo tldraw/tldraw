@@ -42,10 +42,7 @@
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
     "@tldraw/lfg": "latest",
-    "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.14",
     "@types/vscode": "^1.63.2",
