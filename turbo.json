@@ -36,12 +36,13 @@
       "outputs": ["dist/**", "editor/**", "temp/**"]
     },
     "test": {
-      "dependsOn": ["build:packages"],
       "outputs": []
     },
     "test:ci": {
-      "dependsOn": ["build"],
       "outputs": ["coverage/**"]
+    },
+    "test:watch": {
+      "outputs": []
     },
     "lint": {
       "outputs": []
