@@ -38,7 +38,7 @@
     "clean": "turbo run clean",
     "postinstall": "husky install",
     "pre-commit": "lint-staged",
-    "pre-push": ""
+    "pre-push": "echo 'remember to add tests again!'"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
