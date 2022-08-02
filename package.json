@@ -28,7 +28,6 @@
     "start:vscode": "turbo run start --filter=./apps/vscode/* --parallel",
     "version": "yarn changeset version",
     "changeset": "changeset",
-    "turbo": "turbo",
     "test": "turbo run test",
     "test:ci": "turbo run test:ci",
     "test:watch": "turbo run test:watch",
