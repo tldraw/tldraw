@@ -18,7 +18,7 @@
   "scripts": {
     "build": "turbo run build",
     "build:www": "turbo run build --filter=@tldraw/www",
-    "build:core": "turbo run build --filter=*core-example*",
+    "build:core": "turbo run build --filter=@tldraw/core-example*",
     "build:packages": "turbo run build --filter=./packages/*",
     "build:apps": "turbo run build --filter=./apps/**",
     "start": "turbo run start --filter=@tldraw/tldraw-example... --parallel",
