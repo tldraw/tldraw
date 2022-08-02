@@ -11,16 +11,13 @@
       "~*": ["./src/*"],
       "@tldraw/core": ["../../packages/core"],
       "@tldraw/tldraw": ["../../packages/tldraw"],
-      "@tldraw/vec": ["../../packages/vec"],
-      "@tldraw/intersect": ["../../packages/intersect"]
+      "@tldraw/vec": ["../../packages/vec"]
     }
   },
   "references": [
-    {
-      "path": "../../packages/core"
-    },
-    {
-      "path": "../../packages/tldraw"
-    }
+    { "path": "../../packages/vec" },
+    { "path": "../../packages/intersect" },
+    { "path": "../../packages/core" },
+    { "path": "../../packages/tldraw" }
   ]
 }

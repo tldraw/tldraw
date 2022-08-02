@@ -18,6 +18,9 @@
   "devDependencies": {
     "@liveblocks/client": "^0.17.0-beta2",
     "@liveblocks/react": "^0.17.0-beta2",
+    "@tldraw/core": "*",
+    "@tldraw/tldraw": "*",
+    "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react-router-dom": "^5.3.3",
     "concurrently": "^7.0.0",
