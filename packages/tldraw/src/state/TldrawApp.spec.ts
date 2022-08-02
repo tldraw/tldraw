@@ -1,6 +1,15 @@
-import { TldrawTestApp, mockDocument } from '~test'
-import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
+import { mockDocument, TldrawTestApp } from '~test'
+import {
+  ArrowShape,
+  ColorStyle,
+  Patch,
+  SessionType,
+  TDDocument,
+  TDShapeType,
+  TDSnapshot,
+} from '~types'
 import { deepCopy } from './StateManager/copy'
+import { createInitialState } from './TldrawApp'
 import type { SelectTool } from './tools/SelectTool'
 
 window.focus = jest.fn()
@@ -767,5 +776,155 @@ describe('When space panning', () => {
     app.releaseKey(' ')
     app.stopPointing()
     expect(app.currentTool.status).toBe('idle')
+  })
+})
+
+describe('initial state', () => {
+  it('should have a default state', () => {
+    const app = new TldrawTestApp()
+    expect(app.state).toEqual(TldrawTestApp.defaultState)
+  })
+
+  it('should allow for overriding the default state', () => {
+    const document: TDDocument = {
+      id: 'some-doc',
+      name: 'Some Doc',
+      version: TldrawTestApp.version,
+      assets: {},
+      pages: {
+        page1: {
+          id: 'page1',
+          name: 'Page 1',
+          shapes: {},
+          bindings: {},
+        },
+        page2: {
+          id: 'page2',
+          name: 'Page 2',
+          shapes: {},
+          bindings: {},
+        },
+      },
+      pageStates: {
+        page1: {
+          id: 'page1',
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+          selectedIds: [],
+        },
+        page2: {
+          id: 'page2',
+          camera: {
+            point: [0, 0],
+            zoom: 1,
+          },
+          selectedIds: [],
+        },
+      },
+    }
+
+    const app = new TldrawTestApp(undefined, undefined, {
+      ...TldrawTestApp.defaultState,
+      document,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        currentPageId: 'page2',
+      },
+    })
+
+    expect(app.currentPageId).toBe('page2')
+    expect(app.document).toEqual(document)
+  })
+})
+
+describe('createInitialState', () => {
+  test('replaces default document', () => {
+    const document: TDDocument = {
+      id: 'id',
+      name: 'name',
+      version: 1,
+      pages: {},
+      pageStates: {},
+      assets: {},
+    }
+    expect(createInitialState({ document })).toEqual({
+      ...TldrawTestApp.defaultState,
+      document,
+    })
+  })
+
+  test('deeply merges appState', () => {
+    const appState: Patch<TDSnapshot['appState']> = {
+      currentStyle: {
+        color: ColorStyle.Orange,
+      },
+    }
+    expect(createInitialState({ appState })).toEqual({
+      ...TldrawTestApp.defaultState,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        currentStyle: {
+          ...TldrawTestApp.defaultState.appState.currentStyle,
+          color: ColorStyle.Orange,
+        },
+      },
+    })
+  })
+
+  test('merges settings', () => {
+    const settings: Partial<TDSnapshot['settings']> = {
+      isDarkMode: true,
+    }
+    expect(createInitialState({ settings })).toEqual({
+      ...TldrawTestApp.defaultState,
+      settings: {
+        ...TldrawTestApp.defaultState.settings,
+        isDarkMode: true,
+      },
+    })
+  })
+
+  test('ignores undefined values', () => {
+    expect(
+      createInitialState({
+        appState: undefined,
+        document: undefined,
+        settings: undefined,
+      })
+    ).toEqual(TldrawTestApp.defaultState)
+  })
+
+  test('ignores nested undefined values in appState', () => {
+    expect(
+      createInitialState({
+        appState: {
+          currentStyle: undefined,
+        },
+      })
+    ).toEqual(TldrawTestApp.defaultState)
+  })
+
+  test('handles arrays', () => {
+    expect(
+      createInitialState({
+        appState: {
+          eraseLine: [
+            [0, 0],
+            [1, 1],
+          ],
+        },
+      })
+    ).toEqual({
+      ...TldrawTestApp.defaultState,
+      appState: {
+        ...TldrawTestApp.defaultState.appState,
+        eraseLine: [
+          [0, 0],
+          [1, 1],
+        ],
+      },
+    })
   })
 })
