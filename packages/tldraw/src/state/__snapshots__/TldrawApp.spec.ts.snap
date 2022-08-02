@@ -2,78 +2,33 @@
 
 exports[`TldrawTestApp Copies to JSON: copied json 1`] = `
 TldrawTestApp {
-  "_idbId": undefined,
-  "_snapshot": Object {
-    "appState": Object {
-      "activeTool": "select",
-      "currentPageId": "page",
-      "currentStyle": Object {
-        "color": "black",
-        "dash": "draw",
-        "isFilled": false,
-        "scale": 1,
-        "size": "small",
-      },
-      "disableAssets": false,
-      "eraseLine": Array [],
-      "hoveredId": undefined,
-      "isEmptyCanvas": false,
-      "isLoading": false,
-      "isMenuOpen": false,
-      "isToolLocked": false,
-      "snapLines": Array [],
-      "status": "idle",
-    },
-    "document": Object {
-      "assets": Object {},
-      "id": "doc",
-      "name": "New Document",
-      "pageStates": Object {
-        "page": Object {
-          "camera": Object {
-            "point": Array [
-              0,
-              0,
-            ],
-            "zoom": 1,
-          },
-          "id": "page",
-          "selectedIds": Array [],
-        },
-      },
-      "pages": Object {
-        "page": Object {
-          "bindings": Object {},
-          "childIndex": 1,
-          "id": "page",
-          "name": "Page 1",
-          "shapes": Object {},
-        },
-      },
-      "version": 15.5,
-    },
-    "settings": Object {
-      "dockPosition": "bottom",
-      "exportBackground": "transparent",
-      "isCadSelectMode": false,
-      "isDarkMode": false,
-      "isDebugMode": false,
-      "isFocusMode": false,
-      "isPenMode": false,
-      "isReadonlyMode": false,
-      "isSnapping": false,
-      "isZoomSnap": false,
-      "keepStyleMenuOpen": false,
-      "language": "en",
-      "nudgeDistanceLarge": 16,
-      "nudgeDistanceSmall": 1,
-      "showBindingHandles": true,
-      "showCloneHandles": false,
-      "showGrid": false,
-      "showRotateHandles": true,
-    },
-  },
-  "_state": Object {
+  "_events": Object {},
+  "_eventsCount": 0,
+  "addMediaFromFiles": [Function],
+  "addToSelectHistory": [Function],
+  "align": [Function],
+  "altKey": false,
+  "broadcastPatch": [Function],
+  "callbacks": Object {},
+  "cancel": [Function],
+  "cancelSession": [Function],
+  "changePage": [Function],
+  "cleanup": [Function],
+  "clearSelectHistory": [Function],
+  "clickBounds": [Function],
+  "clickBoundsHandle": [Function],
+  "clickCanvas": [Function],
+  "clickShape": [Function],
+  "completeSession": [Function],
+  "copy": [Function],
+  "copyImage": [Function],
+  "copyJson": [Function],
+  "copySvg": [Function],
+  "create": [Function],
+  "createPage": [Function],
+  "createShapes": [Function],
+  "ctrlKey": false,
+  "current": Object {
     "appState": Object {
       "activeTool": "select",
       "currentPageId": "page1",
@@ -225,32 +180,6 @@ TldrawTestApp {
       "showRotateHandles": true,
     },
   },
-  "_status": "ready",
-  "addMediaFromFiles": [Function],
-  "addToSelectHistory": [Function],
-  "align": [Function],
-  "altKey": false,
-  "applyPatch": [Function],
-  "broadcastPatch": [Function],
-  "callbacks": Object {},
-  "cancel": [Function],
-  "cancelSession": [Function],
-  "changePage": [Function],
-  "cleanup": [Function],
-  "clearSelectHistory": [Function],
-  "clickBounds": [Function],
-  "clickBoundsHandle": [Function],
-  "clickCanvas": [Function],
-  "clickShape": [Function],
-  "completeSession": [Function],
-  "copy": [Function],
-  "copyImage": [Function],
-  "copyJson": [Function],
-  "copySvg": [Function],
-  "create": [Function],
-  "createPage": [Function],
-  "createShapes": [Function],
-  "ctrlKey": false,
   "currentPoint": Array [
     0,
     0,
@@ -295,6 +224,7 @@ TldrawTestApp {
   "delete": [Function],
   "deleteAll": [Function],
   "deletePage": [Function],
+  "didChangeWhilePaused": false,
   "distribute": [Function],
   "doubleClickBoundHandle": [Function],
   "doubleClickCanvas": [Function],
@@ -310,12 +240,14 @@ TldrawTestApp {
   "fileSystemHandle": null,
   "flipHorizontal": [Function],
   "flipVertical": [Function],
-  "forceUpdate": [Function],
   "getAppState": [Function],
   "getBinding": [Function],
   "getBindings": [Function],
+  "getCanRedo": [Function],
+  "getCanUndo": [Function],
   "getContent": [Function],
   "getImage": [Function],
+  "getIsPaused": [Function],
   "getPage": [Function],
   "getPagePoint": [Function],
   "getPageState": [Function],
@@ -324,37 +256,131 @@ TldrawTestApp {
   "getShapeBounds": [Function],
   "getShapeUtil": [Function],
   "getShapes": [Function],
+  "getState": [Function],
   "getSvg": [Function],
   "getViewboxFromSVG": [Function],
   "group": [Function],
-  "hoverShape": [Function],
-  "initialState": Object {
-    "appState": Object {
-      "activeTool": "select",
-      "currentPageId": "page",
-      "currentStyle": Object {
-        "color": "black",
-        "dash": "draw",
-        "isFilled": false,
-        "scale": 1,
-        "size": "small",
+  "history": Array [
+    Array [],
+    Array [],
+    Array [],
+    Array [],
+    Array [
+      Object {
+        "oldValue": "page",
+        "path": Array [
+          "appState",
+          "currentPageId",
+        ],
+        "type": "CHANGE",
+        "value": "page1",
       },
-      "disableAssets": false,
-      "eraseLine": Array [],
-      "hoveredId": undefined,
-      "isEmptyCanvas": false,
-      "isLoading": false,
-      "isMenuOpen": false,
-      "isToolLocked": false,
-      "snapLines": Array [],
-      "status": "idle",
-    },
-    "document": Object {
-      "assets": Object {},
-      "id": "doc",
-      "name": "New Document",
-      "pageStates": Object {
-        "page": Object {
+      Object {
+        "oldValue": Object {
+          "bindings": Object {},
+          "childIndex": 1,
+          "id": "page",
+          "name": "Page 1",
+          "shapes": Object {},
+        },
+        "path": Array [
+          "document",
+          "pages",
+          "page",
+        ],
+        "type": "REMOVE",
+      },
+      Object {
+        "path": Array [
+          "document",
+          "pages",
+          "page1",
+        ],
+        "type": "CREATE",
+        "value": Object {
+          "bindings": Object {},
+          "id": "page1",
+          "shapes": Object {
+            "rect1": Object {
+              "childIndex": 1,
+              "id": "rect1",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                0,
+                0,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+            "rect2": Object {
+              "childIndex": 2,
+              "id": "rect2",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                100,
+                100,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+            "rect3": Object {
+              "childIndex": 3,
+              "id": "rect3",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                20,
+                20,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+          },
+        },
+      },
+      Object {
+        "oldValue": Object {
           "camera": Object {
             "point": Array [
               0,
@@ -365,39 +391,75 @@ TldrawTestApp {
           "id": "page",
           "selectedIds": Array [],
         },
+        "path": Array [
+          "document",
+          "pageStates",
+          "page",
+        ],
+        "type": "REMOVE",
       },
-      "pages": Object {
-        "page": Object {
-          "bindings": Object {},
-          "childIndex": 1,
-          "id": "page",
-          "name": "Page 1",
-          "shapes": Object {},
+      Object {
+        "path": Array [
+          "document",
+          "pageStates",
+          "page1",
+        ],
+        "type": "CREATE",
+        "value": Object {
+          "bindingId": undefined,
+          "camera": Object {
+            "point": Array [
+              0,
+              0,
+            ],
+            "zoom": 1,
+          },
+          "editingId": undefined,
+          "hoveredId": undefined,
+          "id": "page1",
+          "pointedId": undefined,
+          "selectedIds": Array [],
         },
       },
-      "version": 15.5,
-    },
-    "settings": Object {
-      "dockPosition": "bottom",
-      "exportBackground": "transparent",
-      "isCadSelectMode": false,
-      "isDarkMode": false,
-      "isDebugMode": false,
-      "isFocusMode": false,
-      "isPenMode": false,
-      "isReadonlyMode": false,
-      "isSnapping": false,
-      "isZoomSnap": false,
-      "keepStyleMenuOpen": false,
-      "language": "en",
-      "nudgeDistanceLarge": 16,
-      "nudgeDistanceSmall": 1,
-      "showBindingHandles": true,
-      "showCloneHandles": false,
-      "showGrid": false,
-      "showRotateHandles": true,
-    },
-  },
+    ],
+    Array [
+      Object {
+        "path": Array [
+          "document",
+          "pageStates",
+          "page1",
+          "selectedIds",
+          0,
+        ],
+        "type": "CREATE",
+        "value": "rect1",
+      },
+      Object {
+        "path": Array [
+          "document",
+          "pageStates",
+          "page1",
+          "selectedIds",
+          1,
+        ],
+        "type": "CREATE",
+        "value": "rect2",
+      },
+      Object {
+        "path": Array [
+          "document",
+          "pageStates",
+          "page1",
+          "selectedIds",
+          2,
+        ],
+        "type": "CREATE",
+        "value": "rect3",
+      },
+    ],
+    Array [],
+  ],
+  "hoverShape": [Function],
   "insertContent": [Function],
   "isCreating": false,
   "isDirty": false,
@@ -417,6 +479,7 @@ TldrawTestApp {
   "moveToBack": [Function],
   "moveToFront": [Function],
   "moveToPage": [Function],
+  "mutate": [Function],
   "newProject": [Function],
   "nudge": [Function],
   "onCommand": [Function],
@@ -487,21 +550,173 @@ TldrawTestApp {
   "paste": [Function],
   "patchCreate": [Function],
   "patchState": [Function],
+  "pause": [Function],
   "persist": [Function],
   "pinchZoom": [Function],
   "pointBounds": [Function],
   "pointBoundsHandle": [Function],
   "pointCanvas": [Function],
   "pointShape": [Function],
-  "pointer": -1,
+  "pointer": 6,
   "pressKey": [Function],
+  "prev": Object {
+    "appState": Object {
+      "activeTool": "select",
+      "currentPageId": "page1",
+      "currentStyle": Object {
+        "color": "black",
+        "dash": "draw",
+        "isFilled": false,
+        "scale": 1,
+        "size": "small",
+      },
+      "disableAssets": false,
+      "eraseLine": Array [],
+      "hoveredId": undefined,
+      "isEmptyCanvas": false,
+      "isLoading": false,
+      "isMenuOpen": false,
+      "isToolLocked": false,
+      "snapLines": Array [],
+      "status": "idle",
+    },
+    "document": Object {
+      "assets": Object {},
+      "id": "doc",
+      "name": "New Document",
+      "pageStates": Object {
+        "page1": Object {
+          "bindingId": undefined,
+          "camera": Object {
+            "point": Array [
+              0,
+              0,
+            ],
+            "zoom": 1,
+          },
+          "editingId": undefined,
+          "hoveredId": undefined,
+          "id": "page1",
+          "pointedId": undefined,
+          "selectedIds": Array [
+            "rect1",
+            "rect2",
+            "rect3",
+          ],
+        },
+      },
+      "pages": Object {
+        "page1": Object {
+          "bindings": Object {},
+          "id": "page1",
+          "shapes": Object {
+            "rect1": Object {
+              "childIndex": 1,
+              "id": "rect1",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                0,
+                0,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+            "rect2": Object {
+              "childIndex": 2,
+              "id": "rect2",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                100,
+                100,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+            "rect3": Object {
+              "childIndex": 3,
+              "id": "rect3",
+              "label": "",
+              "labelPoint": Array [
+                0.5,
+                0.5,
+              ],
+              "name": "Rectangle",
+              "parentId": "page1",
+              "point": Array [
+                20,
+                20,
+              ],
+              "size": Array [
+                100,
+                100,
+              ],
+              "style": Object {
+                "color": "blue",
+                "dash": "draw",
+                "size": "medium",
+              },
+              "type": "rectangle",
+            },
+          },
+        },
+      },
+      "version": 15.5,
+    },
+    "settings": Object {
+      "dockPosition": "bottom",
+      "exportBackground": "transparent",
+      "isCadSelectMode": false,
+      "isDarkMode": false,
+      "isDebugMode": false,
+      "isFocusMode": false,
+      "isPenMode": false,
+      "isReadonlyMode": false,
+      "isSnapping": false,
+      "isZoomSnap": false,
+      "keepStyleMenuOpen": false,
+      "language": "en",
+      "nudgeDistanceLarge": 16,
+      "nudgeDistanceSmall": 1,
+      "showBindingHandles": true,
+      "showCloneHandles": false,
+      "showGrid": false,
+      "showRotateHandles": true,
+    },
+  },
   "prevSelectedIds": Array [],
   "previousPoint": Array [
     0,
     0,
   ],
   "readOnly": false,
-  "ready": Promise {},
   "redo": [Function],
   "redoSelect": [Function],
   "refreshBoundingBoxes": [Function],
@@ -516,15 +731,13 @@ TldrawTestApp {
     "minY": 0,
     "width": 100,
   },
-  "replaceHistory": [Function],
-  "replacePageContent": [Function],
   "replaceState": [Function],
-  "reset": [Function],
   "resetBounds": [Function],
   "resetCamera": [Function],
   "resetDocument": [Function],
   "resetHistory": [Function],
   "resetZoom": [Function],
+  "resume": [Function],
   "rotate": [Function],
   "rotationInfo": Object {
     "center": Array [
@@ -560,22 +773,16 @@ TldrawTestApp {
   "setSelectedIds": [Function],
   "setSetting": [Function],
   "setShapeProps": [Function],
-  "setSnapshot": [Function],
   "setState": [Function],
   "shiftKey": false,
   "signOut": [Function],
   "spaceKey": false,
-  "stack": Array [],
   "startSession": [Function],
   "stopPointing": [Function],
-  "store": Object {
-    "destroy": [Function],
-    "getState": [Function],
-    "setState": [Function],
-    "subscribe": [Function],
-  },
   "stretch": [Function],
   "style": [Function],
+  "subscribe": [Function],
+  "subscriptions": Set {},
   "toggleAspectRatioLocked": [Function],
   "toggleDarkMode": [Function],
   "toggleDebugMode": [Function],
@@ -793,6 +1000,7 @@ TldrawTestApp {
   "undo": [Function],
   "undoSelect": [Function],
   "ungroup": [Function],
+  "update": [Function],
   "updateBounds": [Function],
   "updateDocument": [Function],
   "updateInputs": [Function],
@@ -800,6 +1008,12 @@ TldrawTestApp {
   "updateShapes": [Function],
   "updateUsers": [Function],
   "updateViewport": [Function],
+  "useCanRedo": [Function],
+  "useCanUndo": [Function],
+  "useIsPaused": [Function],
+  "usePath": [Function],
+  "useSelector": [Function],
+  "useStaticSelector": [Function],
   "useStore": [Function],
   "viewport": Object {
     "height": 100,
@@ -817,145 +1031,6 @@ TldrawTestApp {
   "zoomToFit": [Function],
   "zoomToSelection": [Function],
 }
-`;
-
-exports[`TldrawTestApp Exposes undo/redo stack: history 1`] = `
-Array [
-  Object {
-    "after": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect1",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect1": Object {
-                "childIndex": 1,
-                "id": "rect1",
-                "label": "",
-                "labelPoint": Array [
-                  0.5,
-                  0.5,
-                ],
-                "name": "Rectangle",
-                "parentId": "page1",
-                "point": Array [
-                  0,
-                  0,
-                ],
-                "rotation": 0,
-                "size": Array [
-                  100,
-                  200,
-                ],
-                "style": Object {
-                  "color": "black",
-                  "dash": "draw",
-                  "isFilled": false,
-                  "scale": 1,
-                  "size": "small",
-                },
-                "type": "rectangle",
-              },
-            },
-          },
-        },
-      },
-    },
-    "before": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect1": undefined,
-            },
-          },
-        },
-      },
-    },
-    "id": "create",
-  },
-  Object {
-    "after": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect2",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect2": Object {
-                "childIndex": 1,
-                "id": "rect2",
-                "label": "",
-                "labelPoint": Array [
-                  0.5,
-                  0.5,
-                ],
-                "name": "Rectangle",
-                "parentId": "page1",
-                "point": Array [
-                  0,
-                  0,
-                ],
-                "rotation": 0,
-                "size": Array [
-                  100,
-                  200,
-                ],
-                "style": Object {
-                  "color": "black",
-                  "dash": "draw",
-                  "isFilled": false,
-                  "scale": 1,
-                  "size": "small",
-                },
-                "type": "rectangle",
-              },
-            },
-          },
-        },
-      },
-    },
-    "before": Object {
-      "document": Object {
-        "pageStates": Object {
-          "page1": Object {
-            "selectedIds": Array [
-              "rect1",
-            ],
-          },
-        },
-        "pages": Object {
-          "page1": Object {
-            "bindings": Object {},
-            "shapes": Object {
-              "rect2": undefined,
-            },
-          },
-        },
-      },
-    },
-    "id": "create",
-  },
-]
 `;
 
 exports[`TldrawTestApp Selection When selecting all selects all: selected all 1`] = `
