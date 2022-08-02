@@ -5,12 +5,6 @@
     "start": {
       "cache": false
     },
-    "start:packages": {
-      "cache": false
-    },
-    "start:core": {
-      "cache": false
-    },
     "start:apps": {
       "cache": false
     },

@@ -10,7 +10,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "start:core": "node scripts/dev.mjs -w",
+    "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
     "lint": "eslint src/ --ext .ts,.tsx"
   },
