@@ -31,7 +31,7 @@
     "turbo": "turbo",
     "test": "turbo run test",
     "test:ci": "turbo run test:ci",
-    "test:watch": "turbo run test:watch --no-cache",
+    "test:watch": "turbo run test:watch",
     "lint": "turbo run lint --parallel",
     "clean": "turbo run clean",
     "postinstall": "husky install",

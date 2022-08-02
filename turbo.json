@@ -33,7 +33,9 @@
       "outputs": ["coverage/**"]
     },
     "test:watch": {
-      "outputs": []
+      "outputs": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "src/**/*.json"],
+      "cache": false
     },
     "lint": {
       "outputs": []
