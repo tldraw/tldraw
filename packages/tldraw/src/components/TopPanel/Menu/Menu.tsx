@@ -14,7 +14,7 @@ import {
   DMContent,
   DMDivider,
   DMSubMenu,
-  DMTriggerIcon,
+  DMTriggerIcon, DMCheckboxItem,
 } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useFileSystemHandlers } from '~hooks'
@@ -39,9 +39,14 @@ const disableAssetsSelector = (s: TDSnapshot) => {
   return s.appState.disableAssets
 }
 
+const settingsSelector = (s: TDSnapshot) => s.settings
+
+
 export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
   const app = useTldrawApp()
   const intl = useIntl()
+
+  const settings = app.useStore(settingsSelector)
 
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
 
@@ -121,6 +126,10 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
     app.openAsset()
   }, [app])
 
+  const showViewzones = React.useCallback( () => {
+    app.setSetting('isViewzoneMode', (v) => !v)
+  }, [app])
+
   const handleZoomTo100 = React.useCallback(() => {
     app.zoomTo(1)
   }, [app])
@@ -166,14 +175,18 @@ export const Menu = React.memo(function Menu({ sponsor, readOnly }: MenuProps) {
                 ...
               </DMItem>
             )}
+            <Divider />
             {!disableAssets && (
               <>
-                <Divider />
                 <DMItem onClick={handleUploadMedia} kbd="#U" id="TD-MenuItem-File-Upload_Media">
                   <FormattedMessage id="upload.media" />
                 </DMItem>
               </>
             )}
+            <DMCheckboxItem
+              onCheckedChange={showViewzones} id="TD-Zoom-Viewzones" checked={settings.isViewzoneMode}>
+              <FormattedMessage id="show.viewzones"/>
+            </DMCheckboxItem>
           </DMSubMenu>
         )}
         <DMSubMenu label={`${intl.formatMessage({ id: 'menu.edit' })}...`} id="TD-MenuItem-Edit">

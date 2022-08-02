@@ -91,6 +91,8 @@ export interface TDSnapshot {
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number
     isFocusMode: boolean
+    isViewzoneMode: boolean
+    isPresentationMode: boolean
     isSnapping: boolean
     showRotateHandles: boolean
     showBindingHandles: boolean

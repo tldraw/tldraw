@@ -1007,6 +1007,40 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Toggle viewzone mode.
+   */
+  toggleViewzoneMode = (): this => {
+    if (this.session) return this
+    this.patchState(
+      {
+        settings: {
+          isViewzoneMode: !this.settings.isViewzoneMode,
+        },
+      },
+      `settings:toggled_viewzone_mode`
+    )
+    this.persist()
+    return this
+  }
+
+  /**
+   * Toggle presentation mode.
+   */
+  togglePresentationMode = (): this => {
+    if (this.session) return this
+    this.patchState(
+      {
+        settings: {
+          isPresentationMode: !this.settings.isPresentationMode,
+        },
+      },
+      `settings:toggled_presentation_mode`
+    )
+    this.persist()
+    return this
+  }
+
+  /**
    * Toggle pen mode.
    */
   togglePenMode = (): this => {
@@ -2598,6 +2632,34 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   /**
+   * Zoom to viewzone.
+   */
+  zoomToViewzone = (viewzoneShape: TDShape): this => {
+    if (viewzoneShape === null || viewzoneShape === undefined) return this
+
+    const { rendererBounds } = this
+    const selectedBounds = TLDR.getBounds(viewzoneShape)
+
+    let zoom = TLDR.getCameraZoom(
+      Math.min(
+        (rendererBounds.width - FIT_TO_SCREEN_PADDING) / selectedBounds.width,
+        (rendererBounds.height - FIT_TO_SCREEN_PADDING) / selectedBounds.height
+      )
+    )
+
+    zoom = this.camera.zoom === zoom || this.camera.zoom < 1 ? Math.min(1, zoom) : zoom
+
+    const mx = (rendererBounds.width - selectedBounds.width * zoom) / 2 / zoom
+    const my = (rendererBounds.height - selectedBounds.height * zoom) / 2 / zoom
+
+    return this.setCamera(
+      Vec.toFixed(Vec.sub([mx, my], [selectedBounds.minX, selectedBounds.minY])),
+      zoom,
+      `zoomed_to_selection`
+    )
+  }
+
+  /**
    * Zoom back to content when the canvas is empty.
    */
   zoomToContent = (): this => {
@@ -4126,6 +4188,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isDarkMode: false,
       isZoomSnap: false,
       isFocusMode: false,
+      isViewzoneMode: false,
+      isPresentationMode: false,
       isSnapping: false,
       isDebugMode: false,
       isReadonlyMode: false,

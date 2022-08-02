@@ -7,6 +7,7 @@ import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
+import {DesktopIcon} from '@radix-ui/react-icons'
 import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { MultiplayerMenu } from './MultiplayerMenu'
@@ -49,6 +50,9 @@ export function TopPanel({
           </ToolButton>
           <ToolButton>
             <RedoIcon onClick={app.redo} />
+          </ToolButton>
+          <ToolButton>
+            <DesktopIcon onClick={app.togglePresentationMode} />
           </ToolButton>
           {showZoom && <ZoomMenu />}
           {showStyles && !readOnly && <StyleMenu />}

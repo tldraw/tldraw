@@ -20,6 +20,8 @@ import messages_en from './translations/en.json'
 import messages_fr from './translations/fr.json'
 import messages_it from './translations/it.json'
 import messages_zh_cn from './translations/zh-cn.json'
+import {ViewzoneMenu} from "~components/ViewzoneMenu";
+import {PresentationMenu} from "~components/TopPanel/PresentationMenu";
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -439,6 +441,31 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
 
+  function Modes() {
+    if (showUI && settings.isFocusMode) {
+      return <FocusButton onSelect={app.toggleFocusMode}/>
+    }
+    if (showUI && settings.isViewzoneMode) {
+      return <ViewzoneMenu onSelect={app.toggleViewzoneMode} shapes={app.getShapes(appState.currentPageId)}/>
+    }
+    if (showUI && settings.isPresentationMode) {
+      return <PresentationMenu onSelect={app.togglePresentationMode} shapes={app.getShapes(appState.currentPageId)}/>
+    }
+    return <>
+      <TopPanel
+        readOnly={readOnly}
+        showPages={showPages}
+        showMenu={showMenu}
+        showMultiplayerMenu={showMultiplayerMenu}
+        showStyles={showStyles}
+        showZoom={showZoom}
+        sponsor={showSponsorLink}
+      />
+      <StyledSpacer/>
+      {showTools && !readOnly && <ToolsPanel/>}
+    </>
+  }
+
   return (
     <IntlProvider
       locale={defaultLanguage}
@@ -527,27 +554,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
             />
           </ErrorBoundary>
         </ContextMenu>
-        {showUI && (
-          <StyledUI>
-            {settings.isFocusMode ? (
-              <FocusButton onSelect={app.toggleFocusMode} />
-            ) : (
-              <>
-                <TopPanel
-                  readOnly={readOnly}
-                  showPages={showPages}
-                  showMenu={showMenu}
-                  showMultiplayerMenu={showMultiplayerMenu}
-                  showStyles={showStyles}
-                  showZoom={showZoom}
-                  sponsor={showSponsorLink}
-                />
-                <StyledSpacer />
-                {showTools && !readOnly && <ToolsPanel />}
-              </>
-            )}
-          </StyledUI>
-        )}
+        <StyledUI>
+          <Modes></Modes>
+        </StyledUI>
       </StyledLayout>
     </IntlProvider>
   )
