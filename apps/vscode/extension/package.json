@@ -117,7 +117,7 @@
     "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
     "package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
     "publish": "yarn package && vsce publish",
-    "lint": "eslint src/ --ext ts"
+    "lint": "TIMING=1 eslint src/ --ext ts"
   },
   "devDependencies": {
     "@tldraw/tldraw": "*",

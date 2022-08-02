@@ -13,7 +13,7 @@
     "dev": "next dev",
     "build": "next build",
     "serve": "next serve",
-    "lint": "next lint"
+    "lint": "TIMING=1 next lint"
   },
   "dependencies": {
     "@liveblocks/client": "^0.17.0-beta2",

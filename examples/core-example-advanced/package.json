@@ -12,7 +12,7 @@
   "scripts": {
     "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx"
   },
   "files": [],
   "devDependencies": {

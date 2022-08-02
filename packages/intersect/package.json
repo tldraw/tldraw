@@ -25,7 +25,7 @@
   "scripts": {
     "start": "yarn lfg -d",
     "build": "yarn lfg",
-    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {

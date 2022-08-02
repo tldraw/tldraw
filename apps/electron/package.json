@@ -14,7 +14,7 @@
     "dev": "electron-esbuild dev",
     "build": "electron-esbuild build",
     "package": "electron-builder",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx"
   },
   "devDependencies": {
     "@tldraw/tldraw": "^1.16.0",
