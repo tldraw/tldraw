@@ -5,9 +5,6 @@
     "start": {
       "cache": false
     },
-    "start:www": {
-      "cache": false
-    },
     "start:vscode": {
       "cache": false
     },

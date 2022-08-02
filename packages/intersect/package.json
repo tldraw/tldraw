@@ -23,6 +23,7 @@
   "types": "./dist/index.d.ts",
   "source": "./src/index.ts",
   "scripts": {
+    "dev": "yarn start",
     "start": "yarn lfg -d",
     "build": "yarn lfg",
     "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
