@@ -1,14 +1,14 @@
+import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { TLBoundsEdge, TLBoundsCorner, TLBounds } from '~types'
-import { CenterHandle } from './CenterHandle'
-import { RotateHandle } from './RotateHandle'
-import { CornerHandle } from './CornerHandle'
-import { LinkHandle } from './LinkHandle'
-import { EdgeHandle } from './EdgeHandle'
-import { CloneButtons } from './CloneButtons'
 import { Container } from '~components/Container'
 import { SVGContainer } from '~components/SVGContainer'
-import { observer } from 'mobx-react-lite'
+import { TLBounds, TLBoundsCorner, TLBoundsEdge } from '~types'
+import { CenterHandle } from './CenterHandle'
+import { CloneButtons } from './CloneButtons'
+import { CornerHandle } from './CornerHandle'
+import { EdgeHandle } from './EdgeHandle'
+import { LinkHandle } from './LinkHandle'
+import { RotateHandle } from './RotateHandle'
 
 interface BoundsProps {
   zoom: number

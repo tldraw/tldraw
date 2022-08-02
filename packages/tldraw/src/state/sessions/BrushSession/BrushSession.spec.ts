@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { SessionType, TDStatus } from '~types'
 
 describe('Brush session', () => {

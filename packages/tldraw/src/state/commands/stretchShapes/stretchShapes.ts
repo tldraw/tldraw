@@ -1,8 +1,8 @@
 import { TLBoundsCorner, Utils } from '@tldraw/core'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
 import { StretchType, TDShapeType } from '~types'
 import type { TldrawCommand } from '~types'
-import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '../../internal'
 
 export function stretchShapes(app: TldrawApp, ids: string[], type: StretchType): TldrawCommand {
   const { currentPageId, selectedIds } = app

@@ -1,8 +1,8 @@
+import { screen } from '@testing-library/react'
 import * as React from 'react'
+import { boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 import { renderWithContext } from '~test'
 import { Handles } from './Handles'
-import { boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
-import { screen } from '@testing-library/react'
 
 describe('handles', () => {
   test('mounts component without crashing', () => {

@@ -1,15 +1,15 @@
-import * as React from 'react'
-import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTldrawApp } from '~hooks'
-import { DMItem, DMContent, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
-import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { TDAssetType, TDSnapshot } from '~types'
-import { TLDR } from '~state/TLDR'
+import { CheckIcon, ClipboardIcon } from '@radix-ui/react-icons'
 import { Utils } from '@tldraw/core'
+import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
-import { MultiplayerIcon2 } from '~components/Primitives/icons/MultiplayerIcon2'
 import { Divider } from '~components/Primitives/Divider'
+import { DMContent, DMItem, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
+import { MultiplayerIcon2 } from '~components/Primitives/icons/MultiplayerIcon2'
+import { useTldrawApp } from '~hooks'
+import { TLDR } from '~state/TLDR'
+import { TDAssetType, TDSnapshot } from '~types'
 
 const roomSelector = (state: TDSnapshot) => state.room
 

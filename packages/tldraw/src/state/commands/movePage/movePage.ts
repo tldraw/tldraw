@@ -1,5 +1,5 @@
+import type { TldrawApp } from '~state/TldrawApp'
 import type { TDPage, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
 
 export function movePage(app: TldrawApp, pageId: string, index: number): TldrawCommand {
   const { pages } = app.document

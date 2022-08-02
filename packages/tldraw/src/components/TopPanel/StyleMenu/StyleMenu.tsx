@@ -1,9 +1,15 @@
-import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
+import {
+  TextAlignCenterIcon,
+  TextAlignJustifyIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
+} from '@radix-ui/react-icons'
+import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
-import { useTldrawApp } from '~hooks'
+import { Divider } from '~components/Primitives/Divider'
 import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -14,27 +20,21 @@ import {
   SizeMediumIcon,
   SizeSmallIcon,
 } from '~components/Primitives/icons'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import { breakpoints } from '~components/breakpoints'
+import { preventEvent } from '~components/preventEvent'
+import { useTldrawApp } from '~hooks'
+import { defaultTextStyle, fills, strokes } from '~state/shapes/shared'
+import { styled } from '~styles'
 import {
-  TDSnapshot,
+  AlignStyle,
   ColorStyle,
   DashStyle,
-  SizeStyle,
-  ShapeStyles,
   FontStyle,
-  AlignStyle,
+  ShapeStyles,
+  SizeStyle,
   TDShapeType,
+  TDSnapshot,
 } from '~types'
-import { styled } from '~styles'
-import { breakpoints } from '~components/breakpoints'
-import { Divider } from '~components/Primitives/Divider'
-import { preventEvent } from '~components/preventEvent'
-import {
-  TextAlignCenterIcon,
-  TextAlignJustifyIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-} from '@radix-ui/react-icons'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>

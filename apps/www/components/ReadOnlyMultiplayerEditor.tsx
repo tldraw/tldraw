@@ -1,8 +1,8 @@
-import * as React from 'react'
-import { RoomProvider } from '../utils/liveblocks'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
-import { styled } from 'styles'
-import { useReadOnlyMultiplayerState } from 'hooks/useReadOnlyMultiplayerState'
+import * as React from 'react'
+import { useReadOnlyMultiplayerState } from '~hooks/useReadOnlyMultiplayerState'
+import { styled } from '~styles'
+import { RoomProvider } from '~utils/liveblocks'
 
 interface Props {
   roomId: string

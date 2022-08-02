@@ -1,6 +1,6 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
-import { getShapeUtils, Shape } from 'shapes'
+import { Shape, getShapeUtils } from 'shapes'
 import type { ArrowShape } from 'shapes/arrow'
 import type { AppData } from 'state/constants'
 

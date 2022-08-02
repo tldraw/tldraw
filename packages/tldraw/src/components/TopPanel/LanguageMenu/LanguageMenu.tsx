@@ -1,12 +1,12 @@
-import * as React from 'react'
 import { ExternalLinkIcon } from '@radix-ui/react-icons'
+import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
 import { DMCheckboxItem, DMContent, DMItem } from '~components/Primitives/DropdownMenu'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 import { TDLanguage, TRANSLATIONS } from '~translations'
 import { TDSnapshot } from '~types'
-import { Divider } from '~components/Primitives/Divider'
 
 const languageSelector = (s: TDSnapshot) => s.settings.language
 

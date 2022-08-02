@@ -1,9 +1,9 @@
-import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { styled } from '~styles/stitches.config'
+import * as React from 'react'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { stopPropagation } from '~components/stopPropagation'
 import { useContainer } from '~hooks'
+import { styled } from '~styles/stitches.config'
 
 export interface DMContentProps {
   variant?: 'menu' | 'horizontal'
