@@ -13,7 +13,6 @@
   "scripts": {
     "start:vscode": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "build:apps": "yarn build",
     "lint": "eslint src/ --ext .ts,.tsx"
   },
   "devDependencies": {

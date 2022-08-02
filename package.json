@@ -20,7 +20,7 @@
     "build:www": "turbo run build:www --force",
     "build:core": "turbo run build:core",
     "build:packages": "turbo run build --filter=./packages/*",
-    "build:apps": "turbo run build:apps",
+    "build:apps": "turbo run build --filter=./apps/**",
     "start": "turbo run start --parallel",
     "start:core": "turbo run start:core --parallel",
     "start:www": "turbo run start --parallel & cd apps/www && yarn dev",

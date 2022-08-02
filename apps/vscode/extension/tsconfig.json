@@ -6,7 +6,15 @@
     "lib": ["es6", "WebWorker"],
     "sourceMap": true,
     "rootDir": "src",
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@tldraw/tldraw": ["../../../packages/tldraw"]
+    }
   },
+  "references": [
+    {
+      "path": "../../../packages/tldraw"
+    }
+  ],
   "exclude": ["node_modules", ".vscode-test-web"]
 }

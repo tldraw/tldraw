@@ -13,8 +13,7 @@
   "scripts": {
     "dev": "electron-esbuild dev",
     "start:electron": "yarn dev",
-    "build:apps": "yarn build:electron",
-    "build:electron": "electron-esbuild build",
+    "build": "electron-esbuild build",
     "package": "electron-builder",
     "lint": "eslint src/ --ext .ts,.tsx"
   },

@@ -25,15 +25,19 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**"]
     },
     "build:core": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
-    "build:apps": {
+    "@tldraw/www#build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": [".next/**"]
+    },
+    "tldraw-vscode#build": {
+      "dependsOn": ["@tldraw/vscode-editor#build"],
+      "outputs": ["dist/**", "editor/**", "temp/**"]
     },
     "build:www": {
       "dependsOn": ["build:packages", "^build"],

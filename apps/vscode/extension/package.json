@@ -113,14 +113,14 @@
   },
   "scripts": {
     "start:vscode": "node scripts/dev",
-    "build:apps": "yarn build",
-    "build": "yarn package",
+    "build": "node scripts/build && node scripts/package",
     "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
     "package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
     "publish": "yarn package && vsce publish",
     "lint": "eslint src/ --ext ts"
   },
   "devDependencies": {
+    "@tldraw/tldraw": "*",
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "assert": "^2.0.0",
