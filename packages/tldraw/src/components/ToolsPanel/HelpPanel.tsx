@@ -150,7 +150,7 @@ const PopoverAnchor = styled(Popover.Anchor, {
     },
     bp: {
       mobile: {
-        bottom: 50,
+        bottom: 64,
       },
       small: {
         bottom: 10,
