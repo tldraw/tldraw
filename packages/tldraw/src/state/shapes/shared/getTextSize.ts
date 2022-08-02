@@ -1,6 +1,5 @@
 import { LETTER_SPACING } from '~constants'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any
 
 function getMeasurementDiv() {

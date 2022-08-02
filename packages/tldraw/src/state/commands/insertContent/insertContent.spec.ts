@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import { mockDocument, TldrawTestApp } from '~test'

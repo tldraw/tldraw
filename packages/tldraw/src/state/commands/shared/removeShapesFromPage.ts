@@ -1,5 +1,5 @@
 import { TLDR } from '~state/TLDR'
-import type { ArrowShape, GroupShape, PagePartial, TDPage, TDSnapshot } from '~types'
+import type { ArrowShape, GroupShape, PagePartial, TDSnapshot } from '~types'
 
 export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: string) {
   const before: PagePartial = {
@@ -51,7 +51,6 @@ export function removeShapesFromPage(data: TDSnapshot, ids: string[], pageId: st
     deletedIds.add(parent.id)
     before.shapes[parent.id] = { children: parent.children }
     after.shapes[parent.id] = { children: parent.children.filter((id) => !ids.includes(id)) }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (after.shapes[parent.id]?.children!.length === 0) {
       after.shapes[parent.id] = undefined
       before.shapes[parent.id] = TLDR.getShape(data, parent.id, pageId)

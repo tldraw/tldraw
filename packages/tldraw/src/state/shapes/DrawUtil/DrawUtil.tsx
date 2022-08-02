@@ -248,12 +248,10 @@ export class DrawUtil extends TDShapeUtil<T, E> {
       this.pointCache[shape.id] = shape.point
       this.shapeBoundsCache.set(
         shape.id,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         Utils.translateBounds(this.pointsBoundsCache.get(shape.points)!, shape.point)
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.shapeBoundsCache.get(shape.id)!
   }
 

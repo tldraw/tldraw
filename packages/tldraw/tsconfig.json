@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.base.json",
-  "exclude": ["node_modules", "dist", "docs"],
+  "exclude": ["node_modules", "dist"],
   "include": ["src", "./src/translations/*.json"],
   "compilerOptions": {
     "skipLibCheck": true,
@@ -11,9 +11,5 @@
       "~*": ["./src/*"]
     }
   },
-  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }],
-  "typedocOptions": {
-    "entryPoints": ["src/index.ts"],
-    "out": "docs"
-  }
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
 }

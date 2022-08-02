@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLComponentProps, TLShape } from '~types'

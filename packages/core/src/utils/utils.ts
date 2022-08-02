@@ -1,7 +1,4 @@
 /* eslint-disable @typescript-eslint/no-extra-semi */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-redeclare */
 import type React from 'react'
 import { TLBounds, TLBoundsCorner, SnapPoints, Snap, TLBoundsEdge } from '../types'
 import { Vec } from '@tldraw/vec'
@@ -38,7 +35,6 @@ export class Utils {
 
   static lerpColor(color1: string, color2: string, factor = 0.5): string {
     function h2r(hex: string) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!
       return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
     }
@@ -1291,7 +1287,6 @@ left past the initial left edge) then swap points on that axis.
    * getFromCache(boundsCache, shape, (cache) => cache.set(shape, "value"))
    *```
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
   static getFromCache<V, I extends object>(cache: WeakMap<I, V>, item: I, getNext: () => V): V {
     let value = cache.get(item)
 
@@ -1330,7 +1325,6 @@ left past the initial left edge) then swap points on that axis.
    * Debounce a function.
    */
   static debounce<T extends (...args: any[]) => void>(fn: T, ms = 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
     return function (...args: Parameters<T>) {
       clearTimeout(timeoutId)
@@ -1448,7 +1442,6 @@ left past the initial left edge) then swap points on that axis.
 
         setTimeout(() => (inThrottle = false), limit)
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         lastResult = func(...args)
       }

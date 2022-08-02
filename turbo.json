@@ -23,10 +23,6 @@
     "start:vscode": {
       "cache": false
     },
-    "docs": {
-      "dependsOn": ["^build"],
-      "outputs": ["docs"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", ".next/**"]
@@ -56,7 +52,6 @@
       "outputs": ["coverage/**"]
     },
     "lint": {
-      "dependsOn": ["build"],
       "outputs": []
     },
     "clean": {

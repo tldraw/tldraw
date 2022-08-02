@@ -13,7 +13,8 @@
     "dev:extension": "vite --host",
     "build:extension": "yarn build",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint src/ --ext .ts,.tsx"
   },
   "dependencies": {
     "@tldraw/tldraw": "*",

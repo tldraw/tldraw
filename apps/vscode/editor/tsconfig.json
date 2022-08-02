@@ -1,7 +1,7 @@
 {
   "extends": "../../../tsconfig.base.json",
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "docs"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "src",
@@ -15,9 +15,5 @@
     {
       "path": "../../../packages/tldraw"
     }
-  ],
-  "typedocOptions": {
-    "entryPoints": ["src/index.ts"],
-    "out": "docs"
-  }
+  ]
 }

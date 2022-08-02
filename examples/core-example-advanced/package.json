@@ -12,7 +12,8 @@
   "scripts": {
     "build:core": "yarn build",
     "start:core": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "lint": "eslint src/ --ext .ts,.tsx"
   },
   "files": [],
   "devDependencies": {

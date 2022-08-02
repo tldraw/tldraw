@@ -6,7 +6,7 @@ export const updateBindings: Action = (
   payload: { bindings: (Partial<TLBinding> & Pick<TLBinding, 'id'>)[] }
 ) => {
   try {
-    payload.bindings.forEach((partial, i) => {
+    payload.bindings.forEach((partial) => {
       Object.assign(data.page.bindings[partial.id], partial)
     })
   } catch (e: any) {

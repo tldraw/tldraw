@@ -1,6 +1,6 @@
 import { current } from 'immer'
 import { nanoid } from 'nanoid'
-import type { Action, AppData, AppDocument } from 'state/constants'
+import type { Action, AppData } from 'state/constants'
 import { mutables } from 'state/mutables'
 
 export const loadNewDocument: Action = (data) => {

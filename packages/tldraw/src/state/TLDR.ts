@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import {
   TDSnapshot,
@@ -23,9 +22,7 @@ import { BINDING_DISTANCE } from '~constants'
 
 const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(type: T['type']): TDShapeUtil<T>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(shape: T): TDShapeUtil<T>
   static getShapeUtil<T extends TDShape>(shape: T | T['type']) {
     return getShapeUtil<T>(shape)

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
 import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
 import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'

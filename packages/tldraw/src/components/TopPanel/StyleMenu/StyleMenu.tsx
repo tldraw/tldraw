@@ -3,12 +3,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
 import { FormattedMessage } from 'react-intl'
 import { useTldrawApp } from '~hooks'
-import {
-  DMCheckboxItem,
-  DMContent,
-  DMDivider,
-  DMRadioItem,
-} from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -141,12 +136,10 @@ export const StyleMenu = React.memo(function ColorMenu() {
           STYLE_KEYS.forEach((key) => {
             if (overrides.has(key)) return
             if (commonStyle[key] === undefined) {
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               commonStyle[key] = shape.style[key]
             } else {
               if (commonStyle[key] === shape.style[key]) return
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               commonStyle[key] = shape.style[key]
               overrides.add(key)

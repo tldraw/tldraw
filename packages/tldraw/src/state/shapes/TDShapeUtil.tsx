@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Utils, TLShapeUtil } from '@tldraw/core'
 import type { TLPointerInfo, TLBounds } from '@tldraw/core'
 import {

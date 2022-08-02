@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import Utils from '../utils'
 import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '../types'
@@ -34,7 +33,6 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     if (!this.refMap.has(shape.id)) {
       this.refMap.set(shape.id, React.createRef<E>())
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.refMap.get(shape.id)!
   }
 
