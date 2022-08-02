@@ -37,8 +37,7 @@
     "lint": "turbo run lint",
     "clean": "turbo run clean",
     "postinstall": "husky install",
-    "pre-commit": "lint-staged",
-    "pre-push": "yarn test"
+    "pre-commit": "lint-staged"
   },
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
