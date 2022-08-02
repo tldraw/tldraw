@@ -392,16 +392,30 @@ export class TLDR {
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
-    ids.forEach((id, i) => {
-      const shape = TLDR.getShape<T>(data, id, pageId)
-      if (shape.isLocked) return
+    const shapes = data.document.pages.page.shapes
+    const groupShape = shapes[ids[0]]
 
-      const change = fn(shape, i)
-      if (change) {
-        beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-        afterShapes[id] = change
-      }
-    })
+    if (ids.length === 1 && groupShape.type === 'group') {
+      groupShape.children.forEach((id, i) => {
+        const shape = TLDR.getShape<T>(data, id, pageId)
+        if (shape.isLocked) return
+        const change = fn(shape, i)
+        if (change) {
+          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+          afterShapes[id] = change
+        }
+      })
+    } else {
+      ids.forEach((id, i) => {
+        const shape = TLDR.getShape<T>(data, id, pageId)
+        if (shape.isLocked) return
+        const change = fn(shape, i)
+        if (change) {
+          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+          afterShapes[id] = change
+        }
+      })
+    }
 
     const dataWithMutations = Utils.deepMerge(data, {
       document: {
