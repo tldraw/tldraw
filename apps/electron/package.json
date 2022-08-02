@@ -16,7 +16,8 @@
     "build:apps": "yarn build:electron",
     "build:electron": "electron-esbuild build",
     "package": "electron-builder",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@tldraw/tldraw": "^1.16.0",

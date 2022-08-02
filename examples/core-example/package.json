@@ -12,7 +12,8 @@
   "scripts": {
     "start:core": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "files": [],
   "devDependencies": {
