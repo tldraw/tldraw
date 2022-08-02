@@ -17,6 +17,9 @@
     "start:vscode": {
       "cache": false
     },
+    "dev": {
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
