@@ -8,9 +8,6 @@
     "start:www": {
       "cache": false
     },
-    "start:electron": {
-      "cache": false
-    },
     "start:vscode": {
       "cache": false
     },
