@@ -5,9 +5,6 @@
     "start": {
       "cache": false
     },
-    "start:vscode": {
-      "cache": false
-    },
     "dev": {
       "cache": false
     },

@@ -112,7 +112,7 @@
     ]
   },
   "scripts": {
-    "start:vscode": "node scripts/dev",
+    "start": "node scripts/dev",
     "build": "node scripts/build && node scripts/package",
     "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
     "package": "cd ../editor && yarn build && cd ../extension && node scripts/build && node scripts/package",
