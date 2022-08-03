@@ -46,7 +46,7 @@ function Editor({ roomId }: Props) {
 
 export default MultiplayerEditor
 
-const LoadingScreen = styled('div', {
+export const LoadingScreen = styled('div', {
   position: 'absolute',
   top: 0,
   left: 0,

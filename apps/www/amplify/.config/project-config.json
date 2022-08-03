@@ -1,0 +1,15 @@
+{
+  "providers": ["awscloudformation"],
+  "projectName": "klenui2",
+  "version": "3.1",
+  "frontend": "javascript",
+  "javascript": {
+    "framework": "react",
+    "config": {
+      "SourceDir": "apps/www",
+      "DistributionDir": ".next",
+      "BuildCommand": "npm run-script build",
+      "StartCommand": "npm run dev"
+    }
+  }
+}

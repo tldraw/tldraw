@@ -1,0 +1,15 @@
+{
+  "staging": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-klenui2-staging-171808-authRole",
+      "UnauthRoleArn": "arn:aws:iam::595258852940:role/amplify-klenui2-staging-171808-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::595258852940:role/amplify-klenui2-staging-171808-authRole",
+      "Region": "eu-west-2",
+      "DeploymentBucketName": "amplify-klenui2-staging-171808-deployment",
+      "UnauthRoleName": "amplify-klenui2-staging-171808-unauthRole",
+      "StackName": "amplify-klenui2-staging-171808",
+      "StackId": "arn:aws:cloudformation:eu-west-2:595258852940:stack/amplify-klenui2-staging-171808/3ea7f720-1350-11ed-a629-0ae1583edacc",
+      "AmplifyAppId": "d10hw5qazcwkkx"
+    }
+  }
+}

@@ -4,7 +4,7 @@ import { createRoomContext } from '@liveblocks/react'
 import type { TDAsset, TDBinding, TDDocument, TDShape, TDUser } from '@tldraw/tldraw'
 
 const client = createClient({
-  publicApiKey: 'YOUR_PUBLIC_KEY' || '',
+  publicApiKey: 'pk_test_RVTGaHufO8kx7RxfWKDG05ZH',
   throttle: 80,
 })
 

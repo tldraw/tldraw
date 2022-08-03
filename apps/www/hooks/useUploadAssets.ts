@@ -1,5 +1,6 @@
 import { Utils } from '@tldraw/core'
 import { TldrawApp } from '@tldraw/tldraw'
+import { Storage } from 'aws-amplify'
 import { useCallback } from 'react'
 
 export function useUploadAssets() {
@@ -12,24 +13,27 @@ export function useUploadAssets() {
 
       const fileType = encodeURIComponent(file.type)
 
-      const res = await fetch(`/api/upload?file=${filename}&fileType=${fileType}`)
+      const result = await Storage.put(filename, file)
+      console.log('%c 🥦 result: ', 'font-size:20px;background-color: #ED9EC7;color:#fff;', result)
 
-      const { url, fields } = await res.json()
+      // const res = await fetch(`/api/upload?file=${filename}&fileType=${fileType}`)
 
-      const formData = new FormData()
+      // const { url, fields } = await res.json()
 
-      Object.entries({ ...fields, file }).forEach(([key, value]) => {
-        formData.append(key, value as any)
-      })
+      // const formData = new FormData()
 
-      const upload = await fetch(url, {
-        method: 'POST',
-        body: formData,
-      })
+      // Object.entries({ ...fields, file }).forEach(([key, value]) => {
+      //   formData.append(key, value as any)
+      // })
 
-      if (!upload.ok) return false
+      // const upload = await fetch(url, {
+      //   method: 'POST',
+      //   body: formData,
+      // })
 
-      return url + '/' + filename
+      // if (!upload.ok) return false
+
+      return 'url' + '/' + filename
     },
     []
   )

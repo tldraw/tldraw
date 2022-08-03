@@ -1,22 +1,12 @@
-import dynamic from 'next/dynamic'
-import Head from 'next/head'
-import { useRouter } from 'next/router'
-import { useMemo } from 'react'
+import { withAuthenticator } from '@aws-amplify/ui-react'
 
-const Editor = dynamic(() => import('~components/Editor'), { ssr: false }) as any
-
-const Home = () => {
-  const { query } = useRouter()
-  const isExportMode = useMemo(() => 'exportMode' in query, [query])
-
+function Home({ signOut, user }) {
   return (
     <>
-      <Head>
-        <title>tldraw</title>
-      </Head>
-      <Editor id="home" showUI={!isExportMode} />
+      <h1>Hello {user.username}</h1>
+      <button onClick={signOut}>Sign out</button>
     </>
   )
 }
 
-export default Home
+export default withAuthenticator(Home)
