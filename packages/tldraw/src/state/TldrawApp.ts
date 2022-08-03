@@ -267,6 +267,9 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
   }
 
   patchState = (patch: TldrawPatch, reason?: string) => {
+    if (!this.getIsPaused()) {
+      this.pause()
+    }
     this.mutate((s) => {
       const next = Utils.deepMerge(s, patch)
       console.log(next)
@@ -279,6 +282,9 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     this.mutate((s) => {
       Object.assign(s, Utils.deepMerge(s, command.after))
     })
+    if (this.getIsPaused()) {
+      this.resume()
+    }
     return this
   }
 
@@ -286,6 +292,9 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     this.mutate((s) => {
       Object.assign(s, state)
     })
+    if (this.getIsPaused()) {
+      this.resume()
+    }
     return this
   }
 
@@ -2726,7 +2735,6 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
       this.cancelSession()
     }
 
-    this.pause()
     
     const Session = getSession(type) as any
     this.session = new Session(this, ...args)
@@ -2775,8 +2783,6 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     this.setEditingId()
 
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
-
-    this.resume()
     return this
   }
 
@@ -2889,8 +2895,6 @@ export class TldrawApp extends LiquorStore<TDSnapshot> {
     }
 
     this.callbacks.onSessionEnd?.(this, session.constructor.name)
-
-    this.resume()
 
     return this
   }

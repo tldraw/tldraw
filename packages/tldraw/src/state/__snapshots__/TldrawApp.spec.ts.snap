@@ -224,7 +224,7 @@ TldrawTestApp {
   "delete": [Function],
   "deleteAll": [Function],
   "deletePage": [Function],
-  "didChangeWhilePaused": false,
+  "didChangeWhilePaused": true,
   "distribute": [Function],
   "doubleClickBoundHandle": [Function],
   "doubleClickCanvas": [Function],
@@ -261,9 +261,6 @@ TldrawTestApp {
   "getViewboxFromSVG": [Function],
   "group": [Function],
   "history": Array [
-    Array [],
-    Array [],
-    Array [],
     Array [],
     Array [
       Object {
@@ -422,49 +419,13 @@ TldrawTestApp {
         },
       },
     ],
-    Array [
-      Object {
-        "path": Array [
-          "document",
-          "pageStates",
-          "page1",
-          "selectedIds",
-          0,
-        ],
-        "type": "CREATE",
-        "value": "rect1",
-      },
-      Object {
-        "path": Array [
-          "document",
-          "pageStates",
-          "page1",
-          "selectedIds",
-          1,
-        ],
-        "type": "CREATE",
-        "value": "rect2",
-      },
-      Object {
-        "path": Array [
-          "document",
-          "pageStates",
-          "page1",
-          "selectedIds",
-          2,
-        ],
-        "type": "CREATE",
-        "value": "rect3",
-      },
-    ],
-    Array [],
   ],
   "hoverShape": [Function],
   "insertContent": [Function],
   "isCreating": false,
   "isDirty": false,
   "isForcePanning": false,
-  "isPaused": false,
+  "isPaused": true,
   "isPointing": false,
   "justSent": false,
   "loadDocument": [Function],
@@ -557,7 +518,7 @@ TldrawTestApp {
   "pointBoundsHandle": [Function],
   "pointCanvas": [Function],
   "pointShape": [Function],
-  "pointer": 6,
+  "pointer": 1,
   "pressKey": [Function],
   "prev": Object {
     "appState": Object {
@@ -598,11 +559,7 @@ TldrawTestApp {
           "hoveredId": undefined,
           "id": "page1",
           "pointedId": undefined,
-          "selectedIds": Array [
-            "rect1",
-            "rect2",
-            "rect3",
-          ],
+          "selectedIds": Array [],
         },
       },
       "pages": Object {
