@@ -1,6 +1,6 @@
+import type { TldrawApp } from '~state/internal'
 import { Decoration } from '~types'
-import type { Patch, ArrowShape, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
+import type { ArrowShape, Patch, TldrawCommand } from '~types'
 
 export function toggleShapesDecoration(
   app: TldrawApp,

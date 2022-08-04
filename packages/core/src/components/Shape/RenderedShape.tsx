@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLComponentProps, TLShape } from '~types'
 import type { TLShapeUtil } from '~TLShapeUtil'
+import type { TLComponentProps, TLShape } from '~types'
 
 interface RenderedShapeProps<T extends TLShape, E extends Element, M>
   extends TLComponentProps<T, E, M> {

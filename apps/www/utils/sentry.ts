@@ -1,5 +1,5 @@
-import * as Sentry from '@sentry/node'
 import { RewriteFrames } from '@sentry/integrations'
+import * as Sentry from '@sentry/node'
 
 export function init(): void {
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return

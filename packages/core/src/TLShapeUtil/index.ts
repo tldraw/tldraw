@@ -1,4 +1,4 @@
-import type { TLShape } from '../types'
+import type { TLShape } from '~types'
 import type { TLShapeUtil } from './TLShapeUtil'
 
 export type TLShapeUtilsMap<T extends TLShape> = {

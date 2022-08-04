@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'

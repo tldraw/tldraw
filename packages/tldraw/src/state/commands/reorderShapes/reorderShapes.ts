@@ -1,6 +1,6 @@
-import { MoveType, TDShape, TldrawCommand } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import { MoveType, TDShape, TldrawCommand } from '~types'
 
 export function reorderShapes(app: TldrawApp, ids: string[], type: MoveType): TldrawCommand {
   const { currentPageId, page } = app

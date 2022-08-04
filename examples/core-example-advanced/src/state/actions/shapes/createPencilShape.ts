@@ -1,6 +1,6 @@
 import type { TLPointerInfo } from '@tldraw/core'
-import type { Action } from 'state/constants'
 import { shapeUtils } from 'shapes'
+import type { Action } from 'state/constants'
 import { mutables } from 'state/mutables'
 
 export const createPencilShape: Action = (data, payload: TLPointerInfo) => {

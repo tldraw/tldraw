@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { EASINGS } from '~constants'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getShapeStyle } from '../shared/shape-styles'
 
 export function getEllipseStrokePoints(id: string, radius: number[], style: ShapeStyles) {
   const { strokeWidth } = getShapeStyle(style)

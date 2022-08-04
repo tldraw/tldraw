@@ -1,6 +1,6 @@
-import * as React from 'react'
 import type { GetServerSideProps } from 'next'
 import Head from 'next/head'
+import * as React from 'react'
 
 export default function RandomRoomPage() {
   return (

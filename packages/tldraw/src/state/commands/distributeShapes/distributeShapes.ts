@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
-import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
-import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { DistributeType, TDShape, TDShapeType, TldrawCommand } from '~types'
 
 export function distributeShapes(
   app: TldrawApp,

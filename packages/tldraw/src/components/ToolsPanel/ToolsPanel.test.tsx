@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { ToolsPanel } from './ToolsPanel'
 import { renderWithContext, renderWithIntlProvider } from '~test'
+import { ToolsPanel } from './ToolsPanel'
 
 describe('tools panel', () => {
   test('mounts component without crashing', () => {

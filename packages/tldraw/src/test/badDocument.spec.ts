@@ -1,5 +1,5 @@
-import { badDocument } from './documents/badDocument'
 import { TldrawTestApp } from './TldrawTestApp'
+import { badDocument } from './documents/badDocument'
 
 describe('When loading a bad document', () => {
   it('Fixes the document', () => {
