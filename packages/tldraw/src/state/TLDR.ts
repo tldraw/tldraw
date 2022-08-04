@@ -392,8 +392,8 @@ export class TLDR {
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
-    const shapes = data.document.pages.page?.shapes ?? {}
-    const groupShape = shapes[ids[0]]
+    const shapes = data.document.pages?.[data.appState.currentPageId].shapes
+    const groupShape = shapes?.[ids[0]]
 
     if (ids.length === 1 && groupShape?.type === 'group') {
       groupShape.children.forEach((id, i) => {
