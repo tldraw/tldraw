@@ -24,7 +24,7 @@
     "start": "turbo run start --filter=@tldraw/tldraw-example... --parallel",
     "start:core": "turbo run start --filter=@tldraw/core-example*... --parallel",
     "start:www": "turbo run dev --filter=@tldraw/www... --parallel",
-    "start:electron": "turbo run dev --filter=@tldraw/electron",
+    "start:electron": "turbo run dev --filter=@tldraw/electron... --parallel",
     "start:vscode": "turbo run start --filter=./apps/vscode/* --parallel",
     "version": "yarn changeset version",
     "changeset": "changeset",
