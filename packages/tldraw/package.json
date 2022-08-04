@@ -23,8 +23,7 @@
   "types": "./dist/index.d.ts",
   "source": "./src/index.ts",
   "scripts": {
-    "dev": "yarn start",
-    "start": "yarn lfg -d",
+    "dev": "yarn lfg -d",
     "build": "yarn lfg",
     "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
