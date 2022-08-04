@@ -36,10 +36,6 @@
     },
     "clean": {
       "cache": false
-    },
-    "deploy": {
-      "dependsOn": ["build", "test"],
-      "outputs": ["dist/**", ".next/**"]
     }
   }
 }
