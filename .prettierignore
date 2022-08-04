@@ -1,0 +1,17 @@
+assets
+**/assets
+**/dist
+**/extension/editor
+**/out
+**/public
+
+.DS_Store
+.next
+.tldr
+.turbo
+.vercel
+.vsix
+
+*.lock
+*.log
+*.yaml

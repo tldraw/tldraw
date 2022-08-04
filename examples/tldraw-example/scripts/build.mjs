@@ -1,8 +1,8 @@
 /* eslint-disable */
-import fs from 'fs'
-import path from 'path'
 import esbuild from 'esbuild'
+import fs from 'fs'
 import { createRequire } from 'module'
+import path from 'path'
 
 const pkg = createRequire(import.meta.url)('../package.json')
 

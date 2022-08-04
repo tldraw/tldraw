@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { PagePartial, TldrawCommand, TDShape, TDBinding, TDAsset } from '~types'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import type { PagePartial, TDAsset, TDBinding, TDShape, TldrawCommand } from '~types'
 
 export function insertContent(
   app: TldrawApp,

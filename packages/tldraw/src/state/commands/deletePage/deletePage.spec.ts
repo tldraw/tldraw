@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 
 describe('Delete page', () => {
   const app = new TldrawTestApp()

@@ -1,8 +1,8 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { TLPointerEventHandler, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { Arrow } from '~state/shapes'
+import { BaseTool, Status } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool, Status } from '../BaseTool'
 
 export class LineTool extends BaseTool {
   type = TDShapeType.Line as const

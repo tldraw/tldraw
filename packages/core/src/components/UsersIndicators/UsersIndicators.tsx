@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { ShapeIndicator } from '~components/ShapeIndicator'
+import { useTLContext } from '~hooks'
 import type { TLPage, TLShape, TLUsers } from '~types'
 import Utils from '~utils'
-import { useTLContext } from '~hooks'
 
 interface UserIndicatorProps<T extends TLShape> {
   page: TLPage<any, any>

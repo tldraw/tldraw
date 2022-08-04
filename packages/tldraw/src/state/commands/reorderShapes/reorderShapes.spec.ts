@@ -1,6 +1,6 @@
-import { TDSnapshot, TDShapeType } from '~types'
 import { TLDR } from '~state/TLDR'
 import { TldrawTestApp } from '~test'
+import { TDShapeType, TDSnapshot } from '~types'
 
 const app = new TldrawTestApp().createShapes(
   {

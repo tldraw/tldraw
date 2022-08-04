@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ArrowShape, SessionType, TDShapeType } from '~types'
 
 describe('Translate command', () => {

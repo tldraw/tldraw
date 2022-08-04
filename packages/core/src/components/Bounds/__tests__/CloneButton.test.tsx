@@ -1,6 +1,6 @@
-import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
+import { renderWithContext } from '~test'
 import { CloneButton } from '../CloneButton'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)

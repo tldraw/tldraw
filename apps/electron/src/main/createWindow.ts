@@ -1,6 +1,6 @@
-import path from 'path'
 import { BrowserWindow } from 'electron'
 import { is } from 'electron-util'
+import path from 'path'
 
 export async function createWindow() {
   let win: BrowserWindow | null = null

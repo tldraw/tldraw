@@ -1,10 +1,10 @@
 import * as React from 'react'
-import type { TLPageState, TLBounds } from '../types'
+import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
+import { TLContext, TLContextType, useTLTheme } from '~hooks'
+import { Inputs } from '~inputs'
+import type { TLBounds, TLPageState } from '~types'
 import { mockDocument } from './mockDocument'
 import { mockUtils } from './mockUtils'
-import { useTLTheme, TLContext, TLContextType } from '../hooks'
-import { Inputs } from '~inputs'
-import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 
 export const ContextWrapper = ({ children }: { children: any }) => {
   useTLTheme()

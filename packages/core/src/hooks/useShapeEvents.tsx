@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Utils } from '~utils'
 import { TLContext } from '~hooks'
+import { Utils } from '~utils'
 
 export function useShapeEvents(id: string) {
   const { rPageState, rSelectionBounds, callbacks, inputs } = React.useContext(TLContext)

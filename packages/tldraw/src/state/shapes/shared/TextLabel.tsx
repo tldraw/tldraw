@@ -3,8 +3,8 @@ import { stopPropagation } from '~components/stopPropagation'
 import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
-import { getTextLabelSize } from './getTextSize'
 import { TextAreaUtils } from './TextAreaUtils'
+import { getTextLabelSize } from './getTextSize'
 
 export interface TextLabelProps {
   font: string

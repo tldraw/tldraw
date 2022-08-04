@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
-import fs from 'fs'
 import esbuildServe from 'esbuild-serve'
+import fs from 'fs'
 
 const { log: jslog } = console
 

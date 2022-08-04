@@ -1,21 +1,21 @@
-import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
-import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import * as React from 'react'
+import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
+import { DashStyle, DrawShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import {
   getDrawStrokePathTDSnapshot,
   getFillPath,
   getSolidStrokePathTDSnapshot,
 } from './drawHelpers'
-import { GHOSTED_OPACITY } from '~constants'
 
 type T = DrawShape
 type E = SVGSVGElement
