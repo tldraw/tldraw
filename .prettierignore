@@ -1,5 +1,6 @@
 assets
 **/assets
+**/coverage
 **/dist
 **/extension/editor
 **/out
