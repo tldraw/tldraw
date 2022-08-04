@@ -115,8 +115,8 @@
     "start": "node scripts/dev",
     "build": "node scripts/build && node scripts/package",
     "web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
-    "publish": "yarn package && vsce publish",
     "package": "node scripts/package",
+    "publish": "vsce publish",
     "lint": "TIMING=1 eslint src/ --ext ts"
   },
   "devDependencies": {

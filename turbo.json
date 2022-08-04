@@ -28,6 +28,10 @@
       "dependsOn": ["tldraw-vscode#build"],
       "outputs": ["temp/**"]
     },
+    "tldraw-vscode#publish": {
+      "dependsOn": ["tldraw-vscode#package"],
+      "outputs": []
+    },
     "test": {
       "outputs": []
     },
