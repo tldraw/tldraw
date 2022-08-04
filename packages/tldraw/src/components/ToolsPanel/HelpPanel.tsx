@@ -34,7 +34,7 @@ export function HelpPanel() {
     <Popover.Root>
       <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
         <Popover.Trigger dir="ltr" asChild>
-          <HelpButton debug={isDebugMode}>
+          <HelpButton>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
