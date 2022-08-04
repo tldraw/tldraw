@@ -10,7 +10,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "dev:extension": "vite --host",
+    "dev:": "vite --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "TIMING=1 eslint src/ --ext .ts,.tsx"

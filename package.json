@@ -26,6 +26,7 @@
     "start:www": "turbo run dev --filter=@tldraw/www... --parallel",
     "start:electron": "turbo run dev --filter=@tldraw/electron... --parallel",
     "start:vscode": "turbo run start --filter=./apps/vscode/* --parallel",
+    "start:extension": "turbo run dev --filter=@tldraw/new-tab-extension... --parallel",
     "version": "yarn changeset version",
     "changeset": "changeset",
     "test": "turbo run test",
