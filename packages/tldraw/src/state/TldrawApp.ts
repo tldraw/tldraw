@@ -1765,9 +1765,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   paste = async (point?: number[], e?: ClipboardEvent) => {
     if (this.readOnly) return
 
-    const shapesToCreate: TDShape[] = []
-
     const filesToPaste: File[] = []
+    const shapesToCreate: TDShape[] = []
 
     let clipboardData: any
 
@@ -1855,11 +1854,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                 }
                 case 'text/plain': {
                   if (str.startsWith('<svg')) {
-                    getSvgFromText(str)
+                    await getSvgFromText(str)
                   } else {
                     getShapeFromText(str)
                   }
-                  // return
                   break
                 }
               }
