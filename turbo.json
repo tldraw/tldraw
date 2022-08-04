@@ -2,8 +2,8 @@
   "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
   "pipeline": {
-    "start": {
-      "cache": false
+    "@tldraw/www#start": {
+      "dependsOn": ["@tldraw/www#build"]
     },
     "dev": {
       "cache": false
