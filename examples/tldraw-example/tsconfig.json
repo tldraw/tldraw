@@ -15,9 +15,8 @@
     }
   },
   "references": [
-    { "path": "../../packages/vec" },
-    { "path": "../../packages/intersect" },
     { "path": "../../packages/core" },
-    { "path": "../../packages/tldraw" }
+    { "path": "../../packages/tldraw" },
+    { "path": "../../packages/vec" }
   ]
 }
