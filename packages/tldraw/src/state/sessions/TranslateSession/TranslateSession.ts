@@ -1,22 +1,22 @@
-import { TLBounds, TLBoundsWithCenter, TLPageState, TLSnapLine, Utils } from '@tldraw/core'
+import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
+import {
+  TDShape,
+  TDBinding,
+  TldrawCommand,
+  TDStatus,
+  ArrowShape,
+  Patch,
+  GroupShape,
+  SessionType,
+  ArrowBinding,
+  TldrawPatch,
+  TDShapeType,
+} from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '~state/TldrawApp'
-import { BaseSession } from '~state/sessions/BaseSession'
-import {
-  ArrowBinding,
-  ArrowShape,
-  GroupShape,
-  Patch,
-  SessionType,
-  TDBinding,
-  TDShape,
-  TDShapeType,
-  TDStatus,
-  TldrawCommand,
-  TldrawPatch,
-} from '~types'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
 
 type CloneInfo =
   | {

@@ -1,5 +1,5 @@
-import { TLShapeUtil } from '@tldraw/core'
 import * as React from 'react'
+import { TLShapeUtil } from '@tldraw/core'
 import type { RectShape } from './RectShape'
 
 export const RectIndicator = TLShapeUtil.Indicator<RectShape>(({ shape }) => {

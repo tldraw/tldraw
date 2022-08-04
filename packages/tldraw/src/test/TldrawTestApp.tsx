@@ -1,4 +1,4 @@
-import { TLBoundsCorner, TLBoundsEdge, TLBoundsHandle, inputs } from '@tldraw/core'
+import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
 import { TldrawApp } from '~state'
 import type { TDShape } from '~types'
 

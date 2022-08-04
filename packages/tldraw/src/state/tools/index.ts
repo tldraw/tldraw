@@ -1,14 +1,14 @@
 import { TDShapeType, TDToolType } from '~types'
 import { ArrowTool } from './ArrowTool'
+import { LineTool } from './LineTool'
 import { DrawTool } from './DrawTool'
 import { EllipseTool } from './EllipseTool'
-import { EraseTool } from './EraseTool'
-import { LineTool } from './LineTool'
 import { RectangleTool } from './RectangleTool'
+import { TriangleTool } from './TriangleTool'
 import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
 import { TextTool } from './TextTool'
-import { TriangleTool } from './TriangleTool'
+import { EraseTool } from './EraseTool'
 
 export interface ToolsMap {
   select: typeof SelectTool

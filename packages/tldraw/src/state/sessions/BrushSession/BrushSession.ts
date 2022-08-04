@@ -1,7 +1,7 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import type { TldrawApp } from '~state/TldrawApp'
-import { BaseSession } from '~state/sessions/BaseSession'
-import { SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
+import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
+import { BaseSession } from '../BaseSession'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush

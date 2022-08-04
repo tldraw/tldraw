@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Tooltip } from '~components/Primitives/Tooltip'
 import { breakpoints } from '~components/breakpoints'
+import { Tooltip } from '~components/Primitives/Tooltip'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
-import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
+import { styled } from '~styles'
+import { breakpoints } from '~components/breakpoints'
 
 const statusSelector = (s: TDSnapshot) => s.appState.status
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool

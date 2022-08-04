@@ -1,9 +1,9 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { Container } from '~components/Container'
-import { SVGContainer } from '~components/SVGContainer'
 import { useHandleEvents } from '~hooks'
+import { Container } from '~components/Container'
 import Utils from '~utils'
+import { SVGContainer } from '~components/SVGContainer'
+import { observer } from 'mobx-react-lite'
 
 interface HandleProps {
   id: string

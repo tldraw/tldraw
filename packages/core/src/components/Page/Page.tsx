@@ -1,13 +1,13 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLShapeUtil } from '~TLShapeUtil'
+import type { TLAssets, TLBinding, TLPage, TLPageState, TLShape } from '~types'
+import { useSelection, useShapeTree, useTLContext } from '~hooks'
 import { Bounds } from '~components/Bounds'
 import { BoundsBg } from '~components/Bounds/BoundsBg'
 import { Handles } from '~components/Handles'
 import { ShapeNode } from '~components/Shape'
 import { ShapeIndicator } from '~components/ShapeIndicator'
-import { useSelection, useShapeTree, useTLContext } from '~hooks'
-import type { TLAssets, TLBinding, TLPage, TLPageState, TLShape } from '~types'
+import type { TLShapeUtil } from '~TLShapeUtil'
 
 interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>

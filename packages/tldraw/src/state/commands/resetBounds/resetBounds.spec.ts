@@ -1,6 +1,6 @@
 import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 import { SessionType, TDShapeType } from '~types'
 
 describe('Reset bounds command', () => {

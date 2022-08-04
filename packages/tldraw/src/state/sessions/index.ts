@@ -2,14 +2,14 @@ import { ExceptFirst, SessionType } from '~types'
 import { ArrowSession } from './ArrowSession'
 import { BrushSession } from './BrushSession'
 import { DrawSession } from './DrawSession'
-import { EditSession } from './EditSession'
-import { EraseSession } from './EraseSession'
-import { GridSession } from './GridSession'
 import { HandleSession } from './HandleSession'
 import { RotateSession } from './RotateSession'
 import { TransformSession } from './TransformSession'
 import { TransformSingleSession } from './TransformSingleSession'
 import { TranslateSession } from './TranslateSession'
+import { EraseSession } from './EraseSession'
+import { GridSession } from './GridSession'
+import { EditSession } from './EditSession'
 
 export type TldrawSession =
   | ArrowSession

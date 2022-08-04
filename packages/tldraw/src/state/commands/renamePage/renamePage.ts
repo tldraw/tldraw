@@ -1,5 +1,5 @@
-import type { TldrawApp } from '~state/TldrawApp'
 import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 
 export function renamePage(app: TldrawApp, pageId: string, name: string): TldrawCommand {
   const { page } = app

@@ -1,23 +1,15 @@
-import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
+import * as React from 'react'
+import { Utils, TLBounds, SVGContainer } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { defaultStyle } from '../shared/shape-styles'
+import { ArrowShape, TransformInfo, Decoration, TDShapeType, DashStyle, TDMeta } from '~types'
+import { TDShapeUtil } from '../TDShapeUtil'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
-import { Vec } from '@tldraw/vec'
-import * as React from 'react'
 import { GHOSTED_OPACITY } from '~constants'
-import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
-import {
-  LabelMask,
-  TextLabel,
-  defaultStyle,
-  getFontStyle,
-  getShapeStyle,
-  getTextLabelSize,
-} from '~state/shapes/shared'
-import { styled } from '~styles'
-import { ArrowShape, DashStyle, Decoration, TDMeta, TDShapeType, TransformInfo } from '~types'
 import {
   getArcLength,
   getArcPoints,
@@ -26,8 +18,12 @@ import {
   getCtp,
   isAngleBetween,
 } from './arrowHelpers'
-import { CurvedArrow } from './components/CurvedArrow.tsx'
+import { styled } from '~styles'
+import { TextLabel, getFontStyle, getShapeStyle } from '../shared'
+import { getTextLabelSize } from '../shared/getTextSize'
 import { StraightArrow } from './components/StraightArrow'
+import { CurvedArrow } from './components/CurvedArrow.tsx'
+import { LabelMask } from '../shared/LabelMask'
 
 type T = ArrowShape
 type E = HTMLDivElement

@@ -1,8 +1,9 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
-import { getOffsetPolygon, getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
+import { getShapeStyle } from '../shared'
+import { getOffsetPolygon } from '../shared/PolygonUtils'
 
 export function getTrianglePoints(size: number[], offset = 0, rotation = 0) {
   const [w, h] = size

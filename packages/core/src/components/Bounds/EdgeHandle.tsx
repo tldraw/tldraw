@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
-import { TLBounds, TLBoundsEdge } from '~types'
+import { TLBoundsEdge, TLBounds } from '~types'
 
 const edgeClassnames = {
   [TLBoundsEdge.Top]: 'tl-cursor-ns',

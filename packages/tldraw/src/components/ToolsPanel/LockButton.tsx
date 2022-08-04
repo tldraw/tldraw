@@ -1,8 +1,8 @@
-import { LockClosedIcon, LockOpen1Icon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import { LockClosedIcon, LockOpen1Icon } from '@radix-ui/react-icons'
 import { Tooltip } from '~components/Primitives/Tooltip'
 import { useTldrawApp } from '~hooks'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import type { TDSnapshot } from '~types'
 
 const isToolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked

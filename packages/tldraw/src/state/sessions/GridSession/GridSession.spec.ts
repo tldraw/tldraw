@@ -1,4 +1,4 @@
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 import { TDStatus } from '~types'
 
 describe('Grid session', () => {

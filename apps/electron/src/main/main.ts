@@ -1,4 +1,4 @@
-import { BrowserWindow, app } from 'electron'
+import { app, BrowserWindow } from 'electron'
 import { is } from 'electron-util'
 import type { Message } from 'src/types'
 import { createMenu } from './createMenu'

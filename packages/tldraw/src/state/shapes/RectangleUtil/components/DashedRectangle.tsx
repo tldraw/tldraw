@@ -1,8 +1,8 @@
-import { Utils } from '@tldraw/core'
 import * as React from 'react'
+import { Utils } from '@tldraw/core'
 import { BINDING_DISTANCE } from '~constants'
-import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
+import { getShapeStyle } from '~state/shapes/shared'
 
 interface RectangleSvgProps {
   id: string

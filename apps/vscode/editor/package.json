@@ -13,8 +13,7 @@
   "scripts": {
     "start": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx"
   },
   "devDependencies": {
     "@tldraw/tldraw": "*",

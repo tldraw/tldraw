@@ -1,17 +1,17 @@
-import { TLShapeUtil, Utils } from '@tldraw/core'
-import type { TLBounds, TLPointerInfo } from '@tldraw/core'
+import { Utils, TLShapeUtil } from '@tldraw/core'
+import type { TLPointerInfo, TLBounds } from '@tldraw/core'
 import {
   intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
+import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
-import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
-import { getFontStyle, getShapeStyle } from './shared'
-import { getTextLabelSize } from './shared/getTextSize'
 import { getTextSvgElement } from './shared/getTextSvgElement'
+import { getTextLabelSize } from './shared/getTextSize'
+import { getFontStyle, getShapeStyle } from './shared'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,

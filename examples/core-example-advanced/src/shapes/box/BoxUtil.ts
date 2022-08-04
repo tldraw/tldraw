@@ -1,4 +1,4 @@
-import { TLBounds, Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import { intersectLineSegmentBounds } from '@tldraw/intersect'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'

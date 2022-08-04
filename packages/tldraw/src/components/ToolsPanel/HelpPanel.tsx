@@ -1,24 +1,24 @@
+import * as React from 'react'
+import * as Popover from '@radix-ui/react-popover'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { FormattedMessage } from 'react-intl'
+import { styled } from '~styles'
+import { useTldrawApp } from '~hooks'
+import { TDSnapshot } from '~types'
+import { breakpoints } from '~components/breakpoints'
 import {
   GitHubLogoIcon,
-  HeartFilledIcon,
   QuestionMarkIcon,
+  HeartFilledIcon,
   TwitterLogoIcon,
 } from '@radix-ui/react-icons'
-import * as Popover from '@radix-ui/react-popover'
-import * as React from 'react'
-import { FormattedMessage } from 'react-intl'
-import { Divider } from '~components/Primitives/Divider'
-import { MenuContent } from '~components/Primitives/MenuContent'
 import { RowButton } from '~components/Primitives/RowButton'
+import { MenuContent } from '~components/Primitives/MenuContent'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { DiscordIcon } from '~components/Primitives/icons'
 import { LanguageMenu } from '~components/TopPanel/LanguageMenu/LanguageMenu'
-import { breakpoints } from '~components/breakpoints'
-import { useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import { TDSnapshot } from '~types'
 import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
+import { Divider } from '~components/Primitives/Divider'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -32,9 +32,9 @@ export function HelpPanel() {
 
   return (
     <Popover.Root>
-      <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
+      <PopoverAnchor dir="ltr" debug={isDebugMode}>
         <Popover.Trigger dir="ltr" asChild>
-          <HelpButton>
+          <HelpButton side={side} debug={isDebugMode} bp={breakpoints}>
             <QuestionMarkIcon />
           </HelpButton>
         </Popover.Trigger>
@@ -93,11 +93,13 @@ const Links = () => {
 }
 
 const HelpButton = styled('button', {
-  width: 32,
-  height: 32,
+  width: 28,
+  height: 28,
   borderRadius: '100%',
+  position: 'absolute',
+  right: 10,
+  bottom: 10,
   display: 'flex',
-  padding: 0,
   justifyContent: 'center',
   alignItems: 'center',
   outline: 'none',
@@ -106,10 +108,40 @@ const HelpButton = styled('button', {
   boxShadow: '$panel',
   border: '1px solid $panelContrast',
   color: '$text',
-  '& svg': {
-    height: 12,
-    width: 12,
+  variants: {
+    debug: {
+      true: {},
+      false: {},
+    },
+    bp: {
+      mobile: {},
+      small: {},
+      medium: {},
+      large: {},
+    },
+    side: {
+      top: {},
+      left: {},
+      right: {},
+      bottom: {},
+    },
   },
+  compoundVariants: [
+    {
+      bp: 'mobile',
+      side: 'bottom',
+      css: {
+        bottom: 70,
+      },
+    },
+    {
+      bp: 'small',
+      side: 'bottom',
+      css: {
+        bottom: 10,
+      },
+    },
+  ],
 })
 
 export const StyledContent = styled(MenuContent, {
@@ -139,48 +171,15 @@ export const StyledContent = styled(MenuContent, {
 const PopoverAnchor = styled(Popover.Anchor, {
   position: 'absolute',
   zIndex: 999,
-  right: 10,
-  bottom: 10,
-  width: 32,
-  height: 32,
+  right: 0,
+  bottom: 0,
+  width: 40,
+  height: 40,
   variants: {
     debug: {
-      true: {},
-      false: {},
-    },
-    bp: {
-      mobile: {
-        bottom: 64,
+      true: {
+        bottom: 40,
       },
-      small: {
-        bottom: 10,
-      },
-      medium: {},
-      large: {},
-    },
-    side: {
-      top: {},
-      left: {},
-      right: {},
-      bottom: {},
     },
   },
-  compoundVariants: [
-    {
-      bp: 'mobile',
-      side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 104,
-      },
-    },
-    {
-      bp: 'small',
-      side: 'bottom',
-      debug: true,
-      css: {
-        bottom: 50,
-      },
-    },
-  ],
 })

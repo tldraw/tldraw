@@ -1,17 +1,17 @@
 import {
-  TLBounds,
   TLBoundsCorner,
-  TLBoundsEdge,
-  TLBoundsWithCenter,
   TLSnapLine,
+  TLBoundsEdge,
   Utils,
+  TLBoundsWithCenter,
+  TLBounds,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
+import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
 import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '~state/TldrawApp'
-import { BaseSession } from '~state/sessions/BaseSession'
-import { SessionType, TDShape, TDStatus, TldrawCommand, TldrawPatch } from '~types'
+import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
 
 type SnapInfo =
   | {

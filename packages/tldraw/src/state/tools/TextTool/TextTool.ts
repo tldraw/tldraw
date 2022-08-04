@@ -1,7 +1,7 @@
-import type { TLKeyboardEventHandler, TLPointerEventHandler } from '@tldraw/core'
+import type { TLPointerEventHandler, TLKeyboardEventHandler } from '@tldraw/core'
 import Vec from '@tldraw/vec'
-import { BaseTool, Status } from '~state/tools/BaseTool'
 import { TDShapeType } from '~types'
+import { BaseTool, Status } from '../BaseTool'
 
 export class TextTool extends BaseTool {
   type = TDShapeType.Text as const

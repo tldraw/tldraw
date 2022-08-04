@@ -1,5 +1,5 @@
-import { getShapeUtils } from 'shapes'
 import type { Action } from 'state/constants'
+import { getShapeUtils } from 'shapes'
 import { mutables } from 'state/mutables'
 
 export const eraseShapesAtPoint: Action = (data) => {

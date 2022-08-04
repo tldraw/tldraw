@@ -1,8 +1,8 @@
 import { createState } from '@state-designer/react'
 import type { TLPointerInfo } from '@tldraw/core'
+import { INITIAL_DATA } from './constants'
 import Vec from '@tldraw/vec'
 import * as actions from './actions'
-import { INITIAL_DATA } from './constants'
 import { mutables } from './mutables'
 
 export const machine = createState({

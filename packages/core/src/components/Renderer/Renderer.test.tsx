@@ -1,12 +1,12 @@
-import { act, render } from '@testing-library/react'
-import Vec from '@tldraw/vec'
-import { action, makeAutoObservable } from 'mobx'
 import * as React from 'react'
-import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 import { mockDocument, mockUtils } from '~test'
+import { act, render } from '@testing-library/react'
+import { Renderer } from './Renderer'
+import { action, makeAutoObservable } from 'mobx'
 import type { TLBounds, TLPage, TLPageState } from '~types'
 import Utils from '~utils'
-import { Renderer } from './Renderer'
+import type { BoxShape } from '~TLShapeUtil/TLShapeUtil.spec'
+import Vec from '@tldraw/vec'
 
 describe('renderer', () => {
   test('mounts component without crashing', () => {

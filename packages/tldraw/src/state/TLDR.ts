@@ -1,24 +1,24 @@
-import { TLBounds, TLPageState, TLTransformInfo, Utils } from '@tldraw/core'
-import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
-import { Vec } from '@tldraw/vec'
-import { BINDING_DISTANCE } from '~constants'
+import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
 import {
-  ArrowShape,
-  ShapesWithProp,
-  TDBinding,
-  TDExportType,
-  TDHandle,
-  TDPage,
-  TDShape,
-  TDShapeType,
   TDSnapshot,
+  ShapesWithProp,
+  TDShape,
+  TDBinding,
+  TDPage,
   TldrawCommand,
   TldrawPatch,
+  TDShapeType,
+  ArrowShape,
+  TDHandle,
+  TDExportType,
 } from '~types'
-import { deepCopy } from './StateManager/copy'
-import { getShapeUtil } from './shapes'
+import { Vec } from '@tldraw/vec'
 import type { TDShapeUtil } from './shapes/TDShapeUtil'
+import { getShapeUtil } from './shapes'
+import { deepCopy } from './StateManager/copy'
+import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
+import { BINDING_DISTANCE } from '~constants'
 
 const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
@@ -392,30 +392,16 @@ export class TLDR {
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
-    const shapes = data.document.pages?.[data.appState.currentPageId].shapes
-    const groupShape = shapes?.[ids[0]]
+    ids.forEach((id, i) => {
+      const shape = TLDR.getShape<T>(data, id, pageId)
+      if (shape.isLocked) return
 
-    if (ids.length === 1 && groupShape?.type === 'group') {
-      groupShape.children.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
-        }
-      })
-    } else {
-      ids.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
-        }
-      })
-    }
+      const change = fn(shape, i)
+      if (change) {
+        beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+        afterShapes[id] = change
+      }
+    })
 
     const dataWithMutations = Utils.deepMerge(data, {
       document: {

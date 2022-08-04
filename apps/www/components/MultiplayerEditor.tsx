@@ -1,10 +1,10 @@
-import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
-import { useMultiplayerAssets } from '~hooks/useMultiplayerAssets'
-import { useMultiplayerState } from '~hooks/useMultiplayerState'
-import { useUploadAssets } from '~hooks/useUploadAssets'
-import { styled } from '~styles'
-import { RoomProvider } from '~utils/liveblocks'
+import { RoomProvider } from '../utils/liveblocks'
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import { useMultiplayerAssets } from 'hooks/useMultiplayerAssets'
+import { useMultiplayerState } from 'hooks/useMultiplayerState'
+import { useUploadAssets } from 'hooks/useUploadAssets'
+import { styled } from 'styles'
 
 interface Props {
   roomId: string

@@ -1,7 +1,7 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
-import { TLBounds, TLBoundsCorner } from '~types'
+import { TLBoundsCorner, TLBounds } from '~types'
 
 const cornerBgClassnames = {
   [TLBoundsCorner.TopLeft]: 'tl-cursor-nwse',

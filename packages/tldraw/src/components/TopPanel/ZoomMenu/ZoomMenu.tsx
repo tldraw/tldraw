@@ -1,12 +1,12 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import * as React from 'react'
-import { FormattedMessage } from 'react-intl'
-import { DMContent, DMItem } from '~components/Primitives/DropdownMenu'
+import { useTldrawApp } from '~hooks'
+import type { TDSnapshot } from '~types'
+import { styled } from '~styles'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import { DMItem, DMContent } from '~components/Primitives/DropdownMenu'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { preventEvent } from '~components/preventEvent'
-import { useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import type { TDSnapshot } from '~types'
+import { FormattedMessage } from 'react-intl'
 
 const zoomSelector = (s: TDSnapshot) => s.document.pageStates[s.appState.currentPageId].camera.zoom
 

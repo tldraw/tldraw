@@ -1,14 +1,14 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { FormattedMessage, useIntl } from 'react-intl'
-import { Divider } from '~components/Primitives/Divider'
-import { DMContent, DMItem, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
-import { preventEvent } from '~components/preventEvent'
+import { HamburgerMenuIcon } from '@radix-ui/react-icons'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { useTldrawApp } from '~hooks'
-import { useFileSystemHandlers } from '~hooks'
-import { TDExportType, TDSnapshot } from '~types'
 import { PreferencesMenu } from '../PreferencesMenu'
+import { DMItem, DMContent, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
+import { useFileSystemHandlers } from '~hooks'
+import { preventEvent } from '~components/preventEvent'
+import { TDExportType, TDSnapshot } from '~types'
+import { Divider } from '~components/Primitives/Divider'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 interface MenuProps {
   readOnly: boolean

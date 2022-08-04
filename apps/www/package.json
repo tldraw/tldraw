@@ -13,8 +13,7 @@
     "dev": "next dev",
     "build": "next build",
     "serve": "next serve",
-    "lint": "TIMING=1 next lint",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+    "lint": "TIMING=1 next lint"
   },
   "dependencies": {
     "@liveblocks/client": "^0.17.0-beta2",

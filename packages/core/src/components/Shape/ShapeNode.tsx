@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLShapeUtilsMap } from '~TLShapeUtil'
 import type { IShapeTreeNode, TLShape } from '~types'
 import { Shape } from './Shape'
+import type { TLShapeUtilsMap } from '~TLShapeUtil'
 
 interface ShapeNodeProps<T extends TLShape> extends IShapeTreeNode<T> {
   utils: TLShapeUtilsMap<TLShape>

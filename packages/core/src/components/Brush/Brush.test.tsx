@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react'
 import * as React from 'react'
 import { renderWithSvg } from '~test'
+import { screen } from '@testing-library/react'
 import { Brush } from './Brush'
 
 describe('brush', () => {

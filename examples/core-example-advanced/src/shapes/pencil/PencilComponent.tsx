@@ -1,5 +1,5 @@
-import { SVGContainer, TLShapeUtil } from '@tldraw/core'
 import * as React from 'react'
+import { TLShapeUtil, SVGContainer } from '@tldraw/core'
 import type { PencilShape } from './PencilShape'
 import { getComponentSvgPath } from './pencil-helpers'
 

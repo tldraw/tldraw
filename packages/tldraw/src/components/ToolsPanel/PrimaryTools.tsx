@@ -1,3 +1,5 @@
+import * as React from 'react'
+import { useIntl } from 'react-intl'
 import {
   ArrowTopRightIcon,
   CursorArrowIcon,
@@ -6,16 +8,14 @@ import {
   Pencil2Icon,
   TextIcon,
 } from '@radix-ui/react-icons'
-import * as React from 'react'
-import { useIntl } from 'react-intl'
-import { Panel } from '~components/Primitives/Panel'
-import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
-import { EraserIcon } from '~components/Primitives/icons'
-import { breakpoints } from '~components/breakpoints'
+import { TDSnapshot, TDShapeType } from '~types'
 import { useTldrawApp } from '~hooks'
-import { styled } from '~styles/stitches.config'
-import { TDShapeType, TDSnapshot } from '~types'
+import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
+import { Panel } from '~components/Primitives/Panel'
 import { ShapesMenu } from './ShapesMenu'
+import { EraserIcon } from '~components/Primitives/icons'
+import { styled } from '~styles/stitches.config'
+import { breakpoints } from '~components/breakpoints'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
 const toolLockedSelector = (s: TDSnapshot) => s.appState.isToolLocked

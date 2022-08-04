@@ -1,6 +1,6 @@
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 import { ColorStyle, DashStyle, SessionType, SizeStyle, TDShapeType } from '~types'
 
 let app: TldrawTestApp

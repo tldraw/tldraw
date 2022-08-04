@@ -1,5 +1,5 @@
 import React from 'react'
-import { styled } from '~styles'
+import { styled } from 'styles'
 
 export default function IFrameWarning({ url = 'https://tldraw.com' }: { url?: string }) {
   const [copied, setCopied] = React.useState(false)

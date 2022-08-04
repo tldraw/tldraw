@@ -1,8 +1,8 @@
+import '../styles/globals.css'
 import Head from 'next/head'
+import useGtag from 'utils/useGtag'
+import { init } from 'utils/sentry'
 import type React from 'react'
-import '~styles/globals.css'
-import { init } from '~utils/sentry'
-import useGtag from '~utils/useGtag'
 
 init()
 

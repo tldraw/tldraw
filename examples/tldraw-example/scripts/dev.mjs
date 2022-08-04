@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
-import dotenv from 'dotenv'
-import esbuildServe from 'esbuild-serve'
 import fs from 'fs'
 import path from 'path'
+import esbuildServe from 'esbuild-serve'
+import dotenv from 'dotenv'
 
 dotenv.config()
 

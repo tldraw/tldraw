@@ -1,5 +1,5 @@
 import Vec from '@tldraw/vec'
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 import { AlignType, TDShapeType } from '~types'
 
 describe('Align command', () => {

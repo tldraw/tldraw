@@ -1,4 +1,4 @@
-import { del, get, set } from 'idb-keyval'
+import { get, set, del } from 'idb-keyval'
 
 // Used for clipboard
 

@@ -1,4 +1,4 @@
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 
 let app: TldrawTestApp
 

@@ -27,10 +27,9 @@ Rename the new file to the [language code](https://gist.github.com/wpsmith/76048
 In the `packages/tldraw/src/translations/translations.ts` file, import your file and create a new entry in to the `TRANSLATIONS` array like this:
 
 ```ts
-import ar from './ar.json'
 import en from './en.json'
-// import here ↲
-import eo from './eo.json'
+import ar from './ar.json'
+import eo from './eo.json' // <-- import here
 
 export const TRANSLATIONS: TDTranslations = [
   // Default language:

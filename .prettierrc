@@ -2,8 +2,5 @@
   "trailingComma": "es5",
   "singleQuote": true,
   "semi": false,
-  "printWidth": 100,
-  "importOrder": ["^[~]", "^[./]"],
-  "importOrderSortSpecifiers": true,
-  "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"]
+  "printWidth": 100
 }

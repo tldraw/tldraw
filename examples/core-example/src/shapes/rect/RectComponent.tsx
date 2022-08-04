@@ -1,5 +1,5 @@
-import { SVGContainer, TLShapeUtil } from '@tldraw/core'
 import * as React from 'react'
+import { TLShapeUtil, SVGContainer } from '@tldraw/core'
 import type { RectShape } from './RectShape'
 
 export const RectComponent = TLShapeUtil.Component<RectShape, SVGSVGElement>(

@@ -1,9 +1,9 @@
-import { render } from '@testing-library/react'
 import * as React from 'react'
-import { SVGContainer } from '~components'
-import type { TLBounds, TLComponentProps, TLShape } from '~types'
-import Utils from '~utils'
+import type { TLShape, TLBounds, TLComponentProps } from '../types'
 import { TLShapeUtil } from './TLShapeUtil'
+import { render } from '@testing-library/react'
+import { SVGContainer } from '~components'
+import Utils from '../utils'
 
 export interface BoxShape extends TLShape {
   type: 'box'

@@ -1,21 +1,21 @@
-import { Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { deepCopy } from '~state/StateManager/copy'
-import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '~state/TldrawApp'
-import { BaseSession } from '~state/sessions/BaseSession'
-import { shapeUtils } from '~state/shapes'
 import {
   ArrowBinding,
   ArrowShape,
-  SessionType,
-  TDBinding,
   TDShape,
-  TDShapeType,
+  TDBinding,
   TDStatus,
-  TldrawCommand,
+  SessionType,
+  TDShapeType,
   TldrawPatch,
+  TldrawCommand,
 } from '~types'
+import { Vec } from '@tldraw/vec'
+import { TLDR } from '~state/TLDR'
+import { shapeUtils } from '~state/shapes'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
+import { Utils } from '@tldraw/core'
+import { deepCopy } from '~state/StateManager/copy'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow

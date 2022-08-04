@@ -1,16 +1,16 @@
-import { TLBounds, TLPageState, Utils } from '@tldraw/core'
+import { TLPageState, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import type { TldrawApp } from '~state/TldrawApp'
-import { BaseSession } from '~state/sessions/BaseSession'
 import {
   Patch,
-  SessionType,
   TDShape,
-  TDShapeType,
   TDStatus,
-  TldrawCommand,
+  SessionType,
+  TDShapeType,
   TldrawPatch,
+  TldrawCommand,
 } from '~types'
+import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '../../internal'
 
 export class GridSession extends BaseSession {
   type = SessionType.Grid

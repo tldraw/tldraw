@@ -1,7 +1,7 @@
 import { Utils } from '@tldraw/core'
 import { intersectLineSegmentBounds } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
-import { Shape, getShapeUtils } from 'shapes'
+import { getShapeUtils, Shape } from 'shapes'
 import type { ArrowShape } from 'shapes/arrow'
 import { AppData, BINDING_PADDING } from 'state/constants'
 

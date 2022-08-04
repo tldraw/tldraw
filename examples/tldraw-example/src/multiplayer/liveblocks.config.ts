@@ -1,7 +1,7 @@
 import { createClient } from '@liveblocks/client'
 import type { EnsureJson, LiveMap, LiveObject } from '@liveblocks/client'
 import { createRoomContext } from '@liveblocks/react'
-import type { TDAsset, TDBinding, TDDocument, TDShape, TDUser } from '@tldraw/tldraw'
+import type { TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
 
 const client = createClient({
   publicApiKey: 'YOUR_PUBLIC_KEY' || '',

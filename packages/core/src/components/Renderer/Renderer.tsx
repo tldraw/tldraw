@@ -1,22 +1,22 @@
 import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { Canvas } from '~/components/Canvas'
-import type { TLShapeUtilsMap } from '~TLShapeUtil'
-import { TLContext, TLContextType, useTLTheme } from '~hooks'
-import { Inputs } from '~inputs'
 import type {
-  TLAssets,
-  TLBinding,
-  TLBounds,
-  TLCallbacks,
+  TLShape,
   TLPage,
   TLPageState,
-  TLPerformanceMode,
-  TLShape,
-  TLSnapLine,
+  TLCallbacks,
   TLTheme,
+  TLBounds,
+  TLBinding,
+  TLSnapLine,
   TLUsers,
-} from '~types'
+  TLAssets,
+  TLPerformanceMode,
+} from '../../types'
+import { Canvas } from '../Canvas'
+import { Inputs } from '../../inputs'
+import { useTLTheme, TLContext, TLContextType } from '../../hooks'
+import type { TLShapeUtilsMap } from '../../TLShapeUtil'
 
 export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCallbacks<T>> {
   /**

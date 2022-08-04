@@ -1,7 +1,7 @@
-import { TLShapeUtil } from '@tldraw/core'
-import Vec from '@tldraw/vec'
 import * as React from 'react'
+import { TLShapeUtil } from '@tldraw/core'
 import type { ArrowShape } from './ArrowShape'
+import Vec from '@tldraw/vec'
 
 export const ArrowIndicator = TLShapeUtil.Indicator<ArrowShape>(({ shape }) => {
   const { start, end } = shape.handles

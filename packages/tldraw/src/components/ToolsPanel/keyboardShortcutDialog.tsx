@@ -1,12 +1,12 @@
+import * as React from 'react'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Cross2Icon } from '@radix-ui/react-icons'
-import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { IconButton } from '~components/Primitives/IconButton'
-import { Kbd } from '~components/Primitives/Kbd'
 import { RowButton } from '~components/Primitives/RowButton'
-import { breakpoints } from '~components/breakpoints'
 import { styled } from '~styles'
+import { breakpoints } from '~components/breakpoints'
+import { Kbd } from '~components/Primitives/Kbd'
 
 export function KeyboardShortcutDialog({
   onOpenChange,

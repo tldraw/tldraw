@@ -1,5 +1,5 @@
-import { TLShapeUtil } from '@tldraw/core'
 import * as React from 'react'
+import { TLShapeUtil } from '@tldraw/core'
 import type { BoxShape } from './BoxShape'
 
 export const BoxIndicator = TLShapeUtil.Indicator<BoxShape>(({ shape }) => {

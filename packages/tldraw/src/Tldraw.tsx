@@ -1,27 +1,27 @@
-import { Renderer } from '@tldraw/core'
 import * as React from 'react'
-import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
+import { Renderer } from '@tldraw/core'
 import { IntlProvider } from 'react-intl'
-import { ContextMenu } from '~components/ContextMenu'
-import { ErrorFallback } from '~components/ErrorFallback'
-import { FocusButton } from '~components/FocusButton'
-import { Loading } from '~components/Loading'
+import { styled, dark } from '~styles'
+import { TDDocument, TDStatus } from '~types'
+import { TldrawApp, TDCallbacks } from '~state'
+import {
+  TldrawContext,
+  useStylesheet,
+  useTranslation,
+  useKeyboardShortcuts,
+  useTldrawApp,
+  ContainerContext,
+} from '~hooks'
+import { shapeUtils } from '~state/shapes'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { GRID_SIZE } from '~constants'
-import {
-  ContainerContext,
-  TldrawContext,
-  useKeyboardShortcuts,
-  useStylesheet,
-  useTldrawApp,
-  useTranslation,
-} from '~hooks'
-import { TDCallbacks, TldrawApp } from '~state'
+import { ContextMenu } from '~components/ContextMenu'
+import { FocusButton } from '~components/FocusButton'
 import { TLDR } from '~state/TLDR'
-import { shapeUtils } from '~state/shapes'
-import { dark, styled } from '~styles'
-import { TDDocument, TDStatus } from '~types'
+import { GRID_SIZE } from '~constants'
+import { Loading } from '~components/Loading'
+import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
+import { ErrorFallback } from '~components/ErrorFallback'
 
 const ErrorBoundary = _Errorboundary as any
 

@@ -1,6 +1,6 @@
+import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
-import { renderWithContext } from '~test'
 import { Bounds } from '../Bounds'
 
 describe('bounds', () => {

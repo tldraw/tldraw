@@ -1,8 +1,8 @@
+import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
-import { renderWithContext } from '~test'
-import { TLBoundsCorner } from '~types'
 import { CornerHandle } from '../CornerHandle'
+import { TLBoundsCorner } from '~types'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

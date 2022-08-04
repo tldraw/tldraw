@@ -1,4 +1,8 @@
+import * as React from 'react'
+import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
+import { useContainer, useTldrawApp } from '~hooks'
+import { TDSnapshot, AlignType, DistributeType, StretchType, TDExportType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -11,15 +15,11 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
-import * as React from 'react'
-import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
-import { useContainer, useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import { AlignType, DistributeType, StretchType, TDExportType, TDSnapshot } from '~types'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length

@@ -1,5 +1,5 @@
-import { TLShapeUtil } from '@tldraw/core'
 import * as React from 'react'
+import { TLShapeUtil } from '@tldraw/core'
 import type { PencilShape } from './PencilShape'
 import { getIndicatorSvgPath } from './pencil-helpers'
 

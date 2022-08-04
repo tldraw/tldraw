@@ -1,5 +1,5 @@
 import { TLDR } from '~state/TLDR'
-import { TldrawTestApp, mockDocument } from '~test'
+import { mockDocument, TldrawTestApp } from '~test'
 import { SizeStyle, TDShapeType } from '~types'
 
 describe('Style command', () => {

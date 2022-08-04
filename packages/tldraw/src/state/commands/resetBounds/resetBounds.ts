@@ -1,6 +1,6 @@
-import { TLDR } from '~state/TLDR'
-import type { TldrawApp } from '~state/TldrawApp'
 import type { TldrawCommand } from '~types'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '../../internal'
 
 export function resetBounds(app: TldrawApp, ids: string[], pageId: string): TldrawCommand {
   const { currentPageId } = app

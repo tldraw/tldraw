@@ -1,23 +1,14 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import { Brush } from '~components/Brush'
-import { EraseLine } from '~components/EraseLine'
-import { Grid } from '~components/Grid'
-import { Overlay } from '~components/Overlay'
-import { Page } from '~components/Page'
-import { SnapLines } from '~components/SnapLines/SnapLines'
-import { Users } from '~components/Users'
-import { UsersIndicators } from '~components/UsersIndicators'
+import { observer } from 'mobx-react-lite'
 import {
-  useCameraCss,
+  usePreventNavigationCss,
+  useZoomEvents,
+  useSafariFocusOutFix,
   useCanvasEvents,
+  useCameraCss,
   useKeyEvents,
   usePerformanceCss,
-  usePreventNavigationCss,
-  useSafariFocusOutFix,
-  useZoomEvents,
 } from '~hooks'
-import { useResizeObserver } from '~hooks/useResizeObserver'
 import type {
   TLAssets,
   TLBinding,
@@ -29,6 +20,15 @@ import type {
   TLSnapLine,
   TLUsers,
 } from '~types'
+import { Brush } from '~components/Brush'
+import { Page } from '~components/Page'
+import { Users } from '~components/Users'
+import { useResizeObserver } from '~hooks/useResizeObserver'
+import { UsersIndicators } from '~components/UsersIndicators'
+import { SnapLines } from '~components/SnapLines/SnapLines'
+import { Grid } from '~components/Grid'
+import { Overlay } from '~components/Overlay'
+import { EraseLine } from '~components/EraseLine'
 
 interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>

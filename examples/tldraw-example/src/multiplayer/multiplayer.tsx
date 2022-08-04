@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { Tldraw } from '@tldraw/tldraw'
 import * as React from 'react'
+import { Tldraw } from '@tldraw/tldraw'
 import { RoomProvider } from './liveblocks.config'
 import { useMultiplayerState } from './useMultiplayerState'
-
 const roomId = 'mp-test-8'
 
 /*

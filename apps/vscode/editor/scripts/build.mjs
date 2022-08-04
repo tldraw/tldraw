@@ -1,6 +1,6 @@
 /* eslint-disable */
-import esbuild from 'esbuild'
 import fs from 'fs'
+import esbuild from 'esbuild'
 import { createRequire } from 'module'
 import path from 'path'
 

@@ -1,20 +1,15 @@
-import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
 import * as React from 'react'
-import { stopPropagation } from '~components/stopPropagation'
+import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
+import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
+import { defaultTextStyle, getBoundsRectangle, TextAreaUtils } from '../shared'
+import { TDShapeUtil } from '../TDShapeUtil'
+import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
+import { styled } from '~styles'
+import { Vec } from '@tldraw/vec'
 import { GHOSTED_OPACITY } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
-import {
-  TextAreaUtils,
-  defaultTextStyle,
-  getBoundsRectangle,
-  getStickyFontStyle,
-  getStickyShapeStyle,
-  getTextSvgElement,
-} from '~state/shapes/shared'
-import { styled } from '~styles'
-import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { stopPropagation } from '~components/stopPropagation'
 
 type T = StickyShape
 type E = HTMLDivElement

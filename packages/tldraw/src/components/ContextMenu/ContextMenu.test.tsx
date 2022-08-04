@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { renderWithContext, renderWithIntlProvider } from '~test'
 import { ContextMenu } from './ContextMenu'
+import { renderWithContext, renderWithIntlProvider } from '~test'
 
 describe('context menu', () => {
   test('mounts component without crashing', () => {

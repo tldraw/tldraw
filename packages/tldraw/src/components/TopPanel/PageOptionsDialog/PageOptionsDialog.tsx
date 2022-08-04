@@ -1,16 +1,16 @@
+import * as React from 'react'
 import * as Dialog from '@radix-ui/react-alert-dialog'
 import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
-import * as React from 'react'
-import { FormattedMessage, useIntl } from 'react-intl'
+import type { TDSnapshot, TDPage } from '~types'
+import { useContainer, useTldrawApp } from '~hooks'
+import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
+import { styled } from '~styles'
 import { Divider } from '~components/Primitives/Divider'
 import { IconButton } from '~components/Primitives/IconButton/IconButton'
-import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { TextField } from '~components/Primitives/TextField'
 import { breakpoints } from '~components/breakpoints'
-import { useContainer, useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import type { TDPage, TDSnapshot } from '~types'
+import { TextField } from '~components/Primitives/TextField'
+import { FormattedMessage, useIntl } from 'react-intl'
 
 const canDeleteSelector = (s: TDSnapshot) => {
   return Object.keys(s.document.pages).length > 1

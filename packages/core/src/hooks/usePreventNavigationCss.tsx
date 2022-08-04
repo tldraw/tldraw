@@ -28,6 +28,8 @@ export function usePreventNavigationCss(rCanvas: React.RefObject<HTMLDivElement>
 
     if (!elm) return () => void null
 
+    elm.addEventListener('touchstart', preventGestureNavigation)
+
     // @ts-ignore
     elm.addEventListener('gestureend', preventGestureNavigation)
 
@@ -42,6 +44,7 @@ export function usePreventNavigationCss(rCanvas: React.RefObject<HTMLDivElement>
 
     return () => {
       if (elm) {
+        elm.removeEventListener('touchstart', preventGestureNavigation)
         // @ts-ignore
         elm.removeEventListener('gestureend', preventGestureNavigation)
         // @ts-ignore

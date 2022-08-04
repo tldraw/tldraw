@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IntlProvider } from 'react-intl'
-import messages_fr from '~translations/fr.json'
 import messages_en from '~translations/main.json'
+import messages_fr from '~translations/fr.json'
 
 export const renderWithIntlProvider = (children: React.ReactNode) => {
   const messages = {

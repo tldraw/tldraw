@@ -1,15 +1,15 @@
-import { TLBounds, Utils } from '@tldraw/core'
+import { Utils, TLBounds } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
   intersectLineSegmentPolyline,
 } from '@tldraw/intersect'
-import Vec from '@tldraw/vec'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'
 import { PencilComponent } from './PencilComponent'
-import type { PencilShape } from './PencilShape'
 import { PencilIndicator } from './PenclIndicator'
+import type { PencilShape } from './PencilShape'
+import Vec from '@tldraw/vec'
 
 type T = PencilShape
 type E = SVGSVGElement

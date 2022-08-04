@@ -1,5 +1,5 @@
-import type { TldrawApp } from '~state/TldrawApp'
 import type { TldrawCommand } from '~types'
+import type { TldrawApp } from '../../internal'
 
 export function deletePage(app: TldrawApp, pageId: string): TldrawCommand {
   const {

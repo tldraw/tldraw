@@ -1,8 +1,8 @@
-import { screen } from '@testing-library/react'
 import * as React from 'react'
 import { renderWithContext } from '~test'
-import { TLBoundsEdge } from '~types'
+import { screen } from '@testing-library/react'
 import { EdgeHandle } from '../EdgeHandle'
+import { TLBoundsEdge } from '~types'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 

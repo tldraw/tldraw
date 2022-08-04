@@ -1,5 +1,5 @@
-import { Trigger } from '@radix-ui/react-dropdown-menu'
 import * as React from 'react'
+import { Trigger } from '@radix-ui/react-dropdown-menu'
 import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
 
 interface DMTriggerIconProps extends ToolButtonProps {

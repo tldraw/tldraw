@@ -1,8 +1,8 @@
 import type { TLBounds } from '@tldraw/core'
-import { LINE_HEIGHT } from '~constants'
 import { AlignStyle, ShapeStyles } from '~types'
-import { getTextAlign } from './getTextAlign'
 import { getFontFace, getFontSize } from './shape-styles'
+import { getTextAlign } from './getTextAlign'
+import { LINE_HEIGHT } from '~constants'
 
 export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBounds) {
   const fontSize = getFontSize(style.size, style.font)

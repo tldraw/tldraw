@@ -1,87 +1,87 @@
+import { Vec } from '@tldraw/vec'
 import {
-  TLBounds,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
-  TLCanvasEventHandler,
-  TLDropEventHandler,
   TLKeyboardEventHandler,
+  TLShapeCloneHandler,
+  TLCanvasEventHandler,
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
-  TLShapeCloneHandler,
   TLWheelEventHandler,
   Utils,
+  TLBounds,
+  TLDropEventHandler,
 } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
 import {
-  FIT_TO_SCREEN_PADDING,
-  GRID_SIZE,
-  IMAGE_EXTENSIONS,
-  SVG_EXPORT_PADDING,
-  USER_COLORS,
-  VIDEO_EXTENSIONS,
-} from '~constants'
-import { shapeUtils } from '~state/shapes'
-import { defaultStyle } from '~state/shapes/shared'
-import {
-  AlignStyle,
-  AlignType,
-  ArrowShape,
-  DistributeType,
   FlipType,
-  GroupShape,
-  MoveType,
-  SessionType,
-  ShapeStyles,
-  StretchType,
-  TDAsset,
-  TDAssetType,
-  TDAssets,
-  TDBinding,
   TDDocument,
-  TDExport,
-  TDExportBackground,
-  TDExportType,
-  TDPage,
+  MoveType,
+  AlignType,
+  StretchType,
+  DistributeType,
+  ShapeStyles,
   TDShape,
   TDShapeType,
   TDSnapshot,
   TDStatus,
-  TDToolType,
-  TDUser,
+  TDPage,
+  TDBinding,
+  GroupShape,
   TldrawCommand,
+  TDUser,
+  SessionType,
+  TDToolType,
+  TDAssetType,
+  TDAsset,
+  TDAssets,
+  TDExport,
+  ArrowShape,
+  TDExportType,
   TldrawPatch,
+  TDExportBackground,
+  AlignStyle,
 } from '~types'
-import { getClipboard, setClipboard } from './IdbClipboard'
-import { StateManager } from './StateManager'
-import { deepCopy } from './StateManager/copy'
-import { TLDR } from './TLDR'
-import * as Commands from './commands'
 import {
+  migrate,
   FileSystemHandle,
+  loadFileHandle,
+  openFromFileSystem,
+  saveToFileSystem,
+  openAssetsFromFileSystem,
   fileToBase64,
   fileToText,
   getImageSizeFromSrc,
   getVideoSizeFromSrc,
-  loadFileHandle,
-  migrate,
-  openAssetsFromFileSystem,
-  openFromFileSystem,
-  saveToFileSystem,
 } from './data'
-import { SessionArgsOfType, TldrawSession, getSession } from './sessions'
-import { clearPrevSize } from './shapes/shared/getTextSize'
-import { ArrowTool } from './tools/ArrowTool'
+import { TLDR } from './TLDR'
+import { shapeUtils } from '~state/shapes'
+import { defaultStyle } from '~state/shapes/shared/shape-styles'
+import * as Commands from './commands'
+import { SessionArgsOfType, getSession, TldrawSession } from './sessions'
+import {
+  USER_COLORS,
+  FIT_TO_SCREEN_PADDING,
+  GRID_SIZE,
+  IMAGE_EXTENSIONS,
+  VIDEO_EXTENSIONS,
+  SVG_EXPORT_PADDING,
+} from '~constants'
 import type { BaseTool } from './tools/BaseTool'
+import { SelectTool } from './tools/SelectTool'
+import { EraseTool } from './tools/EraseTool'
+import { TextTool } from './tools/TextTool'
 import { DrawTool } from './tools/DrawTool'
 import { EllipseTool } from './tools/EllipseTool'
-import { EraseTool } from './tools/EraseTool'
-import { LineTool } from './tools/LineTool'
 import { RectangleTool } from './tools/RectangleTool'
-import { SelectTool } from './tools/SelectTool'
-import { StickyTool } from './tools/StickyTool'
-import { TextTool } from './tools/TextTool'
 import { TriangleTool } from './tools/TriangleTool'
+import { LineTool } from './tools/LineTool'
+import { ArrowTool } from './tools/ArrowTool'
+import { StickyTool } from './tools/StickyTool'
+import { StateManager } from './StateManager'
+import { clearPrevSize } from './shapes/shared/getTextSize'
+import { getClipboard, setClipboard } from './IdbClipboard'
+import { deepCopy } from './StateManager/copy'
 
 const uuid = Utils.uniqueId()
 

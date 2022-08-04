@@ -1,9 +1,9 @@
 import * as React from 'react'
-import type { TLShapeUtil } from '~TLShapeUtil'
-import { BoxUtil, boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 import { renderWithContext } from '~test'
-import type { TLShape } from '~types'
 import { Shape } from './Shape'
+import { BoxUtil, boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
+import type { TLShapeUtil } from '~TLShapeUtil'
+import type { TLShape } from '~types'
 
 describe('shape', () => {
   test('mounts component without crashing', () => {

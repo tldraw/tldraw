@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLBoundsCorner, TLBoundsEdge } from '~types'
+import type { TLBoundsEdge, TLBoundsCorner } from '../types'
 import { useTLContext } from './useTLContext'
 
 export function useBoundsHandleEvents(

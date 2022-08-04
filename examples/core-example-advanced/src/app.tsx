@@ -1,4 +1,4 @@
-import { useStateDesigner } from '@state-designer/react'
+import * as React from 'react'
 import {
   Renderer,
   TLBounds,
@@ -7,14 +7,14 @@ import {
   TLPointerEventHandler,
   TLWheelEventHandler,
 } from '@tldraw/core'
-import * as React from 'react'
-import { Api } from 'state/api'
-import styled from 'stitches.config'
-import { TitleLinks } from './components/TitleLinks'
-import { Toolbar } from './components/Toolbar'
+import { useStateDesigner } from '@state-designer/react'
 import { shapeUtils } from './shapes'
 import { machine } from './state/machine'
+import { Toolbar } from './components/Toolbar'
+import { TitleLinks } from './components/TitleLinks'
 import './styles.css'
+import styled from 'stitches.config'
+import { Api } from 'state/api'
 
 declare const window: Window & { api: Api }
 
