@@ -184,13 +184,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       const bounds = this.getBounds(shape)
       const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
       labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
-      const font = getFontStyle(shape.style)
-      const size = getTextLabelSize(s['label'], font)
       labelElm.setAttribute('transform-origin', 'top left')
-      labelElm.setAttribute(
-        'transform',
-        `translate(${bounds.width / 2}, ${(bounds.height - size[1]) / 2})`
-      )
       g.setAttribute('text-align', 'center')
       g.setAttribute('text-anchor', 'middle')
       g.appendChild(elm)
