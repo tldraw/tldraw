@@ -124,7 +124,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>
-      <ToolButtonWithTooltip label="Image" onClick={uploadMedias} id="TD-PrimaryTools-Image">
+      <ToolButtonWithTooltip label={intl.formatMessage({ id: 'image' })} onClick={uploadMedias} id="TD-PrimaryTools-Image">
         <ImageIcon />
       </ToolButtonWithTooltip>
     </StyledPanel>
