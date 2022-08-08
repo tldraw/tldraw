@@ -92,10 +92,10 @@
   "left": "左面",
   "right": "右面",
   "top": "上面",
-  "export.background": "导出背景",
+  "export.background": "导出背景色",
   "transparent": "透明",
   "auto": "自动",
-  "light": "明亮模式",
-  "dark": "暗黑模式",
+  "light": "明亮",
+  "dark": "暗黑",
   "copy.readonly.link": "复制只读链接"
 }
