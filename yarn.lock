@@ -1874,6 +1874,14 @@
     intl-messageformat "10.0.1"
     tslib "2.4.0"
 
+"@ggallon/prettier-plugin-sort-imports@^3.4.2-canary.0":
+  version "3.4.2-canary.0"
+  resolved "https://registry.yarnpkg.com/@ggallon/prettier-plugin-sort-imports/-/prettier-plugin-sort-imports-3.4.2-canary.0.tgz#46fac68966ec27367fca0feb5bb627b19218a022"
+  integrity sha512-wb0xyAGce5j8FFh9f7c0+Cpog2tzz5zkNQGcuRgheesC/F5HC5Dl0sWw4sETbgBNfDLNPyQfP9YktGQ9TC/CFA==
+  dependencies:
+    javascript-natural-sort "^0.7.1"
+    lodash "^4.17.21"
+
 "@grpc/grpc-js@^1.3.2":
   version "1.5.5"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.5.5.tgz#f850a1bb7de8a1d0bb4821aabd3655d1c928d4c6"
@@ -7977,6 +7985,11 @@ jake@^10.8.5:
     chalk "^4.0.2"
     filelist "^1.0.1"
     minimatch "^3.0.4"
+
+javascript-natural-sort@^0.7.1:
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/javascript-natural-sort/-/javascript-natural-sort-0.7.1.tgz#f9e2303d4507f6d74355a73664d1440fb5a0ef59"
+  integrity sha512-nO6jcEfZWQXDhOiBtG2KvKyEptz7RVbpGP4vTD2hLBdmNQSsCiicO2Ioinv6UI4y9ukqnBpy+XZ9H6uLNgJTlw==
 
 jest-changed-files@^27.5.1:
   version "27.5.1"
