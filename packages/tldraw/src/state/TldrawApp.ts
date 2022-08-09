@@ -2834,8 +2834,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         },
       }
-      if (this.appState.isToolLocked)
-        (result.after.document.pageStates as any).page.selectedIds = []
+      if (this.appState.isToolLocked) {
+        const pageState = result.after?.document?.pageStates?.[this.currentPageId] || {}
+        pageState.selectedIds = []
+      }
 
       this.setState(result, `session:complete:${session.constructor.name}`)
     } else {
