@@ -26,7 +26,12 @@ api.getShape('myBox')
 */
 
 export class Api {
-  constructor(private _machine: typeof machine) {}
+  constructor(private _machine: typeof machine) {
+    this.send = _machine.send
+    this.isIn = _machine.isIn
+    this.isInAny = _machine.isInAny
+    this.log = _machine.log
+  }
 
   reset = () => {
     this.machine.send('RESET')
@@ -140,13 +145,13 @@ export class Api {
     return this
   }
 
-  send = this._machine.send
+  send: typeof machine.send
 
-  isIn = this._machine.isIn
+  isIn: typeof machine.isIn
 
-  isInAny = this._machine.isInAny
+  isInAny: typeof machine.isInAny
 
-  log = this._machine.log
+  log: typeof machine.log
 
   get machine() {
     return this._machine
