@@ -9,37 +9,34 @@
   },
   "license": "MIT",
   "private": true,
+  "type": "module",
   "scripts": {
-    "build:core": "yarn build",
-    "start:core": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs",
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
-  "files": [],
-  "devDependencies": {
+  "dependencies": {
     "@state-designer/react": "^3.0.0",
-    "@stitches/react": "^1.2.6",
+    "@stitches/react": "^1.2.8",
     "@tldraw/core": "*",
     "@tldraw/intersect": "*",
     "@tldraw/vec": "*",
-    "@types/node": "^17.0.14",
-    "@types/react": "^18.0.17",
-    "@types/react-dom": "^18.0.6",
-    "@types/react-router-dom": "^5.3.3",
-    "concurrently": "^7.0.0",
-    "create-serve": "^1.0.1",
-    "esbuild": "^0.14.54",
-    "esbuild-serve": "^1.0.1",
     "immer": "^9.0.12",
     "lodash": "^4.17.21",
     "nanoid": "^3.1.31",
     "perfect-freehand": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-feather": "^2.0.9",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.7.3"
+    "react-feather": "^2.0.10"
   },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+  "devDependencies": {
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.0.0",
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0",
+    "vite-tsconfig-paths": "^3.5.0"
+  }
 }
