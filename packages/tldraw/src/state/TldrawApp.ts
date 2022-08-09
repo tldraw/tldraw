@@ -2824,6 +2824,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...result.after.appState,
         status: TDStatus.Idle,
       }
+
       result.after.document = {
         ...result.after.document,
         pageStates: {
@@ -2834,6 +2835,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         },
       }
+
       if (this.appState.isToolLocked) {
         const pageState = result.after?.document?.pageStates?.[this.currentPageId] || {}
         pageState.selectedIds = []
