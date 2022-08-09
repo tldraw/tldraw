@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
+import { MenuContent } from '~components/Primitives/MenuContent'
+import { RowButton } from '~components/Primitives/RowButton'
+import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSettings, TDSnapshot } from '~types'
-import { useTldrawApp } from '~hooks'
-import { RowButton } from '~components/Primitives/RowButton'
-import { MenuContent } from '~components/Primitives/MenuContent'
 
 const isEmptyCanvasSelector = (s: TDSnapshot) => {
   return (

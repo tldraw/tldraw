@@ -1,17 +1,17 @@
-import { Utils, TLShapeUtil } from '@tldraw/core'
-import type { TLPointerInfo, TLBounds } from '@tldraw/core'
+import { TLShapeUtil, Utils } from '@tldraw/core'
+import type { TLBounds, TLPointerInfo } from '@tldraw/core'
 import {
   intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
-import { getTextSvgElement } from './shared/getTextSvgElement'
-import { getTextLabelSize } from './shared/getTextSize'
+import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import { getFontStyle, getShapeStyle } from './shared'
+import { getTextLabelSize } from './shared/getTextSize'
+import { getTextSvgElement } from './shared/getTextSvgElement'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,
@@ -184,13 +184,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       const bounds = this.getBounds(shape)
       const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
       labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
-      const font = getFontStyle(shape.style)
-      const size = getTextLabelSize(s['label'], font)
       labelElm.setAttribute('transform-origin', 'top left')
-      labelElm.setAttribute(
-        'transform',
-        `translate(${bounds.width / 2}, ${(bounds.height - size[1]) / 2})`
-      )
       g.setAttribute('text-align', 'center')
       g.setAttribute('text-anchor', 'middle')
       g.appendChild(elm)

@@ -1,13 +1,16 @@
-import * as React from 'react'
-import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import { AlignType, TDSnapshot, DistributeType, StretchType } from '~types'
 import {
+  AlignBottomIcon,
+  AlignCenterHorizontallyIcon,
+  AlignCenterVerticallyIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
+  AlignTopIcon,
+  AngleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
   AspectRatioIcon,
+  BoxIcon,
   CopyIcon,
   DotsHorizontalIcon,
   GroupIcon,
@@ -16,23 +19,20 @@ import {
   PinBottomIcon,
   PinTopIcon,
   RotateCounterClockwiseIcon,
-  AlignBottomIcon,
-  AlignCenterHorizontallyIcon,
-  AlignCenterVerticallyIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  AlignTopIcon,
   SpaceEvenlyHorizontallyIcon,
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-  BoxIcon,
-  AngleIcon,
 } from '@radix-ui/react-icons'
-import { DMContent } from '~components/Primitives/DropdownMenu'
-import { Divider } from '~components/Primitives/Divider'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import * as React from 'react'
 import { useIntl } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
+import { DMContent } from '~components/Primitives/DropdownMenu'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
+import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { AlignType, DistributeType, StretchType, TDSnapshot } from '~types'
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length

@@ -1,7 +1,7 @@
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
-import { useUploadAssets } from 'hooks/useUploadAssets'
 import * as React from 'react'
-import * as gtag from 'utils/gtag'
+import { useUploadAssets } from '~hooks/useUploadAssets'
+import * as gtag from '~utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
 

@@ -14,7 +14,8 @@
     "start:vscode": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
     "build:apps": "yarn build",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
     "@tldraw/tldraw": "*",

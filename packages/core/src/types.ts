@@ -1,5 +1,4 @@
 /* --------------------- Primary -------------------- */
-
 import type React from 'react'
 
 export enum TLPerformanceMode {

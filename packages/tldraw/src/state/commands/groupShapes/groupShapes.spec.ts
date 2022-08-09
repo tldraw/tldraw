@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { GroupShape, TDShape, TDShapeType } from '~types'
 
 describe('Group command', () => {

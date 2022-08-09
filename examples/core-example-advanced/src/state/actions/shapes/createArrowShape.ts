@@ -1,9 +1,9 @@
-import { nanoid } from 'nanoid'
-import Vec from '@tldraw/vec'
 import { TLPointerInfo, Utils } from '@tldraw/core'
-import { getShapeUtils, Shape, shapeUtils } from 'shapes'
-import { mutables } from 'state/mutables'
+import Vec from '@tldraw/vec'
+import { nanoid } from 'nanoid'
+import { Shape, getShapeUtils, shapeUtils } from 'shapes'
 import type { Action, CustomBinding } from 'state/constants'
+import { mutables } from 'state/mutables'
 
 export const createArrowShape: Action = (data, payload: TLPointerInfo) => {
   const shape = shapeUtils.arrow.getShape({

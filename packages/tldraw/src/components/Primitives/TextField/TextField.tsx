@@ -1,6 +1,6 @@
 import * as React from 'react'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { styled } from '~styles'
-import { SmallIcon } from '../SmallIcon'
 
 export interface TextFieldProps extends React.HTMLProps<HTMLInputElement> {
   icon?: React.ReactElement

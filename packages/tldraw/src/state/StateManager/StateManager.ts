@@ -1,9 +1,10 @@
-import createVanilla, { StoreApi } from 'zustand/vanilla'
-import create, { UseBoundStore } from 'zustand'
+import { Utils } from '@tldraw/core'
 import * as idb from 'idb-keyval'
+import create, { UseBoundStore } from 'zustand'
+import createVanilla, { StoreApi } from 'zustand/vanilla'
 import { deepCopy } from './copy'
 import type { Patch, Command, TDSettings } from '../../types'
-import { Utils } from '@tldraw/core'
+
 
 export class StateManager<T extends Record<string, any>, U extends Record<string, any>> {
   /**

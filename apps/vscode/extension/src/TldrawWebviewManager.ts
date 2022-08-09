@@ -1,6 +1,6 @@
-import * as vscode from 'vscode'
 import { TDFile } from '@tldraw/tldraw'
-import { MessageFromWebview, MessageFromExtension } from './types'
+import * as vscode from 'vscode'
+import { MessageFromExtension, MessageFromWebview } from './types'
 
 /**
  * When a new editor is opened, an instance of this class will

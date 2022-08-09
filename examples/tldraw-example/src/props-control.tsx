@@ -1,13 +1,13 @@
-import * as React from 'react'
 import {
-  Tldraw,
   ColorStyle,
   DashStyle,
   SizeStyle,
   TDDocument,
   TDShapeType,
+  Tldraw,
   TldrawApp,
 } from '@tldraw/tldraw'
+import * as React from 'react'
 
 export default function Controlled() {
   const rDocument = React.useRef<TDDocument>({

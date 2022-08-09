@@ -1,8 +1,8 @@
-import { Action, FIT_TO_SCREEN_PADDING } from 'state/constants'
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
-import { mutables } from 'state/mutables'
 import { getShapeUtils } from 'shapes'
+import { Action, FIT_TO_SCREEN_PADDING } from 'state/constants'
+import { mutables } from 'state/mutables'
 
 export const zoomToFit: Action = (data) => {
   const { camera } = data.pageState

@@ -1,14 +1,14 @@
 import * as React from 'react'
-import { styled } from '~styles'
-import type { TDSettings, TDSnapshot } from '~types'
-import { useTldrawApp } from '~hooks'
-import { StatusBar } from './StatusBar'
-import { BackToContent } from './BackToContent'
-import { PrimaryTools } from './PrimaryTools'
-import { ActionButton } from './ActionButton'
-import { DeleteButton } from './DeleteButton'
 import { breakpoints } from '~components/breakpoints'
+import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import type { TDSnapshot, TDSettings } from '~types'
+import { ActionButton } from './ActionButton'
+import { BackToContent } from './BackToContent'
+import { DeleteButton } from './DeleteButton'
 import { HelpPanel } from './HelpPanel'
+import { PrimaryTools } from './PrimaryTools'
+import { StatusBar } from './StatusBar'
 
 interface ToolsPanelProps {
   onBlur?: React.FocusEventHandler

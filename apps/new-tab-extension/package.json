@@ -14,7 +14,8 @@
     "build:extension": "yarn build",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint src/ --ext .ts,.tsx"
+    "lint": "eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
     "@tldraw/tldraw": "*",

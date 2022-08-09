@@ -1,8 +1,8 @@
 import { observer } from 'mobx-react-lite'
+import * as React from 'react'
 import { SVGContainer } from '~components'
 import { Container } from '~components/Container'
 import type { TLBounds } from '~types'
-import * as React from 'react'
 import Utils from '~utils'
 
 export const Brush = observer<{
