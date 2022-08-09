@@ -1,7 +1,8 @@
+import { fileOpen, fileSave } from 'browser-fs-access'
+import type { FileSystemHandle } from 'browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
 import type { TDDocument, TDFile } from '~types'
-import type { FileSystemHandle } from './browser-fs-access'
 
 const options = { mode: 'readwrite' as const }
 
@@ -46,9 +47,6 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
   }
 
   // Save to file system
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileSave = browserFS.fileSave
   const newFileHandle = await fileSave(
     blob,
     {
@@ -70,9 +68,6 @@ export async function openFromFileSystem(): Promise<null | {
   document: TDDocument
 }> {
   // Get the blob
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileOpen = browserFS.fileOpen
   const blob = await fileOpen({
     description: 'Tldraw File',
     extensions: [`.tldr`],
@@ -97,18 +92,15 @@ export async function openFromFileSystem(): Promise<null | {
 
   const fileHandle = blob.handle ?? null
 
-  await saveFileHandle(fileHandle)
+  await saveFileHandle(fileHandle as FileSystemHandle | null)
 
   return {
-    fileHandle,
+    fileHandle: fileHandle as FileSystemHandle | null,
     document: file.document,
   }
 }
 
 export async function openAssetsFromFileSystem() {
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileOpen = browserFS.fileOpen
   return fileOpen({
     description: 'Image or Video',
     extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],
