@@ -540,7 +540,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         this.broadcastPatch(patch, false)
       }
     }
-
     this.callbacks.onPatch?.(this, patch, id)
   }
 
@@ -1670,7 +1669,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   movePage = (pageId: string, index: number): this => {
     if (this.readOnly) return this
-
     return this.setState(Commands.movePage(this, pageId, index))
   }
 
@@ -2826,7 +2824,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         ...result.after.appState,
         status: TDStatus.Idle,
       }
-
       result.after.document = {
         ...result.after.document,
         pageStates: {
@@ -2837,6 +2834,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         },
       }
+      if (this.appState.isToolLocked)
+        (result.after.document.pageStates as any).page.selectedIds = []
 
       this.setState(result, `session:complete:${session.constructor.name}`)
     } else {
