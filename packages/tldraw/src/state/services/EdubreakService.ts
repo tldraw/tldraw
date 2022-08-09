@@ -53,9 +53,8 @@ const EdubreakService = {
 
     getNodeAsJSON: async function(options: any) {
         let endpoint = await this.getEdubreakEndpointFromType(options)
-        // TODO: remove after Testing
-        console.log('access token is: ', this.getEdubreakAccessToken());
-        console.log('api url is: ', this.getEdubreakApiUrl());
+        console.log('### EdubreakService: access token ###', this.getEdubreakAccessToken());
+        console.log('### EdubreakService: api url ### ', this.getEdubreakApiUrl());
         const headers = { Authorization: 'Bearer ' + this.getEdubreakAccessToken() }
         const data = await fetch( this.getEdubreakApiUrl() + endpoint + options.nid, { headers })
             .then(response => {return response.json()})
