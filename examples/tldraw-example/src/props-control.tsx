@@ -4,6 +4,7 @@ import {
   SizeStyle,
   TDDocument,
   TDShapeType,
+  TDSnapshot,
   Tldraw,
   TldrawApp,
 } from '@tldraw/tldraw'
@@ -60,6 +61,7 @@ export default function Controlled() {
         },
       },
     },
+    assets: {},
   })
 
   const [doc, setDoc] = React.useState<TDDocument>(rDocument.current)
@@ -101,7 +103,7 @@ export default function Controlled() {
     }
   }, [])
 
-  const handleChange = React.useCallback((state) => {
+  const handleChange = React.useCallback((state: TDSnapshot) => {
     rDocument.current = state.document
   }, [])
 

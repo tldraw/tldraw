@@ -8,30 +8,32 @@
     "url": "git+https://github.com/tldraw/core.git"
   },
   "license": "MIT",
-  "private": true,
+  "type": "module",
   "scripts": {
-    "start:core": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs",
+    "dev:core": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
     "lint": "eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
-  "files": [],
-  "devDependencies": {
+  "dependencies": {
     "@tldraw/core": "*",
     "@tldraw/vec": "*",
     "@types/node": "^17.0.14",
     "@types/react-router-dom": "^5.3.3",
     "concurrently": "^7.0.0",
-    "esbuild": "^0.14.18",
+    "esbuild": "^0.14.54",
     "esbuild-serve": "^1.0.1",
     "mobx": "^6.3.13",
     "mobx-react-lite": "^3.2.3",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.7.3",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+  "devDependencies": {
+    "typescript": "^4.7.3",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.0.0",
+    "vite": "^3.0.0"
+  }
 }

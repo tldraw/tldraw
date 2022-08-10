@@ -83,5 +83,19 @@
   "forward": "上一层",
   "backward": "下一层",
   "back": "置底",
-  "language": "语言"
+  "language": "语言",
+  "keyboard.shortcuts": "键盘快捷键",
+  "translation.link": "了解更多",
+  "page": "页面",
+  "dock.position": "锚点位置",
+  "bottom": "下面",
+  "left": "左面",
+  "right": "右面",
+  "top": "上面",
+  "export.background": "导出背景色",
+  "transparent": "透明",
+  "auto": "自动",
+  "light": "明亮",
+  "dark": "暗黑",
+  "copy.readonly.link": "复制只读链接"
 }
