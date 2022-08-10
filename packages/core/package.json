@@ -49,15 +49,12 @@
     "@testing-library/react": "^13.3.0",
     "@tldraw/intersect": "*",
     "@tldraw/vec": "*",
-    "@types/node": "^17.0.14",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "@typescript-eslint/eslint-plugin": "^5.10.2",
-    "@typescript-eslint/parser": "^5.10.2",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
     "@tldraw/lfg": "latest",
     "mobx": "^6.3.8",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "jest": {
     "setupFilesAfterEnv": [

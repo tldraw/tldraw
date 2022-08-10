@@ -1,18 +1,26 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "rootDir": "src",
-    "emitDeclarationOnly": false,
-    "experimentalDecorators": true,
+    "target": "ESNext",
     "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
     "skipLibCheck": true,
-    "paths": {
-      "*": ["src/*"]
-    }
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "jsx": "react-jsx"
   },
-  "references": [{ "path": "../../packages/core" }]
+  "include": ["src"],
+  "references": [
+    { "path": "./tsconfig.node.json" },
+    { "path": "../../packages/tldraw" },
+    { "path": "../../packages/core" }
+  ]
 }

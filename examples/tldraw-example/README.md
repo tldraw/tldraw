@@ -4,9 +4,10 @@
 
 # @tldraw/tldraw-example
 
-An example project for `@tldraw/tldraw`.
+An simple example project for `@tldraw/tldraw`.
 
 To start this project:
 
+- run `yarn` from the repository's root directory
 - run `yarn start` from the repository's root directory
-- open `http://localhost:5420` in your browser
+- OR run `yarn dev` from the `examples/tldraw-example` directory

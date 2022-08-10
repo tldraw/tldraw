@@ -8,5 +8,4 @@ An advanced example project for `@tldraw/core`.
 
 To start this project:
 
-- run `yarn start:core` from the repository's root directory
-- open `http://localhost:5420` in your browser
+- run `yarn dev` from the repository's root directory
