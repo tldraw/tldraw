@@ -95,10 +95,10 @@ export async function openFromFileSystem(): Promise<null | {
 
   const fileHandle = blob.handle ?? null
 
-  await saveFileHandle(fileHandle as FileSystemFileHandle | null)
+  await saveFileHandle(fileHandle)
 
   return {
-    fileHandle: fileHandle as FileSystemFileHandle | null,
+    fileHandle,
     document: file.document,
   }
 }
