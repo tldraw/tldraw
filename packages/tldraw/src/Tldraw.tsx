@@ -6,6 +6,7 @@ import { ContextMenu } from '~components/ContextMenu'
 import { ErrorFallback } from '~components/ErrorFallback'
 import { FocusButton } from '~components/FocusButton'
 import { Loading } from '~components/Loading'
+import { AlertDialog } from '~components/Primitives/AlertDialog'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
 import { GRID_SIZE } from '~constants'
@@ -297,6 +298,7 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
+      <AlertDialog open={true} />
       <InnerTldraw
         key={sId || 'Tldraw'}
         id={sId}
