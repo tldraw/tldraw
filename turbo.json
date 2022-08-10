@@ -20,10 +20,6 @@
       "dependsOn": ["@tldraw/vscode-editor#build"],
       "outputs": ["dist/**", "editor/**"]
     },
-    "@tldraw/electron#package": {
-      "dependsOn": ["@tldraw/electron#build"],
-      "outputs": ["dist/**"]
-    },
     "tldraw-vscode#package": {
       "dependsOn": ["tldraw-vscode#build"],
       "outputs": ["temp/**"]
