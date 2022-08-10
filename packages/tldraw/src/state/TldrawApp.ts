@@ -222,7 +222,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   editingStartTime = -1
 
-  fileSystemHandle: FileSystemHandle | null = null
+  fileSystemHandle: FileSystemFileHandle | null = null
 
   viewport = Utils.getBoundsFromPoints([
     [0, 0],

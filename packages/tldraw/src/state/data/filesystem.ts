@@ -6,10 +6,10 @@ import type { TDDocument, TDFile } from '~types'
 
 const options = { mode: 'readwrite' as const }
 
-const checkPermissions = async (handle: FileSystemHandle) => {
+const checkPermissions = async (handle: FileSystemFileHandle) => {
   return (
-    (await handle.queryPermission(options)) === 'granted' ||
-    (await handle.requestPermission(options)) === 'granted'
+    (await (handle as unknown as FileSystemHandle).queryPermission(options)) === 'granted' ||
+    (await (handle as unknown as FileSystemHandle).requestPermission(options)) === 'granted'
   )
 }
 
@@ -20,11 +20,14 @@ export async function loadFileHandle() {
   return fileHandle
 }
 
-export async function saveFileHandle(fileHandle: FileSystemHandle | null) {
+export async function saveFileHandle(fileHandle: FileSystemFileHandle | null) {
   return setToIdb(`Tldraw_file_handle_${window.location.origin}`, fileHandle)
 }
 
-export async function saveToFileSystem(document: TDDocument, fileHandle: FileSystemHandle | null) {
+export async function saveToFileSystem(
+  document: TDDocument,
+  fileHandle: FileSystemFileHandle | null
+) {
   // Create the saved file data
   const file: TDFile = {
     name: document.name || 'New Document',
@@ -64,7 +67,7 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
 }
 
 export async function openFromFileSystem(): Promise<null | {
-  fileHandle: FileSystemHandle | null
+  fileHandle: FileSystemFileHandle | null
   document: TDDocument
 }> {
   // Get the blob
@@ -92,10 +95,10 @@ export async function openFromFileSystem(): Promise<null | {
 
   const fileHandle = blob.handle ?? null
 
-  await saveFileHandle(fileHandle as FileSystemHandle | null)
+  await saveFileHandle(fileHandle as FileSystemFileHandle | null)
 
   return {
-    fileHandle: fileHandle as FileSystemHandle | null,
+    fileHandle: fileHandle as FileSystemFileHandle | null,
     document: file.document,
   }
 }
