@@ -4,28 +4,24 @@ import {ArrowLeftIcon, ArrowRightIcon, Cross1Icon} from '@radix-ui/react-icons'
 import {IconButton} from "~components/Primitives/IconButton";
 import {Panel} from "~components/Primitives/Panel";
 import {useTldrawApp} from "~hooks";
-import {TDShape} from "~types";
 
 interface PresentationMenuProps {
   onSelect: () => void
-  shapes: any
+  viewzones: any
 }
 
-export function PresentationMenu({onSelect, shapes}: PresentationMenuProps) {
+export function PresentationMenu({onSelect, viewzones}: PresentationMenuProps) {
   const app = useTldrawApp()
 
   const currentSlide = localStorage.getItem('currentSlide')
   let slideCounter = 1
-  let viewzones = shapes.filter((shape: TDShape) => shape.type === 'viewzone');
 
   if (!currentSlide) {
-    console.log('hallo');
     localStorage.setItem('currentSlide', '0');
     app.zoomToViewzone(viewzones[0])
   } else {
     slideCounter = Number(currentSlide) + 1
   }
-
 
   const lastSlide = () => {
     let currentSlide = localStorage.getItem('currentSlide')
@@ -42,10 +38,6 @@ export function PresentationMenu({onSelect, shapes}: PresentationMenuProps) {
     localStorage.setItem('currentSlide', slide.toString())
     app.zoomToViewzone(viewzones[slide])
   }
-
-  React.useEffect(() => {
-    app.zoomToViewzone(viewzones[0])
-  }, [])
 
   return (
     <>

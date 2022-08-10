@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Renderer } from '@tldraw/core'
 import { IntlConfig, IntlProvider } from 'react-intl'
 import { styled, dark } from '~styles'
-import { TDDocument, TDStatus } from '~types'
+import {TDDocument, TDShape, TDStatus} from '~types'
 import { TldrawApp, TDCallbacks } from '~state'
 import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -449,7 +449,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
       return <ViewzoneMenu onSelect={app.toggleViewzoneMode} shapes={app.getShapes(appState.currentPageId)}/>
     }
     if (showUI && settings.isPresentationMode) {
-      return <PresentationMenu onSelect={app.togglePresentationMode} shapes={app.getShapes(appState.currentPageId)}/>
+      const shapes = app.getShapes(appState.currentPageId)
+      const viewzones = shapes.filter((shape: TDShape) => shape.type === 'viewzone')
+      return <PresentationMenu onSelect={app.togglePresentationMode} viewzones={viewzones}/>
     }
     return <>
       <TopPanel

@@ -1027,6 +1027,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Toggle presentation mode.
    */
   togglePresentationMode = (): this => {
+    if (!this.settings.isPresentationMode) {
+      const shapes = this.getShapes(this.state.appState.currentPageId)
+      const viewzones = shapes.filter((shape: TDShape) => shape.type === 'viewzone')
+      this.zoomToViewzone(viewzones[0])
+    }
     if (this.session) return this
     this.patchState(
       {
