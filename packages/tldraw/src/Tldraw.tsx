@@ -322,11 +322,6 @@ export function Tldraw({
     <TldrawContext.Provider value={app}>
       <AlertDialogContext.Provider value={{ hasAccepted, onAccept, onClose, onOpen }}>
         <AlertDialog content={content} onAccept={onAccept} onClose={onClose} open={isOpen} />
-        <div style={{ padding: '12px', background: 'black' }}>
-          <span onClick={() => onOpen('hello')} style={{ color: 'white' }}>
-            hello
-          </span>
-        </div>
         <InnerTldraw
           key={sId || 'Tldraw'}
           id={sId}

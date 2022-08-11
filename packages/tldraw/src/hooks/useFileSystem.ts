@@ -2,7 +2,7 @@ import * as React from 'react'
 import type { TldrawApp } from '~state'
 import { useDialog } from './useDialog'
 
-function useFileSystem() {
+export function useFileSystem() {
   const { hasAccepted, onOpen } = useDialog()
   const promptSaveBeforeChange = React.useCallback(async (app: TldrawApp) => {
     if (app.isDirty) {
