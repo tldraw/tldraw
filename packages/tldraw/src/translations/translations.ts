@@ -15,6 +15,7 @@ import no from './no.json'
 import pl from './pl.json'
 import pt_br from './pt-br.json'
 import ru from './ru.json'
+import sv from './sv.json'
 import tr from './tr.json'
 import uk from './uk.json'
 import zh_cn from './zh-cn.json'
@@ -42,6 +43,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'pl', label: 'Polski', messages: pl },
   { locale: 'pt-br', label: 'Português - Brasil', messages: pt_br },
   { locale: 'ru', label: 'Russian', messages: ru },
+  { locale: 'sv', label: 'Svenska', messages: sv },
   { locale: 'tr', label: 'Türkçe', messages: tr },
   { locale: 'uk', label: 'Ukrainian', messages: uk },
   { locale: 'zh-ch', label: 'Chinese - Simplified', messages: zh_cn },
