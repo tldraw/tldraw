@@ -18,4 +18,3 @@ apps/www/public/sw.js.map
 .env
 firebase.config.*.turbo
 .turbo
-apps/new-tab-extension/tsconfig.tsbuildinfo

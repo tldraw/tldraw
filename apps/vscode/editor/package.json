@@ -11,10 +11,9 @@
     "esbuild"
   ],
   "scripts": {
-    "start:vscode": "node scripts/dev.mjs -w",
+    "dev": "node scripts/dev.mjs -w",
     "build": "node scripts/build.mjs",
-    "build:apps": "yarn build",
-    "lint": "eslint src/ --ext .ts,.tsx",
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "devDependencies": {
