@@ -11,11 +11,9 @@
   "author": "@steveruizok",
   "scripts": {
     "dev": "next dev",
-    "build:apps": "yarn build",
-    "build:www": "yarn build",
     "build": "next build",
-    "serve": "next serve",
-    "lint": "next lint",
+    "start": "next start",
+    "lint": "TIMING=1 next lint",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
