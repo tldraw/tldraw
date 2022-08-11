@@ -129,7 +129,7 @@ export type TldrawCommand = Command<TDSnapshot>
 // The shape of the files stored in JSON
 export interface TDFile {
   name: string
-  fileHandle: FileSystemHandle | null
+  fileHandle: FileSystemFileHandle | null
   document: TDDocument
   assets: Record<string, unknown>
 }
@@ -567,11 +567,11 @@ export interface Command<T extends { [key: string]: any }> {
 }
 
 export interface FileWithHandle extends File {
-  handle?: FileSystemHandle
+  handle?: FileSystemFileHandle
 }
 
 export interface FileWithDirectoryHandle extends File {
-  directoryHandle?: FileSystemHandle
+  directoryHandle?: FileSystemDirectoryHandle
 }
 
 // The following typings implement the relevant parts of the File System Access
