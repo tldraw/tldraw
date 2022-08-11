@@ -1,18 +1,26 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
-import { keyframes } from '@stitches/react'
 import * as React from 'react'
 import { styled } from '~styles'
 
 interface ContentProps {
   children: React.ReactNode
+  onClose?: () => void
 }
-
 interface AlertDialogProps {
   open: boolean
   onClose?: () => void
+  onAccept: () => void
+  content: string
 }
 
-function Content({ children }: ContentProps) {
+function Content({ children, onClose }: ContentProps) {
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    switch (event.key) {
+      case 'Escape':
+        onClose?.()
+        break
+    }
+  }
   return (
     <AlertDialogPrimitive.Portal>
       <StyledOverlay />
@@ -24,18 +32,17 @@ function Content({ children }: ContentProps) {
 const StyledTitle = styled(AlertDialogPrimitive.Title, {
   margin: 0,
   color: '$text',
-  fontSize: 17,
+  fontSize: '$3',
   fontWeight: 500,
 })
 
 const StyledDescription = styled(AlertDialogPrimitive.Description, {
   marginBottom: 20,
   color: '$text',
-  fontSize: 15,
+  fontSize: '$2',
   lineHeight: 1.5,
 })
 
-// Exports
 export const AlertDialogRoot = AlertDialogPrimitive.Root
 export const AlertDialogContent = Content
 export const AlertDialogTitle = StyledTitle
@@ -43,60 +50,59 @@ export const AlertDialogDescription = StyledDescription
 export const AlertDialogAction = AlertDialogPrimitive.Action
 export const AlertDialogCancel = AlertDialogPrimitive.Cancel
 
-export const AlertDialog = ({ open, onClose }: AlertDialogProps) => (
-  <AlertDialogRoot defaultOpen={open}>
-    <AlertDialogContent>
-      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-      <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
-      <Flex css={{ justifyContent: 'flex-end' }}>
-        <AlertDialogCancel asChild>
-          <Button css={{ marginRight: 20, color: '#D9D9D9' }} onClick={onClose}>
-            Cancel
-          </Button>
-        </AlertDialogCancel>
-        <AlertDialogAction asChild>
-          <Button css={{ backgroundColor: '#00D6C8' }}>Ok</Button>
-        </AlertDialogAction>
-      </Flex>
-    </AlertDialogContent>
-  </AlertDialogRoot>
-)
+export const AlertDialog = ({ open, onClose, content, onAccept }: AlertDialogProps) => {
+  console.log({ open })
 
-const overlayShow = keyframes({
-  '0%': { opacity: 0 },
-  '100%': { opacity: 1 },
-})
-
-const contentShow = keyframes({
-  '0%': { opacity: 0, transform: 'translate(-50%, -48%) scale(.96)' },
-  '100%': { opacity: 1, transform: 'translate(-50%, -50%) scale(1)' },
-})
+  return (
+    <AlertDialogRoot open={open}>
+      <AlertDialogContent onClose={onClose}>
+        <AlertDialogTitle>Are you sure to continue?</AlertDialogTitle>
+        <AlertDialogDescription>{content}</AlertDialogDescription>
+        <Flex css={{ justifyContent: 'flex-end' }}>
+          <AlertDialogCancel asChild>
+            <Button css={{ marginRight: 10 }} onClick={onClose}>
+              Cancel
+            </Button>
+          </AlertDialogCancel>
+          <AlertDialogAction asChild>
+            <Button css={{ backgroundColor: '#2F80ED', color: 'White' }} onClick={onAccept}>
+              Yes, continue
+            </Button>
+          </AlertDialogAction>
+        </Flex>
+      </AlertDialogContent>
+    </AlertDialogRoot>
+  )
+}
 
 const StyledOverlay = styled(AlertDialogPrimitive.Overlay, {
-  backgroundColor: 'rgba(0,0,0,0.2)',
   position: 'fixed',
   inset: 0,
-  '@media (prefers-reduced-motion: no-preference)': {
-    animation: `${overlayShow} 150ms cubic-bezier(0.16, 1, 0.3, 1)`,
-  },
+  backgroundColor: 'rgba(0, 0, 0, .15)',
+  pointerEvents: 'all',
+})
+
+export const StyledDialogOverlay = styled(AlertDialogPrimitive.Overlay, {
+  backgroundColor: 'rgba(0, 0, 0, .15)',
+  position: 'absolute',
+  pointerEvents: 'all',
+  inset: 0,
 })
 
 const StyledContent = styled(AlertDialogPrimitive.Content, {
-  backgroundColor: 'white',
-  borderRadius: 6,
-  boxShadow: 'hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px',
   position: 'fixed',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
   width: '90vw',
-  maxWidth: '500px',
+  maxWidth: 'fit-content',
+  minWidth: '400px',
   maxHeight: '85vh',
-  padding: 25,
-  '@media (prefers-reduced-motion: no-preference)': {
-    animation: `${contentShow} 150ms cubic-bezier(0.16, 1, 0.3, 1)`,
-  },
-  '&:focus': { outline: 'none' },
+  pointerEvents: 'all',
+  backgroundColor: '$panel',
+  padding: '$4',
+  borderRadius: '$2',
+  font: '$ui',
 })
 
 const Flex = styled('div', { display: 'flex' })
@@ -106,11 +112,14 @@ const Button = styled('button', {
   display: 'inline-flex',
   alignItems: 'center',
   justifyContent: 'center',
-  borderRadius: 4,
+  borderRadius: '$2',
   padding: '0 15px',
-  fontSize: 15,
+  fontSize: '$1',
   lineHeight: 1,
-  fontWeight: 500,
-  height: 35,
-  color: 'white',
+  fontWeight: 'normal',
+  height: 36,
+  color: '$text',
+  cursor: 'pointer',
+  minWidth: 48,
+  // font: '$ui',
 })

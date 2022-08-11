@@ -1,15 +1,19 @@
 import * as React from 'react'
 import type { TldrawApp } from '~state'
+import { useDialog } from './useDialog'
 
-export function useFileSystem() {
+function useFileSystem() {
+  const { hasAccepted, onOpen } = useDialog()
   const promptSaveBeforeChange = React.useCallback(async (app: TldrawApp) => {
     if (app.isDirty) {
       if (app.fileSystemHandle) {
-        if (window.confirm('Do you want to save changes to your current project?')) {
+        onOpen('Do you want to save changes to your current project?')
+        if (hasAccepted) {
           await app.saveProject()
         }
       } else {
-        if (window.confirm('Do you want to save your current project?')) {
+        onOpen('Do you want to save your current project?')
+        if (hasAccepted) {
           await app.saveProject()
         }
       }
@@ -18,7 +22,8 @@ export function useFileSystem() {
 
   const onNewProject = React.useCallback(
     async (app: TldrawApp) => {
-      if (window.confirm('Do you want to create a new project?')) {
+      onOpen('Do you want to create a new project?')
+      if (hasAccepted) {
         await promptSaveBeforeChange(app)
         app.newProject()
       }

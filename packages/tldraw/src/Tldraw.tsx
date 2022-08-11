@@ -11,6 +11,7 @@ import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
 import { GRID_SIZE } from '~constants'
 import {
+  AlertDialogContext,
   ContainerContext,
   TldrawContext,
   useKeyboardShortcuts,
@@ -18,6 +19,7 @@ import {
   useTldrawApp,
   useTranslation,
 } from '~hooks'
+import { AlertDialogProvider } from '~provider'
 import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -164,6 +166,26 @@ export function Tldraw({
     return app
   })
 
+  const [isOpen, setIsOpen] = React.useState(false)
+  const [hasAccepted, setHasAccepted] = React.useState(false)
+  const [content, setContent] = React.useState('This cannot be undone')
+
+  const onClose = React.useCallback(() => {
+    setHasAccepted(false)
+    setIsOpen(!isOpen)
+  }, [])
+
+  const onAccept = React.useCallback(() => {
+    setHasAccepted(true)
+    setIsOpen(false)
+    setTimeout(() => setHasAccepted(false), 500)
+  }, [])
+
+  const onOpen = React.useCallback((text: string) => {
+    setIsOpen(true)
+    setContent((prev) => text ?? prev)
+  }, [])
+
   // Create a new app if the `id` prop changes.
   React.useLayoutEffect(() => {
     if (id === sId) return
@@ -298,20 +320,27 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <AlertDialog open={true} />
-      <InnerTldraw
-        key={sId || 'Tldraw'}
-        id={sId}
-        autofocus={autofocus}
-        showPages={showPages}
-        showMenu={showMenu}
-        showMultiplayerMenu={showMultiplayerMenu}
-        showStyles={showStyles}
-        showZoom={showZoom}
-        showTools={showTools}
-        showUI={showUI}
-        readOnly={readOnly}
-      />
+      <AlertDialogContext.Provider value={{ hasAccepted, onAccept, onClose, onOpen }}>
+        <AlertDialog content={content} onAccept={onAccept} onClose={onClose} open={isOpen} />
+        <div style={{ padding: '12px', background: 'black' }}>
+          <span onClick={() => onOpen('hello')} style={{ color: 'white' }}>
+            hello
+          </span>
+        </div>
+        <InnerTldraw
+          key={sId || 'Tldraw'}
+          id={sId}
+          autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
+          showMultiplayerMenu={showMultiplayerMenu}
+          showStyles={showStyles}
+          showZoom={showZoom}
+          showTools={showTools}
+          showUI={showUI}
+          readOnly={readOnly}
+        />
+      </AlertDialogContext.Provider>
     </TldrawContext.Provider>
   )
 }
