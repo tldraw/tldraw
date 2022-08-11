@@ -19,7 +19,6 @@ import {
   useTldrawApp,
   useTranslation,
 } from '~hooks'
-import { AlertDialogProvider } from '~provider'
 import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
