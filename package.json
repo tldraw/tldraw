@@ -22,7 +22,7 @@
     "build:packages": "turbo run build --filter=./packages/*",
     "build:apps": "turbo run build --filter=./apps/**",
     "start": "turbo run dev --filter=@tldraw/tldraw-example... --parallel",
-    "start:core": "turbo run dev --filter=@tldraw/core-example*... --parallel",
+    "start:core": "turbo run dev --filter=@tldraw/core-example-advanced*... --parallel",
     "start:www": "turbo run dev --filter=@tldraw/www... --parallel",
     "start:vscode": "turbo run dev --filter=./apps/vscode/*... --parallel",
     "start:extension": "turbo run dev --filter=@tldraw/new-tab-extension... --parallel",

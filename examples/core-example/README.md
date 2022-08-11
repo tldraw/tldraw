@@ -9,4 +9,5 @@ An simple example project for `@tldraw/core`.
 To start this project:
 
 - run `yarn` from the repository's root directory
-- run `yarn dev:core` from the `examples/core-example` directory
+- run `yarn dev` from the `examples/core-example` directory
+- open `localhost://5422` in your browser
