@@ -22,6 +22,8 @@ const currentPageIdSelector = (s: TDSnapshot) => s.document.pages[s.appState.cur
 export function PageMenu() {
   const app = useTldrawApp()
 
+  const intl = useIntl()
+
   const rIsOpen = React.useRef(false)
 
   const [isOpen, setIsOpen] = React.useState(false)
@@ -49,7 +51,7 @@ export function PageMenu() {
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
-        <ToolButton variant="text">{currentPageName || 'Page'}</ToolButton>
+        <ToolButton variant="text">{currentPageName || intl.formatMessage({ id: 'page' })}</ToolButton>
       </DropdownMenu.Trigger>
       <DMContent variant="menu" align="start" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
@@ -66,9 +68,11 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const currentPageId = app.useStore(currentPageIdSelector)
 
+  const defaultPageName = intl.formatMessage({ id: 'page' })
+
   const handleCreatePage = React.useCallback(() => {
     const pageName =
-      intl.formatMessage({ id: 'page' }) + ' ' + (Object.keys(app.document.pages).length + 1)
+    defaultPageName + ' ' + (Object.keys(app.document.pages).length + 1)
     app.createPage(undefined, pageName)
   }, [app])
 
@@ -125,7 +129,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
             isDropBelow={dropIndex !== null && i === dropIndex - 1}
           >
             <DropdownMenu.RadioItem
-              title={page.name || 'Page'}
+              title={page.name || defaultPageName}
               value={page.id}
               key={page.id}
               id={page.id}
@@ -137,7 +141,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
               draggable={true}
             >
               <PageButton>
-                <span id={page.id}>{page.name || 'Page'}</span>
+                <span id={page.id}>{page.name || defaultPageName}</span>
                 <DropdownMenu.ItemIndicator>
                   <SmallIcon>
                     <CheckIcon />
