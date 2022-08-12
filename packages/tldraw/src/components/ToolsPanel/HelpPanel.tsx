@@ -25,29 +25,36 @@ const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 export function HelpPanel() {
   const app = useTldrawApp()
+  const [dialogContainer, setDialogContainer] = React.useState<any>(null)
   const isDebugMode = app.useStore(isDebugModeSelector)
   const side = app.useStore(dockPositionState)
 
   const [isKeyboardShortcutsOpen, setIsKeyboardShortcutsOpen] = React.useState(false)
 
   return (
-    <Popover.Root>
-      <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
-        <Popover.Trigger dir="ltr" asChild>
-          <HelpButton>
-            <QuestionMarkIcon />
-          </HelpButton>
-        </Popover.Trigger>
-      </PopoverAnchor>
-      <Popover.Content dir="ltr" align="end" side="top" alignOffset={10} sideOffset={8} asChild>
-        <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
-          <LanguageMenuDropdown />
-          <KeyboardShortcutDialog onOpenChange={setIsKeyboardShortcutsOpen} />
-          <Divider />
-          <Links />
-        </StyledContent>
-      </Popover.Content>
-    </Popover.Root>
+    <>
+      <Popover.Root>
+        <PopoverAnchor dir="ltr" debug={isDebugMode} side={side} bp={breakpoints}>
+          <Popover.Trigger dir="ltr" asChild>
+            <HelpButton>
+              <QuestionMarkIcon />
+            </HelpButton>
+          </Popover.Trigger>
+        </PopoverAnchor>
+        <Popover.Content dir="ltr" align="end" side="top" alignOffset={10} sideOffset={8} asChild>
+          <StyledContent style={{ visibility: isKeyboardShortcutsOpen ? 'hidden' : 'visible' }}>
+            <LanguageMenuDropdown />
+            <KeyboardShortcutDialog
+              container={dialogContainer}
+              onOpenChange={setIsKeyboardShortcutsOpen}
+            />
+            <Divider />
+            <Links />
+          </StyledContent>
+        </Popover.Content>
+      </Popover.Root>
+      <div ref={setDialogContainer} />
+    </>
   )
 }
 

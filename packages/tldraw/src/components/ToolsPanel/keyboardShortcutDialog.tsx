@@ -10,8 +10,10 @@ import { styled } from '~styles'
 
 export function KeyboardShortcutDialog({
   onOpenChange,
+  container,
 }: {
   onOpenChange?: (open: boolean) => void
+  container: any
 }) {
   const intl = useIntl()
 
@@ -89,7 +91,7 @@ export function KeyboardShortcutDialog({
           <FormattedMessage id="keyboard.shortcuts" />
         </RowButton>
       </Dialog.Trigger>
-      <Dialog.Portal>
+      <Dialog.Portal container={container}>
         <DialogOverlay />
         <DialogContent>
           <DialogTitle>
