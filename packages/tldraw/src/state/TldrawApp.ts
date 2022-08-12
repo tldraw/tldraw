@@ -2120,7 +2120,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Copy one or more shapes as SVG.
    * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
   copySvg = async (
@@ -2240,7 +2239,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
   copyJson = (ids = this.selectedIds) => {
