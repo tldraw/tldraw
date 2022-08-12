@@ -80,6 +80,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
         } else {
           rInitialName.current = rCurrentName.current
           app.renamePage(page.id, rCurrentName.current.trim())
+          setIsOpen(false)
         }
 
         break
