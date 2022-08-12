@@ -1403,19 +1403,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   saveProject = async () => {
     if (this.readOnly) return
-    try {
-      const fileHandle = await saveToFileSystem(
-        migrate(this.state, TldrawApp.version).document,
-        this.fileSystemHandle
-      )
-      this.fileSystemHandle = fileHandle
-      this.persist({})
-      this.isDirty = false
-    } catch (e: any) {
-      // Likely cancelled
-      console.error(e.message)
-      return false
-    }
+    const fileHandle = await saveToFileSystem(
+      migrate(this.state, TldrawApp.version).document,
+      this.fileSystemHandle
+    )
+    this.fileSystemHandle = fileHandle
+    this.persist({})
+    this.isDirty = false
     return this
   }
 

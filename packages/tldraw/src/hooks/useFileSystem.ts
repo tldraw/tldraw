@@ -17,16 +17,15 @@ export function useFileSystem() {
         app.fileSystemHandle ? 'saveFirstTime' : 'saveAgain',
         async () => {
           // user pressed yes
-          const res = await app.saveProject()
-          if (!res) {
-            console.log('nope!')
-          } else {
+          try {
+            await app.saveProject()
+          } catch (e) {
             app.newProject()
           }
         },
         async () => {
-          app.newProject()
           // user pressed no
+          app.newProject()
         },
         async () => {
           // user pressed cancel
@@ -50,15 +49,15 @@ export function useFileSystem() {
         app.fileSystemHandle ? 'saveFirstTime' : 'saveAgain',
         async () => {
           // user pressed yes
-          const res = await app.saveProject()
-          if (res) {
+          try {
+            await app.saveProject()
+          } catch (e) {
             app.newProject()
           }
         },
         async () => {
-          console.log('no')
-          app.openProject()
           // user pressed no
+          app.openProject()
         },
         async () => {
           // user pressed cancel

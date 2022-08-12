@@ -6,15 +6,10 @@ import { styled } from '~styles'
 interface ContentProps {
   children: React.ReactNode
   onClose?: () => void
-}
-interface AlertDialogProps {
-  open: boolean
-  onClose?: () => void
-  onAccept: () => void
-  content: string
+  container: any
 }
 
-function Content({ children, onClose }: ContentProps) {
+function Content({ children, onClose, container }: ContentProps) {
   const handleKeyDown = (event: React.KeyboardEvent) => {
     switch (event.key) {
       case 'Escape':
@@ -25,90 +20,89 @@ function Content({ children, onClose }: ContentProps) {
   return (
     <AlertDialogPrimitive.Portal>
       <StyledOverlay />
-      <StyledContent>{children}</StyledContent>
+      <StyledContent onKeyDown={handleKeyDown}>{children}</StyledContent>
     </AlertDialogPrimitive.Portal>
   )
 }
-
-const StyledTitle = styled(AlertDialogPrimitive.Title, {
-  margin: 0,
-  color: '$text',
-  fontSize: '$3',
-  fontWeight: 500,
-})
 
 const StyledDescription = styled(AlertDialogPrimitive.Description, {
   marginBottom: 20,
   color: '$text',
   fontSize: '$2',
   lineHeight: 1.5,
+  textAlign: 'center',
 })
 
 export const AlertDialogRoot = AlertDialogPrimitive.Root
 export const AlertDialogContent = Content
-export const AlertDialogTitle = StyledTitle
 export const AlertDialogDescription = StyledDescription
 export const AlertDialogAction = AlertDialogPrimitive.Action
 export const AlertDialogCancel = AlertDialogPrimitive.Cancel
 
 const descriptions: Record<DialogState, string> = {
-  saveFirstTime: '...',
-  saveAgain: '...',
-  createNew: '...',
+  saveFirstTime: 'Do you want to save your current project?',
+  saveAgain: 'Do you want to save changes to your current project?',
+  createNew: 'Do you want to create a new project?',
 }
 
 export const AlertDialog = () => {
   const { setDialogState, dialogState, onCancel, onNo, onYes } = useDialog()
+  const [container, setContainer] = React.useState<any>(null)
 
   return (
-    <AlertDialogRoot open={dialogState !== null}>
-      <AlertDialogContent onClose={() => setDialogState(null)}>
-        {dialogState && (
-          <AlertDialogDescription>{descriptions[dialogState]}</AlertDialogDescription>
-        )}
-        <Flex css={{ justifyContent: 'flex-end' }}>
-          {onCancel && (
-            <AlertDialogCancel asChild>
-              <Button
-                css={{ marginRight: 10 }}
-                onClick={() => {
-                  onCancel()
-                  setDialogState(null)
-                }}
-              >
-                Cancel
-              </Button>
-            </AlertDialogCancel>
+    <>
+      <AlertDialogRoot open={dialogState !== null}>
+        <AlertDialogContent onClose={() => setDialogState(null)} container={container}>
+          {dialogState && (
+            <AlertDialogDescription>{descriptions[dialogState]}</AlertDialogDescription>
           )}
-          {onNo && (
-            <AlertDialogAction asChild>
-              <Button
-                css={{ backgroundColor: '#2F80ED', color: 'White' }}
-                onClick={() => {
-                  onNo()
-                  setDialogState(null)
-                }}
-              >
-                No
-              </Button>
-            </AlertDialogAction>
-          )}
-          {onYes && (
-            <AlertDialogAction asChild>
-              <Button
-                css={{ backgroundColor: '#2F80ED', color: 'White' }}
-                onClick={() => {
-                  onYes()
-                  setDialogState(null)
-                }}
-              >
-                Yes
-              </Button>
-            </AlertDialogAction>
-          )}
-        </Flex>
-      </AlertDialogContent>
-    </AlertDialogRoot>
+          <Flex css={{ justifyContent: 'space-between' }}>
+            {onCancel && (
+              <AlertDialogCancel asChild>
+                <Button
+                  css={{ color: '$text' }}
+                  onClick={() => {
+                    onCancel()
+                    setDialogState(null)
+                  }}
+                >
+                  Cancel
+                </Button>
+              </AlertDialogCancel>
+            )}
+            <Flex css={{ justifyContent: 'flex-end' }}>
+              {onNo && (
+                <AlertDialogAction asChild>
+                  <Button
+                    css={{ color: '#2F80ED' }}
+                    onClick={() => {
+                      onNo()
+                      setDialogState(null)
+                    }}
+                  >
+                    No
+                  </Button>
+                </AlertDialogAction>
+              )}
+              {onYes && (
+                <AlertDialogAction asChild>
+                  <Button
+                    css={{ backgroundColor: '#2F80ED', color: 'White' }}
+                    onClick={() => {
+                      onYes()
+                      setDialogState(null)
+                    }}
+                  >
+                    Yes
+                  </Button>
+                </AlertDialogAction>
+              )}
+            </Flex>
+          </Flex>
+        </AlertDialogContent>
+      </AlertDialogRoot>
+      <div ref={setContainer} />
+    </>
   )
 }
 
@@ -142,7 +136,7 @@ const StyledContent = styled(AlertDialogPrimitive.Content, {
   font: '$ui',
 })
 
-const Flex = styled('div', { display: 'flex' })
+const Flex = styled('div', { display: 'flex', gap: '$4' })
 
 const Button = styled('button', {
   all: 'unset',
@@ -158,5 +152,4 @@ const Button = styled('button', {
   color: '$text',
   cursor: 'pointer',
   minWidth: 48,
-  // font: '$ui',
 })
