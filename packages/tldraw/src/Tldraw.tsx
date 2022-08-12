@@ -13,6 +13,7 @@ import { GRID_SIZE } from '~constants'
 import {
   AlertDialogContext,
   ContainerContext,
+  DialogState,
   TldrawContext,
   useKeyboardShortcuts,
   useStylesheet,
@@ -165,25 +166,20 @@ export function Tldraw({
     return app
   })
 
-  const [isOpen, setIsOpen] = React.useState(false)
-  const [hasAccepted, setHasAccepted] = React.useState(false)
-  const [content, setContent] = React.useState('This cannot be undone')
+  const [onCancel, setOnCancel] = React.useState<(() => void) | null>(null)
+  const [onYes, setOnYes] = React.useState<(() => void) | null>(null)
+  const [onNo, setOnNo] = React.useState<(() => void) | null>(null)
+  const [dialogState, setDialogState] = React.useState<DialogState | null>(null)
 
-  const onClose = React.useCallback(() => {
-    setHasAccepted(false)
-    setIsOpen(!isOpen)
-  }, [])
-
-  const onAccept = React.useCallback(() => {
-    setHasAccepted(true)
-    setIsOpen(false)
-    setTimeout(() => setHasAccepted(false), 500)
-  }, [])
-
-  const onOpen = React.useCallback((text: string) => {
-    setIsOpen(true)
-    setContent((prev) => text ?? prev)
-  }, [])
+  const openDialog = React.useCallback(
+    (dialogState: DialogState, onYes: () => void, onNo: () => void, onCancel: () => void) => {
+      setDialogState(() => dialogState)
+      setOnCancel(() => onCancel)
+      setOnYes(() => onYes)
+      setOnNo(() => onNo)
+    },
+    []
+  )
 
   // Create a new app if the `id` prop changes.
   React.useLayoutEffect(() => {
@@ -319,8 +315,9 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <AlertDialogContext.Provider value={{ hasAccepted, onAccept, onClose, onOpen }}>
-        <AlertDialog content={content} onAccept={onAccept} onClose={onClose} open={isOpen} />
+      <AlertDialogContext.Provider
+        value={{ onYes, onCancel, onNo, dialogState, setDialogState, openDialog }}
+      >
         <InnerTldraw
           key={sId || 'Tldraw'}
           id={sId}
@@ -464,6 +461,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   return (
     <ContainerContext.Provider value={rWrapper}>
       <IntlProvider locale={translation.locale} messages={translation.messages}>
+        <AlertDialog />
         <StyledLayout ref={rWrapper} tabIndex={-0}>
           <Loading />
           <OneOff focusableRef={rWrapper} autofocus={autofocus} />

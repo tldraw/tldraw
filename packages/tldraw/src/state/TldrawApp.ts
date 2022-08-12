@@ -21,6 +21,7 @@ import {
   USER_COLORS,
   VIDEO_EXTENSIONS,
 } from '~constants'
+import { DialogState } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { defaultStyle } from '~state/shapes/shared'
 import {
@@ -97,7 +98,16 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
-  onNewProject?: (app: TldrawApp, e?: KeyboardEvent) => void
+  onNewProject?: (
+    app: TldrawApp,
+    openDialog: (
+      dialogState: DialogState,
+      onYes: () => void,
+      onNo: () => void,
+      onCancel: () => void
+    ) => void,
+    e?: KeyboardEvent
+  ) => void
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
@@ -109,7 +119,16 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
-  onOpenProject?: (app: TldrawApp, e?: KeyboardEvent) => void
+  onOpenProject?: (
+    app: TldrawApp,
+    openDialog: (
+      dialogState: DialogState,
+      onYes: () => void,
+      onNo: () => void,
+      onCancel: () => void
+    ) => void,
+    e?: KeyboardEvent
+  ) => void
   /**
    * (optional) A callback to run when the opens a file to upload.
    */
@@ -1395,6 +1414,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     } catch (e: any) {
       // Likely cancelled
       console.error(e.message)
+      return false
     }
     return this
   }

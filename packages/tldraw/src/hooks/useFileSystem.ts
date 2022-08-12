@@ -1,34 +1,71 @@
 import * as React from 'react'
 import type { TldrawApp } from '~state'
-import { useDialog } from './useDialog'
+import { DialogState } from './useDialog'
 
 export function useFileSystem() {
-  const { hasAccepted, onOpen } = useDialog()
-  const promptSaveBeforeChange = React.useCallback(async (app: TldrawApp) => {
-    if (app.isDirty) {
-      if (app.fileSystemHandle) {
-        onOpen('Do you want to save changes to your current project?')
-        if (hasAccepted) {
-          await app.saveProject()
-        }
-      } else {
-        onOpen('Do you want to save your current project?')
-        if (hasAccepted) {
-          await app.saveProject()
-        }
-      }
-    }
-  }, [])
-
   const onNewProject = React.useCallback(
-    async (app: TldrawApp) => {
-      onOpen('Do you want to create a new project?')
-      if (hasAccepted) {
-        await promptSaveBeforeChange(app)
-        app.newProject()
-      }
+    async (
+      app: TldrawApp,
+      openDialog: (
+        dialogState: DialogState,
+        onYes: () => Promise<void>,
+        onNo: () => Promise<void>,
+        onCancel: () => Promise<void>
+      ) => void
+    ) => {
+      openDialog(
+        app.fileSystemHandle ? 'saveFirstTime' : 'saveAgain',
+        async () => {
+          // user pressed yes
+          const res = await app.saveProject()
+          if (!res) {
+            console.log('nope!')
+          } else {
+            app.newProject()
+          }
+        },
+        async () => {
+          app.newProject()
+          // user pressed no
+        },
+        async () => {
+          // user pressed cancel
+        }
+      )
     },
-    [promptSaveBeforeChange]
+    []
+  )
+
+  const onOpenProject = React.useCallback(
+    async (
+      app: TldrawApp,
+      openDialog: (
+        dialogState: DialogState,
+        onYes: () => Promise<void>,
+        onNo: () => Promise<void>,
+        onCancel: () => Promise<void>
+      ) => void
+    ) => {
+      openDialog(
+        app.fileSystemHandle ? 'saveFirstTime' : 'saveAgain',
+        async () => {
+          // user pressed yes
+          const res = await app.saveProject()
+          if (res) {
+            app.newProject()
+          }
+        },
+        async () => {
+          console.log('no')
+          app.openProject()
+          // user pressed no
+        },
+        async () => {
+          // user pressed cancel
+        }
+      )
+    },
+    []
   )
 
   const onSaveProject = React.useCallback((app: TldrawApp) => {
@@ -38,14 +75,6 @@ export function useFileSystem() {
   const onSaveProjectAs = React.useCallback((app: TldrawApp) => {
     app.saveProjectAs()
   }, [])
-
-  const onOpenProject = React.useCallback(
-    async (app: TldrawApp) => {
-      await promptSaveBeforeChange(app)
-      app.openProject()
-    },
-    [promptSaveBeforeChange]
-  )
 
   const onOpenMedia = React.useCallback(async (app: TldrawApp) => {
     app.openAsset?.()

@@ -1,10 +1,19 @@
 import * as React from 'react'
 
+export type DialogState = 'saveFirstTime' | 'saveAgain' | 'createNew'
+
 interface AlertDialogProps {
-  onClose: () => void
-  onAccept: () => void
-  hasAccepted: boolean
-  onOpen: (text: string) => void
+  dialogState: DialogState | null
+  setDialogState: (dialogState: DialogState | null) => void
+  onYes: (() => void) | null
+  onNo: (() => void) | null
+  onCancel: (() => void) | null
+  openDialog: (
+    dialogState: DialogState,
+    onYes: () => void,
+    onNo: () => void,
+    onCancel: () => void
+  ) => void
 }
 
 export const AlertDialogContext = React.createContext<AlertDialogProps>({} as AlertDialogProps)

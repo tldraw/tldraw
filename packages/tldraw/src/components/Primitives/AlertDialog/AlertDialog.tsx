@@ -1,5 +1,6 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import * as React from 'react'
+import { DialogState, useDialog } from '~hooks'
 import { styled } from '~styles'
 
 interface ContentProps {
@@ -50,25 +51,61 @@ export const AlertDialogDescription = StyledDescription
 export const AlertDialogAction = AlertDialogPrimitive.Action
 export const AlertDialogCancel = AlertDialogPrimitive.Cancel
 
-export const AlertDialog = ({ open, onClose, content, onAccept }: AlertDialogProps) => {
-  console.log({ open })
+const descriptions: Record<DialogState, string> = {
+  saveFirstTime: '...',
+  saveAgain: '...',
+  createNew: '...',
+}
+
+export const AlertDialog = () => {
+  const { setDialogState, dialogState, onCancel, onNo, onYes } = useDialog()
 
   return (
-    <AlertDialogRoot open={open}>
-      <AlertDialogContent onClose={onClose}>
-        <AlertDialogTitle>Are you sure to continue?</AlertDialogTitle>
-        <AlertDialogDescription>{content}</AlertDialogDescription>
+    <AlertDialogRoot open={dialogState !== null}>
+      <AlertDialogContent onClose={() => setDialogState(null)}>
+        {dialogState && (
+          <AlertDialogDescription>{descriptions[dialogState]}</AlertDialogDescription>
+        )}
         <Flex css={{ justifyContent: 'flex-end' }}>
-          <AlertDialogCancel asChild>
-            <Button css={{ marginRight: 10 }} onClick={onClose}>
-              Cancel
-            </Button>
-          </AlertDialogCancel>
-          <AlertDialogAction asChild>
-            <Button css={{ backgroundColor: '#2F80ED', color: 'White' }} onClick={onAccept}>
-              Yes, continue
-            </Button>
-          </AlertDialogAction>
+          {onCancel && (
+            <AlertDialogCancel asChild>
+              <Button
+                css={{ marginRight: 10 }}
+                onClick={() => {
+                  onCancel()
+                  setDialogState(null)
+                }}
+              >
+                Cancel
+              </Button>
+            </AlertDialogCancel>
+          )}
+          {onNo && (
+            <AlertDialogAction asChild>
+              <Button
+                css={{ backgroundColor: '#2F80ED', color: 'White' }}
+                onClick={() => {
+                  onNo()
+                  setDialogState(null)
+                }}
+              >
+                No
+              </Button>
+            </AlertDialogAction>
+          )}
+          {onYes && (
+            <AlertDialogAction asChild>
+              <Button
+                css={{ backgroundColor: '#2F80ED', color: 'White' }}
+                onClick={() => {
+                  onYes()
+                  setDialogState(null)
+                }}
+              >
+                Yes
+              </Button>
+            </AlertDialogAction>
+          )}
         </Flex>
       </AlertDialogContent>
     </AlertDialogRoot>
