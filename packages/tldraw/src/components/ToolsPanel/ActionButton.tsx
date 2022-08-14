@@ -28,7 +28,7 @@ import * as React from 'react'
 import { useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
 import { DMContent } from '~components/Primitives/DropdownMenu'
-import { ToolButton, ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
@@ -197,7 +197,7 @@ export function ActionButton() {
         <>
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">
-              <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
+              <ToolButton disabled={!hasSelection} onClick={handleDuplicate}>
                 <CopyIcon />
               </ToolButton>
             </Tooltip>
