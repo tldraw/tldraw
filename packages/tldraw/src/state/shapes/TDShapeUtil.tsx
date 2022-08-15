@@ -8,7 +8,7 @@ import {
 import { Vec } from '@tldraw/vec'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
-import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
+import { AlignStyle, ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import { getFontStyle, getShapeStyle } from './shared'
 import { getTextLabelSize } from './shared/getTextSize'
 import { getTextSvgElement } from './shared/getTextSvgElement'
@@ -182,7 +182,11 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       const bounds = this.getBounds(shape)
-      const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
+      const labelElm = getTextSvgElement(
+        s['label'],
+        { ...shape.style, textAlign: AlignStyle.Start },
+        bounds
+      )
       labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
       labelElm.setAttribute('transform-origin', 'top left')
       g.setAttribute('text-align', 'center')
