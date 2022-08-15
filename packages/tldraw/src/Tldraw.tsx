@@ -6,11 +6,14 @@ import { ContextMenu } from '~components/ContextMenu'
 import { ErrorFallback } from '~components/ErrorFallback'
 import { FocusButton } from '~components/FocusButton'
 import { Loading } from '~components/Loading'
+import { AlertDialog } from '~components/Primitives/AlertDialog'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
 import { GRID_SIZE } from '~constants'
 import {
+  AlertDialogContext,
   ContainerContext,
+  DialogState,
   TldrawContext,
   useKeyboardShortcuts,
   useStylesheet,
@@ -163,6 +166,21 @@ export function Tldraw({
     return app
   })
 
+  const [onCancel, setOnCancel] = React.useState<(() => void) | null>(null)
+  const [onYes, setOnYes] = React.useState<(() => void) | null>(null)
+  const [onNo, setOnNo] = React.useState<(() => void) | null>(null)
+  const [dialogState, setDialogState] = React.useState<DialogState | null>(null)
+
+  const openDialog = React.useCallback(
+    (dialogState: DialogState, onYes: () => void, onNo: () => void, onCancel: () => void) => {
+      setDialogState(() => dialogState)
+      setOnCancel(() => onCancel)
+      setOnYes(() => onYes)
+      setOnNo(() => onNo)
+    },
+    []
+  )
+
   // Create a new app if the `id` prop changes.
   React.useLayoutEffect(() => {
     if (id === sId) return
@@ -297,19 +315,23 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <InnerTldraw
-        key={sId || 'Tldraw'}
-        id={sId}
-        autofocus={autofocus}
-        showPages={showPages}
-        showMenu={showMenu}
-        showMultiplayerMenu={showMultiplayerMenu}
-        showStyles={showStyles}
-        showZoom={showZoom}
-        showTools={showTools}
-        showUI={showUI}
-        readOnly={readOnly}
-      />
+      <AlertDialogContext.Provider
+        value={{ onYes, onCancel, onNo, dialogState, setDialogState, openDialog }}
+      >
+        <InnerTldraw
+          key={sId || 'Tldraw'}
+          id={sId}
+          autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
+          showMultiplayerMenu={showMultiplayerMenu}
+          showStyles={showStyles}
+          showZoom={showZoom}
+          showTools={showTools}
+          showUI={showUI}
+          readOnly={readOnly}
+        />
+      </AlertDialogContext.Provider>
     </TldrawContext.Provider>
   )
 }
@@ -340,6 +362,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showUI,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
+  const [dialogContainer, setDialogContainer] = React.useState<any>(null)
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
@@ -439,6 +462,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   return (
     <ContainerContext.Provider value={rWrapper}>
       <IntlProvider locale={translation.locale} messages={translation.messages}>
+        <AlertDialog container={dialogContainer} />
         <StyledLayout ref={rWrapper} tabIndex={-0}>
           <Loading />
           <OneOff focusableRef={rWrapper} autofocus={autofocus} />
@@ -523,7 +547,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
             </ErrorBoundary>
           </ContextMenu>
           {showUI && (
-            <StyledUI>
+            <StyledUI ref={setDialogContainer}>
               {settings.isFocusMode ? (
                 <FocusButton onSelect={app.toggleFocusMode} />
               ) : (

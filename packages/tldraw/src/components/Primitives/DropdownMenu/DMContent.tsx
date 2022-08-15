@@ -29,7 +29,7 @@ export function DMContent({
   const container = useContainer()
 
   return (
-    <DropdownMenu.Portal container={container.current} dir="ltr">
+    <DropdownMenu.Portal container={overflow ? undefined : container.current} dir="ltr">
       <DropdownMenu.Content
         align={align}
         alignOffset={alignOffset}

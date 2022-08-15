@@ -21,6 +21,7 @@ import {
   USER_COLORS,
   VIDEO_EXTENSIONS,
 } from '~constants'
+import { DialogState } from '~hooks'
 import { shapeUtils } from '~state/shapes'
 import { defaultStyle } from '~state/shapes/shared'
 import {
@@ -97,7 +98,16 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
    */
-  onNewProject?: (app: TldrawApp, e?: KeyboardEvent) => void
+  onNewProject?: (
+    app: TldrawApp,
+    openDialog: (
+      dialogState: DialogState,
+      onYes: () => void,
+      onNo: () => void,
+      onCancel: () => void
+    ) => void,
+    e?: KeyboardEvent
+  ) => void
   /**
    * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
    */
@@ -109,7 +119,16 @@ export interface TDCallbacks {
   /**
    * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
    */
-  onOpenProject?: (app: TldrawApp, e?: KeyboardEvent) => void
+  onOpenProject?: (
+    app: TldrawApp,
+    openDialog: (
+      dialogState: DialogState,
+      onYes: () => void,
+      onNo: () => void,
+      onCancel: () => void
+    ) => void,
+    e?: KeyboardEvent
+  ) => void
   /**
    * (optional) A callback to run when the opens a file to upload.
    */
@@ -1384,18 +1403,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    */
   saveProject = async () => {
     if (this.readOnly) return
-    try {
-      const fileHandle = await saveToFileSystem(
-        migrate(this.state, TldrawApp.version).document,
-        this.fileSystemHandle
-      )
-      this.fileSystemHandle = fileHandle
-      this.persist({})
-      this.isDirty = false
-    } catch (e: any) {
-      // Likely cancelled
-      console.error(e.message)
-    }
+    const fileHandle = await saveToFileSystem(
+      migrate(this.state, TldrawApp.version).document,
+      this.fileSystemHandle
+    )
+    this.fileSystemHandle = fileHandle
+    this.persist({})
+    this.isDirty = false
     return this
   }
 
@@ -2100,7 +2114,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Copy one or more shapes as SVG.
    * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
   copySvg = async (
@@ -2220,7 +2233,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Copy one or more shapes as JSON.
    * @param ids The ids of the shapes to copy.
-   * @param pageId The page from which to copy the shapes.
    * @returns A string containing the JSON.
    */
   copyJson = (ids = this.selectedIds) => {
