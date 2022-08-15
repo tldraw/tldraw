@@ -130,6 +130,8 @@ const StyledContent = styled(AlertDialogPrimitive.Content, {
   padding: '$4',
   borderRadius: '$2',
   fontFamily: '$ui',
+  border: '1px solid $panelContrast',
+  boxShadow: '$panel',
 })
 
 const Flex = styled('div', { display: 'flex', gap: '$4' })
