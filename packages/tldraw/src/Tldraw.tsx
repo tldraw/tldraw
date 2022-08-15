@@ -362,6 +362,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showUI,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
+  const [dialogContainer, setDialogContainer] = React.useState<any>(null)
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
@@ -461,7 +462,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   return (
     <ContainerContext.Provider value={rWrapper}>
       <IntlProvider locale={translation.locale} messages={translation.messages}>
-        <AlertDialog />
+        <AlertDialog container={dialogContainer} />
         <StyledLayout ref={rWrapper} tabIndex={-0}>
           <Loading />
           <OneOff focusableRef={rWrapper} autofocus={autofocus} />
@@ -546,7 +547,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
             </ErrorBoundary>
           </ContextMenu>
           {showUI && (
-            <StyledUI>
+            <StyledUI ref={setDialogContainer}>
               {settings.isFocusMode ? (
                 <FocusButton onSelect={app.toggleFocusMode} />
               ) : (
