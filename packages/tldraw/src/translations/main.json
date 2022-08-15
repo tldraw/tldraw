@@ -107,5 +107,15 @@
   "github": "Github",
   "twitter": "Twitter",
   "discord": "Discord",
-  "image": "Image"
+  "image": "Image",
+  "align.left": "Align Left",
+  "align.center.x": "Align Horizontal Center",
+  "align.right": "Align Right",
+  "align.top": "Align Top",
+  "align.center.y": "Align Vertical Center",
+  "align.bottom": "Align Bottom",
+  "distribute.x": "Distribute Horizontal",
+  "distribute.y": "Distribute Vertical",
+  "stretch.x": "Stretch Horizontal",
+  "stretch.y": "Stretch Vertical"
 }
