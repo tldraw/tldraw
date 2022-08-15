@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export type DialogState = 'saveFirstTime' | 'saveAgain' | 'createNew'
+export type DialogState = 'saveFirstTime' | 'saveAgain'
 
 interface AlertDialogProps {
   dialogState: DialogState | null

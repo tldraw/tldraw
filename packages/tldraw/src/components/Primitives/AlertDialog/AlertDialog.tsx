@@ -31,6 +31,9 @@ const StyledDescription = styled(AlertDialogPrimitive.Description, {
   fontSize: '$2',
   lineHeight: 1.5,
   textAlign: 'center',
+  maxWidth: '62%',
+  minWidth: 0,
+  alignSelf: 'center',
 })
 
 export const AlertDialogRoot = AlertDialogPrimitive.Root
@@ -42,7 +45,6 @@ export const AlertDialogCancel = AlertDialogPrimitive.Cancel
 const descriptions: Record<DialogState, string> = {
   saveFirstTime: 'Do you want to save your current project?',
   saveAgain: 'Do you want to save changes to your current project?',
-  createNew: 'Do you want to create a new project?',
 }
 
 export const AlertDialog = ({ container }: { container: any }) => {
@@ -54,7 +56,14 @@ export const AlertDialog = ({ container }: { container: any }) => {
         {dialogState && (
           <AlertDialogDescription>{descriptions[dialogState]}</AlertDialogDescription>
         )}
-        <Flex css={{ justifyContent: 'space-between' }}>
+        <div
+          style={{
+            width: '100%',
+            gap: '$6',
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
           {onCancel && (
             <AlertDialogCancel asChild>
               <Button
@@ -68,7 +77,7 @@ export const AlertDialog = ({ container }: { container: any }) => {
               </Button>
             </AlertDialogCancel>
           )}
-          <Flex css={{ justifyContent: 'flex-end' }}>
+          <div style={{ flexShrink: 0 }}>
             {onNo && (
               <AlertDialogAction asChild>
                 <Button
@@ -94,8 +103,8 @@ export const AlertDialog = ({ container }: { container: any }) => {
                 </Button>
               </AlertDialogAction>
             )}
-          </Flex>
-        </Flex>
+          </div>
+        </div>
       </AlertDialogContent>
     </AlertDialogRoot>
   )
@@ -121,20 +130,18 @@ const StyledContent = styled(AlertDialogPrimitive.Content, {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: '90vw',
-  maxWidth: 'fit-content',
-  minWidth: '400px',
-  maxHeight: '85vh',
+  width: 'max-content',
+  padding: '$3',
   pointerEvents: 'all',
   backgroundColor: '$panel',
-  padding: '$4',
-  borderRadius: '$2',
+  borderRadius: '$3',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'center',
   fontFamily: '$ui',
   border: '1px solid $panelContrast',
   boxShadow: '$panel',
 })
-
-const Flex = styled('div', { display: 'flex', gap: '$4' })
 
 const Button = styled('button', {
   all: 'unset',
