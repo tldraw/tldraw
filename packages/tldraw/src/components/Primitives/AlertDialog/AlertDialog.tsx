@@ -117,6 +117,7 @@ export const StyledDialogOverlay = styled(AlertDialogPrimitive.Overlay, {
 
 const StyledContent = styled(AlertDialogPrimitive.Content, {
   position: 'fixed',
+  font: '$ui',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -128,7 +129,7 @@ const StyledContent = styled(AlertDialogPrimitive.Content, {
   backgroundColor: '$panel',
   padding: '$4',
   borderRadius: '$2',
-  font: '$ui',
+  fontFamily: '$ui',
 })
 
 const Flex = styled('div', { display: 'flex', gap: '$4' })

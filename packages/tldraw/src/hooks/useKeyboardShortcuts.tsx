@@ -199,8 +199,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+n,⌘+n',
     (e) => {
+      e.preventDefault()
       if (!canHandleEvent()) return
-
       onNewProject(e)
     },
     undefined,
