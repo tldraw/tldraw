@@ -279,62 +279,73 @@ export function ActionButton() {
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft} id="TD-Tools-AlignLeft">
-              <AlignLeftIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={alignCenterHorizontal}
+            <Tooltip label={intl.formatMessage({ id: 'align.left' })} id="TD-Tools-AlignLeft">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+                <AlignLeftIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'align.center.x' })}
               id="TD-Tools-AlignCenterHorizontal"
             >
-              <AlignCenterHorizontallyIcon />
-            </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight} id="TD-Tools-AlignRight">
-              <AlignRightIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={stretchHorizontally}
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+                <AlignCenterHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'align.right' })} id="TD-Tools-AlignRight">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
+                <AlignRightIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'stretch.x' })}
               id="TD-Tools-StretchHorizontal"
             >
-              <StretchHorizontallyIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasThreeOrMore}
-              onClick={distributeHorizontally}
+              <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+                <StretchHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'distribute.x' })}
               id="TD-Tools-SpaceEvenlyHorizontal"
             >
-              <SpaceEvenlyHorizontallyIcon />
-            </ToolButton>
+              <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+                <SpaceEvenlyHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop} id="TD-Tools-AlignTop">
-              <AlignTopIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={alignCenterVertical}
+            <Tooltip label={intl.formatMessage({ id: 'align.top' })} id="TD-Tools-AlignTop">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
+                <AlignTopIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'align.center.y' })}
               id="TD-Tools-AlignCenterVertical"
             >
-              <AlignCenterVerticallyIcon />
-            </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom} id="TD-Tools-AlignBottom">
-              <AlignBottomIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={stretchVertically}
-              id="TD-Tools-tretchVertical"
-            >
-              <StretchVerticallyIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasThreeOrMore}
-              onClick={distributeVertically}
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+                <AlignCenterVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'align.bottom' })} id="TD-Tools-AlignBottom">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+                <AlignBottomIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'stretch.y' })} id="TD-Tools-StretchVertical">
+              <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+                <StretchVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'distribute.y' })}
               id="TD-Tools-SpaceEvenlyVertical"
             >
-              <SpaceEvenlyVerticallyIcon />
-            </ToolButton>
+              <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+                <SpaceEvenlyVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
         </>
       </DMContent>
