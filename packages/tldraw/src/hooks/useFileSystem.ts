@@ -19,8 +19,9 @@ export function useFileSystem() {
           // user pressed yes
           try {
             await app.saveProject()
-          } catch (e) {
             app.newProject()
+          } catch (e) {
+            // noop
           }
         },
         async () => {
@@ -51,8 +52,9 @@ export function useFileSystem() {
           // user pressed yes
           try {
             await app.saveProject()
+            await app.openProject()
           } catch (e) {
-            app.newProject()
+            // noop
           }
         },
         async () => {
