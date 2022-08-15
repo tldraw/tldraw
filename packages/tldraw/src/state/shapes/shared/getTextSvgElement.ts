@@ -12,6 +12,7 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
 
   const font = getFontStyle(style)
   const [, height] = getTextLabelSize(text, font)
+
   const textLines = text.split('\n').map((line, i) => {
     const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     textElm.textContent = line
@@ -23,10 +24,14 @@ export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBo
     textElm.setAttribute('text-align', getTextAlign(style.textAlign))
     textElm.setAttribute('text-align', getTextAlign(style.textAlign))
     textElm.setAttribute('alignment-baseline', 'central')
+
     const [width] = getTextLabelSize(line, font)
+
+    console.log(font, scale, width, bounds.width)
+
     textElm.setAttribute(
       'transform',
-      `translate(${(bounds.width - width) / 2}, ${(bounds.height - height) / 2})`
+      `translate(${(bounds.width - width) / 2}, ${(bounds.height - height * scale) / 2})`
     )
     if (style.scale !== 1) {
       textElm.setAttribute('transform', `scale(${style.scale})`)
