@@ -441,33 +441,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
 
-  function Modes() {
-    if (showUI && settings.isFocusMode) {
-      return <FocusButton onSelect={app.toggleFocusMode}/>
-    }
-    if (showUI && settings.isViewzoneMode) {
-      return <ViewzoneMenu onSelect={app.toggleViewzoneMode} shapes={app.getShapes(appState.currentPageId)}/>
-    }
-    if (showUI && settings.isPresentationMode) {
-      const shapes = app.getShapes(appState.currentPageId)
-      const viewzones = shapes.filter((shape: TDShape) => shape.type === 'viewzone')
-      return <PresentationMenu onSelect={app.togglePresentationMode} viewzones={viewzones}/>
-    }
-    return <>
-      <TopPanel
-        readOnly={readOnly}
-        showPages={showPages}
-        showMenu={showMenu}
-        showMultiplayerMenu={showMultiplayerMenu}
-        showStyles={showStyles}
-        showZoom={showZoom}
-        sponsor={showSponsorLink}
-      />
-      <StyledSpacer/>
-      {showTools && !readOnly && <ToolsPanel/>}
-    </>
-  }
-
   return (
     <IntlProvider
       locale={defaultLanguage}
@@ -556,9 +529,31 @@ const InnerTldraw = React.memo(function InnerTldraw({
             />
           </ErrorBoundary>
         </ContextMenu>
-        <StyledUI>
-          <Modes></Modes>
-        </StyledUI>
+        {showUI && (
+          <StyledUI>
+            {settings.isFocusMode ? (
+              <FocusButton onSelect={app.toggleFocusMode}/>
+            ) : settings.isViewzoneMode ? (
+              <ViewzoneMenu onSelect={app.toggleViewzoneMode} shapes={app.getShapes(appState.currentPageId)}/>
+            ) : settings.isPresentationMode ? (
+              <PresentationMenu onSelect={app.togglePresentationMode} shapes={app.getShapes(appState.currentPageId)}/>
+            ) : (
+              <>
+                <TopPanel
+                  readOnly={readOnly}
+                  showPages={showPages}
+                  showMenu={showMenu}
+                  showMultiplayerMenu={showMultiplayerMenu}
+                  showStyles={showStyles}
+                  showZoom={showZoom}
+                  sponsor={showSponsorLink}
+                />
+                <StyledSpacer/>
+                {showTools && !readOnly && <ToolsPanel/>}
+              </>
+            )}
+          </StyledUI>
+        )}
       </StyledLayout>
     </IntlProvider>
   )
