@@ -1030,6 +1030,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!this.settings.isPresentationMode) {
       const shapes = this.getShapes(this.state.appState.currentPageId)
       const viewzones = shapes.filter((shape: TDShape) => shape.type === 'viewzone')
+      localStorage.setItem('currentSlide', '0')
       this.zoomToViewzone(viewzones[0])
     }
     if (this.session) return this
