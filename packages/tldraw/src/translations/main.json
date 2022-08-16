@@ -117,5 +117,10 @@
   "distribute.x": "Distribute Horizontal",
   "distribute.y": "Distribute Vertical",
   "stretch.x": "Stretch Horizontal",
-  "stretch.y": "Stretch Vertical"
+  "stretch.y": "Stretch Vertical",
+  "dialog.save.firsttime": "Do you want to save your current project?",
+  "dialog.save.again": "Do you want to save changes to your current project?",
+  "dialog.cancel": "Cancel",
+  "dialog.no": "No",
+  "dialog.yes": "Yes"
 }
