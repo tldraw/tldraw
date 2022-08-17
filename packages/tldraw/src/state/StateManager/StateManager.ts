@@ -4,6 +4,7 @@ import * as idb from 'idb-keyval'
 import { deepCopy } from './copy'
 import type { Patch, Command } from '../../types'
 import { Utils } from '@tldraw/core'
+import EdubreakService from "~state/services/EdubreakService";
 
 export class StateManager<T extends Record<string, any>> {
   /**
@@ -128,6 +129,11 @@ export class StateManager<T extends Record<string, any>> {
    */
   protected persist = (id?: string): void | Promise<void> => {
     if (this._status !== 'ready') return
+    try {
+      EdubreakService.saveStateToEdubreak(this._state)
+    } catch (e) {
+      console.error('current document state could not be saved to edubreak', e);
+    }
 
     if (this.onPersist) {
       this.onPersist(this._state, id)

@@ -107,7 +107,7 @@ const EdubreakService = {
     },
 
 
-    parseEdubreakLink(text: string) {
+    parseEdubreakLink: function(text: string) {
         const regexp = /(http|ftp|https)?:?\/?\/?([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])/g;
         const regMatches = text.matchAll(regexp);
         const matches = [];
@@ -127,6 +127,19 @@ const EdubreakService = {
             og_id: edubreakIds[0][1],
             nid: edubreakIds[0][2]
         }
+    },
+
+    saveStateToEdubreak: function(state: any) {
+        // Simple POST request with a JSON body using fetch
+        const headers = { Authorization: 'Bearer ' + this.getEdubreakAccessToken() }
+        const options = {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(state)
+        };
+        const data = fetch(this.getEdubreakApiUrl() + '/svb', options)
+          .then(response => response.json())
+        console.log('### EdubreakService: current document state was saved ###', data);
     }
 };
 
