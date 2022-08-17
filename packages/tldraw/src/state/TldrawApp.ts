@@ -1387,6 +1387,40 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  pastePageContent = (page: TDPage, pageState: Record<string, TLPageState>): this => {
+    const { currentPageId } = this
+    const state = {
+      id: 'create_page',
+      before: {
+        appState: {
+          currentPageId,
+        },
+        document: {
+          pages: {
+            [page.id]: undefined,
+          },
+          pageStates: {
+            [page.id]: undefined,
+          },
+        },
+      },
+      after: {
+        appState: {
+          currentPageId: page.id,
+        },
+        document: {
+          pages: {
+            [page.id]: page,
+          },
+          pageStates: {
+            [page.id]: pageState,
+          },
+        },
+      },
+    }
+    return this.setState(state)
+  }
+
   // Should we move this to the app layer? onSave, onSaveAs, etc?
 
   /**

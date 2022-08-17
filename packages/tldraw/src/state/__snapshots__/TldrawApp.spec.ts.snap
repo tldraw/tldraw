@@ -485,6 +485,7 @@ TldrawTestApp {
   ],
   "pan": [Function],
   "paste": [Function],
+  "pastePageContent": [Function],
   "patchCreate": [Function],
   "patchState": [Function],
   "persist": [Function],

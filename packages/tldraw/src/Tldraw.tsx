@@ -1,4 +1,5 @@
 import { Renderer } from '@tldraw/core'
+import JSONCrush from 'jsoncrush'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
@@ -24,7 +25,7 @@ import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
-import { TDDocument, TDStatus } from '~types'
+import { TDDocument, TDPage, TDShape, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -363,6 +364,23 @@ const InnerTldraw = React.memo(function InnerTldraw({
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
+  const entry =
+    process.env.NODE_ENV === 'development'
+      ? window.location.hash.replace('#/develop/', '')
+      : window.location.search
+  const urlSearchParams = new URLSearchParams(entry)
+  const encodedPage = urlSearchParams.get('d')
+
+  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
+
+  React.useEffect(() => {
+    if (decodedPage.length) {
+      const state = JSON.parse(decodedPage) as Record<'page' | 'pageState', any>
+      if (Object.keys(state).length) {
+        app.pastePageContent(state.page, state.pageState)
+      }
+    }
+  }, [decodedPage])
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 

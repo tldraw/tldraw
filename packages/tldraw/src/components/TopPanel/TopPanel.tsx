@@ -1,3 +1,4 @@
+import JSONCrush from 'jsoncrush'
 import * as React from 'react'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
@@ -28,6 +29,27 @@ export function TopPanel({
   showMultiplayerMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
+  const currentPageId = app.appState.currentPageId
+  const pageDocument = app.document.pages[currentPageId]
+  const pageState = app.document.pageStates[currentPageId]
+
+  const copyShareableLink = () => {
+    try {
+      const state = {
+        page: {
+          ...pageDocument,
+        },
+        pageState: {
+          ...pageState,
+        },
+      }
+      const crushed = JSONCrush.crush(JSON.stringify(state))
+      const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
+      navigator.clipboard.writeText(link)
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
   return (
     <StyledTopPanel>
@@ -41,6 +63,7 @@ export function TopPanel({
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
+          <ShareButton onClick={copyShareableLink}>Share page</ShareButton>
           {app.readOnly ? (
             <ReadOnlyLabel>Read Only</ReadOnlyLabel>
           ) : (
@@ -90,4 +113,22 @@ const ReadOnlyLabel = styled('div', {
   paddingLeft: '$4',
   paddingRight: '$1',
   userSelect: 'none',
+})
+
+const ShareButton = styled('button', {
+  all: 'unset',
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  borderRadius: '$2',
+  padding: '0 15px',
+  fontSize: '$1',
+  lineHeight: 1,
+  fontWeight: 'normal',
+  height: 36,
+  cursor: 'pointer',
+  minWidth: 48,
+  backgroundColor: '#2F80ED',
+  color: 'White',
+  marginTop: 2,
 })

@@ -49,6 +49,7 @@
     "@tldraw/vec": "^1.7.1",
     "browser-fs-access": "^0.31.0",
     "idb-keyval": "^6.1.0",
+    "jsoncrush": "^1.1.8",
     "lz-string": "^1.4.4",
     "perfect-freehand": "^1.1.0",
     "react-error-boundary": "^3.1.4",
@@ -99,7 +100,10 @@
     "moduleNameMapper": {
       "@tldraw/tldraw": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
-    }
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!jsoncrush/JSONCrush.js)"
+    ]
   },
   "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
 }
