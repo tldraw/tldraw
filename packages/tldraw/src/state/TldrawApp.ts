@@ -1403,10 +1403,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   ) => {
     if (document) {
       this.loadDocument(document)
-      this.zoomToFit()
-      this.persist({})
     } else {
-      this.setIsLoading(true)
       const { currentPageId } = this
       const state = {
         id: 'create_page',
@@ -1437,10 +1434,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           },
         },
       }
-      this.setIsLoading(false)
       this.setState(state)
-      this.zoomToFit()
-      this.persist({})
     }
   }
 
