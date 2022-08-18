@@ -2,7 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { ClipboardIcon } from '@radix-ui/react-icons'
 import JSONCrush from 'jsoncrush'
 import * as React from 'react'
-import { FormattedMessage } from 'react-intl'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { DMContent, DMItem } from '~components/Primitives/DropdownMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
@@ -119,6 +119,7 @@ const ShareButton = styled(DropdownMenu.Trigger, {
 
 const ShareMenu = () => {
   const app = useTldrawApp()
+  const intl = useIntl()
   const currentPageId = app.appState.currentPageId
   const pageDocument = app.document.pages[currentPageId]
   const pageState = app.document.pageStates[currentPageId]
@@ -128,7 +129,7 @@ const ShareMenu = () => {
       ([_, value]) => value.assetId
     ).length
     if (hasAsset) {
-      alert('too big to fit in an url')
+      alert(intl.formatMessage({ id: 'data.too.big.encoded' }))
     } else {
       try {
         const state = {
@@ -150,7 +151,7 @@ const ShareMenu = () => {
 
   const copyProjectLink = () => {
     if (Object.keys(app.document.assets).length) {
-      alert('too big to fit in an url')
+      alert(intl.formatMessage({ id: 'data.too.big.encoded' }))
     } else {
       try {
         const crushed = JSONCrush.crush(JSON.stringify(app.document))

@@ -1402,7 +1402,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     pageState?: Record<string, TLPageState>
   ): this => {
     if (document) {
-      return this.loadDocument(document)
+      this.loadDocument(document)
+      return this
     } else {
       this.setIsLoading(true)
       const { currentPageId } = this
