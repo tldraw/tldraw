@@ -1400,10 +1400,11 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     document?: TDDocument,
     page?: TDPage,
     pageState?: Record<string, TLPageState>
-  ): this => {
+  ) => {
     if (document) {
       this.loadDocument(document)
-      return this
+      this.zoomToFit()
+      this.persist({})
     } else {
       this.setIsLoading(true)
       const { currentPageId } = this
@@ -1437,7 +1438,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         },
       }
       this.setIsLoading(false)
-      return this.setState(state)
+      this.setState(state)
+      this.zoomToFit()
+      this.persist({})
     }
   }
 

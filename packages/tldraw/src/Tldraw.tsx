@@ -364,6 +364,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
+
+  // In dev, we need to delete the prefixed
   const entry =
     process.env.NODE_ENV === 'development'
       ? window.location.hash.replace('#/develop/', '')
@@ -384,7 +386,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
         }
       }
     }
-  }, [decodedPage])
+  }, [decodedPage, app])
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
