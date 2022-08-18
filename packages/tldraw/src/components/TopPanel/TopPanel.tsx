@@ -169,7 +169,7 @@ const ShareMenu = () => {
       </ShareButton>
       <DMContent variant="menu" id="TD-MultiplayerMenu" side="bottom" align="start" sideOffset={4}>
         <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={copyCurrentPageLink}>
-          <FormattedMessage id="copy.current.project.link" />
+          <FormattedMessage id="copy.current.page.link" />
           <SmallIcon>
             <ClipboardIcon />
           </SmallIcon>
