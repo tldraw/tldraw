@@ -1362,6 +1362,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param document The document to load
    */
   loadDocument = (document: TDDocument): this => {
+    this.setIsLoading(true)
     this.selectNone()
     this.resetHistory()
     this.clearSelectHistory()
@@ -1384,41 +1385,59 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.replaceState(migrate(state, TldrawApp.version), 'loaded_document')
     const { point, zoom } = this.camera
     this.updateViewport(point, zoom)
+    this.setIsLoading(false)
     return this
   }
 
-  pastePageContent = (page: TDPage, pageState: Record<string, TLPageState>): this => {
-    const { currentPageId } = this
-    const state = {
-      id: 'create_page',
-      before: {
-        appState: {
-          currentPageId,
-        },
-        document: {
-          pages: {
-            [page.id]: undefined,
+  /**
+   * load content from URL
+   * @param document
+   * @param page
+   * @param pageState
+   * @returns
+   */
+  loadDocumentFromURL = (
+    document?: TDDocument,
+    page?: TDPage,
+    pageState?: Record<string, TLPageState>
+  ): this => {
+    if (document) {
+      return this.loadDocument(document)
+    } else {
+      this.setIsLoading(true)
+      const { currentPageId } = this
+      const state = {
+        id: 'create_page',
+        before: {
+          appState: {
+            currentPageId,
           },
-          pageStates: {
-            [page.id]: undefined,
+          document: {
+            pages: {
+              [page!.id]: undefined,
+            },
+            pageStates: {
+              [page!.id]: undefined,
+            },
           },
         },
-      },
-      after: {
-        appState: {
-          currentPageId: page.id,
-        },
-        document: {
-          pages: {
-            [page.id]: page,
+        after: {
+          appState: {
+            currentPageId: page!.id,
           },
-          pageStates: {
-            [page.id]: pageState,
+          document: {
+            pages: {
+              [page!.id]: page,
+            },
+            pageStates: {
+              [page!.id]: pageState,
+            },
           },
         },
-      },
+      }
+      this.setIsLoading(false)
+      return this.setState(state)
     }
-    return this.setState(state)
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?

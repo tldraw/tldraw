@@ -117,5 +117,8 @@
   "distribute.x": "Distribute Horizontal",
   "distribute.y": "Distribute Vertical",
   "stretch.x": "Stretch Horizontal",
-  "stretch.y": "Stretch Vertical"
+  "stretch.y": "Stretch Vertical",
+  "share": "Share",
+  "copy.current.page.link": "Copy Current Page Link",
+  "copy.project.link": "Copy Project Link"
 }

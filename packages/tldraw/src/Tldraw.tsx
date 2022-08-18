@@ -375,9 +375,13 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   React.useEffect(() => {
     if (decodedPage.length) {
-      const state = JSON.parse(decodedPage) as Record<'page' | 'pageState', any>
+      const state = JSON.parse(decodedPage) as Record<string, any>
       if (Object.keys(state).length) {
-        app.pastePageContent(state.page, state.pageState)
+        if ('page' in state) {
+          app.loadDocumentFromURL(undefined, state.page, state.pageState)
+        } else {
+          app.loadDocumentFromURL(state as TDDocument)
+        }
       }
     }
   }, [decodedPage])
