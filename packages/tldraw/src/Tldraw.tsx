@@ -313,6 +313,30 @@ export function Tldraw({
     }
   }, [app])
 
+  // In dev, we need to delete the prefixed
+  const entry =
+    window.location.port === '5420'
+      ? window.location.hash.replace('#/develop/', '')
+      : window.location.search
+  const urlSearchParams = new URLSearchParams(entry)
+
+  const encodedPage = urlSearchParams.get('d')
+
+  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
+
+  React.useEffect(() => {
+    if (decodedPage.length) {
+      const state = JSON.parse(decodedPage) as Record<string, any>
+      if (Object.keys(state).length) {
+        if ('page' in state) {
+          app.loadDocumentFromURL(state.page, state.pageState)
+        } else {
+          app.loadDocument(state as TDDocument)
+        }
+      }
+    }
+  }, [app, decodedPage])
+
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
@@ -364,29 +388,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
-
-  // In dev, we need to delete the prefixed
-  const entry =
-    process.env.NODE_ENV === 'development'
-      ? window.location.hash.replace('#/develop/', '')
-      : window.location.search
-  const urlSearchParams = new URLSearchParams(entry)
-  const encodedPage = urlSearchParams.get('d')
-
-  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
-
-  React.useEffect(() => {
-    if (decodedPage.length) {
-      const state = JSON.parse(decodedPage) as Record<string, any>
-      if (Object.keys(state).length) {
-        if ('page' in state) {
-          app.loadDocumentFromURL(undefined, state.page, state.pageState)
-        } else {
-          app.loadDocumentFromURL(state as TDDocument)
-        }
-      }
-    }
-  }, [decodedPage, app])
 
   const rWrapper = React.useRef<HTMLDivElement>(null)
 

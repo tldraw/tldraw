@@ -1391,51 +1391,43 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * load content from URL
-   * @param document
    * @param page
    * @param pageState
    * @returns
    */
-  loadDocumentFromURL = (
-    document?: TDDocument,
-    page?: TDPage,
-    pageState?: Record<string, TLPageState>
-  ) => {
-    if (document) {
-      this.loadDocument(document)
-    } else {
-      const { currentPageId } = this
-      const state = {
-        id: 'create_page',
-        before: {
-          appState: {
-            currentPageId,
+  loadDocumentFromURL = (page: TDPage, pageState: Record<string, TLPageState>) => {
+    const { currentPageId } = this
+    const pageId = page.id
+    const state = {
+      id: 'create_page',
+      before: {
+        appState: {
+          currentPageId,
+        },
+        document: {
+          pages: {
+            [pageId]: undefined,
           },
-          document: {
-            pages: {
-              [page!.id]: undefined,
-            },
-            pageStates: {
-              [page!.id]: undefined,
-            },
+          pageStates: {
+            [pageId]: undefined,
           },
         },
-        after: {
-          appState: {
-            currentPageId: page!.id,
+      },
+      after: {
+        appState: {
+          currentPageId: page.id,
+        },
+        document: {
+          pages: {
+            [pageId]: page,
           },
-          document: {
-            pages: {
-              [page!.id]: page,
-            },
-            pageStates: {
-              [page!.id]: pageState,
-            },
+          pageStates: {
+            [pageId]: pageState,
           },
         },
-      }
-      this.setState(state)
+      },
     }
+    return this.setState(state)
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?
