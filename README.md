@@ -40,7 +40,6 @@ This repository is a monorepo containing two packages:
 
 - [**apps/www**](https://github.com/tldraw/tldraw/tree/main/apps/www) contains the source for the [tldraw.com](https://tldraw.com) website.
 - [**apps/vscode**](https://github.com/tldraw/tldraw/tree/main/apps/vscode) contains the source for the [tldraw VS Code extension](https://marketplace.visualstudio.com/items?itemName=tldraw-org.tldraw-vscode).
-- [**apps/electron**](https://github.com/tldraw/tldraw/tree/main/apps/electron) contains the source for an experimental Electron app.
 
 ...and three examples:
 
