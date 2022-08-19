@@ -20,7 +20,8 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
           id,
           {
             ...shape,
-            parentId: shape.parentId === pageId ? newId : shape.parentId,
+            // the shape parentId should always be the newId
+            parentId: newId,
           },
         ]
       })
