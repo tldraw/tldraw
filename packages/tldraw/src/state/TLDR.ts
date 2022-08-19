@@ -409,6 +409,16 @@ export class TLDR {
       ids.forEach((id, i) => {
         const shape = TLDR.getShape<T>(data, id, pageId)
         if (shape.isLocked) return
+        if (shape.children) {
+          for (const [index, child] of shape.children.entries()) {
+            const childShape = TLDR.getShape<T>(data, child, pageId)
+            const change = fn(childShape, Number(index))
+            if (change) {
+              beforeShapes[child] = TLDR.getBeforeShape(shape, change)
+              afterShapes[child] = change
+            }
+          }
+        }
         const change = fn(shape, i)
         if (change) {
           beforeShapes[id] = TLDR.getBeforeShape(shape, change)
