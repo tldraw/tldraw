@@ -89,7 +89,7 @@ describe('Flip command', () => {
     expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
     expect(app.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 100])
   })
-  it('stays in the same point when the grouped shape is selected with other shape', () => {
+  it('move the grouped shape when flipped with other shape', () => {
     app.group(
       [app.getShape<RectangleShape>('rect1').id, app.getShape<RectangleShape>('rect2').id],
       'groupId'

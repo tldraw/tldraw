@@ -383,7 +383,8 @@ export class TLDR {
     data: TDSnapshot,
     ids: string[],
     fn: (shape: T, i: number) => Partial<T> | void,
-    pageId: string
+    pageId: string,
+    forceChildrenTraversal = false
   ): {
     before: Record<string, Partial<T>>
     after: Record<string, Partial<T>>
@@ -392,30 +393,26 @@ export class TLDR {
     const beforeShapes: Record<string, Partial<T>> = {}
     const afterShapes: Record<string, Partial<T>> = {}
 
-    const shapes = data.document.pages?.[data.appState.currentPageId].shapes
-    const groupShape = shapes?.[ids[0]]
-
-    if (ids.length === 1 && groupShape?.type === 'group') {
-      groupShape.children.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
-        }
-      })
-    } else {
-      ids.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
-        }
-      })
-    }
+    ids.forEach((id, i) => {
+      const shape = TLDR.getShape<T>(data, id, pageId)
+      if (shape.isLocked) return
+      if (shape?.type === 'group' && (ids.length === 1 || forceChildrenTraversal)) {
+        shape.children.forEach((id, i) => {
+          const shape = TLDR.getShape<T>(data, id, pageId)
+          if (shape.isLocked) return
+          const change = fn(shape, i)
+          if (change) {
+            beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+            afterShapes[id] = change
+          }
+        })
+      }
+      const change = fn(shape, i)
+      if (change) {
+        beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+        afterShapes[id] = change
+      }
+    })
 
     const dataWithMutations = Utils.deepMerge(data, {
       document: {

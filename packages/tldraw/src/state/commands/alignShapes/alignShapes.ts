@@ -48,7 +48,8 @@ export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): Tld
       if (!deltaMap[shape.id]) return shape
       return { point: deltaMap[shape.id].next }
     },
-    currentPageId
+    currentPageId,
+    false
   )
 
   initialShapes.forEach((shape) => {

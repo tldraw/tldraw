@@ -18,7 +18,7 @@ export function distributeShapes(
   const { before, after } = TLDR.mutateShapes(
     app.state,
     ids.filter((id) => deltaMap[id] !== undefined),
-    (shape) => ({ point: deltaMap[shape.id].next }),
+    (shape) => ({ point: deltaMap[shape.id]?.next }),
     currentPageId
   )
 
