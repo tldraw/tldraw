@@ -1,8 +1,8 @@
+import { TLBoundsCorner, Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state/TldrawApp'
 import { FlipType } from '~types'
 import type { TldrawCommand } from '~types'
-import { TLBoundsCorner, Utils } from '@tldraw/core'
 
 export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): TldrawCommand {
   const {
@@ -29,14 +29,17 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             true,
             false
           )
-
-          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
-            type: TLBoundsCorner.TopLeft,
-            scaleX: -1,
-            scaleY: 1,
-            initialShape: shape,
-            transformOrigin: [0.5, 0.5],
-          })
+          const dx = newShapeBounds.minX - shapeBounds.minX
+          return {
+            dx,
+            transformedValue: TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
+              type: TLBoundsCorner.TopLeft,
+              scaleX: -1,
+              scaleY: 1,
+              initialShape: shape,
+              transformOrigin: [0.5, 0.5],
+            }),
+          }
         }
         case FlipType.Vertical: {
           const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
@@ -46,18 +49,21 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             false,
             true
           )
-
-          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
-            type: TLBoundsCorner.TopLeft,
-            scaleX: 1,
-            scaleY: -1,
-            initialShape: shape,
-            transformOrigin: [0.5, 0.5],
-          })
+          return {
+            dy: newShapeBounds.minY - shapeBounds.minY,
+            transformedValue: TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
+              type: TLBoundsCorner.TopLeft,
+              scaleX: 1,
+              scaleY: -1,
+              initialShape: shape,
+              transformOrigin: [0.5, 0.5],
+            }),
+          }
         }
       }
     },
-    currentPageId
+    currentPageId,
+    true
   )
 
   return {

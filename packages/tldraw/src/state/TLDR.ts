@@ -382,8 +382,9 @@ export class TLDR {
   static mutateShapes<T extends TDShape>(
     data: TDSnapshot,
     ids: string[],
-    fn: (shape: T, i: number) => Partial<T> | void,
-    pageId: string
+    fn: (shape: T, i: number) => any | void,
+    pageId: string,
+    isFlipping?: boolean
   ): {
     before: Record<string, Partial<T>>
     after: Record<string, Partial<T>>
@@ -394,36 +395,46 @@ export class TLDR {
 
     const shapes = data.document.pages?.[data.appState.currentPageId].shapes
     const groupShape = shapes?.[ids[0]]
+    const isSingle = ids.length === 1
 
-    if (ids.length === 1 && groupShape?.type === 'group') {
-      groupShape.children.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
+    const mirror = (data: TDSnapshot, shapeId: string, pageId: string, index: number) => {
+      const shape = TLDR.getShape<T>(data, shapeId, pageId)
+      if (shape.isLocked) return
+      const change = fn(shape, index)
+      if (change) {
+        if (shape.children && isFlipping) {
+          console.log('hello')
+
+          shape.children.forEach((childId, i) => {
+            const childShape = TLDR.getShape<T>(data, childId, pageId)
+            const changeChild = fn(shape, i)
+            const pointY = change.dy ? change.dy + childShape.point[1] : childShape.point[1]
+            const pointX = change.dx ? change.dx + childShape.point[0] : childShape.point[0]
+            const nextChange: Partial<T> = {
+              ...changeChild,
+              point: [pointX, pointY],
+            }
+
+            beforeShapes[childId] = {
+              point: childShape.point,
+            } as Partial<T>
+            afterShapes[childId] = nextChange
+          })
+        } else {
+          const nextChange = 'transformedValue' in change ? change.transformedValue : change
+          beforeShapes[shapeId] = TLDR.getBeforeShape(shape, nextChange)
+          afterShapes[shapeId] = nextChange
         }
+      }
+    }
+
+    if (isSingle && groupShape?.children && isFlipping) {
+      groupShape.children.forEach((id, i) => {
+        mirror(data, id, pageId, i)
       })
     } else {
       ids.forEach((id, i) => {
-        const shape = TLDR.getShape<T>(data, id, pageId)
-        if (shape.isLocked) return
-        if (shape.children) {
-          for (const [index, child] of shape.children.entries()) {
-            const childShape = TLDR.getShape<T>(data, child, pageId)
-            const change = fn(childShape, Number(index))
-            if (change) {
-              beforeShapes[child] = TLDR.getBeforeShape(shape, change)
-              afterShapes[child] = change
-            }
-          }
-        }
-        const change = fn(shape, i)
-        if (change) {
-          beforeShapes[id] = TLDR.getBeforeShape(shape, change)
-          afterShapes[id] = change
-        }
+        mirror(data, id, pageId, i)
       })
     }
 

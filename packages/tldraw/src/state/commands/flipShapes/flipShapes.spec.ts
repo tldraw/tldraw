@@ -100,11 +100,11 @@ describe('Flip command', () => {
 
     app.flipHorizontal()
 
-    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 0])
-    expect(app.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 100])
+    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape<RectangleShape>('rect2').point).toStrictEqual([100, 100])
 
     app.flipVertical()
-    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([100, 100])
-    expect(app.getShape<RectangleShape>('rect2').point).toStrictEqual([0, 0])
+    expect(app.getShape<RectangleShape>('rect1').point).toStrictEqual([0, 0])
+    expect(app.getShape<RectangleShape>('rect2').point).toStrictEqual([100, 100])
   })
 })
