@@ -129,17 +129,25 @@ const EdubreakService = {
         }
     },
 
-    saveStateToEdubreak: function(state: any) {
+    saveStateToEdubreak: async function(state: any) {
         // Simple POST request with a JSON body using fetch
-        const headers = { Authorization: 'Bearer ' + this.getEdubreakAccessToken() }
+        const headers = {
+            Authorization: 'Bearer ' + this.getEdubreakAccessToken()
+        }
         const options = {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(state)
         };
-        const data = fetch(this.getEdubreakApiUrl() + '/svb', options)
-          .then(response => response.json())
-        console.log('### EdubreakService: current document state was saved ###', data);
+        try {
+            const data = await fetch(this.getEdubreakApiUrl() + '/svb', options)
+              .then(response => {
+                  return response.json()
+              })
+            console.log('### EdubreakService: current document state was saved ###', JSON.parse(data))
+        } catch (e) {
+            console.error('### EdubreakService: error while persisting data to the server ###');
+        }
     }
 };
 
