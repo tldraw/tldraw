@@ -460,7 +460,7 @@ export enum AlignStyle {
 export enum FontStyle {
   Script = 'script',
   Sans = 'sans',
-  Serif = 'erif',
+  Serif = 'serif',
   Mono = 'mono',
 }
 
