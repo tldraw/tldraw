@@ -244,10 +244,11 @@ export function Tldraw({
       app.setEditingId()
     }
   }, [app, readOnly])
+  const systemDarkTheme = window.matchMedia('(prefers-color-scheme: dark)')
 
   // Toggle the app's darkMode when the `darkMode` prop changes.
   React.useEffect(() => {
-    if (darkMode !== app.settings.isDarkMode) {
+    if (darkMode !== app.settings.isDarkMode || systemDarkTheme) {
       app.toggleDarkMode()
     }
   }, [app, darkMode])
