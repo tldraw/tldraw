@@ -102,6 +102,10 @@ export interface TldrawProps extends TDCallbacks {
   disableAssets?: boolean
 }
 
+const isSystemDarkMode = window.matchMedia
+  ? window.matchMedia('(prefers-color-scheme: dark)').matches
+  : false
+
 export function Tldraw({
   id,
   document,
@@ -116,7 +120,7 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   disableAssets = false,
-  darkMode = false,
+  darkMode = isSystemDarkMode,
   onMount,
   onChange,
   onChangePresence,
@@ -244,11 +248,10 @@ export function Tldraw({
       app.setEditingId()
     }
   }, [app, readOnly])
-  const systemDarkTheme = window.matchMedia('(prefers-color-scheme: dark)')
 
   // Toggle the app's darkMode when the `darkMode` prop changes.
   React.useEffect(() => {
-    if (darkMode !== app.settings.isDarkMode || systemDarkTheme) {
+    if (darkMode !== app.settings.isDarkMode) {
       app.toggleDarkMode()
     }
   }, [app, darkMode])
