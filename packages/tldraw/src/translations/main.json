@@ -121,7 +121,7 @@
   "share": "Share",
   "copy.current.page.link": "Copy Current Page Link",
   "copy.project.link": "Copy Project Link",
-  "data.too.big.encoded": "Data is too big to be encoded into an URL"
+  "data.too.big.encoded": "Data is too big to be encoded into an URL",
   "dialog.save.firsttime": "Do you want to save your current project?",
   "dialog.save.again": "Do you want to save changes to your current project?",
   "dialog.cancel": "Cancel",

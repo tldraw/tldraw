@@ -88,7 +88,7 @@ const ShareMenu = () => {
       <div ref={setContainer} />
       <Alert
         container={container}
-        description="Data is too big to be encoded into an URL"
+        description={intl.formatMessage({ id: 'data.too.big.encoded' })}
         open={openDialog}
         onClose={toggleOpenDialog}
       />
