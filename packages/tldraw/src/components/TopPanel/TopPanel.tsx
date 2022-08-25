@@ -1,11 +1,5 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { ClipboardIcon } from '@radix-ui/react-icons'
-import JSONCrush from 'jsoncrush'
 import * as React from 'react'
-import { FormattedMessage, useIntl } from 'react-intl'
-import { DMContent, DMItem } from '~components/Primitives/DropdownMenu'
 import { Panel } from '~components/Primitives/Panel'
-import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { UndoIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
@@ -13,6 +7,7 @@ import { styled } from '~styles'
 import { Menu } from './Menu/Menu'
 import { MultiplayerMenu } from './MultiplayerMenu'
 import { PageMenu } from './PageMenu'
+import ShareMenu from './ShareMenu/ShareMenu'
 import { StyleMenu } from './StyleMenu'
 import { ZoomMenu } from './ZoomMenu'
 
@@ -23,6 +18,7 @@ interface TopPanelProps {
   showStyles: boolean
   showZoom: boolean
   showMultiplayerMenu: boolean
+  showShareMenu: boolean
 }
 
 export function TopPanel({
@@ -32,6 +28,7 @@ export function TopPanel({
   showStyles,
   showZoom,
   showMultiplayerMenu,
+  showShareMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
 
@@ -41,13 +38,13 @@ export function TopPanel({
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu readOnly={readOnly} />}
           {showMultiplayerMenu && <MultiplayerMenu />}
+          {showShareMenu && <ShareMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          <ShareMenu />
           {app.readOnly ? (
             <ReadOnlyLabel>Read Only</ReadOnlyLabel>
           ) : (
@@ -98,90 +95,3 @@ const ReadOnlyLabel = styled('div', {
   paddingRight: '$1',
   userSelect: 'none',
 })
-
-const ShareButton = styled(DropdownMenu.Trigger, {
-  all: 'unset',
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: '$2',
-  padding: '0 15px',
-  fontSize: '$1',
-  lineHeight: 1,
-  fontWeight: 'normal',
-  height: 36,
-  cursor: 'pointer',
-  minWidth: 48,
-  backgroundColor: '#2F80ED',
-  color: 'White',
-  marginTop: 2,
-})
-
-const ShareMenu = () => {
-  const app = useTldrawApp()
-  const intl = useIntl()
-  const currentPageId = app.appState.currentPageId
-  const pageDocument = app.document.pages[currentPageId]
-  const pageState = app.document.pageStates[currentPageId]
-
-  const copyCurrentPageLink = () => {
-    const hasAsset = Object.entries(pageDocument.shapes).filter(
-      ([_, value]) => value.assetId
-    ).length
-    if (hasAsset) {
-      alert(intl.formatMessage({ id: 'data.too.big.encoded' }))
-    } else {
-      try {
-        const state = {
-          page: {
-            ...pageDocument,
-          },
-          pageState: {
-            ...pageState,
-          },
-        }
-        const crushed = JSONCrush.crush(JSON.stringify(state))
-        const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
-        navigator.clipboard.writeText(link)
-      } catch (err) {
-        console.error(err)
-      }
-    }
-  }
-
-  const copyProjectLink = () => {
-    if (Object.keys(app.document.assets).length) {
-      alert(intl.formatMessage({ id: 'data.too.big.encoded' }))
-    } else {
-      try {
-        const crushed = JSONCrush.crush(JSON.stringify(app.document))
-        const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
-        navigator.clipboard.writeText(link)
-      } catch (e) {
-        console.error(e)
-      }
-    }
-  }
-
-  return (
-    <DropdownMenu.Root dir="ltr">
-      <ShareButton id="TD-MultiplayerMenuIcon">
-        <FormattedMessage id="share" />
-      </ShareButton>
-      <DMContent variant="menu" id="TD-MultiplayerMenu" side="bottom" align="start" sideOffset={4}>
-        <DMItem id="TD-Multiplayer-CopyInviteLink" onClick={copyCurrentPageLink}>
-          <FormattedMessage id="copy.current.page.link" />
-          <SmallIcon>
-            <ClipboardIcon />
-          </SmallIcon>
-        </DMItem>
-        <DMItem id="TD-Multiplayer-CopyReadOnlyLink" onClick={copyProjectLink}>
-          <FormattedMessage id="copy.project.link" />
-          <SmallIcon>
-            <ClipboardIcon />
-          </SmallIcon>
-        </DMItem>
-      </DMContent>
-    </DropdownMenu.Root>
-  )
-}

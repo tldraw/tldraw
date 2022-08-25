@@ -59,6 +59,12 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) Whether to show the multiplayer menu.
    */
   showMultiplayerMenu?: boolean
+
+  /**
+   * (optional) Whether to show the share menu.
+   */
+  showShareMenu?: boolean
+
   /**
    * (optional) Whether to show the pages UI.
    */
@@ -114,6 +120,7 @@ export function Tldraw({
   autofocus = true,
   showMenu = true,
   showMultiplayerMenu = true,
+  showShareMenu = true,
   showPages = true,
   showTools = true,
   showZoom = true,
@@ -217,6 +224,34 @@ export function Tldraw({
     setApp(newApp)
   }, [sId, id])
 
+  // In dev, we need to delete the prefixed
+  const entry =
+    window.location.port === '5420'
+      ? window.location.hash.replace('#/develop/', '')
+      : window.location.search
+  const urlSearchParams = new URLSearchParams(entry)
+
+  const encodedPage = urlSearchParams.get('d')
+
+  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
+
+  React.useEffect(() => {
+    if (decodedPage.length === 0) return
+    const state = JSON.parse(decodedPage) as Record<string, any>
+    if (Object.keys(state).length) {
+      if ('page' in state) {
+        app.loadDocumentFromURL(state.page, state.pageState)
+      } else {
+        const nextDocument = state as TDDocument
+        if (nextDocument.id === app.document.id) {
+          app.updateDocument(nextDocument)
+        } else {
+          app.loadDocument(nextDocument)
+        }
+      }
+    }
+  }, [app, decodedPage])
+
   // Update the document if the `document` prop changes but the ids,
   // are the same, or else load a new document if the ids are different.
   React.useEffect(() => {
@@ -317,30 +352,6 @@ export function Tldraw({
     }
   }, [app])
 
-  // In dev, we need to delete the prefixed
-  const entry =
-    window.location.port === '5420'
-      ? window.location.hash.replace('#/develop/', '')
-      : window.location.search
-  const urlSearchParams = new URLSearchParams(entry)
-
-  const encodedPage = urlSearchParams.get('d')
-
-  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
-
-  React.useEffect(() => {
-    if (decodedPage.length) {
-      const state = JSON.parse(decodedPage) as Record<string, any>
-      if (Object.keys(state).length) {
-        if ('page' in state) {
-          app.loadDocumentFromURL(state.page, state.pageState)
-        } else {
-          app.loadDocument(state as TDDocument)
-        }
-      }
-    }
-  }, [app, decodedPage])
-
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
@@ -354,6 +365,7 @@ export function Tldraw({
           showPages={showPages}
           showMenu={showMenu}
           showMultiplayerMenu={showMultiplayerMenu}
+          showShareMenu={showShareMenu}
           showStyles={showStyles}
           showZoom={showZoom}
           showTools={showTools}
@@ -376,6 +388,7 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  showShareMenu: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -384,6 +397,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showPages,
   showMenu,
   showMultiplayerMenu,
+  showShareMenu,
   showZoom,
   showStyles,
   showTools,
@@ -586,6 +600,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                     showPages={showPages}
                     showMenu={showMenu}
                     showMultiplayerMenu={showMultiplayerMenu}
+                    showShareMenu={showShareMenu}
                     showStyles={showStyles}
                     showZoom={showZoom}
                   />

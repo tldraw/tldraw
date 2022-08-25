@@ -1367,6 +1367,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
+    // this set it and set it back to the default document
 
     const state = {
       ...TldrawApp.defaultState,
