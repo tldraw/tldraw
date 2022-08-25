@@ -103,6 +103,10 @@ export interface TldrawProps extends TDCallbacks {
   disableAssets?: boolean
 }
 
+const isSystemDarkMode = window.matchMedia
+  ? window.matchMedia('(prefers-color-scheme: dark)').matches
+  : false
+
 export function Tldraw({
   id,
   document,
@@ -117,7 +121,7 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   disableAssets = false,
-  darkMode = false,
+  darkMode = isSystemDarkMode,
   onMount,
   onChange,
   onChangePresence,

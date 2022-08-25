@@ -517,7 +517,7 @@ export class Vec {
   }
 
   /**
-   * Get an array of points (with simulated pressure) between two points.
+   * Get an array of points between two points.
    * @param A The first point.
    * @param B The second point.
    * @param steps The number of points to return.

@@ -54,7 +54,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
 
     shape.children
       .map((id) => shapes[id])
-      .filter(Boolean) // TODO: Find cases where shapes would be missing.
+      .filter((childShape) => shapes[childShape.id]) // TODO: Find cases where shapes would be missing.
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
         addToShapeTree(

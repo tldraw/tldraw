@@ -44,7 +44,7 @@
   "select.all": "选中全部",
   "select.none": "取消选中",
   "delete": "删除",
-  "new.project": "新工程",
+  "new.project": "新项目",
   "open": "打开",
   "save": "保存",
   "save.as": "保存为",
@@ -55,8 +55,8 @@
   "duplicate": "复制",
   "cancel": "取消",
   "copy.invite.link": "复制邀请链接",
-  "create.multiplayer.project": "创建多人工程",
-  "copy.multiplayer.project": "复制到多人工程",
+  "create.multiplayer.project": "创建多人项目",
+  "copy.multiplayer.project": "复制到多人项目",
   "select": "选择",
   "eraser": "橡皮",
   "draw": "画笔",
@@ -103,5 +103,10 @@
   "dark": "暗黑",
   "copy.readonly.link": "复制只读链接",
   "image": "图片",
-  "align.distribute": "对齐 / 分散"
+  "align.distribute": "对齐 / 分散",
+  "dialog.save.firsttime": "您是否想保存当前的项目？",
+  "dialog.save.again": "您是否想保存对当前项目的更改？",
+  "dialog.cancel": "取消",
+  "dialog.no": "否",
+  "dialog.yes": "是"
 }

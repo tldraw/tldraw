@@ -1,5 +1,6 @@
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import * as React from 'react'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { DialogState, useDialog } from '~hooks'
 import { styled } from '~styles'
 
@@ -42,13 +43,13 @@ export const AlertDialogDescription = StyledDescription
 export const AlertDialogAction = AlertDialogPrimitive.Action
 export const AlertDialogCancel = AlertDialogPrimitive.Cancel
 
-const descriptions: Record<DialogState, string> = {
-  saveFirstTime: 'Do you want to save your current project?',
-  saveAgain: 'Do you want to save changes to your current project?',
-}
-
 export const AlertDialog = ({ container }: { container: any }) => {
   const { setDialogState, dialogState, onCancel, onNo, onYes } = useDialog()
+  const intl = useIntl()
+  const descriptions: Record<DialogState, string> = {
+    saveFirstTime: intl.formatMessage({ id: 'dialog.save.firsttime' }),
+    saveAgain: intl.formatMessage({ id: 'dialog.save.again' }),
+  }
 
   return (
     <AlertDialogRoot open={dialogState !== null}>
@@ -73,7 +74,7 @@ export const AlertDialog = ({ container }: { container: any }) => {
                   setDialogState(null)
                 }}
               >
-                Cancel
+                <FormattedMessage id="dialog.cancel" />
               </Button>
             </AlertDialogCancel>
           )}
@@ -86,7 +87,7 @@ export const AlertDialog = ({ container }: { container: any }) => {
                     setDialogState(null)
                   }}
                 >
-                  No
+                  <FormattedMessage id="dialog.no" />
                 </Button>
               </AlertDialogAction>
             )}
@@ -99,7 +100,7 @@ export const AlertDialog = ({ container }: { container: any }) => {
                     setDialogState(null)
                   }}
                 >
-                  Yes
+                  <FormattedMessage id="dialog.yes" />
                 </Button>
               </AlertDialogAction>
             )}
