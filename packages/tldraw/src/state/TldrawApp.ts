@@ -1367,7 +1367,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.resetHistory()
     this.clearSelectHistory()
     this.session = undefined
-    // this set it and set it back to the default document
 
     const state = {
       ...TldrawApp.defaultState,
@@ -1399,36 +1398,19 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   loadDocumentFromURL = (page: TDPage, pageState: Record<string, TLPageState>) => {
     const { currentPageId } = this
     const pageId = page.id
-    const state = {
-      id: 'create_page',
-      before: {
-        appState: {
-          currentPageId,
-        },
-        document: {
-          pages: {
-            [pageId]: undefined,
-          },
-          pageStates: {
-            [pageId]: undefined,
-          },
-        },
+    const nextDocument = {
+      ...this.state.document,
+      pageStates: {
+        ...this.state.document.pageStates,
+        [pageId]: pageState,
       },
-      after: {
-        appState: {
-          currentPageId: page.id,
-        },
-        document: {
-          pages: {
-            [pageId]: page,
-          },
-          pageStates: {
-            [pageId]: pageState,
-          },
-        },
+      pages: {
+        ...this.document.pages,
+        [pageId]: page,
       },
     }
-    return this.setState(state)
+    this.loadDocument(nextDocument as TDDocument)
+    this.persist({})
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?

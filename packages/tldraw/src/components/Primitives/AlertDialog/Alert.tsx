@@ -32,6 +32,7 @@ const StyledDescription = styled(AlertDialogPrimitive.Description, {
   textAlign: 'center',
   minWidth: 0,
   alignSelf: 'center',
+  maxWidth: '62%',
 })
 
 const AlertDialogRoot = AlertDialogPrimitive.Root
@@ -53,10 +54,9 @@ export const Alert = ({ container, description, open, onClose }: AlertProps) => 
         <AlertDialogDescription>{description}</AlertDialogDescription>
         <div
           style={{
-            width: '100%',
-            gap: '$6',
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'center',
+            width: 'auto',
           }}
         >
           <AlertDialogAction asChild>
@@ -110,4 +110,5 @@ const Button = styled('button', {
   color: '$text',
   cursor: 'pointer',
   minWidth: 48,
+  width: 'max-content',
 })
