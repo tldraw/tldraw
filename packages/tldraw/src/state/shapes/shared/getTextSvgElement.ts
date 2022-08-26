@@ -28,13 +28,20 @@ export function getTextSvgElement(
   textElm.setAttribute('dominant-baseline', 'mathematical')
   textElm.setAttribute('alignment-baseline', 'mathematical')
 
-  // Create a canvas that we'll use to measure each line of text
-  const cvs = document.createElement('canvas')
-  const ctx = cvs.getContext('2d')!
+  let cvs: HTMLCanvasElement | null = null
+  let ctx: CanvasRenderingContext2D | null = null
 
-  // Set the canvas context's font to match the CSS text
-  ctx.font = `${fontSize}px ${fontFamily}`
-  ctx.textAlign = textAlign === 'start' ? 'left' : textAlign === 'end' ? 'right' : 'center'
+  // Create a canvas that we'll use to measure each line of text
+  cvs = document.createElement('canvas')
+  if (cvs) {
+    ctx = cvs.getContext('2d')!
+
+    if (ctx) {
+      // Set the canvas context's font to match the CSS text
+      ctx.font = `${fontSize}px ${fontFamily}`
+      ctx.textAlign = textAlign === 'start' ? 'left' : textAlign === 'end' ? 'right' : 'center'
+    }
+  }
 
   // Collect lines
 
@@ -64,7 +71,7 @@ export function getTextSvgElement(
     } else {
       // Add the word (and a space) to the current line
       currentLine += word + ' '
-      if (wrap) {
+      if (ctx && wrap) {
         const width = ctx.measureText(currentLine).width * 0.92
         // If the length of the new current line is greater than the bounds width
         if (width >= bounds.width - padding * 2) {
