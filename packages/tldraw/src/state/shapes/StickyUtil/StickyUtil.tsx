@@ -9,6 +9,8 @@ import {
   TextAreaUtils,
   defaultTextStyle,
   getBoundsRectangle,
+  getFontFace,
+  getStickyFontSize,
   getStickyFontStyle,
   getStickyShapeStyle,
   getTextSvgElement,
@@ -286,9 +288,16 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
+
     const textBounds = Utils.expandBounds(bounds, -PADDING)
-    const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
     const style = getStickyShapeStyle(shape.style, isDarkMode)
+
+    const fontSize = getStickyFontSize(shape.style.size) * (shape.style.scale ?? 1)
+    const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+
+    const textElm = getTextSvgElement(shape.text, fontSize, fontFamily, textAlign, textBounds, true)
+
     textElm.setAttribute('fill', style.color)
     textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
 

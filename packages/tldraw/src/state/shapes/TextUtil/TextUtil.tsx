@@ -8,6 +8,8 @@ import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
   TextAreaUtils,
   defaultTextStyle,
+  getFontFace,
+  getFontSize,
   getFontStyle,
   getShapeStyle,
   getTextAlign,
@@ -389,10 +391,15 @@ export class TextUtil extends TDShapeUtil<T, E> {
   getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
     const style = getShapeStyle(shape.style, isDarkMode)
-    const elm = getTextSvgElement(shape.text, shape.style, bounds)
-    elm.setAttribute('fill', style.stroke)
 
-    return elm
+    const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
+    const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+
+    const textElm = getTextSvgElement(shape.text, fontSize, fontFamily, textAlign, bounds, true)
+    textElm.setAttribute('fill', style.stroke)
+
+    return textElm
   }
 }
 
