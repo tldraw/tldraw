@@ -211,6 +211,7 @@ const TextWrapper = styled('div', {
 const commonTextWrapping = {
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
+  letterSpacing: LETTER_SPACING,
 }
 
 const InnerWrapper = styled('div', {
@@ -220,7 +221,6 @@ const InnerWrapper = styled('div', {
   minHeight: 1,
   minWidth: 1,
   lineHeight: 1,
-  letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
   textAlign: 'center',
@@ -265,7 +265,6 @@ const TextArea = styled('textarea', {
   minHeight: 'inherit',
   minWidth: 'inherit',
   lineHeight: 'inherit',
-  letterSpacing: 'inherit',
   outline: 0,
   fontWeight: 'inherit',
   overflow: 'hidden',

@@ -404,6 +404,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
       bounds.width,
       false
     )
+
     textElm.setAttribute('fill', style.stroke)
 
     return textElm

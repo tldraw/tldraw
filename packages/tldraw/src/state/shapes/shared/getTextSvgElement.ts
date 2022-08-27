@@ -29,7 +29,7 @@ export function getTextSvgElement(
 
   const lines = breakText({
     text,
-    wrap: true,
+    wrap,
     width,
     fontSize,
     fontWeight,
