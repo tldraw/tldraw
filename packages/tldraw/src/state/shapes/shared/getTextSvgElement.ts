@@ -5,10 +5,12 @@ import { getTextAlign } from './getTextAlign'
 import { getTextLabelSize } from './getTextSize'
 import { getFontFace, getFontSize, getFontStyle } from './shape-styles'
 
-const WORD_SEPARATORS = [0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
+// https://drafts.csswg.org/css-text/#word-separator
 // split on any of these characters
 const wordSeparator = new RegExp(
-  `[${WORD_SEPARATORS.map((c) => String.fromCodePoint(c)).join('')}]`
+  `${[0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
+    .map((c) => String.fromCodePoint(c))
+    .join('|')}`
 )
 
 export function getTextSvgElement(
