@@ -18,13 +18,27 @@ export function getTextSvgElement(
   fontSize: number,
   fontFamily: string,
   textAlign: AlignStyle,
-  bounds: TLBounds,
+  width: number,
   wrap = false
 ) {
   const fontWeight = 'normal'
   const lineHeight = 1
-  const padding = 0
   const letterSpacingPct = LETTER_SPACING
+
+  // Collect lines
+
+  const lines = breakText({
+    text,
+    wrap: true,
+    width,
+    fontSize,
+    fontWeight,
+    fontFamily,
+    fontStyle: 'normal',
+    textAlign: 'left',
+    letterSpacing: LETTER_SPACING,
+    lineHeight: 1,
+  })
 
   const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
   textElm.setAttribute('font-size', fontSize + 'px')
@@ -36,69 +50,10 @@ export function getTextSvgElement(
   textElm.setAttribute('dominant-baseline', 'mathematical')
   textElm.setAttribute('alignment-baseline', 'mathematical')
 
-  let cvs: HTMLCanvasElement | null = null
-  let ctx: CanvasRenderingContext2D | null = null
-
-  // Create a canvas that we'll use to measure each line of text
-  cvs = document.createElement('canvas')
-  if (cvs) {
-    ctx = cvs.getContext('2d')!
-
-    if (ctx) {
-      // Set the canvas context's font to match the CSS text
-      ctx.font = `${fontSize}px ${fontFamily}`
-      ctx.textAlign = textAlign === 'start' ? 'left' : textAlign === 'end' ? 'right' : 'center'
-    }
-  }
-
-  // Collect lines
-
-  const lines: string[][] = [[]]
-  let currentLine = ''
-
-  // Split the text into words
-  const words = text
-    .split(wordSeparator)
-    .flatMap((word) => word.replace('\n', ' \n'))
-    .join(' ')
-    .split(' ')
-
-  // Iterate through the words looking for either line breaks, or
-  // when the measured line exceeds the width of the container (minus
-  // its padding); at either point, create a new line.
-  for (let word of words) {
-    if (word.startsWith('\n')) {
-      // Slice the newline off of the front of the current word
-      word = word.slice(1)
-      // Add a newline to the end of the current line
-      lines[lines.length - 1].push('\n')
-      // Create a new line
-      lines.push([])
-      // Set the current line to the word (and a space)
-      currentLine = word + ' '
-    } else {
-      // Add the word (and a space) to the current line
-      currentLine += word + ' '
-      if (ctx && wrap) {
-        const width = ctx.measureText(currentLine).width * 0.92
-        // If the length of the new current line is greater than the bounds width
-        if (width >= bounds.width - padding * 2) {
-          lines[lines.length - 1].push('\n')
-          lines.push([])
-          currentLine = word + ' '
-        }
-        // todo: split and wrap words that are longer than the bounds width
-      }
-    }
-
-    // Push the current word to the current line
-    lines[lines.length - 1].push(word)
-  }
-
   const textLines = lines.map((line, i) => {
     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
-    tspan.textContent = line.join(' ')
-    tspan.setAttribute('y', lineHeight * fontSize * (i + 0.5) + '')
+    tspan.textContent = line + '\n'
+    tspan.setAttribute('y', lineHeight * fontSize * (i + 0.5) + 'px')
     textElm.appendChild(tspan)
     return tspan
   })
@@ -107,13 +62,13 @@ export function getTextSvgElement(
     case AlignStyle.Middle: {
       textElm.setAttribute('text-align', 'center')
       textElm.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width / 2 + ''))
+      textLines.forEach((textElm) => textElm.setAttribute('x', width / 2 + ''))
       break
     }
     case AlignStyle.End: {
       textElm.setAttribute('text-align', 'right')
       textElm.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width + ''))
+      textLines.forEach((textElm) => textElm.setAttribute('x', width + ''))
       break
     }
     default: {
@@ -124,4 +79,70 @@ export function getTextSvgElement(
   }
 
   return textElm
+}
+
+function breakText(opts: {
+  text: string
+  wrap: boolean
+  width: number
+  fontSize: number
+  fontWeight: string
+  fontFamily: string
+  fontStyle: string
+  lineHeight: number
+  letterSpacing: string
+  textAlign: string
+}): string[] {
+  if (!opts.wrap) return [opts.text]
+
+  const textElm = document.createElement('div')
+  textElm.style.setProperty('position', 'absolute')
+  textElm.style.setProperty('top', '-9999px')
+  textElm.style.setProperty('left', '-9999px')
+  textElm.style.setProperty('width', opts.width + 'px')
+  textElm.style.setProperty('height', 'min-content')
+  textElm.style.setProperty('font-size', opts.fontSize + 'px')
+  textElm.style.setProperty('font-family', opts.fontFamily)
+  textElm.style.setProperty('font-weight', opts.fontWeight)
+  textElm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+  textElm.style.setProperty('letter-spacing', opts.letterSpacing)
+  textElm.style.setProperty('text-align', opts.textAlign)
+  document.body.appendChild(textElm)
+
+  // Collect lines
+
+  // Split the text into words
+  const words = opts.text
+    .split(wordSeparator)
+    .flatMap((word) => word.replace('\n', ' \n'))
+    .join(' ')
+    .split(' ')
+
+  // Iterate through the words looking for either line breaks, or
+  // when the measured line exceeds the width of the container (minus
+  // its padding); at either point, create a new line.
+
+  textElm.innerText = words[0]
+  let prevHeight = textElm.offsetHeight
+
+  let currentLine = [words[0]]
+  const lines: string[][] = [currentLine]
+
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i]
+    textElm.innerText += ' ' + word
+    const newHeight = textElm.offsetHeight
+    if (newHeight > prevHeight) {
+      prevHeight = newHeight
+      currentLine = []
+      lines.push(currentLine)
+    }
+
+    // Push the current word to the current line
+    currentLine.push(word)
+  }
+
+  textElm.remove()
+
+  return lines.map((line) => line.join(' '))
 }

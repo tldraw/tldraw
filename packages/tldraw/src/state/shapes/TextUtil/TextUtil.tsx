@@ -396,7 +396,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
     const fontFamily = getFontFace(shape.style.font).slice(1, -1)
     const textAlign = shape.style.textAlign ?? AlignStyle.Start
 
-    const textElm = getTextSvgElement(shape.text, fontSize, fontFamily, textAlign, bounds, false)
+    const textElm = getTextSvgElement(
+      shape.text,
+      fontSize,
+      fontFamily,
+      textAlign,
+      bounds.width,
+      false
+    )
     textElm.setAttribute('fill', style.stroke)
 
     return textElm
