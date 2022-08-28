@@ -62,13 +62,13 @@ export function getTextSvgElement(
     case AlignStyle.Middle: {
       textElm.setAttribute('text-align', 'center')
       textElm.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + (width / 2 + '')))
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width / 2 + ''))
       break
     }
     case AlignStyle.End: {
       textElm.setAttribute('text-align', 'right')
       textElm.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + (width + '')))
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width + ''))
       break
     }
     default: {
@@ -93,8 +93,6 @@ function breakText(opts: {
   letterSpacing: string
   textAlign: string
 }): string[] {
-  if (!opts.wrap) return [opts.text]
-
   const textElm = document.createElement('div')
   textElm.style.setProperty('position', 'absolute')
   textElm.style.setProperty('top', '-9999px')
