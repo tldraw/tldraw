@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.21.0
+
+### Minor Changes
+
+- - Improve text (and multiline text) in image exports
+  - Create European Portugese translation
+  - Create Swedish translation
+  - Use system default for theme default
+  - Update translation label for Chinese
+  - Fix bugs with flip command
+  - Fix bug with duplicate page command
+  - Improve dialogs
+  - Improve SVG pasting
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.16.0
+
 ## 1.20.0
 
 ### Minor Changes
