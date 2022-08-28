@@ -1,4 +1,5 @@
 import { LETTER_SPACING } from '~constants'
+import { FontStyle } from '~types'
 
 let melm: any
 

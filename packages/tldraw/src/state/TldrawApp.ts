@@ -2073,8 +2073,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     )
 
     // Clean up the SVG by removing any hidden elements
-    svg.setAttribute('width', commonBounds.width.toString())
-    svg.setAttribute('height', commonBounds.height.toString())
+    svg.setAttribute('width', (commonBounds.width + SVG_EXPORT_PADDING * 2).toString())
+    svg.setAttribute('height', (commonBounds.height + SVG_EXPORT_PADDING * 2).toString())
 
     // Set export background
     const exportBackground: TDExportBackground = this.settings.exportBackground
