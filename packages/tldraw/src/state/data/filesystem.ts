@@ -1,4 +1,4 @@
-import { fileOpen, fileSave } from 'browser-fs-access'
+import { fileOpen, fileSave, supported } from 'browser-fs-access'
 import type { FileSystemHandle } from 'browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
 import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
@@ -48,12 +48,15 @@ export async function saveToFileSystem(
     const hasPermissions = await checkPermissions(fileHandle)
     if (!hasPermissions) return null
   }
-
+  let filename = ''
+  if (!supported) {
+    filename = prompt('Enter the desired file name!') ?? `${file.name}`
+  }
   // Save to file system
   const newFileHandle = await fileSave(
     blob,
     {
-      fileName: `${file.name}.tldr`,
+      fileName: `${filename}.tldr`,
       description: 'Tldraw File',
       extensions: [`.tldr`],
     },
