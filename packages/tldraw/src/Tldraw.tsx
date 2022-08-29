@@ -467,7 +467,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
     <ContainerContext.Provider value={rWrapper}>
       <IntlProvider locale={translation.locale} messages={translation.messages}>
         <AlertDialog container={dialogContainer} />
-        {/* <FilenameDialog isOpen={true} onClose={() => {}} /> */}
         <StyledLayout ref={rWrapper} tabIndex={-0}>
           <Loading />
           <OneOff focusableRef={rWrapper} autofocus={autofocus} />
