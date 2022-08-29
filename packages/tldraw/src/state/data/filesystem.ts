@@ -48,7 +48,7 @@ export async function saveToFileSystem(
     const hasPermissions = await checkPermissions(fileHandle)
     if (!hasPermissions) return null
   }
-  let filename = ''
+  let filename = `${file.name}`
   if (!supported) {
     filename = prompt('Enter the desired file name!') ?? `${file.name}`
   }
