@@ -26,7 +26,8 @@ export async function saveFileHandle(fileHandle: FileSystemFileHandle | null) {
 
 export async function saveToFileSystem(
   document: TDDocument,
-  fileHandle: FileSystemFileHandle | null
+  fileHandle: FileSystemFileHandle | null,
+  name?: string
 ) {
   // Create the saved file data
   const file: TDFile = {
@@ -48,10 +49,7 @@ export async function saveToFileSystem(
     const hasPermissions = await checkPermissions(fileHandle)
     if (!hasPermissions) return null
   }
-  let filename = `${file.name}`
-  if (!supported) {
-    filename = prompt('Enter the desired file name!') ?? `${file.name}`
-  }
+  const filename = !supported && name?.length ? name : `${file.name}`
   // Save to file system
   const newFileHandle = await fileSave(
     blob,

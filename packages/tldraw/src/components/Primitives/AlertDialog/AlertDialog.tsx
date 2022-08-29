@@ -144,7 +144,7 @@ const StyledContent = styled(AlertDialogPrimitive.Content, {
   boxShadow: '$panel',
 })
 
-const Button = styled('button', {
+export const Button = styled('button', {
   all: 'unset',
   display: 'inline-flex',
   alignItems: 'center',
