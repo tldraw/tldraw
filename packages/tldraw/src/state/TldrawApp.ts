@@ -1395,8 +1395,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param pageState
    * @returns
    */
-  loadDocumentFromURL = (page: TDPage, pageState: Record<string, TLPageState>) => {
-    const { currentPageId } = this
+  loadPageFromURL = (page: TDPage, pageState: Record<string, TLPageState>) => {
     const pageId = page.id
     const nextDocument = {
       ...this.state.document,

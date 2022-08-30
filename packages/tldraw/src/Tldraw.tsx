@@ -241,7 +241,7 @@ export function Tldraw({
     if (Object.keys(state).length) {
       app.ready.then(() => {
         if ('page' in state) {
-          app.loadDocumentFromURL(state.page, state.pageState)
+          app.loadPageFromURL(state.page, state.pageState)
         } else {
           const nextDocument = state as TDDocument
           if (nextDocument.id === app.document.id) {
@@ -252,7 +252,7 @@ export function Tldraw({
         }
       })
     }
-  }, [app, decodedPage])
+  }, [app])
 
   // Update the document if the `document` prop changes but the ids,
   // are the same, or else load a new document if the ids are different.
