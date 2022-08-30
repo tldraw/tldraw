@@ -239,16 +239,18 @@ export function Tldraw({
     if (decodedPage.length === 0) return
     const state = JSON.parse(decodedPage) as Record<string, any>
     if (Object.keys(state).length) {
-      if ('page' in state) {
-        app.loadDocumentFromURL(state.page, state.pageState)
-      } else {
-        const nextDocument = state as TDDocument
-        if (nextDocument.id === app.document.id) {
-          app.updateDocument(nextDocument)
+      app.ready.then(() => {
+        if ('page' in state) {
+          app.loadDocumentFromURL(state.page, state.pageState)
         } else {
-          app.loadDocument(nextDocument)
+          const nextDocument = state as TDDocument
+          if (nextDocument.id === app.document.id) {
+            app.updateDocument(nextDocument)
+          } else {
+            app.loadDocument(nextDocument)
+          }
         }
-      }
+      })
     }
   }, [app, decodedPage])
 
