@@ -17,6 +17,8 @@ export const LABEL_POINT = [0.5, 0.5]
 
 export const PI2 = Math.PI * 2
 
+export const FILE_EXTENSION = '.tldr'
+
 export const EASINGS: Record<Easing, (t: number) => number> = {
   linear: (t) => t,
   easeInQuad: (t) => t * t,

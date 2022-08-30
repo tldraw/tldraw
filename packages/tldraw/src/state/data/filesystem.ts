@@ -1,7 +1,7 @@
 import { fileOpen, fileSave, supported } from 'browser-fs-access'
 import type { FileSystemHandle } from 'browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
-import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import { FILE_EXTENSION, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
 import type { TDDocument, TDFile } from '~types'
 
 const options = { mode: 'readwrite' as const }
@@ -54,9 +54,9 @@ export async function saveToFileSystem(
   const newFileHandle = await fileSave(
     blob,
     {
-      fileName: `${filename}.tldr`,
+      fileName: `${filename}${FILE_EXTENSION}`,
       description: 'Tldraw File',
-      extensions: [`.tldr`],
+      extensions: [`${FILE_EXTENSION}`],
     },
     fileHandle
   )
@@ -74,7 +74,7 @@ export async function openFromFileSystem(): Promise<null | {
   // Get the blob
   const blob = await fileOpen({
     description: 'Tldraw File',
-    extensions: [`.tldr`],
+    extensions: [`${FILE_EXTENSION}`],
     multiple: false,
   })
 

@@ -16,7 +16,7 @@ export const FilenameDialog = ({ isOpen, onClose }: FilenameDialogProps) => {
   const app = useTldrawApp()
   const container = useContainer()
   const intl = useIntl()
-  const [filename, setFilename] = React.useState('')
+  const [filename, setFilename] = React.useState(app.document.name)
 
   const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.trimStart()
@@ -63,7 +63,9 @@ export const FilenameDialog = ({ isOpen, onClose }: FilenameDialogProps) => {
               <Button
                 css={{ backgroundColor: '#2F80ED', color: 'White' }}
                 onClick={() => {
-                  app.saveProjectAs(filename)
+                  // Remove the file extension if the user entered it
+                  const name = filename.trim().replace(/\.tldr$/, '')
+                  app.saveProjectAs(name)
                   onClose()
                 }}
               >
