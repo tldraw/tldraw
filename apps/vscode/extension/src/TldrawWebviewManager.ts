@@ -140,10 +140,10 @@ export class TldrawWebviewManager {
 
     if (process.env.NODE_ENV === 'production') {
       cssSrc = webviewPanel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.css')
+        vscode.Uri.joinPath(context.extensionUri, 'editor', 'index.css')
       )
       jsSrc = webviewPanel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.js')
+        vscode.Uri.joinPath(context.extensionUri, 'editor', 'index.js')
       )
     } else {
       const localhost = 'http://localhost:5420/'

@@ -7,6 +7,7 @@
     "rootDir": "src",
     "baseUrl": "src",
     "emitDeclarationOnly": false,
+    "jsx": "react-jsx",
     "paths": {
       "@tldraw/tldraw": ["../../../packages/tldraw"]
     }
