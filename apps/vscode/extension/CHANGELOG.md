@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.21.1
+
+### Patch Changes
+
+- Remove share by URL.
+
 ## 1.21.0
 
 ### Minor Changes
