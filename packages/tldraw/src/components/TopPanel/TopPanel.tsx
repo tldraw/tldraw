@@ -7,6 +7,7 @@ import { styled } from '~styles'
 import { Menu } from './Menu/Menu'
 import { MultiplayerMenu } from './MultiplayerMenu'
 import { PageMenu } from './PageMenu'
+import ShareMenu from './ShareMenu/ShareMenu'
 import { StyleMenu } from './StyleMenu'
 import { ZoomMenu } from './ZoomMenu'
 
@@ -17,6 +18,7 @@ interface TopPanelProps {
   showStyles: boolean
   showZoom: boolean
   showMultiplayerMenu: boolean
+  showShareMenu: boolean
 }
 
 export function TopPanel({
@@ -26,6 +28,7 @@ export function TopPanel({
   showStyles,
   showZoom,
   showMultiplayerMenu,
+  showShareMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
 
@@ -35,6 +38,7 @@ export function TopPanel({
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu readOnly={readOnly} />}
           {showMultiplayerMenu && <MultiplayerMenu />}
+          {showShareMenu && <ShareMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}

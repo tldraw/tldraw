@@ -406,6 +406,7 @@ TldrawTestApp {
   "isPointing": false,
   "justSent": false,
   "loadDocument": [Function],
+  "loadPageFromURL": [Function],
   "loadRoom": [Function],
   "mergeDocument": [Function],
   "metaKey": false,
