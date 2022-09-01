@@ -1,5 +1,4 @@
 import { Renderer } from '@tldraw/core'
-import JSONCrush from 'jsoncrush'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
@@ -25,7 +24,7 @@ import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
-import { TDDocument, TDPage, TDShape, TDStatus } from '~types'
+import { TDDocument, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -59,11 +58,6 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) Whether to show the multiplayer menu.
    */
   showMultiplayerMenu?: boolean
-
-  /**
-   * (optional) Whether to show the share menu.
-   */
-  showShareMenu?: boolean
 
   /**
    * (optional) Whether to show the pages UI.
@@ -120,7 +114,6 @@ export function Tldraw({
   autofocus = true,
   showMenu = true,
   showMultiplayerMenu = true,
-  showShareMenu = true,
   showPages = true,
   showTools = true,
   showZoom = true,
@@ -223,36 +216,6 @@ export function Tldraw({
 
     setApp(newApp)
   }, [sId, id])
-
-  // In dev, we need to delete the prefixed
-  const entry =
-    window.location.port === '5420'
-      ? window.location.hash.replace('#/develop/', '')
-      : window.location.search
-  const urlSearchParams = new URLSearchParams(entry)
-
-  const encodedPage = urlSearchParams.get('d')
-
-  const decodedPage = JSONCrush.uncrush((encodedPage as string) ?? '')
-
-  React.useEffect(() => {
-    if (decodedPage.length === 0) return
-    const state = JSON.parse(decodedPage) as Record<string, any>
-    if (Object.keys(state).length) {
-      app.ready.then(() => {
-        if ('page' in state) {
-          app.loadPageFromURL(state.page, state.pageState)
-        } else {
-          const nextDocument = state as TDDocument
-          if (nextDocument.id === app.document.id) {
-            app.updateDocument(nextDocument)
-          } else {
-            app.loadDocument(nextDocument)
-          }
-        }
-      })
-    }
-  }, [app])
 
   // Update the document if the `document` prop changes but the ids,
   // are the same, or else load a new document if the ids are different.
@@ -367,7 +330,6 @@ export function Tldraw({
           showPages={showPages}
           showMenu={showMenu}
           showMultiplayerMenu={showMultiplayerMenu}
-          showShareMenu={showShareMenu}
           showStyles={showStyles}
           showZoom={showZoom}
           showTools={showTools}
@@ -390,7 +352,6 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
-  showShareMenu: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -399,7 +360,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showPages,
   showMenu,
   showMultiplayerMenu,
-  showShareMenu,
   showZoom,
   showStyles,
   showTools,
@@ -602,7 +562,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
                     showPages={showPages}
                     showMenu={showMenu}
                     showMultiplayerMenu={showMultiplayerMenu}
-                    showShareMenu={showShareMenu}
                     showStyles={showStyles}
                     showZoom={showZoom}
                   />
