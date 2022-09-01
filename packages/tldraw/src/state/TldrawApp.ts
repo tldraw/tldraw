@@ -1362,6 +1362,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @param document The document to load
    */
   loadDocument = (document: TDDocument): this => {
+    this.setIsLoading(true)
     this.selectNone()
     this.resetHistory()
     this.clearSelectHistory()
@@ -1384,7 +1385,31 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.replaceState(migrate(state, TldrawApp.version), 'loaded_document')
     const { point, zoom } = this.camera
     this.updateViewport(point, zoom)
+    this.setIsLoading(false)
     return this
+  }
+
+  /**
+   * load content from URL
+   * @param page
+   * @param pageState
+   * @returns
+   */
+  loadPageFromURL = (page: TDPage, pageState: Record<string, TLPageState>) => {
+    const pageId = page.id
+    const nextDocument = {
+      ...this.state.document,
+      pageStates: {
+        ...this.state.document.pageStates,
+        [pageId]: pageState,
+      },
+      pages: {
+        ...this.document.pages,
+        [pageId]: page,
+      },
+    }
+    this.loadDocument(nextDocument as TDDocument)
+    this.persist({})
   }
 
   // Should we move this to the app layer? onSave, onSaveAs, etc?
