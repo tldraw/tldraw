@@ -475,11 +475,12 @@ const InnerTldraw = React.memo(function InnerTldraw({
     if (e.key == ' ') setPan((prev) => ({ ...prev, isForcePanning: false }))
   }
 
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) =>
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button === 1) setPan((prev) => ({ ...prev, isForcePanning: true }))
     setPan((prev) => ({ ...prev, isPointerDown: true }))
+  }
 
-  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) =>
-    setPan((prev) => ({ ...prev, isPointerDown: false }))
+  const onPointerUp = () => setPan({ isPointerDown: false, isForcePanning: false })
 
   return (
     <Wrapper
