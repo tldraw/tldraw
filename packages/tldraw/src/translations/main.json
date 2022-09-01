@@ -126,5 +126,6 @@
   "dialog.save.again": "Do you want to save changes to your current project?",
   "dialog.cancel": "Cancel",
   "dialog.no": "No",
-  "dialog.yes": "Yes"
+  "dialog.yes": "Yes",
+  "enter.file.name": "Enter file name"
 }

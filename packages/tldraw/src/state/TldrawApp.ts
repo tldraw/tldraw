@@ -1441,9 +1441,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   /**
    * Save the current project as a new file.
    */
-  saveProjectAs = async () => {
+  saveProjectAs = async (filename?: string) => {
     try {
-      const fileHandle = await saveToFileSystem(this.document, null)
+      const fileHandle = await saveToFileSystem(this.document, null, filename)
       this.fileSystemHandle = fileHandle
       this.persist({})
       this.isDirty = false
