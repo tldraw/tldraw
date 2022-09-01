@@ -36,7 +36,7 @@ const ShareMenu = () => {
           },
         }
         const crushed = JSONCrush.crush(JSON.stringify(state))
-        const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
+        const link = `${window.location.origin}/?d=${encodeURIComponent(crushed)}`
         navigator.clipboard.writeText(link)
       } catch (err) {
         console.error(err)
