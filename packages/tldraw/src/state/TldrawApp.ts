@@ -3495,8 +3495,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       return matches && matches.length >= 2 ? matches[1] : null
     }
 
-    console.warn('could not get viewbox from svg string')
-
     this.setIsLoading(false)
 
     return null
