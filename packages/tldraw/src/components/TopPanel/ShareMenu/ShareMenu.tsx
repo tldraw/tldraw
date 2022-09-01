@@ -8,6 +8,12 @@ import { DMContent, DMItem, DMTriggerIcon } from '~components/Primitives/Dropdow
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
 
+const getObjectSize = (json: string) => {
+  const size = new TextEncoder().encode(JSON.stringify(json)).length
+  const kiloBytes = size / 1024
+  return Math.round(kiloBytes)
+}
+
 const ShareMenu = () => {
   const app = useTldrawApp()
   const intl = useIntl()
@@ -16,25 +22,27 @@ const ShareMenu = () => {
   const pageState = app.document.pageStates[currentPageId]
   const [container, setContainer] = React.useState<any>(null)
   const [openDialog, setOpenDialog] = React.useState(false)
+  const [isCrushing, setIsCrushing] = React.useState(false)
 
   const toggleOpenDialog = () => setOpenDialog(!openDialog)
 
-  const copyCurrentPageLink = () => {
+  const copyCurrentPageLink = React.useCallback(() => {
     const hasAsset = Object.entries(pageDocument.shapes).filter(
       ([_, value]) => value.assetId
     ).length
-    if (hasAsset) {
+    const state = {
+      page: {
+        ...pageDocument,
+      },
+      pageState: {
+        ...pageState,
+      },
+    }
+    const size = getObjectSize(JSON.stringify(state))
+    if (hasAsset || size > 15) {
       toggleOpenDialog()
     } else {
       try {
-        const state = {
-          page: {
-            ...pageDocument,
-          },
-          pageState: {
-            ...pageState,
-          },
-        }
         const crushed = JSONCrush.crush(JSON.stringify(state))
         const link = `${window.location.origin}/?d=${encodeURIComponent(crushed)}`
         navigator.clipboard.writeText(link)
@@ -42,21 +50,20 @@ const ShareMenu = () => {
         console.error(err)
       }
     }
-  }
+  }, [])
 
-  const copyProjectLink = () => {
-    if (Object.keys(app.document.assets).length) {
+  const copyProjectLink = React.useCallback(() => {
+    const size = getObjectSize(JSON.stringify(app.document))
+    if (Object.keys(app.document.assets).length || size > 20) {
       toggleOpenDialog()
     } else {
-      try {
-        const crushed = JSONCrush.crush(JSON.stringify(app.document))
-        const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
-        navigator.clipboard.writeText(link)
-      } catch (e) {
-        console.error(e)
-      }
+      setIsCrushing(true)
+      const crushed = JSONCrush.crush(JSON.stringify(app.document))
+      const link = `${window.location.href}/?d=${encodeURIComponent(crushed)}`
+      navigator.clipboard.writeText(link)
+      setIsCrushing(false)
     }
-  }
+  }, [])
 
   return (
     <>
@@ -79,9 +86,7 @@ const ShareMenu = () => {
           </DMItem>
           <DMItem id="TD-Multiplayer-CopyReadOnlyLink" onClick={copyProjectLink}>
             <FormattedMessage id="copy.project.link" />
-            <SmallIcon>
-              <ClipboardIcon />
-            </SmallIcon>
+            <SmallIcon>{isCrushing ? 'loading...' : <ClipboardIcon />}</SmallIcon>
           </DMItem>
         </DMContent>
       </DropdownMenu.Root>

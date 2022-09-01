@@ -34,6 +34,7 @@ function Editor({ roomId }: Props) {
         autofocus
         disableAssets={false}
         showPages={false}
+        showShareMenu={false}
         onAssetCreate={onAssetCreate}
         onAssetDelete={onAssetDelete}
         onAssetUpload={onAssetUpload}
