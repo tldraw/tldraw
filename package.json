@@ -24,7 +24,7 @@
     "start": "turbo run dev --filter=@tldraw/tldraw-example... --parallel",
     "start:core": "turbo run dev --filter=@tldraw/core-example-advanced*... --parallel",
     "start:www": "turbo run dev --filter=@tldraw/www... --parallel",
-    "start:vscode": "turbo run dev --filter=./apps/vscode/*... --parallel",
+    "start:vscode": "code apps/vscode/extension & turbo run dev --filter=./apps/vscode/*... --parallel",
     "start:extension": "turbo run dev --filter=@tldraw/new-tab-extension... --parallel",
     "package:vscode": "turbo run package --filter=tldraw-vscode",
     "publish:vscode": "turbo run publish --filter=tldraw-vscode",
