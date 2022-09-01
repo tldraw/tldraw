@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.22.0
+
+### Minor Changes
+
+- - Fix broken VS Code extension
+  - Add share by URL
+
 ## 1.21.0
 
 ### Minor Changes
