@@ -1,5 +1,6 @@
 import type { GetServerSideProps } from 'next'
 import dynamic from 'next/dynamic'
+import Head from 'next/head'
 import * as React from 'react'
 
 const IFrameWarning = dynamic(() => import('~components/IFrameWarning'), {
@@ -19,7 +20,14 @@ export default function Room({ id }: RoomProps) {
     return <IFrameWarning url={`https://tldraw.com/r/${id}`} />
   }
 
-  return <MultiplayerEditor roomId={id} />
+  return (
+    <>
+      <Head>
+        <title>tldraw - {id}</title>
+      </Head>
+      <MultiplayerEditor roomId={id} />
+    </>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {

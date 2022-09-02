@@ -1,6 +1,7 @@
 import { Utils } from '@tldraw/core'
 import type { GetServerSideProps } from 'next'
 import dynamic from 'next/dynamic'
+import Head from 'next/head'
 import * as React from 'react'
 
 const IFrameWarning = dynamic(() => import('~components/IFrameWarning'), {
@@ -20,7 +21,14 @@ export default function Room({ id }: RoomProps) {
     return <IFrameWarning url={`https://tldraw.com/v/${id}`} />
   }
 
-  return <ReadOnlyMultiplayerEditor roomId={id} />
+  return (
+    <>
+      <Head>
+        <title>tldraw - {id} (read only)</title>
+      </Head>
+      <ReadOnlyMultiplayerEditor roomId={id} />
+    </>
+  )
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
