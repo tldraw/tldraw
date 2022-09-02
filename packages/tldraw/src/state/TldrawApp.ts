@@ -1287,7 +1287,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   updateDocument = (document: TDDocument, reason = 'updated_document'): this => {
     const prevState = this.state
 
-    const nextState = { ...prevState, document: { ...prevState.document } }
+    const nextState = { ...prevState, document: { ...prevState.document, assets: document.assets } }
 
     if (!document.pages[this.currentPageId]) {
       nextState.appState = {
