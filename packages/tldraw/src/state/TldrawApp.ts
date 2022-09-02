@@ -3421,7 +3421,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           let assetId: string
 
           if (!match) {
-            assetId = Utils.uniqueId()
+            assetId = id
 
             const asset = {
               id: assetId,
