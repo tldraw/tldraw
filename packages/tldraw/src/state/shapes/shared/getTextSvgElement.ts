@@ -1,9 +1,7 @@
 import { TLBounds } from '@tldraw/core'
-import { LETTER_SPACING, LINE_HEIGHT } from '~constants'
-import { AlignStyle, ShapeStyles } from '~types'
-import { getTextAlign } from './getTextAlign'
+import { LETTER_SPACING } from '~constants'
+import { AlignStyle } from '~types'
 import { getTextLabelSize } from './getTextSize'
-import { getFontFace, getFontSize, getFontStyle } from './shape-styles'
 
 // https://drafts.csswg.org/css-text/#word-separator
 // split on any of these characters
@@ -19,7 +17,10 @@ export function getTextSvgElement(
   fontFamily: string,
   textAlign: AlignStyle,
   width: number,
-  wrap = false
+  wrap = false,
+  bounds?: TLBounds,
+  font?: string,
+  height?: number
 ) {
   const fontWeight = 'normal'
   const lineHeight = 1
@@ -50,10 +51,18 @@ export function getTextSvgElement(
   textElm.setAttribute('dominant-baseline', 'mathematical')
   textElm.setAttribute('alignment-baseline', 'mathematical')
 
+  const isShape = bounds && font && height
+
   const textLines = lines.map((line, i) => {
     const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
     tspan.textContent = line + '\n'
-    tspan.setAttribute('y', lineHeight * fontSize * (i + 0.5) + 'px')
+    if (isShape) {
+      const [lineWidth] = getTextLabelSize(line, font)
+      const tWidth = (bounds.width - lineWidth) / 2
+      const tHeight = (bounds.height - height) / 2 + lineHeight * fontSize * (i + 0.5)
+      tspan.setAttribute('x', tWidth + 'px')
+      tspan.setAttribute('y', tHeight + 'px')
+    }
     textElm.appendChild(tspan)
     return tspan
   })
@@ -62,19 +71,19 @@ export function getTextSvgElement(
     case AlignStyle.Middle: {
       textElm.setAttribute('text-align', 'center')
       textElm.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width / 2 + ''))
+      if (!isShape) textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width / 2 + ''))
       break
     }
     case AlignStyle.End: {
       textElm.setAttribute('text-align', 'right')
       textElm.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width + ''))
+      if (!isShape) textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width + ''))
       break
     }
     default: {
       textElm.setAttribute('text-align', 'left')
       textElm.setAttribute('text-anchor', 'start')
-      textLines.forEach((textElm) => textElm.setAttribute('x', '4'))
+      if (!isShape) textLines.forEach((textElm) => textElm.setAttribute('x', '4'))
     }
   }
 

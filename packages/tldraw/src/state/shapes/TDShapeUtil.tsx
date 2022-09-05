@@ -182,27 +182,23 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     if (hasLabel) {
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
       const font = getFontStyle(shape.style)
       const labelSize = getTextLabelSize(shape.label!, font)
       const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
       const fontFamily = getFontFace(shape.style.font).slice(1, -1)
-
+      const bounds = this.getBounds(shape)
       const labelElm = getTextSvgElement(
         s['label'],
         fontSize,
         fontFamily,
         AlignStyle.Start,
         labelSize[0],
-        false
+        false,
+        bounds,
+        font,
+        labelSize[1]
       )
 
-      const bounds = this.getBounds(shape)
-
-      labelElm.setAttribute(
-        'transform',
-        `translate(${bounds.width / 2 - labelSize[0] / 2}, ${bounds.height / 2 - labelSize[1] / 2})`
-      )
       labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
       labelElm.setAttribute('transform-origin', 'center center')
       g.setAttribute('text-align', 'center')
