@@ -402,6 +402,7 @@ TldrawTestApp {
   "isCreating": false,
   "isDirty": false,
   "isForcePanning": false,
+  "isPastePrevented": false,
   "isPaused": false,
   "isPointing": false,
   "justSent": false,
@@ -497,6 +498,7 @@ TldrawTestApp {
   "pointer": -1,
   "pressKey": [Function],
   "prevSelectedIds": Array [],
+  "preventPaste": [Function],
   "previousPoint": Array [
     0,
     0,
