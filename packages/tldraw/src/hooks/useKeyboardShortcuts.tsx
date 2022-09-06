@@ -307,7 +307,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Camera
 
   useHotkeys(
-    'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
+    'ctrl+=,⌘+=,ctrl+num_add,⌘+num_add',
     (e) => {
       if (!canHandleEvent(true)) return
       app.zoomIn()
@@ -318,7 +318,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
+    'ctrl+-,⌘+-,ctrl+num_subtract,⌘+num_subtract',
     (e) => {
       if (!canHandleEvent(true)) return
 
