@@ -99,7 +99,7 @@ export class DrawSession extends BaseSession {
     // once one or both dimensions have reached the threshold.
     if (!this.lockedDirection && this.points.length > 1) {
       const delta = Vec.sub(currentPoint, originPoint)
-      if (Vec.len(delta) > 3) {
+      if (Vec.len(delta) > 3 / this.app.zoom) {
         this.lockedDirection = Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
       }
     }
@@ -112,7 +112,7 @@ export class DrawSession extends BaseSession {
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
           const delta = Vec.sub(currentPoint, originPoint)
-          if (Vec.len(delta) > 3) {
+          if (Vec.len(delta) > 3 / this.app.zoom) {
             this.lockedDirection =
               Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
           }
