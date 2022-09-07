@@ -1291,11 +1291,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       ...prevState,
       document: {
         ...prevState.document,
+        assets: document.assets,
       },
-    }
-
-    if (prevState.document.assets !== nextState.document.assets) {
-      nextState.document.assets = { ...document.assets }
     }
 
     if (!document.pages[this.currentPageId]) {
