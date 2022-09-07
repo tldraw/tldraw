@@ -98,9 +98,9 @@ export class DrawSession extends BaseSession {
     // on the first dimension to reach a threshold, or the bigger dimension
     // once one or both dimensions have reached the threshold.
     if (!this.lockedDirection && this.points.length > 1) {
-      const bounds = Utils.getBoundsFromPoints(this.points)
-      if (bounds.width > 8 || bounds.height > 8) {
-        this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+      const delta = Vec.sub(currentPoint, originPoint)
+      if (Vec.len(delta) > 3) {
+        this.lockedDirection = Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
       }
     }
 
@@ -111,8 +111,11 @@ export class DrawSession extends BaseSession {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
-          const bounds = Utils.getBoundsFromPoints(this.points)
-          this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+          const delta = Vec.sub(currentPoint, originPoint)
+          if (Vec.len(delta) > 3) {
+            this.lockedDirection =
+              Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
+          }
         }
 
         this.isLocked = true
