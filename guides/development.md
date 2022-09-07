@@ -2,7 +2,7 @@
 
 After cloning the repository, from the root folder:
 
-- Run `yarn` to install dependencies.
+- Run `yarn install` to install dependencies.
 
 - Run `yarn build:packages`
 
