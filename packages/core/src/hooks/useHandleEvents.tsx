@@ -10,26 +10,31 @@ export function useHandleEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.button !== 0) return
+        if (e.button === 2) return
         if (!inputs.pointerIsValid(e)) return
         e.currentTarget?.setPointerCapture(e.pointerId)
         const info = inputs.pointerDown(e, id)
-        callbacks.onPointHandle?.(info, e)
+
+        if (e.button === 0) {
+          callbacks.onPointHandle?.(info, e)
+        }
         callbacks.onPointerDown?.(info, e)
       },
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button !== 0) return
+        if (e.button === 2) return
         if (!inputs.pointerIsValid(e)) return
         const isDoubleClick = inputs.isDoubleClick()
         const info = inputs.pointerUp(e, id)
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
-          if (isDoubleClick && !(info.altKey || info.metaKey)) {
-            callbacks.onDoubleClickHandle?.(info, e)
+          if (e.button === 0) {
+            if (isDoubleClick && !(info.altKey || info.metaKey)) {
+              callbacks.onDoubleClickHandle?.(info, e)
+            }
+            callbacks.onReleaseHandle?.(info, e)
           }
-          callbacks.onReleaseHandle?.(info, e)
         }
         callbacks.onPointerUp?.(info, e)
       },
@@ -37,9 +42,12 @@ export function useHandleEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
+        if (e.button === 2) return
         const info = inputs.pointerMove(e, id)
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          callbacks.onDragHandle?.(info, e)
+        if (e.button === 0) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragHandle?.(info, e)
+          }
         }
         callbacks.onPointerMove?.(info, e)
       },

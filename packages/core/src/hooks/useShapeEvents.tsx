@@ -15,7 +15,6 @@ export function useShapeEvents(id: string) {
           callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
           return
         }
-        if (e.button !== 0) return
         const info = inputs.pointerDown(e, id)
         e.currentTarget?.setPointerCapture(e.pointerId)
         // If we click "through" the selection bounding box to hit a shape that isn't selected,
@@ -26,18 +25,22 @@ export function useShapeEvents(id: string) {
           Utils.pointInBounds(info.point, rSelectionBounds.current) &&
           !rPageState.current.selectedIds.includes(id)
         ) {
-          callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
-          callbacks.onPointShape?.(info, e)
+          if (e.button === 0) {
+            callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
+            callbacks.onPointShape?.(info, e)
+          }
           callbacks.onPointerDown?.(info, e)
           return
         }
-        callbacks.onPointShape?.(info, e)
+        if (e.button === 0) {
+          callbacks.onPointShape?.(info, e)
+        }
         callbacks.onPointerDown?.(info, e)
       },
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button !== 0) return
+        if (e.button === 2) return
         inputs.activePointer = undefined
         if (!inputs.pointerIsValid(e)) return
         const isDoubleClick = inputs.isDoubleClick()
@@ -45,20 +48,25 @@ export function useShapeEvents(id: string) {
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
         }
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoubleClickShape?.(info, e)
+        if (e.button === 0) {
+          if (isDoubleClick && !(info.altKey || info.metaKey)) {
+            callbacks.onDoubleClickShape?.(info, e)
+          }
+          callbacks.onReleaseShape?.(info, e)
         }
-        callbacks.onReleaseShape?.(info, e)
         callbacks.onPointerUp?.(info, e)
       },
       onPointerMove: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
+        if (e.button === 2) return
         if (!inputs.pointerIsValid(e)) return
         if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
         const info = inputs.pointerMove(e, id)
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          callbacks.onDragShape?.(info, e)
+        if (e.button === 0) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragShape?.(info, e)
+          }
         }
         callbacks.onPointerMove?.(info, e)
       },

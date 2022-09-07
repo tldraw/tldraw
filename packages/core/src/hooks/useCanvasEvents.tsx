@@ -24,8 +24,10 @@ export function useCanvasEvents() {
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
         const info = inputs.pointerMove(e, 'canvas')
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          callbacks.onDragCanvas?.(info, e)
+        if (e.button === 0) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragCanvas?.(info, e)
+          }
         }
         callbacks.onPointerMove?.(info, e)
       },
