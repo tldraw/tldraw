@@ -80,12 +80,13 @@ export class EraseSession extends BaseSession {
     const { page, shiftKey, originPoint, currentPoint, zoom } = this.app
 
     if (shiftKey) {
-      if (!this.isLocked && Vec.dist(originPoint, currentPoint) > 4 / zoom) {
+      const delta = Vec.sub(currentPoint, originPoint)
+      if (!this.isLocked && Vec.len(delta) > 3 / zoom) {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
           const delta = Vec.sub(currentPoint, originPoint)
-          this.lockedDirection = delta[0] > delta[1] ? 'horizontal' : 'vertical'
+          this.lockedDirection = Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
         }
 
         this.isLocked = true
