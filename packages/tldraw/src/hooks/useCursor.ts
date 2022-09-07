@@ -41,7 +41,7 @@ export function useCursor(ref: RefObject<HTMLDivElement>) {
       }
     }
 
-    const onPointerUp = (e: PointerEvent) => {
+    const onPointerUp = () => {
       isPointing = false
 
       if (isSpacePanning) {
