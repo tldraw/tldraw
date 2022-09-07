@@ -20,6 +20,7 @@ import {
   SVG_EXPORT_PADDING,
   USER_COLORS,
   VIDEO_EXTENSIONS,
+  isLinux,
 } from '~constants'
 import { DialogState } from '~hooks'
 import { shapeUtils } from '~state/shapes'
@@ -59,7 +60,6 @@ import { deepCopy } from './StateManager/copy'
 import { TLDR } from './TLDR'
 import * as Commands from './commands'
 import {
-  FileSystemHandle,
   fileToBase64,
   fileToText,
   getImageSizeFromSrc,
@@ -238,6 +238,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   isPointing = false
 
   isForcePanning = false
+
+  isPastePrevented = false
 
   editingStartTime = -1
 
@@ -609,6 +611,23 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       })
       this.prevSelectedIds = this.selectedIds
     }
+  }
+
+  private preventPaste = () => {
+    if (this.isPastePrevented) return
+
+    const prevent = (event: ClipboardEvent) => event.stopImmediatePropagation()
+
+    const enable = () => {
+      setTimeout(() => {
+        document.removeEventListener('paste', prevent, { capture: true })
+        this.isPastePrevented = false
+      }, 50)
+    }
+
+    document.addEventListener('paste', prevent, { capture: true })
+    window.addEventListener('pointerup', enable, { once: true })
+    this.isPastePrevented = true
   }
 
   /* ----------- Managing Multiplayer State ----------- */
@@ -3702,6 +3721,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     // When panning, we also want to call onPointerMove, except when "force panning" via spacebar / middle wheel button (it's called elsewhere in that case)
     if (!this.isForcePanning) this.onPointerMove(info, e as unknown as React.PointerEvent)
+
+    // prevent middle click paste on linux
+    if (isLinux && this.isForcePanning) this.preventPaste()
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
