@@ -1,5 +1,18 @@
 ## 1.2.4
 
+## 1.22.0
+
+### Minor Changes
+
+- - Improve middle mouse panning
+  - Fix bug with assets in VS Code plugin
+  - Improve performance of draw-style shapes
+  - Fix bug with creating assets
+  - Fix bug with text align in labels when outputting images
+  - Fix bug with middle mouse panning on Linux
+  - Fix bug with zoom shortcuts on number pad
+  - Fix bug with draw and erase direction when holding shift
+
 ## 1.21.1
 
 ### Patch Changes

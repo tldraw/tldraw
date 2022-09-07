@@ -1,5 +1,13 @@
 # @tldraw/tldraw-example
 
+## 1.7.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.17.0
+  - @tldraw/tldraw@1.23.0
+
 ## 1.7.3
 
 ### Patch Changes
