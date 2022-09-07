@@ -14,16 +14,17 @@ export function useBoundsEvents() {
           callbacks.onRightPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
           return
         }
-        if (e.button !== 0) return
-        e.currentTarget?.setPointerCapture(e.pointerId)
         const info = inputs.pointerDown(e, 'bounds')
-        callbacks.onPointBounds?.(info, e)
+        e.currentTarget?.setPointerCapture(e.pointerId)
+        if (e.button === 0) {
+          callbacks.onPointBounds?.(info, e)
+        }
         callbacks.onPointerDown?.(info, e)
       },
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button !== 0) return
+        if (e.button === 2) return
         inputs.activePointer = undefined
         if (!inputs.pointerIsValid(e)) return
         const isDoubleClick = inputs.isDoubleClick()
@@ -34,15 +35,19 @@ export function useBoundsEvents() {
         if (isDoubleClick && !(info.altKey || info.metaKey)) {
           callbacks.onDoubleClickBounds?.(info, e)
         }
-        callbacks.onReleaseBounds?.(info, e)
+        if (e.button === 0) {
+          callbacks.onReleaseBounds?.(info, e)
+        }
         callbacks.onPointerUp?.(info, e)
       },
       onPointerMove: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
+        if (e.button === 0) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
+          }
         }
         const info = inputs.pointerMove(e, 'bounds')
         callbacks.onPointerMove?.(info, e)
