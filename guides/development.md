@@ -2,11 +2,11 @@
 
 After cloning the repository, from the root folder:
 
-- Run `yarn install` to install dependencies.
+- Run `yarn` to install dependencies.
 
-- Run `yarn build:packages`
+- Run `yarn build` to build tldraw
 
-- Run `yarn start:www` to start the development server for the package and for the example.
+- Run `yarn start` to start the development server for the package and for the example.
 
 - Open `localhost:5420` to view the example project.
 
