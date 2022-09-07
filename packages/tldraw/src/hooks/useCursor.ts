@@ -3,14 +3,15 @@ import React, { RefObject } from 'react'
 export function useCursor(ref: RefObject<HTMLDivElement>) {
   React.useEffect(() => {
     let isPointing = false
-    let isPanning = false
+    let isSpacePanning = false
 
     const elm = ref.current
     if (!elm) return
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key == ' ') {
-        isPanning = true
+        isSpacePanning = true
+
         if (isPointing) {
           elm.setAttribute('style', 'cursor: grabbing !important')
         } else {
@@ -21,25 +22,32 @@ export function useCursor(ref: RefObject<HTMLDivElement>) {
 
     const onKeyUp = (e: KeyboardEvent) => {
       if (e.key == ' ') {
-        isPanning = false
+        isSpacePanning = false
         elm.setAttribute('style', 'cursor: initial')
       }
     }
 
     const onPointerDown = (e: PointerEvent) => {
-      console.log('hi', e.button)
+      isPointing = true
+
+      if (e.button === 1) {
+        elm.setAttribute('style', 'cursor: grabbing !important')
+      }
+
       if (e.button === 0) {
-        isPointing = true
-        if (isPanning) {
+        if (isSpacePanning) {
           elm.setAttribute('style', 'cursor: grabbing !important')
         }
       }
     }
 
-    const onPointerUp = () => {
+    const onPointerUp = (e: PointerEvent) => {
       isPointing = false
-      if (isPanning) {
+
+      if (isSpacePanning) {
         elm.setAttribute('style', 'cursor: grab !important')
+      } else {
+        elm.setAttribute('style', 'cursor: initial')
       }
     }
 
