@@ -1,10 +1,12 @@
 # Development
 
-From the root folder:
+After cloning the repository, from the root folder:
 
 - Run `yarn` to install dependencies.
 
-- Run `yarn start` to start the development server for the package and for the example.
+- Run `yarn build:packages`
+
+- Run `yarn start:www` to start the development server for the package and for the example.
 
 - Open `localhost:5420` to view the example project.
 
