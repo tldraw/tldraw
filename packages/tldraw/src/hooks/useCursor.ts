@@ -9,7 +9,7 @@ export function useCursor(ref: RefObject<HTMLDivElement>) {
     if (!elm) return
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key == ' ') {
+      if (e.key === ' ' && !isSpacePanning) {
         isSpacePanning = true
 
         if (isPointing) {
@@ -21,7 +21,7 @@ export function useCursor(ref: RefObject<HTMLDivElement>) {
     }
 
     const onKeyUp = (e: KeyboardEvent) => {
-      if (e.key == ' ') {
+      if (e.key === ' ') {
         isSpacePanning = false
         elm.setAttribute('style', 'cursor: initial')
       }
