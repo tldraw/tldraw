@@ -20,6 +20,7 @@ import {
   useTldrawApp,
   useTranslation,
 } from '~hooks'
+import { useCursor } from '~hooks/useCursor'
 import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
@@ -368,10 +369,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
-  const [pan, setPan] = React.useState({
-    isForcePanning: false,
-    isPointerDown: false,
-  })
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const state = app.useStore()
@@ -467,140 +464,118 @@ const InnerTldraw = React.memo(function InnerTldraw({
     }
   }, [settings.isDarkMode])
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key == ' ') setPan((prev) => ({ ...prev, isForcePanning: true }))
-  }
-
-  const onKeyUp = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key == ' ') setPan((prev) => ({ ...prev, isForcePanning: false }))
-  }
-
-  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.button === 1) setPan((prev) => ({ ...prev, isForcePanning: true }))
-    setPan((prev) => ({ ...prev, isPointerDown: true }))
-  }
-
-  const onPointerUp = () => setPan({ isPointerDown: false, isForcePanning: false })
+  useCursor(rWrapper)
 
   return (
-    <Wrapper
-      onKeyDown={onKeyDown}
-      onKeyUp={onKeyUp}
-      onPointerDown={onPointerDown}
-      onPointerUp={onPointerUp}
-      isForcingPanning={pan.isForcePanning}
-      isPointerDown={pan.isPointerDown}
-    >
-      <ContainerContext.Provider value={rWrapper}>
-        <IntlProvider locale={translation.locale} messages={translation.messages}>
-          <AlertDialog container={dialogContainer} />
-          <StyledLayout ref={rWrapper} tabIndex={-0}>
-            <Loading />
-            <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-            <ContextMenu>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Renderer
-                  id={id}
-                  containerRef={rWrapper}
-                  shapeUtils={shapeUtils}
-                  page={page}
-                  pageState={pageState}
-                  assets={assets}
-                  snapLines={appState.snapLines}
-                  eraseLine={appState.eraseLine}
-                  grid={GRID_SIZE}
-                  users={room?.users}
-                  userId={room?.userId}
-                  theme={theme}
-                  meta={meta}
-                  hideBounds={hideBounds}
-                  hideHandles={hideHandles}
-                  hideResizeHandles={isHideResizeHandlesShape}
-                  hideIndicators={hideIndicators}
-                  hideBindingHandles={!settings.showBindingHandles}
-                  hideCloneHandles={hideCloneHandles}
-                  hideRotateHandles={!settings.showRotateHandles}
-                  hideGrid={!settings.showGrid}
-                  showDashedBrush={showDashedBrush}
-                  performanceMode={app.session?.performanceMode}
-                  onPinchStart={app.onPinchStart}
-                  onPinchEnd={app.onPinchEnd}
-                  onPinch={app.onPinch}
-                  onPan={app.onPan}
-                  onZoom={app.onZoom}
-                  onPointerDown={app.onPointerDown}
-                  onPointerMove={app.onPointerMove}
-                  onPointerUp={app.onPointerUp}
-                  onPointCanvas={app.onPointCanvas}
-                  onDoubleClickCanvas={app.onDoubleClickCanvas}
-                  onRightPointCanvas={app.onRightPointCanvas}
-                  onDragCanvas={app.onDragCanvas}
-                  onReleaseCanvas={app.onReleaseCanvas}
-                  onPointShape={app.onPointShape}
-                  onDoubleClickShape={app.onDoubleClickShape}
-                  onRightPointShape={app.onRightPointShape}
-                  onDragShape={app.onDragShape}
-                  onHoverShape={app.onHoverShape}
-                  onUnhoverShape={app.onUnhoverShape}
-                  onReleaseShape={app.onReleaseShape}
-                  onPointBounds={app.onPointBounds}
-                  onDoubleClickBounds={app.onDoubleClickBounds}
-                  onRightPointBounds={app.onRightPointBounds}
-                  onDragBounds={app.onDragBounds}
-                  onHoverBounds={app.onHoverBounds}
-                  onUnhoverBounds={app.onUnhoverBounds}
-                  onReleaseBounds={app.onReleaseBounds}
-                  onPointBoundsHandle={app.onPointBoundsHandle}
-                  onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
-                  onRightPointBoundsHandle={app.onRightPointBoundsHandle}
-                  onDragBoundsHandle={app.onDragBoundsHandle}
-                  onHoverBoundsHandle={app.onHoverBoundsHandle}
-                  onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
-                  onReleaseBoundsHandle={app.onReleaseBoundsHandle}
-                  onPointHandle={app.onPointHandle}
-                  onDoubleClickHandle={app.onDoubleClickHandle}
-                  onRightPointHandle={app.onRightPointHandle}
-                  onDragHandle={app.onDragHandle}
-                  onHoverHandle={app.onHoverHandle}
-                  onUnhoverHandle={app.onUnhoverHandle}
-                  onReleaseHandle={app.onReleaseHandle}
-                  onError={app.onError}
-                  onRenderCountChange={app.onRenderCountChange}
-                  onShapeChange={app.onShapeChange}
-                  onShapeBlur={app.onShapeBlur}
-                  onShapeClone={app.onShapeClone}
-                  onBoundsChange={app.updateBounds}
-                  onKeyDown={app.onKeyDown}
-                  onKeyUp={app.onKeyUp}
-                  onDragOver={app.onDragOver}
-                  onDrop={app.onDrop}
-                />
-              </ErrorBoundary>
-            </ContextMenu>
-            {showUI && (
-              <StyledUI ref={setDialogContainer}>
-                {settings.isFocusMode ? (
-                  <FocusButton onSelect={app.toggleFocusMode} />
-                ) : (
-                  <>
-                    <TopPanel
-                      readOnly={readOnly}
-                      showPages={showPages}
-                      showMenu={showMenu}
-                      showMultiplayerMenu={showMultiplayerMenu}
-                      showStyles={showStyles}
-                      showZoom={showZoom}
-                    />
-                    <StyledSpacer />
-                    {showTools && !readOnly && <ToolsPanel />}
-                  </>
-                )}
-              </StyledUI>
-            )}
-          </StyledLayout>
-        </IntlProvider>
-      </ContainerContext.Provider>
-    </Wrapper>
+    <ContainerContext.Provider value={rWrapper}>
+      <IntlProvider locale={translation.locale} messages={translation.messages}>
+        <AlertDialog container={dialogContainer} />
+        <StyledLayout ref={rWrapper} tabIndex={-0}>
+          <Loading />
+          <OneOff focusableRef={rWrapper} autofocus={autofocus} />
+          <ContextMenu>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Renderer
+                id={id}
+                containerRef={rWrapper}
+                shapeUtils={shapeUtils}
+                page={page}
+                pageState={pageState}
+                assets={assets}
+                snapLines={appState.snapLines}
+                eraseLine={appState.eraseLine}
+                grid={GRID_SIZE}
+                users={room?.users}
+                userId={room?.userId}
+                theme={theme}
+                meta={meta}
+                hideBounds={hideBounds}
+                hideHandles={hideHandles}
+                hideResizeHandles={isHideResizeHandlesShape}
+                hideIndicators={hideIndicators}
+                hideBindingHandles={!settings.showBindingHandles}
+                hideCloneHandles={hideCloneHandles}
+                hideRotateHandles={!settings.showRotateHandles}
+                hideGrid={!settings.showGrid}
+                showDashedBrush={showDashedBrush}
+                performanceMode={app.session?.performanceMode}
+                onPinchStart={app.onPinchStart}
+                onPinchEnd={app.onPinchEnd}
+                onPinch={app.onPinch}
+                onPan={app.onPan}
+                onZoom={app.onZoom}
+                onPointerDown={app.onPointerDown}
+                onPointerMove={app.onPointerMove}
+                onPointerUp={app.onPointerUp}
+                onPointCanvas={app.onPointCanvas}
+                onDoubleClickCanvas={app.onDoubleClickCanvas}
+                onRightPointCanvas={app.onRightPointCanvas}
+                onDragCanvas={app.onDragCanvas}
+                onReleaseCanvas={app.onReleaseCanvas}
+                onPointShape={app.onPointShape}
+                onDoubleClickShape={app.onDoubleClickShape}
+                onRightPointShape={app.onRightPointShape}
+                onDragShape={app.onDragShape}
+                onHoverShape={app.onHoverShape}
+                onUnhoverShape={app.onUnhoverShape}
+                onReleaseShape={app.onReleaseShape}
+                onPointBounds={app.onPointBounds}
+                onDoubleClickBounds={app.onDoubleClickBounds}
+                onRightPointBounds={app.onRightPointBounds}
+                onDragBounds={app.onDragBounds}
+                onHoverBounds={app.onHoverBounds}
+                onUnhoverBounds={app.onUnhoverBounds}
+                onReleaseBounds={app.onReleaseBounds}
+                onPointBoundsHandle={app.onPointBoundsHandle}
+                onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
+                onRightPointBoundsHandle={app.onRightPointBoundsHandle}
+                onDragBoundsHandle={app.onDragBoundsHandle}
+                onHoverBoundsHandle={app.onHoverBoundsHandle}
+                onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
+                onReleaseBoundsHandle={app.onReleaseBoundsHandle}
+                onPointHandle={app.onPointHandle}
+                onDoubleClickHandle={app.onDoubleClickHandle}
+                onRightPointHandle={app.onRightPointHandle}
+                onDragHandle={app.onDragHandle}
+                onHoverHandle={app.onHoverHandle}
+                onUnhoverHandle={app.onUnhoverHandle}
+                onReleaseHandle={app.onReleaseHandle}
+                onError={app.onError}
+                onRenderCountChange={app.onRenderCountChange}
+                onShapeChange={app.onShapeChange}
+                onShapeBlur={app.onShapeBlur}
+                onShapeClone={app.onShapeClone}
+                onBoundsChange={app.updateBounds}
+                onKeyDown={app.onKeyDown}
+                onKeyUp={app.onKeyUp}
+                onDragOver={app.onDragOver}
+                onDrop={app.onDrop}
+              />
+            </ErrorBoundary>
+          </ContextMenu>
+          {showUI && (
+            <StyledUI ref={setDialogContainer}>
+              {settings.isFocusMode ? (
+                <FocusButton onSelect={app.toggleFocusMode} />
+              ) : (
+                <>
+                  <TopPanel
+                    readOnly={readOnly}
+                    showPages={showPages}
+                    showMenu={showMenu}
+                    showMultiplayerMenu={showMultiplayerMenu}
+                    showStyles={showStyles}
+                    showZoom={showZoom}
+                  />
+                  <StyledSpacer />
+                  {showTools && !readOnly && <ToolsPanel />}
+                </>
+              )}
+            </StyledUI>
+          )}
+        </StyledLayout>
+      </IntlProvider>
+    </ContainerContext.Provider>
   )
 })
 
