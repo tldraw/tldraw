@@ -67,6 +67,6 @@ export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   const strokePoints = getDrawStrokePoints(shape, options)
   const last = points[points.length - 1]
   if (!Vec.isEqual(strokePoints[0].point, last)) strokePoints.push({ point: last } as StrokePoint)
-  const path = Utils.getSvgPathFromStrokePoints(strokePoints, false)
+  const path = Utils.getSvgPathFromStrokePoints(strokePoints)
   return path
 }

@@ -1336,9 +1336,8 @@ left past the initial left edge) then swap points on that axis.
   /**
    * Turn an array of points into a path of quadradic curves.
    * @param points - the points returned from perfect-freehand
-   * @param closed - whether to close the stroke
    */
-  static getSvgPathFromStroke(points: number[][], closed = true): string {
+  static getSvgPathFromStroke(points: number[][]): string {
     const len = points.length
 
     if (!len) {
@@ -1357,9 +1356,7 @@ left past the initial left edge) then swap points on that axis.
       ).toFixed(3)} `
     }
 
-    if (closed) {
-      result += 'Z'
-    }
+    result += 'Z'
 
     return result
   }
@@ -1367,9 +1364,8 @@ left past the initial left edge) then swap points on that axis.
   /**
    * Turn an array of stroke points into a path of quadradic curves.
    * @param points - the stroke points returned from perfect-freehand
-   * @param closed - whether to close the stroke
    */
-  static getSvgPathFromStrokePoints(points: StrokePoint[], closed = true): string {
+  static getSvgPathFromStrokePoints(points: StrokePoint[]): string {
     const len = points.length
 
     if (!len) {
@@ -1386,10 +1382,6 @@ left past the initial left edge) then swap points on that axis.
         a[1],
         b[1]
       ).toFixed(3)} `
-    }
-
-    if (closed) {
-      result += 'Z'
     }
 
     return result
