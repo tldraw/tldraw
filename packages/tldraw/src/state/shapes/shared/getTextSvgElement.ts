@@ -1,9 +1,5 @@
-import { TLBounds } from '@tldraw/core'
-import { LETTER_SPACING, LINE_HEIGHT } from '~constants'
-import { AlignStyle, ShapeStyles } from '~types'
-import { getTextAlign } from './getTextAlign'
-import { getTextLabelSize } from './getTextSize'
-import { getFontFace, getFontSize, getFontStyle } from './shape-styles'
+import { LETTER_SPACING } from '~constants'
+import { AlignStyle } from '~types'
 
 // https://drafts.csswg.org/css-text/#word-separator
 // split on any of these characters

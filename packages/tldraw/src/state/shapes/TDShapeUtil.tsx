@@ -192,7 +192,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
         s['label'],
         fontSize,
         fontFamily,
-        AlignStyle.Start,
+        AlignStyle.Middle,
         labelSize[0],
         false
       )
