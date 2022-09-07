@@ -90,9 +90,5 @@ export function getRectangleIndicatorPathTDSnapshot(
   size: number[]
 ) {
   const { points, options } = getDrawStrokeInfo(id, style, size)
-  const strokePoints = getStrokePoints(points, options)
-  return Utils.getSvgPathFromStroke(
-    strokePoints.map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(getStrokePoints(points, options))
 }

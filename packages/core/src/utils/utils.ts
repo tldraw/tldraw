@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-extra-semi */
 import { Vec } from '@tldraw/vec'
+import { StrokePoint } from 'perfect-freehand'
 import type React from 'react'
 import type { Patch, TLBoundsWithCenter } from '~index'
 import { Snap, SnapPoints, TLBounds, TLBoundsCorner, TLBoundsEdge } from '~types'
@@ -1332,32 +1333,58 @@ left past the initial left edge) then swap points on that axis.
     }
   }
 
-  // Regex to trim numbers to 2 decimal places
-  static TRIM_NUMBERS = /(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g
-
   /**
    * Turn an array of points into a path of quadradic curves.
-   * @param stroke ;
+   * @param points - the points returned from perfect-freehand
    */
-  static getSvgPathFromStroke(points: number[][], closed = true): string {
-    if (!points.length) {
+  static getSvgPathFromStroke(points: number[][]): string {
+    const len = points.length
+
+    if (!len) {
       return ''
     }
 
-    const max = points.length - 1
+    const first = points[0]
+    let result = `M${first[0].toFixed(3)},${first[1].toFixed(3)}Q`
 
-    return points
-      .reduce(
-        (acc, point, i, arr) => {
-          if (i === max) {
-            if (closed) acc.push('Z')
-          } else acc.push(point, Vec.med(point, arr[i + 1]))
-          return acc
-        },
-        ['M', points[0], 'Q']
-      )
-      .join(' ')
-      .replaceAll(this.TRIM_NUMBERS, '$1')
+    for (let i = 0, max = len - 1; i < max; i++) {
+      const a = points[i]
+      const b = points[i + 1]
+      result += `${a[0].toFixed(3)},${a[1].toFixed(3)} ${average(a[0], b[0]).toFixed(3)},${average(
+        a[1],
+        b[1]
+      ).toFixed(3)} `
+    }
+
+    result += 'Z'
+
+    return result
+  }
+
+  /**
+   * Turn an array of stroke points into a path of quadradic curves.
+   * @param points - the stroke points returned from perfect-freehand
+   */
+  static getSvgPathFromStrokePoints(points: StrokePoint[]): string {
+    const len = points.length
+
+    if (!len) {
+      return ''
+    }
+
+    const first = points[0].point
+    let result = `M${first[0].toFixed(3)},${first[1].toFixed(3)}Q`
+
+    for (let i = 0, max = len - 1; i < max; i++) {
+      const a = points[i].point
+      const b = points[i + 1].point
+      result += `${a[0].toFixed(3)},${a[1].toFixed(3)} ${average(a[0], b[0]).toFixed(3)},${average(
+        a[1],
+        b[1]
+      ).toFixed(3)} `
+    }
+
+    return result
   }
 
   /* -------------------------------------------------- */
@@ -1492,3 +1519,7 @@ left past the initial left edge) then swap points on that axis.
 }
 
 export default Utils
+
+function average(a: number, b: number): number {
+  return (a + b) / 2
+}

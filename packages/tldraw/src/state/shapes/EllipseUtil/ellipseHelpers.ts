@@ -50,8 +50,5 @@ export function getEllipsePath(id: string, radius: number[], style: ShapeStyles)
 }
 
 export function getEllipseIndicatorPath(id: string, radius: number[], style: ShapeStyles) {
-  return Utils.getSvgPathFromStroke(
-    getEllipseStrokePoints(id, radius, style).map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(getEllipseStrokePoints(id, radius, style))
 }
