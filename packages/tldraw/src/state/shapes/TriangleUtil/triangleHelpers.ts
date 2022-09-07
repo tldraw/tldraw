@@ -89,8 +89,5 @@ export function getTrianglePath(id: string, size: number[], style: ShapeStyles) 
 export function getTriangleIndicatorPathTDSnapshot(id: string, size: number[], style: ShapeStyles) {
   const { points, options } = getDrawStrokeInfo(id, size, style)
   const strokePoints = getStrokePoints(points, options)
-  return Utils.getSvgPathFromStroke(
-    strokePoints.map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(strokePoints.map, false)
 }
