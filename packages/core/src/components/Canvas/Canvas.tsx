@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { Brush } from '~components/Brush'
 import { EraseLine } from '~components/EraseLine'
@@ -30,7 +29,7 @@ import type {
   TLUsers,
 } from '~types'
 
-interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
+export interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   assets: TLAssets
@@ -55,10 +54,7 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   onBoundsChange: (bounds: TLBounds) => void
 }
 
-export const Canvas = observer(function _Canvas<
-  T extends TLShape,
-  M extends Record<string, unknown>
->({
+function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   id,
   page,
   pageState,
@@ -141,4 +137,6 @@ export const Canvas = observer(function _Canvas<
       </div>
     </div>
   )
-})
+}
+
+export const Canvas = React.memo(_Canvas)

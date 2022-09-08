@@ -8,6 +8,7 @@ import {
   TLPageState,
   TLPinchEventHandler,
   TLPointerEventHandler,
+  TLShape,
   TLShapeCloneHandler,
   TLWheelEventHandler,
   Utils,
@@ -3993,7 +3994,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.currentTool.onReleaseHandle?.(info, e)
   }
 
-  onShapeChange = (shape: { id: string } & Partial<TDShape>) => {
+  onShapeChange = (shape: { id: string } & Partial<TLShape>) => {
     const pageShapes = this.document.pages[this.currentPageId].shapes
     const shapeToUpdate = { ...(pageShapes[shape.id] as any), ...shape }
     const patch = Commands.updateShapes(this, [shapeToUpdate], this.currentPageId).after

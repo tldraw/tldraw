@@ -1,15 +1,16 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { SVGContainer } from '~components'
 import { Container } from '~components/Container'
 import type { TLBounds } from '~types'
 import Utils from '~utils'
 
-export const Brush = observer<{
+export interface BrushProps {
   brush: TLBounds
   zoom: number
   dashed: boolean | null | undefined
-}>(function Brush({ brush, zoom, dashed }) {
+}
+
+function _Brush({ brush, zoom, dashed }: BrushProps) {
   return (
     <Container bounds={brush} rotation={0}>
       <SVGContainer>
@@ -45,7 +46,9 @@ export const Brush = observer<{
       </SVGContainer>
     </Container>
   )
-})
+}
+
+export const Brush = React.memo(_Brush)
 
 interface PerfectDashLineProps {
   x1: number

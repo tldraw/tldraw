@@ -42,7 +42,7 @@ interface ContextMenuProps {
   children: React.ReactNode
 }
 
-export const ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
+export const _ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
   const container = useContainer()
 
   return (
@@ -524,3 +524,5 @@ export const CMSubTriggerButton = ({ id, ...rest }: RowButtonProps) => {
     </RadixContextMenu.SubTrigger>
   )
 }
+
+export const ContextMenu = React.memo(_ContextMenu)

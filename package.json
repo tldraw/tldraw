@@ -57,7 +57,6 @@
     "init-package-json": "^2.0.5",
     "jest": "^27.4.7",
     "lint-staged": "^12.3.3",
-    "mobx": "^6.3.8",
     "prettier": "^2.7.1",
     "resize-observer-polyfill": "^1.5.1",
     "source-map-loader": "^3.0.1",

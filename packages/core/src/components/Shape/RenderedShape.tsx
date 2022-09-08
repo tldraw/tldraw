@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLShapeUtil } from '~TLShapeUtil'
 import type { TLComponentProps, TLShape } from '~types'
@@ -9,12 +8,12 @@ interface RenderedShapeProps<T extends TLShape, E extends Element, M>
   utils: TLShapeUtil<T, E, M>
 }
 
-const _RenderedShape = observer(function RenderedShape<T extends TLShape, E extends Element, M>(
+function _RenderedShape<T extends TLShape, E extends Element, M>(
   props: RenderedShapeProps<T, E, M>
 ) {
   const ref = props.utils.getRef(props.shape)
   return <props.utils.Component ref={ref} {...props} />
-})
+}
 
 export const RenderedShape = React.memo(_RenderedShape, (prev, next) => {
   // If these have changed, then definitely render

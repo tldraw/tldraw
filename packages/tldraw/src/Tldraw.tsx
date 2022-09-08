@@ -598,41 +598,6 @@ const OneOff = React.memo(function OneOff({
   return null
 })
 
-const Wrapper = styled('div', {
-  variants: {
-    isForcingPanning: {
-      true: {},
-      false: {},
-    },
-    isPointerDown: {
-      true: {},
-      false: {},
-    },
-  },
-  compoundVariants: [
-    {
-      isForcingPanning: true,
-      isPointerDown: false,
-      css: {
-        cursor: 'grab',
-      },
-    },
-    {
-      isForcingPanning: false,
-      css: {
-        cursor: 'default',
-      },
-    },
-    {
-      isPointerDown: true,
-      isForcingPanning: true,
-      css: {
-        cursor: 'grabbing',
-      },
-    },
-  ],
-})
-
 const StyledLayout = styled('div', {
   position: 'absolute',
   height: '100%',

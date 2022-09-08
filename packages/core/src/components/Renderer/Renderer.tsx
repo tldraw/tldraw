@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { Canvas } from '~/components/Canvas'
 import type { TLShapeUtilsMap } from '~TLShapeUtil'
@@ -18,11 +17,15 @@ import type {
   TLUsers,
 } from '~types'
 
+const EMPTY_OBJECT = {} as TLAssets
+
 export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCallbacks<T>> {
   /**
    * An object containing instances of your shape classes.
    */
-  shapeUtils: TLShapeUtilsMap<T>
+  shapeUtils: {
+    [K in T['type']]: any
+  }
   /**
    * The current page, containing shapes and bindings.
    */
@@ -130,10 +133,7 @@ export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCal
  * @param props
  * @returns
  */
-export const Renderer = observer(function _Renderer<
-  T extends TLShape,
-  M extends Record<string, unknown>
->({
+function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   id = 'tl',
   shapeUtils,
   page,
@@ -220,6 +220,6 @@ export const Renderer = observer(function _Renderer<
       />
     </TLContext.Provider>
   )
-})
+}
 
-const EMPTY_OBJECT = {} as TLAssets
+export const Renderer = React.memo(_Renderer)

@@ -1,6 +1,5 @@
 import { TLBounds, TLPage, TLPageState, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
-import { action, makeAutoObservable } from 'mobx'
 import type { Shape } from './shapes'
 
 export class Page implements TLPage<Shape> {
@@ -15,10 +14,9 @@ export class Page implements TLPage<Shape> {
     this.name = name
     this.shapes = shapes
     this.bindings = bindings
-    makeAutoObservable(this)
   }
 
-  @action dragShape(id: string, point: number[]) {
+  dragShape(id: string, point: number[]) {
     const shape = this.shapes[id]
     shape.point = Vec.sub(point, Vec.div(shape.size, 2))
   }
@@ -46,24 +44,23 @@ export class PageState implements TLPageState {
     this.id = id
     this.camera = camera
     this.selectedIds = selectedIds
-    makeAutoObservable(this)
   }
 
-  @action setHoveredId = (id: string | undefined) => {
+  setHoveredId = (id: string | undefined) => {
     this.hoveredId = id
   }
 
-  @action setSelectedIds = (id: string) => {
+  setSelectedIds = (id: string) => {
     if (!this.selectedIds.includes(id)) {
       this.selectedIds = [id]
     }
   }
 
-  @action clearSelectedIds = () => {
+  clearSelectedIds = () => {
     this.selectedIds = []
   }
 
-  @action pan = (point: number[]) => {
+  pan = (point: number[]) => {
     this.camera.point = Vec.add(this.camera.point, point)
   }
 }

@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLBounds } from '~types'
 
@@ -8,11 +7,7 @@ export interface CenterHandleProps {
   isHidden: boolean
 }
 
-export const CenterHandle = observer<CenterHandleProps>(function CenterHandle({
-  bounds,
-  isLocked,
-  isHidden,
-}) {
+function _CenterHandle({ bounds, isLocked, isHidden }: CenterHandleProps) {
   return (
     <rect
       className={['tl-bounds-center', isLocked ? 'tl-dashed' : ''].join(' ')}
@@ -25,4 +20,6 @@ export const CenterHandle = observer<CenterHandleProps>(function CenterHandle({
       aria-label="center handle"
     />
   )
-})
+}
+
+export const CenterHandle = React.memo(_CenterHandle)

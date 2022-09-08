@@ -1,10 +1,9 @@
-import { observer } from 'mobx-react-lite'
-import type { HTMLProps } from 'react'
 import * as React from 'react'
+import type { HTMLProps } from 'react'
 import { usePosition } from '~hooks'
 import type { TLBounds } from '~types'
 
-interface ContainerProps extends HTMLProps<HTMLDivElement> {
+export interface ContainerProps extends HTMLProps<HTMLDivElement> {
   id?: string
   bounds: TLBounds
   rotation?: number
@@ -13,7 +12,7 @@ interface ContainerProps extends HTMLProps<HTMLDivElement> {
   children: React.ReactNode
 }
 
-export const Container = observer<ContainerProps>(function Container({
+function _Container({
   id,
   bounds,
   rotation = 0,
@@ -21,7 +20,7 @@ export const Container = observer<ContainerProps>(function Container({
   isSelected = false,
   children,
   ...props
-}) {
+}: ContainerProps) {
   const rPositioned = usePosition(bounds, rotation)
 
   return (
@@ -38,4 +37,6 @@ export const Container = observer<ContainerProps>(function Container({
       {children}
     </div>
   )
-})
+}
+
+export const Container = React.memo(_Container)

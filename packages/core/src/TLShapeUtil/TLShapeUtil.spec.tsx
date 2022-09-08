@@ -206,20 +206,22 @@ describe('When creating a realistic API around TLShapeUtil', () => {
       return <div ref={ref2}>{props.message}</div>
     })
 
-    render(<H message="Hello" />)
+    expect(render(<H message="Hello" />)).not.toThrowError()
 
-    render(
-      <Box.Component
-        ref={ref}
-        shape={box}
-        bounds={Box.getBounds(box)}
-        isEditing={false}
-        isBinding={false}
-        isHovered={false}
-        isSelected={false}
-        meta={meta}
-        events={{} as any}
-      />
-    )
+    expect(
+      render(
+        <Box.Component
+          ref={ref}
+          shape={box}
+          bounds={Box.getBounds(box)}
+          isEditing={false}
+          isBinding={false}
+          isHovered={false}
+          isSelected={false}
+          meta={meta}
+          events={{} as any}
+        />
+      )
+    ).not.toThrowError()
   })
 })

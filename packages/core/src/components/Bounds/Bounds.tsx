@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { Container } from '~components/Container'
 import { SVGContainer } from '~components/SVGContainer'
@@ -10,7 +9,7 @@ import { EdgeHandle } from './EdgeHandle'
 import { LinkHandle } from './LinkHandle'
 import { RotateHandle } from './RotateHandle'
 
-interface BoundsProps {
+export interface BoundsProps {
   zoom: number
   bounds: TLBounds
   rotation: number
@@ -24,7 +23,7 @@ interface BoundsProps {
   children?: React.ReactElement
 }
 
-export const Bounds = observer<BoundsProps>(function Bounds({
+const _Bounds = function Bounds({
   zoom,
   bounds,
   viewportWidth,
@@ -137,4 +136,6 @@ export const Bounds = observer<BoundsProps>(function Bounds({
       </SVGContainer>
     </Container>
   )
-})
+}
+
+export const Bounds = React.memo(_Bounds)

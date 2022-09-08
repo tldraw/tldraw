@@ -146,7 +146,7 @@ export type TLPinchEventHandler = (
     | PointerEventInit
 ) => void
 
-export type TLShapeChangeHandler<T, K = any> = (
+export type TLShapeChangeHandler<T extends TLShape, K = any> = (
   shape: { id: string } & Partial<T>,
   info?: K
 ) => void

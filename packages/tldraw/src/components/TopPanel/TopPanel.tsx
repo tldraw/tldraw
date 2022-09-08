@@ -19,7 +19,7 @@ interface TopPanelProps {
   showMultiplayerMenu: boolean
 }
 
-export function TopPanel({
+export function _TopPanel({
   readOnly,
   showPages,
   showMenu,
@@ -91,3 +91,5 @@ const ReadOnlyLabel = styled('div', {
   paddingRight: '$1',
   userSelect: 'none',
 })
+
+export const TopPanel = React.memo(_TopPanel)

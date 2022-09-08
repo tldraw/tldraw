@@ -1,16 +1,15 @@
-import { observer } from 'mobx-react-lite'
 import getStroke from 'perfect-freehand'
 import * as React from 'react'
 import Utils from '~utils'
 
-export interface UiEraseLintProps {
+export interface UiEraseLineProps {
   points: number[][]
   zoom: number
 }
 
-export type UiEraseLineComponent = (props: UiEraseLintProps) => any | null
+export type UiEraseLineComponent = (props: UiEraseLineProps) => any | null
 
-export const EraseLine = observer(function EraserLine({ points, zoom }: UiEraseLintProps) {
+function _EraseLine({ points, zoom }: UiEraseLineProps) {
   if (points.length === 0) return null
 
   const d = Utils.getSvgPathFromStroke(
@@ -18,4 +17,6 @@ export const EraseLine = observer(function EraserLine({ points, zoom }: UiEraseL
   )
 
   return <path d={d} className="tl-erase-line" />
-})
+}
+
+export const EraseLine = React.memo(_EraseLine)
