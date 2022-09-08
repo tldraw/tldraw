@@ -1,5 +1,4 @@
 import * as React from 'react'
-import ResizeObserver from 'resize-observer-polyfill'
 import { useTLContext } from '~hooks'
 import type { TLBounds } from '~types'
 import { Utils } from '~utils'

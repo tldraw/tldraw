@@ -32,7 +32,6 @@ export function useBoundsHandleEvents(
       if (e.buttons === 2) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerUp(e, id)
-
       if (e.buttons === 1) {
         callbacks.onReleaseBoundsHandle?.(info, e)
       }

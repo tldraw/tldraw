@@ -49,7 +49,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A React hook for accessing the zustand store.
    */
-  public readonly useStore: UseBoundStore<T>
+  public readonly useStore: UseBoundStore<StoreApi<T>>
 
   /**
    * A promise that will resolve when the state manager has loaded any peristed state.
