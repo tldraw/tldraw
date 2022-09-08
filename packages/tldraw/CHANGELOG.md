@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.24.0
+
+### Minor Changes
+
+- - Remove `mobx` and `mobx-react-lite` as dependencies. This is a breaking change for libraries that expect data to be observable in `@tldraw/core`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.0
+
 ## 1.23.0
 
 ### Minor Changes

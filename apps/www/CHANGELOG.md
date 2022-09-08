@@ -1,5 +1,13 @@
 # @tldraw/www
 
+## 1.7.14
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.0
+  - @tldraw/tldraw@1.24.0
+
 ## 1.7.13
 
 ### Patch Changes
