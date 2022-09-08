@@ -1,55 +1,87 @@
-import { Renderer, TLPointerEventHandler } from '@tldraw/core'
+import { Renderer, TLBinding, TLPage, TLPageState, TLPointerEventHandler } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { RectUtil, Shape } from './shapes'
-import { Page, PageState } from './stores'
-
-const page = new Page({
-  id: 'page1',
-  shapes: {
-    rect1: {
-      id: 'rect1',
-      type: 'rect',
-      parentId: 'page1',
-      name: 'Rect',
-      childIndex: 1,
-      rotation: 0,
-      point: [0, 0],
-      size: [100, 100],
-    },
-  },
-  bindings: {},
-})
-
-const pageState = new PageState()
 
 const shapeUtils = {
   rect: new RectUtil(),
 }
 
 export default function App() {
+  const [page, setPage] = React.useState<TLPage<Shape, TLBinding>>({
+    id: 'page1',
+    shapes: {
+      box1: {
+        id: 'box1',
+        type: 'rect',
+        parentId: 'page1',
+        name: 'Box',
+        childIndex: 1,
+        rotation: 0,
+        point: [0, 0],
+        size: [100, 100],
+      },
+    },
+    bindings: {},
+  })
+
+  const [pageState, setPageState] = React.useState<TLPageState>({
+    id: 'page',
+    selectedIds: [],
+    hoveredId: undefined,
+    camera: {
+      point: [0, 0],
+      zoom: 1,
+    },
+  })
   const onHoverShape: TLPointerEventHandler = (e) => {
-    pageState.setHoveredId(e.target)
+    setPageState({
+      ...pageState,
+      hoveredId: e.target,
+    })
   }
 
   const onUnhoverShape: TLPointerEventHandler = () => {
-    pageState.setHoveredId(undefined)
+    setPageState({
+      ...pageState,
+      hoveredId: null,
+    })
   }
 
   const onPointShape: TLPointerEventHandler = (info) => {
-    pageState.setSelectedIds(info.target)
+    setPageState({ ...pageState, selectedIds: [info.target] })
   }
 
   const onPointCanvas: TLPointerEventHandler = () => {
-    pageState.clearSelectedIds()
+    setPageState({ ...pageState, selectedIds: [] })
   }
 
   const onDragShape: TLPointerEventHandler = (e) => {
-    page.dragShape(e.target, e.point)
+    setPage((page) => {
+      const shape = page.shapes[e.target]
+
+      return {
+        ...page,
+        shapes: {
+          ...page.shapes,
+          [shape.id]: {
+            ...shape,
+            point: Vec.sub(e.point, Vec.div(shape.size, 2)),
+          },
+        },
+      }
+    })
   }
 
   const onPointerMove: TLPointerEventHandler = (info) => {
     if (info.shiftKey) {
-      pageState.pan(info.delta)
+      setPageState((prev) => ({
+        ...pageState,
+        camera: {
+          ...prev.camera,
+          point: Vec.add(prev.camera.point, info.delta),
+        },
+      }))
     }
   }
 
