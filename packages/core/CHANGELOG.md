@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.18.3
+
+### Patch Changes
+
+- Small bump.
+
+## 1.18.2
+
+### Patch Changes
+
+- Fix bug with scrolling.
+
 ## 1.18.1
 
 ### Patch Changes

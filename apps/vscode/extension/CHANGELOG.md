@@ -1,5 +1,17 @@
 ## 1.2.4
 
+## 1.23.3
+
+### Patch Changes
+
+- Small bump.
+
+## 1.23.2
+
+### Patch Changes
+
+- Fix bug with scrolling.
+
 ## 1.23.1
 
 ### Patch Changes

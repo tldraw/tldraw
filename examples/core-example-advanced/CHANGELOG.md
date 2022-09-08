@@ -1,5 +1,20 @@
 # @tldraw/core-example-advanced
 
+## 1.7.6
+
+### Patch Changes
+
+- Small bump.
+- Updated dependencies
+  - @tldraw/core@1.18.3
+
+## 1.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.2
+
 ## 1.7.4
 
 ### Patch Changes
