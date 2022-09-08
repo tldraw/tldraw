@@ -173,6 +173,8 @@ const DialogContent = styled(Dialog.Content, {
   maxHeight: '74vh',
   overflowY: 'auto',
   padding: 25,
+  zIndex: 9999,
+  pointerEvents: 'all',
   background: '$panel',
   '&:focus': { outline: 'none' },
 })
@@ -211,6 +213,7 @@ const DialogOverlay = styled(Dialog.Overlay, {
   backgroundColor: '$overlay',
   position: 'fixed',
   inset: 0,
+  zIndex: 9998,
 })
 
 const DialogIconButton = styled(IconButton, {

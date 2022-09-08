@@ -18,7 +18,7 @@ import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import { TDSnapshot } from '~types'
-import { KeyboardShortcutDialog } from './keyboardShortcutDialog'
+import { KeyboardShortcutDialog } from './KeyboardShortcutDialog'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
