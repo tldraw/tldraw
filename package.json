@@ -63,14 +63,12 @@
     "tslib": "^2.4.0",
     "turbo": "^1.3.4",
     "typescript": "^4.7.3",
-    "webpack": "^5.68.0"
+    "webpack": "^5.68.0",
+    "@changesets/cli": "^2.20.0"
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
     "*.{ts,tsx}": "eslint --fix"
   },
-  "packageManager": "yarn@1.22.17",
-  "dependencies": {
-    "@changesets/cli": "^2.20.0"
-  }
+  "packageManager": "yarn@1.22.17"
 }

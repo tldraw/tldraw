@@ -22,7 +22,7 @@ export const LanguageMenu = () => {
   )
 
   return (
-    <DMContent variant="menu" overflow={true} id="language-menu" side="left" sideOffset={8}>
+    <DMContent variant="menu" overflow id="language-menu" side="left" sideOffset={8}>
       {TRANSLATIONS.map(({ locale, label }) => (
         <DMCheckboxItem
           key={locale}

@@ -102,7 +102,7 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.keep.stylemenu.open" />
       </DMCheckboxItem>
-      <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })} overflow={false}>
+      <DMSubMenu label={intl.formatMessage({ id: 'dock.position' })}>
         {DockPosition.map((position) => (
           <DMCheckboxItem
             key={position}
@@ -116,7 +116,7 @@ export function PreferencesMenu() {
           </DMCheckboxItem>
         ))}
       </DMSubMenu>
-      <DMSubMenu label={intl.formatMessage({ id: 'export.background' })} overflow={false}>
+      <DMSubMenu label={intl.formatMessage({ id: 'export.background' })}>
         {Object.values(TDExportBackground).map((exportBackground) => (
           <DMCheckboxItem
             key={exportBackground}
