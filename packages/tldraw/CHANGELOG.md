@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.24.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+- Updated dependencies
+  - @tldraw/core@1.18.1
+
 ## 1.24.0
 
 ### Minor Changes

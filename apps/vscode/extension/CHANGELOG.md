@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.23.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+
 ## 1.23.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.18.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+
 ## 1.18.0
 
 ### Minor Changes
