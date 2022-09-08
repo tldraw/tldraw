@@ -30,11 +30,11 @@ export function useCursor(ref: RefObject<HTMLDivElement>) {
     const onPointerDown = (e: PointerEvent) => {
       isPointing = true
 
-      if (e.button === 1) {
+      if (e.buttons === 4) {
         elm.setAttribute('style', 'cursor: grabbing !important')
       }
 
-      if (e.button === 0) {
+      if (e.buttons === 1) {
         if (isSpacePanning) {
           elm.setAttribute('style', 'cursor: grabbing !important')
         }
