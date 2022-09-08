@@ -19,7 +19,7 @@ import type {
 
 const EMPTY_OBJECT = {} as TLAssets
 
-export interface RendererProps<T extends TLShape, M = any> extends Partial<TLCallbacks<T>> {
+export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> & {
   /**
    * An object containing instances of your shape classes.
    */

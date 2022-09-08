@@ -4,24 +4,26 @@ import { Canvas } from './Canvas'
 
 describe('page', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(
-      <Canvas
-        page={mockDocument.page}
-        pageState={mockDocument.pageState}
-        hideBounds={false}
-        hideGrid={false}
-        hideIndicators={false}
-        hideHandles={false}
-        hideBindingHandles={false}
-        hideResizeHandles={false}
-        hideCloneHandles={false}
-        hideRotateHandle={false}
-        showDashedBrush={false}
-        onBoundsChange={() => {
-          // noop
-        }}
-        assets={{}}
-      />
-    )
+    expect(() =>
+      renderWithContext(
+        <Canvas
+          page={mockDocument.page}
+          pageState={mockDocument.pageState}
+          hideBounds={false}
+          hideGrid={false}
+          hideIndicators={false}
+          hideHandles={false}
+          hideBindingHandles={false}
+          hideResizeHandles={false}
+          hideCloneHandles={false}
+          hideRotateHandle={false}
+          showDashedBrush={false}
+          onBoundsChange={() => {
+            // noop
+          }}
+          assets={{}}
+        />
+      )
+    ).not.toThrowError()
   })
 })

@@ -45,12 +45,12 @@
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
+    "@testing-library/react": "^13.4.0",
     "@tldraw/intersect": "*",
+    "@tldraw/lfg": "latest",
     "@tldraw/vec": "*",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
-    "@tldraw/lfg": "latest",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

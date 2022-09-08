@@ -9,7 +9,7 @@ import { Renderer } from './Renderer'
 
 describe('renderer', () => {
   test('mounts component without crashing', () => {
-    expect(
+    expect(() =>
       render(
         <Renderer
           shapeUtils={mockUtils as any}

@@ -5,14 +5,16 @@ import { ShapeIndicator } from './ShapeIndicator'
 
 describe('shape indicator', () => {
   test('mounts component without crashing', () => {
-    renderWithSvg(
-      <ShapeIndicator
-        shape={boxShape}
-        isSelected={true}
-        isHovered={false}
-        isEditing={false}
-        meta={undefined}
-      />
-    )
+    expect(() =>
+      renderWithSvg(
+        <ShapeIndicator
+          shape={boxShape}
+          isSelected={true}
+          isHovered={false}
+          isEditing={false}
+          meta={undefined}
+        />
+      )
+    ).not.toThrowError()
   })
 })

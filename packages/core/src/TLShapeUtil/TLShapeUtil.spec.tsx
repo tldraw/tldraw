@@ -206,9 +206,9 @@ describe('When creating a realistic API around TLShapeUtil', () => {
       return <div ref={ref2}>{props.message}</div>
     })
 
-    expect(render(<H message="Hello" />)).not.toThrowError()
+    expect(() => render(<H message="Hello" />)).not.toThrowError()
 
-    expect(
+    expect(() =>
       render(
         <Box.Component
           ref={ref}
