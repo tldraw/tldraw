@@ -527,6 +527,7 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     return nextShape
   }
 
+  // This got changed from merge conflict, not sure if it's needed anymore
   // getSvgElement = (shape: T): SVGElement | void => {
   //   const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
   //   if (!elm) return // possibly in test mode

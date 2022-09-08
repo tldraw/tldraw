@@ -8,17 +8,9 @@ import Vec from '@tldraw/vec'
 import * as React from 'react'
 import { BINDING_DISTANCE, GHOSTED_OPACITY, LABEL_POINT } from '~constants'
 import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
-import {
-  TextLabel,
-  defaultStyle,
-  getBoundsRectangle,
-  getFontStyle,
-  getShapeStyle,
-  transformRectangle,
-  transformSingleRectangle,
-} from '~state/shapes/shared'
+import {TextLabel, defaultStyle, getBoundsRectangle, getFontStyle, getShapeStyle, transformRectangle, transformSingleRectangle, getFontFace, getFontSize} from '~state/shapes/shared';
 import { styled } from '~styles'
-import { DashStyle, TDMeta, TDShape, TDShapeType, TriangleShape } from '~types'
+import {DashStyle, TDMeta, TDShape, TDShapeType, TriangleShape, AlignStyle} from '~types';
 import { DashedTriangle } from './components/DashedTriangle'
 import { DrawTriangle } from './components/DrawTriangle'
 import { TriangleBindingIndicator } from './components/TriangleBindingIndicator'
@@ -244,11 +236,21 @@ export class TriangleUtil extends TDShapeUtil<T, E> {
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
       const bounds = this.getBounds(shape)
-      const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
-      labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
       const font = getFontStyle(shape.style)
       const scale: number = shape.style.scale !== undefined ? shape.style.scale : 1
       const size = getTextLabelSize(s['label'], font)
+      const labelSize = getTextLabelSize(shape.label!, font)
+      const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
+      const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+      const labelElm = getTextSvgElement(
+        s.label!,
+        fontSize,
+        fontFamily,
+        AlignStyle.Start,
+        labelSize[0],
+        false
+      )
+      labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
       labelElm.setAttribute('transform-origin', 'top left')
 
       // Put the label at the bend point with text aligned centered
