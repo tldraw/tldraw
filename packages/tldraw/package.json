@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "npm:@gamma-app/tldraw-core@1.184.3",
+    "@tldraw/core": "npm:@gamma-app/tldraw-core@1.18.3",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
     "browser-fs-access": "^0.31.0",
