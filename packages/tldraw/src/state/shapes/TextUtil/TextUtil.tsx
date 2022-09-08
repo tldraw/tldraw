@@ -231,6 +231,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
                 color: styles.stroke,
                 textAlign: getTextAlign(style.textAlign),
               }}
+              data-color={shape.style.color}
             >
               {isBinding && (
                 <div
@@ -406,6 +407,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
     )
 
     textElm.setAttribute('fill', style.stroke)
+    textElm.setAttribute('data-color', shape.style.color)
+
 
     return textElm
   }

@@ -1,7 +1,7 @@
 import type { Easing } from '~types'
 
 export const LETTER_SPACING = '-0.03em'
-export const LINE_HEIGHT = 1
+export const LINE_HEIGHT = 1.3
 export const GRID_SIZE = 8
 export const SVG_EXPORT_PADDING = 16
 export const BINDING_DISTANCE = 16

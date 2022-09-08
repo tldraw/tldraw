@@ -5,7 +5,7 @@
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tldraw/tldraw.git"
+    "url": "https://github.com/gamma-app/tldraw.git"
   },
   "license": "MIT",
   "keywords": [
@@ -36,15 +36,8 @@
     "react-dom": ">=16.8"
   },
   "dependencies": {
-    "@radix-ui/react-alert-dialog": "^1.0.0",
-    "@radix-ui/react-context-menu": "^1.0.0",
-    "@radix-ui/react-dialog": "^1.0.0",
-    "@radix-ui/react-dropdown-menu": "^1.0.0",
-    "@radix-ui/react-icons": "^1.1.1",
-    "@radix-ui/react-popover": "^1.0.0",
-    "@radix-ui/react-tooltip": "^1.0.0",
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "^1.18.3",
+    "@tldraw/core": "npm:@gamma-app/tldraw-core@1.184.3",
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
     "browser-fs-access": "^0.31.0",

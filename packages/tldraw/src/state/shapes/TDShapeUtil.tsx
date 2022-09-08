@@ -182,7 +182,6 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
     if (hasLabel) {
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
       const font = getFontStyle(shape.style)
       const labelSize = getTextLabelSize(shape.label!, font)
       const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
@@ -196,6 +195,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
         labelSize[0],
         false
       )
+      
 
       const bounds = this.getBounds(shape)
 
@@ -205,6 +205,7 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       )
       labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
       labelElm.setAttribute('transform-origin', 'center center')
+      labelElm.setAttribute('data-color', shape.style.color)
       g.setAttribute('text-align', 'center')
       g.setAttribute('text-anchor', 'middle')
       g.appendChild(elm)

@@ -86,8 +86,13 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             color={styles.stroke}
             offsetX={(labelPoint[0] - 0.5) * bounds.width}
             offsetY={(labelPoint[1] - 0.5) * bounds.height}
+            shape={shape}
           />
-          <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
+          <SVGContainer
+            id={shape.id + '_svg'}
+            opacity={isGhost ? GHOSTED_OPACITY : 1}
+            shapeStyle={style}
+          >
             {isBinding && (
               <ellipse
                 className="tl-binding-indicator"

@@ -6,7 +6,7 @@
   "author": "@steveruizok",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tldraw/tldraw.git"
+    "url": "https://github.com/gamma-app/tldraw.git"
   },
   "license": "MIT",
   "workspaces": [
