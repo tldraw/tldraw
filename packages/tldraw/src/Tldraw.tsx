@@ -2,13 +2,13 @@ import { Renderer } from '@tldraw/core'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
-import { ContextMenu } from '~components/ContextMenu'
-import { ErrorFallback } from '~components/ErrorFallback'
-import { FocusButton } from '~components/FocusButton'
+// import { ContextMenu } from '~components/ContextMenu'
+// import { ErrorFallback } from '~components/ErrorFallback'
+// import { FocusButton } from '~components/FocusButton'
 import { Loading } from '~components/Loading'
-import { AlertDialog } from '~components/Primitives/AlertDialog'
-import { ToolsPanel } from '~components/ToolsPanel'
-import { TopPanel } from '~components/TopPanel'
+// import { AlertDialog } from '~components/Primitives/AlertDialog'
+// import { ToolsPanel } from '~components/ToolsPanel'
+// import { TopPanel } from '~components/TopPanel'
 import { GRID_SIZE } from '~constants'
 import {
   AlertDialogContext,
@@ -469,12 +469,13 @@ const InnerTldraw = React.memo(function InnerTldraw({
   return (
     <ContainerContext.Provider value={rWrapper}>
       <IntlProvider locale={translation.locale} messages={translation.messages}>
-        <AlertDialog container={dialogContainer} />
+        {/* <AlertDialog container={dialogContainer} /> */}
         <StyledLayout ref={rWrapper} tabIndex={-0}>
           <Loading />
           <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-          <ContextMenu>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
+          {/* <ContextMenu> */}
+          <>
+            <ErrorBoundary FallbackComponent={<span></span>}>
               <Renderer
                 id={id}
                 containerRef={rWrapper}
@@ -552,8 +553,9 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 onDrop={app.onDrop}
               />
             </ErrorBoundary>
-          </ContextMenu>
-          {showUI && (
+          </>
+          {/* </ContextMenu> */}
+          {/* {showUI && (
             <StyledUI ref={setDialogContainer}>
               {settings.isFocusMode ? (
                 <FocusButton onSelect={app.toggleFocusMode} />
@@ -572,7 +574,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 </>
               )}
             </StyledUI>
-          )}
+          )} */}
         </StyledLayout>
       </IntlProvider>
     </ContainerContext.Provider>
