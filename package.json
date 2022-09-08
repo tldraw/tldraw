@@ -37,7 +37,7 @@
     "format": "prettier --write .",
     "lint": "turbo run lint --parallel",
     "clean": "turbo run clean",
-    "postinstall": "husky install & yarn build",
+    "postinstall": "husky install",
     "pre-commit": "lint-staged",
     "pre-push": "yarn test"
   },
