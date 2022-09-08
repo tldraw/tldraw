@@ -79,6 +79,7 @@ export class ImageUtil extends TDShapeUtil<T, E> {
             isDarkMode={meta.isDarkMode} //
             isFilled={style.isFilled}
             isGhost={isGhost}
+            // data-image-wrapper
           >
             <ImageElement
               id={shape.id + '_image'}
@@ -160,16 +161,16 @@ const Wrapper = styled('div', {
       isFilled: true,
       isDarkMode: true,
       css: {
-        boxShadow:
-          '2px 3px 12px -2px rgba(0,0,0,.3), 1px 1px 4px rgba(0,0,0,.3), 1px 1px 2px rgba(0,0,0,.3)',
+        // boxShadow:
+        //   '2px 3px 12px -2px rgba(0,0,0,.3), 1px 1px 4px rgba(0,0,0,.3), 1px 1px 2px rgba(0,0,0,.3)',
       },
     },
     {
       isFilled: true,
       isDarkMode: false,
       css: {
-        boxShadow:
-          '2px 3px 12px -2px rgba(0,0,0,.2), 1px 1px 4px rgba(0,0,0,.16),  1px 1px 2px rgba(0,0,0,.16)',
+        // boxShadow:
+        //   '2px 3px 12px -2px rgba(0,0,0,.2), 1px 1px 4px rgba(0,0,0,.16),  1px 1px 2px rgba(0,0,0,.16)',
       },
     },
   ],

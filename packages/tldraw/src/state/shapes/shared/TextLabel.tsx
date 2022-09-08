@@ -5,6 +5,7 @@ import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
 import { TextAreaUtils } from './TextAreaUtils'
 import { getTextLabelSize } from './getTextSize'
+import { TDShape } from '~types'
 
 export interface TextLabelProps {
   font: string
@@ -16,6 +17,7 @@ export interface TextLabelProps {
   offsetX?: number
   scale?: number
   isEditing?: boolean
+  shape?: TDShape
 }
 
 export const TextLabel = React.memo(function TextLabel({
@@ -28,6 +30,7 @@ export const TextLabel = React.memo(function TextLabel({
   isEditing = false,
   onBlur,
   onChange,
+  shape,
 }: TextLabelProps) {
   const rInput = React.useRef<HTMLTextAreaElement>(null)
   const rIsMounted = React.useRef(false)
@@ -148,6 +151,7 @@ export const TextLabel = React.memo(function TextLabel({
           font,
           color,
         }}
+        data-color={shape?.style.color}
       >
         {isEditing ? (
           <TextArea

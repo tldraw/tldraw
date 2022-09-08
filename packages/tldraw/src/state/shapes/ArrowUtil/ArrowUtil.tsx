@@ -1,11 +1,21 @@
 import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
+import * as React from 'react'
+import {
+  ArrowShape,
+  TransformInfo,
+  Decoration,
+  TDShapeType,
+  DashStyle,
+  TDMeta,
+  TDShape,
+} from '~types'
 import {
   intersectArcBounds,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import * as React from 'react'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
@@ -17,7 +27,6 @@ import {
   getTextLabelSize,
 } from '~state/shapes/shared'
 import { styled } from '~styles'
-import { ArrowShape, DashStyle, Decoration, TDMeta, TDShapeType, TransformInfo } from '~types'
 import {
   getArcLength,
   getArcPoints,
@@ -154,8 +163,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
             isEditing={isEditing}
             onChange={handleLabelChange}
             onBlur={onShapeBlur}
+            shape={shape}
           />
-          <SVGContainer id={shape.id + '_svg'}>
+          <SVGContainer id={shape.id + '_svg'} shapeStyle={style}>
             <defs>
               <mask id={shape.id + '_clip'}>
                 <rect
@@ -513,6 +523,34 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     }
 
     return nextShape
+  }
+
+  getSvgElement = (shape: T): SVGElement | void => {
+    const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
+    if (!elm) return // possibly in test mode
+    if ('label' in shape && (shape as any).label !== undefined) {
+      const s = shape as TDShape & { label: string }
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+      const bounds = this.getBounds(shape)
+      const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
+      labelElm.setAttribute('fill', getShapeStyle(shape.style).stroke)
+      const font = getFontStyle(shape.style)
+      const scale: number = shape.style.scale !== undefined ? shape.style.scale : 1
+      const size = getTextLabelSize(s['label'], font)
+      labelElm.setAttribute('transform-origin', 'top left')
+
+      // Put the label at the bend point with text aligned centered
+      labelElm.setAttribute(
+        'transform',
+        `translate(${shape.handles.bend.point[0] - (size[0] * scale) / 2}, ${
+          shape.handles.bend.point[1] - (size[1] * scale) / 2
+        })`
+      )
+      g.appendChild(elm)
+      g.appendChild(labelElm)
+      return g
+    }
+    return elm
   }
 }
 
