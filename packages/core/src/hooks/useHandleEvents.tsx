@@ -10,12 +10,12 @@ export function useHandleEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.button === 2) return
+        if (e.buttons === 2) return
         if (!inputs.pointerIsValid(e)) return
         e.currentTarget?.setPointerCapture(e.pointerId)
         const info = inputs.pointerDown(e, id)
 
-        if (e.button === 0) {
+        if (e.buttons === 1) {
           callbacks.onPointHandle?.(info, e)
         }
         callbacks.onPointerDown?.(info, e)
@@ -23,13 +23,13 @@ export function useHandleEvents(id: string) {
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button === 2) return
+        if (e.buttons === 2) return
         if (!inputs.pointerIsValid(e)) return
         const isDoubleClick = inputs.isDoubleClick()
         const info = inputs.pointerUp(e, id)
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
-          if (e.button === 0) {
+          if (e.buttons === 1) {
             if (isDoubleClick && !(info.altKey || info.metaKey)) {
               callbacks.onDoubleClickHandle?.(info, e)
             }
@@ -42,9 +42,9 @@ export function useHandleEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.button === 2) return
+        if (e.buttons === 2) return
         const info = inputs.pointerMove(e, id)
-        if (e.button === 0) {
+        if (e.buttons === 1) {
           if (e.currentTarget.hasPointerCapture(e.pointerId)) {
             callbacks.onDragHandle?.(info, e)
           }

@@ -11,10 +11,10 @@ export function useBoundsHandleEvents(
     (e: React.PointerEvent) => {
       if ((e as any).dead) return
       else (e as any).dead = true
-      if (e.button === 2) return
+      if (e.buttons === 2) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerDown(e, id)
-      if (e.button === 0) {
+      if (e.buttons === 1) {
         if (inputs.isDoubleClick() && !(info.altKey || info.metaKey)) {
           callbacks.onDoubleClickBoundsHandle?.(info, e)
         }
@@ -29,11 +29,10 @@ export function useBoundsHandleEvents(
     (e: React.PointerEvent) => {
       if ((e as any).dead) return
       else (e as any).dead = true
-      if (e.button === 2) return
+      if (e.buttons === 2) return
       if (!inputs.pointerIsValid(e)) return
       const info = inputs.pointerUp(e, id)
-
-      if (e.button === 0) {
+      if (e.buttons === 1) {
         callbacks.onReleaseBoundsHandle?.(info, e)
       }
       callbacks.onPointerUp?.(info, e)
@@ -45,9 +44,9 @@ export function useBoundsHandleEvents(
     (e: React.PointerEvent) => {
       if ((e as any).dead) return
       else (e as any).dead = true
-      if (e.button !== 0) return
+      if (e.buttons === 2) return
       if (!inputs.pointerIsValid(e)) return
-      if (e.button === 0) {
+      if (e.buttons === 1) {
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
         }

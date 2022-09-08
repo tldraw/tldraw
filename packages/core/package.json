@@ -34,17 +34,16 @@
   "dependencies": {
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
-    "@use-gesture/react": "^10.2.14",
-    "perfect-freehand": "^1.1.0",
-    "resize-observer-polyfill": "^1.5.1"
+    "@use-gesture/react": "^10.2.19",
+    "perfect-freehand": "^1.1.0"
   },
   "peerDependencies": {
     "react": ">=16.8",
     "react-dom": ">=16.8"
   },
   "devDependencies": {
-    "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.4",
+    "@swc-node/jest": "^1.5.2",
+    "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@tldraw/intersect": "*",
     "@tldraw/lfg": "latest",
@@ -52,7 +51,8 @@
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "jest": {
     "setupFilesAfterEnv": [

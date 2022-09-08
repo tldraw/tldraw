@@ -11,7 +11,7 @@ export function useShapeEvents(id: string) {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.button === 2) {
+        if (e.buttons === 2) {
           callbacks.onRightPointShape?.(inputs.pointerDown(e, id), e)
           return
         }
@@ -25,14 +25,14 @@ export function useShapeEvents(id: string) {
           Utils.pointInBounds(info.point, rSelectionBounds.current) &&
           !rPageState.current.selectedIds.includes(id)
         ) {
-          if (e.button === 0) {
+          if (e.buttons === 1) {
             callbacks.onPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
             callbacks.onPointShape?.(info, e)
           }
           callbacks.onPointerDown?.(info, e)
           return
         }
-        if (e.button === 0) {
+        if (e.buttons === 1) {
           callbacks.onPointShape?.(info, e)
         }
         callbacks.onPointerDown?.(info, e)
@@ -40,7 +40,7 @@ export function useShapeEvents(id: string) {
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button === 2) return
+        if (e.buttons === 2) return
         inputs.activePointer = undefined
         if (!inputs.pointerIsValid(e)) return
         const isDoubleClick = inputs.isDoubleClick()
@@ -48,7 +48,7 @@ export function useShapeEvents(id: string) {
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
         }
-        if (e.button === 0) {
+        if (e.buttons === 1) {
           if (isDoubleClick && !(info.altKey || info.metaKey)) {
             callbacks.onDoubleClickShape?.(info, e)
           }
@@ -59,11 +59,11 @@ export function useShapeEvents(id: string) {
       onPointerMove: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button === 2) return
+        if (e.buttons === 2) return
         if (!inputs.pointerIsValid(e)) return
         if (inputs.pointer && e.pointerId !== inputs.pointer.pointerId) return
         const info = inputs.pointerMove(e, id)
-        if (e.button === 0) {
+        if (e.buttons === 1) {
           if (e.currentTarget.hasPointerCapture(e.pointerId)) {
             callbacks.onDragShape?.(info, e)
           }
