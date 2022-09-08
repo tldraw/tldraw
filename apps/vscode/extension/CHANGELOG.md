@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.23.4
+
+### Patch Changes
+
+- Fix menu bug.
+
 ## 1.23.3
 
 ### Patch Changes

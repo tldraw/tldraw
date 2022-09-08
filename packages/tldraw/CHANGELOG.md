@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.24.4
+
+### Patch Changes
+
+- Fix menu bug.
+
 ## 1.24.3
 
 ### Patch Changes
