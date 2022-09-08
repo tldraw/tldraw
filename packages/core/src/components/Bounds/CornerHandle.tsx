@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import { TLBounds, TLBoundsCorner } from '~types'
@@ -10,7 +9,7 @@ const cornerBgClassnames = {
   [TLBoundsCorner.BottomLeft]: 'tl-cursor-nesw',
 }
 
-interface CornerHandleProps {
+export interface CornerHandleProps {
   size: number
   targetSize: number
   bounds: TLBounds
@@ -18,13 +17,7 @@ interface CornerHandleProps {
   isHidden?: boolean
 }
 
-export const CornerHandle = observer(function CornerHandle({
-  size,
-  targetSize,
-  isHidden,
-  corner,
-  bounds,
-}: CornerHandleProps) {
+function _CornerHandle({ size, targetSize, isHidden, corner, bounds }: CornerHandleProps) {
   const events = useBoundsHandleEvents(corner)
 
   const isTop = corner === TLBoundsCorner.TopLeft || corner === TLBoundsCorner.TopRight
@@ -53,4 +46,6 @@ export const CornerHandle = observer(function CornerHandle({
       />
     </g>
   )
-})
+}
+
+export const CornerHandle = React.memo(_CornerHandle)

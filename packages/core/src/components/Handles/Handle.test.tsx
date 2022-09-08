@@ -5,7 +5,7 @@ import { Handle } from './Handle'
 
 describe('handle', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<Handle id="123" point={[100, 200]} />)
+    expect(() => renderWithContext(<Handle id="123" point={[100, 200]} />)).not.toThrowError()
   })
   test('validate attributes for handle component', () => {
     renderWithContext(<Handle id="123" point={[100, 200]} />)

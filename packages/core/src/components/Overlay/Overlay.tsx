@@ -1,12 +1,11 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 
-type MyProps = {
+export type OverlayProps = {
   camera: { point: number[]; zoom: number }
   children: React.ReactNode
 }
 
-export const Overlay = observer<MyProps>(function Overlay({ camera: { zoom, point }, children }) {
+function _Overlay({ camera: { zoom, point }, children }: OverlayProps) {
   const l = 2.5 / zoom
   return (
     <svg className="tl-overlay">
@@ -21,4 +20,6 @@ export const Overlay = observer<MyProps>(function Overlay({ camera: { zoom, poin
       <g transform={`scale(${zoom}) translate(${point})`}>{children}</g>
     </svg>
   )
-})
+}
+
+export const Overlay = React.memo(_Overlay)

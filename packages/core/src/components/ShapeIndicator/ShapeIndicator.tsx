@@ -1,9 +1,8 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { usePosition, useTLContext } from '~hooks'
 import type { TLShape, TLUser } from '~types'
 
-interface IndicatorProps<T extends TLShape, M = unknown> {
+export interface IndicatorProps<T extends TLShape, M = unknown> {
   shape: T
   meta: M extends unknown ? M : undefined
   isSelected?: boolean
@@ -12,7 +11,7 @@ interface IndicatorProps<T extends TLShape, M = unknown> {
   user?: TLUser<T>
 }
 
-export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape, M>({
+function _ShapeIndicator<T extends TLShape, M>({
   isHovered = false,
   isSelected = false,
   isEditing = false,
@@ -51,4 +50,6 @@ export const ShapeIndicator = observer(function ShapeIndicator<T extends TLShape
       </svg>
     </div>
   )
-})
+}
+
+export const ShapeIndicator = React.memo(_ShapeIndicator)

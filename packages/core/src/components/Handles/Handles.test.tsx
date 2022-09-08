@@ -6,7 +6,7 @@ import { Handles } from './Handles'
 
 describe('handles', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<Handles shape={boxShape} zoom={1} />)
+    expect(() => renderWithContext(<Handles shape={boxShape} zoom={1} />)).not.toThrowError()
   })
   test('validate attributes for handles component', () => {
     const boxShapeWithHandles = {

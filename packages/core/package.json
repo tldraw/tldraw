@@ -35,7 +35,6 @@
     "@tldraw/intersect": "^1.7.1",
     "@tldraw/vec": "^1.7.1",
     "@use-gesture/react": "^10.2.14",
-    "mobx-react-lite": "^3.2.3",
     "perfect-freehand": "^1.1.0",
     "resize-observer-polyfill": "^1.5.1"
   },
@@ -46,13 +45,12 @@
   "devDependencies": {
     "@swc-node/jest": "^1.4.3",
     "@testing-library/jest-dom": "^5.16.4",
-    "@testing-library/react": "^13.3.0",
+    "@testing-library/react": "^13.4.0",
     "@tldraw/intersect": "*",
+    "@tldraw/lfg": "latest",
     "@tldraw/vec": "*",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
-    "@tldraw/lfg": "latest",
-    "mobx": "^6.3.8",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

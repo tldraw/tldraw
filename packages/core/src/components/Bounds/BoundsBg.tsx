@@ -1,17 +1,16 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { Container } from '~components/Container'
 import { SVGContainer } from '~components/SVGContainer'
 import { useBoundsEvents } from '~hooks'
 import type { TLBounds } from '~types'
 
-interface BoundsBgProps {
+export interface BoundsBgProps {
   bounds: TLBounds
   rotation: number
   isHidden: boolean
 }
 
-export const BoundsBg = observer<BoundsBgProps>(function BoundsBg({ bounds, rotation, isHidden }) {
+function _BoundsBg({ bounds, rotation, isHidden }: BoundsBgProps) {
   const events = useBoundsEvents()
 
   return (
@@ -28,4 +27,6 @@ export const BoundsBg = observer<BoundsBgProps>(function BoundsBg({ bounds, rota
       </SVGContainer>
     </Container>
   )
-})
+}
+
+export const BoundsBg = React.memo(_BoundsBg)

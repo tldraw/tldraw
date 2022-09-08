@@ -1,5 +1,4 @@
-import { Renderer, TLPointerEventHandler, TLShapeUtilsMap } from '@tldraw/core'
-import { observer } from 'mobx-react-lite'
+import { Renderer, TLPointerEventHandler } from '@tldraw/core'
 import * as React from 'react'
 import { RectUtil, Shape } from './shapes'
 import { Page, PageState } from './stores'
@@ -23,11 +22,11 @@ const page = new Page({
 
 const pageState = new PageState()
 
-const shapeUtils: TLShapeUtilsMap<Shape> = {
+const shapeUtils = {
   rect: new RectUtil(),
 }
 
-export default observer(function App() {
+export default function App() {
   const onHoverShape: TLPointerEventHandler = (e) => {
     pageState.setHoveredId(e.target)
   }
@@ -113,4 +112,4 @@ export default observer(function App() {
       />
     </div>
   )
-})
+}

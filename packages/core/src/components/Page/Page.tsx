@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLShapeUtil } from '~TLShapeUtil'
 import { Bounds } from '~components/Bounds'
@@ -9,7 +8,7 @@ import { ShapeIndicator } from '~components/ShapeIndicator'
 import { useSelection, useShapeTree, useTLContext } from '~hooks'
 import type { TLAssets, TLBinding, TLPage, TLPageState, TLShape } from '~types'
 
-interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
+export interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   assets: TLAssets
@@ -26,7 +25,7 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
 /**
  * The Page component renders the current page.
  */
-export const Page = observer(function _Page<T extends TLShape, M extends Record<string, unknown>>({
+function _Page<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   assets,
@@ -112,4 +111,6 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
     </>
   )
-})
+}
+
+export const Page = React.memo(_Page)

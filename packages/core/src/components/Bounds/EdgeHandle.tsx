@@ -1,4 +1,3 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import { TLBounds, TLBoundsEdge } from '~types'
@@ -10,7 +9,7 @@ const edgeClassnames = {
   [TLBoundsEdge.Left]: 'tl-cursor-ew',
 }
 
-interface EdgeHandleProps {
+export interface EdgeHandleProps {
   targetSize: number
   size: number
   bounds: TLBounds
@@ -18,12 +17,7 @@ interface EdgeHandleProps {
   isHidden: boolean
 }
 
-export const EdgeHandle = observer<EdgeHandleProps>(function EdgeHandle({
-  size,
-  isHidden,
-  bounds,
-  edge,
-}: EdgeHandleProps) {
+function _EdgeHandle({ size, isHidden, bounds, edge }: EdgeHandleProps) {
   const events = useBoundsHandleEvents(edge)
 
   const isHorizontal = edge === TLBoundsEdge.Top || edge === TLBoundsEdge.Bottom
@@ -44,4 +38,6 @@ export const EdgeHandle = observer<EdgeHandleProps>(function EdgeHandle({
       {...events}
     />
   )
-})
+}
+
+export const EdgeHandle = React.memo(_EdgeHandle)

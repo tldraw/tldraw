@@ -8,14 +8,16 @@ jest.spyOn(console, 'error').mockImplementation(() => void null)
 
 describe('CenterHandle', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(
-      <CornerHandle
-        size={10}
-        targetSize={20}
-        bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
-        corner={TLBoundsCorner.TopLeft}
-      />
-    )
+    expect(() =>
+      renderWithContext(
+        <CornerHandle
+          size={10}
+          targetSize={20}
+          bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
+          corner={TLBoundsCorner.TopLeft}
+        />
+      )
+    ).not.toThrowError()
   })
   test('top left corner > validate attributes', () => {
     renderWithContext(
