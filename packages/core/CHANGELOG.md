@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.18.4
+
+### Patch Changes
+
+- Fix mouse events.
+
 ## 1.18.3
 
 ### Patch Changes

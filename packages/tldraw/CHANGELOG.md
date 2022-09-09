@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.24.5
+
+### Patch Changes
+
+- Fix mouse events.
+- Updated dependencies
+  - @tldraw/core@1.18.4
+
 ## 1.24.4
 
 ### Patch Changes

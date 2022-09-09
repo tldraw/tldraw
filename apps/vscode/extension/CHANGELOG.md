@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.23.5
+
+### Patch Changes
+
+- Fix mouse events.
+
 ## 1.23.4
 
 ### Patch Changes
