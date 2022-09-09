@@ -84,7 +84,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   rZoomRef.current = pageState.camera.zoom
 
-  useZoomEvents(rZoomRef, externalContainerRef || rCanvas)
+  useZoomEvents(rZoomRef, rCanvas)
 
   useResizeObserver(rCanvas, onBoundsChange)
 
