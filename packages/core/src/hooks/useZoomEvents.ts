@@ -36,7 +36,7 @@ export function useZoomEvents<T extends HTMLElement>(
 
       const [x, y, z] = normalizeWheel(e)
 
-      // alt+scroll or ctrl+scroll = zoom
+      // alt+scroll or ctrl+scroll = zoom (when not clicking)
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
         const delta = [...point, z * 0.618]
