@@ -57,13 +57,25 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             false
           )
 
-          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
+          const res = TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: -1,
             scaleY: 1,
             initialShape: shape,
             transformOrigin: [0.5, 0.5],
           })
+
+          if (shape && shape.type === 'arrow') {
+            const next = {
+              ...res,
+              handles: {
+                ...res.handles,
+                bend: shape.handles?.bend,
+              },
+            }
+            return next as any
+          }
+          return res
         }
         case FlipType.Vertical: {
           if (isChildOfGroup && !isSinglySelectedGroup) {
@@ -97,13 +109,15 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             true
           )
 
-          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
+          const res = TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: 1,
             scaleY: -1,
             initialShape: shape,
             transformOrigin: [0.5, 0.5],
           })
+
+          return res
         }
       }
     },
