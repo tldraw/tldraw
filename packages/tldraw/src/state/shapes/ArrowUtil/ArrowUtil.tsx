@@ -391,13 +391,17 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     const { start, bend, end } = nextHandles
     const dist = Vec.dist(start.point, end.point)
     const midPoint = Vec.med(start.point, end.point)
+
     const bendDist = (dist / 2) * initialShape.bend
     const u = Vec.uni(Vec.vec(start.point, end.point))
     const point = Vec.add(midPoint, Vec.mul(Vec.per(u), bendDist))
-    nextHandles['bend'] = {
-      ...bend,
-      point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
+    if (scaleX > 0 && scaleY < 0) {
+      nextHandles['bend'] = {
+        ...bend,
+        point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
+      }
     }
+
     return {
       point: Vec.toFixed([bounds.minX, bounds.minY]),
       handles: nextHandles,
