@@ -97,15 +97,13 @@ export function flipShapes(app: TldrawApp, ids: string[], type: FlipType): Tldra
             true
           )
 
-          const res = TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
+          return TLDR.getShapeUtil(shape).transform(shape, newShapeBounds, {
             type: TLBoundsCorner.TopLeft,
             scaleX: 1,
             scaleY: -1,
             initialShape: shape,
             transformOrigin: [0.5, 0.5],
           })
-
-          return res
         }
       }
     },
