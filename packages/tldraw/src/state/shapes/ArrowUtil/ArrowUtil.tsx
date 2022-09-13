@@ -153,6 +153,8 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
       const Component = isStraightLine ? StraightArrow : CurvedArrow
 
+      const arcPoints = getArcPoints(start.point, bend.point, end.point)
+
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -206,6 +208,9 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                 isDarkMode={meta.isDarkMode}
               />
             </g>
+            {arcPoints.map((point, i) => (
+              <circle key={i} cx={point[0]} cy={point[1]} fill="red" r={4} />
+            ))}
           </SVGContainer>
         </FullWrapper>
       )
@@ -376,7 +381,10 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
     const initialShapeBounds = this.getBounds(initialShape)
     const handles: (keyof T['handles'])[] = ['start', 'end']
     const nextHandles = { ...initialShape.handles }
+
     handles.forEach((handle) => {
+      if (handle === 'bend') return
+
       const [x, y] = nextHandles[handle].point
       const nw = x / initialShapeBounds.width
       const nh = y / initialShapeBounds.height
@@ -388,23 +396,22 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
         ],
       }
     })
-    const { start, bend, end } = nextHandles
-    const dist = Vec.dist(start.point, end.point)
-    const midPoint = Vec.med(start.point, end.point)
 
-    const bendDist = (dist / 2) * initialShape.bend
-    const u = Vec.uni(Vec.vec(start.point, end.point))
-    const point = Vec.add(midPoint, Vec.mul(Vec.per(u), bendDist))
-    if (scaleX > 0 && scaleY < 0) {
-      nextHandles['bend'] = {
-        ...bend,
-        point: Vec.toFixed(Math.abs(bendDist) < 10 ? midPoint : point),
-      }
-    }
+    // If we've flipped one of the dimensions (but not both) then invert shape.bend
+
+    const nextBend =
+      (scaleX > 0 && scaleY < 0) || (scaleX < 0 && scaleY > 0)
+        ? -initialShape.bend
+        : initialShape.bend
+
+    // Find the position of the bend handle based on the new start / end handles and the new bend
+    const bendPoint = getBendPoint(nextHandles, nextBend)
+    nextHandles.bend.point = bendPoint
 
     return {
       point: Vec.toFixed([bounds.minX, bounds.minY]),
       handles: nextHandles,
+      bend: nextBend, // does this change?
     }
   }
 
