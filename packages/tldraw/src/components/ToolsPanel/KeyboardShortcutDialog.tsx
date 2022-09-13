@@ -6,6 +6,7 @@ import { IconButton } from '~components/Primitives/IconButton'
 import { Kbd } from '~components/Primitives/Kbd'
 import { RowButton } from '~components/Primitives/RowButton'
 import { breakpoints } from '~components/breakpoints'
+import { useContainer } from '~hooks'
 import { styled } from '~styles'
 
 export function KeyboardShortcutDialog({
@@ -14,6 +15,7 @@ export function KeyboardShortcutDialog({
   onOpenChange?: (open: boolean) => void
 }) {
   const intl = useIntl()
+  const container = useContainer()
 
   const shortcuts = {
     Tools: [
@@ -89,7 +91,7 @@ export function KeyboardShortcutDialog({
           <FormattedMessage id="keyboard.shortcuts" />
         </RowButton>
       </Dialog.Trigger>
-      <Dialog.Portal>
+      <Dialog.Portal container={container.current}>
         <DialogOverlay />
         <DialogContent>
           <DialogTitle>
