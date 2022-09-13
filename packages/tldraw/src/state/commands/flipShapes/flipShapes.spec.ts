@@ -137,7 +137,40 @@ describe('Flip command', () => {
     })
     app.select('arrow1')
     app.flipHorizontal()
-    expect(app.getShape<ArrowShape>('arrow1').point).toStrictEqual([1878.1, 677.02])
-    expect(app.getShape<ArrowShape>('arrow1').handles.bend.point).toStrictEqual([185, -0])
+    expect(app.getShape<ArrowShape>('arrow1').point).toStrictEqual([1864, 677.19])
+    expect(app.getShape<ArrowShape>('arrow1').handles.bend.point).toStrictEqual([214.87, 219.06])
+  })
+  it('flip arrow vertically', () => {
+    app.createShapes({
+      id: 'arrow1',
+      type: TDShapeType.Arrow,
+      bend: -0.5464405676717543,
+      handles: {
+        start: {
+          bindingId: undefined,
+          canBind: true,
+          id: 'start',
+          index: 0,
+          point: [-13, 107],
+        },
+        end: {
+          bindingId: undefined,
+          canBind: true,
+          id: 'end',
+          index: 1,
+          point: [388, 112],
+        },
+        bend: {
+          id: 'bend',
+          index: 2,
+          point: [185, -0],
+        },
+      },
+      point: [1877, 677],
+    })
+    app.select('arrow1')
+    app.flipVertical()
+    expect(app.getShape<ArrowShape>('arrow1').point).toStrictEqual([1864, 677.19])
+    expect(app.getShape<ArrowShape>('arrow1').handles.bend.point).toStrictEqual([186.13, -107.25])
   })
 })
