@@ -10,6 +10,7 @@ import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
 import { useFileSystemHandlers } from '~hooks'
 import { TDExportType, TDSnapshot } from '~types'
+import { ExportMenu } from '../ExportMenu'
 import { PreferencesMenu } from '../PreferencesMenu'
 
 interface MenuProps {
@@ -59,28 +60,8 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
     app.copyImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
   }, [app])
 
-  const handleExportPNG = React.useCallback(async () => {
-    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1 })
-  }, [app])
-
-  const handleExportJPG = React.useCallback(async () => {
-    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1 })
-  }, [app])
-
-  const handleExportWEBP = React.useCallback(async () => {
-    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1 })
-  }, [app])
-
-  const handleExportSVG = React.useCallback(async () => {
-    app.exportImage(TDExportType.SVG, { scale: 2, quality: 1 })
-  }, [app])
-
   const handleCopyJSON = React.useCallback(async () => {
     app.copyJson()
-  }, [app])
-
-  const handleExportJSON = React.useCallback(async () => {
-    app.exportJson()
   }, [app])
 
   const handleCut = React.useCallback(() => {
@@ -233,28 +214,6 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
                 JSON
               </DMItem>
             </DMSubMenu>
-            <DMSubMenu
-              label={`${intl.formatMessage({ id: 'export.as' })}...`}
-              size="small"
-              id="TD-MenuItem-Export"
-            >
-              <DMItem onClick={handleExportSVG} id="TD-MenuItem-Export-SVG">
-                SVG
-              </DMItem>
-              <DMItem onClick={handleExportPNG} id="TD-MenuItem-Export-PNG">
-                PNG
-              </DMItem>
-              <DMItem onClick={handleExportJPG} id="TD-MenuItem-Export-JPG">
-                JPG
-              </DMItem>
-              <DMItem onClick={handleExportWEBP} id="TD-MenuItem-Export-WEBP">
-                WEBP
-              </DMItem>
-              <DMItem onClick={handleExportJSON} id="TD-MenuItem-Export-JSON">
-                JSON
-              </DMItem>
-            </DMSubMenu>
-
             <Divider />
             <DMItem
               onSelect={preventEvent}
@@ -282,6 +241,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
               <FormattedMessage id="delete" />
             </DMItem>
           </DMSubMenu>
+          <ExportMenu />
           <DMSubMenu label={intl.formatMessage({ id: 'menu.view' })} id="TD-MenuItem-Edit">
             <DMItem
               onSelect={preventEvent}
