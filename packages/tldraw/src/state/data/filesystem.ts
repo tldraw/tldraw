@@ -38,7 +38,8 @@ export async function saveToFileSystem(
   }
 
   // Serialize to JSON
-  const json = JSON.stringify(file, null, 2)
+  const json =
+    process.env.NODE_ENV === 'production' ? JSON.stringify(file) : JSON.stringify(file, null, 2)
 
   // Create blob
   const blob = new Blob([json], {
