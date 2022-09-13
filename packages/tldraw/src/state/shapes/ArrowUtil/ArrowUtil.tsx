@@ -153,8 +153,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
 
       const Component = isStraightLine ? StraightArrow : CurvedArrow
 
-      const arcPoints = getArcPoints(start.point, bend.point, end.point)
-
       return (
         <FullWrapper ref={ref} {...events}>
           <TextLabel
@@ -208,9 +206,6 @@ export class ArrowUtil extends TDShapeUtil<T, E> {
                 isDarkMode={meta.isDarkMode}
               />
             </g>
-            {arcPoints.map((point, i) => (
-              <circle key={i} cx={point[0]} cy={point[1]} fill="red" r={4} />
-            ))}
           </SVGContainer>
         </FullWrapper>
       )
