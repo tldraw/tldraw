@@ -1,30 +1,41 @@
-import * as Dialog from '@radix-ui/react-alert-dialog'
+import * as Dialog from '@radix-ui/react-dialog'
+import { Cross2Icon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
+import { IconButton } from '~components/Primitives/IconButton'
+import { DialogContent } from '~components/ToolsPanel/KeyboardShortcutDialog'
 import { useContainer, useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { StyledDialogContent, StyledDialogOverlay } from '../PageOptionsDialog'
+import { TDExportType } from '~types'
 
-const exportTypes = ['svg', 'png', 'jpg', 'wepb']
+const exportTypes = [TDExportType.JPG, TDExportType.PNG, TDExportType.SVG, TDExportType.WEBP]
 
 export function ExportPagesDialog() {
   const app = useTldrawApp()
   const [selectedPages, setSelectedPages] = React.useState<string[]>([
     ...Object.keys(app.document.pages),
   ])
+  const [exportType, setExportType] = React.useState<string>(TDExportType.PNG)
   const container = useContainer()
 
   const handleSelectPage = React.useCallback(
     (id: string) => {
       if (selectedPages.includes(id)) {
-        setSelectedPages((prev) => prev.filter((prevId) => prevId !== id))
+        setSelectedPages(selectedPages.filter((prevId) => prevId !== id))
+      } else {
+        setSelectedPages([...selectedPages, id])
       }
-      setSelectedPages([...selectedPages, id])
     },
-    [selectedPages]
+    [selectedPages, setSelectedPages]
   )
 
-  const isSelected = (id: string) => selectedPages.includes(id)
+  const isSelected = React.useCallback((id: string) => selectedPages.includes(id), [selectedPages])
+
+  const handleExportPages = React.useCallback(async () => {
+    for (const page of selectedPages) {
+      await app.exportImage(exportType as any, { scale: 2, quality: 1, pageId: page })
+    }
+  }, [exportType, selectedPages])
 
   return (
     <Dialog.Root>
@@ -32,28 +43,46 @@ export function ExportPagesDialog() {
         <TriggerLabel>All pages</TriggerLabel>
       </Dialog.Trigger>
       <Dialog.Portal container={container.current}>
-        <StyledDialogOverlay />
-        <StyledDialogContent css={{ padding: 12 }} dir="ltr">
-          <Title>Export</Title>
+        <DialogOverlay />
+        <StyledContent css={{ padding: 12 }} dir="ltr">
+          <DialogTitle>
+            <FormattedMessage id="export" />
+            <Dialog.Close asChild>
+              <DialogIconButton>
+                <Cross2Icon />
+              </DialogIconButton>
+            </Dialog.Close>
+          </DialogTitle>
           <PageList>
             {Object.keys(app.document.pages).map((page) => (
               <ListItem key={page}>
-                <input type="checkbox" checked={isSelected(page)} />
+                <input
+                  type="checkbox"
+                  checked={isSelected(page)}
+                  onChange={() => handleSelectPage(page)}
+                />
                 <Label>{app.document.pages[page].name}</Label>
               </ListItem>
             ))}
           </PageList>
-          <ExportButton>
-            <FormattedMessage id="export" />
-            <Select>
+          <StyledFooter>
+            <Select
+              onChange={(e) => {
+                setExportType(e.target.value as TDExportType)
+              }}
+              defaultValue={exportType}
+            >
               {exportTypes.map((type) => (
                 <option key={type} value={type}>
                   {type}
                 </option>
               ))}
             </Select>
-          </ExportButton>
-        </StyledDialogContent>
+            <ExportButton disabled={selectedPages.length === 0} onClick={handleExportPages}>
+              <FormattedMessage id="export" />
+            </ExportButton>
+          </StyledFooter>
+        </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
   )
@@ -89,11 +118,15 @@ const Label = styled('h4', {
   fontFamily: '$body',
   margin: 2,
 })
-
-const Title = styled('h2', {
-  fontSize: '$2',
-  fontFamily: '$ui',
+const DialogTitle = styled(Dialog.Title, {
+  fontFamily: '$body',
+  fontSize: '$3',
   color: '$text',
+  paddingBottom: 12,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  margin: 0,
 })
 
 const Select = styled('select', {
@@ -102,6 +135,13 @@ const Select = styled('select', {
   fontSize: '$1',
   fontFamily: '$ui',
   border: 'none',
+})
+
+const StyledFooter = styled('div', {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 8,
 })
 
 const ExportButton = styled('button', {
@@ -118,4 +158,29 @@ const ExportButton = styled('button', {
   height: 40,
   borderRadius: 6,
   width: '100%',
+  cursor: 'pointer',
+})
+
+const DialogIconButton = styled(IconButton, {
+  fontFamily: 'inherit',
+  borderRadius: '100%',
+  height: 25,
+  width: 25,
+  display: 'inline-flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: '$text',
+  cursor: 'pointer',
+  '&:hover': { backgroundColor: '$hover' },
+})
+
+const DialogOverlay = styled(Dialog.Overlay, {
+  backgroundColor: '$overlay',
+  position: 'fixed',
+  inset: 0,
+  zIndex: 9998,
+})
+
+const StyledContent = styled(DialogContent, {
+  minWidth: '300px',
 })

@@ -1,6 +1,5 @@
 import * as Dialog from '@radix-ui/react-dialog'
 import { Cross2Icon } from '@radix-ui/react-icons'
-import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { IconButton } from '~components/Primitives/IconButton'
 import { Kbd } from '~components/Primitives/Kbd'
@@ -161,7 +160,7 @@ const StyledItem = styled('li', {
   padding: '0 0',
 })
 
-const DialogContent = styled(Dialog.Content, {
+export const DialogContent = styled(Dialog.Content, {
   borderRadius: 6,
   boxShadow: 'hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px',
   position: 'fixed',
