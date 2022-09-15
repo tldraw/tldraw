@@ -11,6 +11,7 @@ import { useTldrawApp } from '~hooks'
 import { useFileSystemHandlers } from '~hooks'
 import { TDExportType, TDSnapshot } from '~types'
 import { ExportMenu } from '../ExportMenu'
+import { ExportPagesDialog } from '../ExportMenu/ExportPagesDialog'
 import { PreferencesMenu } from '../PreferencesMenu'
 
 interface MenuProps {
@@ -241,7 +242,6 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
               <FormattedMessage id="delete" />
             </DMItem>
           </DMSubMenu>
-          <ExportMenu />
           <DMSubMenu label={intl.formatMessage({ id: 'menu.view' })} id="TD-MenuItem-Edit">
             <DMItem
               onSelect={preventEvent}
@@ -286,6 +286,7 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
           </DMSubMenu>
           <Divider />
           <PreferencesMenu />
+          <ExportPagesDialog />
         </DMContent>
       </DropdownMenu.Root>
       <FilenameDialog isOpen={openDialog} onClose={() => setOpenDialog(false)} />

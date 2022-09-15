@@ -1,12 +1,13 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { Cross2Icon } from '@radix-ui/react-icons'
+import { ChevronDownIcon, Cross2Icon } from '@radix-ui/react-icons'
+import * as Popover from '@radix-ui/react-popover'
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
 import { IconButton } from '~components/Primitives/IconButton'
 import { DialogContent } from '~components/ToolsPanel/KeyboardShortcutDialog'
 import { useContainer, useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { TDExportType } from '~types'
+import { TDExportBackground, TDExportType } from '~types'
 
 const exportTypes = [TDExportType.JPG, TDExportType.PNG, TDExportType.SVG, TDExportType.WEBP]
 
@@ -15,6 +16,7 @@ export function ExportPagesDialog() {
   const [selectedPages, setSelectedPages] = React.useState<string[]>([
     ...Object.keys(app.document.pages),
   ])
+  const [exportMultiple, setExportMultiple] = React.useState(false)
   const [exportType, setExportType] = React.useState<string>(TDExportType.PNG)
   const container = useContainer()
 
@@ -32,15 +34,30 @@ export function ExportPagesDialog() {
   const isSelected = React.useCallback((id: string) => selectedPages.includes(id), [selectedPages])
 
   const handleExportPages = React.useCallback(async () => {
-    for (const page of selectedPages) {
-      await app.exportImage(exportType as any, { scale: 2, quality: 1, pageId: page })
+    if (exportMultiple) {
+      for (const page of selectedPages) {
+        app.changePage(page)
+        await app.exportImage(exportType as any, {
+          scale: 2,
+          quality: 1,
+          pageId: page,
+          ids: Object.keys(app.document.pages[page].shapes),
+        })
+      }
+    } else {
+      app.exportImage(exportType as any, { scale: 2, quality: 1 })
     }
-  }, [exportType, selectedPages])
+  }, [exportType, selectedPages, exportMultiple])
+
+  const handleSelectMultiple = React.useCallback(
+    () => setExportMultiple(!exportMultiple),
+    [exportMultiple]
+  )
 
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild data-shy="true">
-        <TriggerLabel>All pages</TriggerLabel>
+        <TriggerLabel>Export</TriggerLabel>
       </Dialog.Trigger>
       <Dialog.Portal container={container.current}>
         <DialogOverlay />
@@ -53,19 +70,8 @@ export function ExportPagesDialog() {
               </DialogIconButton>
             </Dialog.Close>
           </DialogTitle>
-          <PageList>
-            {Object.keys(app.document.pages).map((page) => (
-              <ListItem key={page}>
-                <input
-                  type="checkbox"
-                  checked={isSelected(page)}
-                  onChange={() => handleSelectPage(page)}
-                />
-                <Label>{app.document.pages[page].name}</Label>
-              </ListItem>
-            ))}
-          </PageList>
-          <StyledFooter>
+          <Flex>
+            <Label>Format</Label>
             <Select
               onChange={(e) => {
                 setExportType(e.target.value as TDExportType)
@@ -78,15 +84,100 @@ export function ExportPagesDialog() {
                 </option>
               ))}
             </Select>
-            <ExportButton disabled={selectedPages.length === 0} onClick={handleExportPages}>
-              <FormattedMessage id="export" />
-            </ExportButton>
-          </StyledFooter>
+          </Flex>
+          <Flex>
+            <Label>Background</Label>
+            <Select>
+              {Object.values(TDExportBackground).map((exportBackground) => (
+                <option key={exportBackground} value={exportBackground}>
+                  {exportBackground}
+                </option>
+              ))}
+            </Select>
+          </Flex>
+          <CheckWrapper>
+            <input type="checkbox" checked={exportMultiple} onChange={handleSelectMultiple} />
+            <Label>Export multiple page</Label>
+          </CheckWrapper>
+          {exportMultiple ? (
+            <Popover.Root>
+              <Popover.Trigger asChild>
+                <Trigger>
+                  Select pages ({selectedPages.length} of {Object.keys(app.document.pages).length}{' '}
+                  selected)
+                  <ChevronDownIcon />
+                </Trigger>
+              </Popover.Trigger>
+              <Popover.Anchor />
+              <Popover.Portal>
+                <Content sideOffset={5}>
+                  <PageList>
+                    {Object.keys(app.document.pages).map((page) => (
+                      <ListItem key={page}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected(page)}
+                          onChange={() => handleSelectPage(page)}
+                        />
+                        <Label>{app.document.pages[page].name}</Label>
+                      </ListItem>
+                    ))}
+                  </PageList>
+                </Content>
+              </Popover.Portal>
+            </Popover.Root>
+          ) : null}
+
+          <ExportButton disabled={selectedPages.length === 0} onClick={handleExportPages}>
+            <FormattedMessage id="export" />
+          </ExportButton>
         </StyledContent>
       </Dialog.Portal>
     </Dialog.Root>
   )
 }
+
+const Trigger = styled('div', {
+  backgroundColor: '$panel',
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '12px 4px',
+  marginBottom: 8,
+  cursor: 'pointer',
+  color: '$text',
+  fontSize: '$2',
+  border: '1px solid $hover',
+  fontFamily: '$ui',
+  borderRadius: 4,
+})
+
+const Content = styled(Popover.Content, {
+  borderRadius: 4,
+  width: 240,
+  height: 'auto',
+  backgroundColor: '$panel',
+  padding: 6,
+  marginTop: '-10px',
+  marginLeft: '-6px',
+})
+
+const CheckWrapper = styled('div', {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '12px 0px',
+})
+
+const Flex = styled('div', {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  padding: '12px 0px',
+})
 
 const TriggerLabel = styled('h3', {
   fontSize: '$1',
@@ -99,10 +190,12 @@ const TriggerLabel = styled('h3', {
 const PageList = styled('ul', {
   display: 'flex',
   flexDirection: 'column',
-  gap: 6,
+  gap: 10,
   listStyleType: 'none',
   marginTop: 20,
   padding: 0,
+  maxHeight: '400px',
+  overflowY: 'auto',
 })
 
 const ListItem = styled('li', {
@@ -135,13 +228,6 @@ const Select = styled('select', {
   fontSize: '$1',
   fontFamily: '$ui',
   border: 'none',
-})
-
-const StyledFooter = styled('div', {
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: 8,
 })
 
 const ExportButton = styled('button', {
