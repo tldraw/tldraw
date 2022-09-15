@@ -87,7 +87,12 @@ export function ExportPagesDialog() {
           </Flex>
           <Flex>
             <Label>Background</Label>
-            <Select>
+            <Select
+              onChange={(event) => {
+                const background = event.target.value
+                app.setSetting('exportBackground', background as TDExportBackground)
+              }}
+            >
               {Object.values(TDExportBackground).map((exportBackground) => (
                 <option key={exportBackground} value={exportBackground}>
                   {exportBackground}
