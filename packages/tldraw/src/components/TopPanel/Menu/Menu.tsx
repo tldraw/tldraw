@@ -10,7 +10,6 @@ import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
 import { useFileSystemHandlers } from '~hooks'
 import { TDExportType, TDSnapshot } from '~types'
-import { ExportMenu } from '../ExportMenu'
 import { ExportPagesDialog } from '../ExportMenu/ExportPagesDialog'
 import { PreferencesMenu } from '../PreferencesMenu'
 

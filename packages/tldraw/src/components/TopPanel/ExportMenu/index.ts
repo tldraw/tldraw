@@ -1,1 +1,1 @@
-export * from './ExportMenu'
+export * from './ExportPagesDialog'
