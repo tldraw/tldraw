@@ -2,10 +2,12 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import { supported } from 'browser-fs-access'
 import * as React from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { FilenameDialog } from '~components/Primitives/AlertDialog'
 import { Divider } from '~components/Primitives/Divider'
 import { DMContent, DMItem, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
+import { RowButton } from '~components/Primitives/RowButton'
 import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
 import { useFileSystemHandlers } from '~hooks'
@@ -26,9 +28,14 @@ const disableAssetsSelector = (s: TDSnapshot) => {
 }
 
 export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
+  const [openExport, setOpenExportDialog] = React.useState(false)
   const app = useTldrawApp()
   const intl = useIntl()
   const [openDialog, setOpenDialog] = React.useState(false)
+
+  useHotkeys('⌘+shift+e', () => {
+    setOpenExportDialog(true)
+  })
 
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
 
@@ -39,6 +46,8 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   React.useEffect(() => setForce(1), [])
 
   const { onNewProject, onOpenProject, onSaveProject, onSaveProjectAs } = useFileSystemHandlers()
+
+  const handleOpen = React.useCallback(() => setOpenExportDialog((prev) => !prev), [])
 
   const handleSaveProjectAs = React.useCallback(() => {
     if (!supported) {
@@ -285,10 +294,13 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
           </DMSubMenu>
           <Divider />
           <PreferencesMenu />
-          <ExportPagesDialog />
+          <RowButton id="TD-Export" variant="wide" onClick={handleOpen}>
+            <FormattedMessage id="export" />
+          </RowButton>
         </DMContent>
       </DropdownMenu.Root>
       <FilenameDialog isOpen={openDialog} onClose={() => setOpenDialog(false)} />
+      <ExportPagesDialog isOpen={openExport} onClose={handleOpen} />
     </>
   )
 })

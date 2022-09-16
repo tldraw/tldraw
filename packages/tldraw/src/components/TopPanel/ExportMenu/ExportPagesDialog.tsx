@@ -13,7 +13,12 @@ const exportTypes = [TDExportType.JPG, TDExportType.PNG, TDExportType.SVG, TDExp
 
 const settingsSelector = (s: TDSnapshot) => s.settings
 
-export function ExportPagesDialog() {
+interface DialogProps {
+  isOpen?: boolean
+  onClose: () => void
+}
+
+export function ExportPagesDialog({ isOpen, onClose }: DialogProps) {
   const app = useTldrawApp()
   const settings = app.useStore(settingsSelector)
   const container = useContainer()
@@ -60,16 +65,13 @@ export function ExportPagesDialog() {
 
   return (
     <div>
-      <Dialog.Root>
-        <Dialog.Trigger asChild data-shy="true">
-          <TriggerLabel>Export</TriggerLabel>
-        </Dialog.Trigger>
+      <Dialog.Root open={isOpen}>
         <Dialog.Portal container={container.current}>
           <DialogOverlay />
           <StyledContent css={{ padding: 12 }} dir="ltr">
             <DialogTitle>
               <FormattedMessage id="export" />
-              <Dialog.Close asChild>
+              <Dialog.Close onClick={onClose} asChild>
                 <DialogIconButton>
                   <Cross2Icon />
                 </DialogIconButton>
