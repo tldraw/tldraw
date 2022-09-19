@@ -1335,28 +1335,34 @@ left past the initial left edge) then swap points on that axis.
 
   /**
    * Turn an array of points into a path of quadradic curves.
-   * @param points - the points returned from perfect-freehand
+   *
+   * @param points The points returned from perfect-freehand
+   * @param closed Whether the stroke is closed
    */
-  static getSvgPathFromStroke(points: number[][]): string {
+  static getSvgPathFromStroke(points: number[][], closed = true): string {
     const len = points.length
 
-    if (!len) {
-      return ''
+    if (len < 4) {
+      return ``
     }
 
-    const first = points[0]
-    let result = `M${first[0].toFixed(3)},${first[1].toFixed(3)}Q`
+    let a = points[0]
+    let b = points[1]
+    const c = points[2]
 
-    for (let i = 0, max = len - 1; i < max; i++) {
-      const a = points[i]
-      const b = points[i + 1]
-      result += `${a[0].toFixed(3)},${a[1].toFixed(3)} ${average(a[0], b[0]).toFixed(3)},${average(
-        a[1],
-        b[1]
-      ).toFixed(3)} `
+    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(2)},${b[1].toFixed(
+      2
+    )} ${average(b[0], c[0]).toFixed(2)},${average(b[1], c[1]).toFixed(2)} T`
+
+    for (let i = 2, max = len - 1; i < max; i++) {
+      a = points[i]
+      b = points[i + 1]
+      result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(2)} `
     }
 
-    result += 'Z'
+    if (closed) {
+      result += 'Z'
+    }
 
     return result
   }
@@ -1365,23 +1371,29 @@ left past the initial left edge) then swap points on that axis.
    * Turn an array of stroke points into a path of quadradic curves.
    * @param points - the stroke points returned from perfect-freehand
    */
-  static getSvgPathFromStrokePoints(points: StrokePoint[]): string {
+  static getSvgPathFromStrokePoints(points: StrokePoint[], closed = false): string {
     const len = points.length
 
-    if (!len) {
-      return ''
+    if (len < 4) {
+      return ``
     }
 
-    const first = points[0].point
-    let result = `M${first[0].toFixed(3)},${first[1].toFixed(3)}Q`
+    let a = points[0].point
+    let b = points[1].point
+    const c = points[2].point
 
-    for (let i = 0, max = len - 1; i < max; i++) {
-      const a = points[i].point
-      const b = points[i + 1].point
-      result += `${a[0].toFixed(3)},${a[1].toFixed(3)} ${average(a[0], b[0]).toFixed(3)},${average(
-        a[1],
-        b[1]
-      ).toFixed(3)} `
+    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(2)},${b[1].toFixed(
+      2
+    )} ${average(b[0], c[0]).toFixed(2)},${average(b[1], c[1]).toFixed(2)} T`
+
+    for (let i = 2, max = len - 1; i < max; i++) {
+      a = points[i].point
+      b = points[i + 1].point
+      result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(2)} `
+    }
+
+    if (closed) {
+      result += 'Z'
     }
 
     return result
