@@ -76,6 +76,7 @@ export interface TLShape {
   isGhost?: boolean
   isHidden?: boolean
   isLocked?: boolean
+  isCopied?: boolean
   isGenerated?: boolean
   isAspectRatioLocked?: boolean
 }

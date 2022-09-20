@@ -22,7 +22,7 @@ const onHoverShape: TLPointerEventHandler = (info, e) => {
   machine.send('HOVERED_SHAPE', info)
 }
 
-const onZoom: TLPointerEventHandler = (info, _e) => {
+const onZoom: TLWheelEventHandler = (info, _e) => {
   if (info.delta[2] > 0) {
     machine.send('ZOOMED_OUT', info)
   } else if (info.delta[2] < 0) {
