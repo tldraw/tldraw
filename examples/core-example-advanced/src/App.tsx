@@ -22,6 +22,14 @@ const onHoverShape: TLPointerEventHandler = (info, e) => {
   machine.send('HOVERED_SHAPE', info)
 }
 
+const onZoom: TLPointerEventHandler = (info, _e) => {
+  if (info.delta[2] > 0) {
+    machine.send('ZOOMED_OUT', info)
+  } else if (info.delta[2] < 0) {
+    machine.send('ZOOMED_IN', info)
+  }
+}
+
 const onUnhoverShape: TLPointerEventHandler = (info, e) => {
   machine.send('UNHOVERED_SHAPE', info)
 }
@@ -121,9 +129,22 @@ const onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
       }
       break
     }
-    case 's':
-    case 'v': {
+    case 's': {
       machine.send('SELECTED_TOOL', { name: 'select' })
+      break
+    }
+    case 'c': {
+      if (info.metaKey || info.ctrlKey) {
+        machine.send('COPY')
+      }
+      break
+    }
+    case 'v': {
+      if (info.metaKey || info.ctrlKey) {
+        machine.send('PASTE')
+      } else {
+        machine.send('SELECTED_TOOL', { name: 'select' })
+      }
       break
     }
     case 'r':
@@ -210,6 +231,7 @@ export default function App({ onMount }: AppProps) {
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onHoverShape={onHoverShape}
+        onZoom={onZoom}
         onUnhoverShape={onUnhoverShape}
         onPointBoundsHandle={onPointBoundsHandle}
         onPointHandle={onPointHandle}

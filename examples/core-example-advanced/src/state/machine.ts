@@ -49,6 +49,8 @@ export const machine = createState({
             DELETED: ['deleteSelectedShapes', 'updateBoundShapes', 'addToHistory'],
             UNDO: 'undo',
             REDO: 'redo',
+            COPY: 'copy',
+            PASTE: 'paste',
             HOVERED_SHAPE: 'setHoveredShape',
             UNHOVERED_SHAPE: 'clearHoveredShape',
             POINTED_CANVAS: [
