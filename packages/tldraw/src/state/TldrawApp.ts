@@ -383,6 +383,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           Object.keys(page.bindings).forEach((id) => {
             if (!page.bindings[id]) {
               delete page.bindings[id]
+              // Delete the bindingId in arrow handles
+              Object.values(page.shapes).forEach((shape) => {
+                Object.values(shape.handles ?? {}).map((handle) => {
+                  if (handle.bindingId === id) {
+                    shape.handles![handle.id as keyof ArrowShape['handles']].bindingId = undefined
+                  }
+                })
+              })
             }
           })
 
@@ -410,7 +418,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             if (visitedShapes.has(fromShape)) {
               return
             }
-
             // We only need to update the binding's "from" shape (an arrow)
             const fromDelta = TLDR.updateArrowBindings(page, fromShape)
             visitedShapes.add(fromShape)
