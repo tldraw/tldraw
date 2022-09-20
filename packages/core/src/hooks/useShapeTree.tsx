@@ -10,12 +10,11 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
   branch: IShapeTreeNode<T, M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
-  pageState: TLPageState & {
-    bindingTargetId?: string | null
-  },
+  pageState: TLPageState,
   isChildOfGhost = false,
   isChildOfSelected = false,
-  meta?: M
+  meta?: M,
+  bindingTargetId?: string | null
 ) {
   // Create a node for this shape
   const node: IShapeTreeNode<T, M> = {
@@ -24,7 +23,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
     isChildOfSelected,
     isGhost: shape.isGhost || isChildOfGhost,
     isEditing: pageState.editingId === shape.id,
-    isBinding: pageState.bindingTargetId === shape.id,
+    isBinding: bindingTargetId === shape.id,
     isSelected: pageState.selectedIds.includes(shape.id),
     isHovered:
       // The shape is hovered..
@@ -153,10 +152,11 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       shape,
       tree,
       page.shapes,
-      { ...pageState, bindingTargetId },
+      pageState,
       shape.isGhost,
       false,
-      meta
+      meta,
+      bindingTargetId
     )
   )
 

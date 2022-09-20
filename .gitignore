@@ -4,6 +4,7 @@ lib/
 dist/
 docs/
 .idea/*
+.yarn
 
 .DS_Store
 coverage
