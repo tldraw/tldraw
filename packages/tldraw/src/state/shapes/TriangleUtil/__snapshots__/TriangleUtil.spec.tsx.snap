@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Triangle shape Creates a shape: triangle 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "triangle",
+  "label": "",
+  "labelPoint": Array [
+    0.5,
+    0.5,
+  ],
+  "name": "Triangle",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "rotation": 0,
+  "size": Array [
+    1,
+    1,
+  ],
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "isFilled": false,
+    "scale": 1,
+    "size": "small",
+  },
+  "type": "triangle",
+}
+`;

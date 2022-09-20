@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { AlignType, TldrawCommand, TDShapeType } from '~types'
-import type { TDSnapshot } from '~types'
+import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import Vec from '@tldraw/vec'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import { AlignType, TDShapeType, TldrawCommand } from '~types'
 
 export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): TldrawCommand {
   const { currentPageId } = app
@@ -31,11 +29,11 @@ export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): Tld
         {
           prev: point,
           next: {
-            [AlignType.CenterVertical]: [point[0], midY - bounds.height / 2],
-            [AlignType.CenterHorizontal]: [midX - bounds.width / 2, point[1]],
             [AlignType.Top]: [point[0], commonBounds.minY],
+            [AlignType.CenterVertical]: [point[0], midY - bounds.height / 2],
             [AlignType.Bottom]: [point[0], commonBounds.maxY - bounds.height],
             [AlignType.Left]: [commonBounds.minX, point[1]],
+            [AlignType.CenterHorizontal]: [midX - bounds.width / 2, point[1]],
             [AlignType.Right]: [commonBounds.maxX - bounds.width, point[1]],
           }[type],
         },
@@ -50,7 +48,8 @@ export function alignShapes(app: TldrawApp, ids: string[], type: AlignType): Tld
       if (!deltaMap[shape.id]) return shape
       return { point: deltaMap[shape.id].next }
     },
-    currentPageId
+    currentPageId,
+    false
   )
 
   initialShapes.forEach((shape) => {

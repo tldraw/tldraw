@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
-import { DistributeType, TDShape, TldrawCommand, TDShapeType } from '~types'
-import { TLDR } from '~state/TLDR'
 import Vec from '@tldraw/vec'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { DistributeType, TDShape, TDShapeType, TldrawCommand } from '~types'
 
 export function distributeShapes(
   app: TldrawApp,
@@ -19,7 +18,7 @@ export function distributeShapes(
   const { before, after } = TLDR.mutateShapes(
     app.state,
     ids.filter((id) => deltaMap[id] !== undefined),
-    (shape) => ({ point: deltaMap[shape.id].next }),
+    (shape) => ({ point: deltaMap[shape.id]?.next }),
     currentPageId
   )
 

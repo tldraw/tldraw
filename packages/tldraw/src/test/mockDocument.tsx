@@ -1,4 +1,4 @@
-import { TDDocument, ColorStyle, DashStyle, SizeStyle, TDShapeType } from '~types'
+import { ColorStyle, DashStyle, SizeStyle, TDDocument, TDShapeType } from '~types'
 
 export const mockDocument: TDDocument = {
   version: 0,
@@ -21,6 +21,7 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          label: '',
         },
         rect2: {
           id: 'rect2',
@@ -35,6 +36,8 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          label: '',
+          labelPoint: [0.5, 0.5],
         },
         rect3: {
           id: 'rect3',
@@ -49,6 +52,8 @@ export const mockDocument: TDDocument = {
             size: SizeStyle.Medium,
             color: ColorStyle.Blue,
           },
+          label: '',
+          labelPoint: [0.5, 0.5],
         },
       },
       bindings: {},
@@ -64,4 +69,5 @@ export const mockDocument: TDDocument = {
       },
     },
   },
+  assets: {},
 }

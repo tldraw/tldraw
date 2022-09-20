@@ -1,7 +1,8 @@
-import '../styles/globals.css'
-import { init } from '-utils/sentry'
 import Head from 'next/head'
-import useGtag from '-utils/useGtag'
+import type React from 'react'
+import '~styles/globals.css'
+import { init } from '~utils/sentry'
+import useGtag from '~utils/useGtag'
 
 init()
 
@@ -10,7 +11,7 @@ const APP_DESCRIPTION = 'A tiny little drawing app.'
 const APP_URL = 'https://tldraw.com'
 const IMAGE = 'https://tldraw.com/social-image.png'
 
-function MyApp({ Component, pageProps }) {
+function MyApp({ Component, pageProps }: any) {
   useGtag()
 
   return (

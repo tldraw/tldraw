@@ -1,24 +1,28 @@
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLPageState, TLTransformInfo, Utils } from '@tldraw/core'
+import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import { BINDING_DISTANCE } from '~constants'
 import {
-  TDSnapshot,
-  ShapeStyles,
+  ArrowShape,
   ShapesWithProp,
-  TDShape,
   TDBinding,
+  TDExportType,
+  TDHandle,
   TDPage,
+  TDShape,
+  TDShapeType,
+  TDSnapshot,
   TldrawCommand,
   TldrawPatch,
-  TDShapeType,
-  ArrowShape,
 } from '~types'
-import { Vec } from '@tldraw/vec'
-import type { TDShapeUtil } from './shapes/TDShapeUtil'
+import { deepCopy } from './StateManager/copy'
 import { getShapeUtil } from './shapes'
+import type { TDShapeUtil } from './shapes/TDShapeUtil'
+import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
 
+const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(type: T['type']): TDShapeUtil<T>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(shape: T): TDShapeUtil<T>
   static getShapeUtil<T extends TDShape>(shape: T | T['type']) {
     return getShapeUtil<T>(shape)
@@ -235,46 +239,6 @@ export class TLDR {
     return Array.from(visited.values())
   }
 
-  static updateBindings(
-    data: TDSnapshot,
-    id: string,
-    beforeShapes: Record<string, Partial<TDShape>> = {},
-    afterShapes: Record<string, Partial<TDShape>> = {},
-    pageId: string
-  ): TDSnapshot {
-    const page = { ...TLDR.getPage(data, pageId) }
-    return Object.values(page.bindings)
-      .filter((binding) => binding.fromId === id || binding.toId === id)
-      .reduce((cTDSnapshot, binding) => {
-        if (!beforeShapes[binding.fromId]) {
-          beforeShapes[binding.fromId] = Utils.deepClone(
-            TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
-          )
-        }
-
-        if (!beforeShapes[binding.toId]) {
-          beforeShapes[binding.toId] = Utils.deepClone(
-            TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-          )
-        }
-
-        TLDR.onBindingChange(
-          TLDR.getShape(cTDSnapshot, binding.fromId, pageId),
-          binding,
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-        )
-
-        afterShapes[binding.fromId] = Utils.deepClone(
-          TLDR.getShape(cTDSnapshot, binding.fromId, pageId)
-        )
-        afterShapes[binding.toId] = Utils.deepClone(
-          TLDR.getShape(cTDSnapshot, binding.toId, pageId)
-        )
-
-        return cTDSnapshot
-      }, data)
-  }
-
   static getLinkedShapeIds(
     data: TDSnapshot,
     pageId: string,
@@ -419,7 +383,8 @@ export class TLDR {
     data: TDSnapshot,
     ids: string[],
     fn: (shape: T, i: number) => Partial<T> | void,
-    pageId: string
+    pageId: string,
+    forceChildrenTraversal = false
   ): {
     before: Record<string, Partial<T>>
     after: Record<string, Partial<T>>
@@ -431,7 +396,17 @@ export class TLDR {
     ids.forEach((id, i) => {
       const shape = TLDR.getShape<T>(data, id, pageId)
       if (shape.isLocked) return
-
+      if (shape?.type === 'group' && (ids.length === 1 || forceChildrenTraversal)) {
+        shape.children.forEach((id, i) => {
+          const shape = TLDR.getShape<T>(data, id, pageId)
+          if (shape.isLocked) return
+          const change = fn(shape, i)
+          if (change) {
+            beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+            afterShapes[id] = change
+          }
+        })
+      }
       const change = fn(shape, i)
       if (change) {
         beforeShapes[id] = TLDR.getBeforeShape(shape, change)
@@ -448,14 +423,11 @@ export class TLDR {
         },
       },
     })
-    const dataWithBindingChanges = ids.reduce<TDSnapshot>((cTDSnapshot, id) => {
-      return TLDR.updateBindings(cTDSnapshot, id, beforeShapes, afterShapes, pageId)
-    }, dataWithMutations)
 
     return {
       before: beforeShapes,
       after: afterShapes,
-      data: dataWithBindingChanges,
+      data: dataWithMutations,
     }
   }
 
@@ -627,17 +599,231 @@ export class TLDR {
     return { ...shape, ...delta }
   }
 
-  static onBindingChange<T extends TDShape>(shape: T, binding: TDBinding, otherShape: TDShape) {
-    const delta = TLDR.getShapeUtil(shape).onBindingChange?.(
-      shape,
-      binding,
-      otherShape,
-      TLDR.getShapeUtil(otherShape).getBounds(otherShape),
-      TLDR.getShapeUtil(otherShape).getCenter(otherShape)
+  static updateArrowBindings(page: TDPage, arrowShape: ArrowShape) {
+    const result = {
+      start: deepCopy(arrowShape.handles.start),
+      end: deepCopy(arrowShape.handles.end),
+    }
+    type HandleInfo = {
+      handle: TDHandle
+      point: number[] // in page space
+    } & (
+      | {
+          isBound: false
+        }
+      | {
+          isBound: true
+          hasDecoration: boolean
+          binding: TDBinding
+          util: TDShapeUtil<TDShape, any>
+          target: TDShape
+          bounds: TLBounds
+          expandedBounds: TLBounds
+          intersectBounds: TLBounds
+          center: number[]
+        }
     )
-    if (!delta) return shape
+    let start: HandleInfo = {
+      isBound: false,
+      handle: arrowShape.handles.start,
+      point: Vec.add(arrowShape.handles.start.point, arrowShape.point),
+    }
+    let end: HandleInfo = {
+      isBound: false,
+      handle: arrowShape.handles.end,
+      point: Vec.add(arrowShape.handles.end.point, arrowShape.point),
+    }
+    if (arrowShape.handles.start.bindingId) {
+      const hasDecoration = arrowShape.decorations?.start !== undefined
+      const handle = arrowShape.handles.start
+      const binding = page.bindings[arrowShape.handles.start.bindingId]
+      if (!binding) throw Error("Could not find a binding to match the start handle's bindingId")
+      const target = page.shapes[binding.toId]
+      const util = TLDR.getShapeUtil(target)
+      const bounds = util.getBounds(target)
+      const expandedBounds = util.getExpandedBounds(target)
+      const intersectBounds = hasDecoration ? Utils.expandBounds(bounds, binding.distance) : bounds
+      const { minX, minY, width, height } = expandedBounds
+      const anchorPoint = Vec.add(
+        [minX, minY],
+        Vec.mulV([width, height], Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0))
+      )
+      start = {
+        isBound: true,
+        hasDecoration,
+        binding,
+        handle,
+        point: anchorPoint,
+        util,
+        target,
+        bounds,
+        expandedBounds,
+        intersectBounds,
+        center: util.getCenter(target),
+      }
+    }
+    if (arrowShape.handles.end.bindingId) {
+      const hasDecoration = arrowShape.decorations?.end !== undefined
+      const handle = arrowShape.handles.end
+      const binding = page.bindings[arrowShape.handles.end.bindingId]
+      if (!binding) throw Error("Could not find a binding to match the end handle's bindingId")
+      const target = page.shapes[binding.toId]
+      const util = TLDR.getShapeUtil(target)
+      const bounds = util.getBounds(target)
+      const expandedBounds = util.getExpandedBounds(target)
+      const intersectBounds = hasDecoration ? Utils.expandBounds(bounds, binding.distance) : bounds
+      const { minX, minY, width, height } = expandedBounds
+      const anchorPoint = Vec.add(
+        [minX, minY],
+        Vec.mulV([width, height], Vec.rotWith(binding.point, [0.5, 0.5], target.rotation || 0))
+      )
+      end = {
+        isBound: true,
+        hasDecoration,
+        binding,
+        handle,
+        point: anchorPoint,
+        util,
+        target,
+        bounds,
+        expandedBounds,
+        intersectBounds,
+        center: util.getCenter(target),
+      }
+    }
 
-    return { ...shape, ...delta }
+    for (const ID of ['end', 'start'] as const) {
+      const A = ID === 'start' ? start : end
+      const B = ID === 'start' ? end : start
+      if (A.isBound) {
+        if (!A.binding.distance) {
+          // If the binding distance is zero, then the arrow is bound to a specific point
+          // in the target shape. The resulting handle should be exactly at that point.
+          result[ID].point = Vec.sub(A.point, arrowShape.point)
+        } else {
+          // We'll need to figure out the handle's true point based on some intersections
+          // between the opposite handle point and this handle point. This is different
+          // for each type of shape.
+          const direction = Vec.uni(Vec.sub(A.point, B.point))
+          switch (A.target.type) {
+            case TDShapeType.Ellipse: {
+              const hits = intersectRayEllipse(
+                B.point,
+                direction,
+                A.center,
+                A.target.radius[0] + (A.hasDecoration ? A.binding.distance : 0),
+                A.target.radius[1] + (A.hasDecoration ? A.binding.distance : 0),
+                A.target.rotation || 0
+              ).points.sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (hits[0] !== undefined) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+              break
+            }
+            case TDShapeType.Triangle: {
+              const targetPoint = A.target.point
+              const points = getTrianglePoints(
+                A.target.size,
+                A.hasDecoration ? BINDING_DISTANCE : 0,
+                A.target.rotation
+              ).map((pt) => Vec.add(pt, targetPoint))
+              const hits = Utils.pointsToLineSegments(points, true)
+                .map(([p0, p1]) => intersectRayLineSegment(B.point, direction, p0, p1))
+                .filter((intersection) => intersection.didIntersect)
+                .flatMap((intersection) => intersection.points)
+                .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (hits[0] !== undefined) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+              break
+            }
+            default: {
+              const hits = intersectRayBounds(
+                B.point,
+                direction,
+                A.intersectBounds,
+                A.target.rotation
+              )
+                .filter((int) => int.didIntersect)
+                .map((int) => int.points[0])
+                .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+              if (!hits[0]) continue
+              let bHit: number[] | undefined = undefined
+              if (B.isBound) {
+                const bHits = intersectRayBounds(
+                  B.point,
+                  direction,
+                  B.intersectBounds,
+                  B.target.rotation
+                )
+                  .filter((int) => int.didIntersect)
+                  .map((int) => int.points[0])
+                  .sort((a, b) => Vec.dist(a, B.point) - Vec.dist(b, B.point))
+                bHit = bHits[0]
+              }
+              if (
+                B.isBound &&
+                (hits.length < 2 ||
+                  (bHit &&
+                    hits[0] &&
+                    Math.ceil(Vec.dist(hits[0], bHit)) < BINDING_DISTANCE * 2.5) ||
+                  Utils.boundsContain(A.expandedBounds, B.expandedBounds) ||
+                  Utils.boundsCollide(A.expandedBounds, B.expandedBounds))
+              ) {
+                // If the other handle is bound, and if we need to fallback to the short arrow method...
+                const shortArrowDirection = Vec.uni(Vec.sub(B.point, A.point))
+                const shortArrowHits = intersectRayBounds(
+                  A.point,
+                  shortArrowDirection,
+                  A.bounds,
+                  A.target.rotation
+                )
+                  .filter((int) => int.didIntersect)
+                  .map((int) => int.points[0])
+                if (!shortArrowHits[0]) continue
+                result[ID].point = Vec.toFixed(Vec.sub(shortArrowHits[0], arrowShape.point))
+                result[ID === 'start' ? 'end' : 'start'].point = Vec.toFixed(
+                  Vec.add(
+                    Vec.sub(shortArrowHits[0], arrowShape.point),
+                    Vec.mul(
+                      shortArrowDirection,
+                      Math.min(
+                        Vec.dist(shortArrowHits[0], B.point),
+                        BINDING_DISTANCE *
+                          2.5 *
+                          (Utils.boundsContain(B.bounds, A.intersectBounds) ? -1 : 1)
+                      )
+                    )
+                  )
+                )
+              } else if (
+                !B.isBound &&
+                ((hits[0] && Vec.dist(hits[0], B.point) < BINDING_DISTANCE * 2.5) ||
+                  Utils.pointInBounds(B.point, A.intersectBounds))
+              ) {
+                // Short arrow time!
+                const shortArrowDirection = Vec.uni(Vec.sub(A.center, B.point))
+                return TLDR.getShapeUtil<ArrowShape>(arrowShape).onHandleChange?.(arrowShape, {
+                  [ID]: {
+                    ...arrowShape.handles[ID],
+                    point: Vec.toFixed(
+                      Vec.add(
+                        Vec.sub(B.point, arrowShape.point),
+                        Vec.mul(shortArrowDirection, BINDING_DISTANCE * 2.5)
+                      )
+                    ),
+                  },
+                })
+              } else if (hits[0]) {
+                result[ID].point = Vec.toFixed(Vec.sub(hits[0], arrowShape.point))
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return TLDR.getShapeUtil<ArrowShape>(arrowShape).onHandleChange?.(arrowShape, result)
   }
 
   static transform<T extends TDShape>(shape: T, bounds: TLBounds, info: TLTransformInfo<T>) {
@@ -672,7 +858,7 @@ export class TLDR {
     const rotatedCenter = Vec.rotWith(center, origin, delta)
 
     // Get the top left point relative to the rotated center
-    const nextPoint = Vec.round(Vec.sub(rotatedCenter, relativeCenter))
+    const nextPoint = Vec.toFixed(Vec.sub(rotatedCenter, relativeCenter))
 
     // If the shape has handles, we need to rotate the handles instead
     // of rotating the shape. Shapes with handles should never be rotated,
@@ -685,11 +871,10 @@ export class TLDR {
           Object.entries(shape.handles).map(([handleId, handle]) => {
             // Rotate each handle's point around the shape's center
             // (in relative shape space, as the handle's point will be).
-            const point = Vec.round(Vec.rotWith(handle.point, relativeCenter, delta))
+            const point = Vec.toFixed(Vec.rotWith(handle.point, relativeCenter, delta))
             return [handleId, { ...handle, point }]
           })
-        ) as T['handles'],
-        { shiftKey: false }
+        ) as T['handles']
       )
 
       return change
@@ -810,7 +995,13 @@ export class TLDR {
 
   static copyStringToClipboard = (string: string) => {
     try {
-      navigator.clipboard.writeText(string)
+      if (navigator.clipboard) {
+        navigator.clipboard.write([
+          new ClipboardItem({
+            'text/plain': new Blob([string], { type: 'text/plain' }),
+          }),
+        ])
+      }
     } catch (e) {
       const textarea = document.createElement('textarea')
       textarea.setAttribute('position', 'fixed')
@@ -832,6 +1023,7 @@ export class TLDR {
           sel.addRange(range)
           textarea.setSelectionRange(0, textarea.value.length)
         }
+        document.execCommand('copy')
       } catch (err) {
         null // Could not copy to clipboard
       } finally {
@@ -876,7 +1068,11 @@ export class TLDR {
   static fixNewLines = /\r?\n|\r/g
 
   static normalizeText(text: string) {
-    return text.replace(TLDR.fixNewLines, '\n')
+    return text
+      .replace(TLDR.fixNewLines, '\n')
+      .split('\n')
+      .map((x) => x || ' ')
+      .join('\n')
   }
 
   /* -------------------------------------------------- */
@@ -890,5 +1086,94 @@ export class TLDR {
     if (shape[prop] === undefined) {
       throw new Error()
     }
+  }
+
+  static warn(e: any) {
+    if (isDev) {
+      console.warn(e)
+    }
+  }
+  static error(e: any) {
+    if (isDev) {
+      console.error(e)
+    }
+  }
+
+  /* -------------------------------------------------- */
+  /*                       Export                       */
+  /* -------------------------------------------------- */
+
+  static getSvgString(svg: SVGElement, scale = 1) {
+    const clone = svg.cloneNode(true) as SVGGraphicsElement
+
+    svg.setAttribute('width', +svg.getAttribute('width')! * scale + '')
+    svg.setAttribute('height', +svg.getAttribute('height')! * scale + '')
+
+    return new XMLSerializer()
+      .serializeToString(clone)
+      .replaceAll('&#10;      ', '')
+      .replaceAll(/((\s|")[0-9]*\.[0-9]{2})([0-9]*)(\b|"|\))/g, '$1')
+  }
+
+  static getSvgAsDataUrl(svg: SVGElement, scale = 1) {
+    const svgString = TLDR.getSvgString(svg, scale)
+
+    const base64SVG = window.btoa(unescape(svgString))
+
+    return `data:image/svg+xml;base64,${base64SVG}`
+  }
+
+  static async getImageForSvg(
+    svg: SVGElement,
+    type: Exclude<TDExportType, TDExportType.JSON> = TDExportType.PNG,
+    opts = {} as Partial<{
+      scale: number
+      quality: number
+    }>
+  ) {
+    const { scale = 2, quality = 1 } = opts
+
+    const svgString = TLDR.getSvgString(svg, scale)
+
+    const width = +svg.getAttribute('width')!
+    const height = +svg.getAttribute('height')!
+
+    if (!svgString) return
+
+    const canvas = await new Promise<HTMLCanvasElement>((resolve) => {
+      const image = new Image()
+
+      image.crossOrigin = 'anonymous'
+
+      const base64SVG = window.btoa(unescape(encodeURIComponent(svgString)))
+
+      const dataUrl = `data:image/svg+xml;base64,${base64SVG}`
+
+      image.onload = () => {
+        const canvas = document.createElement('canvas') as HTMLCanvasElement
+        const context = canvas.getContext('2d')!
+
+        canvas.width = width
+        canvas.height = height
+
+        context.drawImage(image, 0, 0, width, height)
+
+        URL.revokeObjectURL(dataUrl)
+
+        resolve(canvas)
+      }
+
+      image.onerror = () => {
+        console.warn('Could not convert that SVG to an image.')
+      }
+
+      image.src = dataUrl
+    })
+
+    const blob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((blob) => resolve(blob!), 'image/' + type, quality)
+    )
+
+    return blob
   }
 }

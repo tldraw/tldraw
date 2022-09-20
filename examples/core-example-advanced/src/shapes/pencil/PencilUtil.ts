@@ -1,16 +1,15 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
-  intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
 } from '@tldraw/intersect'
+import Vec from '@tldraw/vec'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'
 import { PencilComponent } from './PencilComponent'
-import { PencilIndicator } from './PenclIndicator'
 import type { PencilShape } from './PencilShape'
-import Vec from '@tldraw/vec'
+import { PencilIndicator } from './PenclIndicator'
 
 type T = PencilShape
 type E = SVGSVGElement
@@ -20,7 +19,9 @@ export class PencilUtil extends CustomShapeUtil<T, E> {
 
   Indicator = PencilIndicator
 
-  startTime = Date.now()
+  hideResizeHandles = true
+
+  hideBounds = false
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
@@ -31,8 +32,6 @@ export class PencilUtil extends CustomShapeUtil<T, E> {
   }
 
   /* ----------------- Custom Methods ----------------- */
-
-  hideBounds = true
 
   canBind = false
 

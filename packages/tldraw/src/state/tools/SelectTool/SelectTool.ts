@@ -4,16 +4,16 @@ import {
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
   TLCanvasEventHandler,
-  TLPointerEventHandler,
   TLKeyboardEventHandler,
+  TLPointerEventHandler,
   TLShapeCloneHandler,
   Utils,
 } from '@tldraw/core'
-import { SessionType, TDShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
 import Vec from '@tldraw/vec'
-import { TLDR } from '~state/TLDR'
 import { CLONING_DISTANCE, DEAD_ZONE } from '~constants'
+import { TLDR } from '~state/TLDR'
+import { BaseTool } from '~state/tools/BaseTool'
+import { SessionType, TDShapeType } from '~types'
 
 enum Status {
   Idle = 'idle',
@@ -32,7 +32,6 @@ enum Status {
   Brushing = 'brushing',
   GridCloning = 'gridCloning',
   ClonePainting = 'clonePainting',
-  SpacePanning = 'spacePanning',
 }
 
 export class SelectTool extends BaseTool<Status> {
@@ -172,52 +171,63 @@ export class SelectTool extends BaseTool<Status> {
   /* ----------------- Event Handlers ----------------- */
 
   onCancel = () => {
-    this.selectNone()
-    this.app.cancelSession()
+    if (this.app.session) {
+      this.app.cancelSession()
+    } else {
+      this.selectNone()
+    }
+
     this.setStatus(Status.Idle)
   }
 
-  onKeyDown: TLKeyboardEventHandler = (key) => {
-    if (key === 'Escape') {
-      this.onCancel()
-      return
-    }
+  onKeyDown: TLKeyboardEventHandler = (key, info, e) => {
+    switch (key) {
+      case 'Escape': {
+        this.onCancel()
+        break
+      }
+      case 'Tab': {
+        if (this.app.readOnly) return
 
-    if (key === ' ' && this.status === Status.Idle) {
-      this.setStatus(Status.SpacePanning)
-    }
+        if (
+          !this.app.pageState.editingId &&
+          this.status === Status.Idle &&
+          this.app.selectedIds.length === 1
+        ) {
+          const [selectedId] = this.app.selectedIds
+          const clonedShape = this.getShapeClone(selectedId, 'right')
 
-    if (key === 'Tab') {
-      if (this.status === Status.Idle && this.app.selectedIds.length === 1) {
-        const [selectedId] = this.app.selectedIds
+          if (clonedShape) {
+            this.app.createShapes(clonedShape)
+            this.setStatus(Status.Idle)
+            if (clonedShape.type === TDShapeType.Sticky) {
+              this.app.select(clonedShape.id)
+              this.app.setEditingId(clonedShape.id)
+            }
+          }
+        }
+        break
+      }
+      case 'Meta':
+      case 'Control':
+      case 'Alt': {
+        this.app.updateSession()
+        break
+      }
+      case 'Enter': {
+        if (this.app.readOnly) return
 
-        const clonedShape = this.getShapeClone(selectedId, 'right')
-
-        if (clonedShape) {
-          this.app.createShapes(clonedShape)
-
-          this.setStatus(Status.Idle)
-          this.app.setEditingId(clonedShape.id)
-          this.app.select(clonedShape.id)
+        const { pageState } = this.app
+        if (pageState.selectedIds.length === 1 && !pageState.editingId) {
+          this.app.setEditingId(pageState.selectedIds[0])
+          e.preventDefault()
         }
       }
-
-      return
-    }
-
-    if (key === 'Meta' || key === 'Control' || key === 'Alt') {
-      this.app.updateSession()
-      return
     }
   }
 
   onKeyUp: TLKeyboardEventHandler = (key, info) => {
     if (this.status === Status.ClonePainting && !(info.altKey && info.shiftKey)) {
-      this.setStatus(Status.Idle)
-      return
-    }
-
-    if (this.status === Status.SpacePanning && key === ' ') {
       this.setStatus(Status.Idle)
       return
     }
@@ -233,112 +243,143 @@ export class SelectTool extends BaseTool<Status> {
 
   // Pointer Events (generic)
 
-  onPointerMove: TLPointerEventHandler = (info, e) => {
+  onPointerMove: TLPointerEventHandler = () => {
     const { originPoint, currentPoint } = this.app
 
-    if (this.status === Status.SpacePanning && e.buttons === 1) {
-      this.app.onPan?.({ ...info, delta: Vec.neg(info.delta) }, e as unknown as WheelEvent)
+    if (this.app.readOnly && this.app.isPointing) {
+      if (this.app.session) {
+        this.app.updateSession()
+      } else {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.app.startSession(SessionType.Brush)
+          this.setStatus(Status.Brushing)
+        }
+      }
       return
     }
 
-    if (this.status === Status.PointingBoundsHandle) {
-      if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        if (this.pointedBoundsHandle === 'rotate') {
-          // Stat a rotate session
-          this.setStatus(Status.Rotating)
-          this.app.startSession(SessionType.Rotate)
-        } else if (
-          this.pointedBoundsHandle === 'center' ||
-          this.pointedBoundsHandle === 'left' ||
-          this.pointedBoundsHandle === 'right'
-        ) {
-          this.setStatus(Status.Translating)
-          this.app.startSession(SessionType.Translate, false, this.pointedBoundsHandle)
-        } else {
-          // Stat a transform session
-          this.setStatus(Status.Transforming)
-
-          const idsToTransform = this.app.selectedIds.flatMap((id) =>
-            TLDR.getDocumentBranch(this.app.state, id, this.app.currentPageId)
-          )
-
-          if (idsToTransform.length === 1) {
-            // if only one shape is selected, transform single
-            this.app.startSession(
-              SessionType.TransformSingle,
-              idsToTransform[0],
-              this.pointedBoundsHandle
-            )
+    switch (this.status) {
+      case Status.PointingBoundsHandle: {
+        if (!this.pointedBoundsHandle) throw Error('No pointed bounds handle')
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          if (this.pointedBoundsHandle === 'rotate') {
+            // Stat a rotate session
+            this.setStatus(Status.Rotating)
+            this.app.startSession(SessionType.Rotate)
+          } else if (
+            this.pointedBoundsHandle === 'center' ||
+            this.pointedBoundsHandle === 'left' ||
+            this.pointedBoundsHandle === 'right'
+          ) {
+            this.setStatus(Status.Translating)
+            this.app.startSession(SessionType.Translate, false, this.pointedBoundsHandle)
           } else {
-            // otherwise, transform
-            this.app.startSession(SessionType.Transform, this.pointedBoundsHandle)
+            // Stat a transform session
+            this.setStatus(Status.Transforming)
+            const idsToTransform = this.app.selectedIds.flatMap((id) =>
+              TLDR.getDocumentBranch(this.app.state, id, this.app.currentPageId)
+            )
+            if (idsToTransform.length === 1) {
+              // if only one shape is selected, transform single
+              this.app.startSession(
+                SessionType.TransformSingle,
+                idsToTransform[0],
+                this.pointedBoundsHandle
+              )
+            } else {
+              // otherwise, transform
+              this.app.startSession(SessionType.Transform, this.pointedBoundsHandle)
+            }
+          }
+
+          // Also update the session with the current point
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingCanvas: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.app.startSession(SessionType.Brush)
+          this.setStatus(Status.Brushing)
+        }
+        break
+      }
+      case Status.PointingClone: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.TranslatingClone)
+          this.app.startSession(SessionType.Translate)
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingBounds: {
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.Translating)
+          this.app.startSession(SessionType.Translate)
+          this.app.updateSession()
+        }
+        break
+      }
+      case Status.PointingHandle: {
+        if (!this.pointedHandleId) throw Error('No pointed handle')
+        if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
+          this.setStatus(Status.TranslatingHandle)
+          const selectedShape = this.app.getShape(this.app.selectedIds[0])
+          if (selectedShape) {
+            if (this.pointedHandleId === 'bend') {
+              this.app.startSession(SessionType.Handle, selectedShape.id, this.pointedHandleId)
+              this.app.updateSession()
+            } else {
+              this.app.startSession(
+                SessionType.Arrow,
+                selectedShape.id,
+                this.pointedHandleId,
+                false
+              )
+              this.app.updateSession()
+            }
           }
         }
-
-        // Also update the session with the current point
-        this.app.updateSession()
+        break
       }
-      return
-    }
-
-    if (this.status === Status.PointingCanvas) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.app.startSession(SessionType.Brush)
-        this.setStatus(Status.Brushing)
+      case Status.ClonePainting: {
+        this.clonePaint(currentPoint)
+        break
       }
-      return
-    }
-
-    if (this.status === Status.PointingClone) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.TranslatingClone)
-        this.app.startSession(SessionType.Translate)
-        this.app.updateSession()
-      }
-      return
-    }
-
-    if (this.status === Status.PointingBounds) {
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.Translating)
-        this.app.startSession(SessionType.Translate)
-        this.app.updateSession()
-      }
-      return
-    }
-
-    if (this.status === Status.PointingHandle) {
-      if (!this.pointedHandleId) throw Error('No pointed handle')
-      if (Vec.dist(originPoint, currentPoint) > DEAD_ZONE) {
-        this.setStatus(Status.TranslatingHandle)
-        const selectedShape = this.app.getShape(this.app.selectedIds[0])
-        if (!selectedShape) return
-        if (this.pointedHandleId === 'bend') {
-          this.app.startSession(SessionType.Handle, selectedShape.id, this.pointedHandleId)
+      default: {
+        if (this.app.session) {
           this.app.updateSession()
-        } else {
-          this.app.startSession(SessionType.Arrow, selectedShape.id, this.pointedHandleId, false)
-          this.app.updateSession()
+          break
         }
       }
-      return
     }
-
-    if (this.app.session) {
-      return this.app.updateSession()
-    }
-
-    if (this.status === Status.ClonePainting) {
-      this.clonePaint(currentPoint)
-    }
-
-    return
   }
 
-  onPointerDown: TLPointerEventHandler = () => {
-    if (this.app.appState.isStyleOpen) {
-      this.app.toggleStylePanel()
+  onPointerDown: TLPointerEventHandler = (info, e) => {
+    if (info.target === 'canvas' && this.status === Status.Idle) {
+      const { currentPoint } = this.app
+
+      if (info.spaceKey && e.buttons === 1) return
+
+      if (this.status === Status.Idle && info.altKey && info.shiftKey) {
+        this.setStatus(Status.ClonePainting)
+        this.clonePaint(currentPoint)
+        return
+      }
+
+      // Unless the user is holding shift or meta, clear the current selection
+      if (!info.shiftKey) {
+        this.app.onShapeBlur()
+
+        if (info.altKey && this.app.selectedIds.length > 0) {
+          this.app.duplicate(this.app.selectedIds, currentPoint)
+          return
+        }
+
+        this.selectNone()
+      }
+
+      this.setStatus(Status.PointingCanvas)
     }
   }
 
@@ -385,42 +426,24 @@ export class SelectTool extends BaseTool<Status> {
     }
 
     // Complete the current session, if any; and reset the status
-    this.app.completeSession()
+
     this.setStatus(Status.Idle)
     this.pointedBoundsHandle = undefined
     this.pointedHandleId = undefined
     this.pointedId = undefined
+
+    // Don't complete a session if we've just started one
+    if (this.app.session?.type === SessionType.Edit) {
+      return
+    }
+
+    this.app.completeSession()
   }
 
   // Canvas
 
-  onPointCanvas: TLCanvasEventHandler = (info, e) => {
-    const { currentPoint } = this.app
-
-    if (info.spaceKey && e.buttons === 1) return
-
-    if (this.status === Status.Idle && info.altKey && info.shiftKey) {
-      this.setStatus(Status.ClonePainting)
-      this.clonePaint(currentPoint)
-      return
-    }
-
-    // Unless the user is holding shift or meta, clear the current selection
-    if (!info.shiftKey) {
-      this.app.onShapeBlur()
-
-      if (info.altKey && this.app.selectedIds.length > 0) {
-        this.app.duplicate(this.app.selectedIds, currentPoint)
-        return
-      }
-
-      this.selectNone()
-    }
-
-    this.setStatus(Status.PointingCanvas)
-  }
-
   onDoubleClickCanvas: TLCanvasEventHandler = () => {
+    if (this.app.readOnly) return
     // Needs debugging
     // const { currentPoint } = this.app
     // this.app.selectTool(TDShapeType.Text)
@@ -525,6 +548,8 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickShape: TLPointerEventHandler = (info) => {
+    if (this.app.readOnly) return
+
     const shape = this.app.getShape(info.target)
 
     if (shape.isLocked) {
@@ -611,19 +636,29 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickBoundsHandle: TLBoundsHandleEventHandler = (info) => {
-    if (info.target === 'center' || info.target === 'left' || info.target === 'right') {
-      this.app.select(
-        ...TLDR.getLinkedShapeIds(
-          this.app.state,
-          this.app.currentPageId,
-          info.target,
-          info.shiftKey
+    switch (info.target) {
+      case 'center':
+      case 'left':
+      case 'right': {
+        this.app.select(
+          ...TLDR.getLinkedShapeIds(
+            this.app.state,
+            this.app.currentPageId,
+            info.target,
+            info.shiftKey
+          )
         )
-      )
-    }
-
-    if (this.app.selectedIds.length === 1) {
-      this.app.resetBounds(this.app.selectedIds)
+        break
+      }
+      default: {
+        if (this.app.selectedIds.length === 1) {
+          this.app.resetBounds(this.app.selectedIds)
+          const shape = this.app.getShape(this.app.selectedIds[0])
+          if ('label' in shape) {
+            this.app.setEditingId(shape.id)
+          }
+        }
+      }
     }
   }
 
@@ -639,6 +674,19 @@ export class SelectTool extends BaseTool<Status> {
   }
 
   onDoubleClickHandle: TLPointerEventHandler = (info) => {
+    if (info.target === 'bend') {
+      const { selectedIds } = this.app
+      if (selectedIds.length !== 1) return
+      const shape = this.app.getShape(selectedIds[0])
+      if (
+        TLDR.getShapeUtil(shape.type).canEdit &&
+        (shape.parentId === this.app.currentPageId || shape.parentId === this.selectedGroupId)
+      ) {
+        this.app.setEditingId(shape.id)
+      }
+      return
+    }
+
     this.app.toggleDecoration(info.target)
   }
 

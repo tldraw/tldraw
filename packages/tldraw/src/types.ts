@@ -1,24 +1,25 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/ban-types */
-import type { TLPage, TLUser, TLPageState } from '@tldraw/core'
-import type { FileSystemHandle } from '~state/data/browser-fs-access'
 import type {
+  TLAsset,
   TLBinding,
   TLBoundsCorner,
   TLBoundsEdge,
-  TLShape,
-  TLHandle,
-  TLSnapLine,
-  TLPinchEventHandler,
-  TLKeyboardEventHandler,
-  TLPointerEventHandler,
-  TLWheelEventHandler,
-  TLCanvasEventHandler,
   TLBoundsEventHandler,
   TLBoundsHandleEventHandler,
+  TLCanvasEventHandler,
+  TLHandle,
+  TLKeyboardEventHandler,
+  TLPage,
+  TLPageState,
+  TLPinchEventHandler,
+  TLPointerEventHandler,
+  TLShape,
   TLShapeBlurHandler,
   TLShapeCloneHandler,
+  TLSnapLine,
+  TLUser,
+  TLWheelEventHandler,
 } from '@tldraw/core'
+import { TDLanguage } from '~translations'
 
 /* -------------------------------------------------- */
 /*                         App                        */
@@ -74,14 +75,18 @@ export class TDEventHandler {
   onShapeClone?: TLShapeCloneHandler
 }
 
+export type TDDockPosition = 'bottom' | 'left' | 'right' | 'top'
+
 // The shape of the TldrawApp's React (zustand) store
 export interface TDSnapshot {
   settings: {
+    isCadSelectMode: boolean
     isDarkMode: boolean
     isDebugMode: boolean
     isPenMode: boolean
     isReadonlyMode: boolean
     isZoomSnap: boolean
+    keepStyleMenuOpen: boolean
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number
     isFocusMode: boolean
@@ -89,6 +94,10 @@ export interface TDSnapshot {
     showRotateHandles: boolean
     showBindingHandles: boolean
     showCloneHandles: boolean
+    showGrid: boolean
+    language: TDLanguage
+    dockPosition: TDDockPosition
+    exportBackground: TDExportBackground
   }
   appState: {
     currentStyle: ShapeStyles
@@ -96,10 +105,14 @@ export interface TDSnapshot {
     hoveredId?: string
     activeTool: TDToolType
     isToolLocked: boolean
-    isStyleOpen: boolean
     isEmptyCanvas: boolean
+    isMenuOpen: boolean
     status: string
     snapLines: TLSnapLine[]
+    eraseLine: number[][]
+    isLoading: boolean
+    disableAssets: boolean
+    selectByContain?: boolean
   }
   document: TDDocument
   room?: {
@@ -116,7 +129,7 @@ export type TldrawCommand = Command<TDSnapshot>
 // The shape of the files stored in JSON
 export interface TDFile {
   name: string
-  fileHandle: FileSystemHandle | null
+  fileHandle: FileSystemFileHandle | null
   document: TDDocument
   assets: Record<string, unknown>
 }
@@ -128,6 +141,7 @@ export interface TDDocument {
   version: number
   pages: Record<string, TDPage>
   pageStates: Record<string, TLPageState>
+  assets: TDAssets
 }
 
 // The shape of a single page in the Tldraw document
@@ -165,6 +179,7 @@ export enum TDUserStatus {
 export interface TDUser extends TLUser<TDShape> {
   activeShapes: TDShape[]
   status: TDUserStatus
+  session?: boolean
 }
 
 export type Theme = 'dark' | 'light'
@@ -180,6 +195,7 @@ export enum SessionType {
   Rotate = 'rotate',
   Handle = 'handle',
   Grid = 'grid',
+  Edit = 'edit',
 }
 
 export enum TDStatus {
@@ -187,6 +203,7 @@ export enum TDStatus {
   PointingHandle = 'pointingHandle',
   PointingBounds = 'pointingBounds',
   PointingBoundsHandle = 'pointingBoundsHandle',
+  TranslatingLabel = 'translatingLabel',
   TranslatingHandle = 'translatingHandle',
   Translating = 'translating',
   Transforming = 'transforming',
@@ -204,6 +221,7 @@ export type TDToolType =
   | TDShapeType.Draw
   | TDShapeType.Ellipse
   | TDShapeType.Rectangle
+  | TDShapeType.Triangle
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
@@ -268,11 +286,14 @@ export enum TDShapeType {
   Sticky = 'sticky',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
+  Triangle = 'triangle',
   Draw = 'draw',
   Arrow = 'arrow',
   Line = 'line',
   Text = 'text',
   Group = 'group',
+  Image = 'image',
+  Video = 'video',
 }
 
 export enum Decoration {
@@ -282,10 +303,10 @@ export enum Decoration {
 export interface TDBaseShape extends TLShape {
   style: ShapeStyles
   type: TDShapeType
-  handles?: Record<string, TldrawHandle>
+  label?: string
+  handles?: Record<string, TDHandle>
 }
 
-// The shape created with the draw tool
 export interface DrawShape extends TDBaseShape {
   type: TDShapeType.Draw
   points: number[][]
@@ -293,9 +314,30 @@ export interface DrawShape extends TDBaseShape {
 }
 
 // The extended handle (used for arrows)
-export interface TldrawHandle extends TLHandle {
+export interface TDHandle extends TLHandle {
   canBind?: boolean
   bindingId?: string
+}
+
+export interface RectangleShape extends TDBaseShape {
+  type: TDShapeType.Rectangle
+  size: number[]
+  label?: string
+  labelPoint?: number[]
+}
+
+export interface EllipseShape extends TDBaseShape {
+  type: TDShapeType.Ellipse
+  radius: number[]
+  label?: string
+  labelPoint?: number[]
+}
+
+export interface TriangleShape extends TDBaseShape {
+  type: TDShapeType.Triangle
+  size: number[]
+  label?: string
+  labelPoint?: number[]
 }
 
 // The shape created with the arrow tool
@@ -303,15 +345,17 @@ export interface ArrowShape extends TDBaseShape {
   type: TDShapeType.Arrow
   bend: number
   handles: {
-    start: TldrawHandle
-    bend: TldrawHandle
-    end: TldrawHandle
+    start: TDHandle
+    bend: TDHandle
+    end: TDHandle
   }
   decorations?: {
     start?: Decoration
     end?: Decoration
     middle?: Decoration
   }
+  label?: string
+  labelPoint?: number[]
 }
 
 export interface ArrowBinding extends TLBinding {
@@ -322,16 +366,18 @@ export interface ArrowBinding extends TLBinding {
 
 export type TDBinding = ArrowBinding
 
-// The shape created by the ellipse tool
-export interface EllipseShape extends TDBaseShape {
-  type: TDShapeType.Ellipse
-  radius: number[]
+export interface ImageShape extends TDBaseShape {
+  type: TDShapeType.Image
+  size: number[]
+  assetId: string
 }
 
-// The shape created by the rectangle tool
-export interface RectangleShape extends TDBaseShape {
-  type: TDShapeType.Rectangle
+export interface VideoShape extends TDBaseShape {
+  type: TDShapeType.Video
   size: number[]
+  assetId: string
+  isPlaying: boolean
+  currentTime: number
 }
 
 // The shape created by the text tool
@@ -358,11 +404,14 @@ export interface GroupShape extends TDBaseShape {
 export type TDShape =
   | RectangleShape
   | EllipseShape
+  | TriangleShape
   | DrawShape
   | ArrowShape
   | TextShape
   | GroupShape
   | StickyShape
+  | ImageShape
+  | VideoShape
 
 /* ------------------ Shape Styles ------------------ */
 
@@ -411,7 +460,7 @@ export enum AlignStyle {
 export enum FontStyle {
   Script = 'script',
   Sans = 'sans',
-  Serif = 'erif',
+  Serif = 'serif',
   Mono = 'mono',
 }
 
@@ -425,11 +474,58 @@ export type ShapeStyles = {
   scale?: number
 }
 
+export enum TDAssetType {
+  Image = 'image',
+  Video = 'video',
+}
+
+export interface TDImageAsset extends TLAsset {
+  type: TDAssetType.Image
+  fileName: string
+  src: string
+  size: number[]
+}
+
+export interface TDVideoAsset extends TLAsset {
+  type: TDAssetType.Video
+  fileName: string
+  src: string
+  size: number[]
+}
+
+export type TDAsset = TDImageAsset | TDVideoAsset
+
+export type TDAssets = Record<string, TDAsset>
+
+/* -------------------------------------------------- */
+/*                    Export                          */
+/* -------------------------------------------------- */
+
+export enum TDExportType {
+  PNG = 'png',
+  JPG = 'jpeg',
+  WEBP = 'webp',
+  SVG = 'svg',
+  JSON = 'json',
+}
+
+export interface TDExport {
+  name: string
+  type: string
+  blob: Blob
+}
+
+export enum TDExportBackground {
+  Transparent = 'transparent',
+  Auto = 'auto',
+  Light = 'light',
+  Dark = 'dark',
+}
+
 /* -------------------------------------------------- */
 /*                    Type Helpers                    */
 /* -------------------------------------------------- */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ParametersExceptFirst<F> = F extends (arg0: any, ...rest: infer R) => any ? R : never
 
 export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U : never
@@ -437,7 +533,6 @@ export type ExceptFirst<T extends unknown[]> = T extends [any, ...infer U] ? U :
 export type ExceptFirstTwo<T extends unknown[]> = T extends [any, any, ...infer U] ? U : never
 
 export type PropsOfType<U> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof TDShape]: TDShape[K] extends any ? (TDShape[K] extends U ? K : never) : never
 }[keyof TDShape]
 
@@ -469,4 +564,30 @@ export interface Command<T extends { [key: string]: any }> {
   id?: string
   before: Patch<T>
   after: Patch<T>
+}
+
+export interface FileWithHandle extends File {
+  handle?: FileSystemFileHandle
+}
+
+export interface FileWithDirectoryHandle extends File {
+  directoryHandle?: FileSystemDirectoryHandle
+}
+
+// The following typings implement the relevant parts of the File System Access
+// API. This can be removed once the specification reaches the Candidate phase
+// and is implemented as part of microsoft/TSJS-lib-generator.
+
+export interface FileSystemHandlePermissionDescriptor {
+  mode?: 'read' | 'readwrite'
+}
+
+export interface FileSystemHandle {
+  readonly kind: 'file' | 'directory'
+  readonly name: string
+
+  isSameEntry: (other: FileSystemHandle) => Promise<boolean>
+
+  queryPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>
+  requestPermission: (descriptor?: FileSystemHandlePermissionDescriptor) => Promise<PermissionState>
 }

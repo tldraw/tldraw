@@ -1,8 +1,8 @@
-import { TDShape, TDShapeType } from '~types'
 import { Utils } from '@tldraw/core'
-import type { Patch, TldrawCommand, TDBinding } from '~types'
-import type { TldrawApp } from '../../internal'
 import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { TDShape, TDShapeType } from '~types'
+import type { Patch, TDBinding, TldrawCommand } from '~types'
 
 export function groupShapes(
   app: TldrawApp,
@@ -10,6 +10,8 @@ export function groupShapes(
   groupId: string,
   pageId: string
 ): TldrawCommand | undefined {
+  if (ids.length < 2) return
+
   const beforeShapes: Record<string, Patch<TDShape | undefined>> = {}
   const afterShapes: Record<string, Patch<TDShape | undefined>> = {}
 
@@ -30,10 +32,9 @@ export function groupShapes(
       shapesToGroup.push(shape)
     } else {
       const childIds = shape.children.filter((id) => !app.getShape(id).isLocked)
-
       otherEffectedGroups.push(shape)
       idsToGroup.push(...childIds)
-      shapesToGroup.push(...childIds.map((id) => app.getShape(id)))
+      shapesToGroup.push(...childIds.map((id) => app.getShape(id)).filter(Boolean))
     }
   }
 
@@ -115,7 +116,6 @@ export function groupShapes(
     const shape = otherEffectedGroups.pop()
     if (!shape) break
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const nextChildren = (beforeShapes[shape.id]?.children || shape.children)!.filter(
       (childId) => childId && !(idsToGroup.includes(childId) || deletedGroupIds.includes(childId))
     )
@@ -148,11 +148,13 @@ export function groupShapes(
 
   const { bindings } = app
 
+  const deletedGroupIdsSet = new Set(deletedGroupIds)
+
   // We also need to delete bindings that reference the deleted shapes
   bindings.forEach((binding) => {
     for (const id of [binding.toId, binding.fromId]) {
       // If the binding references a deleted shape...
-      if (afterShapes[id] === undefined) {
+      if (deletedGroupIdsSet.has(id)) {
         // Delete this binding
         beforeBindings[binding.id] = binding
         afterBindings[binding.id] = undefined

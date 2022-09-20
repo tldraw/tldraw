@@ -1,7 +1,7 @@
-import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
-import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TDStatus } from '~types'
+import Vec from '@tldraw/vec'
+import { TldrawTestApp, mockDocument } from '~test'
+import { TDStatus } from '~types'
 
 describe('Rotate session', () => {
   const app = new TldrawTestApp()
@@ -106,7 +106,7 @@ describe('Rotate session', () => {
     it('keeps the center', () => {
       app.loadDocument(mockDocument).select('rect1', 'rect2')
 
-      const centerBefore = Vec.round(
+      const centerBefore = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -114,7 +114,7 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterA = Vec.round(
+      const centerAfterA = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -122,13 +122,13 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 100, y: 0 }).movePointer([50, 0]).completeSession()
 
-      const centerAfterB = Vec.round(
+      const centerAfterB = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
@@ -142,7 +142,7 @@ describe('Rotate session', () => {
     it('changes the center after nudging', () => {
       const app = new TldrawTestApp().loadDocument(mockDocument).select('rect1', 'rect2')
 
-      const centerBefore = Vec.round(
+      const centerBefore = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
@@ -150,20 +150,20 @@ describe('Rotate session', () => {
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterA = Vec.round(
+      const centerAfterA = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
 
       app.selectAll().nudge([10, 10])
 
       app.pointBoundsHandle('rotate', { x: 50, y: 0 }).movePointer([100, 50]).completeSession()
 
-      const centerAfterB = Vec.round(
+      const centerAfterB = Vec.toFixed(
         Utils.getBoundsCenter(
           Utils.getCommonBounds(app.selectedIds.map((id) => app.getShapeBounds(id)))
         )

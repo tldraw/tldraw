@@ -1,33 +1,22 @@
 import dynamic from 'next/dynamic'
-import { GetServerSideProps } from 'next'
-import { getSession } from 'next-auth/client'
 import Head from 'next/head'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 
-const Editor = dynamic(() => import('-components/Editor'), { ssr: false })
+const Editor = dynamic(() => import('~components/Editor'), { ssr: false }) as any
 
-interface PageProps {
-  isUser: boolean
-  isSponsor: boolean
-}
+const Home = () => {
+  const { query } = useRouter()
+  const isExportMode = useMemo(() => 'exportMode' in query, [query])
 
-export default function Home({ isUser, isSponsor }: PageProps): JSX.Element {
   return (
     <>
       <Head>
         <title>tldraw</title>
       </Head>
-      <Editor id="home" isUser={isUser} isSponsor={isSponsor} />
+      <Editor id="home" showUI={!isExportMode} />
     </>
   )
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context)
-
-  return {
-    props: {
-      isUser: session?.user ? true : false,
-      isSponsor: session?.user ? true : false,
-    },
-  }
-}
+export default Home

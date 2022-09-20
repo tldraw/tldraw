@@ -1,7 +1,7 @@
-import { Patch, ShapeStyles, TldrawCommand, TDShape, TDShapeType, TextShape } from '~types'
-import { TLDR } from '~state/TLDR'
 import { Vec } from '@tldraw/vec'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { Patch, ShapeStyles, TDShape, TDShapeType, TextShape, TldrawCommand } from '~types'
 
 export function styleShapes(
   app: TldrawApp,
@@ -35,7 +35,7 @@ export function styleShapes(
 
       if (shape.type === TDShapeType.Text) {
         beforeShapes[shape.id].point = shape.point
-        afterShapes[shape.id].point = Vec.round(
+        afterShapes[shape.id].point = Vec.toFixed(
           Vec.add(
             shape.point,
             Vec.sub(

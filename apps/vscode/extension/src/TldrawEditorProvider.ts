@@ -43,7 +43,9 @@ export class TldrawEditorProvider implements vscode.CustomTextEditorProvider {
       this.viewType,
       new TldrawEditorProvider(context),
       {
-        webviewOptions: { retainContextWhenHidden: true },
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
         supportsMultipleEditorsPerDocument: true,
       }
     )

@@ -1,7 +1,11 @@
-import * as React from 'react'
 import { render } from '@testing-library/react'
-import { ContextWrapper } from './context-wrapper'
+import * as React from 'react'
+import { ContextWrapper } from './ContextWrapper'
 
-export const renderWithContext = (children: JSX.Element) => {
-  return render(<ContextWrapper>{children}</ContextWrapper>)
+export const renderWithContext = (children: React.ReactNode) => {
+  return render(
+    <div>
+      <ContextWrapper>{children}</ContextWrapper>
+    </div>
+  )
 }

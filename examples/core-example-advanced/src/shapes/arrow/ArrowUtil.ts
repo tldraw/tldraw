@@ -1,4 +1,4 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { TLBounds, Utils } from '@tldraw/core'
 import { intersectBoundsLineSegment, intersectLineSegmentLineSegment } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
 import { nanoid } from 'nanoid'
@@ -15,6 +15,10 @@ export class ArrowUtil extends CustomShapeUtil<T, E> {
 
   Indicator = ArrowIndicator
 
+  hideResizeHandles = true
+
+  hideBounds = true
+
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
       const { start, end } = shape.handles
@@ -25,8 +29,6 @@ export class ArrowUtil extends CustomShapeUtil<T, E> {
   }
 
   /* ----------------- Custom Methods ----------------- */
-
-  hideBounds = true
 
   canBind = false
 

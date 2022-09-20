@@ -1,8 +1,8 @@
 import * as React from 'react'
-import type { TLPage, TLPageState, TLShape, TLBounds, TLBinding } from '../types'
-import Utils from '../utils'
+import type { TLShapeUtil, TLShapeUtilsMap } from '~TLShapeUtil'
+import type { TLBinding, TLBounds, TLPage, TLPageState, TLShape } from '~types'
+import Utils from '~utils'
 import { useTLContext } from './useTLContext'
-import type { TLShapeUtil, TLShapeUtilsMap } from '../TLShapeUtil'
 
 function canvasToScreen(point: number[], camera: TLPageState['camera']): number[] {
   return [(point[0] + camera.point[0]) * camera.zoom, (point[1] + camera.point[1]) * camera.zoom]
@@ -28,11 +28,13 @@ export function useSelection<T extends TLShape>(
 
   if (selectedIds.length === 1) {
     const id = selectedIds[0]
-
     const shape = page.shapes[id]
 
-    rotation = shape.rotation || 0
+    if (!shape) {
+      throw Error(`selectedIds is set to the id of a shape that doesn't exist: ${id}`)
+    }
 
+    rotation = shape.rotation || 0
     isLocked = shape.isLocked || false
 
     const utils = getShapeUtils(shapeUtils, shape)

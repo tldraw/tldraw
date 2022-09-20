@@ -1,10 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import type { IShapeTreeNode, TLPage, TLPageState, TLShape, TLBinding, TLBounds } from '~types'
-import { Utils } from '~utils'
 import { Vec } from '@tldraw/vec'
+import * as React from 'react'
 import { useTLContext } from '~hooks'
+import type {
+  IShapeTreeNode,
+  TLAssets,
+  TLBinding,
+  TLBounds,
+  TLPage,
+  TLPageState,
+  TLShape,
+} from '~types'
+import { Utils } from '~utils'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
@@ -13,6 +19,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   pageState: TLPageState & {
     bindingTargetId?: string | null
   },
+  assets: TLAssets,
   isChildOfGhost = false,
   isChildOfSelected = false,
   meta?: M
@@ -20,6 +27,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   // Create a node for this shape
   const node: IShapeTreeNode<T, M> = {
     shape,
+    asset: shape.assetId ? assets[shape.assetId] : undefined,
     meta: meta as any,
     isChildOfSelected,
     isGhost: shape.isGhost || isChildOfGhost,
@@ -46,14 +54,15 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
 
     shape.children
       .map((id) => shapes[id])
+      .filter((childShape) => shapes[childShape.id]) // TODO: Find cases where shapes would be missing.
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         addToShapeTree(
           childShape,
           node.children!,
           shapes,
           pageState,
+          assets,
           node.isGhost,
           node.isSelected || node.isChildOfSelected,
           meta
@@ -69,12 +78,13 @@ function shapeIsInViewport(bounds: TLBounds, viewport: TLBounds) {
 export function useShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   page: TLPage<T, TLBinding>,
   pageState: TLPageState,
+  assets: TLAssets,
   meta?: M
 ) {
   const { callbacks, shapeUtils, bounds } = useTLContext()
 
   const rTimeout = React.useRef<unknown>()
-  const rPreviousCount = React.useRef(0)
+  const rPreviousCount = React.useRef(-1)
   const rShapesIdsToRender = React.useRef(new Set<string>())
   const rShapesToRender = React.useRef(new Set<TLShape>())
 
@@ -102,7 +112,9 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   shapesToRender.clear()
   shapesIdsToRender.clear()
 
-  Object.values(page.shapes)
+  const allShapes = Object.values(page.shapes)
+
+  allShapes
     .filter(
       (shape) =>
         // Always render shapes that are flagged as stateful
@@ -123,11 +135,17 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       // If the shape's parent is a different shape (e.g. a group),
       // add the parent to the sets of shapes to render. The parent's
       // children will all be rendered.
-      shapesIdsToRender.add(shape.parentId)
-      shapesToRender.add(page.shapes[shape.parentId])
+      const parent = page.shapes[shape.parentId]
+
+      if (parent === undefined) {
+        throw Error(`A shape (${shape.id}) has a parent (${shape.parentId}) that does not exist!`)
+      } else {
+        shapesIdsToRender.add(parent.id)
+        shapesToRender.add(parent)
+      }
     })
 
-  // Call onChange callback when number of rendering shapes changes
+  // Call onRenderCountChange callback when number of rendering shapes changes
 
   if (shapesToRender.size !== rPreviousCount.current) {
     // Use a timeout to clear call stack, in case the onChange handler
@@ -148,17 +166,22 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
 
   const tree: IShapeTreeNode<T, M>[] = []
 
-  shapesToRender.forEach((shape) =>
+  shapesToRender.forEach((shape) => {
+    if (shape === undefined) {
+      throw Error('Rendered shapes included a missing shape')
+    }
+
     addToShapeTree(
       shape,
       tree,
       page.shapes,
       { ...pageState, bindingTargetId },
+      assets,
       shape.isGhost,
       false,
       meta
     )
-  )
+  })
 
   tree.sort((a, b) => a.shape.childIndex - b.shape.childIndex)
 

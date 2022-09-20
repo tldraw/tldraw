@@ -1,0 +1,9 @@
+# Ignored Files for Search
+
+dist
+node_modules
+*.d.ts
+*.js
+*.md
+*.lock
+*.tsbuildinfo

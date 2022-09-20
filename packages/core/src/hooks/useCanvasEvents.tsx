@@ -4,62 +4,83 @@ import { useTLContext } from './useTLContext'
 export function useCanvasEvents() {
   const { callbacks, inputs } = useTLContext()
 
-  const onPointerDown = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (e.button !== 0) return
-      if (!inputs.pointerIsValid(e)) return
-      e.currentTarget.setPointerCapture(e.pointerId)
+  return React.useMemo(() => {
+    return {
+      onPointerDown: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
+        if (!inputs.pointerIsValid(e)) return
 
-      const info = inputs.pointerDown(e, 'canvas')
+        // On right click
+        if (e.button === 2) {
+          return
+        }
 
-      if (e.button === 0) {
-        callbacks.onPointCanvas?.(info, e)
+        e.currentTarget.setPointerCapture(e.pointerId)
+
+        const info = inputs.pointerDown(e, 'canvas')
+
+        // On left click down
+        if (e.button === 0) {
+          callbacks.onPointCanvas?.(info, e)
+        }
+
+        // On left or middle click down
         callbacks.onPointerDown?.(info, e)
-      }
-    },
-    [callbacks, inputs]
-  )
+      },
+      onPointerMove: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
 
-  const onPointerMove = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (!inputs.pointerIsValid(e)) return
-      const info = inputs.pointerMove(e, 'canvas')
+        if (!inputs.pointerIsValid(e)) return
 
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        callbacks.onDragCanvas?.(info, e)
-      }
+        const info = inputs.pointerMove(e, 'canvas')
 
-      callbacks.onPointerMove?.(info, e)
-    },
-    [callbacks, inputs]
-  )
+        // On left click drag
+        if (e.buttons === 1) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragCanvas?.(info, e)
+          }
+        }
 
-  const onPointerUp = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (e.button !== 0) return
+        // On left or middle click drag
+        callbacks.onPointerMove?.(info, e)
+      },
+      onPointerUp: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
 
-      inputs.activePointer = undefined
+        inputs.activePointer = undefined
+        if (!inputs.pointerIsValid(e)) return
 
-      if (!inputs.pointerIsValid(e)) return
-      const isDoubleClick = inputs.isDoubleClick()
-      const info = inputs.pointerUp(e, 'canvas')
+        // On right click up
+        if (e.button === 2) {
+          return
+        }
 
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget?.releasePointerCapture(e.pointerId)
-      }
-      if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoubleClickCanvas?.(info, e)
-      }
+        const info = inputs.pointerUp(e, 'canvas')
 
-      callbacks.onReleaseCanvas?.(info, e)
-      callbacks.onPointerUp?.(info, e)
-    },
-    [callbacks, inputs]
-  )
+        const isDoubleClick = inputs.isDoubleClick()
 
-  return {
-    onPointerDown,
-    onPointerMove,
-    onPointerUp,
-  }
+        // Release pointer capture, if any
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget?.releasePointerCapture(e.pointerId)
+        }
+
+        // On left click up
+        if (e.button === 0) {
+          if (isDoubleClick && !(info.altKey || info.metaKey)) {
+            callbacks.onDoubleClickCanvas?.(info, e)
+          }
+
+          callbacks.onReleaseCanvas?.(info, e)
+        }
+
+        // On left or middle click up
+        callbacks.onPointerUp?.(info, e)
+      },
+      onDrop: callbacks.onDrop,
+      onDragOver: callbacks.onDragOver,
+    }
+  }, [callbacks, inputs])
 }

@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import * as React from 'react'
-import type { TLPageState } from '../types'
+import type { TLPageState } from '~types'
 
 export function useCameraCss(
   layerRef: React.RefObject<HTMLDivElement>,
@@ -41,5 +40,5 @@ export function useCameraCss(
         }
       }
     }
-  }, [pageState.camera])
+  }, [pageState.camera.zoom, pageState.camera.point])
 }

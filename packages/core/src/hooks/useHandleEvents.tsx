@@ -4,78 +4,90 @@ import { useTLContext } from './useTLContext'
 export function useHandleEvents(id: string) {
   const { inputs, callbacks } = useTLContext()
 
-  const onPointerDown = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (e.button !== 0) return
-      if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
-      e.currentTarget?.setPointerCapture(e.pointerId)
+  return React.useMemo(() => {
+    return {
+      onPointerDown: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
+        if (!inputs.pointerIsValid(e)) return
 
-      const info = inputs.pointerDown(e, id)
-      callbacks.onPointHandle?.(info, e)
-      callbacks.onPointerDown?.(info, e)
-    },
-    [inputs, callbacks, id]
-  )
-
-  const onPointerUp = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (e.button !== 0) return
-      if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
-      const isDoubleClick = inputs.isDoubleClick()
-      const info = inputs.pointerUp(e, id)
-
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget?.releasePointerCapture(e.pointerId)
-
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoubleClickHandle?.(info, e)
+        // On left click down
+        if (e.button === 2) {
+          return
         }
 
-        callbacks.onReleaseHandle?.(info, e)
-      }
-      callbacks.onPointerUp?.(info, e)
-    },
-    [inputs, callbacks]
-  )
+        e.currentTarget?.setPointerCapture(e.pointerId)
 
-  const onPointerMove = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
-      const info = inputs.pointerMove(e, id)
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        callbacks.onDragHandle?.(info, e)
-      }
-      callbacks.onPointerMove?.(info, e)
-    },
-    [inputs, callbacks, id]
-  )
+        const info = inputs.pointerDown(e, id)
 
-  const onPointerEnter = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (!inputs.pointerIsValid(e)) return
-      const info = inputs.pointerEnter(e, id)
-      callbacks.onHoverHandle?.(info, e)
-    },
-    [inputs, callbacks, id]
-  )
+        // On left click down
+        if (e.button === 0) {
+          callbacks.onPointHandle?.(info, e)
+        }
 
-  const onPointerLeave = React.useCallback(
-    (e: React.PointerEvent) => {
-      if (!inputs.pointerIsValid(e)) return
-      const info = inputs.pointerEnter(e, id)
-      callbacks.onUnhoverHandle?.(info, e)
-    },
-    [inputs, callbacks, id]
-  )
+        // On left or middle click down
+        callbacks.onPointerDown?.(info, e)
+      },
+      onPointerUp: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
 
-  return {
-    onPointerDown,
-    onPointerUp,
-    onPointerEnter,
-    onPointerMove,
-    onPointerLeave,
-  }
+        if (!inputs.pointerIsValid(e)) return
+
+        // Right click up
+        if (e.button === 2) {
+          return
+        }
+
+        const isDoubleClick = inputs.isDoubleClick()
+        const info = inputs.pointerUp(e, id)
+
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          e.currentTarget?.releasePointerCapture(e.pointerId)
+
+          // On left click up
+          if (e.button === 0) {
+            if (isDoubleClick && !(info.altKey || info.metaKey)) {
+              callbacks.onDoubleClickHandle?.(info, e)
+            }
+            callbacks.onReleaseHandle?.(info, e)
+          }
+        }
+
+        // On any click up
+        callbacks.onPointerUp?.(info, e)
+      },
+      onPointerMove: (e: React.PointerEvent) => {
+        if ((e as any).dead) return
+        else (e as any).dead = true
+        if (!inputs.pointerIsValid(e)) return
+        // On right click drag
+        if (e.buttons === 2) {
+          return
+        }
+
+        const info = inputs.pointerMove(e, id)
+
+        // On left click drag
+        if (e.buttons === 1) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragHandle?.(info, e)
+          }
+        }
+
+        // On left or middle click drag
+        callbacks.onPointerMove?.(info, e)
+      },
+      onPointerEnter: (e: React.PointerEvent) => {
+        if (!inputs.pointerIsValid(e)) return
+        const info = inputs.pointerEnter(e, id)
+        callbacks.onHoverHandle?.(info, e)
+      },
+      onPointerLeave: (e: React.PointerEvent) => {
+        if (!inputs.pointerIsValid(e)) return
+        const info = inputs.pointerEnter(e, id)
+        callbacks.onUnhoverHandle?.(info, e)
+      },
+    }
+  }, [inputs, callbacks, id])
 }

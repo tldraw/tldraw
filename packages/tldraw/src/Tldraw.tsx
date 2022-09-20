@@ -1,16 +1,33 @@
-import * as React from 'react'
-import { IdProvider } from '@radix-ui/react-id'
 import { Renderer } from '@tldraw/core'
-import { styled, dark } from '~styles'
-import { TDDocument, TDShape, TDBinding, TDStatus, TDUser } from '~types'
-import { TldrawApp, TDCallbacks } from '~state'
-import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
-import { shapeUtils } from '~state/shapes'
+import * as React from 'react'
+import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
+import { IntlProvider } from 'react-intl'
+import { ContextMenu } from '~components/ContextMenu'
+import { ErrorFallback } from '~components/ErrorFallback'
+import { FocusButton } from '~components/FocusButton'
+import { Loading } from '~components/Loading'
+import { AlertDialog } from '~components/Primitives/AlertDialog'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
+import { GRID_SIZE } from '~constants'
+import {
+  AlertDialogContext,
+  ContainerContext,
+  DialogState,
+  TldrawContext,
+  useKeyboardShortcuts,
+  useStylesheet,
+  useTldrawApp,
+  useTranslation,
+} from '~hooks'
+import { useCursor } from '~hooks/useCursor'
+import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
-import { ContextMenu } from '~components/ContextMenu'
-import { FocusButton } from '~components/FocusButton/FocusButton'
+import { shapeUtils } from '~state/shapes'
+import { dark, styled } from '~styles'
+import { TDDocument, TDStatus } from '~types'
+
+const ErrorBoundary = _Errorboundary as any
 
 export interface TldrawProps extends TDCallbacks {
   /**
@@ -39,6 +56,11 @@ export interface TldrawProps extends TDCallbacks {
   showMenu?: boolean
 
   /**
+   * (optional) Whether to show the multiplayer menu.
+   */
+  showMultiplayerMenu?: boolean
+
+  /**
    * (optional) Whether to show the pages UI.
    */
   showPages?: boolean
@@ -59,11 +81,6 @@ export interface TldrawProps extends TDCallbacks {
   showTools?: boolean
 
   /**
-   * (optional) Whether to show a sponsor link for Tldraw.
-   */
-  showSponsorLink?: boolean
-
-  /**
    * (optional) Whether to show the UI.
    */
   showUI?: boolean
@@ -79,90 +96,33 @@ export interface TldrawProps extends TDCallbacks {
   darkMode?: boolean
 
   /**
-   * (optional) A callback to run when the component mounts.
+   * (optional) If provided, image/video componnets will be disabled.
+   *
+   * Warning: Keeping this enabled for multiplayer applications without provifing a storage
+   * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
-  onMount?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user creates a new project through the menu or through a keyboard shortcut.
-   */
-  onNewProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user saves a project through the menu or through a keyboard shortcut.
-   */
-  onSaveProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user saves a project as a new project through the menu or through a keyboard shortcut.
-   */
-  onSaveProjectAs?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user opens new project through the menu or through a keyboard shortcut.
-   */
-  onOpenProject?: (state: TldrawApp, e?: KeyboardEvent) => void
-
-  /**
-   * (optional) A callback to run when the user signs in via the menu.
-   */
-  onSignIn?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user signs out via the menu.
-   */
-  onSignOut?: (state: TldrawApp) => void
-
-  /**
-   * (optional) A callback to run when the user creates a new project.
-   */
-  onChangePresence?: (state: TldrawApp, user: TDUser) => void
-  /**
-   * (optional) A callback to run when the component's state changes.
-   */
-  onChange?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is patched.
-   */
-  onPatch?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is changed with a command.
-   */
-  onCommand?: (state: TldrawApp, reason?: string) => void
-  /**
-   * (optional) A callback to run when the state is persisted.
-   */
-  onPersist?: (state: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user undos.
-   */
-  onUndo?: (state: TldrawApp) => void
-  /**
-   * (optional) A callback to run when the user redos.
-   */
-  onRedo?: (state: TldrawApp) => void
-
-  onChangePage?: (
-    app: TldrawApp,
-    shapes: Record<string, TDShape | undefined>,
-    bindings: Record<string, TDBinding | undefined>
-  ) => void
+  disableAssets?: boolean
 }
+
+const isSystemDarkMode = window.matchMedia
+  ? window.matchMedia('(prefers-color-scheme: dark)').matches
+  : false
 
 export function Tldraw({
   id,
   document,
   currentPageId,
-  darkMode = false,
   autofocus = true,
   showMenu = true,
+  showMultiplayerMenu = true,
   showPages = true,
   showTools = true,
   showZoom = true,
   showStyles = true,
   showUI = true,
   readOnly = false,
-  showSponsorLink = false,
+  disableAssets = false,
+  darkMode = isSystemDarkMode,
   onMount,
   onChange,
   onChangePresence,
@@ -170,43 +130,66 @@ export function Tldraw({
   onSaveProject,
   onSaveProjectAs,
   onOpenProject,
-  onSignOut,
-  onSignIn,
+  onOpenMedia,
   onUndo,
   onRedo,
   onPersist,
   onPatch,
   onCommand,
   onChangePage,
+  onAssetCreate,
+  onAssetDelete,
+  onAssetUpload,
+  onSessionStart,
+  onSessionEnd,
+  onExport,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
   // Create a new app when the component mounts.
-  const [app, setApp] = React.useState(
-    () =>
-      new TldrawApp(id, {
-        onMount,
-        onChange,
-        onChangePresence,
-        onNewProject,
-        onSaveProject,
-        onSaveProjectAs,
-        onOpenProject,
-        onSignOut,
-        onSignIn,
-        onUndo,
-        onRedo,
-        onPersist,
-        onPatch,
-        onCommand,
-        onChangePage,
-      })
+  const [app, setApp] = React.useState(() => {
+    const app = new TldrawApp(id, {
+      onMount,
+      onChange,
+      onChangePresence,
+      onNewProject,
+      onSaveProject,
+      onSaveProjectAs,
+      onOpenProject,
+      onOpenMedia,
+      onUndo,
+      onRedo,
+      onPersist,
+      onPatch,
+      onCommand,
+      onChangePage,
+      onAssetDelete,
+      onAssetCreate,
+      onAssetUpload,
+      onSessionStart,
+      onSessionEnd,
+    })
+    return app
+  })
+
+  const [onCancel, setOnCancel] = React.useState<(() => void) | null>(null)
+  const [onYes, setOnYes] = React.useState<(() => void) | null>(null)
+  const [onNo, setOnNo] = React.useState<(() => void) | null>(null)
+  const [dialogState, setDialogState] = React.useState<DialogState | null>(null)
+
+  const openDialog = React.useCallback(
+    (dialogState: DialogState, onYes: () => void, onNo: () => void, onCancel: () => void) => {
+      setDialogState(() => dialogState)
+      setOnCancel(() => onCancel)
+      setOnYes(() => onYes)
+      setOnNo(() => onNo)
+    },
+    []
   )
 
   // Create a new app if the `id` prop changes.
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (id === sId) return
-
     const newApp = new TldrawApp(id, {
       onMount,
       onChange,
@@ -215,14 +198,19 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
-      onSignOut,
-      onSignIn,
+      onOpenMedia,
       onUndo,
       onRedo,
       onPersist,
       onPatch,
       onCommand,
       onChangePage,
+      onAssetDelete,
+      onAssetCreate,
+      onAssetUpload,
+      onExport,
+      onSessionStart,
+      onSessionEnd,
     })
 
     setSId(id)
@@ -242,21 +230,31 @@ export function Tldraw({
     }
   }, [document, app])
 
-  // Change the page when the `currentPageId` prop changes
+  // Disable assets when the `disableAssets` prop changes.
+  React.useEffect(() => {
+    app.setDisableAssets(disableAssets)
+  }, [app, disableAssets])
+
+  // Change the page when the `currentPageId` prop changes.
   React.useEffect(() => {
     if (!currentPageId) return
     app.changePage(currentPageId)
   }, [currentPageId, app])
 
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  // Toggle the app's readOnly mode when the `readOnly` prop changes.
   React.useEffect(() => {
     app.readOnly = readOnly
+    if (!readOnly) {
+      app.selectNone()
+      app.cancelSession()
+      app.setEditingId()
+    }
   }, [app, readOnly])
 
-  // Toggle the app's readOnly mode when the `readOnly` prop changes
+  // Toggle the app's darkMode when the `darkMode` prop changes.
   React.useEffect(() => {
-    if (darkMode && !app.settings.isDarkMode) {
-      // app.toggleDarkMode()
+    if (darkMode !== app.settings.isDarkMode) {
+      app.toggleDarkMode()
     }
   }, [app, darkMode])
 
@@ -270,14 +268,19 @@ export function Tldraw({
       onSaveProject,
       onSaveProjectAs,
       onOpenProject,
-      onSignOut,
-      onSignIn,
+      onOpenMedia,
       onUndo,
       onRedo,
       onPersist,
       onPatch,
       onCommand,
       onChangePage,
+      onAssetDelete,
+      onAssetCreate,
+      onAssetUpload,
+      onExport,
+      onSessionStart,
+      onSessionEnd,
     }
   }, [
     onMount,
@@ -287,34 +290,54 @@ export function Tldraw({
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
-    onSignOut,
-    onSignIn,
+    onOpenMedia,
     onUndo,
     onRedo,
     onPersist,
     onPatch,
     onCommand,
     onChangePage,
+    onAssetDelete,
+    onAssetCreate,
+    onAssetUpload,
+    onExport,
+    onSessionStart,
+    onSessionEnd,
   ])
+
+  React.useLayoutEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.document?.fonts) return
+
+    function refreshBoundingBoxes() {
+      app.refreshBoundingBoxes()
+    }
+    window.document.fonts.addEventListener('loadingdone', refreshBoundingBoxes)
+    return () => {
+      window.document.fonts.removeEventListener('loadingdone', refreshBoundingBoxes)
+    }
+  }, [app])
 
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <IdProvider>
+      <AlertDialogContext.Provider
+        value={{ onYes, onCancel, onNo, dialogState, setDialogState, openDialog }}
+      >
         <InnerTldraw
           key={sId || 'Tldraw'}
           id={sId}
           autofocus={autofocus}
           showPages={showPages}
           showMenu={showMenu}
+          showMultiplayerMenu={showMultiplayerMenu}
           showStyles={showStyles}
           showZoom={showZoom}
           showTools={showTools}
           showUI={showUI}
-          showSponsorLink={showSponsorLink}
           readOnly={readOnly}
         />
-      </IdProvider>
+      </AlertDialogContext.Provider>
     </TldrawContext.Provider>
   )
 }
@@ -322,14 +345,14 @@ export function Tldraw({
 interface InnerTldrawProps {
   id?: string
   autofocus: boolean
+  readOnly: boolean
   showPages: boolean
   showMenu: boolean
+  showMultiplayerMenu: boolean
   showZoom: boolean
   showStyles: boolean
   showUI: boolean
   showTools: boolean
-  showSponsorLink: boolean
-  readOnly: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -337,15 +360,15 @@ const InnerTldraw = React.memo(function InnerTldraw({
   autofocus,
   showPages,
   showMenu,
+  showMultiplayerMenu,
   showZoom,
   showStyles,
   showTools,
-  showSponsorLink,
   readOnly,
   showUI,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
-
+  const [dialogContainer, setDialogContainer] = React.useState<any>(null)
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const state = app.useStore()
@@ -356,15 +379,58 @@ const InnerTldraw = React.memo(function InnerTldraw({
 
   const page = document.pages[appState.currentPageId]
   const pageState = document.pageStates[page.id]
-  const { selectedIds } = state.document.pageStates[page.id]
+  const assets = document.assets
+  const { selectedIds } = pageState
 
   const isHideBoundsShape =
-    pageState.selectedIds.length === 1 &&
+    selectedIds.length === 1 &&
+    page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideBounds
 
   const isHideResizeHandlesShape =
     selectedIds.length === 1 &&
+    page.shapes[selectedIds[0]] &&
     TLDR.getShapeUtil(page.shapes[selectedIds[0]].type).hideResizeHandles
+
+  // Custom rendering meta, with dark mode for shapes
+  const meta = React.useMemo(() => {
+    return { isDarkMode: settings.isDarkMode }
+  }, [settings.isDarkMode])
+
+  const showDashedBrush = settings.isCadSelectMode
+    ? !appState.selectByContain
+    : appState.selectByContain
+
+  // Custom theme, based on darkmode
+  const theme = React.useMemo(() => {
+    const { selectByContain } = appState
+    const { isDarkMode, isCadSelectMode } = settings
+
+    if (isDarkMode) {
+      const brushBase = isCadSelectMode
+        ? selectByContain
+          ? '69, 155, 255'
+          : '105, 209, 73'
+        : '180, 180, 180'
+      return {
+        brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+        brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.5 : 0.25})`,
+        brushDashStroke: `rgba(${brushBase}, .6)`,
+        selected: 'rgba(38, 150, 255, 1.000)',
+        selectFill: 'rgba(38, 150, 255, 0.05)',
+        background: '#212529',
+        foreground: '#49555f',
+      }
+    }
+
+    const brushBase = isCadSelectMode ? (selectByContain ? '0, 89, 242' : '51, 163, 23') : '0,0,0'
+
+    return {
+      brushFill: `rgba(${brushBase}, ${isCadSelectMode ? 0.08 : 0.05})`,
+      brushStroke: `rgba(${brushBase}, ${isCadSelectMode ? 0.4 : 0.25})`,
+      brushDashStroke: `rgba(${brushBase}, .6)`,
+    }
+  }, [settings.isDarkMode, settings.isCadSelectMode, appState.selectByContain])
 
   const isInSession = app.session !== undefined
 
@@ -382,132 +448,134 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideIndicators =
     (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
-  // Custom rendering meta, with dark mode for shapes
-  const meta = React.useMemo(() => {
-    return { isDarkMode: settings.isDarkMode }
-  }, [settings.isDarkMode])
+  const hideCloneHandles = isInSession || !isSelecting || pageState.camera.zoom < 0.2
 
-  // Custom theme, based on darkmode
-  const theme = React.useMemo(() => {
-    if (settings.isDarkMode) {
-      return {
-        brushFill: 'rgba(180, 180, 180, .05)',
-        brushStroke: 'rgba(180, 180, 180, .25)',
-        selected: 'rgba(38, 150, 255, 1.000)',
-        selectFill: 'rgba(38, 150, 255, 0.05)',
-        background: '#212529',
-        foreground: '#49555f',
-      }
-    }
+  const translation = useTranslation(settings.language)
 
-    return {}
-  }, [settings.isDarkMode])
-
-  // When the context menu is blurred, close the menu by sending pointer events
-  // to the context menu's ref. This is a hack around the fact that certain shapes
-  // stop event propagation, which causes the menu to stay open even when blurred.
-  const handleMenuBlur = React.useCallback<React.FocusEventHandler>((e) => {
+  // Put the theme on the body. This means that components with
+  // multiple editors cannot have different themes.
+  React.useLayoutEffect(() => {
     const elm = rWrapper.current
     if (!elm) return
-    if (!elm.contains(e.relatedTarget)) return
-    elm.dispatchEvent(new Event('pointerdown', { bubbles: true }))
-    elm.dispatchEvent(new Event('pointerup', { bubbles: true }))
-  }, [])
+    if (settings.isDarkMode) {
+      elm.classList.add(dark)
+    } else {
+      elm.classList.remove(dark)
+    }
+  }, [settings.isDarkMode])
+
+  useCursor(rWrapper)
 
   return (
-    <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
-      <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-      <ContextMenu onBlur={handleMenuBlur}>
-        <Renderer
-          id={id}
-          containerRef={rWrapper}
-          shapeUtils={shapeUtils}
-          page={page}
-          pageState={pageState}
-          snapLines={appState.snapLines}
-          users={room?.users}
-          userId={room?.userId}
-          theme={theme}
-          meta={meta}
-          hideBounds={hideBounds}
-          hideHandles={hideHandles}
-          hideResizeHandles={isHideResizeHandlesShape}
-          hideIndicators={hideIndicators}
-          hideBindingHandles={!settings.showBindingHandles}
-          hideCloneHandles={!settings.showCloneHandles}
-          hideRotateHandles={!settings.showRotateHandles}
-          onPinchStart={app.onPinchStart}
-          onPinchEnd={app.onPinchEnd}
-          onPinch={app.onPinch}
-          onPan={app.onPan}
-          onZoom={app.onZoom}
-          onPointerDown={app.onPointerDown}
-          onPointerMove={app.onPointerMove}
-          onPointerUp={app.onPointerUp}
-          onPointCanvas={app.onPointCanvas}
-          onDoubleClickCanvas={app.onDoubleClickCanvas}
-          onRightPointCanvas={app.onRightPointCanvas}
-          onDragCanvas={app.onDragCanvas}
-          onReleaseCanvas={app.onReleaseCanvas}
-          onPointShape={app.onPointShape}
-          onDoubleClickShape={app.onDoubleClickShape}
-          onRightPointShape={app.onRightPointShape}
-          onDragShape={app.onDragShape}
-          onHoverShape={app.onHoverShape}
-          onUnhoverShape={app.onUnhoverShape}
-          onReleaseShape={app.onReleaseShape}
-          onPointBounds={app.onPointBounds}
-          onDoubleClickBounds={app.onDoubleClickBounds}
-          onRightPointBounds={app.onRightPointBounds}
-          onDragBounds={app.onDragBounds}
-          onHoverBounds={app.onHoverBounds}
-          onUnhoverBounds={app.onUnhoverBounds}
-          onReleaseBounds={app.onReleaseBounds}
-          onPointBoundsHandle={app.onPointBoundsHandle}
-          onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
-          onRightPointBoundsHandle={app.onRightPointBoundsHandle}
-          onDragBoundsHandle={app.onDragBoundsHandle}
-          onHoverBoundsHandle={app.onHoverBoundsHandle}
-          onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
-          onReleaseBoundsHandle={app.onReleaseBoundsHandle}
-          onPointHandle={app.onPointHandle}
-          onDoubleClickHandle={app.onDoubleClickHandle}
-          onRightPointHandle={app.onRightPointHandle}
-          onDragHandle={app.onDragHandle}
-          onHoverHandle={app.onHoverHandle}
-          onUnhoverHandle={app.onUnhoverHandle}
-          onReleaseHandle={app.onReleaseHandle}
-          onError={app.onError}
-          onRenderCountChange={app.onRenderCountChange}
-          onShapeChange={app.onShapeChange}
-          onShapeBlur={app.onShapeBlur}
-          onShapeClone={app.onShapeClone}
-          onBoundsChange={app.updateBounds}
-          onKeyDown={app.onKeyDown}
-          onKeyUp={app.onKeyUp}
-        />
-      </ContextMenu>
-      {showUI && (
-        <StyledUI>
-          {settings.isFocusMode ? (
-            <FocusButton onSelect={app.toggleFocusMode} />
-          ) : (
-            <>
-              <TopPanel
-                readOnly={readOnly}
-                showPages={showPages}
-                showMenu={showMenu}
-                showStyles={showStyles}
-                showZoom={showZoom}
-                showSponsorLink={showSponsorLink}
+    <ContainerContext.Provider value={rWrapper}>
+      <IntlProvider locale={translation.locale} messages={translation.messages}>
+        <AlertDialog container={dialogContainer} />
+        <StyledLayout ref={rWrapper} tabIndex={-0}>
+          <Loading />
+          <OneOff focusableRef={rWrapper} autofocus={autofocus} />
+          <ContextMenu>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Renderer
+                id={id}
+                containerRef={rWrapper}
+                shapeUtils={shapeUtils}
+                page={page}
+                pageState={pageState}
+                assets={assets}
+                snapLines={appState.snapLines}
+                eraseLine={appState.eraseLine}
+                grid={GRID_SIZE}
+                users={room?.users}
+                userId={room?.userId}
+                theme={theme}
+                meta={meta}
+                hideBounds={hideBounds}
+                hideHandles={hideHandles}
+                hideResizeHandles={isHideResizeHandlesShape}
+                hideIndicators={hideIndicators}
+                hideBindingHandles={!settings.showBindingHandles}
+                hideCloneHandles={hideCloneHandles}
+                hideRotateHandles={!settings.showRotateHandles}
+                hideGrid={!settings.showGrid}
+                showDashedBrush={showDashedBrush}
+                performanceMode={app.session?.performanceMode}
+                onPinchStart={app.onPinchStart}
+                onPinchEnd={app.onPinchEnd}
+                onPinch={app.onPinch}
+                onPan={app.onPan}
+                onZoom={app.onZoom}
+                onPointerDown={app.onPointerDown}
+                onPointerMove={app.onPointerMove}
+                onPointerUp={app.onPointerUp}
+                onPointCanvas={app.onPointCanvas}
+                onDoubleClickCanvas={app.onDoubleClickCanvas}
+                onRightPointCanvas={app.onRightPointCanvas}
+                onDragCanvas={app.onDragCanvas}
+                onReleaseCanvas={app.onReleaseCanvas}
+                onPointShape={app.onPointShape}
+                onDoubleClickShape={app.onDoubleClickShape}
+                onRightPointShape={app.onRightPointShape}
+                onDragShape={app.onDragShape}
+                onHoverShape={app.onHoverShape}
+                onUnhoverShape={app.onUnhoverShape}
+                onReleaseShape={app.onReleaseShape}
+                onPointBounds={app.onPointBounds}
+                onDoubleClickBounds={app.onDoubleClickBounds}
+                onRightPointBounds={app.onRightPointBounds}
+                onDragBounds={app.onDragBounds}
+                onHoverBounds={app.onHoverBounds}
+                onUnhoverBounds={app.onUnhoverBounds}
+                onReleaseBounds={app.onReleaseBounds}
+                onPointBoundsHandle={app.onPointBoundsHandle}
+                onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
+                onRightPointBoundsHandle={app.onRightPointBoundsHandle}
+                onDragBoundsHandle={app.onDragBoundsHandle}
+                onHoverBoundsHandle={app.onHoverBoundsHandle}
+                onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
+                onReleaseBoundsHandle={app.onReleaseBoundsHandle}
+                onPointHandle={app.onPointHandle}
+                onDoubleClickHandle={app.onDoubleClickHandle}
+                onRightPointHandle={app.onRightPointHandle}
+                onDragHandle={app.onDragHandle}
+                onHoverHandle={app.onHoverHandle}
+                onUnhoverHandle={app.onUnhoverHandle}
+                onReleaseHandle={app.onReleaseHandle}
+                onError={app.onError}
+                onRenderCountChange={app.onRenderCountChange}
+                onShapeChange={app.onShapeChange}
+                onShapeBlur={app.onShapeBlur}
+                onShapeClone={app.onShapeClone}
+                onBoundsChange={app.updateBounds}
+                onKeyDown={app.onKeyDown}
+                onKeyUp={app.onKeyUp}
+                onDragOver={app.onDragOver}
+                onDrop={app.onDrop}
               />
-              <StyledSpacer />
-              {showTools && !readOnly && <ToolsPanel onBlur={handleMenuBlur} />}
-            </>
+            </ErrorBoundary>
+          </ContextMenu>
+          {showUI && (
+            <StyledUI ref={setDialogContainer}>
+              {settings.isFocusMode ? (
+                <FocusButton onSelect={app.toggleFocusMode} />
+              ) : (
+                <>
+                  <TopPanel
+                    readOnly={readOnly}
+                    showPages={showPages}
+                    showMenu={showMenu}
+                    showMultiplayerMenu={showMultiplayerMenu}
+                    showStyles={showStyles}
+                    showZoom={showZoom}
+                  />
+                  <StyledSpacer />
+                  {showTools && !readOnly && <ToolsPanel />}
+                </>
+              )}
+            </StyledUI>
           )}
-        </StyledUI>
-      )}
-    </StyledLayout>
+        </StyledLayout>
+      </IntlProvider>
+    </ContainerContext.Provider>
   )
 })
 

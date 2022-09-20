@@ -1,49 +1,30 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Tldraw, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
-import { createClient } from '@liveblocks/client'
-import { LiveblocksProvider, RoomProvider } from '@liveblocks/react'
-import { useAccountHandlers } from '-hooks/useAccountHandlers'
-import { styled } from '-styles'
-import { useMultiplayerState } from '-hooks/useMultiplayerState'
+import { useMultiplayerAssets } from '~hooks/useMultiplayerAssets'
+import { useMultiplayerState } from '~hooks/useMultiplayerState'
+import { useUploadAssets } from '~hooks/useUploadAssets'
+import { styled } from '~styles'
+import { RoomProvider } from '~utils/liveblocks'
 
-const client = createClient({
-  publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_API_KEY || '',
-  throttle: 80,
-})
-
-export default function MultiplayerEditor({
-  roomId,
-  isUser = false,
-  isSponsor = false,
-}: {
+interface Props {
   roomId: string
-  isUser: boolean
-  isSponsor: boolean
-}) {
+}
+
+const MultiplayerEditor = ({ roomId }: Props) => {
   return (
-    <LiveblocksProvider client={client}>
-      <RoomProvider id={roomId} defaultStorageRoot={TldrawApp.defaultDocument}>
-        <Editor roomId={roomId} isSponsor={isSponsor} isUser={isUser} />
-      </RoomProvider>
-    </LiveblocksProvider>
+    <RoomProvider id={roomId}>
+      <Editor roomId={roomId} />
+    </RoomProvider>
   )
 }
 
 // Inner Editor
 
-function Editor({
-  roomId,
-  isUser,
-  isSponsor,
-}: {
-  roomId: string
-  isUser: boolean
-  isSponsor: boolean
-}) {
+function Editor({ roomId }: Props) {
   const fileSystemEvents = useFileSystem()
-  const { onSignIn, onSignOut } = useAccountHandlers()
   const { error, ...events } = useMultiplayerState(roomId)
+  const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
+  const { onAssetUpload } = useUploadAssets()
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
@@ -51,16 +32,19 @@ function Editor({
     <div className="tldraw">
       <Tldraw
         autofocus
+        disableAssets={false}
         showPages={false}
-        showSponsorLink={isSponsor}
-        onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={isUser ? onSignOut : undefined}
+        onAssetCreate={onAssetCreate}
+        onAssetDelete={onAssetDelete}
+        onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
         {...events}
       />
     </div>
   )
 }
+
+export default MultiplayerEditor
 
 const LoadingScreen = styled('div', {
   position: 'absolute',

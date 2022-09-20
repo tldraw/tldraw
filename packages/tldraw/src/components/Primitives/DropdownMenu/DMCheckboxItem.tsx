@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { CheckboxItem } from '@radix-ui/react-dropdown-menu'
+import * as React from 'react'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { preventEvent } from '~components/preventEvent'
 
@@ -10,6 +10,7 @@ interface DMCheckboxItemProps {
   children: React.ReactNode
   variant?: RowButtonProps['variant']
   kbd?: string
+  id?: string
 }
 
 export function DMCheckboxItem({
@@ -18,8 +19,9 @@ export function DMCheckboxItem({
   variant,
   onCheckedChange,
   kbd,
+  id,
   children,
-}: DMCheckboxItemProps): JSX.Element {
+}: DMCheckboxItemProps) {
   return (
     <CheckboxItem
       dir="ltr"
@@ -28,6 +30,7 @@ export function DMCheckboxItem({
       checked={checked}
       disabled={disabled}
       asChild
+      id={id}
     >
       <RowButton kbd={kbd} variant={variant} hasIndicator>
         {children}

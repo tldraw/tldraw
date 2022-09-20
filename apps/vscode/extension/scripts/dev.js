@@ -2,6 +2,8 @@
 const fs = require('fs')
 const esbuild = require('esbuild')
 
+const { log: jslog } = console
+
 async function main() {
   if (fs.existsSync('./dist')) {
     fs.rmSync('./dist', { recursive: true }, (e) => {
@@ -20,6 +22,7 @@ async function main() {
       format: 'cjs',
       target: 'es6',
       sourcemap: 'inline',
+      platform: 'node',
       define: {
         'process.env.NODE_ENV': '"development"',
       },
@@ -28,15 +31,15 @@ async function main() {
       incremental: true,
       watch: {
         onRebuild(err) {
-          err ? console.error('❌ Failed') : console.log('✅ Updated')
+          err ? console.error('❌ Failed') : jslog('✅ Updated')
         },
       },
     })
 
-    console.log(`Built package.`)
+    jslog(`Built package.`)
   } catch (e) {
-    console.log(`× Build failed due to an error.`)
-    console.log(e)
+    jslog(`× Build failed due to an error.`)
+    jslog(e)
   }
 }
 

@@ -1,4 +1,5 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { Vec } from '@tldraw/vec'
+import { TldrawTestApp, mockDocument } from '~test'
 import { GroupShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Translate session', () => {
@@ -114,15 +115,16 @@ describe('Translate session', () => {
 
     expect(Object.keys(app.getPage().shapes).length).toBe(5)
 
-    app.movePointer({ x: 30, y: 30 })
+    app.movePointer({ x: 20, y: 20, altKey: false })
 
     expect(Object.keys(app.getPage().shapes).length).toBe(3)
 
     app.completeSession()
 
     // Original position + delta
-    expect(app.getShape('rect1').point).toStrictEqual([30, 30])
-    expect(app.getShape('rect2').point).toStrictEqual([130, 130])
+    const rectPoint = app.getShape('rect1').point
+    expect(app.getShape('rect1').point).toStrictEqual(rectPoint)
+    expect(app.getShape('rect2').point).toStrictEqual([110, 110])
 
     expect(Object.keys(app.page.shapes)).toStrictEqual(['rect1', 'rect2', 'rect3'])
   })
@@ -211,6 +213,7 @@ describe('Translate session', () => {
         .movePointer({ x: 20, y: 20, altKey: true })
         .completeSession()
 
+      const rectPoint = app.getShape('rect1').point
       const children = app.getShape<GroupShape>('groupA').children
       const newShapeId = children[children.length - 1]
 
@@ -218,7 +221,7 @@ describe('Translate session', () => {
       expect(app.getShape<GroupShape>('groupA').children.length).toBe(3)
       expect(app.getShape('rect1').point).toStrictEqual([0, 0])
       expect(app.getShape('rect2').point).toStrictEqual([100, 100])
-      expect(app.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(app.getShape(newShapeId).point).toStrictEqual(Vec.add(rectPoint, [10, 10]))
       expect(app.getShape(newShapeId).parentId).toBe('groupA')
 
       app.undo()
@@ -235,7 +238,7 @@ describe('Translate session', () => {
       expect(app.getShape<GroupShape>('groupA').children.length).toBe(3)
       expect(app.getShape('rect1').point).toStrictEqual([0, 0])
       expect(app.getShape('rect2').point).toStrictEqual([100, 100])
-      expect(app.getShape(newShapeId).point).toStrictEqual([20, 20])
+      expect(app.getShape(newShapeId).point).toStrictEqual(Vec.add(rectPoint, [10, 10]))
       expect(app.getShape(newShapeId).parentId).toBe('groupA')
     })
   })

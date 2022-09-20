@@ -4,6 +4,8 @@ const fs = require('fs')
 const pkg = require('../package.json')
 const { exec } = require('child_process')
 
+const { log: jslog } = console
+
 async function main() {
   if (fs.existsSync('./editor')) {
     fs.rmSync('./editor', { recursive: true }, (e) => {
@@ -35,8 +37,8 @@ async function main() {
       }
     )
   } catch (e) {
-    console.log(`× ${pkg.name}: Build failed due to an error.`)
-    console.log(e)
+    jslog(`× ${pkg.name}: Build failed due to an error.`)
+    jslog(e)
   }
 }
 

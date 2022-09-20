@@ -1,11 +1,10 @@
-import * as React from 'react'
-import { IdProvider } from '@radix-ui/react-id'
-import { TldrawApp } from '~state'
-import { useKeyboardShortcuts, TldrawContext } from '~hooks'
-import { mockDocument } from './mockDocument'
 import { render } from '@testing-library/react'
+import * as React from 'react'
+import { TldrawContext, useKeyboardShortcuts } from '~hooks'
+import { TldrawApp } from '~state'
+import { mockDocument } from './mockDocument'
 
-export const Wrapper: React.FC = ({ children }) => {
+export const Wrapper = ({ children }: { children: any }) => {
   const [app] = React.useState(() => new TldrawApp())
   const [context] = React.useState(() => {
     return app
@@ -22,13 +21,11 @@ export const Wrapper: React.FC = ({ children }) => {
 
   return (
     <TldrawContext.Provider value={context}>
-      <IdProvider>
-        <div ref={rWrapper}>{children}</div>
-      </IdProvider>
+      <div ref={rWrapper}>{children}</div>
     </TldrawContext.Provider>
   )
 }
 
-export const renderWithContext = (children: JSX.Element) => {
+export const renderWithContext = (children: React.ReactNode) => {
   return render(<Wrapper>{children}</Wrapper>)
 }

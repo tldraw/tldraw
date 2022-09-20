@@ -1,126 +1,46 @@
 <div style="text-align: center; transform: scale(.5);">
-  <img src="card-repo.png"/>
+  <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
-# @tldraw/tldraw
+![A screenshot of the tldraw web app](https://github.com/tldraw/tldraw/raw/main/assets/screenshot.png)
 
-This package contains the [tldraw](https://tldraw.com) editor as a React component named `<Tldraw>`. You can use this package to embed the editor in any React application.
-
-💕 Love this library? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
+Welcome to the [tldraw](https://tldraw.com) monorepo.
 
 🙌 Questions? Join the [Discord channel](https://discord.gg/SBBEVCA4PG) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
 
-🎨 Want to build your own tldraw-ish app instead? Try the **@tldraw/core** folder instead.
+💕 Love this project? Consider [becoming a sponsor](https://github.com/sponsors/steveruizok?frequency=recurring&sponsor=steveruizok).
 
-## Installation
+## Contents
 
-Use your package manager of choice to install `@tldraw/tldraw` and its peer dependencies.
+This repository is a monorepo containing two packages:
 
-```bash
-yarn add @tldraw/tldraw
-# or
-npm i @tldraw/tldraw
-```
+- [**packages/tldraw**](https://github.com/tldraw/tldraw/tree/main/packages/tldraw) contains the source for the [@tldraw/tldraw](https://www.npmjs.com/package/@tldraw/tldraw) package. This is an editor as a React component named `<Tldraw>`. You can use this package to embed the tldraw editor in any React application.
+- [**packages/core**](https://github.com/tldraw/tldraw/tree/main/packages/core) contains the source for the [@tldraw/core](https://www.npmjs.com/package/@tldraw/core) package. This is a renderer for React components in a canvas-style UI. It is used by `@tldraw/tldraw` as well as several other projects.
 
-## Usage
+...and two apps:
 
-Import the `tldraw` React component and use it in your app.
+- [**apps/www**](https://github.com/tldraw/tldraw/tree/main/apps/www) contains the source for the [tldraw.com](https://tldraw.com) website.
+- [**apps/vscode**](https://github.com/tldraw/tldraw/tree/main/apps/vscode) contains the source for the [tldraw VS Code extension](https://marketplace.visualstudio.com/items?itemName=tldraw-org.tldraw-vscode).
 
-```tsx
-import { Tldraw } from '@tldraw/tldraw'
+...and three examples:
 
-function App() {
-  return <Tldraw />
-}
-```
+- [**examples/core-example**](https://github.com/tldraw/tldraw/tree/main/examples/core-example) is a simple example for `@tldraw/core`.
+- [**examples/core-example-advanced**](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) is a second example for `@tldraw/core`.
+- [**examples/tldraw-example**](https://github.com/tldraw/tldraw/tree/main/examples/tldraw-example) is an example for `@tldraw/tldraw`.
 
-### Persisting the State
+## Discussion
 
-You can use the `id` to persist the state in a user's browser storage.
-
-```tsx
-import { Tldraw } from '@tldraw/tldraw'
-
-function App() {
-  return <Tldraw id="myState" />
-}
-```
-
-### Controlling the Component through Props
-
-You can control the `<Tldraw/>` component through its props.
-
-```tsx
-import { Tldraw, TDDocument } from '@tldraw/tldraw'
-
-function App() {
-  const myDocument: TDDocument = {}
-
-  return <Tldraw document={document} />
-}
-```
-
-### Controlling the Component through the tldrawApp API
-
-You can also control the `<Tldraw/>` component imperatively through the `TldrawApp` API.
-
-```tsx
-import { Tldraw, tldrawApp } from '@tldraw/tldraw'
-
-function App() {
-  const handleMount = React.useCallback((app: TldrawApp) => {
-    app.selectAll()
-  }, [])
-
-  return <Tldraw onMount={handleMount} />
-}
-```
-
-Internally, the `<Tldraw/>` component's user interface uses this API to make changes to the component's state. See the `tldrawApp` section of the [documentation](packages/tldraw/guides/documentation.md) for more on this API.
-
-### Responding to Changes
-
-You can respond to changes and user actions using the `onChange` callback. For more specific changes, you can also use the `onPatch`, `onCommand`, or `onPersist` callbacks. See the [documentation](packages/tldraw/guides/documentation.md) for more.
-
-```tsx
-import { Tldraw, TldrawApp } from '@tldraw/tldraw'
-
-function App() {
-  const handleChange = React.useCallback((app: TldrawApp, reason: string) => {
-    // Do something with the change
-  }, [])
-
-  return <Tldraw onMount={handleMount} />
-}
-```
-
-## Documentation
-
-See the project's [documentation](packages/tldraw/guides/documentation.md).
+Want to connect? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
 
 ## Contribution
 
-See the [contributing guide](/CONTRIBUTING.md).
+Interested in contributing? See the [contributing guide](/CONTRIBUTING.md).
 
-## Development
-
-See the [development guide](packages/tldraw/guides/development.md).
-
-## Example
-
-See the `example` folder for examples of how to use the `<Tldraw/>` component.
-
-## Community
-
-### Support
+## Support
 
 Need help? Please [open an issue](https://github.com/tldraw/tldraw/issues/new) for support.
 
-### Discussion
-
-Want to connect with other devs? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
-
-### License
+## License
 
 This project is licensed under MIT.
 

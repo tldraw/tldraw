@@ -1,7 +1,13 @@
 import { Utils } from '@tldraw/core'
-import { getStrokeOutlinePoints, getStrokePoints, StrokeOptions } from 'perfect-freehand'
+import Vec from '@tldraw/vec'
+import {
+  StrokeOptions,
+  StrokePoint,
+  getStrokeOutlinePoints,
+  getStrokePoints,
+} from 'perfect-freehand'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { DrawShape } from '~types'
-import { getShapeStyle } from '../shared/shape-styles'
 
 const simulatePressureSettings: StrokeOptions = {
   easing: (t) => Math.sin((t * Math.PI) / 2),
@@ -45,15 +51,9 @@ export function getDrawStrokePoints(shape: DrawShape, options: StrokeOptions) {
  */
 export function getDrawStrokePathTDSnapshot(shape: DrawShape) {
   if (shape.points.length < 2) return ''
-
   const options = getFreehandOptions(shape)
-
   const strokePoints = getDrawStrokePoints(shape, options)
-
-  const stroke = getStrokeOutlinePoints(strokePoints, options)
-
-  const path = Utils.getSvgPathFromStroke(stroke)
-
+  const path = Utils.getSvgPathFromStroke(getStrokeOutlinePoints(strokePoints, options))
   return path
 }
 
@@ -62,14 +62,11 @@ export function getDrawStrokePathTDSnapshot(shape: DrawShape) {
  */
 export function getSolidStrokePathTDSnapshot(shape: DrawShape) {
   const { points } = shape
-
   if (points.length < 2) return 'M 0 0 L 0 0'
-
   const options = getFreehandOptions(shape)
-
-  const strokePoints = getDrawStrokePoints(shape, options).map((pt) => pt.point.slice(0, 2))
-
-  const path = Utils.getSvgPathFromStroke(strokePoints, false)
-
+  const strokePoints = getDrawStrokePoints(shape, options)
+  const last = points[points.length - 1]
+  if (!Vec.isEqual(strokePoints[0].point, last)) strokePoints.push({ point: last } as StrokePoint)
+  const path = Utils.getSvgPathFromStrokePoints(strokePoints)
   return path
 }

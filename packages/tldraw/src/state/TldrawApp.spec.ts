@@ -1,12 +1,15 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
+import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
+
+window.focus = jest.fn()
+global.console.warn = jest.fn()
 
 describe('TldrawTestApp', () => {
   describe('When copying and pasting...', () => {
     it('copies a shape', () => {
-      const app = new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
+      new TldrawTestApp().loadDocument(mockDocument).selectNone().copy(['rect1'])
     })
 
     it('pastes a shape', () => {
@@ -42,6 +45,8 @@ describe('TldrawTestApp', () => {
 
       expect(Object.keys(app.page.shapes).length).toBe(1)
     })
+
+    it.todo('Copies and pastes a shape with an asset')
 
     it('Copies grouped shapes.', () => {
       const app = new TldrawTestApp()
@@ -320,12 +325,12 @@ describe('TldrawTestApp', () => {
     })
   })
 
-  describe('Copies to JSON', () => {
+  test('Copies to JSON', () => {
     const app = new TldrawTestApp().loadDocument(mockDocument).selectAll()
     expect(app.copyJson()).toMatchSnapshot('copied json')
   })
 
-  describe('Mutates bound shapes', () => {
+  test('Mutates bound shapes', () => {
     const app = new TldrawTestApp()
       .createShapes(
         {
@@ -347,8 +352,10 @@ describe('TldrawTestApp', () => {
       .startSession(SessionType.Arrow, 'arrow', 'start')
       .movePointer([10, 10])
       .completeSession()
-      .selectAll()
-      .style({ color: ColorStyle.Red })
+
+    expect(app.bindings.length).toBe(1)
+
+    app.selectAll().style({ color: ColorStyle.Red })
 
     expect(app.getShape('arrow').style.color).toBe(ColorStyle.Red)
     expect(app.getShape('rect').style.color).toBe(ColorStyle.Red)
@@ -448,7 +455,10 @@ describe('TldrawTestApp', () => {
 
       const prevA = app.shapes.map((shape) => shape.id)
 
-      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app
+        .pointCanvas({ x: 0, y: 0 })
+        .movePointer({ x: 100, y: 100 })
+        .stopPointing('canvas', [100, 100])
 
       const newIdA = app.shapes.map((shape) => shape.id).find((id) => !prevA.includes(id))!
       const shapeA = app.getShape(newIdA)
@@ -463,7 +473,10 @@ describe('TldrawTestApp', () => {
 
       const prevB = app.shapes.map((shape) => shape.id)
 
-      app.pointCanvas({ x: 0, y: 0 }).movePointer({ x: 100, y: 100 }).stopPointing()
+      app
+        .pointCanvas({ x: 0, y: 0 })
+        .movePointer({ x: 100, y: 100 })
+        .stopPointing('canvas', [100, 100])
 
       const newIdB = app.shapes.map((shape) => shape.id).find((id) => !prevB.includes(id))!
       const shapeB = app.getShape(newIdB)
@@ -558,8 +571,8 @@ describe('TldrawTestApp', () => {
   })
 
   describe('When copying to SVG', () => {
-    it('Copies shapes.', () => {
-      const result = new TldrawTestApp()
+    it('Copies shapes.', async () => {
+      const result = await new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1')
         .rotate(0.1)
@@ -568,8 +581,8 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg')
     })
 
-    it('Copies grouped shapes.', () => {
-      const result = new TldrawTestApp()
+    it('Copies grouped shapes.', async () => {
+      const result = await new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
         .group()
@@ -579,21 +592,30 @@ describe('TldrawTestApp', () => {
       expect(result).toMatchSnapshot('copied svg with group')
     })
 
-    it.todo('Copies Text shapes as <text> elements.')
-    // it('Copies Text shapes as <text> elements.', () => {
-    //   const state2 = new TldrawTestApp()
+    it('Respects child index', async () => {
+      const result = await new TldrawTestApp()
+        .loadDocument(mockDocument)
+        .moveToBack(['rect2'])
+        .selectAll()
+        .copySvg()
 
-    //   const svgString = state2
-    //     .createShapes({
-    //       id: 'text1',
-    //       type: TDShapeType.Text,
-    //       text: 'hello world!',
-    //     })
-    //     .select('text1')
-    //     .copySvg()
+      expect(result).toMatchSnapshot('copied svg with reordered elements')
+    })
 
-    //   expect(svgString).toBeTruthy()
-    // })
+    it('Copies Text shapes as <text> elements.', async () => {
+      const state2 = new TldrawTestApp()
+
+      const svgString = await state2
+        .createShapes({
+          id: 'text1',
+          type: TDShapeType.Text,
+          text: 'hello world!',
+        })
+        .select('text1')
+        .copySvg()
+
+      expect(svgString).toBeTruthy()
+    })
   })
 
   describe('when the document prop changes', () => {
@@ -622,40 +644,128 @@ describe('TldrawTestApp', () => {
   jest.setTimeout(10000)
 
   describe('When changing versions', () => {
-    it('migrates correctly', (done) => {
+    it('migrates correctly', async () => {
       const defaultState = TldrawTestApp.defaultState
-
       const withoutRoom = {
         ...defaultState,
       }
-
       delete withoutRoom.room
-
       TldrawTestApp.defaultState = withoutRoom
-
       const app = new TldrawTestApp('migrate_1')
-
+      await app.ready
       app.createShapes({
         id: 'rect1',
         type: TDShapeType.Rectangle,
       })
+      TldrawTestApp.version = 100
+      TldrawTestApp.defaultState.room = defaultState.room
+      const app2 = new TldrawTestApp('migrate_1')
+      await app2.ready
+      expect(app2.getShape('rect1')).toBeTruthy()
 
-      setTimeout(() => {
-        // TODO: Force the version to change and restore room.
-        TldrawTestApp.version = 100
-        TldrawTestApp.defaultState.room = defaultState.room
-
-        const app2 = new TldrawTestApp('migrate_1')
-
-        setTimeout(() => {
-          try {
-            expect(app2.getShape('rect1')).toBeTruthy()
-            done()
-          } catch (e) {
-            done(e)
-          }
-        }, 100)
-      }, 100)
+      return
     })
+  })
+
+  describe('When replacing the page content', () => {
+    it('Should update the page with the correct shapes and bindings.', async () => {
+      const shapes = deepCopy(mockDocument.pages.page1.shapes)
+      const bindings = deepCopy(mockDocument.pages.page1.bindings)
+      const app = new TldrawTestApp('multiplayer', {
+        onChangePage: () => {
+          //
+        },
+      })
+      await app.ready
+      app.createPage('page2')
+      expect(app.currentPageId).toBe('page2')
+      app.replacePageContent(shapes, bindings, {})
+      expect(app.shapes).toMatchObject(
+        Object.values(shapes).map((s) => ({ ...s, parentId: 'page2' }))
+      )
+      expect(app.bindings).toMatchObject(Object.values(bindings))
+    })
+
+    it('should update the page shapes after the settings have been updated', async () => {
+      const shapes = deepCopy(mockDocument.pages.page1.shapes)
+      const bindings = deepCopy(mockDocument.pages.page1.bindings)
+      const app = new TldrawTestApp('multiplayer', {
+        onChangePage: () => {
+          //
+        },
+      })
+      await app.ready
+      app.createPage('page2')
+      expect(app.currentPageId).toBe('page2')
+      expect(shapes.rect1.parentId).toBe('page1')
+      app.setSetting('isDebugMode', true)
+      app.replacePageContent(shapes, bindings, {})
+      expect(app.shapes).toMatchObject(
+        Object.values(shapes).map((s) => ({ ...s, parentId: 'page2' }))
+      )
+      expect(app.bindings).toMatchObject(Object.values(bindings))
+    })
+  })
+
+  describe('When selecting a box', () => {
+    const app = new TldrawTestApp()
+    app
+      .createShapes({ id: 'box1', type: TDShapeType.Rectangle, point: [0, 0], size: [100, 100] })
+      .pointCanvas([-50, 20])
+      .movePointer([50, 50])
+      .movePointer([50, 51])
+      .expectSelectedIdsToBe(['box1'])
+  })
+})
+
+describe('When adding an image', () => {
+  it.todo('Adds the image to the assets table')
+  it.todo('Does not add the image if that image already exists as an asset')
+})
+
+describe('When adding a video', () => {
+  it.todo('Adds the video to the assets table')
+  it.todo('Does not add the video if that video already exists as an asset')
+})
+
+describe('When space panning', () => {
+  it('pans camera when spacebar is down', () => {
+    // global.console.warn = jest.fn()
+    const app = new TldrawTestApp()
+    expect(app.pageState.camera.point).toMatchObject([0, 0])
+    app.movePointer([0, 0])
+    app.pointCanvas([0, 0])
+    app.pressKey(' ')
+    expect(app.isForcePanning).toBe(true)
+    expect(app.isPointing).toBe(true)
+    expect(app.currentTool.status).toBe('pointingCanvas')
+    app.movePointer([100, 100])
+    // Should not change to "brushing"
+    expect(app.currentTool.status).toBe('pointingCanvas')
+    app.releaseKey(' ')
+    app.stopPointing()
+    expect(app.pageState.camera.point).toMatchObject([100, 100])
+    // expect(global.console.warn).not.toHaveBeenCalled()
+  })
+
+  it('pans camera in any state', () => {
+    const app = new TldrawTestApp()
+    app.selectTool(TDShapeType.Rectangle)
+    expect(app.pageState.camera.point).toMatchObject([0, 0])
+    app.movePointer([0, 0])
+    app.pointCanvas([0, 0])
+    app.movePointer([100, 100])
+    expect(app.currentTool.status).toBe('creating')
+    expect(app.isForcePanning).toBe(false)
+    expect(app.isPointing).toBe(true)
+    app.pressKey(' ')
+    expect(app.isForcePanning).toBe(true)
+    expect(app.isPointing).toBe(true)
+    app.movePointer([200, 200])
+    expect(app.pageState.camera.point).toMatchObject([100, 100])
+    expect(app.currentTool.status).toBe('creating')
+    app.releaseKey(' ')
+    app.stopPointing()
+    expect(app.currentTool.status).toBe('idle')
   })
 })

@@ -1,5 +1,5 @@
-import type { TDShape, TldrawCommand } from '~types'
 import type { TldrawApp } from '~state'
+import type { TDShape, TldrawCommand } from '~types'
 
 export function setShapesProps<T extends TDShape>(
   app: TldrawApp,

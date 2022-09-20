@@ -1,5 +1,5 @@
 import * as React from 'react'
-import type { TLBoundsEdge, TLBoundsCorner } from '../types'
+import type { TLBoundsCorner, TLBoundsEdge } from '~types'
 import { useTLContext } from './useTLContext'
 
 export function useBoundsHandleEvents(
@@ -9,13 +9,24 @@ export function useBoundsHandleEvents(
 
   const onPointerDown = React.useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
+      if ((e as any).dead) return
+      else (e as any).dead = true
       if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
-      e.currentTarget?.setPointerCapture(e.pointerId)
+
       const info = inputs.pointerDown(e, id)
 
-      callbacks.onPointBoundsHandle?.(info, e)
+      if (e.button === 2) {
+        // On right click
+        callbacks.onRightPointBoundsHandle?.(info, e)
+        return
+      }
+
+      // On left click
+      if (e.button === 0) {
+        callbacks.onPointBoundsHandle?.(info, e)
+      }
+
+      // On middle or left click
       callbacks.onPointerDown?.(info, e)
     },
     [inputs, callbacks, id]
@@ -23,21 +34,27 @@ export function useBoundsHandleEvents(
 
   const onPointerUp = React.useCallback(
     (e: React.PointerEvent) => {
-      if (e.button !== 0) return
-      if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
-      const isDoubleClick = inputs.isDoubleClick()
+      if ((e as any).dead) return
+      else (e as any).dead = true
+
+      // On right click
+      if (e.button === 2 || !inputs.pointerIsValid(e)) return
+
       const info = inputs.pointerUp(e, id)
 
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        e.currentTarget?.releasePointerCapture(e.pointerId)
+      const isDoubleClick = inputs.isDoubleClick()
+
+      // On left click up
+      if (e.button === 0) {
+        // On double left click
+        if (isDoubleClick && !(info.altKey || info.metaKey)) {
+          callbacks.onDoubleClickBoundsHandle?.(info, e)
+        }
+
+        callbacks.onReleaseBoundsHandle?.(info, e)
       }
 
-      if (isDoubleClick && !(info.altKey || info.metaKey)) {
-        callbacks.onDoubleClickBoundsHandle?.(info, e)
-      }
-
-      callbacks.onReleaseBoundsHandle?.(info, e)
+      // On middle or left click up
       callbacks.onPointerUp?.(info, e)
     },
     [inputs, callbacks, id]
@@ -45,13 +62,26 @@ export function useBoundsHandleEvents(
 
   const onPointerMove = React.useCallback(
     (e: React.PointerEvent) => {
-      if (!inputs.pointerIsValid(e)) return
-      e.stopPropagation()
+      if ((e as any).dead) return
+      else (e as any).dead = true
 
-      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-        callbacks.onDragBoundsHandle?.(inputs.pointerMove(e, id), e)
+      if (!inputs.pointerIsValid(e)) return
+
+      // On right click
+      if (e.buttons === 2) {
+        return
       }
+
       const info = inputs.pointerMove(e, id)
+
+      // On left click drag
+      if (e.buttons === 1) {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+          callbacks.onDragBoundsHandle?.(info, e)
+        }
+      }
+
+      // On left or middle click drag
       callbacks.onPointerMove?.(info, e)
     },
     [inputs, callbacks, id]

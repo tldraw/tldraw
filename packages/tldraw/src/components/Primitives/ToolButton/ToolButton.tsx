@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { breakpoints } from '~components/breakpoints'
 import { Tooltip } from '~components/Primitives/Tooltip'
+import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 
@@ -10,10 +10,11 @@ export interface ToolButtonProps {
   onDoubleClick?: () => void
   disabled?: boolean
   isActive?: boolean
-  isSponsor?: boolean
   isToolLocked?: boolean
   variant?: 'icon' | 'text' | 'circle' | 'primary'
   children: React.ReactNode
+  id?: string
+  onKeyDown?: React.KeyboardEventHandler<HTMLButtonElement>
 }
 
 export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
@@ -27,7 +28,8 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       isToolLocked = false,
       disabled = false,
       isActive = false,
-      isSponsor = false,
+      onKeyDown,
+      id,
       ...rest
     },
     ref
@@ -36,13 +38,14 @@ export const ToolButton = React.forwardRef<HTMLButtonElement, ToolButtonProps>(
       <StyledToolButton
         ref={ref}
         isActive={isActive}
-        isSponsor={isSponsor}
         variant={variant}
         onClick={onClick}
         disabled={disabled}
         onPointerDown={onSelect}
         onDoubleClick={onDoubleClick}
+        onKeyDown={onKeyDown}
         bp={breakpoints}
+        id={id}
         {...rest}
       >
         <StyledToolButtonInner>{children}</StyledToolButtonInner>
@@ -72,6 +75,12 @@ export function ToolButtonWithTooltip({
     app.toggleToolLock()
   }, [])
 
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === ' ' && app.isForcePanning) {
+      e.preventDefault()
+    }
+  }, [])
+
   return (
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <ToolButton
@@ -79,6 +88,7 @@ export function ToolButtonWithTooltip({
         variant="primary"
         isToolLocked={isLocked && rest.isActive}
         onDoubleClick={handleDoubleClick}
+        onKeyDown={handleKeyDown}
       />
     </Tooltip>
   )
@@ -99,6 +109,8 @@ export const StyledToolButtonInner = styled('div', {
   userSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 })
 
 export const StyledToolButton = styled('button', {
@@ -114,9 +126,11 @@ export const StyledToolButton = styled('button', {
   outline: 'none',
   cursor: 'pointer',
   pointerEvents: 'all',
-  border: 'none',
   height: '40px',
   width: '40px',
+  border: '1px solid $panel',
+  '-webkit-tap-highlight-color': 'transparent',
+  'tap-highlight-color': 'transparent',
 
   [`&:disabled ${StyledToolButtonInner}`]: {
     opacity: 0.618,
@@ -141,10 +155,14 @@ export const StyledToolButton = styled('button', {
         [`& ${StyledToolButtonInner}`]: {
           fontSize: '$1',
           padding: '0 $3',
+          gap: '$3',
         },
       },
       circle: {
-        padding: '$2',
+        padding: 0,
+        height: 32,
+        width: 32,
+        border: 'none',
         [`& ${StyledToolButtonInner}`]: {
           border: '1px solid $panelContrast',
           borderRadius: '100%',
@@ -156,19 +174,14 @@ export const StyledToolButton = styled('button', {
         },
       },
     },
-    isSponsor: {
-      true: {
-        [`${StyledToolButtonInner}`]: {
-          backgroundColor: '$sponsorContrast',
-        },
-      },
-    },
     isActive: {
       true: {},
       false: {},
     },
     bp: {
-      mobile: {},
+      mobile: {
+        padding: 0,
+      },
       small: {},
     },
   },
@@ -177,8 +190,8 @@ export const StyledToolButton = styled('button', {
       variant: 'primary',
       bp: 'mobile',
       css: {
-        height: '40px',
-        width: '40px',
+        height: 40,
+        width: 36,
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 16,
           height: 16,
@@ -199,7 +212,6 @@ export const StyledToolButton = styled('button', {
     },
     {
       isActive: true,
-      isSponsor: false,
       css: {
         [`${StyledToolButtonInner}`]: {
           backgroundColor: '$selected',
@@ -209,12 +221,10 @@ export const StyledToolButton = styled('button', {
     },
     {
       isActive: false,
-      isSponsor: false,
       bp: 'small',
       css: {
         [`&:hover:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',
-          border: '1px solid $panel',
         },
         [`&:focus:not(:disabled) ${StyledToolButtonInner}`]: {
           backgroundColor: '$hover',

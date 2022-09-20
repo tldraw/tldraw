@@ -1,4 +1,514 @@
-## 1.1.2
+# Changelog
+
+## 1.24.5
+
+### Patch Changes
+
+- Fix mouse events.
+- Updated dependencies
+  - @tldraw/core@1.18.4
+
+## 1.24.4
+
+### Patch Changes
+
+- Fix menu bug.
+
+## 1.24.3
+
+### Patch Changes
+
+- Small bump.
+- Updated dependencies
+  - @tldraw/core@1.18.3
+
+## 1.24.2
+
+### Patch Changes
+
+- Fix bug with scrolling.
+- Updated dependencies
+  - @tldraw/core@1.18.2
+
+## 1.24.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+- Updated dependencies
+  - @tldraw/core@1.18.1
+
+## 1.24.0
+
+### Minor Changes
+
+- - Remove `mobx` and `mobx-react-lite` as dependencies. This is a breaking change for libraries that expect data to be observable in `@tldraw/core`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.0
+
+## 1.23.0
+
+### Minor Changes
+
+- - Improve middle mouse panning
+  - Fix bug with assets in VS Code plugin
+  - Improve performance of draw-style shapes
+  - Fix bug with creating assets
+  - Fix bug with text align in labels when outputting images
+  - Fix bug with middle mouse panning on Linux
+  - Fix bug with zoom shortcuts on number pad
+  - Fix bug with draw and erase direction when holding shift
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.17.0
+
+## 1.22.1
+
+### Patch Changes
+
+- Remove share by URL.
+
+## 1.22.0
+
+### Minor Changes
+
+- - Fix broken VS Code extension
+  - Add share by URL
+
+## 1.21.0
+
+### Minor Changes
+
+- - Improve text (and multiline text) in image exports
+  - Create European Portugese translation
+  - Create Swedish translation
+  - Use system default for theme default
+  - Update translation label for Chinese
+  - Fix bugs with flip command
+  - Fix bug with duplicate page command
+  - Improve dialogs
+  - Improve SVG pasting
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.16.0
+
+## 1.20.0
+
+### Minor Changes
+
+- - restores the sponsor link
+  - removes sign in / sign out / authentication / next-auth
+  - removes sponsorware page
+  - removes unused translation keys
+  - fixes dark mode on help icon
+  - improves border radius on panels
+  - fixes dividers on panels
+  - removes animated cursors (replace with CSS transitions for performance when - many cursors are present)
+  - removes unused icons
+  - adds migration for export default background option
+  - correctly normalizes mouse wheel
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.15.0
+
+## 1.19.0
+
+### Minor Changes
+
+- - Adds Ukrainian translations
+  - Adds Farsi translation
+  - Adds Hebrew translation
+  - Adds option for dock position
+  - Improves page numbering
+  - Support dark mode in menus
+  - Make language menu scrollable
+  - Adds link to translation guide
+
+## 1.18.3
+
+### Patch Changes
+
+- Fix bug when pressing escape while exiting text.
+
+## 1.18.2
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+- Updated dependencies
+  - @tldraw/core@1.14.1
+
+## 1.18.1
+
+### Patch Changes
+
+- Add additional translations.
+
+## 1.18.0
+
+### Minor Changes
+
+- 8ef86c19: - Updates multiplayer implementation.
+  - Adds translation guide.
+  - Fixes bug on text shape
+  - Updates undo redo for text shapes.
+
+## 1.17.2
+
+### Patch Changes
+
+- Replace multiplayer icon.
+
+## 1.17.1
+
+### Patch Changes
+
+- Fix clipboard bug in Firefox, add overwite option to `insertContent`.
+
+## 1.17.0
+
+### Minor Changes
+
+- Add getContent / insertContent, improve copy and paste position logic
+
+## 1.16.0
+
+### Minor Changes
+
+- d919bd27: Bump dependencies, add international support.
+
+### Patch Changes
+
+- Add internationalization, improve readonly mode, bump dependencies for React 18
+- Updated dependencies [d919bd27]
+- Updated dependencies
+  - @tldraw/core@1.14.0
+
+## 1.16.0-next.0
+
+### Minor Changes
+
+- Bump dependencies, add international support.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.14.0-next.0
+
+## 1.15.1
+
+### Patch Changes
+
+- Improve eraser scribble.
+- Updated dependencies
+  - @tldraw/core@1.13.1
+
+## 1.15.0
+
+### Minor Changes
+
+- Add erase line, bump dependencies.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.13.0
+
+## 1.14.2
+
+### Patch Changes
+
+- Fix keyboard events when style menu is open.
+
+## 1.14.1
+
+### Patch Changes
+
+- Move style panel to right corner.
+
+## 1.14.0
+
+### Minor Changes
+
+- Add option to keep style panel open.
+
+## 1.13.0
+
+### Minor Changes
+
+- Fixes zooming and pinching bugs. Adds ErrorBoundary to Tldraw component. Cleans up sponosrship feature in menu.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.12.0
+
+## 1.12.6
+
+### Patch Changes
+
+- Improve image export for files that include scaled or rotated text.
+
+## 1.12.5
+
+### Patch Changes
+
+- Improve clipboard, SVG text.
+- Updated dependencies
+  - @tldraw/core@1.11.1
+
+## 1.12.4
+
+### Patch Changes
+
+- Fix export on dark mode.
+
+## 1.12.3
+
+### Patch Changes
+
+- Fix clipboard events in editing text in vscode extension, fix outline for editing text in vscode extension.
+
+## 1.12.2
+
+### Patch Changes
+
+- Prevent clipboard events inside of text from reaching the document. Fix various clipboard-related bugs in tldraw.
+- Updated dependencies
+  - @tldraw/core@1.11.0
+
+## 1.12.1
+
+### Patch Changes
+
+- Fix tldraw assets for vscode extension.
+
+## 1.12.0
+
+### Minor Changes
+
+- This update changes how clipboard actions (cut, copy, paste) and exports work. Significantly, image exports are no longer handled via a server-side integration, and are instead handled locally on the client. This allows now for exports in the VS Code extension, as well as greatly simplifying exports for apps that embed the Tldraw React component.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.10.0
+
+## 1.11.1
+
+### Patch Changes
+
+- Add paste for assets.
+
+## 1.11.0
+
+### Minor Changes
+
+- Replace filehandling code.
+
+## 1.10.0
+
+### Minor Changes
+
+- c09d6a3a: Adds text field for page rename, undo buttons on all screen sizes, arrow behavior with alt key.
+
+## 1.9.3
+
+### Patch Changes
+
+- Fix bug with missing parents / children.
+
+## 1.9.2
+
+### Patch Changes
+
+- Fixes bug that would remove bindings to shapes when grouped.
+
+## 1.9.1
+
+### Patch Changes
+
+- Fix publish version.
+- Updated dependencies
+  - @tldraw/core@1.9.1
+
+## 1.9.0
+
+### Minor Changes
+
+- - Adds menu item for CAD-selection
+  - Adds scrolling to menus
+  - Fixes "dot" shapes created when clicking with geometric tools
+  - Fixes wrong text bounds when fonts load
+  - Adds export to VS Code extension.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.9.0
+
+## 1.8.1
+
+### Patch Changes
+
+- db93ebcc: Fixes text measurement bug.
+
+## 1.8.0
+
+### Minor Changes
+
+- Improves camera (zoom and pan).
+
+### Patch Changes
+
+- e8dd64ba: Fix text in multiplayer
+- Updated dependencies
+- Updated dependencies [e8dd64ba]
+  - @tldraw/core@1.8.0
+  - @tldraw/intersect@1.7.1
+
+## 1.7.0
+
+### Minor Changes
+
+- Update dependencies and monorepo.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.7.0
+  - @tldraw/intersect@1.7.0
+  - @tldraw/vec@1.7.0
+
+## 1.6.1
+
+- Fix label colors on arrows and triangles in dark mode
+- Fix label wobble on arrows
+- Fix debug mode when in production mode
+
+## 1.6.0
+
+- Improve arrow binding.
+- Fix bug where input pressure would not be accounted for.
+- Fix bug where upload media button would not work on multiplayer.
+- Adds sourcemap loader.
+- Adds ids to UI components.
+- Adds exports.
+
+## 1.5.2
+
+- Fix bounds and snapping on first load.
+
+## 1.5.1
+
+- Fix HTML content in text shape
+- Fix text shape bounding box size
+- Fix failed call when deleting assets
+- Fix crash when alt-click-copying image
+- Improves scroll wheel
+- Fixes SVGs in multiplayer
+- Fixes error on Load/Save
+- Fixes bug that could occur when erasing
+
+## 1.5.0
+
+- Fix context menu bug on mobile.
+- Support for assets (images and videos) in tldraw multiplayer.
+- Support for image exporting in tldraw.
+- Breaking change: changed `onImageCreate` and `onImageDelete` props to `onAssetCreate` and `onAssetDelete`.
+- Preserve application state between reloads.
+
+## 1.4.3
+
+- Update README
+- Update LICENSE year
+
+## 1.4.2
+
+- Fixes a bug where shapes could be deleted during an erasing session
+- Fixes a bug where groups could throw an error if a shape was missing
+
+## 1.4.1
+
+- Improves label placement, indicators and colors
+- Fixes a bug with missing labels when copying shapes to SVG
+- Fixes a bug with font when copying text to SVG
+- Fixes a bug with text placement when copying sticky notes to SVG
+
+## 1.4.0
+
+- Fixes bug with black canvas after double reload.
+- Fixes rendering bug with tiny images / videos.
+- Adds labels to rectangles, triangles, circles, lines and arrows.
+- Adds support for performance modes to sessions.
+
+## 1.3.0
+
+- Adds Video and Image shape types.
+
+## 1.2.9
+
+- Improves multiplayer cursor appearance.
+- Improves authentication and sponsor-related code.
+- Fixes bug where logged-out users could not access multiplayer rooms.
+- Fixes bug where sponsors would see sponsor prompt in multiplayer rooms.
+
+## 1.2.7
+
+- Fixes crash due to a missing ID provider.
+
+## 1.2.6
+
+- No minify on bundle.
+
+## 1.2.5
+
+- Triangles!
+- Improves selection logic.
+
+## 1.2.4
+
+- Fixes bug with `onPersist`.
+- Fixes knock-on bug with VS Code extension not saving.
+
+## 1.2.3
+
+- Updates multiplayer code.
+
+## 1.2.2
+
+- Updates @tldraw/core.
+
+## 1.1.6
+
+- Fix bug when creating arrows and lines.
+
+## 1.1.6
+
+- Adds spellcheck to text and stickies.
+
+## 1.1.6
+
+- Fixes bugs in VS Code extension.
+
+## 1.1.5
+
+- Adds grid, clone handles.
+
+## 1.1.4
+
+- Adds undo and redo buttons at smaller breakpoints.
+
+## 1.1.3
 
 - Adds ability to copying text / sticky notes.
 - Adds line tool (an arrow without decorations).

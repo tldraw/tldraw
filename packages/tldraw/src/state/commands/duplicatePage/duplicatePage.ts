@@ -1,14 +1,16 @@
-import type { TldrawCommand } from '~types'
 import { Utils } from '@tldraw/core'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import type { TldrawCommand } from '~types'
 
 export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
-  const newId = Utils.uniqueId()
   const {
     currentPageId,
-    page,
     pageState: { camera },
   } = app
+
+  const page = app.document.pages[pageId]
+
+  const newId = Utils.uniqueId()
 
   const nextPage = {
     ...page,
@@ -20,7 +22,7 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
           id,
           {
             ...shape,
-            parentId: shape.parentId === pageId ? newId : shape.parentId,
+            parentId: shape.parentId === page.id ? newId : shape.parentId,
           },
         ]
       })

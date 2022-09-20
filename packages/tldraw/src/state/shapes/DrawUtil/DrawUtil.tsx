@@ -1,21 +1,21 @@
-import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
-import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import * as React from 'react'
+import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
+import { DashStyle, DrawShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import {
   getDrawStrokePathTDSnapshot,
   getFillPath,
   getSolidStrokePathTDSnapshot,
 } from './drawHelpers'
-import { GHOSTED_OPACITY } from '~constants'
 
 type T = DrawShape
 type E = SVGSVGElement
@@ -30,6 +30,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
   rotatedCache = new WeakMap<T, number[][]>([])
 
   pointCache: Record<string, number[]> = {}
+
+  canClone = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -49,121 +51,131 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     )
   }
 
-  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, meta, isGhost, events }, ref) => {
-    const { points, style, isComplete } = shape
+  Component = TDShapeUtil.Component<T, E, TDMeta>(
+    ({ shape, meta, isSelected, isGhost, events }, ref) => {
+      const { points, style, isComplete } = shape
 
-    const polygonPathTDSnapshot = React.useMemo(() => {
-      return getFillPath(shape)
-    }, [points, style.size])
+      const polygonPathTDSnapshot = React.useMemo(() => {
+        return getFillPath(shape)
+      }, [points, style.size])
 
-    const pathTDSnapshot = React.useMemo(() => {
-      return style.dash === DashStyle.Draw
-        ? getDrawStrokePathTDSnapshot(shape)
-        : getSolidStrokePathTDSnapshot(shape)
-    }, [points, style.size, style.dash, isComplete])
+      const pathTDSnapshot = React.useMemo(() => {
+        return style.dash === DashStyle.Draw
+          ? getDrawStrokePathTDSnapshot(shape)
+          : getSolidStrokePathTDSnapshot(shape)
+      }, [points, style.size, style.dash, isComplete])
 
-    const styles = getShapeStyle(style, meta.isDarkMode)
-    const { stroke, fill, strokeWidth } = styles
+      const styles = getShapeStyle(style, meta.isDarkMode)
+      const { stroke, fill, strokeWidth } = styles
 
-    // For very short lines, draw a point instead of a line
-    const bounds = this.getBounds(shape)
+      // For very short lines, draw a point instead of a line
+      const bounds = this.getBounds(shape)
 
-    const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
+      const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
-    if (verySmall) {
-      const sw = 1 + strokeWidth
+      if (verySmall) {
+        const sw = 1 + strokeWidth
 
-      return (
-        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <circle
-            r={sw}
-            fill={stroke}
-            stroke={stroke}
-            pointerEvents="all"
-            opacity={isGhost ? GHOSTED_OPACITY : 1}
-          />
-        </SVGContainer>
-      )
-    }
+        return (
+          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+            <circle
+              r={sw}
+              fill={stroke}
+              stroke={stroke}
+              pointerEvents="all"
+              opacity={isGhost ? GHOSTED_OPACITY : 1}
+            />
+          </SVGContainer>
+        )
+      }
 
-    const shouldFill =
-      style.isFilled &&
-      points.length > 3 &&
-      Vec.dist(points[0], points[points.length - 1]) < strokeWidth * 2
+      const shouldFill =
+        style.isFilled &&
+        points.length > 3 &&
+        Vec.dist(points[0], points[points.length - 1]) < strokeWidth * 2
 
-    if (shape.style.dash === DashStyle.Draw) {
+      if (shape.style.dash === DashStyle.Draw) {
+        return (
+          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+            <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+              <path
+                className={shouldFill || isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+                d={pathTDSnapshot}
+              />
+              {shouldFill && (
+                <path
+                  d={polygonPathTDSnapshot}
+                  stroke="none"
+                  fill={fill}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  pointerEvents="none"
+                />
+              )}
+              <path
+                d={pathTDSnapshot}
+                fill={stroke}
+                stroke={stroke}
+                strokeWidth={strokeWidth / 2}
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                pointerEvents="none"
+              />
+            </g>
+          </SVGContainer>
+        )
+      }
+
+      // For solid, dash and dotted lines, draw a regular stroke path
+
+      const strokeDasharray = {
+        [DashStyle.Draw]: 'none',
+        [DashStyle.Solid]: `none`,
+        [DashStyle.Dotted]: `0.1 ${strokeWidth * 4}`,
+        [DashStyle.Dashed]: `${strokeWidth * 4} ${strokeWidth * 4}`,
+      }[style.dash as DashStyle]
+
+      const strokeDashoffset = {
+        [DashStyle.Draw]: 'none',
+        [DashStyle.Solid]: `none`,
+        [DashStyle.Dotted]: `0`,
+        [DashStyle.Dashed]: `0`,
+      }[style.dash as DashStyle]
+
+      const sw = 1 + strokeWidth * 1.5
+
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
-            {shouldFill && (
-              <path
-                d={polygonPathTDSnapshot}
-                stroke="none"
-                fill={fill}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                pointerEvents="fill"
-              />
-            )}
+            <path
+              className={shouldFill && isSelected ? 'tl-fill-hitarea' : 'tl-stroke-hitarea'}
+              d={pathTDSnapshot}
+            />
             <path
               d={pathTDSnapshot}
-              fill={stroke}
-              stroke={stroke}
-              strokeWidth={strokeWidth / 2}
+              fill={shouldFill ? fill : 'none'}
+              stroke="none"
+              strokeWidth={Math.min(4, strokeWidth * 2)}
               strokeLinejoin="round"
               strokeLinecap="round"
-              pointerEvents="all"
+              pointerEvents="none"
+            />
+            <path
+              d={pathTDSnapshot}
+              fill="none"
+              stroke={stroke}
+              strokeWidth={sw}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+              pointerEvents="none"
             />
           </g>
         </SVGContainer>
       )
     }
-
-    // For solid, dash and dotted lines, draw a regular stroke path
-
-    const strokeDasharray = {
-      [DashStyle.Draw]: 'none',
-      [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `0.1 ${strokeWidth * 4}`,
-      [DashStyle.Dashed]: `${strokeWidth * 4} ${strokeWidth * 4}`,
-    }[style.dash]
-
-    const strokeDashoffset = {
-      [DashStyle.Draw]: 'none',
-      [DashStyle.Solid]: `none`,
-      [DashStyle.Dotted]: `0`,
-      [DashStyle.Dashed]: `0`,
-    }[style.dash]
-
-    const sw = 1 + strokeWidth * 1.5
-
-    return (
-      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-        <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
-          <path
-            d={pathTDSnapshot}
-            fill={shouldFill ? fill : 'none'}
-            stroke="none"
-            strokeWidth={Math.min(4, strokeWidth * 2)}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            pointerEvents={shouldFill ? 'all' : 'stroke'}
-          />
-          <path
-            d={pathTDSnapshot}
-            fill="none"
-            stroke={stroke}
-            strokeWidth={sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            strokeLinejoin="round"
-            strokeLinecap="round"
-            pointerEvents="stroke"
-          />
-        </g>
-      </SVGContainer>
-    )
-  })
+  )
 
   Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { points } = shape
@@ -236,12 +248,10 @@ export class DrawUtil extends TDShapeUtil<T, E> {
       this.pointCache[shape.id] = shape.point
       this.shapeBoundsCache.set(
         shape.id,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         Utils.translateBounds(this.pointsBoundsCache.get(shape.points)!, shape.point)
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.shapeBoundsCache.get(shape.id)!
   }
 
@@ -264,8 +274,8 @@ export class DrawUtil extends TDShapeUtil<T, E> {
     const ptB = Vec.sub(B, point)
     const bounds = this.getBounds(shape)
 
-    if (points.length <= 2) {
-      return Vec.distanceToLineSegment(A, B, shape.point) < 4
+    if (bounds.width < 8 && bounds.height < 8) {
+      return Vec.distanceToLineSegment(A, B, Utils.getBoundsCenter(bounds)) < 5 // divide by zoom
     }
 
     if (intersectLineSegmentBounds(ptA, ptB, bounds)) {

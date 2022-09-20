@@ -1,17 +1,17 @@
 import {
-  TLBoundsCorner,
-  TLSnapLine,
-  TLBoundsEdge,
-  Utils,
-  TLBoundsWithCenter,
   TLBounds,
+  TLBoundsCorner,
+  TLBoundsEdge,
+  TLBoundsWithCenter,
+  TLSnapLine,
+  Utils,
 } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
-import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { SessionType, TDShape, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 type SnapInfo =
   | {
@@ -25,6 +25,7 @@ type SnapInfo =
 export class TransformSingleSession extends BaseSession {
   type = SessionType.TransformSingle
   status = TDStatus.Transforming
+  performanceMode = undefined
   transformType: TLBoundsEdge | TLBoundsCorner
   scaleX = 1
   scaleY = 1
@@ -70,13 +71,14 @@ export class TransformSingleSession extends BaseSession {
       initialShape,
       initialShapeBounds,
       app: {
-        settings: { isSnapping },
+        settings: { isSnapping, showGrid },
         currentPageId,
         pageState: { camera },
         viewport,
         currentPoint,
         previousPoint,
         originPoint,
+        currentGrid,
         shiftKey,
         altKey,
         metaKey,
@@ -85,11 +87,11 @@ export class TransformSingleSession extends BaseSession {
 
     if (initialShape.isLocked) return void null
 
+    const shapes = {} as Record<string, Partial<TDShape>>
+
     const delta = altKey
       ? Vec.mul(Vec.sub(currentPoint, originPoint), 2)
       : Vec.sub(currentPoint, originPoint)
-
-    const shapes = {} as Record<string, Partial<TDShape>>
 
     const shape = this.app.getShape(initialShape.id)
 
@@ -107,6 +109,13 @@ export class TransformSingleSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialShapeBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -157,6 +166,10 @@ export class TransformSingleSession extends BaseSession {
 
     if (afterShape) {
       shapes[shape.id] = afterShape
+    }
+
+    if (showGrid && afterShape && afterShape.point) {
+      afterShape.point = Vec.snap(afterShape.point, currentGrid)
     }
 
     return {
@@ -213,6 +226,10 @@ export class TransformSingleSession extends BaseSession {
     } = this
 
     if (initialShape.isLocked) return
+
+    if (this.isCreate && Vec.dist(this.app.originPoint, this.app.currentPoint) < 2) {
+      return this.cancel()
+    }
 
     const beforeShapes = {} as Record<string, Partial<TDShape> | undefined>
     const afterShapes = {} as Record<string, Partial<TDShape>>

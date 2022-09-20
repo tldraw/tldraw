@@ -1,9 +1,9 @@
-import createVanilla, { StoreApi } from 'zustand/vanilla'
-import create, { UseBoundStore } from 'zustand'
+import { Utils } from '@tldraw/core'
 import * as idb from 'idb-keyval'
+import create, { UseBoundStore } from 'zustand'
+import createVanilla, { StoreApi } from 'zustand/vanilla'
+import type { Command, Patch } from '~types'
 import { deepCopy } from './copy'
-import { merge } from './merge'
-import type { Patch, Command } from '../../types'
 
 export class StateManager<T extends Record<string, any>> {
   /**
@@ -49,7 +49,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A React hook for accessing the zustand store.
    */
-  public readonly useStore: UseBoundStore<T>
+  public readonly useStore: UseBoundStore<StoreApi<T>>
 
   /**
    * A promise that will resolve when the state manager has loaded any peristed state.
@@ -95,8 +95,15 @@ export class StateManager<T extends Record<string, any>> {
 
               await idb.set(id + '_version', version || -1)
 
+              // why is this necessary? but it is...
+              const prevEmpty = this._state.appState.isEmptyCanvas
+
+              next = this.migrate(next)
+
               this._state = deepCopy(next)
               this._snapshot = deepCopy(next)
+
+              this._state.appState.isEmptyCanvas = prevEmpty
               this.store.setState(this._state, true)
             } else {
               await idb.set(id + '_version', version || -1)
@@ -110,8 +117,6 @@ export class StateManager<T extends Record<string, any>> {
         this._status = 'ready'
         resolve(message)
       }
-
-      resolve(message)
     }).then((message) => {
       if (this.onReady) this.onReady(message)
       return message
@@ -121,9 +126,11 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * Save the current state to indexdb.
    */
-  protected persist = (id?: string): void | Promise<void> => {
+  protected persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
+    if (this._status !== 'ready') return
+
     if (this.onPersist) {
-      this.onPersist(this._state, id)
+      this.onPersist(this._state, patch, id)
     }
 
     if (this._idbId) {
@@ -140,7 +147,7 @@ export class StateManager<T extends Record<string, any>> {
    */
   private applyPatch = (patch: Patch<T>, id?: string) => {
     const prev = this._state
-    const next = merge(this._state, patch)
+    const next = Utils.deepMerge(this._state, patch as any)
     const final = this.cleanup(next, prev, patch, id)
     if (this.onStateWillChange) {
       this.onStateWillChange(final, id)
@@ -155,6 +162,10 @@ export class StateManager<T extends Record<string, any>> {
 
   // Internal API ---------------------------------
 
+  protected migrate = (next: T): T => {
+    return next
+  }
+
   /**
    * Perform any last changes to the state before updating.
    * Override this on your extending class.
@@ -164,7 +175,7 @@ export class StateManager<T extends Record<string, any>> {
    * @param id (optional) An id for the just-applied patch.
    * @returns The final new state to apply.
    */
-  protected cleanup = (nextState: T, prevState: T, patch: Patch<T>, id?: string): T => nextState
+  protected cleanup = (nextState: T, _prevState: T, _patch: Patch<T>, _id?: string): T => nextState
 
   /**
    * A life-cycle method called when the state is about to change.
@@ -187,10 +198,10 @@ export class StateManager<T extends Record<string, any>> {
    * @param patch The patch to apply.
    * @param id (optional) An id for this patch.
    */
-  protected patchState = (patch: Patch<T>, id?: string): this => {
+  patchState = (patch: Patch<T>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
-      this.onPatch(this._state, id)
+      this.onPatch(this._state, patch, id)
     }
     return this
   }
@@ -229,8 +240,8 @@ export class StateManager<T extends Record<string, any>> {
     this.stack.push({ ...command, id })
     this.pointer = this.stack.length - 1
     this.applyPatch(command.after, id)
-    if (this.onCommand) this.onCommand(this._state, id)
-    this.persist(id)
+    if (this.onCommand) this.onCommand(this._state, command, id)
+    this.persist(command.after, id)
     return this
   }
 
@@ -253,17 +264,17 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A callback fired when a patch is applied.
    */
-  public onPatch?: (state: T, id?: string) => void
+  public onPatch?: (state: T, patch: Patch<T>, id?: string) => void
 
   /**
    * A callback fired when a patch is applied.
    */
-  public onCommand?: (state: T, id?: string) => void
+  public onCommand?: (state: T, command: Command<T>, id?: string) => void
 
   /**
    * A callback fired when the state is persisted.
    */
-  public onPersist?: (state: T, id?: string) => void
+  public onPersist?: (state: T, patch: Patch<T>, id?: string) => void
 
   /**
    * A callback fired when the state is replaced.
@@ -300,7 +311,7 @@ export class StateManager<T extends Record<string, any>> {
     this._state = this.initialState
     this.store.setState(this._state, true)
     this.resetHistory()
-    this.persist('reset')
+    this.persist({}, 'reset')
     if (this.onStateDidChange) {
       this.onStateDidChange(this._state, 'reset')
     }
@@ -346,7 +357,7 @@ export class StateManager<T extends Record<string, any>> {
       const command = this.stack[this.pointer]
       this.pointer--
       this.applyPatch(command.before, `undo`)
-      this.persist('undo')
+      this.persist(command.before, 'undo')
     }
     if (this.onUndo) this.onUndo(this._state)
     return this
@@ -361,7 +372,7 @@ export class StateManager<T extends Record<string, any>> {
       this.pointer++
       const command = this.stack[this.pointer]
       this.applyPatch(command.after, 'redo')
-      this.persist('undo')
+      this.persist(command.after, 'undo')
     }
     if (this.onRedo) this.onRedo(this._state)
     return this

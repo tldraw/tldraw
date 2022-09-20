@@ -15,12 +15,11 @@ const { styled, createTheme } = createStitches({
       panelContrast: '#ffffff',
       selected: 'rgba(66, 133, 244, 1.000)',
       selectedContrast: '#fefefe',
-      sponsor: '#ec6cb9',
-      sponsorContrast: '#ec6cb944',
       text: '#333333',
       tooltip: '#1d1d1d',
       tooltipContrast: '#ffffff',
       warn: 'rgba(255, 100, 100, 1)',
+      canvas: 'rgb(248, 249, 250)',
     },
     shadows: {
       2: '0px 1px 1px rgba(0, 0, 0, 0.14)',
@@ -32,7 +31,8 @@ const { styled, createTheme } = createStitches({
       key: '1px 1px rgba(0,0,0,1)',
       panel: `0px 0px 16px -1px rgba(0, 0, 0, 0.05), 
         0px 0px 16px -8px rgba(0, 0, 0, 0.05), 
-        0px 0px 16px -12px rgba(0, 0, 0, 0.12)`,
+        0px 0px 16px -12px rgba(0, 0, 0, 0.12),
+        0px 0px 2px 0px rgba(0, 0, 0, 0.08)`,
     },
     space: {
       0: '2px',
@@ -41,6 +41,8 @@ const { styled, createTheme } = createStitches({
       3: '8px',
       4: '12px',
       5: '16px',
+      6: '32px',
+      7: '48px',
     },
     fontSizes: {
       0: '10px',
@@ -76,6 +78,7 @@ const { styled, createTheme } = createStitches({
     micro: '(max-width: 370px)',
     sm: '(min-width: 640px)',
     md: '(min-width: 768px)',
+    lg: '(min-width: 1024px)',
   },
   utils: {
     zStrokeWidth: () => (value: number | number[]) => {
@@ -106,6 +109,7 @@ export const dark = createTheme({
     text: '#f8f9fa',
     tooltip: '#1d1d1d',
     tooltipContrast: '#ffffff',
+    canvas: '#212529',
   },
   shadows: {
     2: '0px 1px 1px rgba(0, 0, 0, 0.24)',

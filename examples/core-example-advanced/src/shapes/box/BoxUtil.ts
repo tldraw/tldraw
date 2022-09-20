@@ -1,4 +1,4 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { TLBounds, Utils } from '@tldraw/core'
 import { intersectLineSegmentBounds } from '@tldraw/intersect'
 import { nanoid } from 'nanoid'
 import { CustomShapeUtil } from 'shapes/CustomShapeUtil'
@@ -13,6 +13,8 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
   Component = BoxComponent
 
   Indicator = BoxIndicator
+
+  hideResizeHandles = false
 
   getBounds = (shape: T) => {
     const bounds = Utils.getFromCache(this.boundsCache, shape, () => {
@@ -46,6 +48,10 @@ export class BoxUtil extends CustomShapeUtil<T, E> {
       childIndex: 1,
       ...props,
     }
+  }
+
+  shouldRender = (prev: T, next: T) => {
+    return next.size !== prev.size
   }
 
   getCenter = (shape: T) => {

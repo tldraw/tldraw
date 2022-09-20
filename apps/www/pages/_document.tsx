@@ -1,33 +1,23 @@
-import NextDocument, { Html, Head, Main, NextScript, DocumentContext } from 'next/document'
-import { getCssText } from '../styles'
-import { GA_TRACKING_ID } from '../utils/gtag'
+import NextDocument, { DocumentContext, Head, Html, Main, NextScript } from 'next/document'
+import { getCssText } from '~styles'
+import { GA_TRACKING_ID } from '~utils/gtag'
 
 class MyDocument extends NextDocument {
-  static async getInitialProps(ctx: DocumentContext): Promise<{
-    styles: JSX.Element
-    html: string
-    head?: JSX.Element[]
-  }> {
-    try {
-      const initialProps = await NextDocument.getInitialProps(ctx)
+  static async getInitialProps(ctx: DocumentContext): Promise<any> {
+    const initialProps = await NextDocument.getInitialProps(ctx)
 
-      return {
-        ...initialProps,
-        styles: (
-          <>
-            {initialProps.styles}
-            <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
-          </>
-        ),
-      }
-    } catch (e) {
-      console.error(e.message)
-    } finally {
-      null
+    return {
+      ...initialProps,
+      styles: (
+        <>
+          {initialProps.styles}
+          <style id="stitches" dangerouslySetInnerHTML={{ __html: getCssText() }} />
+        </>
+      ),
     }
   }
 
-  render(): JSX.Element {
+  render() {
     return (
       <Html lang="en">
         <Head>

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export function DashDashedIcon(): JSX.Element {
+export function DashDashedIcon() {
   return (
     <svg width="24" height="24" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
       <circle

@@ -1,5 +1,5 @@
 import { Utils } from '@tldraw/core'
-import { Theme, ColorStyle, DashStyle, ShapeStyles, SizeStyle, FontStyle, AlignStyle } from '~types'
+import { AlignStyle, ColorStyle, DashStyle, FontStyle, ShapeStyles, SizeStyle, Theme } from '~types'
 
 const canvasLight = '#fafafa'
 
@@ -60,11 +60,10 @@ export const fills: Record<Theme, Record<ColorStyle, string>> = {
       Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasLight, 0.82)])
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: '#fefefe',
-    [ColorStyle.Black]: '#4d4d4d',
   },
   dark: {
     ...(Object.fromEntries(
-      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.618)])
+      Object.entries(colors).map(([k, v]) => [k, Utils.lerpColor(v, canvasDark, 0.82)])
     ) as Record<ColorStyle, string>),
     [ColorStyle.White]: 'rgb(30,33,37)',
     [ColorStyle.Black]: '#1e1e1f',
@@ -86,9 +85,9 @@ const fontSizes = {
 
 const fontFaces = {
   [FontStyle.Script]: '"Caveat Brush"',
-  [FontStyle.Sans]: '"Source Sans Pro", sans-serif',
-  [FontStyle.Serif]: '"Source Serif Pro", serif',
-  [FontStyle.Mono]: '"Source Code Pro", monospace',
+  [FontStyle.Sans]: '"Source Sans Pro"',
+  [FontStyle.Serif]: '"Crimson Pro"',
+  [FontStyle.Mono]: '"Source Code Pro"',
 }
 
 const fontSizeModifiers = {
@@ -126,7 +125,7 @@ export function getFontStyle(style: ShapeStyles): string {
   const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 ${fontFace}`
+  return `${fontSize * scale}px/1 ${fontFace}`
 }
 
 export function getStickyFontStyle(style: ShapeStyles): string {
@@ -134,14 +133,15 @@ export function getStickyFontStyle(style: ShapeStyles): string {
   const fontFace = getFontFace(style.font)
   const { scale = 1 } = style
 
-  return `${fontSize * scale}px/1.3 ${fontFace}`
+  return `${fontSize * scale}px/1 ${fontFace}`
 }
 
 export function getStickyShapeStyle(style: ShapeStyles, isDarkMode = false) {
   const { color } = style
 
   const theme: Theme = isDarkMode ? 'dark' : 'light'
-  const adjustedColor = color === ColorStyle.Black ? ColorStyle.Yellow : color
+  const adjustedColor =
+    color === ColorStyle.White || color === ColorStyle.Black ? ColorStyle.Yellow : color
 
   return {
     fill: stickyFills[theme][adjustedColor],
@@ -182,5 +182,5 @@ export const defaultStyle: ShapeStyles = {
 export const defaultTextStyle: ShapeStyles = {
   ...defaultStyle,
   font: FontStyle.Script,
-  textAlign: AlignStyle.Start,
+  textAlign: AlignStyle.Middle,
 }

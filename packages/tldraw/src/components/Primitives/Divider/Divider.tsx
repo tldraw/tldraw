@@ -1,12 +1,10 @@
-import * as React from 'react'
 import { styled } from '~styles'
 
 export const Divider = styled('hr', {
-  height: 1,
-  marginTop: '$1',
-  marginRight: '-$2',
-  marginBottom: '$1',
-  marginLeft: '-$2',
+  height: 0,
+  paddingTop: 1,
+  width: 'calc(100%+8px)',
+  backgroundColor: '$hover',
   border: 'none',
-  borderBottom: '1px solid $hover',
+  margin: '$2 -4px',
 })

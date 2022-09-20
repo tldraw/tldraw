@@ -1,11 +1,11 @@
 import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import type { TLBoundsWithCenter, TLSnapLine } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
-import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
-import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { SessionType, TDShape, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 type SnapInfo =
   | {
@@ -18,6 +18,7 @@ type SnapInfo =
 
 export class TransformSession extends BaseSession {
   type = SessionType.Transform
+  performanceMode = undefined
   status = TDStatus.Transforming
   scaleX = 1
   scaleY = 1
@@ -96,7 +97,6 @@ export class TransformSession extends BaseSession {
     return void null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (): TldrawPatch | undefined => {
     const {
       transformType,
@@ -113,7 +113,8 @@ export class TransformSession extends BaseSession {
         shiftKey,
         altKey,
         metaKey,
-        settings: { isSnapping },
+        currentGrid,
+        settings: { isSnapping, showGrid },
       },
     } = this
 
@@ -135,6 +136,13 @@ export class TransformSession extends BaseSession {
       newBounds = {
         ...newBounds,
         ...Utils.centerBounds(newBounds, Utils.getBoundsCenter(initialCommonBounds)),
+      }
+    }
+
+    if (showGrid) {
+      newBounds = {
+        ...newBounds,
+        ...Utils.snapBoundsToGrid(newBounds, currentGrid),
       }
     }
 
@@ -180,7 +188,7 @@ export class TransformSession extends BaseSession {
     this.scaleY = newBounds.scaleY
 
     shapeBounds.forEach(({ initialShape, initialShapeBounds, transformOrigin }) => {
-      const newShapeBounds = Utils.getRelativeTransformedBoundingBox(
+      let newShapeBounds = Utils.getRelativeTransformedBoundingBox(
         newBounds,
         initialCommonBounds,
         initialShapeBounds,
@@ -188,13 +196,19 @@ export class TransformSession extends BaseSession {
         this.scaleY < 0
       )
 
-      shapes[initialShape.id] = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
+      if (showGrid) {
+        newShapeBounds = Utils.snapBoundsToGrid(newShapeBounds, currentGrid)
+      }
+
+      const afterShape = TLDR.transform(this.app.getShape(initialShape.id), newShapeBounds, {
         type: this.transformType,
         initialShape,
         scaleX: this.scaleX,
         scaleY: this.scaleY,
         transformOrigin,
       })
+
+      shapes[initialShape.id] = afterShape
     })
 
     return {
@@ -253,6 +267,10 @@ export class TransformSession extends BaseSession {
     } = this
 
     if (!hasUnlockedShapes) return
+
+    if (this.isCreate && Vec.dist(this.app.originPoint, this.app.currentPoint) < 2) {
+      return this.cancel()
+    }
 
     const beforeShapes: Record<string, TDShape | undefined> = {}
     const afterShapes: Record<string, TDShape> = {}

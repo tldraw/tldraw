@@ -1,9 +1,9 @@
+import { ColorStyle, TDShapeType, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
-import { Tldraw, TldrawApp, TDShapeType, ColorStyle } from '@tldraw/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 
-export default function Api(): JSX.Element {
+export default function Api() {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   const handleMount = React.useCallback((app: TldrawApp) => {

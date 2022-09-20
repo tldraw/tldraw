@@ -1,10 +1,14 @@
 import * as React from 'react'
-import { Menu } from './Menu/Menu'
-import { styled } from '~styles'
-import { PageMenu } from './PageMenu'
-import { ZoomMenu } from './ZoomMenu'
-import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { UndoIcon } from '~components/Primitives/icons'
+import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { Menu } from './Menu/Menu'
+import { MultiplayerMenu } from './MultiplayerMenu'
+import { PageMenu } from './PageMenu'
+import { StyleMenu } from './StyleMenu'
+import { ZoomMenu } from './ZoomMenu'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -12,30 +16,45 @@ interface TopPanelProps {
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
-  showSponsorLink: boolean
+  showMultiplayerMenu: boolean
 }
 
-export function TopPanel({
+export function _TopPanel({
   readOnly,
   showPages,
   showMenu,
   showStyles,
   showZoom,
-  showSponsorLink,
+  showMultiplayerMenu,
 }: TopPanelProps) {
+  const app = useTldrawApp()
+
   return (
     <StyledTopPanel>
       {(showMenu || showPages) && (
-        <Panel side="left">
-          {showMenu && <Menu showSponsorLink={showSponsorLink} readOnly={readOnly} />}
+        <Panel side="left" id="TD-MenuPanel">
+          {showMenu && <Menu readOnly={readOnly} />}
+          {showMultiplayerMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          {showStyles && !readOnly && <StyleMenu />}
+          {app.readOnly ? (
+            <ReadOnlyLabel>Read Only</ReadOnlyLabel>
+          ) : (
+            <>
+              <ToolButton>
+                <UndoIcon onClick={app.undo} />
+              </ToolButton>
+              <ToolButton>
+                <UndoIcon onClick={app.redo} flipHorizontal />
+              </ToolButton>
+            </>
+          )}
           {showZoom && <ZoomMenu />}
+          {showStyles && !readOnly && <StyleMenu />}
         </Panel>
       )}
     </StyledTopPanel>
@@ -60,3 +79,17 @@ const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
 })
+
+const ReadOnlyLabel = styled('div', {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontFamily: '$ui',
+  fontSize: '$1',
+  paddingLeft: '$4',
+  paddingRight: '$1',
+  userSelect: 'none',
+})
+
+export const TopPanel = React.memo(_TopPanel)

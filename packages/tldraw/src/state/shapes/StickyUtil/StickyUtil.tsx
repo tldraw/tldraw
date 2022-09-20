@@ -1,16 +1,22 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { defaultTextStyle } from '../shared/shape-styles'
-import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { getBoundsRectangle, TextAreaUtils } from '../shared'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
-import { styled } from '~styles'
+import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { GHOSTED_OPACITY } from '~constants'
+import * as React from 'react'
+import { stopPropagation } from '~components/stopPropagation'
+import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import {
+  TextAreaUtils,
+  defaultTextStyle,
+  getBoundsRectangle,
+  getFontFace,
+  getStickyFontSize,
+  getStickyFontStyle,
+  getStickyShapeStyle,
+  getTextSvgElement,
+} from '~state/shapes/shared'
+import { styled } from '~styles'
+import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -22,7 +28,11 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   canEdit = true
 
+  canClone = true
+
   hideResizeHandles = true
+
+  showCloneHandles = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -43,7 +53,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, meta, events, isGhost, isEditing, onShapeBlur, onShapeChange }, ref) => {
+    ({ shape, meta, events, isGhost, isBinding, isEditing, onShapeBlur, onShapeChange }, ref) => {
       const font = getStickyFontStyle(shape.style)
 
       const { color, fill } = getStickyShapeStyle(shape.style, meta.isDarkMode)
@@ -60,28 +70,53 @@ export class StickyUtil extends TDShapeUtil<T, E> {
         e.stopPropagation()
       }, [])
 
-      const handleTextChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const onChange = React.useCallback(
+        (text: string) => {
           onShapeChange?.({
             id: shape.id,
             type: shape.type,
-            text: TLDR.normalizeText(e.currentTarget.value),
+            text: TLDR.normalizeText(text),
           })
         },
-        [onShapeChange]
+        [shape.id]
+      )
+
+      const handleTextChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          onChange(e.currentTarget.value)
+        },
+        [onShapeChange, onChange]
       )
 
       const handleKeyDown = React.useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            onShapeBlur?.()
+            return
+          }
 
           if (e.key === 'Tab' && shape.text.length === 0) {
             e.preventDefault()
             return
           }
 
-          e.stopPropagation()
-
+          if (!(e.key === 'Meta' || e.metaKey)) {
+            e.stopPropagation()
+          } else if (e.key === 'z' && e.metaKey) {
+            if (e.shiftKey) {
+              document.execCommand('redo', false)
+            } else {
+              document.execCommand('undo', false)
+            }
+            e.stopPropagation()
+            e.preventDefault()
+            return
+          }
+          if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+            e.preventDefault()
+          }
           if (e.key === 'Tab') {
             e.preventDefault()
             if (e.shiftKey) {
@@ -166,6 +201,19 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             isGhost={isGhost}
             style={{ backgroundColor: fill, ...style }}
           >
+            {isBinding && (
+              <div
+                className="tl-binding-indicator"
+                style={{
+                  position: 'absolute',
+                  top: -this.bindingDistance,
+                  left: -this.bindingDistance,
+                  width: `calc(100% + ${this.bindingDistance * 2}px)`,
+                  height: `calc(100% + ${this.bindingDistance * 2}px)`,
+                  backgroundColor: 'var(--tl-selectFill)',
+                }}
+              />
+            )}
             <StyledText ref={rText} isEditing={isEditing} alignment={shape.style.textAlign}>
               {shape.text}&#8203;
             </StyledText>
@@ -184,8 +232,12 @@ export class StickyUtil extends TDShapeUtil<T, E> {
                 autoCorrect="false"
                 autoSave="false"
                 autoFocus
-                spellCheck={false}
+                spellCheck={true}
                 alignment={shape.style.textAlign}
+                onContextMenu={stopPropagation}
+                onCopy={stopPropagation}
+                onPaste={stopPropagation}
+                onCut={stopPropagation}
               />
             )}
           </StyledStickyContainer>
@@ -217,7 +269,7 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     bounds: TLBounds,
     { scaleX, scaleY, transformOrigin }: TransformInfo<T>
   ): Partial<T> => {
-    const point = Vec.round([
+    const point = Vec.toFixed([
       bounds.minX +
         (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
       bounds.minY +
@@ -234,17 +286,34 @@ export class StickyUtil extends TDShapeUtil<T, E> {
     return shape
   }
 
-  getSvgElement = (shape: T): SVGElement | void => {
+  getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
-    const textElm = getTextSvgElement(shape, bounds)
-    const style = getStickyShapeStyle(shape.style)
+
+    const style = getStickyShapeStyle(shape.style, isDarkMode)
+
+    const fontSize = getStickyFontSize(shape.style.size) * (shape.style.scale ?? 1)
+    const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+
+    const textElm = getTextSvgElement(
+      shape.text,
+      fontSize,
+      fontFamily,
+      textAlign,
+      bounds.width - PADDING * 2,
+      true
+    )
+
     textElm.setAttribute('fill', style.color)
+    textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
     rect.setAttribute('width', bounds.width + '')
     rect.setAttribute('height', bounds.height + '')
     rect.setAttribute('fill', style.fill)
+    rect.setAttribute('rx', '3')
+    rect.setAttribute('ry', '3')
 
     g.appendChild(rect)
     g.appendChild(textElm)
@@ -291,6 +360,7 @@ const StyledStickyContainer = styled('div', {
 const commonTextWrapping = {
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
+  letterSpacing: LETTER_SPACING,
 }
 
 const StyledText = styled('div', {
@@ -359,5 +429,9 @@ const StyledTextArea = styled('textarea', {
         textAlign: 'justify',
       },
     },
+  },
+  '&:focus': {
+    outline: 'none',
+    border: 'none',
   },
 })

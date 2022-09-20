@@ -1,8 +1,19 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
-
 import type React from 'react'
+
+export enum TLPerformanceMode {
+  TransformSelected = 'transform_selected',
+  TranslateSelected = 'translate_selected',
+  TransformAll = 'transform_all',
+  TranslateAll = 'translate_all',
+}
+
+export type TLAssets = Record<string, TLAsset>
+
+export interface TLAsset {
+  id: string
+  type: string
+}
 
 export type Patch<T> = Partial<{ [P in keyof T]: T | Partial<T> | Patch<T[P]> }>
 
@@ -38,6 +49,7 @@ export interface TLUser<T extends TLShape> {
   color: string
   point: number[]
   selectedIds: string[]
+  session?: boolean
 }
 
 export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
@@ -57,6 +69,7 @@ export interface TLShape {
   childIndex: number
   name: string
   point: number[]
+  assetId?: string
   rotation?: number
   children?: string[]
   handles?: Record<string, TLHandle>
@@ -69,12 +82,14 @@ export interface TLShape {
 
 export interface TLComponentProps<T extends TLShape, E = any, M = any> {
   shape: T
+  asset?: TLAsset
   isEditing: boolean
   isBinding: boolean
   isHovered: boolean
   isSelected: boolean
   isGhost?: boolean
   isChildOfSelected?: boolean
+  bounds: TLBounds
   meta: M
   onShapeChange?: TLShapeChangeHandler<T, any>
   onShapeBlur?: TLShapeBlurHandler<any>
@@ -104,16 +119,21 @@ export interface TLTheme {
   accent?: string
   brushFill?: string
   brushStroke?: string
+  brushDashStroke?: string
   selectFill?: string
   selectStroke?: string
+  binding: string
   background?: string
   foreground?: string
+  grid?: string
 }
 
 export type TLWheelEventHandler = (
   info: TLPointerInfo<string>,
   e: React.WheelEvent<Element> | WheelEvent
 ) => void
+
+export type TLDropEventHandler = (e: React.DragEvent<Element>) => void
 
 export type TLPinchEventHandler = (
   info: TLPointerInfo<string>,
@@ -126,7 +146,7 @@ export type TLPinchEventHandler = (
     | PointerEventInit
 ) => void
 
-export type TLShapeChangeHandler<T, K = any> = (
+export type TLShapeChangeHandler<T extends TLShape, K = any> = (
   shape: { id: string } & Partial<T>,
   info?: K
 ) => void
@@ -174,6 +194,8 @@ export interface TLCallbacks<T extends TLShape> {
   onRightPointCanvas: TLCanvasEventHandler
   onDragCanvas: TLCanvasEventHandler
   onReleaseCanvas: TLCanvasEventHandler
+  onDragOver: TLDropEventHandler
+  onDrop: TLDropEventHandler
 
   // Shape
   onPointShape: TLPointerEventHandler
@@ -288,18 +310,6 @@ export interface TLTransformInfo<T extends TLShape> {
   transformOrigin: number[]
 }
 
-// TODO: Remove me and the rest of the bezier curve content
-export interface TLBezierCurveSegment {
-  start: number[]
-  tangentStart: number[]
-  normalStart: number[]
-  pressureStart: number
-  end: number[]
-  tangentEnd: number[]
-  normalEnd: number[]
-  pressureEnd: number
-}
-
 // TODO: Move snaps into its own repo
 export enum SnapPoints {
   minX = 'minX',
@@ -324,6 +334,7 @@ export type Snap =
 
 export interface IShapeTreeNode<T extends TLShape, M = any> {
   shape: T
+  asset?: TLAsset
   children?: IShapeTreeNode<TLShape, M>[]
   isGhost: boolean
   isChildOfSelected: boolean
@@ -339,7 +350,6 @@ export interface IShapeTreeNode<T extends TLShape, M = any> {
 /* -------------------------------------------------- */
 
 export type MappedByType<K extends string, T extends { type: K }> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 

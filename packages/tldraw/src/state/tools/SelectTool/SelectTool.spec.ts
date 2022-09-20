@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { SessionType, TDShapeType } from '~types'
 import { SelectTool } from '.'
 
@@ -21,13 +21,13 @@ describe('When double clicking link controls', () => {
       {
         id: 'rect2',
         type: TDShapeType.Rectangle,
-        point: [100, 0],
+        point: [200, 0],
         size: [100, 100],
       },
       {
         id: 'rect3',
         type: TDShapeType.Rectangle,
-        point: [200, 0],
+        point: [400, 0],
         size: [100, 100],
       },
       {
@@ -38,7 +38,7 @@ describe('When double clicking link controls', () => {
       {
         id: 'arrow2',
         type: TDShapeType.Arrow,
-        point: [200, 200],
+        point: [210, 210],
       }
     )
     .select('arrow1')
@@ -48,16 +48,16 @@ describe('When double clicking link controls', () => {
     .completeSession()
     .movePointer({ x: 200, y: 200 })
     .startSession(SessionType.Arrow, 'arrow1', 'end')
-    .movePointer({ x: 150, y: 50 })
+    .movePointer({ x: 250, y: 50 })
     .completeSession()
     .select('arrow2')
     .movePointer({ x: 200, y: 200 })
     .startSession(SessionType.Arrow, 'arrow2', 'start')
-    .movePointer({ x: 150, y: 50 })
+    .movePointer({ x: 250, y: 50 })
     .completeSession()
     .movePointer({ x: 200, y: 200 })
     .startSession(SessionType.Arrow, 'arrow2', 'end')
-    .movePointer({ x: 250, y: 50 })
+    .movePointer({ x: 450, y: 50 })
     .completeSession()
     .selectNone().document
 
@@ -65,20 +65,25 @@ describe('When double clicking link controls', () => {
     const app = new TldrawTestApp()
       .loadDocument(doc)
       .select('rect2')
-      .pointBoundsHandle('center', { x: 0, y: 0 })
+      .pointBoundsHandle('center', [100, 100])
+      .expectShapesToBeAtPoints({
+        rect1: [0, 0],
+        rect2: [200, 0],
+        rect3: [400, 0],
+      })
 
-    app.movePointer({ x: 100, y: 100 }).expectShapesToBeAtPoints({
+    app.movePointer([200, 200]).expectShapesToBeAtPoints({
       rect1: [100, 100],
-      rect2: [200, 100],
-      rect3: [300, 100],
+      rect2: [300, 100],
+      rect3: [500, 100],
     })
 
     app.completeSession().undo()
 
     app.expectShapesToBeAtPoints({
       rect1: [0, 0],
-      rect2: [100, 0],
-      rect3: [200, 0],
+      rect2: [200, 0],
+      rect3: [400, 0],
     })
   })
 
@@ -90,8 +95,8 @@ describe('When double clicking link controls', () => {
       .movePointer({ x: 100, y: 100 })
 
     expect(app.getShape('rect1').point).toEqual([100, 100])
-    expect(app.getShape('rect2').point).toEqual([200, 100])
-    expect(app.getShape('rect3').point).toEqual([300, 100])
+    expect(app.getShape('rect2').point).toEqual([300, 100])
+    expect(app.getShape('rect3').point).toEqual([500, 100])
   })
 
   it('moves all downstream shapes when center is dragged', () => {
@@ -102,8 +107,8 @@ describe('When double clicking link controls', () => {
       .movePointer({ x: 100, y: 100 })
 
     expect(app.getShape('rect1').point).toEqual([0, 0])
-    expect(app.getShape('rect2').point).toEqual([200, 100])
-    expect(app.getShape('rect3').point).toEqual([300, 100])
+    expect(app.getShape('rect2').point).toEqual([300, 100])
+    expect(app.getShape('rect3').point).toEqual([500, 100])
   })
 
   it('selects all linked shapes when center is double clicked', () => {

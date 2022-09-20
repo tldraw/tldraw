@@ -1,15 +1,17 @@
 import * as React from 'react'
-import { useTldrawApp } from '~hooks'
+import { useDialog, useTldrawApp } from '~hooks'
 
 export function useFileSystemHandlers() {
   const app = useTldrawApp()
 
+  const { openDialog } = useDialog()
+
   const onNewProject = React.useCallback(
     async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
-      app.callbacks.onNewProject?.(app)
+      app.callbacks.onNewProject?.(app, openDialog)
     },
-    [app]
+    [app, openDialog]
   )
 
   const onSaveProject = React.useCallback(
@@ -31,7 +33,15 @@ export function useFileSystemHandlers() {
   const onOpenProject = React.useCallback(
     async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
       if (e && app.callbacks.onOpenProject) e.preventDefault()
-      app.callbacks.onOpenProject?.(app)
+      app.callbacks.onOpenProject?.(app, openDialog)
+    },
+    [app, openDialog]
+  )
+
+  const onOpenMedia = React.useCallback(
+    async (e?: React.MouseEvent | React.KeyboardEvent | KeyboardEvent) => {
+      if (e && app.callbacks.onOpenMedia) e.preventDefault()
+      app.callbacks.onOpenMedia?.(app)
     },
     [app]
   )
@@ -41,5 +51,6 @@ export function useFileSystemHandlers() {
     onSaveProject,
     onSaveProjectAs,
     onOpenProject,
+    onOpenMedia,
   }
 }

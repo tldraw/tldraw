@@ -1,3 +1,3 @@
-export * from './renderer'
-export * from './svg-container'
-export * from './html-container'
+export * from './Renderer'
+export * from './SVGContainer'
+export * from './HTMLContainer'

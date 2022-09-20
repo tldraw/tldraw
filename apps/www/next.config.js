@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const withPWA = require('next-pwa')
+const withTM = require('next-transpile-modules')
 const SentryWebpackPlugin = require('@sentry/webpack-plugin')
-const withTM = require('next-transpile-modules')(['@tldraw/tldraw', '@tldraw/core'])
 
 const {
   GITHUB_ID,
-  GITHUB_SECRET,
   GITHUB_API_SECRET,
   NEXT_PUBLIC_SENTRY_DSN: SENTRY_DSN,
   SENTRY_ORG,
@@ -22,8 +21,8 @@ const isProduction = NODE_ENV === 'production'
 
 const basePath = ''
 
-module.exports = withPWA(
-  withTM({
+module.exports = withTM(['@tldraw/tldraw', '@tldraw/core'])(
+  withPWA({
     reactStrictMode: true,
     pwa: {
       disable: !isProduction,
@@ -34,7 +33,6 @@ module.exports = withPWA(
       NEXT_PUBLIC_COMMIT_SHA: VERCEL_GIT_COMMIT_SHA,
       GA_MEASUREMENT_ID,
       GITHUB_ID,
-      GITHUB_SECRET,
       GITHUB_API_SECRET,
     },
     webpack: (config, options) => {
@@ -47,6 +45,12 @@ module.exports = withPWA(
           'process.env.NEXT_IS_SERVER': JSON.stringify(options.isServer.toString()),
         })
       )
+
+      config.module.rules.push({
+        test: /.*packages.*\.js$/,
+        use: ['source-map-loader'],
+        enforce: 'pre',
+      })
 
       if (
         SENTRY_DSN &&

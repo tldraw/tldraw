@@ -1,10 +1,11 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
-import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush
+  performanceMode = undefined
   status = TDStatus.Brushing
   initialSelectedIds: Set<string>
   shapesToTest: {
@@ -33,6 +34,8 @@ export class BrushSession extends BaseSession {
         bounds: this.app.getShapeUtil(shape).getBounds(shape),
         selectId: shape.id, //TLDR.getTopParentId(data, shape.id, currentPageId),
       }))
+
+    this.update()
   }
 
   start = (): TldrawPatch | undefined => void null
@@ -41,11 +44,18 @@ export class BrushSession extends BaseSession {
     const {
       initialSelectedIds,
       shapesToTest,
-      app: { originPoint, currentPoint },
+      app: { metaKey, settings, originPoint, currentPoint },
     } = this
 
     // Create a bounding box between the origin and the new point
     const brush = Utils.getBoundsFromPoints([originPoint, currentPoint])
+
+    // Decide weather to select by intersecting or by overlapping
+    // Using a xor to revers the behaviour if the ctrl key is pressed
+    // Do it only if the user choose to enable cad like selection
+    const selectByContain = settings.isCadSelectMode
+      ? !metaKey && originPoint[0] < currentPoint[0]
+      : metaKey
 
     // Find ids of brushed shapes
     const hits = new Set<string>()
@@ -53,14 +63,12 @@ export class BrushSession extends BaseSession {
     const selectedIds = new Set(initialSelectedIds)
 
     shapesToTest.forEach(({ id, selectId }) => {
-      const { metaKey } = this.app
-
       const shape = this.app.getShape(id)
 
       if (!hits.has(selectId)) {
         const util = this.app.getShapeUtil(shape)
         if (
-          metaKey
+          selectByContain
             ? Utils.boundsContain(brush, util.getBounds(shape))
             : util.hitTestBounds(shape, brush)
         ) {
@@ -84,7 +92,24 @@ export class BrushSession extends BaseSession {
 
     const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
 
+    if (!didChange)
+      return {
+        appState: {
+          selectByContain,
+        },
+        document: {
+          pageStates: {
+            [this.app.currentPageId]: {
+              brush,
+            },
+          },
+        },
+      }
+
     return {
+      appState: {
+        selectByContain,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {
@@ -98,6 +123,9 @@ export class BrushSession extends BaseSession {
 
   cancel = (): TldrawPatch | undefined => {
     return {
+      appState: {
+        selectByContain: false,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {
@@ -111,6 +139,9 @@ export class BrushSession extends BaseSession {
 
   complete = (): TldrawPatch | TldrawCommand | undefined => {
     return {
+      appState: {
+        selectByContain: false,
+      },
       document: {
         pageStates: {
           [this.app.currentPageId]: {

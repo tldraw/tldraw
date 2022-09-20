@@ -1,7 +1,7 @@
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { TldrawCommand, PagePartial } from '~types'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import type { PagePartial, TldrawCommand } from '~types'
 
 export function translateShapes(app: TldrawApp, ids: string[], delta: number[]): TldrawCommand {
   const { currentPageId, selectedIds } = app
@@ -30,7 +30,7 @@ export function translateShapes(app: TldrawApp, ids: string[], delta: number[]):
     app.state,
     idsToMutate,
     (shape) => ({
-      point: Vec.round(Vec.add(shape.point, delta)),
+      point: Vec.toFixed(Vec.add(shape.point, delta)),
     }),
     currentPageId
   )

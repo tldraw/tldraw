@@ -1,17 +1,15 @@
-import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
-import * as gtag from '-utils/gtag'
-import React from 'react'
-import { useAccountHandlers } from '-hooks/useAccountHandlers'
+import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
+import * as React from 'react'
+import { useUploadAssets } from '~hooks/useUploadAssets'
+import * as gtag from '~utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
 
 interface EditorProps {
   id?: string
-  isUser?: boolean
-  isSponsor?: boolean
 }
 
-export default function Editor({ id = 'home', isUser = false, isSponsor = false }: EditorProps) {
+const Editor = ({ id = 'home', ...rest }: EditorProps & Partial<TldrawProps>) => {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -19,16 +17,16 @@ export default function Editor({ id = 'home', isUser = false, isSponsor = false 
   // Send events to gtag as actions.
   const handlePersist = React.useCallback((_app: TldrawApp, reason?: string) => {
     gtag.event({
-      action: reason,
+      action: reason ?? '',
       category: 'editor',
-      label: reason || 'persist',
+      label: reason ?? 'persist',
       value: 0,
     })
   }, [])
 
   const fileSystemEvents = useFileSystem()
 
-  const { onSignIn, onSignOut } = useAccountHandlers()
+  const { onAssetUpload } = useUploadAssets()
 
   return (
     <div className="tldraw">
@@ -37,11 +35,12 @@ export default function Editor({ id = 'home', isUser = false, isSponsor = false 
         autofocus
         onMount={handleMount}
         onPersist={handlePersist}
-        showSponsorLink={!isSponsor}
-        onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={isUser ? onSignOut : undefined}
+        onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
+        {...rest}
       />
     </div>
   )
 }
+
+export default Editor

@@ -1,5 +1,5 @@
 <div style="text-align: center; transform: scale(.5);">
-  <img src="card-repo.png"/>
+  <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
 
 # @tldraw/core
@@ -24,9 +24,9 @@ npm i @tldraw/core
 
 There are two examples in this repository.
 
-The **simple** example in the `example` folder shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.
+The **simple** example in [`examples/core-example`](https://github.com/tldraw/tldraw/tree/main/examples/core-example) shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.
 
-The **advanced** example in the `example-advanced` folder shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tldraw/tldraw](https://tldraw.com) codebase.
+The **advanced** example in [`examples/core-example-advanced`](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tldraw/tldraw](https://tldraw.com) codebase.
 
 If you're working on an app that uses this library, I recommend referring back to the advanced example for tips on how you might implement these features for your own project.
 
@@ -81,11 +81,12 @@ function App() {
 
 To avoid unnecessary renders, be sure to pass "stable" values as props to the `Renderer`. Either define these values outside of the parent component, or place them in React state, or memoize them with `React.useMemo`.
 
-| Prop         | Type                            | Description                                    |
-| ------------ | ------------------------------- | ---------------------------------------------- |
-| `page`       | [`TLPage`](#tlpage)             | The current page object.                       |
-| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                      |
-| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes. |
+| Prop         | Type                            | Description                                                 |
+| ------------ | ------------------------------- | ----------------------------------------------------------- |
+| `page`       | [`TLPage`](#tlpage)             | The current page object.                                    |
+| `pageState`  | [`TLPageState`](#tlpagestate)   | The current page's state.                                   |
+| `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes.              |
+| `assets`     | [`TLAssets`](#tlassets)         | (optional) A table of assets used by shapes in the project. |
 
 In addition to these required props, the Renderer accents many other **optional** props.
 
@@ -206,6 +207,17 @@ An object describing the current page. It contains:
 | `bindingId`    | `string`   | (optional) The currently editing binding.           |
 | `brush`        | `TLBounds` | (optional) A `Bounds` for the current selection box |
 
+### `TLAssets`
+
+An object describing the current page's assets. It contains:
+
+| Property | Type     | Description                |
+| -------- | -------- | -------------------------- |
+| `id`     | `string` | A unique id for the asset. |
+| `type`   | `string` | The type of the asset.     |
+
+Assets are used for shared resources, such as serialized images and videos in the `@tldraw/tldraw` app. If a shape has an `assetId` property, its component will receive the corresponding asset in the component's props. Like shapes, this interface is meant to be extended with additional properties relevant to the type of asset used (e.g. size, duration, url).
+
 ### `TLShape`
 
 An object that describes a shape on the page. The shapes in your document should extend this interface with other properties. See [Shape Type](#shape-type).
@@ -218,7 +230,8 @@ An object that describes a shape on the page. The shapes in your document should
 | `childIndex`          | `number`   | the order of the shape among its parent's children                                    |
 | `name`                | `string`   | the name of the shape                                                                 |
 | `point`               | `number[]` | the shape's current `[x, y]` coordinates on the page                                  |
-| `rotation`            | `number`   | (optiona) The shape's current rotation in radians                                     |
+| `assetId`             | `string`   | (optional) An asset id from the [`TLAssets`](#tlassets) table.                        |
+| `rotation`            | `number`   | (optional) The shape's current rotation in radians                                    |
 | `children`            | `string[]` | (optional) An array containing the ids of this shape's children                       |
 | `handles`             | `{}`       | (optional) A table of [`TLHandle`](#tlhandle) objects                                 |
 | `isGhost`             | `boolean`  | (optional) True if the shape is "ghosted", e.g. while deleting                        |
@@ -299,9 +312,8 @@ Next, use `TLShapeUtil.Component` to create a second component for your shape's 
 
 ```tsx
 // BoxComponent.ts
-
+import { SVGContainer, shapeComponent } from '@tldraw/core'
 import * as React from 'react'
-import { shapeComponent, SVGContainer } from '@tldraw/core'
 import type { BoxShape } from './BoxShape'
 
 export const BoxComponent = TLShapeUtil.Component<BoxShape, SVGSVGElement>(
@@ -378,8 +390,7 @@ Next, create a "shape util" for your shape. This is a class that extends `TLShap
 
 ```ts
 // BoxUtil.ts
-
-import { Utils, TLBounds, TLShapeUtil } from '@tldraw/core'
+import { TLBounds, TLShapeUtil, Utils } from '@tldraw/core'
 import { BoxComponent } from './BoxComponent'
 import { BoxIndicator } from './BoxIndicator'
 import type { BoxShape } from './BoxShape'

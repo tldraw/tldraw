@@ -1,7 +1,7 @@
-import * as React from 'react'
 import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import * as React from 'react'
 
-export default function FileSystem(): JSX.Element {
+export default function FileSystem() {
   const fileSystemEvents = useFileSystem()
 
   // Use the Menu > File to create, open, and save .tldr files.

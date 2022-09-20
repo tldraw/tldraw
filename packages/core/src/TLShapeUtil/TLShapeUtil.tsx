@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { intersectPolygonBounds } from '@tldraw/intersect'
 import * as React from 'react'
-import Utils from '../utils'
-import { intersectPolylineBounds } from '@tldraw/intersect'
-import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '../types'
+import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '~types'
+import Utils from '~utils'
 
 export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M = any> {
   refMap = new Map<string, React.RefObject<E>>()
@@ -21,6 +20,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     shape: T
     meta: M
     user?: TLUser<T>
+    bounds: TLBounds
     isHovered: boolean
     isSelected: boolean
   }) => React.ReactElement | null
@@ -33,26 +33,15 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     if (!this.refMap.has(shape.id)) {
       this.refMap.set(shape.id, React.createRef<E>())
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.refMap.get(shape.id)!
   }
 
   hitTestBounds = (shape: T, bounds: TLBounds) => {
     const shapeBounds = this.getBounds(shape)
-
-    if (!shape.rotation) {
-      return (
-        Utils.boundsContain(bounds, shapeBounds) ||
-        Utils.boundsContain(shapeBounds, bounds) ||
-        Utils.boundsCollide(shapeBounds, bounds)
-      )
-    }
-
     const corners = Utils.getRotatedCorners(shapeBounds, shape.rotation)
-
     return (
       corners.every((point) => Utils.pointInBounds(point, bounds)) ||
-      intersectPolylineBounds(corners, bounds).length > 0
+      intersectPolygonBounds(corners, bounds).length > 0
     )
   }
 
@@ -63,7 +52,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
   /* --------------------- Static --------------------- */
 
   static Component = <T extends TLShape, E extends Element = any, M = any>(
-    component: (props: TLComponentProps<T, E, M>, ref: TLForwardedRef<E>) => JSX.Element
+    component: (props: TLComponentProps<T, E, M>, ref: TLForwardedRef<E>) => React.ReactElement
   ) => {
     return React.forwardRef(component)
   }
@@ -74,6 +63,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
       meta: M
       isHovered: boolean
       isSelected: boolean
-    }) => JSX.Element
+      bounds: TLBounds
+    }) => React.ReactElement
   ) => component
 }

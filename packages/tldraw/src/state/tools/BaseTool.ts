@@ -4,7 +4,7 @@ import {
   TLPointerEventHandler,
   Utils,
 } from '@tldraw/core'
-import type { TldrawApp } from '../internal'
+import type { TldrawApp } from '~state/TldrawApp'
 import { TDEventHandler, TDToolType } from '~types'
 
 export enum Status {
@@ -13,7 +13,6 @@ export enum Status {
   Pinching = 'pinching',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BaseTool<T extends string = any> extends TDEventHandler {
   type: TDToolType = 'select' as const
 
@@ -77,6 +76,7 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
 
   onPinch: TLPinchEventHandler = (info, e) => {
     if (this.status !== 'pinching') return
+    if (isNaN(info.delta[0]) || isNaN(info.delta[1])) return
     this.app.pinchZoom(info.point, info.delta, info.delta[2])
     this.onPointerMove?.(info, e as unknown as React.PointerEvent)
   }
@@ -89,7 +89,6 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
       return
     }
 
-    /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.app.updateSession()
       return
@@ -97,7 +96,6 @@ export abstract class BaseTool<T extends string = any> extends TDEventHandler {
   }
 
   onKeyUp: TLKeyboardEventHandler = (key) => {
-    /* noop */
     if (key === 'Meta' || key === 'Control' || key === 'Alt') {
       this.app.updateSession()
       return

@@ -1,9 +1,8 @@
 import { createState } from '@state-designer/react'
 import type { TLPointerInfo } from '@tldraw/core'
-import { INITIAL_DATA } from './constants'
 import Vec from '@tldraw/vec'
-import { getPagePoint } from './helpers'
 import * as actions from './actions'
+import { INITIAL_DATA } from './constants'
 import { mutables } from './mutables'
 
 export const machine = createState({
@@ -42,7 +41,7 @@ export const machine = createState({
       initial: 'idle',
       states: {
         idle: {
-          onEnter: ['clearPointedShape'],
+          onEnter: ['clearPointedShape', 'clearPerformanceMode'],
           on: {
             SELECTED_ALL: 'selectAllShapes',
             DESELECTED_ALL: 'deselectAllShapes',
@@ -149,7 +148,7 @@ export const machine = createState({
           },
         },
         translating: {
-          onEnter: 'setSnapInfo',
+          onEnter: ['setSnapInfo', 'setTranslatePerformanceMode'],
           onExit: ['clearSnapInfo', 'clearSnapLines', 'clearIsCloning'],
           on: {
             CANCELLED: {
@@ -181,7 +180,7 @@ export const machine = createState({
           },
         },
         transforming: {
-          onEnter: ['setSnapInfo', 'setInitialCommonBounds'],
+          onEnter: ['setSnapInfo', 'setInitialCommonBounds', 'setTransformPerformanceMode'],
           onExit: ['clearSnapInfo', 'clearSnapLines', 'clearPointedBoundsHandle'],
           on: {
             TOGGLED_MODIFIER: ['transformSelectedShapes', 'updateBoundShapes'],
@@ -260,6 +259,7 @@ export const machine = createState({
       },
     },
     pencil: {
+      onEnter: 'setTransformPerformanceMode',
       initial: 'idle',
       states: {
         idle: {
@@ -294,6 +294,7 @@ export const machine = createState({
       },
     },
     box: {
+      onEnter: 'setTransformPerformanceMode',
       initial: 'idle',
       states: {
         idle: {
@@ -334,6 +335,7 @@ export const machine = createState({
       },
     },
     arrow: {
+      onEnter: 'setTransformPerformanceMode',
       initial: 'idle',
       states: {
         idle: {

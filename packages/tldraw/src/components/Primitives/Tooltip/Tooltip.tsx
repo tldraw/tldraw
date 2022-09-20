@@ -11,26 +11,26 @@ interface TooltipProps {
   children: React.ReactNode
   label: string
   kbd?: string
+  id?: string
   side?: 'bottom' | 'left' | 'right' | 'top'
 }
 
-export function Tooltip({
-  children,
-  label,
-  kbd: kbdProp,
-  side = 'top',
-}: TooltipProps): JSX.Element {
+export function Tooltip({ children, label, kbd: kbdProp, id, side = 'top' }: TooltipProps) {
   return (
-    <RadixTooltip.Root>
-      <RadixTooltip.Trigger dir="ltr" asChild={true}>
-        <span>{children}</span>
-      </RadixTooltip.Trigger>
-      <StyledContent dir="ltr" side={side} sideOffset={8}>
-        {label}
-        {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
-        <StyledArrow />
-      </StyledContent>
-    </RadixTooltip.Root>
+    <span id={id}>
+      <RadixTooltip.Provider>
+        <RadixTooltip.Root>
+          <RadixTooltip.Trigger dir="ltr" asChild={true}>
+            <span>{children}</span>
+          </RadixTooltip.Trigger>
+          <StyledContent dir="ltr" side={side} sideOffset={8}>
+            {label}
+            {kbdProp ? <Kbd variant="tooltip">{kbdProp}</Kbd> : null}
+            <StyledArrow />
+          </StyledContent>
+        </RadixTooltip.Root>
+      </RadixTooltip.Provider>
+    </span>
   )
 }
 

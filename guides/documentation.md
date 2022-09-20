@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This file contains the documentatin for the `<Tldraw>` component as well as the data model that the component accepts.
+This file contains the documentation for the `<Tldraw>` component as well as the data model that the component accepts.
 
 In addition to the docs written below, this project also includes **generated documentation**. To view the generated docs:
 
@@ -93,6 +93,7 @@ const myDocument: TDDocument = {
       },
     },
   },
+  assets: {},
 }
 
 function App() {
@@ -100,7 +101,9 @@ function App() {
 }
 ```
 
-**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tldraw/core](https://github.com/tldraw/core) library.
+**Tip:** The pages and pageStates in tldraw are objects containing `TLPage` and `TLPageState` objects from the [@tldraw/core](/packages/core) library.
+
+**Tip:** The `assets` in tldraw is a table of `TDAssets` (images and videos).
 
 **Important:** In the `pages` object, each `TLPage` object must be keyed under its `id` property. Likewise, each `TLPageState` object must be keyed under its `id`. In addition, each `TLPageState` object must have an `id` that matches its corresponding page.
 

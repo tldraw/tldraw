@@ -1,22 +1,22 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
+import { TLBounds, TLBoundsWithCenter, TLPageState, TLSnapLine, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import {
-  TDShape,
-  TDBinding,
-  TldrawCommand,
-  TDStatus,
-  ArrowShape,
-  Patch,
-  GroupShape,
-  SessionType,
-  ArrowBinding,
-  TldrawPatch,
-} from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import {
+  ArrowBinding,
+  ArrowShape,
+  GroupShape,
+  Patch,
+  SessionType,
+  TDBinding,
+  TDShape,
+  TDShapeType,
+  TDStatus,
+  TldrawCommand,
+  TldrawPatch,
+} from '~types'
 
 type CloneInfo =
   | {
@@ -24,6 +24,7 @@ type CloneInfo =
     }
   | {
       state: 'ready'
+      cloneMap: Record<string, string>
       clones: TDShape[]
       clonedBindings: ArrowBinding[]
     }
@@ -39,6 +40,7 @@ type SnapInfo =
     }
 
 export class TranslateSession extends BaseSession {
+  performanceMode = undefined
   type = SessionType.Translate
   status = TDStatus.Translating
   delta = [0, 0]
@@ -172,7 +174,7 @@ export class TranslateSession extends BaseSession {
       bindingsToDelete,
       app: {
         pageState: { camera },
-        settings: { isSnapping },
+        settings: { isSnapping, showGrid },
         currentPageId,
         viewport,
         selectedIds,
@@ -182,13 +184,12 @@ export class TranslateSession extends BaseSession {
         altKey,
         shiftKey,
         metaKey,
+        currentGrid,
       },
     } = this
 
     const nextBindings: Patch<Record<string, TDBinding>> = {}
-
     const nextShapes: Patch<Record<string, TDShape>> = {}
-
     const nextPageState: Patch<TLPageState> = {}
 
     let delta = Vec.sub(currentPoint, originPoint)
@@ -236,13 +237,15 @@ export class TranslateSession extends BaseSession {
       this.speed * camera.zoom < SLOW_SPEED &&
       this.snapInfo.state === 'ready'
     ) {
-      const bounds = Utils.getBoundsWithCenter(Utils.translateBounds(initialCommonBounds, delta))
-
       const snapResult = Utils.getSnapPoints(
-        bounds,
-        (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter(
-          (bounds) => Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
+        Utils.getBoundsWithCenter(
+          showGrid
+            ? Utils.snapBoundsToGrid(Utils.translateBounds(initialCommonBounds, delta), currentGrid)
+            : Utils.translateBounds(initialCommonBounds, delta)
         ),
+        (this.isCloning ? this.snapInfo.bounds : this.snapInfo.others).filter((bounds) => {
+          return Utils.boundsContain(viewport, bounds) || Utils.boundsCollide(viewport, bounds)
+        }),
         SNAP_DISTANCE / camera.zoom
       )
 
@@ -258,8 +261,6 @@ export class TranslateSession extends BaseSession {
 
     // The "movement" is the actual change of position between this
     // computed position and the previous computed position.
-
-    const movement = Vec.sub(delta, this.prev)
 
     this.prev = delta
 
@@ -287,7 +288,7 @@ export class TranslateSession extends BaseSession {
 
         // Add the clones to the page
         clones.forEach((clone) => {
-          nextShapes[clone.id] = { ...clone, point: Vec.round(Vec.add(clone.point, delta)) }
+          nextShapes[clone.id] = { ...clone }
 
           // Add clones to non-selected parents
           if (clone.parentId !== currentPageId && !selectedIds.includes(clone.parentId)) {
@@ -313,13 +314,11 @@ export class TranslateSession extends BaseSession {
 
         // Either way, move the clones
         clones.forEach((clone) => {
-          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
-
-          if (!current.point) throw Error('No point on that clone!')
-
           nextShapes[clone.id] = {
             ...clone,
-            point: Vec.round(Vec.add(current.point, movement)),
+            point: showGrid
+              ? Vec.snap(Vec.toFixed(Vec.add(clone.point, delta)), currentGrid)
+              : Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
       } else {
@@ -327,14 +326,11 @@ export class TranslateSession extends BaseSession {
 
         const { clones } = this.cloneInfo
 
-        // Either way, move the clones
         clones.forEach((clone) => {
-          const current = (nextShapes[clone.id] || this.app.getShape(clone.id)) as TDShape
-
-          if (!current.point) throw Error('No point on that clone!')
-
           nextShapes[clone.id] = {
-            point: Vec.round(Vec.add(current.point, movement)),
+            point: showGrid
+              ? Vec.snap(Vec.toFixed(Vec.add(clone.point, delta)), currentGrid)
+              : Vec.toFixed(Vec.add(clone.point, delta)),
           }
         })
       }
@@ -350,7 +346,6 @@ export class TranslateSession extends BaseSession {
         this.isCloning = false
 
         // Delete the bindings
-
         bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
 
         // Remove the clones from parents
@@ -369,7 +364,9 @@ export class TranslateSession extends BaseSession {
         // Move the original shapes back to the cursor position
         initialShapes.forEach((shape) => {
           nextShapes[shape.id] = {
-            point: Vec.round(Vec.add(shape.point, delta)),
+            point: showGrid
+              ? Vec.snap(Vec.toFixed(Vec.add(shape.point, delta)), currentGrid)
+              : Vec.toFixed(Vec.add(shape.point, delta)),
           }
         })
 
@@ -380,18 +377,18 @@ export class TranslateSession extends BaseSession {
 
         // Set selected ids
         nextPageState.selectedIds = initialShapes.map((shape) => shape.id)
+      } else {
+        // Move the shapes by the delta
+        initialShapes.forEach((shape) => {
+          // const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
+
+          nextShapes[shape.id] = {
+            point: showGrid
+              ? Vec.snap(Vec.toFixed(Vec.add(shape.point, delta)), currentGrid)
+              : Vec.toFixed(Vec.add(shape.point, delta)),
+          }
+        })
       }
-
-      // Move the shapes by the delta
-      initialShapes.forEach((shape) => {
-        const current = (nextShapes[shape.id] || this.app.getShape(shape.id)) as TDShape
-
-        if (!current.point) throw Error('No point on that clone!')
-
-        nextShapes[shape.id] = {
-          point: Vec.round(Vec.add(current.point, movement)),
-        }
-      })
     }
 
     return {
@@ -550,13 +547,10 @@ export class TranslateSession extends BaseSession {
             afterShapes[id] = { ...afterShapes[id], handles: {} }
 
             // There should be before and after shapes
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             beforeShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
               bindingId: binding.id,
             }
 
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             afterShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
               bindingId: undefined,
             }
@@ -636,6 +630,11 @@ export class TranslateSession extends BaseSession {
         childIndex: TLDR.getChildIndexAbove(this.app.state, shape.id, currentPageId),
       }
 
+      if (clone.type === TDShapeType.Video) {
+        const element = document.getElementById(shape.id + '_video') as HTMLVideoElement
+        if (element) clone.currentTime = (element.currentTime + 16) % element.duration
+      }
+
       clones.push(clone)
     })
 
@@ -696,6 +695,7 @@ export class TranslateSession extends BaseSession {
     this.cloneInfo = {
       state: 'ready',
       clones,
+      cloneMap,
       clonedBindings,
     }
   }

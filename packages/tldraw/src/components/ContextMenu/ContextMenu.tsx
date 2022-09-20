@@ -1,8 +1,4 @@
-import * as React from 'react'
-import { styled } from '~styles'
 import * as RadixContextMenu from '@radix-ui/react-context-menu'
-import { useTldrawApp } from '~hooks'
-import { TDSnapshot, AlignType, DistributeType, StretchType } from '~types'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -15,10 +11,15 @@ import {
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
 } from '@radix-ui/react-icons'
+import * as React from 'react'
+import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { ToolButton, ToolButtonProps } from '~components/Primitives/ToolButton'
+import { useContainer, useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { AlignType, DistributeType, StretchType, TDExportType, TDSnapshot } from '~types'
 
 const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
   return s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -37,17 +38,38 @@ const hasGroupSelectedSelector = (s: TDSnapshot) => {
 const preventDefault = (e: Event) => e.stopPropagation()
 
 interface ContextMenuProps {
-  onBlur: React.FocusEventHandler
+  onBlur?: React.FocusEventHandler
   children: React.ReactNode
 }
 
-export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element => {
+export const _ContextMenu = ({ onBlur, children }: ContextMenuProps) => {
+  const container = useContainer()
+
+  return (
+    <RadixContextMenu.Root dir="ltr">
+      <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.Content
+          onEscapeKeyDown={preventDefault}
+          tabIndex={-1}
+          onBlur={onBlur}
+          asChild
+        >
+          <MenuContent id="TD-ContextMenu">
+            <InnerMenu />
+          </MenuContent>
+        </RadixContextMenu.Content>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Root>
+  )
+}
+
+const InnerMenu = React.memo(function InnerMenu() {
   const app = useTldrawApp()
+  const intl = useIntl()
   const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
   const isDebugMode = app.useStore(isDebugModeSelector)
   const hasGroupSelected = app.useStore(hasGroupSelectedSelector)
-
-  const rContent = React.useRef<HTMLDivElement>(null)
 
   const handleFlipHorizontal = React.useCallback(() => {
     app.flipHorizontal()
@@ -89,8 +111,8 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     app.delete()
   }, [app])
 
-  const handleCopyJson = React.useCallback(() => {
-    app.copyJson()
+  const handleCut = React.useCallback(() => {
+    app.cut()
   }, [app])
 
   const handleCopy = React.useCallback(() => {
@@ -101,8 +123,12 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     app.paste()
   }, [app])
 
-  const handleCopySvg = React.useCallback(() => {
-    app.copySvg()
+  const handleCopySVG = React.useCallback(() => {
+    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+  }, [app])
+
+  const handleCopyPNG = React.useCallback(() => {
+    app.copyImage(TDExportType.PNG, { scale: 2, quality: 1, transparentBackground: true })
   }, [app])
 
   const handleUndo = React.useCallback(() => {
@@ -113,103 +139,152 @@ export const ContextMenu = ({ onBlur, children }: ContextMenuProps): JSX.Element
     app.redo()
   }, [app])
 
+  const handleExportPNG = React.useCallback(async () => {
+    app.exportImage(TDExportType.PNG, { scale: 2, quality: 1 })
+  }, [app])
+
+  const handleExportJPG = React.useCallback(async () => {
+    app.exportImage(TDExportType.JPG, { scale: 2, quality: 1 })
+  }, [app])
+
+  const handleExportWEBP = React.useCallback(async () => {
+    app.exportImage(TDExportType.WEBP, { scale: 2, quality: 1 })
+  }, [app])
+
+  const handleExportSVG = React.useCallback(async () => {
+    app.exportImage(TDExportType.SVG, { scale: 1, quality: 1 })
+  }, [app])
+
+  const handleCopyJSON = React.useCallback(async () => {
+    app.copyJson()
+  }, [app])
+
+  const handleExportJSON = React.useCallback(async () => {
+    app.exportJson()
+  }, [app])
+
   const hasSelection = numberOfSelectedIds > 0
   const hasTwoOrMore = numberOfSelectedIds > 1
   const hasThreeOrMore = numberOfSelectedIds > 2
 
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <RadixContextMenu.Trigger dir="ltr">{children}</RadixContextMenu.Trigger>
-      <RadixContextMenu.Content
-        dir="ltr"
-        ref={rContent}
-        onEscapeKeyDown={preventDefault}
-        asChild
-        tabIndex={-1}
-        onBlur={onBlur}
-      >
-        <MenuContent>
-          {hasSelection ? (
-            <>
-              <CMRowButton onClick={handleDuplicate} kbd="#D">
-                Duplicate
-              </CMRowButton>
-              <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H">
-                Flip Horizontal
-              </CMRowButton>
-              <CMRowButton onClick={handleFlipVertical} kbd="⇧V">
-                Flip Vertical
-              </CMRowButton>
-              <CMRowButton onClick={handleLock} kbd="#⇧L">
-                Lock / Unlock
-              </CMRowButton>
-              {(hasTwoOrMore || hasGroupSelected) && <Divider />}
-              {hasTwoOrMore && (
-                <CMRowButton onClick={handleGroup} kbd="#G">
-                  Group
-                </CMRowButton>
-              )}
-              {hasGroupSelected && (
-                <CMRowButton onClick={handleGroup} kbd="#⇧G">
-                  Ungroup
-                </CMRowButton>
-              )}
-              <Divider />
-              <ContextMenuSubMenu label="Move">
-                <CMRowButton onClick={handleMoveToFront} kbd="⇧]">
-                  To Front
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveForward} kbd="]">
-                  Forward
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveBackward} kbd="[">
-                  Backward
-                </CMRowButton>
-                <CMRowButton onClick={handleMoveToBack} kbd="⇧[">
-                  To Back
-                </CMRowButton>
-              </ContextMenuSubMenu>
-              <MoveToPageMenu />
-              {hasTwoOrMore && (
-                <AlignDistributeSubMenu
-                  hasTwoOrMore={hasTwoOrMore}
-                  hasThreeOrMore={hasThreeOrMore}
-                />
-              )}
-              <Divider />
-              <CMRowButton onClick={handleCopy} kbd="#C">
-                Copy
-              </CMRowButton>
-              <CMRowButton onClick={handleCopySvg} kbd="#⇧C">
-                Copy as SVG
-              </CMRowButton>
-              {isDebugMode && <CMRowButton onClick={handleCopyJson}>Copy as JSON</CMRowButton>}
-              <CMRowButton onClick={handlePaste} kbd="#V">
-                Paste
-              </CMRowButton>
-              <Divider />
-              <CMRowButton onClick={handleDelete} kbd="⌫">
-                Delete
-              </CMRowButton>
-            </>
-          ) : (
-            <>
-              <CMRowButton onClick={handlePaste} kbd="#V">
-                Paste
-              </CMRowButton>
-              <CMRowButton onClick={handleUndo} kbd="#Z">
-                Undo
-              </CMRowButton>
-              <CMRowButton onClick={handleRedo} kbd="#⇧Z">
-                Redo
-              </CMRowButton>
-            </>
+    <>
+      {hasSelection ? (
+        <>
+          <CMRowButton onClick={handleDuplicate} kbd="#D" id="TD-ContextMenu-Duplicate">
+            <FormattedMessage id="duplicate" />
+          </CMRowButton>
+          <CMRowButton onClick={handleFlipHorizontal} kbd="⇧H" id="TD-ContextMenu-Flip_Horizontal">
+            <FormattedMessage id="flip.horizontal" />
+          </CMRowButton>
+          <CMRowButton onClick={handleFlipVertical} kbd="⇧V" id="TD-ContextMenu-Flip_Vertical">
+            <FormattedMessage id="flip.vertical" />
+          </CMRowButton>
+          <CMRowButton onClick={handleLock} kbd="#⇧L" id="TD-ContextMenu- Lock_Unlock">
+            <FormattedMessage id="lock" /> / <FormattedMessage id="unlock" />
+          </CMRowButton>
+          {(hasTwoOrMore || hasGroupSelected) && <Divider />}
+          {hasTwoOrMore && (
+            <CMRowButton onClick={handleGroup} kbd="#G" id="TD-ContextMenu-Group">
+              <FormattedMessage id="group" />
+            </CMRowButton>
           )}
-        </MenuContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+          {hasGroupSelected && (
+            <CMRowButton onClick={handleGroup} kbd="#G" id="TD-ContextMenu-Ungroup">
+              <FormattedMessage id="ungroup" />
+            </CMRowButton>
+          )}
+          <Divider />
+          <ContextMenuSubMenu label={intl.formatMessage({ id: 'move' })} id="TD-ContextMenu-Move">
+            <CMRowButton onClick={handleMoveToFront} kbd="⇧]" id="TD-ContextMenu-Move-To_Front">
+              <FormattedMessage id="to.front" />
+            </CMRowButton>
+            <CMRowButton onClick={handleMoveForward} kbd="]" id="TD-ContextMenu-Move-Forward">
+              <FormattedMessage id="forward" />
+            </CMRowButton>
+            <CMRowButton onClick={handleMoveBackward} kbd="[" id="TD-ContextMenu-Move-Backward">
+              <FormattedMessage id="backward" />
+            </CMRowButton>
+            <CMRowButton onClick={handleMoveToBack} kbd="⇧[" id="TD-ContextMenu-Move-To_Back">
+              <FormattedMessage id="back" />
+            </CMRowButton>
+          </ContextMenuSubMenu>
+          <MoveToPageMenu />
+          {hasTwoOrMore && (
+            <AlignDistributeSubMenu hasTwoOrMore={hasTwoOrMore} hasThreeOrMore={hasThreeOrMore} />
+          )}
+          <Divider />
+          <CMRowButton onClick={handleCut} kbd="#X" id="TD-ContextMenu-Cut">
+            <FormattedMessage id="cut" />
+          </CMRowButton>
+          <CMRowButton onClick={handleCopy} kbd="#C" id="TD-ContextMenu-Copy">
+            <FormattedMessage id="copy" />
+          </CMRowButton>
+          <CMRowButton onClick={handlePaste} kbd="#V" id="TD-ContextMenu-Paste">
+            <FormattedMessage id="paste" />
+          </CMRowButton>
+          <Divider />
+          <ContextMenuSubMenu
+            label={`${intl.formatMessage({ id: 'copy.as' })}...`}
+            size="small"
+            id="TD-ContextMenu-Copy-As"
+          >
+            <CMRowButton onClick={handleCopySVG} id="TD-ContextMenu-Copy-as-SVG">
+              SVG
+            </CMRowButton>
+            <CMRowButton onClick={handleCopyPNG} id="TD-ContextMenu-Copy-As-PNG">
+              PNG
+            </CMRowButton>
+            {isDebugMode && (
+              <CMRowButton onClick={handleCopyJSON} id="TD-ContextMenu-Copy_as_JSON">
+                JSON
+              </CMRowButton>
+            )}
+          </ContextMenuSubMenu>
+          <ContextMenuSubMenu
+            label={`${intl.formatMessage({ id: 'export.as' })}...`}
+            size="small"
+            id="TD-ContextMenu-Export"
+          >
+            <CMRowButton onClick={handleExportSVG} id="TD-ContextMenu-Export-SVG">
+              SVG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportPNG} id="TD-ContextMenu-Export-PNG">
+              PNG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportJPG} id="TD-ContextMenu-Export-JPG">
+              JPG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportWEBP} id="TD-ContextMenu-Export-WEBP">
+              WEBP
+            </CMRowButton>
+            {isDebugMode && (
+              <CMRowButton onClick={handleExportJSON} id="TD-ContextMenu-Export-JSON">
+                JSON
+              </CMRowButton>
+            )}
+          </ContextMenuSubMenu>
+          <Divider />
+          <CMRowButton onClick={handleDelete} kbd="⌫" id="TD-ContextMenu-Delete">
+            <FormattedMessage id="delete" />
+          </CMRowButton>
+        </>
+      ) : (
+        <>
+          <CMRowButton onClick={handlePaste} kbd="#V" id="TD-ContextMenu-Paste">
+            <FormattedMessage id="paste" />
+          </CMRowButton>
+          <CMRowButton onClick={handleUndo} kbd="#Z" id="TD-ContextMenu-Undo">
+            <FormattedMessage id="undo" />
+          </CMRowButton>
+          <CMRowButton onClick={handleRedo} kbd="#⇧Z" id="TD-ContextMenu-Redo">
+            <FormattedMessage id="redo" />
+          </CMRowButton>
+        </>
+      )}
+    </>
   )
-}
+})
 
 /* ---------- Align and Distribute Sub Menu --------- */
 
@@ -261,49 +336,73 @@ function AlignDistributeSubMenu({
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
+  const container = useContainer()
+
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <CMTriggerButton isSubmenu>Align / Distribute</CMTriggerButton>
-      <RadixContextMenu.Content asChild sideOffset={2} alignOffset={-2}>
-        <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
-          <CMIconButton onClick={alignLeft}>
-            <AlignLeftIcon />
-          </CMIconButton>
-          <CMIconButton onClick={alignCenterHorizontal}>
-            <AlignCenterHorizontallyIcon />
-          </CMIconButton>
-          <CMIconButton onClick={alignRight}>
-            <AlignRightIcon />
-          </CMIconButton>
-          <CMIconButton onClick={stretchHorizontally}>
-            <StretchHorizontallyIcon />
-          </CMIconButton>
-          {hasThreeOrMore && (
-            <CMIconButton onClick={distributeHorizontally}>
-              <SpaceEvenlyHorizontallyIcon />
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton id="TD-ContextMenu-Align-Distribute-Trigger">
+        <FormattedMessage id="align.distribute" />
+      </CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent asChild sideOffset={4} alignOffset={-2}>
+          <StyledGridContent numberOfSelected={hasThreeOrMore ? 'threeOrMore' : 'twoOrMore'}>
+            <CMIconButton onClick={alignLeft} id="TD-ContextMenu-Align_Distribute-AlignLeft">
+              <AlignLeftIcon />
             </CMIconButton>
-          )}
-          <CMIconButton onClick={alignTop}>
-            <AlignTopIcon />
-          </CMIconButton>
-          <CMIconButton onClick={alignCenterVertical}>
-            <AlignCenterVerticallyIcon />
-          </CMIconButton>
-          <CMIconButton onClick={alignBottom}>
-            <AlignBottomIcon />
-          </CMIconButton>
-          <CMIconButton onClick={stretchVertically}>
-            <StretchVerticallyIcon />
-          </CMIconButton>
-          {hasThreeOrMore && (
-            <CMIconButton onClick={distributeVertically}>
-              <SpaceEvenlyVerticallyIcon />
+            <CMIconButton
+              onClick={alignCenterHorizontal}
+              id="TD-ContextMenu-Align_Distribute-AlignCenterHorizontal"
+            >
+              <AlignCenterHorizontallyIcon />
             </CMIconButton>
-          )}
-          <CMArrow offset={13} />
-        </StyledGridContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+            <CMIconButton onClick={alignRight} id="TD-ContextMenu-Align_Distribute-AlignRight">
+              <AlignRightIcon />
+            </CMIconButton>
+            <CMIconButton
+              onClick={stretchHorizontally}
+              id="TD-ContextMenu-Align_Distribute-StretchHorizontal"
+            >
+              <StretchHorizontallyIcon />
+            </CMIconButton>
+            {hasThreeOrMore && (
+              <CMIconButton
+                onClick={distributeHorizontally}
+                id="TD-ContextMenu-Align_Distribute-SpaceEvenlyHorizontal"
+              >
+                <SpaceEvenlyHorizontallyIcon />
+              </CMIconButton>
+            )}
+            <CMIconButton onClick={alignTop} id="TD-ContextMenu-Align_Distribute-AlignTop">
+              <AlignTopIcon />
+            </CMIconButton>
+            <CMIconButton
+              onClick={alignCenterVertical}
+              id="TD-ContextMenu-Align_Distribute-AlignCenterVertical"
+            >
+              <AlignCenterVerticallyIcon />
+            </CMIconButton>
+            <CMIconButton onClick={alignBottom} id="TD-ContextMenu-Align_Distribute-AlignBottom">
+              <AlignBottomIcon />
+            </CMIconButton>
+            <CMIconButton
+              onClick={stretchVertically}
+              id="TD-ContextMenu-Align_Distribute-StretchVertical"
+            >
+              <StretchVerticallyIcon />
+            </CMIconButton>
+            {hasThreeOrMore && (
+              <CMIconButton
+                onClick={distributeVertically}
+                id="TD-ContextMenu-Align_Distribute-SpaceEvenlyVertical"
+              >
+                <SpaceEvenlyVerticallyIcon />
+              </CMIconButton>
+            )}
+            <CMArrow offset={13} />
+          </StyledGridContent>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -326,7 +425,7 @@ const StyledGridContent = styled(MenuContent, {
 const currentPageIdSelector = (s: TDSnapshot) => s.appState.currentPageId
 const documentPagesSelector = (s: TDSnapshot) => s.document.pages
 
-function MoveToPageMenu(): JSX.Element | null {
+function MoveToPageMenu() {
   const app = useTldrawApp()
   const currentPageId = app.useStore(currentPageIdSelector)
   const documentPages = app.useStore(documentPagesSelector)
@@ -335,26 +434,32 @@ function MoveToPageMenu(): JSX.Element | null {
     .sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
     .filter((a) => a.id !== currentPageId)
 
+  const container = useContainer()
+
   if (sorted.length === 0) return null
 
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <CMTriggerButton isSubmenu>Move To Page</CMTriggerButton>
-      <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
-        <MenuContent>
-          {sorted.map(({ id, name }, i) => (
-            <CMRowButton
-              key={id}
-              disabled={id === currentPageId}
-              onClick={() => app.moveToPage(id)}
-            >
-              {name || `Page ${i}`}
-            </CMRowButton>
-          ))}
-          <CMArrow offset={13} />
-        </MenuContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton>
+        <FormattedMessage id="move.to.page" />
+      </CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent sideOffset={4} alignOffset={-2} asChild>
+          <MenuContent>
+            {sorted.map(({ id, name }, i) => (
+              <CMRowButton
+                key={id}
+                disabled={id === currentPageId}
+                onClick={() => app.moveToPage(id)}
+              >
+                {name || `Page ${i}`}
+              </CMRowButton>
+            ))}
+            <CMArrow offset={13} />
+          </MenuContent>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -362,20 +467,25 @@ function MoveToPageMenu(): JSX.Element | null {
 
 export interface ContextMenuSubMenuProps {
   label: string
+  size?: 'small'
   children: React.ReactNode
+  id?: string
 }
 
-export function ContextMenuSubMenu({ children, label }: ContextMenuSubMenuProps): JSX.Element {
+export function ContextMenuSubMenu({ children, label, size, id }: ContextMenuSubMenuProps) {
+  const container = useContainer()
   return (
-    <RadixContextMenu.Root dir="ltr">
-      <CMTriggerButton isSubmenu>{label}</CMTriggerButton>
-      <RadixContextMenu.Content dir="ltr" sideOffset={2} alignOffset={-2} asChild>
-        <MenuContent>
-          {children}
-          <CMArrow offset={13} />
-        </MenuContent>
-      </RadixContextMenu.Content>
-    </RadixContextMenu.Root>
+    <RadixContextMenu.Sub>
+      <CMSubTriggerButton>{label}</CMSubTriggerButton>
+      <RadixContextMenu.Portal container={container.current}>
+        <RadixContextMenu.SubContent sideOffset={4} alignOffset={-2} asChild>
+          <MenuContent size={size}>
+            {children}
+            <CMArrow offset={13} />
+          </MenuContent>
+        </RadixContextMenu.SubContent>
+      </RadixContextMenu.Portal>
+    </RadixContextMenu.Sub>
   )
 }
 
@@ -387,7 +497,7 @@ const CMArrow = styled(RadixContextMenu.ContextMenuArrow, {
 
 /* ------------------- IconButton ------------------- */
 
-function CMIconButton({ onSelect, ...rest }: ToolButtonProps): JSX.Element {
+function CMIconButton({ onSelect, ...rest }: ToolButtonProps) {
   return (
     <RadixContextMenu.ContextMenuItem dir="ltr" onSelect={onSelect} asChild>
       <ToolButton {...rest} />
@@ -397,9 +507,9 @@ function CMIconButton({ onSelect, ...rest }: ToolButtonProps): JSX.Element {
 
 /* -------------------- RowButton ------------------- */
 
-const CMRowButton = ({ ...rest }: RowButtonProps) => {
+const CMRowButton = ({ id, ...rest }: RowButtonProps) => {
   return (
-    <RadixContextMenu.ContextMenuItem asChild>
+    <RadixContextMenu.ContextMenuItem asChild id={id}>
       <RowButton {...rest} />
     </RadixContextMenu.ContextMenuItem>
   )
@@ -407,14 +517,12 @@ const CMRowButton = ({ ...rest }: RowButtonProps) => {
 
 /* ----------------- Trigger Button ----------------- */
 
-interface CMTriggerButtonProps extends RowButtonProps {
-  isSubmenu?: boolean
-}
-
-export const CMTriggerButton = ({ isSubmenu, ...rest }: CMTriggerButtonProps) => {
+export const CMSubTriggerButton = ({ id, ...rest }: RowButtonProps) => {
   return (
-    <RadixContextMenu.ContextMenuTriggerItem asChild>
-      <RowButton hasArrow={isSubmenu} {...rest} />
-    </RadixContextMenu.ContextMenuTriggerItem>
+    <RadixContextMenu.SubTrigger asChild id={id}>
+      <RowButton hasArrow {...rest} />
+    </RadixContextMenu.SubTrigger>
   )
 }
+
+export const ContextMenu = React.memo(_ContextMenu)

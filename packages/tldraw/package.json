@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.1.3",
+  "version": "1.24.5",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -18,51 +18,60 @@
   "files": [
     "dist/**/*"
   ],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "source": "./src/index.ts",
   "scripts": {
-    "start": "node scripts/dev & yarn types:dev",
-    "start:packages": "yarn start",
-    "build": "node scripts/build && yarn types:build",
-    "build:packages": "yarn build",
-    "types:dev": "tsc -w",
-    "types:build": "tsc -p tsconfig.build.json && tsconfig-replace-paths -p tsconfig.build.json",
-    "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf dist",
-    "ts-node": "ts-node",
+    "dev": "yarn lfg -d",
+    "build": "yarn lfg",
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll"
   },
   "peerDependencies": {
     "react": ">=16.8",
-    "react-dom": "^16.8 || ^17.0"
+    "react-dom": ">=16.8"
   },
   "dependencies": {
-    "@radix-ui/react-alert-dialog": "^0.1.1",
-    "@radix-ui/react-checkbox": "^0.1.1",
-    "@radix-ui/react-context-menu": "^0.1.1",
-    "@radix-ui/react-dropdown-menu": "^0.1.1",
-    "@radix-ui/react-icons": "^1.0.3",
-    "@radix-ui/react-id": "^0.1.1",
-    "@radix-ui/react-radio-group": "^0.1.1",
-    "@radix-ui/react-tooltip": "^0.1.1",
-    "@stitches/react": "^1.2.5",
-    "@tldraw/core": "^1.1.3",
-    "@tldraw/intersect": "latest",
-    "@tldraw/vec": "latest",
-    "idb-keyval": "^6.0.3",
-    "perfect-freehand": "^1.0.16",
-    "react-hotkeys-hook": "^3.4.0",
-    "tslib": "^2.3.1",
-    "zustand": "^3.6.5"
+    "@radix-ui/react-alert-dialog": "^1.0.0",
+    "@radix-ui/react-context-menu": "^1.0.0",
+    "@radix-ui/react-dialog": "^1.0.0",
+    "@radix-ui/react-dropdown-menu": "^1.0.0",
+    "@radix-ui/react-icons": "^1.1.1",
+    "@radix-ui/react-popover": "^1.0.0",
+    "@radix-ui/react-tooltip": "^1.0.0",
+    "@stitches/react": "^1.2.8",
+    "@tldraw/core": "^1.18.4",
+    "@tldraw/intersect": "^1.7.1",
+    "@tldraw/vec": "^1.7.1",
+    "browser-fs-access": "^0.31.0",
+    "idb-keyval": "^6.2.0",
+    "perfect-freehand": "^1.2.0",
+    "react-error-boundary": "^3.1.4",
+    "react-hotkeys-hook": "^3.4.7",
+    "react-intl": "^6.1.1",
+    "tslib": "^2.4.0",
+    "zustand": "^4.1.1"
   },
   "devDependencies": {
-    "@swc-node/jest": "^1.3.3",
-    "@testing-library/jest-dom": "^5.14.1",
-    "@testing-library/react": "^12.0.0",
-    "tsconfig-replace-paths": "^0.0.5"
+    "@swc-node/jest": "^1.5.2",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@tldraw/core": "*",
+    "@tldraw/intersect": "*",
+    "@tldraw/lfg": "latest",
+    "@tldraw/vec": "*",
+    "@types/node": "^17.0.14",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "@typescript-eslint/eslint-plugin": "^5.36.2",
+    "@typescript-eslint/parser": "^5.36.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.7.3"
   },
   "jest": {
     "setupFilesAfterEnv": [
@@ -82,13 +91,12 @@
     ],
     "testEnvironment": "jsdom",
     "modulePathIgnorePatterns": [
-      "<rootDir>/dist/",
-      "<rootDir>/src/test/"
+      "<rootDir>/dist/"
     ],
     "moduleNameMapper": {
       "@tldraw/tldraw": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }
   },
-  "gitHead": "325008ff82bd27b63d625ad1b760f8871fb71af9"
+  "gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296"
 }

@@ -1,12 +1,13 @@
 {
   "extends": "../../../tsconfig.base.json",
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "docs"],
+  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "outDir": "./dist/types",
+    "outDir": "./dist",
     "rootDir": "src",
     "baseUrl": "src",
     "emitDeclarationOnly": false,
+    "jsx": "react-jsx",
     "paths": {
       "@tldraw/tldraw": ["../../../packages/tldraw"]
     }
@@ -15,9 +16,5 @@
     {
       "path": "../../../packages/tldraw"
     }
-  ],
-  "typedocOptions": {
-    "entryPoints": ["src/index.ts"],
-    "out": "docs"
-  }
+  ]
 }

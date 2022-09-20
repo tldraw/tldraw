@@ -1,7 +1,7 @@
-import { Tldraw, TDFile } from '@tldraw/tldraw'
+import { TDFile, Tldraw } from '@tldraw/tldraw'
 import * as React from 'react'
 
-export default function ReadOnly(): JSX.Element {
+export default function ReadOnly() {
   const [file, setFile] = React.useState<TDFile>()
 
   React.useEffect(() => {

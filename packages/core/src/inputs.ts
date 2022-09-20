@@ -1,7 +1,7 @@
+import { Vec } from '@tldraw/vec'
 import type React from 'react'
 import type { TLBounds, TLKeyboardInfo, TLPointerInfo } from './types'
 import { Utils } from './utils'
-import { Vec } from '@tldraw/vec'
 
 const DOUBLE_CLICK_DURATION = 250
 
@@ -22,8 +22,6 @@ export class Inputs {
     width: 640,
     height: 480,
   }
-
-  zoom = 1
 
   pointerUpTime = 0
 
@@ -239,7 +237,7 @@ export class Inputs {
 
     this.pointer = info
 
-    this.pointerUpTime = Date.now()
+    this.pointerUpTime = performance.now()
 
     return info
   }
@@ -300,7 +298,7 @@ export class Inputs {
     const { origin, point } = this.pointer
 
     const isDoubleClick =
-      Date.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION && Vec.dist(origin, point) < 4
+      performance.now() - this.pointerUpTime < DOUBLE_CLICK_DURATION && Vec.dist(origin, point) < 4
 
     // Reset the active pointer, in case it got stuck
     if (isDoubleClick) this.activePointer = undefined
@@ -360,7 +358,7 @@ export class Inputs {
       target: 'pinch',
       origin,
       delta: delta,
-      point: Vec.sub(Vec.round(point), [this.bounds.minX, this.bounds.minY]),
+      point: Vec.sub(Vec.toFixed(point), [this.bounds.minX, this.bounds.minY]),
       pressure: 0.5,
       shiftKey,
       ctrlKey,

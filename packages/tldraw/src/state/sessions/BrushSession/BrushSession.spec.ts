@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { SessionType, TDStatus } from '~types'
 
 describe('Brush session', () => {
@@ -6,7 +6,7 @@ describe('Brush session', () => {
     const app = new TldrawTestApp()
       .loadDocument(mockDocument)
       .selectNone()
-      .movePointer([-10, -10])
+      .movePointer([-48, -48])
       .startSession(SessionType.Brush)
       .movePointer([10, 10])
       .completeSession()

@@ -1,6 +1,6 @@
+import { Utils } from '@tldraw/core'
 import * as React from 'react'
 import { styled } from '~styles'
-import { Utils } from '@tldraw/core'
 
 /* -------------------------------------------------- */
 /*                  Keyboard Shortcut                 */
@@ -8,13 +8,7 @@ import { Utils } from '@tldraw/core'
 
 const commandKey = () => (Utils.isDarwin() ? '⌘' : 'Ctrl')
 
-export function Kbd({
-  variant,
-  children,
-}: {
-  variant: 'tooltip' | 'menu'
-  children: string
-}): JSX.Element | null {
+export function Kbd({ variant, children }: { variant: 'tooltip' | 'menu'; children: string }) {
   return (
     <StyledKbd variant={variant}>
       {children.split('').map((k, i) => {

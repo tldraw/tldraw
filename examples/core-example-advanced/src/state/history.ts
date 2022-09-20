@@ -1,5 +1,5 @@
-import { AppData, INITIAL_DATA, PERSIST_DATA } from './constants'
 import { current } from 'immer'
+import { AppData, INITIAL_DATA, PERSIST_DATA } from './constants'
 
 export function makeHistory(ID = '@tldraw/core_advanced_example') {
   let initialData = INITIAL_DATA

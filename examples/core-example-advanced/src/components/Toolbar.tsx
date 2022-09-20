@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ArrowUpRight, Edit2, MousePointer, PenTool, Square, X } from 'react-feather'
+import { ArrowUpRight, Edit2, MousePointer, Square, X } from 'react-feather'
 import { machine } from 'state/machine'
 import styled from 'stitches.config'
 
@@ -51,7 +51,10 @@ export function Toolbar({ activeStates, lastEvent }: ToolbarProps) {
           <button onClick={onReset}>Reset</button>
           {activeStates
             .slice(1)
-            .map((name) => name.split('#state_1.root')[1])
+            .map((name) => {
+              const state = name.split('.')
+              return state[state.length - 1]
+            })
             .join(' - ')}
         </div>
         <div>{lastEvent}</div>

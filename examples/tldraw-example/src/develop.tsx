@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from 'react'
 import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
+import * as React from 'react'
 
 declare const window: Window & { app: TldrawApp }
 
-export default function Develop(): JSX.Element {
+export default function Develop() {
   const rTldrawApp = React.useRef<TldrawApp>()
 
   const fileSystemEvents = useFileSystem()
@@ -12,14 +12,13 @@ export default function Develop(): JSX.Element {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
     rTldrawApp.current = app
-  }, [])
-
-  const handleSignOut = React.useCallback(() => {
-    // noop
-  }, [])
-
-  const handleSignIn = React.useCallback(() => {
-    // noop
+    // app.reset()
+    // app.createShapes({
+    //   id: 'box1',
+    //   type: TDShapeType.Rectangle,
+    //   point: [200, 200],
+    //   size: [200, 200],
+    // })
   }, [])
 
   const handlePersist = React.useCallback(() => {
@@ -28,15 +27,7 @@ export default function Develop(): JSX.Element {
 
   return (
     <div className="tldraw">
-      <Tldraw
-        id="develop"
-        {...fileSystemEvents}
-        onMount={handleMount}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
-        onPersist={handlePersist}
-        showSponsorLink={true}
-      />
+      <Tldraw id="develop" {...fileSystemEvents} onMount={handleMount} onPersist={handlePersist} />
     </div>
   )
 }

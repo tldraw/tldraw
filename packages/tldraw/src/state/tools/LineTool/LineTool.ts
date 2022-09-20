@@ -1,7 +1,8 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { TLPointerEventHandler, Utils } from '@tldraw/core'
+import Vec from '@tldraw/vec'
 import { Arrow } from '~state/shapes'
+import { BaseTool, Status } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool, Status } from '../BaseTool'
 
 export class LineTool extends BaseTool {
   type = TDShapeType.Line as const
@@ -9,8 +10,13 @@ export class LineTool extends BaseTool {
   /* ----------------- Event Handlers ----------------- */
 
   onPointerDown: TLPointerEventHandler = () => {
+    if (this.app.readOnly) return
+    if (this.status !== Status.Idle) return
+
     const {
       currentPoint,
+      currentGrid,
+      settings: { showGrid },
       appState: { currentPageId, currentStyle },
     } = this.app
 
@@ -22,8 +28,11 @@ export class LineTool extends BaseTool {
       id,
       parentId: currentPageId,
       childIndex,
-      point: currentPoint,
-      decorations: undefined,
+      point: showGrid ? Vec.snap(currentPoint, currentGrid) : currentPoint,
+      decorations: {
+        start: undefined,
+        end: undefined,
+      },
       style: { ...currentStyle },
     })
 

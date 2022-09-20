@@ -1,25 +1,32 @@
-import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
-import { EllipseShape, DashStyle, TDShapeType, TDShape, TransformInfo, TDMeta } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY } from '~constants'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectEllipseBounds,
   intersectLineSegmentEllipse,
   intersectRayEllipse,
 } from '@tldraw/intersect'
-import { getEllipseIndicatorPathTDSnapshot, getEllipsePath } from './ellipseHelpers'
+import { Vec } from '@tldraw/vec'
+import * as React from 'react'
+import { GHOSTED_OPACITY, LABEL_POINT } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { TextLabel, defaultStyle, getFontStyle, getShapeStyle } from '~state/shapes/shared'
+import { styled } from '~styles'
+import { DashStyle, EllipseShape, TDMeta, TDShape, TDShapeType, TransformInfo } from '~types'
+import { DashedEllipse } from './components/DashedEllipse'
+import { DrawEllipse } from './components/DrawEllipse'
+import { getEllipseIndicatorPath } from './ellipseHelpers'
 
 type T = EllipseShape
-type E = SVGSVGElement
+type E = HTMLDivElement
 type M = TDMeta
 
 export class EllipseUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Ellipse as const
 
   canBind = true
+
+  canClone = true
+
+  canEdit = true
 
   getShape = (props: Partial<T>): T => {
     return Utils.deepMerge<T>(
@@ -33,104 +40,89 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
         radius: [1, 1],
         rotation: 0,
         style: defaultStyle,
+        label: '',
+        labelPoint: [0.5, 0.5],
       },
       props
     )
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, isGhost, isBinding, meta, events }, ref) => {
-      const {
-        radius: [radiusX, radiusY],
-        style,
-      } = shape
-
+    (
+      {
+        shape,
+        isGhost,
+        isSelected,
+        isBinding,
+        isEditing,
+        meta,
+        bounds,
+        events,
+        onShapeChange,
+        onShapeBlur,
+      },
+      ref
+    ) => {
+      const { id, radius, style, label = '', labelPoint = LABEL_POINT } = shape
+      const font = getFontStyle(shape.style)
       const styles = getShapeStyle(style, meta.isDarkMode)
-
       const strokeWidth = styles.strokeWidth
-
       const sw = 1 + strokeWidth * 1.618
-
-      const rx = Math.max(0, radiusX - sw / 2)
-      const ry = Math.max(0, radiusY - sw / 2)
-
-      if (style.dash === DashStyle.Draw) {
-        const path = getEllipsePath(shape, this.getCenter(shape))
-
-        return (
-          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+      const rx = Math.max(0, radius[0] - sw / 2)
+      const ry = Math.max(0, radius[1] - sw / 2)
+      const Component = style.dash === DashStyle.Draw ? DrawEllipse : DashedEllipse
+      const handleLabelChange = React.useCallback(
+        (label: string) => onShapeChange?.({ id, label }),
+        [onShapeChange]
+      )
+      return (
+        <FullWrapper ref={ref} {...events}>
+          <TextLabel
+            isEditing={isEditing}
+            onChange={handleLabelChange}
+            onBlur={onShapeBlur}
+            font={font}
+            text={label}
+            color={styles.stroke}
+            offsetX={(labelPoint[0] - 0.5) * bounds.width}
+            offsetY={(labelPoint[1] - 0.5) * bounds.height}
+          />
+          <SVGContainer id={shape.id + '_svg'} opacity={isGhost ? GHOSTED_OPACITY : 1}>
             {isBinding && (
               <ellipse
                 className="tl-binding-indicator"
-                cx={radiusX}
-                cy={radiusY}
-                rx={rx + 2}
-                ry={ry + 2}
+                cx={radius[0]}
+                cy={radius[1]}
+                rx={rx}
+                ry={ry}
+                strokeWidth={this.bindingDistance}
               />
             )}
-            <path
-              d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))}
-              stroke="none"
-              fill={style.isFilled ? styles.fill : 'none'}
-              pointerEvents="all"
-            />
-            <path
-              d={path}
-              fill={styles.stroke}
-              stroke={styles.stroke}
-              strokeWidth={styles.strokeWidth}
-              pointerEvents="all"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              opacity={isGhost ? GHOSTED_OPACITY : 1}
+            <Component
+              id={id}
+              radius={radius}
+              style={style}
+              isSelected={isSelected}
+              isDarkMode={meta.isDarkMode}
             />
           </SVGContainer>
-        )
-      }
-
-      const h = Math.pow(rx - ry, 2) / Math.pow(rx + ry, 2)
-
-      const perimeter = Math.PI * (rx + ry) * (1 + (3 * h) / (10 + Math.sqrt(4 - 3 * h)))
-
-      const { strokeDasharray, strokeDashoffset } = Utils.getPerfectDashProps(
-        perimeter < 64 ? perimeter * 2 : perimeter,
-        strokeWidth * 1.618,
-        shape.style.dash,
-        4
-      )
-
-      return (
-        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          {isBinding && (
-            <ellipse
-              className="tl-binding-indicator"
-              cx={radiusX}
-              cy={radiusY}
-              rx={rx + 32}
-              ry={ry + 32}
-            />
-          )}
-          <ellipse
-            cx={radiusX}
-            cy={radiusY}
-            rx={rx}
-            ry={ry}
-            fill={styles.fill}
-            stroke={styles.stroke}
-            strokeWidth={sw}
-            strokeDasharray={strokeDasharray}
-            strokeDashoffset={strokeDashoffset}
-            pointerEvents="all"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </SVGContainer>
+        </FullWrapper>
       )
     }
   )
 
   Indicator = TDShapeUtil.Indicator<T, M>(({ shape }) => {
-    return <path d={getEllipseIndicatorPathTDSnapshot(shape, this.getCenter(shape))} />
+    const { id, radius, style } = shape
+    const styles = getShapeStyle(style)
+    const strokeWidth = styles.strokeWidth
+    const sw = 1 + strokeWidth * 1.618
+    const rx = Math.max(0, radius[0] - sw / 2)
+    const ry = Math.max(0, radius[1] - sw / 2)
+    return style.dash === DashStyle.Draw ? (
+      <path d={getEllipseIndicatorPath(id, radius, style)} />
+    ) : (
+      <ellipse cx={radius[0]} cy={radius[1]} rx={rx} ry={ry} />
+    )
   })
 
   hitTestPoint = (shape: T, point: number[]): boolean => {
@@ -195,7 +187,7 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
   }
 
   shouldRender = (prev: T, next: T): boolean => {
-    return next.radius !== prev.radius || next.style !== prev.style
+    return next.radius !== prev.radius || next.style !== prev.style || next.label !== prev.label
   }
 
   getCenter = (shape: T): number[] => {
@@ -208,29 +200,23 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     point: number[],
     origin: number[],
     direction: number[],
-    padding: number,
     bindAnywhere: boolean
   ) => {
     {
-      const bounds = this.getBounds(shape)
-
-      const expandedBounds = Utils.expandBounds(bounds, padding)
-
+      const expandedBounds = this.getExpandedBounds(shape)
       const center = this.getCenter(shape)
-
       let bindingPoint: number[]
       let distance: number
-
       if (
         !Utils.pointInEllipse(
           point,
           center,
-          shape.radius[0] + BINDING_DISTANCE,
-          shape.radius[1] + BINDING_DISTANCE
+          shape.radius[0] + this.bindingDistance,
+          shape.radius[1] + this.bindingDistance
         )
-      )
+      ) {
         return
-
+      }
       if (bindAnywhere) {
         if (Vec.dist(point, this.getCenter(shape)) < 12) {
           bindingPoint = [0.5, 0.5]
@@ -240,7 +226,6 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             expandedBounds.height,
           ])
         }
-
         distance = 0
       } else {
         let intersection = intersectRayEllipse(
@@ -251,7 +236,6 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
           shape.radius[1],
           shape.rotation || 0
         ).points.sort((a, b) => Vec.dist(a, origin) - Vec.dist(b, origin))[0]
-
         if (!intersection) {
           intersection = intersectLineSegmentEllipse(
             point,
@@ -262,14 +246,11 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             shape.rotation || 0
           ).points.sort((a, b) => Vec.dist(a, point) - Vec.dist(b, point))[0]
         }
-
         if (!intersection) {
           return undefined
         }
-
         // The anchor is a point between the handle and the intersection
         const anchor = Vec.med(point, intersection)
-
         if (Vec.distanceToLineSegment(point, anchor, this.getCenter(shape)) < 12) {
           // If we're close to the center, snap to the center
           bindingPoint = [0.5, 0.5]
@@ -280,12 +261,11 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             expandedBounds.height,
           ])
         }
-
         if (
           Utils.pointInEllipse(point, center, shape.radius[0], shape.radius[1], shape.rotation || 0)
         ) {
           // Pad the arrow out by 16 points
-          distance = BINDING_DISTANCE / 2
+          distance = this.bindingDistance / 2
         } else {
           // Find the distance between the point and the ellipse
           const innerIntersection = intersectLineSegmentEllipse(
@@ -296,15 +276,10 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
             shape.radius[1],
             shape.rotation || 0
           ).points[0]
-
-          if (!innerIntersection) {
-            return undefined
-          }
-
-          distance = Math.max(BINDING_DISTANCE / 2, Vec.dist(point, innerIntersection))
+          if (!innerIntersection) return undefined
+          distance = Math.max(this.bindingDistance / 2, Vec.dist(point, innerIntersection))
         }
       }
-
       return {
         point: bindingPoint,
         distance,
@@ -318,7 +293,6 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
     { scaleX, scaleY, initialShape }: TransformInfo<T>
   ): Partial<T> => {
     const { rotation = 0 } = initialShape
-
     return {
       point: [bounds.minX, bounds.minY],
       radius: [bounds.width / 2, bounds.height / 2],
@@ -331,8 +305,10 @@ export class EllipseUtil extends TDShapeUtil<T, E> {
 
   transformSingle = (shape: T, bounds: TLBounds): Partial<T> => {
     return {
-      point: Vec.round([bounds.minX, bounds.minY]),
+      point: Vec.toFixed([bounds.minX, bounds.minY]),
       radius: Vec.div([bounds.width, bounds.height], 2),
     }
   }
 }
+
+const FullWrapper = styled('div', { width: '100%', height: '100%' })

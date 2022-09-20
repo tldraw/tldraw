@@ -1,0 +1,53 @@
+{
+  "$schema": "https://turborepo.org/schema.json",
+  "baseBranch": "origin/main",
+  "pipeline": {
+    "@tldraw/www#start": {
+      "dependsOn": ["@tldraw/www#build"]
+    },
+    "dev": {
+      "cache": false
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "build:core": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@tldraw/www#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**"]
+    },
+    "tldraw-vscode#build": {
+      "dependsOn": ["@tldraw/vscode-editor#build"],
+      "outputs": ["dist/**", "editor/**"]
+    },
+    "tldraw-vscode#package": {
+      "dependsOn": ["tldraw-vscode#build"],
+      "outputs": ["temp/**"]
+    },
+    "tldraw-vscode#publish": {
+      "dependsOn": ["tldraw-vscode#package"],
+      "outputs": []
+    },
+    "test": {
+      "outputs": []
+    },
+    "test:ci": {
+      "outputs": ["coverage/**"]
+    },
+    "test:watch": {
+      "outputs": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "src/**/*.json"],
+      "cache": false
+    },
+    "lint": {
+      "outputs": []
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

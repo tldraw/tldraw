@@ -1,47 +1,106 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
-import type { TldrawApp } from '../../internal'
-import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { DrawShape, SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
+  performanceMode = undefined
   status = TDStatus.Creating
   topLeft: number[]
   points: number[][]
+  initialShape: DrawShape
   lastAdjustedPoint: number[]
   shiftedPoints: number[][] = []
   shapeId: string
   isLocked?: boolean
+  isExtending: boolean
   lockedDirection?: 'horizontal' | 'vertical'
 
   constructor(app: TldrawApp, id: string) {
     super(app)
     const { originPoint } = this.app
-    this.topLeft = [...originPoint]
     this.shapeId = id
+    this.initialShape = this.app.getShape<DrawShape>(id)
+    this.topLeft = [...this.initialShape.point]
+    const currentPoint = [0, 0, originPoint[2] ?? 0.5]
+    const delta = Vec.sub(originPoint, this.topLeft)
+    const initialPoints = this.initialShape.points.map((pt) => Vec.sub(pt, delta).concat(pt[2]))
+    this.isExtending = initialPoints.length > 0
+    const newPoints: number[][] = []
+    if (this.isExtending) {
+      // Continuing with shift
+      const prevPoint = initialPoints[initialPoints.length - 1]
+      if (prevPoint) {
+        newPoints.push(prevPoint, prevPoint)
+        const len = Math.floor(Vec.dist(prevPoint, currentPoint) / 16)
 
+        if (len > 1) {
+          for (let i = 0; i < len; i++) {
+            const t = i / (len - 1)
+            newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+          }
+        } else {
+          newPoints.push(currentPoint, currentPoint)
+        }
+      }
+    } else {
+      newPoints.push(currentPoint)
+    }
     // Add a first point but don't update the shape yet. We'll update
     // when the draw session ends; if the user hasn't added additional
     // points, this single point will be interpreted as a "dot" shape.
-    this.points = [[0, 0, originPoint[2] || 0.5]]
-    this.shiftedPoints = [...this.points]
-    this.lastAdjustedPoint = [0, 0]
+    this.points = [...initialPoints, ...newPoints]
+    this.shiftedPoints = this.points.map((pt) => Vec.add(pt, delta).concat(pt[2]))
+    this.lastAdjustedPoint = this.points[this.points.length - 1]
   }
 
-  start = (): TldrawPatch | undefined => void null
+  start = () => {
+    const currentPoint = this.app.originPoint
+    const newAdjustedPoint = [0, 0, currentPoint[2] ?? 0.5]
+    // Add the new adjusted point to the points array
+    this.points.push(newAdjustedPoint)
+    const topLeft = [
+      Math.min(this.topLeft[0], currentPoint[0]),
+      Math.min(this.topLeft[1], currentPoint[1]),
+    ]
+    const delta = Vec.sub(topLeft, currentPoint)
+    this.topLeft = topLeft
+    this.shiftedPoints = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
+
+    return {
+      document: {
+        pages: {
+          [this.app.currentPageId]: {
+            shapes: {
+              [this.shapeId]: {
+                point: this.topLeft,
+                points: this.shiftedPoints,
+              },
+            },
+          },
+        },
+        pageStates: {
+          [this.app.currentPageId]: {
+            selectedIds: [this.shapeId],
+          },
+        },
+      },
+    }
+  }
 
   update = (): TldrawPatch | undefined => {
     const { shapeId } = this
-    const { currentPoint, originPoint, shiftKey } = this.app
+    const { currentPoint, originPoint, shiftKey, zoom } = this.app
 
     // Even if we're not locked yet, we base the future locking direction
     // on the first dimension to reach a threshold, or the bigger dimension
     // once one or both dimensions have reached the threshold.
     if (!this.lockedDirection && this.points.length > 1) {
-      const bounds = Utils.getBoundsFromPoints(this.points)
-      if (bounds.width > 8 || bounds.height > 8) {
-        this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+      const delta = Vec.sub(currentPoint, originPoint)
+      if (Vec.len(delta) > 3 / zoom) {
+        this.lockedDirection = Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
       }
     }
 
@@ -52,8 +111,11 @@ export class DrawSession extends BaseSession {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
-          const bounds = Utils.getBoundsFromPoints(this.points)
-          this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+          const delta = Vec.sub(currentPoint, originPoint)
+          if (Vec.len(delta) > 3 / zoom) {
+            this.lockedDirection =
+              Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
+          }
         }
 
         this.isLocked = true
@@ -80,8 +142,100 @@ export class DrawSession extends BaseSession {
       }
     }
 
+    const change = this.addPoint(currentPoint)
+
+    if (!change) return
+
+    return {
+      document: {
+        pages: {
+          [this.app.currentPageId]: {
+            shapes: {
+              [shapeId]: change,
+            },
+          },
+        },
+        pageStates: {
+          [this.app.currentPageId]: {
+            selectedIds: [shapeId],
+          },
+        },
+      },
+    }
+  }
+
+  cancel = (): TldrawPatch | undefined => {
+    const { shapeId } = this
+    const pageId = this.app.currentPageId
+
+    return {
+      document: {
+        pages: {
+          [pageId]: {
+            shapes: {
+              [shapeId]: this.isExtending ? this.initialShape : undefined,
+            },
+          },
+        },
+        pageStates: {
+          [pageId]: {
+            selectedIds: [],
+          },
+        },
+      },
+    }
+  }
+
+  complete = (): TldrawPatch | TldrawCommand | undefined => {
+    const { shapeId } = this
+    const pageId = this.app.currentPageId
+    const shape = this.app.getShape<DrawShape>(shapeId)
+    return {
+      id: 'create_draw',
+      before: {
+        document: {
+          pages: {
+            [pageId]: {
+              shapes: {
+                [shapeId]: this.isExtending ? this.initialShape : undefined,
+              },
+            },
+          },
+          pageStates: {
+            [pageId]: {
+              selectedIds: [],
+            },
+          },
+        },
+      },
+      after: {
+        document: {
+          pages: {
+            [pageId]: {
+              shapes: {
+                [shapeId]: {
+                  ...shape,
+                  point: Vec.toFixed(shape.point),
+                  points: shape.points.map((pt) => Vec.toFixed(pt)),
+                  isComplete: true,
+                },
+              },
+            },
+          },
+          pageStates: {
+            [this.app.currentPageId]: {
+              selectedIds: [],
+            },
+          },
+        },
+      },
+    }
+  }
+
+  addPoint = (currentPoint: number[]) => {
+    const { originPoint } = this.app
     // The new adjusted point
-    const newAdjustedPoint = Vec.round(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
+    const newAdjustedPoint = Vec.toFixed(Vec.sub(currentPoint, originPoint)).concat(currentPoint[2])
 
     // Don't add duplicate points.
     if (Vec.isEqual(this.lastAdjustedPoint, newAdjustedPoint)) return
@@ -110,10 +264,7 @@ export class DrawSession extends BaseSession {
       // If we have a new top left, then we need to iterate through
       // the "unshifted" points array and shift them based on the
       // offset between the new top left and the original top left.
-
-      points = this.points.map((pt) => {
-        return Vec.round(Vec.sub(pt, delta)).concat(pt[2])
-      })
+      points = this.points.map((pt) => Vec.toFixed(Vec.sub(pt, delta)).concat(pt[2]))
     } else {
       // If the new top left is the same as the previous top left,
       // we don't need to shift anything: we just shift the new point
@@ -124,93 +275,8 @@ export class DrawSession extends BaseSession {
     this.shiftedPoints = points
 
     return {
-      document: {
-        pages: {
-          [this.app.currentPageId]: {
-            shapes: {
-              [shapeId]: {
-                point: this.topLeft,
-                points,
-              },
-            },
-          },
-        },
-        pageStates: {
-          [this.app.currentPageId]: {
-            selectedIds: [shapeId],
-          },
-        },
-      },
-    }
-  }
-
-  cancel = (): TldrawPatch | undefined => {
-    const { shapeId } = this
-    const pageId = this.app.currentPageId
-
-    return {
-      document: {
-        pages: {
-          [pageId]: {
-            shapes: {
-              [shapeId]: undefined,
-            },
-          },
-        },
-        pageStates: {
-          [pageId]: {
-            selectedIds: [],
-          },
-        },
-      },
-    }
-  }
-
-  complete = (): TldrawPatch | TldrawCommand | undefined => {
-    const { shapeId } = this
-    const pageId = this.app.currentPageId
-
-    const shape = this.app.getShape<DrawShape>(shapeId)
-
-    return {
-      id: 'create_draw',
-      before: {
-        document: {
-          pages: {
-            [pageId]: {
-              shapes: {
-                [shapeId]: undefined,
-              },
-            },
-          },
-          pageStates: {
-            [pageId]: {
-              selectedIds: [],
-            },
-          },
-        },
-      },
-      after: {
-        document: {
-          pages: {
-            [pageId]: {
-              shapes: {
-                [shapeId]: {
-                  ...shape,
-                  point: Vec.round(shape.point),
-                  points: shape.points.map((pt) => Vec.round(pt)),
-                  isComplete: true,
-                },
-              },
-            },
-          },
-          pageStates: {
-            [this.app.currentPageId]: {
-              selectedIds: [],
-            },
-          },
-        },
-      },
+      point: this.topLeft,
+      points,
     }
   }
 }

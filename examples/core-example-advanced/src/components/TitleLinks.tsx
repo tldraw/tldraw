@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { GitHub } from 'react-feather'
 import styled from 'stitches.config'
 
 export function TitleLinks() {
   return (
     <TitleLinksContainer>
-      <a href="https://github.com/tldraw/core">@tldraw/core</a>
+      <a href="https://github.com/tldraw/tldraw/tree/main/packages/core">@tldraw/core</a>
     </TitleLinksContainer>
   )
 }

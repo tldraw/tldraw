@@ -1,9 +1,12 @@
 /* eslint-disable */
-import fs from 'fs'
 import esbuild from 'esbuild'
+import fs from 'fs'
 import { createRequire } from 'module'
+import path from 'path'
 
 const pkg = createRequire(import.meta.url)('../package.json')
+
+const { log: jslog } = console
 
 async function main() {
   if (fs.existsSync('./dist')) {
@@ -14,11 +17,21 @@ async function main() {
     })
   }
 
+  if (!fs.existsSync('./dist')) {
+    fs.mkdirSync('./dist')
+  }
+
+  fs.readdirSync('./src/public').forEach((file) =>
+    fs.copyFile(path.join('./src/public', file), path.join('./dist', file), (err) => {
+      if (err) throw err
+    })
+  )
+
   try {
     esbuild.buildSync({
       entryPoints: ['./src/index.tsx'],
       outfile: 'dist/index.js',
-      minify: true,
+      minify: false,
       bundle: true,
       format: 'esm',
       target: 'es6',
@@ -30,10 +43,10 @@ async function main() {
       },
     })
 
-    console.log(`✔ ${pkg.name}: Build completed.`)
+    jslog(`✔ ${pkg.name}: Build completed.`)
   } catch (e) {
-    console.log(`× ${pkg.name}: Build failed due to an error.`)
-    console.log(e)
+    jslog(`× ${pkg.name}: Build failed due to an error.`)
+    jslog(e)
   }
 }
 
