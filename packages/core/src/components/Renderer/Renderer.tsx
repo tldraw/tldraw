@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Canvas } from '~/components/Canvas'
-import type { TLShapeUtilsMap } from '~TLShapeUtil'
+import { CursorComponent } from '~components/Cursor/Cursor'
 import { TLContext, TLContextType, useTLTheme } from '~hooks'
 import { Inputs } from '~inputs'
 import type {
@@ -46,6 +46,15 @@ export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> 
    * (optional) A ref for the renderer's container element, used for scoping event handlers.
    */
   containerRef?: React.RefObject<HTMLElement>
+  /**
+   * (optional) Custom components to override parts of the default UI.
+   */
+  components?: {
+    /**
+     * The component to render for multiplayer cursors.
+     */
+    Cursor?: CursorComponent
+  }
   /**
    * (optional) An object of custom options that should be passed to rendered shapes.
    */
@@ -147,6 +156,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   eraseLine,
   grid,
   containerRef,
+  components,
   performanceMode,
   hideHandles = false,
   hideIndicators = false,
@@ -216,6 +226,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
         showDashedBrush={showDashedBrush}
         onBoundsChange={onBoundsChange}
         performanceMode={performanceMode}
+        components={components}
         meta={meta}
       />
     </TLContext.Provider>

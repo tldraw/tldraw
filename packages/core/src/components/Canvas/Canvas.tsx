@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Brush } from '~components/Brush'
+import { CursorComponent } from '~components/Cursor/Cursor'
 import { EraseLine } from '~components/EraseLine'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
@@ -49,6 +50,9 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
+  components?: {
+    Cursor?: CursorComponent
+  }
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
@@ -64,6 +68,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   grid,
   users,
   userId,
+  components,
   meta,
   performanceMode,
   externalContainerRef,
@@ -128,7 +133,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
           {pageState.brush && (
             <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
           )}
-          {users && <Users userId={userId} users={users} />}
+          {users && <Users userId={userId} users={users} Cursor={components?.Cursor} />}
         </div>
         <Overlay camera={pageState.camera}>
           {eraseLine && <EraseLine points={eraseLine} zoom={pageState.camera.zoom} />}
