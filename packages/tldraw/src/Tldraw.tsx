@@ -1,4 +1,5 @@
 import { Renderer } from '@tldraw/core'
+import { CursorComponent } from '@tldraw/core/src/components/Cursor/Cursor'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
@@ -102,6 +103,16 @@ export interface TldrawProps extends TDCallbacks {
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
   disableAssets?: boolean
+
+  /**
+   * (optional) Custom components to override parts of the default UI.
+   */
+  components?: {
+    /**
+     * The component to render for multiplayer cursors.
+     */
+    Cursor?: CursorComponent
+  }
 }
 
 const isSystemDarkMode = window.matchMedia
@@ -123,6 +134,7 @@ export function Tldraw({
   readOnly = false,
   disableAssets = false,
   darkMode = isSystemDarkMode,
+  components,
   onMount,
   onChange,
   onChangePresence,
@@ -336,6 +348,7 @@ export function Tldraw({
           showTools={showTools}
           showUI={showUI}
           readOnly={readOnly}
+          components={components}
         />
       </AlertDialogContext.Provider>
     </TldrawContext.Provider>
@@ -353,6 +366,9 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  components?: {
+    Cursor?: CursorComponent
+  }
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -366,6 +382,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showTools,
   readOnly,
   showUI,
+  components,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
@@ -489,6 +506,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 userId={room?.userId}
                 theme={theme}
                 meta={meta}
+                components={components}
                 hideBounds={hideBounds}
                 hideHandles={hideHandles}
                 hideResizeHandles={isHideResizeHandlesShape}
