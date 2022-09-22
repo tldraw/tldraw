@@ -55,6 +55,11 @@ export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> 
      */
     Cursor?: CursorComponent
   }
+
+  /**
+   * (optional) To hide cursors
+   */
+  hideCursors?: boolean
   /**
    * (optional) An object of custom options that should be passed to rendered shapes.
    */
@@ -167,6 +172,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideBounds = false,
   hideGrid = true,
   showDashedBrush = false,
+  hideCursors,
   ...rest
 }: RendererProps<T, M>) {
   useTLTheme(theme, '#' + id)
@@ -228,6 +234,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
         performanceMode={performanceMode}
         components={components}
         meta={meta}
+        hideCursors={hideCursors}
       />
     </TLContext.Provider>
   )

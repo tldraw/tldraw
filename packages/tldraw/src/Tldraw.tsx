@@ -113,6 +113,11 @@ export interface TldrawProps extends TDCallbacks {
      */
     Cursor?: CursorComponent
   }
+
+  /**
+   * (optional) To hide cursors
+   */
+  hideCursors?: boolean
 }
 
 const isSystemDarkMode = window.matchMedia
@@ -155,6 +160,7 @@ export function Tldraw({
   onSessionStart,
   onSessionEnd,
   onExport,
+  hideCursors,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -349,6 +355,7 @@ export function Tldraw({
           showUI={showUI}
           readOnly={readOnly}
           components={components}
+          hideCursors={hideCursors}
         />
       </AlertDialogContext.Provider>
     </TldrawContext.Provider>
@@ -369,6 +376,7 @@ interface InnerTldrawProps {
   components?: {
     Cursor?: CursorComponent
   }
+  hideCursors?: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -383,6 +391,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   readOnly,
   showUI,
   components,
+  hideCursors,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
@@ -507,6 +516,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 theme={theme}
                 meta={meta}
                 components={components}
+                hideCursors={hideCursors}
                 hideBounds={hideBounds}
                 hideHandles={hideHandles}
                 hideResizeHandles={isHideResizeHandlesShape}

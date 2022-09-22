@@ -56,6 +56,7 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
+  hideCursors?: boolean
 }
 
 function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
@@ -71,7 +72,6 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   components,
   meta,
   performanceMode,
-  externalContainerRef,
   showDashedBrush,
   hideHandles,
   hideBounds,
@@ -82,6 +82,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   hideRotateHandle,
   hideGrid,
   onBoundsChange,
+  hideCursors,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
 
@@ -133,7 +134,9 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
           {pageState.brush && (
             <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
           )}
-          {users && <Users userId={userId} users={users} Cursor={components?.Cursor} />}
+          {users && !hideCursors && (
+            <Users userId={userId} users={users} Cursor={components?.Cursor} />
+          )}
         </div>
         <Overlay camera={pageState.camera}>
           {eraseLine && <EraseLine points={eraseLine} zoom={pageState.camera.zoom} />}
