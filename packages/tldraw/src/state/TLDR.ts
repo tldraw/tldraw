@@ -637,7 +637,11 @@ export class TLDR {
       const hasDecoration = arrowShape.decorations?.start !== undefined
       const handle = arrowShape.handles.start
       const binding = page.bindings[arrowShape.handles.start.bindingId]
-      if (!binding) throw Error("Could not find a binding to match the start handle's bindingId")
+      if (!binding)
+        throw Error(
+          "Could not find a binding to match the start handle's bindingId: " +
+            arrowShape.handles.start.bindingId
+        )
       const target = page.shapes[binding.toId]
       const util = TLDR.getShapeUtil(target)
       const bounds = util.getBounds(target)

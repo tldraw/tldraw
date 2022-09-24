@@ -383,14 +383,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           Object.keys(page.bindings).forEach((id) => {
             if (!page.bindings[id]) {
               delete page.bindings[id]
-              // Delete the bindingId in arrow handles
-              Object.values(page.shapes).forEach((shape) => {
-                Object.values(shape.handles ?? {}).map((handle) => {
-                  if (handle.bindingId === id) {
-                    shape.handles![handle.id as keyof ArrowShape['handles']].bindingId = undefined
-                  }
-                })
-              })
             }
           })
 
