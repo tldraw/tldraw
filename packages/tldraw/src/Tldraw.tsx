@@ -1,5 +1,4 @@
-import { Renderer } from '@tldraw/core'
-import { CursorComponent } from '@tldraw/core/src/components/Cursor/Cursor'
+import { CursorComponent, Renderer } from '@tldraw/core'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'

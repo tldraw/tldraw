@@ -8,7 +8,7 @@ export interface IndicatorProps<T extends TLShape, M = unknown> {
   isSelected?: boolean
   isHovered?: boolean
   isEditing?: boolean
-  user?: TLUser<T>
+  user?: TLUser
 }
 
 function _ShapeIndicator<T extends TLShape, M>({

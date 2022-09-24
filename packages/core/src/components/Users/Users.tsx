@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { CursorComponent } from '~components/Cursor/Cursor'
 import { User } from '~components/User/User'
-import type { TLShape, TLUsers } from '~types'
+import type { TLUsers } from '~types'
 
 export interface UserProps {
   userId?: string
-  users: TLUsers<TLShape>
-  Cursor?: CursorComponent
+  users: TLUsers
+  Cursor: CursorComponent
 }
 
 export function Users({ userId, users, Cursor }: UserProps) {

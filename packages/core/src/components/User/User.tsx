@@ -1,13 +1,13 @@
 import * as React from 'react'
-import { CursorComponent, DefaultCursor } from '~components/Cursor/Cursor'
-import type { TLShape, TLUser } from '~types'
+import { CursorComponent } from '~components/Cursor'
+import type { TLUser } from '~types'
 
 interface UserProps {
-  user: TLUser<TLShape>
-  Cursor?: CursorComponent
+  user: TLUser
+  Cursor: CursorComponent
 }
 
-export function User({ user, Cursor = DefaultCursor }: UserProps) {
+export function User({ user, Cursor }: UserProps) {
   const rCursor = React.useRef<HTMLDivElement>(null)
 
   React.useLayoutEffect(() => {
@@ -21,7 +21,7 @@ export function User({ user, Cursor = DefaultCursor }: UserProps) {
       ref={rCursor}
       className={`tl-absolute tl-user tl-counter-scaled ${user.session ? '' : 'tl-animated'}`}
     >
-      <Cursor color={user.color} />
+      <Cursor id={user.id} color={user.color} />
     </div>
   )
 }

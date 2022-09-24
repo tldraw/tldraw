@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Brush } from '~components/Brush'
-import { CursorComponent } from '~components/Cursor/Cursor'
+import { Cursor, CursorComponent } from '~components/Cursor/Cursor'
 import { EraseLine } from '~components/EraseLine'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
@@ -37,7 +37,7 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   snapLines?: TLSnapLine[]
   eraseLine?: number[][]
   grid?: number
-  users?: TLUsers<T>
+  users?: TLUsers
   userId?: string
   hideBounds: boolean
   hideHandles: boolean
@@ -69,7 +69,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   grid,
   users,
   userId,
-  components,
+  components = {},
   meta,
   performanceMode,
   showDashedBrush,
@@ -135,7 +135,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
             <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
           )}
           {users && !hideCursors && (
-            <Users userId={userId} users={users} Cursor={components?.Cursor} />
+            <Users userId={userId} users={users} Cursor={components?.Cursor ?? Cursor} />
           )}
         </div>
         <Overlay camera={pageState.camera}>

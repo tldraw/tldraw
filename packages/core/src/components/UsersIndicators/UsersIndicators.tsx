@@ -7,7 +7,7 @@ import Utils from '~utils'
 interface UserIndicatorProps<T extends TLShape> {
   page: TLPage<any, any>
   userId: string
-  users: TLUsers<T>
+  users: TLUsers
   meta: any
 }
 

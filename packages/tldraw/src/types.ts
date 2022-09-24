@@ -176,7 +176,7 @@ export enum TDUserStatus {
 }
 
 // A TDUser, for multiplayer rooms
-export interface TDUser extends TLUser<TDShape> {
+export interface TDUser extends TLUser {
   activeShapes: TDShape[]
   status: TDUserStatus
   session?: boolean

@@ -17,7 +17,7 @@ import type {
   TLUsers,
 } from '~types'
 
-const EMPTY_OBJECT = {} as TLAssets
+const EMPTY_OBJECT = Object.freeze({}) as TLAssets
 
 export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> & {
   /**
@@ -67,7 +67,7 @@ export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> 
   /**
    * (optional) The current users to render.
    */
-  users?: TLUsers<T>
+  users?: TLUsers
   /**
    * (optional) The current snap lines to render.
    */
@@ -161,8 +161,8 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   eraseLine,
   grid,
   containerRef,
-  components,
   performanceMode,
+  components,
   hideHandles = false,
   hideIndicators = false,
   hideCloneHandles = false,

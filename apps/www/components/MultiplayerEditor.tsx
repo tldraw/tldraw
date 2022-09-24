@@ -1,4 +1,4 @@
-import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import { Tldraw, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { useMultiplayerAssets } from '~hooks/useMultiplayerAssets'
 import { useMultiplayerState } from '~hooks/useMultiplayerState'

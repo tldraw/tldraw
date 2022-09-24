@@ -1,10 +1,13 @@
 import * as React from 'react'
 
 interface CursorProps {
-  color?: string
+  id: string
+  color: string
 }
 
-export function DefaultCursor({ color }: CursorProps) {
+export type CursorComponent = (props: CursorProps) => any
+
+export const Cursor: CursorComponent = React.memo(({ color }) => {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35" fill="none" fillRule="evenodd">
       <g fill="rgba(0,0,0,.2)" transform="translate(1,1)">
@@ -21,6 +24,4 @@ export function DefaultCursor({ color }: CursorProps) {
       </g>
     </svg>
   )
-}
-
-export type CursorComponent = typeof DefaultCursor
+})
