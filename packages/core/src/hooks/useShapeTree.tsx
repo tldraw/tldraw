@@ -1,6 +1,6 @@
-import {Vec} from '@tldraw/vec'
+import { Vec } from '@tldraw/vec'
 import * as React from 'react'
-import {useTLContext} from '~hooks'
+import { useTLContext } from '~hooks'
 import type {
   IShapeTreeNode,
   TLAssets,
@@ -10,7 +10,7 @@ import type {
   TLPageState,
   TLShape,
 } from '~types'
-import {Utils} from '~utils'
+import { Utils } from '~utils'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
@@ -34,14 +34,14 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
     isBinding: bindingTargetId === shape.id,
     isSelected: pageState.selectedIds.includes(shape.id),
     isHovered:
-    // The shape is hovered..
+      // The shape is hovered..
       pageState.hoveredId === shape.id ||
       // Or the shape has children and...
       (shape.children !== undefined &&
-       // One of the children is hovered
-       ((pageState.hoveredId && shape.children.includes(pageState.hoveredId)) ||
-        // Or one of the children is selected
-        shape.children.some((childId) => pageState.selectedIds.includes(childId)))),
+        // One of the children is hovered
+        ((pageState.hoveredId && shape.children.includes(pageState.hoveredId)) ||
+          // Or one of the children is selected
+          shape.children.some((childId) => pageState.selectedIds.includes(childId)))),
   }
 
   // Add the node to the branch
@@ -80,14 +80,14 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
   assets: TLAssets,
   meta?: M
 ) {
-  const {callbacks, shapeUtils, bounds} = useTLContext()
+  const { callbacks, shapeUtils, bounds } = useTLContext()
 
   const rTimeout = React.useRef<unknown>()
   const rPreviousCount = React.useRef(-1)
   const rShapesIdsToRender = React.useRef(new Set<string>())
   const rShapesToRender = React.useRef(new Set<TLShape>())
 
-  const {selectedIds, camera} = pageState
+  const { selectedIds, camera } = pageState
 
   // Filter the page's shapes down to only those that:
   // - are the direct child of the page
