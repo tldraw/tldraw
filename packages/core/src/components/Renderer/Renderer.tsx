@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Canvas } from '~/components/Canvas'
-import type { TLShapeUtilsMap } from '~TLShapeUtil'
+import { CursorComponent } from '~components/Cursor'
 import { TLContext, TLContextType, useTLTheme } from '~hooks'
 import { Inputs } from '~inputs'
 import type {
@@ -17,7 +17,7 @@ import type {
   TLUsers,
 } from '~types'
 
-const EMPTY_OBJECT = {} as TLAssets
+const EMPTY_OBJECT = Object.freeze({}) as TLAssets
 
 export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> & {
   /**
@@ -47,13 +47,27 @@ export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> 
    */
   containerRef?: React.RefObject<HTMLElement>
   /**
+   * (optional) Custom components to override parts of the default UI.
+   */
+  components?: {
+    /**
+     * The component to render for multiplayer cursors.
+     */
+    Cursor?: CursorComponent
+  }
+
+  /**
+   * (optional) To hide cursors
+   */
+  hideCursors?: boolean
+  /**
    * (optional) An object of custom options that should be passed to rendered shapes.
    */
   meta?: M
   /**
    * (optional) The current users to render.
    */
-  users?: TLUsers<T>
+  users?: TLUsers
   /**
    * (optional) The current snap lines to render.
    */
@@ -148,6 +162,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   grid,
   containerRef,
   performanceMode,
+  components,
   hideHandles = false,
   hideIndicators = false,
   hideCloneHandles = false,
@@ -157,6 +172,7 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
   hideBounds = false,
   hideGrid = true,
   showDashedBrush = false,
+  hideCursors,
   ...rest
 }: RendererProps<T, M>) {
   useTLTheme(theme, '#' + id)
@@ -216,7 +232,9 @@ function _Renderer<T extends TLShape, M extends Record<string, unknown>>({
         showDashedBrush={showDashedBrush}
         onBoundsChange={onBoundsChange}
         performanceMode={performanceMode}
+        components={components}
         meta={meta}
+        hideCursors={hideCursors}
       />
     </TLContext.Provider>
   )

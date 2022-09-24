@@ -1,4 +1,4 @@
-import { Renderer } from '@tldraw/core'
+import { CursorComponent, Renderer } from '@tldraw/core'
 import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
@@ -102,6 +102,21 @@ export interface TldrawProps extends TDCallbacks {
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
   disableAssets?: boolean
+
+  /**
+   * (optional) Custom components to override parts of the default UI.
+   */
+  components?: {
+    /**
+     * The component to render for multiplayer cursors.
+     */
+    Cursor?: CursorComponent
+  }
+
+  /**
+   * (optional) To hide cursors
+   */
+  hideCursors?: boolean
 }
 
 const isSystemDarkMode = window.matchMedia
@@ -123,6 +138,7 @@ export function Tldraw({
   readOnly = false,
   disableAssets = false,
   darkMode = isSystemDarkMode,
+  components,
   onMount,
   onChange,
   onChangePresence,
@@ -143,6 +159,7 @@ export function Tldraw({
   onSessionStart,
   onSessionEnd,
   onExport,
+  hideCursors,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -336,6 +353,8 @@ export function Tldraw({
           showTools={showTools}
           showUI={showUI}
           readOnly={readOnly}
+          components={components}
+          hideCursors={hideCursors}
         />
       </AlertDialogContext.Provider>
     </TldrawContext.Provider>
@@ -353,6 +372,10 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
+  components?: {
+    Cursor?: CursorComponent
+  }
+  hideCursors?: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -366,6 +389,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showTools,
   readOnly,
   showUI,
+  components,
+  hideCursors,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
@@ -489,6 +514,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 userId={room?.userId}
                 theme={theme}
                 meta={meta}
+                components={components}
+                hideCursors={hideCursors}
                 hideBounds={hideBounds}
                 hideHandles={hideHandles}
                 hideResizeHandles={isHideResizeHandlesShape}

@@ -19,7 +19,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
   abstract Indicator: (props: {
     shape: T
     meta: M
-    user?: TLUser<T>
+    user?: TLUser
     bounds: TLBounds
     isHovered: boolean
     isSelected: boolean

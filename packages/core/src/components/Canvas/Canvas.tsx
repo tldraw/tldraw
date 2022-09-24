@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Brush } from '~components/Brush'
+import { Cursor, CursorComponent } from '~components/Cursor'
 import { EraseLine } from '~components/EraseLine'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'
@@ -36,7 +37,7 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   snapLines?: TLSnapLine[]
   eraseLine?: number[][]
   grid?: number
-  users?: TLUsers<T>
+  users?: TLUsers
   userId?: string
   hideBounds: boolean
   hideHandles: boolean
@@ -49,9 +50,13 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
+  components?: {
+    Cursor?: CursorComponent
+  }
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
+  hideCursors?: boolean
 }
 
 function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
@@ -64,9 +69,9 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   grid,
   users,
   userId,
+  components = {},
   meta,
   performanceMode,
-  externalContainerRef,
   showDashedBrush,
   hideHandles,
   hideBounds,
@@ -77,6 +82,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   hideRotateHandle,
   hideGrid,
   onBoundsChange,
+  hideCursors,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
 
@@ -128,7 +134,9 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
           {pageState.brush && (
             <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
           )}
-          {users && <Users userId={userId} users={users} />}
+          {users && !hideCursors && (
+            <Users userId={userId} users={users} Cursor={components?.Cursor ?? Cursor} />
+          )}
         </div>
         <Overlay camera={pageState.camera}>
           {eraseLine && <EraseLine points={eraseLine} zoom={pageState.camera.zoom} />}

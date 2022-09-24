@@ -44,7 +44,7 @@ export interface TLPageState {
   bindingId?: string | null
 }
 
-export interface TLUser<T extends TLShape> {
+export interface TLUser {
   id: string
   color: string
   point: number[]
@@ -52,7 +52,7 @@ export interface TLUser<T extends TLShape> {
   session?: boolean
 }
 
-export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
+export type TLUsers = Record<string, TLUser>
 
 export type TLSnapLine = number[][]
 

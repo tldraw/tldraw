@@ -7,6 +7,10 @@ import type { TLBounds, TLPage, TLPageState } from '~types'
 import Utils from '~utils'
 import { Renderer } from './Renderer'
 
+function TestCustomCursor() {
+  return <div>Custom cursor</div>
+}
+
 describe('renderer', () => {
   test('mounts component without crashing', () => {
     expect(() =>
@@ -15,6 +19,19 @@ describe('renderer', () => {
           shapeUtils={mockUtils as any}
           page={mockDocument.page}
           pageState={mockDocument.pageState}
+        />
+      )
+    ).not.toThrowError()
+  })
+
+  test('mounts component with custom cursors without crashing', () => {
+    expect(() =>
+      render(
+        <Renderer
+          shapeUtils={mockUtils as any}
+          page={mockDocument.page}
+          pageState={mockDocument.pageState}
+          components={{ Cursor: TestCustomCursor }}
         />
       )
     ).not.toThrowError()
