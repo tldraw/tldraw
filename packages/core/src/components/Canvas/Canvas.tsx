@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Brush } from '~components/Brush'
-import { Cursor, CursorComponent } from '~components/Cursor/Cursor'
+import { Cursor, CursorComponent } from '~components/Cursor'
 import { EraseLine } from '~components/EraseLine'
 import { Grid } from '~components/Grid'
 import { Overlay } from '~components/Overlay'

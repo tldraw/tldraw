@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CursorComponent } from '~components/Cursor/Cursor'
+import { CursorComponent } from '~components/Cursor'
 import { User } from '~components/User/User'
 import type { TLUsers } from '~types'
 

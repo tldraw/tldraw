@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Canvas } from '~/components/Canvas'
-import { CursorComponent } from '~components/Cursor/Cursor'
+import { CursorComponent } from '~components/Cursor'
 import { TLContext, TLContextType, useTLTheme } from '~hooks'
 import { Inputs } from '~inputs'
 import type {
