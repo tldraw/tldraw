@@ -558,8 +558,7 @@ export class TranslateSession extends BaseSession {
         ...beforeShapes[binding.fromId],
         id: binding.fromId,
         handles: {
-          // @ts-expect-error
-          ...beforeShapes[binding.fromId].handles!,
+          ...beforeShapes[binding.fromId]?.handles,
           [binding.handleId]: {
             ...beforeShapes[binding.fromId]?.handles?.[binding.handleId],
             bindingId: binding.id,
