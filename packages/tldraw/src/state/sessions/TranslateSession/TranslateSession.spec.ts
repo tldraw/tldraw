@@ -1,6 +1,6 @@
 import { Vec } from '@tldraw/vec'
 import { TldrawTestApp, mockDocument } from '~test'
-import { GroupShape, SessionType, TDShapeType, TDStatus } from '~types'
+import { ArrowShape, GroupShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Translate session', () => {
   it('begins, updateSession', () => {
@@ -129,52 +129,6 @@ describe('Translate session', () => {
     expect(Object.keys(app.page.shapes)).toStrictEqual(['rect1', 'rect2', 'rect3'])
   })
 
-  it('destroys bindings from the translating shape', () => {
-    const app = new TldrawTestApp()
-      .loadDocument(mockDocument)
-      .selectAll()
-      .delete()
-      .createShapes(
-        {
-          id: 'target1',
-          type: TDShapeType.Rectangle,
-          parentId: 'page1',
-          point: [0, 0],
-          size: [100, 100],
-        },
-        {
-          id: 'arrow1',
-          type: TDShapeType.Arrow,
-          parentId: 'page1',
-          point: [200, 200],
-        }
-      )
-      .select('arrow1')
-      .movePointer([200, 200])
-      .startSession(SessionType.Arrow, 'arrow1', 'start')
-      .movePointer([50, 50])
-      .completeSession()
-
-    expect(app.bindings.length).toBe(1)
-
-    app.pointShape('arrow1', [10, 10]).movePointer([30, 30]).completeSession()
-
-    // expect(app.bindings.length).toBe(0)
-    // expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
-
-    // app.undo()
-
-    // expect(app.bindings.length).toBe(1)
-    // expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBeTruthy()
-
-    // app.redo()
-
-    // expect(app.bindings.length).toBe(0)
-    // expect(app.getShape<ArrowShape>('arrow1').handles.start.bindingId).toBe(undefined)
-  })
-
-  // it.todo('clones a shape with a parent shape')
-
   describe('when translating a child of a group', () => {
     it('translates the shape and updates the groups size / point', () => {
       const app = new TldrawTestApp()
@@ -271,16 +225,18 @@ describe('Translate session', () => {
     })
 
     it('clones the shapes and children', () => {
-      new TldrawTestApp()
-        .loadDocument(mockDocument)
-        .select('rect1', 'rect2')
-        .group(['rect1', 'rect2'], 'groupA')
-        .pointShape('groupA', [10, 10])
-        .movePointer({ x: 20, y: 20, altKey: true })
-        .completeSession()
+      expect(() =>
+        new TldrawTestApp()
+          .loadDocument(mockDocument)
+          .select('rect1', 'rect2')
+          .group(['rect1', 'rect2'], 'groupA')
+          .pointShape('groupA', [10, 10])
+          .movePointer({ x: 20, y: 20, altKey: true })
+          .completeSession()
+      ).not.toThrow()
     })
 
-    it('deletes clones when not cloning anymore', () => {
+    it('deletes clones and restores them', () => {
       const app = new TldrawTestApp()
         .loadDocument(mockDocument)
         .select('rect1', 'rect2')
@@ -308,14 +264,16 @@ describe('Translate session', () => {
     })
 
     it('clones the shapes and children when selecting a group and a different shape', () => {
-      const app = new TldrawTestApp()
-        .loadDocument(mockDocument)
-        .select('rect1', 'rect2')
-        .group(['rect1', 'rect2'], 'groupA')
-        .select('groupA', 'rect3')
-        .pointBounds([10, 10])
-        .movePointer({ x: 20, y: 20, altKey: true })
-        .completeSession()
+      expect(() => {
+        new TldrawTestApp()
+          .loadDocument(mockDocument)
+          .select('rect1', 'rect2')
+          .group(['rect1', 'rect2'], 'groupA')
+          .select('groupA', 'rect3')
+          .pointBounds([10, 10])
+          .movePointer({ x: 20, y: 20, altKey: true })
+          .completeSession()
+      }).not.toThrow()
     })
   })
 })
@@ -354,4 +312,91 @@ describe('When translating linked shapes', () => {
   it.todo('translates all linked shapes when center is dragged')
   it.todo('translates all upstream linked shapes when left is dragged')
   it.todo('translates all downstream linked shapes when right is dragged')
+})
+
+it('destroys bindings from the translating shape', () => {
+  const app = new TldrawTestApp()
+    .loadDocument(mockDocument)
+    .selectAll()
+    .delete()
+    .createShapes(
+      { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [100, 100] },
+      { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 400], size: [100, 100] }
+    )
+    .selectTool(TDShapeType.Arrow)
+    .pointShape('rect1', { x: 251, y: 251 })
+    .movePointer([450, 450])
+    .completeSession()
+    .selectTool('select')
+
+  let arrow: ArrowShape
+
+  arrow = app.shapes[2] as ArrowShape
+
+  expect(arrow.type).toBe(TDShapeType.Arrow)
+
+  expect(arrow.handles.start.bindingId).not.toBeUndefined()
+  expect(arrow.handles.end.bindingId).not.toBeUndefined()
+
+  expect(app.bindings.length).toBe(2)
+
+  app.pointShape(arrow.id, [300, 300])
+  app.movePointer([0, 0])
+  app.completeSession()
+
+  expect(app.bindings.length).toBe(0)
+
+  arrow = app.shapes[2] as ArrowShape
+  expect(arrow.handles.start.bindingId).toBe(undefined)
+  expect(arrow.handles.end.bindingId).toBe(undefined)
+
+  app.undo()
+
+  arrow = app.shapes[2] as ArrowShape
+  expect(app.bindings.length).toBe(2)
+  expect(arrow.handles.start.bindingId).not.toBeUndefined()
+  expect(arrow.handles.end.bindingId).not.toBeUndefined()
+
+  app.redo()
+
+  arrow = app.shapes[2] as ArrowShape
+  expect(app.bindings.length).toBe(0)
+  expect(arrow.handles.start.bindingId).toBe(undefined)
+  expect(arrow.handles.end.bindingId).toBe(undefined)
+})
+
+it('restores bindings when cancelled', () => {
+  const app = new TldrawTestApp()
+    .loadDocument(mockDocument)
+    .selectAll()
+    .delete()
+    .createShapes(
+      { type: TDShapeType.Rectangle, id: 'rect1', point: [200, 200], size: [100, 100] },
+      { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 400], size: [100, 100] }
+    )
+    .selectTool(TDShapeType.Arrow)
+    .pointShape('rect1', { x: 251, y: 251 })
+    .movePointer([450, 450])
+    .completeSession()
+    .selectTool('select')
+
+  let arrow: ArrowShape
+
+  arrow = app.shapes[2] as ArrowShape
+
+  expect(arrow.type).toBe(TDShapeType.Arrow)
+
+  expect(arrow.handles.start.bindingId).not.toBeUndefined()
+  expect(arrow.handles.end.bindingId).not.toBeUndefined()
+
+  expect(app.bindings.length).toBe(2)
+
+  app.pointShape(arrow.id, [300, 300])
+  app.movePointer([0, 0])
+  app.cancelSession()
+
+  arrow = app.shapes[2] as ArrowShape
+  expect(app.bindings.length).toBe(2)
+  expect(arrow.handles.start.bindingId).not.toBeUndefined()
+  expect(arrow.handles.end.bindingId).not.toBeUndefined()
 })

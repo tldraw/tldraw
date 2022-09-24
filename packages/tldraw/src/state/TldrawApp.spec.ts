@@ -718,6 +718,34 @@ describe('TldrawTestApp', () => {
   })
 })
 
+describe('Arrow binding', () => {
+  it('should delete handles bindingId', () => {
+    const app = new TldrawTestApp()
+
+    app
+      .createShapes(
+        { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TDShapeType.Rectangle, id: 'target2', point: [300, 300], size: [100, 100] },
+        { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+      )
+      .select('arrow1')
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([0, 0])
+      .completeSession()
+
+    expect(app.bindings.length).toBe(1)
+
+    app
+      .select('arrow1')
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([1000, 1000])
+      .completeSession()
+    expect(app.bindings.length).toBe(0)
+  })
+})
+
 describe('When adding an image', () => {
   it.todo('Adds the image to the assets table')
   it.todo('Does not add the image if that image already exists as an asset')

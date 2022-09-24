@@ -410,7 +410,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
             if (visitedShapes.has(fromShape)) {
               return
             }
-
             // We only need to update the binding's "from" shape (an arrow)
             const fromDelta = TLDR.updateArrowBindings(page, fromShape)
             visitedShapes.add(fromShape)
