@@ -450,6 +450,42 @@ export class Vec {
   }
 
   /**
+   * Get the nearest point on a bounding box to a point P.
+   * @param bounds The bounding box
+   * @param P The point point
+   * @returns
+   */
+  static nearestPointOnBounds = (
+    bounds: {
+      minX: number
+      minY: number
+      maxX: number
+      maxY: number
+    },
+    P: number[]
+  ): number[] => {
+    return [Vec.clamp(P[0], bounds.minX, bounds.maxX), Vec.clamp(P[1], bounds.minY, bounds.maxY)]
+  }
+
+  /**
+   * Distance between a point and the nearest point on a bounding box.
+   * @param bounds The bounding box.
+   * @param P The point
+   * @returns
+   */
+  static distanceToBounds = (
+    bounds: {
+      minX: number
+      minY: number
+      maxX: number
+      maxY: number
+    },
+    P: number[]
+  ): number => {
+    return Vec.dist(P, Vec.nearestPointOnBounds(bounds, P))
+  }
+
+  /**
    * Push a point A towards point B by a given distance.
    * @param A
    * @param B
@@ -481,7 +517,7 @@ export class Vec {
   }
 
   /**
-   * Get an array of points (with simulated pressure) between two points.
+   * Get an array of points between two points.
    * @param A The first point.
    * @param B The second point.
    * @param steps The number of points to return.

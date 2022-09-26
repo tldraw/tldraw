@@ -3,9 +3,9 @@ import { intersectCircleCircle, intersectCircleLineSegment } from '@tldraw/inter
 import Vec from '@tldraw/vec'
 import getStroke from 'perfect-freehand'
 import { EASINGS } from '~constants'
-import { getShapeStyle } from '../shared/shape-styles'
+import { TLDR } from '~state/TLDR'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { ArrowShape, Decoration, ShapeStyles } from '~types'
-import { TLDR } from '../../TLDR'
 
 export function getArrowArcPath(start: number[], end: number[], circle: number[], bend: number) {
   return [
@@ -195,8 +195,9 @@ export function getArcPoints(start: number[], bend: number[], end: number[]) {
   const radius = circle[2]
   const startAngle = Vec.angle(center, start)
   const endAngle = Vec.angle(center, end)
-  for (let i = 1 / 20; i < 1; i += 1 / 20) {
-    const angle = Utils.lerpAngles(startAngle, endAngle, i)
+  for (let i = 0; i < 20; i++) {
+    const t = i / 19
+    const angle = Utils.lerpAngles(startAngle, endAngle, t)
     points.push(Vec.nudgeAtAngle(center, angle, radius))
   }
   return points

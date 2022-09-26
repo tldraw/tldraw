@@ -1,52 +1,142 @@
-import type { TLBounds } from '@tldraw/core'
-import { AlignStyle, ShapeStyles } from '~types'
-import { getFontFace, getFontSize } from './shape-styles'
-import { getTextAlign } from './getTextAlign'
-import { LINE_HEIGHT } from '~constants'
+import { LETTER_SPACING } from '~constants'
+import { AlignStyle } from '~types'
 
-export function getTextSvgElement(text: string, style: ShapeStyles, bounds: TLBounds) {
-  const fontSize = getFontSize(style.size, style.font)
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-  const scale = style.scale ?? 1
+// https://drafts.csswg.org/css-text/#word-separator
+// split on any of these characters
+const wordSeparator = new RegExp(
+  `${[0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
+    .map((c) => String.fromCodePoint(c))
+    .join('|')}`
+)
 
-  const textLines = text.split('\n').map((line, i) => {
-    const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    textElm.textContent = line
-    textElm.setAttribute('y', fontSize * (0.5 + i * LINE_HEIGHT) + '')
-    textElm.setAttribute('letter-spacing', fontSize * -0.03 + '')
-    textElm.setAttribute('font-size', fontSize + 'px')
-    textElm.setAttribute('font-family', getFontFace(style.font).slice(1, -1))
-    textElm.setAttribute('text-align', getTextAlign(style.textAlign))
-    textElm.setAttribute('text-align', getTextAlign(style.textAlign))
-    textElm.setAttribute('alignment-baseline', 'central')
-    if (style.scale !== 1) {
-      textElm.setAttribute('transform', `scale(${style.scale})`)
-    }
-    g.appendChild(textElm)
+export function getTextSvgElement(
+  text: string,
+  fontSize: number,
+  fontFamily: string,
+  textAlign: AlignStyle,
+  width: number,
+  wrap = false
+) {
+  const fontWeight = 'normal'
+  const lineHeight = 1
+  const letterSpacingPct = LETTER_SPACING
 
-    return textElm
+  // Collect lines
+
+  const lines = breakText({
+    text,
+    wrap,
+    width,
+    fontSize,
+    fontWeight,
+    fontFamily,
+    fontStyle: 'normal',
+    textAlign: 'left',
+    letterSpacing: LETTER_SPACING,
+    lineHeight: 1,
   })
 
-  switch (style.textAlign) {
+  const textElm = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+  textElm.setAttribute('font-size', fontSize + 'px')
+  textElm.setAttribute('font-family', fontFamily)
+  textElm.setAttribute('font-weight', fontWeight)
+  textElm.setAttribute('line-height', lineHeight * fontSize + 'px')
+  textElm.setAttribute('letter-spacing', letterSpacingPct)
+  textElm.setAttribute('text-align', textAlign ?? 'left')
+  textElm.setAttribute('dominant-baseline', 'mathematical')
+  textElm.setAttribute('alignment-baseline', 'mathematical')
+
+  const textLines = lines.map((line, i) => {
+    const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+    tspan.textContent = line + '\n'
+    tspan.setAttribute('y', lineHeight * fontSize * (i + 0.5) + 'px')
+    textElm.appendChild(tspan)
+    return tspan
+  })
+
+  switch (textAlign) {
     case AlignStyle.Middle: {
-      g.setAttribute('text-align', 'center')
-      g.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => {
-        textElm.setAttribute('x', bounds.width / 2 / scale + '')
-      })
+      textElm.setAttribute('text-align', 'center')
+      textElm.setAttribute('text-anchor', 'middle')
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width / 2 + ''))
       break
     }
     case AlignStyle.End: {
-      g.setAttribute('text-align', 'right')
-      g.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', bounds.width / scale + ''))
+      textElm.setAttribute('text-align', 'right')
+      textElm.setAttribute('text-anchor', 'end')
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width + ''))
       break
     }
-    case AlignStyle.Start: {
-      g.setAttribute('text-align', 'left')
-      g.setAttribute('text-anchor', 'start')
+    default: {
+      textElm.setAttribute('text-align', 'left')
+      textElm.setAttribute('text-anchor', 'start')
+      textLines.forEach((textElm) => textElm.setAttribute('x', '4'))
     }
   }
 
-  return g
+  return textElm
+}
+
+function breakText(opts: {
+  text: string
+  wrap: boolean
+  width: number
+  fontSize: number
+  fontWeight: string
+  fontFamily: string
+  fontStyle: string
+  lineHeight: number
+  letterSpacing: string
+  textAlign: string
+}): string[] {
+  const textElm = document.createElement('div')
+  textElm.style.setProperty('position', 'absolute')
+  textElm.style.setProperty('top', '-9999px')
+  textElm.style.setProperty('left', '-9999px')
+  textElm.style.setProperty('width', opts.width + 'px')
+  textElm.style.setProperty('height', 'min-content')
+  textElm.style.setProperty('font-size', opts.fontSize + 'px')
+  textElm.style.setProperty('font-family', opts.fontFamily)
+  textElm.style.setProperty('font-weight', opts.fontWeight)
+  textElm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
+  textElm.style.setProperty('letter-spacing', opts.letterSpacing)
+  textElm.style.setProperty('text-align', opts.textAlign)
+  document.body.appendChild(textElm)
+
+  // Collect lines
+
+  // Split the text into words
+  const words = opts.text
+    .split(wordSeparator)
+    .flatMap((word) => word.replace('\n', ' \n'))
+    .join(' ')
+    .split(' ')
+
+  // Iterate through the words looking for either line breaks, or
+  // when the measured line exceeds the width of the container (minus
+  // its padding); at either point, create a new line.
+
+  textElm.innerText = words[0]
+  let prevHeight = textElm.offsetHeight
+
+  let currentLine = [words[0]]
+  const lines: string[][] = [currentLine]
+
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i]
+    textElm.innerText += ' ' + word
+    const newHeight = textElm.offsetHeight
+    if (newHeight > prevHeight) {
+      prevHeight = newHeight
+      currentLine = []
+      lines.push(currentLine)
+    }
+
+    // Push the current word to the current line
+    currentLine.push(word)
+  }
+
+  textElm.remove()
+
+  return lines.map((line) => line.join(' '))
 }

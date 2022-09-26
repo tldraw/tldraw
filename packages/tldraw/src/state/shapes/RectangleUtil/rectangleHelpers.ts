@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getShapeStyle } from '../shared'
 
 function getRectangleDrawPoints(id: string, style: ShapeStyles, size: number[]) {
   const styles = getShapeStyle(style)
@@ -90,9 +90,5 @@ export function getRectangleIndicatorPathTDSnapshot(
   size: number[]
 ) {
   const { points, options } = getDrawStrokeInfo(id, style, size)
-  const strokePoints = getStrokePoints(points, options)
-  return Utils.getSvgPathFromStroke(
-    strokePoints.map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(getStrokePoints(points, options))
 }

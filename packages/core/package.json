@@ -1,5 +1,5 @@
 {
-  "version": "1.14.0",
+  "version": "1.18.4",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -23,47 +23,36 @@
   "types": "./dist/index.d.ts",
   "source": "./dist/index.ts",
   "scripts": {
-    "start": "yarn lfg -d",
+    "dev": "yarn lfg -d",
     "build": "yarn lfg",
-    "start:packages": "yarn start",
-    "start:core": "yarn start",
-    "build:core": "yarn build",
-    "build:packages": "yarn build",
-    "lint": "eslint src/ --ext .ts,.tsx",
-    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
     "test": "jest",
     "test:ci": "jest --ci --runInBand --updateSnapshot",
     "test:watch": "jest --watchAll",
-    "docs": "typedoc"
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
     "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.0",
-    "@use-gesture/react": "^10.2.14",
-    "mobx-react-lite": "^3.2.3",
-    "perfect-freehand": "^1.1.0",
-    "resize-observer-polyfill": "^1.5.1"
+    "@tldraw/vec": "^1.7.1",
+    "@use-gesture/react": "^10.2.19",
+    "perfect-freehand": "^1.1.0"
   },
   "peerDependencies": {
     "react": ">=16.8",
     "react-dom": ">=16.8"
   },
   "devDependencies": {
-    "@swc-node/jest": "^1.4.3",
-    "@testing-library/jest-dom": "^5.16.2",
-    "@testing-library/react": "^12.1.2",
+    "@swc-node/jest": "^1.5.2",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
     "@tldraw/intersect": "*",
-    "@tldraw/vec": "*",
-    "@types/node": "^17.0.14",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "@typescript-eslint/eslint-plugin": "^5.10.2",
-    "@typescript-eslint/parser": "^5.10.2",
-    "eslint": "^8.8.0",
     "@tldraw/lfg": "latest",
-    "mobx": "^6.3.8",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0"
+    "@tldraw/vec": "*",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "jest": {
     "setupFilesAfterEnv": [

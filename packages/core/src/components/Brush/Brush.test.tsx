@@ -1,24 +1,26 @@
+import { screen } from '@testing-library/react'
 import * as React from 'react'
 import { renderWithSvg } from '~test'
-import { screen } from '@testing-library/react'
 import { Brush } from './Brush'
 
 describe('brush', () => {
   test('mounts component without crashing', () => {
-    renderWithSvg(
-      <Brush
-        zoom={1}
-        dashed={false}
-        brush={{
-          minX: 0,
-          maxX: 100,
-          minY: 0,
-          maxY: 100,
-          width: 100,
-          height: 100,
-        }}
-      />
-    )
+    expect(() =>
+      renderWithSvg(
+        <Brush
+          zoom={1}
+          dashed={false}
+          brush={{
+            minX: 0,
+            maxX: 100,
+            minY: 0,
+            maxY: 100,
+            width: 100,
+            height: 100,
+          }}
+        />
+      )
+    ).not.toThrowError()
   })
 })
 

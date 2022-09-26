@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ArrowShape, ColorStyle, SessionType, TDShapeType } from '~types'
 import { deepCopy } from './StateManager/copy'
 import type { SelectTool } from './tools/SelectTool'
@@ -326,12 +325,12 @@ describe('TldrawTestApp', () => {
     })
   })
 
-  describe('Copies to JSON', () => {
+  test('Copies to JSON', () => {
     const app = new TldrawTestApp().loadDocument(mockDocument).selectAll()
     expect(app.copyJson()).toMatchSnapshot('copied json')
   })
 
-  describe('Mutates bound shapes', () => {
+  test('Mutates bound shapes', () => {
     const app = new TldrawTestApp()
       .createShapes(
         {
@@ -687,7 +686,7 @@ describe('TldrawTestApp', () => {
       expect(app.bindings).toMatchObject(Object.values(bindings))
     })
 
-    it('It should update the page shapes after the settings have been updated', async () => {
+    it('should update the page shapes after the settings have been updated', async () => {
       const shapes = deepCopy(mockDocument.pages.page1.shapes)
       const bindings = deepCopy(mockDocument.pages.page1.bindings)
       const app = new TldrawTestApp('multiplayer', {
@@ -716,6 +715,34 @@ describe('TldrawTestApp', () => {
       .movePointer([50, 50])
       .movePointer([50, 51])
       .expectSelectedIdsToBe(['box1'])
+  })
+})
+
+describe('Arrow binding', () => {
+  it('should delete handles bindingId', () => {
+    const app = new TldrawTestApp()
+
+    app
+      .createShapes(
+        { type: TDShapeType.Rectangle, id: 'target1', point: [0, 0], size: [100, 100] },
+        { type: TDShapeType.Rectangle, id: 'target2', point: [300, 300], size: [100, 100] },
+        { type: TDShapeType.Arrow, id: 'arrow1', point: [200, 200] }
+      )
+      .select('arrow1')
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([0, 0])
+      .completeSession()
+
+    expect(app.bindings.length).toBe(1)
+
+    app
+      .select('arrow1')
+      .movePointer([200, 200])
+      .startSession(SessionType.Arrow, 'arrow1', 'start')
+      .movePointer([1000, 1000])
+      .completeSession()
+    expect(app.bindings.length).toBe(0)
   })
 })
 

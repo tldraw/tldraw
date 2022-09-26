@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ArrowShape, SessionType, TDShapeType, TDStatus } from '~types'
 
 describe('Arrow session', () => {
@@ -54,6 +54,18 @@ describe('Arrow session', () => {
   })
 
   describe('arrow binding', () => {
+    it('ignores locked shapes', () => {
+      const app = new TldrawTestApp()
+        .loadDocument(restoreDoc)
+        .select('target1')
+        .toggleLocked() // set target 1 to locked
+        .select('arrow1')
+        .movePointer([200, 200])
+        .startSession(SessionType.Arrow, 'arrow1', 'start')
+        .movePointer([50, 50])
+      expect(app.bindings.length).toBe(0)
+    })
+
     it('points to the center', () => {
       const app = new TldrawTestApp()
         .loadDocument(restoreDoc)
@@ -228,7 +240,6 @@ describe('When creating with an arrow session', () => {
       )
       .selectTool(TDShapeType.Arrow)
       .pointShape('rect1', { x: 251, y: 251 })
-      .movePointer([350, 350])
       .movePointer([450, 450])
       .completeSession()
 
@@ -238,6 +249,33 @@ describe('When creating with an arrow session', () => {
     expect(arrow.handles.start.bindingId).not.toBe(undefined)
     expect(arrow.handles.end.bindingId).not.toBe(undefined)
     expect(app.bindings.length).toBe(2)
+  })
+
+  it('Does not creat a start binding inside of a locked shape', () => {
+    const app = new TldrawTestApp()
+      .selectAll()
+      .delete()
+      .createShapes(
+        {
+          type: TDShapeType.Rectangle,
+          id: 'rect1',
+          point: [200, 200],
+          size: [100, 100],
+          isLocked: true,
+        },
+        { type: TDShapeType.Rectangle, id: 'rect2', point: [400, 400], size: [100, 100] }
+      )
+      .selectTool(TDShapeType.Arrow)
+      .pointShape('rect1', { x: 251, y: 251 })
+      .movePointer([450, 450])
+      .completeSession()
+
+    const arrow = app.shapes.find((shape) => shape.type === TDShapeType.Arrow) as ArrowShape
+
+    expect(arrow).toBeTruthy()
+    expect(arrow.handles.start.bindingId).toBe(undefined)
+    expect(arrow.handles.end.bindingId).toBeTruthy()
+    expect(app.bindings.length).toBe(1)
   })
 
   it('Creates a start binding if started in dead center', () => {
@@ -396,43 +434,43 @@ describe('When creating arrows inside of other shapes...', () => {
   })
 })
 
-describe('When holding alt and dragging a handle', () => {
-  it('Applies a delta to both handles', () => {
-    const app = new TldrawTestApp()
-      .selectAll()
-      .delete()
-      .createShapes({ type: TDShapeType.Arrow, id: 'arrow1', point: [0, 0] })
-      .select('arrow1')
-      .movePointer([0, 0])
-      .startSession(SessionType.Arrow, 'arrow1', 'start')
-      .movePointer([-10, -10])
+// describe('When holding alt and dragging a handle', () => {
+//   it('Applies a delta to both handles', () => {
+//     const app = new TldrawTestApp()
+//       .selectAll()
+//       .delete()
+//       .createShapes({ type: TDShapeType.Arrow, id: 'arrow1', point: [0, 0] })
+//       .select('arrow1')
+//       .movePointer([0, 0])
+//       .startSession(SessionType.Arrow, 'arrow1', 'start')
+//       .movePointer([-10, -10])
 
-    // Without alt...
-    expect(app.getShape('arrow1')).toMatchObject({
-      point: [-10, -10],
-      handles: {
-        start: {
-          point: [0, 0],
-        },
-        end: {
-          point: [11, 11],
-        },
-      },
-    })
+//     // Without alt...
+//     expect(app.getShape('arrow1')).toMatchObject({
+//       point: [-10, -10],
+//       handles: {
+//         start: {
+//           point: [0, 0],
+//         },
+//         end: {
+//           point: [11, 11],
+//         },
+//       },
+//     })
 
-    // With alt...
-    app.movePointer({ x: -10, y: -10, altKey: true })
+//     // With alt...
+//     app.movePointer({ x: -10, y: -10, altKey: true })
 
-    expect(app.getShape('arrow1')).toMatchObject({
-      point: [-10, -10],
-      handles: {
-        start: {
-          point: [0, 0],
-        },
-        end: {
-          point: [21, 21], // delta is applied to both handles
-        },
-      },
-    })
-  })
-})
+//     expect(app.getShape('arrow1')).toMatchObject({
+//       point: [-10, -10],
+//       handles: {
+//         start: {
+//           point: [0, 0],
+//         },
+//         end: {
+//           point: [21, 21], // delta is applied to both handles
+//         },
+//       },
+//     })
+//   })
+// })

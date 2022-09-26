@@ -1,21 +1,15 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import type { TLBounds } from '~types'
 
-interface RotateHandleProps {
+export interface RotateHandleProps {
   bounds: TLBounds
   size: number
   targetSize: number
   isHidden: boolean
 }
 
-export const RotateHandle = observer<RotateHandleProps>(function RotateHandle({
-  bounds,
-  targetSize,
-  size,
-  isHidden,
-}) {
+function _RotateHandle({ bounds, targetSize, size, isHidden }: RotateHandleProps) {
   const events = useBoundsHandleEvents('rotate')
 
   return (
@@ -39,4 +33,6 @@ export const RotateHandle = observer<RotateHandleProps>(function RotateHandle({
       />
     </g>
   )
-})
+}
+
+export const RotateHandle = React.memo(_RotateHandle)

@@ -1,9 +1,8 @@
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
 import type { TLSnapLine } from '~types'
 import Utils from '~utils'
 
-export const SnapLines = observer<{ snapLines: TLSnapLine[] }>(function SnapLines({ snapLines }) {
+function _SnapLines({ snapLines }: { snapLines: TLSnapLine[] }) {
   return (
     <>
       {snapLines.map((snapLine, i) => (
@@ -11,9 +10,9 @@ export const SnapLines = observer<{ snapLines: TLSnapLine[] }>(function SnapLine
       ))}
     </>
   )
-})
+}
 
-export const SnapLine = observer<{ snapLine: TLSnapLine }>(function SnapLine({ snapLine }) {
+function _SnapLine({ snapLine }: { snapLine: TLSnapLine }) {
   const bounds = Utils.getBoundsFromPoints(snapLine)
 
   return (
@@ -30,4 +29,7 @@ export const SnapLine = observer<{ snapLine: TLSnapLine }>(function SnapLine({ s
       ))}
     </>
   )
-})
+}
+
+export const SnapLine = React.memo(_SnapLine)
+export const SnapLines = React.memo(_SnapLines)

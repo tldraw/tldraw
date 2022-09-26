@@ -1,19 +1,17 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Utils, TLShapeUtil } from '@tldraw/core'
-import type { TLPointerInfo, TLBounds } from '@tldraw/core'
+import { TLShapeUtil, Utils } from '@tldraw/core'
+import type { TLBounds, TLPointerInfo } from '@tldraw/core'
 import {
   intersectLineSegmentBounds,
   intersectLineSegmentPolyline,
   intersectRayBounds,
 } from '@tldraw/intersect'
 import { Vec } from '@tldraw/vec'
-import type { ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
 import * as React from 'react'
 import { BINDING_DISTANCE } from '~constants'
-import { getTextSvgElement } from './shared/getTextSvgElement'
+import { AlignStyle, ShapesWithProp, TDBinding, TDMeta, TDShape, TransformInfo } from '~types'
+import { getFontFace, getFontSize, getFontStyle, getShapeStyle } from './shared'
 import { getTextLabelSize } from './shared/getTextSize'
-import { getFontStyle, getShapeStyle } from './shared'
+import { getTextSvgElement } from './shared/getTextSvgElement'
 
 export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> extends TLShapeUtil<
   T,
@@ -180,19 +178,33 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
   getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const elm = document.getElementById(shape.id + '_svg')?.cloneNode(true) as SVGElement
     if (!elm) return // possibly in test mode
-    if ('label' in shape && (shape as any).label) {
+    const hasLabel = shape.label?.trim()?.length ?? 0 > 0
+    if (hasLabel) {
       const s = shape as TDShape & { label: string }
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-      const bounds = this.getBounds(shape)
-      const labelElm = getTextSvgElement(s['label'], shape.style, bounds)
-      labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
+
       const font = getFontStyle(shape.style)
-      const size = getTextLabelSize(s['label'], font)
-      labelElm.setAttribute('transform-origin', 'top left')
+      const labelSize = getTextLabelSize(shape.label!, font)
+      const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
+      const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+
+      const labelElm = getTextSvgElement(
+        s['label'],
+        fontSize,
+        fontFamily,
+        AlignStyle.Middle,
+        labelSize[0],
+        false
+      )
+
+      const bounds = this.getBounds(shape)
+
       labelElm.setAttribute(
         'transform',
-        `translate(${bounds.width / 2}, ${(bounds.height - size[1]) / 2})`
+        `translate(${bounds.width / 2 - labelSize[0] / 2}, ${bounds.height / 2 - labelSize[1] / 2})`
       )
+      labelElm.setAttribute('fill', getShapeStyle(shape.style, isDarkMode).stroke)
+      labelElm.setAttribute('transform-origin', 'center center')
       g.setAttribute('text-align', 'center')
       g.setAttribute('text-anchor', 'middle')
       g.appendChild(elm)

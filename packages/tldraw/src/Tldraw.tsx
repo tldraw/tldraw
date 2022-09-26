@@ -1,27 +1,33 @@
+import { CursorComponent, Renderer } from '@tldraw/core'
 import * as React from 'react'
-import { Renderer } from '@tldraw/core'
-import { IntlConfig, IntlProvider } from 'react-intl'
-import { styled, dark } from '~styles'
-import {TDDocument, TDShape, TDStatus} from '~types'
-import { TldrawApp, TDCallbacks } from '~state'
-import { TldrawContext, useStylesheet, useKeyboardShortcuts, useTldrawApp } from '~hooks'
-import { shapeUtils } from '~state/shapes'
+import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
+import { IntlProvider } from 'react-intl'
+import { ContextMenu } from '~components/ContextMenu'
+import { ErrorFallback } from '~components/ErrorFallback'
+import { FocusButton } from '~components/FocusButton'
+import { Loading } from '~components/Loading'
+import { AlertDialog } from '~components/Primitives/AlertDialog'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { ContextMenu } from '~components/ContextMenu'
-import { FocusButton } from '~components/FocusButton'
-import { TLDR } from '~state/TLDR'
+import { PresentationMenu } from '~components/TopPanel/PresentationMenu'
+import { ViewzoneMenu } from '~components/ViewzoneMenu'
 import { GRID_SIZE } from '~constants'
-import { Loading } from '~components/Loading'
-import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
-import { ErrorFallback } from '~components/ErrorFallback'
-
-import messages_en from './translations/en.json'
-import messages_fr from './translations/fr.json'
-import messages_it from './translations/it.json'
-import messages_zh_cn from './translations/zh-cn.json'
-import {ViewzoneMenu} from "~components/ViewzoneMenu";
-import {PresentationMenu} from "~components/TopPanel/PresentationMenu";
+import {
+  AlertDialogContext,
+  ContainerContext,
+  DialogState,
+  TldrawContext,
+  useKeyboardShortcuts,
+  useStylesheet,
+  useTldrawApp,
+  useTranslation,
+} from '~hooks'
+import { useCursor } from '~hooks/useCursor'
+import { TDCallbacks, TldrawApp } from '~state'
+import { TLDR } from '~state/TLDR'
+import { shapeUtils } from '~state/shapes'
+import { dark, styled } from '~styles'
+import { TDDocument, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -55,6 +61,7 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) Whether to show the multiplayer menu.
    */
   showMultiplayerMenu?: boolean
+
   /**
    * (optional) Whether to show the pages UI.
    */
@@ -74,11 +81,6 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) Whether to show the tools UI.
    */
   showTools?: boolean
-
-  /**
-   * (optional) Whether to show a sponsor link for Tldraw.
-   */
-  showSponsorLink?: boolean
 
   /**
    * (optional) Whether to show the UI.
@@ -102,7 +104,26 @@ export interface TldrawProps extends TDCallbacks {
    * bucket based solution will cause massive base64 string to be written to the liveblocks room.
    */
   disableAssets?: boolean
+
+  /**
+   * (optional) Custom components to override parts of the default UI.
+   */
+  components?: {
+    /**
+     * The component to render for multiplayer cursors.
+     */
+    Cursor?: CursorComponent
+  }
+
+  /**
+   * (optional) To hide cursors
+   */
+  hideCursors?: boolean
 }
+
+const isSystemDarkMode = window.matchMedia
+  ? window.matchMedia('(prefers-color-scheme: dark)').matches
+  : false
 
 export function Tldraw({
   id,
@@ -118,8 +139,8 @@ export function Tldraw({
   showUI = true,
   readOnly = false,
   disableAssets = false,
-  darkMode = false,
-  showSponsorLink,
+  darkMode = isSystemDarkMode,
+  components,
   onMount,
   onChange,
   onChangePresence,
@@ -128,8 +149,6 @@ export function Tldraw({
   onSaveProjectAs,
   onOpenProject,
   onOpenMedia,
-  onSignOut,
-  onSignIn,
   onUndo,
   onRedo,
   onPersist,
@@ -139,7 +158,10 @@ export function Tldraw({
   onAssetCreate,
   onAssetDelete,
   onAssetUpload,
+  onSessionStart,
+  onSessionEnd,
   onExport,
+  hideCursors,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -154,8 +176,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -165,9 +185,26 @@ export function Tldraw({
       onAssetDelete,
       onAssetCreate,
       onAssetUpload,
+      onSessionStart,
+      onSessionEnd,
     })
     return app
   })
+
+  const [onCancel, setOnCancel] = React.useState<(() => void) | null>(null)
+  const [onYes, setOnYes] = React.useState<(() => void) | null>(null)
+  const [onNo, setOnNo] = React.useState<(() => void) | null>(null)
+  const [dialogState, setDialogState] = React.useState<DialogState | null>(null)
+
+  const openDialog = React.useCallback(
+    (dialogState: DialogState, onYes: () => void, onNo: () => void, onCancel: () => void) => {
+      setDialogState(() => dialogState)
+      setOnCancel(() => onCancel)
+      setOnYes(() => onYes)
+      setOnNo(() => onNo)
+    },
+    []
+  )
 
   // Create a new app if the `id` prop changes.
   React.useLayoutEffect(() => {
@@ -181,8 +218,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -193,6 +228,8 @@ export function Tldraw({
       onAssetCreate,
       onAssetUpload,
       onExport,
+      onSessionStart,
+      onSessionEnd,
     })
 
     setSId(id)
@@ -251,8 +288,6 @@ export function Tldraw({
       onSaveProjectAs,
       onOpenProject,
       onOpenMedia,
-      onSignOut,
-      onSignIn,
       onUndo,
       onRedo,
       onPersist,
@@ -263,6 +298,8 @@ export function Tldraw({
       onAssetCreate,
       onAssetUpload,
       onExport,
+      onSessionStart,
+      onSessionEnd,
     }
   }, [
     onMount,
@@ -273,8 +310,6 @@ export function Tldraw({
     onSaveProjectAs,
     onOpenProject,
     onOpenMedia,
-    onSignOut,
-    onSignIn,
     onUndo,
     onRedo,
     onPersist,
@@ -285,6 +320,8 @@ export function Tldraw({
     onAssetCreate,
     onAssetUpload,
     onExport,
+    onSessionStart,
+    onSessionEnd,
   ])
 
   React.useLayoutEffect(() => {
@@ -303,20 +340,25 @@ export function Tldraw({
   // Use the `key` to ensure that new selector hooks are made when the id changes
   return (
     <TldrawContext.Provider value={app}>
-      <InnerTldraw
-        key={sId || 'Tldraw'}
-        id={sId}
-        autofocus={autofocus}
-        showPages={showPages}
-        showMenu={showMenu}
-        showMultiplayerMenu={showMultiplayerMenu}
-        showStyles={showStyles}
-        showZoom={showZoom}
-        showTools={showTools}
-        showUI={showUI}
-        showSponsorLink={showSponsorLink}
-        readOnly={readOnly}
-      />
+      <AlertDialogContext.Provider
+        value={{ onYes, onCancel, onNo, dialogState, setDialogState, openDialog }}
+      >
+        <InnerTldraw
+          key={sId || 'Tldraw'}
+          id={sId}
+          autofocus={autofocus}
+          showPages={showPages}
+          showMenu={showMenu}
+          showMultiplayerMenu={showMultiplayerMenu}
+          showStyles={showStyles}
+          showZoom={showZoom}
+          showTools={showTools}
+          showUI={showUI}
+          readOnly={readOnly}
+          components={components}
+          hideCursors={hideCursors}
+        />
+      </AlertDialogContext.Provider>
     </TldrawContext.Provider>
   )
 }
@@ -332,7 +374,10 @@ interface InnerTldrawProps {
   showStyles: boolean
   showUI: boolean
   showTools: boolean
-  showSponsorLink?: boolean
+  components?: {
+    Cursor?: CursorComponent
+  }
+  hideCursors?: boolean
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -344,12 +389,13 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showZoom,
   showStyles,
   showTools,
-  showSponsorLink,
   readOnly,
   showUI,
+  components,
+  hideCursors,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
-
+  const [dialogContainer, setDialogContainer] = React.useState<any>(null)
   const rWrapper = React.useRef<HTMLDivElement>(null)
 
   const state = app.useStore()
@@ -429,133 +475,146 @@ const InnerTldraw = React.memo(function InnerTldraw({
   const hideIndicators =
     (isInSession && state.appState.status !== TDStatus.Brushing) || !isSelecting
 
-  const hideCloneHandles =
-    isInSession || !isSelecting || !settings.showCloneHandles || pageState.camera.zoom < 0.2
+  const hideCloneHandles = isInSession || !isSelecting || pageState.camera.zoom < 0.2
 
-  const messages = {
-    en: messages_en,
-    fr: messages_fr,
-    it: messages_it,
-    'zh-cn': messages_zh_cn
-  }
+  const translation = useTranslation(settings.language)
 
-  const defaultLanguage = settings.language ?? navigator.language.split(/[-_]/)[0]
+  // Put the theme on the body. This means that components with
+  // multiple editors cannot have different themes.
+  React.useLayoutEffect(() => {
+    const elm = rWrapper.current
+    if (!elm) return
+    if (settings.isDarkMode) {
+      elm.classList.add(dark)
+    } else {
+      elm.classList.remove(dark)
+    }
+  }, [settings.isDarkMode])
+
+  useCursor(rWrapper)
 
   return (
-    <IntlProvider
-      locale={defaultLanguage}
-      messages={messages[defaultLanguage] as IntlConfig['messages']}
-    >
-      <StyledLayout ref={rWrapper} tabIndex={-0} className={settings.isDarkMode ? dark : ''}>
-        <Loading />
-        <OneOff focusableRef={rWrapper} autofocus={autofocus} />
-        <ContextMenu>
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <Renderer
-              id={id}
-              containerRef={rWrapper}
-              shapeUtils={shapeUtils}
-              page={page}
-              pageState={pageState}
-              assets={assets}
-              snapLines={appState.snapLines}
-              eraseLine={appState.eraseLine}
-              grid={GRID_SIZE}
-              users={room?.users}
-              userId={room?.userId}
-              theme={theme}
-              meta={meta}
-              hideBounds={hideBounds}
-              hideHandles={hideHandles}
-              hideResizeHandles={isHideResizeHandlesShape}
-              hideIndicators={hideIndicators}
-              hideBindingHandles={!settings.showBindingHandles}
-              hideCloneHandles={hideCloneHandles}
-              hideRotateHandles={!settings.showRotateHandles}
-              hideGrid={!settings.showGrid}
-              showDashedBrush={showDashedBrush}
-              performanceMode={app.session?.performanceMode}
-              onPinchStart={app.onPinchStart}
-              onPinchEnd={app.onPinchEnd}
-              onPinch={app.onPinch}
-              onPan={app.onPan}
-              onZoom={app.onZoom}
-              onPointerDown={app.onPointerDown}
-              onPointerMove={app.onPointerMove}
-              onPointerUp={app.onPointerUp}
-              onPointCanvas={app.onPointCanvas}
-              onDoubleClickCanvas={app.onDoubleClickCanvas}
-              onRightPointCanvas={app.onRightPointCanvas}
-              onDragCanvas={app.onDragCanvas}
-              onReleaseCanvas={app.onReleaseCanvas}
-              onPointShape={app.onPointShape}
-              onDoubleClickShape={app.onDoubleClickShape}
-              onRightPointShape={app.onRightPointShape}
-              onDragShape={app.onDragShape}
-              onHoverShape={app.onHoverShape}
-              onUnhoverShape={app.onUnhoverShape}
-              onReleaseShape={app.onReleaseShape}
-              onPointBounds={app.onPointBounds}
-              onDoubleClickBounds={app.onDoubleClickBounds}
-              onRightPointBounds={app.onRightPointBounds}
-              onDragBounds={app.onDragBounds}
-              onHoverBounds={app.onHoverBounds}
-              onUnhoverBounds={app.onUnhoverBounds}
-              onReleaseBounds={app.onReleaseBounds}
-              onPointBoundsHandle={app.onPointBoundsHandle}
-              onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
-              onRightPointBoundsHandle={app.onRightPointBoundsHandle}
-              onDragBoundsHandle={app.onDragBoundsHandle}
-              onHoverBoundsHandle={app.onHoverBoundsHandle}
-              onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
-              onReleaseBoundsHandle={app.onReleaseBoundsHandle}
-              onPointHandle={app.onPointHandle}
-              onDoubleClickHandle={app.onDoubleClickHandle}
-              onRightPointHandle={app.onRightPointHandle}
-              onDragHandle={app.onDragHandle}
-              onHoverHandle={app.onHoverHandle}
-              onUnhoverHandle={app.onUnhoverHandle}
-              onReleaseHandle={app.onReleaseHandle}
-              onError={app.onError}
-              onRenderCountChange={app.onRenderCountChange}
-              onShapeChange={app.onShapeChange}
-              onShapeBlur={app.onShapeBlur}
-              onShapeClone={app.onShapeClone}
-              onBoundsChange={app.updateBounds}
-              onKeyDown={app.onKeyDown}
-              onKeyUp={app.onKeyUp}
-              onDragOver={app.onDragOver}
-              onDrop={app.onDrop}
-            />
-          </ErrorBoundary>
-        </ContextMenu>
-        {showUI && (
-          <StyledUI>
-            {settings.isFocusMode ? (
-              <FocusButton onSelect={app.toggleFocusMode}/>
-            ) : settings.isViewzoneMode ? (
-              <ViewzoneMenu onSelect={app.toggleViewzoneMode} shapes={app.getShapes(appState.currentPageId)}/>
-            ) : settings.isPresentationMode ? (
-              <PresentationMenu onSelect={app.togglePresentationMode} shapes={app.getShapes(appState.currentPageId)}/>
-            ) : (
-              <>
-                <TopPanel
-                  readOnly={readOnly}
-                  showPages={showPages}
-                  showMenu={showMenu}
-                  showMultiplayerMenu={showMultiplayerMenu}
-                  showStyles={showStyles}
-                  showZoom={showZoom}
-                  sponsor={showSponsorLink}
+    <ContainerContext.Provider value={rWrapper}>
+      <IntlProvider locale={translation.locale} messages={translation.messages}>
+        <AlertDialog container={dialogContainer} />
+        <StyledLayout ref={rWrapper} tabIndex={-0}>
+          <Loading />
+          <OneOff focusableRef={rWrapper} autofocus={autofocus} />
+          <ContextMenu>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Renderer
+                id={id}
+                containerRef={rWrapper}
+                shapeUtils={shapeUtils}
+                page={page}
+                pageState={pageState}
+                assets={assets}
+                snapLines={appState.snapLines}
+                eraseLine={appState.eraseLine}
+                grid={GRID_SIZE}
+                users={room?.users}
+                userId={room?.userId}
+                theme={theme}
+                meta={meta}
+                components={components}
+                hideCursors={hideCursors}
+                hideBounds={hideBounds}
+                hideHandles={hideHandles}
+                hideResizeHandles={isHideResizeHandlesShape}
+                hideIndicators={hideIndicators}
+                hideBindingHandles={!settings.showBindingHandles}
+                hideCloneHandles={hideCloneHandles}
+                hideRotateHandles={!settings.showRotateHandles}
+                hideGrid={!settings.showGrid}
+                showDashedBrush={showDashedBrush}
+                performanceMode={app.session?.performanceMode}
+                onPinchStart={app.onPinchStart}
+                onPinchEnd={app.onPinchEnd}
+                onPinch={app.onPinch}
+                onPan={app.onPan}
+                onZoom={app.onZoom}
+                onPointerDown={app.onPointerDown}
+                onPointerMove={app.onPointerMove}
+                onPointerUp={app.onPointerUp}
+                onPointCanvas={app.onPointCanvas}
+                onDoubleClickCanvas={app.onDoubleClickCanvas}
+                onRightPointCanvas={app.onRightPointCanvas}
+                onDragCanvas={app.onDragCanvas}
+                onReleaseCanvas={app.onReleaseCanvas}
+                onPointShape={app.onPointShape}
+                onDoubleClickShape={app.onDoubleClickShape}
+                onRightPointShape={app.onRightPointShape}
+                onDragShape={app.onDragShape}
+                onHoverShape={app.onHoverShape}
+                onUnhoverShape={app.onUnhoverShape}
+                onReleaseShape={app.onReleaseShape}
+                onPointBounds={app.onPointBounds}
+                onDoubleClickBounds={app.onDoubleClickBounds}
+                onRightPointBounds={app.onRightPointBounds}
+                onDragBounds={app.onDragBounds}
+                onHoverBounds={app.onHoverBounds}
+                onUnhoverBounds={app.onUnhoverBounds}
+                onReleaseBounds={app.onReleaseBounds}
+                onPointBoundsHandle={app.onPointBoundsHandle}
+                onDoubleClickBoundsHandle={app.onDoubleClickBoundsHandle}
+                onRightPointBoundsHandle={app.onRightPointBoundsHandle}
+                onDragBoundsHandle={app.onDragBoundsHandle}
+                onHoverBoundsHandle={app.onHoverBoundsHandle}
+                onUnhoverBoundsHandle={app.onUnhoverBoundsHandle}
+                onReleaseBoundsHandle={app.onReleaseBoundsHandle}
+                onPointHandle={app.onPointHandle}
+                onDoubleClickHandle={app.onDoubleClickHandle}
+                onRightPointHandle={app.onRightPointHandle}
+                onDragHandle={app.onDragHandle}
+                onHoverHandle={app.onHoverHandle}
+                onUnhoverHandle={app.onUnhoverHandle}
+                onReleaseHandle={app.onReleaseHandle}
+                onError={app.onError}
+                onRenderCountChange={app.onRenderCountChange}
+                onShapeChange={app.onShapeChange}
+                onShapeBlur={app.onShapeBlur}
+                onShapeClone={app.onShapeClone}
+                onBoundsChange={app.updateBounds}
+                onKeyDown={app.onKeyDown}
+                onKeyUp={app.onKeyUp}
+                onDragOver={app.onDragOver}
+                onDrop={app.onDrop}
+              />
+            </ErrorBoundary>
+          </ContextMenu>
+          {showUI && (
+            <StyledUI ref={setDialogContainer}>
+              {settings.isFocusMode ? (
+                <FocusButton onSelect={app.toggleFocusMode} />
+              ) : settings.isViewzoneMode ? (
+                <ViewzoneMenu
+                  onSelect={app.toggleViewzoneMode}
+                  shapes={app.getShapes(appState.currentPageId)}
                 />
-                <StyledSpacer/>
-                {showTools && !readOnly && <ToolsPanel/>}
-              </>
-            )}
-          </StyledUI>
-        )}
-      </StyledLayout>
-    </IntlProvider>
+              ) : settings.isPresentationMode ? (
+                <PresentationMenu
+                  onSelect={app.togglePresentationMode}
+                  shapes={app.getShapes(appState.currentPageId)}
+                />
+              ) : (
+                <>
+                  <TopPanel
+                    readOnly={readOnly}
+                    showPages={showPages}
+                    showMenu={showMenu}
+                    showMultiplayerMenu={showMultiplayerMenu}
+                    showStyles={showStyles}
+                    showZoom={showZoom}
+                  />
+                  <StyledSpacer />
+                  {showTools && !readOnly && <ToolsPanel />}
+                </>
+              )}
+            </StyledUI>
+          )}
+        </StyledLayout>
+      </IntlProvider>
+    </ContainerContext.Provider>
   )
 })
 

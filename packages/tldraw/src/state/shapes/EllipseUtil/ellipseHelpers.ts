@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import { getStrokeOutlinePoints, getStrokePoints } from 'perfect-freehand'
 import { EASINGS } from '~constants'
+import { getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getShapeStyle } from '../shared/shape-styles'
 
 export function getEllipseStrokePoints(id: string, radius: number[], style: ShapeStyles) {
   const { strokeWidth } = getShapeStyle(style)
@@ -50,8 +50,5 @@ export function getEllipsePath(id: string, radius: number[], style: ShapeStyles)
 }
 
 export function getEllipseIndicatorPath(id: string, radius: number[], style: ShapeStyles) {
-  return Utils.getSvgPathFromStroke(
-    getEllipseStrokePoints(id, radius, style).map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(getEllipseStrokePoints(id, radius, style))
 }

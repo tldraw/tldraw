@@ -24,9 +24,9 @@ npm i @tldraw/core
 
 There are two examples in this repository.
 
-The **simple** example in the `example` folder shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.
+The **simple** example in [`examples/core-example`](https://github.com/tldraw/tldraw/tree/main/examples/core-example) shows a minimal use of the library. It does not do much but this should be a good reference for the API without too much else built on top.
 
-The **advanced** example in the `example-advanced` folder shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tldraw/tldraw](https://tldraw.com) codebase.
+The **advanced** example in [`examples/core-example-advanced`](https://github.com/tldraw/tldraw/tree/main/examples/core-example-advanced) shows a more realistic use of the library. (Try it [here](https://core-steveruiz.vercel.app/)). While the fundamental patterns are the same, this example contains features such as: panning, pinching, and zooming the camera; creating, cloning, resizing, and deleting shapes; keyboard shortcuts, brush-selection; shape-snapping; undo, redo; and more. Much of the code in the advanced example comes from the [@tldraw/tldraw](https://tldraw.com) codebase.
 
 If you're working on an app that uses this library, I recommend referring back to the advanced example for tips on how you might implement these features for your own project.
 
@@ -43,7 +43,7 @@ const shapeUtils = { box: new BoxUtil() }
 
 function App() {
   const [page, setPage] = React.useState({
-    id: "page"
+    id: "page",
     shapes: {
       "box1": {
         id: 'box1',
@@ -312,9 +312,8 @@ Next, use `TLShapeUtil.Component` to create a second component for your shape's 
 
 ```tsx
 // BoxComponent.ts
-
+import { SVGContainer, shapeComponent } from '@tldraw/core'
 import * as React from 'react'
-import { shapeComponent, SVGContainer } from '@tldraw/core'
 import type { BoxShape } from './BoxShape'
 
 export const BoxComponent = TLShapeUtil.Component<BoxShape, SVGSVGElement>(
@@ -391,8 +390,7 @@ Next, create a "shape util" for your shape. This is a class that extends `TLShap
 
 ```ts
 // BoxUtil.ts
-
-import { Utils, TLBounds, TLShapeUtil } from '@tldraw/core'
+import { TLBounds, TLShapeUtil, Utils } from '@tldraw/core'
 import { BoxComponent } from './BoxComponent'
 import { BoxIndicator } from './BoxIndicator'
 import type { BoxShape } from './BoxShape'

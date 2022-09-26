@@ -1,9 +1,8 @@
 import * as React from 'react'
-import type { Inputs } from '~inputs'
-import type { TLCallbacks, TLShape, TLBounds, TLPageState } from '~types'
 import type { TLShapeUtilsMap } from '~TLShapeUtil'
+import type { Inputs } from '~inputs'
+import type { TLBounds, TLCallbacks, TLPageState, TLShape } from '~types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export interface TLContextType<T extends TLShape> {
   id?: string
   callbacks: Partial<TLCallbacks<T>>

@@ -1,13 +1,16 @@
-import * as React from 'react'
-import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { useTldrawApp } from '~hooks'
-import { styled } from '~styles'
-import { AlignType, TDSnapshot, DistributeType, StretchType } from '~types'
 import {
+  AlignBottomIcon,
+  AlignCenterHorizontallyIcon,
+  AlignCenterVerticallyIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
+  AlignTopIcon,
+  AngleIcon,
   ArrowDownIcon,
   ArrowUpIcon,
   AspectRatioIcon,
+  BoxIcon,
   CopyIcon,
   DotsHorizontalIcon,
   GroupIcon,
@@ -16,23 +19,22 @@ import {
   PinBottomIcon,
   PinTopIcon,
   RotateCounterClockwiseIcon,
-  AlignBottomIcon,
-  AlignCenterHorizontallyIcon,
-  AlignCenterVerticallyIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  AlignTopIcon,
   SpaceEvenlyHorizontallyIcon,
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-  BoxIcon,
-  AngleIcon,
 } from '@radix-ui/react-icons'
-import { DMContent } from '~components/Primitives/DropdownMenu'
-import { Divider } from '~components/Primitives/Divider'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import * as React from 'react'
 import { useIntl } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
+import { DMContent } from '~components/Primitives/DropdownMenu'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
+import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { AlignType, DistributeType, StretchType, TDSnapshot } from '~types'
+
+const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
 const selectedShapesCountSelector = (s: TDSnapshot) =>
   s.document.pageStates[s.appState.currentPageId].selectedIds.length
@@ -77,8 +79,6 @@ export function ActionButton() {
   const app = useTldrawApp()
   const intl = useIntl()
 
-  const isFrenchLang = navigator.language === 'fr'
-
   const isAllLocked = app.useStore(isAllLockedSelector)
 
   const isAllAspectLocked = app.useStore(isAllAspectLockedSelector)
@@ -90,6 +90,8 @@ export function ActionButton() {
   const hasMultipleSelection = app.useStore(hasMultipleSelectionSelector)
 
   const selectedShapesCount = app.useStore(selectedShapesCountSelector)
+
+  const dockPosition = app.useStore(dockPositionState)
 
   const hasTwoOrMore = selectedShapesCount > 1
 
@@ -182,6 +184,8 @@ export function ActionButton() {
     [app]
   )
 
+  const contentSide = dockPosition === 'bottom' || dockPosition === 'top' ? 'top' : dockPosition
+
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
@@ -189,152 +193,159 @@ export function ActionButton() {
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent sideOffset={16}>
+      <DMContent sideOffset={16} side={contentSide}>
         <>
           <ButtonsRow>
-            <ToolButton variant="icon" disabled={!hasSelection} onClick={handleDuplicate}>
-              <Tooltip
-                label={intl.formatMessage({ id: 'duplicate' })}
-                kbd={`#D`}
-                id="TD-Tools-Copy"
-              >
+            <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">
+              <ToolButton disabled={!hasSelection} onClick={handleDuplicate}>
                 <CopyIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleRotate}>
-              <Tooltip label={intl.formatMessage({ id: 'rotate' })} id="TD-Tools-Rotate">
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'rotate' })} id="TD-Tools-Rotate">
+              <ToolButton disabled={!hasSelection} onClick={handleRotate}>
                 <RotateCounterClockwiseIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
-              <Tooltip
-                label={intl.formatMessage({ id: isAllLocked ? 'unlock' : 'lock' })}
-                kbd={`#L`}
-                id="TD-Tools-Lock"
-              >
-                {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
-              <Tooltip
-                label={intl.formatMessage({
-                  id: isAllAspectLocked ? 'unlock.aspect.ratio' : 'lock.aspect.ratio',
-                })}
-                id="TD-Tools-AspectRatio"
-              >
-                {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
-              </Tooltip>
-            </ToolButton>
-            <ToolButton
-              disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
-              onClick={handleGroup}
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: isAllLocked ? 'unlock' : 'lock' })}
+              kbd={`#L`}
+              id="TD-Tools-Lock"
             >
-              <Tooltip label={intl.formatMessage({ id: 'group' })} kbd={`#G`} id="TD-Tools-Group">
+              <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
+                {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({
+                id: isAllAspectLocked ? 'unlock.aspect.ratio' : 'lock.aspect.ratio',
+              })}
+              id="TD-Tools-AspectRatio"
+            >
+              <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
+                {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'group' })} kbd={`#G`} id="TD-Tools-Group">
+              <ToolButton
+                disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
+                onClick={handleGroup}
+              >
                 <GroupIcon />
-              </Tooltip>
-            </ToolButton>
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
           <ButtonsRow>
-            <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
-              <Tooltip
-                label={intl.formatMessage({ id: 'move.to.back' })}
-                kbd={`#⇧[`}
-                id="TD-Tools-PinBottom"
-              >
+            <Tooltip
+              label={intl.formatMessage({ id: 'move.to.back' })}
+              kbd={`#⇧[`}
+              id="TD-Tools-PinBottom"
+            >
+              <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
                 <PinBottomIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
-              <Tooltip
-                label={intl.formatMessage({ id: 'move.backward' })}
-                kbd={`#[`}
-                id="TD-Tools-ArrowDown"
-              >
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'move.backward' })}
+              kbd={`#[`}
+              id="TD-Tools-ArrowDown"
+            >
+              <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
                 <ArrowDownIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
-              <Tooltip
-                label={intl.formatMessage({ id: 'move.forward' })}
-                kbd={`#]`}
-                id="TD-Tools-ArrowUp"
-              >
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'move.forward' })}
+              kbd={`#]`}
+              id="TD-Tools-ArrowUp"
+            >
+              <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
                 <ArrowUpIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
-              <Tooltip
-                label={intl.formatMessage({ id: 'move.to.front' })}
-                kbd={`#⇧]`}
-                id="TD-Tools-PinTop"
-              >
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'move.to.front' })}
+              kbd={`#⇧]`}
+              id="TD-Tools-PinTop"
+            >
+              <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
                 <PinTopIcon />
-              </Tooltip>
-            </ToolButton>
-            <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
-              <Tooltip label={intl.formatMessage({ id: 'reset.angle' })} id="TD-Tools-ResetAngle">
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'reset.angle' })} id="TD-Tools-ResetAngle">
+              <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
                 <AngleIcon />
-              </Tooltip>
-            </ToolButton>
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
           <Divider />
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft} id="TD-Tools-AlignLeft">
-              <AlignLeftIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={alignCenterHorizontal}
+            <Tooltip label={intl.formatMessage({ id: 'align.left' })} id="TD-Tools-AlignLeft">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+                <AlignLeftIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'align.center.x' })}
               id="TD-Tools-AlignCenterHorizontal"
             >
-              <AlignCenterHorizontallyIcon />
-            </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignRight} id="TD-Tools-AlignRight">
-              <AlignRightIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={stretchHorizontally}
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+                <AlignCenterHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'align.right' })} id="TD-Tools-AlignRight">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
+                <AlignRightIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'stretch.x' })}
               id="TD-Tools-StretchHorizontal"
             >
-              <StretchHorizontallyIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasThreeOrMore}
-              onClick={distributeHorizontally}
+              <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+                <StretchHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'distribute.x' })}
               id="TD-Tools-SpaceEvenlyHorizontal"
             >
-              <SpaceEvenlyHorizontallyIcon />
-            </ToolButton>
+              <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+                <SpaceEvenlyHorizontallyIcon />
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
           <ButtonsRow>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignTop} id="TD-Tools-AlignTop">
-              <AlignTopIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={alignCenterVertical}
+            <Tooltip label={intl.formatMessage({ id: 'align.top' })} id="TD-Tools-AlignTop">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
+                <AlignTopIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'align.center.y' })}
               id="TD-Tools-AlignCenterVertical"
             >
-              <AlignCenterVerticallyIcon />
-            </ToolButton>
-            <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom} id="TD-Tools-AlignBottom">
-              <AlignBottomIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasTwoOrMore}
-              onClick={stretchVertically}
-              id="TD-Tools-tretchVertical"
-            >
-              <StretchVerticallyIcon />
-            </ToolButton>
-            <ToolButton
-              disabled={!hasThreeOrMore}
-              onClick={distributeVertically}
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+                <AlignCenterVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'align.bottom' })} id="TD-Tools-AlignBottom">
+              <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+                <AlignBottomIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip label={intl.formatMessage({ id: 'stretch.y' })} id="TD-Tools-StretchVertical">
+              <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+                <StretchVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
+            <Tooltip
+              label={intl.formatMessage({ id: 'distribute.y' })}
               id="TD-Tools-SpaceEvenlyVertical"
             >
-              <SpaceEvenlyVerticallyIcon />
-            </ToolButton>
+              <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+                <SpaceEvenlyVerticallyIcon />
+              </ToolButton>
+            </Tooltip>
           </ButtonsRow>
         </>
       </DMContent>

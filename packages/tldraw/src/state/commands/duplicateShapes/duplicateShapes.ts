@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
 import { TLDR } from '~state/TLDR'
-import type { PagePartial, TldrawCommand, TDShape } from '~types'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import type { PagePartial, TDShape, TldrawCommand } from '~types'
 
 export function duplicateShapes(app: TldrawApp, ids: string[], point?: number[]): TldrawCommand {
   const { selectedIds, currentPageId, page, shapes } = app

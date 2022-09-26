@@ -1,9 +1,8 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import getStroke, { getStrokePoints } from 'perfect-freehand'
+import { getOffsetPolygon, getShapeStyle } from '~state/shapes/shared'
 import type { ShapeStyles } from '~types'
-import { getShapeStyle } from '../shared'
-import { getOffsetPolygon } from '../shared/PolygonUtils'
 
 export function getTrianglePoints(size: number[], offset = 0, rotation = 0) {
   const [w, h] = size
@@ -89,9 +88,5 @@ export function getTrianglePath(id: string, size: number[], style: ShapeStyles) 
 
 export function getTriangleIndicatorPathTDSnapshot(id: string, size: number[], style: ShapeStyles) {
   const { points, options } = getDrawStrokeInfo(id, size, style)
-  const strokePoints = getStrokePoints(points, options)
-  return Utils.getSvgPathFromStroke(
-    strokePoints.map((pt) => pt.point.slice(0, 2)),
-    false
-  )
+  return Utils.getSvgPathFromStrokePoints(getStrokePoints(points, options))
 }

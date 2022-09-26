@@ -1,7 +1,6 @@
-import * as vscode from 'vscode'
 import { TDFile } from '@tldraw/tldraw'
-import { MessageFromWebview, MessageFromExtension } from './types'
-import * as path from 'path'
+import * as vscode from 'vscode'
+import { MessageFromExtension, MessageFromWebview } from './types'
 
 /**
  * When a new editor is opened, an instance of this class will
@@ -141,10 +140,10 @@ export class TldrawWebviewManager {
 
     if (process.env.NODE_ENV === 'production') {
       cssSrc = webviewPanel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.css')
+        vscode.Uri.joinPath(context.extensionUri, 'editor', 'index.css')
       )
       jsSrc = webviewPanel.webview.asWebviewUri(
-        vscode.Uri.joinPath(context.extensionUri, 'editor/', 'index.js')
+        vscode.Uri.joinPath(context.extensionUri, 'editor', 'index.js')
       )
     } else {
       const localhost = 'http://localhost:5420/'

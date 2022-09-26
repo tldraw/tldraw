@@ -1,14 +1,16 @@
-import * as React from 'react'
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { strokes, fills, defaultTextStyle } from '~state/shapes/shared/shape-styles'
-import { FormattedMessage } from 'react-intl'
-import { useTldrawApp } from '~hooks'
 import {
-  DMCheckboxItem,
-  DMContent,
-  DMDivider,
-  DMRadioItem,
-} from '~components/Primitives/DropdownMenu'
+  TextAlignCenterIcon,
+  TextAlignJustifyIcon,
+  TextAlignLeftIcon,
+  TextAlignRightIcon,
+} from '@radix-ui/react-icons'
+import { ValueNoneIcon } from '@radix-ui/react-icons'
+import * as React from 'react'
+import { FormattedMessage } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
+import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import {
   CircleIcon,
   DashDashedIcon,
@@ -19,28 +21,21 @@ import {
   SizeMediumIcon,
   SizeSmallIcon,
 } from '~components/Primitives/icons'
-import { ValueNoneIcon } from '@radix-ui/react-icons'
-import { ToolButton } from '~components/Primitives/ToolButton'
+import { breakpoints } from '~components/breakpoints'
+import { preventEvent } from '~components/preventEvent'
+import { useTldrawApp } from '~hooks'
+import { defaultTextStyle, fills, strokes } from '~state/shapes/shared'
+import { styled } from '~styles'
 import {
-  TDSnapshot,
+  AlignStyle,
   ColorStyle,
   DashStyle,
-  SizeStyle,
-  ShapeStyles,
   FontStyle,
-  AlignStyle,
+  ShapeStyles,
+  SizeStyle,
   TDShapeType,
+  TDSnapshot,
 } from '~types'
-import { styled } from '~styles'
-import { breakpoints } from '~components/breakpoints'
-import { Divider } from '~components/Primitives/Divider'
-import { preventEvent } from '~components/preventEvent'
-import {
-  TextAlignCenterIcon,
-  TextAlignJustifyIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-} from '@radix-ui/react-icons'
 
 const currentStyleSelector = (s: TDSnapshot) => s.appState.currentStyle
 const selectedIdsSelector = (s: TDSnapshot) =>
@@ -143,12 +138,10 @@ export const StyleMenu = React.memo(function ColorMenu() {
           STYLE_KEYS.forEach((key) => {
             if (overrides.has(key)) return
             if (commonStyle[key] === undefined) {
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               commonStyle[key] = shape.style[key]
             } else {
               if (commonStyle[key] === shape.style[key]) return
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
               // @ts-ignore
               commonStyle[key] = shape.style[key]
               overrides.add(key)
@@ -221,7 +214,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
           </OverlapIcons>
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent>
+      <DMContent id="language-menu" side="bottom" align="end" sideOffset={4} alignOffset={4}>
         <StyledRow variant="tall" id="TD-Styles-Color-Container">
           <span>
             <FormattedMessage id="style.menu.color" />
@@ -243,7 +236,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
                     size={18}
                     strokeWidth={2.5}
                     fill={
-                      displayedStyle.isFilled ? fills.light[style as ColorStyle] : 'transparent'
+                      displayedStyle.isFilled ? fills[theme][style as ColorStyle] : 'transparent'
                     }
                     stroke={strokes.light[style as ColorStyle]}
                   />
@@ -339,7 +332,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             )}
           </>
         )}
-        <DMDivider />
+        <Divider />
         <DMCheckboxItem
           variant="styleMenu"
           checked={keepOpen}

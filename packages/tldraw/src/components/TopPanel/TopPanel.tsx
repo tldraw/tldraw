@@ -1,16 +1,15 @@
+import { DesktopIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { Menu } from './Menu/Menu'
-import { styled } from '~styles'
-import { PageMenu } from './PageMenu'
-import { ZoomMenu } from './ZoomMenu'
-import { StyleMenu } from './StyleMenu'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { RedoIcon, UndoIcon } from '~components/Primitives/icons'
-import {DesktopIcon} from '@radix-ui/react-icons'
-import { breakpoints } from '~components/breakpoints'
+import { UndoIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
+import { styled } from '~styles'
+import { Menu } from './Menu/Menu'
 import { MultiplayerMenu } from './MultiplayerMenu'
+import { PageMenu } from './PageMenu'
+import { StyleMenu } from './StyleMenu'
+import { ZoomMenu } from './ZoomMenu'
 
 interface TopPanelProps {
   readOnly: boolean
@@ -19,16 +18,14 @@ interface TopPanelProps {
   showStyles: boolean
   showZoom: boolean
   showMultiplayerMenu: boolean
-  sponsor?: boolean
 }
 
-export function TopPanel({
+export function _TopPanel({
   readOnly,
   showPages,
   showMenu,
   showStyles,
   showZoom,
-  sponsor,
   showMultiplayerMenu,
 }: TopPanelProps) {
   const app = useTldrawApp()
@@ -37,7 +34,7 @@ export function TopPanel({
     <StyledTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
-          {showMenu && <Menu sponsor={sponsor} readOnly={readOnly} />}
+          {showMenu && <Menu readOnly={readOnly} />}
           {showMultiplayerMenu && <MultiplayerMenu />}
           {showPages && <PageMenu />}
         </Panel>
@@ -45,15 +42,21 @@ export function TopPanel({
       <StyledSpacer />
       {(showStyles || showZoom) && (
         <Panel side="right">
-          <ToolButton>
-            <UndoIcon onClick={app.undo} />
-          </ToolButton>
-          <ToolButton>
-            <RedoIcon onClick={app.redo} />
-          </ToolButton>
-          <ToolButton>
-            <DesktopIcon onClick={app.togglePresentationMode} />
-          </ToolButton>
+          {app.readOnly ? (
+            <ReadOnlyLabel>Read Only</ReadOnlyLabel>
+          ) : (
+            <>
+              <ToolButton>
+                <UndoIcon onClick={app.undo} />
+              </ToolButton>
+              <ToolButton>
+                <UndoIcon onClick={app.redo} flipHorizontal />
+              </ToolButton>
+              <ToolButton>
+                <DesktopIcon onClick={app.togglePresentationMode} />
+              </ToolButton>
+            </>
+          )}
           {showZoom && <ZoomMenu />}
           {showStyles && !readOnly && <StyleMenu />}
         </Panel>
@@ -80,3 +83,17 @@ const StyledSpacer = styled('div', {
   flexGrow: 2,
   pointerEvents: 'none',
 })
+
+const ReadOnlyLabel = styled('div', {
+  width: '100%',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontFamily: '$ui',
+  fontSize: '$1',
+  paddingLeft: '$4',
+  paddingRight: '$1',
+  userSelect: 'none',
+})
+
+export const TopPanel = React.memo(_TopPanel)

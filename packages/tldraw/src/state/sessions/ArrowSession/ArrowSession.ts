@@ -1,22 +1,21 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Utils } from '@tldraw/core'
+import { Vec } from '@tldraw/vec'
+import { deepCopy } from '~state/StateManager/copy'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { shapeUtils } from '~state/shapes'
 import {
   ArrowBinding,
   ArrowShape,
-  TDShape,
-  TDBinding,
-  TDStatus,
   SessionType,
+  TDBinding,
+  TDShape,
   TDShapeType,
-  TldrawPatch,
+  TDStatus,
   TldrawCommand,
+  TldrawPatch,
 } from '~types'
-import { Vec } from '@tldraw/vec'
-import { TLDR } from '~state/TLDR'
-import { shapeUtils } from '~state/shapes'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
-import { Utils } from '@tldraw/core'
-import { deepCopy } from '~state/StateManager/copy'
 
 export class ArrowSession extends BaseSession {
   type = SessionType.Arrow
@@ -68,8 +67,10 @@ export class ArrowSession extends BaseSession {
       // bindable shape under the pointer.
       this.startBindingShapeId = this.bindableShapeIds
         .map((id) => page.shapes[id])
-        .filter((shape) =>
-          Utils.pointInBounds(originPoint, TLDR.getShapeUtil(shape).getBounds(shape))
+        .filter(
+          (shape) =>
+            !shape.isLocked &&
+            Utils.pointInBounds(originPoint, TLDR.getShapeUtil(shape).getBounds(shape))
         )
         .sort((a, b) => {
           // TODO - We should be smarter here, what's the right logic?
@@ -144,19 +145,19 @@ export class ArrowSession extends BaseSession {
       },
     }
 
-    if (altKey) {
-      // If the user is holding alt key, apply the inverse delta
-      // to the oppoosite handle.
-      const oppositeHandleId = handleId === 'start' ? 'end' : 'start'
+    // if (altKey) {
+    //   // If the user is holding alt key, apply the inverse delta
+    //   // to the oppoosite handle.
+    //   const oppositeHandleId = handleId === 'start' ? 'end' : 'start'
 
-      const nextPoint = Vec.sub(handles[oppositeHandleId].point, delta)
+    //   const nextPoint = Vec.sub(handles[oppositeHandleId].point, delta)
 
-      handleChanges[oppositeHandleId] = {
-        ...handles[oppositeHandleId],
-        point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
-        bindingId: undefined,
-      }
-    }
+    //   handleChanges[oppositeHandleId] = {
+    //     ...handles[oppositeHandleId],
+    //     point: showGrid ? Vec.snap(nextPoint, currentGrid) : Vec.toFixed(nextPoint),
+    //     bindingId: undefined,
+    //   }
+    // }
 
     const utils = shapeUtils[TDShapeType.Arrow]
     const handleChange = utils.onHandleChange?.(initialShape, handleChanges)
@@ -269,6 +270,7 @@ export class ArrowSession extends BaseSession {
         .map((id) => this.app.page.shapes[id])
         .sort((a, b) => b.childIndex - a.childIndex)
         .filter((shape) => {
+          if (shape.isLocked) return false
           const utils = TLDR.getShapeUtil(shape)
           return ![startPoint, endPoint].every((point) => utils.hitTestPoint(shape, point))
         })
@@ -288,6 +290,7 @@ export class ArrowSession extends BaseSession {
         if (draggedBinding) break
       }
     }
+
     if (draggedBinding) {
       // Create the dragged point binding
       this.didBind = true

@@ -1,17 +1,17 @@
-import type { TDShapeUtil } from './TDShapeUtil'
-import { RectangleUtil } from './RectangleUtil'
-import { TriangleUtil } from './TriangleUtil'
-import { EllipseUtil } from './EllipseUtil'
+import type { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { TDShape, TDShapeType } from '~types'
 import { ArrowUtil } from './ArrowUtil'
+import { ContentUtil } from './ContentUtil'
+import { DrawUtil } from './DrawUtil'
+import { EllipseUtil } from './EllipseUtil'
 import { GroupUtil } from './GroupUtil'
+import { ImageUtil } from './ImageUtil'
+import { RectangleUtil } from './RectangleUtil'
 import { StickyUtil } from './StickyUtil'
 import { TextUtil } from './TextUtil'
-import { DrawUtil } from './DrawUtil'
-import { ImageUtil } from './ImageUtil'
-import { TDShape, TDShapeType } from '~types'
+import { TriangleUtil } from './TriangleUtil'
 import { VideoUtil } from './VideoUtil'
-import {ContentUtil} from "./ContentUtil";
-import {ViewZoneUtil} from "./ViewZoneUtil";
+import { ViewZoneUtil } from './ViewZoneUtil'
 
 export const Rectangle = new RectangleUtil()
 export const Triangle = new TriangleUtil()

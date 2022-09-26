@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import type { Easing } from '~types'
+
 export const LETTER_SPACING = '-0.03em'
 export const LINE_HEIGHT = 1
 export const GRID_SIZE = 8
@@ -13,9 +14,10 @@ export const VERY_SLOW_SPEED = 2.5
 export const GHOSTED_OPACITY = 0.3
 export const DEAD_ZONE = 3
 export const LABEL_POINT = [0.5, 0.5]
-import type { Easing } from '~types'
 
 export const PI2 = Math.PI * 2
+
+export const FILE_EXTENSION = '.tldr'
 
 export const EASINGS: Record<Easing, (t: number) => number> = {
   linear: (t) => t,
@@ -85,6 +87,8 @@ export const USER_COLORS = [
 
 export const isSafari =
   typeof Window === 'undefined' ? false : /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+
+export const isLinux = typeof Window === 'undefined' ? false : /linux/i.test(navigator.userAgent)
 
 export const IMAGE_EXTENSIONS = ['.png', '.svg', '.jpg', '.jpeg', '.gif']
 

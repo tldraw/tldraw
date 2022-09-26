@@ -1,15 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
-import { observer } from 'mobx-react-lite'
+import { Brush } from '~components/Brush'
+import { Cursor, CursorComponent } from '~components/Cursor'
+import { EraseLine } from '~components/EraseLine'
+import { Grid } from '~components/Grid'
+import { Overlay } from '~components/Overlay'
+import { Page } from '~components/Page'
+import { SnapLines } from '~components/SnapLines/SnapLines'
+import { Users } from '~components/Users'
+import { UsersIndicators } from '~components/UsersIndicators'
 import {
-  usePreventNavigationCss,
-  useZoomEvents,
-  useSafariFocusOutFix,
-  useCanvasEvents,
   useCameraCss,
+  useCanvasEvents,
   useKeyEvents,
   usePerformanceCss,
+  usePreventNavigationCss,
+  useSafariFocusOutFix,
+  useZoomEvents,
 } from '~hooks'
+import { useResizeObserver } from '~hooks/useResizeObserver'
 import type {
   TLAssets,
   TLBinding,
@@ -21,25 +29,15 @@ import type {
   TLSnapLine,
   TLUsers,
 } from '~types'
-import { Brush } from '~components/Brush'
-import { Page } from '~components/Page'
-import { Users } from '~components/Users'
-import { useResizeObserver } from '~hooks/useResizeObserver'
-import { inputs } from '~inputs'
-import { UsersIndicators } from '~components/UsersIndicators'
-import { SnapLines } from '~components/SnapLines/SnapLines'
-import { Grid } from '~components/Grid'
-import { Overlay } from '~components/Overlay'
-import { EraseLine } from '~components/EraseLine'
 
-interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
+export interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   assets: TLAssets
   snapLines?: TLSnapLine[]
   eraseLine?: number[][]
   grid?: number
-  users?: TLUsers<T>
+  users?: TLUsers
   userId?: string
   hideBounds: boolean
   hideHandles: boolean
@@ -52,15 +50,16 @@ interface CanvasProps<T extends TLShape, M extends Record<string, unknown>> {
   showDashedBrush: boolean
   externalContainerRef?: React.RefObject<HTMLElement>
   performanceMode?: TLPerformanceMode
+  components?: {
+    Cursor?: CursorComponent
+  }
   meta?: M
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
+  hideCursors?: boolean
 }
 
-export const Canvas = observer(function _Canvas<
-  T extends TLShape,
-  M extends Record<string, unknown>
->({
+function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   id,
   page,
   pageState,
@@ -70,9 +69,9 @@ export const Canvas = observer(function _Canvas<
   grid,
   users,
   userId,
+  components = {},
   meta,
   performanceMode,
-  externalContainerRef,
   showDashedBrush,
   hideHandles,
   hideBounds,
@@ -83,6 +82,7 @@ export const Canvas = observer(function _Canvas<
   hideRotateHandle,
   hideGrid,
   onBoundsChange,
+  hideCursors,
 }: CanvasProps<T, M>) {
   const rCanvas = React.useRef<HTMLDivElement>(null)
 
@@ -90,7 +90,7 @@ export const Canvas = observer(function _Canvas<
 
   rZoomRef.current = pageState.camera.zoom
 
-  useZoomEvents(rZoomRef, externalContainerRef || rCanvas)
+  useZoomEvents(rZoomRef, rCanvas)
 
   useResizeObserver(rCanvas, onBoundsChange)
 
@@ -134,7 +134,9 @@ export const Canvas = observer(function _Canvas<
           {pageState.brush && (
             <Brush brush={pageState.brush} dashed={showDashedBrush} zoom={pageState.camera.zoom} />
           )}
-          {users && <Users userId={userId} users={users} />}
+          {users && !hideCursors && (
+            <Users userId={userId} users={users} Cursor={components?.Cursor ?? Cursor} />
+          )}
         </div>
         <Overlay camera={pageState.camera}>
           {eraseLine && <EraseLine points={eraseLine} zoom={pageState.camera.zoom} />}
@@ -143,4 +145,6 @@ export const Canvas = observer(function _Canvas<
       </div>
     </div>
   )
-})
+}
+
+export const Canvas = React.memo(_Canvas)

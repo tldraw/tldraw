@@ -1,30 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { Vec } from '@tldraw/vec'
 import * as React from 'react'
+import { useTLContext } from '~hooks'
 import type {
   IShapeTreeNode,
+  TLAssets,
+  TLBinding,
+  TLBounds,
   TLPage,
   TLPageState,
   TLShape,
-  TLBinding,
-  TLBounds,
-  TLAssets,
 } from '~types'
 import { Utils } from '~utils'
-import { Vec } from '@tldraw/vec'
-import { useTLContext } from '~hooks'
 
 function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
   shape: T,
   branch: IShapeTreeNode<T, M>[],
   shapes: TLPage<T, TLBinding>['shapes'],
-  pageState: TLPageState & {
-    bindingTargetId?: string | null
-  },
+  pageState: TLPageState,
   assets: TLAssets,
   isChildOfGhost = false,
   isChildOfSelected = false,
-  meta?: M
+  meta?: M,
+  bindingTargetId?: string | null
 ) {
   // Create a node for this shape
   const node: IShapeTreeNode<T, M> = {
@@ -34,7 +31,7 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
     isChildOfSelected,
     isGhost: shape.isGhost || isChildOfGhost,
     isEditing: pageState.editingId === shape.id,
-    isBinding: pageState.bindingTargetId === shape.id,
+    isBinding: bindingTargetId === shape.id,
     isSelected: pageState.selectedIds.includes(shape.id),
     isHovered:
       // The shape is hovered..
@@ -56,10 +53,9 @@ function addToShapeTree<T extends TLShape, M extends Record<string, unknown>>(
 
     shape.children
       .map((id) => shapes[id])
-      .filter(Boolean) // TODO: Find cases where shapes would be missing.
+      .filter((childShape) => shapes[childShape.id]) // TODO: Find cases where shapes would be missing.
       .sort((a, b) => a.childIndex - b.childIndex)
       .forEach((childShape) =>
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         addToShapeTree(
           childShape,
           node.children!,
@@ -178,11 +174,12 @@ export function useShapeTree<T extends TLShape, M extends Record<string, unknown
       shape,
       tree,
       page.shapes,
-      { ...pageState, bindingTargetId },
+      pageState,
       assets,
       shape.isGhost,
       false,
-      meta
+      meta,
+      bindingTargetId
     )
   })
 

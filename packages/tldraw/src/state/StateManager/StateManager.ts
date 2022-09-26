@@ -1,10 +1,10 @@
-import createVanilla, { StoreApi } from 'zustand/vanilla'
-import create, { UseBoundStore } from 'zustand'
-import * as idb from 'idb-keyval'
-import { deepCopy } from './copy'
-import type { Patch, Command } from '../../types'
 import { Utils } from '@tldraw/core'
-import EdubreakService from "~state/services/EdubreakService";
+import * as idb from 'idb-keyval'
+import create, { UseBoundStore } from 'zustand'
+import createVanilla, { StoreApi } from 'zustand/vanilla'
+import EdubreakService from '~state/services/EdubreakService'
+import type { Command, Patch } from '~types'
+import { deepCopy } from './copy'
 
 export class StateManager<T extends Record<string, any>> {
   /**
@@ -50,7 +50,7 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A React hook for accessing the zustand store.
    */
-  public readonly useStore: UseBoundStore<T>
+  public readonly useStore: UseBoundStore<StoreApi<T>>
 
   /**
    * A promise that will resolve when the state manager has loaded any peristed state.
@@ -127,16 +127,16 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * Save the current state to indexdb.
    */
-  protected persist = (id?: string): void | Promise<void> => {
+  protected persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
     if (this._status !== 'ready') return
     try {
       EdubreakService.saveStateToEdubreak(this._state)
     } catch (e) {
-      console.error('current document state could not be saved to edubreak', e);
+      console.error('current document state could not be saved to edubreak', e)
     }
 
     if (this.onPersist) {
-      this.onPersist(this._state, id)
+      this.onPersist(this._state, patch, id)
     }
 
     if (this._idbId) {
@@ -207,7 +207,7 @@ export class StateManager<T extends Record<string, any>> {
   patchState = (patch: Patch<T>, id?: string): this => {
     this.applyPatch(patch, id)
     if (this.onPatch) {
-      this.onPatch(this._state, id)
+      this.onPatch(this._state, patch, id)
     }
     return this
   }
@@ -246,8 +246,8 @@ export class StateManager<T extends Record<string, any>> {
     this.stack.push({ ...command, id })
     this.pointer = this.stack.length - 1
     this.applyPatch(command.after, id)
-    if (this.onCommand) this.onCommand(this._state, id)
-    this.persist(id)
+    if (this.onCommand) this.onCommand(this._state, command, id)
+    this.persist(command.after, id)
     return this
   }
 
@@ -270,17 +270,17 @@ export class StateManager<T extends Record<string, any>> {
   /**
    * A callback fired when a patch is applied.
    */
-  public onPatch?: (state: T, id?: string) => void
+  public onPatch?: (state: T, patch: Patch<T>, id?: string) => void
 
   /**
    * A callback fired when a patch is applied.
    */
-  public onCommand?: (state: T, id?: string) => void
+  public onCommand?: (state: T, command: Command<T>, id?: string) => void
 
   /**
    * A callback fired when the state is persisted.
    */
-  public onPersist?: (state: T, id?: string) => void
+  public onPersist?: (state: T, patch: Patch<T>, id?: string) => void
 
   /**
    * A callback fired when the state is replaced.
@@ -317,7 +317,7 @@ export class StateManager<T extends Record<string, any>> {
     this._state = this.initialState
     this.store.setState(this._state, true)
     this.resetHistory()
-    this.persist('reset')
+    this.persist({}, 'reset')
     if (this.onStateDidChange) {
       this.onStateDidChange(this._state, 'reset')
     }
@@ -363,7 +363,7 @@ export class StateManager<T extends Record<string, any>> {
       const command = this.stack[this.pointer]
       this.pointer--
       this.applyPatch(command.before, `undo`)
-      this.persist('undo')
+      this.persist(command.before, 'undo')
     }
     if (this.onUndo) this.onUndo(this._state)
     return this
@@ -378,7 +378,7 @@ export class StateManager<T extends Record<string, any>> {
       this.pointer++
       const command = this.stack[this.pointer]
       this.applyPatch(command.after, 'redo')
-      this.persist('undo')
+      this.persist(command.after, 'undo')
     }
     if (this.onRedo) this.onRedo(this._state)
     return this

@@ -1,17 +1,17 @@
+import { ContentTool } from '~state/tools/ContentTool'
+import { VideoTool } from '~state/tools/VideoTool'
+import { ViewZoneTool } from '~state/tools/ViewZoneTool'
 import { TDShapeType, TDToolType } from '~types'
 import { ArrowTool } from './ArrowTool'
-import { LineTool } from './LineTool'
 import { DrawTool } from './DrawTool'
 import { EllipseTool } from './EllipseTool'
+import { EraseTool } from './EraseTool'
+import { LineTool } from './LineTool'
 import { RectangleTool } from './RectangleTool'
-import { TriangleTool } from './TriangleTool'
 import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
 import { TextTool } from './TextTool'
-import { EraseTool } from './EraseTool'
-import {VideoTool} from "~state/tools/VideoTool";
-import {ContentTool} from "~state/tools/ContentTool";
-import {ViewZoneTool} from "~state/tools/ViewZoneTool";
+import { TriangleTool } from './TriangleTool'
 
 export interface ToolsMap {
   select: typeof SelectTool

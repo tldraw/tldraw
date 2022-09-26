@@ -1,15 +1,15 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-import type { TDDocument, TDFile } from '~types'
-import type { FileSystemHandle } from './browser-fs-access'
+import { fileOpen, fileSave, supported } from 'browser-fs-access'
+import type { FileSystemHandle } from 'browser-fs-access'
 import { get as getFromIdb, set as setToIdb } from 'idb-keyval'
-import { IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import { FILE_EXTENSION, IMAGE_EXTENSIONS, VIDEO_EXTENSIONS } from '~constants'
+import type { TDDocument, TDFile } from '~types'
 
 const options = { mode: 'readwrite' as const }
 
-const checkPermissions = async (handle: FileSystemHandle) => {
+const checkPermissions = async (handle: FileSystemFileHandle) => {
   return (
-    (await handle.queryPermission(options)) === 'granted' ||
-    (await handle.requestPermission(options)) === 'granted'
+    (await (handle as unknown as FileSystemHandle).queryPermission(options)) === 'granted' ||
+    (await (handle as unknown as FileSystemHandle).requestPermission(options)) === 'granted'
   )
 }
 
@@ -20,11 +20,15 @@ export async function loadFileHandle() {
   return fileHandle
 }
 
-export async function saveFileHandle(fileHandle: FileSystemHandle | null) {
+export async function saveFileHandle(fileHandle: FileSystemFileHandle | null) {
   return setToIdb(`Tldraw_file_handle_${window.location.origin}`, fileHandle)
 }
 
-export async function saveToFileSystem(document: TDDocument, fileHandle: FileSystemHandle | null) {
+export async function saveToFileSystem(
+  document: TDDocument,
+  fileHandle: FileSystemFileHandle | null,
+  name?: string
+) {
   // Create the saved file data
   const file: TDFile = {
     name: document.name || 'New Document',
@@ -34,7 +38,8 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
   }
 
   // Serialize to JSON
-  const json = JSON.stringify(file, null, 2)
+  const json =
+    process.env.NODE_ENV === 'production' ? JSON.stringify(file) : JSON.stringify(file, null, 2)
 
   // Create blob
   const blob = new Blob([json], {
@@ -45,17 +50,14 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
     const hasPermissions = await checkPermissions(fileHandle)
     if (!hasPermissions) return null
   }
-
+  const filename = !supported && name?.length ? name : `${file.name}`
   // Save to file system
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileSave = browserFS.fileSave
   const newFileHandle = await fileSave(
     blob,
     {
-      fileName: `${file.name}.tldr`,
+      fileName: `${filename}${FILE_EXTENSION}`,
       description: 'Tldraw File',
-      extensions: [`.tldr`],
+      extensions: [`${FILE_EXTENSION}`],
     },
     fileHandle
   )
@@ -67,16 +69,13 @@ export async function saveToFileSystem(document: TDDocument, fileHandle: FileSys
 }
 
 export async function openFromFileSystem(): Promise<null | {
-  fileHandle: FileSystemHandle | null
+  fileHandle: FileSystemFileHandle | null
   document: TDDocument
 }> {
   // Get the blob
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileOpen = browserFS.fileOpen
   const blob = await fileOpen({
     description: 'Tldraw File',
-    extensions: [`.tldr`],
+    extensions: [`${FILE_EXTENSION}`],
     multiple: false,
   })
 
@@ -106,14 +105,11 @@ export async function openFromFileSystem(): Promise<null | {
   }
 }
 
-export async function openAssetFromFileSystem() {
-  // @ts-ignore
-  const browserFS = await import('./browser-fs-access')
-  const fileOpen = browserFS.fileOpen
+export async function openAssetsFromFileSystem() {
   return fileOpen({
     description: 'Image or Video',
     extensions: [...IMAGE_EXTENSIONS, ...VIDEO_EXTENSIONS],
-    multiple: false,
+    multiple: true,
   })
 }
 

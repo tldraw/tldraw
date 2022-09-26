@@ -1,38 +1,39 @@
 {
+  "version": "1.7.10",
   "name": "@tldraw/tldraw-example",
-  "version": "1.7.0",
-  "private": true,
-  "description": "An example project for @tldraw/tldraw.",
+  "description": "An advanced example project for @tldraw/core.",
   "author": "@steveruizok",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tldraw/tldraw.git"
+  },
   "license": "MIT",
-  "keywords": [
-    "react",
-    "typescript",
-    "esbuild"
-  ],
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "node scripts/dev.mjs -w",
-    "build": "node scripts/build.mjs"
+    "dev": "vite",
+    "start": "vite --port 5420",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "TIMING=1 eslint src/ --ext .ts,.tsx",
+    "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
+  },
+  "dependencies": {
+    "@liveblocks/client": "^0.17.7",
+    "@liveblocks/react": "^0.17.7",
+    "@tldraw/core": "*",
+    "@tldraw/tldraw": "*",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router": "^6.3.0",
+    "react-router-dom": "^6.3.0",
+    "vite-tsconfig-paths": "^3.5.0"
   },
   "devDependencies": {
-    "@liveblocks/client": "^0.14.0",
-    "@liveblocks/react": "^0.14.0",
-    "@types/node": "^17.0.14",
-    "@types/react-router-dom": "^5.3.3",
-    "concurrently": "^7.0.0",
-    "create-serve": "^1.0.1",
-    "esbuild": "^0.14.18",
-    "esbuild-envfile-plugin": "^1.0.2",
-    "esbuild-serve": "^1.0.1",
-    "firebase": "^9.6.5",
-    "react-router": "^6.2.1",
-    "rimraf": "^3.0.2",
-    "typescript": "^4.7.3",
-    "@types/react": "^18.0.12",
-    "@types/react-dom": "^18.0.5",
-    "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "react-router-dom": "^6.3.0"
-  },
-  "gitHead": "a7dac0f83ad998e205c2aab58182cb4ba4e099a6"
+    "@types/react": "^18.0.15",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.0.0",
+    "typescript": "^4.6.4",
+    "vite": "^3.0.0"
+  }
 }

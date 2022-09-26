@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { TDDocument } from '@tldraw/tldraw'
 import { Utils } from '@tldraw/core'
+import { TDDocument } from '@tldraw/tldraw'
+import { NextApiRequest, NextApiResponse } from 'next'
 
 type RequestBody = {
   pageId: string
@@ -16,7 +16,7 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
         Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET_KEY}`,
         'Content-Type': 'application/json',
       },
-    }).then(d => d.json())
+    }).then((d) => d.json())
 
     // 2. Create the Liveblocks storage JSON
 

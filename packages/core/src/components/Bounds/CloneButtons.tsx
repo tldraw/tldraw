@@ -8,7 +8,7 @@ export interface CloneButtonsProps {
   size: number
 }
 
-export function CloneButtons({ targetSize, size, bounds }: CloneButtonsProps) {
+function _CloneButtons({ targetSize, size, bounds }: CloneButtonsProps) {
   return (
     <>
       <CloneButton targetSize={targetSize} size={size} bounds={bounds} side="top" />
@@ -22,3 +22,5 @@ export function CloneButtons({ targetSize, size, bounds }: CloneButtonsProps) {
     </>
   )
 }
+
+export const CloneButtons = React.memo(_CloneButtons)

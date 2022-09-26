@@ -1,6 +1,6 @@
 import type { TLPerformanceMode } from '@tldraw/core'
+import type { TldrawApp } from '~state/TldrawApp'
 import type { SessionType, TldrawCommand, TldrawPatch } from '~types'
-import type { TldrawApp } from '../internal'
 
 export abstract class BaseSession {
   abstract type: SessionType

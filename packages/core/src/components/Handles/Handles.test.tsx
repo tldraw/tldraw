@@ -1,12 +1,12 @@
+import { screen } from '@testing-library/react'
 import * as React from 'react'
+import { boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
 import { renderWithContext } from '~test'
 import { Handles } from './Handles'
-import { boxShape } from '~TLShapeUtil/TLShapeUtil.spec'
-import { screen } from '@testing-library/react'
 
 describe('handles', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(<Handles shape={boxShape} zoom={1} />)
+    expect(() => renderWithContext(<Handles shape={boxShape} zoom={1} />)).not.toThrowError()
   })
   test('validate attributes for handles component', () => {
     const boxShapeWithHandles = {

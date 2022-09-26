@@ -4,7 +4,7 @@ import {
   TLPointerEventHandler,
   Utils,
 } from '@tldraw/core'
-import type { TldrawApp } from '../internal'
+import type { TldrawApp } from '~state/TldrawApp'
 import { TDEventHandler, TDToolType } from '~types'
 
 export enum Status {
@@ -13,7 +13,6 @@ export enum Status {
   Pinching = 'pinching',
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class BaseTool<T extends string = any> extends TDEventHandler {
   type: TDToolType = 'select' as const
 

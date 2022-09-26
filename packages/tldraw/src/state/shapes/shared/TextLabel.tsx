@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
-import { GHOSTED_OPACITY,  LETTER_SPACING } from '~constants'
+import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
 import { TLDR } from '~state/TLDR'
 import { styled } from '~styles'
-import { getTextLabelSize } from './getTextSize'
 import { TextAreaUtils } from './TextAreaUtils'
+import { getTextLabelSize } from './getTextSize'
 
 export interface TextLabelProps {
   font: string
@@ -40,7 +40,12 @@ export const TextLabel = React.memo(function TextLabel({
   )
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Escape') return
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        onBlur?.()
+        return
+      }
 
       if (e.key === 'Tab' && text.length === 0) {
         e.preventDefault()
@@ -58,6 +63,10 @@ export const TextLabel = React.memo(function TextLabel({
         e.stopPropagation()
         e.preventDefault()
         return
+      }
+
+      if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+        e.preventDefault()
       }
 
       if (e.key === 'Tab') {
@@ -202,6 +211,7 @@ const TextWrapper = styled('div', {
 const commonTextWrapping = {
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
+  letterSpacing: LETTER_SPACING,
 }
 
 const InnerWrapper = styled('div', {
@@ -211,7 +221,6 @@ const InnerWrapper = styled('div', {
   minHeight: 1,
   minWidth: 1,
   lineHeight: 1,
-  letterSpacing: LETTER_SPACING,
   outline: 0,
   fontWeight: '500',
   textAlign: 'center',
@@ -256,7 +265,6 @@ const TextArea = styled('textarea', {
   minHeight: 'inherit',
   minWidth: 'inherit',
   lineHeight: 'inherit',
-  letterSpacing: 'inherit',
   outline: 0,
   fontWeight: 'inherit',
   overflow: 'hidden',

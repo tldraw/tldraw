@@ -1,13 +1,51 @@
 # @tldraw/core-example-advanced
 
-## 1.7.0
+## 1.7.7
 
-### Minor Changes
+### Patch Changes
 
-- d919bd27: Bump dependencies, add international support.
+- Updated dependencies
+  - @tldraw/core@1.18.4
 
-## 1.7.0-next.0
+## 1.7.6
 
-### Minor Changes
+### Patch Changes
 
-- Bump dependencies, add international support.
+- Small bump.
+- Updated dependencies
+  - @tldraw/core@1.18.3
+
+## 1.7.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.2
+
+## 1.7.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.1
+
+## 1.7.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.0
+
+## 1.7.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.17.0
+
+## 1.7.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.16.0

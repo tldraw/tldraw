@@ -1,112 +1,53 @@
 {
-  "npmClient": "yarn",
+  "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
   "pipeline": {
-    "start": {
-      "cache": false
+    "@tldraw/www#start": {
+      "dependsOn": ["@tldraw/www#build"]
     },
-    "start:packages": {
+    "dev": {
       "cache": false
-    },
-    "start:core": {
-      "cache": false
-    },
-    "start:apps": {
-      "cache": false
-    },
-    "start:www": {
-      "cache": false
-    },
-    "start:electron": {
-      "cache": false
-    },
-    "start:vscode": {
-      "cache": false
-    },
-    "docs": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "docs"
-      ]
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
-    },
-    "build:packages": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
     "build:core": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
     },
-    "build:apps": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+    "@tldraw/www#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**"]
     },
-    "build:www": {
-      "dependsOn": [
-        "build:packages",
-        "^build"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
+    "tldraw-vscode#build": {
+      "dependsOn": ["@tldraw/vscode-editor#build"],
+      "outputs": ["dist/**", "editor/**"]
+    },
+    "tldraw-vscode#package": {
+      "dependsOn": ["tldraw-vscode#build"],
+      "outputs": ["temp/**"]
+    },
+    "tldraw-vscode#publish": {
+      "dependsOn": ["tldraw-vscode#package"],
+      "outputs": []
     },
     "test": {
-      "dependsOn": [
-        "build:packages"
-      ],
       "outputs": []
     },
     "test:ci": {
-      "dependsOn": [
-        "build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ]
+      "outputs": ["coverage/**"]
+    },
+    "test:watch": {
+      "outputs": [],
+      "inputs": ["src/**/*.tsx", "src/**/*.ts", "src/**/*.json"],
+      "cache": false
     },
     "lint": {
-      "dependsOn": [
-        "build"
-      ],
       "outputs": []
     },
     "clean": {
       "cache": false
-    },
-    "deploy": {
-      "dependsOn": [
-        "build",
-        "test"
-      ],
-      "outputs": [
-        "dist/**",
-        ".next/**"
-      ]
     }
   }
 }

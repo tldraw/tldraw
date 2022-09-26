@@ -1,7 +1,7 @@
-import Vec from '@tldraw/vec'
 import { Utils } from '@tldraw/core'
-import { mockDocument, TldrawTestApp } from '~test'
-import { SessionType, TDStatus } from '~types'
+import Vec from '@tldraw/vec'
+import { TldrawTestApp, mockDocument } from '~test'
+import { TDStatus } from '~types'
 
 describe('Rotate session', () => {
   const app = new TldrawTestApp()
@@ -128,7 +128,7 @@ describe('Rotate session', () => {
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
       expect(centerAfterA).toStrictEqual(centerAfterB)
     })
@@ -156,7 +156,7 @@ describe('Rotate session', () => {
         )
       )
 
-      expect(app.getShape('rect1').rotation)
+      expect(app.getShape('rect1').rotation).not.toBeUndefined()
       expect(centerBefore).toStrictEqual(centerAfterA)
 
       app.selectAll().nudge([10, 10])

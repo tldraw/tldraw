@@ -1,20 +1,22 @@
-import { renderWithContext } from '~test'
 import { screen } from '@testing-library/react'
 import * as React from 'react'
+import { renderWithContext } from '~test'
 import { LinkHandle } from '../LinkHandle'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 
 describe('LinkHandle', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(
-      <LinkHandle
-        targetSize={20}
-        size={10}
-        bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
-        isHidden={false}
-      />
-    )
+    expect(() =>
+      renderWithContext(
+        <LinkHandle
+          targetSize={20}
+          size={10}
+          bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
+          isHidden={false}
+        />
+      )
+    ).not.toThrowError()
   })
   test('validate attributes for link handle component', () => {
     renderWithContext(

@@ -249,6 +249,9 @@ export const TLCSS = css`
     pointer-events: none;
     will-change: transform;
   }
+  .tl-animated {
+    transition: transform 200ms linear;
+  }
   .tl-indicator {
     fill: transparent;
     stroke-width: calc(1.5px * var(--tl-scale));
@@ -263,6 +266,9 @@ export const TLCSS = css`
   }
   .tl-selected {
     stroke: var(--tl-selectStroke);
+  }
+  .tl-locked {
+    stroke-dasharray: calc(3px * var(--tl-scale)) calc(3px * var(--tl-scale));
   }
   .tl-editing {
     stroke-width: calc(2.5px * min(5, var(--tl-scale)));

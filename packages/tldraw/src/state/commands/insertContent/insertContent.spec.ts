@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Utils } from '@tldraw/core'
 import { TLDR } from '~state/TLDR'
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import { ColorStyle, DashStyle, SessionType, SizeStyle, TDShapeType } from '~types'
 
 let app: TldrawTestApp
@@ -115,8 +114,8 @@ describe('insert command', () => {
 
     const content = app.getContent()!
 
-    // getContent does not include the incomplete binding
-    expect(Object.values(content.bindings).length).toBe(0)
+    // getContent DOES include the incomplete binding
+    expect(Object.values(content.bindings).length).toBe(1)
 
     app.insertContent(content)
 
@@ -183,5 +182,23 @@ describe('insert command', () => {
     })
 
     expect(app.shapes.length).toBe(size)
+  })
+})
+
+describe('When opts.overwrite is true', () => {
+  it('replaces content', () => {
+    const content = app.getContent()!
+    const size = app.shapes.length
+    const ids = app.shapes.map((s) => s.id)
+    app.insertContent(content, { overwrite: true })
+    expect(app.shapes.length).toBe(size)
+    expect(app.shapes.map((s) => s.id)).toMatchObject(ids)
+  })
+
+  it('restores content under the same ids', () => {
+    const content = app.getContent()!
+    const ids = app.shapes.map((s) => s.id)
+    app.deleteAll().insertContent(content, { overwrite: true })
+    expect(app.shapes.map((s) => s.id)).toMatchObject(ids)
   })
 })

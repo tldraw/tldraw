@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[` 1`] = `
+exports[`TldrawTestApp Copies to JSON: copied json 1`] = `
 TldrawTestApp {
   "_idbId": undefined,
   "_snapshot": Object {
@@ -50,9 +50,11 @@ TldrawTestApp {
           "shapes": Object {},
         },
       },
-      "version": 15.3,
+      "version": 15.5,
     },
     "settings": Object {
+      "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -202,9 +204,11 @@ TldrawTestApp {
           },
         },
       },
-      "version": 15.3,
+      "version": 15.5,
     },
     "settings": Object {
+      "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -226,12 +230,12 @@ TldrawTestApp {
     },
   },
   "_status": "ready",
-  "addMediaFromFile": [Function],
+  "addMediaFromFiles": [Function],
   "addToSelectHistory": [Function],
   "align": [Function],
   "altKey": false,
   "applyPatch": [Function],
-  "broadcastPageChanges": [Function],
+  "broadcastPatch": [Function],
   "callbacks": Object {},
   "cancel": [Function],
   "cancelSession": [Function],
@@ -297,6 +301,7 @@ TldrawTestApp {
   "deletePage": [Function],
   "distribute": [Function],
   "doubleClickBoundHandle": [Function],
+  "doubleClickCanvas": [Function],
   "doubleClickShape": [Function],
   "duplicate": [Function],
   "duplicatePage": [Function],
@@ -374,9 +379,11 @@ TldrawTestApp {
           "shapes": Object {},
         },
       },
-      "version": 15.3,
+      "version": 15.5,
     },
     "settings": Object {
+      "dockPosition": "bottom",
+      "exportBackground": "transparent",
       "isCadSelectMode": false,
       "isDarkMode": false,
       "isDebugMode": false,
@@ -401,16 +408,19 @@ TldrawTestApp {
   "isCreating": false,
   "isDirty": false,
   "isForcePanning": false,
+  "isPastePrevented": false,
   "isPaused": false,
   "isPointing": false,
   "justSent": false,
   "loadDocument": [Function],
+  "loadPageFromURL": [Function],
   "loadRoom": [Function],
   "mergeDocument": [Function],
   "metaKey": false,
   "migrate": [Function],
   "moveBackward": [Function],
   "moveForward": [Function],
+  "movePage": [Function],
   "movePointer": [Function],
   "moveToBack": [Function],
   "moveToFront": [Function],
@@ -483,16 +493,6 @@ TldrawTestApp {
   ],
   "pan": [Function],
   "paste": [Function],
-  "pasteInfo": Object {
-    "center": Array [
-      0,
-      0,
-    ],
-    "offset": Array [
-      0,
-      0,
-    ],
-  },
   "patchCreate": [Function],
   "patchState": [Function],
   "persist": [Function],
@@ -503,10 +503,8 @@ TldrawTestApp {
   "pointShape": [Function],
   "pointer": -1,
   "pressKey": [Function],
-  "prevAssets": Object {},
-  "prevBindings": Object {},
   "prevSelectedIds": Array [],
-  "prevShapes": Object {},
+  "preventPaste": [Function],
   "previousPoint": Array [
     0,
     0,
@@ -1034,8 +1032,8 @@ Array [
 ]
 `;
 
-exports[`TldrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"200\\" height=\\"200\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs><g/></svg>"`;
+exports[`TldrawTestApp When copying to SVG Copies grouped shapes.: copied svg with group 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"232\\" height=\\"232\\" style=\\"background-color: transparent;\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs><g/></svg>"`;
 
-exports[`TldrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 236.74 236.74\\" width=\\"204.74\\" height=\\"204.74\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;
+exports[`TldrawTestApp When copying to SVG Copies shapes.: copied svg 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 236.74 236.74\\" width=\\"236.74\\" height=\\"236.74\\" style=\\"background-color: transparent;\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;
 
-exports[`TldrawTestApp When copying to SVG Respects child index: copied svg with reordered elements 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"200\\" height=\\"200\\" style=\\"background-color: rgb(248, 249, 250);\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;
+exports[`TldrawTestApp When copying to SVG Respects child index: copied svg with reordered elements 1`] = `"<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 232 232\\" width=\\"232\\" height=\\"232\\" style=\\"background-color: transparent;\\"><defs><style>@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&amp;family=Source+Code+Pro&amp;family=Source+Sans+Pro&amp;family=Crimson+Pro&amp;display=block');</style></defs></svg>"`;

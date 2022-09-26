@@ -2,14 +2,14 @@ import * as React from 'react'
 import { useBoundsHandleEvents } from '~hooks'
 import type { TLBounds } from '~types'
 
-interface LinkHandleProps {
+export interface LinkHandleProps {
   size: number
   targetSize: number
   isHidden: boolean
   bounds: TLBounds
 }
 
-export function LinkHandle({ size, bounds, isHidden }: LinkHandleProps) {
+function _LinkHandle({ size, bounds, isHidden }: LinkHandleProps) {
   const leftEvents = useBoundsHandleEvents('left')
   const centerEvents = useBoundsHandleEvents('center')
   const rightEvents = useBoundsHandleEvents('right')
@@ -51,3 +51,5 @@ export function LinkHandle({ size, bounds, isHidden }: LinkHandleProps) {
     </g>
   )
 }
+
+export const LinkHandle = React.memo(_LinkHandle)

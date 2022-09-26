@@ -1,8 +1,8 @@
 import { Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { SessionType, TDStatus, TldrawPatch, TldrawCommand, DrawShape } from '~types'
-import type { TldrawApp } from '../../internal'
-import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { DrawShape, SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 export class DrawSession extends BaseSession {
   type = SessionType.Draw
@@ -30,13 +30,20 @@ export class DrawSession extends BaseSession {
     this.isExtending = initialPoints.length > 0
     const newPoints: number[][] = []
     if (this.isExtending) {
-      const prevPoint = initialPoints[initialPoints.length - 1]
-      newPoints.push(prevPoint, prevPoint)
       // Continuing with shift
-      const len = Math.ceil(Vec.dist(prevPoint, currentPoint) / 16)
-      for (let i = 0; i < len; i++) {
-        const t = i / (len - 1)
-        newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+      const prevPoint = initialPoints[initialPoints.length - 1]
+      if (prevPoint) {
+        newPoints.push(prevPoint, prevPoint)
+        const len = Math.floor(Vec.dist(prevPoint, currentPoint) / 16)
+
+        if (len > 1) {
+          for (let i = 0; i < len; i++) {
+            const t = i / (len - 1)
+            newPoints.push(Vec.lrp(prevPoint, currentPoint, t).concat(prevPoint[2]))
+          }
+        } else {
+          newPoints.push(currentPoint, currentPoint)
+        }
       }
     } else {
       newPoints.push(currentPoint)
@@ -85,15 +92,15 @@ export class DrawSession extends BaseSession {
 
   update = (): TldrawPatch | undefined => {
     const { shapeId } = this
-    const { currentPoint, originPoint, shiftKey } = this.app
+    const { currentPoint, originPoint, shiftKey, zoom } = this.app
 
     // Even if we're not locked yet, we base the future locking direction
     // on the first dimension to reach a threshold, or the bigger dimension
     // once one or both dimensions have reached the threshold.
     if (!this.lockedDirection && this.points.length > 1) {
-      const bounds = Utils.getBoundsFromPoints(this.points)
-      if (bounds.width > 8 || bounds.height > 8) {
-        this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+      const delta = Vec.sub(currentPoint, originPoint)
+      if (Vec.len(delta) > 3 / zoom) {
+        this.lockedDirection = Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
       }
     }
 
@@ -104,8 +111,11 @@ export class DrawSession extends BaseSession {
         // If we're locking before knowing what direction we're in, set it
         // early based on the bigger dimension.
         if (!this.lockedDirection) {
-          const bounds = Utils.getBoundsFromPoints(this.points)
-          this.lockedDirection = bounds.width > bounds.height ? 'horizontal' : 'vertical'
+          const delta = Vec.sub(currentPoint, originPoint)
+          if (Vec.len(delta) > 3 / zoom) {
+            this.lockedDirection =
+              Math.abs(delta[0]) > Math.abs(delta[1]) ? 'horizontal' : 'vertical'
+          }
         }
 
         this.isLocked = true

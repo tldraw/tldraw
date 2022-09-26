@@ -1,20 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import React, { useState, useRef, useCallback } from 'react'
-import type { TldrawApp, TDUser, TDShape, TDBinding, TDDocument, TDAsset } from '@tldraw/tldraw'
-import { useRedo, useUndo, useRoom, useUpdateMyPresence } from '@liveblocks/react'
-import { LiveMap, LiveObject, Lson, LsonObject } from '@liveblocks/client'
+import { LiveMap } from '@liveblocks/client'
+import type { TDAsset, TDBinding, TDShape, TDUser, TldrawApp } from '@tldraw/tldraw'
+import React, { useCallback, useRef, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
+import { Storage, useRedo, useRoom, useUndo, useUpdateMyPresence } from '~utils/liveblocks'
 
 declare const window: Window & { app: TldrawApp }
-
-type TDLsonShape = TDShape & Lson
-type TDLsonBinding = TDBinding & Lson
-type TDLsonAsset = TDAsset & Lson
-type LsonDoc = {
-  uuid: string
-  document: TDDocument
-  migrated?: boolean
-} & LsonObject
 
 export function useMultiplayerState(roomId: string) {
   const [app, setApp] = useState<TldrawApp>()
@@ -26,9 +16,11 @@ export function useMultiplayerState(roomId: string) {
   const onRedo = useRedo()
   const updateMyPresence = useUpdateMyPresence()
 
-  const rLiveShapes = useRef<LiveMap<string, TDLsonShape>>()
-  const rLiveBindings = useRef<LiveMap<string, TDLsonBinding>>()
-  const rLiveAssets = useRef<LiveMap<string, TDLsonAsset>>()
+  const rIsPaused = useRef(false)
+
+  const rLiveShapes = useRef<Storage['shapes']>()
+  const rLiveBindings = useRef<Storage['bindings']>()
+  const rLiveAssets = useRef<Storage['assets']>()
 
   // Callbacks --------------
 
@@ -62,7 +54,7 @@ export function useMultiplayerState(roomId: string) {
           if (!shape) {
             lShapes.delete(id)
           } else {
-            lShapes.set(shape.id, shape as TDLsonShape)
+            lShapes.set(shape.id, shape)
           }
         })
 
@@ -70,7 +62,7 @@ export function useMultiplayerState(roomId: string) {
           if (!binding) {
             lBindings.delete(id)
           } else {
-            lBindings.set(binding.id, binding as TDLsonBinding)
+            lBindings.set(binding.id, binding)
           }
         })
 
@@ -78,7 +70,7 @@ export function useMultiplayerState(roomId: string) {
           if (!asset) {
             lAssets.delete(id)
           } else {
-            lAssets.set(asset.id, asset as TDLsonAsset)
+            lAssets.set(asset.id, asset)
           }
         })
       })
@@ -104,7 +96,7 @@ export function useMultiplayerState(roomId: string) {
 
     // Handle changes to other users' presence
     unsubs.push(
-      room.subscribe<{ id: string; user: TDUser }>('others', (others, event) => {
+      room.subscribe('others', (others, event) => {
         if (event.type === 'leave') {
           if (event.user.presence) {
             app?.removeUser(event.user.presence.id)
@@ -125,30 +117,30 @@ export function useMultiplayerState(roomId: string) {
 
     // Setup the document's storage and subscriptions
     async function setupDocument() {
-      const storage = await room.getStorage<any>()
+      const storage = await room.getStorage()
 
       // Migrate previous versions
       const version = storage.root.get('version')
 
       // Initialize (get or create) maps for shapes/bindings/assets
 
-      let lShapes: LiveMap<string, TDLsonShape> = storage.root.get('shapes')
+      let lShapes = storage.root.get('shapes')
       if (!lShapes || !('_serialize' in lShapes)) {
-        storage.root.set('shapes', new LiveMap<string, TDLsonShape>())
+        storage.root.set('shapes', new LiveMap())
         lShapes = storage.root.get('shapes')
       }
       rLiveShapes.current = lShapes
 
-      let lBindings: LiveMap<string, TDLsonBinding> = storage.root.get('bindings')
+      let lBindings = storage.root.get('bindings')
       if (!lBindings || !('_serialize' in lBindings)) {
-        storage.root.set('bindings', new LiveMap<string, TDLsonBinding>())
+        storage.root.set('bindings', new LiveMap())
         lBindings = storage.root.get('bindings')
       }
       rLiveBindings.current = lBindings
 
-      let lAssets: LiveMap<string, TDLsonAsset> = storage.root.get('assets')
+      let lAssets = storage.root.get('assets')
       if (!lAssets || !('_serialize' in lAssets)) {
-        storage.root.set('assets', new LiveMap<string, TDLsonAsset>())
+        storage.root.set('assets', new LiveMap())
         lAssets = storage.root.get('assets')
       }
       rLiveAssets.current = lAssets
@@ -159,7 +151,7 @@ export function useMultiplayerState(roomId: string) {
         // document was a single LiveObject named 'doc'. If we find a doc,
         // then we need to move the shapes and bindings over to the new structures
         // and then mark the doc as migrated.
-        const doc = storage.root.get('doc') as LiveObject<LsonDoc>
+        const doc = storage.root.get('doc')
 
         // No doc? No problem. This was likely a newer document
         if (doc) {
@@ -172,11 +164,9 @@ export function useMultiplayerState(roomId: string) {
             },
           } = doc.toObject()
 
-          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape as TDLsonShape))
-          Object.values(bindings).forEach((binding) =>
-            lBindings.set(binding.id, binding as TDLsonBinding)
-          )
-          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset as TDLsonAsset))
+          Object.values(shapes).forEach((shape) => lShapes.set(shape.id, shape))
+          Object.values(bindings).forEach((binding) => lBindings.set(binding.id, binding))
+          Object.values(assets).forEach((asset) => lAssets.set(asset.id, asset))
         }
       }
 
@@ -216,10 +206,52 @@ export function useMultiplayerState(roomId: string) {
     }
   }, [room, app])
 
+  const onSessionStart = React.useCallback(() => {
+    if (!room) return
+    room.history.pause()
+    rIsPaused.current = true
+  }, [room])
+
+  const onSessionEnd = React.useCallback(() => {
+    if (!room) return
+    room.history.resume()
+    rIsPaused.current = false
+  }, [room])
+
+  useHotkeys(
+    'ctrl+shift+l;,⌘+shift+l',
+    () => {
+      if (window.confirm('Reset the document?')) {
+        room.batch(() => {
+          const lShapes = rLiveShapes.current
+          const lBindings = rLiveBindings.current
+          const lAssets = rLiveAssets.current
+
+          if (!(lShapes && lBindings && lAssets)) return
+
+          lShapes.forEach((shape) => {
+            lShapes.delete(shape.id)
+          })
+
+          lBindings.forEach((shape) => {
+            lBindings.delete(shape.id)
+          })
+
+          lAssets.forEach((shape) => {
+            lAssets.delete(shape.id)
+          })
+        })
+      }
+    },
+    []
+  )
+
   return {
     onUndo,
     onRedo,
     onMount,
+    onSessionStart,
+    onSessionEnd,
     onChangePage,
     onChangePresence,
     error,

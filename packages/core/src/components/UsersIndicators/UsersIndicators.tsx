@@ -1,14 +1,13 @@
 import * as React from 'react'
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ShapeIndicator } from '~components/ShapeIndicator'
+import { useTLContext } from '~hooks'
 import type { TLPage, TLShape, TLUsers } from '~types'
 import Utils from '~utils'
-import { useTLContext } from '~hooks'
 
 interface UserIndicatorProps<T extends TLShape> {
   page: TLPage<any, any>
   userId: string
-  users: TLUsers<T>
+  users: TLUsers
   meta: any
 }
 

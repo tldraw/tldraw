@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import * as React from 'react'
-import { useTLContext } from './useTLContext'
-import { Handler, useGesture, WebKitGestureEvent } from '@use-gesture/react'
 import { Vec } from '@tldraw/vec'
+import { Handler, WebKitGestureEvent, useGesture } from '@use-gesture/react'
+import * as React from 'react'
 import Utils from '~utils'
+import { useTLContext } from './useTLContext'
 
 // Capture zoom gestures (pinches, wheels and pans)
 export function useZoomEvents<T extends HTMLElement>(
@@ -36,12 +34,12 @@ export function useZoomEvents<T extends HTMLElement>(
       e.preventDefault()
       if (inputs.isPinching) return
 
-      const { offset } = normalizeWheel(e)
+      const [x, y, z] = normalizeWheel(e)
 
-      // alt+scroll or ctrl+scroll = zoom
+      // alt+scroll or ctrl+scroll = zoom (when not clicking)
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const delta = [...point, offset[1] * 0.618]
+        const delta = [...point, z * 0.618]
         const info = inputs.pan(delta, e)
 
         callbacks.onZoom?.({ ...info, delta }, e)
@@ -52,9 +50,9 @@ export function useZoomEvents<T extends HTMLElement>(
       const delta = Vec.mul(
         e.shiftKey && !Utils.isDarwin
           ? // shift+scroll = pan horizontally
-            [offset[1], 0]
+            [y, 0]
           : // scroll = pan vertically (or in any direction on a trackpad)
-            [...offset],
+            [x, y],
         0.5
       )
 
@@ -146,45 +144,26 @@ export function useZoomEvents<T extends HTMLElement>(
 }
 
 // Reasonable defaults
-const PIXEL_STEP = 10
-const LINE_HEIGHT = 40
-const PAGE_HEIGHT = 800
+const MAX_ZOOM_STEP = 10
 
-function normalizeWheel(event: any) {
-  let sX = 0,
-    sY = 0, // spinX, spinY
-    pX = 0,
-    pY = 0 // pixelX, pixelY
+// Adapted from https://stackoverflow.com/a/13650579
+function normalizeWheel(event: WheelEvent) {
+  const { deltaY, deltaX } = event
 
-  // Legacy
-  if ('detail' in event) sY = event.detail
-  if ('wheelDelta' in event) sY = -event.wheelDelta / 120
-  if ('wheelDeltaY' in event) sY = -event.wheelDeltaY / 120
-  if ('wheelDeltaX' in event) sX = -event.wheelDeltaX / 120
+  let deltaZ = 0
 
-  // side scrolling on FF with DOMMouseScroll
-  if ('axis' in event && event.axis === event.HORIZONTAL_AXIS) {
-    sX = sY
-    sY = 0
-  }
+  if (event.ctrlKey || event.metaKey) {
+    const signY = Math.sign(event.deltaY)
+    const absDeltaY = Math.abs(event.deltaY)
 
-  pX = 'deltaX' in event ? event.deltaX : sX * PIXEL_STEP
-  pY = 'deltaY' in event ? event.deltaY : sY * PIXEL_STEP
+    let dy = deltaY
 
-  if ((pX || pY) && event.deltaMode) {
-    if (event.deltaMode == 1) {
-      // delta in LINE units
-      pX *= LINE_HEIGHT
-      pY *= LINE_HEIGHT
-    } else {
-      // delta in PAGE units
-      pX *= PAGE_HEIGHT
-      pY *= PAGE_HEIGHT
+    if (absDeltaY > MAX_ZOOM_STEP) {
+      dy = MAX_ZOOM_STEP * signY
     }
+
+    deltaZ = dy
   }
 
-  // Fall-back if spin cannot be determined
-  if (pX && !sX) sX = pX < 1 ? -1 : 1
-  if (pY && !sY) sY = pY < 1 ? -1 : 1
-  return { spin: [sX, sY], offset: [pX, pY] }
+  return [deltaX, deltaY, deltaZ]
 }

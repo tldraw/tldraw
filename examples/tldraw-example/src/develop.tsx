@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
-import { TDShapeType, Tldraw, TldrawApp, useFileSystem } from '@tldraw/tldraw'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -21,29 +21,13 @@ export default function Develop() {
     // })
   }, [])
 
-  const handleSignOut = React.useCallback(() => {
-    // noop
-  }, [])
-
-  const handleSignIn = React.useCallback(() => {
-    // noop
-  }, [])
-
   const handlePersist = React.useCallback(() => {
     // noop
   }, [])
 
   return (
     <div className="tldraw">
-      <Tldraw
-        id="develop"
-        {...fileSystemEvents}
-        onMount={handleMount}
-        onSignIn={handleSignIn}
-        onSignOut={handleSignOut}
-        onPersist={handlePersist}
-        showSponsorLink={true}
-      />
+      <Tldraw id="develop" {...fileSystemEvents} onMount={handleMount} onPersist={handlePersist} />
     </div>
   )
 }

@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-extra-semi */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-redeclare */
-import type React from 'react'
-import { TLBounds, TLBoundsCorner, SnapPoints, Snap, TLBoundsEdge } from '../types'
 import { Vec } from '@tldraw/vec'
-import './polyfills'
+import { StrokePoint } from 'perfect-freehand'
+import type React from 'react'
 import type { Patch, TLBoundsWithCenter } from '~index'
+import { Snap, SnapPoints, TLBounds, TLBoundsCorner, TLBoundsEdge } from '~types'
+import './polyfills'
 
 const TAU = Math.PI * 2
 
@@ -38,7 +36,6 @@ export class Utils {
 
   static lerpColor(color1: string, color2: string, factor = 0.5): string {
     function h2r(hex: string) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)!
       return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
     }
@@ -1291,7 +1288,6 @@ left past the initial left edge) then swap points on that axis.
    * getFromCache(boundsCache, shape, (cache) => cache.set(shape, "value"))
    *```
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
   static getFromCache<V, I extends object>(cache: WeakMap<I, V>, item: I, getNext: () => V): V {
     let value = cache.get(item)
 
@@ -1330,7 +1326,6 @@ left past the initial left edge) then swap points on that axis.
    * Debounce a function.
    */
   static debounce<T extends (...args: any[]) => void>(fn: T, ms = 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: number | any
     return function (...args: Parameters<T>) {
       clearTimeout(timeoutId)
@@ -1338,32 +1333,70 @@ left past the initial left edge) then swap points on that axis.
     }
   }
 
-  // Regex to trim numbers to 2 decimal places
-  static TRIM_NUMBERS = /(\s?[A-Z]?,?-?[0-9]*\.[0-9]{0,2})(([0-9]|e|-)*)/g
-
   /**
    * Turn an array of points into a path of quadradic curves.
-   * @param stroke ;
+   *
+   * @param points The points returned from perfect-freehand
+   * @param closed Whether the stroke is closed
    */
   static getSvgPathFromStroke(points: number[][], closed = true): string {
-    if (!points.length) {
-      return ''
+    const len = points.length
+
+    if (len < 4) {
+      return ``
     }
 
-    const max = points.length - 1
+    let a = points[0]
+    let b = points[1]
+    const c = points[2]
 
-    return points
-      .reduce(
-        (acc, point, i, arr) => {
-          if (i === max) {
-            if (closed) acc.push('Z')
-          } else acc.push(point, Vec.med(point, arr[i + 1]))
-          return acc
-        },
-        ['M', points[0], 'Q']
-      )
-      .join(' ')
-      .replaceAll(this.TRIM_NUMBERS, '$1')
+    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(2)},${b[1].toFixed(
+      2
+    )} ${average(b[0], c[0]).toFixed(2)},${average(b[1], c[1]).toFixed(2)} T`
+
+    for (let i = 2, max = len - 1; i < max; i++) {
+      a = points[i]
+      b = points[i + 1]
+      result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(2)} `
+    }
+
+    if (closed) {
+      result += 'Z'
+    }
+
+    return result
+  }
+
+  /**
+   * Turn an array of stroke points into a path of quadradic curves.
+   * @param points - the stroke points returned from perfect-freehand
+   */
+  static getSvgPathFromStrokePoints(points: StrokePoint[], closed = false): string {
+    const len = points.length
+
+    if (len < 4) {
+      return ``
+    }
+
+    let a = points[0].point
+    let b = points[1].point
+    const c = points[2].point
+
+    let result = `M${a[0].toFixed(2)},${a[1].toFixed(2)} Q${b[0].toFixed(2)},${b[1].toFixed(
+      2
+    )} ${average(b[0], c[0]).toFixed(2)},${average(b[1], c[1]).toFixed(2)} T`
+
+    for (let i = 2, max = len - 1; i < max; i++) {
+      a = points[i].point
+      b = points[i + 1].point
+      result += `${average(a[0], b[0]).toFixed(2)},${average(a[1], b[1]).toFixed(2)} `
+    }
+
+    if (closed) {
+      result += 'Z'
+    }
+
+    return result
   }
 
   /* -------------------------------------------------- */
@@ -1426,11 +1459,6 @@ left past the initial left edge) then swap points on that axis.
     }
   }
 
-  static isMobileSize() {
-    if (typeof window === 'undefined') return false
-    return window.innerWidth < 768
-  }
-
   static isMobileSafari() {
     if (typeof window === 'undefined') return false
     const ua = window.navigator.userAgent
@@ -1453,7 +1481,6 @@ left past the initial left edge) then swap points on that axis.
 
         setTimeout(() => (inThrottle = false), limit)
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         lastResult = func(...args)
       }
@@ -1485,6 +1512,26 @@ left past the initial left edge) then swap points on that axis.
   static metaKey(e: KeyboardEvent | React.KeyboardEvent): boolean {
     return Utils.isDarwin() ? e.metaKey : e.ctrlKey
   }
+
+  /**
+   * Reversable psuedo hash.
+   * @param str string
+   */
+  static lns(str: string) {
+    const result = str.split('')
+    result.push(...result.splice(0, Math.round(result.length / 5)))
+    result.push(...result.splice(0, Math.round(result.length / 4)))
+    result.push(...result.splice(0, Math.round(result.length / 3)))
+    result.push(...result.splice(0, Math.round(result.length / 2)))
+    return result
+      .reverse()
+      .map((n) => (+n ? (+n < 5 ? 5 + +n : +n > 5 ? +n - 5 : n) : n))
+      .join('')
+  }
 }
 
 export default Utils
+
+function average(a: number, b: number): number {
+  return (a + b) / 2
+}

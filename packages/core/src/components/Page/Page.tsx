@@ -1,16 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { observer } from 'mobx-react-lite'
 import * as React from 'react'
-import type { TLAssets, TLBinding, TLPage, TLPageState, TLShape } from '~types'
-import { useSelection, useShapeTree, useTLContext } from '~hooks'
+import type { TLShapeUtil } from '~TLShapeUtil'
 import { Bounds } from '~components/Bounds'
 import { BoundsBg } from '~components/Bounds/BoundsBg'
 import { Handles } from '~components/Handles'
 import { ShapeNode } from '~components/Shape'
 import { ShapeIndicator } from '~components/ShapeIndicator'
-import type { TLShapeUtil } from '~TLShapeUtil'
+import { useSelection, useShapeTree, useTLContext } from '~hooks'
+import type { TLAssets, TLBinding, TLPage, TLPageState, TLShape } from '~types'
 
-interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
+export interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
   page: TLPage<T, TLBinding>
   pageState: TLPageState
   assets: TLAssets
@@ -27,7 +25,7 @@ interface PageProps<T extends TLShape, M extends Record<string, unknown>> {
 /**
  * The Page component renders the current page.
  */
-export const Page = observer(function _Page<T extends TLShape, M extends Record<string, unknown>>({
+function _Page<T extends TLShape, M extends Record<string, unknown>>({
   page,
   pageState,
   assets,
@@ -113,4 +111,6 @@ export const Page = observer(function _Page<T extends TLShape, M extends Record<
       {!hideHandles && shapeWithHandles && <Handles shape={shapeWithHandles} zoom={zoom} />}
     </>
   )
-})
+}
+
+export const Page = React.memo(_Page)

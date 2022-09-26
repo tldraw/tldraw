@@ -1,4 +1,4 @@
-import { Utils, TLBounds } from '@tldraw/core'
+import { TLBounds, Utils } from '@tldraw/core'
 import { intersectBoundsLineSegment, intersectLineSegmentLineSegment } from '@tldraw/intersect'
 import Vec from '@tldraw/vec'
 import { nanoid } from 'nanoid'

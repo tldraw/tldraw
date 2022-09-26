@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from 'react'
-import Utils from '../utils'
-import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '../types'
 import { intersectPolygonBounds } from '@tldraw/intersect'
+import * as React from 'react'
+import type { TLBounds, TLComponentProps, TLForwardedRef, TLShape, TLUser } from '~types'
+import Utils from '~utils'
 
 export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M = any> {
   refMap = new Map<string, React.RefObject<E>>()
@@ -20,7 +19,7 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
   abstract Indicator: (props: {
     shape: T
     meta: M
-    user?: TLUser<T>
+    user?: TLUser
     bounds: TLBounds
     isHovered: boolean
     isSelected: boolean
@@ -34,7 +33,6 @@ export abstract class TLShapeUtil<T extends TLShape, E extends Element = any, M 
     if (!this.refMap.has(shape.id)) {
       this.refMap.set(shape.id, React.createRef<E>())
     }
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.refMap.get(shape.id)!
   }
 

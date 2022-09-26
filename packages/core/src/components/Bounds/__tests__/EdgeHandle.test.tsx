@@ -1,22 +1,24 @@
+import { screen } from '@testing-library/react'
 import * as React from 'react'
 import { renderWithContext } from '~test'
-import { screen } from '@testing-library/react'
-import { EdgeHandle } from '../EdgeHandle'
 import { TLBoundsEdge } from '~types'
+import { EdgeHandle } from '../EdgeHandle'
 
 jest.spyOn(console, 'error').mockImplementation(() => void null)
 
 describe('EdgeHandle', () => {
   test('mounts component without crashing', () => {
-    renderWithContext(
-      <EdgeHandle
-        targetSize={20}
-        size={10}
-        bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
-        edge={TLBoundsEdge.Top}
-        isHidden={false}
-      />
-    )
+    expect(() =>
+      renderWithContext(
+        <EdgeHandle
+          targetSize={20}
+          size={10}
+          bounds={{ minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 }}
+          edge={TLBoundsEdge.Top}
+          isHidden={false}
+        />
+      )
+    ).not.toThrowError()
   })
   test('top edge > validate attributes', () => {
     renderWithContext(

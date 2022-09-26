@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ArrowUpRight, Edit2, MousePointer, PenTool, Square, X } from 'react-feather'
+import { ArrowUpRight, Edit2, MousePointer, Square, X } from 'react-feather'
 import { machine } from 'state/machine'
 import styled from 'stitches.config'
 

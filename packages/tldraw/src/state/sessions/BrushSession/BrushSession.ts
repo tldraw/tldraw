@@ -1,7 +1,7 @@
 import { TLBounds, Utils } from '@tldraw/core'
-import { SessionType, TldrawPatch, TDStatus, TldrawCommand } from '~types'
-import type { TldrawApp } from '../../internal'
-import { BaseSession } from '../BaseSession'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { SessionType, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 export class BrushSession extends BaseSession {
   type = SessionType.Brush
@@ -91,6 +91,20 @@ export class BrushSession extends BaseSession {
       currentSelectedIds.some((id) => !selectedIds.has(id))
 
     const afterSelectedIds = didChange ? Array.from(selectedIds.values()) : currentSelectedIds
+
+    if (!didChange)
+      return {
+        appState: {
+          selectByContain,
+        },
+        document: {
+          pageStates: {
+            [this.app.currentPageId]: {
+              brush,
+            },
+          },
+        },
+      }
 
     return {
       appState: {

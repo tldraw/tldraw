@@ -1,31 +1,28 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLBounds, TLTransformInfo, Utils, TLPageState } from '@tldraw/core'
+import { TLBounds, TLPageState, TLTransformInfo, Utils } from '@tldraw/core'
+import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import { BINDING_DISTANCE } from '~constants'
 import {
-  TDSnapshot,
+  ArrowShape,
   ShapesWithProp,
-  TDShape,
   TDBinding,
+  TDExportType,
+  TDHandle,
   TDPage,
+  TDShape,
+  TDShapeType,
+  TDSnapshot,
   TldrawCommand,
   TldrawPatch,
-  TDShapeType,
-  ArrowShape,
-  TDHandle,
-  TDExportType,
 } from '~types'
-import { Vec } from '@tldraw/vec'
-import type { TDShapeUtil } from './shapes/TDShapeUtil'
-import { getShapeUtil } from './shapes'
 import { deepCopy } from './StateManager/copy'
-import { intersectRayBounds, intersectRayEllipse, intersectRayLineSegment } from '@tldraw/intersect'
+import { getShapeUtil } from './shapes'
+import type { TDShapeUtil } from './shapes/TDShapeUtil'
 import { getTrianglePoints } from './shapes/TriangleUtil/triangleHelpers'
-import { BINDING_DISTANCE } from '~constants'
 
 const isDev = process.env.NODE_ENV === 'development'
 export class TLDR {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(type: T['type']): TDShapeUtil<T>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static getShapeUtil<T extends TDShape>(shape: T): TDShapeUtil<T>
   static getShapeUtil<T extends TDShape>(shape: T | T['type']) {
     return getShapeUtil<T>(shape)
@@ -386,7 +383,8 @@ export class TLDR {
     data: TDSnapshot,
     ids: string[],
     fn: (shape: T, i: number) => Partial<T> | void,
-    pageId: string
+    pageId: string,
+    forceChildrenTraversal = false
   ): {
     before: Record<string, Partial<T>>
     after: Record<string, Partial<T>>
@@ -398,7 +396,17 @@ export class TLDR {
     ids.forEach((id, i) => {
       const shape = TLDR.getShape<T>(data, id, pageId)
       if (shape.isLocked) return
-
+      if (shape?.type === 'group' && (ids.length === 1 || forceChildrenTraversal)) {
+        shape.children.forEach((id, i) => {
+          const shape = TLDR.getShape<T>(data, id, pageId)
+          if (shape.isLocked) return
+          const change = fn(shape, i)
+          if (change) {
+            beforeShapes[id] = TLDR.getBeforeShape(shape, change)
+            afterShapes[id] = change
+          }
+        })
+      }
       const change = fn(shape, i)
       if (change) {
         beforeShapes[id] = TLDR.getBeforeShape(shape, change)
@@ -629,7 +637,11 @@ export class TLDR {
       const hasDecoration = arrowShape.decorations?.start !== undefined
       const handle = arrowShape.handles.start
       const binding = page.bindings[arrowShape.handles.start.bindingId]
-      if (!binding) throw Error("Could not find a binding to match the start handle's bindingId")
+      if (!binding)
+        throw Error(
+          "Could not find a binding to match the start handle's bindingId: " +
+            arrowShape.handles.start.bindingId
+        )
       const target = page.shapes[binding.toId]
       const util = TLDR.getShapeUtil(target)
       const bounds = util.getBounds(target)
@@ -1015,6 +1027,7 @@ export class TLDR {
           sel.addRange(range)
           textarea.setSelectionRange(0, textarea.value.length)
         }
+        document.execCommand('copy')
       } catch (err) {
         null // Could not copy to clipboard
       } finally {

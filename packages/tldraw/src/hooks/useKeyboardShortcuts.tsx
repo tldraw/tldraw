@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { AlignStyle, TDShapeType } from '~types'
 import { useFileSystemHandlers, useTldrawApp } from '~hooks'
+import { AlignStyle, TDShapeType } from '~types'
 
 export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   const app = useTldrawApp()
@@ -10,6 +10,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     (ignoreMenus = false) => {
       const elm = ref.current
       if (ignoreMenus && (app.isMenuOpen || app.settings.keepStyleMenuOpen)) return true
+      elm?.focus()
       return elm && (document.activeElement === elm || elm.contains(document.activeElement))
     },
     [ref]
@@ -198,8 +199,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   useHotkeys(
     'ctrl+n,⌘+n',
     (e) => {
+      e.preventDefault()
       if (!canHandleEvent()) return
-
       onNewProject(e)
     },
     undefined,
@@ -250,7 +251,8 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
 
   useHotkeys(
     '⌘+z,ctrl+z',
-    () => {
+    (e) => {
+      e.preventDefault()
       if (!canHandleEvent(true)) return
 
       if (app.session) {
@@ -305,7 +307,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   // Camera
 
   useHotkeys(
-    'ctrl+=,⌘+=,ctrl+num_subtract,⌘+num_subtract',
+    'ctrl+=,⌘+=,ctrl+num_add,⌘+num_add',
     (e) => {
       if (!canHandleEvent(true)) return
       app.zoomIn()
@@ -316,7 +318,7 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
-    'ctrl+-,⌘+-,ctrl+num_add,⌘+num_add',
+    'ctrl+-,⌘+-,ctrl+num_subtract,⌘+num_subtract',
     (e) => {
       if (!canHandleEvent(true)) return
 

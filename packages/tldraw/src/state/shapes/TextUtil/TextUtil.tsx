@@ -1,21 +1,22 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { TextShape, TDMeta, TDShapeType, TransformInfo, AlignStyle } from '~types'
-import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { styled } from '~styles'
+import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { TLDR } from '~state/TLDR'
+import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
+import { BINDING_DISTANCE, GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
+import { TLDR } from '~state/TLDR'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import {
-  getTextSvgElement,
   TextAreaUtils,
   defaultTextStyle,
-  getShapeStyle,
+  getFontFace,
+  getFontSize,
   getFontStyle,
+  getShapeStyle,
   getTextAlign,
-} from '../shared'
+  getTextSvgElement,
+} from '~state/shapes/shared'
+import { styled } from '~styles'
+import { AlignStyle, TDMeta, TDShapeType, TextShape, TransformInfo } from '~types'
 
 type T = TextShape
 type E = HTMLDivElement
@@ -60,16 +61,14 @@ export class TextUtil extends TDShapeUtil<T, E> {
       const rInput = React.useRef<HTMLTextAreaElement>(null)
       const rIsMounted = React.useRef(false)
 
-      const handleChange = React.useCallback(
-        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const rEditedText = React.useRef(text)
+
+      React.useLayoutEffect(() => {
+        if (text !== rEditedText.current) {
           let delta = [0, 0]
-          const newText = TLDR.normalizeText(e.currentTarget.value)
+          this.texts.set(shape.id, text)
           const currentBounds = this.getBounds(shape)
-          this.texts.set(shape.id, newText)
-          const nextBounds = this.getBounds({
-            ...shape,
-            text: newText,
-          })
+          const nextBounds = this.getBounds(shape)
           switch (shape.style.textAlign) {
             case AlignStyle.Start: {
               break
@@ -83,6 +82,45 @@ export class TextUtil extends TDShapeUtil<T, E> {
               break
             }
           }
+
+          rEditedText.current = text
+
+          onShapeChange?.({
+            ...shape,
+            id: shape.id,
+            point: Vec.sub(shape.point, delta),
+            text,
+          })
+        }
+      }, [text])
+
+      const handleChange = React.useCallback(
+        (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+          let delta = [0, 0]
+          const newText = TLDR.normalizeText(e.currentTarget.value)
+          const currentBounds = this.getBounds(shape)
+          this.texts.set(shape.id, newText)
+          const nextBounds = this.getBounds({
+            ...shape,
+            text: newText,
+          })
+
+          switch (shape.style.textAlign) {
+            case AlignStyle.Start: {
+              break
+            }
+            case AlignStyle.Middle: {
+              delta = Vec.div([nextBounds.width - currentBounds.width, 0], 2)
+              break
+            }
+            case AlignStyle.End: {
+              delta = [nextBounds.width - currentBounds.width, 0]
+              break
+            }
+          }
+
+          rEditedText.current = newText
+
           onShapeChange?.({
             ...shape,
             id: shape.id,
@@ -95,10 +133,22 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
       const handleKeyDown = React.useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            onShapeBlur?.()
+            return
+          }
 
           if (e.key === 'Tab' && shape.text.length === 0) {
             e.preventDefault()
+            return
+          }
+
+          if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault()
+            e.stopPropagation()
+            rInput.current!.blur()
             return
           }
 
@@ -114,7 +164,9 @@ export class TextUtil extends TDShapeUtil<T, E> {
             e.preventDefault()
             return
           }
-
+          if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+            e.preventDefault()
+          }
           if (e.key === 'Tab') {
             e.preventDefault()
             if (e.shiftKey) {
@@ -339,10 +391,23 @@ export class TextUtil extends TDShapeUtil<T, E> {
   getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
     const style = getShapeStyle(shape.style, isDarkMode)
-    const elm = getTextSvgElement(shape.text, shape.style, bounds)
-    elm.setAttribute('fill', style.stroke)
 
-    return elm
+    const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
+    const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+
+    const textElm = getTextSvgElement(
+      shape.text,
+      fontSize,
+      fontFamily,
+      textAlign,
+      bounds.width,
+      false
+    )
+
+    textElm.setAttribute('fill', style.stroke)
+
+    return textElm
   }
 }
 
@@ -350,7 +415,6 @@ export class TextUtil extends TDShapeUtil<T, E> {
 /*                       Helpers                      */
 /* -------------------------------------------------- */
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let melm: any
 
 function getMeasurementDiv() {

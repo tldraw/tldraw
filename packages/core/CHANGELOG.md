@@ -1,5 +1,84 @@
 # Changelog
 
+## 1.18.4
+
+### Patch Changes
+
+- Fix mouse events.
+
+## 1.18.3
+
+### Patch Changes
+
+- Small bump.
+
+## 1.18.2
+
+### Patch Changes
+
+- Fix bug with scrolling.
+
+## 1.18.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+
+## 1.18.0
+
+### Minor Changes
+
+- - Remove `mobx` and `mobx-react-lite` as dependencies. This is a breaking change for libraries that expect data to be observable in `@tldraw/core`.
+
+## 1.17.0
+
+### Minor Changes
+
+- - Improve middle mouse panning
+  - Fix bug with assets in VS Code plugin
+  - Improve performance of draw-style shapes
+  - Fix bug with creating assets
+  - Fix bug with text align in labels when outputting images
+  - Fix bug with middle mouse panning on Linux
+  - Fix bug with zoom shortcuts on number pad
+  - Fix bug with draw and erase direction when holding shift
+
+## 1.16.0
+
+### Minor Changes
+
+- - Improve text (and multiline text) in image exports
+  - Create European Portugese translation
+  - Create Swedish translation
+  - Use system default for theme default
+  - Update translation label for Chinese
+  - Fix bugs with flip command
+  - Fix bug with duplicate page command
+  - Improve dialogs
+  - Improve SVG pasting
+
+## 1.15.0
+
+### Minor Changes
+
+- - restores the sponsor link
+  - removes sign in / sign out / authentication / next-auth
+  - removes sponsorware page
+  - removes unused translation keys
+  - fixes dark mode on help icon
+  - improves border radius on panels
+  - fixes dividers on panels
+  - removes animated cursors (replace with CSS transitions for performance when - many cursors are present)
+  - removes unused icons
+  - adds migration for export default background option
+  - correctly normalizes mouse wheel
+
+## 1.14.1
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+
 ## 1.14.0
 
 ### Minor Changes

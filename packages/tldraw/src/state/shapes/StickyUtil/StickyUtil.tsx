@@ -1,16 +1,22 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as React from 'react'
-import { Utils, HTMLContainer, TLBounds } from '@tldraw/core'
-import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import { defaultTextStyle, getBoundsRectangle, TextAreaUtils } from '../shared'
-import { TDShapeUtil } from '../TDShapeUtil'
-import { getStickyFontStyle, getStickyShapeStyle } from '../shared/shape-styles'
-import { styled } from '~styles'
+import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import { GHOSTED_OPACITY } from '~constants'
-import { TLDR } from '~state/TLDR'
-import { getTextSvgElement } from '~state/shapes/shared'
+import * as React from 'react'
 import { stopPropagation } from '~components/stopPropagation'
+import { GHOSTED_OPACITY, LETTER_SPACING } from '~constants'
+import { TLDR } from '~state/TLDR'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import {
+  TextAreaUtils,
+  defaultTextStyle,
+  getBoundsRectangle,
+  getFontFace,
+  getStickyFontSize,
+  getStickyFontStyle,
+  getStickyShapeStyle,
+  getTextSvgElement,
+} from '~state/shapes/shared'
+import { styled } from '~styles'
+import { AlignStyle, StickyShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 
 type T = StickyShape
 type E = HTMLDivElement
@@ -84,7 +90,12 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
       const handleKeyDown = React.useCallback(
         (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-          if (e.key === 'Escape') return
+          if (e.key === 'Escape') {
+            e.preventDefault()
+            e.stopPropagation()
+            onShapeBlur?.()
+            return
+          }
 
           if (e.key === 'Tab' && shape.text.length === 0) {
             e.preventDefault()
@@ -103,7 +114,9 @@ export class StickyUtil extends TDShapeUtil<T, E> {
             e.preventDefault()
             return
           }
-
+          if ((e.metaKey || e.ctrlKey) && e.key === '=') {
+            e.preventDefault()
+          }
           if (e.key === 'Tab') {
             e.preventDefault()
             if (e.shiftKey) {
@@ -275,9 +288,22 @@ export class StickyUtil extends TDShapeUtil<T, E> {
 
   getSvgElement = (shape: T, isDarkMode: boolean): SVGElement | void => {
     const bounds = this.getBounds(shape)
-    const textBounds = Utils.expandBounds(bounds, -PADDING)
-    const textElm = getTextSvgElement(shape.text, shape.style, textBounds)
+
     const style = getStickyShapeStyle(shape.style, isDarkMode)
+
+    const fontSize = getStickyFontSize(shape.style.size) * (shape.style.scale ?? 1)
+    const fontFamily = getFontFace(shape.style.font).slice(1, -1)
+    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+
+    const textElm = getTextSvgElement(
+      shape.text,
+      fontSize,
+      fontFamily,
+      textAlign,
+      bounds.width - PADDING * 2,
+      true
+    )
+
     textElm.setAttribute('fill', style.color)
     textElm.setAttribute('transform', `translate(${PADDING}, ${PADDING})`)
 
@@ -334,6 +360,7 @@ const StyledStickyContainer = styled('div', {
 const commonTextWrapping = {
   whiteSpace: 'pre-wrap',
   overflowWrap: 'break-word',
+  letterSpacing: LETTER_SPACING,
 }
 
 const StyledText = styled('div', {

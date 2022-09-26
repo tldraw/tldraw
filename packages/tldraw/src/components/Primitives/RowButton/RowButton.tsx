@@ -1,9 +1,9 @@
 import { ItemIndicator } from '@radix-ui/react-dropdown-menu'
-import { ChevronRightIcon, CheckIcon } from '@radix-ui/react-icons'
+import { CheckIcon, ChevronRightIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { breakpoints } from '~components/breakpoints'
 import { Kbd } from '~components/Primitives/Kbd'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
+import { breakpoints } from '~components/breakpoints'
 import { styled } from '~styles'
 
 export interface RowButtonProps {
@@ -12,7 +12,6 @@ export interface RowButtonProps {
   disabled?: boolean
   kbd?: string
   variant?: 'wide' | 'styleMenu'
-  isSponsor?: boolean
   isActive?: boolean
   isWarning?: boolean
   hasIndicator?: boolean
@@ -99,7 +98,8 @@ export const StyledRowButton = styled('button', {
   background: 'none',
   border: 'none',
   cursor: 'pointer',
-  height: '32px',
+  height: 32,
+  minHeight: 32,
   outline: 'none',
   color: '$text',
   fontFamily: '$ui',
@@ -146,12 +146,6 @@ export const StyledRowButton = styled('button', {
         width: 'auto',
       },
     },
-    isSponsor: {
-      true: {
-        color: '#eb30a2',
-      },
-      false: {},
-    },
     isWarning: {
       true: {
         color: '$warn',
@@ -164,34 +158,4 @@ export const StyledRowButton = styled('button', {
       false: {},
     },
   },
-  compoundVariants: [
-    {
-      isActive: false,
-      isSponsor: true,
-      bp: 'small',
-      css: {
-        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
-          backgroundColor: '$sponsorContrast',
-          border: '1px solid $panel',
-          '& *[data-shy="true"]': {
-            opacity: 1,
-          },
-        },
-      },
-    },
-    {
-      isActive: false,
-      isSponsor: false,
-      bp: 'small',
-      css: {
-        [`&:hover:not(:disabled) ${StyledRowButtonInner}`]: {
-          backgroundColor: '$hover',
-          border: '1px solid $panel',
-          '& *[data-shy="true"]': {
-            opacity: 1,
-          },
-        },
-      },
-    },
-  ],
 })

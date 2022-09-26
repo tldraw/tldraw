@@ -1,4 +1,4 @@
-import { inputs, TLBoundsEdge, TLBoundsCorner, TLBoundsHandle } from '@tldraw/core'
+import { TLBoundsCorner, TLBoundsEdge, TLBoundsHandle, inputs } from '@tldraw/core'
 import { TldrawApp } from '~state'
 import type { TDShape } from '~types'
 
@@ -41,6 +41,19 @@ export class TldrawTestApp extends TldrawApp {
       inputs.pointerDown(this.getPoint(options), 'canvas'),
       {} as React.PointerEvent
     )
+    return this
+  }
+
+  doubleClickCanvas = (options?: PointerOptions | number[]) => {
+    this.onPointerDown(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.onDoubleClickCanvas(
+      inputs.pointerDown(this.getPoint(options), 'canvas'),
+      {} as React.PointerEvent
+    )
+    this.onPointerUp(inputs.pointerUp(this.getPoint(options), 'canvas'), {} as React.PointerEvent)
     return this
   }
 

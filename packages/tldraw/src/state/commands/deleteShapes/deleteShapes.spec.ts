@@ -1,4 +1,4 @@
-import { mockDocument, TldrawTestApp } from '~test'
+import { TldrawTestApp, mockDocument } from '~test'
 import {
   ColorStyle,
   DashStyle,
@@ -232,7 +232,8 @@ const mockDocumentWithImage: TDDocument = {
   assets: {
     asset1: {
       type: TDAssetType.Image,
-      src: 'https://image.com',
+      src: 'https://image.com/image.png',
+      fileName: 'image.png',
       size: [100, 100],
       id: 'asset1',
     },
@@ -294,7 +295,8 @@ const mockDocumentWithSharedAssets: TDDocument = {
   assets: {
     '123': {
       type: TDAssetType.Image,
-      src: 'https://image.com',
+      src: 'https://image.com/image.png',
+      fileName: 'image.png',
       size: [100, 100],
       id: '123',
     },

@@ -1,21 +1,21 @@
-import * as React from 'react'
-import { Utils, SVGContainer, TLBounds } from '@tldraw/core'
-import { Vec } from '@tldraw/vec'
-import { defaultStyle, getShapeStyle } from '../shared/shape-styles'
-import { DrawShape, DashStyle, TDShapeType, TransformInfo, TDMeta } from '~types'
-import { TDShapeUtil } from '../TDShapeUtil'
+import { SVGContainer, TLBounds, Utils } from '@tldraw/core'
 import {
   intersectBoundsBounds,
   intersectBoundsPolyline,
   intersectLineSegmentBounds,
   intersectLineSegmentLineSegment,
 } from '@tldraw/intersect'
+import { Vec } from '@tldraw/vec'
+import * as React from 'react'
+import { GHOSTED_OPACITY } from '~constants'
+import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
+import { DashStyle, DrawShape, TDMeta, TDShapeType, TransformInfo } from '~types'
 import {
   getDrawStrokePathTDSnapshot,
   getFillPath,
   getSolidStrokePathTDSnapshot,
 } from './drawHelpers'
-import { GHOSTED_OPACITY } from '~constants'
 
 type T = DrawShape
 type E = SVGSVGElement
@@ -133,14 +133,14 @@ export class DrawUtil extends TDShapeUtil<T, E> {
         [DashStyle.Solid]: `none`,
         [DashStyle.Dotted]: `0.1 ${strokeWidth * 4}`,
         [DashStyle.Dashed]: `${strokeWidth * 4} ${strokeWidth * 4}`,
-      }[style.dash]
+      }[style.dash as DashStyle]
 
       const strokeDashoffset = {
         [DashStyle.Draw]: 'none',
         [DashStyle.Solid]: `none`,
         [DashStyle.Dotted]: `0`,
         [DashStyle.Dashed]: `0`,
-      }[style.dash]
+      }[style.dash as DashStyle]
 
       const sw = 1 + strokeWidth * 1.5
 
@@ -248,12 +248,10 @@ export class DrawUtil extends TDShapeUtil<T, E> {
       this.pointCache[shape.id] = shape.point
       this.shapeBoundsCache.set(
         shape.id,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         Utils.translateBounds(this.pointsBoundsCache.get(shape.points)!, shape.point)
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     return this.shapeBoundsCache.get(shape.id)!
   }
 

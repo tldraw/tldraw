@@ -19,16 +19,24 @@
     "rootDir": ".",
     "baseUrl": ".",
     "paths": {
-      "*": ["./*"],
+      "~*": ["./*"],
       "@tldraw/core": ["../../packages/core"],
       "@tldraw/tldraw": ["../../packages/tldraw"]
     }
   },
   "references": [
-    { "path": "../../packages/vec" },
-    { "path": "../../packages/intersect" },
-    { "path": "../../packages/core" },
-    { "path": "../../packages/tldraw" }
+    {
+      "path": "../../packages/vec"
+    },
+    {
+      "path": "../../packages/intersect"
+    },
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/tldraw"
+    }
   ],
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]

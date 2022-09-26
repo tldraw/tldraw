@@ -1,23 +1,22 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TLPageState, Utils, TLBoundsWithCenter, TLSnapLine, TLBounds } from '@tldraw/core'
+import { TLBounds, TLBoundsWithCenter, TLPageState, TLSnapLine, Utils } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import {
-  TDShape,
-  TDBinding,
-  TldrawCommand,
-  TDStatus,
-  ArrowShape,
-  Patch,
-  GroupShape,
-  SessionType,
-  ArrowBinding,
-  TldrawPatch,
-  TDShapeType,
-} from '~types'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import {
+  ArrowBinding,
+  ArrowShape,
+  GroupShape,
+  Patch,
+  SessionType,
+  TDBinding,
+  TDShape,
+  TDShapeType,
+  TDStatus,
+  TldrawCommand,
+  TldrawPatch,
+} from '~types'
 
 type CloneInfo =
   | {
@@ -153,14 +152,29 @@ export class TranslateSession extends BaseSession {
     if (bindingsToDelete.length === 0) return
 
     const nextBindings: Patch<Record<string, TDBinding>> = {}
+    const nextShapes: Patch<Record<string, TDShape>> = {}
 
-    bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = undefined))
+    bindingsToDelete.forEach((binding) => {
+      nextBindings[binding.id] = undefined
+      const fromShape = this.app.getShape(binding.fromId)
+      nextShapes[binding.fromId] = {
+        handles: {
+          ...fromShape.handles,
+          [binding.handleId]: {
+            // @ts-expect-error
+            ...fromShape.handles[binding.handleId],
+            bindingId: undefined,
+          },
+        },
+      }
+    })
 
     return {
       document: {
         pages: {
           [currentPageId]: {
             bindings: nextBindings,
+            shapes: nextShapes,
           },
         },
       },
@@ -425,16 +439,23 @@ export class TranslateSession extends BaseSession {
       hoveredId: undefined,
     }
 
-    // Put back any deleted bindings
-    bindingsToDelete.forEach((binding) => (nextBindings[binding.id] = binding))
-
     if (this.isCreate) {
       initialShapes.forEach(({ id }) => (nextShapes[id] = undefined))
       nextPageState.selectedIds = []
     } else {
       // Put initial shapes back to where they started
-      initialShapes.forEach(({ id, point }) => (nextShapes[id] = { ...nextShapes[id], point }))
+      initialShapes.forEach(
+        ({ id, point, handles }) =>
+          (nextShapes[id] = handles
+            ? ({ ...nextShapes[id], point, handles } as any)
+            : { ...nextShapes[id], point })
+      )
       nextPageState.selectedIds = initialSelectedIds
+
+      // Put back any deleted bindings
+      bindingsToDelete.forEach((binding) => {
+        nextBindings[binding.id] = binding
+      })
     }
 
     if (this.cloneInfo.state === 'ready') {
@@ -533,34 +554,33 @@ export class TranslateSession extends BaseSession {
     bindingsToDelete.forEach((binding) => {
       beforeBindings[binding.id] = binding
 
-      for (const id of [binding.toId, binding.fromId]) {
-        // Let's also look at the bound shape...
-        const shape = this.app.getShape(id)
+      beforeShapes[binding.fromId] = {
+        ...beforeShapes[binding.fromId],
+        id: binding.fromId,
+        handles: {
+          ...beforeShapes[binding.fromId]?.handles,
+          [binding.handleId]: {
+            ...beforeShapes[binding.fromId]?.handles?.[binding.handleId],
+            bindingId: binding.id,
+          },
+        },
+      }
 
-        // If the bound shape has a handle that references the deleted binding, delete that reference
-        if (!shape.handles) continue
-
-        Object.values(shape.handles)
-          .filter((handle) => handle.bindingId === binding.id)
-          .forEach((handle) => {
-            beforeShapes[id] = { ...beforeShapes[id], handles: {} }
-
-            afterShapes[id] = { ...afterShapes[id], handles: {} }
-
-            // There should be before and after shapes
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            beforeShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
-              bindingId: binding.id,
-            }
-
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            afterShapes[id]!.handles![handle.id as keyof ArrowShape['handles']] = {
-              bindingId: undefined,
-            }
-          })
+      afterShapes[binding.fromId] = {
+        ...afterShapes[binding.fromId],
+        id: binding.fromId,
+        handles: {
+          // @ts-expect-error
+          ...afterShapes[binding.fromId].handles!,
+          [binding.handleId]: {
+            ...afterShapes[binding.fromId]?.handles?.[binding.handleId],
+            bindingId: undefined,
+          },
+        },
       }
     })
+
+    bindingsToDelete.forEach((binding) => (afterBindings[binding.id] = undefined))
 
     return {
       id: 'translate',
@@ -636,7 +656,8 @@ export class TranslateSession extends BaseSession {
 
       if (clone.type === TDShapeType.Video) {
         const element = document.getElementById(shape.id + '_video') as HTMLVideoElement
-        if (element) clone.currentTime = (element.currentTime + 16) % element.duration
+        // 26.09.2022 - 18:30 - MK: does not work atm
+        // if (element) clone.currentTime = (element.currentTime + 16) % element.duration
       }
 
       clones.push(clone)
@@ -666,6 +687,7 @@ export class TranslateSession extends BaseSession {
         if (clonedShapeIds.has(binding.fromId)) {
           if (clonedShapeIds.has(binding.toId)) {
             const cloneId = Utils.uniqueId()
+
             const cloneBinding = {
               ...Utils.deepClone(binding),
               id: cloneId,

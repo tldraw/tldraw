@@ -1,5 +1,179 @@
 # Changelog
 
+## 1.24.5
+
+### Patch Changes
+
+- Fix mouse events.
+- Updated dependencies
+  - @tldraw/core@1.18.4
+
+## 1.24.4
+
+### Patch Changes
+
+- Fix menu bug.
+
+## 1.24.3
+
+### Patch Changes
+
+- Small bump.
+- Updated dependencies
+  - @tldraw/core@1.18.3
+
+## 1.24.2
+
+### Patch Changes
+
+- Fix bug with scrolling.
+- Updated dependencies
+  - @tldraw/core@1.18.2
+
+## 1.24.1
+
+### Patch Changes
+
+- - Fix bug with mouse button state
+- Updated dependencies
+  - @tldraw/core@1.18.1
+
+## 1.24.0
+
+### Minor Changes
+
+- - Remove `mobx` and `mobx-react-lite` as dependencies. This is a breaking change for libraries that expect data to be observable in `@tldraw/core`.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.18.0
+
+## 1.23.0
+
+### Minor Changes
+
+- - Improve middle mouse panning
+  - Fix bug with assets in VS Code plugin
+  - Improve performance of draw-style shapes
+  - Fix bug with creating assets
+  - Fix bug with text align in labels when outputting images
+  - Fix bug with middle mouse panning on Linux
+  - Fix bug with zoom shortcuts on number pad
+  - Fix bug with draw and erase direction when holding shift
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.17.0
+
+## 1.22.1
+
+### Patch Changes
+
+- Remove share by URL.
+
+## 1.22.0
+
+### Minor Changes
+
+- - Fix broken VS Code extension
+  - Add share by URL
+
+## 1.21.0
+
+### Minor Changes
+
+- - Improve text (and multiline text) in image exports
+  - Create European Portugese translation
+  - Create Swedish translation
+  - Use system default for theme default
+  - Update translation label for Chinese
+  - Fix bugs with flip command
+  - Fix bug with duplicate page command
+  - Improve dialogs
+  - Improve SVG pasting
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.16.0
+
+## 1.20.0
+
+### Minor Changes
+
+- - restores the sponsor link
+  - removes sign in / sign out / authentication / next-auth
+  - removes sponsorware page
+  - removes unused translation keys
+  - fixes dark mode on help icon
+  - improves border radius on panels
+  - fixes dividers on panels
+  - removes animated cursors (replace with CSS transitions for performance when - many cursors are present)
+  - removes unused icons
+  - adds migration for export default background option
+  - correctly normalizes mouse wheel
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.15.0
+
+## 1.19.0
+
+### Minor Changes
+
+- - Adds Ukrainian translations
+  - Adds Farsi translation
+  - Adds Hebrew translation
+  - Adds option for dock position
+  - Improves page numbering
+  - Support dark mode in menus
+  - Make language menu scrollable
+  - Adds link to translation guide
+
+## 1.18.3
+
+### Patch Changes
+
+- Fix bug when pressing escape while exiting text.
+
+## 1.18.2
+
+### Patch Changes
+
+- Improve page reordering, add german translation
+- Updated dependencies
+  - @tldraw/core@1.14.1
+
+## 1.18.1
+
+### Patch Changes
+
+- Add additional translations.
+
+## 1.18.0
+
+### Minor Changes
+
+- 8ef86c19: - Updates multiplayer implementation.
+  - Adds translation guide.
+  - Fixes bug on text shape
+  - Updates undo redo for text shapes.
+
+## 1.17.2
+
+### Patch Changes
+
+- Replace multiplayer icon.
+
+## 1.17.1
+
+### Patch Changes
+
+- Fix clipboard bug in Firefox, add overwite option to `insertContent`.
+
 ## 1.17.0
 
 ### Minor Changes

@@ -1,8 +1,8 @@
-import { Utils, TLPointerEventHandler, TLBoundsCorner } from '@tldraw/core'
+import { TLBoundsCorner, TLPointerEventHandler, Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import { Triangle } from '~state/shapes'
+import { BaseTool, Status } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool, Status } from '../BaseTool'
 
 export class TriangleTool extends BaseTool {
   type = TDShapeType.Triangle as const

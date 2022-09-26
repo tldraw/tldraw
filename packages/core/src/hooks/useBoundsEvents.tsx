@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react'
 import { useTLContext } from './useTLContext'
 
@@ -11,40 +10,70 @@ export function useBoundsEvents() {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
+
+        // On right click
         if (e.button === 2) {
           callbacks.onRightPointBounds?.(inputs.pointerDown(e, 'bounds'), e)
           return
         }
-        if (e.button !== 0) return
-        e.currentTarget?.setPointerCapture(e.pointerId)
+
         const info = inputs.pointerDown(e, 'bounds')
-        callbacks.onPointBounds?.(info, e)
+        e.currentTarget?.setPointerCapture(e.pointerId)
+
+        // On left click
+        if (e.button === 0) {
+          callbacks.onPointBounds?.(info, e)
+        }
+
+        // On left or middle click
         callbacks.onPointerDown?.(info, e)
       },
       onPointerUp: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
-        if (e.button !== 0) return
+
+        // On right click
+        if (e.button === 2) {
+          return
+        }
+
         inputs.activePointer = undefined
+
         if (!inputs.pointerIsValid(e)) return
+
         const isDoubleClick = inputs.isDoubleClick()
+
         const info = inputs.pointerUp(e, 'bounds')
+
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
           e.currentTarget?.releasePointerCapture(e.pointerId)
         }
-        if (isDoubleClick && !(info.altKey || info.metaKey)) {
-          callbacks.onDoubleClickBounds?.(info, e)
+
+        // On left click up
+        if (e.button === 0) {
+          // On double click
+          if (isDoubleClick && !(info.altKey || info.metaKey)) {
+            callbacks.onDoubleClickBounds?.(info, e)
+          }
+
+          callbacks.onReleaseBounds?.(info, e)
         }
-        callbacks.onReleaseBounds?.(info, e)
+
+        // On left or middle click up
         callbacks.onPointerUp?.(info, e)
       },
       onPointerMove: (e: React.PointerEvent) => {
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
-        if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-          callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
+
+        // On left click move
+        if (e.buttons === 1) {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            callbacks.onDragBounds?.(inputs.pointerMove(e, 'bounds'), e)
+          }
         }
+
         const info = inputs.pointerMove(e, 'bounds')
         callbacks.onPointerMove?.(info, e)
       },

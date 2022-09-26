@@ -1,6 +1,6 @@
-import type { Action } from 'state/constants'
 import type { TLPointerInfo } from '@tldraw/core'
 import Vec from '@tldraw/vec'
+import type { Action } from 'state/constants'
 
 export const pinchCamera: Action = (data, payload: TLPointerInfo) => {
   const { camera } = data.pageState

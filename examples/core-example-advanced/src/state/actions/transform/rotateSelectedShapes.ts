@@ -3,7 +3,6 @@ import Vec from '@tldraw/vec'
 import { getShapeUtils } from 'shapes'
 import type { ArrowShape } from 'shapes/arrow'
 import type { Action } from 'state/constants'
-import { getPagePoint } from 'state/helpers'
 import { mutables } from 'state/mutables'
 
 export const rotateSelectedShapes: Action = (data, payload: TLPointerInfo) => {

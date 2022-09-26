@@ -1,47 +1,51 @@
+import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
-import { useIntl } from 'react-intl'
-import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { FormattedMessage } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
+import { DMCheckboxItem, DMContent, DMItem } from '~components/Primitives/DropdownMenu'
+import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { useTldrawApp } from '~hooks'
-import { TDLanguage, TDSnapshot } from '~types'
+import { TDLanguage, TRANSLATIONS } from '~translations'
+import { TDSnapshot } from '~types'
 
-const settingsSelector = (s: TDSnapshot) => s.settings
+const languageSelector = (s: TDSnapshot) => s.settings.language
 
-type ILang = {
-  label: string
-  code: TDLanguage
-}
-
-export function LanguageMenu() {
+export const LanguageMenu = () => {
   const app = useTldrawApp()
-  const setting = app.useStore(settingsSelector)
-  const intl = useIntl()
-
-  const languages: ILang[] = [
-    { label: 'English', code: 'en' },
-    { label: 'Français', code: 'fr' },
-    { label: 'Italiano', code: 'it' },
-    { label: 'Chinese - Simplified', code: 'zh-cn' },
-  ]
+  const language = app.useStore(languageSelector)
 
   const handleChangeLanguage = React.useCallback(
-    (code: TDLanguage) => {
-      app.setSetting('language', code)
+    (locale: TDLanguage) => {
+      app.setSetting('language', locale)
     },
     [app]
   )
 
   return (
-    <DMSubMenu label={intl.formatMessage({ id: 'language' })}>
-      {languages.map((language) => (
+    <DMContent variant="menu" overflow id="language-menu" side="left" sideOffset={8}>
+      {TRANSLATIONS.map(({ locale, label }) => (
         <DMCheckboxItem
-          key={language.code}
-          checked={setting.language === language.code}
-          onCheckedChange={() => handleChangeLanguage(language.code)}
-          id={`TD-MenuItem-Language-${language}`}
+          key={locale}
+          checked={language === locale}
+          onCheckedChange={() => handleChangeLanguage(locale)}
+          id={`TD-MenuItem-Language-${locale}`}
         >
-          {language.label}
+          {label}
         </DMCheckboxItem>
       ))}
-    </DMSubMenu>
+      <Divider />
+      <a
+        href="https://github.com/tldraw/tldraw/blob/main/guides/translation.md"
+        target="_blank"
+        rel="nofollow"
+      >
+        <DMItem id="TD-MenuItem-Translation-Link">
+          <FormattedMessage id="translation.link" />
+          <SmallIcon>
+            <ExternalLinkIcon />
+          </SmallIcon>
+        </DMItem>
+      </a>
+    </DMContent>
   )
 }

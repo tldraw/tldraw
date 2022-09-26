@@ -1,11 +1,11 @@
-import { TLBounds, TLBoundsCorner, TLBoundsEdge, TLPerformanceMode, Utils } from '@tldraw/core'
+import { TLBounds, TLBoundsCorner, TLBoundsEdge, Utils } from '@tldraw/core'
+import type { TLBoundsWithCenter, TLSnapLine } from '@tldraw/core'
 import { Vec } from '@tldraw/vec'
-import type { TLSnapLine, TLBoundsWithCenter } from '@tldraw/core'
-import { SessionType, TldrawCommand, TldrawPatch, TDShape, TDStatus } from '~types'
-import { TLDR } from '~state/TLDR'
 import { SLOW_SPEED, SNAP_DISTANCE } from '~constants'
-import { BaseSession } from '../BaseSession'
-import type { TldrawApp } from '../../internal'
+import { TLDR } from '~state/TLDR'
+import type { TldrawApp } from '~state/TldrawApp'
+import { BaseSession } from '~state/sessions/BaseSession'
+import { SessionType, TDShape, TDStatus, TldrawCommand, TldrawPatch } from '~types'
 
 type SnapInfo =
   | {
@@ -97,7 +97,6 @@ export class TransformSession extends BaseSession {
     return void null
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update = (): TldrawPatch | undefined => {
     const {
       transformType,

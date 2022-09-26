@@ -1,7 +1,7 @@
-import { Utils, TLPointerEventHandler } from '@tldraw/core'
+import { TLPointerEventHandler, Utils } from '@tldraw/core'
 import { Draw } from '~state/shapes'
+import { BaseTool } from '~state/tools/BaseTool'
 import { SessionType, TDShapeType } from '~types'
-import { BaseTool } from '../BaseTool'
 
 enum Status {
   Idle = 'idle',
@@ -36,7 +36,7 @@ export class DrawTool extends BaseTool {
 
   /* ----------------- Event Handlers ----------------- */
 
-  onPointerDown: TLPointerEventHandler = info => {
+  onPointerDown: TLPointerEventHandler = (info) => {
     if (this.status !== Status.Idle) return
     if (this.app.readOnly) return
     const {

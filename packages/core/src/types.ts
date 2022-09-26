@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* --------------------- Primary -------------------- */
-
 import type React from 'react'
 
 export enum TLPerformanceMode {
@@ -47,14 +44,15 @@ export interface TLPageState {
   bindingId?: string | null
 }
 
-export interface TLUser<T extends TLShape> {
+export interface TLUser {
   id: string
   color: string
   point: number[]
   selectedIds: string[]
+  session?: boolean
 }
 
-export type TLUsers<T extends TLShape, U extends TLUser<T> = TLUser<T>> = Record<string, U>
+export type TLUsers = Record<string, TLUser>
 
 export type TLSnapLine = number[][]
 
@@ -148,7 +146,7 @@ export type TLPinchEventHandler = (
     | PointerEventInit
 ) => void
 
-export type TLShapeChangeHandler<T, K = any> = (
+export type TLShapeChangeHandler<T extends TLShape, K = any> = (
   shape: { id: string } & Partial<T>,
   info?: K
 ) => void
@@ -352,7 +350,6 @@ export interface IShapeTreeNode<T extends TLShape, M = any> {
 /* -------------------------------------------------- */
 
 export type MappedByType<K extends string, T extends { type: K }> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in T['type']]: T extends any ? (P extends T['type'] ? T : never) : never
 }
 

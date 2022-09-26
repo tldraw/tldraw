@@ -1,12 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import * as React from 'react'
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import type { TLShape, TLBounds, TLComponentProps } from '../types'
-import { TLShapeUtil } from './TLShapeUtil'
 import { render } from '@testing-library/react'
+import * as React from 'react'
 import { SVGContainer } from '~components'
-import Utils from '../utils'
+import type { TLBounds, TLComponentProps, TLShape } from '~types'
+import Utils from '~utils'
+import { TLShapeUtil } from './TLShapeUtil'
 
 export interface BoxShape extends TLShape {
   type: 'box'
@@ -209,20 +206,22 @@ describe('When creating a realistic API around TLShapeUtil', () => {
       return <div ref={ref2}>{props.message}</div>
     })
 
-    render(<H message="Hello" />)
+    expect(() => render(<H message="Hello" />)).not.toThrowError()
 
-    render(
-      <Box.Component
-        ref={ref}
-        shape={box}
-        bounds={Box.getBounds(box)}
-        isEditing={false}
-        isBinding={false}
-        isHovered={false}
-        isSelected={false}
-        meta={meta}
-        events={{} as any}
-      />
-    )
+    expect(() =>
+      render(
+        <Box.Component
+          ref={ref}
+          shape={box}
+          bounds={Box.getBounds(box)}
+          isEditing={false}
+          isBinding={false}
+          isHovered={false}
+          isSelected={false}
+          meta={meta}
+          events={{} as any}
+        />
+      )
+    ).not.toThrowError()
   })
 })

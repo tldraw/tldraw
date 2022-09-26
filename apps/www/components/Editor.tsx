@@ -1,23 +1,15 @@
 import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
-import { useAccountHandlers } from 'hooks/useAccountHandlers'
-import { useUploadAssets } from 'hooks/useUploadAssets'
 import * as React from 'react'
-import * as gtag from 'utils/gtag'
+import { useUploadAssets } from '~hooks/useUploadAssets'
+import * as gtag from '~utils/gtag'
 
 declare const window: Window & { app: TldrawApp }
 
 interface EditorProps {
   id?: string
-  isUser?: boolean
-  isSponsor?: boolean
 }
 
-const Editor = ({
-  id = 'home',
-  isUser = false,
-  isSponsor = false,
-  ...rest
-}: EditorProps & Partial<TldrawProps>) => {
+const Editor = ({ id = 'home', ...rest }: EditorProps & Partial<TldrawProps>) => {
   const handleMount = React.useCallback((app: TldrawApp) => {
     window.app = app
   }, [])
@@ -34,8 +26,6 @@ const Editor = ({
 
   const fileSystemEvents = useFileSystem()
 
-  const { onSignIn, onSignOut } = useAccountHandlers()
-
   const { onAssetUpload } = useUploadAssets()
 
   return (
@@ -45,9 +35,6 @@ const Editor = ({
         autofocus
         onMount={handleMount}
         onPersist={handlePersist}
-        showSponsorLink={!isSponsor}
-        onSignIn={isSponsor ? undefined : onSignIn}
-        onSignOut={isUser ? onSignOut : undefined}
         onAssetUpload={onAssetUpload}
         {...fileSystemEvents}
         {...rest}

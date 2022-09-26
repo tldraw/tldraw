@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { ColorStyle, TDShapeType, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
-import { ColorStyle, Tldraw, TDShapeType, TldrawApp } from '@tldraw/tldraw'
 
 export default function Imperative() {
   const rTldrawApp = React.useRef<TldrawApp>()
@@ -47,7 +46,7 @@ export default function Imperative() {
 
       const color = i % 2 ? ColorStyle.Red : ColorStyle.Blue
 
-      app.patchShapes({
+      app.updateShapes({
         id: 'rect1',
         style: {
           ...rect1.style,
