@@ -75,49 +75,25 @@ export class StateManager<T extends Record<string, any>> {
     this.ready = new Promise<'none' | 'restored' | 'migrated'>((resolve) => {
       let message: 'none' | 'restored' | 'migrated' = 'none'
 
-      if (this._idbId) {
         message = 'restored'
 
-        idb
-          .get(this._idbId)
-          .then(async (saved) => {
-            if (saved) {
-              let next = saved
-
-              if (version) {
-                const savedVersion = await idb.get<number>(id + '_version')
-
-                if (savedVersion && savedVersion < version) {
-                  next = update ? update(saved, initialState, savedVersion) : initialState
-
-                  message = 'migrated'
-                }
-              }
-
-              await idb.set(id + '_version', version || -1)
-
-              // why is this necessary? but it is...
-              const prevEmpty = this._state.appState.isEmptyCanvas
-
-              next = this.migrate(next)
-
-              this._state = deepCopy(next)
-              this._snapshot = deepCopy(next)
-
-              this._state.appState.isEmptyCanvas = prevEmpty
-              this.store.setState(this._state, true)
-            } else {
-              await idb.set(id + '_version', version || -1)
+        EdubreakService.getStateFromEdubreak()
+          .then(async (edubreakState) => {
+            // why is this necessary? but it is...
+            const prevEmpty = this._state.appState.isEmptyCanvas
+            if (prevEmpty) {
+              message = 'none'
             }
+            this._state = edubreakState
+            this._snapshot = edubreakState
+
+            this._state.appState.isEmptyCanvas = prevEmpty
+            this.store.setState(this._state, true)
             this._status = 'ready'
             resolve(message)
           })
           .catch((e) => console.error(e))
-      } else {
-        // We need to wait for any override to `onReady` to take effect.
-        this._status = 'ready'
-        resolve(message)
-      }
+
     }).then((message) => {
       if (this.onReady) this.onReady(message)
       return message
@@ -125,22 +101,19 @@ export class StateManager<T extends Record<string, any>> {
   }
 
   /**
-   * Save the current state to indexdb.
+   * Save the current state to edubreak.
    */
   protected persist = (patch: Patch<T>, id?: string): void | Promise<void> => {
     if (this._status !== 'ready') return
     try {
       EdubreakService.saveStateToEdubreak(this._state)
+        .catch((e) => console.error(e))
     } catch (e) {
       console.error('current document state could not be saved to edubreak', e)
     }
 
     if (this.onPersist) {
       this.onPersist(this._state, patch, id)
-    }
-
-    if (this._idbId) {
-      return idb.set(this._idbId, this._state).catch((e) => console.error(e))
     }
   }
 

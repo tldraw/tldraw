@@ -134,21 +134,42 @@ const EdubreakService = {
         const headers = {
             Authorization: 'Bearer ' + this.getEdubreakAccessToken()
         }
+        // TODO: get board id from url and set state for this specific board
         const options = {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(state)
         };
         try {
+            await fetch(this.getEdubreakApiUrl() + '/svb', options)
+            console.log('### EdubreakService: current document state was saved ###')
+        } catch (e) {
+            console.error('### EdubreakService: error while persisting document state to the server ###', e);
+        }
+    },
+
+    getStateFromEdubreak: async function() {
+        // Simple GET request with a JSON body using fetch
+        const headers = {
+            Authorization: 'Bearer ' + this.getEdubreakAccessToken()
+        }
+        // TODO: get board id from url and get specific board state for this id
+        const options = {
+            method: 'GET',
+            headers: headers
+        };
+        try {
             const data = await fetch(this.getEdubreakApiUrl() + '/svb', options)
               .then(response => {
                   return response.json()
               })
-            console.log('### EdubreakService: current document state was saved ###', JSON.parse(data))
+            console.log('### EdubreakService: current document state is ###', data)
+            return data;
         } catch (e) {
-            console.error('### EdubreakService: error while persisting data to the server ###');
+            console.error('### EdubreakService: error while getting document state from the server ###', e);
         }
     }
+
 };
 
 export default EdubreakService;
