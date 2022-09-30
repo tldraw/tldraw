@@ -51,84 +51,84 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
     }
   })
 
-  if (version === newVersion) return state
-
-  if (version < 14) {
-    Object.values(document.pages).forEach((page) => {
-      Object.values(page.shapes)
-        .filter((shape) => shape.type === TDShapeType.Text)
-        .forEach((shape) => (shape as TextShape).style.font === FontStyle.Script)
-    })
-  }
-
-  // Lowercase styles, move binding meta to binding
-  if (version <= 13) {
-    Object.values(document.pages).forEach((page) => {
-      Object.values(page.bindings).forEach((binding) => {
-        Object.assign(binding, (binding as any).meta)
+  if (version !== newVersion) {
+    if (version < 14) {
+      Object.values(document.pages).forEach((page) => {
+        Object.values(page.shapes)
+          .filter((shape) => shape.type === TDShapeType.Text)
+          .forEach((shape) => (shape as TextShape).style.font === FontStyle.Script)
       })
+    }
 
-      Object.values(page.shapes).forEach((shape) => {
-        Object.entries(shape.style).forEach(([id, style]) => {
-          if (typeof style === 'string') {
-            // @ts-ignore
-            shape.style[id] = style.toLowerCase()
-          }
+    // Lowercase styles, move binding meta to binding
+    if (version <= 13) {
+      Object.values(document.pages).forEach((page) => {
+        Object.values(page.bindings).forEach((binding) => {
+          Object.assign(binding, (binding as any).meta)
         })
 
-        if (shape.type === TDShapeType.Arrow) {
-          if (shape.decorations) {
-            Object.entries(shape.decorations).forEach(([id, decoration]) => {
-              if ((decoration as unknown) === 'Arrow') {
-                shape.decorations = {
-                  ...shape.decorations,
-                  [id]: Decoration.Arrow,
+        Object.values(page.shapes).forEach((shape) => {
+          Object.entries(shape.style).forEach(([id, style]) => {
+            if (typeof style === 'string') {
+              // @ts-ignore
+              shape.style[id] = style.toLowerCase()
+            }
+          })
+
+          if (shape.type === TDShapeType.Arrow) {
+            if (shape.decorations) {
+              Object.entries(shape.decorations).forEach(([id, decoration]) => {
+                if ((decoration as unknown) === 'Arrow') {
+                  shape.decorations = {
+                    ...shape.decorations,
+                    [id]: Decoration.Arrow,
+                  }
                 }
-              }
-            })
+              })
+            }
+          }
+        })
+      })
+    }
+
+    // Add document name and file system handle
+    if (version <= 13.1) {
+      document.name = 'New Document'
+    }
+
+    if (version < 15) {
+      document.assets = {}
+    }
+
+    Object.values(document.pages).forEach((page) => {
+      Object.values(page.shapes).forEach((shape) => {
+        if (version < 15.2) {
+          if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
+            shape.style.isFilled = true
+          }
+        }
+
+        if (version < 15.3) {
+          if (
+            shape.type === TDShapeType.Rectangle ||
+            shape.type === TDShapeType.Triangle ||
+            shape.type === TDShapeType.Ellipse ||
+            shape.type === TDShapeType.Arrow
+          ) {
+            shape.label = (shape as any).text || ''
+            shape.labelPoint = [0.5, 0.5]
           }
         }
       })
     })
-  }
 
-  // Add document name and file system handle
-  if (version <= 13.1) {
-    document.name = 'New Document'
-  }
+    if (version < 15.4) {
+      settings.dockPosition = 'bottom'
+    }
 
-  if (version < 15) {
-    document.assets = {}
-  }
-
-  Object.values(document.pages).forEach((page) => {
-    Object.values(page.shapes).forEach((shape) => {
-      if (version < 15.2) {
-        if (shape.type === TDShapeType.Image || shape.type === TDShapeType.Video) {
-          shape.style.isFilled = true
-        }
-      }
-
-      if (version < 15.3) {
-        if (
-          shape.type === TDShapeType.Rectangle ||
-          shape.type === TDShapeType.Triangle ||
-          shape.type === TDShapeType.Ellipse ||
-          shape.type === TDShapeType.Arrow
-        ) {
-          shape.label = (shape as any).text || ''
-          shape.labelPoint = [0.5, 0.5]
-        }
-      }
-    })
-  })
-
-  if (version < 15.4) {
-    settings.dockPosition = 'bottom'
-  }
-
-  if (version < 15.5) {
-    settings.exportBackground = TDExportBackground.Transparent
+    if (version < 15.5) {
+      settings.exportBackground = TDExportBackground.Transparent
+    }
   }
 
   // Cleanup
