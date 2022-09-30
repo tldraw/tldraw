@@ -1340,9 +1340,7 @@
     "pageStates": {
       "page": {
         "id": "page",
-        "selectedIds": [
-          "15a910e6-dcb0-4503-0158-d3a8d4678242"
-        ],
+        "selectedIds": [],
         "camera": {
           "point": [
             0,
