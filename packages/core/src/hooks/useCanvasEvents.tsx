@@ -13,6 +13,7 @@ export function useCanvasEvents() {
 
         // On right click
         if (e.button === 2) {
+          callbacks.onRightPointCanvas?.(inputs.pointerDown(e, 'canvas'), e)
           return
         }
 
