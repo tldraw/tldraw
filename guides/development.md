@@ -13,5 +13,3 @@ From the root folder:
 Other scripts:
 
 - Run `yarn test` to execute unit tests via [Jest](https://jestjs.io).
-
-- Run `yarn docs` to build the docs via [ts-doc](https://typedoc.org/).
