@@ -253,3 +253,5 @@ Here are some useful methods:
 - `setSetting`
 - `selectTool`
 - `cancel`
+
+Check the source or the TypeScript types for more on these and other methods.
