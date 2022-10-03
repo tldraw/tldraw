@@ -100,6 +100,7 @@ In addition to these required props, the Renderer accents many other **optional*
 | `hideBindingHandles` | `boolean`                     | Do not show binding controls for selected shapes with bindings.       |
 | `hideResizeHandles`  | `boolean`                     | Do not show resize handles for selected shapes.                       |
 | `hideRotateHandles`  | `boolean`                     | Do not show rotate handles for selected shapes.                       |
+| `hideCursors`        | `boolean`                     | Do not show multiplayer cursors.                                      |
 | `snapLines`          | [`TLSnapLine`](#tlsnapline)[] | An array of "snap" lines.                                             |
 | `users`              | `object`                      | A table of [`TLUser`](#tluser)s.                                      |
 | `userId`             | `object`                      | The current user's [`TLUser`](#tluser) id.                            |
