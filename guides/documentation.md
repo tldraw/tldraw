@@ -4,15 +4,6 @@
 
 This file contains the documentation for the `<Tldraw>` component as well as the data model that the component accepts.
 
-In addition to the docs written below, this project also includes **generated documentation**. To view the generated docs:
-
-1. Run `yarn docs` from the root folder
-2. Open the file at:
-
-```
-/packages/tldraw/docs/classes/TldrawApp.html
-```
-
 ## `tldraw`
 
 The `Tldraw` React component is the [tldraw](https://tldraw.com) editor exported as a standalone component. You can control the editor through props, or through the `TldrawApp`'s imperative API. **All props are optional.**
@@ -217,12 +208,6 @@ function App() {
 }
 ```
 
-To view the full documentation of the `TldrawApp` API, generate the project's documentation by running `yarn docs` from the root folder, then open the file at:
-
-```
-/packages/tldraw/docs/classes/TldrawApp.html
-```
-
 Here are some useful methods:
 
 - `loadDocument`
@@ -269,4 +254,4 @@ Here are some useful methods:
 - `selectTool`
 - `cancel`
 
-Check the generated docs, source or the TypeScript types for more on these and other methods.
+Check the source or the TypeScript types for more on these and other methods.
