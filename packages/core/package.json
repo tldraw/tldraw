@@ -1,5 +1,5 @@
 {
-  "version": "1.18.4",
+  "version": "1.19.0",
   "name": "@tldraw/core",
   "description": "The tldraw core renderer and utilities.",
   "author": "@steveruizok",
@@ -32,8 +32,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@tldraw/intersect": "^1.7.1",
-    "@tldraw/vec": "^1.7.1",
+    "@tldraw/intersect": "^1.8.0",
+    "@tldraw/vec": "^1.8.0",
     "@use-gesture/react": "^10.2.19",
     "perfect-freehand": "^1.1.0"
   },

@@ -1,5 +1,5 @@
 {
-  "version": "1.7.1",
+  "version": "1.8.0",
   "name": "@tldraw/intersect",
   "description": "2D intersection utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",
@@ -29,7 +29,7 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@tldraw/vec": "^1.7.1"
+    "@tldraw/vec": "^1.8.0"
   },
   "devDependencies": {
     "@tldraw/vec": "*",

@@ -1,5 +1,13 @@
 # @tldraw/core-example-simple
 
+## 1.8.8
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.19.0
+  - @tldraw/vec@1.8.0
+
 ## 1.8.7
 
 ### Patch Changes

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.19.0
+
+### Minor Changes
+
+- - Adds `components` prop to Tldraw component (for custom Cursor, etc) @jamesbvaughan
+  - Adds Thai language @watchakorn-18k
+  - Fix event bug on `onRightPointCanvas`
+  - Fix bug with bad data in document with up-to-date version number
+  - Fix bug with arrow bindings
+  - Improves freehand line performance
+  - Improves performance of shape tree
+  - Improved .tldr file size (strip white space)
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/intersect@1.8.0
+  - @tldraw/vec@1.8.0
+
 ## 1.18.4
 
 ### Patch Changes
