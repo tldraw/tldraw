@@ -1,10 +1,7 @@
 import Head from 'next/head'
 import type React from 'react'
 import '~styles/globals.css'
-import { init } from '~utils/sentry'
 import useGtag from '~utils/useGtag'
-
-init()
 
 const APP_NAME = 'tldraw'
 const APP_DESCRIPTION = 'A tiny little drawing app.'
