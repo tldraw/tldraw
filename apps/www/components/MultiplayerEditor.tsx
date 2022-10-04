@@ -1,4 +1,4 @@
-import { Tldraw, TldrawProps, useFileSystem } from '@tldraw/tldraw'
+import { TDUserStatus, Tldraw, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { useMultiplayerAssets } from '~hooks/useMultiplayerAssets'
 import { useMultiplayerState } from '~hooks/useMultiplayerState'
@@ -12,7 +12,20 @@ interface Props {
 
 const MultiplayerEditor = ({ roomId }: Props) => {
   return (
-    <RoomProvider id={roomId}>
+    <RoomProvider
+      id={roomId}
+      initialPresence={{
+        id: 'DEFAULT_ID',
+        user: {
+          id: 'DEFAULT_ID',
+          status: TDUserStatus.Connecting,
+          activeShapes: [],
+          color: 'black',
+          point: [0, 0],
+          selectedIds: [],
+        },
+      }}
+    >
       <Editor roomId={roomId} />
     </RoomProvider>
   )

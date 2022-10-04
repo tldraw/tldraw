@@ -17,13 +17,8 @@
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist"
   },
   "dependencies": {
-    "@liveblocks/client": "^0.17.0-beta2",
-    "@liveblocks/react": "^0.17.0-beta2",
-    "@sentry/integrations": "^6.13.2",
-    "@sentry/node": "^6.13.2",
-    "@sentry/react": "^6.13.2",
-    "@sentry/tracing": "^6.13.2",
-    "@sentry/webpack-plugin": "^1.17.1",
+    "@liveblocks/client": "^0.18.3",
+    "@liveblocks/react": "^0.18.3",
     "@stitches/react": "^1.2.8",
     "@tldraw/core": "*",
     "@tldraw/tldraw": "*",

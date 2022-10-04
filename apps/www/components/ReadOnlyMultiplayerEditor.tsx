@@ -1,4 +1,4 @@
-import { Tldraw, useFileSystem } from '@tldraw/tldraw'
+import { TDUserStatus, Tldraw, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { useReadOnlyMultiplayerState } from '~hooks/useReadOnlyMultiplayerState'
 import { styled } from '~styles'
@@ -10,7 +10,20 @@ interface Props {
 
 const ReadOnlyMultiplayerEditor = ({ roomId }: Props) => {
   return (
-    <RoomProvider id={roomId}>
+    <RoomProvider
+      id={roomId}
+      initialPresence={{
+        id: 'DEFAULT_ID',
+        user: {
+          id: 'DEFAULT_ID',
+          status: TDUserStatus.Connecting,
+          activeShapes: [],
+          color: 'black',
+          point: [0, 0],
+          selectedIds: [],
+        },
+      }}
+    >
       <ReadOnlyEditor roomId={roomId} />
     </RoomProvider>
   )
