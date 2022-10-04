@@ -90,18 +90,20 @@ To avoid unnecessary renders, be sure to pass "stable" values as props to the `R
 
 In addition to these required props, the Renderer accents many other **optional** props.
 
-| Property             | Type                          | Description                                                       |
-| -------------------- | ----------------------------- | ----------------------------------------------------------------- |
-| `containerRef`       | `React.MutableRefObject`      | A React ref for the container, where CSS variables will be added. |
-| `theme`              | `object`                      | An object with overrides for the Renderer's default colors.       |
-| `hideBounds`         | `boolean`                     | Do not show the bounding box for selected shapes.                 |
-| `hideHandles`        | `boolean`                     | Do not show handles for shapes with handles.                      |
-| `hideBindingHandles` | `boolean`                     | Do not show binding controls for selected shapes with bindings.   |
-| `hideResizeHandles`  | `boolean`                     | Do not show resize handles for selected shapes.                   |
-| `hideRotateHandles`  | `boolean`                     | Do not show rotate handles for selected shapes.                   |
-| `snapLines`          | [`TLSnapLine`](#tlsnapline)[] | An array of "snap" lines.                                         |
-| `users`              | `object`                      | A table of [`TLUser`](#tluser)s.                                  |
-| `userId`             | `object`                      | The current user's [`TLUser`](#tluser) id.                        |
+| Property             | Type                          | Description                                                           |
+| -------------------- | ----------------------------- | --------------------------------------------------------------------- |
+| `containerRef`       | `React.MutableRefObject`      | A React ref for the container, where CSS variables will be added.     |
+| `theme`              | `object`                      | An object with overrides for the Renderer's default colors.           |
+| `components`         | `object`                      | An object with overrides for the Renderer's default React components. |
+| `hideBounds`         | `boolean`                     | Do not show the bounding box for selected shapes.                     |
+| `hideHandles`        | `boolean`                     | Do not show handles for shapes with handles.                          |
+| `hideBindingHandles` | `boolean`                     | Do not show binding controls for selected shapes with bindings.       |
+| `hideResizeHandles`  | `boolean`                     | Do not show resize handles for selected shapes.                       |
+| `hideRotateHandles`  | `boolean`                     | Do not show rotate handles for selected shapes.                       |
+| `hideCursors`        | `boolean`                     | Do not show multiplayer cursors.                                      |
+| `snapLines`          | [`TLSnapLine`](#tlsnapline)[] | An array of "snap" lines.                                             |
+| `users`              | `object`                      | A table of [`TLUser`](#tluser)s.                                      |
+| `userId`             | `object`                      | The current user's [`TLUser`](#tluser) id.                            |
 
 The theme object accepts valid CSS colors for the following properties:
 
@@ -113,6 +115,12 @@ The theme object accepts valid CSS colors for the following properties:
 | `brushStroke`  | The stroke color of the brush selection box          |
 | `selectFill`   | The fill color of the selection bounds               |
 | `selectStroke` | The stroke color of the selection bounds and handles |
+
+The components object accepts React components for the following properties:
+
+| Property | Description                       |
+| -------- | --------------------------------- |
+| `Cursor` | Multiplayer cursors on the canvas |
 
 The Renderer also accepts many (optional) event callbacks.
 
