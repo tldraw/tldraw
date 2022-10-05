@@ -11,13 +11,13 @@ export function useCanvasEvents() {
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
 
+        e.currentTarget.setPointerCapture(e.pointerId)
+
         // On right click
         if (e.button === 2) {
           callbacks.onRightPointCanvas?.(inputs.pointerDown(e, 'canvas'), e)
           return
         }
-
-        e.currentTarget.setPointerCapture(e.pointerId)
 
         const info = inputs.pointerDown(e, 'canvas')
 
