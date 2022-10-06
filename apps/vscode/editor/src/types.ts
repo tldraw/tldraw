@@ -1,7 +1,12 @@
-export type MessageFromWebview = {
-  type: 'editorUpdated'
-  text: string
-}
+export type MessageFromWebview =
+  | {
+      type: 'editorUpdated'
+      text: string
+    }
+  | {
+      type: 'svg'
+      content: string
+    }
 
 export type MessageFromExtension =
   | {
@@ -11,4 +16,7 @@ export type MessageFromExtension =
   | {
       type: 'fileSaved'
       text: string
+    }
+  | {
+      type: 'getSvg'
     }

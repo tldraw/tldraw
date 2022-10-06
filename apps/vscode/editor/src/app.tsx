@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { TDDocument, TDFile, Tldraw, TldrawApp } from '@tldraw/tldraw'
+import { TDDocument, TDExportType, TDFile, Tldraw, TldrawApp } from '@tldraw/tldraw'
 import * as React from 'react'
 import type { MessageFromExtension, MessageFromWebview } from './types'
 import { defaultDocument } from './utils/defaultDocument'
@@ -36,7 +36,7 @@ const App = () => {
 
   // When the file changes from VS Code's side, update the editor's document.
   React.useEffect(() => {
-    function handleMessage({ data }: MessageEvent<MessageFromExtension>) {
+    async function handleMessage({ data }: MessageEvent<MessageFromExtension>) {
       if (data.type === 'openedFile') {
         try {
           const { document } = JSON.parse(data.text) as TDFile
@@ -50,6 +50,21 @@ const App = () => {
           app.zoomToFit()
         } catch (e) {
           console.warn('Failed to parse file:', data.text)
+        }
+      } else if (data.type === 'getSvg') {
+        try {
+          const app = rTldrawApp.current!
+          const ids = Object.keys(app.page.shapes)
+          const svg = await app.getImage(TDExportType.SVG, { ids })
+          if (!svg) {
+            throw new Error('Did not get SVG data')
+          }
+          vscode.postMessage({
+            type: 'svg',
+            content: await svg.text(),
+          } as MessageFromWebview)
+        } catch (e) {
+          console.warn('Failed to export SVG:', e)
         }
       }
     }

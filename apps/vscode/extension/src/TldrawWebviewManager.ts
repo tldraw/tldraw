@@ -8,6 +8,7 @@ import { MessageFromExtension, MessageFromWebview } from './types'
  */
 export class TldrawWebviewManager {
   private disposables: vscode.Disposable[] = []
+  private pendingSvgSaveUri?: vscode.Uri
 
   constructor(
     private context: vscode.ExtensionContext,
@@ -64,6 +65,15 @@ export class TldrawWebviewManager {
       type: 'fileSaved',
       text: document.getText(),
     } as MessageFromExtension)
+
+    // Request an SVG file from the webview, if the filename ends with ".svg.tldr".
+    if (document.fileName.endsWith('.svg.tldr')) {
+      // Convert the extension from ".svg.tldr" to ".svg".
+      this.pendingSvgSaveUri = vscode.Uri.parse(document.uri.toString().replace(/\.tldr$/, ''))
+      webviewPanel.webview.postMessage({
+        type: 'getSvg',
+      } as MessageFromExtension)
+    }
   }
 
   private handleDidChangeTextDocument = (event: vscode.TextDocumentChangeEvent) => {
@@ -110,6 +120,13 @@ export class TldrawWebviewManager {
         )
 
         vscode.workspace.applyEdit(edit)
+
+        break
+      }
+      case 'svg': {
+        if (this.pendingSvgSaveUri) {
+          vscode.workspace.fs.writeFile(this.pendingSvgSaveUri, Buffer.from(e.content))
+        }
 
         break
       }
