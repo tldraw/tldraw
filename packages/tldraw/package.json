@@ -50,6 +50,7 @@
     "browser-fs-access": "^0.31.0",
     "idb-keyval": "^6.2.0",
     "perfect-freehand": "^1.2.0",
+    "potpack": "^1.0.2",
     "react-error-boundary": "^3.1.4",
     "react-hotkeys-hook": "^3.4.7",
     "react-intl": "^6.1.1",

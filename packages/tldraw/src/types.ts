@@ -271,6 +271,7 @@ export enum StretchType {
 export enum DistributeType {
   Horizontal = 'horizontal',
   Vertical = 'vertical',
+  PackIntoRect = 'packIntoRect',
 }
 
 export enum FlipType {

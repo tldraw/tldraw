@@ -6,6 +6,7 @@ import {
   AlignLeftIcon,
   AlignRightIcon,
   AlignTopIcon,
+  GridIcon,
   SpaceEvenlyHorizontallyIcon,
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
@@ -336,6 +337,10 @@ function AlignDistributeSubMenu({
     app.distribute(DistributeType.Horizontal)
   }, [app])
 
+  const packIntoRectangle = React.useCallback(() => {
+    app.distribute(DistributeType.PackIntoRect)
+  }, [app])
+
   const container = useContainer()
 
   return (
@@ -396,6 +401,14 @@ function AlignDistributeSubMenu({
                 id="TD-ContextMenu-Align_Distribute-SpaceEvenlyVertical"
               >
                 <SpaceEvenlyVerticallyIcon />
+              </CMIconButton>
+            )}
+            {hasThreeOrMore && (
+              <CMIconButton
+                onClick={packIntoRectangle}
+                id="TD-ContextMenu-Align_Distribute-PackIntoRectangle"
+              >
+                <GridIcon />
               </CMIconButton>
             )}
             <CMArrow offset={13} />

@@ -3136,7 +3136,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   /**
    * Distribute one or more shapes.
-   * @param direction Whether to distribute horizontally or vertically..
+   * @param direction Whether to distribute horizontally/vertically, or pack into a rectangle.
    * @param ids The ids of the shapes to change (defaults to selection).
    */
   distribute = (direction: DistributeType, ids = this.selectedIds): this => {

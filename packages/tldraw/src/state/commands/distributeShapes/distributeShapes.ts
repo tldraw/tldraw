@@ -1,5 +1,7 @@
 import { Utils } from '@tldraw/core'
 import Vec from '@tldraw/vec'
+import potpack from 'potpack'
+import { PACK_DISTANCE } from '~constants'
 import { TLDR } from '~state/TLDR'
 import type { TldrawApp } from '~state/TldrawApp'
 import { DistributeType, TDShape, TDShapeType, TldrawCommand } from '~types'
@@ -154,6 +156,30 @@ function getDistributions(initialShapes: TDShape[], type: DistributeType) {
         })
       }
 
+      break
+    }
+
+    case DistributeType.PackIntoRect: {
+      const origin = [commonBounds.minX, commonBounds.minY]
+      const shapesPosOriginal: Record<string, number[]> = Object.fromEntries(
+        entries.map((entry) => [entry.id, [entry.bounds.minX, entry.bounds.minY]])
+      )
+      const boxes = entries.map((entry) => ({
+        id: entry.id,
+        w: entry.bounds.width + PACK_DISTANCE,
+        h: entry.bounds.height + PACK_DISTANCE,
+        x: entry.bounds.minX,
+        y: entry.bounds.minY,
+      }))
+      // will sort in place
+      potpack(boxes)
+      boxes.forEach(({ id, x, y }) => {
+        results.push({
+          id,
+          prev: shapesPosOriginal[id],
+          next: [x + origin[0], y + origin[1]],
+        })
+      })
       break
     }
   }
