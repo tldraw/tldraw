@@ -21,6 +21,7 @@ class MyDocument extends NextDocument {
     return (
       <Html lang="en">
         <Head>
+          <script async src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
           <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`} />
           <script
             dangerouslySetInnerHTML={{
