@@ -1,5 +1,6 @@
-import Peer, { MediaConnection } from 'peerjs'
-import { useEffect, useState } from 'react'
+import Peer, { MediaConnection } from 'peerjs';
+import { useEffect, useState } from 'react';
+
 
 export const usePeerJS = (id: string) => {
   const [peer, setPeer] = useState<Peer>()
@@ -10,6 +11,7 @@ export const usePeerJS = (id: string) => {
       console.log('My peer ID is: ' + id)
     })
     peer.on('call', async (call) => call.answer(await getUserMedia()))
+    peer.on('error', (err) => window.alert(JSON.stringify(err)))
     setPeer(peer)
     return () => {
       peer.destroy()
@@ -38,6 +40,10 @@ export const connectToNewUser = (
   connection.on('close', () => {
     video.srcObject = null
     video.remove()
+  })
+  connection.on('error', (err) => {
+    console.error(err)
+    window.alert(JSON.stringify(err))
   })
   return connection
 }
