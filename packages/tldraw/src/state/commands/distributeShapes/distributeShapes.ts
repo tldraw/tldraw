@@ -76,6 +76,7 @@ function getDistributions(initialShapes: TDShape[], type: DistributeType) {
       point: [...shape.point],
       bounds: utils.getBounds(shape),
       center: utils.getCenter(shape),
+      hasBinding: !!shape.handles?.start?.bindingId || !!shape.handles?.end?.bindingId,
     }
   })
 
@@ -164,13 +165,15 @@ function getDistributions(initialShapes: TDShape[], type: DistributeType) {
       const shapesPosOriginal: Record<string, number[]> = Object.fromEntries(
         entries.map((entry) => [entry.id, [entry.bounds.minX, entry.bounds.minY]])
       )
-      const boxes = entries.map((entry) => ({
-        id: entry.id,
-        w: entry.bounds.width + PACK_DISTANCE,
-        h: entry.bounds.height + PACK_DISTANCE,
-        x: entry.bounds.minX,
-        y: entry.bounds.minY,
-      }))
+      const boxes = entries
+        .filter((entry) => !entry.hasBinding)
+        .map((entry) => ({
+          id: entry.id,
+          w: entry.bounds.width + PACK_DISTANCE,
+          h: entry.bounds.height + PACK_DISTANCE,
+          x: entry.bounds.minX,
+          y: entry.bounds.minY,
+        }))
       // will sort in place
       potpack(boxes)
       boxes.forEach(({ id, x, y }) => {
