@@ -45,6 +45,7 @@ const StyledContent = styled(RadixTooltip.Content, {
   alignItems: 'center',
   fontFamily: '$ui',
   userSelect: 'none',
+  zIndex: "9999"
 })
 
 const StyledArrow = styled(RadixTooltip.Arrow, {
