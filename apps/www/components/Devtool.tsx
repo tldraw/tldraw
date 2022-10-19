@@ -1,5 +1,11 @@
 import { InspectParams, Inspector } from 'react-dev-inspector'
 
+declare module 'react' {
+  interface FunctionComponent<P = {}> {
+    (props: PropsWithChildren<P>, context?: any): ReactElement<any, any> | null
+  }
+}
+
 const Devtools = () => {
   if (process.env.NODE_ENV !== 'development') {
     return null
