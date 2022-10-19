@@ -1,15 +1,16 @@
 import Peer, { MediaConnection } from 'peerjs'
 import React, { FC, useEffect, useState } from 'react'
 import { useRef } from 'react'
+import { useCurrentUserId, useLiveUsers } from '~hooks/useLiveUsers'
 import { closeConnection, connectToNewUser, getUserMedia, usePeerJS } from './peerjs.service'
 
 export interface VideoCallProps {}
 
 const VideoCall: FC<VideoCallProps> = () => {
   const ref = useRef<HTMLDivElement>(null)
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const [currentUserId, setCurrentUserId] = useState<string>()
-  const [targetUserId, setTargetUserId] = useState<string>()
+  const [targetUserId, setTargetUserId] = useState<string>('liuyang02')
+  const currentUserId = useCurrentUserId()
+  const liveUsers = useLiveUsers()
   const peer = usePeerJS(currentUserId)
   const connectionRef = useRef<MediaConnection>()
 
@@ -19,16 +20,16 @@ const VideoCall: FC<VideoCallProps> = () => {
       <div ref={ref}></div>
       {/* <video ref={videoRef} muted autoPlay></video> */}
       <label htmlFor="currentUserId">
-        currentUserId:
-        <input
-          type="text"
-          value={currentUserId}
-          onChange={(e) => setCurrentUserId(e.target.value)}
-        />
+        Current User Id:
+        <input type="text" readOnly value={currentUserId} />
       </label>
-      <label htmlFor="targetUserId">
-        targetUserId:
-        <input type="text" value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)} />
+      <label htmlFor="target">
+        Target User Id:
+        <select value={targetUserId} onChange={(e) => setTargetUserId(e.target.value)}>
+          {liveUsers.map((u) => (
+            <option key={u._id}>{u._id}</option>
+          ))}
+        </select>
       </label>
       <button
         onClick={async () => {
