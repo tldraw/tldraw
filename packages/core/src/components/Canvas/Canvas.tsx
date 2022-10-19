@@ -111,7 +111,8 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
   const events = useCanvasEvents()
 
   return (
-    <div id={id} className="tl-container" ref={rContainer}>
+    <div id={id} className="tl-container bg-red-500" ref={rContainer}>
+      <h1>Hello World</h1>
       <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
         {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
         <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">

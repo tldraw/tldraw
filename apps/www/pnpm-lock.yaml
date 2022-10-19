@@ -9,6 +9,7 @@ specifiers:
   '@tldraw/tldraw': '*'
   '@types/react': ^18.0.17
   '@types/react-dom': ^18.0.6
+  '@types/w3c-image-capture': ^1.0.7
   autoprefixer: ^10.4.12
   aws-sdk: ^2.1053.0
   eslint: ^8.8.0
@@ -56,6 +57,7 @@ dependencies:
   typescript: 4.8.4
 
 devDependencies:
+  '@types/w3c-image-capture': 1.0.7
   next-transpile-modules: 9.1.0
 
 packages:
@@ -2339,6 +2341,16 @@ packages:
   /@types/trusted-types/2.0.2:
     resolution: {integrity: sha512-F5DIZ36YVLE+PN+Zwws4kJogq47hNgX3Nx6WyDJ3kcplxyke3XIzB8uK5n/Lpm1HBsbGzd6nmGehL8cPekP+Tg==}
     dev: false
+
+  /@types/w3c-image-capture/1.0.7:
+    resolution: {integrity: sha512-BNmjJT+yjwVzB6N5kf1/m9YZMF//e3JAcII+TIuhRkALn7UD9xZX0R1azVGqqyYuQKbQ6UskC+zSQctnsk9zHg==}
+    dependencies:
+      '@types/webrtc': 0.0.33
+    dev: true
+
+  /@types/webrtc/0.0.33:
+    resolution: {integrity: sha512-xjN6BelzkY3lzXjIjXGqJVDS6XDleEsvp1bVIyNccXCcMoTH3wvUXFew4/qflwJdNqjmq98Zc5VcALV+XBKBvg==}
+    dev: true
 
   /@typescript-eslint/parser/5.40.0_z4bbprzjrhnsfa24uvmcbu7f5q:
     resolution: {integrity: sha512-Ah5gqyX2ySkiuYeOIDg7ap51/b63QgWZA7w6AHtFrag7aH0lRQPbLzUjk0c9o5/KZ6JRkTTDKShL4AUrQa6/hw==}

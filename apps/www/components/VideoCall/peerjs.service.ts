@@ -1,6 +1,5 @@
-import Peer, { MediaConnection } from 'peerjs';
-import { useEffect, useState } from 'react';
-
+import Peer, { MediaConnection } from 'peerjs'
+import { useEffect, useState } from 'react'
 
 export const usePeerJS = (id: string) => {
   const [peer, setPeer] = useState<Peer>()
@@ -33,6 +32,29 @@ export const connectToNewUser = (
   videoWrapper.append(video)
   connection.on('stream', (userVideoStream) => {
     video.srcObject = userVideoStream
+    const capture = new ImageCapture(userVideoStream.getVideoTracks()[0])
+    console.log('capture', capture)
+
+    setInterval(() => {
+      capture
+        .grabFrame()
+        .catch((err) => console.log(err))
+        .then((imageBitmap) => {
+          // to base64
+          console.log('now')
+          if (!imageBitmap) {
+            console.log('empty imageBitmap')
+            return
+          }
+          const canvas = document.createElement('canvas')
+          canvas.width = imageBitmap.width
+          canvas.height = imageBitmap.height
+          canvas.getContext('2d')?.drawImage(imageBitmap, 0, 0)
+          const dataURL = canvas.toDataURL('image/jpeg')
+          console.log('dataURL', dataURL)
+        })
+    }, 5000)
+
     video.addEventListener('loadedmetadata', () => {
       video.play()
     })
@@ -59,4 +81,15 @@ export const getUserMedia = async () => {
     audio: true,
   })
   return stream
+}
+
+export const getCapture = async (track: MediaStreamTrack): Promise<string | undefined> => {
+  const capture = new ImageCapture(track)
+  const imageBitmap = await capture.grabFrame()
+  const canvas = document.createElement('canvas')
+  canvas.width = imageBitmap.width
+  canvas.height = imageBitmap.height
+  canvas.getContext('2d')?.drawImage(imageBitmap, 0, 0)
+  const dataURL = canvas.toDataURL('image/jpeg')
+  return dataURL
 }

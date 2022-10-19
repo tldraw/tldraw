@@ -18,6 +18,7 @@
     "jsx": "preserve",
     "rootDir": ".",
     "baseUrl": ".",
+    "types": ["w3c-image-capture"],
     "paths": {
       "~*": ["./*"],
       "@tldraw/core": ["../../packages/core"],
