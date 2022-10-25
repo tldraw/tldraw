@@ -1,0 +1,48 @@
+html,
+* {
+  box-sizing: border-box;
+}
+
+body {
+  overscroll-behavior: none;
+  margin: 0px;
+  padding: 0px;
+  font-size: 1em;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.tldraw {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  width: 100%;
+  height: 100%;
+}
+
+.hero {
+  width: 100%;
+  max-width: 720px;
+}
+
+.links {
+  display: grid;
+  width: fit-content;
+  list-style: none;
+  padding: 1em;
+  margin: 0px;
+}
+
+.links a {
+  padding: 0.5em 0.7em;
+  color: black;
+  text-decoration: none;
+  font-size: 1.2em;
+  display: block;
+  border-radius: 8px;
+}
+
+.links a:hover {
+  background-color: rgba(144, 144, 144, 0.1);
+}

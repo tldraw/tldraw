@@ -16,6 +16,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "build:svb": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
     "@tldraw/www#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"]
