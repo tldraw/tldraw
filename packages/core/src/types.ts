@@ -50,6 +50,7 @@ export interface TLUser {
   point: number[]
   selectedIds: string[]
   session?: boolean
+  metadata?: Record<string, any>
 }
 
 export type TLUsers = Record<string, TLUser>
