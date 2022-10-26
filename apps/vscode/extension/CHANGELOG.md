@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.25.0
+
+### Minor Changes
+
+- Add metadata property to user.
+
 ## 1.24.0
 
 ### Minor Changes

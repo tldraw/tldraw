@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.0
+
+### Minor Changes
+
+- Add metadata property to user.
+
 ## 1.19.0
 
 ### Minor Changes

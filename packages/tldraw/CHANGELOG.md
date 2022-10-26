@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.26.0
+
+### Minor Changes
+
+- Add metadata property to user.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.20.0
+
 ## 1.25.0
 
 ### Minor Changes
