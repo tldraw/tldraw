@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Link, Route, Routes } from 'react-router-dom'
+import CustomCursorsExample from '~custom-cursors'
 import Export from '~export'
 import IFrame from '~iframe'
 import Api from './api'
@@ -34,6 +35,7 @@ const pages: ({ path: string; component: any; title: string } | '---')[] = [
   { path: '/controlled', component: PropsControl, title: 'Controlled via props' },
   { path: '/imperative', component: ApiControl, title: 'Controlled via the TldrawApp API' },
   { path: '/changing-id', component: ChangingId, title: 'Changing ID' },
+  { path: '/custom-cursors', component: CustomCursorsExample, title: 'Custom Cursors' },
   { path: '/embedded', component: Embedded, title: 'Embedded' },
   {
     path: '/no-size-embedded',

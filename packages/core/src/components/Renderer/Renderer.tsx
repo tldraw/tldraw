@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Canvas } from '~/components/Canvas'
+import { TLShapeUtil } from '~TLShapeUtil'
 import { CursorComponent } from '~components/Cursor'
 import { TLContext, TLContextType, useTLTheme } from '~hooks'
 import { Inputs } from '~inputs'
@@ -24,7 +25,7 @@ export type RendererProps<T extends TLShape, M = any> = Partial<TLCallbacks<T>> 
    * An object containing instances of your shape classes.
    */
   shapeUtils: {
-    [K in T['type']]: any
+    [K in T['type']]: TLShapeUtil<any>
   }
   /**
    * The current page, containing shapes and bindings.

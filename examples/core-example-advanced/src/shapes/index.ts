@@ -1,3 +1,4 @@
+import { TLShapeUtilsMap } from '@tldraw/core'
 import type { CustomShapeUtil } from './CustomShapeUtil'
 import { ArrowShape, ArrowUtil } from './arrow'
 import { BoxShape, BoxUtil } from './box'
