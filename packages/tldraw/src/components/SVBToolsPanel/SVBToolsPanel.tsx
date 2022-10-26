@@ -13,11 +13,11 @@ import { StatusBar } from './StatusBar'
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
-interface ToolsPanelProps {
+interface SVBToolsPanelProps {
   onBlur?: React.FocusEventHandler
 }
 
-export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelProps) {
+export const SVBToolsPanel = React.memo(function SVBToolsPanel({ onBlur }: SVBToolsPanelProps) {
   const app = useTldrawApp()
   const side = app.useStore(dockPositionState)
   const isDebugMode = app.useStore(isDebugModeSelector)

@@ -1,1 +1,1 @@
-export * from './ToolsPanel'
+export * from './SVBToolsPanel'

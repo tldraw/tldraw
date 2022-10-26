@@ -75,8 +75,12 @@ export class StateManager<T extends Record<string, any>> {
     this.ready = new Promise<'none' | 'restored' | 'migrated'>((resolve) => {
       let message: 'none' | 'restored' | 'migrated' = 'none'
 
-        message = 'restored'
+      message = 'restored'
 
+      if (this._state.appState.isEmptyCanvas) {
+        this._status = 'ready'
+        resolve(message)
+      } else {
         EdubreakService.getStateFromEdubreak()
           .then(async (edubreakState) => {
             // why is this necessary? but it is...
@@ -93,7 +97,7 @@ export class StateManager<T extends Record<string, any>> {
             resolve(message)
           })
           .catch((e) => console.error(e))
-
+      }
     }).then((message) => {
       if (this.onReady) this.onReady(message)
       return message
@@ -216,7 +220,7 @@ export class StateManager<T extends Record<string, any>> {
     if (this.pointer < this.stack.length - 1) {
       this.stack = this.stack.slice(0, this.pointer + 1)
     }
-    this.stack.push({ ...command, id })
+    this.stack.push({...command, id})
     this.pointer = this.stack.length - 1
     this.applyPatch(command.after, id)
     if (this.onCommand) this.onCommand(this._state, command, id)
@@ -361,7 +365,7 @@ export class StateManager<T extends Record<string, any>> {
    * Save a snapshot of the current state, accessible at `this.snapshot`.
    */
   public setSnapshot = (): this => {
-    this._snapshot = { ...this._state }
+    this._snapshot = {...this._state}
     return this
   }
 

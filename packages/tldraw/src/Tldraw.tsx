@@ -28,6 +28,7 @@ import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
 import { TDDocument, TDStatus } from '~types'
+import {SVBToolsPanel} from "~components/SVBToolsPanel";
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -607,7 +608,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                     showZoom={showZoom}
                   />
                   <StyledSpacer />
-                  {showTools && !readOnly && <ToolsPanel />}
+                  {showTools && !readOnly && <SVBToolsPanel />}
                 </>
               )}
             </StyledUI>
