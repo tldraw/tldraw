@@ -797,3 +797,22 @@ describe('When space panning', () => {
     expect(app.currentTool.status).toBe('idle')
   })
 })
+
+describe('When using a pen eraser', () => {
+  it('switches to eraser tool when using the draw tool and back when letting go', () => {
+    const app = new TldrawTestApp()
+    app.selectTool(TDShapeType.Draw)
+    app.pressEraser()
+    expect(app.currentTool.type).toBe('erase')
+    app.releaseEraser()
+    expect(app.currentTool.type).toBe(TDShapeType.Draw)
+  })
+  it('does not switch when using other tools', () => {
+    const app = new TldrawTestApp()
+    app.selectTool('select')
+    app.pressEraser()
+    expect(app.currentTool.type).toBe('select')
+    app.releaseEraser()
+    expect(app.currentTool.type).toBe('select')
+  })
+})

@@ -240,6 +240,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   isForcePanning = false
 
+  isErasingWithPen = false
+
   isPastePrevented = false
 
   editingStartTime = -1
@@ -3782,6 +3784,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     if (this.isForcePanning) return
+    if (this.currentTool.type === TDShapeType.Draw && e.pointerType === 'pen' && e.button === 5) {
+      this.selectTool('erase')
+      this.isErasingWithPen = true
+    }
     this.currentTool.onPointerDown?.(info, e)
   }
 
@@ -3790,6 +3796,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (!this.shiftKey) this.isForcePanning = false
     this.updateInputs(info, e)
     this.currentTool.onPointerUp?.(info, e)
+    if (this.isErasingWithPen && e.pointerType === 'pen' && e.button === 5) {
+      this.selectTool(TDShapeType.Draw)
+      this.isErasingWithPen = false
+    }
   }
 
   // Canvas (background)

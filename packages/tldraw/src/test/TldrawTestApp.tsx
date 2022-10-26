@@ -166,6 +166,13 @@ export class TldrawTestApp extends TldrawApp {
     } as PointerEvent
   }
 
+  getEraser(): React.PointerEvent {
+    return {
+      pointerType: 'pen',
+      button: 5,
+    } as React.PointerEvent
+  }
+
   expectSelectedIdsToBe = (b: string[]) => {
     expect(new Set(this.selectedIds)).toEqual(new Set(b))
     return this
@@ -198,5 +205,13 @@ export class TldrawTestApp extends TldrawApp {
     const e = { key } as KeyboardEvent
     this.onKeyUp(key, inputs.keyup(e), e)
     return this
+  }
+
+  pressEraser = () => {
+    this.onPointerDown(inputs.pointerDown(this.getPoint(), 'canvas'), this.getEraser())
+  }
+
+  releaseEraser = () => {
+    this.onPointerUp(inputs.pointerUp(this.getPoint(), 'canvas'), this.getEraser())
   }
 }
