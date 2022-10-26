@@ -44,12 +44,13 @@ export interface TLPageState {
   bindingId?: string | null
 }
 
-export interface TLUser {
+export interface TLUser<T = any> {
   id: string
   color: string
   point: number[]
   selectedIds: string[]
   session?: boolean
+  metadata?: T
 }
 
 export type TLUsers = Record<string, TLUser>
