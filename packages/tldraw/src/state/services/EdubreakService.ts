@@ -134,14 +134,15 @@ const EdubreakService = {
         const headers = {
             Authorization: 'Bearer ' + this.getEdubreakAccessToken()
         }
-        // TODO: get board id from url and set state for this specific board
+        // get the board's ID from the url
+        const boardId = this.getBoardIDfromURL();
         const options = {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(state)
         };
         try {
-            await fetch(this.getEdubreakApiUrl() + '/svb', options)
+            await fetch(this.getEdubreakApiUrl() + '/svb?bid=' + boardId, options)
             console.log('### EdubreakService: current document state was saved ###')
         } catch (e) {
             console.error('### EdubreakService: error while persisting document state to the server ###', e);
@@ -153,23 +154,30 @@ const EdubreakService = {
         const headers = {
             Authorization: 'Bearer ' + this.getEdubreakAccessToken()
         }
-        // TODO: get board id from url and get specific board state for this id
+        // get the board's ID from the url
+        const boardId = this.getBoardIDfromURL();
         const options = {
             method: 'GET',
             headers: headers
         };
         try {
-            const data = await fetch(this.getEdubreakApiUrl() + '/svb', options)
+            const data = await fetch(this.getEdubreakApiUrl() + '/svb?bid=' + boardId, options)
               .then(response => {
                   return response.json()
               })
             console.log('### EdubreakService: current document state is ###', data)
             return data;
         } catch (e) {
-            console.error('### EdubreakService: error while getting document state from the server ###', e);
+            console.warn('### EdubreakService: there is no server data for this board ###', e);
         }
-    }
+    },
 
+    getBoardIDfromURL: function() {
+        const url = window.location.href;
+        const idRegex = /\/([0-9]{12})/;
+        // @ts-ignore
+        return url.match(idRegex)[1];
+    },
 };
 
 export default EdubreakService;

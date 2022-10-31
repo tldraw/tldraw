@@ -5,7 +5,9 @@ import SVBBoard from "~SVBBoard";
 
 // TODO: handle real board ids, e.g. /svb/342587249854
 const pages: ({ path: string; component: any; title: string } | '---')[] = [
-  { path: '/svb/1', component: SVBBoard, title: 'Board 1' },
+  {path: '/svb/834290759843', component: SVBBoard, title: 'Board 1'},
+  {path: '/svb/534280359813', component: SVBBoard, title: 'Board 2'},
+  {path: '/svb/134497609842', component: SVBBoard, title: 'Board 3'},
   '---',
 ]
 

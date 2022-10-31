@@ -83,6 +83,10 @@ export class StateManager<T extends Record<string, any>> {
       } else {
         EdubreakService.getStateFromEdubreak()
           .then(async (edubreakState) => {
+            if (edubreakState === undefined || edubreakState === null) {
+              edubreakState = this._state
+              await EdubreakService.saveStateToEdubreak(this._state)
+            }
             // why is this necessary? but it is...
             const prevEmpty = this._state.appState.isEmptyCanvas
             if (prevEmpty) {
