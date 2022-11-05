@@ -1,6 +1,7 @@
 import Head from 'next/head'
 import type React from 'react'
 import '~styles/globals.css'
+import { usePalette } from '~utils/palette'
 import useGtag from '~utils/useGtag'
 
 const APP_NAME = 'tldraw'
@@ -10,6 +11,7 @@ const IMAGE = 'https://tldraw.com/social-image.png'
 
 function MyApp({ Component, pageProps }: any) {
   useGtag()
+  usePalette()
 
   return (
     <>

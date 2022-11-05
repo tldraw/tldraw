@@ -19,6 +19,9 @@
   "dependencies": {
     "@liveblocks/client": "^0.18.3",
     "@liveblocks/react": "^0.18.3",
+    "@palette.dev/browser": "^1.13.3",
+    "@palette.dev/cli": "^1.6.1",
+    "@palette.dev/webpack-plugin": "^1.2.2",
     "@stitches/react": "^1.2.8",
     "@tldraw/core": "*",
     "@tldraw/tldraw": "*",
