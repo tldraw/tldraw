@@ -21,9 +21,27 @@ body {
   height: 100%;
 }
 
-.hero {
-  width: 100%;
-  max-width: 720px;
+.header {
+  transition: box-shadow .4s ease;
+  -webkit-transition: box-shadow .4s ease;
+  position: relative;
+}
+
+.header:hover {
+  box-shadow: 0 0 2px 1px lightgrey;
+}
+
+.logo {
+  zoom: 0.3;
+}
+
+.newPage {
+  border: none;
+  background-color: transparent;
+  border-radius: 8px;
+  position: absolute;
+  right: 1em;
+  top: 1.5em;
 }
 
 .links {
@@ -36,13 +54,38 @@ body {
 
 .links a {
   padding: 0.5em 0.7em;
-  color: black;
+  margin-bottom: 0.5em;
+  color: #444444;
   text-decoration: none;
   font-size: 1.2em;
   display: block;
   border-radius: 8px;
 }
 
-.links a:hover {
+.links a:hover, .newPage:hover, .links button {
   background-color: rgba(144, 144, 144, 0.1);
+}
+
+.titleInput {
+  position: relative;
+}
+
+.links button, .links input {
+  background-color: transparent;
+  border: 2px solid #777777;
+  margin-bottom: 0.5em;
+  color: #444444;
+  font-size: 1.2em;
+  display: block;
+  position: absolute;
+  border-radius: 8px;
+}
+
+.links input {
+  left: 0;
+  width: 6em;
+}
+
+.links button{
+  left: 6.5em;
 }

@@ -174,7 +174,7 @@ const EdubreakService = {
 
     getBoardIDfromURL: function() {
         const url = window.location.href;
-        const idRegex = /\/([0-9]{12})/;
+        const idRegex = /\/([0-9]{6})/;
         // @ts-ignore
         return url.match(idRegex)[1];
     },
