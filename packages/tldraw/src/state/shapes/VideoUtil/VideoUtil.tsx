@@ -92,7 +92,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
           // Snap the size to the text content if the text only when the
           // text is larger than the minimum text height.
           // 25.07.2022 - 10:28 - MK: musste 450 als konstante für das video image einbinden, weil er mir für die höhe hier immer null ausgegeben hat. Wenn das Mal resized werden soll, müssen wir halt noch eine Lösung dafür finden.
-          onShapeChange?.({ id: shape.id, size: [size[0], 450 + currTextHeight + PADDING * 2] })
+          onShapeChange?.({ id: shape.id, size: [size[0], 450 + currTextHeight + PADDING] })
           return
         }
       }, [])
@@ -177,7 +177,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               <div
                 ref={rTitle}
                 style={{
-                  fontSize: 32,
+                  fontSize: 36,
                   fontWeight: 800,
                   pointerEvents: 'none',
                   userSelect: 'none',
@@ -193,7 +193,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                 ref={rBody}
                 style={{
                   paddingTop: '2em',
-                  fontSize: 14,
+                  fontSize: 28,
                   fontWeight: 400,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',

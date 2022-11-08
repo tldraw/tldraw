@@ -1946,7 +1946,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const pasteTextAsEdubreakLink = async (options: any) => {
       // handle pasted edubreak node link
-      console.log('edubreak options: ', options)
       const edubreakContent = await EdubreakService.getNodeAsJSON(options)
       const shapeId = Utils.uniqueId()
 
@@ -2014,15 +2013,12 @@ export class TldrawApp extends StateManager<TDSnapshot> {
           switch (kind) {
             case 'string': {
               const str: string = await new Promise((resolve) => item.getAsString(resolve))
-              item.getAsString(async (text) => {
                 // check if the text is an edubreak link
-                if (EdubreakService.textIsEdubreakLink(text)) {
-                  const edubreakOptions = EdubreakService.parseEdubreakLink(text)
+                if (EdubreakService.textIsEdubreakLink(str)) {
+                  const edubreakOptions = EdubreakService.parseEdubreakLink(str)
                   await pasteTextAsEdubreakLink(edubreakOptions)
                   return
                 }
-              })
-
               switch (type) {
                 case 'text/html': {
                   if (str.match(/<tldraw>(.*)<\/tldraw>/)?.[1]) {
