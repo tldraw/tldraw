@@ -2856,6 +2856,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
         // We're currently creating a shape. Override the command's
         // before state so that when we undo the command, we remove
         // the shape we just created.
+
         result.before = {
           appState: {
             ...result.before.appState,
