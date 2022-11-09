@@ -22,6 +22,7 @@ body {
 }
 
 .header {
+  height: 75px;
   transition: box-shadow .4s ease;
   -webkit-transition: box-shadow .4s ease;
   position: relative;
