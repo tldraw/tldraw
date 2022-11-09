@@ -66,7 +66,7 @@ export default function App() {
                   )
                 )}
                 {showInput ? <div className="titleInput">
-                  <input onKeyDown={_handleKeyDown} type="text" onChange={setTitleFromInput}/>
+                  <input autoFocus onKeyDown={_handleKeyDown} type="text" onChange={setTitleFromInput}/>
                   <button onClick={createPage}>OK</button>
                 </div> : null}
               </ul>
