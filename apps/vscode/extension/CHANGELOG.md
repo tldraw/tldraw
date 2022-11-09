@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.25.1
+
+### Patch Changes
+
+- Fixes blurring text inputs in multiplayer.
+
 ## 1.25.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.26.1
+
+### Patch Changes
+
+- Fixes blurring text inputs in multiplayer.
+
 ## 1.26.0
 
 ### Minor Changes
