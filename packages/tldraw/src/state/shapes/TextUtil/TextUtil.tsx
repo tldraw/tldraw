@@ -206,8 +206,11 @@ export class TextUtil extends TDShapeUtil<T, E> {
         [isEditing]
       )
 
+      const rWasEditing = React.useRef(isEditing)
+
       React.useEffect(() => {
         if (isEditing) {
+          rWasEditing.current = true
           this.texts.set(shape.id, text)
           requestAnimationFrame(() => {
             rIsMounted.current = true
@@ -217,7 +220,8 @@ export class TextUtil extends TDShapeUtil<T, E> {
               elm.select()
             }
           })
-        } else {
+        } else if (rWasEditing.current) {
+          rWasEditing.current = false
           onShapeBlur?.()
         }
       }, [isEditing])

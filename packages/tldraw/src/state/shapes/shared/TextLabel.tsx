@@ -112,8 +112,11 @@ export const TextLabel = React.memo(function TextLabel({
     [isEditing]
   )
 
+  const rWasEditing = React.useRef(isEditing)
+
   React.useEffect(() => {
     if (isEditing) {
+      rWasEditing.current = true
       requestAnimationFrame(() => {
         rIsMounted.current = true
         const elm = rInput.current
@@ -122,8 +125,9 @@ export const TextLabel = React.memo(function TextLabel({
           elm.select()
         }
       })
-    } else {
+    } else if (rWasEditing.current) {
       onBlur?.()
+      rWasEditing.current = false
     }
   }, [isEditing, onBlur])
 
