@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.26.2
+
+### Patch Changes
+
+- Fix types in core.
+- Updated dependencies
+  - @tldraw/core@1.20.1
+
 ## 1.26.1
 
 ### Patch Changes
