@@ -15,10 +15,12 @@ You can use this package to build projects like [tldraw](https://tldraw.com), wh
 Use your package manager of choice to install `@tldraw/core` and its peer dependencies.
 
 ```bash
-yarn add @tldraw/core
+yarn add @tldraw/core && yarn build
 # or
-npm i @tldraw/core
+npm i @tldraw/core && npm run build
 ```
+
+> Note: You'll need to run the `build` script before running `dev`.
 
 ## Examples
 

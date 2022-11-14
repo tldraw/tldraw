@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.1
+
+### Patch Changes
+
+- Fix types in core.
+
 ## 1.20.0
 
 ### Minor Changes

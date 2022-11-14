@@ -1,5 +1,11 @@
 ## 1.2.4
 
+## 1.25.2
+
+### Patch Changes
+
+- Fix types in core.
+
 ## 1.25.1
 
 ### Patch Changes
