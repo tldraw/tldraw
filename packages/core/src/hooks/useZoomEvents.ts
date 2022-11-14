@@ -48,7 +48,7 @@ export function useZoomEvents<T extends HTMLElement>(
 
       // otherwise pan
       const delta = Vec.mul(
-        e.shiftKey && !Utils.isDarwin
+        e.shiftKey && !Utils.isDarwin()
           ? // shift+scroll = pan horizontally
             [y, 0]
           : // scroll = pan vertically (or in any direction on a trackpad)
