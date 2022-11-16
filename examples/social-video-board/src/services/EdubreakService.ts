@@ -43,7 +43,7 @@ const EdubreakService = {
       headers: headers
     };
     try {
-      const data = await fetch(this.getEdubreakApiUrl() + '/svb?newBID=true', options)
+      const data = await fetch(this.getEdubreakApiUrl() + '/svb/bid', options)
         .then(response => {
           return response.json()
         })
@@ -65,7 +65,7 @@ const EdubreakService = {
       body: JSON.stringify(boards)
     };
     try {
-      await fetch(this.getEdubreakApiUrl() + '/svb?boards=true', options)
+      await fetch(this.getEdubreakApiUrl() + '/svb/boards', options)
       console.log('### EdubreakService: current boards list was saved ###')
     } catch (e) {
       console.error('### EdubreakService: error while saving boards list to server ###', e);
@@ -82,7 +82,7 @@ const EdubreakService = {
       headers: headers
     };
     try {
-      const data = await fetch(this.getEdubreakApiUrl() + '/svb?boards=true', options)
+      const data = await fetch(this.getEdubreakApiUrl() + '/svb/boards', options)
         .then(response => {
           return response.json()
         })
