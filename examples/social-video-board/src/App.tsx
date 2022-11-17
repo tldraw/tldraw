@@ -12,7 +12,7 @@ export default function App() {
     title: ''
   }]);
   React.useEffect(() => {
-    EdubreakService.getBoardList().then((boards) => {
+    EdubreakService.getBoards().then((boards) => {
       setPages(boards)
     })
   }, [])
@@ -20,13 +20,11 @@ export default function App() {
   const [title, setTitle] = React.useState('');
 
   async function createPage() {
-    let boardID = await EdubreakService.getBoardID()
+    let boardID = await EdubreakService.createBoard(title)
     const newPage = {path: '/svb/' + boardID, title: title}
     pages.push(newPage);
     setShowInput(false)
     setPages(pages)
-    await EdubreakService.setBoardList(pages);
-
   }
 
   function showTitleInput() {

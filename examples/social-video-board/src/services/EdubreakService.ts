@@ -33,28 +33,7 @@ const EdubreakService = {
     throw 'Edubreak Access Token not set'
   },
 
-  getBoardID: async function () {
-    // Simple GET request with a JSON body using fetch
-    const headers = {
-      Authorization: 'Bearer ' + this.getEdubreakAccessToken()
-    }
-    const options = {
-      method: 'GET',
-      headers: headers
-    };
-    try {
-      const data = await fetch(this.getEdubreakApiUrl() + '/svb/bid', options)
-        .then(response => {
-          return response.json()
-        })
-      console.log('### EdubreakService: new BID is ###', data)
-      return data;
-    } catch (e) {
-      console.warn('### EdubreakService: failed to get a new BID ###', e);
-    }
-  },
-
-  setBoardList: async function (boards: any) {
+  createBoard: async function (title: any) {
     // Simple POST request with a JSON body using fetch
     const headers = {
       Authorization: 'Bearer ' + this.getEdubreakAccessToken()
@@ -62,17 +41,20 @@ const EdubreakService = {
     const options = {
       method: 'POST',
       headers: headers,
-      body: JSON.stringify(boards)
+      body: title
     };
     try {
-      await fetch(this.getEdubreakApiUrl() + '/svb/boards', options)
-      console.log('### EdubreakService: current boards list was saved ###')
+      const data = await fetch(this.getEdubreakApiUrl() + '/svb', options).then(response => {
+        return response.json()
+      })
+      console.log('### EdubreakService: a new board was created ###', data)
+      return data;
     } catch (e) {
-      console.error('### EdubreakService: error while saving boards list to server ###', e);
+      console.error('### EdubreakService: error while creating a new board ###', e);
     }
   },
 
-  getBoardList: async function (): Promise<any> {
+  getBoards: async function (): Promise<any> {
     // Simple GET request with a JSON body using fetch
     const headers = {
       Authorization: 'Bearer ' + this.getEdubreakAccessToken()
@@ -82,14 +64,14 @@ const EdubreakService = {
       headers: headers
     };
     try {
-      const data = await fetch(this.getEdubreakApiUrl() + '/svb/boards', options)
+      const data = await fetch(this.getEdubreakApiUrl() + '/svb', options)
         .then(response => {
           return response.json()
         })
-      console.log('### EdubreakService: current boards list is ###', data)
+      console.log('### EdubreakService: current boards are ###', data)
       return data;
     } catch (e) {
-      console.warn('### EdubreakService: error while getting boards list from server ###', e);
+      console.warn('### EdubreakService: error while getting boards from server ###', e);
     }
   }
 };

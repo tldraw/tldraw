@@ -134,12 +134,12 @@ const EdubreakService = {
         // get the board's ID from the url
         const boardId = this.getBoardIDfromURL();
         const options = {
-            method: 'POST',
+            method: 'PUT',
             headers: headers,
             body: JSON.stringify(state)
         };
         try {
-            await fetch(this.getEdubreakApiUrl() + '/svb?bid=' + boardId, options)
+            await fetch(this.getEdubreakApiUrl() + '/svb/' + boardId, options)
             console.log('### EdubreakService: current document state was saved ###')
         } catch (e) {
             console.error('### EdubreakService: error while persisting document state to the server ###', e);
@@ -158,7 +158,7 @@ const EdubreakService = {
             headers: headers
         };
         try {
-            const data = await fetch(this.getEdubreakApiUrl() + '/svb?bid=' + boardId, options)
+            const data = await fetch(this.getEdubreakApiUrl() + '/svb/' + boardId, options)
               .then(response => {
                   return response.json()
               })
@@ -171,9 +171,9 @@ const EdubreakService = {
 
     getBoardIDfromURL: function() {
         const url = window.location.href;
-        const idRegex = /\/([0-9]{6})/;
+        const idRegex = /[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}/gm;
         // @ts-ignore
-        return url.match(idRegex)[1];
+        return url.match(idRegex)[0];
     },
 };
 
