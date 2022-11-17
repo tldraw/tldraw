@@ -1,10 +1,10 @@
-import { ChatBubbleIcon, VideoIcon } from '@radix-ui/react-icons'
-import { styled } from '@stitches/react'
-import { HTMLContainer, TLBounds, Utils } from '@tldraw/core'
+import {ChatBubbleIcon, VideoIcon} from '@radix-ui/react-icons'
+import {styled} from '@stitches/react'
+import {HTMLContainer, TLBounds, Utils} from '@tldraw/core'
 import Vec from '@tldraw/vec'
 import * as React from 'react'
-import { GHOSTED_OPACITY } from '~constants'
-import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
+import {GHOSTED_OPACITY} from '~constants'
+import {TDShapeUtil} from '~state/shapes/TDShapeUtil'
 import {
   defaultStyle,
   defaultTextStyle,
@@ -14,7 +14,7 @@ import {
   transformRectangle,
   transformSingleRectangle,
 } from '~state/shapes/shared'
-import { TDMeta, TDShapeType, TDVideoAsset, TransformInfo, VideoShape } from '~types'
+import {TDMeta, TDShapeType, TDVideoAsset, TransformInfo, VideoShape} from '~types'
 
 type T = VideoShape
 type E = HTMLDivElement
@@ -22,10 +22,10 @@ type E = HTMLDivElement
 export class VideoUtil extends TDShapeUtil<T, E> {
   type = TDShapeType.Video as const
   canBind = true
-  canEdit = true
+  canEdit = false
   canClone = true
 
-  hideResizeHandles = false
+  hideResizeHandles = true
 
   showCloneHandles = true
 
@@ -39,6 +39,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         title: '',
         body: '',
         thumbnail: '',
+        model: null,
         childIndex: 1,
         point: [0, 0],
         size: [800, 700],
@@ -50,13 +51,17 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   }
 
   Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, meta, events, isGhost, isBinding, isEditing, onShapeBlur, onShapeChange }, ref) => {
+    ({shape, meta, events, isGhost, isBinding, isEditing, onShapeBlur, onShapeChange}, ref) => {
       const font = getStickyFontStyle(shape.style)
 
-      const { color, fill } = {
+      const fontSizeBody = 28
+
+      const {color, fill} = {
         fill: 'white',
         color: 'black',
       }
+
+      const [linkColor, setlinkColor] = React.useState("#000000")
 
       const rContainer = React.useRef<HTMLDivElement>(null)
 
@@ -74,6 +79,10 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         e.stopPropagation()
       }, [])
 
+      const openEdubreakLink = () => {
+        window.open(shape.model.campusURL, '_blank', 'noopener,noreferrer');
+      }
+
       // Resize to fit text
       React.useEffect(() => {
         const textContainer = rTextContainer.current!
@@ -81,18 +90,18 @@ export class VideoUtil extends TDShapeUtil<T, E> {
         const title = rTitle.current!
         const body = rBody.current!
 
-        const { size } = shape
-        const { offsetHeight: currTitleHeight } = title
-        const { offsetHeight: currBodyHeight } = body
-        const { clientHeight: currTextContainerHeight } = textContainer
-        const currTextHeight = currTitleHeight + currBodyHeight
+        const {size} = shape
+        const {offsetHeight: currTitleHeight} = title
+        const {offsetHeight: currBodyHeight} = body
+        const {clientHeight: currTextContainerHeight} = textContainer
+        const currTextHeight = currTitleHeight + currBodyHeight + (2 * fontSizeBody)
         const minTextHeight = currTextContainerHeight - PADDING * 2
 
         if (currTextHeight > minTextHeight) {
           // Snap the size to the text content if the text only when the
           // text is larger than the minimum text height.
           // 25.07.2022 - 10:28 - MK: musste 450 als konstante für das video image einbinden, weil er mir für die höhe hier immer null ausgegeben hat. Wenn das Mal resized werden soll, müssen wir halt noch eine Lösung dafür finden.
-          onShapeChange?.({ id: shape.id, size: [size[0], 450 + currTextHeight + PADDING] })
+          onShapeChange?.({id: shape.id, size: [size[0], 450 + currTextHeight + PADDING * 2]})
           return
         }
       }, [])
@@ -107,9 +116,9 @@ export class VideoUtil extends TDShapeUtil<T, E> {
 
       function Icon() {
         if (!shape.body) {
-          return <VideoIcon style={{ width: 50, height: 50 }}></VideoIcon>
+          return <VideoIcon style={{width: 50, height: 50}}></VideoIcon>
         } else {
-          return <ChatBubbleIcon style={{ width: 50, height: 50 }}></ChatBubbleIcon>
+          return <ChatBubbleIcon style={{width: 50, height: 50}}></ChatBubbleIcon>
         }
       }
 
@@ -119,7 +128,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
             ref={rContainer}
             isDarkMode={meta.isDarkMode}
             isGhost={isGhost}
-            style={{ backgroundColor: fill, ...style }}
+            style={{backgroundColor: fill, ...style}}
           >
             {isBinding && (
               <div
@@ -135,7 +144,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
               />
             )}
 
-            <div style={{}}>
+            <div>
               <div
                 ref={rVideoContainer}
                 style={{
@@ -149,7 +158,7 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                 <img
                   id="video-img"
                   src={shape.thumbnail}
-                  style={{ height: 'auto', width: '100%', display: 'block' }}
+                  style={{height: 'auto', width: '100%', display: 'block'}}
                 ></img>
                 <div
                   style={{
@@ -203,8 +212,21 @@ export class VideoUtil extends TDShapeUtil<T, E> {
                   pointerEvents: 'none',
                   userSelect: 'none',
                 }}
-                dangerouslySetInnerHTML={{ __html: shape.body }}
+                dangerouslySetInnerHTML={{__html: shape.body}}
               ></div>
+            </div>
+            <div id="card-footer" style={{
+              width: '100%',
+              height: '2em'
+            }}>
+              <EdubreakLink id='edubreak-link' style={{color: `${linkColor}`}} onClick={openEdubreakLink} onMouseEnter={() => {
+                setlinkColor('#6187ef')
+              }} onMouseLeave={() => {
+                setlinkColor('#000000')
+              }} onPointerDown={handlePointerDown}
+              >
+                in edubreak<sup>®</sup> öffnen
+              </EdubreakLink>
             </div>
           </StyledVideoContainer>
         </HTMLContainer>
@@ -212,12 +234,12 @@ export class VideoUtil extends TDShapeUtil<T, E> {
     }
   )
 
-  Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
+  Indicator = TDShapeUtil.Indicator<T>(({shape}) => {
     const {
       size: [width, height],
     } = shape
     return (
-      <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)} />
+      <rect x={0} y={0} rx={3} ry={3} width={Math.max(1, width)} height={Math.max(1, height)}/>
     )
   })
 
@@ -232,14 +254,14 @@ export class VideoUtil extends TDShapeUtil<T, E> {
   transform = (
     shape: T,
     bounds: TLBounds,
-    { scaleX, scaleY, transformOrigin }: TransformInfo<T>
+    {scaleX, scaleY, transformOrigin}: TransformInfo<T>
   ): Partial<T> => {
     const point = Vec.toFixed([
       bounds.minX +
-        (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
+      (bounds.width - shape.size[0]) * (scaleX < 0 ? 1 - transformOrigin[0] : transformOrigin[0]),
       bounds.minY +
-        (bounds.height - shape.size[1]) *
-          (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
+      (bounds.height - shape.size[1]) *
+      (scaleY < 0 ? 1 - transformOrigin[1] : transformOrigin[1]),
     ])
 
     return {
@@ -276,7 +298,7 @@ const PADDING = 16
 const MIN_CONTAINER_HEIGHT = 700
 
 const StyledVideoContainer = styled('div', {
-  pointerEvents: 'none',
+  pointerEvents: 'all',
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',
@@ -288,8 +310,8 @@ const StyledVideoContainer = styled('div', {
   perspective: '800px',
   variants: {
     isGhost: {
-      false: { opacity: 1 },
-      true: { transition: 'opacity .2s', opacity: GHOSTED_OPACITY },
+      false: {opacity: 1},
+      true: {transition: 'opacity .2s', opacity: GHOSTED_OPACITY},
     },
     isDarkMode: {
       true: {
@@ -302,4 +324,19 @@ const StyledVideoContainer = styled('div', {
       },
     },
   },
+})
+
+const EdubreakLink = styled('button', {
+  fontSize: 28,
+  position: 'absolute',
+  right: '.75em',
+  bottom: '.5em',
+  color: '#000000',
+  textDecoration: 'underline',
+  backgroundColor: 'transparent',
+  backgroundRepeat: 'no-repeat',
+  border: 'none',
+  cursor: 'pointer',
+  overflow: 'hidden',
+  outline: 'none'
 })

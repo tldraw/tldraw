@@ -9,6 +9,7 @@ import { Menu } from './Menu/Menu'
 import { PageMenu } from './PageMenu'
 import { StyleMenu } from './StyleMenu'
 import { ZoomMenu } from './ZoomMenu'
+import {stopPropagation} from "~components/stopPropagation";
 
 interface TopPanelProps {
   readOnly: boolean
@@ -49,7 +50,7 @@ export function _TopPanel({
                 <UndoIcon onClick={app.redo} flipHorizontal />
               </ToolButton>
               <ToolButton>
-                <DesktopIcon onClick={app.togglePresentationMode} />
+                <DesktopIcon onClick={app.togglePresentationMode} onPointerDown={stopPropagation}/>
               </ToolButton>
             </>
           )}

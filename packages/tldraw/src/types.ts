@@ -379,7 +379,11 @@ export interface ImageShape extends TDBaseShape {
   assetId: string
 }
 
-export interface VideoShape extends TDBaseShape {
+export interface EdubreakContentShape extends TDBaseShape {
+  model: any
+}
+
+export interface VideoShape extends EdubreakContentShape {
   type: TDShapeType.Video
   size: number[]
   title: string
@@ -407,7 +411,7 @@ export interface GroupShape extends TDBaseShape {
   children: string[]
 }
 
-export interface ContentShape extends TDBaseShape {
+export interface ContentShape extends EdubreakContentShape {
   type: TDShapeType.Content
   title: string
   body: string

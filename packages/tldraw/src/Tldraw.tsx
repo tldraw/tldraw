@@ -603,7 +603,6 @@ const InnerTldraw = React.memo(function InnerTldraw({
                     readOnly={readOnly}
                     showPages={showPages}
                     showMenu={showMenu}
-                    showMultiplayerMenu={showMultiplayerMenu}
                     showStyles={showStyles}
                     showZoom={showZoom}
                   />
