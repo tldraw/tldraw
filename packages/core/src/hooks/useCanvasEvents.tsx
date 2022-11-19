@@ -54,6 +54,8 @@ export function useCanvasEvents() {
         inputs.activePointer = undefined
         if (!inputs.pointerIsValid(e)) return
 
+        const isDoubleClick = inputs.isDoubleClick()
+
         const info = inputs.pointerUp(e, 'canvas')
 
         // On right click up
@@ -61,8 +63,6 @@ export function useCanvasEvents() {
           callbacks.onPointerUp?.(info, e)
           return
         }
-
-        const isDoubleClick = inputs.isDoubleClick()
 
         // Release pointer capture, if any
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {
