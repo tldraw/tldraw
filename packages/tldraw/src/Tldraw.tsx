@@ -25,6 +25,7 @@ import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
+import { TRANSLATIONS, localKeys } from '~translations'
 import { TDDocument, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any
@@ -117,6 +118,11 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) To hide cursors
    */
   hideCursors?: boolean
+
+  /**
+   * (optional) default language
+   */
+  defaultLanguage?: localKeys
 }
 
 const isSystemDarkMode = window.matchMedia
@@ -160,6 +166,7 @@ export function Tldraw({
   onSessionEnd,
   onExport,
   hideCursors,
+  defaultLanguage,
 }: TldrawProps) {
   const [sId, setSId] = React.useState(id)
 
@@ -257,6 +264,12 @@ export function Tldraw({
     if (!currentPageId) return
     app.changePage(currentPageId)
   }, [currentPageId, app])
+
+  React.useEffect(() => {
+    if (defaultLanguage) {
+      app.settings.language = defaultLanguage
+    }
+  }, [defaultLanguage])
 
   // Toggle the app's readOnly mode when the `readOnly` prop changes.
   React.useEffect(() => {

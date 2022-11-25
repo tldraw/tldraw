@@ -17,11 +17,11 @@ import pt_br from './pt-br.json'
 import pt_pt from './pt-pt.json'
 import ru from './ru.json'
 import sv from './sv.json'
+import th from './th.json'
 import tr from './tr.json'
 import uk from './uk.json'
 import zh_cn from './zh-cn.json'
 import zh_tw from './zh-tw.json'
-import th from './th.json'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -53,6 +53,36 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'zh-tw', label: '繁體中文 (台灣)', messages: zh_tw },
   { locale: 'th', label: 'ภาษาไทย', messages: th },
 ]
+
+// potential solution in typescript 4.9
+//const translationsKeys = TRANSLATIONS as const satisfies readonly TDTranslations[]
+// type localeKeys = typeof translationsKeys[number]["locale"]
+
+export type localKeys =
+  | 'ar'
+  | 'da'
+  | 'de'
+  | 'en'
+  | 'es'
+  | 'fa'
+  | 'fr'
+  | 'he'
+  | 'it'
+  | 'ja'
+  | 'ko-kr'
+  | 'ne'
+  | 'ne'
+  | 'no'
+  | 'pl'
+  | 'pt'
+  | 'pt-br'
+  | 'ru'
+  | 'sv'
+  | 'tr'
+  | 'uk'
+  | 'zh-ch'
+  | 'zh-tw'
+  | 'th'
 
 /* ----------------- (do not change) ---------------- */
 
