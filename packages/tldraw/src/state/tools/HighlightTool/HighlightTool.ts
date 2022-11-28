@@ -47,7 +47,7 @@ export class HighlightTool extends BaseTool {
     const previous = this.lastShapeId && this.app.getShape(this.lastShapeId)
     if (info.shiftKey && previous) {
       // Extend the previous shape
-      this.app.startSession(SessionType.Draw, previous.id)
+      this.app.startSession(SessionType.Highlight, previous.id)
       this.setStatus(Status.Extending)
     } else {
       // Create a new shape
@@ -62,7 +62,7 @@ export class HighlightTool extends BaseTool {
       })
       this.lastShapeId = id
       this.app.patchCreate([newShape])
-      this.app.startSession(SessionType.Draw, id)
+      this.app.startSession(SessionType.Highlight, id)
       this.setStatus(Status.Creating)
     }
   }

@@ -14,7 +14,7 @@ describe('When shift+clicking to extend a shape', () => {
   it('extends the same shape', () => {
     const app = new TldrawTestApp()
     app.reset()
-    app.selectTool(TDShapeType.Draw)
+    app.selectTool(TDShapeType.Highlight)
     app.pointCanvas([0, 0])
     app.movePointer([100, 100])
     app.movePointer([200, 200])
@@ -29,13 +29,13 @@ describe('When shift+clicking to extend a shape', () => {
   it('does not extend after switching tools the same shape', () => {
     const app = new TldrawTestApp()
     app.reset()
-    app.selectTool(TDShapeType.Draw)
+    app.selectTool(TDShapeType.Highlight)
     app.pointCanvas([0, 0])
     app.movePointer([100, 100])
     app.movePointer([200, 200])
     app.stopPointing()
     app.selectTool('select')
-    app.selectTool(TDShapeType.Draw)
+    app.selectTool(TDShapeType.Highlight)
     app.pointCanvas({ x: 300, y: 300, shiftKey: true })
     app.movePointer([400, 400])
     app.stopPointing()
@@ -45,7 +45,7 @@ describe('When shift+clicking to extend a shape', () => {
   it('does not extend after undo', () => {
     const app = new TldrawTestApp()
     app.reset()
-    app.selectTool(TDShapeType.Draw)
+    app.selectTool(TDShapeType.Highlight)
     app.pointCanvas([0, 0])
     app.movePointer([100, 100])
     app.movePointer([200, 200])
@@ -60,7 +60,7 @@ describe('When shift+clicking to extend a shape', () => {
   it('does not extend if no shape is present', () => {
     const app = new TldrawTestApp()
     app.reset()
-    app.selectTool(TDShapeType.Draw)
+    app.selectTool(TDShapeType.Highlight)
     app.pointCanvas({ x: 300, y: 300, shiftKey: true })
     app.movePointer([400, 400])
     app.stopPointing()
