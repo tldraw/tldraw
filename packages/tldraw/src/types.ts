@@ -191,6 +191,7 @@ export enum SessionType {
   Brush = 'brush',
   Arrow = 'arrow',
   Draw = 'draw',
+  Highlight = 'highlight',
   Erase = 'erase',
   Rotate = 'rotate',
   Handle = 'handle',
@@ -217,6 +218,7 @@ export enum TDStatus {
 export type TDToolType =
   | 'select'
   | 'erase'
+  | 'highlight'
   | TDShapeType.Text
   | TDShapeType.Draw
   | TDShapeType.Ellipse
@@ -288,6 +290,7 @@ export enum TDShapeType {
   Rectangle = 'rectangle',
   Triangle = 'triangle',
   Draw = 'draw',
+  Highlight = 'highlight',
   Arrow = 'arrow',
   Line = 'line',
   Text = 'text',
@@ -309,6 +312,12 @@ export interface TDBaseShape extends TLShape {
 
 export interface DrawShape extends TDBaseShape {
   type: TDShapeType.Draw
+  points: number[][]
+  isComplete: boolean
+}
+
+export interface HighlightShape extends TDBaseShape {
+  type: TDShapeType.Highlight
   points: number[][]
   isComplete: boolean
 }
@@ -406,6 +415,7 @@ export type TDShape =
   | EllipseShape
   | TriangleShape
   | DrawShape
+  | HighlightShape
   | ArrowShape
   | TextShape
   | GroupShape
@@ -472,6 +482,7 @@ export type ShapeStyles = {
   textAlign?: AlignStyle
   isFilled?: boolean
   scale?: number
+  opacity: number
 }
 
 export enum TDAssetType {

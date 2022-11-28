@@ -78,6 +78,7 @@ import type { BaseTool } from './tools/BaseTool'
 import { DrawTool } from './tools/DrawTool'
 import { EllipseTool } from './tools/EllipseTool'
 import { EraseTool } from './tools/EraseTool'
+import { HighlightTool } from './tools/HighlightTool'
 import { LineTool } from './tools/LineTool'
 import { RectangleTool } from './tools/RectangleTool'
 import { SelectTool } from './tools/SelectTool'
@@ -200,6 +201,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   tools = {
     select: new SelectTool(this),
     erase: new EraseTool(this),
+    highlight: new HighlightTool(this),
     [TDShapeType.Text]: new TextTool(this),
     [TDShapeType.Draw]: new DrawTool(this),
     [TDShapeType.Ellipse]: new EllipseTool(this),

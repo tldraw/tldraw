@@ -38,6 +38,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     app.selectTool('erase')
   }, [app])
 
+  const selectHighlightTool = React.useCallback(() => {
+    app.selectTool('highlight')
+  }, [app])
+
   const selectDrawTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Draw)
   }, [app])
@@ -72,6 +76,15 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'select' })}
         onClick={selectSelectTool}
         isActive={activeTool === 'select'}
+        id="TD-PrimaryTools-CursorArrow"
+      >
+        <CursorArrowIcon />
+      </ToolButtonWithTooltip>
+      <ToolButtonWithTooltip
+        kbd={'a'}
+        label={intl.formatMessage({ id: 'highlight' })}
+        onClick={selectHighlightTool}
+        isActive={activeTool === 'highlight'}
         id="TD-PrimaryTools-CursorArrow"
       >
         <CursorArrowIcon />
