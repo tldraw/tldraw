@@ -1,12 +1,12 @@
 import { TldrawApp } from '~state'
 import { TldrawTestApp } from '~test'
 import { TDShapeType } from '~types'
-import { DrawTool } from '.'
+import { HighlightTool } from '.'
 
-describe('DrawTool', () => {
+describe('HighlightTool', () => {
   it('creates tool', () => {
     const app = new TldrawApp()
-    new DrawTool(app)
+    new HighlightTool(app)
   })
 })
 

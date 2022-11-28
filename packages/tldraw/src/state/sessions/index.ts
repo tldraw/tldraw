@@ -6,6 +6,7 @@ import { EditSession } from './EditSession'
 import { EraseSession } from './EraseSession'
 import { GridSession } from './GridSession'
 import { HandleSession } from './HandleSession'
+import { HighlightSession } from './HighlightSession'
 import { RotateSession } from './RotateSession'
 import { TransformSession } from './TransformSession'
 import { TransformSingleSession } from './TransformSingleSession'
@@ -15,6 +16,7 @@ export type TldrawSession =
   | ArrowSession
   | BrushSession
   | DrawSession
+  | HighlightSession
   | HandleSession
   | RotateSession
   | TransformSession
@@ -28,6 +30,7 @@ export interface SessionsMap {
   [SessionType.Arrow]: typeof ArrowSession
   [SessionType.Brush]: typeof BrushSession
   [SessionType.Draw]: typeof DrawSession
+  [SessionType.Highlight]: typeof HighlightSession
   [SessionType.Erase]: typeof EraseSession
   [SessionType.Handle]: typeof HandleSession
   [SessionType.Rotate]: typeof RotateSession
@@ -48,6 +51,7 @@ export const sessions: { [K in SessionType]: SessionsMap[K] } = {
   [SessionType.Arrow]: ArrowSession,
   [SessionType.Brush]: BrushSession,
   [SessionType.Draw]: DrawSession,
+  [SessionType.Highlight]: HighlightSession,
   [SessionType.Erase]: EraseSession,
   [SessionType.Handle]: HandleSession,
   [SessionType.Rotate]: RotateSession,

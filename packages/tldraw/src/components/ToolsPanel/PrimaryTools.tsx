@@ -39,7 +39,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   const selectHighlightTool = React.useCallback(() => {
-    app.selectTool('highlight')
+    app.selectTool(TDShapeType.Highlight)
   }, [app])
 
   const selectDrawTool = React.useCallback(() => {
@@ -84,7 +84,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         kbd={'a'}
         label={intl.formatMessage({ id: 'highlight' })}
         onClick={selectHighlightTool}
-        isActive={activeTool === 'highlight'}
+        isActive={activeTool === TDShapeType.Highlight}
         id="TD-PrimaryTools-CursorArrow"
       >
         <CursorArrowIcon />

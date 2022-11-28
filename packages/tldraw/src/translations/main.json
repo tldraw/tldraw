@@ -60,6 +60,7 @@
   "select": "Select",
   "eraser": "Eraser",
   "draw": "Draw",
+  "highlight": "highlight",
   "arrow": "Arrow",
   "text": "Text",
   "sticky": "Sticky",

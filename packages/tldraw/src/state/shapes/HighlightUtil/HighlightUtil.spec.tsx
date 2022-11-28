@@ -1,7 +1,7 @@
-import { Draw } from '..'
+import { Highlight } from '..'
 
 describe('Draw shape', () => {
   it('Creates a shape', () => {
-    expect(Draw.create({ id: 'draw' })).toMatchSnapshot('draw')
+    expect(Highlight.create({ id: 'draw' })).toMatchSnapshot('draw')
   })
 })

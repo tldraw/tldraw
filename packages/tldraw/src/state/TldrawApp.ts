@@ -201,9 +201,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   tools = {
     select: new SelectTool(this),
     erase: new EraseTool(this),
-    highlight: new HighlightTool(this),
     [TDShapeType.Text]: new TextTool(this),
     [TDShapeType.Draw]: new DrawTool(this),
+    [TDShapeType.Highlight]: new HighlightTool(this),
     [TDShapeType.Ellipse]: new EllipseTool(this),
     [TDShapeType.Rectangle]: new RectangleTool(this),
     [TDShapeType.Triangle]: new TriangleTool(this),
