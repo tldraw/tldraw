@@ -51,81 +51,50 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
     )
   }
 
-  Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, meta, isSelected, isGhost, events }, ref) => {
-      const { points, style, isComplete } = shape
+  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, meta, isGhost, events }, ref) => {
+    const { points, style, isComplete } = shape
 
-      const pathTDSnapshot = React.useMemo(() => {
-        return style.dash === DashStyle.Draw
-          ? getDrawStrokePathTDSnapshot(shape)
-          : getSolidStrokePathTDSnapshot(shape)
-      }, [points, style.size, style.dash, isComplete])
+    const pathTDSnapshot = React.useMemo(() => {
+      return style.dash === DashStyle.Draw
+        ? getDrawStrokePathTDSnapshot(shape)
+        : getSolidStrokePathTDSnapshot(shape)
+    }, [points, style.size, style.dash, isComplete])
 
-      const styles = getShapeStyle(style, meta.isDarkMode)
-      const { stroke, fill, strokeWidth } = styles
+    const styles = getShapeStyle(style, meta.isDarkMode)
+    const { stroke, strokeWidth } = styles
 
-      // For very short lines, draw a point instead of a line
-      const bounds = this.getBounds(shape)
+    // For very short lines, draw a point instead of a line
+    const bounds = this.getBounds(shape)
 
-      const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
+    const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
-      if (verySmall) {
-        const sw = 1 + strokeWidth
-
-        return (
-          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-            <circle
-              r={sw}
-              fill={stroke}
-              stroke={stroke}
-              pointerEvents="all"
-              opacity={isGhost ? GHOSTED_OPACITY : 1}
-            />
-          </SVGContainer>
-        )
-      }
-
-      if (shape.style.dash === DashStyle.Draw) {
-        return (
-          <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-            <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
-              <path className={'tl-stroke-hitarea'} d={pathTDSnapshot} />
-              <path
-                d={pathTDSnapshot}
-                fill={stroke}
-                stroke={stroke}
-                opacity={0.6}
-                strokeWidth={strokeWidth / 2}
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                pointerEvents="none"
-              />
-            </g>
-          </SVGContainer>
-        )
-      }
-
-      const sw = 1 + strokeWidth * 1.5
+    if (verySmall) {
+      const sw = 1 + strokeWidth
 
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+          <circle
+            r={sw}
+            fill={stroke}
+            stroke={stroke}
+            pointerEvents="all"
+            opacity={isGhost ? GHOSTED_OPACITY : 1}
+          />
+        </SVGContainer>
+      )
+    }
+
+    if (shape.style.dash === DashStyle.Draw) {
+      return (
+        <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
           <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
-            <path className="tl-stroke-hitarea" d={pathTDSnapshot} />
+            <path className={'tl-stroke-hitarea'} d={pathTDSnapshot} />
             <path
               d={pathTDSnapshot}
-              fill="none"
-              stroke="none"
-              strokeWidth={Math.min(4, strokeWidth * 2)}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-              pointerEvents="none"
-            />
-            <path
-              d={pathTDSnapshot}
-              fill="none"
+              fill={stroke}
               stroke={stroke}
               opacity={0.6}
-              strokeWidth={sw}
+              strokeWidth={strokeWidth / 2}
               strokeLinejoin="round"
               strokeLinecap="round"
               pointerEvents="none"
@@ -134,7 +103,36 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
         </SVGContainer>
       )
     }
-  )
+
+    const sw = 1 + strokeWidth * 1.5
+
+    return (
+      <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
+        <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+          <path className="tl-stroke-hitarea" d={pathTDSnapshot} />
+          <path
+            d={pathTDSnapshot}
+            fill="none"
+            stroke="none"
+            strokeWidth={Math.min(4, strokeWidth * 2)}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="none"
+          />
+          <path
+            d={pathTDSnapshot}
+            fill="none"
+            stroke={stroke}
+            opacity={0.6}
+            strokeWidth={sw}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            pointerEvents="none"
+          />
+        </g>
+      </SVGContainer>
+    )
+  })
 
   Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const { points } = shape

@@ -7,7 +7,7 @@ import {
   getStrokePoints,
 } from 'perfect-freehand'
 import { getShapeStyle } from '~state/shapes/shared'
-import type { DrawShape, HighlightShape } from '~types'
+import type { HighlightShape } from '~types'
 
 const simulatePressureSettings: StrokeOptions = {
   easing: (t) => Math.sin((t * Math.PI) / 2),
