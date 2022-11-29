@@ -69,6 +69,11 @@ export interface TldrawProps extends TDCallbacks {
   showPages?: boolean
 
   /**
+   * (optional) Whether to show the inbox UI.
+   */
+  showInbox?: boolean
+
+  /**
    * (optional) Whether to show the styles UI.
    */
   showStyles?: boolean
@@ -134,6 +139,7 @@ export function Tldraw({
   showMenu = true,
   showMultiplayerMenu = true,
   showPages = true,
+  showInbox = true,
   showTools = true,
   showZoom = true,
   showStyles = true,
@@ -349,6 +355,7 @@ export function Tldraw({
           id={sId}
           autofocus={autofocus}
           showPages={showPages}
+          showInbox={showInbox}
           showMenu={showMenu}
           showMultiplayerMenu={showMultiplayerMenu}
           showStyles={showStyles}
@@ -369,6 +376,7 @@ interface InnerTldrawProps {
   autofocus: boolean
   readOnly: boolean
   showPages: boolean
+  showInbox: boolean
   showMenu: boolean
   showMultiplayerMenu: boolean
   showZoom: boolean
@@ -385,6 +393,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   id,
   autofocus,
   showPages,
+  showInbox,
   showMenu,
   showMultiplayerMenu,
   showZoom,
@@ -603,6 +612,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                     readOnly={readOnly}
                     showPages={showPages}
                     showMenu={showMenu}
+                    showInbox={showInbox}
                     showStyles={showStyles}
                     showZoom={showZoom}
                   />

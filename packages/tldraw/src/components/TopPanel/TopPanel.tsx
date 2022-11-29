@@ -10,10 +10,12 @@ import { PageMenu } from './PageMenu'
 import { StyleMenu } from './StyleMenu'
 import { ZoomMenu } from './ZoomMenu'
 import {stopPropagation} from "~components/stopPropagation";
+import {InboxMenu} from "~components/TopPanel/InboxMenu/InboxMenu";
 
 interface TopPanelProps {
   readOnly: boolean
   showPages: boolean
+  showInbox: boolean
   showMenu: boolean
   showStyles: boolean
   showZoom: boolean
@@ -22,6 +24,7 @@ interface TopPanelProps {
 export function _TopPanel({
   readOnly,
   showPages,
+  showInbox,
   showMenu,
   showStyles,
   showZoom,
@@ -33,6 +36,7 @@ export function _TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu readOnly={readOnly} />}
+          {showInbox && <InboxMenu readOnly={readOnly} />}
           {showPages && <PageMenu />}
         </Panel>
       )}

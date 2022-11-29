@@ -1869,6 +1869,70 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  // handle pasted edubreak node link
+  public async pasteTextAsEdubreakLink (options: any) {
+    const edubreakContent = await EdubreakService.getNodeAsJSON(options)
+    const shapeId = Utils.uniqueId()
+
+    switch (options.type) {
+      case 'blog':
+        this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Content,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          model: edubreakContent,
+          nodeType: 'blog',
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        })
+        break
+      case 'cmap':
+        this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Content,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          model: edubreakContent,
+          nodeType: 'document',
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        })
+        break
+      case 'video':
+        this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Video,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: '',
+          thumbnail: edubreakContent.linkVideoThumbnail,
+          model: edubreakContent,
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        })
+        break
+      case 'videocomment':
+        this.createShapes({
+          id: shapeId,
+          type: TDShapeType.Video,
+          parentId: this.appState.currentPageId,
+          title: TLDR.normalizeText(edubreakContent.title.trim()),
+          body: TLDR.normalizeText(edubreakContent.body.trim()),
+          model: edubreakContent,
+          thumbnail: edubreakContent.video_comment_thumbnail_image,
+          point: this.getPagePoint(this.centerPoint, this.currentPageId),
+          style: { ...this.appState.currentStyle },
+        })
+        break
+    }
+
+    this.select(shapeId)
+  }
+
+
   /**
    * Paste shapes (or text) from clipboard to a certain point.
    * @param point
@@ -1944,68 +2008,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       }
     }
 
-    const pasteTextAsEdubreakLink = async (options: any) => {
-      // handle pasted edubreak node link
-      const edubreakContent = await EdubreakService.getNodeAsJSON(options)
-      const shapeId = Utils.uniqueId()
-
-      switch (options.type) {
-        case 'blog':
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Content,
-            parentId: this.appState.currentPageId,
-            title: TLDR.normalizeText(edubreakContent.title.trim()),
-            body: TLDR.normalizeText(edubreakContent.body.trim()),
-            model: edubreakContent,
-            nodeType: 'blog',
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
-          break
-        case 'cmap':
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Content,
-            parentId: this.appState.currentPageId,
-            title: TLDR.normalizeText(edubreakContent.title.trim()),
-            body: TLDR.normalizeText(edubreakContent.body.trim()),
-            model: edubreakContent,
-            nodeType: 'document',
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
-          break
-        case 'video':
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Video,
-            parentId: this.appState.currentPageId,
-            title: TLDR.normalizeText(edubreakContent.title.trim()),
-            body: '',
-            thumbnail: edubreakContent.linkVideoThumbnail,
-            model: edubreakContent,
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
-          break
-        case 'videocomment':
-          this.createShapes({
-            id: shapeId,
-            type: TDShapeType.Video,
-            parentId: this.appState.currentPageId,
-            title: TLDR.normalizeText(edubreakContent.title.trim()),
-            body: TLDR.normalizeText(edubreakContent.body.trim()),
-            model: edubreakContent,
-            thumbnail: edubreakContent.video_comment_thumbnail_image,
-            point: this.getPagePoint(this.centerPoint, this.currentPageId),
-            style: { ...this.appState.currentStyle },
-          })
-          break
-      }
-
-      this.select(shapeId)
-    }
 
     if (e !== undefined) {
       const items = Array.from(e.clipboardData?.items ?? [])
@@ -2020,7 +2022,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
                 // check if the text is an edubreak link
                 if (EdubreakService.textIsEdubreakLink(str)) {
                   const edubreakOptions = EdubreakService.parseEdubreakLink(str)
-                  await pasteTextAsEdubreakLink(edubreakOptions)
+                  await this.pasteTextAsEdubreakLink(edubreakOptions)
                   return
                 }
               switch (type) {
@@ -3845,6 +3847,14 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     if (e.dataTransfer.files?.length) {
       this.addMediaFromFiles(Object.values(e.dataTransfer.files), [e.clientX, e.clientY])
     }
+    // handle drop from edubreak inbox to canvas
+    if (e.dataTransfer.getData("text/plain")) {
+      const data = e.dataTransfer.getData("text/plain");
+      const options = JSON.parse(data);
+      await this.pasteTextAsEdubreakLink(options)
+      const response = await EdubreakService.deleteFromInbox(options.nid)
+      console.log('response is: ', response);
+    }
     return this
   }
 
@@ -4324,6 +4334,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isDebugMode: false,
       isReadonlyMode: false,
       keepStyleMenuOpen: false,
+      openInbox: false,
       nudgeDistanceLarge: 16,
       nudgeDistanceSmall: 1,
       showRotateHandles: true,

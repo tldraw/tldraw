@@ -25,16 +25,16 @@ export function ViewzoneMenu({onSelect, shapes}: ViewzoneMenuProps) {
   return (
     <Panel side="left" id="TD-Viewzone-Panel">
       <StyledListContainer>
-          <IconButton style={{
-            zoom: 1.5,
-            width: 'auto',
-            height: 'auto',
-            marginBottom: '10px'
-          }} onClick={onSelect}><ArrowLeftIcon/></IconButton>
+        <IconButton style={{
+          zoom: 1.5,
+          width: 'auto',
+          height: 'auto',
+          marginBottom: '10px'
+        }} onClick={onSelect}><ArrowLeftIcon/></IconButton>
         <Divider/>
         {viewzones.map((viewzone: TDShape, index: number) => (
           <StyledListElementContainer id={viewzone.id} key={viewzone.id} onClick={switchToViewzone}>
-            <div>Viewzone {index+1}</div>
+            <div>Viewzone {index + 1}</div>
           </StyledListElementContainer>
         ))}
       </StyledListContainer>

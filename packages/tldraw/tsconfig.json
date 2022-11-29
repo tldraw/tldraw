@@ -3,6 +3,7 @@
   "exclude": ["node_modules", "dist"],
   "include": ["src", "./src/translations/*.json"],
   "compilerOptions": {
+    "jsx": "react",
     "skipLibCheck": true,
     "outDir": "./dist",
     "rootDir": "src",
