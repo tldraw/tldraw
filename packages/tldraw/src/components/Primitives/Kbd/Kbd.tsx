@@ -9,10 +9,18 @@ import { styled } from '~styles'
 const commandKey = () => (Utils.isDarwin() ? '⌘' : 'Ctrl')
 
 export function Kbd({ variant, children }: { variant: 'tooltip' | 'menu'; children: string }) {
+  const replaceK = (val: string) => {
+    const objK: { [K in string]: string } = {
+      '#': val.replace('#', commandKey()),
+      '^': val.replace('^', 'alt'),
+    }
+    return objK[val] ?? val
+  }
+
   return (
     <StyledKbd variant={variant}>
       {children.split('').map((k, i) => {
-        return <span key={i}>{k.replace('#', commandKey())}</span>
+        return <span key={i}>{replaceK(k)}</span>
       })}
     </StyledKbd>
   )
@@ -42,13 +50,22 @@ export const StyledKbd = styled('kbd', {
   variants: {
     variant: {
       tooltip: {
+        background: '$overlayContrast',
+        boxShadow: '$key',
+        minWidth: '20px',
+        minHeight: '20px',
+        padding: '0 5px',
+        justifyContent: 'center',
         '& > span': {
           color: '$tooltipContrast',
-          background: '$overlayContrast',
-          boxShadow: '$key',
-          width: '20px',
-          height: '20px',
         },
+        // '& > span': {
+        //   color: '$tooltipContrast',
+        //   background: '$overlayContrast',
+        //   boxShadow: '$key',
+        //   width: '20px',
+        //   height: '20px',
+        // },
       },
       menu: {},
     },

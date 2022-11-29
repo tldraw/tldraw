@@ -75,6 +75,26 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
   )
 
   useHotkeys(
+    'h',
+    () => {
+      if (!canHandleEvent(true)) return
+      app.selectTool(TDShapeType.Highlight)
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
+    'alt+t',
+    () => {
+      if (!canHandleEvent(true)) return
+      app.selectTool(TDShapeType.Table)
+    },
+    undefined,
+    [app]
+  )
+
+  useHotkeys(
     'e,3',
     () => {
       if (!canHandleEvent(true)) return

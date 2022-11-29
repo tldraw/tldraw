@@ -63,6 +63,7 @@
   "highlight": "highlight",
   "arrow": "Arrow",
   "text": "Text",
+  "table": "Table",
   "sticky": "Sticky",
   "rectangle": "Rectangle",
   "ellipse": "Ellipse",

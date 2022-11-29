@@ -219,6 +219,7 @@ export type TDToolType =
   | 'select'
   | 'erase'
   | TDShapeType.Text
+  | TDShapeType.Table
   | TDShapeType.Draw
   | TDShapeType.Highlight
   | TDShapeType.Ellipse
@@ -294,6 +295,7 @@ export enum TDShapeType {
   Arrow = 'arrow',
   Line = 'line',
   Text = 'text',
+  Table = 'table',
   Group = 'group',
   Image = 'image',
   Video = 'video',
@@ -395,6 +397,12 @@ export interface TextShape extends TDBaseShape {
   text: string
 }
 
+// The shape created by the text tool
+export interface TableShape extends TDBaseShape {
+  type: TDShapeType.Table
+  text: string
+}
+
 // The shape created by the sticky tool
 export interface StickyShape extends TDBaseShape {
   type: TDShapeType.Sticky
@@ -418,6 +426,7 @@ export type TDShape =
   | HighlightShape
   | ArrowShape
   | TextShape
+  | TableShape
   | GroupShape
   | StickyShape
   | ImageShape

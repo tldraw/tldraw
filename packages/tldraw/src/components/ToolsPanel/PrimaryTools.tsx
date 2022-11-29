@@ -1,9 +1,11 @@
 import {
   ArrowTopRightIcon,
   CursorArrowIcon,
+  HobbyKnifeIcon,
   ImageIcon,
   Pencil1Icon,
   Pencil2Icon,
+  TableIcon,
   TextIcon,
 } from '@radix-ui/react-icons'
 import * as React from 'react'
@@ -54,6 +56,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     app.selectTool(TDShapeType.Text)
   }, [app])
 
+  const selectTableTool = React.useCallback(() => {
+    app.selectTool(TDShapeType.Text)
+  }, [app])
+
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
   }, [app])
@@ -81,13 +87,23 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         <CursorArrowIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
-        kbd={'a'}
+        kbd={'^t'}
+        label={intl.formatMessage({ id: 'table' })}
+        onClick={selectTableTool}
+        isLocked={isToolLocked}
+        isActive={activeTool === TDShapeType.Table}
+        id="TD-PrimaryTools-Table"
+      >
+        <TableIcon />
+      </ToolButtonWithTooltip>
+      <ToolButtonWithTooltip
+        kbd={'h'}
         label={intl.formatMessage({ id: 'highlight' })}
         onClick={selectHighlightTool}
         isActive={activeTool === TDShapeType.Highlight}
         id="TD-PrimaryTools-CursorArrow"
       >
-        <CursorArrowIcon />
+        <HobbyKnifeIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'2'}

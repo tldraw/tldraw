@@ -83,6 +83,7 @@ import { LineTool } from './tools/LineTool'
 import { RectangleTool } from './tools/RectangleTool'
 import { SelectTool } from './tools/SelectTool'
 import { StickyTool } from './tools/StickyTool'
+import { TableTool } from './tools/TableTool'
 import { TextTool } from './tools/TextTool'
 import { TriangleTool } from './tools/TriangleTool'
 
@@ -202,6 +203,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     select: new SelectTool(this),
     erase: new EraseTool(this),
     [TDShapeType.Text]: new TextTool(this),
+    [TDShapeType.Table]: new TableTool(this),
     [TDShapeType.Draw]: new DrawTool(this),
     [TDShapeType.Highlight]: new HighlightTool(this),
     [TDShapeType.Ellipse]: new EllipseTool(this),
