@@ -57,7 +57,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   const selectTableTool = React.useCallback(() => {
-    app.selectTool(TDShapeType.Text)
+    app.selectTool(TDShapeType.Table)
   }, [app])
 
   const selectStickyTool = React.useCallback(() => {
