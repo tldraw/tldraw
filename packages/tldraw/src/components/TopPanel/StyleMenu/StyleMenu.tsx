@@ -250,15 +250,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
             ))}
           </ColorGrid>
         </StyledRow>
-        <DMCheckboxItem
-          variant="styleMenu"
-          checked={!!displayedStyle.isFilled}
-          onCheckedChange={handleToggleFilled}
-          id="TD-Styles-Fill"
-        >
-          <FormattedMessage id="style.menu.fill" />
-        </DMCheckboxItem>
-        {options === 'opacity' && (
+        {options === 'opacity' ? (
           <StyledRow id="TD-Styles-Opacity-Container">
             <FormattedMessage id="style.menu.opacity" />
             <StyledGroup
@@ -280,6 +272,15 @@ export const StyleMenu = React.memo(function ColorMenu() {
               ))}
             </StyledGroup>
           </StyledRow>
+        ) : (
+          <DMCheckboxItem
+            variant="styleMenu"
+            checked={!!displayedStyle.isFilled}
+            onCheckedChange={handleToggleFilled}
+            id="TD-Styles-Fill"
+          >
+            <FormattedMessage id="style.menu.fill" />
+          </DMCheckboxItem>
         )}
         <StyledRow id="TD-Styles-Dash-Container">
           <FormattedMessage id="style.menu.dash" />

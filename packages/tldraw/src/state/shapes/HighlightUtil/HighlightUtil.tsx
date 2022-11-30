@@ -107,7 +107,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
           <path
             d={pathTDSnapshot}
             fill="none"
-            stroke="red"
+            stroke="none"
             strokeWidth={Math.min(4, strokeWidth * 2)}
             strokeLinejoin="round"
             strokeLinecap="round"
