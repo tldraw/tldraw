@@ -11,11 +11,7 @@ import { GHOSTED_OPACITY } from '~constants'
 import { TDShapeUtil } from '~state/shapes/TDShapeUtil'
 import { defaultStyle, getShapeStyle } from '~state/shapes/shared'
 import { DashStyle, HighlightShape, TDMeta, TDShapeType, TransformInfo } from '~types'
-import {
-  getDrawStrokePathTDSnapshot,
-  getFillPath,
-  getSolidStrokePathTDSnapshot,
-} from './highlightHelpers'
+import { getDrawStrokePathTDSnapshot, getSolidStrokePathTDSnapshot } from './highlightHelpers'
 
 type T = HighlightShape
 type E = SVGSVGElement
@@ -69,17 +65,17 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
     const verySmall = bounds.width <= strokeWidth / 2 && bounds.height <= strokeWidth / 2
 
     if (verySmall) {
-      const sw = 1 + strokeWidth
-
       return (
         <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
-          <circle
-            r={sw}
-            fill={stroke}
-            stroke={stroke}
-            pointerEvents="all"
-            opacity={isGhost ? GHOSTED_OPACITY : 1}
-          />
+          <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
+            <circle
+              r={strokeWidth * 2}
+              fill={stroke}
+              stroke={stroke}
+              pointerEvents="all"
+              opacity={highlightOpacity}
+            />
+          </g>
         </SVGContainer>
       )
     }
@@ -94,7 +90,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
               fill={stroke}
               stroke={stroke}
               opacity={highlightOpacity}
-              strokeWidth={strokeWidth / 2}
+              strokeWidth={strokeWidth * 3}
               strokeLinejoin="round"
               strokeLinecap="round"
               pointerEvents="none"
@@ -104,8 +100,6 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
       )
     }
 
-    const sw = 1 + strokeWidth * 1.5
-
     return (
       <SVGContainer ref={ref} id={shape.id + '_svg'} {...events}>
         <g opacity={isGhost ? GHOSTED_OPACITY : 1}>
@@ -113,7 +107,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
           <path
             d={pathTDSnapshot}
             fill="none"
-            stroke="none"
+            stroke="red"
             strokeWidth={Math.min(4, strokeWidth * 2)}
             strokeLinejoin="round"
             strokeLinecap="round"
@@ -124,7 +118,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
             fill="none"
             stroke={stroke}
             opacity={highlightOpacity}
-            strokeWidth={sw}
+            strokeWidth={strokeWidth * 4}
             strokeLinejoin="round"
             strokeLinecap="round"
             pointerEvents="none"
