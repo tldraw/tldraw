@@ -61,7 +61,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
     }, [points, style.size, style.dash, isComplete])
 
     const styles = getShapeStyle(style, meta.isDarkMode)
-    const { stroke, strokeWidth } = styles
+    const { stroke, strokeWidth, opacity: highlightOpacity } = styles
 
     // For very short lines, draw a point instead of a line
     const bounds = this.getBounds(shape)
@@ -93,7 +93,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
               d={pathTDSnapshot}
               fill={stroke}
               stroke={stroke}
-              opacity={0.6}
+              opacity={highlightOpacity}
               strokeWidth={strokeWidth / 2}
               strokeLinejoin="round"
               strokeLinecap="round"
@@ -123,7 +123,7 @@ export class HighlightUtil extends TDShapeUtil<T, E> {
             d={pathTDSnapshot}
             fill="none"
             stroke={stroke}
-            opacity={0.6}
+            opacity={highlightOpacity}
             strokeWidth={sw}
             strokeLinejoin="round"
             strokeLinecap="round"

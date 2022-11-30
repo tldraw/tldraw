@@ -1,6 +1,7 @@
 {
   "style.menu.color": "Color",
   "style.menu.fill": "Fill",
+  "style.menu.opacity": "Opacity",
   "style.menu.dash": "Dash",
   "style.menu.size": "Size",
   "style.menu.keep.open": "Keep Open",

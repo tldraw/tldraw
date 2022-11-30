@@ -20,6 +20,7 @@ Object {
     "color": "black",
     "dash": "draw",
     "isFilled": true,
+    "opacity": "medium",
     "scale": 1,
     "size": "small",
   },

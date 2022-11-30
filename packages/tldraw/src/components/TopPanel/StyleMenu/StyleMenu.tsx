@@ -79,6 +79,9 @@ const optionsSelector = (s: TDSnapshot) => {
       }
       return hasText ? 'text' : hasLabel ? 'label' : ''
     }
+    case TDShapeType.Highlight: {
+      return 'opacity'
+    }
     case TDShapeType.Text: {
       return 'text'
     }
@@ -161,6 +164,10 @@ export const StyleMenu = React.memo(function ColorMenu() {
 
   const handleToggleFilled = React.useCallback((checked: boolean) => {
     app.style({ isFilled: checked })
+  }, [])
+
+  const handleOpacityChange = React.useCallback((value: string) => {
+    app.style({ opacity: value as SizeStyle })
   }, [])
 
   const handleDashChange = React.useCallback((value: string) => {
@@ -251,6 +258,29 @@ export const StyleMenu = React.memo(function ColorMenu() {
         >
           <FormattedMessage id="style.menu.fill" />
         </DMCheckboxItem>
+        {options === 'opacity' && (
+          <StyledRow id="TD-Styles-Opacity-Container">
+            <FormattedMessage id="style.menu.opacity" />
+            <StyledGroup
+              dir="ltr"
+              value={displayedStyle.opacity}
+              onValueChange={handleOpacityChange}
+            >
+              {Object.values(SizeStyle).map((opacityStyle) => (
+                <DMRadioItem
+                  key={opacityStyle}
+                  isActive={opacityStyle === displayedStyle.opacity}
+                  value={opacityStyle}
+                  onSelect={preventEvent}
+                  bp={breakpoints}
+                  id={`TD-Styles-Opacity-${opacityStyle}`}
+                >
+                  {SIZE_ICONS[opacityStyle as SizeStyle]}
+                </DMRadioItem>
+              ))}
+            </StyledGroup>
+          </StyledRow>
+        )}
         <StyledRow id="TD-Styles-Dash-Container">
           <FormattedMessage id="style.menu.dash" />
           <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>

@@ -76,6 +76,12 @@ const strokeWidths = {
   [SizeStyle.Large]: 5,
 }
 
+const opacitySizes = {
+  [SizeStyle.Small]: 0.3,
+  [SizeStyle.Medium]: 0.5,
+  [SizeStyle.Large]: 0.7,
+}
+
 const fontSizes = {
   [SizeStyle.Small]: 28,
   [SizeStyle.Medium]: 48,
@@ -106,6 +112,10 @@ const stickyFontSizes = {
 
 export function getStrokeWidth(size: SizeStyle): number {
   return strokeWidths[size]
+}
+
+export function getOpacitySize(opacity: SizeStyle): number {
+  return opacitySizes[opacity]
 }
 
 export function getFontSize(size: SizeStyle, fontStyle: FontStyle = FontStyle.Script): number {
@@ -157,10 +167,13 @@ export function getShapeStyle(
   stroke: string
   fill: string
   strokeWidth: number
+  opacity: number
 } {
-  const { color, size, isFilled } = style
+  const { color, size, isFilled, opacity } = style
 
   const strokeWidth = getStrokeWidth(size)
+
+  const opacitySize = getOpacitySize(opacity)
 
   const theme: Theme = isDarkMode ? 'dark' : 'light'
 
@@ -168,6 +181,7 @@ export function getShapeStyle(
     stroke: strokes[theme][color],
     fill: isFilled ? fills[theme][color] : 'none',
     strokeWidth,
+    opacity: opacitySize,
   }
 }
 
@@ -177,6 +191,7 @@ export const defaultStyle: ShapeStyles = {
   isFilled: false,
   dash: DashStyle.Draw,
   scale: 1,
+  opacity: SizeStyle.Medium,
 }
 
 export const defaultTextStyle: ShapeStyles = {

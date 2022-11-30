@@ -1,6 +1,7 @@
 {
   "style.menu.color": "색깔",
   "style.menu.fill": "채우기",
+  "style.menu.opacity": "투명도",
   "style.menu.dash": "테두리",
   "style.menu.size": "크기",
   "style.menu.keep.open": "항상 열기",

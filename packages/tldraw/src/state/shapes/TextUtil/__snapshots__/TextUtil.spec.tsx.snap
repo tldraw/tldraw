@@ -16,6 +16,7 @@ Object {
     "dash": "draw",
     "font": "script",
     "isFilled": false,
+    "opacity": "medium",
     "scale": 1,
     "size": "small",
     "textAlign": "middle",
