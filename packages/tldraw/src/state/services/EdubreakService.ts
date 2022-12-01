@@ -228,8 +228,8 @@ const EdubreakService = {
         .then(response => {
           return response.json()
         })
-        console.log('### EdubreakService: Deleted artefact ' + nid + ' from server ###', data.data)
-      return data.data;
+        console.log('### EdubreakService: Deleted artefact ' + nid + ' from server ###', data)
+      return data;
     } catch (e) {
         console.error('### EdubreakService: error deleting artefact ' + nid + ' from server ###', e);
     }

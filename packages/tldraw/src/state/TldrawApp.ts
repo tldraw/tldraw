@@ -3853,7 +3853,13 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       const options = JSON.parse(data);
       await this.pasteTextAsEdubreakLink(options)
       const response = await EdubreakService.deleteFromInbox(options.nid)
-      console.log('response is: ', response);
+      if (response) {
+        const deleteInboxItemEvent = new CustomEvent('onDeleteInboxItem', {detail: response})
+        window.dispatchEvent(deleteInboxItemEvent);
+      } else {
+        throw new Error('The edubreak inbox item could not be deleted properly')
+      }
+
     }
     return this
   }

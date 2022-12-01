@@ -1,157 +1,52 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {EnvelopeClosedIcon, EnvelopeOpenIcon} from '@radix-ui/react-icons'
-import {supported} from 'browser-fs-access'
 import * as React from 'react'
 import {FormattedMessage, useIntl} from 'react-intl'
-import {FilenameDialog} from '~components/Primitives/AlertDialog'
 import {Divider} from '~components/Primitives/Divider'
 import {
-  DMCheckboxItem,
   DMContent,
-  DMItem,
-  DMSubMenu,
   DMTriggerIcon,
 } from '~components/Primitives/DropdownMenu'
-import {preventEvent} from '~components/preventEvent'
 import {useTldrawApp} from '~hooks'
-import {useFileSystemHandlers} from '~hooks'
-import {TDExportType, TDShape, TDSnapshot} from '~types'
-import {PreferencesMenu} from '../PreferencesMenu'
+import {TDSnapshot} from '~types'
 import {styled} from "~styles";
 import EdubreakService from "~state/services/EdubreakService";
 import {stopPropagation} from "~components/stopPropagation";
-import {useRef} from "react";
 
 interface InboxMenuProps {
   readOnly: boolean
 }
 
-const numberOfSelectedIdsSelector = (s: TDSnapshot) => {
-  return s.document.pageStates[s.appState.currentPageId].selectedIds.length
-}
-
-const disableAssetsSelector = (s: TDSnapshot) => {
-  return s.appState.disableAssets
-}
-
-const settingsSelector = (s: TDSnapshot) => s.settings
-
 const openInboxSelector = (s: TDSnapshot) => s.settings.openInbox
 
 export const InboxMenu = React.memo(function InboxMenu({readOnly}: InboxMenuProps) {
   const app = useTldrawApp()
-
-  const intl = useIntl()
-  const [openDialog, setOpenDialog] = React.useState(false)
-  const settings = app.useStore(settingsSelector)
-
-  const numberOfSelectedIds = app.useStore(numberOfSelectedIdsSelector)
-
-  const disableAssets = app.useStore(disableAssetsSelector)
-
-  const [_, setForce] = React.useState(0)
-
-  React.useEffect(() => setForce(1), [])
-
-  const {onNewProject, onOpenProject, onSaveProject, onSaveProjectAs} = useFileSystemHandlers()
-
-  const handleSaveProjectAs = React.useCallback(() => {
-    if (!supported) {
-      setOpenDialog(true)
-    } else {
-      app.saveProjectAs()
-    }
-  }, [app])
-
-  const handleDelete = React.useCallback(() => {
-    app.delete()
-  }, [app])
-
-  const handleCopySVG = React.useCallback(() => {
-    app.copyImage(TDExportType.SVG, {scale: 1, quality: 1, transparentBackground: false})
-  }, [app])
-
-  const handleCopyPNG = React.useCallback(() => {
-    app.copyImage(TDExportType.PNG, {scale: 2, quality: 1, transparentBackground: true})
-  }, [app])
-
-  const handleExportPNG = React.useCallback(async () => {
-    app.exportImage(TDExportType.PNG, {scale: 2, quality: 1})
-  }, [app])
-
-  const handleExportJPG = React.useCallback(async () => {
-    app.exportImage(TDExportType.JPG, {scale: 2, quality: 1})
-  }, [app])
-
-  const handleExportWEBP = React.useCallback(async () => {
-    app.exportImage(TDExportType.WEBP, {scale: 2, quality: 1})
-  }, [app])
-
-  const handleExportSVG = React.useCallback(async () => {
-    app.exportImage(TDExportType.SVG, {scale: 2, quality: 1})
-  }, [app])
-
-  const handleCopyJSON = React.useCallback(async () => {
-    app.copyJson()
-  }, [app])
-
-  const handleExportJSON = React.useCallback(async () => {
-    app.exportJson()
-  }, [app])
-
-  const handleCut = React.useCallback(() => {
-    app.cut()
-  }, [app])
-
-  const handleCopy = React.useCallback(() => {
-    app.copy()
-  }, [app])
-
-  const handlePaste = React.useCallback(() => {
-    app.paste()
-  }, [app])
-
-  const handleSelectAll = React.useCallback(() => {
-    app.selectAll()
-  }, [app])
-
-  const handleSelectNone = React.useCallback(() => {
-    app.selectNone()
-  }, [app])
-
-  const handleUploadMedia = React.useCallback(() => {
-    app.openAsset()
-  }, [app])
-
-  const showViewzones = React.useCallback(() => {
-    app.setSetting('isViewzoneMode', (v) => !v)
-  }, [app])
-
-  const handleZoomTo100 = React.useCallback(() => {
-    app.zoomTo(1)
-  }, [app])
-
-  const showFileMenu =
-    app.callbacks.onNewProject ||
-    app.callbacks.onOpenProject ||
-    app.callbacks.onSaveProject ||
-    app.callbacks.onSaveProjectAs ||
-    app.callbacks.onExport
-
-  const hasSelection = numberOfSelectedIds > 0
-
   const openInbox = app.useStore(openInboxSelector)
 
-  const [inbox, setInbox] = React.useState([{
+  const [inbox, _setInbox] = React.useState([{
     id: 0,
     title: ''
   }]);
+
+  const inboxRef = React.useRef(inbox);
+
+  function setInbox(inbox: any) {
+    inboxRef.current = inbox; // Updates the ref
+    _setInbox(inbox);
+  }
+
+  const onDeleteInboxItem = (e: any) => {
+    // use the ref here so you have the access to the up-to-date inbox
+    const newInbox = inboxRef.current.filter((item) => item.id !== e.detail)
+    setInbox(newInbox)
+  }
 
   React.useEffect(() => {
     EdubreakService.getInbox().then((items) => {
       if (items.length > 0) {
         app.setSetting('openInbox', true)
         setInbox(items)
+        window.addEventListener('onDeleteInboxItem', onDeleteInboxItem);
       }
     })
   }, [])
@@ -164,9 +59,7 @@ export const InboxMenu = React.memo(function InboxMenu({readOnly}: InboxMenuProp
   )
 
   const dragStart = (e: any, campusURL: string, type: string) => {
-    console.log('target: ', e.target);
     const parsedLink = EdubreakService.parseEdubreakLink(campusURL.replace('node', type))
-    console.log('parsed Link: ', parsedLink);
     e.dataTransfer.setData("text/plain", JSON.stringify(parsedLink));
   }
 
