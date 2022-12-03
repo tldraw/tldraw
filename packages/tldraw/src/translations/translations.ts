@@ -48,7 +48,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'pt-br', label: 'Português - Brasil', messages: pt_br },
   { locale: 'ru', label: 'Russian', messages: ru },
   { locale: 'sv', label: 'Svenska', messages: sv },
-  { locale: 'te', label: 'Telugu', messages: te },
+  { locale: 'te', label: 'తెలుగు', messages: te },
   { locale: 'tr', label: 'Türkçe', messages: tr },
   { locale: 'uk', label: 'Ukrainian', messages: uk },
   { locale: 'zh-ch', label: '简体中文', messages: zh_cn },
