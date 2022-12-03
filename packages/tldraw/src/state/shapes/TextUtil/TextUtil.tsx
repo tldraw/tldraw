@@ -398,7 +398,7 @@ export class TextUtil extends TDShapeUtil<T, E> {
 
     const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
     const fontFamily = getFontFace(shape.style.font).slice(1, -1)
-    const textAlign = shape.style.textAlign ?? AlignStyle.Start
+    const textAlign = shape.style.textAlign ?? AlignStyle.Middle
 
     const textElm = getTextSvgElement(
       shape.text,
