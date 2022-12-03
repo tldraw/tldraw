@@ -188,8 +188,6 @@ export abstract class TDShapeUtil<T extends TDShape, E extends Element = any> ex
       const fontSize = getFontSize(shape.style.size, shape.style.font) * (shape.style.scale ?? 1)
       const fontFamily = getFontFace(shape.style.font).slice(1, -1)
 
-      console.log(labelSize[0])
-
       const labelElm = getTextSvgElement(
         s['label'],
         fontSize,

@@ -54,8 +54,6 @@ export function getTextSvgElement(
     return tspan
   })
 
-  console.log(textAlign)
-
   switch (textAlign) {
     case AlignStyle.Middle: {
       textElm.setAttribute('text-align', 'center')
