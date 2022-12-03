@@ -64,12 +64,13 @@ export function getTextSvgElement(
     case AlignStyle.End: {
       textElm.setAttribute('text-align', 'right')
       textElm.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', width + ''))
+      textLines.forEach((textElm) => textElm.setAttribute('x', -4 + width + ''))
       break
     }
     default: {
       textElm.setAttribute('text-align', 'left')
       textElm.setAttribute('text-anchor', 'start')
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + ''))
     }
   }
 
