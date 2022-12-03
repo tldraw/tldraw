@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.26.3
+
+### Patch Changes
+
+- Fix text placement.
+- Updated dependencies
+  - @tldraw/core@1.20.2
+
 ## 1.26.2
 
 ### Patch Changes
