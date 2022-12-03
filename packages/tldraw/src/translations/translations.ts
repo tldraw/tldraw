@@ -17,6 +17,7 @@ import pt_br from './pt-br.json'
 import pt_pt from './pt-pt.json'
 import ru from './ru.json'
 import sv from './sv.json'
+import te from './te.json'
 import th from './th.json'
 import tr from './tr.json'
 import uk from './uk.json'
@@ -47,6 +48,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'pt-br', label: 'Português - Brasil', messages: pt_br },
   { locale: 'ru', label: 'Russian', messages: ru },
   { locale: 'sv', label: 'Svenska', messages: sv },
+  { locale: 'te', label: 'తెలుగు', messages: te },
   { locale: 'tr', label: 'Türkçe', messages: tr },
   { locale: 'uk', label: 'Ukrainian', messages: uk },
   { locale: 'zh-ch', label: '简体中文', messages: zh_cn },
@@ -79,6 +81,7 @@ export type localKeys =
   | 'ru'
   | 'sv'
   | 'tr'
+  | 'te'
   | 'uk'
   | 'zh-ch'
   | 'zh-tw'
