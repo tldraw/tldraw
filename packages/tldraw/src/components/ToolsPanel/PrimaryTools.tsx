@@ -1,4 +1,5 @@
 import {
+  ArchiveIcon,
   ArrowTopRightIcon,
   CursorArrowIcon,
   HobbyKnifeIcon,
@@ -62,6 +63,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
+  }, [app])
+
+  const selectTemplateTool = React.useCallback(() => {
+    app.selectTool(TDShapeType.Template)
   }, [app])
 
   const uploadMedias = React.useCallback(async () => {
@@ -152,6 +157,14 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         id="TD-PrimaryTools-Pencil2"
       >
         <Pencil2Icon />
+      </ToolButtonWithTooltip>
+      <ToolButtonWithTooltip
+        label={intl.formatMessage({ id: 'template' })}
+        onClick={selectTemplateTool}
+        isActive={activeTool === TDShapeType.Template}
+        id="TD-PrimaryTools-Teamplate"
+      >
+        <ArchiveIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         label={intl.formatMessage({ id: 'image' })}

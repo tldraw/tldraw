@@ -282,23 +282,26 @@ export const StyleMenu = React.memo(function ColorMenu() {
             <FormattedMessage id="style.menu.fill" />
           </DMCheckboxItem>
         )}
-        <StyledRow id="TD-Styles-Dash-Container">
-          <FormattedMessage id="style.menu.dash" />
-          <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
-            {Object.values(DashStyle).map((style) => (
-              <DMRadioItem
-                key={style}
-                isActive={style === displayedStyle.dash}
-                value={style}
-                onSelect={preventEvent}
-                bp={breakpoints}
-                id={`TD-Styles-Dash-${style}`}
-              >
-                {DASH_ICONS[style as DashStyle]}
-              </DMRadioItem>
-            ))}
-          </StyledGroup>
-        </StyledRow>
+
+        {options !== 'opacity' && (
+          <StyledRow id="TD-Styles-Dash-Container">
+            <FormattedMessage id="style.menu.dash" />
+            <StyledGroup dir="ltr" value={displayedStyle.dash} onValueChange={handleDashChange}>
+              {Object.values(DashStyle).map((style) => (
+                <DMRadioItem
+                  key={style}
+                  isActive={style === displayedStyle.dash}
+                  value={style}
+                  onSelect={preventEvent}
+                  bp={breakpoints}
+                  id={`TD-Styles-Dash-${style}`}
+                >
+                  {DASH_ICONS[style as DashStyle]}
+                </DMRadioItem>
+              ))}
+            </StyledGroup>
+          </StyledRow>
+        )}
         <StyledRow id="TD-Styles-Size-Container">
           <FormattedMessage id="style.menu.size" />
           <StyledGroup dir="ltr" value={displayedStyle.size} onValueChange={handleSizeChange}>

@@ -84,6 +84,7 @@ import { RectangleTool } from './tools/RectangleTool'
 import { SelectTool } from './tools/SelectTool'
 import { StickyTool } from './tools/StickyTool'
 import { TableTool } from './tools/TableTool'
+import { TemplateTool } from './tools/TemplateTool'
 import { TextTool } from './tools/TextTool'
 import { TriangleTool } from './tools/TriangleTool'
 
@@ -212,6 +213,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     [TDShapeType.Line]: new LineTool(this),
     [TDShapeType.Arrow]: new ArrowTool(this),
     [TDShapeType.Sticky]: new StickyTool(this),
+    [TDShapeType.Template]: new TemplateTool(this),
   }
 
   currentTool: BaseTool = this.tools.select

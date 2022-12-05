@@ -66,6 +66,7 @@
   "text": "Text",
   "table": "Table",
   "sticky": "Sticky",
+  "template": "Template",
   "rectangle": "Rectangle",
   "ellipse": "Ellipse",
   "triangle": "Triangle",
