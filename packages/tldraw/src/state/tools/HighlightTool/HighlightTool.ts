@@ -11,7 +11,7 @@ enum Status {
 }
 
 export class HighlightTool extends BaseTool {
-  type = 'highlight' as const
+  type = TDShapeType.Highlight as const
 
   private lastShapeId?: string
 

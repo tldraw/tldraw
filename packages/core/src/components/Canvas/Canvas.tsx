@@ -112,13 +112,7 @@ function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
 
   return (
     <div id={id} className="tl-container" ref={rContainer}>
-      <div
-        id="canvas"
-        className="tl-absolute tl-canvas"
-        ref={rCanvas}
-        {...events}
-        style={{ width: '400px', height: '600px', transform: 'translate(640px, 10px)' }}
-      >
+      <div id="canvas" className="tl-absolute tl-canvas" ref={rCanvas} {...events}>
         {!hideGrid && grid && <Grid grid={grid} camera={pageState.camera} />}
         <div ref={rLayer} className="tl-absolute tl-layer" data-testid="layer">
           <Page

@@ -39,7 +39,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   const selectHighlightTool = React.useCallback(() => {
-    app.selectTool('highlight')
+    app.selectTool(TDShapeType.Highlight)
   }, [app])
 
   const selectDrawTool = React.useCallback(() => {
@@ -56,6 +56,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
+  }, [app])
+
+  const selectTemplateTool = React.useCallback(() => {
+    app.selectTool(TDShapeType.Template)
   }, [app])
 
   const uploadMedias = React.useCallback(async () => {
@@ -84,8 +88,8 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         kbd={'a'}
         label={intl.formatMessage({ id: 'highlight' })}
         onClick={selectHighlightTool}
-        isActive={activeTool === 'highlight'}
-        id="TD-PrimaryTools-CursorArrow"
+        isActive={activeTool === TDShapeType.Highlight}
+        id="TD-PrimaryTools-Highright"
       >
         <CursorArrowIcon />
       </ToolButtonWithTooltip>
@@ -134,6 +138,15 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}
         id="TD-PrimaryTools-Pencil2"
+      >
+        <Pencil2Icon />
+      </ToolButtonWithTooltip>
+      <ToolButtonWithTooltip
+        kbd={'t'}
+        label={intl.formatMessage({ id: 'template' })}
+        onClick={selectTemplateTool}
+        isActive={activeTool === TDShapeType.Template}
+        id="TD-PrimaryTools-Template"
       >
         <Pencil2Icon />
       </ToolButtonWithTooltip>

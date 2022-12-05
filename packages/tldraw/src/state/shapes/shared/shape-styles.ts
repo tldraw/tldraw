@@ -177,6 +177,7 @@ export const defaultStyle: ShapeStyles = {
   isFilled: false,
   dash: DashStyle.Draw,
   scale: 1,
+  opacity: 1,
 }
 
 export const defaultTextStyle: ShapeStyles = {

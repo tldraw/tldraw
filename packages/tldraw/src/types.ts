@@ -191,7 +191,7 @@ export enum SessionType {
   Brush = 'brush',
   Arrow = 'arrow',
   Draw = 'draw',
-  Highlight = 'highlight',
+  //Highlight = 'highlight',
   Erase = 'erase',
   Rotate = 'rotate',
   Handle = 'handle',
@@ -218,7 +218,7 @@ export enum TDStatus {
 export type TDToolType =
   | 'select'
   | 'erase'
-  | 'highlight'
+  | TDShapeType.Highlight
   | TDShapeType.Text
   | TDShapeType.Draw
   | TDShapeType.Ellipse
@@ -227,6 +227,7 @@ export type TDToolType =
   | TDShapeType.Line
   | TDShapeType.Arrow
   | TDShapeType.Sticky
+  | TDShapeType.Template
 
 export type Easing =
   | 'linear'
@@ -286,6 +287,7 @@ export enum FlipType {
 
 export enum TDShapeType {
   Sticky = 'sticky',
+  Template = 'template',
   Ellipse = 'ellipse',
   Rectangle = 'rectangle',
   Triangle = 'triangle',
@@ -402,6 +404,13 @@ export interface StickyShape extends TDBaseShape {
   text: string
 }
 
+// The shape created by the sticky tool
+export interface TemplateShape extends TDBaseShape {
+  type: TDShapeType.Template
+  size: number[]
+  text: string
+}
+
 // The shape created when multiple shapes are grouped
 export interface GroupShape extends TDBaseShape {
   type: TDShapeType.Group
@@ -420,6 +429,7 @@ export type TDShape =
   | TextShape
   | GroupShape
   | StickyShape
+  | TemplateShape
   | ImageShape
   | VideoShape
 

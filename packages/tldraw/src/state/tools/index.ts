@@ -3,10 +3,12 @@ import { ArrowTool } from './ArrowTool'
 import { DrawTool } from './DrawTool'
 import { EllipseTool } from './EllipseTool'
 import { EraseTool } from './EraseTool'
+import { HighlightTool } from './HighlightTool'
 import { LineTool } from './LineTool'
 import { RectangleTool } from './RectangleTool'
 import { SelectTool } from './SelectTool'
 import { StickyTool } from './StickyTool'
+import { TemplateTool } from './TemplateTool'
 import { TextTool } from './TextTool'
 import { TriangleTool } from './TriangleTool'
 
@@ -21,6 +23,8 @@ export interface ToolsMap {
   [TDShapeType.Line]: typeof LineTool
   [TDShapeType.Arrow]: typeof ArrowTool
   [TDShapeType.Sticky]: typeof StickyTool
+  [TDShapeType.Highlight]: typeof HighlightTool
+  [TDShapeType.Template]: typeof TemplateTool
 }
 
 export type ToolOfType<K extends TDToolType> = ToolsMap[K]
@@ -38,4 +42,6 @@ export const tools: { [K in TDToolType]: ToolsMap[K] } = {
   [TDShapeType.Line]: LineTool,
   [TDShapeType.Arrow]: ArrowTool,
   [TDShapeType.Sticky]: StickyTool,
+  [TDShapeType.Template]: TemplateTool,
+  [TDShapeType.Highlight]: HighlightTool,
 }
