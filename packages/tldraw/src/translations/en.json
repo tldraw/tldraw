@@ -27,6 +27,7 @@
   "zoom.to": "Zoom to",
 
   "inbox.title": "Inbox",
+  "inbox.noItemText": "No new items in your inbox!",
 
   "preferences.dark.mode": "Dark Mode",
   "preferences.focus.mode": "Focus Mode",

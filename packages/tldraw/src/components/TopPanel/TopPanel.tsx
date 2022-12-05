@@ -36,7 +36,7 @@ export function _TopPanel({
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu readOnly={readOnly} />}
-          {showInbox && <InboxMenu readOnly={readOnly} />}
+          {showInbox && <InboxMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}

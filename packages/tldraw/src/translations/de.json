@@ -21,6 +21,7 @@
   "zoom.to.fit": "Zoom anpassen",
   "zoom.to": "Zoomen nach",
   "inbox.title": "Posteingang",
+  "inbox.noItemText": "Keine neuen Artefakte in der Inbox!",
   "preferences.dark.mode": "Dunkler Modus",
   "preferences.focus.mode": "Fokus Modus",
   "preferences.debug.mode": "Debug Modus",
