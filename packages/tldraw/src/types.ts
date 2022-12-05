@@ -191,7 +191,7 @@ export enum SessionType {
   Brush = 'brush',
   Arrow = 'arrow',
   Draw = 'draw',
-  Highlight = 'highlight',
+  //Highlight = 'highlight',
   Erase = 'erase',
   Rotate = 'rotate',
   Handle = 'handle',

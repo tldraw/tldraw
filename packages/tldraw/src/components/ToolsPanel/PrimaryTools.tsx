@@ -106,7 +106,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'highlight' })}
         onClick={selectHighlightTool}
         isActive={activeTool === TDShapeType.Highlight}
-        id="TD-PrimaryTools-CursorArrow"
+        id="TD-PrimaryTools-Highlight"
       >
         <HobbyKnifeIcon />
       </ToolButtonWithTooltip>
