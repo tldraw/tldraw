@@ -1,4 +1,5 @@
 import {
+  AllSidesIcon,
   ArrowTopRightIcon,
   CursorArrowIcon,
   ImageIcon,
@@ -54,6 +55,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
+  }, [app])
+
+  const selectViewzoneTool = React.useCallback(() => {
+    app.selectTool(TDShapeType.ViewZone)
   }, [app])
 
   const uploadMedias = React.useCallback(async () => {
@@ -133,7 +138,14 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <ImageIcon />
       </ToolButtonWithTooltip>
-      <EdubreakMenu activeTool={activeTool} isToolLocked={isToolLocked} />
+      <ToolButtonWithTooltip
+        label={intl.formatMessage({ id: 'viewzone' })}
+        onClick={selectViewzoneTool}
+        id="TD-PrimaryTools-Viewzone"
+      >
+        <AllSidesIcon />
+      </ToolButtonWithTooltip>
+      {/*<EdubreakMenu activeTool={activeTool} isToolLocked={isToolLocked} />*/}
     </StyledPanel>
   )
 })

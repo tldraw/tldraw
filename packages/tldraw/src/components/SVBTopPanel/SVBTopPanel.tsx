@@ -1,3 +1,4 @@
+import { DesktopIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
@@ -8,8 +9,10 @@ import { Menu } from './Menu/Menu'
 import { PageMenu } from './PageMenu'
 import { StyleMenu } from './StyleMenu'
 import { ZoomMenu } from './ZoomMenu'
+import {stopPropagation} from "~components/stopPropagation";
+import {InboxMenu} from "~components/SVBTopPanel/InboxMenu/InboxMenu";
 
-interface TopPanelProps {
+interface SVBTopPanelProps {
   readOnly: boolean
   showPages: boolean
   showInbox: boolean
@@ -18,20 +21,22 @@ interface TopPanelProps {
   showZoom: boolean
 }
 
-export function _TopPanel({
+export function _SVBTopPanel({
   readOnly,
   showPages,
+  showInbox,
   showMenu,
   showStyles,
   showZoom,
-}: TopPanelProps) {
+}: SVBTopPanelProps) {
   const app = useTldrawApp()
 
   return (
-    <StyledTopPanel>
+    <StyledSVBTopPanel>
       {(showMenu || showPages) && (
         <Panel side="left" id="TD-MenuPanel">
           {showMenu && <Menu readOnly={readOnly} />}
+          {showInbox && <InboxMenu />}
           {showPages && <PageMenu />}
         </Panel>
       )}
@@ -48,17 +53,20 @@ export function _TopPanel({
               <ToolButton>
                 <UndoIcon onClick={app.redo} flipHorizontal />
               </ToolButton>
+              <ToolButton>
+                <DesktopIcon onClick={app.togglePresentationMode} onPointerDown={stopPropagation}/>
+              </ToolButton>
             </>
           )}
           {showZoom && <ZoomMenu />}
           {showStyles && !readOnly && <StyleMenu />}
         </Panel>
       )}
-    </StyledTopPanel>
+    </StyledSVBTopPanel>
   )
 }
 
-const StyledTopPanel = styled('div', {
+const StyledSVBTopPanel = styled('div', {
   width: '100%',
   position: 'absolute',
   top: 0,
@@ -89,4 +97,4 @@ const ReadOnlyLabel = styled('div', {
   userSelect: 'none',
 })
 
-export const TopPanel = React.memo(_TopPanel)
+export const SVBTopPanel = React.memo(_SVBTopPanel)

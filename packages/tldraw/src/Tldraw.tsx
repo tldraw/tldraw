@@ -9,7 +9,7 @@ import { Loading } from '~components/Loading'
 import { AlertDialog } from '~components/Primitives/AlertDialog'
 import { ToolsPanel } from '~components/ToolsPanel'
 import { TopPanel } from '~components/TopPanel'
-import { PresentationMenu } from '~components/TopPanel/PresentationMenu'
+import { PresentationMenu } from '~components/SVBTopPanel/PresentationMenu'
 import { ViewzoneMenu } from '~components/ViewzoneMenu'
 import { GRID_SIZE } from '~constants'
 import {
@@ -29,6 +29,7 @@ import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
 import { TDDocument, TDStatus } from '~types'
 import {SVBToolsPanel} from "~components/SVBToolsPanel";
+import {SVBTopPanel} from "~components/SVBTopPanel";
 
 const ErrorBoundary = _Errorboundary as any
 
@@ -608,7 +609,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 />
               ) : (
                 <>
-                  <TopPanel
+                  <SVBTopPanel
                     readOnly={readOnly}
                     showPages={showPages}
                     showMenu={showMenu}
