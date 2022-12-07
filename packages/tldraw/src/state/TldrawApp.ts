@@ -3091,27 +3091,35 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @command
    */
   delete = (ids = this.selectedIds): this => {
+    console.log('>>>ids', ids)
     if (ids.length === 0) return this
 
+    console.log('>>>1', ids, this.session)
     if (this.session) return this
+    console.log('>>>2', ids, this.session)
     const drawCommand = Commands.deleteShapes(this, ids)
 
+    console.log('>>>3', ids, drawCommand)
     if (
       this.callbacks.onAssetDelete &&
       drawCommand.before.document?.assets &&
       drawCommand.after.document?.assets
     ) {
+      console.log('>>>4', ids)
       const beforeAssetIds = Object.keys(drawCommand.before.document.assets).filter(
         (k) => !!drawCommand.before.document!.assets![k]
       )
+      console.log('>>>5', ids)
       const afterAssetIds = Object.keys(drawCommand.after.document.assets).filter(
         (k) => !!drawCommand.after.document!.assets![k]
       )
 
+      console.log('>>>6', ids)
       const intersection = beforeAssetIds.filter((x) => !afterAssetIds.includes(x))
       intersection.forEach((id) => this.callbacks.onAssetDelete!(this, id))
     }
 
+    console.log('>>>7', ids)
     return this.setState(drawCommand)
   }
 
@@ -3782,6 +3790,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
+    console.log('sdjflksdkk', info)
     if (e.buttons === 4) {
       this.isForcePanning = true
     } else if (this.isPointing) {

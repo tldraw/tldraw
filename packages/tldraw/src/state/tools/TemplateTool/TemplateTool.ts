@@ -50,6 +50,10 @@ export class TemplateTool extends BaseTool {
 
       newShape.point = Vec.sub(newShape.point, [bounds.width / 2, bounds.height / 2])
 
+      console.log('get bounds::: ')
+      console.log(newShape)
+      console.log(bounds)
+
       this.app.patchCreate([newShape])
 
       this.app.startSession(SessionType.Translate)
