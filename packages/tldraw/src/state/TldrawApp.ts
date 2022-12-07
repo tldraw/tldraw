@@ -3857,6 +3857,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onDoubleClickShape: TLPointerEventHandler = (info, e) => {
+    console.log('따불 클ㅣ....')
+    console.log(info)
     this.originPoint = this.getPagePoint(info.point).concat(info.pressure)
     this.updateInputs(info, e)
     this.currentTool.onDoubleClickShape?.(info, e)
