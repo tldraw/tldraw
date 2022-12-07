@@ -347,7 +347,7 @@ export const BoxComponent = TLShapeUtil.Component<BoxShape, SVGSVGElement>(
 )
 ```
 
-Your component can return HTML elements or SVG elements. If your shape is returning only SVG elements, wrap it in an `SVGContainer`. If your shape returns HTML elements, wrap it in an `HTMLContainer`. Not that you must set `pointerEvents` manually on the shapes you wish to receive pointer events.
+Your component can return HTML elements or SVG elements. If your shape is returning only SVG elements, wrap it in an `SVGContainer`. If your shape returns HTML elements, wrap it in an `HTMLContainer`. Note that you must set `pointerEvents` manually on the shapes you wish to receive pointer events.
 
 The component will receive the following props:
 
