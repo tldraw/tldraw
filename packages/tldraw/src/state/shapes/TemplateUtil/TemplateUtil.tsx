@@ -53,121 +53,70 @@ export class TemplateUtil extends TDShapeUtil<T, E> {
     )
   }
 
-  Component = TDShapeUtil.Component<T, E, TDMeta>(
-    ({ shape, meta, events, isGhost, isEditing }, ref) => {
-      const font = getStickyFontStyle(shape.style)
+  Component = TDShapeUtil.Component<T, E, TDMeta>(({ shape, meta, events, isGhost }, ref) => {
+    const font = getStickyFontStyle(shape.style)
 
-      const { color } = getStickyShapeStyle(shape.style, meta.isDarkMode)
+    const { color } = getStickyShapeStyle(shape.style, meta.isDarkMode)
 
-      const rContainer = React.useRef<HTMLDivElement>(null)
+    const rContainer = React.useRef<HTMLDivElement>(null)
 
-      const style = {
-        font,
-        color,
-        textShadow: meta.isDarkMode
-          ? `0.5px 0.5px 2px rgba(255, 255, 255,.25)`
-          : `0.5px 0.5px 2px rgba(255, 255, 255,.5)`,
-      }
-
-      const [test, setTest] = React.useState(true)
-      const app = useTldrawApp()
-
-      const rIsMounted = React.useRef(false)
-
-      const handlePointerDown = React.useCallback(
-        (e: React.PointerEvent<HTMLDivElement | HTMLTextAreaElement>) => {
-          if (isEditing) {
-            e.stopPropagation()
-          }
-        },
-        [isEditing]
-      )
-
-      const handleFocus = React.useCallback(
-        (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          if (!isEditing) return
-          if (!rIsMounted.current) return
-          if (document.activeElement === e.currentTarget) {
-            e.currentTarget.select()
-          }
-        },
-        [isEditing]
-      )
-
-      // console.log('onShapeChange>>', onShapeChange)
-      // const handleDelete = () => {
-      //   app.delete([shape.id])
-      //   console.log('shape>>', shape.id)
-      // }
-
-      const rWasEditing = React.useRef(isEditing)
-
-      React.useEffect(() => {
-        if (isEditing) {
-          rWasEditing.current = true
-          requestAnimationFrame(() => {
-            rIsMounted.current = true
-          })
-        } else if (rWasEditing.current) {
-          rWasEditing.current = false
-        }
-      }, [isEditing])
-
-      // const handleDelete = React.useCallback(() => {
-      //   app.delete([shape.id])
-      //   console.log('shape>>', [shape.id])
-      // }, [app])
-      const handleDelete = () => {
-        app.delete([shape.id])
-      }
-
-      return (
-        <>
-          {test && (
-            <>
-              <HTMLContainer ref={ref} {...events} shape={TDShapeType.Template}>
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '0px',
-                    left: '0px',
-                    width: '100%',
-                    height: '2rem',
-                    backgroundColor: '#aaa',
-                    zIndex: 1,
-                  }}
-                >
-                  TEST
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('Click Click !!!')
-                    }}
-                  >
-                    test
-                  </button>
-                </div>
-                <StyledStickyContainer
-                  ref={rContainer}
-                  isDarkMode={meta.isDarkMode}
-                  isGhost={isGhost}
-                  style={{ ...style }}
-                  onPointerDown={handlePointerDown}
-                >
-                  {/* <div onPointerDown={handlePointerDown}> */}
-                  <button type="button" onClick={handleDelete} onSelect={() => handleFocus}>
-                    닫기
-                  </button>
-                  {/* </div> */}
-                  <span>testeee</span>
-                </StyledStickyContainer>
-              </HTMLContainer>
-            </>
-          )}
-        </>
-      )
+    const style = {
+      font,
+      color,
+      textShadow: meta.isDarkMode
+        ? `0.5px 0.5px 2px rgba(255, 255, 255,.25)`
+        : `0.5px 0.5px 2px rgba(255, 255, 255,.5)`,
     }
-  )
+
+    const app = useTldrawApp()
+
+    const handleDelete = () => {
+      app.delete([shape.id])
+    }
+
+    const handleClick = React.useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+      e.stopPropagation()
+    }, [])
+
+    return (
+      <>
+        <HTMLContainer
+          ref={ref}
+          {...events}
+          shape={TDShapeType.Template}
+          style={{ pointerEvents: 'auto' }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: '0px',
+              left: '0px',
+              width: '100%',
+              height: '2rem',
+              backgroundColor: 're',
+              zIndex: 1,
+            }}
+            onPointerDown={(e: React.PointerEvent<HTMLDivElement>) => {
+              e.stopPropagation()
+            }}
+          >
+            TEST
+            <button type="button" onClick={handleDelete}>
+              test
+            </button>
+          </div>
+          <StyledStickyContainer
+            ref={rContainer}
+            isDarkMode={meta.isDarkMode}
+            isGhost={isGhost}
+            style={{ ...style }}
+          >
+            <span>연습장 영역</span>
+          </StyledStickyContainer>
+        </HTMLContainer>
+      </>
+    )
+  })
 
   Indicator = TDShapeUtil.Indicator<T>(({ shape }) => {
     const {
