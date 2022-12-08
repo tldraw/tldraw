@@ -8,7 +8,6 @@ import { CornerHandle } from './CornerHandle'
 import { EdgeHandle } from './EdgeHandle'
 import { LinkHandle } from './LinkHandle'
 import { RotateHandle } from './RotateHandle'
-import { TemplateToolbar } from './TemplateToolbar'
 
 export interface BoundsProps {
   zoom: number
@@ -57,13 +56,6 @@ const _Bounds = function Bounds({
     <Container bounds={bounds} rotation={rotation}>
       <SVGContainer>
         <CenterHandle bounds={bounds} isLocked={isLocked} isHidden={isHidden} />
-        <TemplateToolbar
-          targetSize={targetSize}
-          size={size}
-          bounds={bounds}
-          edge={TLBoundsEdge.Top}
-          isHidden={false}
-        />
         {showResizeHandles ? (
           <>
             <EdgeHandle

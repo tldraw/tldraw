@@ -77,17 +77,14 @@ export class TemplateUtil extends TDShapeUtil<T, E> {
       const handlePointerDown = React.useCallback(
         (e: React.PointerEvent<HTMLDivElement | HTMLTextAreaElement>) => {
           if (isEditing) {
-            // e.stopPropagation()
+            e.stopPropagation()
           }
-
-          console.log('template 에서 클릭했어요...')
         },
         [isEditing]
       )
 
       const handleFocus = React.useCallback(
         (e: React.FocusEvent<HTMLTextAreaElement>) => {
-          console.log('isediting??? ' + isEditing)
           if (!isEditing) return
           if (!rIsMounted.current) return
           if (document.activeElement === e.currentTarget) {
@@ -121,29 +118,51 @@ export class TemplateUtil extends TDShapeUtil<T, E> {
       //   console.log('shape>>', [shape.id])
       // }, [app])
       const handleDelete = () => {
-        console.log('삭제가 눌렸는데????')
         app.delete([shape.id])
       }
 
       return (
         <>
           {test && (
-            <HTMLContainer ref={ref} {...events}>
-              <StyledStickyContainer
-                ref={rContainer}
-                isDarkMode={meta.isDarkMode}
-                isGhost={isGhost}
-                style={{ ...style }}
-                onPointerDown={handlePointerDown}
-              >
-                {/* <div onPointerDown={handlePointerDown}> */}
-                <button type="button" onClick={handleDelete} onSelect={() => handleFocus}>
-                  닫기
-                </button>
-                {/* </div> */}
-                <span>testeee</span>
-              </StyledStickyContainer>
-            </HTMLContainer>
+            <>
+              <HTMLContainer ref={ref} {...events} shape={TDShapeType.Template}>
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '0px',
+                    left: '0px',
+                    width: '100%',
+                    height: '2rem',
+                    backgroundColor: '#aaa',
+                    zIndex: 1,
+                  }}
+                >
+                  TEST
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Click Click !!!')
+                    }}
+                  >
+                    test
+                  </button>
+                </div>
+                <StyledStickyContainer
+                  ref={rContainer}
+                  isDarkMode={meta.isDarkMode}
+                  isGhost={isGhost}
+                  style={{ ...style }}
+                  onPointerDown={handlePointerDown}
+                >
+                  {/* <div onPointerDown={handlePointerDown}> */}
+                  <button type="button" onClick={handleDelete} onSelect={() => handleFocus}>
+                    닫기
+                  </button>
+                  {/* </div> */}
+                  <span>testeee</span>
+                </StyledStickyContainer>
+              </HTMLContainer>
+            </>
           )}
         </>
       )

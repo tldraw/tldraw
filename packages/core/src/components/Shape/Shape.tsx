@@ -20,6 +20,11 @@ function _Shape<T extends TLShape, E extends Element, M>({
   const bounds = utils.getBounds(shape)
   const events = useShapeEvents(shape.id)
 
+  const handleClick = React.useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    console.log('ssss')
+  }, [])
+
   return (
     <Container
       id={shape.id}
@@ -28,7 +33,31 @@ function _Shape<T extends TLShape, E extends Element, M>({
       data-shape={shape.type}
       isGhost={rest.isGhost}
       isSelected={rest.isSelected}
+      onPointerDown={handleClick}
     >
+      {shape.type === 'template' && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '0px',
+            left: '0px',
+            width: '100%',
+            height: '2rem',
+            backgroundColor: '#e9e9e9',
+            zIndex: '1',
+          }}
+        >
+          TEST
+          <button
+            type="button"
+            onClick={() => {
+              console.log('Click Click !!!')
+            }}
+          >
+            test
+          </button>
+        </div>
+      )}
       <RenderedShape
         shape={shape}
         utils={utils as any}
