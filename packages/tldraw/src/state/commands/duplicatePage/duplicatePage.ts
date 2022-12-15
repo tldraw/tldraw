@@ -9,23 +9,23 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
   } = app
 
   const page = app.document.pages[pageId]
-
-  const newId = Utils.uniqueId()
+  const newIds = Object.fromEntries(
+    Object.keys(page.shapes).map(id => [id, Utils.uniqueId()])
+  )
 
   const nextPage = {
     ...page,
-    id: newId,
+    id: newIds[page.id],
     name: page.name + ' Copy',
     shapes: Object.fromEntries(
-      Object.entries(page.shapes).map(([id, shape]) => {
-        return [
-          id,
-          {
-            ...shape,
-            parentId: shape.parentId === page.id ? newId : shape.parentId,
-          },
-        ]
-      })
+      Object.entries(page.shapes).map(([id, shape]) => [
+        newIds[id],
+        {
+          ...shape,
+          id: newIds[id],
+          parentId: newIds[shape.parentId],
+        },
+      ])
     ),
   }
 
