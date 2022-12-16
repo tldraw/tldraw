@@ -9,6 +9,7 @@ import he from './he.json'
 import it from './it.json'
 import ja from './ja.json'
 import ko_kr from './ko-kr.json'
+import ku from './ku.json'
 import main from './main.json'
 import ne from './ne.json'
 import no from './no.json'
@@ -54,6 +55,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'zh-ch', label: '简体中文', messages: zh_cn },
   { locale: 'zh-tw', label: '繁體中文 (台灣)', messages: zh_tw },
   { locale: 'th', label: 'ภาษาไทย', messages: th },
+  { locale: 'ku', label: 'کوردی', messages: ku },
 ]
 
 /* ----------------- (do not change) ---------------- */
