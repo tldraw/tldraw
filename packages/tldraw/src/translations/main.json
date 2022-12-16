@@ -123,5 +123,6 @@
   "dialog.cancel": "Cancel",
   "dialog.no": "No",
   "dialog.yes": "Yes",
-  "enter.file.name": "Enter file name"
+  "enter.file.name": "Enter file name",
+  "tldraw-beta": "Try the new tldraw"
 }

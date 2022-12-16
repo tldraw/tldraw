@@ -2,6 +2,7 @@ import { Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { useUploadAssets } from '~hooks/useUploadAssets'
 import * as gtag from '~utils/gtag'
+import { BetaNotification } from './BetaNotification'
 
 declare const window: Window & { app: TldrawApp }
 
@@ -39,6 +40,7 @@ const Editor = ({ id = 'home', ...rest }: EditorProps & Partial<TldrawProps>) =>
         {...fileSystemEvents}
         {...rest}
       />
+      <BetaNotification />
     </div>
   )
 }

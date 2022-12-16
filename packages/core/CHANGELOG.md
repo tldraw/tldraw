@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.2
+
+### Patch Changes
+
+- Fix text placement.
+
 ## 1.20.1
 
 ### Patch Changes

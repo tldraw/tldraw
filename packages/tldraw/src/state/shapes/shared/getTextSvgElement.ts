@@ -58,19 +58,19 @@ export function getTextSvgElement(
     case AlignStyle.Middle: {
       textElm.setAttribute('text-align', 'center')
       textElm.setAttribute('text-anchor', 'middle')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width / 2 + ''))
+      textLines.forEach((textElm) => textElm.setAttribute('x', width / 2 + ''))
       break
     }
     case AlignStyle.End: {
       textElm.setAttribute('text-align', 'right')
       textElm.setAttribute('text-anchor', 'end')
-      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + width + ''))
+      textLines.forEach((textElm) => textElm.setAttribute('x', -4 + width + ''))
       break
     }
     default: {
       textElm.setAttribute('text-align', 'left')
       textElm.setAttribute('text-anchor', 'start')
-      textLines.forEach((textElm) => textElm.setAttribute('x', '4'))
+      textLines.forEach((textElm) => textElm.setAttribute('x', 4 + ''))
     }
   }
 

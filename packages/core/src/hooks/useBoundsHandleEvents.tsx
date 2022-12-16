@@ -13,6 +13,8 @@ export function useBoundsHandleEvents(
       else (e as any).dead = true
       if (!inputs.pointerIsValid(e)) return
 
+      e.currentTarget?.setPointerCapture(e.pointerId)
+
       const info = inputs.pointerDown(e, id)
 
       if (e.button === 2) {

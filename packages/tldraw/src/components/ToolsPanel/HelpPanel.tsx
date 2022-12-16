@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
+  ExternalLinkIcon,
   GitHubLogoIcon,
   HeartFilledIcon,
   QuestionMarkIcon,
@@ -65,6 +66,7 @@ const LanguageMenuDropdown = () => {
 }
 
 const linksData = [
+  { id: 'tldraw-beta', icon: ExternalLinkIcon, url: 'https://beta.tldraw.com' },
   { id: 'github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
   { id: 'twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
   { id: 'discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
