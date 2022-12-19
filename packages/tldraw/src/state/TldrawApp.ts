@@ -1185,7 +1185,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     const doc = TldrawApp.defaultDocument
 
     // Set the default page name to the localized version of "Page"
-    doc.pages['page'].name = 'Page 1'
+    doc.pages['page'].name = 'Team project 1'
 
     this.resetHistory().clearSelectHistory().loadDocument(TldrawApp.defaultDocument).persist({})
 
@@ -2137,7 +2137,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     // Set export background
     const exportBackground: TDExportBackground = this.settings.exportBackground
     const darkBackground = '#212529'
-    const lightBackground = 'rgb(248, 249, 250)'
+    const lightBackground = 'rgb(255, 255, 255)'
 
     switch (exportBackground) {
       case TDExportBackground.Auto: {
@@ -3091,35 +3091,27 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * @command
    */
   delete = (ids = this.selectedIds): this => {
-    console.log('>>>ids', ids)
     if (ids.length === 0) return this
 
-    console.log('>>>1', ids, this.session)
     if (this.session) return this
-    console.log('>>>2', ids, this.session)
     const drawCommand = Commands.deleteShapes(this, ids)
 
-    console.log('>>>3', ids, drawCommand)
     if (
       this.callbacks.onAssetDelete &&
       drawCommand.before.document?.assets &&
       drawCommand.after.document?.assets
     ) {
-      console.log('>>>4', ids)
       const beforeAssetIds = Object.keys(drawCommand.before.document.assets).filter(
         (k) => !!drawCommand.before.document!.assets![k]
       )
-      console.log('>>>5', ids)
       const afterAssetIds = Object.keys(drawCommand.after.document.assets).filter(
         (k) => !!drawCommand.after.document!.assets![k]
       )
 
-      console.log('>>>6', ids)
       const intersection = beforeAssetIds.filter((x) => !afterAssetIds.includes(x))
       intersection.forEach((id) => this.callbacks.onAssetDelete!(this, id))
     }
 
-    console.log('>>>7', ids)
     return this.setState(drawCommand)
   }
 
@@ -3790,7 +3782,6 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onPointerDown: TLPointerEventHandler = (info, e) => {
-    console.log('sdjflksdkk', info)
     if (e.buttons === 4) {
       this.isForcePanning = true
     } else if (this.isPointing) {
@@ -4175,7 +4166,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     pages: {
       page: {
         id: 'page',
-        name: 'Page 1',
+        name: 'Team project 1',
         childIndex: 1,
         shapes: {},
         bindings: {},
@@ -4212,7 +4203,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       showCloneHandles: false,
       showGrid: false,
       language: 'en',
-      dockPosition: 'bottom',
+      dockPosition: 'left',
       exportBackground: TDExportBackground.Transparent,
     },
     appState: {

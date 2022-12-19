@@ -36,7 +36,7 @@ export function Tooltip({ children, label, kbd: kbdProp, id, side = 'top' }: Too
 
 const StyledContent = styled(RadixTooltip.Content, {
   borderRadius: 3,
-  padding: '$3 $3 $3 $3',
+  padding: '$2 $3 $2 $3',
   fontSize: '$1',
   backgroundColor: '$tooltip',
   color: '$tooltipContrast',

@@ -1,62 +1,23 @@
 import * as React from 'react'
-import { Panel } from '~components/Primitives/Panel'
-import { ToolButton } from '~components/Primitives/ToolButton'
-import { UndoIcon } from '~components/Primitives/icons'
-import { useTldrawApp } from '~hooks'
+import { Drawkit } from '~components/Primitives/icons'
 import { styled } from '~styles'
 import { Menu } from './Menu/Menu'
-import { MultiplayerMenu } from './MultiplayerMenu'
 import { PageMenu } from './PageMenu'
-import { StyleMenu } from './StyleMenu'
-import { ZoomMenu } from './ZoomMenu'
 
 interface TopPanelProps {
   readOnly: boolean
   showPages: boolean
   showMenu: boolean
-  showStyles: boolean
-  showZoom: boolean
-  showMultiplayerMenu: boolean
 }
 
-export function _TopPanel({
-  readOnly,
-  showPages,
-  showMenu,
-  showStyles,
-  showZoom,
-  showMultiplayerMenu,
-}: TopPanelProps) {
-  const app = useTldrawApp()
-
+export function _TopPanel({ readOnly, showPages, showMenu }: TopPanelProps) {
   return (
     <StyledTopPanel>
-      {(showMenu || showPages) && (
-        <Panel side="left" id="TD-MenuPanel">
-          {showMenu && <Menu readOnly={readOnly} />}
-          {showMultiplayerMenu && <MultiplayerMenu />}
-          {showPages && <PageMenu />}
-        </Panel>
-      )}
-      <StyledSpacer />
-      {(showStyles || showZoom) && (
-        <Panel side="right">
-          {app.readOnly ? (
-            <ReadOnlyLabel>Read Only</ReadOnlyLabel>
-          ) : (
-            <>
-              <ToolButton>
-                <UndoIcon onClick={app.undo} />
-              </ToolButton>
-              <ToolButton>
-                <UndoIcon onClick={app.redo} flipHorizontal />
-              </ToolButton>
-            </>
-          )}
-          {showZoom && <ZoomMenu />}
-          {showStyles && !readOnly && <StyleMenu />}
-        </Panel>
-      )}
+      <StyledLogo>
+        <Drawkit className="logo" />
+      </StyledLogo>
+      {showPages && <StyledPage>{showPages && <PageMenu />}</StyledPage>}
+      {showMenu && <StyledMenu>{showMenu && <Menu readOnly={readOnly} />}</StyledMenu>}
     </StyledTopPanel>
   )
 }
@@ -68,28 +29,42 @@ const StyledTopPanel = styled('div', {
   left: 0,
   right: 0,
   display: 'flex',
+  padding: '0 10px 0 28px',
   flexDirection: 'row',
   pointerEvents: 'none',
+  background: '$panelContrast',
+  borderBottom: '1px solid #ebebeb',
+
   '& > *': {
     pointerEvents: 'all',
   },
 })
 
-const StyledSpacer = styled('div', {
-  flexGrow: 2,
+const StyledLogo = styled('div', {
   pointerEvents: 'none',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+
+  '.logo': {
+    height: 20,
+  },
 })
 
-const ReadOnlyLabel = styled('div', {
-  width: '100%',
+export const StyledPage = styled('div', {
+  backgroundColor: '$panelContrast',
   display: 'flex',
-  alignItems: 'center',
+  padding: '$2',
+  flexDirection: 'row',
   justifyContent: 'center',
-  fontFamily: '$ui',
-  fontSize: '$1',
-  paddingLeft: '$4',
-  paddingRight: '$1',
-  userSelect: 'none',
+  flexGrow: 2,
+})
+
+export const StyledMenu = styled('div', {
+  backgroundColor: '$panelContrast',
+  display: 'flex',
+  padding: '$2',
+  flexDirection: 'row',
 })
 
 export const TopPanel = React.memo(_TopPanel)

@@ -30,7 +30,7 @@ export const StyledKbd = styled('kbd', {
   marginLeft: '$3',
   textShadow: '$2',
   textAlign: 'center',
-  fontSize: '$0',
+  fontSize: '$1',
   fontFamily: '$ui',
   color: '$text',
   background: 'none',

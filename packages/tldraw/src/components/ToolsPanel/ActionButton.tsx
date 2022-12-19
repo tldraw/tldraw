@@ -12,7 +12,6 @@ import {
   AspectRatioIcon,
   BoxIcon,
   CopyIcon,
-  DotsHorizontalIcon,
   GroupIcon,
   LockClosedIcon,
   LockOpen1Icon,
@@ -30,6 +29,7 @@ import { Divider } from '~components/Primitives/Divider'
 import { DMContent } from '~components/Primitives/DropdownMenu'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
+import { DotIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import { AlignType, DistributeType, StretchType, TDSnapshot } from '~types'
@@ -189,8 +189,8 @@ export function ActionButton() {
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
-        <ToolButton variant="circle">
-          <DotsHorizontalIcon />
+        <ToolButton>
+          <DotIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent sideOffset={16} side={contentSide}>

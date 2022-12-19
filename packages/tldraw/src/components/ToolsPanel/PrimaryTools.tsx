@@ -1,22 +1,18 @@
-import {
-  ArchiveIcon,
-  ArrowTopRightIcon,
-  CursorArrowIcon,
-  HobbyKnifeIcon,
-  ImageIcon,
-  Pencil1Icon,
-  Pencil2Icon,
-  TableIcon,
-  TextIcon,
-} from '@radix-ui/react-icons'
 import * as React from 'react'
 import { useIntl } from 'react-intl'
-import { Panel } from '~components/Primitives/Panel'
+import { ToolPanel } from '~components/Primitives/Panel'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
-import { EraserIcon } from '~components/Primitives/icons'
-import { breakpoints } from '~components/breakpoints'
+import {
+  ArrowDrawIcon,
+  Eraser2Icon,
+  HighlightIcon,
+  ImageIcon,
+  PencilIcon,
+  SelectedIcon,
+  StickyIcon,
+  TextIcon,
+} from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
-import { styled } from '~styles/stitches.config'
 import { TDShapeType, TDSnapshot } from '~types'
 import { ShapesMenu } from './ShapesMenu'
 
@@ -76,12 +72,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
-    <StyledPanel
-      side="center"
-      id="TD-PrimaryTools"
-      style={{ flexDirection: panelStyle }}
-      bp={breakpoints}
-    >
+    <ToolPanel id="TD-PrimaryTools" panelStyle={panelStyle}>
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}
@@ -89,9 +80,9 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         isActive={activeTool === 'select'}
         id="TD-PrimaryTools-CursorArrow"
       >
-        <CursorArrowIcon />
+        <SelectedIcon />
       </ToolButtonWithTooltip>
-      <ToolButtonWithTooltip
+      {/* <ToolButtonWithTooltip
         kbd={'^t'}
         label={intl.formatMessage({ id: 'table' })}
         onClick={selectTableTool}
@@ -100,6 +91,15 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         id="TD-PrimaryTools-Table"
       >
         <TableIcon />
+      </ToolButtonWithTooltip> */}
+      <ToolButtonWithTooltip
+        kbd={'2'}
+        label={intl.formatMessage({ id: 'draw' })}
+        onClick={selectDrawTool}
+        isActive={activeTool === TDShapeType.Draw}
+        id="TD-PrimaryTools-Pencil"
+      >
+        <PencilIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'h'}
@@ -108,16 +108,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         isActive={activeTool === TDShapeType.Highlight}
         id="TD-PrimaryTools-Highlight"
       >
-        <HobbyKnifeIcon />
-      </ToolButtonWithTooltip>
-      <ToolButtonWithTooltip
-        kbd={'2'}
-        label={intl.formatMessage({ id: 'draw' })}
-        onClick={selectDrawTool}
-        isActive={activeTool === TDShapeType.Draw}
-        id="TD-PrimaryTools-Pencil"
-      >
-        <Pencil1Icon />
+        <HighlightIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'3'}
@@ -126,7 +117,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         isActive={activeTool === 'erase'}
         id="TD-PrimaryTools-Eraser"
       >
-        <EraserIcon />
+        <Eraser2Icon />
       </ToolButtonWithTooltip>
       <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
       <ToolButtonWithTooltip
@@ -137,7 +128,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         isActive={activeTool === TDShapeType.Arrow}
         id="TD-PrimaryTools-ArrowTopRight"
       >
-        <ArrowTopRightIcon />
+        <ArrowDrawIcon />
       </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         kbd={'9'}
@@ -156,16 +147,16 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         isActive={activeTool === TDShapeType.Sticky}
         id="TD-PrimaryTools-Pencil2"
       >
-        <Pencil2Icon />
+        <StickyIcon />
       </ToolButtonWithTooltip>
-      <ToolButtonWithTooltip
+      {/* <ToolButtonWithTooltip
         label={intl.formatMessage({ id: 'template' })}
         onClick={selectTemplateTool}
         isActive={activeTool === TDShapeType.Template}
         id="TD-PrimaryTools-Teamplate"
       >
         <ArchiveIcon />
-      </ToolButtonWithTooltip>
+      </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         label={intl.formatMessage({ id: 'image' })}
         onClick={uploadMedias}
@@ -173,20 +164,6 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <ImageIcon />
       </ToolButtonWithTooltip>
-    </StyledPanel>
+    </ToolPanel>
   )
-})
-
-const StyledPanel = styled(Panel, {
-  variants: {
-    bp: {
-      mobile: {
-        padding: '$0',
-        borderRadius: '10px',
-      },
-      small: {
-        padding: '$2',
-      },
-    },
-  },
 })

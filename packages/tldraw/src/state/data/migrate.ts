@@ -123,7 +123,7 @@ export function migrate(state: TDSnapshot, newVersion: number): TDSnapshot {
     })
 
     if (version < 15.4) {
-      settings.dockPosition = 'bottom'
+      settings.dockPosition = 'left'
     }
 
     if (version < 15.5) {

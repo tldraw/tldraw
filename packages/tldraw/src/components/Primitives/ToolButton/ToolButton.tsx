@@ -193,8 +193,8 @@ export const StyledToolButton = styled('button', {
         height: 40,
         width: 36,
         [`& ${StyledToolButtonInner} > svg`]: {
-          width: 16,
-          height: 16,
+          width: 20,
+          height: 20,
         },
       },
     },
@@ -202,11 +202,11 @@ export const StyledToolButton = styled('button', {
       variant: 'primary',
       bp: 'small',
       css: {
-        height: '44px',
-        width: '44px',
+        height: '28px',
+        width: '28px',
         [`& ${StyledToolButtonInner} > svg`]: {
-          width: 20,
-          height: 20,
+          width: 24,
+          height: 24,
         },
       },
     },

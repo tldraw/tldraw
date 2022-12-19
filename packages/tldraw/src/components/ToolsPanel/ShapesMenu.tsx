@@ -1,11 +1,16 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { CircleIcon, SquareIcon, VercelLogoIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { useIntl } from 'react-intl'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { Tooltip } from '~components/Primitives/Tooltip'
-import { LineIcon } from '~components/Primitives/icons'
+import {
+  Circle2Icon,
+  Line2Icon,
+  ShapeGroupIcon,
+  SquareIcon,
+  TriangleIcon,
+} from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 
@@ -29,9 +34,9 @@ const shapeShapes: ShapeShape[] = [
 
 const shapeShapeIcons = {
   [TDShapeType.Rectangle]: <SquareIcon />,
-  [TDShapeType.Ellipse]: <CircleIcon />,
-  [TDShapeType.Triangle]: <VercelLogoIcon />,
-  [TDShapeType.Line]: <LineIcon />,
+  [TDShapeType.Ellipse]: <Circle2Icon />,
+  [TDShapeType.Triangle]: <TriangleIcon />,
+  [TDShapeType.Line]: <Line2Icon />,
 }
 
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
@@ -85,7 +90,8 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           isActive={isActive}
           onKeyDown={handleKeyDown}
         >
-          {shapeShapeIcons[lastActiveTool]}
+          {/* {shapeShapeIcons[lastActiveTool]} */}
+          <ShapeGroupIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content asChild side={contentSide} sideOffset={12}>

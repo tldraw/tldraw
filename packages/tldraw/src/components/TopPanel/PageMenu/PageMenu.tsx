@@ -7,6 +7,7 @@ import { DMContent } from '~components/Primitives/DropdownMenu'
 import { RowButton } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { ToolButton } from '~components/Primitives/ToolButton'
+import { DropdownArrowIcon } from '~components/Primitives/icons'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
@@ -51,7 +52,10 @@ export function PageMenu() {
   return (
     <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
-        <ToolButton variant="text">{currentPageName || intl.formatMessage({ id: 'page' })}</ToolButton>
+        <ToolButton variant="text">
+          {currentPageName || intl.formatMessage({ id: 'page' })}
+          <DropdownArrowIcon width="10" height="5" />
+        </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent variant="menu" align="start" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
@@ -71,8 +75,7 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
   const defaultPageName = intl.formatMessage({ id: 'page' })
 
   const handleCreatePage = React.useCallback(() => {
-    const pageName =
-    defaultPageName + ' ' + (Object.keys(app.document.pages).length + 1)
+    const pageName = defaultPageName + ' ' + (Object.keys(app.document.pages).length + 1)
     app.createPage(undefined, pageName)
   }, [app])
 

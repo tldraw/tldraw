@@ -1,13 +1,12 @@
 import * as React from 'react'
+import { Panel } from '~components/Primitives/Panel'
 import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
-import { ActionButton } from './ActionButton'
 import { BackToContent } from './BackToContent'
-import { DeleteButton } from './DeleteButton'
-import { HelpPanel } from './HelpPanel'
 import { PrimaryTools } from './PrimaryTools'
+import { SecondaryTools } from './SecondaryTools'
 import { StatusBar } from './StatusBar'
 
 const isDebugModeSelector = (s: TDSnapshot) => s.settings.isDebugMode
@@ -30,13 +29,12 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
           <StyledPrimaryTools
             orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
           >
-            <ActionButton />
             <PrimaryTools />
-            <DeleteButton />
+            <StyleLine side={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'} />
+            <SecondaryTools />
           </StyledPrimaryTools>
         </StyledCenterWrap>
       </StyledToolsPanelContainer>
-      <HelpPanel />
       {isDebugMode && (
         <StyledStatusWrap>
           <StatusBar />
@@ -51,7 +49,7 @@ const StyledToolsPanelContainer = styled('div', {
   width: '100%',
   minWidth: 0,
   maxWidth: '100%',
-  height: 64,
+  height: 116,
   gap: '$4',
   display: 'flex',
   justifyContent: 'center',
@@ -76,19 +74,19 @@ const StyledToolsPanelContainer = styled('div', {
     side: {
       top: {
         width: '100%',
-        height: 64,
+        height: 116,
         left: 0,
         right: 0,
         top: 45,
       },
-      right: { width: 64, height: '100%', top: 0, right: 0 },
+      right: { width: 116, height: '100%', top: 0, right: 0 },
       bottom: {
         width: '100%',
         left: 0,
         right: 0,
         bottom: 4,
       },
-      left: { width: 64, height: '100%', left: 0 },
+      left: { width: 116, height: '100%', left: 0 },
     },
   },
   compoundVariants: [
@@ -129,20 +127,49 @@ const StyledStatusWrap = styled('div', {
   maxWidth: '100%',
 })
 
-const StyledPrimaryTools = styled('div', {
+const StyleLine = styled('div', {
+  display: 'flex',
+  backgroundColor: '#ddd',
+  variants: {
+    side: {
+      horizontal: {
+        width: 1,
+        height: 40,
+      },
+      vertical: {
+        width: '100%',
+        height: 1,
+      },
+    },
+  },
+})
+
+const StyledPrimaryTools = styled(Panel, {
   position: 'relative',
   display: 'flex',
   alignItems: 'center',
   height: 'fit-content',
   gap: '$3',
+  borderRadius: 6,
   variants: {
     orientation: {
       horizontal: {
         flexDirection: 'row',
+        padding: '$3 $4',
       },
       vertical: {
         flexDirection: 'column',
+        padding: '$4 $3',
       },
     },
   },
+  // button: {
+  //   width: 28,
+  //   height: 28,
+
+  //   [`svg`]: {
+  //     width: 12,
+  //     height: 12,
+  //   },
+  // },
 })

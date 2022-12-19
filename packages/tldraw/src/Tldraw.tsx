@@ -3,6 +3,7 @@ import * as React from 'react'
 import { ErrorBoundary as _Errorboundary } from 'react-error-boundary'
 import { IntlProvider } from 'react-intl'
 import { ContextMenu } from '~components/ContextMenu'
+import { ToolsHelpPanel } from '~components/CustomPanel'
 import { ErrorFallback } from '~components/ErrorFallback'
 import { FocusButton } from '~components/FocusButton'
 import { Loading } from '~components/Loading'
@@ -586,16 +587,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
                 <FocusButton onSelect={app.toggleFocusMode} />
               ) : (
                 <>
-                  <TopPanel
-                    readOnly={readOnly}
-                    showPages={showPages}
-                    showMenu={showMenu}
-                    showMultiplayerMenu={showMultiplayerMenu}
-                    showStyles={showStyles}
-                    showZoom={showZoom}
-                  />
+                  <TopPanel readOnly={readOnly} showPages={showPages} showMenu={showMenu} />
                   <StyledSpacer />
                   {showTools && !readOnly && <ToolsPanel />}
+                  {(showStyles || showZoom) && <ToolsHelpPanel showZoom={showZoom} />}
                 </>
               )}
             </StyledUI>

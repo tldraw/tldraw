@@ -13,6 +13,7 @@ export const Panel = styled('div', {
     side: {
       center: {
         borderRadius: 9,
+        flexGrow: 2,
       },
       left: {
         padding: 0,
