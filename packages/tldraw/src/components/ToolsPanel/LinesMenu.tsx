@@ -4,46 +4,40 @@ import { useIntl } from 'react-intl'
 import { Panel } from '~components/Primitives/Panel'
 import { ToolButton } from '~components/Primitives/ToolButton'
 import { Tooltip } from '~components/Primitives/Tooltip'
-import {
-  Circle2Icon,
-  ShapeGroupIcon,
-  SquareIcon,
-  TriangleIcon,
-} from '~components/Primitives/icons/icoTools'
+import { ArrowDrawIcon, Line2Icon } from '~components/Primitives/icons/icoTools'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 
-interface ShapesMenuProps {
+interface LineMenuProps {
   activeTool: TDToolType
   isToolLocked: boolean
 }
 
-type ShapeShape = TDShapeType.Rectangle | TDShapeType.Ellipse | TDShapeType.Triangle
+type LineShape = TDShapeType.Line | TDShapeType.Arrow
 
-const shapeShapes: ShapeShape[] = [TDShapeType.Rectangle, TDShapeType.Ellipse, TDShapeType.Triangle]
+const lineShapes: LineShape[] = [TDShapeType.Line, TDShapeType.Arrow]
 
-const shapeShapeIcons = {
-  [TDShapeType.Rectangle]: <SquareIcon />,
-  [TDShapeType.Ellipse]: <Circle2Icon />,
-  [TDShapeType.Triangle]: <TriangleIcon />,
+const lineShapeIcons = {
+  [TDShapeType.Line]: <Line2Icon />,
+  [TDShapeType.Arrow]: <ArrowDrawIcon />,
 }
 
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
-export const ShapesMenu = React.memo(function ShapesMenu({
+export const LinesMenu = React.memo(function LinesMenu({
   activeTool,
   isToolLocked,
-}: ShapesMenuProps) {
+}: LineMenuProps) {
   const app = useTldrawApp()
   const intl = useIntl()
 
   const dockPosition = app.useStore(dockPositionState)
 
-  const [lastActiveTool, setLastActiveTool] = React.useState<ShapeShape>(TDShapeType.Rectangle)
+  const [lastActiveTool, setLastActiveTool] = React.useState<LineShape>(TDShapeType.Line)
 
   React.useEffect(() => {
-    if (shapeShapes.includes(activeTool as ShapeShape) && lastActiveTool !== activeTool) {
-      setLastActiveTool(activeTool as ShapeShape)
+    if (lineShapes.includes(activeTool as LineShape) && lastActiveTool !== activeTool) {
+      setLastActiveTool(activeTool as LineShape)
     }
   }, [activeTool])
 
@@ -63,14 +57,14 @@ export const ShapesMenu = React.memo(function ShapesMenu({
     }
   }, [])
 
-  const isActive = shapeShapes.includes(activeTool as ShapeShape)
+  const isActive = lineShapes.includes(activeTool as LineShape)
   const contentSide = dockPosition === 'bottom' || dockPosition === 'top' ? 'top' : dockPosition
 
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
-      <DropdownMenu.Trigger dir="ltr" asChild id="TD-PrimaryTools-Shapes">
+      <DropdownMenu.Trigger dir="ltr" asChild id="TD-PrimaryTools-Lines">
         <ToolButton
           disabled={isActive && app.shiftKey} // otherwise this continuously opens and closes on "SpacePanning"
           variant="primary"
@@ -79,18 +73,17 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           isActive={isActive}
           onKeyDown={handleKeyDown}
         >
-          {/* {shapeShapeIcons[lastActiveTool]} */}
-          <ShapeGroupIcon />
+          {lineShapeIcons[lastActiveTool]}
         </ToolButton>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content asChild side={contentSide} sideOffset={12}>
         <Panel side="center" style={{ flexDirection: panelStyle }}>
-          {shapeShapes.map((shape, i) => (
+          {lineShapes.map((shape, i) => (
             <Tooltip
               key={shape}
               label={intl.formatMessage({ id: shape })}
               kbd={(4 + i).toString()}
-              id={`TD-PrimaryTools-Shapes-${shape}`}
+              id={`TD-PrimaryTools-Lines-${shape}`}
             >
               <DropdownMenu.Item asChild>
                 <ToolButton
@@ -100,7 +93,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
                     setLastActiveTool(shape)
                   }}
                 >
-                  {shapeShapeIcons[shape]}
+                  {lineShapeIcons[shape]}
                 </ToolButton>
               </DropdownMenu.Item>
             </Tooltip>

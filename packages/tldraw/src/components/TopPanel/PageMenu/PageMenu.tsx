@@ -57,7 +57,7 @@ export function PageMenu() {
           <DropdownArrowIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent variant="menu" align="start" sideOffset={4}>
+      <DMContent variant="menu" align="center" sideOffset={4}>
         {isOpen && <PageMenuContent onClose={handleClose} />}
       </DMContent>
     </DropdownMenu.Root>

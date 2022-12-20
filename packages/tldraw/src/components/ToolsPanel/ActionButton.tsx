@@ -184,8 +184,6 @@ export function ActionButton() {
     [app]
   )
 
-  const contentSide = dockPosition === 'bottom' || dockPosition === 'top' ? 'top' : dockPosition
-
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
@@ -193,7 +191,7 @@ export function ActionButton() {
           <DotIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent sideOffset={16} side={contentSide}>
+      <DMContent sideOffset={4} side="top" align="end">
         <>
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">

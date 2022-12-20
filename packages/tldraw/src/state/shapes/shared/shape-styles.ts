@@ -5,7 +5,7 @@ const canvasLight = '#fafafa'
 
 const canvasDark = '#343d45'
 
-const colors = {
+export const colors = {
   [ColorStyle.White]: '#f0f1f3',
   [ColorStyle.LightGray]: '#c6cbd1',
   [ColorStyle.Gray]: '#788492',
@@ -43,7 +43,7 @@ export const stickyFills: Record<Theme, Record<ColorStyle, string>> = {
 export const strokes: Record<Theme, Record<ColorStyle, string>> = {
   light: {
     ...colors,
-    [ColorStyle.White]: '#1d1d1d',
+    // [ColorStyle.White]: '#1d1d1d',
   },
   dark: {
     ...(Object.fromEntries(

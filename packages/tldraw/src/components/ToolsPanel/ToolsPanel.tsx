@@ -134,7 +134,7 @@ const StyleLine = styled('div', {
     side: {
       horizontal: {
         width: 1,
-        height: 40,
+        height: 28,
       },
       vertical: {
         width: '100%',

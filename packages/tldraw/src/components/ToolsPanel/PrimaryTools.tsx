@@ -14,6 +14,8 @@ import {
 } from '~components/Primitives/icons/icoTools'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot } from '~types'
+import { ColorMenu } from './ColorMenu'
+import { LinesMenu } from './LinesMenu'
 import { ShapesMenu } from './ShapesMenu'
 
 const activeToolSelector = (s: TDSnapshot) => s.appState.activeTool
@@ -45,25 +47,25 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     app.selectTool(TDShapeType.Draw)
   }, [app])
 
-  const selectArrowTool = React.useCallback(() => {
-    app.selectTool(TDShapeType.Arrow)
-  }, [app])
+  // const selectArrowTool = React.useCallback(() => {
+  //   app.selectTool(TDShapeType.Arrow)
+  // }, [app])
 
   const selectTextTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Text)
   }, [app])
 
-  const selectTableTool = React.useCallback(() => {
-    app.selectTool(TDShapeType.Table)
-  }, [app])
+  // const selectTableTool = React.useCallback(() => {
+  //   app.selectTool(TDShapeType.Table)
+  // }, [app])
 
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
   }, [app])
 
-  const selectTemplateTool = React.useCallback(() => {
-    app.selectTool(TDShapeType.Template)
-  }, [app])
+  // const selectTemplateTool = React.useCallback(() => {
+  //   app.selectTool(TDShapeType.Template)
+  // }, [app])
 
   const uploadMedias = React.useCallback(async () => {
     app.openAsset()
@@ -73,6 +75,24 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   return (
     <ToolPanel id="TD-PrimaryTools" panelStyle={panelStyle}>
+      {/* <ToolButtonWithTooltip
+      kbd={'^t'}
+      label={intl.formatMessage({ id: 'table' })}
+      onClick={selectTableTool}
+      isLocked={isToolLocked}
+      isActive={activeTool === TDShapeType.Table}
+      id="TD-PrimaryTools-Table"
+    >
+      <TableIcon />
+    </ToolButtonWithTooltip> */}
+      {/* <ToolButtonWithTooltip
+      label={intl.formatMessage({ id: 'template' })}
+      onClick={selectTemplateTool}
+      isActive={activeTool === TDShapeType.Template}
+      id="TD-PrimaryTools-Teamplate"
+    >
+      <ArchiveIcon />
+    </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}
@@ -82,16 +102,6 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <SelectedIcon />
       </ToolButtonWithTooltip>
-      {/* <ToolButtonWithTooltip
-        kbd={'^t'}
-        label={intl.formatMessage({ id: 'table' })}
-        onClick={selectTableTool}
-        isLocked={isToolLocked}
-        isActive={activeTool === TDShapeType.Table}
-        id="TD-PrimaryTools-Table"
-      >
-        <TableIcon />
-      </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         kbd={'2'}
         label={intl.formatMessage({ id: 'draw' })}
@@ -110,17 +120,9 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <HighlightIcon />
       </ToolButtonWithTooltip>
-      <ToolButtonWithTooltip
-        kbd={'3'}
-        label={intl.formatMessage({ id: 'eraser' })}
-        onClick={selectEraseTool}
-        isActive={activeTool === 'erase'}
-        id="TD-PrimaryTools-Eraser"
-      >
-        <Eraser2Icon />
-      </ToolButtonWithTooltip>
       <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
-      <ToolButtonWithTooltip
+      <LinesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
+      {/* <ToolButtonWithTooltip
         kbd={'8'}
         label={intl.formatMessage({ id: 'arrow' })}
         onClick={selectArrowTool}
@@ -129,7 +131,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         id="TD-PrimaryTools-ArrowTopRight"
       >
         <ArrowDrawIcon />
-      </ToolButtonWithTooltip>
+      </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         kbd={'9'}
         label={intl.formatMessage({ id: 'text' })}
@@ -145,18 +147,20 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'sticky' })}
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}
-        id="TD-PrimaryTools-Pencil2"
+        id="TD-PrimaryTools-Sticky"
       >
         <StickyIcon />
       </ToolButtonWithTooltip>
-      {/* <ToolButtonWithTooltip
-        label={intl.formatMessage({ id: 'template' })}
-        onClick={selectTemplateTool}
-        isActive={activeTool === TDShapeType.Template}
-        id="TD-PrimaryTools-Teamplate"
+      <ColorMenu />
+      <ToolButtonWithTooltip
+        kbd={'3'}
+        label={intl.formatMessage({ id: 'eraser' })}
+        onClick={selectEraseTool}
+        isActive={activeTool === 'erase'}
+        id="TD-PrimaryTools-Eraser"
       >
-        <ArchiveIcon />
-      </ToolButtonWithTooltip> */}
+        <Eraser2Icon />
+      </ToolButtonWithTooltip>
       <ToolButtonWithTooltip
         label={intl.formatMessage({ id: 'image' })}
         onClick={uploadMedias}

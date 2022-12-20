@@ -61,7 +61,7 @@ const StyledCustomZoomButton = styled('div', {
   flexDirection: 'row',
   alignItems: 'center',
   padding: 0,
-  gap: 8,
+  gap: '$2',
   background: '$panelContrast',
   boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)',
   borderRadius: 6,
