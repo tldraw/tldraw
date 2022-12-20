@@ -3,7 +3,6 @@ import { useIntl } from 'react-intl'
 import { ToolPanel } from '~components/Primitives/Panel'
 import { ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
 import {
-  ArrowDrawIcon,
   Eraser2Icon,
   HighlightIcon,
   ImageIcon,
@@ -47,25 +46,13 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
     app.selectTool(TDShapeType.Draw)
   }, [app])
 
-  // const selectArrowTool = React.useCallback(() => {
-  //   app.selectTool(TDShapeType.Arrow)
-  // }, [app])
-
   const selectTextTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Text)
   }, [app])
 
-  // const selectTableTool = React.useCallback(() => {
-  //   app.selectTool(TDShapeType.Table)
-  // }, [app])
-
   const selectStickyTool = React.useCallback(() => {
     app.selectTool(TDShapeType.Sticky)
   }, [app])
-
-  // const selectTemplateTool = React.useCallback(() => {
-  //   app.selectTool(TDShapeType.Template)
-  // }, [app])
 
   const uploadMedias = React.useCallback(async () => {
     app.openAsset()
@@ -75,24 +62,6 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   return (
     <ToolPanel id="TD-PrimaryTools" panelStyle={panelStyle}>
-      {/* <ToolButtonWithTooltip
-      kbd={'^t'}
-      label={intl.formatMessage({ id: 'table' })}
-      onClick={selectTableTool}
-      isLocked={isToolLocked}
-      isActive={activeTool === TDShapeType.Table}
-      id="TD-PrimaryTools-Table"
-    >
-      <TableIcon />
-    </ToolButtonWithTooltip> */}
-      {/* <ToolButtonWithTooltip
-      label={intl.formatMessage({ id: 'template' })}
-      onClick={selectTemplateTool}
-      isActive={activeTool === TDShapeType.Template}
-      id="TD-PrimaryTools-Teamplate"
-    >
-      <ArchiveIcon />
-    </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         kbd={'1'}
         label={intl.formatMessage({ id: 'select' })}
@@ -122,16 +91,6 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       </ToolButtonWithTooltip>
       <ShapesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
       <LinesMenu activeTool={activeTool} isToolLocked={isToolLocked} />
-      {/* <ToolButtonWithTooltip
-        kbd={'8'}
-        label={intl.formatMessage({ id: 'arrow' })}
-        onClick={selectArrowTool}
-        isLocked={isToolLocked}
-        isActive={activeTool === TDShapeType.Arrow}
-        id="TD-PrimaryTools-ArrowTopRight"
-      >
-        <ArrowDrawIcon />
-      </ToolButtonWithTooltip> */}
       <ToolButtonWithTooltip
         kbd={'9'}
         label={intl.formatMessage({ id: 'text' })}
