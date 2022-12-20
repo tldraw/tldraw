@@ -1,8 +1,11 @@
 import { forwardRef } from 'react'
+import { colors as colorsChips } from '~state/shapes/shared'
+import { ColorStyle } from '~types'
 import { IconProps } from '../types'
 
 interface Props extends IconProps {
-  active: boolean
+  active?: boolean
+  color?: ColorStyle | string
 }
 
 export const StyledIcon = forwardRef<SVGSVGElement, Props>(
