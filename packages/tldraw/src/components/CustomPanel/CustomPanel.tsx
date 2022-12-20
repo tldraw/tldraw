@@ -1,6 +1,6 @@
 import React from 'react'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { MinusIcon, PlusIcon } from '~components/Primitives/icons'
+import { MinusIcon, PlusIcon } from '~components/Primitives/icons/icoCommon'
 import { ActionButton } from '~components/ToolsPanel/ActionButton'
 import { ZoomMenu } from '~components/TopPanel/ZoomMenu'
 import { useTldrawApp } from '~hooks'

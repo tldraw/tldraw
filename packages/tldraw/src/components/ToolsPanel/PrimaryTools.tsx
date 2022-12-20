@@ -11,7 +11,7 @@ import {
   SelectedIcon,
   StickyIcon,
   TextIcon,
-} from '~components/Primitives/icons'
+} from '~components/Primitives/icons/icoTools'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot } from '~types'
 import { ShapesMenu } from './ShapesMenu'

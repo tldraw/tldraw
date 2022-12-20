@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { useIntl } from 'react-intl'
-import { ToolButton, ToolButtonWithTooltip } from '~components/Primitives/ToolButton'
+import { ToolButton } from '~components/Primitives/ToolButton'
 import { Tooltip } from '~components/Primitives/Tooltip'
-import { StickyIcon, Trash2Icon } from '~components/Primitives/icons'
+import { Trash2Icon } from '~components/Primitives/icons/icoCommon'
 import { useTldrawApp } from '~hooks'
 
 export function DeleteButton() {

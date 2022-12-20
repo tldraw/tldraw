@@ -1,5 +1,4 @@
 import * as Dialog from '@radix-ui/react-alert-dialog'
-import { MixerVerticalIcon, Pencil1Icon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
@@ -7,6 +6,8 @@ import { IconButton } from '~components/Primitives/IconButton/IconButton'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { TextField } from '~components/Primitives/TextField'
+import { MixerVerticalIcon } from '~components/Primitives/icons/icoCommon'
+import { PencilIcon } from '~components/Primitives/icons/icoTools'
 import { breakpoints } from '~components/breakpoints'
 import { useContainer, useTldrawApp } from '~hooks'
 import { styled } from '~styles'
@@ -142,9 +143,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
     <Dialog.Root open={isOpen} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild data-shy="true">
         <IconButton bp={breakpoints}>
-          <SmallIcon>
-            <MixerVerticalIcon />
-          </SmallIcon>
+          <MixerVerticalIcon />
         </IconButton>
       </Dialog.Trigger>
       <Dialog.Portal container={container.current}>
@@ -156,7 +155,7 @@ export function PageOptionsDialog({ page, onOpen, onClose }: PageOptionsDialogPr
             value={pageName}
             onChange={handleTextFieldChange}
             onKeyDown={handleTextFieldKeyDown}
-            icon={<Pencil1Icon />}
+            icon={<PencilIcon />}
           />
           <Divider />
           <DialogAction onSelect={handleDuplicate}>

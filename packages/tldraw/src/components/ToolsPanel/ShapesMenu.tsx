@@ -10,7 +10,7 @@ import {
   ShapeGroupIcon,
   SquareIcon,
   TriangleIcon,
-} from '~components/Primitives/icons'
+} from '~components/Primitives/icons/icoTools'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot, TDToolType } from '~types'
 

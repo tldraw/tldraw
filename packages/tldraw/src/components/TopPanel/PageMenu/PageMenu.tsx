@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { CheckIcon, PlusIcon } from '@radix-ui/react-icons'
+import { CheckIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
@@ -7,7 +7,7 @@ import { DMContent } from '~components/Primitives/DropdownMenu'
 import { RowButton } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { DropdownArrowIcon } from '~components/Primitives/icons'
+import { DropdownArrowIcon, PlusIcon } from '~components/Primitives/icons/icoCommon'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
@@ -54,7 +54,7 @@ export function PageMenu() {
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
         <ToolButton variant="text">
           {currentPageName || intl.formatMessage({ id: 'page' })}
-          <DropdownArrowIcon width="10" height="5" />
+          <DropdownArrowIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
       <DMContent variant="menu" align="start" sideOffset={4}>

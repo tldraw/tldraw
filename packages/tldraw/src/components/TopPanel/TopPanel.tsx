@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Drawkit } from '~components/Primitives/icons'
+import { Drawkit } from '~components/Primitives/icons/icoCommon'
 import { styled } from '~styles'
 import { Menu } from './Menu/Menu'
 import { PageMenu } from './PageMenu'

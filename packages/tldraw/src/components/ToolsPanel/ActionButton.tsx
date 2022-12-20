@@ -1,4 +1,10 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
+import * as React from 'react'
+import { useIntl } from 'react-intl'
+import { Divider } from '~components/Primitives/Divider'
+import { DMContent } from '~components/Primitives/DropdownMenu'
+import { ToolButton } from '~components/Primitives/ToolButton'
+import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
 import {
   AlignBottomIcon,
   AlignCenterHorizontallyIcon,
@@ -11,25 +17,19 @@ import {
   ArrowUpIcon,
   AspectRatioIcon,
   BoxIcon,
-  CopyIcon,
+  DuplicateIcon,
   GroupIcon,
-  LockClosedIcon,
-  LockOpen1Icon,
+  LockIcon,
   PinBottomIcon,
   PinTopIcon,
-  RotateCounterClockwiseIcon,
+  RotateIcon,
   SpaceEvenlyHorizontallyIcon,
   SpaceEvenlyVerticallyIcon,
   StretchHorizontallyIcon,
   StretchVerticallyIcon,
-} from '@radix-ui/react-icons'
-import * as React from 'react'
-import { useIntl } from 'react-intl'
-import { Divider } from '~components/Primitives/Divider'
-import { DMContent } from '~components/Primitives/DropdownMenu'
-import { ToolButton } from '~components/Primitives/ToolButton'
-import { Tooltip } from '~components/Primitives/Tooltip/Tooltip'
-import { DotIcon } from '~components/Primitives/icons'
+  UnLockIcon,
+} from '~components/Primitives/icons/icoAction'
+import { DotIcon } from '~components/Primitives/icons/icoCommon'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import { AlignType, DistributeType, StretchType, TDSnapshot } from '~types'
@@ -198,12 +198,12 @@ export function ActionButton() {
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">
               <ToolButton disabled={!hasSelection} onClick={handleDuplicate}>
-                <CopyIcon />
+                <DuplicateIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'rotate' })} id="TD-Tools-Rotate">
               <ToolButton disabled={!hasSelection} onClick={handleRotate}>
-                <RotateCounterClockwiseIcon />
+                <RotateIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip
@@ -212,7 +212,7 @@ export function ActionButton() {
               id="TD-Tools-Lock"
             >
               <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
-                {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
+                {isAllLocked ? <LockIcon /> : <UnLockIcon />}
               </ToolButton>
             </Tooltip>
             <Tooltip
