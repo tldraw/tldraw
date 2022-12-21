@@ -1,25 +1,21 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import {
-  TextAlignCenterIcon,
-  TextAlignJustifyIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-} from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
 import { DMCheckboxItem, DMContent, DMRadioItem } from '~components/Primitives/DropdownMenu'
 import { ToolButton } from '~components/Primitives/ToolButton'
+import { SizeLargeIcon, SizeMediumIcon, SizeSmallIcon } from '~components/Primitives/icons'
 import {
-  CircleIcon,
+  AlignCenterIcon,
+  AlignJustifyIcon,
+  AlignLeftIcon,
+  AlignRightIcon,
   DashDashedIcon,
   DashDottedIcon,
   DashDrawIcon,
   DashSolidIcon,
-  SizeLargeIcon,
-  SizeMediumIcon,
-  SizeSmallIcon,
-} from '~components/Primitives/icons'
+  StyledIcon,
+} from '~components/Primitives/icons/icoStyled'
 import { breakpoints } from '~components/breakpoints'
 import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
@@ -56,10 +52,10 @@ const SIZE_ICONS = {
 }
 
 const ALIGN_ICONS = {
-  [AlignStyle.Start]: <TextAlignLeftIcon />,
-  [AlignStyle.Middle]: <TextAlignCenterIcon />,
-  [AlignStyle.End]: <TextAlignRightIcon />,
-  [AlignStyle.Justify]: <TextAlignJustifyIcon />,
+  [AlignStyle.Start]: <AlignLeftIcon />,
+  [AlignStyle.Middle]: <AlignCenterIcon />,
+  [AlignStyle.End]: <AlignRightIcon />,
+  [AlignStyle.Justify]: <AlignJustifyIcon />,
 }
 
 const themeSelector = (s: TDSnapshot) => (s.settings.isDarkMode ? 'dark' : 'light')
@@ -208,14 +204,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
               color: strokes[theme][displayedStyle.color as ColorStyle],
             }}
           >
-            {displayedStyle.isFilled && (
-              <CircleIcon
-                size={16}
-                stroke="none"
-                fill={fills[theme][displayedStyle.color as ColorStyle]}
-              />
-            )}
-            {DASH_ICONS[displayedStyle.dash]}
+            <StyledIcon color={strokes[theme][displayedStyle.color as ColorStyle]} active={true} />
           </OverlapIcons>
         </ToolButton>
       </DropdownMenu.Trigger>
@@ -237,13 +226,9 @@ export const StyleMenu = React.memo(function ColorMenu() {
                   isActive={displayedStyle.color === style}
                   onClick={() => app.style({ color: style as ColorStyle })}
                 >
-                  <CircleIcon
-                    size={18}
-                    strokeWidth={2.5}
-                    fill={
-                      displayedStyle.isFilled ? fills[theme][style as ColorStyle] : 'transparent'
-                    }
-                    stroke={strokes.light[style as ColorStyle]}
+                  <StyledIcon
+                    color={strokes[theme][style as ColorStyle]}
+                    active={displayedStyle.color === style}
                   />
                 </ToolButton>
               </DropdownMenu.Item>

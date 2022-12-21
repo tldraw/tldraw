@@ -1,3 +1,5 @@
+export * from './ArrowRightIcon'
+export * from './CheckIcon'
 export * from './Drawkit'
 export * from './DotIcon'
 export * from './DropdownArrowIcon'
