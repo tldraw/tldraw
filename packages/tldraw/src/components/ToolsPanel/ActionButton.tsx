@@ -32,7 +32,7 @@ import {
 import { DotIcon } from '~components/Primitives/icons/icoCommon'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
-import { AlignType, DistributeType, StretchType, TDSnapshot } from '~types'
+import { AlignType, DistributeType, StretchType, TDDockPosition, TDSnapshot } from '~types'
 
 const dockPositionState = (s: TDSnapshot) => s.settings.dockPosition
 
@@ -74,6 +74,8 @@ const hasMultipleSelectionSelector = (s: TDSnapshot) => {
   const { selectedIds } = s.document.pageStates[s.appState.currentPageId]
   return selectedIds.length > 1
 }
+
+type ActionPosition = 'top' | 'left' | 'right' | 'bottom' | undefined
 
 export function ActionButton() {
   const app = useTldrawApp()
@@ -184,14 +186,26 @@ export function ActionButton() {
     [app]
   )
 
+  const docPos = {
+    bottom: 'top',
+    left: 'right',
+    right: 'left',
+    top: 'bottom',
+  }
+
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
-        <ToolButton>
+        <ToolButton variant="primary">
           <DotIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent sideOffset={4} side="top" align="end">
+      <DMContent
+        sideOffset={12}
+        alignOffset={-8}
+        side={docPos[dockPosition] as ActionPosition}
+        align="start"
+      >
         <>
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">

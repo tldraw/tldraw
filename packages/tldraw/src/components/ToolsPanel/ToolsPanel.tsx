@@ -4,6 +4,7 @@ import { breakpoints } from '~components/breakpoints'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
+import { ActionButton } from './ActionButton'
 import { BackToContent } from './BackToContent'
 import { PrimaryTools } from './PrimaryTools'
 import { SecondaryTools } from './SecondaryTools'
@@ -29,9 +30,16 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
           <StyledPrimaryTools
             orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
           >
-            <PrimaryTools />
-            <StyleLine side={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'} />
-            <SecondaryTools />
+            <StyleActionButton>
+              <ActionButton />
+            </StyleActionButton>
+            <StyledToolsBar
+              orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
+            >
+              <PrimaryTools />
+              <StyleLine side={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'} />
+              <SecondaryTools />
+            </StyledToolsBar>
           </StyledPrimaryTools>
         </StyledCenterWrap>
       </StyledToolsPanelContainer>
@@ -144,7 +152,35 @@ const StyleLine = styled('div', {
   },
 })
 
-const StyledPrimaryTools = styled(Panel, {
+const StyledPrimaryTools = styled('div', {
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  height: 'fit-content',
+  gap: '$3',
+  variants: {
+    orientation: {
+      horizontal: {
+        flexDirection: 'row',
+      },
+      vertical: {
+        flexDirection: 'column',
+      },
+    },
+  },
+})
+
+const StyleActionButton = styled('div', {
+  backgroundColor: '$panel',
+  display: 'flex',
+  flexDirection: 'row',
+  boxShadow: '$panel',
+  padding: '$3',
+  border: '1px solid $panelContrast',
+  borderRadius: 6,
+})
+
+const StyledToolsBar = styled(Panel, {
   position: 'relative',
   display: 'flex',
   alignItems: 'center',
@@ -166,7 +202,6 @@ const StyledPrimaryTools = styled(Panel, {
   // button: {
   //   width: 28,
   //   height: 28,
-
   //   [`svg`]: {
   //     width: 12,
   //     height: 12,

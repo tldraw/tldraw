@@ -33,16 +33,16 @@ export const LinesMenu = React.memo(function LinesMenu({
 
   const dockPosition = app.useStore(dockPositionState)
 
-  const [lastActiveTool, setLastActiveTool] = React.useState<LineShape>(TDShapeType.Line)
+  const [lineActiveTool, setLineActiveTool] = React.useState<LineShape>(TDShapeType.Line)
 
   React.useEffect(() => {
-    if (lineShapes.includes(activeTool as LineShape) && lastActiveTool !== activeTool) {
-      setLastActiveTool(activeTool as LineShape)
+    if (lineShapes.includes(activeTool as LineShape) && lineActiveTool !== activeTool) {
+      setLineActiveTool(activeTool as LineShape)
     }
   }, [activeTool])
 
-  const selectShapeTool = React.useCallback(() => {
-    app.selectTool(lastActiveTool)
+  const selectShapeTool2 = React.useCallback(() => {
+    app.selectTool(lineActiveTool)
   }, [activeTool, app])
 
   const handleDoubleClick = React.useCallback(() => {
@@ -63,19 +63,22 @@ export const LinesMenu = React.memo(function LinesMenu({
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
   return (
-    <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
+    <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool2}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-PrimaryTools-Lines">
+        {/* <div>T</div> */}
         <ToolButton
-          disabled={isActive && app.shiftKey} // otherwise this continuously opens and closes on "SpacePanning"
+          disabled={isActive && app.shiftKey}
           variant="primary"
           onDoubleClick={handleDoubleClick}
           isToolLocked={isActive && isToolLocked}
           isActive={isActive}
           onKeyDown={handleKeyDown}
         >
-          {lineShapeIcons[lastActiveTool]}
+          {lineShapeIcons[lineActiveTool]}
         </ToolButton>
       </DropdownMenu.Trigger>
+
+      {/* <DropdownMenu.Portal> */}
       <DropdownMenu.Content asChild side={contentSide} sideOffset={12}>
         <Panel side="center" style={{ flexDirection: panelStyle }}>
           {lineShapes.map((shape, i) => (
@@ -90,7 +93,7 @@ export const LinesMenu = React.memo(function LinesMenu({
                   variant="primary"
                   onClick={() => {
                     app.selectTool(shape)
-                    setLastActiveTool(shape)
+                    setLineActiveTool(shape)
                   }}
                 >
                   {lineShapeIcons[shape]}
@@ -100,6 +103,7 @@ export const LinesMenu = React.memo(function LinesMenu({
           ))}
         </Panel>
       </DropdownMenu.Content>
+      {/* </DropdownMenu.Portal> */}
     </DropdownMenu.Root>
   )
 })

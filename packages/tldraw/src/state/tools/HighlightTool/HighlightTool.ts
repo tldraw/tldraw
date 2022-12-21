@@ -58,7 +58,7 @@ export class HighlightTool extends BaseTool {
         parentId: currentPageId,
         childIndex,
         point: currentPoint,
-        style: { ...currentStyle, color: ColorStyle.Red },
+        style: { ...currentStyle },
       })
       this.lastShapeId = id
       this.app.patchCreate([newShape])

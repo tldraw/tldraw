@@ -71,6 +71,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={selectShapeTool}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-PrimaryTools-Shapes">
+        {/* <div>E</div> */}
         <ToolButton
           disabled={isActive && app.shiftKey} // otherwise this continuously opens and closes on "SpacePanning"
           variant="primary"
@@ -79,10 +80,10 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           isActive={isActive}
           onKeyDown={handleKeyDown}
         >
-          {/* {shapeShapeIcons[lastActiveTool]} */}
           <ShapeGroupIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
+      {/* <DropdownMenu.Portal> */}
       <DropdownMenu.Content asChild side={contentSide} sideOffset={12}>
         <Panel side="center" style={{ flexDirection: panelStyle }}>
           {shapeShapes.map((shape, i) => (
@@ -107,6 +108,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           ))}
         </Panel>
       </DropdownMenu.Content>
+      {/* </DropdownMenu.Portal> */}
     </DropdownMenu.Root>
   )
 })

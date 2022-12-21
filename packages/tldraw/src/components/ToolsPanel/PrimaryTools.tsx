@@ -11,6 +11,7 @@ import {
   StickyIcon,
   TextIcon,
 } from '~components/Primitives/icons/icoTools'
+import { ZoomMenu } from '~components/TopPanel/ZoomMenu'
 import { useTldrawApp } from '~hooks'
 import { TDShapeType, TDSnapshot } from '~types'
 import { ColorMenu } from './ColorMenu'
@@ -59,6 +60,10 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
   }, [app])
 
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
+
+  React.useEffect(() => {
+    console.log(':Ddd', activeTool)
+  }, [activeTool])
 
   return (
     <ToolPanel id="TD-PrimaryTools" panelStyle={panelStyle}>
@@ -110,7 +115,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
       >
         <StickyIcon />
       </ToolButtonWithTooltip>
-      <ColorMenu />
+      {/* <ColorMenu /> */}
       <ToolButtonWithTooltip
         kbd={'3'}
         label={intl.formatMessage({ id: 'eraser' })}
