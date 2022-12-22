@@ -1,0 +1,10 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    target-branch: 'staging'
+    schedule:
+      interval: 'daily'
+    allow:
+      - dependency-name: '@palette.dev/browser'
+      - dependency-name: '@palette.dev/webpack-plugin'
