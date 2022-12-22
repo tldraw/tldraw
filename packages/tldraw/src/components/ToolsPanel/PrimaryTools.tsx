@@ -61,9 +61,9 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
 
   const panelStyle = dockPosition === 'bottom' || dockPosition === 'top' ? 'row' : 'column'
 
-  React.useEffect(() => {
-    console.log(':Ddd', activeTool)
-  }, [activeTool])
+  // React.useEffect(() => {
+  //   console.log(':Ddd', activeTool)
+  // }, [activeTool])
 
   return (
     <ToolPanel id="TD-PrimaryTools" panelStyle={panelStyle}>
