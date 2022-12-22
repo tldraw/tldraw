@@ -56,14 +56,14 @@ export function PreferencesMenu() {
 
   return (
     <DMSubMenu label={intl.formatMessage({ id: 'menu.preferences' })} id="TD-MenuItem-Preferences">
-      <DMCheckboxItem
+      {/* <DMCheckboxItem
         checked={settings.isDarkMode}
         onCheckedChange={toggleDarkMode}
         kbd="#⇧D"
         id="TD-MenuItem-Preferences-Dark_Mode"
       >
         <FormattedMessage id="preferences.dark.mode" />
-      </DMCheckboxItem>
+      </DMCheckboxItem> */}
       <DMCheckboxItem
         checked={settings.isFocusMode}
         onCheckedChange={toggleFocusMode}
@@ -72,29 +72,29 @@ export function PreferencesMenu() {
       >
         <FormattedMessage id="preferences.focus.mode" />
       </DMCheckboxItem>
-      <DMCheckboxItem
+      {/* <DMCheckboxItem
         checked={settings.isDebugMode}
         onCheckedChange={toggleDebugMode}
         id="TD-MenuItem-Preferences-Debug_Mode"
       >
         <FormattedMessage id="preferences.debug.mode" />
-      </DMCheckboxItem>
-      <Divider />
+      </DMCheckboxItem> */}
+      {/* <Divider /> */}
       <DMCheckboxItem
-        checked={settings.showGrid}
+        checked={!settings.showGrid}
         onCheckedChange={toggleGrid}
         kbd="#⇧G"
         id="TD-MenuItem-Preferences-Grid"
       >
         <FormattedMessage id="preferences.show.grid" />
       </DMCheckboxItem>
-      <DMCheckboxItem
+      {/* <DMCheckboxItem
         checked={settings.isCadSelectMode}
         onCheckedChange={toggleCadSelectMode}
         id="TD-MenuItem-Preferences-Cad_Selection"
       >
         <FormattedMessage id="preferences.use.cad.selection" />
-      </DMCheckboxItem>
+      </DMCheckboxItem> */}
       <DMCheckboxItem
         checked={settings.keepStyleMenuOpen}
         onCheckedChange={toggleKeepStyleMenuOpen}
@@ -116,7 +116,7 @@ export function PreferencesMenu() {
           </DMCheckboxItem>
         ))}
       </DMSubMenu>
-      <DMSubMenu label={intl.formatMessage({ id: 'export.background' })}>
+      {/* <DMSubMenu label={intl.formatMessage({ id: 'export.background' })}>
         {Object.values(TDExportBackground).map((exportBackground) => (
           <DMCheckboxItem
             key={exportBackground}
@@ -129,7 +129,7 @@ export function PreferencesMenu() {
             </StyledText>
           </DMCheckboxItem>
         ))}
-      </DMSubMenu>
+      </DMSubMenu> */}
     </DMSubMenu>
   )
 }

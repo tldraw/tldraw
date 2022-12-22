@@ -22,7 +22,7 @@ export const ZoomMenu = function ZoomMenu() {
           {Math.round(zoom * 100)}%
         </FixedWidthToolButton>
       </DropdownMenu.Trigger>
-      <DMContent align="end">
+      <DMContent align="end" sideOffset={8}>
         <DMItem onSelect={preventEvent} onClick={app.zoomIn} kbd="#+" id="TD-Zoom-Zoom_In">
           <FormattedMessage id="zoom.in" />
         </DMItem>

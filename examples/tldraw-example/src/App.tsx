@@ -52,30 +52,31 @@ export default function App() {
   return (
     <main>
       <Routes>
-        {pages.map((page) =>
+        {/* {pages.map((page) =>
           page === '---' ? null : (
             <Route key={page.path} path={page.path} element={<page.component />} />
           )
-        )}
+        )} */}
 
         <Route
           path="/"
-          element={
-            <div>
-              <img className="hero" src="./card-repo.png" />
-              <ul className="links">
-                {pages.map((page, i) =>
-                  page === '---' ? (
-                    <hr key={i} />
-                  ) : (
-                    <li key={i}>
-                      <Link to={page.path}>{page.title}</Link>
-                    </li>
-                  )
-                )}
-              </ul>
-            </div>
-          }
+          element={<Basic />}
+          // element={
+          //   <div>
+          //     <img className="hero" src="./card-repo.png" />
+          //     <ul className="links">
+          //       {pages.map((page, i) =>
+          //         page === '---' ? (
+          //           <hr key={i} />
+          //         ) : (
+          //           <li key={i}>
+          //             <Link to={page.path}>{page.title}</Link>
+          //           </li>
+          //         )
+          //       )}
+          //     </ul>
+          //   </div>
+          // }
         />
       </Routes>
     </main>
