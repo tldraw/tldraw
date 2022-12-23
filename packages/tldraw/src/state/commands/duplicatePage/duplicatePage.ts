@@ -44,6 +44,7 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
   Object.values(page.bindings).forEach(binding => {
     const fromId = oldToNewIds[binding.fromId]
     const fromHandles = shapes[fromId]!.handles
+    
     if (fromHandles) {
       Object.values(fromHandles).forEach((handle) => {
         if (handle!.bindingId === binding.id) {
@@ -51,8 +52,10 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         }
       })
     }
+    
     const toId = oldToNewIds[binding.toId]
     const toHandles = shapes[toId]!.handles
+    
     if (toHandles) {
       Object.values(toHandles).forEach((handle) => {
         if (handle!.bindingId === binding.id) {
@@ -60,6 +63,7 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         }
       })
     }
+    
   })
 
   const nextPage = {
