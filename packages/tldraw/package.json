@@ -36,6 +36,11 @@
     "react-dom": ">=16.8"
   },
   "dependencies": {
+    "@fontsource/caveat-brush": "^4.5.9",
+    "@fontsource/crimson-pro": "^4.5.10",
+    "@fontsource/recursive": "^4.5.11",
+    "@fontsource/source-code-pro": "^4.5.12",
+    "@fontsource/source-sans-pro": "^4.5.11",
     "@radix-ui/react-alert-dialog": "^1.0.0",
     "@radix-ui/react-context-menu": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
