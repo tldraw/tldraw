@@ -41,6 +41,10 @@ async function main() {
       define: {
         'process.env.NODE_ENV': '"production"',
       },
+      loader: {
+        '.woff2': 'dataurl',
+        '.woff': 'dataurl',
+      },
     })
 
     jslog(`✔ ${pkg.name}: Build completed.`)

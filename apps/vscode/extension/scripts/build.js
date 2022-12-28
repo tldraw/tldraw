@@ -55,6 +55,10 @@ async function main() {
       },
       tsconfig: './tsconfig.json',
       external: ['vscode'],
+      loader: {
+        '.woff2': 'dataurl',
+        '.woff': 'dataurl',
+      },
     })
     jslog(`Built package.`)
   } catch (e) {
