@@ -1,7 +1,7 @@
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { IconProps } from '../types'
 
-export const BrushSizeLargeIcon = forwardRef<SVGSVGElement, IconProps>(
+export const BrushSizeLargeIcon = React.forwardRef<SVGSVGElement, IconProps>(
   ({ color = 'currentColor', ...props }, forwardedRef) => {
     return (
       <svg

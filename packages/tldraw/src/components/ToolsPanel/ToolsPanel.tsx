@@ -30,9 +30,9 @@ export const ToolsPanel = React.memo(function ToolsPanel({ onBlur }: ToolsPanelP
           <StyledPrimaryTools
             orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
           >
-            <StyleActionButton>
+            {/*<StyleActionButton>
               <ActionButton />
-            </StyleActionButton>
+  </StyleActionButton>*/}
             <StyledToolsBar
               orientation={side === 'bottom' || side === 'top' ? 'horizontal' : 'vertical'}
             >

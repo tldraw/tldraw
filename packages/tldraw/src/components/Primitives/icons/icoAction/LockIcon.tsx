@@ -1,7 +1,7 @@
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { IconProps } from '../types'
 
-export const LockIcon = forwardRef<SVGSVGElement, IconProps>(
+export const LockIcon = React.forwardRef<SVGSVGElement, IconProps>(
   ({ color = 'currentColor', ...props }, forwardedRef) => {
     return (
       <svg

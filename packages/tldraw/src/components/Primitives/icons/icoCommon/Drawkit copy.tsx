@@ -1,7 +1,7 @@
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { IconProps } from '../types'
 
-export const Drawkit = forwardRef<SVGSVGElement, IconProps>(({ ...props }, forwardedRef) => {
+export const Drawkit = React.forwardRef<SVGSVGElement, IconProps>(({ ...props }, forwardedRef) => {
   return (
     <svg
       viewBox="0 0 426 64"

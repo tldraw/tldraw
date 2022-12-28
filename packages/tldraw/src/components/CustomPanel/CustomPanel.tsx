@@ -1,6 +1,7 @@
+import { PlusIcon } from '@radix-ui/react-icons'
 import React from 'react'
 import { ToolButton } from '~components/Primitives/ToolButton'
-import { MinusIcon, PlusIcon } from '~components/Primitives/icons/icoCommon'
+import { MinusIcon } from '~components/Primitives/icons/icoCommon'
 import { StyleMenu } from '~components/TopPanel/StyleMenu'
 import { ZoomMenu } from '~components/TopPanel/ZoomMenu'
 import { useTldrawApp } from '~hooks'

@@ -21,6 +21,7 @@
     "build:core": "turbo run build --filter=@tldraw/core-example*",
     "build:packages": "turbo run build --filter=./packages/*",
     "build:apps": "turbo run build --filter=./apps/**",
+    "build:ex": "turbo run build --filter=./examples/tldraw-example/**",
     "start": "turbo run dev --filter=@tldraw/tldraw-example... --parallel",
     "start:core": "turbo run dev --filter=@tldraw/core-example-advanced*... --parallel",
     "start:www": "turbo run dev --filter=@tldraw/www... --parallel",

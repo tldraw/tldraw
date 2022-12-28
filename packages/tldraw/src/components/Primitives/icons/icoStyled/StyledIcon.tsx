@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import React, { forwardRef } from 'react'
 import { colors as colorsChips } from '~state/shapes/shared'
 import { ColorStyle } from '~types'
 import { IconProps } from '../types'
@@ -8,7 +8,7 @@ interface Props extends IconProps {
   color?: ColorStyle | string
 }
 
-export const StyledIcon = forwardRef<SVGSVGElement, Props>(
+export const StyledIcon = React.forwardRef<SVGSVGElement, Props>(
   ({ color = 'currentColor', active = false, ...props }, forwardedRef) => {
     return (
       <svg

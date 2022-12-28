@@ -31,6 +31,7 @@ export default function Controlled() {
               dash: DashStyle.Draw,
               size: SizeStyle.Medium,
               color: ColorStyle.Blue,
+              opacity: SizeStyle.Small,
             },
           },
           rect2: {
@@ -45,6 +46,7 @@ export default function Controlled() {
               dash: DashStyle.Draw,
               size: SizeStyle.Medium,
               color: ColorStyle.Blue,
+              opacity: SizeStyle.Small,
             },
           },
         },
