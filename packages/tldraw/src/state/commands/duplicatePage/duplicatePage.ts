@@ -13,8 +13,8 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
   // Map shapes and bindings onto new IDs
   const oldToNewIds: Record<string, string> = Object.fromEntries([
     [page.id, Utils.uniqueId()],
-    ...Object.keys(page.shapes).map(id => [id, Utils.uniqueId()]),
-    ...Object.keys(page.bindings).map(id => [id, Utils.uniqueId()]),
+    ...Object.keys(page.shapes).map((id) => [id, Utils.uniqueId()]),
+    ...Object.keys(page.bindings).map((id) => [id, Utils.uniqueId()]),
   ])
 
   const shapes = Object.fromEntries(
@@ -24,7 +24,7 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         ...Utils.deepClone(shape),
         id: oldToNewIds[id],
         parentId: oldToNewIds[shape.parentId],
-      }
+      },
     ])
   )
 
@@ -36,15 +36,15 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         id: oldToNewIds[binding.id],
         fromId: oldToNewIds[binding.fromId],
         toId: oldToNewIds[binding.toId],
-      }
+      },
     ])
   )
 
   // Update the shape's to and from references to the new bindingid
-  Object.values(page.bindings).forEach(binding => {
+  Object.values(page.bindings).forEach((binding) => {
     const fromId = oldToNewIds[binding.fromId]
     const fromHandles = shapes[fromId]!.handles
-    
+
     if (fromHandles) {
       Object.values(fromHandles).forEach((handle) => {
         if (handle!.bindingId === binding.id) {
@@ -52,10 +52,10 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         }
       })
     }
-    
+
     const toId = oldToNewIds[binding.toId]
     const toHandles = shapes[toId]!.handles
-    
+
     if (toHandles) {
       Object.values(toHandles).forEach((handle) => {
         if (handle!.bindingId === binding.id) {
@@ -63,7 +63,6 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
         }
       })
     }
-    
   })
 
   const nextPage = {
@@ -82,25 +81,25 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
       },
       document: {
         pages: {
-          [newId]: undefined,
+          [pageId]: undefined,
         },
         pageStates: {
-          [newId]: undefined,
+          [pageId]: undefined,
         },
       },
     },
     after: {
       appState: {
-        currentPageId: newId,
+        currentPageId: pageId,
       },
       document: {
         pages: {
-          [newId]: nextPage,
+          [pageId]: nextPage,
         },
         pageStates: {
-          [newId]: {
+          [pageId]: {
             ...page,
-            id: newId,
+            id: pageId,
             selectedIds: [],
             camera: { ...camera },
             editingId: undefined,
