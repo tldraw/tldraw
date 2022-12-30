@@ -10,9 +10,11 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
 
   const page = app.document.pages[pageId]
 
+  const newId = Utils.uniqueId()
+
   // Map shapes and bindings onto new IDs
   const oldToNewIds: Record<string, string> = Object.fromEntries([
-    [page.id, Utils.uniqueId()],
+    [page.id, newId],
     ...Object.keys(page.shapes).map((id) => [id, Utils.uniqueId()]),
     ...Object.keys(page.bindings).map((id) => [id, Utils.uniqueId()]),
   ])
@@ -81,25 +83,25 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
       },
       document: {
         pages: {
-          [pageId]: undefined,
+          [newId]: undefined,
         },
         pageStates: {
-          [pageId]: undefined,
+          [newId]: undefined,
         },
       },
     },
     after: {
       appState: {
-        currentPageId: pageId,
+        currentPageId: newId,
       },
       document: {
         pages: {
-          [pageId]: nextPage,
+          [newId]: nextPage,
         },
         pageStates: {
-          [pageId]: {
+          [newId]: {
             ...page,
-            id: pageId,
+            id: newId,
             selectedIds: [],
             camera: { ...camera },
             editingId: undefined,
