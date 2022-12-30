@@ -38,6 +38,10 @@ async function main() {
         target: 'es6',
         jsxFactory: 'React.createElement',
         jsxFragment: 'React.Fragment',
+        loader: {
+          '.woff2': 'dataurl',
+          '.woff': 'dataurl',
+        },
         define: {
           'process.env.NODE_ENV': '"production"',
         },
