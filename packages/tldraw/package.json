@@ -99,6 +99,7 @@
       "<rootDir>/dist/"
     ],
     "moduleNameMapper": {
+      "@fontsource/*": "<rootDir>/src/test/stylemock.ts",
       "@tldraw/tldraw": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }
