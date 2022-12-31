@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.20.3
+
+### Patch Changes
+
+- Add external fonts, new translations, duplicate page fix.
+
 ## 1.20.2
 
 ### Patch Changes

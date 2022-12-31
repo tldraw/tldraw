@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.26.4
+
+### Patch Changes
+
+- Add external fonts, new translations, duplicate page fix.
+- Updated dependencies
+  - @tldraw/core@1.20.3
+
 ## 1.26.3
 
 ### Patch Changes
