@@ -51,7 +51,7 @@ export function _TopPanel({
                 kbd={'#Z'}
                 label={intl.formatMessage({ id: 'undo' })}
                 onClick={app.undo}
-                id="TD-PrimaryTools-Eraser"
+                id="TD-TopPanel-Undo"
               >
                 <UndoIcon />
               </ToolButtonWithTooltip>
@@ -59,7 +59,7 @@ export function _TopPanel({
                 kbd={'#⇧Z'}
                 label={intl.formatMessage({ id: 'redo' })}
                 onClick={app.redo}
-                id="TD-PrimaryTools-Eraser"
+                id="TD-TopPanel-Redo"
               >
                 <UndoIcon flipHorizontal />
               </ToolButtonWithTooltip>
