@@ -84,6 +84,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
           isToolLocked={isActive && isToolLocked}
           isActive={isActive}
           onKeyDown={handleKeyDown}
+          aria-label={intl.formatMessage({ id: 'shapes' })}
         >
           {shapeShapeIcons[lastActiveTool]}
         </ToolButton>
@@ -99,6 +100,7 @@ export const ShapesMenu = React.memo(function ShapesMenu({
             >
               <DropdownMenu.Item asChild>
                 <ToolButton
+                  aria-label={intl.formatMessage({ id: shape })}
                   variant="primary"
                   onClick={() => {
                     app.selectTool(shape)

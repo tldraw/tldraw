@@ -89,6 +89,7 @@ export function ToolButtonWithTooltip({
         isToolLocked={isLocked && rest.isActive}
         onDoubleClick={handleDoubleClick}
         onKeyDown={handleKeyDown}
+        aria-label={label[0].toUpperCase() + label.slice(1)}
       />
     </Tooltip>
   )
