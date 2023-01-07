@@ -917,8 +917,8 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       minY,
       maxX,
       maxY,
-      height: maxX - minX,
-      width: maxY - minY,
+      width: maxX - minX,
+      height: maxY - minY,
     }
   }
 
