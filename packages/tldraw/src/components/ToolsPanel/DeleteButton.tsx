@@ -21,7 +21,12 @@ export function DeleteButton() {
 
   return (
     <Tooltip label={intl.formatMessage({ id: 'delete' })} kbd="⌫" id="TD-Delete">
-      <ToolButton variant="circle" disabled={!hasSelection} onSelect={handleDelete}>
+      <ToolButton
+        aria-label={intl.formatMessage({ id: 'delete' })}
+        variant="circle"
+        disabled={!hasSelection}
+        onSelect={handleDelete}
+      >
         <TrashIcon />
       </ToolButton>
     </Tooltip>
