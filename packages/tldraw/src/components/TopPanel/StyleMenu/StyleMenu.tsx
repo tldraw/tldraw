@@ -212,7 +212,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
           </OverlapIcons>
         </ToolButton>
       </DropdownMenu.Trigger>
-      <DMContent id="language-menu" side="bottom" align="end" sideOffset={4} alignOffset={4}>
+      <DMContent id="TD-StylesMenu" side="bottom" align="end" sideOffset={4} alignOffset={4}>
         <StyledRow variant="tall" id="TD-Styles-Color-Container">
           <span>
             <FormattedMessage id="style.menu.color" />
