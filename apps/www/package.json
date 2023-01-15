@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/www",
-  "version": "1.7.25",
+  "version": "1.7.26",
   "private": true,
   "description": "A tiny little drawing app (site).",
   "repository": {

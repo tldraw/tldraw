@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.27.0
+
+### Minor Changes
+
+- - Adds missing Arabic translations for dialogs. @abedshamia
+  - Updates core-example. @brydenfogelman
+  - Updates Polish translations. @adan2013
+  - Adds missing Aria-Labels. @KDSBrowne
+  - Improves Japanese translation. @yashkumarbarot
+  - Fixes height and width in app.viewport. @hiroshisuga
+  - Improves labels on StlyeMenu @proke03
+  - Adds missing tooltips to undo / redo buttons. @proke03
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.21.0
+
 ## 1.26.4
 
 ### Patch Changes
