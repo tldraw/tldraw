@@ -102,5 +102,22 @@
   "transparent": "شـفاف",
   "auto": "ذاتي",
   "light": "خفيف",
-  "dark": "غامق"
+  "dark": "غامق",
+  "dialog.save.firsttime": "هل تريد حفظ التغييرات على هذا المشروع؟",
+  "dialog.save.again": "هل تريد حفظ التغييرات على هذا المشروع؟",
+  "dialog.cancel": "إلغاء",
+  "dialog.no": "لا",
+  "dialog.yes": "نعم",
+  "enter.file.name": "أدخل اسم الملف",
+  "image": "صورة",
+  "align.left": "صفّ لليسار",
+  "align.center.x": "صفّ المحور الأفقي للوسط",
+  "align.right": "صفّ لليمين",
+  "align.top": "صفّ للأعلى",
+  "align.center.y": "صفّ المحور العمودي للوسط",
+  "align.bottom": "صفّ للأسفل",
+  "distribute.x": "توزيع أفقي",
+  "distribute.y": "توزيع عمودي",
+  "stretch.x": "تمديد أفقي",
+  "stretch.y": "تمديد عمودي"
 }
