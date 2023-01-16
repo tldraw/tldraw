@@ -91,12 +91,30 @@ export function useMultiplayerState(roomId: string) {
   React.useEffect(() => {
     const unsubs: (() => void)[] = []
     if (!(app && room)) return
+    window.xx = app
     // Handle errors
     unsubs.push(room.subscribe('error', (error) => setError(error)))
 
     // Handle changes to other users' presence
     unsubs.push(
       room.subscribe('others', (others, event) => {
+        const point = others[0]?.presence?.user?.point
+        console.log(others[0]?.presence?.user)
+        if (point) {
+          var ele = document.getElementById('canvas')
+          // app.zoomToContent()
+          console.log('zoom is', app.zoom)
+          console.log('camera is ', app.camera)
+          const conrnertFactor = 1000 * (1 / app.zoom) * 0.5
+          console.log([point[0] + conrnertFactor, point[1] + conrnertFactor])
+          app.setCamera(
+            [point[0] * -1 + conrnertFactor, point[1] * -1 + conrnertFactor],
+            app.zoom,
+            'sync'
+          )
+          window.scrollTo(point[0], point[1])
+          console.log('other user points')
+        }
         if (event.type === 'leave') {
           if (event.user.presence) {
             app?.removeUser(event.user.presence.id)

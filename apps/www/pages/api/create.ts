@@ -13,7 +13,7 @@ export default async function CreateMultiplayerRoom(req: NextApiRequest, res: Ne
 
     const { token } = await fetch('https://liveblocks.io/api/authorize', {
       headers: {
-        Authorization: `Bearer ${process.env.LIVEBLOCKS_SECRET_KEY}`,
+        Authorization: `Bearer sk_dev_qV96JZmxInKXpPL-19TRNkeKoNIDjZ2-T7oHUdL34w4UPcxwLoJicUoOX8s6D7Aw`,
         'Content-Type': 'application/json',
       },
     }).then((d) => d.json())

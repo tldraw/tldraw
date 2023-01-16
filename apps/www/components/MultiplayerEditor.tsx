@@ -1,4 +1,4 @@
-import { TDUserStatus, Tldraw, TldrawProps, useFileSystem } from '@tldraw/tldraw'
+import { TDUserStatus, Tldraw, TldrawApp, TldrawProps, useFileSystem } from '@tldraw/tldraw'
 import * as React from 'react'
 import { useMultiplayerAssets } from '~hooks/useMultiplayerAssets'
 import { useMultiplayerState } from '~hooks/useMultiplayerState'
@@ -39,11 +39,14 @@ function Editor({ roomId }: Props) {
   const { error, ...events } = useMultiplayerState(roomId)
   const { onAssetCreate, onAssetDelete } = useMultiplayerAssets()
   const { onAssetUpload } = useUploadAssets()
+  const onChange = () => {
+    // console.log("CHANGE", arguments)
+  }
 
   if (error) return <LoadingScreen>Error: {error.message}</LoadingScreen>
 
   return (
-    <div className="tldraw">
+    <div className="tldraw" id={'main-canvas'}>
       <Tldraw
         autofocus
         disableAssets={false}
@@ -51,6 +54,7 @@ function Editor({ roomId }: Props) {
         onAssetCreate={onAssetCreate}
         onAssetDelete={onAssetDelete}
         onAssetUpload={onAssetUpload}
+        onChange={onChange}
         {...fileSystemEvents}
         {...events}
       />
