@@ -280,6 +280,29 @@ const InnerMenu = React.memo(function InnerMenu() {
           <CMRowButton onClick={handleRedo} kbd="#⇧Z" id="TD-ContextMenu-Redo">
             <FormattedMessage id="redo" />
           </CMRowButton>
+          <ContextMenuSubMenu
+            label={`${intl.formatMessage({ id: 'export.as' })}...`}
+            size="small"
+            id="TD-ContextMenu-Export"
+          >
+            <CMRowButton onClick={handleExportSVG} id="TD-ContextMenu-Export-SVG">
+              SVG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportPNG} id="TD-ContextMenu-Export-PNG">
+              PNG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportJPG} id="TD-ContextMenu-Export-JPG">
+              JPG
+            </CMRowButton>
+            <CMRowButton onClick={handleExportWEBP} id="TD-ContextMenu-Export-WEBP">
+              WEBP
+            </CMRowButton>
+            {isDebugMode && (
+              <CMRowButton onClick={handleExportJSON} id="TD-ContextMenu-Export-JSON">
+                JSON
+              </CMRowButton>
+            )}
+          </ContextMenuSubMenu>
         </>
       )}
     </>
