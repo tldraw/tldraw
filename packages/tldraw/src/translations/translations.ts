@@ -12,8 +12,9 @@ import ko_kr from './ko-kr.json'
 import ku from './ku.json'
 import main from './main.json'
 import my from "./my.json"
+import nb_no from './nb-no.json'
 import ne from './ne.json'
-import no from './no.json'
+import nn_no from './nn-no.json'
 import pl from './pl.json'
 import pt_br from './pt-br.json'
 import pt_pt from './pt-pt.json'
@@ -44,8 +45,9 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'ja', label: '日本語', messages: ja },
   { locale: 'ko-kr', label: '한국어', messages: ko_kr },
   { locale: 'my', label: 'မြန်မာစာ', messages: my},
+  { locale: 'nb-no', label: 'Norwegian Bokmål', messages: nb_no },
   { locale: 'ne', label: 'नेपाली', messages: ne },
-  { locale: 'no', label: 'Norwegian', messages: no },
+  { locale: 'nn-no', label: 'Norwegian Nynorsk', messages: nn_no },
   { locale: 'pl', label: 'Polski', messages: pl },
   { locale: 'pt', label: 'Português - Europeu', messages: pt_pt },
   { locale: 'pt-br', label: 'Português - Brasil', messages: pt_br },
