@@ -1141,6 +1141,7 @@ export class TLDR {
 
     const width = +svg.getAttribute('width')!
     const height = +svg.getAttribute('height')!
+    const svgSrc = svg.lastElementChild!.getAttribute('xlink:href')!
 
     if (!svgString) return
 
@@ -1171,7 +1172,7 @@ export class TLDR {
         console.warn('Could not convert that SVG to an image.')
       }
 
-      image.src = dataUrl
+      image.src = svgSrc.includes('data:') ? dataUrl : svgSrc
     })
 
     const blob = await new Promise<Blob>((resolve) =>
