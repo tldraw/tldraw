@@ -5,6 +5,7 @@ import en from './en.json'
 import es from './es.json'
 import fa from './fa.json'
 import fr from './fr.json'
+import gl from './gl.json'
 import he from './he.json'
 import it from './it.json'
 import ja from './ja.json'
@@ -40,6 +41,7 @@ export const TRANSLATIONS: TDTranslations = [
   { locale: 'es', label: 'Español', messages: es },
   { locale: 'fa', label: 'فارسی', messages: fa },
   { locale: 'fr', label: 'Français', messages: fr },
+  { locale: 'gl', label: 'Galego', messages: gl },
   { locale: 'he', label: 'עברית', messages: he },
   { locale: 'it', label: 'Italiano', messages: it },
   { locale: 'ja', label: '日本語', messages: ja },
