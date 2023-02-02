@@ -52,6 +52,7 @@ export function _TopPanel({
                 label={intl.formatMessage({ id: 'undo' })}
                 onClick={app.undo}
                 id="TD-TopPanel-Undo"
+                aria-label={intl.formatMessage({ id: 'undo' })}
               >
                 <UndoIcon />
               </ToolButtonWithTooltip>
@@ -60,6 +61,7 @@ export function _TopPanel({
                 label={intl.formatMessage({ id: 'redo' })}
                 onClick={app.redo}
                 id="TD-TopPanel-Redo"
+                aria-label={intl.formatMessage({ id: 'redo' })}
               >
                 <UndoIcon flipHorizontal />
               </ToolButtonWithTooltip>
