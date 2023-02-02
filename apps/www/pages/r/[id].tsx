@@ -17,7 +17,7 @@ interface RoomProps {
 
 export default function Room({ id }: RoomProps) {
   if (typeof window !== 'undefined' && window.self !== window.top) {
-    return <IFrameWarning url={`https://tldraw.com/r/${id}`} />
+    return <IFrameWarning url={`${window.location.origin}/r/${id}`} />
   }
 
   return (
