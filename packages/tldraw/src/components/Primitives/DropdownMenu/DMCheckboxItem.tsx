@@ -11,6 +11,7 @@ interface DMCheckboxItemProps {
   variant?: RowButtonProps['variant']
   kbd?: string
   id?: string
+  ariaLabel?: string
 }
 
 export function DMCheckboxItem({
@@ -20,6 +21,7 @@ export function DMCheckboxItem({
   onCheckedChange,
   kbd,
   id,
+  ariaLabel,
   children,
 }: DMCheckboxItemProps) {
   return (
@@ -31,6 +33,7 @@ export function DMCheckboxItem({
       disabled={disabled}
       asChild
       id={id}
+      aria-label={ariaLabel}
     >
       <RowButton kbd={kbd} variant={variant} hasIndicator>
         {children}
