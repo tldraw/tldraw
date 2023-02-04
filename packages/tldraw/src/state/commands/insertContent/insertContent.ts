@@ -52,7 +52,7 @@ export function insertContent(
     let nextIndex = TLDR.getTopChildIndex(app.state, currentPageId)
 
     const shapesToInsert: TDShape[] = content.shapes
-      .sort((a, b) => a.childIndex - b.childIndex)
+      ?.sort((a, b) => a.childIndex - b.childIndex)
       .map((shape) => {
         const newShapeId = Utils.uniqueId()
         oldToNewIds[shape.id] = newShapeId
@@ -67,7 +67,7 @@ export function insertContent(
     const visited = new Set<string>()
 
     // Iterate through the list, starting from the front
-    while (shapesToInsert.length > 0) {
+    while (shapesToInsert?.length > 0) {
       const shape = shapesToInsert.shift()
 
       if (!shape) break
