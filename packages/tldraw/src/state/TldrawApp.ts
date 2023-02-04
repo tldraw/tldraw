@@ -3737,7 +3737,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TDStatus.Idle) return
-    const delta = info.delta[2] / 50
+    const delta = (info.delta[2] * this.settings.zoomSensitivity) / 50
     this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
@@ -4185,6 +4185,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
       isPenMode: false,
       isDarkMode: false,
       isZoomSnap: false,
+      zoomSensitivity: 0.618,
       isFocusMode: false,
       isSnapping: false,
       isDebugMode: false,

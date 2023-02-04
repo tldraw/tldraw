@@ -42,7 +42,7 @@ export function useZoomEvents<T extends HTMLElement>(
       // alt+scroll or ctrl+scroll = zoom (when not clicking)
       if ((e.altKey || e.ctrlKey || e.metaKey) && e.buttons === 0) {
         const point = inputs.pointer?.point ?? [bounds.width / 2, bounds.height / 2]
-        const delta = [...point, z * 0.618]
+        const delta = [...point, z]
         const info = inputs.pan(delta, e)
 
         callbacks.onZoom?.({ ...info, delta }, e)

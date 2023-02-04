@@ -71,6 +71,7 @@ TldrawTestApp {
       "showCloneHandles": false,
       "showGrid": false,
       "showRotateHandles": true,
+      "zoomSensitivity": 0.618,
     },
   },
   "_state": Object {
@@ -223,6 +224,7 @@ TldrawTestApp {
       "showCloneHandles": false,
       "showGrid": false,
       "showRotateHandles": true,
+      "zoomSensitivity": 0.618,
     },
   },
   "_status": "ready",
@@ -396,6 +398,7 @@ TldrawTestApp {
       "showCloneHandles": false,
       "showGrid": false,
       "showRotateHandles": true,
+      "zoomSensitivity": 0.618,
     },
   },
   "insertContent": [Function],

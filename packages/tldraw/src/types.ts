@@ -86,6 +86,7 @@ export interface TDSnapshot {
     isPenMode: boolean
     isReadonlyMode: boolean
     isZoomSnap: boolean
+    zoomSensitivity: number
     keepStyleMenuOpen: boolean
     nudgeDistanceSmall: number
     nudgeDistanceLarge: number
