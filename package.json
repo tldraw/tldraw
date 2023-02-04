@@ -42,6 +42,7 @@
     "pre-push": "yarn test"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.20.0",
     "@ggallon/prettier-plugin-sort-imports": "^3.4.2-canary.0",
     "@swc-node/jest": "^1.4.3",
     "@tldraw/lfg": "latest",
@@ -56,6 +57,7 @@
     "husky": "^7.0.4",
     "init-package-json": "^2.0.5",
     "jest": "^27.4.7",
+    "jest-each": "^29.4.1",
     "lint-staged": "^12.3.3",
     "prettier": "^2.7.1",
     "resize-observer-polyfill": "^1.5.1",
@@ -63,8 +65,7 @@
     "tslib": "^2.4.0",
     "turbo": "^1.3.4",
     "typescript": "^4.7.3",
-    "webpack": "^5.68.0",
-    "@changesets/cli": "^2.20.0"
+    "webpack": "^5.68.0"
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
