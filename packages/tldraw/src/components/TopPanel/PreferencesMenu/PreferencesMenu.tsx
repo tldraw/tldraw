@@ -1,7 +1,9 @@
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
-import { DMCheckboxItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { DMCheckboxItem, DMItem, DMSubMenu } from '~components/Primitives/DropdownMenu'
+import { TextField } from '~components/Primitives/TextField'
+import { preventEvent } from '~components/preventEvent'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import { TDDockPosition, TDExportBackground, TDSnapshot } from '~types'
@@ -15,6 +17,19 @@ export function PreferencesMenu() {
   const intl = useIntl()
 
   const settings = app.useStore(settingsSelector)
+
+  const rInput = React.useRef<HTMLInputElement>(null)
+  const [zoomSensitivity, setZoomSensitivity] = React.useState(app.settings.zoomSensitivity)
+
+  const handleZoomSensitivityChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault()
+      const value = Number(e.target.value)
+      setZoomSensitivity(value)
+      app.setSetting('zoomSensitivity', value)
+    },
+    [app]
+  )
 
   const toggleDebugMode = React.useCallback(() => {
     app.setSetting('isDebugMode', (v) => !v)
@@ -53,6 +68,10 @@ export function PreferencesMenu() {
     },
     [app]
   )
+
+  function stopPropagation(e: React.KeyboardEvent<HTMLDivElement>) {
+    e.stopPropagation()
+  }
 
   return (
     <DMSubMenu label={intl.formatMessage({ id: 'menu.preferences' })} id="TD-MenuItem-Preferences">
@@ -130,6 +149,19 @@ export function PreferencesMenu() {
           </DMCheckboxItem>
         ))}
       </DMSubMenu>
+      <DMItem onSelect={preventEvent} id="TD-MenuItem-Preferences-Zoom_Sensitivity">
+        <StyledText style={{ width: '100%' }}>Zoom Sensitivity</StyledText>
+        <TextField
+          type="number"
+          min={0.1}
+          max={1}
+          step={0.05}
+          onFocus={(e) => stopPropagation}
+          ref={rInput}
+          value={zoomSensitivity}
+          onChange={handleZoomSensitivityChange}
+        />
+      </DMItem>
     </DMSubMenu>
   )
 }
