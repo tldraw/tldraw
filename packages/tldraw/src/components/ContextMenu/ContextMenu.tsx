@@ -13,6 +13,7 @@ import {
 } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { toast } from 'react-toastify'
 import { Divider } from '~components/Primitives/Divider'
 import { MenuContent } from '~components/Primitives/MenuContent'
 import { RowButton, RowButtonProps } from '~components/Primitives/RowButton'
@@ -124,7 +125,11 @@ const InnerMenu = React.memo(function InnerMenu() {
   }, [app])
 
   const handleCopySVG = React.useCallback(() => {
-    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+    app
+      .copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+      .then(() => {
+        toast.success(intl.formatMessage({ id: 'copy.as.done' }, { extension: 'SVG' }))
+      })
   }, [app])
 
   const handleCopyPNG = React.useCallback(() => {

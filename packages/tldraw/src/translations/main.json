@@ -39,6 +39,7 @@
   "copy": "Copy",
   "paste": "Paste",
   "copy.as": "Copy As",
+  "copy.as.done": "Copied As {extension}",
   "export.as": "Export As",
   "select.all": "Select All",
   "select.none": "Select None",

@@ -3,6 +3,7 @@ import { HamburgerMenuIcon } from '@radix-ui/react-icons'
 import { supported } from 'browser-fs-access'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
+import { toast } from 'react-toastify'
 import { FilenameDialog } from '~components/Primitives/AlertDialog'
 import { Divider } from '~components/Primitives/Divider'
 import { DMContent, DMItem, DMSubMenu, DMTriggerIcon } from '~components/Primitives/DropdownMenu'
@@ -52,7 +53,11 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
   }, [app])
 
   const handleCopySVG = React.useCallback(() => {
-    app.copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+    app
+      .copyImage(TDExportType.SVG, { scale: 1, quality: 1, transparentBackground: false })
+      .then(() => {
+        toast.success(intl.formatMessage({ id: 'copy.as.done' }, { extension: 'SVG' }))
+      })
   }, [app])
 
   const handleCopyPNG = React.useCallback(() => {
