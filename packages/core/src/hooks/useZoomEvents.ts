@@ -32,7 +32,9 @@ export function useZoomEvents<T extends HTMLElement>(
   const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
     ({ event: e }) => {
       e.preventDefault()
-      if (inputs.isPinching) return
+      if (inputs.isPinching) {
+        return
+      }
 
       const [x, y, z] = normalizeWheel(e)
 

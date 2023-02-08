@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Highlight shape Creates a shape: highlight 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "highlight",
+  "isComplete": false,
+  "name": "Highlight",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "points": Array [],
+  "rotation": 0,
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "isFilled": false,
+    "opacity": "medium",
+    "scale": 1,
+    "size": "small",
+  },
+  "type": "highlight",
+}
+`;

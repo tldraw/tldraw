@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Table shape Creates a shape: table 1`] = `
+Object {
+  "childIndex": 1,
+  "id": "table",
+  "name": "Table",
+  "parentId": "page",
+  "point": Array [
+    0,
+    0,
+  ],
+  "rotation": 0,
+  "style": Object {
+    "color": "black",
+    "dash": "draw",
+    "font": "script",
+    "isFilled": false,
+    "opacity": "medium",
+    "scale": 1,
+    "size": "small",
+    "textAlign": "middle",
+  },
+  "text": " ",
+  "type": "table",
+}
+`;

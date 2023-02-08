@@ -7,6 +7,7 @@ export function useCanvasEvents() {
   return React.useMemo(() => {
     return {
       onPointerDown: (e: React.PointerEvent) => {
+        //console.log('포인터가 다운되었대.');
         if ((e as any).dead) return
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
@@ -30,6 +31,7 @@ export function useCanvasEvents() {
         callbacks.onPointerDown?.(info, e)
       },
       onPointerMove: (e: React.PointerEvent) => {
+        //console.log('포인터가 움직인데...');
         if ((e as any).dead) return
         else (e as any).dead = true
 

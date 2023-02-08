@@ -3732,7 +3732,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     if (Vec.isEqual(next, prev)) return
 
-    this.pan(delta)
+    //this.pan(delta)
 
     // When panning, we also want to call onPointerMove, except when "force panning" via spacebar / middle wheel button (it's called elsewhere in that case)
     if (!this.isForcePanning) this.onPointerMove(info, e as unknown as React.PointerEvent)
@@ -3744,7 +3744,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   onZoom: TLWheelEventHandler = (info, e) => {
     if (this.state.appState.status !== TDStatus.Idle) return
     const delta = info.delta[2] / 50
-    this.zoomBy(delta, info.point)
+    //this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 

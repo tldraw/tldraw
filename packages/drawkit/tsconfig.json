@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "exclude": ["node_modules", "dist"],
+  "include": ["src", "./src/translations/*.json"],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "~*": ["./src/*"]
+    }
+  },
+  "references": [{ "path": "../vec" }, { "path": "../intersect" }, { "path": "../core" }]
+}

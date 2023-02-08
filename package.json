@@ -29,6 +29,7 @@
     "start:extension": "turbo run dev --filter=@tldraw/new-tab-extension... --parallel",
     "package:vscode": "turbo run package --filter=tldraw-vscode",
     "publish:vscode": "turbo run publish --filter=tldraw-vscode",
+    "publish:drawkit": "turbo run publish --filter=drawkit",
     "serve:www": "turbo run start --filter=@tldraw/www",
     "version": "changeset version",
     "changeset": "changeset",
