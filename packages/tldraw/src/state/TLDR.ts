@@ -1139,10 +1139,6 @@ export class TLDR {
 
     const svgString = TLDR.getSvgString(svg, scale)
 
-    const width = +svg.getAttribute('width')!
-    const height = +svg.getAttribute('height')!
-    const svgSrc = svg.lastElementChild!.getAttribute('xlink:href')!
-
     if (!svgString) return
 
     const canvas = await new Promise<HTMLCanvasElement>((resolve) => {
@@ -1158,10 +1154,12 @@ export class TLDR {
         const canvas = document.createElement('canvas') as HTMLCanvasElement
         const context = canvas.getContext('2d')!
 
-        canvas.width = width
-        canvas.height = height
+        const imageWidth = image.width
+        const imageHeight = image.height
 
-        context.drawImage(image, 0, 0, width, height)
+        canvas.width = imageWidth
+        canvas.height = imageHeight
+        context.drawImage(image, 0, 0, imageWidth, imageHeight)
 
         URL.revokeObjectURL(dataUrl)
 
@@ -1172,7 +1170,7 @@ export class TLDR {
         console.warn('Could not convert that SVG to an image.')
       }
 
-      image.src = svgSrc.includes('data:') ? dataUrl : svgSrc
+      image.src = dataUrl
     })
 
     const blob = await new Promise<Blob>((resolve) =>
