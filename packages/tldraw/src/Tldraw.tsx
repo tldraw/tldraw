@@ -26,6 +26,7 @@ import { TDCallbacks, TldrawApp } from '~state'
 import { TLDR } from '~state/TLDR'
 import { shapeUtils } from '~state/shapes'
 import { dark, styled } from '~styles'
+import { globalStyles } from '~styles/globalStyle'
 import { TDDocument, TDStatus } from '~types'
 
 const ErrorBoundary = _Errorboundary as any
@@ -491,6 +492,8 @@ const InnerTldraw = React.memo(function InnerTldraw({
   }, [settings.isDarkMode])
 
   useCursor(rWrapper)
+
+  globalStyles()
 
   return (
     <ContainerContext.Provider value={rWrapper}>
