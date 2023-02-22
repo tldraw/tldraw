@@ -31,6 +31,7 @@ const StyledTopPanel = styled('div', {
   display: 'flex',
   padding: '0 10px 0 28px',
   flexDirection: 'row',
+  justifyContent: 'space-between',
   pointerEvents: 'none',
   background: '$panelContrast',
   borderBottom: '1px solid #ebebeb',
@@ -52,12 +53,14 @@ const StyledLogo = styled('div', {
 })
 
 export const StyledPage = styled('div', {
-  backgroundColor: '$panelContrast',
-  display: 'flex',
+  width: '180px',
+  maxHeight: '145px',
+  position: 'fixed',
+  top: '55px',
+  left: '5px',
   padding: '$2',
-  flexDirection: 'row',
-  justifyContent: 'center',
-  flexGrow: 2,
+  borderRadius: '9px',
+  backgroundColor: '$panelContrast',
 })
 
 export const StyledMenu = styled('div', {
