@@ -119,6 +119,10 @@ export interface TldrawProps extends TDCallbacks {
    * (optional) To hide cursors
    */
   hideCursors?: boolean
+
+  /* (optional) props  */
+  disableZoom?: boolean
+  backgroundOpacityValue?: number
 }
 
 const isSystemDarkMode = window.matchMedia
@@ -141,6 +145,8 @@ export function Tldraw({
   disableAssets = false,
   darkMode = isSystemDarkMode,
   components,
+  disableZoom = false,
+  backgroundOpacityValue = 1,
   onMount,
   onChange,
   onChangePresence,
@@ -254,6 +260,12 @@ export function Tldraw({
     app.setDisableAssets(disableAssets)
   }, [app, disableAssets])
 
+  //Custom Props disableZoom backgroundOpacityValue
+
+  React.useEffect(() => {
+    app.disableZoom = disableZoom
+  }, [app, disableZoom])
+
   // Change the page when the `currentPageId` prop changes.
   React.useEffect(() => {
     if (!currentPageId) return
@@ -357,6 +369,7 @@ export function Tldraw({
           readOnly={readOnly}
           components={components}
           hideCursors={hideCursors}
+          backgroundOpacityValue={backgroundOpacityValue}
         />
       </AlertDialogContext.Provider>
     </TldrawContext.Provider>
@@ -378,6 +391,7 @@ interface InnerTldrawProps {
     Cursor?: CursorComponent
   }
   hideCursors?: boolean
+  backgroundOpacityValue?: number
 }
 
 const InnerTldraw = React.memo(function InnerTldraw({
@@ -393,6 +407,7 @@ const InnerTldraw = React.memo(function InnerTldraw({
   showUI,
   components,
   hideCursors,
+  backgroundOpacityValue,
 }: InnerTldrawProps) {
   const app = useTldrawApp()
   const [dialogContainer, setDialogContainer] = React.useState<any>(null)
@@ -447,6 +462,10 @@ const InnerTldraw = React.memo(function InnerTldraw({
         selectFill: 'rgba(38, 150, 255, 0.05)',
         background: '#212529',
         foreground: '#49555f',
+      }
+    } else {
+      return {
+        background: `rgba(255,255,255, ${backgroundOpacityValue})`,
       }
     }
 

@@ -122,6 +122,10 @@ export const StyledRowButton = styled('button', {
     backgroundColor: '$hover',
   },
 
+  ':hover': {
+    backgroundColor: '$hover',
+  },
+
   '& a': {
     textDecoration: 'none',
     color: '$text',

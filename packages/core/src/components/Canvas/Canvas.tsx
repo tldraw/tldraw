@@ -57,6 +57,7 @@ export interface CanvasProps<T extends TLShape, M extends Record<string, unknown
   id?: string
   onBoundsChange: (bounds: TLBounds) => void
   hideCursors?: boolean
+  backgroundOpacityValue?: number
 }
 
 function _Canvas<T extends TLShape, M extends Record<string, unknown>>({
