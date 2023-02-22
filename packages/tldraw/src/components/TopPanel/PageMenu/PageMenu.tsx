@@ -1,13 +1,10 @@
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { CheckIcon } from '@radix-ui/react-icons'
 import * as React from 'react'
 import { FormattedMessage, useIntl } from 'react-intl'
 import { Divider } from '~components/Primitives/Divider'
-import { DMContent } from '~components/Primitives/DropdownMenu'
 import { RowButton } from '~components/Primitives/RowButton'
 import { SmallIcon } from '~components/Primitives/SmallIcon'
-import { ToolButton } from '~components/Primitives/ToolButton'
-import { DropdownArrowIcon, PlusIcon } from '~components/Primitives/icons/icoCommon'
+import { PlusIcon } from '~components/Primitives/icons/icoCommon'
 import { useTldrawApp } from '~hooks'
 import { styled } from '~styles'
 import type { TDSnapshot } from '~types'
@@ -16,55 +13,13 @@ import { PageOptionsDialog } from '../PageOptionsDialog'
 const sortedSelector = (s: TDSnapshot) =>
   Object.values(s.document.pages).sort((a, b) => (a.childIndex || 0) - (b.childIndex || 0))
 
-const currentPageNameSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId].name
-
 const currentPageIdSelector = (s: TDSnapshot) => s.document.pages[s.appState.currentPageId].id
 
 export function PageMenu() {
-  const app = useTldrawApp()
-
-  const intl = useIntl()
-
-  const rIsOpen = React.useRef(false)
-
-  const [isOpen, setIsOpen] = React.useState(false)
-
-  React.useEffect(() => {
-    if (rIsOpen.current !== isOpen) {
-      rIsOpen.current = isOpen
-    }
-  }, [isOpen])
-
-  const handleClose = React.useCallback(() => {
-    setIsOpen(false)
-  }, [setIsOpen])
-
-  const handleOpenChange = React.useCallback(
-    (isOpen: boolean) => {
-      if (rIsOpen.current !== isOpen) {
-        setIsOpen(isOpen)
-      }
-    },
-    [setIsOpen]
-  )
-  const currentPageName = app.useStore(currentPageNameSelector)
-
-  return (
-    <DropdownMenu.Root dir="ltr" open={isOpen} onOpenChange={handleOpenChange}>
-      <DropdownMenu.Trigger dir="ltr" asChild id="TD-Page">
-        <ToolButton variant="text">
-          {currentPageName || intl.formatMessage({ id: 'page' })}
-          <DropdownArrowIcon />
-        </ToolButton>
-      </DropdownMenu.Trigger>
-      <DMContent variant="menu" align="center" sideOffset={4}>
-        {isOpen && <PageMenuContent onClose={handleClose} />}
-      </DMContent>
-    </DropdownMenu.Root>
-  )
+  return <PageMenuContent />
 }
 
-function PageMenuContent({ onClose }: { onClose: () => void }) {
+function PageMenuContent() {
   const app = useTldrawApp()
   const intl = useIntl()
 
@@ -81,7 +36,6 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   const handleChangePage = React.useCallback(
     (id: string) => {
-      onClose()
       app.changePage(id)
     },
     [app]
@@ -124,52 +78,63 @@ function PageMenuContent({ onClose }: { onClose: () => void }) {
 
   return (
     <>
-      <DropdownMenu.RadioGroup dir="ltr" value={currentPageId} onValueChange={handleChangePage}>
+      <StyledPageMenuScroll>
         {sortedPages.map((page, i) => (
           <ButtonWithOptions
             key={page.id}
             isDropAbove={i === dropIndex && i === 0}
             isDropBelow={dropIndex !== null && i === dropIndex - 1}
           >
-            <DropdownMenu.RadioItem
-              title={page.name || defaultPageName}
-              value={page.id}
+            <div
               key={page.id}
               id={page.id}
-              asChild
               onDragOver={handleDrag}
               onDragStart={handleDragStart}
               // onDrag={handleDrag}
               onDrop={handleDrop}
               draggable={true}
             >
-              <PageButton>
+              <PageButton onClick={() => handleChangePage(page.id)}>
                 <span id={page.id}>{page.name || defaultPageName}</span>
-                <DropdownMenu.ItemIndicator>
+                {page.id === currentPageId ? (
                   <SmallIcon>
                     <CheckIcon />
                   </SmallIcon>
-                </DropdownMenu.ItemIndicator>
+                ) : null}
               </PageButton>
-            </DropdownMenu.RadioItem>
-            <PageOptionsDialog page={page} onClose={onClose} />
+            </div>
+            <PageOptionsDialog page={page} />
           </ButtonWithOptions>
         ))}
-      </DropdownMenu.RadioGroup>
+      </StyledPageMenuScroll>
       <Divider />
-      <DropdownMenu.Item onSelect={handleCreatePage} asChild>
-        <RowButton>
-          <span>
-            <FormattedMessage id="create.page" />
-          </span>
-          <SmallIcon>
-            <PlusIcon />
-          </SmallIcon>
-        </RowButton>
-      </DropdownMenu.Item>
+      <RowButton onClick={handleCreatePage}>
+        <span>
+          <FormattedMessage id="create.page" />
+        </span>
+        <SmallIcon>
+          <PlusIcon />
+        </SmallIcon>
+      </RowButton>
     </>
   )
 }
+
+const StyledPageMenuScroll = styled('div', {
+  maxHeight: '96px',
+  overflowY: 'auto',
+  '&::-webkit-scrollbar': {
+    width: '5px',
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: '#ebebeb',
+    borderRadius: '10px',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    borderRadius: '10px',
+    background: '#6d6d6d',
+  },
+})
 
 const ButtonWithOptions = styled('div', {
   position: 'relative',

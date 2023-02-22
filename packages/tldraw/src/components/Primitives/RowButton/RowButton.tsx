@@ -118,7 +118,7 @@ export const StyledRowButton = styled('button', {
     opacity: 0.3,
   },
 
-  [`&:focus:not(:disabled) ${StyledRowButtonInner}`]: {
+  ':hover': {
     backgroundColor: '$hover',
   },
 
