@@ -220,6 +220,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
   session?: TldrawSession
 
+  /* (optional) props  */
+  disableZoom = false
+  backgroundOpacityValue = 1
+
   readOnly = false
 
   isDirty = false
@@ -2529,6 +2533,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom out by 25%
    */
   zoomIn = (): this => {
+    if (this.disableZoom) return this
     const i = Math.round((this.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i + 1) * 0.25)
     return this.zoomTo(nextZoom)
@@ -2538,6 +2543,7 @@ export class TldrawApp extends StateManager<TDSnapshot> {
    * Zoom in by 25%.
    */
   zoomOut = (): this => {
+    if (this.disableZoom) return this
     const i = Math.round((this.camera.zoom * 100) / 25)
     const nextZoom = TLDR.getCameraZoom((i - 1) * 0.25)
     return this.zoomTo(nextZoom)
@@ -3742,9 +3748,10 @@ export class TldrawApp extends StateManager<TDSnapshot> {
   }
 
   onZoom: TLWheelEventHandler = (info, e) => {
+    if (this.disableZoom) return
     if (this.state.appState.status !== TDStatus.Idle) return
     const delta = info.delta[2] / 50
-    //this.zoomBy(delta, info.point)
+    this.zoomBy(delta, info.point)
     this.onPointerMove(info, e as unknown as React.PointerEvent)
   }
 

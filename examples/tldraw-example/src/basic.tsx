@@ -4,7 +4,7 @@ import * as React from 'react'
 export default function Basic() {
   return (
     <div className="tldraw">
-      <Tldraw />
+      <Tldraw /* disableZoom backgroundOpacityValue={0.5} */ />
     </div>
   )
 }
