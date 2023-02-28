@@ -1,5 +1,51 @@
 # @tldraw/www
 
+## 1.8.0
+
+### Minor Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.22.0
+  - @tldraw/tldraw@1.28.0
+
+## 1.7.27
+
+### Patch Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- 12c0b2ac: - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- Updated dependencies
+- Updated dependencies [12c0b2ac]
+  - @tldraw/core@1.21.1
+  - @tldraw/tldraw@1.27.1
+
 ## 1.7.26
 
 ### Patch Changes

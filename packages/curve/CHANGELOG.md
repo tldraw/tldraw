@@ -1,5 +1,41 @@
 # Changelog
 
+## 1.8.0
+
+### Minor Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
+## 1.7.1
+
+### Patch Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- 12c0b2ac: - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
 ## 1.7.0
 
 ### Minor Changes

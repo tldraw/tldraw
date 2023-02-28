@@ -1,5 +1,51 @@
 # Changelog
 
+## 1.22.0
+
+### Minor Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/intersect@1.9.0
+  - @tldraw/vec@1.9.0
+
+## 1.21.1
+
+### Patch Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- 12c0b2ac: - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- Updated dependencies
+- Updated dependencies [12c0b2ac]
+  - @tldraw/intersect@1.8.1
+  - @tldraw/vec@1.8.1
+
 ## 1.21.0
 
 ### Minor Changes
