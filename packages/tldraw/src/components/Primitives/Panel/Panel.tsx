@@ -3,6 +3,7 @@ import { styled } from '~styles/stitches.config'
 export const Panel = styled('div', {
   backgroundColor: '$panel',
   display: 'flex',
+  alignItems: 'center',
   flexDirection: 'row',
   boxShadow: '$panel',
   padding: '$2',
