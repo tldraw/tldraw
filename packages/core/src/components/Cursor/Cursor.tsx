@@ -1,11 +1,7 @@
 import * as React from 'react'
+import type { TLUser } from '~types'
 
-interface CursorProps {
-  id: string
-  color: string
-}
-
-export type CursorComponent = (props: CursorProps) => any
+export type CursorComponent<T = any> = (props: Pick<TLUser<T>, 'id' | 'color' | 'metadata'>) => any
 
 export const Cursor: CursorComponent = React.memo(({ color }) => {
   return (

@@ -189,7 +189,7 @@ export function ActionButton() {
   return (
     <DropdownMenu.Root dir="ltr" onOpenChange={handleMenuOpenChange}>
       <DropdownMenu.Trigger dir="ltr" asChild id="TD-Tools-Dots">
-        <ToolButton variant="circle">
+        <ToolButton aria-label={intl.formatMessage({ id: 'shape.options' })} variant="circle">
           <DotsHorizontalIcon />
         </ToolButton>
       </DropdownMenu.Trigger>
@@ -197,12 +197,20 @@ export function ActionButton() {
         <>
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'duplicate' })} kbd={`#D`} id="TD-Tools-Copy">
-              <ToolButton disabled={!hasSelection} onClick={handleDuplicate}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'duplicate' })}
+                disabled={!hasSelection}
+                onClick={handleDuplicate}
+              >
                 <CopyIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'rotate' })} id="TD-Tools-Rotate">
-              <ToolButton disabled={!hasSelection} onClick={handleRotate}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'rotate' })}
+                disabled={!hasSelection}
+                onClick={handleRotate}
+              >
                 <RotateCounterClockwiseIcon />
               </ToolButton>
             </Tooltip>
@@ -211,7 +219,11 @@ export function ActionButton() {
               kbd={`#L`}
               id="TD-Tools-Lock"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleToggleLocked}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: isAllLocked ? 'unlock' : 'lock' })}
+                disabled={!hasSelection}
+                onClick={handleToggleLocked}
+              >
                 {isAllLocked ? <LockClosedIcon /> : <LockOpen1Icon />}
               </ToolButton>
             </Tooltip>
@@ -221,12 +233,19 @@ export function ActionButton() {
               })}
               id="TD-Tools-AspectRatio"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleToggleAspectRatio}>
+              <ToolButton
+                aria-label={intl.formatMessage({
+                  id: isAllAspectLocked ? 'unlock.aspect.ratio' : 'lock.aspect.ratio',
+                })}
+                disabled={!hasSelection}
+                onClick={handleToggleAspectRatio}
+              >
                 {isAllAspectLocked ? <AspectRatioIcon /> : <BoxIcon />}
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'group' })} kbd={`#G`} id="TD-Tools-Group">
               <ToolButton
+                aria-label={intl.formatMessage({ id: 'group' })}
                 disabled={!hasSelection || (!isAllGrouped && !hasMultipleSelection)}
                 onClick={handleGroup}
               >
@@ -240,7 +259,11 @@ export function ActionButton() {
               kbd={`#⇧[`}
               id="TD-Tools-PinBottom"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleMoveToBack}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'move.to.back' })}
+                disabled={!hasSelection}
+                onClick={handleMoveToBack}
+              >
                 <PinBottomIcon />
               </ToolButton>
             </Tooltip>
@@ -249,7 +272,11 @@ export function ActionButton() {
               kbd={`#[`}
               id="TD-Tools-ArrowDown"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleMoveBackward}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'move.backward' })}
+                disabled={!hasSelection}
+                onClick={handleMoveBackward}
+              >
                 <ArrowDownIcon />
               </ToolButton>
             </Tooltip>
@@ -258,7 +285,11 @@ export function ActionButton() {
               kbd={`#]`}
               id="TD-Tools-ArrowUp"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleMoveForward}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'move.forward' })}
+                disabled={!hasSelection}
+                onClick={handleMoveForward}
+              >
                 <ArrowUpIcon />
               </ToolButton>
             </Tooltip>
@@ -267,12 +298,20 @@ export function ActionButton() {
               kbd={`#⇧]`}
               id="TD-Tools-PinTop"
             >
-              <ToolButton disabled={!hasSelection} onClick={handleMoveToFront}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'move.to.front' })}
+                disabled={!hasSelection}
+                onClick={handleMoveToFront}
+              >
                 <PinTopIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'reset.angle' })} id="TD-Tools-ResetAngle">
-              <ToolButton disabled={!hasSelection} onClick={handleResetAngle}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'reset.angle' })}
+                disabled={!hasSelection}
+                onClick={handleResetAngle}
+              >
                 <AngleIcon />
               </ToolButton>
             </Tooltip>
@@ -280,7 +319,11 @@ export function ActionButton() {
           <Divider />
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'align.left' })} id="TD-Tools-AlignLeft">
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignLeft}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.left' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignLeft}
+              >
                 <AlignLeftIcon />
               </ToolButton>
             </Tooltip>
@@ -288,12 +331,20 @@ export function ActionButton() {
               label={intl.formatMessage({ id: 'align.center.x' })}
               id="TD-Tools-AlignCenterHorizontal"
             >
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterHorizontal}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.center.x' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignCenterHorizontal}
+              >
                 <AlignCenterHorizontallyIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'align.right' })} id="TD-Tools-AlignRight">
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignRight}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.right' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignRight}
+              >
                 <AlignRightIcon />
               </ToolButton>
             </Tooltip>
@@ -301,7 +352,11 @@ export function ActionButton() {
               label={intl.formatMessage({ id: 'stretch.x' })}
               id="TD-Tools-StretchHorizontal"
             >
-              <ToolButton disabled={!hasTwoOrMore} onClick={stretchHorizontally}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'stretch.x' })}
+                disabled={!hasTwoOrMore}
+                onClick={stretchHorizontally}
+              >
                 <StretchHorizontallyIcon />
               </ToolButton>
             </Tooltip>
@@ -309,14 +364,22 @@ export function ActionButton() {
               label={intl.formatMessage({ id: 'distribute.x' })}
               id="TD-Tools-SpaceEvenlyHorizontal"
             >
-              <ToolButton disabled={!hasThreeOrMore} onClick={distributeHorizontally}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'distribute.x' })}
+                disabled={!hasThreeOrMore}
+                onClick={distributeHorizontally}
+              >
                 <SpaceEvenlyHorizontallyIcon />
               </ToolButton>
             </Tooltip>
           </ButtonsRow>
           <ButtonsRow>
             <Tooltip label={intl.formatMessage({ id: 'align.top' })} id="TD-Tools-AlignTop">
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignTop}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.top' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignTop}
+              >
                 <AlignTopIcon />
               </ToolButton>
             </Tooltip>
@@ -324,17 +387,29 @@ export function ActionButton() {
               label={intl.formatMessage({ id: 'align.center.y' })}
               id="TD-Tools-AlignCenterVertical"
             >
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignCenterVertical}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.center.y' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignCenterVertical}
+              >
                 <AlignCenterVerticallyIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'align.bottom' })} id="TD-Tools-AlignBottom">
-              <ToolButton disabled={!hasTwoOrMore} onClick={alignBottom}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'align.bottom' })}
+                disabled={!hasTwoOrMore}
+                onClick={alignBottom}
+              >
                 <AlignBottomIcon />
               </ToolButton>
             </Tooltip>
             <Tooltip label={intl.formatMessage({ id: 'stretch.y' })} id="TD-Tools-StretchVertical">
-              <ToolButton disabled={!hasTwoOrMore} onClick={stretchVertically}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'stretch.y' })}
+                disabled={!hasTwoOrMore}
+                onClick={stretchVertically}
+              >
                 <StretchVerticallyIcon />
               </ToolButton>
             </Tooltip>
@@ -342,7 +417,11 @@ export function ActionButton() {
               label={intl.formatMessage({ id: 'distribute.y' })}
               id="TD-Tools-SpaceEvenlyVertical"
             >
-              <ToolButton disabled={!hasThreeOrMore} onClick={distributeVertically}>
+              <ToolButton
+                aria-label={intl.formatMessage({ id: 'distribute.y' })}
+                disabled={!hasThreeOrMore}
+                onClick={distributeVertically}
+              >
                 <SpaceEvenlyVerticallyIcon />
               </ToolButton>
             </Tooltip>

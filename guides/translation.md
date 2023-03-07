@@ -34,10 +34,10 @@ import eo from './eo.json'
 
 export const TRANSLATIONS: TDTranslations = [
   // Default language:
-  { code: 'en', label: 'English', messages: en },
+  { locale: 'en', label: 'English', messages: en },
   // Translations:
-  { code: 'ar', label: 'عربي', messages: ar },
-  { code: 'eo', label: 'Esperanto', messages: eo }, // <-- add an entry here
+  { locale: 'ar', label: 'عربي', messages: ar },
+  { locale: 'eo', label: 'Esperanto', messages: eo }, // <-- add an entry here
 ]
 ```
 

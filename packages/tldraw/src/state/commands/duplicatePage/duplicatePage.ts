@@ -12,21 +12,67 @@ export function duplicatePage(app: TldrawApp, pageId: string): TldrawCommand {
 
   const newId = Utils.uniqueId()
 
+  // Map shapes and bindings onto new IDs
+  const oldToNewIds: Record<string, string> = Object.fromEntries([
+    [page.id, newId],
+    ...Object.keys(page.shapes).map((id) => [id, Utils.uniqueId()]),
+    ...Object.keys(page.bindings).map((id) => [id, Utils.uniqueId()]),
+  ])
+
+  const shapes = Object.fromEntries(
+    Object.entries(page.shapes).map(([id, shape]) => [
+      oldToNewIds[id],
+      {
+        ...Utils.deepClone(shape),
+        id: oldToNewIds[id],
+        parentId: oldToNewIds[shape.parentId],
+      },
+    ])
+  )
+
+  const bindings = Object.fromEntries(
+    Object.entries(page.bindings).map(([id, binding]) => [
+      oldToNewIds[id],
+      {
+        ...Utils.deepClone(binding),
+        id: oldToNewIds[binding.id],
+        fromId: oldToNewIds[binding.fromId],
+        toId: oldToNewIds[binding.toId],
+      },
+    ])
+  )
+
+  // Update the shape's to and from references to the new bindingid
+  Object.values(page.bindings).forEach((binding) => {
+    const fromId = oldToNewIds[binding.fromId]
+    const fromHandles = shapes[fromId]!.handles
+
+    if (fromHandles) {
+      Object.values(fromHandles).forEach((handle) => {
+        if (handle!.bindingId === binding.id) {
+          handle!.bindingId = oldToNewIds[binding.id]
+        }
+      })
+    }
+
+    const toId = oldToNewIds[binding.toId]
+    const toHandles = shapes[toId]!.handles
+
+    if (toHandles) {
+      Object.values(toHandles).forEach((handle) => {
+        if (handle!.bindingId === binding.id) {
+          handle!.bindingId = oldToNewIds[binding.id]
+        }
+      })
+    }
+  })
+
   const nextPage = {
     ...page,
-    id: newId,
+    id: oldToNewIds[page.id],
     name: page.name + ' Copy',
-    shapes: Object.fromEntries(
-      Object.entries(page.shapes).map(([id, shape]) => {
-        return [
-          id,
-          {
-            ...shape,
-            parentId: shape.parentId === page.id ? newId : shape.parentId,
-          },
-        ]
-      })
-    ),
+    shapes,
+    bindings,
   }
 
   return {

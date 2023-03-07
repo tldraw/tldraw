@@ -1,3 +1,4 @@
+import '@fontsource/recursive'
 import Head from 'next/head'
 import type React from 'react'
 import '~styles/globals.css'

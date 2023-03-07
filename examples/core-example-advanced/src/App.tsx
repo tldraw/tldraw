@@ -192,7 +192,7 @@ export default function App({ onMount }: AppProps) {
   const firstShape = firstShapeId ? appState.data.page.shapes[firstShapeId] : null
   const hideResizeHandles = firstShape
     ? appState.data.pageState.selectedIds.length === 1 &&
-      shapeUtils[firstShape.type].hideResizeHandles
+      (shapeUtils[firstShape.type] as any).hideResizeHandles
     : false
 
   return (

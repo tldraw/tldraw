@@ -1,5 +1,112 @@
 # Changelog
 
+## 1.28.0
+
+### Minor Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.22.0
+  - @tldraw/intersect@1.9.0
+  - @tldraw/vec@1.9.0
+
+## 1.27.1
+
+### Patch Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- 12c0b2ac: - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- Updated dependencies
+- Updated dependencies [12c0b2ac]
+  - @tldraw/core@1.21.1
+  - @tldraw/intersect@1.8.1
+  - @tldraw/vec@1.8.1
+
+## 1.27.0
+
+### Minor Changes
+
+- - Adds missing Arabic translations for dialogs. @abedshamia
+  - Updates core-example. @brydenfogelman
+  - Updates Polish translations. @adan2013
+  - Adds missing Aria-Labels. @KDSBrowne
+  - Improves Japanese translation. @yashkumarbarot
+  - Fixes height and width in app.viewport. @hiroshisuga
+  - Improves labels on StlyeMenu @proke03
+  - Adds missing tooltips to undo / redo buttons. @proke03
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.21.0
+
+## 1.26.4
+
+### Patch Changes
+
+- Add external fonts, new translations, duplicate page fix.
+- Updated dependencies
+  - @tldraw/core@1.20.3
+
+## 1.26.3
+
+### Patch Changes
+
+- Fix text placement.
+- Updated dependencies
+  - @tldraw/core@1.20.2
+
+## 1.26.2
+
+### Patch Changes
+
+- Fix types in core.
+- Updated dependencies
+  - @tldraw/core@1.20.1
+
+## 1.26.1
+
+### Patch Changes
+
+- Fixes blurring text inputs in multiplayer.
+
+## 1.26.0
+
+### Minor Changes
+
+- Add metadata property to user.
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.20.0
+
 ## 1.25.0
 
 ### Minor Changes

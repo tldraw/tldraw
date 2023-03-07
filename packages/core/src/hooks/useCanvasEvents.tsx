@@ -11,13 +11,13 @@ export function useCanvasEvents() {
         else (e as any).dead = true
         if (!inputs.pointerIsValid(e)) return
 
+        e.currentTarget.setPointerCapture(e.pointerId)
+
         // On right click
         if (e.button === 2) {
           callbacks.onRightPointCanvas?.(inputs.pointerDown(e, 'canvas'), e)
           return
         }
-
-        e.currentTarget.setPointerCapture(e.pointerId)
 
         const info = inputs.pointerDown(e, 'canvas')
 
@@ -54,14 +54,15 @@ export function useCanvasEvents() {
         inputs.activePointer = undefined
         if (!inputs.pointerIsValid(e)) return
 
-        // On right click up
-        if (e.button === 2) {
-          return
-        }
+        const isDoubleClick = inputs.isDoubleClick()
 
         const info = inputs.pointerUp(e, 'canvas')
 
-        const isDoubleClick = inputs.isDoubleClick()
+        // On right click up
+        if (e.button === 2) {
+          callbacks.onPointerUp?.(info, e)
+          return
+        }
 
         // Release pointer capture, if any
         if (e.currentTarget.hasPointerCapture(e.pointerId)) {

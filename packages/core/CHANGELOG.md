@@ -1,5 +1,88 @@
 # Changelog
 
+## 1.22.0
+
+### Minor Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/intersect@1.9.0
+  - @tldraw/vec@1.9.0
+
+## 1.21.1
+
+### Patch Changes
+
+- - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates German translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- 12c0b2ac: - Adds Galacian language translation
+  - Adds Farsi (Persian) language translation
+  - Updates Norwegian translation
+  - Updates Japanese translation
+  - Updates Spanish translation
+  - Improves aria-labels
+  - Fixes a bug with multiplayer menu
+  - Fixes a bug with image exports
+- Updated dependencies
+- Updated dependencies [12c0b2ac]
+  - @tldraw/intersect@1.8.1
+  - @tldraw/vec@1.8.1
+
+## 1.21.0
+
+### Minor Changes
+
+- - Adds missing Arabic translations for dialogs. @abedshamia
+  - Updates core-example. @brydenfogelman
+  - Updates Polish translations. @adan2013
+  - Adds missing Aria-Labels. @KDSBrowne
+  - Improves Japanese translation. @yashkumarbarot
+  - Fixes height and width in app.viewport. @hiroshisuga
+  - Improves labels on StlyeMenu @proke03
+  - Adds missing tooltips to undo / redo buttons. @proke03
+
+## 1.20.3
+
+### Patch Changes
+
+- Add external fonts, new translations, duplicate page fix.
+
+## 1.20.2
+
+### Patch Changes
+
+- Fix text placement.
+
+## 1.20.1
+
+### Patch Changes
+
+- Fix types in core.
+
+## 1.20.0
+
+### Minor Changes
+
+- Add metadata property to user.
+
 ## 1.19.0
 
 ### Minor Changes

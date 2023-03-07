@@ -35,25 +35,25 @@ export default function App() {
     },
   })
   const onHoverShape: TLPointerEventHandler = (e) => {
-    setPageState({
-      ...pageState,
+    setPageState((prevState) => ({
+      ...prevState,
       hoveredId: e.target,
-    })
+    }))
   }
 
   const onUnhoverShape: TLPointerEventHandler = () => {
-    setPageState({
-      ...pageState,
+    setPageState((prevState) => ({
+      ...prevState,
       hoveredId: null,
-    })
+    }))
   }
 
   const onPointShape: TLPointerEventHandler = (info) => {
-    setPageState({ ...pageState, selectedIds: [info.target] })
+    setPageState((prevState) => ({ ...prevState, selectedIds: [info.target] }))
   }
 
   const onPointCanvas: TLPointerEventHandler = () => {
-    setPageState({ ...pageState, selectedIds: [] })
+    setPageState((prevState) => ({ ...prevState, selectedIds: [] }))
   }
 
   const onDragShape: TLPointerEventHandler = (e) => {
@@ -75,11 +75,11 @@ export default function App() {
 
   const onPointerMove: TLPointerEventHandler = (info) => {
     if (info.shiftKey) {
-      setPageState((prev) => ({
-        ...pageState,
+      setPageState((prevState) => ({
+        ...prevState,
         camera: {
-          ...prev.camera,
-          point: Vec.add(prev.camera.point, info.delta),
+          ...prevState.camera,
+          point: Vec.add(prevState.camera.point, info.delta),
         },
       }))
     }

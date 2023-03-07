@@ -1139,9 +1139,6 @@ export class TLDR {
 
     const svgString = TLDR.getSvgString(svg, scale)
 
-    const width = +svg.getAttribute('width')!
-    const height = +svg.getAttribute('height')!
-
     if (!svgString) return
 
     const canvas = await new Promise<HTMLCanvasElement>((resolve) => {
@@ -1157,10 +1154,12 @@ export class TLDR {
         const canvas = document.createElement('canvas') as HTMLCanvasElement
         const context = canvas.getContext('2d')!
 
-        canvas.width = width
-        canvas.height = height
+        const imageWidth = image.width
+        const imageHeight = image.height
 
-        context.drawImage(image, 0, 0, width, height)
+        canvas.width = imageWidth
+        canvas.height = imageHeight
+        context.drawImage(image, 0, 0, imageWidth, imageHeight)
 
         URL.revokeObjectURL(dataUrl)
 

@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/tldraw",
-  "version": "1.25.0",
+  "version": "1.28.0",
   "description": "A tiny little drawing app (editor)",
   "author": "@steveruizok",
   "repository": {
@@ -36,6 +36,11 @@
     "react-dom": ">=16.8"
   },
   "dependencies": {
+    "@fontsource/caveat-brush": "^4.5.9",
+    "@fontsource/crimson-pro": "^4.5.10",
+    "@fontsource/recursive": "^4.5.11",
+    "@fontsource/source-code-pro": "^4.5.12",
+    "@fontsource/source-sans-pro": "^4.5.11",
     "@radix-ui/react-alert-dialog": "^1.0.0",
     "@radix-ui/react-context-menu": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
@@ -44,9 +49,9 @@
     "@radix-ui/react-popover": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
     "@stitches/react": "^1.2.8",
-    "@tldraw/core": "^1.19.0",
-    "@tldraw/intersect": "^1.8.0",
-    "@tldraw/vec": "^1.8.0",
+    "@tldraw/core": "^1.22.0",
+    "@tldraw/intersect": "^1.9.0",
+    "@tldraw/vec": "^1.9.0",
     "browser-fs-access": "^0.31.0",
     "idb-keyval": "^6.2.0",
     "perfect-freehand": "^1.2.0",
@@ -95,6 +100,7 @@
       "<rootDir>/dist/"
     ],
     "moduleNameMapper": {
+      "@fontsource/*": "<rootDir>/src/test/stylemock.ts",
       "@tldraw/tldraw": "<rootDir>/src",
       "\\~(.*)": "<rootDir>/src/$1"
     }

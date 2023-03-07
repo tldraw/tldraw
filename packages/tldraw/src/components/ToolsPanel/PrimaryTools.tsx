@@ -72,6 +72,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'select' })}
         onClick={selectSelectTool}
         isActive={activeTool === 'select'}
+        variant="primary"
         id="TD-PrimaryTools-CursorArrow"
       >
         <CursorArrowIcon />
@@ -81,6 +82,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'draw' })}
         onClick={selectDrawTool}
         isActive={activeTool === TDShapeType.Draw}
+        variant="primary"
         id="TD-PrimaryTools-Pencil"
       >
         <Pencil1Icon />
@@ -90,6 +92,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'eraser' })}
         onClick={selectEraseTool}
         isActive={activeTool === 'erase'}
+        variant="primary"
         id="TD-PrimaryTools-Eraser"
       >
         <EraserIcon />
@@ -100,6 +103,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'arrow' })}
         onClick={selectArrowTool}
         isLocked={isToolLocked}
+        variant="primary"
         isActive={activeTool === TDShapeType.Arrow}
         id="TD-PrimaryTools-ArrowTopRight"
       >
@@ -110,6 +114,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'text' })}
         onClick={selectTextTool}
         isLocked={isToolLocked}
+        variant="primary"
         isActive={activeTool === TDShapeType.Text}
         id="TD-PrimaryTools-Text"
       >
@@ -120,6 +125,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'sticky' })}
         onClick={selectStickyTool}
         isActive={activeTool === TDShapeType.Sticky}
+        variant="primary"
         id="TD-PrimaryTools-Pencil2"
       >
         <Pencil2Icon />
@@ -128,6 +134,7 @@ export const PrimaryTools = React.memo(function PrimaryTools() {
         label={intl.formatMessage({ id: 'image' })}
         onClick={uploadMedias}
         id="TD-PrimaryTools-Image"
+        variant="primary"
       >
         <ImageIcon />
       </ToolButtonWithTooltip>

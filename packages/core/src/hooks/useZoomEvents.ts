@@ -12,6 +12,7 @@ export function useZoomEvents<T extends HTMLElement>(
   const rOriginPoint = React.useRef<number[] | undefined>(undefined)
   const rPinchPoint = React.useRef<number[] | undefined>(undefined)
   const rDelta = React.useRef<number[]>([0, 0])
+  const rWheelLastTimeStamp = React.useRef<number>(0)
 
   const { inputs, bounds, callbacks } = useTLContext()
 
@@ -32,7 +33,9 @@ export function useZoomEvents<T extends HTMLElement>(
   const handleWheel = React.useCallback<Handler<'wheel', WheelEvent>>(
     ({ event: e }) => {
       e.preventDefault()
-      if (inputs.isPinching) return
+      if (inputs.isPinching || e.timeStamp <= rWheelLastTimeStamp.current) return
+
+      rWheelLastTimeStamp.current = e.timeStamp
 
       const [x, y, z] = normalizeWheel(e)
 
@@ -48,7 +51,7 @@ export function useZoomEvents<T extends HTMLElement>(
 
       // otherwise pan
       const delta = Vec.mul(
-        e.shiftKey && !Utils.isDarwin
+        e.shiftKey && !Utils.isDarwin()
           ? // shift+scroll = pan horizontally
             [y, 0]
           : // scroll = pan vertically (or in any direction on a trackpad)

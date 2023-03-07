@@ -161,6 +161,27 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
                   ...
                 </DMItem>
               )}
+              <DMSubMenu
+                label={`${intl.formatMessage({ id: 'export.as' })}...`}
+                size="small"
+                id="TD-MenuItem-Export"
+              >
+                <DMItem onClick={handleExportSVG} id="TD-MenuItem-Export-SVG">
+                  SVG
+                </DMItem>
+                <DMItem onClick={handleExportPNG} id="TD-MenuItem-Export-PNG">
+                  PNG
+                </DMItem>
+                <DMItem onClick={handleExportJPG} id="TD-MenuItem-Export-JPG">
+                  JPG
+                </DMItem>
+                <DMItem onClick={handleExportWEBP} id="TD-MenuItem-Export-WEBP">
+                  WEBP
+                </DMItem>
+                <DMItem onClick={handleExportJSON} id="TD-MenuItem-Export-JSON">
+                  JSON
+                </DMItem>
+              </DMSubMenu>
               {!disableAssets && (
                 <>
                   <Divider />
@@ -230,27 +251,6 @@ export const Menu = React.memo(function Menu({ readOnly }: MenuProps) {
                 PNG
               </DMItem>
               <DMItem onClick={handleCopyJSON} id="TD-MenuItem-Copy_as_JSON">
-                JSON
-              </DMItem>
-            </DMSubMenu>
-            <DMSubMenu
-              label={`${intl.formatMessage({ id: 'export.as' })}...`}
-              size="small"
-              id="TD-MenuItem-Export"
-            >
-              <DMItem onClick={handleExportSVG} id="TD-MenuItem-Export-SVG">
-                SVG
-              </DMItem>
-              <DMItem onClick={handleExportPNG} id="TD-MenuItem-Export-PNG">
-                PNG
-              </DMItem>
-              <DMItem onClick={handleExportJPG} id="TD-MenuItem-Export-JPG">
-                JPG
-              </DMItem>
-              <DMItem onClick={handleExportWEBP} id="TD-MenuItem-Export-WEBP">
-                WEBP
-              </DMItem>
-              <DMItem onClick={handleExportJSON} id="TD-MenuItem-Export-JSON">
                 JSON
               </DMItem>
             </DMSubMenu>

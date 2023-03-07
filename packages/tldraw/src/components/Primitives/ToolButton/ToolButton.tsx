@@ -61,11 +61,13 @@ interface ToolButtonWithTooltipProps extends ToolButtonProps {
   label: string
   isLocked?: boolean
   kbd?: string
+  variant?: 'icon' | 'text' | 'circle' | 'primary'
 }
 
 export function ToolButtonWithTooltip({
   label,
   kbd,
+  variant,
   isLocked,
   ...rest
 }: ToolButtonWithTooltipProps) {
@@ -85,10 +87,11 @@ export function ToolButtonWithTooltip({
     <Tooltip label={label[0].toUpperCase() + label.slice(1)} kbd={kbd}>
       <ToolButton
         {...rest}
-        variant="primary"
+        variant={variant}
         isToolLocked={isLocked && rest.isActive}
         onDoubleClick={handleDoubleClick}
         onKeyDown={handleKeyDown}
+        aria-label={label[0].toUpperCase() + label.slice(1)}
       />
     </Tooltip>
   )
@@ -202,8 +205,8 @@ export const StyledToolButton = styled('button', {
       variant: 'primary',
       bp: 'small',
       css: {
-        height: '44px',
-        width: '44px',
+        height: '40px',
+        width: '40px',
         [`& ${StyledToolButtonInner} > svg`]: {
           width: 20,
           height: 20,

@@ -5,6 +5,7 @@ import { useMultiplayerState } from '~hooks/useMultiplayerState'
 import { useUploadAssets } from '~hooks/useUploadAssets'
 import { styled } from '~styles'
 import { RoomProvider } from '~utils/liveblocks'
+import { BetaNotification } from './BetaNotification'
 
 interface Props {
   roomId: string
@@ -53,6 +54,7 @@ function Editor({ roomId }: Props) {
         {...fileSystemEvents}
         {...events}
       />
+      <BetaNotification />
     </div>
   )
 }

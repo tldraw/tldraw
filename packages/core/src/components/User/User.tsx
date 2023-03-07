@@ -21,7 +21,7 @@ export function User({ user, Cursor }: UserProps) {
       ref={rCursor}
       className={`tl-absolute tl-user tl-counter-scaled ${user.session ? '' : 'tl-animated'}`}
     >
-      <Cursor id={user.id} color={user.color} />
+      <Cursor id={user.id} color={user.color} metadata={user.metadata} />
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import {
+  ExternalLinkIcon,
   GitHubLogoIcon,
   HeartFilledIcon,
   QuestionMarkIcon,
@@ -65,6 +66,7 @@ const LanguageMenuDropdown = () => {
 }
 
 const linksData = [
+  { id: 'tldraw-beta', icon: ExternalLinkIcon, url: 'https://beta.tldraw.com' },
   { id: 'github', icon: GitHubLogoIcon, url: 'https://github.com/tldraw/tldraw' },
   { id: 'twitter', icon: TwitterLogoIcon, url: 'https://twitter.com/tldraw' },
   { id: 'discord', icon: DiscordIcon, url: 'https://discord.gg/SBBEVCA4PG' },
@@ -153,7 +155,7 @@ const PopoverAnchor = styled(Popover.Anchor, {
         bottom: 64,
       },
       small: {
-        bottom: 10,
+        bottom: 20,
       },
       medium: {},
       large: {},
@@ -167,6 +169,12 @@ const PopoverAnchor = styled(Popover.Anchor, {
   },
   compoundVariants: [
     {
+      debug: true,
+      css: {
+        bottom: 50,
+      },
+    },
+    {
       bp: 'mobile',
       side: 'bottom',
       debug: true,
@@ -179,7 +187,15 @@ const PopoverAnchor = styled(Popover.Anchor, {
       side: 'bottom',
       debug: true,
       css: {
-        bottom: 50,
+        bottom: 60,
+      },
+    },
+    {
+      bp: 'small',
+      side: 'bottom',
+      debug: true,
+      css: {
+        bottom: 60,
       },
     },
   ],
