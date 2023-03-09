@@ -1,5 +1,4 @@
 import { fireEvent, render } from '@testing-library/react'
-import each from 'jest-each'
 import { Tldraw } from '../Tldraw'
 
 const toolIds = [
@@ -36,12 +35,14 @@ describe('tool buttons accessibility', () => {
     fireEvent.click(button)
 
     describe(`accessibility`, () => {
-      each(ids).it(`component has aria-label`, async (id) => {
-        const element = container.querySelector(`#${id}`)
-        const ariaLabel = element?.getAttribute('aria-label')
-        // eslint-disable-next-line jest/no-standalone-expect
-        expect(ariaLabel).not.toBeNull()
-      })
+      for (const id of ids) {
+        it(`component has aria-label`, async () => {
+          const element = container.querySelector(`#${id}`)
+          const ariaLabel = element?.getAttribute('aria-label')
+          // eslint-disable-next-line jest/no-standalone-expect
+          expect(ariaLabel).not.toBeNull()
+        })
+      }
     })
   }
 
