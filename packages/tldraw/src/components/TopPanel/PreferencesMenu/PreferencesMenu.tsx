@@ -61,6 +61,7 @@ export function PreferencesMenu() {
         onCheckedChange={toggleDarkMode}
         kbd="#⇧D"
         id="TD-MenuItem-Preferences-Dark_Mode"
+        ariaLabel={intl.formatMessage({ id: 'preferences.dark.mode' })}
       >
         <FormattedMessage id="preferences.dark.mode" />
       </DMCheckboxItem>
@@ -69,6 +70,7 @@ export function PreferencesMenu() {
         onCheckedChange={toggleFocusMode}
         kbd="#."
         id="TD-MenuItem-Preferences-Focus_Mode"
+        ariaLabel={intl.formatMessage({ id: 'preferences.focus.mode' })}
       >
         <FormattedMessage id="preferences.focus.mode" />
       </DMCheckboxItem>
@@ -76,6 +78,7 @@ export function PreferencesMenu() {
         checked={settings.isDebugMode}
         onCheckedChange={toggleDebugMode}
         id="TD-MenuItem-Preferences-Debug_Mode"
+        ariaLabel={intl.formatMessage({ id: 'preferences.debug.mode' })}
       >
         <FormattedMessage id="preferences.debug.mode" />
       </DMCheckboxItem>
@@ -85,6 +88,7 @@ export function PreferencesMenu() {
         onCheckedChange={toggleGrid}
         kbd="#⇧G"
         id="TD-MenuItem-Preferences-Grid"
+        ariaLabel={intl.formatMessage({ id: 'preferences.show.grid' })}
       >
         <FormattedMessage id="preferences.show.grid" />
       </DMCheckboxItem>
@@ -92,6 +96,7 @@ export function PreferencesMenu() {
         checked={settings.isCadSelectMode}
         onCheckedChange={toggleCadSelectMode}
         id="TD-MenuItem-Preferences-Cad_Selection"
+        ariaLabel={intl.formatMessage({ id: 'preferences.use.cad.selection' })}
       >
         <FormattedMessage id="preferences.use.cad.selection" />
       </DMCheckboxItem>
@@ -99,6 +104,7 @@ export function PreferencesMenu() {
         checked={settings.keepStyleMenuOpen}
         onCheckedChange={toggleKeepStyleMenuOpen}
         id="TD-MenuItem-Preferences-Style_menu"
+        ariaLabel={intl.formatMessage({ id: 'preferences.keep.stylemenu.open' })}
       >
         <FormattedMessage id="preferences.keep.stylemenu.open" />
       </DMCheckboxItem>
@@ -109,6 +115,7 @@ export function PreferencesMenu() {
             checked={settings.dockPosition === position}
             onCheckedChange={() => handleChangeDockPosition(position as TDDockPosition)}
             id={`TD-MenuItem-DockPosition-${position}`}
+            ariaLabel={`DockPosition-${position}`}
           >
             <StyledText>
               <FormattedMessage id={position} />
@@ -123,6 +130,7 @@ export function PreferencesMenu() {
             checked={settings.exportBackground === exportBackground}
             onCheckedChange={() => selectExportBackground(exportBackground as TDExportBackground)}
             id={`TD-MenuItem-ExportBackground-${exportBackground}`}
+            ariaLabel={`ExportBackground-${exportBackground}`}
           >
             <StyledText>
               <FormattedMessage id={exportBackground as string} />
