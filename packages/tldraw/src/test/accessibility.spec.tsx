@@ -36,7 +36,7 @@ describe('tool buttons accessibility', () => {
 
     describe(`accessibility`, () => {
       for (const id of ids) {
-        it(`component has aria-label`, async () => {
+        it(`component ${id} has aria-label`, async () => {
           const element = container.querySelector(`#${id}`)
           const ariaLabel = element?.getAttribute('aria-label')
           // eslint-disable-next-line jest/no-standalone-expect
