@@ -1802,6 +1802,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const jsonString = JSON.stringify({
       type: 'tldr/clipboard',
+      shapes: [],
+      assets: [],
+      bindings: [],
       ...this.clipboard,
     })
 
@@ -2183,6 +2186,9 @@ export class TldrawApp extends StateManager<TDSnapshot> {
 
     const tldrawString = JSON.stringify({
       type: 'tldr/clipboard',
+      shapes: [],
+      assets: [],
+      bindings: [],
       ...this.clipboard,
     })
 
