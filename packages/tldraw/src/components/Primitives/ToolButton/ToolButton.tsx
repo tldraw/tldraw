@@ -110,6 +110,7 @@ export const StyledToolButtonInner = styled('div', {
   fontFamily: '$ui',
   color: 'inherit',
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   boxSizing: 'border-box',
   border: '1px solid transparent',
   '-webkit-tap-highlight-color': 'transparent',
