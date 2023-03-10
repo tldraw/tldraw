@@ -1,5 +1,16 @@
 # @tldraw/vscode-editor
 
+## 1.15.0
+
+### Minor Changes
+
+- - Fixes copy as PNG
+  - Fixes a bug with copy and paste
+  - Fixes a bug on iPad while using pencil
+  - Fixes a bug with the style menus
+  - Fixes a bug with image export
+  - Updates translations
+
 ## 1.14.0
 
 ### Minor Changes
