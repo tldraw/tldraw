@@ -4,6 +4,7 @@ export const MenuContent = styled('div', {
   position: 'relative',
   overflow: 'hidden',
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   display: 'flex',
   flexDirection: 'column',
   zIndex: 99997,

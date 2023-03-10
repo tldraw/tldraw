@@ -104,6 +104,7 @@ const ReadOnlyLabel = styled('div', {
   paddingLeft: '$4',
   paddingRight: '$1',
   userSelect: 'none',
+  WebkitUserSelect: 'none',
 })
 
 export const TopPanel = React.memo(_TopPanel)

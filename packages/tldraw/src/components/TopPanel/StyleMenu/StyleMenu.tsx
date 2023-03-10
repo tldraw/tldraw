@@ -369,6 +369,7 @@ export const StyledRow = styled('div', {
   padding: '$2 0 $2 $3',
   borderRadius: 4,
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   margin: 0,
   display: 'flex',
   gap: '$3',

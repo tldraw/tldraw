@@ -639,6 +639,8 @@ const StyledLayout = styled('div', {
   overflow: 'hidden',
   boxSizing: 'border-box',
   outline: 'none',
+  userSelect: 'none',
+  WebkitUserSelect: 'none',
 
   '& .tl-container': {
     position: 'absolute',

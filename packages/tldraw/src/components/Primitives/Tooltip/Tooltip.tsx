@@ -45,6 +45,7 @@ const StyledContent = styled(RadixTooltip.Content, {
   alignItems: 'center',
   fontFamily: '$ui',
   userSelect: 'none',
+  WebkitUserSelect: 'none',
 })
 
 const StyledArrow = styled(RadixTooltip.Arrow, {
