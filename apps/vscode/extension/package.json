@@ -2,7 +2,7 @@
   "name": "tldraw-vscode",
   "displayName": "tldraw",
   "description": "The tldraw Extension for VS Code.",
-  "version": "1.27.0",
+  "version": "1.28.2",
   "license": "MIT",
   "publisher": "tldraw-org",
   "repository": {
