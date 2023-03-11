@@ -24,6 +24,7 @@ function getMeasurementDiv() {
     zIndex: '9999',
     pointerEvents: 'none',
     userSelect: 'none',
+    '-webkit-user-select': 'none',
     alignmentBaseline: 'mathematical',
     dominantBaseline: 'mathematical',
   })

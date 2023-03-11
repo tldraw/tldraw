@@ -107,6 +107,7 @@ export const StyledRowButton = styled('button', {
   fontSize: '$1',
   borderRadius: 4,
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   margin: 0,
   padding: '0 0',
 

@@ -24,6 +24,7 @@ export function StatusBar() {
 const StyledStatusBar = styled('div', {
   height: 40,
   userSelect: 'none',
+  WebkitUserSelect: 'none',
   borderTop: '1px solid $panelContrast',
   gridArea: 'status',
   display: 'flex',

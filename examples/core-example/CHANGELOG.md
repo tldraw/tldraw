@@ -1,5 +1,12 @@
 # @tldraw/core-example-simple
 
+## 1.9.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @tldraw/core@1.23.0
+
 ## 1.9.0
 
 ### Minor Changes

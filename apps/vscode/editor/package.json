@@ -1,6 +1,6 @@
 {
   "name": "@tldraw/vscode-editor",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "private": true,
   "description": "An an editor for the tldraw vscode extension.",
   "author": "@steveruizok",
