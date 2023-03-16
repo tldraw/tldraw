@@ -90,7 +90,7 @@ To avoid unnecessary renders, be sure to pass "stable" values as props to the `R
 | `shapeUtils` | [`TLShapeUtils`](#tlshapeutils) | The shape utilities used to render the shapes.              |
 | `assets`     | [`TLAssets`](#tlassets)         | (optional) A table of assets used by shapes in the project. |
 
-In addition to these required props, the Renderer accents many other **optional** props.
+In addition to these required props, the Renderer accepts many other **optional** props.
 
 | Property             | Type                          | Description                                                           |
 | -------------------- | ----------------------------- | --------------------------------------------------------------------- |
