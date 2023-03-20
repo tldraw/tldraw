@@ -52,12 +52,6 @@ export function BetaNotification() {
   )
 }
 
-// const Link = styled('a', {
-//   '&:hover': {
-//     textDecoration: 'underline',
-//   },
-// })
-
 const Panel = styled('div', {
   position: 'absolute',
   top: 42,
