@@ -193,6 +193,7 @@ export const StyleMenu = React.memo(function ColorMenu() {
       dir="ltr"
       onOpenChange={handleMenuOpenChange}
       open={keepOpen ? true : undefined}
+      modal={false}
     >
       <DropdownMenu.Trigger asChild id="TD-Styles">
         <ToolButton aria-label={intl.formatMessage({ id: 'styles' })} variant="text">
