@@ -34,7 +34,6 @@ export async function saveToFileSystem(
     name: document.name || 'New Document',
     fileHandle: fileHandle ?? null,
     document,
-    assets: {},
   }
 
   // Serialize to JSON

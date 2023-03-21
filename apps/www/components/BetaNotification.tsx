@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from '@radix-ui/react-icons'
 import React, { useLayoutEffect } from 'react'
 import { css, styled } from '~styles'
 
@@ -30,8 +31,7 @@ export function BetaNotification() {
   return (
     <Panel>
       <div>
-        tldraw will be offline on the 4th of April for a few hours from 9:30am UTC whilst we upgrade
-        to our new version.
+        On April 4th 2023 at 9:30AM UTC, tldraw will be offline as we upgrade to our new version.
       </div>
       <div
         style={{
@@ -45,7 +45,7 @@ export function BetaNotification() {
       >
         <Button onClick={handleDismiss}>Dismiss</Button>
         <Link href="https://tldraw.substack.com/p/tldraws-upcoming-re-launch" target="_blank">
-          Learn more →
+          Learn more <ExternalLinkIcon style={{ marginLeft: 4, marginTop: 1, height: 14 }} />
         </Link>
       </div>
     </Panel>
