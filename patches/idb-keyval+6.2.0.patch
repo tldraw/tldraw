@@ -1,0 +1,20 @@
+diff --git a/node_modules/idb-keyval/dist/index.js b/node_modules/idb-keyval/dist/index.js
+index 5da144a..e6d6f83 100644
+--- a/node_modules/idb-keyval/dist/index.js
++++ b/node_modules/idb-keyval/dist/index.js
+@@ -9,8 +9,14 @@ function promisifyRequest(request) {
+ function createStore(dbName, storeName) {
+     const request = indexedDB.open(dbName);
+     request.onupgradeneeded = () => request.result.createObjectStore(storeName);
++
+     const dbp = promisifyRequest(request);
+-    return (txMode, callback) => dbp.then((db) => callback(db.transaction(storeName, txMode).objectStore(storeName)));
++    return (txMode, callback) => dbp.then((db) => {
++        if (!request.result.objectStoreNames.contains(storeName)) {
++            request.result.createObjectStore(storeName);
++        }
++        return callback(db.transaction(storeName, txMode).objectStore(storeName))
++    });
+ }
+ let defaultGetStoreFunc;
+ function defaultGetStore() {
