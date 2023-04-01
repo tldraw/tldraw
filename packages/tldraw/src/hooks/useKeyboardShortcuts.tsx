@@ -10,7 +10,6 @@ export function useKeyboardShortcuts(ref: React.RefObject<HTMLDivElement>) {
     (ignoreMenus = false) => {
       const elm = ref.current
       if (ignoreMenus && (app.isMenuOpen || app.settings.keepStyleMenuOpen)) return true
-      elm?.focus()
       return elm && (document.activeElement === elm || elm.contains(document.activeElement))
     },
     [ref]
