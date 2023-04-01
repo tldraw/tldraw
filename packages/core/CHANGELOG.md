@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.23.2
+
+### Patch Changes
+
+- Include clipboard fixes.
+- Updated dependencies
+  - @tldraw/intersect@1.9.2
+  - @tldraw/vec@1.9.2
+
+## 1.23.1
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+- Updated dependencies
+  - @tldraw/intersect@1.9.1
+  - @tldraw/vec@1.9.1
+
 ## 1.23.0
 
 ### Minor Changes

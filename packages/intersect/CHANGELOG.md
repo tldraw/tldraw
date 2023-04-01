@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.9.2
+
+### Patch Changes
+
+- Include clipboard fixes.
+- Updated dependencies
+  - @tldraw/vec@1.9.2
+
+## 1.9.1
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+- Updated dependencies
+  - @tldraw/vec@1.9.1
+
 ## 1.9.0
 
 ### Minor Changes

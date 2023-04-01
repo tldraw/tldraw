@@ -1,5 +1,23 @@
 # @tldraw/core-example-simple
 
+## 1.9.3
+
+### Patch Changes
+
+- Include clipboard fixes.
+- Updated dependencies
+  - @tldraw/core@1.23.2
+  - @tldraw/vec@1.9.2
+
+## 1.9.2
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+- Updated dependencies
+  - @tldraw/core@1.23.1
+  - @tldraw/vec@1.9.1
+
 ## 1.9.1
 
 ### Patch Changes

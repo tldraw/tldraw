@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.8.2
+
+### Patch Changes
+
+- Include clipboard fixes.
+
+## 1.8.1
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+
 ## 1.8.0
 
 ### Minor Changes

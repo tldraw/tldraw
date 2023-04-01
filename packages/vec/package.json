@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
+  "version": "1.9.2",
   "name": "@tldraw/vec",
   "description": "2D vector utilities for TLDraw and maybe you, too.",
   "author": "@steveruizok",

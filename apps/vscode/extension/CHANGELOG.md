@@ -1,5 +1,17 @@
 ## 1.2.4
 
+## 1.28.4
+
+### Patch Changes
+
+- Include clipboard fixes.
+
+## 1.28.3
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+
 ## 1.28.0
 
 ### Minor Changes

@@ -1,5 +1,23 @@
 # @tldraw/www
 
+## 1.8.3
+
+### Patch Changes
+
+- Include clipboard fixes.
+- Updated dependencies
+  - @tldraw/core@1.23.2
+  - @tldraw/tldraw@1.29.2
+
+## 1.8.2
+
+### Patch Changes
+
+- Fix clipboard stealing focus.
+- Updated dependencies
+  - @tldraw/core@1.23.1
+  - @tldraw/tldraw@1.29.1
+
 ## 1.8.1
 
 ### Patch Changes
