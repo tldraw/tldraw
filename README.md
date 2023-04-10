@@ -1,3 +1,7 @@
+> **Note** We're between versions! The code in this repository is for the original version of tldraw, which is hosted at [old.tldraw.com](https://old.tldraw.com). The new version (hosted at [tldraw.com](https://tldraw.com)) is not yet open source. It is _distributed_ however, and you can read more about the new version at the new docs site: [docs.tldraw.dev](https://docs.tldraw.dev). This should all be cleaned up soon. 🚧 
+
+---
+
 <div style="text-align: center; transform: scale(.5);">
   <img src="https://github.com/tldraw/tldraw/raw/main/assets/card-repo.png"/>
 </div>
