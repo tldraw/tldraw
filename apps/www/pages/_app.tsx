@@ -23,8 +23,7 @@ function MyApp({ Component, pageProps }: any) {
         <meta name="description" content={APP_DESCRIPTION} />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fafafa" />
-        <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#212529" />
+        <meta name="theme-color" content="#fafafa" />
 
         <meta name="twitter:url" content={APP_URL} />
         <meta name="twitter:title" content={APP_NAME} />
