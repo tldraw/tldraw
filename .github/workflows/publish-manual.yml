@@ -10,7 +10,7 @@ jobs:
     name: '(Re)Publish public packages manually'
     environment: npm deploy
     timeout-minutes: 15
-    runs-on: ubuntu-latest-16-cores
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check out code
