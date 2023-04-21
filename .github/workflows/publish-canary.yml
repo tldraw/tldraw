@@ -1,0 +1,36 @@
+name: Publish Canary Packages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: 'Publish Canary Packages'
+    environment: npm deploy
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Publish Canary Packages
+        run: yarn tsx ./scripts/publish-canary.ts
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,43 @@
+name: Publish new version of public packages
+# This bumps the version, updates the changelogs, publishes a GitHub release, and publishes the packages to npm.
+
+# Package publishing is manually triggered on github actions dashboard
+on: workflow_dispatch
+
+env:
+  YARN_RC_FILENAME: .yarnrc-private.yml
+
+jobs:
+  deploy:
+    name: 'Publish new version of public packages'
+    environment: npm deploy
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+
+      - name: Prepare repository
+        # Fetch full git history and tags for auto
+        run: git fetch --unshallow --tags
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Publish
+        run: yarn tsx ./scripts/publish-new.ts
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -4277,7 +4277,7 @@ __metadata:
     "@swc/core": ^1.2.204
     "@swc/jest": ^0.2.21
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.17
+    lazyrepo: 0.0.0-alpha.20
     ts-node-dev: ^1.1.8
   languageName: unknown
   linkType: soft
@@ -5090,15 +5090,6 @@ __metadata:
     "@types/node": "*"
     form-data: ^3.0.0
   checksum: b68cda58e91535a42dd5337932443c37f8e198ca1e8deeb95bd92a64a9a84d92071867b91c5eb84ee8e13f33d45a70549fe2bc11dd070a894dd561909f4d39f5
-  languageName: node
-  linkType: hard
-
-"@types/node-forge@npm:^1.3.1":
-  version: 1.3.2
-  resolution: "@types/node-forge@npm:1.3.2"
-  dependencies:
-    "@types/node": "*"
-  checksum: f532326a616e946e5f6733d1461e7b8d31911bbdfbc480a6337c422053d79c1e22a0776d114a325439e26ae382a640f939d0abf156e24a3c3ca5079d04aa73f6
   languageName: node
   linkType: hard
 
@@ -9444,8 +9435,8 @@ __metadata:
     concurrently: ^7.4.0
     esbuild: ^0.16.7
     ip: ^1.1.8
-    kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.12
+    lazyrepo: 0.0.0-alpha.20
+    node-forge: ^1.3.1
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.9.0
@@ -12470,31 +12461,6 @@ __metadata:
   dependencies:
     language-subtag-registry: ~0.3.2
   checksum: c81b5d8b9f5f9cfd06ee71ada6ddfe1cf83044dd5eeefcd1e420ad491944da8957688db4a0a9bc562df4afdc2783425cbbdfd152c01d93179cf86888903123cf
-  languageName: node
-  linkType: hard
-
-"lazyrepo@npm:0.0.0-alpha.17":
-  version: 0.0.0-alpha.17
-  resolution: "lazyrepo@npm:0.0.0-alpha.17"
-  dependencies:
-    "@sindresorhus/slugify": ^2.2.0
-    cac: ^6.7.14
-    cross-spawn: ^7.0.3
-    esbuild: ^0.17.15
-    fast-glob: ^3.2.12
-    fast-json-stable-stringify: ^2.1.0
-    micromatch: ^4.0.5
-    picocolors: ^1.0.0
-    slice-ansi: ^6.0.0
-    source-map-support: ^0.5.21
-    strip-ansi: ^7.0.1
-    ts-dedent: ^2.2.0
-    yaml: ^2.2.1
-    zod: ^3.21.4
-    zod-validation-error: ^1.3.0
-  bin:
-    lazy: bin.js
-  checksum: c900bd0e9f0c1b59ce55fc7a5d90c8ea6be19e1ea77b7bb0c35faf3258074617d0c26bec5ff688cd7b54f4bc1de9c46927524d5d34ece0b57ab292f965547add
   languageName: node
   linkType: hard
 

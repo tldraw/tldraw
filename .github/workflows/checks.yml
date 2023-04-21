@@ -1,0 +1,61 @@
+name: Checks
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main, lite]
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+jobs:
+  build:
+    name: 'Build and run checks'
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores # TODO: this should probably run on multiple OSes
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Typecheck
+        run: yarn build:types
+
+      - name: Check scripts
+        run: yarn check-scripts
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Check API declarations and docs work as intended
+        run: yarn api:check
+
+      - name: Pack public packages
+        run: yarn lazy pack-tarball
+
+      - name: Build all projects
+        # the sed pipe makes sure that github annotations come through without
+        # turbo's prefix
+        run: "yarn build | sed -E 's/^@[a-zA-Z-]+\\/[a-z-]+:[a-z-]+: ::/::/'"
+
+      - name: Test
+        run: yarn test
+
+      - name: Check translations
+        run: yarn check-translations

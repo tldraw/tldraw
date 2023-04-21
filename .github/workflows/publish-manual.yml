@@ -1,0 +1,35 @@
+name: (Re)Publish public packages manually
+# This only attempts to publish the public packages to npm.
+# It does not bump the version, it does not update the changelogs, it does not create a github release.
+
+# Package publishing is manually triggered on github actions dashboard
+on: workflow_dispatch
+
+jobs:
+  deploy:
+    name: '(Re)Publish public packages manually'
+    environment: npm deploy
+    timeout-minutes: 15
+    runs-on: ubuntu-latest-16-cores
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Publish
+        run: yarn tsx ./scripts/publish-manual.ts
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
