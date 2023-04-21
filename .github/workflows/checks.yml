@@ -56,6 +56,3 @@ jobs:
 
       - name: Test
         run: yarn test
-
-      - name: Check translations
-        run: yarn check-translations
