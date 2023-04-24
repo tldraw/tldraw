@@ -2937,6 +2937,16 @@ export class TldrawApp extends StateManager<TDSnapshot> {
     return this
   }
 
+  /**
+   * Manually create assets.
+   * @param assets An array of assetes to create.
+   * @command
+   */
+  createAssets = (...assets: TDAsset[]) => {
+    if (assets.length === 0) return this
+    return this.setState(Commands.createAssets(this, assets))
+  }
+
   /* -------------------------------------------------- */
   /*                   Shape Functions                  */
   /* -------------------------------------------------- */
