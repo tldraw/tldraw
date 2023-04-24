@@ -248,6 +248,7 @@ TldrawTestApp {
   "copyJson": [Function],
   "copySvg": [Function],
   "create": [Function],
+  "createAssets": [Function],
   "createPage": [Function],
   "createShapes": [Function],
   "ctrlKey": false,
