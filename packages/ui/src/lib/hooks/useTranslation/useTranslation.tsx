@@ -35,7 +35,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	children,
 }: TranslationProviderProps) {
 	const app = useApp()
-	const { locale } = app.userSettings
+	const locale = app.userSettings.locale
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {
@@ -58,7 +58,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const localeString = locale.toLocaleLowerCase() ?? navigator.language.split(/[-_]/)[0]
+			const localeString = locale ?? navigator.language.split(/[-_]/)[0]
 			const translation = await getTranslation(localeString, getAssetUrl)
 
 			if (translation && !isCancelled) {
