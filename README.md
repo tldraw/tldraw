@@ -1,6 +1,6 @@
 > **Note**<br>
 > This repo is for the **new version** of tldraw, which is hosted at [tldraw.com](https://tldraw.com).<br>
-> The code for the old version (hosted at [old.tldraw.com](https://old.tldraw.com)) can be found in the [v1 repo](https://github.com/tldraw/tldraw-v1).
+> The code for the **original version** (hosted at [old.tldraw.com](https://old.tldraw.com)) can be found in the [v1 repo](https://github.com/tldraw/tldraw-v1).
 
 <br>
 
