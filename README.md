@@ -19,7 +19,8 @@ It contains the public tldraw packages, and examples of how to use them.<br>
 Read below for how to run the examples locally.<br>
 Or check out our work-in-progress docs at [docs.tldraw.com](https://docs.tldraw.dev).<br>
 
-🙌 Questions? Join our [Discord](https://discord.gg/rhsyWMUJxd) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).
+🙌 Questions? Join our [discord](https://discord.gg/rhsyWMUJxd) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).<br>
+🔍 Found a bug? Please submit an [issue](https://github.com/tldraw/tldraw/issues/new)!
 
 ## Getting started
 
