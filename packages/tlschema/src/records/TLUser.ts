@@ -51,7 +51,7 @@ export const TLUser = createRecordType<TLUser>('user', {
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
 	let lang
 	if (typeof window !== 'undefined' && window.navigator) {
-		const availLocales = LANGUAGES.map(({ locale }) => locale) as string[]
+		const availLocales = LANGUAGES.map(({ locale }) => locale.toLowerCase()) as string[]
 		lang = window.navigator.languages.find((lang) => availLocales.indexOf(lang.toLowerCase()) > -1)
 	}
 	return {
