@@ -58,8 +58,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const localeString =
-				locale.toLocaleLowerCase() ?? navigator.language.split(/[-_]/)[0].toLowerCase()
+			const localeString = locale.toLocaleLowerCase() ?? navigator.language.split(/[-_]/)[0]
 			const translation = await getTranslation(localeString, getAssetUrl)
 
 			if (translation && !isCancelled) {
