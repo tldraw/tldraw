@@ -53,6 +53,6 @@
 		}
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.20"
+		"lazyrepo": "0.0.0-alpha.22"
 	}
 }
