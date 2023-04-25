@@ -58,6 +58,6 @@ export const TLUser = createRecordType<TLUser>('user', {
 	}
 	return {
 		name: 'New User',
-		locale: lang ?? 'en',
+		locale: lang ?? 'en-US',
 	}
 })
