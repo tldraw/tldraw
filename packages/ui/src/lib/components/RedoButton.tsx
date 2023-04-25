@@ -1,0 +1,25 @@
+import { memo } from 'react'
+import { useActions } from '../hooks/useActions'
+import { useCanRedo } from '../hooks/useCanRedo'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { Button } from './primitives/Button'
+import { kbdStr } from './primitives/shared'
+
+export const RedoButton = memo(function RedoButton() {
+	const msg = useTranslation()
+	const canRedo = useCanRedo()
+	const actions = useActions()
+
+	const redo = actions['redo']
+
+	return (
+		<Button
+			data-wd="main.redo"
+			icon={redo.icon}
+			title={`${msg(redo.label!)} ${kbdStr(redo.kbd!)}`}
+			disabled={!canRedo}
+			onClick={redo.onSelect}
+			smallIcon
+		/>
+	)
+})

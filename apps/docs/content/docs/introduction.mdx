@@ -1,0 +1,140 @@
+---
+title: Introduction
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 0
+---
+
+Welcome to the tldraw developer docs.
+
+tldraw is a React component that you can use to create infinite canvas experiences for the web. It is essentially the [tldraw.com](https://www.tldraw.com) application wrapped up and distributed as a React component, but with powerful APIs for creating custom shapes, tools, behaviors, and user interfaces elements.
+
+![screenshot of tldraw](/images/screenshot.png)
+
+These docs relate to tldraw's **alpha version**. This version is not yet open sourced, however it is available on npm and permissively licensed under Apache 2.0.
+
+- Want to dive in? Visit the [examples CodeSandbox](https://codesandbox.io/p/github/tldraw/tldraw-examples/main?file=%2FREADME.md).
+- Found a bug or integration problem? Please create a ticket [here](https://github.com/tldraw/tldraw-examples/issues).
+- Questions or feedback? Let us know on the [Discord](https://discord.gg/JMbeb96jsh).
+
+And if you are just looking for the regular app, try [tldraw.com](https://www.tldraw.com).
+
+## Installation
+
+First, install the `@tldraw/tldraw` package using `@alpha` for the **latest alpha release**. It also has peer dependencies on `signia` and `signia-react` which you will need to install at the same time.
+
+```bash
+yarn add @tldraw/tldraw@alpha signia signia-react
+# or
+npm install @tldraw/tldraw@alpha signia signia-react
+```
+
+Next, copy the following folders: `icons`, `embed-icons`, `fonts`, and `translations` from the [tldraw-examples](https://github.com/tldraw/tldraw-examples/tree/main/public) repository. Put them in your project's public path so that, e.g. `your-website.com/icons` points to the icons folder you copied. (Ability to customize the base asset URL is coming soon!)
+
+## Usage
+
+You should be able to use the `<Tldraw/>` component in any React app.
+
+To use the `<Tldraw/>` component, create a file like this one:
+
+```tsx
+import { Tldraw } from '@tldraw/tldraw'
+import '@tldraw/tldraw/editor.css'
+import '@tldraw/tldraw/ui.css'
+
+export default function () {
+	return (
+		<div
+			style={{
+				position: 'fixed',
+				inset: 0,
+			}}
+		>
+			<Tldraw />
+		</div>
+	)
+}
+```
+
+In addition to the library, you will also need to:
+
+- import the **CSS files** for the editor and UI
+- have the library's **assets** available on the same host
+- probably set a `viewport` meta tag in your **html**.
+
+See below for more detail on these.
+
+#### Next.js / SSR
+
+The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a Next.js app, you will need to import it dynamically. The code to do that will look something like this:
+
+```tsx
+import dynamic from "next/dynamic"
+
+const Editor = dynamic(
+	async () => import('../components/Editor')),
+	{ ssr: false }
+)
+
+export default function MyPage() {
+	return <Editor/>
+}
+```
+
+### `<Tldraw/>`
+
+The `<Tldraw/>` component combines several other pieces:
+
+- the tldraw editor (`@tldraw/editor`)
+- the tldraw UI (`@tldraw/ui`)
+- an engine (`@tldraw/sync-client`) for persistence and cross-tab synchronization
+
+> **Note:** In the future, this library will also include an engine for using our collaboration services.
+
+If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw-examples/tree/main/src/examples/5-exploded) for what that would look like.
+
+### Assets
+
+In order to use the `<Tldraw/>` component, the app must be able to find certain assets on the host. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. If you are using the `<Tldraw/>` component in your app, you must also copy these folders into your public path.
+
+You can copy these files from the [tldraw-examples](https://github.com/tldraw/tldraw-examples) repository. Place the folders in your project's public path as shown in that repository.
+
+> **Note:** This requirement is very likely to change in the near future.
+
+While these files must be available, you can overwrite the individual files: for example, by placing different icons under the same name or modifying / adding translations.
+
+### CSS
+
+In order to use the `<Tldraw/>` component, you must also import a CSS file from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
+
+```ts
+import '@tldraw/tldraw/editor.css'
+import '@tldraw/tldraw/ui.css'
+```
+
+You can overwrite these files with other CSS, customize the styles via package patches, or copy the contents into a different file and import that instead.
+
+In addition to these stylesheets, the root project imports the `src/index.css` file, so its styles are used for every example. Be sure to take a look at this file: you may find some of these styles necessary in your own usage of the `<Tldraw/>` component.
+
+### HTML
+
+You probably also want to update your `index.html`'s meta viewport element as shown below. 
+
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+```
+
+These may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) may not work correctly if these are not set.
+
+## License
+
+The tldraw libraries are licensed under Apache 2.0.
+
+Our example repositories are licensed under MIT.
+
+## Community
+
+- Found a bug or integration problem? Please create a ticket [here](https://github.com/tldraw/tldraw-examples/issues).
+- Questions or feedback? Let us know on the [Discord](https://discord.gg/JMbeb96jsh).
+- Follow along on [Twitter](https://twitter.com/tldraw).

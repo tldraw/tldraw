@@ -1,0 +1,10 @@
+{
+	"extends": "../config/tsconfig.base.json",
+	"compilerOptions": {
+		"composite": false,
+		"esModuleInterop": true,
+		"emitDeclarationOnly": false,
+		"noEmit": true
+	},
+	"include": ["**/*"]
+}

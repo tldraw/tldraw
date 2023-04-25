@@ -1,0 +1,12 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		// TODO: Enable noImplicitReturns
+		"noImplicitReturns": false,
+		"rootDir": "src"
+	},
+	"references": [{ "path": "../editor" }, { "path": "../tlsync-client" }, { "path": "../ui" }]
+}

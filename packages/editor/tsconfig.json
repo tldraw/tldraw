@@ -1,0 +1,20 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src",
+		// TODO: enable these two options
+		"noImplicitOverride": false,
+		"noImplicitReturns": false,
+		"types": ["node", "@types/jest", "@types/benchmark"]
+	},
+	"references": [
+		{ "path": "../primitives" },
+		{ "path": "../tlschema" },
+		{ "path": "../tlstore" },
+		{ "path": "../tlvalidate" },
+		{ "path": "../utils" }
+	]
+}

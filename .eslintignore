@@ -1,0 +1,16 @@
+**/node_modules/*
+**/out/*
+**/dist/*
+**/dist-cjs/*
+**/dist-esm/*
+**/.tsbuild*
+**/.next/*
+*.md
+**/_archive/*
+**/*.css.map
+**/*.js.map
+**/*.d.ts
+**/*.test.ts
+**/api/*
+!**/pages/api/*
+**/*.json

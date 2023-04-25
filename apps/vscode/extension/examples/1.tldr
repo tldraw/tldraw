@@ -1,0 +1,168 @@
+{
+  "fileHandle": null,
+  "document": {
+    "id": "doc",
+    "name": "New Document",
+    "version": 15.3,
+    "pages": {
+      "page": {
+        "id": "page",
+        "name": "Page 1",
+        "childIndex": 1,
+        "shapes": {
+          "3805a6e3-b50a-4bb2-0782-e687526cafc8": {
+            "id": "3805a6e3-b50a-4bb2-0782-e687526cafc8",
+            "type": "rectangle",
+            "name": "Rectangle",
+            "parentId": "page",
+            "childIndex": 1,
+            "point": [
+              245.96,
+              277.88
+            ],
+            "size": [
+              292.43,
+              125.76
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw"
+            },
+            "label": "Rectangles with labels"
+          },
+          "9a20ffa8-044b-4ca3-0448-632e2b2831d1": {
+            "id": "9a20ffa8-044b-4ca3-0448-632e2b2831d1",
+            "type": "ellipse",
+            "name": "Ellipse",
+            "parentId": "page",
+            "childIndex": 3,
+            "point": [
+              995.24,
+              235.11
+            ],
+            "radius": [
+              112.92500000000001,
+              108.96000000000004
+            ],
+            "rotation": 0,
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": true,
+              "dash": "draw",
+              "scale": 1
+            },
+            "label": "Ovals with labels",
+            "labelPoint": [
+              0.5,
+              0.5
+            ]
+          },
+          "c2125c4e-e9ef-4eeb-2011-9e8aaeadd6ea": {
+            "id": "c2125c4e-e9ef-4eeb-2011-9e8aaeadd6ea",
+            "type": "arrow",
+            "name": "Arrow",
+            "parentId": "page",
+            "childIndex": 4,
+            "point": [
+              538.39,
+              341.56
+            ],
+            "rotation": 0,
+            "bend": -0.000013369615345367926,
+            "handles": {
+              "start": {
+                "id": "start",
+                "index": 0,
+                "point": [
+                  0,
+                  0
+                ],
+                "canBind": true,
+                "bindingId": "31007b26-4667-4932-00aa-7f389642b187"
+              },
+              "end": {
+                "id": "end",
+                "index": 1,
+                "point": [
+                  448.85,
+                  2.44
+                ],
+                "canBind": true,
+                "bindingId": "7b099540-f8b1-4bf3-0d7d-2b74df370067"
+              },
+              "bend": {
+                "id": "bend",
+                "index": 2,
+                "point": [
+                  224.43,
+                  1.22
+                ]
+              }
+            },
+            "decorations": {
+              "end": "arrow"
+            },
+            "style": {
+              "color": "white",
+              "size": "small",
+              "isFilled": false,
+              "dash": "draw",
+              "scale": 1
+            },
+            "label": "Arrows with labels",
+            "labelPoint": [
+              0.5,
+              0.5
+            ]
+          }
+        },
+        "bindings": {
+          "7b099540-f8b1-4bf3-0d7d-2b74df370067": {
+            "id": "7b099540-f8b1-4bf3-0d7d-2b74df370067",
+            "type": "arrow",
+            "fromId": "c2125c4e-e9ef-4eeb-2011-9e8aaeadd6ea",
+            "toId": "9a20ffa8-044b-4ca3-0448-632e2b2831d1",
+            "handleId": "end",
+            "point": [
+              0.08,
+              0.5
+            ],
+            "distance": 8
+          },
+          "31007b26-4667-4932-00aa-7f389642b187": {
+            "id": "31007b26-4667-4932-00aa-7f389642b187",
+            "type": "arrow",
+            "fromId": "c2125c4e-e9ef-4eeb-2011-9e8aaeadd6ea",
+            "toId": "3805a6e3-b50a-4bb2-0782-e687526cafc8",
+            "handleId": "start",
+            "point": [
+              0.5,
+              0.5
+            ],
+            "distance": 16
+          }
+        }
+      }
+    },
+    "pageStates": {
+      "page": {
+        "id": "page",
+        "selectedIds": [],
+        "camera": {
+          "point": [
+            0,
+            0
+          ],
+          "zoom": 1
+        },
+        "editingId": null
+      }
+    },
+    "assets": {}
+  },
+  "assets": {}
+}

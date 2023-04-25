@@ -1,0 +1,11 @@
+**/node_modules/*
+**/out/*
+**/dist/*
+**/dist-cjs/*
+**/dist-esm/*
+**/api/*
+!**/pages/api/*
+**/.tsbuild*
+**/.next/*
+*.mdx
+**/_archive/*

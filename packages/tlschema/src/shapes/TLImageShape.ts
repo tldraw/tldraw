@@ -1,0 +1,85 @@
+import { defineMigrations } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
+import { Vec2dModel } from '../geometry-types'
+import { TLAssetId } from '../records/TLAsset'
+import { TLOpacityType } from '../style-types'
+import { assetIdValidator, opacityValidator } from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
+
+/** @public */
+export type TLImageCrop = {
+	topLeft: Vec2dModel
+	bottomRight: Vec2dModel
+}
+
+/** @public */
+export type TLImageShapeProps = {
+	opacity: TLOpacityType
+	url: string
+	playing: boolean
+	w: number
+	h: number
+	assetId: TLAssetId | null
+	crop: TLImageCrop | null
+}
+
+/** @public */
+export const cropValidator = T.object({
+	topLeft: T.point,
+	bottomRight: T.point,
+})
+
+/** @public */
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+
+// --- VALIDATION ---
+/** @public */
+export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeValidator(
+	'image',
+	T.object({
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		playing: T.boolean,
+		url: T.string,
+		assetId: assetIdValidator.nullable(),
+		crop: cropValidator.nullable(),
+	})
+)
+
+// --- MIGRATIONS ---
+// STEP 1: Add a new version number here, give it a meaningful name.
+// It should be 1 higher than the current version
+const Versions = {
+	Initial: 0,
+	AddUrlProp: 1,
+	AddCropProp: 2,
+} as const
+
+/** @public */
+export const imageShapeMigrations = defineMigrations({
+	// STEP 2: Update the current version to point to your latest version
+	firstVersion: Versions.Initial,
+	currentVersion: Versions.AddCropProp,
+	migrators: {
+		// STEP 3: Add an up+down migration for the new version here
+		[Versions.AddUrlProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, url: '' } }
+			},
+			down: (shape) => {
+				const { url: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+		[Versions.AddCropProp]: {
+			up: (shape) => {
+				return { ...shape, props: { ...shape.props, crop: null } }
+			},
+			down: (shape) => {
+				const { crop: _, ...props } = shape.props
+				return { ...shape, props }
+			},
+		},
+	},
+})

@@ -1,0 +1,16 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src"
+	},
+	"references": [
+		{ "path": "../editor" },
+		{ "path": "../tlstore" },
+		{ "path": "../tlvalidate" },
+		{ "path": "../utils" },
+		{ "path": "../ui" }
+	]
+}

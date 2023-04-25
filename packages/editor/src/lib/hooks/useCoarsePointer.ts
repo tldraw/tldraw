@@ -1,0 +1,15 @@
+import { useEffect } from 'react'
+import { useApp } from './useApp'
+
+export function useCoarsePointer() {
+	const app = useApp()
+	useEffect(() => {
+		const mql = window.matchMedia('(pointer: coarse)')
+		const handler = () => {
+			app.isCoarsePointer = mql.matches
+		}
+		handler()
+		mql.addEventListener('change', handler)
+		return () => mql.removeEventListener('change', handler)
+	}, [app])
+}
