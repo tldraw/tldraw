@@ -58,14 +58,18 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const localeString = (locale ?? navigator.language).split(/[-_]/)[0]
-			const translation = await getTranslation(localeString, getAssetUrl)
+			const localeFullString = locale ?? navigator.language
+			const translation = await getTranslation(localeFullString, getAssetUrl)
 
 			if (translation && !isCancelled) {
-				if (overrides && overrides[localeString]) {
+				if (overrides) {
+					// check full string (e.g. 'en-US') and then just the language (e.g. 'en')
+					const langOverride =
+						overrides[localeFullString.toLowerCase()] ??
+						overrides[localeFullString.split(/[-_]/)[0].toLowerCase()]
 					setCurrentTranslation({
 						...translation,
-						messages: { ...translation.messages, ...overrides[localeString] },
+						messages: { ...translation.messages, ...langOverride },
 					})
 				} else {
 					setCurrentTranslation(translation)

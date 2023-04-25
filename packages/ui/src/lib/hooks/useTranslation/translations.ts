@@ -44,7 +44,7 @@ export const EN_TRANSLATION: TLTranslation = {
 
 /** @public */
 export async function fetchTranslation(
-	locale: TLTranslationLocale,
+	localeFullString: TLTranslationLocale,
 	assetUrls: UiAssetUrls
 ): Promise<TLTranslation> {
 	const mainRes = await fetch(assetUrls.translations.en)
@@ -54,14 +54,17 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	if (locale === 'en') {
+	if (localeFullString === 'en') {
 		return EN_TRANSLATION
 	}
 
-	const language = LANGUAGES.find((t) => t.locale === locale)
+	// check full string (e.g. 'en-US') and then just the language (e.g. 'en')
+	const language =
+		LANGUAGES.find((t) => t.locale === localeFullString.toLowerCase()) ??
+		LANGUAGES.find((t) => t.locale === localeFullString.split(/[-_]/)[0].toLowerCase())
 
 	if (!language) {
-		console.warn(`No translation found for locale ${locale}`)
+		console.warn(`No translation found for locale ${localeFullString}`)
 		return EN_TRANSLATION
 	}
 
@@ -69,7 +72,7 @@ export async function fetchTranslation(
 	const messages: TLTranslationMessages = await res.json()
 
 	if (!messages) {
-		console.warn(`No messages found for locale ${locale}`)
+		console.warn(`No messages found for locale ${localeFullString}`)
 		return EN_TRANSLATION
 	}
 
@@ -82,20 +85,19 @@ export async function fetchTranslation(
 	}
 
 	if (missing.length > 0 && process.env.NODE_ENV === 'development') {
-		console.warn(`Language ${locale}: missing messages for keys:\n${missing.join('\n')}`)
+		console.warn(`Language ${localeFullString}: missing messages for keys:\n${missing.join('\n')}`)
 	}
 
 	return {
-		locale,
-		label: language.label,
+		...language,
 		messages: { ...EN_TRANSLATION.messages, ...messages },
 	}
 }
 
 /** @public */
 export async function getTranslation(
-	locale: TLTranslationLocale,
+	localeFullString: TLTranslationLocale,
 	assetUrls: UiAssetUrls
 ): Promise<TLTranslation> {
-	return await fetchTranslation(locale, assetUrls)
+	return await fetchTranslation(localeFullString, assetUrls)
 }
