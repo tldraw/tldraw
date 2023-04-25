@@ -1,5 +1,6 @@
 import { TLGeoShape, TLNoteShape, TLShape } from '@tldraw/tlschema'
 import { debugFlags } from './debug-flags'
+import { setPhysChunk } from './png'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png' | 'jpeg' | 'json'
@@ -86,7 +87,12 @@ export async function getSvgAsImage(
 		)
 	)
 
-	return blob
+	if (!blob) return null
+
+	const view = new DataView(await blob.arrayBuffer())
+	return setPhysChunk(view, scale, {
+		type: 'image/' + type,
+	})
 }
 
 /** @public */
