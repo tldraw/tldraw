@@ -52,12 +52,7 @@ export const TLUser = createRecordType<TLUser>('user', {
 	let lang
 	if (typeof window !== 'undefined' && window.navigator) {
 		const availLocales = LANGUAGES.map(({ locale }) => locale) as string[]
-		lang =
-			availLocales.indexOf(window.navigator.language) > -1
-				? // use the navigator's preferred language (if we have one)
-				  window.navigator.language
-				: // otherwise, use the first available language
-				  window.navigator.languages.find((lang) => availLocales.indexOf(lang) > -1)
+		lang = window.navigator.languages.find((lang) => availLocales.indexOf(lang.toLowerCase()) > -1)
 	}
 	return {
 		name: 'New User',
