@@ -36,7 +36,7 @@
 		"concurrently": "^7.4.0",
 		"esbuild": "^0.16.7",
 		"ip": "^1.1.8",
-		"lazyrepo": "0.0.0-alpha.20",
+		"lazyrepo": "0.0.0-alpha.22",
 		"node-forge": "^1.3.1",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0"
