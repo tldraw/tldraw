@@ -15,7 +15,7 @@ export interface TranslationProviderProps {
 	 * @example
 	 *
 	 * ```ts
-	 * ;<TranslationProvider overrides={{ en: { 'style-panel.styles': 'Properties' } }} />
+	 * <TranslationProvider overrides={{ en: { 'style-panel.styles': 'Properties' } }} />
 	 * ```
 	 */
 	overrides?: Record<string, Record<string, string>>
@@ -35,7 +35,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	children,
 }: TranslationProviderProps) {
 	const app = useApp()
-	const locale = app.userSettings.locale
+	const { locale } = app.userSettings
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {
