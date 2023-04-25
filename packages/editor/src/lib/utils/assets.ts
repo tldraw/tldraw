@@ -16,7 +16,7 @@ import uniq from 'lodash.uniq'
 import { App } from '../app/App'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
 import { isAnimated } from './is-gif-animated'
-import { getPngDataView, getPngPixelRatio } from './png'
+import { findChunk, isPng, parsePhys } from './png'
 
 /** @public */
 export const ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
@@ -48,6 +48,18 @@ export async function getVideoSizeFromSrc(src: string): Promise<{ w: number; h: 
 }
 
 /**
+ * @param dataURL - The file as a string.
+ * @internal
+ *
+ * from https://stackoverflow.com/a/53817185
+ */
+export async function base64ToFile(dataURL: string) {
+	return fetch(dataURL).then(function (result) {
+		return result.arrayBuffer()
+	})
+}
+
+/**
  * Get the size of an image from its source.
  *
  * @param dataURL - The file as a string.
@@ -56,33 +68,33 @@ export async function getVideoSizeFromSrc(src: string): Promise<{ w: number; h: 
 export async function getImageSizeFromSrc(dataURL: string): Promise<{ w: number; h: number }> {
 	return await new Promise((resolve, reject) => {
 		const img = new Image()
-
-		// When the image loads, get its size using the image dimensions
-		// and, if possible, the pixel ratio derived from the image. Pngs
-		// have a pixel
 		img.onload = async () => {
-			let pixelRatio = 1
-
 			try {
-				const buffer = await fetch(dataURL).then((d) => d.arrayBuffer())
-				const dataView = getPngDataView(buffer)
-				if (dataView) {
-					pixelRatio = getPngPixelRatio(dataView)
+				const blob = await base64ToFile(dataURL)
+				const view = new DataView(blob)
+				if (isPng(view, 0)) {
+					const physChunk = findChunk(view, 'pHYs')
+					if (physChunk) {
+						const physData = parsePhys(view, physChunk.dataOffset)
+						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
+							const pixelRatio = Math.round(physData.ppux / 2834.5)
+							resolve({ w: img.width / pixelRatio, h: img.height / pixelRatio })
+							return
+						}
+					}
 				}
+
+				resolve({ w: img.width, h: img.height })
 			} catch (err) {
 				console.error(err)
+				resolve({ w: img.width, h: img.height })
 			}
-
-			resolve({ w: img.width / pixelRatio, h: img.height / pixelRatio })
 		}
-
 		img.onerror = (err) => {
 			console.error(err)
 			reject(new Error('Could not get image size'))
 		}
-
 		img.crossOrigin = 'anonymous'
-
 		img.src = dataURL
 	})
 }
