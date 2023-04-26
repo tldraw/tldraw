@@ -173,6 +173,15 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 					addDialog({ component: EmbedDialog })
 				},
 			},
+			{
+				id: 'peer-video',
+				label: 'tool.peer-video',
+				readonlyOk: true,
+				icon: 'tool-peer-video',
+				onSelect() {
+					app.setSelectedTool('peer-video')
+				},
+			},
 		])
 
 		if (overrides) {

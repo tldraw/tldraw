@@ -4172,6 +4172,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@swc/helpers@npm:^0.3.13":
+  version: 0.3.17
+  resolution: "@swc/helpers@npm:0.3.17"
+  dependencies:
+    tslib: ^2.4.0
+  checksum: ce3a5146d738b707f0608bba731aa1fd0a8e3f75f140ff7281225d775a769f085f085e0293b570a9d201c76e09951af178c9222d8c706d4ed0d1c85b25f55cb6
+  languageName: node
+  linkType: hard
+
 "@swc/jest@npm:^0.2.21, @swc/jest@npm:^0.2.24":
   version: 0.2.26
   resolution: "@swc/jest@npm:0.2.26"
@@ -4353,6 +4362,7 @@ __metadata:
     lodash.throttle: ^4.1.1
     lodash.uniq: ^4.5.0
     nanoid: ^3.0.0
+    peerjs: ^1.4.7
     react-test-renderer: ^18.2.0
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
@@ -14987,6 +14997,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"peerjs-js-binarypack@npm:1.0.1":
+  version: 1.0.1
+  resolution: "peerjs-js-binarypack@npm:1.0.1"
+  checksum: 1b543e339956587ee35b80c61f959e3934e321db074da1f78f91af816f85baaefaeb907e7b5364f726e07c02a49d5daccb14714d62007102aa6ef8d86f5b083a
+  languageName: node
+  linkType: hard
+
+"peerjs@npm:^1.4.7":
+  version: 1.4.7
+  resolution: "peerjs@npm:1.4.7"
+  dependencies:
+    "@swc/helpers": ^0.3.13
+    eventemitter3: ^4.0.7
+    peerjs-js-binarypack: 1.0.1
+    webrtc-adapter: ^7.7.1
+  checksum: 9a1af9134a3d41a703af1716370bf85f73c58f138259a2f922a51c635b8ebbbc19d7c63be0711958d73fb6c41b45505bf067e40ea0e0d94c1f41a5a6a05c5278
+  languageName: node
+  linkType: hard
+
 "pend@npm:~1.2.0":
   version: 1.2.0
   resolution: "pend@npm:1.2.0"
@@ -16397,6 +16426,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rtcpeerconnection-shim@npm:^1.2.15":
+  version: 1.2.15
+  resolution: "rtcpeerconnection-shim@npm:1.2.15"
+  dependencies:
+    sdp: ^2.6.0
+  checksum: 42a733d8e3846b7e7e3c33b6d5cddec95659ceb39d3f990f0a4437e6d719ed717237fea02352d4a18d86c825a1493eaeb481cc835267d2288b0ce43582b97f46
+  languageName: node
+  linkType: hard
+
 "run-async@npm:^2.4.0":
   version: 2.4.1
   resolution: "run-async@npm:2.4.1"
@@ -16503,6 +16541,13 @@ __metadata:
   dependencies:
     loose-envify: ^1.1.0
   checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
+  languageName: node
+  linkType: hard
+
+"sdp@npm:^2.12.0, sdp@npm:^2.6.0":
+  version: 2.12.0
+  resolution: "sdp@npm:2.12.0"
+  checksum: 5deb20ac50a1aeb4dd5ff2e506c22d1674222c21f08ae97105c9552ae979e90ddc42b8526f2c3dcacfeebc45c7b2e6b6b4254ae2cf335263bf3ddf2ad9b8ec76
   languageName: node
   linkType: hard
 
@@ -18664,6 +18709,16 @@ __metadata:
   version: 7.0.0
   resolution: "webidl-conversions@npm:7.0.0"
   checksum: f05588567a2a76428515333eff87200fae6c83c3948a7482ebb109562971e77ef6dc49749afa58abb993391227c5697b3ecca52018793e0cb4620a48f10bd21b
+  languageName: node
+  linkType: hard
+
+"webrtc-adapter@npm:^7.7.1":
+  version: 7.7.1
+  resolution: "webrtc-adapter@npm:7.7.1"
+  dependencies:
+    rtcpeerconnection-shim: ^1.2.15
+    sdp: ^2.12.0
+  checksum: 16534a721794bf375753b031e538f5c1ce84df3a272085069bbce7fa1b085e5a2d33b92096256a6fdacdf6f9e30f8543e2478a293ccf5a3849bc7143b10b38d3
   languageName: node
   linkType: hard
 

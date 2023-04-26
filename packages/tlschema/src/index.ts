@@ -170,6 +170,12 @@ export {
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
 export {
+	peerVideoShapeMigrations,
+	peerVideoShapeTypeValidator,
+	type TLPeerVideoShape,
+	type TLPeerVideoShapeProps,
+} from './shapes/TLPeerVideoShape'
+export {
 	textShapeMigrations,
 	textShapeTypeValidator,
 	type TLTextShape,

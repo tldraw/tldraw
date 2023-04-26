@@ -10,6 +10,7 @@ import CustomUiExample from './4-custom-ui/CustomUiExample'
 import ExplodedExample from './5-exploded/ExplodedExample'
 import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
+import ExamplePageMultiplayer from './7-page-multiplayer/PageMultiplayerExample'
 import ErrorBoundaryExample from './8-error-boundaries/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
 import './index.css'
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
 	{
 		path: '/multiple',
 		element: <ExampleMultiple />,
+	},
+	{
+		path: '/page-multiplayer',
+		element: <ExamplePageMultiplayer />,
 	},
 	{
 		path: '/api',

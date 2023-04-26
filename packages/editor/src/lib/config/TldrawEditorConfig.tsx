@@ -40,6 +40,7 @@ import { TLGroupShapeDef } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLImageShapeDef } from '../app/shapeutils/TLImageUtil/TLImageUtil'
 import { TLLineShapeDef } from '../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TLNoteShapeDef } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
+import { TLPeerVideoShapeDef } from '../app/shapeutils/TLPeerVideoUtil/TLPeerVideoUtil'
 import { TLTextShapeDef } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoShapeDef } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
@@ -59,6 +60,7 @@ const CORE_SHAPE_DEFS = () =>
 		TLBookmarkShapeDef,
 		TLEmbedShapeDef,
 		TLFrameShapeDef,
+		TLPeerVideoShapeDef,
 	] as const
 
 /** @public */

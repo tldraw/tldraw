@@ -153,6 +153,7 @@ export function getBundlerAssetUrls(opts?: AssetUrlOptions): {
         readonly 'tool-line': string;
         readonly 'tool-media': string;
         readonly 'tool-note': string;
+        readonly 'tool-peer-video': string;
         readonly 'tool-pencil': string;
         readonly 'tool-pointer': string;
         readonly 'tool-text': string;

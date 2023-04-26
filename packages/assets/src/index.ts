@@ -163,6 +163,7 @@ import toolHighlighterIconUrl from '../icons/icon/tool-highlighter.svg'
 import toolLineIconUrl from '../icons/icon/tool-line.svg'
 import toolMediaIconUrl from '../icons/icon/tool-media.svg'
 import toolNoteIconUrl from '../icons/icon/tool-note.svg'
+import toolPeerVideoIconUrl from '../icons/icon/tool-peer-video.svg'
 import toolPencilIconUrl from '../icons/icon/tool-pencil.svg'
 import toolPointerIconUrl from '../icons/icon/tool-pointer.svg'
 import toolTextIconUrl from '../icons/icon/tool-text.svg'
@@ -365,6 +366,7 @@ export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
 			'tool-line': formatAssetUrl(toolLineIconUrl, opts),
 			'tool-media': formatAssetUrl(toolMediaIconUrl, opts),
 			'tool-note': formatAssetUrl(toolNoteIconUrl, opts),
+			'tool-peer-video': formatAssetUrl(toolPeerVideoIconUrl, opts),
 			'tool-pencil': formatAssetUrl(toolPencilIconUrl, opts),
 			'tool-pointer': formatAssetUrl(toolPointerIconUrl, opts),
 			'tool-text': formatAssetUrl(toolTextIconUrl, opts),

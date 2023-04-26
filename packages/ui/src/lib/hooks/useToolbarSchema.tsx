@@ -71,6 +71,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 			toolbarItem(tools.line),
 			toolbarItem(tools.frame),
 			toolbarItem(tools.embed),
+			toolbarItem(tools['peer-video']),
 		]
 
 		if (overrides) {

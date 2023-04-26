@@ -430,6 +430,12 @@ export const pageTypeValidator: T.Validator<TLPage>;
 // @internal (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
 
+// @public (undocumented)
+export const peerVideoShapeMigrations: Migrations;
+
+// @public (undocumented)
+export const peerVideoShapeTypeValidator: T.Validator<TLPeerVideoShape>;
+
 // @internal (undocumented)
 export const rootShapeTypeMigrations: Migrations;
 
@@ -1076,6 +1082,17 @@ export type TLPageId = ID<TLPage>;
 
 // @public (undocumented)
 export type TLParentId = TLPageId | TLShapeId;
+
+// @public (undocumented)
+export type TLPeerVideoShape = TLBaseShape<'peer-video', TLPeerVideoShapeProps>;
+
+// @public (undocumented)
+export type TLPeerVideoShapeProps = {
+    opacity: TLOpacityType;
+    w: number;
+    h: number;
+    userId?: string;
+};
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLPage | TLShape | TLUser | TLUserDocument | TLUserPresence;
