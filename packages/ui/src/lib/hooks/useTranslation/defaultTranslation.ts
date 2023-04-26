@@ -193,6 +193,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.frame': 'Frame',
 	'tool.note': 'Note',
 	'tool.embed': 'Embed',
+	'tool.peer-video': 'Stream video',
 	'tool.text': 'Text',
 	'menu.title': 'Menu',
 	'menu.copy-as': 'Copy as',

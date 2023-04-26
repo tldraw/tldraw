@@ -193,6 +193,7 @@ export type TLTranslationKey =
 	| 'tool.frame'
 	| 'tool.note'
 	| 'tool.embed'
+	| 'tool.peer-video'
 	| 'tool.text'
 	| 'menu.title'
 	| 'menu.copy-as'
