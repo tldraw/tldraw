@@ -6,6 +6,7 @@
 
 import { Atom } from 'signia';
 import { Computed } from 'signia';
+import { Signal } from 'signia';
 
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
@@ -31,7 +32,7 @@ export type CollectionDiff<T> = {
 export function compareRecordVersions(a: RecordVersion, b: RecordVersion): -1 | 0 | 1;
 
 // @public (undocumented)
-export const compareSchemas: (a: SerializedSchema, b: SerializedSchema) => number;
+export const compareSchemas: (a: SerializedSchema, b: SerializedSchema) => -1 | 0 | 1;
 
 // @public
 export type ComputedCache<Data, R extends BaseRecord> = {
@@ -42,6 +43,7 @@ export type ComputedCache<Data, R extends BaseRecord> = {
 export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
     validator: StoreValidator<R>;
+    scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public (undocumented)
@@ -158,6 +160,7 @@ export class RecordType<R extends BaseRecord, RequiredProperties extends keyof O
         readonly validator?: {
             validate: (r: unknown) => R;
         } | StoreValidator<R>;
+        readonly scope?: Scope;
     });
     clone(record: R): R;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
@@ -170,6 +173,8 @@ export class RecordType<R extends BaseRecord, RequiredProperties extends keyof O
     // (undocumented)
     readonly migrations: Migrations;
     parseId(id: string): ID<R>;
+    // (undocumented)
+    readonly scope: Scope;
     readonly typeName: R['typeName'];
     validate(record: unknown): R;
     // (undocumented)
@@ -274,6 +279,8 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
     // (undocumented)
     get currentStoreVersion(): number;
     // @internal (undocumented)
+    derivePresenceState(store: Store<R, P>): Signal<null | R> | undefined;
+    // @internal (undocumented)
     ensureStoreIsUsable(store: Store<R, P>): void;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
@@ -302,6 +309,7 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
         recordBefore: null | R;
     }) => R;
     ensureStoreIsUsable?: (store: Store<R, P>) => void;
+    derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
 };
 
 // @public

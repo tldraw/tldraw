@@ -172,6 +172,7 @@ describe('TLImageAsset AddIsAnimated', () => {
 
 const ShapeRecord = createRecordType('shape', {
 	validator: { validate: (record) => record as TLShape },
+	scope: 'document',
 })
 
 describe('Store removing Icon and Code shapes', () => {

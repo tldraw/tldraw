@@ -1,16 +1,13 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
-	ensureStoreIsUsable,
-	onValidationFailure,
-	rootShapeTypeMigrations,
-	storeMigrations,
 	TLAsset,
 	TLCamera,
-	TLDocument,
 	TLDOCUMENT_ID,
+	TLDocument,
 	TLInstance,
 	TLInstanceId,
 	TLInstancePageState,
+	TLInstancePresence,
 	TLPage,
 	TLRecord,
 	TLShape,
@@ -20,16 +17,21 @@ import {
 	TLUserDocument,
 	TLUserId,
 	TLUserPresence,
+	ensureStoreIsUsable,
+	onValidationFailure,
+	rootShapeTypeMigrations,
+	storeMigrations,
 } from '@tldraw/tlschema'
 import {
-	createRecordType,
-	defineMigrations,
 	RecordType,
 	Store,
 	StoreSchema,
 	StoreSnapshot,
+	createRecordType,
+	defineMigrations,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
+import { Signal, computed } from 'signia'
 import { TLArrowShapeDef } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkShapeDef } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TLDrawShapeDef } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
@@ -110,6 +112,7 @@ export class TldrawEditorConfig {
 		const shapeRecord = createRecordType<TLShape>('shape', {
 			migrations: shapeTypeMigrations,
 			validator: T.model('shape', shapeValidator),
+			scope: 'document',
 		}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 		this.TLShape = shapeRecord
 
@@ -125,11 +128,64 @@ export class TldrawEditorConfig {
 				user: TLUser,
 				user_document: TLUserDocument,
 				user_presence: TLUserPresence,
+				instance_presence: TLInstancePresence,
 			},
 			{
 				snapshotMigrations: storeMigrations,
 				onValidationFailure,
 				ensureStoreIsUsable,
+				derivePresenceState: (store): Signal<TLInstancePresence | null> => {
+					const $instance = store.query.record('instance', () => ({
+						id: { eq: store.props.instanceId },
+					}))
+					const $user = store.query.record('user', () => ({ id: { eq: store.props.userId } }))
+					const $userPresence = store.query.record('user_presence', () => ({
+						userId: { eq: store.props.userId },
+					}))
+					const $pageState = store.query.record('instance_page_state', () => ({
+						instanceId: { eq: store.props.instanceId },
+						pageId: { eq: $instance.value?.currentPageId ?? ('' as any) },
+					}))
+					const $camera = store.query.record('camera', () => ({
+						id: { eq: $pageState.value?.cameraId ?? ('' as any) },
+					}))
+					return computed('instancePresence', () => {
+						const pageState = $pageState.value
+						const instance = $instance.value
+						const user = $user.value
+						const userPresence = $userPresence.value
+						const camera = $camera.value
+						if (!pageState || !instance || !user || !userPresence || !camera) {
+							return null
+						}
+
+						return TLInstancePresence.create({
+							id: TLInstancePresence.createCustomId(store.props.instanceId),
+							instanceId: store.props.instanceId,
+							selectedIds: pageState.selectedIds,
+							brush: instance.brush,
+							scribble: instance.scribble,
+							userId: store.props.userId,
+							userName: user.name,
+							followingUserId: instance.followingUserId,
+							camera: {
+								x: camera.x,
+								y: camera.y,
+								z: camera.z,
+							},
+							color: userPresence.color,
+							currentPageId: instance.currentPageId,
+							cursor: {
+								x: userPresence.cursor.x,
+								y: userPresence.cursor.y,
+								rotation: instance.cursor.rotation,
+								type: instance.cursor.type,
+							},
+							lastActivityTimestamp: userPresence.lastActivityTimestamp,
+							screenBounds: instance.screenBounds,
+						})
+					})
+				},
 			}
 		)
 	}

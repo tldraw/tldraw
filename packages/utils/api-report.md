@@ -37,6 +37,13 @@ export type ErrorResult<E> = {
 // @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
+// @internal
+export function filterEntries<Key extends string, Value>(object: {
+    [K in Key]: Value;
+}, predicate: (key: Key, value: Value) => boolean): {
+    [K in Key]: Value;
+};
+
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
