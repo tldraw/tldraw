@@ -4172,7 +4172,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/jest@npm:^0.2.21, @swc/jest@npm:^0.2.24":
+"@swc/jest@npm:^0.2.21, @swc/jest@npm:^0.2.24, @swc/jest@npm:^0.2.26":
   version: 0.2.26
   resolution: "@swc/jest@npm:0.2.26"
   dependencies:
@@ -4327,6 +4327,7 @@ __metadata:
   resolution: "@tldraw/editor@workspace:packages/editor"
   dependencies:
     "@peculiar/webcrypto": ^1.4.0
+    "@swc/jest": ^0.2.26
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
     "@tldraw/primitives": "workspace:*"

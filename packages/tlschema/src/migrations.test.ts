@@ -635,6 +635,24 @@ describe('Add crop=null to image shapes', () => {
 	})
 })
 
+describe('Adding instance_presence to the schema', () => {
+	const { up, down } = storeMigrations.migrators[2]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({})
+	})
+	test('down works as expected', () => {
+		expect(
+			down({
+				'instance_presence:123': { id: 'instance_presence:123', typeName: 'instance_presence' },
+				'instance:123': { id: 'instance:123', typeName: 'instance' },
+			})
+		).toEqual({
+			'instance:123': { id: 'instance:123', typeName: 'instance' },
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {
