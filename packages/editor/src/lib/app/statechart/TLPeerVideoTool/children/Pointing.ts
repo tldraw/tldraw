@@ -1,120 +1,111 @@
-import { assert } from '@tldraw/utils'
-import { TLPeerVideoShapeDef } from '../../../shapeutils/TLPeerVideoUtil/TLPeerVideoUtil'
-import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
+import { Box2d } from '@tldraw/primitives'
+import { TLPeerVideoShape, createShapeId } from '@tldraw/tlschema'
+import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	dragged = false
-
-	info = {} as TLPointerEventInfo
-
-	wasFocusedOnEnter = false
-
-	markPointId = 'creating'
-
-	onEnter = () => {
-		this.wasFocusedOnEnter = !this.app.isMenuOpen
-	}
-
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.app.inputs.isDragging) {
-			this.app.mark(this.markPointId)
-			const shape = this.createShape()
-			if (!shape) return
+			const { originPagePoint } = this.app.inputs
 
-			this.app.setSelectedTool('select.translating', {
-				...info,
-				target: 'shape',
-				shape,
-				isCreating: true,
-				editAfterComplete: true,
-				onInteractionEnd: 'note',
-			})
-		}
-	}
+			const id = createShapeId()
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.complete()
-	}
+			this.app.mark('creating')
 
-	onInterrupt: TLInterruptEvent = () => {
-		this.cancel()
-	}
-
-	onComplete: TLEventHandlers['onComplete'] = () => {
-		this.complete()
-	}
-
-	onCancel: TLEventHandlers['onCancel'] = () => {
-		this.cancel()
-	}
-
-	private complete() {
-		if (!this.wasFocusedOnEnter) {
-			return
-		}
-
-		this.app.mark(this.markPointId)
-		const shape = this.createShape()
-
-		if (this.app.instanceState.isToolLocked) {
-			this.parent.transition('idle', {})
-		} else {
-			if (!shape) return
-
-			this.app.setEditingId(shape.id)
-			this.app.setSelectedTool('select.editing_shape', {
-				...this.info,
-				target: 'shape',
-				shape,
-			})
-		}
-	}
-
-	private cancel() {
-		this.app.bailToMark(this.markPointId)
-		this.parent.transition('idle', this.info)
-	}
-
-	private createShape() {
-		const {
-			inputs: { originPagePoint },
-		} = this.app
-
-		const id = this.app.createShapeId()
-
-		this.app.createShapes(
-			[
+			this.app.createShapes([
 				{
 					id,
 					type: 'peer-video',
 					x: originPagePoint.x,
 					y: originPagePoint.y,
 					props: {
+						w: 1,
+						h: 1,
 						userId: this.app.user.id,
 					},
 				},
-			],
-			true
-		)
+			])
 
-		const util = this.app.getShapeUtilByDef(TLPeerVideoShapeDef)
-		const shape = this.app.getShapeById(id)!
-		assert(TLPeerVideoShapeDef.is(shape))
-		const bounds = util.bounds(shape)
+			this.app.select(id)
+			this.app.setSelectedTool('select.resizing', {
+				...info,
+				target: 'selection',
+				handle: 'bottom_right',
+				isCreating: true,
+				creationCursorOffset: { x: 1, y: 1 },
+				onInteractionEnd: 'peer-video',
+			})
+		}
+	}
 
-		// Center the text around the created point
-		this.app.updateShapes([
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.complete()
+	}
+
+	override onCancel: TLEventHandlers['onCancel'] = () => {
+		this.cancel()
+	}
+
+	override onComplete: TLEventHandlers['onComplete'] = () => {
+		this.complete()
+	}
+
+	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+		this.cancel()
+	}
+
+	complete() {
+		const { originPagePoint } = this.app.inputs
+
+		const id = createShapeId()
+
+		this.app.mark('creating')
+
+		this.app.createShapes([
 			{
 				id,
 				type: 'peer-video',
-				x: shape.x - bounds.width / 2,
-				y: shape.y - bounds.height / 2,
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+				props: {
+					w: 1,
+					h: 1,
+					userId: this.app.user.id,
+				},
 			},
 		])
 
-		return this.app.getShapeById(id)
+		const shape = this.app.getShapeById<TLPeerVideoShape>(id)!
+		if (!shape) return
+
+		const bounds = new Box2d(0, 0, 200, 200)
+		const delta = this.app.getDeltaInParentSpace(shape, bounds.center)
+
+		this.app.select(id)
+		this.app.updateShapes([
+			{
+				id: shape.id,
+				type: 'peer-video',
+				x: shape.x - delta.x,
+				y: shape.y - delta.y,
+				props: {
+					w: bounds.width,
+					h: bounds.height,
+					userId: this.app.user.id,
+				},
+			},
+		])
+
+		if (this.app.instanceState.isToolLocked) {
+			this.parent.transition('idle', {})
+		} else {
+			this.app.setSelectedTool('select', {})
+		}
+	}
+
+	cancel() {
+		this.parent.transition('idle', {})
 	}
 }

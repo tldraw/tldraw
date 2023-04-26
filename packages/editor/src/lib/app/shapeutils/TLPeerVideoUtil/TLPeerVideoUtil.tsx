@@ -11,6 +11,7 @@ import { track } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { useApp } from '../../../hooks/useApp'
+import { stopEventPropagation } from '../../../utils/dom'
 import { TLBoxUtil } from '../TLBoxUtil'
 
 /** @public */
@@ -95,8 +96,26 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 			const run = async () => {
 				stream = await navigator.mediaDevices.getUserMedia({
 					video: true,
+					// audio: true,
 				})
+
 				if (cancelled) return
+				const { aspectRatio } = stream.getVideoTracks()[0].getSettings()
+				if (aspectRatio) {
+					const oldShape = app.getShapeById(shape.id) as TLPeerVideoShape
+					if (oldShape) {
+						app.updateShapes([
+							{
+								...oldShape,
+								props: {
+									...oldShape.props,
+									h: oldShape.props.w / aspectRatio,
+								},
+							},
+						])
+					}
+				}
+
 				setMyMediaStream(stream)
 
 				videoEl.srcObject = stream
@@ -113,7 +132,7 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 				}
 			}
 		}
-	}, [peer, rVideo, myUserId, shapeUserId])
+	}, [app, peer, rVideo, myUserId, shapeUserId])
 
 	React.useEffect(() => {
 		if (!peer) return
@@ -162,6 +181,25 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 		}
 	}, [peer, myUserId, shapeUserId, myMediaStream])
 
+	const onPnP = () => {
+		if (document.pictureInPictureElement) {
+			document.exitPictureInPicture()
+		} else if (rVideo.current && document.pictureInPictureEnabled) {
+			rVideo.current.requestPictureInPicture()
+		}
+	}
+
+	const [isPnP, setIsPnP] = React.useState(false)
+
+	React.useEffect(() => {
+		rVideo.current.addEventListener('enterpictureinpicture', () => {
+			setIsPnP(true)
+		})
+		rVideo.current.addEventListener('leavepictureinpicture', () => {
+			setIsPnP(false)
+		})
+	}, [])
+
 	return (
 		<>
 			<HTMLContainer id={shape.id}>
@@ -174,17 +212,21 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 					}}
 				>
 					<video ref={rVideo} style={{ width: '100%', height: '100%' }} />
-					<div
+					<button
+						onPointerDown={stopEventPropagation}
+						onPointerUp={stopEventPropagation}
 						style={{
+							display: 'none',
 							position: 'absolute',
-							top: 0,
-							left: 0,
-							zIndex: 999,
-							background: 'white',
+							bottom: 10,
+							right: 10,
+							pointerEvents: 'all',
+							WebkitTouchCallout: 'initial',
 						}}
+						onClick={onPnP}
 					>
-						{myUserId}
-					</div>
+						{isPnP ? 'EX' : 'PP'}
+					</button>
 				</div>
 			</HTMLContainer>
 		</>
