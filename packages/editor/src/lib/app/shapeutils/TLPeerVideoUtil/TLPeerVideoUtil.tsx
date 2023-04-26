@@ -1,6 +1,7 @@
 import { toDomPrecision } from '@tldraw/primitives'
 import {
 	TLPeerVideoShape,
+	TLUserPresence,
 	peerVideoShapeMigrations,
 	peerVideoShapeTypeValidator,
 } from '@tldraw/tlschema'
@@ -54,7 +55,7 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 	shape: TLPeerVideoShape
 	videoUtil: TLPeerVideoUtil
 }) {
-	const { shape, videoUtil } = props
+	const { shape } = props
 	const app = useApp()
 
 	const presencesQuery = React.useMemo(() => {
@@ -62,24 +63,37 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 	}, [app])
 
 	const presences = presencesQuery.value
+	const rPresences = React.useRef<TLUserPresence[]>([])
+	rPresences.current = presences
 
 	const rVideo = React.useRef<HTMLVideoElement>(null!)
+	const [peer, setPeer] = React.useState<Peer | null>(null)
 
-	const peer = React.useMemo(() => {
-		return new Peer(shape.id)
-	}, [shape.id])
+	const slugify = (str?: string) => {
+		return str?.replace(/:/g, '-') ?? 'unknown'
+	}
+	const myUserId = slugify(app.user.id)
+	const shapeUserId = slugify(shape.props.userId)
 
-	const shapeUserId = shape.props.userId
-	const myUserId = app.user.id
+	React.useEffect(() => {
+		const peer = new Peer(myUserId)
+		setPeer(peer)
+
+		return () => {
+			peer.destroy()
+		}
+	}, [myUserId])
 
 	const [myMediaStream, setMyMediaStream] = React.useState<MediaStream | null>(null)
 
 	React.useEffect(() => {
+		if (!peer) return
 		if (myUserId === shapeUserId) {
 			const videoEl = rVideo.current
 			let cancelled = false
+			let stream: MediaStream
 			const run = async () => {
-				const stream = await navigator.mediaDevices.getUserMedia({
+				stream = await navigator.mediaDevices.getUserMedia({
 					video: true,
 				})
 				if (cancelled) return
@@ -94,40 +108,59 @@ const TLPeerVideoUtilComponent = track(function TLPeerVideoUtilComponent(props: 
 			return () => {
 				cancelled = true
 				videoEl.srcObject = null
+				if (stream) {
+					stream.getVideoTracks().forEach((track) => track.stop())
+				}
 			}
 		}
-	}, [rVideo, myUserId, shapeUserId])
+	}, [peer, rVideo, myUserId, shapeUserId])
 
 	React.useEffect(() => {
+		if (!peer) return
+
 		if (myUserId === shapeUserId) {
 			if (!myMediaStream) return
 
 			// Share my mediasteam
-			const userIds = presences.map((p) => p.userId)
-
+			const userIds = rPresences.current.map((p) => slugify(p.userId))
 			const calls = userIds.map((userId) => {
+				peer.connect(userId)
 				return peer.call(userId, myMediaStream)
 			})
 
 			return () => {
-				calls.forEach((call) => call.close())
+				calls.forEach((call) => call?.close())
 			}
-		} else {
+		}
+	}, [peer, myUserId, shapeUserId, myMediaStream])
+
+	React.useEffect(() => {
+		if (!peer) return
+
+		if (myUserId !== shapeUserId) {
+			const videoEl = rVideo.current
+			let stream: MediaStream
 			const handler = (call: MediaConnection) => {
 				call.answer()
-
 				call.on('stream', function (mediasteam) {
-					setMyMediaStream(mediasteam)
+					stream = mediasteam
+					videoEl.srcObject = stream
+					videoEl.onloadedmetadata = () => {
+						videoEl.play()
+					}
 				})
 			}
+
 			peer.on('call', handler)
 			return () => {
 				peer.off('call', handler)
+				videoEl.srcObject = null
+				if (stream) {
+					stream.getVideoTracks().forEach((track) => track.stop())
+				}
 			}
 		}
-	}, [myUserId, shapeUserId, presences, peer, myMediaStream])
-
-	console.log('peer[%s]=', shape.props.userId, peer)
+	}, [peer, myUserId, shapeUserId, myMediaStream])
 
 	return (
 		<>
