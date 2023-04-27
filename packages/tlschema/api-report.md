@@ -1011,7 +1011,7 @@ export const TLInstancePageState: RecordType<TLInstancePageState, "cameraId" | "
 // @public (undocumented)
 export type TLInstancePageStateId = ID<TLInstancePageState>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
     // (undocumented)
     brush: Box2dModel | null;
@@ -1033,6 +1033,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
         rotation: number;
     };
     // (undocumented)
+    followingUserId: null | TLUserId;
+    // (undocumented)
     instanceId: TLInstanceId;
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1048,8 +1050,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
     userName: string;
 }
 
-// @public (undocumented)
-export const TLInstancePresence: RecordType<TLInstancePresence, "brush" | "camera" | "color" | "currentPageId" | "cursor" | "instanceId" | "lastActivityTimestamp" | "screenBounds" | "scribble" | "selectedIds" | "userId" | "userName">;
+// @internal (undocumented)
+export const TLInstancePresence: RecordType<TLInstancePresence, "brush" | "camera" | "color" | "currentPageId" | "cursor" | "followingUserId" | "instanceId" | "lastActivityTimestamp" | "screenBounds" | "scribble" | "selectedIds" | "userId" | "userName">;
 
 // @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
@@ -1117,6 +1119,8 @@ export type TLPageId = ID<TLPage>;
 // @public (undocumented)
 export type TLParentId = TLPageId | TLShapeId;
 
+// Warning: (ae-incompatible-release-tags) The symbol "TLRecord" is marked as @public, but its signature references "TLInstancePresence" which is marked as @internal
+//
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLShape | TLUser | TLUserDocument | TLUserPresence;
 

@@ -31,6 +31,7 @@ import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
+import { Signal } from 'signia';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StoreValidator } from '@tldraw/tlstore';
@@ -62,6 +63,7 @@ import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstanceId } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
+import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
 import { TLLineShape } from '@tldraw/tlschema';
 import { TLNoteShape } from '@tldraw/tlschema';
@@ -1797,10 +1799,11 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor({ shapes, tools, allowUnknownShapes, }: {
+    constructor({ shapes, tools, allowUnknownShapes, derivePresenceState, }: {
         shapes?: readonly TLShapeDef<any, any>[];
         tools?: readonly StateNodeConstructor[];
         allowUnknownShapes?: boolean;
+        derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
     });
     // (undocumented)
     createStore(config: {
