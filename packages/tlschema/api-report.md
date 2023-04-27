@@ -1012,6 +1012,48 @@ export const TLInstancePageState: RecordType<TLInstancePageState, "cameraId" | "
 export type TLInstancePageStateId = ID<TLInstancePageState>;
 
 // @public (undocumented)
+export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
+    // (undocumented)
+    brush: Box2dModel | null;
+    // (undocumented)
+    camera: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    cursor: {
+        x: number;
+        y: number;
+        type: TLCursor['type'];
+        rotation: number;
+    };
+    // (undocumented)
+    followingUserId: null | TLUserId;
+    // (undocumented)
+    instanceId: TLInstanceId;
+    // (undocumented)
+    lastActivityTimestamp: number;
+    // (undocumented)
+    screenBounds: Box2dModel;
+    // (undocumented)
+    scribble: null | TLScribble;
+    // (undocumented)
+    selectedIds: TLShapeId[];
+    // (undocumented)
+    userId: TLUserId;
+    // (undocumented)
+    userName: string;
+}
+
+// @public (undocumented)
+export const TLInstancePresence: RecordType<TLInstancePresence, "brush" | "camera" | "color" | "currentPageId" | "cursor" | "followingUserId" | "instanceId" | "lastActivityTimestamp" | "screenBounds" | "scribble" | "selectedIds" | "userId" | "userName">;
+
+// @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
 
 // @public (undocumented)
@@ -1078,7 +1120,7 @@ export type TLPageId = ID<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public (undocumented)
-export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLPage | TLShape | TLUser | TLUserDocument | TLUserPresence;
+export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLShape | TLUser | TLUserDocument | TLUserPresence;
 
 // @public (undocumented)
 export type TLScribble = {

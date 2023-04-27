@@ -87,8 +87,8 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.34.1",
-		"@swc/core": "^1.3.41",
-		"@swc/jest": "^0.2.24",
+		"@swc/core": "^1.3.55",
+		"@swc/jest": "^0.2.26",
 		"@types/glob": "^8.1.0",
 		"auto": "^10.44.0",
 		"fs-extra": "^11.1.0",

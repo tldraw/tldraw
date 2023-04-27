@@ -59,6 +59,7 @@ export {
 	instancePageStateTypeValidator,
 	type TLInstancePageStateId,
 } from './records/TLInstancePageState'
+export { TLInstancePresence } from './records/TLInstancePresence'
 export { TLPage, pageTypeMigrations, pageTypeValidator, type TLPageId } from './records/TLPage'
 export {
 	createCustomShapeId,

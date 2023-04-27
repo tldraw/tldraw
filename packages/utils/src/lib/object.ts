@@ -87,3 +87,24 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }): Array<[Key, Value]> {
 	return Object.entries(object) as [Key, Value][]
 }
+
+/**
+ * Filters an object using a predicate function.
+ * @returns a new object with only the entries that pass the predicate
+ * @internal
+ */
+export function filterEntries<Key extends string, Value>(
+	object: { [K in Key]: Value },
+	predicate: (key: Key, value: Value) => boolean
+): { [K in Key]: Value } {
+	const result: { [K in Key]?: Value } = {}
+	let didChange = false
+	for (const [key, value] of objectMapEntries(object)) {
+		if (predicate(key, value)) {
+			result[key] = value
+		} else {
+			didChange = true
+		}
+	}
+	return didChange ? (result as { [K in Key]: Value }) : object
+}

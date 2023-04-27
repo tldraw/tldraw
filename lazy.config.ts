@@ -49,11 +49,10 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 			cache: {
 				inputs: {
 					include: [
-						'{.,./bublic}/packages/*/src/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,scripts,e2e}/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,packages}/*/tsconfig.json',
-						'{.,./bublic}/{scripts,e2e}/tsconfig.json',
-						`${bublic}/config/tsconfig.base.json`,
+						'{,bublic/}packages/*/src/**/*.{ts,tsx}',
+						'{,bublic/}{apps,scripts,e2e}/**/*.{ts,tsx}',
+						'{,bublic/}{apps,packages}/*/tsconfig.json',
+						'{,bublic/}{scripts,e2e}/tsconfig.json',
 					],
 					exclude: ['**/dist*/**/*.d.ts'],
 				},
@@ -95,7 +94,7 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
 			runsAfter: { 'build:api': {} },
 			cache: {
-				inputs: ['**/api/bublic.d.ts'],
+				inputs: [`${bublic}/packages/*/api/public.d.ts`],
 			},
 		},
 	} satisfies LazyConfig['tasks']

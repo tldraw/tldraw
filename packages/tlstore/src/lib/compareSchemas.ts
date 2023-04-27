@@ -1,7 +1,7 @@
 import { SerializedSchema } from './StoreSchema'
 
 /** @public */
-export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): number => {
+export const compareSchemas = (a: SerializedSchema, b: SerializedSchema): 0 | 1 | -1 => {
 	if (a.schemaVersion > b.schemaVersion) {
 		return 1
 	}

@@ -766,15 +766,4 @@ class HistoryAccumulator<T extends BaseRecord> {
 	hasChanges() {
 		return this._history.length > 0
 	}
-
-	/**
-	 * Ensure that the store is usable. A class that extends this store should override this method.
-	 *
-	 * @param config - The configuration object. This can be any object that allows the store to
-	 *   validate that it is usable; the extending class should specify the type.
-	 * @public
-	 */
-	ensureStoreIsUsable(_config = {} as any): void {
-		return
-	}
 }
