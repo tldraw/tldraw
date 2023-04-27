@@ -23,19 +23,17 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	lines?: VecLike[][]
 }) {
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
-	let innerPathData = getRoundedInkyPolygonInnerPath(polygonPoints)
 	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
 	if (lines) {
 		for (const [A, B] of lines) {
-			innerPathData += `M${A.x},${A.y}L${B.x},${B.y}`
 			strokePathData += `M${A.x},${A.y}L${B.x},${B.y}`
 		}
 	}
 
 	return (
 		<>
-			<ShapeFill d={innerPathData} fill={fill} color={color} />
+			<ShapeFill d={strokePathData} fill={fill} color={color} />
 			<path d={strokePathData} stroke="currentColor" strokeWidth={strokeWidth} fill="none" />
 		</>
 	)
