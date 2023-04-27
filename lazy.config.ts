@@ -49,11 +49,10 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 			cache: {
 				inputs: {
 					include: [
-						'{.,./bublic}/packages/*/src/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,scripts,e2e}/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,packages}/*/tsconfig.json',
-						'{.,./bublic}/{scripts,e2e}/tsconfig.json',
-						`${bublic}/config/tsconfig.base.json`,
+						'{,bublic/}packages/*/src/**/*.{ts,tsx}',
+						'{,bublic/}{apps,scripts,e2e}/**/*.{ts,tsx}',
+						'{,bublic/}{apps,packages}/*/tsconfig.json',
+						'{,bublic/}{scripts,e2e}/tsconfig.json',
 					],
 					exclude: ['**/dist*/**/*.d.ts'],
 				},
