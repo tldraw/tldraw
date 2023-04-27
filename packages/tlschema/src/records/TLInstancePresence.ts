@@ -82,7 +82,7 @@ export const userPresenceTypeMigrations = defineMigrations({
 	},
 })
 
-/** @public */
+/** @internal */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
 	migrations: userPresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,

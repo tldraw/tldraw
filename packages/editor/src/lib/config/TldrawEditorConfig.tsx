@@ -81,6 +81,7 @@ export class TldrawEditorConfig {
 		shapes?: readonly TLShapeDef<any, any>[]
 		tools?: readonly StateNodeConstructor[]
 		allowUnknownShapes?: boolean
+		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}) {
 		this.tools = tools
@@ -163,6 +164,7 @@ export class TldrawEditorConfig {
 	}
 }
 
+/** @internal */
 export const defaultDerivePresenceState = (store: TLStore): Signal<TLInstancePresence | null> => {
 	const $instance = store.query.record('instance', () => ({
 		id: { eq: store.props.instanceId },
