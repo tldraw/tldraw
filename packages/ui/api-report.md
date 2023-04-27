@@ -311,7 +311,7 @@ export type EmbedInfo = {
 export const EN_TRANSLATION: TLTranslation;
 
 // @public (undocumented)
-export function fetchTranslation(localeFullString: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
+export function fetchTranslation(locale: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
 
 // @public (undocumented)
 export function findMenuItem(menu: MenuSchema, path: string[]): MenuChild;
@@ -326,7 +326,7 @@ function Footer({ className, children }: {
 export const getBaseUrl: () => string;
 
 // @public (undocumented)
-export function getTranslation(localeFullString: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
+export function getTranslation(locale: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
 
 // @public (undocumented)
 function Group({ children, size, }: {
