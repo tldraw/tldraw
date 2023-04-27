@@ -1,9 +1,9 @@
-import { TLTranslationLocale, getDefaultTranslationLocale } from './translations'
+import { getDefaultTranslationLocale } from './translation'
 
 type DefaultLanguageTest = {
 	name: string
 	input: string[]
-	output: TLTranslationLocale
+	output: string
 }
 
 describe('Choosing a sensible default translation locale', () => {
