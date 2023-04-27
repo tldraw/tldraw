@@ -86,7 +86,8 @@ export async function fetchTranslation(
 	}
 
 	return {
-		...language,
+		locale,
+		label: language.label,
 		messages: { ...EN_TRANSLATION.messages, ...messages },
 	}
 }
