@@ -42,6 +42,6 @@
 		"core-js": "^3.27.2"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.22"
+		"lazyrepo": "0.0.0-canary.4eec64a"
 	}
 }

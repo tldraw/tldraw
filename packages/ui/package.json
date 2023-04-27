@@ -77,7 +77,7 @@
 		"gzip-size": "^7.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",
-		"lazyrepo": "0.0.0-alpha.22",
+		"lazyrepo": "0.0.0-canary.4eec64a",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {
