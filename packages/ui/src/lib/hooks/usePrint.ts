@@ -1,14 +1,16 @@
-import { uniqueId, useApp } from '@tldraw/editor'
+import { uniqueId, useApp, useUiEvents } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 
 /** @public */
 export function usePrint() {
 	const app = useApp()
+	const uiEvent = useUiEvents()
 	const prevPrintEl = useRef<HTMLDivElement | null>(null)
 	const prevStyleEl = useRef<HTMLStyleElement | null>(null)
 
 	return useCallback(
 		async function printSelectionOrPages() {
+			uiEvent('print:attempted')
 			const el = document.createElement('div')
 			const style = document.createElement('style')
 
@@ -212,6 +214,6 @@ export function usePrint() {
 			window.removeEventListener('beforeprint', beforePrintHandler)
 			window.removeEventListener('afterprint', afterPrintHandler)
 		},
-		[app]
+		[app, uiEvent]
 	)
 }

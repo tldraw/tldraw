@@ -173,6 +173,7 @@ export { useContainer } from './lib/hooks/useContainer'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
+export { useUiEvents } from './lib/hooks/useUiEvents'
 export { useUrlState } from './lib/hooks/useUrlState'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {

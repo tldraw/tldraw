@@ -1837,6 +1837,8 @@ export interface TldrawEditorProps {
         description: string;
     }>;
     onMount?: (app: App) => void;
+    // (undocumented)
+    onUiEvent?: (event: any) => void;
     store?: SyncedStore | TLStore;
     userId?: TLUserId;
 }
@@ -2655,6 +2657,9 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
+
+// @public (undocumented)
+export const useUiEvents: () => UiEventHandler;
 
 // @public (undocumented)
 export function useUrlState(changeUrl: (params: Params) => void): void;
