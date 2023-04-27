@@ -42,6 +42,20 @@ export const EN_TRANSLATION: TLTranslation = {
 	messages: DEFAULT_TRANSLATION as TLTranslationMessages,
 }
 
+/* @internal */
+export function getDefaultTranslationLocale(
+	languages = window.navigator.languages
+): TLTranslationLocale {
+	// TODO
+	return getSupportedLocale(languages[0])
+}
+
+/* @internal */
+function getSupportedLocale(language: string): TLTranslationLocale {
+	// TODO
+	return 'en'
+}
+
 /** @public */
 export async function fetchTranslation(
 	localeFullString: TLTranslationLocale,
