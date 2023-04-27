@@ -1,6 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { LANGUAGES } from '../languages'
+import { getDefaultTranslationLocale } from '../translation'
 import { userIdValidator } from '../validation'
 
 /**
@@ -49,15 +49,12 @@ export const TLUser = createRecordType<TLUser>('user', {
 	migrations: userTypeMigrations,
 	validator: userTypeValidator,
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
-	let lang
+	let locale = 'en'
 	if (typeof window !== 'undefined' && window.navigator) {
-		const availLocales = LANGUAGES.map(({ locale }) => locale) as string[]
-		lang = window.navigator.languages.find(
-			(lang) => availLocales.indexOf(lang.split(/[-_]/)[0]) > -1
-		)
+		locale = getDefaultTranslationLocale(window.navigator.languages)
 	}
 	return {
 		name: 'New User',
-		locale: lang ?? 'en-US',
+		locale,
 	}
 })
