@@ -51,7 +51,7 @@ export function getDefaultTranslationLocale(
 }
 
 /* @internal */
-function getSupportedLocale(language: string): TLTranslationLocale {
+function getSupportedLocale(_language: string): TLTranslationLocale {
 	// TODO
 	return 'en'
 }
