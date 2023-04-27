@@ -94,7 +94,7 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
 			runsAfter: { 'build:api': {} },
 			cache: {
-				inputs: ['**/api/bublic.d.ts'],
+				inputs: [`${bublic}/packages/*/api/public.d.ts`],
 			},
 		},
 	} satisfies LazyConfig['tasks']

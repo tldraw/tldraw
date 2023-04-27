@@ -73,18 +73,19 @@ export class TldrawEditorConfig {
 	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
 	readonly tools: readonly StateNodeConstructor[]
 
-	constructor({
-		shapes = [],
-		tools = [],
-		allowUnknownShapes = false,
-		derivePresenceState = defaultDerivePresenceState,
-	}: {
+	constructor(args: {
 		shapes?: readonly TLShapeDef<any, any>[]
 		tools?: readonly StateNodeConstructor[]
 		allowUnknownShapes?: boolean
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}) {
+		const {
+			shapes = [],
+			tools = [],
+			allowUnknownShapes = false,
+			derivePresenceState = defaultDerivePresenceState,
+		} = args
 		this.tools = tools
 
 		const allShapeDefs = [...CORE_SHAPE_DEFS(), ...shapes]

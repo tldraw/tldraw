@@ -1799,7 +1799,7 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor({ shapes, tools, allowUnknownShapes, derivePresenceState, }: {
+    constructor(args: {
         shapes?: readonly TLShapeDef<any, any>[];
         tools?: readonly StateNodeConstructor[];
         allowUnknownShapes?: boolean;

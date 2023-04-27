@@ -8,7 +8,7 @@ import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 import { TLUserId } from './TLUser'
 
-/** @internal */
+/** @public */
 export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
 	instanceId: TLInstanceId
 	userId: TLUserId
@@ -30,11 +30,11 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
 	}
 }
 
-/** @internal */
+/** @public */
 export type TLInstancePresenceID = ID<TLInstancePresence>
 
 // --- VALIDATION ---
-/** @internal */
+/** @public */
 export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.model(
 	'instance_presence',
 	T.object({
@@ -72,7 +72,6 @@ const Versions = {
 	Initial: 0,
 } as const
 
-/** @internal */
 export const userPresenceTypeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.Initial,
@@ -82,7 +81,7 @@ export const userPresenceTypeMigrations = defineMigrations({
 	},
 })
 
-/** @internal */
+/** @public */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
 	migrations: userPresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,
