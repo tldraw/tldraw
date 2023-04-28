@@ -24,8 +24,10 @@ export function filterValue(item: string | number) {
 
 export function filterObject(obj: Record<string, any>, fn: (item: any) => any) {
 	const out: Record<string, any> = {}
-	for (const key of Object.keys(obj)) {
-		out[key] = fn(obj[key])
+	for (const [key, value] of Object.entries(obj)) {
+		if (filterValue(key) !== REDACTED_VALUE) {
+			out[key] = fn(value)
+		}
 	}
 	return out
 }

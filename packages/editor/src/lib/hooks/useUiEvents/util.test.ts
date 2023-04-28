@@ -25,7 +25,7 @@ describe('filterSensitiveData', () => {
 		expect(output3).toEqual(input3)
 	})
 
-	it('object', () => {
+	it('object values', () => {
 		const input1 = {
 			foo: 'user:foo',
 			bar: {
@@ -72,6 +72,31 @@ describe('filterSensitiveData', () => {
 			seven: 0,
 			eight: -1,
 			nine: 1,
+		})
+	})
+
+	it('object keys', () => {
+		const input1 = {
+			'user:foo': { one: 1 },
+			bar: {
+				baz: {
+					'user:baz': { two: 2 },
+					hello: 'hi',
+				},
+				'user:baz': {
+					three: 3,
+				},
+			},
+			test: 'hello',
+		}
+		const output1 = filterSensitiveData(input1)
+		expect(output1).toEqual({
+			bar: {
+				baz: {
+					hello: 'hi',
+				},
+			},
+			test: 'hello',
 		})
 	})
 
