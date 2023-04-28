@@ -1,59 +1,107 @@
 {
-  "style.menu.color": "Renk",
-  "style.menu.fill": "Doldur",
-  "style.menu.dash": "Çizgi",
-  "style.menu.size": "Boyut",
-  "style.menu.keep.open": "Açık Tut",
-  "style.menu.font": "Yazı Tipi",
-  "style.menu.align": "Hizala",
+  "style": {
+    "menu": {
+      "color": "Renk",
+      "fill": "Doldur",
+      "dash": "Çizgi",
+      "size": "Boyut",
+      "keep": {
+        "open": "Açık Tut"
+      },
+      "font": "Yazı Tipi",
+      "align": "Hizala"
+    }
+  },
   "styles": "Stiller",
-  "zoom.in": "Yakınlaştır",
-  "zoom.out": "Uzaklaştır",
+  "zoom": {
+    "in": "Yakınlaştır",
+    "out": "Uzaklaştır",
+    "to": "Yakınlaştır"
+  },
   "to": "",
-  "menu.file": "Dosya",
-  "menu.edit": "Düzenle",
-  "menu.view": "Görüntü",
-  "menu.preferences": "Tercihler",
-  "menu.sign.in": "Giriş Yap",
-  "menu.sign.out": "Oturumu Kapat",
-  "become.a.sponsor": "Sponsor Ol",
-  "zoom.to.selection": "Seçime Yakınlaştır",
-  "zoom.to.fit": "Sığdırmak için Yakınlaştır",
-  "zoom.to": "Yakınlaştır",
-  "preferences.dark.mode": "Karanlık Mod",
-  "preferences.focus.mode": "Odak Modu",
-  "preferences.debug.mode": "Debug Modu",
-  "preferences.show.grid": "Izgarayı Göster",
-  "preferences.use.cad.selection": "CAD Seçimi Kullan",
-  "preferences.keep.stylemenu.open": "Stil Menüsünü Açık Tut",
-  "preferences.always.show.snaps": "Hiza Çizgilerini Hep Göster",
-  "preferences.rotate.handles": "Rotasyon Kontrolcüleri",
-  "preferences.binding.handles": "Bağlama Kontrolcüleri",
-  "preferences.clone.handles": "Klon Kontrolcüleri",
+  "menu": {
+    "file": "Dosya",
+    "edit": "Düzenle",
+    "view": "Görüntü",
+    "preferences": "Tercihler",
+    "sign": {
+      "in": "Giriş Yap",
+      "out": "Oturumu Kapat"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Sponsor Ol"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Karanlık Mod"
+    },
+    "focus": {
+      "mode": "Odak Modu"
+    },
+    "debug": {
+      "mode": "Debug Modu"
+    },
+    "show": {
+      "grid": "Izgarayı Göster"
+    },
+    "use": {
+      "cad": {
+        "selection": "CAD Seçimi Kullan"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Stil Menüsünü Açık Tut"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Hiza Çizgilerini Hep Göster"
+      }
+    },
+    "rotate": {
+      "handles": "Rotasyon Kontrolcüleri"
+    },
+    "binding": {
+      "handles": "Bağlama Kontrolcüleri"
+    },
+    "clone": {
+      "handles": "Klon Kontrolcüleri"
+    }
+  },
   "undo": "Geri Al",
   "redo": "Yinele",
   "cut": "Kes",
   "copy": "Kopyala",
   "paste": "Yapıştır",
-  "copy.as": "Olarak Kopyala",
-  "export.as": "Olarak Dışarı Aktar",
-  "select.all": "Hepsini Seç",
-  "select.none": "Hiçbirini Seçme",
+  "export": {
+    "as": "Olarak Dışarı Aktar"
+  },
+  "select": "Seç",
   "delete": "Sil",
-  "new.project": "Yeni Proje",
+  "new": {
+    "project": "Yeni Proje",
+    "page": "Yeni Sayfa"
+  },
   "open": "Aç",
   "save": "Kaydet",
-  "save.as": "Farklı Kaydet",
-  "upload.media": "Medya Yükle",
-  "create.page": "Sayfa Oluştur",
-  "new.page": "Yeni Sayfa",
-  "page.name": "Sayfa İsmi",
+  "upload": {
+    "media": "Medya Yükle"
+  },
+  "create": {
+    "page": "Sayfa Oluştur",
+    "multiplayer": {
+      "project": "Çok Oyunculu Proje Oluştur"
+    }
+  },
+  "page": {
+    "name": "Sayfa İsmi"
+  },
   "duplicate": "Kopya Oluştur",
   "cancel": "İptal",
-  "copy.invite.link": "Davet Linkini Kopyala",
-  "create.multiplayer.project": "Çok Oyunculu Proje Oluştur",
-  "copy.multiplayer.project": "Çok Oyunculu Projeye Kopyala",
-  "select": "Seç",
   "eraser": "Silgi",
   "draw": "Çizim",
   "arrow": "Ok",
@@ -64,22 +112,18 @@
   "triangle": "Üçgen",
   "line": "Çizgi",
   "rotate": "Döndür",
-  "lock.aspect.ratio": "En Boy Oranını Kilitle",
-  "unlock.aspect.ratio": "En Boy Oranı Kilidini Aç",
-  "group": "Grupla",
-  "ungroup": "Gruplamayı Kaldır",
-  "move.to.back": "Arkaya Taşı",
-  "move.backward": "En Arkaya Taşı",
-  "move.forward": "En Öne Taşı",
-  "move.to.front": "Öne Taşı",
-  "reset.angle": "Açıyı Sıfırla",
   "lock": "Kilitle",
   "unlock": "Kilidini Aç",
-  "move.to.page": "Sayfaya Taşı",
-  "flip.horizontal": "Yatay Çevir",
-  "flip.vertical": "Dikey Çevir",
+  "group": "Grupla",
+  "ungroup": "Gruplamayı Kaldır",
   "move": "Taşı",
-  "to.front": "Öne",
+  "reset": {
+    "angle": "Açıyı Sıfırla"
+  },
+  "flip": {
+    "horizontal": "Yatay Çevir",
+    "vertical": "Dikey Çevir"
+  },
   "forward": "En Öne",
   "backward": "En Arkaya",
   "back": "Arkaya",

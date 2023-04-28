@@ -1,59 +1,107 @@
 {
-  "style.menu.color": "Farge",
-  "style.menu.fill": "Fyll",
-  "style.menu.dash": "Linje",
-  "style.menu.size": "Størrelse",
-  "style.menu.keep.open": "Hold åpen",
-  "style.menu.font": "Teksttype",
-  "style.menu.align": "Juster",
+  "style": {
+    "menu": {
+      "color": "Farge",
+      "fill": "Fyll",
+      "dash": "Linje",
+      "size": "Størrelse",
+      "keep": {
+        "open": "Hold åpen"
+      },
+      "font": "Teksttype",
+      "align": "Juster"
+    }
+  },
   "styles": "Stiler",
-  "zoom.in": "Zoom inn",
-  "zoom.out": "Zoom ut",
+  "zoom": {
+    "in": "Zoom inn",
+    "out": "Zoom ut",
+    "to": "Zoom til"
+  },
   "to": "til",
-  "menu.file": "Fil",
-  "menu.edit": "Rediger",
-  "menu.view": "Vis",
-  "menu.preferences": "Preferanser",
-  "menu.sign.in": "Logg inn",
-  "menu.sign.out": "Logg ut",
-  "become.a.sponsor": "Bli en sponsor",
-  "zoom.to.selection": "Zoom til valg",
-  "zoom.to.fit": "Zoom for å passe",
-  "zoom.to": "Zoom til",
-  "preferences.dark.mode": "Mørk modus",
-  "preferences.focus.mode": "Fokus modus",
-  "preferences.debug.mode": "Debug modus",
-  "preferences.show.grid": "Vis rutenett",
-  "preferences.use.cad.selection": "Bruk CAD seleksjon",
-  "preferences.keep.stylemenu.open": "Hold stilmeny åpen",
-  "preferences.always.show.snaps": "Vis alltid snaps",
-  "preferences.rotate.handles": "Vis roteringshåndtak",
-  "preferences.binding.handles": "Vis bindingshåndtak",
-  "preferences.clone.handles": "Vis kloningshåndtak",
+  "menu": {
+    "file": "Fil",
+    "edit": "Rediger",
+    "view": "Vis",
+    "preferences": "Preferanser",
+    "sign": {
+      "in": "Logg inn",
+      "out": "Logg ut"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Bli en sponsor"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Mørk modus"
+    },
+    "focus": {
+      "mode": "Fokus modus"
+    },
+    "debug": {
+      "mode": "Debug modus"
+    },
+    "show": {
+      "grid": "Vis rutenett"
+    },
+    "use": {
+      "cad": {
+        "selection": "Bruk CAD seleksjon"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Hold stilmeny åpen"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Vis alltid snaps"
+      }
+    },
+    "rotate": {
+      "handles": "Vis roteringshåndtak"
+    },
+    "binding": {
+      "handles": "Vis bindingshåndtak"
+    },
+    "clone": {
+      "handles": "Vis kloningshåndtak"
+    }
+  },
   "undo": "Angre",
   "redo": "Gjør om",
   "cut": "Klipp ut",
   "copy": "Kopier",
   "paste": "Lim inn",
-  "copy.as": "Kopier som",
-  "export.as": "Eksporter som",
-  "select.all": "Velg alle",
-  "select.none": "Velg ingen",
+  "export": {
+    "as": "Eksporter som"
+  },
+  "select": "Velg",
   "delete": "Slett",
-  "new.project": "Nytt prosjekt",
+  "new": {
+    "project": "Nytt prosjekt",
+    "page": "Ny side"
+  },
   "open": "Åpne",
   "save": "Lagre",
-  "save.as": "Lagre som",
-  "upload.media": "Last opp media",
-  "create.page": "Opprett side",
-  "new.page": "Ny side",
-  "page.name": "Sidenavn",
+  "upload": {
+    "media": "Last opp media"
+  },
+  "create": {
+    "page": "Opprett side",
+    "multiplayer": {
+      "project": "Opprett et flerspiller prosjekt"
+    }
+  },
+  "page": {
+    "name": "Sidenavn"
+  },
   "duplicate": "Dupliser",
   "cancel": "Avbryt",
-  "copy.invite.link": "Kopier invitasjonslink",
-  "create.multiplayer.project": "Opprett et flerspiller prosjekt",
-  "copy.multiplayer.project": "Kopier til flerspiller prosjekt",
-  "select": "Velg",
   "eraser": "Viskelær",
   "draw": "Tegn",
   "arrow": "Pil",
@@ -64,22 +112,18 @@
   "triangle": "Trekant",
   "line": "Linje",
   "rotate": "Roter",
-  "lock.aspect.ratio": "Lås størrelsesforhold",
-  "unlock.aspect.ratio": "Lås opp størrelsesforhold",
-  "group": "Grupper",
-  "ungroup": "Avgrupper",
-  "move.to.back": "Flytt bakerst",
-  "move.backward": "Flytt bakover",
-  "move.forward": "Flytt forover",
-  "move.to.front": "Flytt til front",
-  "reset.angle": "Tilbakestill vinkel",
   "lock": "Lås",
   "unlock": "Lås opp",
-  "move.to.page": "Flytt til side",
-  "flip.horizontal": "Snu horisontalt",
-  "flip.vertical": "Snu vertikalt",
+  "group": "Grupper",
+  "ungroup": "Avgrupper",
   "move": "Flytt",
-  "to.front": "Foran",
+  "reset": {
+    "angle": "Tilbakestill vinkel"
+  },
+  "flip": {
+    "horizontal": "Snu horisontalt",
+    "vertical": "Snu vertikalt"
+  },
   "forward": "Framover",
   "backward": "Bakover",
   "back": "Bakerst",

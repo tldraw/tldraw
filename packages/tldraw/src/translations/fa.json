@@ -1,65 +1,112 @@
 {
-  "style.menu.color": "رنگ",
-  "style.menu.fill": "توپُر",
-  "style.menu.dash": "خط‌چین",
-  "style.menu.size": "اندازه",
-  "style.menu.keep.open": "باز نگه‌داشتن",
-  "style.menu.font": "قلم",
-  "style.menu.align": "تراز",
+  "style": {
+    "menu": {
+      "color": "رنگ",
+      "fill": "توپُر",
+      "dash": "خط‌چین",
+      "size": "اندازه",
+      "keep": {
+        "open": "باز نگه‌داشتن"
+      },
+      "font": "قلم",
+      "align": "تراز"
+    }
+  },
   "styles": "سبک‌ها",
-  "zoom.in": "بزرگ‌نمایی",
-  "zoom.out": "کوچک‌نمایی",
+  "zoom": {
+    "in": "بزرگ‌نمایی",
+    "out": "کوچک‌نمایی",
+    "to": "بزرگ‌نمایی به"
+  },
   "to": "به",
-  "menu.tools": "ابزارها",
-  "menu.transform": "تغییر شکل",
-  "menu.file": "پرونده",
-  "menu.edit": "ویرایش",
-  "menu.view": "نمایش",
-  "menu.preferences": "ترجیحات",
-  "menu.sign.in": "ورود",
-  "menu.sign.out": "خروج",
-  "become.a.sponsor": "حمایت‌کننده شوید",
-  "zoom.to.content": "بازگشت به محتوا",
-  "zoom.to.selection": "بزرگ‌نمایی به ناحیه انتخاب‌شده",
-  "zoom.to.fit": "بزرگ‌نمایی متناسب با صفحه",
-  "zoom.to": "بزرگ‌نمایی به",
-  "preferences.dark.mode": "حالت تاریک",
-  "preferences.focus.mode": "حالت تمرکز",
-  "preferences.debug.mode": "حالت عیب‌یابی",
-  "preferences.show.grid": "نمایش خطوط راهنما",
-  "preferences.use.cad.selection": "استفاده از حالت انتخاب CAD",
-  "preferences.keep.stylemenu.open": "باز نگه‌داشتن منوی سبک‌ها",
-  "preferences.always.show.snaps": "همیشه نقاط چسبان را نشان بده",
-  "preferences.rotate.handles": "دستگیره‌های چرخش",
-  "preferences.binding.handles": "دستگیره‌های اتصال‌دهنده",
-  "preferences.clone.handles": "دستگیره‌های تکثیر",
+  "menu": {
+    "tools": "ابزارها",
+    "transform": "تغییر شکل",
+    "file": "پرونده",
+    "edit": "ویرایش",
+    "view": "نمایش",
+    "preferences": "ترجیحات",
+    "sign": {
+      "in": "ورود",
+      "out": "خروج"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "حمایت‌کننده شوید"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "حالت تاریک"
+    },
+    "focus": {
+      "mode": "حالت تمرکز"
+    },
+    "debug": {
+      "mode": "حالت عیب‌یابی"
+    },
+    "show": {
+      "grid": "نمایش خطوط راهنما"
+    },
+    "use": {
+      "cad": {
+        "selection": "استفاده از حالت انتخاب CAD"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "باز نگه‌داشتن منوی سبک‌ها"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "همیشه نقاط چسبان را نشان بده"
+      }
+    },
+    "rotate": {
+      "handles": "دستگیره‌های چرخش"
+    },
+    "binding": {
+      "handles": "دستگیره‌های اتصال‌دهنده"
+    },
+    "clone": {
+      "handles": "دستگیره‌های تکثیر"
+    }
+  },
   "undo": "واگردانی",
   "redo": "انجام دوباره",
   "cut": "بریدن",
   "copy": "کپی",
   "paste": "جای‌گذاری",
-  "copy.as": "کپی به‌عنوان",
-  "export.as": "خروجی‌گرفتن به‌عنوان",
-  "select.all": "انتخاب همه",
-  "select.none": "انتخاب هیچ‌یک",
+  "export": {
+    "as": "خروجی‌گرفتن به‌عنوان",
+    "background": "خروجی‌گرفتن پس‌زمینه"
+  },
+  "select": "انتخاب",
   "delete": "حذف",
-  "new.project": "پروژه جدید",
+  "new": {
+    "project": "پروژه جدید",
+    "page": "برگه جدید"
+  },
   "open": "بازکردن",
   "save": "ذخیره",
-  "save.as": "ذخیره به‌عنوان",
-  "upload.media": "بارگذاری رسانه",
-  "create.page": "ایجاد برگه",
-  "new.page": "برگه جدید",
-  "page.name": "نام برگه",
+  "upload": {
+    "media": "بارگذاری رسانه"
+  },
+  "create": {
+    "page": "ایجاد برگه",
+    "multiplayer": {
+      "project": "ایجاد یک پروژه چندنفره"
+    }
+  },
+  "page": "برگه",
   "duplicate": "تکثیرکردن",
-  "shape.options": "گزینه‌های شکل",
+  "shape": {
+    "options": "گزینه‌های شکل"
+  },
   "shapes": "شکل‌ها",
   "cancel": "لغو",
-  "copy.invite.link": "کپی‌کردن پیوند دعوت",
-  "copy.readonly.link": "کپی‌کردن پیوند غیرقابل ویرایش",
-  "create.multiplayer.project": "ایجاد یک پروژه چندنفره",
-  "copy.multiplayer.project": "کپی به پروژه چندنفره",
-  "select": "انتخاب",
   "eraser": "پاک‌کن",
   "draw": "رسم",
   "arrow": "فِلِش",
@@ -70,38 +117,48 @@
   "triangle": "سه‌گوش",
   "line": "خط",
   "rotate": "چرخاندن",
-  "lock.aspect.ratio": "قفل‌کردن نسبت ابعاد",
-  "unlock.aspect.ratio": "اجازه تغییر نسبت ابعاد",
-  "group": "گروه‌بندی",
-  "ungroup": "لغو گروه‌بندی",
-  "move.to.back": "انتقال به عقب",
-  "move.backward": "انتقال به سمت عقب",
-  "move.forward": "انتقال به سمت جلو",
-  "move.to.front": "انتقال به جلو",
-  "reset.angle": "بازنشانی زاویه",
   "lock": "قفل",
   "unlock": "بازکردن قفل",
-  "align.distribute": "تراز / پخش‌کردن",
-  "move.to.page": "انتقال به برگه",
-  "flip.horizontal": "وارونه‌سازی افقی",
-  "flip.vertical": "وارونه‌سازی عمودی",
+  "group": "گروه‌بندی",
+  "ungroup": "لغو گروه‌بندی",
   "move": "حرکت‌دادن",
-  "to.front": "به جلو",
+  "reset": {
+    "angle": "بازنشانی زاویه"
+  },
+  "align": {
+    "distribute": "تراز / پخش‌کردن",
+    "left": "تراز به چپ",
+    "center": {
+      "x": "تراز به مرکز افقی",
+      "y": "تراز به مرکز عمودی"
+    },
+    "right": "تراز به راست",
+    "top": "تراز به بالا",
+    "bottom": "تراز به پایین"
+  },
+  "flip": {
+    "horizontal": "وارونه‌سازی افقی",
+    "vertical": "وارونه‌سازی عمودی"
+  },
   "forward": "به سمت جلو",
   "backward": "به سمت عقب",
   "back": "به عقب",
   "language": "زبان",
-  "translation.link": "یادگیری بیشتر",
-  "dock.position": "موقعیت نوار ابزار",
+  "translation": {
+    "link": "یادگیری بیشتر"
+  },
+  "dock": {
+    "position": "موقعیت نوار ابزار"
+  },
   "bottom": "پایین",
   "left": "چپ",
   "right": "راست",
   "top": "بالا",
-  "page": "برگه",
-  "keyboard.shortcuts": "میان‌برهای صفحه‌کلید",
+  "keyboard": {
+    "shortcuts": "میان‌برهای صفحه‌کلید"
+  },
   "search": "جستجو",
   "loading": "بارگیری{dots}",
-  "export.background": "خروجی‌گرفتن پس‌زمینه",
   "transparent": "شفاف",
   "auto": "خودکار",
   "light": "روشن",
@@ -110,22 +167,28 @@
   "twitter": "توییتر",
   "discord": "دیسکورد",
   "image": "تصویر",
-  "align.left": "تراز به چپ",
-  "align.center.x": "تراز به مرکز افقی",
-  "align.right": "تراز به راست",
-  "align.top": "تراز به بالا",
-  "align.center.y": "تراز به مرکز عمودی",
-  "align.bottom": "تراز به پایین",
-  "distribute.x": "پخش‌کردن افقی",
-  "distribute.y": "پخش‌کردن عمودی",
-  "stretch.x": "کش‌آوردن افقی",
-  "stretch.y": "کش‌آوردن عمودی",
-  "dialog.save.firsttime": "آیا می‌خواهید پروژه فعلی خود را ذخیره کنید؟",
-  "dialog.save.again": "آیا می‌خواهید که تغییرات را در پروژه فعلی خود ذخیره کنید؟",
-  "dialog.cancel": "لغو",
-  "dialog.no": "خیر",
-  "dialog.yes": "بله",
-  "enter.file.name": "نام پرونده را وارد کنید",
+  "distribute": {
+    "x": "پخش‌کردن افقی",
+    "y": "پخش‌کردن عمودی"
+  },
+  "stretch": {
+    "x": "کش‌آوردن افقی",
+    "y": "کش‌آوردن عمودی"
+  },
+  "dialog": {
+    "save": {
+      "firsttime": "آیا می‌خواهید پروژه فعلی خود را ذخیره کنید؟",
+      "again": "آیا می‌خواهید که تغییرات را در پروژه فعلی خود ذخیره کنید؟"
+    },
+    "cancel": "لغو",
+    "no": "خیر",
+    "yes": "بله"
+  },
+  "enter": {
+    "file": {
+      "name": "نام پرونده را وارد کنید"
+    }
+  },
   "tldraw-beta": "امتحان‌کردن tldraw جدید",
   "white": "سفید",
   "lightGray": "خاکستری روشن",

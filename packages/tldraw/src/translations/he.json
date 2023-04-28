@@ -1,59 +1,107 @@
 {
-  "style.menu.color": "צבע",
-  "style.menu.fill": "מלא",
-  "style.menu.dash": "גבול",
-  "style.menu.size": "גודל",
-  "style.menu.keep.open": "השאר פתוח",
-  "style.menu.font": "גופן",
-  "style.menu.align": "יישור",
+  "style": {
+    "menu": {
+      "color": "צבע",
+      "fill": "מלא",
+      "dash": "גבול",
+      "size": "גודל",
+      "keep": {
+        "open": "השאר פתוח"
+      },
+      "font": "גופן",
+      "align": "יישור"
+    }
+  },
   "styles": "עיצוב",
-  "zoom.in": "הגדל תצוגה",
-  "zoom.out": "הקטן תצוגה",
+  "zoom": {
+    "in": "הגדל תצוגה",
+    "out": "הקטן תצוגה",
+    "to": "זום ל"
+  },
   "to": "ל",
-  "menu.file": "קובץ",
-  "menu.edit": "עריכה",
-  "menu.view": "תצוגה",
-  "menu.preferences": "מאפיינים",
-  "menu.sign.in": "הירשם",
-  "menu.sign.out": "התנתק",
-  "become.a.sponsor": "מתן חסות",
-  "zoom.to.selection": "זום לבחירה",
-  "zoom.to.fit": "זום להתאמה",
-  "zoom.to": "זום ל",
-  "preferences.dark.mode": "מצב חשוך",
-  "preferences.focus.mode": "מצב פוקוס",
-  "preferences.debug.mode": "מצב דיבאג",
-  "preferences.show.grid": "(גריד)הראה רשת עימוד",
-  "preferences.use.cad.selection": "סימון CAD",
-  "preferences.keep.stylemenu.open": "השאר תפריט עיצוב פתוח",
-  "preferences.always.show.snaps": "הראה קווי מתאר",
-  "preferences.rotate.handles": "הראה ידיות סיבוב",
-  "preferences.binding.handles": "הראה ידיות קשירה",
-  "preferences.clone.handles": "הראה ידיות שיכפול",
+  "menu": {
+    "file": "קובץ",
+    "edit": "עריכה",
+    "view": "תצוגה",
+    "preferences": "מאפיינים",
+    "sign": {
+      "in": "הירשם",
+      "out": "התנתק"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "מתן חסות"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "מצב חשוך"
+    },
+    "focus": {
+      "mode": "מצב פוקוס"
+    },
+    "debug": {
+      "mode": "מצב דיבאג"
+    },
+    "show": {
+      "grid": "(גריד)הראה רשת עימוד"
+    },
+    "use": {
+      "cad": {
+        "selection": "סימון CAD"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "השאר תפריט עיצוב פתוח"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "הראה קווי מתאר"
+      }
+    },
+    "rotate": {
+      "handles": "הראה ידיות סיבוב"
+    },
+    "binding": {
+      "handles": "הראה ידיות קשירה"
+    },
+    "clone": {
+      "handles": "הראה ידיות שיכפול"
+    }
+  },
   "undo": "בטל",
   "redo": "עשה מחדש",
   "cut": "גזור",
   "copy": "העתק",
   "paste": "הדבק",
-  "copy.as": "העתק כ",
-  "export.as": "ייצא כ",
-  "select.all": "בחר הכל",
-  "select.none": "בטל בחירה",
+  "export": {
+    "as": "ייצא כ"
+  },
+  "select": "סמן",
   "delete": "מחק",
-  "new.project": "פרויקט חדש",
+  "new": {
+    "project": "פרויקט חדש",
+    "page": "דף חדש"
+  },
   "open": "פתח",
   "save": "שמור",
-  "save.as": "שמור כ",
-  "upload.media": "העלאת מדיה",
-  "create.page": "צור דף",
-  "new.page": "דף חדש",
-  "page.name": "שם הדף",
+  "upload": {
+    "media": "העלאת מדיה"
+  },
+  "create": {
+    "page": "צור דף",
+    "multiplayer": {
+      "project": "צור פרויקט רב משתתפים"
+    }
+  },
+  "page": {
+    "name": "שם הדף"
+  },
   "duplicate": "שכפל",
   "cancel": "בטל",
-  "copy.invite.link": "העתק קישור הזמנה",
-  "create.multiplayer.project": "צור פרויקט רב משתתפים",
-  "copy.multiplayer.project": "העתק לפרויקט רב משתתפים",
-  "select": "סמן",
   "eraser": "מחק",
   "draw": "צייר",
   "arrow": "חץ",
@@ -64,22 +112,18 @@
   "triangle": "משולש",
   "line": "קו",
   "rotate": "סובב",
-  "lock.aspect.ratio": "נעל יחס רוחב-גובה",
-  "unlock.aspect.ratio": "שחרר נעילת יחס רוחב-גובה",
-  "group": "קבץ",
-  "ungroup": "בטל קיבוץ",
-  "move.to.back": "הבא לתחתית",
-  "move.backward": "הזז אחורה",
-  "move.forward": "הזז קדימה",
-  "move.to.front": "הבא לחזית",
-  "reset.angle": "אפס זווית",
   "lock": "נעל",
   "unlock": "שחרר נעילה",
-  "move.to.page": "הזז לדף",
-  "flip.horizontal": "הפוך אופקית",
-  "flip.vertical": "הפוך אנכית",
+  "group": "קבץ",
+  "ungroup": "בטל קיבוץ",
   "move": "הזז",
-  "to.front": "הבא לקדימה",
+  "reset": {
+    "angle": "אפס זווית"
+  },
+  "flip": {
+    "horizontal": "הפוך אופקית",
+    "vertical": "הפוך אנכית"
+  },
   "forward": "קדימה",
   "backward": "אחורה",
   "back": "בחזרה",

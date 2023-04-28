@@ -1,65 +1,112 @@
 {
-  "style.menu.color": "Farbe",
-  "style.menu.fill": "Füllen",
-  "style.menu.dash": "Strich",
-  "style.menu.size": "Größe",
-  "style.menu.keep.open": "Offen halten",
-  "style.menu.font": "Schriftart",
-  "style.menu.align": "Ausrichten",
+  "style": {
+    "menu": {
+      "color": "Farbe",
+      "fill": "Füllen",
+      "dash": "Strich",
+      "size": "Größe",
+      "keep": {
+        "open": "Offen halten"
+      },
+      "font": "Schriftart",
+      "align": "Ausrichten"
+    }
+  },
   "styles": "Stile",
-  "zoom.in": "Heranzoomen",
-  "zoom.out": "Herauszoomen",
+  "zoom": {
+    "in": "Heranzoomen",
+    "out": "Herauszoomen",
+    "to": "Zoomen nach"
+  },
   "to": "zu",
-  "menu.tools": "Werkzeuge",	
-  "menu.transform": "Transformieren",
-  "menu.file": "Datei",
-  "menu.edit": "Bearbeiten",
-  "menu.view": "Ansicht",
-  "menu.preferences": "Präferenzen",
-  "menu.sign.in": "Einloggen",
-  "menu.sign.out": "Ausloggen",
-  "become.a.sponsor": "Sponsor werden",
-  "zoom.to.content": "Zurück zum Inhalt",	
-  "zoom.to.selection": "Zur Auswahl zoomen",
-  "zoom.to.fit": "Zoom anpassen",
-  "zoom.to": "Zoomen nach",
-  "preferences.dark.mode": "Dunkler Modus",
-  "preferences.focus.mode": "Fokus Modus",
-  "preferences.debug.mode": "Debug Modus",
-  "preferences.show.grid": "Gitter anzeigen",
-  "preferences.use.cad.selection": "CAD Auswahl verwenden",
-  "preferences.keep.stylemenu.open": "Stilmenü offen halten",
-  "preferences.always.show.snaps": "Hilfslinien immer anzeigen",
-  "preferences.rotate.handles": "Rotiergriffe",
-  "preferences.binding.handles": "Bindegriffe",
-  "preferences.clone.handles": "Klongriffe",
+  "menu": {
+    "tools": "Werkzeuge",
+    "transform": "Transformieren",
+    "file": "Datei",
+    "edit": "Bearbeiten",
+    "view": "Ansicht",
+    "preferences": "Präferenzen",
+    "sign": {
+      "in": "Einloggen",
+      "out": "Ausloggen"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Sponsor werden"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Dunkler Modus"
+    },
+    "focus": {
+      "mode": "Fokus Modus"
+    },
+    "debug": {
+      "mode": "Debug Modus"
+    },
+    "show": {
+      "grid": "Gitter anzeigen"
+    },
+    "use": {
+      "cad": {
+        "selection": "CAD Auswahl verwenden"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Stilmenü offen halten"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Hilfslinien immer anzeigen"
+      }
+    },
+    "rotate": {
+      "handles": "Rotiergriffe"
+    },
+    "binding": {
+      "handles": "Bindegriffe"
+    },
+    "clone": {
+      "handles": "Klongriffe"
+    }
+  },
   "undo": "Rückgängig machen",
   "redo": "Wiederherstellen",
   "cut": "Ausschneiden",
   "copy": "Kopieren",
   "paste": "Einfügen",
-  "copy.as": "Kopieren als",
-  "export.as": "Exportieren als",
-  "select.all": "Alles auswählen",
-  "select.none": "Nichts auswählen",
+  "export": {
+    "as": "Exportieren als",
+    "background": "Hintergrund Exportieren"
+  },
+  "select": "Auswählen",
   "delete": "Löschen",
-  "new.project": "Neues Projekt",
+  "new": {
+    "project": "Neues Projekt",
+    "page": "Neue Seite"
+  },
   "open": "Öffnen",
   "save": "Speichern",
-  "save.as": "Speichern als",
-  "upload.media": "Medien hochladen",
-  "create.page": "Seite erstellen",
-  "new.page": "Neue Seite",
-  "page.name": "Seitenname",
+  "upload": {
+    "media": "Medien hochladen"
+  },
+  "create": {
+    "page": "Seite erstellen",
+    "multiplayer": {
+      "project": "Geteiltes Projekt erstellen"
+    }
+  },
+  "page": "Seite",
   "duplicate": "Duplizieren",
-  "shape.options": "Form Optionen",	
-  "shapes": "Fromen",
+  "shape": {
+    "options": "Form Optionen"
+  },
+  "shapes": "Formen",
   "cancel": "Abbrechen",
-  "copy.invite.link": "Einladungslink kopieren",
-  "copy.readonly.link": "Schreibgeschützten Link kopieren",
-  "create.multiplayer.project": "Geteiltes Projekt erstellen",
-  "copy.multiplayer.project": "In ein Geteiltes Projekt kopieren",
-  "select": "Auswählen",
   "eraser": "Radierer",
   "draw": "Malen",
   "arrow": "Pfeil",
@@ -70,79 +117,95 @@
   "triangle": "Dreieck",
   "line": "Linie",
   "rotate": "Drehen",
-  "lock.aspect.ratio": "Seitenverhältnis sperren",
-  "unlock.aspect.ratio": "Seitenverhältnis entsperren",
-  "group": "Gruppieren",
-  "ungroup": "Gruppierung aufheben",
-  "move.to.back": "Nach Hinten verschieben",
-  "move.backward": "Rückwärts schieben",
-  "move.forward": "Vorwärts schieben",
-  "move.to.front": "Nach Vorne verschieben",
-  "reset.angle": "Winkel zurücksetzen",
   "lock": "Sperren",
   "unlock": "Entsperren",
-  "align.distribute": "Ausrichten / Verteilen",
-  "move.to.page": "Zu Seite verschieben",
-  "flip.horizontal": "Horizontal spiegeln",
-  "flip.vertical": "Vertikal spiegeln",
+  "group": "Gruppieren",
+  "ungroup": "Gruppierung aufheben",
   "move": "Verschieben",
-  "to.front": "Nach Vorne",
+  "reset": {
+    "angle": "Winkel zurücksetzen"
+  },
+  "align": {
+    "distribute": "Ausrichten / Verteilen",
+    "left": "Links ausrichten",
+    "center": {
+      "x": "Horizontal mittig ausrichten",
+      "y": "Vertikal mittig ausrichten"
+    },
+    "right": "Rechts ausrichten",
+    "top": "Oben ausrichten",
+    "bottom": "Unten ausrichten"
+  },
+  "flip": {
+    "horizontal": "Horizontal spiegeln",
+    "vertical": "Vertikal spiegeln"
+  },
   "forward": "Vorwärts",
   "backward": "Rückwärts",
   "back": "Hinten",
   "language": "Sprache",
-  "translation.link": "Mehr erfahren",	
-  "dock.position": "Dock Position",	
-  "bottom": "Unten",	
-  "left": "Links",	
-  "right": "Rechts",	
-  "top": "Oben",	
-  "page": "Seite",	
-  "keyboard.shortcuts": "Tastaturkurzbefehle",	
-  "search": "Suche",	
-  "loading": "Laden{dots}",	
-  "export.background": "Hintergrund Exportieren",	
-  "transparent": "Transparent",	
-  "auto": "Auto",	
-  "light": "Hell",	
-  "dark": "Dunkel",	
-  "github": "Github",	
-  "twitter": "Twitter",	
-  "discord": "Discord",	
-  "image": "Bild",	
-  "align.left": "Links ausrichten",	
-  "align.center.x": "Horizontal mittig ausrichten",	
-  "align.right": "Rechts ausrichten",	
-  "align.top": "Oben ausrichten",	
-  "align.center.y": "Vertikal mittig ausrichten",	
-  "align.bottom": "Unten ausrichten",	
-  "distribute.x": "Horizontal verteilen",	
-  "distribute.y": "Vertikal verteilen",	
-  "stretch.x": "Horizontal strecken",	
-  "stretch.y": "Vertikal strecken",	
-  "dialog.save.firsttime": "Möchten Sie Ihr aktuelles Projekt speichern?",	
-  "dialog.save.again": "Möchten Sie die Änderungen an Ihrem aktuellen Projekt speichern?",	
-  "dialog.cancel": "Abbrechen",	
-  "dialog.no": "Nein",	
-  "dialog.yes": "Ja",	
-  "enter.file.name": "Dateiname eingeben",	
-  "tldraw-beta": "Probieren Sie das neue tldraw",	
-  "white": "Weiß",	
-  "lightGray": "hellgrau",	
-  "gray": "Frau",	
-  "black": "Schwarz",	
-  "green": "Grün",	
-  "cyan": "Cyan",	
-  "blue": "Blau",	
-  "indigo": "Indigo",	
-  "violet": "Violett",	
-  "red": "Rot",	
-  "orange": "Orange",	
-  "yellow": "Gelb",	
-  "solid": "Durchgehend",	
-  "dashed": "Gestrichelt",	
-  "dotted": "Gepunktet",	
-  "small": "Klein",	
-  "medium": "Mittel",	
+  "translation": {
+    "link": "Mehr erfahren"
+  },
+  "dock": {
+    "position": "Dock Position"
+  },
+  "bottom": "Unten",
+  "left": "Links",
+  "right": "Rechts",
+  "top": "Oben",
+  "keyboard": {
+    "shortcuts": "Tastaturkurzbefehle"
+  },
+  "search": "Suche",
+  "loading": "Laden{dots}",
+  "transparent": "Transparent",
+  "auto": "Auto",
+  "light": "Hell",
+  "dark": "Dunkel",
+  "github": "Github",
+  "twitter": "Twitter",
+  "discord": "Discord",
+  "image": "Bild",
+  "distribute": {
+    "x": "Horizontal verteilen",
+    "y": "Vertikal verteilen"
+  },
+  "stretch": {
+    "x": "Horizontal strecken",
+    "y": "Vertikal strecken"
+  },
+  "dialog": {
+    "save": {
+      "firsttime": "Möchten Sie Ihr aktuelles Projekt speichern?",
+      "again": "Möchten Sie die Änderungen an Ihrem aktuellen Projekt speichern?"
+    },
+    "cancel": "Abbrechen",
+    "no": "Nein",
+    "yes": "Ja"
+  },
+  "enter": {
+    "file": {
+      "name": "Dateiname eingeben"
+    }
+  },
+  "tldraw-beta": "Probieren Sie das neue tldraw",
+  "white": "Weiß",
+  "lightGray": "hellgrau",
+  "gray": "Frau",
+  "black": "Schwarz",
+  "green": "Grün",
+  "cyan": "Cyan",
+  "blue": "Blau",
+  "indigo": "Indigo",
+  "violet": "Violett",
+  "red": "Rot",
+  "orange": "Orange",
+  "yellow": "Gelb",
+  "solid": "Durchgehend",
+  "dashed": "Gestrichelt",
+  "dotted": "Gepunktet",
+  "small": "Klein",
+  "medium": "Mittel",
   "large": "Groß"
 }

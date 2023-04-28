@@ -1,59 +1,107 @@
 {
-  "style.menu.color": "Cor",
-  "style.menu.fill": "Preencher",
-  "style.menu.dash": "Traço",
-  "style.menu.size": "Tamanho",
-  "style.menu.keep.open": "Manter aberto",
-  "style.menu.font": "Fonte",
-  "style.menu.align": "Alinhamento",
+  "style": {
+    "menu": {
+      "color": "Cor",
+      "fill": "Preencher",
+      "dash": "Traço",
+      "size": "Tamanho",
+      "keep": {
+        "open": "Manter aberto"
+      },
+      "font": "Fonte",
+      "align": "Alinhamento"
+    }
+  },
   "styles": "Estilos",
-  "zoom.in": "Aumentar zoom",
-  "zoom.out": "Diminuir zoom",
+  "zoom": {
+    "in": "Aumentar zoom",
+    "out": "Diminuir zoom",
+    "to": "Zoom para"
+  },
   "to": "para",
-  "menu.file": "Ficheiro",
-  "menu.edit": "Editar",
-  "menu.view": "Visualizar",
-  "menu.preferences": "Preferências",
-  "menu.sign.in": "Entrar",
-  "menu.sign.out": "Sair",
-  "become.a.sponsor": "Torne-se um patrocinador",
-  "zoom.to.selection": "Zoom na seleção",
-  "zoom.to.fit": "Zoom para caber",
-  "zoom.to": "Zoom para",
-  "preferences.dark.mode": "Modo Escuro",
-  "preferences.focus.mode": "Modo Foco",
-  "preferences.debug.mode": "Modo Debug",
-  "preferences.show.grid": "Mostrar Grelha",
-  "preferences.use.cad.selection": "Usar seleção CAD",
-  "preferences.keep.stylemenu.open": "Manter Menu de Estilos Aberto",
-  "preferences.always.show.snaps": "Mostrar Pontos de Ajuste",
-  "preferences.rotate.handles": "Controlo de Rotação",
-  "preferences.binding.handles": "Controlo de Binds",
-  "preferences.clone.handles": "Controlo de Clone",
+  "menu": {
+    "file": "Ficheiro",
+    "edit": "Editar",
+    "view": "Visualizar",
+    "preferences": "Preferências",
+    "sign": {
+      "in": "Entrar",
+      "out": "Sair"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Torne-se um patrocinador"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Modo Escuro"
+    },
+    "focus": {
+      "mode": "Modo Foco"
+    },
+    "debug": {
+      "mode": "Modo Debug"
+    },
+    "show": {
+      "grid": "Mostrar Grelha"
+    },
+    "use": {
+      "cad": {
+        "selection": "Usar seleção CAD"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Manter Menu de Estilos Aberto"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Mostrar Pontos de Ajuste"
+      }
+    },
+    "rotate": {
+      "handles": "Controlo de Rotação"
+    },
+    "binding": {
+      "handles": "Controlo de Binds"
+    },
+    "clone": {
+      "handles": "Controlo de Clone"
+    }
+  },
   "undo": "Desfazer",
   "redo": "Refazer",
   "cut": "Cortar",
   "copy": "Copiar",
   "paste": "Colar",
-  "copy.as": "Copiar como",
-  "export.as": "Exportar como",
-  "select.all": "Selecionar todos",
-  "select.none": "Selecionar nenhum",
+  "export": {
+    "as": "Exportar como"
+  },
+  "select": "Selecionar",
   "delete": "Apagar",
-  "new.project": "Novo Projeto",
+  "new": {
+    "project": "Novo Projeto",
+    "page": "Nova Página"
+  },
   "open": "Abrir",
   "save": "Salvar",
-  "save.as": "Salvar Como",
-  "upload.media": "Upload Média",
-  "create.page": "Criar Página",
-  "new.page": "Nova Página",
-  "page.name": "Nome da Página",
+  "upload": {
+    "media": "Upload Média"
+  },
+  "create": {
+    "page": "Criar Página",
+    "multiplayer": {
+      "project": "Criar um Projeto Multi-Utilizador"
+    }
+  },
+  "page": {
+    "name": "Nome da Página"
+  },
   "duplicate": "Duplicar",
   "cancel": "Cancelar",
-  "copy.invite.link": "Copiar Link de Convite",
-  "create.multiplayer.project": "Criar um Projeto Multi-Utilizador",
-  "copy.multiplayer.project": "Copiar num Projeto Multi-Utilizador",
-  "select": "Selecionar",
   "eraser": "Borracha",
   "draw": "Desenhar",
   "arrow": "Seta",
@@ -64,22 +112,18 @@
   "triangle": "Triângulo",
   "line": "Linha",
   "rotate": "Rodar",
-  "lock.aspect.ratio": "Trancar a Proporção",
-  "unlock.aspect.ratio": "Destrancar a Proporção",
-  "group": "Agrupar",
-  "ungroup": "Desagrupar",
-  "move.to.back": "Colocar no Fundo",
-  "move.backward": "Mover abaixo",
-  "move.forward": "Mover acima",
-  "move.to.front": "Colocar à Frente",
-  "reset.angle": "Reiniciar Ângulo",
   "lock": "Trancar",
   "unlock": "Destrancar",
-  "move.to.page": "Mover para Página",
-  "flip.horizontal": "Inverter Horizontalmente",
-  "flip.vertical": "Inverter Verticalmente",
+  "group": "Agrupar",
+  "ungroup": "Desagrupar",
   "move": "Mover",
-  "to.front": "Para Frente",
+  "reset": {
+    "angle": "Reiniciar Ângulo"
+  },
+  "flip": {
+    "horizontal": "Inverter Horizontalmente",
+    "vertical": "Inverter Verticalmente"
+  },
   "forward": "Avançar",
   "backward": "Recuar",
   "back": "Voltar",

@@ -1,65 +1,112 @@
 {
-  "style.menu.color": "Color",
-  "style.menu.fill": "Fill",
-  "style.menu.dash": "Dash",
-  "style.menu.size": "Size",
-  "style.menu.keep.open": "Keep Open",
-  "style.menu.font": "Font",
-  "style.menu.align": "Align",
+  "style": {
+    "menu": {
+      "color": "Color",
+      "fill": "Fill",
+      "dash": "Dash",
+      "size": "Size",
+      "keep": {
+        "open": "Keep Open"
+      },
+      "font": "Font",
+      "align": "Align"
+    }
+  },
   "styles": "Styles",
-  "zoom.in": "Zoom In",
-  "zoom.out": "Zoom Out",
+  "zoom": {
+    "in": "Zoom In",
+    "out": "Zoom Out",
+    "to": "Zoom to"
+  },
   "to": "To",
-  "menu.tools": "Tools",
-  "menu.transform": "Transform",
-  "menu.file": "File",
-  "menu.edit": "Edit",
-  "menu.view": "View",
-  "menu.preferences": "Preferences",
-  "menu.sign.in": "Sign In",
-  "menu.sign.out": "Sign Out",
-  "become.a.sponsor": "Become a Sponsor",
-  "zoom.to.content": "Back to content",
-  "zoom.to.selection": "Zoom to Selection",
-  "zoom.to.fit": "Zoom to Fit",
-  "zoom.to": "Zoom to",
-  "preferences.dark.mode": "Dark Mode",
-  "preferences.focus.mode": "Focus Mode",
-  "preferences.debug.mode": "Debug Mode",
-  "preferences.show.grid": "Show Grid",
-  "preferences.use.cad.selection": "Use CAD Selection",
-  "preferences.keep.stylemenu.open": "Keep Style Menu Open",
-  "preferences.always.show.snaps": "Always Show Snaps",
-  "preferences.rotate.handles": "Rotate Handles",
-  "preferences.binding.handles": "Binding Handles",
-  "preferences.clone.handles": "Clone Handles",
+  "menu": {
+    "tools": "Tools",
+    "transform": "Transform",
+    "file": "File",
+    "edit": "Edit",
+    "view": "View",
+    "preferences": "Preferences",
+    "sign": {
+      "in": "Sign In",
+      "out": "Sign Out"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Become a Sponsor"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Dark Mode"
+    },
+    "focus": {
+      "mode": "Focus Mode"
+    },
+    "debug": {
+      "mode": "Debug Mode"
+    },
+    "show": {
+      "grid": "Show Grid"
+    },
+    "use": {
+      "cad": {
+        "selection": "Use CAD Selection"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Keep Style Menu Open"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Always Show Snaps"
+      }
+    },
+    "rotate": {
+      "handles": "Rotate Handles"
+    },
+    "binding": {
+      "handles": "Binding Handles"
+    },
+    "clone": {
+      "handles": "Clone Handles"
+    }
+  },
   "undo": "Undo",
   "redo": "Redo",
   "cut": "Cut",
   "copy": "Copy",
   "paste": "Paste",
-  "copy.as": "Copy As",
-  "export.as": "Export As",
-  "select.all": "Select All",
-  "select.none": "Select None",
+  "export": {
+    "as": "Export As",
+    "background": "Export Background"
+  },
+  "select": "Select",
   "delete": "Delete",
-  "new.project": "New Project",
+  "new": {
+    "project": "New Project",
+    "page": "New Page"
+  },
   "open": "Open",
   "save": "Save",
-  "save.as": "Save As",
-  "upload.media": "Upload Media",
-  "create.page": "Create Page",
-  "new.page": "New Page",
-  "page.name": "Page Name",
+  "upload": {
+    "media": "Upload Media"
+  },
+  "create": {
+    "page": "Create Page",
+    "multiplayer": {
+      "project": "Create a Multiplayer Project"
+    }
+  },
+  "page": "Page",
   "duplicate": "Duplicate",
-  "shape.options": "Shape Options",
+  "shape": {
+    "options": "Shape Options"
+  },
   "shapes": "Shapes",
   "cancel": "Cancel",
-  "copy.invite.link": "Copy Invite Link",
-  "copy.readonly.link": "Copy ReadOnly Link",
-  "create.multiplayer.project": "Create a Multiplayer Project",
-  "copy.multiplayer.project": "Copy to Multiplayer Project",
-  "select": "Select",
   "eraser": "Eraser",
   "draw": "Draw",
   "arrow": "Arrow",
@@ -70,38 +117,48 @@
   "triangle": "Triangle",
   "line": "Line",
   "rotate": "Rotate",
-  "lock.aspect.ratio": "Lock Aspect Ratio",
-  "unlock.aspect.ratio": "Unlock Aspect Ratio",
-  "group": "Group",
-  "ungroup": "Ungroup",
-  "move.to.back": "Move to Back",
-  "move.backward": "Move Backward",
-  "move.forward": "Move Forward",
-  "move.to.front": "Move to Front",
-  "reset.angle": "Reset Angle",
   "lock": "Lock",
   "unlock": "Unlock",
-  "align.distribute": "Align / Distribute",
-  "move.to.page": "Move to Page",
-  "flip.horizontal": "Flip Horizontal",
-  "flip.vertical": "Flip Vertical",
+  "group": "Group",
+  "ungroup": "Ungroup",
   "move": "Move",
-  "to.front": "To Front",
+  "reset": {
+    "angle": "Reset Angle"
+  },
+  "align": {
+    "distribute": "Align / Distribute",
+    "left": "Align Left",
+    "center": {
+      "x": "Align Horizontal Center",
+      "y": "Align Vertical Center"
+    },
+    "right": "Align Right",
+    "top": "Align Top",
+    "bottom": "Align Bottom"
+  },
+  "flip": {
+    "horizontal": "Flip Horizontal",
+    "vertical": "Flip Vertical"
+  },
   "forward": "Forward",
   "backward": "Backward",
   "back": "To Back",
   "language": "Language",
-  "translation.link": "Learn More",
-  "dock.position": "Dock Position",
+  "translation": {
+    "link": "Learn More"
+  },
+  "dock": {
+    "position": "Dock Position"
+  },
   "bottom": "Bottom",
   "left": "Left",
   "right": "Right",
   "top": "Top",
-  "page": "Page",
-  "keyboard.shortcuts": "Keyboard shortcuts",
+  "keyboard": {
+    "shortcuts": "Keyboard shortcuts"
+  },
   "search": "Search",
   "loading": "Loading{dots}",
-  "export.background": "Export Background",
   "transparent": "Transparent",
   "auto": "Auto",
   "light": "Light",
@@ -110,22 +167,28 @@
   "twitter": "Twitter",
   "discord": "Discord",
   "image": "Image",
-  "align.left": "Align Left",
-  "align.center.x": "Align Horizontal Center",
-  "align.right": "Align Right",
-  "align.top": "Align Top",
-  "align.center.y": "Align Vertical Center",
-  "align.bottom": "Align Bottom",
-  "distribute.x": "Distribute Horizontal",
-  "distribute.y": "Distribute Vertical",
-  "stretch.x": "Stretch Horizontal",
-  "stretch.y": "Stretch Vertical",
-  "dialog.save.firsttime": "Do you want to save your current project?",
-  "dialog.save.again": "Do you want to save changes to your current project?",
-  "dialog.cancel": "Cancel",
-  "dialog.no": "No",
-  "dialog.yes": "Yes",
-  "enter.file.name": "Enter file name",
+  "distribute": {
+    "x": "Distribute Horizontal",
+    "y": "Distribute Vertical"
+  },
+  "stretch": {
+    "x": "Stretch Horizontal",
+    "y": "Stretch Vertical"
+  },
+  "dialog": {
+    "save": {
+      "firsttime": "Do you want to save your current project?",
+      "again": "Do you want to save changes to your current project?"
+    },
+    "cancel": "Cancel",
+    "no": "No",
+    "yes": "Yes"
+  },
+  "enter": {
+    "file": {
+      "name": "Enter file name"
+    }
+  },
   "tldraw-beta": "Try the new tldraw",
   "white": "White",
   "lightGray": "Light gray",

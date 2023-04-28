@@ -1,59 +1,107 @@
 {
-  "style.menu.color": "Колір",
-  "style.menu.fill": "Заповнювати",
-  "style.menu.dash": "Штрих",
-  "style.menu.size": "Розмір",
-  "style.menu.keep.open": "Тримати відкритим",
-  "style.menu.font": "Шрифт",
-  "style.menu.align": "Вирівняти",
+  "style": {
+    "menu": {
+      "color": "Колір",
+      "fill": "Заповнювати",
+      "dash": "Штрих",
+      "size": "Розмір",
+      "keep": {
+        "open": "Тримати відкритим"
+      },
+      "font": "Шрифт",
+      "align": "Вирівняти"
+    }
+  },
   "styles": "Стиль",
-  "zoom.in": "Збільшити",
-  "zoom.out": "Зменшити",
+  "zoom": {
+    "in": "Збільшити",
+    "out": "Зменшити",
+    "to": "Наблизити до"
+  },
   "to": "до",
-  "menu.file": "Файл",
-  "menu.edit": "Редагування",
-  "menu.view": "Вигляд",
-  "menu.preferences": "Налаштування",
-  "menu.sign.in": "Увійти",
-  "menu.sign.out": "Вийти",
-  "become.a.sponsor": "Стати спонсором",
-  "zoom.to.selection": "Наблизити до виділення",
-  "zoom.to.fit": "Збільшити за розміром екрану",
-  "zoom.to": "Наблизити до",
-  "preferences.dark.mode": "Темна тема",
-  "preferences.focus.mode": "Мінімалістичний режим",
-  "preferences.debug.mode": "Режим налагодження",
-  "preferences.show.grid": "Показати сітку",
-  "preferences.use.cad.selection": "Використовувати CAD виділення",
-  "preferences.keep.stylemenu.open": "Тримати меню стилів відкритим",
-  "preferences.always.show.snaps": "Завжди показувати прив'язки",
-  "preferences.rotate.handles": "Ручки обертання",
-  "preferences.binding.handles": "Ручки прив'язки",
-  "preferences.clone.handles": "Ручки клонування",
+  "menu": {
+    "file": "Файл",
+    "edit": "Редагування",
+    "view": "Вигляд",
+    "preferences": "Налаштування",
+    "sign": {
+      "in": "Увійти",
+      "out": "Вийти"
+    }
+  },
+  "become": {
+    "a": {
+      "sponsor": "Стати спонсором"
+    }
+  },
+  "preferences": {
+    "dark": {
+      "mode": "Темна тема"
+    },
+    "focus": {
+      "mode": "Мінімалістичний режим"
+    },
+    "debug": {
+      "mode": "Режим налагодження"
+    },
+    "show": {
+      "grid": "Показати сітку"
+    },
+    "use": {
+      "cad": {
+        "selection": "Використовувати CAD виділення"
+      }
+    },
+    "keep": {
+      "stylemenu": {
+        "open": "Тримати меню стилів відкритим"
+      }
+    },
+    "always": {
+      "show": {
+        "snaps": "Завжди показувати прив'язки"
+      }
+    },
+    "rotate": {
+      "handles": "Ручки обертання"
+    },
+    "binding": {
+      "handles": "Ручки прив'язки"
+    },
+    "clone": {
+      "handles": "Ручки клонування"
+    }
+  },
   "undo": "Скасувати",
   "redo": "Повторити",
   "cut": "Вирізати",
   "copy": "Скопіювати",
   "paste": "Вставити",
-  "copy.as": "Скопіювати як",
-  "export.as": "Експортувати як",
-  "select.all": "Обрати все",
-  "select.none": "Зняти виділення",
+  "export": {
+    "as": "Експортувати як"
+  },
+  "select": "Вибирати",
   "delete": "Видалити",
-  "new.project": "Новий проект",
+  "new": {
+    "project": "Новий проект",
+    "page": "Нова сторінка"
+  },
   "open": "Відкрити",
   "save": "Зберегти",
-  "save.as": "Зберегти як",
-  "upload.media": "Завантажити медіа",
-  "create.page": "Створити сторінку",
-  "new.page": "Нова сторінка",
-  "page.name": "Назва сторінки",
+  "upload": {
+    "media": "Завантажити медіа"
+  },
+  "create": {
+    "page": "Створити сторінку",
+    "multiplayer": {
+      "project": "Створити багатокористувацький проект"
+    }
+  },
+  "page": {
+    "name": "Назва сторінки"
+  },
   "duplicate": "Дублювати",
   "cancel": "Скасувати",
-  "copy.invite.link": "Скопіювати посилання на запрошення",
-  "create.multiplayer.project": "Створити багатокористувацький проект",
-  "copy.multiplayer.project": "Скопіювати в багатокористувацький проект",
-  "select": "Вибирати",
   "eraser": "Ластик",
   "draw": "Малювати",
   "arrow": "Стрілка",
@@ -64,22 +112,18 @@
   "triangle": "Трикутник",
   "line": " Лінія",
   "rotate": "Повернути",
-  "lock.aspect.ratio": "Заблокувати співвідношення сторін",
-  "unlock.aspect.ratio": " Розблокувати співвідношення сторін",
-  "group": "Згрупувати",
-  "ungroup": " Розгрупувати",
-  "move.to.back": "Перемістити назад",
-  "move.backward": "Перемістити на задній план",
-  "move.forward": "Перемістити вперед",
-  "move.to.front": "Перемістити на передній план",
-  "reset.angle": "Скидання кута",
   "lock": "Блокування",
   "unlock": " Розблокування",
-  "move.to.page": "Перейти на сторінку",
-  "flip.horizontal": "Перевернути горизонтально",
-  "flip.vertical": "Перевернути вертикально",
+  "group": "Згрупувати",
+  "ungroup": " Розгрупувати",
   "move": "Перемістити",
-  "to.front": "На передній план",
+  "reset": {
+    "angle": "Скидання кута"
+  },
+  "flip": {
+    "horizontal": "Перевернути горизонтально",
+    "vertical": "Перевернути вертикально"
+  },
   "forward": " Вперед",
   "backward": "На задній план",
   "back": "Назад",
