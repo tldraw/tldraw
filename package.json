@@ -33,7 +33,7 @@
 	],
 	"scripts": {
 		"clean": "scripts/clean.sh",
-		"postinstall": "yarn refresh-assets",
+		"postinstall": "husky install && yarn refresh-assets",
 		"refresh-assets": "lazy refresh-assets",
 		"build": "lazy build",
 		"build:docs": "lazy build:docs",
@@ -48,8 +48,7 @@
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api:check": "lazy api:check",
-		"test": "lazy test",
-		"prepare": "husky install"
+		"test": "lazy test"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
