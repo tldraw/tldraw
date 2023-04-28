@@ -55,9 +55,8 @@ async function main() {
 	console.log('Checking with tsconfig:', tsconfig)
 	writeFileSync(`${tempDir}/tsconfig.json`, JSON.stringify(tsconfig, null, '\t'), 'utf8')
 	writeFileSync(`${tempDir}/package.json`, JSON.stringify({ dependencies: {} }, null, '\t'), 'utf8')
-	writeFileSync(`${tempDir}/.yarnrc.yml`, 'nodeLinker: node-modules\n', 'utf8')
 
-	await exec('yarn', ['add', ...packagesOurTypesCanDependOn], { pwd: tempDir })
+	await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
 	await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
 
 	await exec('rm', ['-rf', tempDir])

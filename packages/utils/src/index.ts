@@ -16,6 +16,7 @@ export { getFirstFromIterable } from './lib/iterable'
 export { lerp, modulate, rng } from './lib/number'
 export {
 	deepCopy,
+	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
 	objectMapEntries,

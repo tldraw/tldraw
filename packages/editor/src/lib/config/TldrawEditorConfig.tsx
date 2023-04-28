@@ -1,16 +1,13 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
-	ensureStoreIsUsable,
-	onValidationFailure,
-	rootShapeTypeMigrations,
-	storeMigrations,
 	TLAsset,
 	TLCamera,
-	TLDocument,
 	TLDOCUMENT_ID,
+	TLDocument,
 	TLInstance,
 	TLInstanceId,
 	TLInstancePageState,
+	TLInstancePresence,
 	TLPage,
 	TLRecord,
 	TLShape,
@@ -20,16 +17,21 @@ import {
 	TLUserDocument,
 	TLUserId,
 	TLUserPresence,
+	ensureStoreIsUsable,
+	onValidationFailure,
+	rootShapeTypeMigrations,
+	storeMigrations,
 } from '@tldraw/tlschema'
 import {
-	createRecordType,
-	defineMigrations,
 	RecordType,
 	Store,
 	StoreSchema,
 	StoreSnapshot,
+	createRecordType,
+	defineMigrations,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
+import { Signal } from 'signia'
 import { TLArrowShapeDef } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkShapeDef } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TLDrawShapeDef } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
@@ -44,6 +46,7 @@ import { TLTextShapeDef } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoShapeDef } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
 import { TLShapeDef, TLUnknownShapeDef } from './TLShapeDefinition'
+import { defaultDerivePresenceState } from './defaultDerivePresenceState'
 
 const CORE_SHAPE_DEFS = () =>
 	[
@@ -70,15 +73,19 @@ export class TldrawEditorConfig {
 	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
 	readonly tools: readonly StateNodeConstructor[]
 
-	constructor({
-		shapes = [],
-		tools = [],
-		allowUnknownShapes = false,
-	}: {
+	constructor(args: {
 		shapes?: readonly TLShapeDef<any, any>[]
 		tools?: readonly StateNodeConstructor[]
 		allowUnknownShapes?: boolean
+		/** @internal */
+		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}) {
+		const {
+			shapes = [],
+			tools = [],
+			allowUnknownShapes = false,
+			derivePresenceState = defaultDerivePresenceState,
+		} = args
 		this.tools = tools
 
 		const allShapeDefs = [...CORE_SHAPE_DEFS(), ...shapes]
@@ -110,6 +117,7 @@ export class TldrawEditorConfig {
 		const shapeRecord = createRecordType<TLShape>('shape', {
 			migrations: shapeTypeMigrations,
 			validator: T.model('shape', shapeValidator),
+			scope: 'document',
 		}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 		this.TLShape = shapeRecord
 
@@ -125,11 +133,13 @@ export class TldrawEditorConfig {
 				user: TLUser,
 				user_document: TLUserDocument,
 				user_presence: TLUserPresence,
+				instance_presence: TLInstancePresence,
 			},
 			{
 				snapshotMigrations: storeMigrations,
 				onValidationFailure,
 				ensureStoreIsUsable,
+				derivePresenceState,
 			}
 		)
 	}

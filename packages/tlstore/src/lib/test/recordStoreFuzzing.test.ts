@@ -21,6 +21,7 @@ const Author = createRecordType<Author>('author', {
 			return author
 		},
 	},
+	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
 interface Book extends BaseRecord<'book'> {
@@ -38,6 +39,7 @@ const Book = createRecordType<Book>('book', {
 			return book
 		},
 	},
+	scope: 'document',
 })
 
 const bookComparator = (a: Book, b: Book) => a.id.localeCompare(b.id)

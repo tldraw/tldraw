@@ -47,4 +47,5 @@ export const pageTypeMigrations = defineMigrations({
 export const TLPage = createRecordType<TLPage>('page', {
 	migrations: pageTypeMigrations,
 	validator: pageTypeValidator,
+	scope: 'document',
 })

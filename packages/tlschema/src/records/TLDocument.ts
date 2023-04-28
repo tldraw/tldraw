@@ -41,6 +41,7 @@ export const documentTypeMigrations = defineMigrations({
 export const TLDocument = createRecordType<TLDocument>('document', {
 	migrations: documentTypeMigrations,
 	validator: documentTypeValidator,
+	scope: 'document',
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
