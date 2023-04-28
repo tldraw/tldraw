@@ -62,6 +62,7 @@ const User = createRecordType<User>('user', {
 			return record as User
 		},
 	},
+	scope: 'document',
 }).withDefaultProperties(() => ({
 	/* STEP 6: Add any new default values for properties here */
 	name: 'New User',
@@ -192,6 +193,7 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 			return record as Shape<RectangleProps | OvalProps>
 		},
 	},
+	scope: 'document',
 }).withDefaultProperties(() => ({
 	x: 0,
 	y: 0,

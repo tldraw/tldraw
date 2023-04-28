@@ -74,6 +74,7 @@ export const instancePageStateMigrations = defineMigrations({
 export const TLInstancePageState = createRecordType<TLInstancePageState>('instance_page_state', {
 	migrations: instancePageStateMigrations,
 	validator: instancePageStateTypeValidator,
+	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<
 		TLInstancePageState,

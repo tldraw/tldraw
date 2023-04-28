@@ -48,6 +48,7 @@ export const userTypeMigrations = defineMigrations({
 export const TLUser = createRecordType<TLUser>('user', {
 	migrations: userTypeMigrations,
 	validator: userTypeValidator,
+	scope: 'instance',
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
 	let lang
 	if (typeof window !== 'undefined' && window.navigator) {

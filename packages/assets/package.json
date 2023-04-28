@@ -48,8 +48,6 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@swc/core": "^1.2.204",
-		"@swc/jest": "^0.2.21",
 		"lazyrepo": "0.0.0-alpha.22",
 		"ts-node-dev": "^1.1.8"
 	},
