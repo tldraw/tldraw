@@ -93,7 +93,7 @@
 		"auto": "^10.44.0",
 		"fs-extra": "^11.1.0",
 		"json5": "^2.2.3",
-		"lazyrepo": "0.0.0-alpha.22",
+		"lazyrepo": "0.0.0-alpha.23",
 		"rimraf": "^4.4.0",
 		"tsx": "^3.12.2",
 		"vercel": "^28.16.15"

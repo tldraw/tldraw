@@ -142,7 +142,7 @@
 		"assert": "^2.0.0",
 		"esbuild": "^0.16.7",
 		"fs-extra": "^11.1.0",
-		"lazyrepo": "0.0.0-alpha.22",
+		"lazyrepo": "0.0.0-alpha.23",
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",
