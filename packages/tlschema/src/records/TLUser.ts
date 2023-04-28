@@ -1,6 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { getDefaultTranslationLocale } from '../translation'
+import { getDefaultTranslationLocale } from '../translations'
 import { userIdValidator } from '../validation'
 
 /**

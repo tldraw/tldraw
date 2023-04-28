@@ -1,4 +1,4 @@
-import { getDefaultTranslationLocale } from './translation'
+import { getDefaultTranslationLocale } from './translations'
 
 type DefaultLanguageTest = {
 	name: string
