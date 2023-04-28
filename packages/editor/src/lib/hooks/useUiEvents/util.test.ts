@@ -123,6 +123,12 @@ describe('filterSensitiveData', () => {
 		expect(output1).toEqual(input1)
 	})
 
+	it('undefined', () => {
+		const input1 = undefined
+		const output1 = filterSensitiveData(input1)
+		expect(output1).toEqual(input1)
+	})
+
 	it('JSONify it', () => {
 		// Just some things that get nulled when JSONifying
 		const input1 = new Set([1, 2, 3])

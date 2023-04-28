@@ -1,4 +1,11 @@
+import { useEffect, useRef } from 'react'
+import { useValue } from 'signia-react'
+
 export const REDACTED_VALUE = '[redacted]'
+
+// ============================================================================
+// TODO: Move to a better place in the codebase
+// ============================================================================
 
 /**
  * Strip out tldraw sensitive data from the data value
@@ -33,20 +40,70 @@ export function filterObject(obj: Record<string, any>, fn: (item: any) => any) {
 }
 
 export function filterSensitiveData(raw: any): any {
-	// Note: Slow but also really not large data being sent so bullet proof.
-	const data = JSON.parse(JSON.stringify(raw))
-
-	if (['string', 'number'].includes(typeof data)) {
-		return filterValue(data)
-	} else if (Array.isArray(data)) {
-		return data.map(filterSensitiveData)
-	} else if (data === null) {
-		return data
-	} else if (typeof data === 'object') {
-		return filterObject(data, (item) => filterSensitiveData(item))
-	} else if (typeof data === 'boolean') {
-		return data
-	} else {
-		return REDACTED_VALUE
+	if (raw === undefined) {
+		return
 	}
+
+	try {
+		// Note: Slow but also really not large data being sent so bullet proof.
+		const data = JSON.parse(JSON.stringify(raw))
+
+		if (['string', 'number'].includes(typeof data)) {
+			return filterValue(data)
+		} else if (Array.isArray(data)) {
+			return data.map(filterSensitiveData)
+		} else if (data === null) {
+			return data
+		} else if (typeof data === 'object') {
+			return filterObject(data, (item) => filterSensitiveData(item))
+		} else if (typeof data === 'boolean') {
+			return data
+		} else {
+			return REDACTED_VALUE
+		}
+	} catch (err: any) {
+		console.error(err);
+		return undefined
+	}
+}
+
+// ============================================================================
+// TODO: Move to a better place in the codebase
+// ============================================================================
+
+/** @internal */
+export function diffEqualLengthArrays (prev: any[], next: any[]) {
+	const changes: number[] = []
+	for (let i=0; i<prev.length; i++) {
+		if (prev[i] !== next[i]) {
+			changes.push(i);
+		}
+	}
+	return changes;
+}
+
+/** @internal */
+function usePrevious(value: any) {
+	const ref = useRef(value);
+	useEffect(() => {
+	  ref.current = value;
+	},[value]);
+	return ref.current as typeof value;
+}
+
+/** @internal */
+export function usePreviousPair<T>(label: string, value: () => T, deps: any[]): [T, T] {
+	const next = useValue(label, value, deps)
+	const prev = usePrevious(next);
+	return [prev, next]
+}
+
+/** @internal */
+export function useWatcher<T> (label: string, value: () => T, fn: (prev: T, next: T) => unknown, deps:any[]=[]) {
+	const fnRef = useRef(fn);
+	fnRef.current = fn;
+	const [prev, next] = usePreviousPair(`watch:${label}`, value, deps)
+	useEffect(() => {
+		fnRef.current(prev, next)
+	}, [prev, next])
 }

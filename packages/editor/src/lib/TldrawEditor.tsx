@@ -23,7 +23,7 @@ import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
-import { UiEventsContext } from './hooks/useUiEvents'
+import { DefaultEventHandler, UiEventHandler, UiEventsContext } from './hooks/useUiEvents'
 import { useZoomCss } from './hooks/useZoomCss'
 
 /** @public */
@@ -83,7 +83,7 @@ export interface TldrawEditorProps {
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
 
-	onUiEvent?: (event: any) => void
+	onUiEvent?: UiEventHandler
 
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -198,7 +198,7 @@ function TldrawEditorAfterLoading({
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
-	onUiEvent = () => void 0,
+	onUiEvent = DefaultEventHandler,
 	store,
 	autoFocus,
 }: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
