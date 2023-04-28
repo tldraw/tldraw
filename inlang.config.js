@@ -13,7 +13,7 @@ export async function defineConfig(env) {
   );
 
   const pluginConfig = {
-    pathPattern: "./packages/tldraw/src/translation/{language}.json",
+    pathPattern: "./packages/tldraw/src/translations/{language}.json",
   };
 
   return {
