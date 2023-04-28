@@ -48,12 +48,12 @@ jobs:
         run: yarn api:check
 
       - name: Pack public packages
-        run: yarn lazy pack-tarball
+        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
 
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
-        run: "yarn build | sed -E 's/^@[a-zA-Z-]+\\/[a-z-]+:[a-z-]+: ::/::/'"
+        run: "yarn build | sed -E 's/^.*? ::/::/'"
 
       - name: Test
         run: yarn test
