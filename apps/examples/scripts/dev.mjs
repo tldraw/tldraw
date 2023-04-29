@@ -7,6 +7,7 @@ import { createServer, request } from 'http'
 import ip from 'ip'
 import chalk from 'kleur'
 import * as url from 'url'
+import fs from 'fs'
 
 const LOG_REQUEST_PATHS = false
 
@@ -22,7 +23,9 @@ const OUT_DIR = dirname + '/../www/'
 const clients = []
 
 async function main() {
-	await esbuild.build({
+	const isAnalyzeEnabled = process.env.ANALYZE === 'true'
+
+	const result = await esbuild.build({
 		entryPoints: ['src/index.tsx'],
 		outdir: OUT_DIR,
 		bundle: true,
@@ -32,6 +35,7 @@ async function main() {
 		format: 'cjs',
 		external: ['*.woff'],
 		target: browserslist(['defaults']),
+		metafile: isAnalyzeEnabled,
 		define: {
 			process: '{ "env": { "NODE_ENV": "development"} }',
 		},
@@ -52,6 +56,13 @@ async function main() {
 			},
 		},
 	})
+
+	if (isAnalyzeEnabled) {
+		await fs.promises.writeFile('build.esbuild.json', JSON.stringify(result.metafile));	
+		console.log(await esbuild.analyzeMetafile(result.metafile, {
+			verbose: true,
+		}))
+	}
 
 	esbuild.serve({ servedir: OUT_DIR, port: 8009 }, {}).then(({ host, port: esbuildPort }) => {
 		const handler = async (req, res) => {
