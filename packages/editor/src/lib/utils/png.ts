@@ -35,7 +35,19 @@ export function getPngPixelRatio(dataView: DataView): number {
 			dataView.getUint8(offset + 6) === 0x59 &&
 			dataView.getUint8(offset + 7) === 0x73
 		) {
-			return Math.ceil(dataView.getUint32(offset + 8) / PIXELS_PER_METER)
+			// Get the pixel ratio and unit
+			const ppux = dataView.getUint32(offset + 8)
+			const ppuy = dataView.getUint32(offset + 12)
+			const unit = dataView.getUint8(offset + 16)
+
+			// If the pixel ratio is different for each axis
+			// or the unit is not meters, return the default (1)
+			if (ppux !== ppuy || unit !== 1) {
+				return 1
+			}
+
+			// Otherwise, return the pixel ratio
+			return Math.round(ppux / PIXELS_PER_METER)
 		}
 
 		offset = offset + 8 + dataView.getUint32(offset) + 4 // Move to next chunk (4 bytes for CRC)
