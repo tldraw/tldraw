@@ -17,14 +17,8 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	strokeWidth: number
 	lines?: VecLike[][]
 }) {
-	const outerPolygonPoints = getRoundedPolygonPoints(
-		id,
-		outline,
-		strokeWidth / 3,
-		strokeWidth * 2,
-		2
-	)
-	let strokePathData = getRoundedInkyPolygonPath(outerPolygonPoints)
+	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
+	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
 	if (lines) {
 		for (const [A, B] of lines) {
