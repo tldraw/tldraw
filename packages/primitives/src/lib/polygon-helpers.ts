@@ -29,25 +29,6 @@ function rng(seed = '') {
 }
 
 /** @public */
-export function getRoundedInkyPolygonInnerPath(points: VecLike[]) {
-	let polylineA = `M${precise(points[2])}L`
-
-	const len = points.length
-
-	let p2: VecLike
-
-	for (let i = 3, n = len; i < n; i += 3) {
-		p2 = points[i + 2]
-
-		polylineA += `${precise(p2)}`
-	}
-
-	polylineA += ` Z`
-
-	return polylineA
-}
-
-/** @public */
 export function getRoundedInkyPolygonPath(points: VecLike[]) {
 	let polylineA = `M`
 
