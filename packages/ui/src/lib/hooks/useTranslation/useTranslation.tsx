@@ -15,7 +15,7 @@ export interface TranslationProviderProps {
 	 * @example
 	 *
 	 * ```ts
-	 * ;<TranslationProvider overrides={{ en: { 'style-panel.styles': 'Properties' } }} />
+	 * <TranslationProvider overrides={{ en: { 'style-panel.styles': 'Properties' } }} />
 	 * ```
 	 */
 	overrides?: Record<string, Record<string, string>>
@@ -58,14 +58,13 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const localeString = locale ?? navigator.language.split(/[-_]/)[0]
-			const translation = await getTranslation(localeString, getAssetUrl)
+			const translation = await getTranslation(locale, getAssetUrl)
 
 			if (translation && !isCancelled) {
-				if (overrides && overrides[localeString]) {
+				if (overrides && overrides[locale]) {
 					setCurrentTranslation({
 						...translation,
-						messages: { ...translation.messages, ...overrides[localeString] },
+						messages: { ...translation.messages, ...overrides[locale] },
 					})
 				} else {
 					setCurrentTranslation(translation)
