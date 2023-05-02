@@ -36,10 +36,10 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",
-		"test:coverage": "lazy inherit",
-		"build": "lazy build:package",
-		"build:package": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build:api": "yarn run -T tsx ../../scripts/build-api.ts",
+		"test-coverage": "lazy inherit",
+		"build": "lazy build-package",
+		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
@@ -82,7 +82,7 @@
 		"gzip-size": "^7.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^29.4.3",
-		"lazyrepo": "0.0.0-alpha.22",
+		"lazyrepo": "0.0.0-alpha.26",
 		"react-test-renderer": "^18.2.0",
 		"resize-observer-polyfill": "^1.5.1"
 	},

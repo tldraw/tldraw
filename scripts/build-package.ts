@@ -9,7 +9,7 @@ import { addJsExtensions } from './lib/add-extensions'
 
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
 async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) {
-	// this depends on `build:types` being run first, but we'll rely on turbo to
+	// this depends on `build-types` being run first, but we'll rely on turbo to
 	// make that happen.
 
 	if (!existsSync(path.join(sourcePackageDir, 'src/index.ts'))) {

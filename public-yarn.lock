@@ -4275,7 +4275,7 @@ __metadata:
   resolution: "@tldraw/assets@workspace:packages/assets"
   dependencies:
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     ts-node-dev: ^1.1.8
   languageName: unknown
   linkType: soft
@@ -4302,7 +4302,7 @@ __metadata:
     eslint: 8.36.0
     eslint-config-next: 13.2.4
     gray-matter: ^4.0.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     next: 13.2.4
     next-mdx-remote: ^4.4.1
     next-remote-watch: ^2.0.0
@@ -4349,7 +4349,7 @@ __metadata:
     is-plain-object: ^5.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^29.4.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash.throttle: ^4.1.1
     lodash.uniq: ^4.5.0
     nanoid: ^3.0.0
@@ -4372,7 +4372,7 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4405,7 +4405,7 @@ __metadata:
     inquirer: ^9.1.4
     jest: ^28.1.1
     json5: ^2.2.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lint-staged: ">=10"
     open: ^8.4.0
     prettier: ^2.8.6
@@ -4422,7 +4422,7 @@ __metadata:
   resolution: "@tldraw/polyfills@workspace:packages/polyfills"
   dependencies:
     core-js: ^3.27.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4432,7 +4432,7 @@ __metadata:
   dependencies:
     "@tldraw/tlschema": "workspace:*"
     benchmark: ^2.1.4
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4450,7 +4450,7 @@ __metadata:
     glob: ^8.0.3
     is-ci: ^3.0.1
     kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     prettier: ^2.8.7
     recast: ^0.22.0
     rimraf: ^4.4.0
@@ -4476,7 +4476,7 @@ __metadata:
     gzip-size: ^7.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
     react: ^18
@@ -4492,7 +4492,7 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/utils": "workspace:*"
     kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     nanoid: ^3.0.0
   languageName: unknown
   linkType: soft
@@ -4504,7 +4504,7 @@ __metadata:
     "@peculiar/webcrypto": ^1.4.0
     "@tldraw/utils": "workspace:*"
     "@types/lodash.isequal": ^4.5.6
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash.isequal: ^4.5.0
     nanoid: ^3.0.0
     raf: ^3.4.1
@@ -4523,7 +4523,7 @@ __metadata:
     "@types/react": "*"
     "@types/react-dom": "*"
     idb: ^7.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     react: "*"
     ws: ^8.10.0
   peerDependencies:
@@ -4540,7 +4540,7 @@ __metadata:
   resolution: "@tldraw/tlvalidate@workspace:packages/tlvalidate"
   dependencies:
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4572,7 +4572,7 @@ __metadata:
     idb: ^7.1.1
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lz-string: ^1.4.4
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
@@ -4587,7 +4587,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4612,7 +4612,7 @@ __metadata:
     dotenv: ^16.0.3
     esbuild: ^0.16.7
     fs-extra: ^11.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     nanoid: ^4.0.2
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -6974,7 +6974,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0":
+"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0, ci-info@npm:^3.8.0":
   version: 3.8.0
   resolution: "ci-info@npm:3.8.0"
   checksum: d0a4d3160497cae54294974a7246202244fff031b0a6ea20dd57b10ec510aa17399c41a1b0982142c105f3255aff2173e5c0dd7302ee1b2f28ba3debda375098
@@ -7335,7 +7335,7 @@ __metadata:
   dependencies:
     eslint-config-prettier: ^8.3.0
     eslint-plugin-react: 7.28.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -9456,7 +9456,7 @@ __metadata:
     concurrently: ^7.4.0
     esbuild: ^0.16.7
     ip: ^1.1.8
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     node-forge: ^1.3.1
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -12485,12 +12485,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lazyrepo@npm:0.0.0-alpha.22":
-  version: 0.0.0-alpha.22
-  resolution: "lazyrepo@npm:0.0.0-alpha.22"
+"lazyrepo@npm:0.0.0-alpha.26":
+  version: 0.0.0-alpha.26
+  resolution: "lazyrepo@npm:0.0.0-alpha.26"
   dependencies:
     "@sindresorhus/slugify": ^2.2.0
     cac: ^6.7.14
+    ci-info: ^3.8.0
     cross-spawn: ^7.0.3
     esbuild: ^0.17.15
     fast-glob: ^3.2.12
@@ -12506,7 +12507,7 @@ __metadata:
     zod-validation-error: ^1.3.0
   bin:
     lazy: bin.js
-  checksum: b8c0390dd8086386fe46b6a1a3184288a9eeb26139b28893491f8eec418a4ea7560361b087363c1cd74a312af1913be68d4026a9071f73c4f381699c2573af39
+  checksum: 47a874c49a004cf6afa04894f5cb3e9e72b623dd66484b7a879a649ea1efdbe39785cfbdfb609eec54fed66486a0a16c587f90650756a73e0bc5fc5f2d253fc1
   languageName: node
   linkType: hard
 
@@ -17469,7 +17470,7 @@ __metadata:
     assert: ^2.0.0
     esbuild: ^0.16.7
     fs-extra: ^11.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash: ^4.17.21
     mocha: ^9.1.1
     nanoid: ^4.0.1
