@@ -125,7 +125,6 @@ export const Canvas = track(function Canvas({
 					{SvgDefs && <SvgDefs />}
 				</defs>
 				<g ref={rSvgLayer}>
-					<LiveCollaborators />
 					<ScribbleWrapper />
 					<BrushWrapper />
 					<ZoomBrushWrapper />
@@ -133,8 +132,9 @@ export const Canvas = track(function Canvas({
 					<HoveredShapeIndicator />
 					<SelectionFg />
 					<HintedShapeIndicator />
-					<HandlesWrapper />
 					<SnapLinesWrapper />
+					<HandlesWrapper />
+					<LiveCollaborators />
 				</g>
 			</svg>
 		</div>
