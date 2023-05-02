@@ -450,7 +450,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape starts being resized.
 	 *
 	 * @param shape - The shape.
-	 * @returns The new shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onResizeStart?: OnResizeStartHandler<T>
@@ -458,9 +458,9 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	/**
 	 * A callback called when a shape changes from a resize.
 	 *
-	 * @param initial - The shape at the start of the resize.
-	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @param shape - The shape at the start of the resize.
+	 * @param info - Info about the resize.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onResize?: OnResizeHandler<T>
@@ -470,7 +470,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param initial - The shape at the start of the resize.
 	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onResizeEnd?: OnResizeEndHandler<T>
@@ -479,7 +479,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape starts being translated.
 	 *
 	 * @param shape - The shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onTranslateStart?: OnTranslateStartHandler<T>
@@ -489,7 +489,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param initial - The shape at the start of the translation.
 	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onTranslate?: OnTranslateHandler<T>
@@ -499,7 +499,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param initial - The shape at the start of the translation.
 	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 */
 	onTranslateEnd?: OnTranslateEndHandler<T>
 
@@ -507,7 +507,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape starts being rotated.
 	 *
 	 * @param shape - The shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onRotateStart?: OnRotateStartHandler<T>
@@ -517,7 +517,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param initial - The shape at the start of the rotation.
 	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onRotate?: OnRotateHandler<T>
@@ -527,7 +527,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param initial - The shape at the start of the rotation.
 	 * @param current - The current shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onRotateEnd?: OnRotateEndHandler<T>
@@ -537,7 +537,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param shape - The shape.
 	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onHandleChange?: OnHandleChangeHandler<T>
@@ -553,7 +553,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape's children change.
 	 *
 	 * @param shape - The shape.
-	 * @returns An array of shape updates to apply.
+	 * @returns An array of shape updates, or void.
 	 * @public
 	 */
 	onChildrenChange?: OnChildrenChangeHandler<T>
@@ -563,7 +563,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 *
 	 * @param shape - The shape.
 	 * @param handle - The handle that is double-clicked.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onDoubleClickHandle?: OnDoubleClickHandleHandler<T>
@@ -572,7 +572,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape's edge is double clicked.
 	 *
 	 * @param shape - The shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onDoubleClickEdge?: OnDoubleClickHandler<T>
@@ -581,7 +581,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape is double clicked.
 	 *
 	 * @param shape - The shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onDoubleClick?: OnDoubleClickHandler<T>
@@ -590,7 +590,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape is clicked.
 	 *
 	 * @param shape - The shape.
-	 * @returns The next shape or void.
+	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
 	onClick?: OnClickHandler<T>
