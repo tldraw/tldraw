@@ -459,7 +459,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape changes from a resize.
 	 *
 	 * @param shape - The shape at the start of the resize.
-	 * @param info - Info about the resize ({@link TLResizeInfo}).
+	 * @param info - Info about the resize.
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
@@ -740,7 +740,7 @@ export type TLResizeInfo<T extends TLShape> = {
  * A callback called when a shape changes from a resize.
  *
  * @param shape - The shape at the start of the resize.
- * @param info - Info about the resize ({@link TLResizeInfo}).
+ * @param info - Info about the resize.
  * @returns A change to apply to the shape, or void.
  * @public
  */
