@@ -371,10 +371,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * @example
 	 *
 	 * ```ts
-	 * onBeforeUpdate = (prev, next) => {
-	 * 	if (prev.x === next.x) {
-	 * 		return { ...next, x: next.x + 1 }
-	 * 	}
+	 * onBeforeCreate = (next) => {
+	 * 	return { ...next, x: next.x + 1 }
 	 * }
 	 * ```
 	 *
