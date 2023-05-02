@@ -34,7 +34,7 @@ rm -rf {packages,apps,bublic/packages,bublic/apps}/vscode/extension/temp
 rm -rf {packages,apps,bublic/packages,bublic/apps}/vscode/extension/editor
 rm -rf bublic/apps/docs/content.json
 
-# need to run yarn via npx
+# need to run yarn directly
 # because yarn messes with the PATH, aliasing itself to some tmp dir 
 # which is apparently deleted by our clean script
-npx yarn
+node "$(dirname -- "$0")/../.yarn/releases/yarn-3.5.0.cjs"
