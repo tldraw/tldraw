@@ -2434,53 +2434,33 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     hitTestLineSegment(shape: T, A: VecLike, B: VecLike): boolean;
     hitTestPoint(shape: T, point: VecLike): boolean;
     abstract indicator(shape: T): any;
-    // (undocumented)
     is(shape: TLBaseShape<string, object>): shape is T;
     isAspectRatioLocked: TLShapeUtilFlag<T>;
     isClosed: TLShapeUtilFlag<T>;
     onBeforeCreate?: OnBeforeCreateHandler<T>;
     onBeforeUpdate?: OnBeforeUpdateHandler<T>;
-    // (undocumented)
+    // @internal
     onBindingChange?: OnBindingChangeHandler<T>;
-    // (undocumented)
     onChildrenChange?: OnChildrenChangeHandler<T>;
-    // (undocumented)
     onClick?: OnClickHandler<T>;
-    // (undocumented)
     onDoubleClick?: OnDoubleClickHandler<T>;
-    // (undocumented)
     onDoubleClickEdge?: OnDoubleClickHandler<T>;
-    // (undocumented)
     onDoubleClickHandle?: OnDoubleClickHandleHandler<T>;
-    // (undocumented)
     onDragShapesOut?: OnDragHandler<T>;
-    // (undocumented)
     onDragShapesOver?: OnDragHandler<T, {
         shouldHint: boolean;
     }>;
-    // (undocumented)
     onDropShapesOver?: OnDragHandler<T>;
-    // (undocumented)
     onEditEnd?: OnEditEndHandler<T>;
-    // (undocumented)
     onHandleChange?: OnHandleChangeHandler<T>;
-    // (undocumented)
     onResize?: OnResizeHandler<T>;
-    // (undocumented)
     onResizeEnd?: OnResizeEndHandler<T>;
-    // (undocumented)
     onResizeStart?: OnResizeStartHandler<T>;
-    // (undocumented)
     onRotate?: OnRotateHandler<T>;
-    // (undocumented)
     onRotateEnd?: OnRotateEndHandler<T>;
-    // (undocumented)
     onRotateStart?: OnRotateStartHandler<T>;
-    // (undocumented)
     onTranslate?: OnTranslateHandler<T>;
-    // (undocumented)
     onTranslateEnd?: OnTranslateEndHandler<T>;
-    // (undocumented)
     onTranslateStart?: OnTranslateStartHandler<T>;
     outline(shape: T): Vec2dModel[];
     point(shape: T): Vec2dModel;

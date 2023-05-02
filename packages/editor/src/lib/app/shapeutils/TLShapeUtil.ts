@@ -34,6 +34,13 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	constructor(public app: App, public readonly type: T['type']) {}
 
+	/**
+	 * Check if a shape is of this type.
+	 *
+	 * @param shape - The shape to check.
+	 * @returns Whether the shape is of this type.
+	 * @public
+	 */
 	is(shape: TLBaseShape<string, object>): shape is T {
 		return shape.type === this.type
 	}
@@ -376,7 +383,6 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * }
 	 * ```
 	 *
-	 * @param prev - The previous shape.
 	 * @param next - The next shape.
 	 * @returns The next shape or void.
 	 * @public
@@ -404,29 +410,197 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 */
 	onBeforeUpdate?: OnBeforeUpdateHandler<T>
 
+	/**
+	 * A callback called when some other shapes are dragged over this one.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * onDragShapesOver = (shape, shapes) => {
+	 * 	return { shouldHint: true }
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged over this one.
+	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
+	 * @public
+	 */
 	onDragShapesOver?: OnDragHandler<T, { shouldHint: boolean }>
+
+	/**
+	 * A callback called when some other shapes are dragged out of this one.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dragged out.
+	 * @public
+	 */
 	onDragShapesOut?: OnDragHandler<T>
+
+	/**
+	 * A callback called when some other shapes are dropped over this one.
+	 *
+	 * @param shape - The shape.
+	 * @param shapes - The shapes that are being dropped over this one.
+	 * @public
+	 */
 	onDropShapesOver?: OnDragHandler<T>
 
+	/**
+	 * A callback called when a shape starts being resized.
+	 *
+	 * @param shape - The shape.
+	 * @returns The new shape or void.
+	 * @public
+	 */
 	onResizeStart?: OnResizeStartHandler<T>
+
+	/**
+	 * A callback called when a shape changes from a resize.
+	 *
+	 * @param initial - The shape at the start of the resize.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onResize?: OnResizeHandler<T>
+
+	/**
+	 * A callback called when a shape finishes resizing.
+	 *
+	 * @param initial - The shape at the start of the resize.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onResizeEnd?: OnResizeEndHandler<T>
 
+	/**
+	 * A callback called when a shape starts being translated.
+	 *
+	 * @param shape - The shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onTranslateStart?: OnTranslateStartHandler<T>
+
+	/**
+	 * A callback called when a shape changes from a translation.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onTranslate?: OnTranslateHandler<T>
+
+	/**
+	 * A callback called when a shape finishes translating.
+	 *
+	 * @param initial - The shape at the start of the translation.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 */
 	onTranslateEnd?: OnTranslateEndHandler<T>
 
+	/**
+	 * A callback called when a shape starts being rotated.
+	 *
+	 * @param shape - The shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onRotateStart?: OnRotateStartHandler<T>
-	onRotateEnd?: OnRotateEndHandler<T>
+
+	/**
+	 * A callback called when a shape changes from a rotation.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onRotate?: OnRotateHandler<T>
 
+	/**
+	 * A callback called when a shape finishes rotating.
+	 *
+	 * @param initial - The shape at the start of the rotation.
+	 * @param current - The current shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
+	onRotateEnd?: OnRotateEndHandler<T>
+
+	/**
+	 * A callback called when a shape's handle changes.
+	 *
+	 * @param shape - The shape.
+	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onHandleChange?: OnHandleChangeHandler<T>
+
+	/**
+	 * Not currently used.
+	 *
+	 * @internal
+	 */
 	onBindingChange?: OnBindingChangeHandler<T>
+
+	/**
+	 * A callback called when a shape's children change.
+	 *
+	 * @param shape - The shape.
+	 * @returns An array of shape updates to apply.
+	 * @public
+	 */
 	onChildrenChange?: OnChildrenChangeHandler<T>
+
+	/**
+	 * A callback called when a shape's handle is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @param handle - The handle that is double-clicked.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onDoubleClickHandle?: OnDoubleClickHandleHandler<T>
+
+	/**
+	 * A callback called when a shape's edge is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onDoubleClickEdge?: OnDoubleClickHandler<T>
+
+	/**
+	 * A callback called when a shape is double clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onDoubleClick?: OnDoubleClickHandler<T>
+
+	/**
+	 * A callback called when a shape is clicked.
+	 *
+	 * @param shape - The shape.
+	 * @returns The next shape or void.
+	 * @public
+	 */
 	onClick?: OnClickHandler<T>
+
+	/**
+	 * A callback called when a shape finishes being editing.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
 	onEditEnd?: OnEditEndHandler<T>
 }
 
