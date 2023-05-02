@@ -32,14 +32,14 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
-		"test:coverage": "lazy inherit",
+		"test-coverage": "lazy inherit",
 		"new-record": "node ./scripts/new-record.js",
 		"new-shape": "node ./scripts/new-shape.js",
 		"new-asset": "node ./scripts/new-asset.js",
 		"index": "node ./scripts/build-index.js && yarn format",
 		"format": "yarn run -T prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
-		"build:package": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build:api": "yarn run -T tsx ../../scripts/build-api.ts",
+		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
@@ -47,7 +47,7 @@
 	},
 	"devDependencies": {
 		"kleur": "^4.1.5",
-		"lazyrepo": "0.0.0-alpha.23"
+		"lazyrepo": "0.0.0-alpha.26"
 	},
 	"jest": {
 		"preset": "config/jest/node",

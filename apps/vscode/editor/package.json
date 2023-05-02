@@ -29,7 +29,7 @@
 	"scripts": {
 		"build": "yarn run -T tsx scripts/build.ts",
 		"build:vscode-editor": "yarn run -T tsx scripts/build.ts",
-		"dev:vscode": "yarn run -T tsx scripts/dev.ts",
+		"dev-vscode": "yarn run -T tsx scripts/dev.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist",
 		"lint": "yarn run -T tsx ../../../scripts/lint.ts"
 	},
@@ -51,7 +51,7 @@
 		"dotenv": "^16.0.3",
 		"esbuild": "^0.16.7",
 		"fs-extra": "^11.1.0",
-		"lazyrepo": "0.0.0-alpha.23",
+		"lazyrepo": "0.0.0-alpha.26",
 		"nanoid": "^4.0.2",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
