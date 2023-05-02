@@ -47,7 +47,7 @@
 		"format": "prettier --write \"**/*.{ts,tsx}\"",
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
-		"api-check": "lazy api:check",
+		"api-check": "lazy api-check",
 		"test": "lazy test"
 	},
 	"engines": {
