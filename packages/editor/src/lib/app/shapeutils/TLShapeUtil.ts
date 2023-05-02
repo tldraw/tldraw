@@ -459,7 +459,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * A callback called when a shape changes from a resize.
 	 *
 	 * @param shape - The shape at the start of the resize.
-	 * @param info - Info about the resize.
+	 * @param info - Info about the resize ({@link TLResizeInfo}).
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
@@ -500,6 +500,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * @param initial - The shape at the start of the translation.
 	 * @param current - The current shape.
 	 * @returns A change to apply to the shape, or void.
+	 * @public
 	 */
 	onTranslateEnd?: OnTranslateEndHandler<T>
 
@@ -604,27 +605,108 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	onEditEnd?: OnEditEndHandler<T>
 }
 
-/** @public */
+/**
+ * A callback called just before a shape is created. This method provides a last chance to modify
+ * the created shape.
+ *
+ * @example
+ *
+ * ```ts
+ * onBeforeCreate = (next) => {
+ * 	return { ...next, x: next.x + 1 }
+ * }
+ * ```
+ *
+ * @param next - The next shape.
+ * @returns The next shape or void.
+ * @public
+ */
 export type OnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
-/** @public */
+
+/**
+ * A callback called just before a shape is updated. This method provides a last chance to modify
+ * the updated shape.
+ *
+ * @example
+ *
+ * ```ts
+ * onBeforeUpdate = (prev, next) => {
+ * 	if (prev.x === next.x) {
+ * 		return { ...next, x: next.x + 1 }
+ * 	}
+ * }
+ * ```
+ *
+ * @param prev - The previous shape.
+ * @param next - The next shape.
+ * @returns The next shape or void.
+ * @public
+ */
 export type OnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
 
-/** @public */
+/**
+ * A callback called when a shape starts being translated.
+ *
+ * @param shape - The shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnTranslateStartHandler<T extends TLShape> = EventStartHandler<T>
-/** @public */
+
+/**
+ * A callback called when a shape changes from a translation.
+ *
+ * @param initial - The shape at the start of the translation.
+ * @param current - The current shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnTranslateHandler<T extends TLShape> = EventChangeHandler<T>
-/** @public */
+
+/**
+ * A callback called when a shape finishes translating.
+ *
+ * @param initial - The shape at the start of the translation.
+ * @param current - The current shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnTranslateEndHandler<T extends TLShape> = EventChangeHandler<T>
 
-/** @public */
+/**
+ * A callback called when a shape starts being rotated.
+ *
+ * @param shape - The shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnRotateStartHandler<T extends TLShape> = EventStartHandler<T>
-/** @public */
+
+/**
+ * A callback called when a shape changes from a rotation.
+ *
+ * @param initial - The shape at the start of the rotation.
+ * @param current - The current shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnRotateHandler<T extends TLShape> = EventChangeHandler<T>
-/** @public */
+
+/**
+ * A callback called when a shape finishes rotating.
+ *
+ * @param initial - The shape at the start of the rotation.
+ * @param current - The current shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnRotateEndHandler<T extends TLShape> = EventChangeHandler<T>
 
 /**
- * TLResizeMode 'scale_shape' - The shape is being scaled, usually as part of a larger selection.
+ * The type of resize.
+ *
+ * 'scale_shape' - The shape is being scaled, usually as part of a larger selection.
+ *
  * 'resize_bounds' - The user is directly manipulating an individual shape's bounds using a resize
  * handle. It is up to shape util implementers to decide how they want to handle the two
  * situations.
@@ -632,36 +714,95 @@ export type OnRotateEndHandler<T extends TLShape> = EventChangeHandler<T>
  * @public
  */
 export type TLResizeMode = 'scale_shape' | 'resize_bounds'
-/** @public */
+
+/**
+ * Info about a resize.
+ * @param newPoint - The new local position of the shape.
+ * @param handle - The handle being dragged.
+ * @param mode - The type of resize.
+ * @param scaleX - The scale in the x-axis.
+ * @param scaleY - The scale in the y-axis.
+ * @param initialBounds - The bounds of the shape at the start of the resize.
+ * @param initialShape - The shape at the start of the resize.
+ * @public
+ */
+export type TLResizeInfo<T extends TLShape> = {
+	newPoint: Vec2dModel
+	handle: TLResizeHandle
+	mode: TLResizeMode
+	scaleX: number
+	scaleY: number
+	initialBounds: Box2d
+	initialShape: T
+}
+
+/**
+ * A callback called when a shape changes from a resize.
+ *
+ * @param shape - The shape at the start of the resize.
+ * @param info - Info about the resize ({@link TLResizeInfo}).
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnResizeHandler<T extends TLShape> = (
 	shape: T,
-	info: {
-		newPoint: Vec2dModel
-		handle: TLResizeHandle
-		mode: TLResizeMode
-		scaleX: number
-		scaleY: number
-		initialBounds: Box2d
-		initialShape: T
-	}
+	info: TLResizeInfo<T>
 ) => Partial<TLShapePartial<T>> | undefined | void
-/** @public */
+
+/**
+ * A callback called when a shape starts being resized.
+ *
+ * @param shape - The shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnResizeStartHandler<T extends TLShape> = EventStartHandler<T>
-/** @public */
+
+/**
+ * A callback called when a shape finishes resizing.
+ *
+ * @param initial - The shape at the start of the resize.
+ * @param current - The current shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnResizeEndHandler<T extends TLShape> = EventChangeHandler<T>
 
 /* -------------------- Dragging -------------------- */
 
-/** @public */
+/**
+ * A callback called when some other shapes are dragged over or out of a shape.
+ *
+ * @param shape - The shape.
+ * @param shapes - The shapes that are being dragged.
+ * @public
+ */
 export type OnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R
 
-/** @public */
+/**
+ * Not currently used.
+ *
+ * @internal
+ */
 export type OnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
 
-/** @public */
+/**
+ * A callback called when a shape's children change.
+ *
+ * @param shape - The shape.
+ * @returns An array of shape updates, or void.
+ * @public
+ */
 export type OnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void
 
-/** @public */
+/**
+ * A callback called when a shape's handle changes.
+ *
+ * @param shape - The shape.
+ * @param info - An object containing the handle and whether the handle is 'precise' or not.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnHandleChangeHandler<T extends TLShape> = (
 	shape: T,
 	info: {
@@ -670,13 +811,40 @@ export type OnHandleChangeHandler<T extends TLShape> = (
 	}
 ) => TLShapePartial<T> | void
 
-/** @public */
+/**
+ * A callback called when a shape is clicked.
+ *
+ * @param shape - The shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-/** @public */
+
+/**
+ * A callback called when a shape finishes being editing.
+ *
+ * @param shape - The shape.
+ * @public
+ */
 export type OnEditEndHandler<T extends TLShape> = (shape: T) => void
-/** @public */
+
+/**
+ * A callback called when a shape is double clicked.
+ *
+ * @param shape - The shape.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-/** @public */
+
+/**
+ * A callback called when a shape's handle is double clicked.
+ *
+ * @param shape - The shape.
+ * @param handle - The handle that is double-clicked.
+ * @returns A change to apply to the shape, or void.
+ * @public
+ */
 export type OnDoubleClickHandleHandler<T extends TLShape> = (
 	shape: T,
 	handle: TLHandle

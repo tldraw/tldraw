@@ -1310,72 +1310,64 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     z: number;
 };
 
-// @public (undocumented)
+// @public
 export type OnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
 
-// @public (undocumented)
+// @public
 export type OnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void;
 
-// @public (undocumented)
+// @internal
 export type OnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public (undocumented)
+// @public
 export type OnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void;
 
-// @public (undocumented)
+// @public
 export type OnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public (undocumented)
+// @public
 export type OnDoubleClickHandleHandler<T extends TLShape> = (shape: T, handle: TLHandle) => TLShapePartial<T> | void;
 
-// @public (undocumented)
+// @public
 export type OnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public (undocumented)
+// @public
 export type OnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R;
 
-// @public (undocumented)
+// @public
 export type OnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
-// @public (undocumented)
+// @public
 export type OnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
 }) => TLShapePartial<T> | void;
 
-// @public (undocumented)
+// @public
 export type OnResizeEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public (undocumented)
-export type OnResizeHandler<T extends TLShape> = (shape: T, info: {
-    newPoint: Vec2dModel;
-    handle: TLResizeHandle;
-    mode: TLResizeMode;
-    scaleX: number;
-    scaleY: number;
-    initialBounds: Box2d;
-    initialShape: T;
-}) => Partial<TLShapePartial<T>> | undefined | void;
+// @public
+export type OnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Partial<TLShapePartial<T>> | undefined | void;
 
-// @public (undocumented)
+// @public
 export type OnResizeStartHandler<T extends TLShape> = EventStartHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnRotateEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnRotateHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnRotateStartHandler<T extends TLShape> = EventStartHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnTranslateEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnTranslateHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public (undocumented)
+// @public
 export type OnTranslateStartHandler<T extends TLShape> = EventStartHandler<T>;
 
 // @public (undocumented)
@@ -2384,6 +2376,17 @@ export type TLReorderOperation = 'backward' | 'forward' | 'toBack' | 'toFront';
 
 // @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
+
+// @public
+export type TLResizeInfo<T extends TLShape> = {
+    newPoint: Vec2dModel;
+    handle: TLResizeHandle;
+    mode: TLResizeMode;
+    scaleX: number;
+    scaleY: number;
+    initialBounds: Box2d;
+    initialShape: T;
+};
 
 // @public
 export type TLResizeMode = 'resize_bounds' | 'scale_shape';
