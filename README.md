@@ -1,9 +1,3 @@
-> **Note**<br>
-> This repo is for the **new version** of tldraw, which is hosted at [tldraw.com](https://tldraw.com).<br>
-> The code for the **original version** (hosted at [old.tldraw.com](https://old.tldraw.com)) can be found in the [v1 repo](https://github.com/tldraw/tldraw-v1).
-
-<br>
-
 <div alt style="text-align: center; transform: scale(.5);">
 	<picture>
 		<source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/tldraw/tldraw/main/assets/github-hero-dark-draw.png" />
@@ -13,18 +7,35 @@
 
 # tldraw
 
-Welcome to the new [tldraw](https://tldraw.com) monorepo!
+Welcome to the _public monorepo_ for [tldraw](https://tldraw.com).
 
-It contains the public tldraw packages, and examples of how to use them.<br>
-Read below for how to run the examples locally.<br>
-Or check out our work-in-progress docs at [docs.tldraw.com](https://docs.tldraw.dev).<br>
+tldraw a virtual whiteboard for React. You can use tldraw as a drop-in whiteboard for your product or as the foundation on which to build your own inifinite canvas applications.
 
-🙌 Questions? Join our [discord](https://discord.gg/rhsyWMUJxd) or start a [discussion](https://github.com/tldraw/tldraw/discussions/new).<br>
-🔍 Found a bug? Please submit an [issue](https://github.com/tldraw/tldraw/issues/new)!
+Learn more at [tldraw.dev](https://tldraw.dev).
 
-## Getting started
+🙌 Questions? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
 
-To run the examples locally, first clone this repo.
+🔍 Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+
+> **Note** This repo contains source code for the **current version** of tldraw. You can find the source for the original version [here](https://github.com/tldraw/tldraw-v1).
+
+## Installation & Usage
+
+To learn more about using tldraw in your React application, follow our guide [here](https://tldraw.dev/docs/ucg/installation).
+
+```tsx
+import { Tldraw } from '@tldraw/tldraw'
+import '@tldraw/tldraw/editor.css'
+import '@tldraw/tldraw/ui.css'
+
+function TldrawExample() {
+	return <Tldraw />
+}
+```
+
+## Local development
+
+To run the local development server, first clone this repo.
 
 Install dependencies:
 
@@ -32,20 +43,62 @@ Install dependencies:
 yarn
 ```
 
-Then start the local development server:
+Start the local development server:
 
 ```bash
 yarn dev
 ```
 
-Each individual example is found in the [**apps/examples/src**](https://github.com/tldraw/tldraw/tree/main/apps/examples/src) folder. And you can try them out by visiting different routes.
+Open the example project at `localhost:5420`.
+
+### Examples
+
+Our development server contains several examples that demonstrates different ways that you can customize tldraw or use its APIs. Each example is found in the [**apps/examples/src**](https://github.com/tldraw/tldraw/tree/main/apps/examples/src) folder.
 
 - eg: `localhost:5420` for the basic example.
 - eg: `localhost:5420/api` for the API example.
 
-For more info on how to build something with tldraw... check out our work-in-progress docs at [docs.tldraw.com](https://docs.tldraw.dev).
+To learn more about using tldraw, [visit our docs](https://tldraw.dev).
+
+## About this repository
+
+### Top-level layout
+
+This repository's contents is divided across four primary sections:
+
+- `/apps` contains the source for our applications
+- `/packages` contains the source for our public packages
+- `/scripts` contains scripts used for building and publishing
+- `/assets` contains icons and translations relied on by the app
+
+### Applications
+
+- `examples`: our local development / examples project
+- `docs`: our docs site at [tldraw.dev](https://tldraw.dev)
+- `vscode`: our [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=tldraw-org.tldraw-vscode)
+
+### Packages
+
+- `editor`: the tldraw editor
+- `ui`: the editor's user interface
+- `tldraw`: the main tldraw package containing both the editor and the UI
+- `primitives`: low-level primitives for working with vectors and geometry
+- `tlschema`: shape definitions and migrations
+- `tlsync-client`: a library for (locally) syncronizing editor instances
+- `tlstore`: an in-memory reactive database
+- `tlvalidate`: a validation library used for run-time validation
+- `tlassets`: a library for working with tldraw's fonts and translations
+- `file-format`: a library for working with tldraw's `.tldr` file format
+- `utils`: low-level data utilities shared by other libraries
+
+## Distributions
+
+You can find tldraw on npm [here]().
 
 ## License
 
-The various tldraw libraries are licensed mostly under Apache 2.0.<br>
-The examples are licensed under MIT.
+The source code in this repository is licensed under Apache 2.0. The examples are licensed under MIT.
+
+## Contact
+
+Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
