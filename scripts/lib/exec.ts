@@ -4,6 +4,14 @@ type ExecOpts = {
 	pwd?: string
 	processStdoutLine?: (line: string) => void
 	processStderrLine?: (line: string) => void
+	env?: Partial<NodeJS.ProcessEnv>
+}
+
+export function prefixOutput(prefix: string) {
+	return {
+		processStdoutLine: (line: string) => process.stdout.write(`${prefix}${line}\n`),
+		processStderrLine: (line: string) => process.stderr.write(`${prefix}${line}\n`),
+	}
 }
 
 export async function exec(
@@ -13,6 +21,7 @@ export async function exec(
 		pwd = process.cwd(),
 		processStdoutLine = (line) => process.stdout.write(`${line}\n`),
 		processStderrLine = (line) => process.stderr.write(`${line}\n`),
+		env,
 	}: ExecOpts = {}
 ): Promise<string> {
 	console.log(`> $ ${command} ${args.join(' ')} (in ${pwd}))`)
@@ -22,7 +31,7 @@ export async function exec(
 		const childProcess = execFile(
 			command,
 			args.filter((arg): arg is string => !!arg),
-			{ cwd: pwd },
+			{ cwd: pwd, env: { ...process.env, ...env } },
 			(err) => {
 				if (err) reject(err)
 				else resolve(data.join(''))
