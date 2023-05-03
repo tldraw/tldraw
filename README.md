@@ -7,21 +7,19 @@
 
 # tldraw
 
-Welcome to the _public monorepo_ for [tldraw](https://tldraw.com).
+Welcome to the public monorepo for [tldraw](https://tldraw.com).
 
-tldraw a virtual whiteboard for React. You can use tldraw as a drop-in whiteboard for your product or as the foundation on which to build your own inifinite canvas applications.
+## What is tldraw?
+
+tldraw is a collaborative digital whiteboard available at [tldraw.com](https://tldraw.com). Its editor, user interface, and other underlying libraries are open source and available in this repository. They are also distributed on npm. You can use tldraw to create a drop-in whiteboard for your product or as the foundation on which to build your own inifinite canvas applications.
 
 Learn more at [tldraw.dev](https://tldraw.dev).
-
-🙌 Questions? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
-
-🔍 Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 > **Note** This repo contains source code for the **current version** of tldraw. You can find the source for the original version [here](https://github.com/tldraw/tldraw-v1).
 
 ## Installation & Usage
 
-To learn more about using tldraw in your React application, follow our guide [here](https://tldraw.dev/docs/ucg/installation).
+To learn more about using tldraw in your React application, follow our guide [here](https://tldraw.dev/docs/ucg/installation) or see [this CodeSandbox](https://codesandbox.io/p/github/tldraw/tldraw-examples/main?file=%2FREADME.md).
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
@@ -90,6 +88,14 @@ This repository's contents is divided across four primary sections:
 - `tlassets`: a library for working with tldraw's fonts and translations
 - `file-format`: a library for working with tldraw's `.tldr` file format
 - `utils`: low-level data utilities shared by other libraries
+
+## Community
+
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
+
+## Contribution
+
+Please see our [contributing guide](/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Distributions
 
