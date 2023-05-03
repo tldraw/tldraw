@@ -17,6 +17,7 @@ import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
+import { LiveCollaboratorsNext } from './LiveCollaboratorsNext'
 import { SelectionBg } from './SelectionBg'
 import { SelectionFg } from './SelectionFg'
 import { Shape } from './Shape'
@@ -134,7 +135,11 @@ export const Canvas = track(function Canvas({
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
 					<HandlesWrapper />
-					<LiveCollaborators />
+					{process.env.NEXT_PUBLIC_TLDRAW_NEW_COLLABORATORS ? (
+						<LiveCollaboratorsNext />
+					) : (
+						<LiveCollaborators />
+					)}
 				</g>
 			</svg>
 		</div>

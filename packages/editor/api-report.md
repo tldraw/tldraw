@@ -2650,8 +2650,14 @@ export const useApp: () => App;
 // @public (undocumented)
 export function useContainer(): HTMLDivElement;
 
+// @internal (undocumented)
+export function usePeerIds(): TLUserId[];
+
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
+
+// @internal (undocumented)
+export function usePresence(userId: TLUserId): null | TLInstancePresence;
 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;

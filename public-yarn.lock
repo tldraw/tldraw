@@ -9483,8 +9483,8 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.9.0
-    signia: 0.1.1
-    signia-react: 0.1.1
+    signia: 0.1.4
+    signia-react: 0.1.4
   languageName: unknown
   linkType: soft
 
@@ -16724,21 +16724,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signia-react@npm:0.1.1":
-  version: 0.1.1
-  resolution: "signia-react@npm:0.1.1"
+"signia-react@npm:0.1.4":
+  version: 0.1.4
+  resolution: "signia-react@npm:0.1.4"
   dependencies:
-    signia: 0.1.1
+    signia: 0.1.4
   peerDependencies:
     react: ^18
-  checksum: 134e32dad5f9b4e54f13d00e8ea0ed56d3b80a4fa9dcd469071906ee2501fec7f0dde8097f1c410be27c8dabf0bf81d3d73d76d579da22b3904a14d5005e872a
+  checksum: 7e443c9b94e60cd1eeb3726d048d66ab4ff6b26c14b4ca0fc9542ce2cd5997071b1d7a870481e5d88e7d0442332d65a14239a831b1f987463f4a9ca196d7de45
   languageName: node
   linkType: hard
 
-"signia@npm:0.1.1":
-  version: 0.1.1
-  resolution: "signia@npm:0.1.1"
-  checksum: 0fc961c533266604241543d079edd8a8d28264ec769d28c660a61d88d0c1da4ddbab8a04f89b5ff2c30474adfc36da98db8a22c881364de127d53c8315613b61
+"signia@npm:0.1.4":
+  version: 0.1.4
+  resolution: "signia@npm:0.1.4"
+  checksum: 0daab872c3e335c74a464a3b592cfa0fc5e1e0b65e61eecdf4e0476830791543add8a661b9b33ce9e0f6c3f0f8093ef1965955a64ec510cfcaaf15066bd25e94
   languageName: node
   linkType: hard
 
