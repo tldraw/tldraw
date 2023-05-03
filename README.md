@@ -95,7 +95,7 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 ## Contribution
 
-Please see our [contributing guide](/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
+Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
 ## Distributions
 

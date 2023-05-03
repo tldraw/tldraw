@@ -172,6 +172,7 @@ describe('TLImageAsset AddIsAnimated', () => {
 
 const ShapeRecord = createRecordType('shape', {
 	validator: { validate: (record) => record as TLShape },
+	scope: 'document',
 })
 
 describe('Store removing Icon and Code shapes', () => {
@@ -630,6 +631,24 @@ describe('Add crop=null to image shapes', () => {
 	test('down works as expected', () => {
 		expect(down({ props: { w: 100, crop: null } })).toEqual({
 			props: { w: 100 },
+		})
+	})
+})
+
+describe('Adding instance_presence to the schema', () => {
+	const { up, down } = storeMigrations.migrators[2]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({})
+	})
+	test('down works as expected', () => {
+		expect(
+			down({
+				'instance_presence:123': { id: 'instance_presence:123', typeName: 'instance_presence' },
+				'instance:123': { id: 'instance:123', typeName: 'instance' },
+			})
+		).toEqual({
+			'instance:123': { id: 'instance:123', typeName: 'instance' },
 		})
 	})
 })

@@ -260,9 +260,6 @@ export function getPointOnCircle(cx: number, cy: number, r: number, a: number): 
 export function getPolygonVertices(width: number, height: number, sides: number): Vec2d[];
 
 // @public (undocumented)
-export function getRoundedInkyPolygonInnerPath(points: VecLike[]): string;
-
-// @public (undocumented)
 export function getRoundedInkyPolygonPath(points: VecLike[]): string;
 
 // @public (undocumented)

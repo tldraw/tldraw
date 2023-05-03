@@ -21,6 +21,7 @@ const Book = createRecordType<Book>('book', {
 			return book
 		},
 	},
+	scope: 'document',
 })
 
 interface Author extends BaseRecord<'author'> {
@@ -39,6 +40,7 @@ const Author = createRecordType<Author>('author', {
 			return author
 		},
 	},
+	scope: 'document',
 }).withDefaultProperties(() => ({
 	isPseudonym: false,
 }))

@@ -7,6 +7,17 @@ import { Migrations } from './migrate'
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
 
 /**
+ * Defines the scope of the record
+ *
+ * instance: The record belongs to a single instance of the store. It should not be synced, and any persistence logic should 'de-instance-ize' the record before persisting it, and apply the reverse when rehydrating.
+ * document: The record is persisted and synced. It is available to all store instances.
+ * presence: The record belongs to a single instance of the store. It may be synced to other instances, but other instances should not make changes to it. It should not be persisted.
+ *
+ * @public
+ * */
+export type Scope = 'instance' | 'document' | 'presence'
+
+/**
  * A record type is a type that can be stored in a record store. It is created with
  * `createRecordType`.
  *
@@ -20,6 +31,8 @@ export class RecordType<
 	readonly migrations: Migrations
 	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
+	readonly scope: Scope
+
 	constructor(
 		/**
 		 * The unique type associated with this record.
@@ -32,11 +45,13 @@ export class RecordType<
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 			readonly migrations: Migrations
 			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
+			readonly scope?: Scope
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
 		this.migrations = config.migrations
 		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
+		this.scope = config.scope ?? 'document'
 	}
 
 	/**
@@ -174,6 +189,7 @@ export class RecordType<
 			createDefaultProperties: createDefaultProperties as any,
 			migrations: this.migrations,
 			validator: this.validator,
+			scope: this.scope,
 		})
 	}
 
@@ -204,12 +220,14 @@ export function createRecordType<R extends BaseRecord>(
 		migrations?: Migrations
 		// todo: optional validations
 		validator: StoreValidator<R>
+		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({} as any),
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		validator: config.validator,
+		scope: config.scope,
 	})
 }
 

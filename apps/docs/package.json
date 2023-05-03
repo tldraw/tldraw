@@ -27,14 +27,14 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev": "lazy dev:docs",
-		"dev:docs": "next dev",
-		"build": "lazy build:docs",
-		"build:docs": "next build",
+		"dev": "lazy dev-docs",
+		"dev-docs": "next dev",
+		"build": "lazy build-docs",
+		"build-docs": "next build",
 		"start": "next start",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
-		"docs:content": "ts-node --project tsconfig.content.json ./scripts/index.ts",
-		"content": "lazy docs:content"
+		"docs-content": "ts-node --project tsconfig.content.json ./scripts/index.ts",
+		"content": "lazy docs-content"
 	},
 	"dependencies": {
 		"@microsoft/tsdoc": "^0.14.2",
@@ -69,7 +69,7 @@
 		"@tldraw/tlsync-client": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/ui": "workspace:*",
-		"lazyrepo": "0.0.0-alpha.20",
+		"lazyrepo": "0.0.0-alpha.26",
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1"
 	}

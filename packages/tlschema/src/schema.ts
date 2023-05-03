@@ -7,13 +7,14 @@ import { TLRecord } from './TLRecord'
 const Versions = {
 	Initial: 0,
 	RemoveCodeAndIconShapeTypes: 1,
+	AddInstancePresenceType: 2,
 } as const
 
 /** @public */
 export const storeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	firstVersion: Versions.Initial,
-	currentVersion: Versions.RemoveCodeAndIconShapeTypes,
+	currentVersion: Versions.AddInstancePresenceType,
 	migrators: {
 		// STEP 3: Add an up+down migration for the new version here
 		[Versions.RemoveCodeAndIconShapeTypes]: {
@@ -27,6 +28,16 @@ export const storeMigrations = defineMigrations({
 			down: (store: StoreSnapshot<TLRecord>) => {
 				// noop
 				return store
+			},
+		},
+		[Versions.AddInstancePresenceType]: {
+			up: (store: StoreSnapshot<TLRecord>) => {
+				return store
+			},
+			down: (store: StoreSnapshot<TLRecord>) => {
+				return Object.fromEntries(
+					Object.entries(store).filter(([_, v]) => v.typeName !== 'instance_presence')
+				)
 			},
 		},
 	},

@@ -14,3 +14,4 @@
 **/api/*
 !**/pages/api/*
 **/*.json
+**/lazy.config.ts

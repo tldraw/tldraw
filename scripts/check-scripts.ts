@@ -25,8 +25,8 @@ const expectedPackageScripts = {
 // published packages should have these scripts
 const expectedPublishedPackageScripts = {
 	...expectedPackageScripts,
-	'build:package': tsScript('build-package.ts'),
-	'build:api': tsScript('build-api.ts'),
+	'build-package': tsScript('build-package.ts'),
+	'build-api': tsScript('build-api.ts'),
 	prepack: tsScript('prepack.ts'),
 	postpack: (packageDir: string) => scriptPath(packageDir, 'postpack.sh'),
 	'pack-tarball': () => 'yarn pack',

@@ -29,6 +29,7 @@ const User = createRecordType<User>('user', {
 			return record as User
 		},
 	},
+	scope: 'document',
 })
 
 const ShapeVersion = {
@@ -90,6 +91,7 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 			return record as Shape<RectangleProps | OvalProps>
 		},
 	},
+	scope: 'document',
 })
 
 // this interface only exists to be removed
@@ -107,6 +109,7 @@ const Org = createRecordType<Org>('org', {
 			return record as Org
 		},
 	},
+	scope: 'document',
 })
 
 export const testSchemaV0 = StoreSchema.create(

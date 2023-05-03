@@ -10,7 +10,10 @@ interface Book extends BaseRecord<'book'> {
 	numPages: number
 }
 
-const Book = createRecordType<Book>('book', { validator: { validate: (book) => book as Book } })
+const Book = createRecordType<Book>('book', {
+	validator: { validate: (book) => book as Book },
+	scope: 'document',
+})
 
 interface Author extends BaseRecord<'author'> {
 	name: string
@@ -19,6 +22,7 @@ interface Author extends BaseRecord<'author'> {
 
 const Author = createRecordType<Author>('author', {
 	validator: { validate: (author) => author as Author },
+	scope: 'document',
 }).withDefaultProperties(() => ({
 	isPseudonym: false,
 }))

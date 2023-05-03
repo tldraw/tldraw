@@ -1,9 +1,4 @@
-import {
-	getRoundedInkyPolygonInnerPath,
-	getRoundedInkyPolygonPath,
-	getRoundedPolygonPoints,
-	VecLike,
-} from '@tldraw/primitives'
+import { getRoundedInkyPolygonPath, getRoundedPolygonPoints, VecLike } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
@@ -23,15 +18,16 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	lines?: VecLike[][]
 }) {
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
-	let innerPathData = getRoundedInkyPolygonInnerPath(polygonPoints)
 	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
 	if (lines) {
 		for (const [A, B] of lines) {
-			innerPathData += `M${A.x},${A.y}L${B.x},${B.y}`
 			strokePathData += `M${A.x},${A.y}L${B.x},${B.y}`
 		}
 	}
+
+	const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+	const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
 
 	return (
 		<>
@@ -57,7 +53,6 @@ export function DrawStylePolygonSvg({
 	colors: TLExportColors
 }) {
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
-	const innerPathData = getRoundedInkyPolygonInnerPath(polygonPoints)
 
 	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
@@ -66,6 +61,9 @@ export function DrawStylePolygonSvg({
 			strokePathData += `M${A.x},${A.y}L${B.x},${B.y}`
 		}
 	}
+
+	const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+	const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)

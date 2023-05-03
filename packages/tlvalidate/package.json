@@ -32,9 +32,9 @@
 	"files": [],
 	"scripts": {
 		"test": "lazy inherit",
-		"test:coverage": "lazy inherit",
-		"build:package": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build:api": "yarn run -T tsx ../../scripts/build-api.ts",
+		"test-coverage": "lazy inherit",
+		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
@@ -53,6 +53,6 @@
 		}
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.20"
+		"lazyrepo": "0.0.0-alpha.26"
 	}
 }

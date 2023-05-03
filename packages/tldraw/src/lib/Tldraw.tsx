@@ -21,15 +21,17 @@ export function Tldraw(
 
 	const userData = getUserData()
 
+	const userId = props.userId ?? userData.id
+
 	const syncedStore = useLocalSyncClient({
 		instanceId,
-		userId: userData.id,
+		userId: userId,
 		universalPersistenceKey: persistenceKey,
 		config: props.config,
 	})
 
 	return (
-		<TldrawEditor {...rest} instanceId={instanceId} userId={userData.id} store={syncedStore}>
+		<TldrawEditor {...rest} instanceId={instanceId} userId={userId} store={syncedStore}>
 			<TldrawUi {...rest}>
 				<ContextMenu>
 					<Canvas />

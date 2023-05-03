@@ -36,9 +36,9 @@
 	],
 	"scripts": {
 		"test": "lazy inherit --passWithNoTests",
-		"test:coverage": "lazy inherit --passWithNoTests",
-		"build:package": "yarn run -T tsx ../../scripts/build-package.ts",
-		"build:api": "yarn run -T tsx ../../scripts/build-api.ts",
+		"test-coverage": "lazy inherit --passWithNoTests",
+		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
 		"pack-tarball": "yarn pack",
@@ -48,9 +48,7 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"@swc/core": "^1.2.204",
-		"@swc/jest": "^0.2.21",
-		"lazyrepo": "0.0.0-alpha.20",
+		"lazyrepo": "0.0.0-alpha.26",
 		"ts-node-dev": "^1.1.8"
 	},
 	"jest": {

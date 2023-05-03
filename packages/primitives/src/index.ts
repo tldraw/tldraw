@@ -43,7 +43,6 @@ export {
 } from './lib/intersect'
 export {
 	getDrawLinePathData,
-	getRoundedInkyPolygonInnerPath,
 	getRoundedInkyPolygonPath,
 	getRoundedPolygonPoints,
 } from './lib/polygon-helpers'

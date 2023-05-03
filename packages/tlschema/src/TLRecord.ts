@@ -3,6 +3,7 @@ import { TLCamera } from './records/TLCamera'
 import { TLDocument } from './records/TLDocument'
 import { TLInstance } from './records/TLInstance'
 import { TLInstancePageState } from './records/TLInstancePageState'
+import { TLInstancePresence } from './records/TLInstancePresence'
 import { TLPage } from './records/TLPage'
 import { TLShape } from './records/TLShape'
 import { TLUser } from './records/TLUser'
@@ -21,3 +22,4 @@ export type TLRecord =
 	| TLUser
 	| TLUserDocument
 	| TLUserPresence
+	| TLInstancePresence

@@ -1,9 +1,9 @@
 import { LazyConfig } from 'lazyrepo'
 
-export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
+export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') {
 	return {
 		build: {
-			runsAfter: { 'build:package': {}, prebuild: {} },
+			runsAfter: { 'build-package': {}, prebuild: {} },
 		},
 		'build:vscode-editor': {
 			runsAfter: { 'refresh-assets': {} },
@@ -13,22 +13,22 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
 		},
-		'dev:vscode': {
+		'dev-vscode': {
 			runsAfter: { 'build:vscode-editor': {} },
 		},
 		test: {
 			baseCommand: 'yarn run -T jest',
 			runsAfter: { 'refresh-assets': {} },
 		},
-		'test:coverage': {
+		'test-coverage': {
 			baseCommand: 'yarn run -T jest --coverage',
 		},
 		lint: {
 			execution: 'independent',
-			runsAfter: { 'build:types': {} },
+			runsAfter: { 'build-types': {} },
 		},
-		'build:package': {
-			runsAfter: { 'build:api': {}, prebuild: {} },
+		'build-package': {
+			runsAfter: { 'build-api': {}, prebuild: {} },
 			cache: {
 				inputs: ['api/**/*', 'src/**/*'],
 			},
@@ -43,44 +43,45 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 				inputs: ['package.json', `${bublic}/scripts/refresh-assets.ts`, `${bublic}/assets/**/*`],
 			},
 		},
-		'build:types': {
+		'build-types': {
 			execution: 'top-level',
 			baseCommand: `tsx ${bublic}/scripts/typecheck.ts`,
 			cache: {
 				inputs: {
-					include: [
-						'{.,./bublic}/packages/*/src/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,scripts,e2e}/**/*.{ts,tsx}',
-						'{.,./bublic}/{apps,packages}/*/tsconfig.json',
-						'{.,./bublic}/{scripts,e2e}/tsconfig.json',
-						`${bublic}/config/tsconfig.base.json`,
-					],
-					exclude: ['**/dist*/**/*.d.ts'],
+					include: ['<allWorkspaceDirs>/**/*.{ts,tsx}', '<allWorkspaceDirs>/tsconfig.json'],
+					exclude: ['<allWorkspaceDirs>/dist*/**/*', '<allWorkspaceDirs>/api/**/*'],
 				},
+				outputs: ['<allWorkspaceDirs>/*.tsbuildinfo', '<allWorkspaceDirs>/.tsbuild/**/*'],
 			},
 			runsAfter: {
 				'refresh-assets': {},
 				'maybe-clean-tsbuildinfo': {},
 			},
 		},
-		'build:api': {
+		'build-api': {
 			execution: 'independent',
 			cache: {
 				inputs: ['.tsbuild/**/*.d.ts', 'tsconfig.json'],
+				outputs: ['api/**/*'],
 			},
-			runsAfter: { 'build:types': {} },
+			runsAfter: {
+				'build-types': {
+					// Because build-types is top level, if usesOutput were set to true every
+					// build-api task would depend on all the .tsbuild files in the whole
+					// repo. So we set this to false and configure it to use only the
+					// local .tsbuild files
+					usesOutput: false,
+				},
+			},
 		},
-		'build:docs': {
-			runsAfter: { 'docs:content': {} },
+		'build-docs': {
+			runsAfter: { 'docs-content': {} },
 		},
-		'dev:docs': {
-			runsAfter: { 'docs:content': {} },
+		'dev-docs': {
+			runsAfter: { 'docs-content': {} },
 		},
-		'app:build': {
-			runsAfter: { 'build:types': {} },
-		},
-		'docs:content': {
-			runsAfter: { 'build:api': {} },
+		'docs-content': {
+			runsAfter: { 'build-api': {} },
 			cache: {
 				inputs: [
 					'content/**',
@@ -90,36 +91,35 @@ export function generateSharedTasks(bublic: '<rootDir>' | '<rootDir>/bublic') {
 				],
 			},
 		},
-		'api:check': {
+		'api-check': {
 			execution: 'top-level',
 			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
-			runsAfter: { 'build:api': {} },
+			runsAfter: { 'build-api': {} },
 			cache: {
-				inputs: ['**/api/bublic.d.ts'],
+				inputs: [`${bublic}/packages/*/api/public.d.ts`],
 			},
 		},
-	} satisfies LazyConfig['tasks']
+	} satisfies LazyConfig['scripts']
 }
 
 const config = {
 	baseCacheConfig: {
 		include: [
-			'<rootDir>/package.json',
-			'<rootDir>/yarn.lock',
-			'<rootDir>/lazy.config.mjs',
-			'<rootDir>/config/**/*',
-			'<rootDir>/scripts/**/*',
+			'<rootDir>/{,bublic/}package.json',
+			'<rootDir>/{,bublic/}public-yarn.lock',
+			'<rootDir>/{,bublic/}lazy.config.ts',
+			'<rootDir>/{,bublic/}config/**/*',
+			'<rootDir>/{,bublic/}scripts/**/*',
 		],
 		exclude: [
-			'coverage/**/*',
-			'dist*/**/*',
+			'<allWorkspaceDirs>/coverage/**/*',
+			'<allWorkspaceDirs>/dist*/**/*',
 			'**/*.tsbuildinfo',
-			'<rootDir>/apps/app/bublic/*.{js,map}',
-			'<rootDir>/apps/docs/content/gen/**/*',
+			'<rootDir>/{,bublic/}apps/docs/content/gen/**/*',
 		],
 	},
-	tasks: {
-		...generateSharedTasks('<rootDir>'),
+	scripts: {
+		...generateSharedScripts('<rootDir>'),
 	},
 } satisfies LazyConfig
 

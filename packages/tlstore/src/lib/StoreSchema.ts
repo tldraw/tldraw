@@ -1,4 +1,5 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
+import { Signal } from 'signia'
 import { BaseRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { Store, StoreSnapshot } from './Store'
@@ -48,6 +49,8 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 	}) => R
 	/** @internal */
 	ensureStoreIsUsable?: (store: Store<R, P>) => void
+	/** @internal */
+	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
 }
 
 /** @public */
@@ -239,6 +242,11 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 	/** @internal */
 	ensureStoreIsUsable(store: Store<R, P>): void {
 		this.options.ensureStoreIsUsable?.(store)
+	}
+
+	/** @internal */
+	derivePresenceState(store: Store<R, P>): Signal<R | null> | undefined {
+		return this.options.derivePresenceState?.(store)
 	}
 
 	serialize(): SerializedSchema {
