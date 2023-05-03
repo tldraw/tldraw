@@ -3499,9 +3499,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-popover@npm:^1.0.2":
-  version: 1.0.5
-  resolution: "@radix-ui/react-popover@npm:1.0.5"
+"@radix-ui/react-popover@npm:1.0.6-rc.5":
+  version: 1.0.6-rc.5
+  resolution: "@radix-ui/react-popover@npm:1.0.6-rc.5"
   dependencies:
     "@babel/runtime": ^7.13.10
     "@radix-ui/primitive": 1.0.0
@@ -3511,7 +3511,7 @@ __metadata:
     "@radix-ui/react-focus-guards": 1.0.0
     "@radix-ui/react-focus-scope": 1.0.2
     "@radix-ui/react-id": 1.0.0
-    "@radix-ui/react-popper": 1.1.1
+    "@radix-ui/react-popper": 1.1.2-rc.5
     "@radix-ui/react-portal": 1.0.2
     "@radix-ui/react-presence": 1.0.0
     "@radix-ui/react-primitive": 1.0.2
@@ -3522,7 +3522,7 @@ __metadata:
   peerDependencies:
     react: ^16.8 || ^17.0 || ^18.0
     react-dom: ^16.8 || ^17.0 || ^18.0
-  checksum: 5a748af34b9889350c0f4dc0a15b1d09c3ab8a8bacc6e7a358c70341de94acbbdb07aafbeadfbe0371cf77dabdaf4e273bbcf742f5d67f29543eb8cea58ee2a9
+  checksum: a9d758eaf1b1e0714e331be5aa4221a870676960e1c89f2e55c399a09480125792145a3fe329040aae302e03ea9008f1d775f801a2fdf54281eb06a8b1bc63c0
   languageName: node
   linkType: hard
 
@@ -3545,6 +3545,28 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0
     react-dom: ^16.8 || ^17.0 || ^18.0
   checksum: d9be4be002116efa50dc91b4e2e99150cb64db5ac440c4ad85efbd8d36a99615fc316bddae5ccad6a06807242b1ba23ab04e57cf82f5c92f1bcc5d662c77be94
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-popper@npm:1.1.2-rc.5":
+  version: 1.1.2-rc.5
+  resolution: "@radix-ui/react-popper@npm:1.1.2-rc.5"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@floating-ui/react-dom": 0.7.2
+    "@radix-ui/react-arrow": 1.0.2
+    "@radix-ui/react-compose-refs": 1.0.0
+    "@radix-ui/react-context": 1.0.0
+    "@radix-ui/react-primitive": 1.0.2
+    "@radix-ui/react-use-callback-ref": 1.0.0
+    "@radix-ui/react-use-layout-effect": 1.0.0
+    "@radix-ui/react-use-rect": 1.0.0
+    "@radix-ui/react-use-size": 1.0.0
+    "@radix-ui/rect": 1.0.0
+  peerDependencies:
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  checksum: 9a6a1773bec3ff7054e8cf815c89e490e1426ceb624e46ff3601dde18fa2a06e5ff9d0b5d54cce9a5a46ac3cf5344de76df757812c41cb733a5552c7a5273cf8
   languageName: node
   linkType: hard
 
@@ -4553,7 +4575,7 @@ __metadata:
     "@radix-ui/react-context-menu": ^2.1.1
     "@radix-ui/react-dialog": ^1.0.2
     "@radix-ui/react-dropdown-menu": ^2.0.1
-    "@radix-ui/react-popover": ^1.0.2
+    "@radix-ui/react-popover": 1.0.6-rc.5
     "@radix-ui/react-select": ^1.2.0
     "@radix-ui/react-slider": ^1.1.0
     "@radix-ui/react-toast": ^1.1.1
