@@ -99,7 +99,7 @@ Please see our [contributing guide](/CONTRIBUTING.md). Found a bug? Please [subm
 
 ## Distributions
 
-You can find tldraw on npm [here]().
+You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw).
 
 ## License
 
