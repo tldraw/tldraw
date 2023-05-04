@@ -1,5 +1,5 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
-import { useContainer } from '@tldraw/editor'
+import { useContainer, useUiEvents } from '@tldraw/editor'
 import { memo } from 'react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
@@ -14,6 +14,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const container = useContainer()
 	const menuSchema = useActionsMenuSchema()
 	const isReadonly = useReadonly()
+	const track = useUiEvents()
 
 	function getActionMenuItem(item: MenuChild) {
 		if (isReadonly && !item.readonlyOk) return null
@@ -21,6 +22,11 @@ export const ActionsMenu = memo(function ActionsMenu() {
 		switch (item.type) {
 			case 'item': {
 				const { id, icon, label, kbd, onSelect } = item.actionItem
+
+				const onSelectLocal = () => {
+					track('ui.actions.click', id)
+					onSelect()
+				}
 
 				return (
 					<Button
@@ -37,7 +43,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 								? `${kbdStr(kbd)}`
 								: ''
 						}
-						onClick={onSelect}
+						onClick={onSelectLocal}
 						disabled={item.disabled}
 					/>
 				)

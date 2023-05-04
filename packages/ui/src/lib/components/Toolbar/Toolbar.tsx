@@ -1,4 +1,4 @@
-import { preventDefault, useApp } from '@tldraw/editor'
+import { preventDefault, useApp, useUiEvents } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { track, useValue } from 'signia-react'
@@ -244,6 +244,14 @@ function ToolbarButton({
 	title: string
 	isSelected: boolean
 }) {
+	const track = useUiEvents()
+
+	const onSelect = () => {
+		track('ui.actions.click', item.id)
+		console.log('item.onSelect', item.onSelect)
+		item.onSelect()
+	}
+
 	return (
 		<Button
 			className="tlui-toolbar__tools__button"
@@ -254,10 +262,10 @@ function ToolbarButton({
 			title={title}
 			icon={item.icon}
 			data-state={isSelected ? 'selected' : undefined}
-			onClick={item.onSelect}
+			onClick={onSelect}
 			onTouchStart={(e) => {
 				preventDefault(e)
-				item.onSelect()
+				onSelect()
 			}}
 		/>
 	)

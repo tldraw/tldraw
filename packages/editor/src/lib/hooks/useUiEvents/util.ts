@@ -62,7 +62,7 @@ export function filterSensitiveData(raw: any): any {
 			return REDACTED_VALUE
 		}
 	} catch (err: any) {
-		console.error(err);
+		console.error(err)
 		return undefined
 	}
 }
@@ -72,38 +72,45 @@ export function filterSensitiveData(raw: any): any {
 // ============================================================================
 
 /** @internal */
-export function diffEqualLengthArrays (prev: any[], next: any[]) {
+export function diffEqualLengthArrays(prev: any[], next: any[]) {
 	const changes: number[] = []
-	for (let i=0; i<prev.length; i++) {
+	for (let i = 0; i < prev.length; i++) {
 		if (prev[i] !== next[i]) {
-			changes.push(i);
+			changes.push(i)
 		}
 	}
-	return changes;
+	return changes
 }
 
 /** @internal */
 function usePrevious(value: any) {
-	const ref = useRef(value);
+	const ref = useRef(value)
 	useEffect(() => {
-	  ref.current = value;
-	},[value]);
-	return ref.current as typeof value;
+		ref.current = value
+	}, [value])
+	return ref.current as typeof value
 }
 
 /** @internal */
 export function usePreviousPair<T>(label: string, value: () => T, deps: any[]): [T, T] {
 	const next = useValue(label, value, deps)
-	const prev = usePrevious(next);
+	const prev = usePrevious(next)
 	return [prev, next]
 }
 
 /** @internal */
-export function useWatcher<T> (label: string, value: () => T, fn: (prev: T, next: T) => unknown, deps:any[]=[]) {
-	const fnRef = useRef(fn);
-	fnRef.current = fn;
+export function useWatcher<T>(
+	label: string,
+	value: () => T,
+	fn: (prev: T, next: T) => unknown,
+	deps: any[] = []
+) {
+	const fnRef = useRef(fn)
+	fnRef.current = fn
 	const [prev, next] = usePreviousPair(`watch:${label}`, value, deps)
 	useEffect(() => {
-		fnRef.current(prev, next)
+		if (prev !== next) {
+			fnRef.current(prev, next)
+		}
 	}, [prev, next])
 }

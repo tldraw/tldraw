@@ -85,6 +85,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
+import { DefaultEventHandler, UiEventHandler, uiEventsFactory } from '../hooks/useUiEvents'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
@@ -167,6 +168,8 @@ export interface AppOptions {
 	 * tab). If not given, one will be generated.
 	 */
 	instanceId?: TLInstanceId
+
+	onUiEvent?: UiEventHandler
 }
 
 /** @public */
@@ -176,7 +179,12 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter {
-	constructor({ config = TldrawEditorConfig.default, store, getContainer }: AppOptions) {
+	constructor({
+		config = TldrawEditorConfig.default,
+		store,
+		getContainer,
+		onUiEvent = DefaultEventHandler,
+	}: AppOptions) {
 		super()
 
 		if (store.schema !== config.storeSchema) {
@@ -185,6 +193,8 @@ export class App extends EventEmitter {
 
 		this.config = config
 		this.store = store
+
+		this.trackEvent = uiEventsFactory(onUiEvent)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
@@ -219,6 +229,8 @@ export class App extends EventEmitter {
 		}
 
 		this.store.onBeforeDelete = (record) => {
+			this.checkTracking('delete', null, record)
+
 			if (record.typeName === 'shape') {
 				this._shapeWillBeDeleted(record)
 			} else if (record.typeName === 'page') {
@@ -227,6 +239,8 @@ export class App extends EventEmitter {
 		}
 
 		this.store.onAfterChange = (prev, next) => {
+			this.checkTracking('change', prev, next)
+
 			this._updateDepth++
 			if (this._updateDepth > 1000) {
 				console.error('[onAfterChange] Maximum update depth exceeded, bailing out.')
@@ -243,6 +257,8 @@ export class App extends EventEmitter {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
+			this.checkTracking('create', null, record)
+
 			if (record.typeName === 'shape' && TLArrowShapeDef.is(record)) {
 				this._arrowDidUpdate(record)
 			}
@@ -7595,6 +7611,7 @@ export class App extends EventEmitter {
 				} = this
 
 				if (selectedIds.length > 0) {
+					this.trackEvent('app.prop.change', key)
 					const shapes = compact(
 						selectedIds.map((id) => {
 							const shape = this.getShapeById(id)
@@ -8612,6 +8629,8 @@ export class App extends EventEmitter {
 	 */
 	textMeasure: TextManager
 
+	trackEvent: UiEventHandler
+
 	/* --------------------- Groups --------------------- */
 
 	groupShapes(ids: TLShapeId[] = this.selectedIds, groupId = createShapeId()) {
@@ -8714,6 +8733,51 @@ export class App extends EventEmitter {
 		})
 
 		return this
+	}
+
+	checkTracking(
+		type: 'change' | 'create' | 'delete',
+		prev: TLRecord | null,
+		next: TLRecord | null
+	) {
+		if (type === 'create' && next) {
+			if (next && next.typeName === 'page') {
+				this.trackEvent('page.remove')
+			}
+		} else if (type === 'delete' && prev) {
+			if (prev.typeName === 'page') {
+				this.trackEvent('page.add')
+			}
+		} else if (prev && next && type === 'change') {
+			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
+				this.trackEvent('page.rename')
+			}
+			if (prev.typeName === 'instance' && next.typeName === 'instance') {
+				if (prev.isToolLocked !== next.isToolLocked) {
+					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
+				}
+				if (prev.isDebugMode !== next.isDebugMode) {
+					this.trackEvent('instance.isDebugMode.enabled', next.isDebugMode)
+				}
+				if (prev.isFocusMode !== next.isFocusMode) {
+					this.trackEvent('instance.isFocusMode.enabled', next.isFocusMode)
+				}
+				if (prev.currentPageId !== next.currentPageId) {
+					this.trackEvent('instance.currentPageId.change')
+				}
+			}
+			if (prev.typeName === 'user_document' && next.typeName === 'user_document') {
+				if (prev.isDarkMode !== next.isDarkMode) {
+					this.trackEvent('instance.isDarkMode.change', next.isDarkMode)
+				}
+				if (prev.isGridMode !== next.isGridMode) {
+					this.trackEvent('instance.isGridMode.change', next.isGridMode)
+				}
+				if (prev.isSnapMode !== next.isSnapMode) {
+					this.trackEvent('instance.isSnapMode.change', next.isSnapMode)
+				}
+			}
+		}
 	}
 }
 

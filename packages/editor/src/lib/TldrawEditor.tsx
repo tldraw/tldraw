@@ -215,6 +215,7 @@ function TldrawEditorAfterLoading({
 			store,
 			getContainer: () => container,
 			config,
+			onUiEvent,
 		})
 		setApp(app)
 
@@ -226,7 +227,7 @@ function TldrawEditorAfterLoading({
 			app.dispose()
 			setApp((prevApp) => (prevApp === app ? null : prevApp))
 		}
-	}, [container, config, store, autoFocus])
+	}, [container, config, store, autoFocus, onUiEvent])
 
 	React.useEffect(() => {
 		if (app) {
