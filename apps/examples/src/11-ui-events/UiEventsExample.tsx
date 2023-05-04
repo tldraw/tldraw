@@ -55,6 +55,6 @@ function usePosthog() {
 	})
 
 	return useCallback((eventName: string, eventData: string) => {
-		posthog.capture(eventName, {value: eventData})
+		posthog.capture(eventName, { value: eventData })
 	}, [])
 }
