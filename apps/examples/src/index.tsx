@@ -1,4 +1,4 @@
-import { getBundlerAssetUrls } from '@tldraw/assets'
+import { getBundlerAssetUrls } from '@tldraw/assets/src/urls'
 import {
 	DefaultErrorFallback,
 	ErrorBoundary,

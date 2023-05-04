@@ -240,9 +240,9 @@ async function copyTranslations() {
 	}
 }
 
-// 4. ASSET DECLARATION FILE
-async function writeAssetDeclarationFile() {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'index.ts')
+// 4. ASSET DECLARATION FILES
+async function writeUrlBasedAssetDeclarationFile() {
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'urls.ts')
 	let assetDeclarationFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="../modules.d.ts" />
@@ -271,6 +271,40 @@ async function writeAssetDeclarationFile() {
 
 	await writeTypescriptFile(assetDeclarationFilePath, assetDeclarationFile)
 }
+async function writeImportBasedAssetDeclarationFile(): Promise<void> {
+	let imports = `
+		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+		/// <reference path="../modules.d.ts" />
+		import {formatAssetUrl, AssetUrlOptions} from './utils';
+	`
+
+	let declarations = `
+		/** @public */
+		export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
+			return {
+	`
+
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		declarations += `${type}: {\n`
+		for (const [name, href] of Object.entries(assets)) {
+			const variableName = `${type}_${name}`
+				.replace(/[^a-zA-Z0-9_]/g, '_')
+				.replace(/_+/g, '_')
+				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
+			imports += `import ${variableName} from ${JSON.stringify('../' + href)};\n`
+			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
+		}
+		declarations += '},\n'
+	}
+
+	declarations += `
+			} as const
+		}
+	`
+
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'imports.ts')
+	await writeTypescriptFile(assetDeclarationFilePath, imports + declarations)
+}
 
 // --- RUN
 async function main() {
@@ -283,7 +317,8 @@ async function main() {
 	console.log('Copying translations...')
 	await copyTranslations()
 	console.log('Writing asset declaration file...')
-	await writeAssetDeclarationFile()
+	await writeUrlBasedAssetDeclarationFile()
+	await writeImportBasedAssetDeclarationFile()
 	console.log('Done!')
 }
 
