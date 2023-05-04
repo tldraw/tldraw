@@ -6,6 +6,6 @@ if [ "$(basename "$(pwd)")" = "bublic" ]; then
   export YARN_RC_FILENAME=.yarnrc-private.yml
 fi
 
-yarn lazy run build-api
+npx lazy run build-api
 git add packages/*/api-report.md
-yarn lint-staged
+npx lint-staged

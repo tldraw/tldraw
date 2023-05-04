@@ -1,8 +1,9 @@
 import { execSync } from 'child_process'
 import { fetch } from 'cross-fetch'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
-import path from 'path'
+import path, { join } from 'path'
 import { compare, parse } from 'semver'
+import { BUBLIC_ROOT } from './file'
 
 export type PackageDetails = {
 	name: string
@@ -31,9 +32,9 @@ function getPackageDetails(dir: string): PackageDetails | null {
 }
 
 export function getAllPackageDetails(): Record<string, PackageDetails> {
-	const dirs = readdirSync('bublic/packages')
+	const dirs = readdirSync(join(BUBLIC_ROOT, 'packages'))
 	const results = dirs
-		.map((dir) => getPackageDetails(path.join('bublic/packages', dir)))
+		.map((dir) => getPackageDetails(path.join(BUBLIC_ROOT, 'packages', dir)))
 		.filter((x): x is PackageDetails => Boolean(x))
 
 	return Object.fromEntries(results.map((result) => [result.name, result]))
