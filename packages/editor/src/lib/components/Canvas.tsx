@@ -135,7 +135,7 @@ export const Canvas = track(function Canvas({
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
 					<HandlesWrapper />
-					{process.env.NEXT_PUBLIC_TLDRAW_NEW_COLLABORATORS ? (
+					{debugFlags.newLiveCollaborators.value ? (
 						<LiveCollaboratorsNext />
 					) : (
 						<LiveCollaborators />
