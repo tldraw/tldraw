@@ -1310,64 +1310,64 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     z: number;
 };
 
-// @public
+// @public (undocumented)
 export type OnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
 
-// @public
+// @public (undocumented)
 export type OnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void;
 
-// @internal
+// @internal (undocumented)
 export type OnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public
+// @public (undocumented)
 export type OnChildrenChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial[] | void;
 
-// @public
+// @public (undocumented)
 export type OnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public
+// @public (undocumented)
 export type OnDoubleClickHandleHandler<T extends TLShape> = (shape: T, handle: TLHandle) => TLShapePartial<T> | void;
 
-// @public
+// @public (undocumented)
 export type OnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
-// @public
+// @public (undocumented)
 export type OnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TLShape[]) => R;
 
-// @public
+// @public (undocumented)
 export type OnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
-// @public
+// @public (undocumented)
 export type OnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
 }) => TLShapePartial<T> | void;
 
-// @public
+// @public (undocumented)
 export type OnResizeEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Partial<TLShapePartial<T>> | undefined | void;
 
-// @public
+// @public (undocumented)
 export type OnResizeStartHandler<T extends TLShape> = EventStartHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnRotateEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnRotateHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnRotateStartHandler<T extends TLShape> = EventStartHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnTranslateEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnTranslateHandler<T extends TLShape> = EventChangeHandler<T>;
 
-// @public
+// @public (undocumented)
 export type OnTranslateStartHandler<T extends TLShape> = EventStartHandler<T>;
 
 // @public (undocumented)
