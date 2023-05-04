@@ -11,10 +11,7 @@ import {
 } from './lib/file'
 
 // We'll need to copy the assets into these folders
-const PUBLIC_FOLDER_PATHS = [
-	join(BUBLIC_ROOT, 'packages', 'assets'),
-	join(BUBLIC_ROOT, 'apps', 'examples', 'www'),
-]
+const PUBLIC_FOLDER_PATHS = [join(BUBLIC_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexMono-Medium': 'monospace',
