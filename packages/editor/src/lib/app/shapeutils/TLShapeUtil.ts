@@ -697,13 +697,10 @@ export type OnHandleChangeHandler<T extends TLShape> = (
 
 /** @public */
 export type OnClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
 /** @public */
 export type OnEditEndHandler<T extends TLShape> = (shape: T) => void
-
 /** @public */
 export type OnDoubleClickHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void
-
 /** @public */
 export type OnDoubleClickHandleHandler<T extends TLShape> = (
 	shape: T,
