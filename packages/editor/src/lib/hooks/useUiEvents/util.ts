@@ -1,9 +1,5 @@
 export const REDACTED_VALUE = '[redacted]'
 
-// ============================================================================
-// TODO: Move to a better place in the codebase
-// ============================================================================
-
 /**
  * Strip out tldraw sensitive data from the data value
  *
@@ -42,7 +38,7 @@ export function filterSensitiveData(raw: any): any {
 	}
 
 	try {
-		// Note: Slow but also really not large data being sent so bullet proof.
+		// Note: Slow but also really not large data being sent so bullet proof more important.
 		const data = JSON.parse(JSON.stringify(raw))
 
 		if (['string', 'number'].includes(typeof data)) {
