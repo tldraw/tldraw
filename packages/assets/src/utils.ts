@@ -11,6 +11,7 @@ export function formatAssetUrl(assetUrl: AssetUrl, { baseUrl = '' }: AssetUrlOpt
 	const assetUrlString = typeof assetUrl === 'string' ? assetUrl : assetUrl.src
 
 	if (assetUrlString.startsWith('data:')) return assetUrlString
+	if (assetUrlString.match(/^https?:\/\//)) return assetUrlString
 
 	return `${baseUrl.replace(/\/$/, '')}/${assetUrlString.replace(/^\.?\//, '')}`
 }
