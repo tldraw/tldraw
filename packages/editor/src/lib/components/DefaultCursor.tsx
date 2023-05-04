@@ -20,8 +20,8 @@ const _Cursor: TLCursorComponent = ({ zoom, point, color, nameTag }) => {
 				<foreignObject
 					x="13"
 					y="16"
-					width="0"
-					height="0"
+					width="1"
+					height="1"
 					style={{
 						overflow: 'visible',
 					}}
