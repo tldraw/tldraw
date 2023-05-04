@@ -6,7 +6,6 @@ export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
 } from './lib/TldrawUiContextProvider'
-export { setDefaultAssetUrls } from './lib/assetUrls'
 export { ContextMenu, type ContextMenuProps } from './lib/components/ContextMenu'
 export { DebugPanel } from './lib/components/DebugPanel'
 export { HTMLCanvas } from './lib/components/HTMLCanvas'

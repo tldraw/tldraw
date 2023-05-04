@@ -552,9 +552,6 @@ function Root({ id, open, children, modal, }: {
     modal?: boolean;
 }): JSX.Element;
 
-// @internal (undocumented)
-export function setDefaultAssetUrls(urls: UiAssetUrls): void;
-
 // @public (undocumented)
 export function Slider(props: SliderProps): JSX.Element;
 

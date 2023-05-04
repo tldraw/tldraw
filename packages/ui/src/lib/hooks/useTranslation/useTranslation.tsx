@@ -36,7 +36,7 @@ export const TranslationProvider = track(function TranslationProvider({
 }: TranslationProviderProps) {
 	const app = useApp()
 	const locale = app.userSettings.locale
-	const assetUrls = useAssetUrls()
+	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {
 		if (overrides && overrides['en']) {
@@ -58,7 +58,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const translation = await getTranslation(locale, assetUrls)
+			const translation = await getTranslation(locale, getAssetUrl)
 
 			if (translation && !isCancelled) {
 				if (overrides && overrides[locale]) {
@@ -77,7 +77,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		return () => {
 			isCancelled = true
 		}
-	}, [assetUrls, locale, overrides])
+	}, [getAssetUrl, locale, overrides])
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
