@@ -229,7 +229,7 @@ export class App extends EventEmitter {
 		}
 
 		this.store.onBeforeDelete = (record) => {
-			this.checkTracking('delete', null, record)
+			this.checkTracking('delete', record, null)
 
 			if (record.typeName === 'shape') {
 				this._shapeWillBeDeleted(record)
@@ -8742,11 +8742,11 @@ export class App extends EventEmitter {
 	) {
 		if (type === 'create' && next) {
 			if (next && next.typeName === 'page') {
-				this.trackEvent('page.remove')
+				this.trackEvent('page.add')
 			}
 		} else if (type === 'delete' && prev) {
 			if (prev.typeName === 'page') {
-				this.trackEvent('page.add')
+				this.trackEvent('page.remove')
 			}
 		} else if (prev && next && type === 'change') {
 			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
