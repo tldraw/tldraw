@@ -607,25 +607,18 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 
 /** @public */
 export type OnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void
-
 /** @public */
 export type OnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void
-
 /** @public */
 export type OnTranslateStartHandler<T extends TLShape> = EventStartHandler<T>
-
 /** @public */
 export type OnTranslateHandler<T extends TLShape> = EventChangeHandler<T>
-
 /** @public */
 export type OnTranslateEndHandler<T extends TLShape> = EventChangeHandler<T>
-
 /** @public */
 export type OnRotateStartHandler<T extends TLShape> = EventStartHandler<T>
-
 /** @public */
 export type OnRotateHandler<T extends TLShape> = EventChangeHandler<T>
-
 /** @public */
 export type OnRotateEndHandler<T extends TLShape> = EventChangeHandler<T>
 
