@@ -1,0 +1,47 @@
+{
+	"name": "examples2.tldraw.com",
+	"description": "A tiny little drawing app (development).",
+	"version": "2.0.0-alpha.11",
+	"private": true,
+	"packageManager": "yarn@3.5.0",
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "Apache-2.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"scripts": {
+		"dev": "vite",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^4.0.0",
+		"lazyrepo": "0.0.0-alpha.26",
+		"vite": "^4.3.4"
+	},
+	"dependencies": {
+		"@tldraw/assets": "workspace:*",
+		"@tldraw/tldraw": "workspace:*",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-router-dom": "^6.9.0",
+		"signia": "^0.1.1",
+		"signia-react": "^0.1.1"
+	}
+}

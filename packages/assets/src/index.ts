@@ -3,438 +3,597 @@
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../modules.d.ts" />
-import codepenEmbedIconUrl from '../embed-icons/codepen.png'
-import codesandboxEmbedIconUrl from '../embed-icons/codesandbox.png'
-import excalidrawEmbedIconUrl from '../embed-icons/excalidraw.png'
-import feltEmbedIconUrl from '../embed-icons/felt.png'
-import figmaEmbedIconUrl from '../embed-icons/figma.png'
-import githubGistEmbedIconUrl from '../embed-icons/github_gist.png'
-import googleCalendarEmbedIconUrl from '../embed-icons/google_calendar.png'
-import googleMapsEmbedIconUrl from '../embed-icons/google_maps.png'
-import googleSlidesEmbedIconUrl from '../embed-icons/google_slides.png'
-import observableEmbedIconUrl from '../embed-icons/observable.png'
-import replitEmbedIconUrl from '../embed-icons/replit.png'
-import scratchEmbedIconUrl from '../embed-icons/scratch.png'
-import spotifyEmbedIconUrl from '../embed-icons/spotify.png'
-import tldrawEmbedIconUrl from '../embed-icons/tldraw.png'
-import vimeoEmbedIconUrl from '../embed-icons/vimeo.png'
-import youtubeEmbedIconUrl from '../embed-icons/youtube.png'
-import monospaceFontUrl from '../fonts/IBMPlexMono-Medium.woff2'
-import sansSerifFontUrl from '../fonts/IBMPlexSans-Medium.woff2'
-import serifFontUrl from '../fonts/IBMPlexSerif-Medium.woff2'
-import drawFontUrl from '../fonts/Shantell_Sans-Normal-SemiBold.woff2'
-import alignBottomCenterIconUrl from '../icons/icon/align-bottom-center.svg'
-import alignBottomLeftIconUrl from '../icons/icon/align-bottom-left.svg'
-import alignBottomRightIconUrl from '../icons/icon/align-bottom-right.svg'
-import alignBottomIconUrl from '../icons/icon/align-bottom.svg'
-import alignCenterCenterIconUrl from '../icons/icon/align-center-center.svg'
-import alignCenterHorizontalIconUrl from '../icons/icon/align-center-horizontal.svg'
-import alignCenterLeftIconUrl from '../icons/icon/align-center-left.svg'
-import alignCenterRightIconUrl from '../icons/icon/align-center-right.svg'
-import alignCenterVerticalIconUrl from '../icons/icon/align-center-vertical.svg'
-import alignLeftIconUrl from '../icons/icon/align-left.svg'
-import alignRightIconUrl from '../icons/icon/align-right.svg'
-import alignTopCenterIconUrl from '../icons/icon/align-top-center.svg'
-import alignTopLeftIconUrl from '../icons/icon/align-top-left.svg'
-import alignTopRightIconUrl from '../icons/icon/align-top-right.svg'
-import alignTopIconUrl from '../icons/icon/align-top.svg'
-import arrowLeftIconUrl from '../icons/icon/arrow-left.svg'
-import arrowheadArrowIconUrl from '../icons/icon/arrowhead-arrow.svg'
-import arrowheadBarIconUrl from '../icons/icon/arrowhead-bar.svg'
-import arrowheadDiamondIconUrl from '../icons/icon/arrowhead-diamond.svg'
-import arrowheadDotIconUrl from '../icons/icon/arrowhead-dot.svg'
-import arrowheadNoneIconUrl from '../icons/icon/arrowhead-none.svg'
-import arrowheadSquareIconUrl from '../icons/icon/arrowhead-square.svg'
-import arrowheadTriangleInvertedIconUrl from '../icons/icon/arrowhead-triangle-inverted.svg'
-import arrowheadTriangleIconUrl from '../icons/icon/arrowhead-triangle.svg'
-import aspectRatioIconUrl from '../icons/icon/aspect-ratio.svg'
-import avatarIconUrl from '../icons/icon/avatar.svg'
-import blobIconUrl from '../icons/icon/blob.svg'
-import bringForwardIconUrl from '../icons/icon/bring-forward.svg'
-import bringToFrontIconUrl from '../icons/icon/bring-to-front.svg'
-import checkIconUrl from '../icons/icon/check.svg'
-import checkboxCheckedIconUrl from '../icons/icon/checkbox-checked.svg'
-import checkboxEmptyIconUrl from '../icons/icon/checkbox-empty.svg'
-import chevronDownIconUrl from '../icons/icon/chevron-down.svg'
-import chevronLeftIconUrl from '../icons/icon/chevron-left.svg'
-import chevronRightIconUrl from '../icons/icon/chevron-right.svg'
-import chevronUpIconUrl from '../icons/icon/chevron-up.svg'
-import chevronsNeIconUrl from '../icons/icon/chevrons-ne.svg'
-import chevronsSwIconUrl from '../icons/icon/chevrons-sw.svg'
-import clipboardCopyIconUrl from '../icons/icon/clipboard-copy.svg'
-import codeIconUrl from '../icons/icon/code.svg'
-import collabIconUrl from '../icons/icon/collab.svg'
-import colorIconUrl from '../icons/icon/color.svg'
-import commentIconUrl from '../icons/icon/comment.svg'
-import cross2IconUrl from '../icons/icon/cross-2.svg'
-import crossIconUrl from '../icons/icon/cross.svg'
-import dashDashedIconUrl from '../icons/icon/dash-dashed.svg'
-import dashDottedIconUrl from '../icons/icon/dash-dotted.svg'
-import dashDrawIconUrl from '../icons/icon/dash-draw.svg'
-import dashSolidIconUrl from '../icons/icon/dash-solid.svg'
-import discordIconUrl from '../icons/icon/discord.svg'
-import distributeHorizontalIconUrl from '../icons/icon/distribute-horizontal.svg'
-import distributeVerticalIconUrl from '../icons/icon/distribute-vertical.svg'
-import dotIconUrl from '../icons/icon/dot.svg'
-import dotsHorizontalIconUrl from '../icons/icon/dots-horizontal.svg'
-import dotsVerticalIconUrl from '../icons/icon/dots-vertical.svg'
-import dragHandleDotsIconUrl from '../icons/icon/drag-handle-dots.svg'
-import duplicateIconUrl from '../icons/icon/duplicate.svg'
-import editIconUrl from '../icons/icon/edit.svg'
-import externalLinkIconUrl from '../icons/icon/external-link.svg'
-import fileIconUrl from '../icons/icon/file.svg'
-import fillNoneIconUrl from '../icons/icon/fill-none.svg'
-import fillPatternIconUrl from '../icons/icon/fill-pattern.svg'
-import fillSemiIconUrl from '../icons/icon/fill-semi.svg'
-import fillSolidIconUrl from '../icons/icon/fill-solid.svg'
-import followIconUrl from '../icons/icon/follow.svg'
-import followingIconUrl from '../icons/icon/following.svg'
-import fontDrawIconUrl from '../icons/icon/font-draw.svg'
-import fontMonoIconUrl from '../icons/icon/font-mono.svg'
-import fontSansIconUrl from '../icons/icon/font-sans.svg'
-import fontSerifIconUrl from '../icons/icon/font-serif.svg'
-import geoArrowDownIconUrl from '../icons/icon/geo-arrow-down.svg'
-import geoArrowLeftIconUrl from '../icons/icon/geo-arrow-left.svg'
-import geoArrowRightIconUrl from '../icons/icon/geo-arrow-right.svg'
-import geoArrowUpIconUrl from '../icons/icon/geo-arrow-up.svg'
-import geoDiamondIconUrl from '../icons/icon/geo-diamond.svg'
-import geoEllipseIconUrl from '../icons/icon/geo-ellipse.svg'
-import geoHexagonIconUrl from '../icons/icon/geo-hexagon.svg'
-import geoOctagonIconUrl from '../icons/icon/geo-octagon.svg'
-import geoOvalIconUrl from '../icons/icon/geo-oval.svg'
-import geoPentagonIconUrl from '../icons/icon/geo-pentagon.svg'
-import geoRectangleIconUrl from '../icons/icon/geo-rectangle.svg'
-import geoRhombus2IconUrl from '../icons/icon/geo-rhombus-2.svg'
-import geoRhombusIconUrl from '../icons/icon/geo-rhombus.svg'
-import geoStarIconUrl from '../icons/icon/geo-star.svg'
-import geoTrapezoidIconUrl from '../icons/icon/geo-trapezoid.svg'
-import geoTriangleIconUrl from '../icons/icon/geo-triangle.svg'
-import geoXBoxIconUrl from '../icons/icon/geo-x-box.svg'
-import githubIconUrl from '../icons/icon/github.svg'
-import groupIconUrl from '../icons/icon/group.svg'
-import hiddenIconUrl from '../icons/icon/hidden.svg'
-import imageIconUrl from '../icons/icon/image.svg'
-import infoCircleIconUrl from '../icons/icon/info-circle.svg'
-import leadingIconUrl from '../icons/icon/leading.svg'
-import linkIconUrl from '../icons/icon/link.svg'
-import lockSmallIconUrl from '../icons/icon/lock-small.svg'
-import lockIconUrl from '../icons/icon/lock.svg'
-import menuIconUrl from '../icons/icon/menu.svg'
-import minusIconUrl from '../icons/icon/minus.svg'
-import mixedIconUrl from '../icons/icon/mixed.svg'
-import packIconUrl from '../icons/icon/pack.svg'
-import pageIconUrl from '../icons/icon/page.svg'
-import plusIconUrl from '../icons/icon/plus.svg'
-import questionMarkCircleIconUrl from '../icons/icon/question-mark-circle.svg'
-import questionMarkIconUrl from '../icons/icon/question-mark.svg'
-import redoIconUrl from '../icons/icon/redo.svg'
-import resetZoomIconUrl from '../icons/icon/reset-zoom.svg'
-import rotateCcwIconUrl from '../icons/icon/rotate-ccw.svg'
-import rotateCwIconUrl from '../icons/icon/rotate-cw.svg'
-import rulerIconUrl from '../icons/icon/ruler.svg'
-import searchIconUrl from '../icons/icon/search.svg'
-import sendBackwardIconUrl from '../icons/icon/send-backward.svg'
-import sendToBackIconUrl from '../icons/icon/send-to-back.svg'
-import settingsHorizontalIconUrl from '../icons/icon/settings-horizontal.svg'
-import settingsVertical1IconUrl from '../icons/icon/settings-vertical-1.svg'
-import settingsVerticalIconUrl from '../icons/icon/settings-vertical.svg'
-import share1IconUrl from '../icons/icon/share-1.svg'
-import share2IconUrl from '../icons/icon/share-2.svg'
-import sizeExtraLargeIconUrl from '../icons/icon/size-extra-large.svg'
-import sizeLargeIconUrl from '../icons/icon/size-large.svg'
-import sizeMediumIconUrl from '../icons/icon/size-medium.svg'
-import sizeSmallIconUrl from '../icons/icon/size-small.svg'
-import splineCubicIconUrl from '../icons/icon/spline-cubic.svg'
-import splineLineIconUrl from '../icons/icon/spline-line.svg'
-import stackHorizontalIconUrl from '../icons/icon/stack-horizontal.svg'
-import stackVerticalIconUrl from '../icons/icon/stack-vertical.svg'
-import stretchHorizontalIconUrl from '../icons/icon/stretch-horizontal.svg'
-import stretchVerticalIconUrl from '../icons/icon/stretch-vertical.svg'
-import textAlignCenterIconUrl from '../icons/icon/text-align-center.svg'
-import textAlignJustifyIconUrl from '../icons/icon/text-align-justify.svg'
-import textAlignLeftIconUrl from '../icons/icon/text-align-left.svg'
-import textAlignRightIconUrl from '../icons/icon/text-align-right.svg'
-import toolArrowIconUrl from '../icons/icon/tool-arrow.svg'
-import toolEmbedIconUrl from '../icons/icon/tool-embed.svg'
-import toolEraserIconUrl from '../icons/icon/tool-eraser.svg'
-import toolFrameIconUrl from '../icons/icon/tool-frame.svg'
-import toolHandIconUrl from '../icons/icon/tool-hand.svg'
-import toolHighlighterIconUrl from '../icons/icon/tool-highlighter.svg'
-import toolLineIconUrl from '../icons/icon/tool-line.svg'
-import toolMediaIconUrl from '../icons/icon/tool-media.svg'
-import toolNoteIconUrl from '../icons/icon/tool-note.svg'
-import toolPencilIconUrl from '../icons/icon/tool-pencil.svg'
-import toolPointerIconUrl from '../icons/icon/tool-pointer.svg'
-import toolTextIconUrl from '../icons/icon/tool-text.svg'
-import trashIconUrl from '../icons/icon/trash.svg'
-import triangleDownIconUrl from '../icons/icon/triangle-down.svg'
-import triangleUpIconUrl from '../icons/icon/triangle-up.svg'
-import twitterIconUrl from '../icons/icon/twitter.svg'
-import undoIconUrl from '../icons/icon/undo.svg'
-import ungroupIconUrl from '../icons/icon/ungroup.svg'
-import unlockSmallIconUrl from '../icons/icon/unlock-small.svg'
-import unlockIconUrl from '../icons/icon/unlock.svg'
-import visibleIconUrl from '../icons/icon/visible.svg'
-import warningTriangleIconUrl from '../icons/icon/warning-triangle.svg'
-import zoomInIconUrl from '../icons/icon/zoom-in.svg'
-import zoomOutIconUrl from '../icons/icon/zoom-out.svg'
-import arTranslationUrl from '../translations/ar.json'
-import caTranslationUrl from '../translations/ca.json'
-import daTranslationUrl from '../translations/da.json'
-import deTranslationUrl from '../translations/de.json'
-import enTranslationUrl from '../translations/en.json'
-import esTranslationUrl from '../translations/es.json'
-import faTranslationUrl from '../translations/fa.json'
-import fiTranslationUrl from '../translations/fi.json'
-import frTranslationUrl from '../translations/fr.json'
-import glTranslationUrl from '../translations/gl.json'
-import heTranslationUrl from '../translations/he.json'
-import hiInTranslationUrl from '../translations/hi-in.json'
-import huTranslationUrl from '../translations/hu.json'
-import itTranslationUrl from '../translations/it.json'
-import jaTranslationUrl from '../translations/ja.json'
-import koKrTranslationUrl from '../translations/ko-kr.json'
-import kuTranslationUrl from '../translations/ku.json'
-import languagesTranslationUrl from '../translations/languages.json'
-import mainTranslationUrl from '../translations/main.json'
-import myTranslationUrl from '../translations/my.json'
-import neTranslationUrl from '../translations/ne.json'
-import noTranslationUrl from '../translations/no.json'
-import plTranslationUrl from '../translations/pl.json'
-import ptBrTranslationUrl from '../translations/pt-br.json'
-import ptPtTranslationUrl from '../translations/pt-pt.json'
-import roTranslationUrl from '../translations/ro.json'
-import ruTranslationUrl from '../translations/ru.json'
-import svTranslationUrl from '../translations/sv.json'
-import teTranslationUrl from '../translations/te.json'
-import thTranslationUrl from '../translations/th.json'
-import trTranslationUrl from '../translations/tr.json'
-import ukTranslationUrl from '../translations/uk.json'
-import viTranslationUrl from '../translations/vi.json'
-import zhCnTranslationUrl from '../translations/zh-cn.json'
-import zhTwTranslationUrl from '../translations/zh-tw.json'
 import { AssetUrlOptions, formatAssetUrl } from './utils'
 
 /** @public */
 export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
 	return {
 		fonts: {
-			monospace: formatAssetUrl(monospaceFontUrl, opts),
-			sansSerif: formatAssetUrl(sansSerifFontUrl, opts),
-			serif: formatAssetUrl(serifFontUrl, opts),
-			draw: formatAssetUrl(drawFontUrl, opts),
+			monospace: formatAssetUrl(
+				new URL('../fonts/IBMPlexMono-Medium.woff2', import.meta.url).href,
+				opts
+			),
+			sansSerif: formatAssetUrl(
+				new URL('../fonts/IBMPlexSans-Medium.woff2', import.meta.url).href,
+				opts
+			),
+			serif: formatAssetUrl(
+				new URL('../fonts/IBMPlexSerif-Medium.woff2', import.meta.url).href,
+				opts
+			),
+			draw: formatAssetUrl(
+				new URL('../fonts/Shantell_Sans-Normal-SemiBold.woff2', import.meta.url).href,
+				opts
+			),
 		},
 		icons: {
-			'align-bottom-center': formatAssetUrl(alignBottomCenterIconUrl, opts),
-			'align-bottom-left': formatAssetUrl(alignBottomLeftIconUrl, opts),
-			'align-bottom-right': formatAssetUrl(alignBottomRightIconUrl, opts),
-			'align-bottom': formatAssetUrl(alignBottomIconUrl, opts),
-			'align-center-center': formatAssetUrl(alignCenterCenterIconUrl, opts),
-			'align-center-horizontal': formatAssetUrl(alignCenterHorizontalIconUrl, opts),
-			'align-center-left': formatAssetUrl(alignCenterLeftIconUrl, opts),
-			'align-center-right': formatAssetUrl(alignCenterRightIconUrl, opts),
-			'align-center-vertical': formatAssetUrl(alignCenterVerticalIconUrl, opts),
-			'align-left': formatAssetUrl(alignLeftIconUrl, opts),
-			'align-right': formatAssetUrl(alignRightIconUrl, opts),
-			'align-top-center': formatAssetUrl(alignTopCenterIconUrl, opts),
-			'align-top-left': formatAssetUrl(alignTopLeftIconUrl, opts),
-			'align-top-right': formatAssetUrl(alignTopRightIconUrl, opts),
-			'align-top': formatAssetUrl(alignTopIconUrl, opts),
-			'arrow-left': formatAssetUrl(arrowLeftIconUrl, opts),
-			'arrowhead-arrow': formatAssetUrl(arrowheadArrowIconUrl, opts),
-			'arrowhead-bar': formatAssetUrl(arrowheadBarIconUrl, opts),
-			'arrowhead-diamond': formatAssetUrl(arrowheadDiamondIconUrl, opts),
-			'arrowhead-dot': formatAssetUrl(arrowheadDotIconUrl, opts),
-			'arrowhead-none': formatAssetUrl(arrowheadNoneIconUrl, opts),
-			'arrowhead-square': formatAssetUrl(arrowheadSquareIconUrl, opts),
-			'arrowhead-triangle-inverted': formatAssetUrl(arrowheadTriangleInvertedIconUrl, opts),
-			'arrowhead-triangle': formatAssetUrl(arrowheadTriangleIconUrl, opts),
-			'aspect-ratio': formatAssetUrl(aspectRatioIconUrl, opts),
-			avatar: formatAssetUrl(avatarIconUrl, opts),
-			blob: formatAssetUrl(blobIconUrl, opts),
-			'bring-forward': formatAssetUrl(bringForwardIconUrl, opts),
-			'bring-to-front': formatAssetUrl(bringToFrontIconUrl, opts),
-			check: formatAssetUrl(checkIconUrl, opts),
-			'checkbox-checked': formatAssetUrl(checkboxCheckedIconUrl, opts),
-			'checkbox-empty': formatAssetUrl(checkboxEmptyIconUrl, opts),
-			'chevron-down': formatAssetUrl(chevronDownIconUrl, opts),
-			'chevron-left': formatAssetUrl(chevronLeftIconUrl, opts),
-			'chevron-right': formatAssetUrl(chevronRightIconUrl, opts),
-			'chevron-up': formatAssetUrl(chevronUpIconUrl, opts),
-			'chevrons-ne': formatAssetUrl(chevronsNeIconUrl, opts),
-			'chevrons-sw': formatAssetUrl(chevronsSwIconUrl, opts),
-			'clipboard-copy': formatAssetUrl(clipboardCopyIconUrl, opts),
-			code: formatAssetUrl(codeIconUrl, opts),
-			collab: formatAssetUrl(collabIconUrl, opts),
-			color: formatAssetUrl(colorIconUrl, opts),
-			comment: formatAssetUrl(commentIconUrl, opts),
-			'cross-2': formatAssetUrl(cross2IconUrl, opts),
-			cross: formatAssetUrl(crossIconUrl, opts),
-			'dash-dashed': formatAssetUrl(dashDashedIconUrl, opts),
-			'dash-dotted': formatAssetUrl(dashDottedIconUrl, opts),
-			'dash-draw': formatAssetUrl(dashDrawIconUrl, opts),
-			'dash-solid': formatAssetUrl(dashSolidIconUrl, opts),
-			discord: formatAssetUrl(discordIconUrl, opts),
-			'distribute-horizontal': formatAssetUrl(distributeHorizontalIconUrl, opts),
-			'distribute-vertical': formatAssetUrl(distributeVerticalIconUrl, opts),
-			dot: formatAssetUrl(dotIconUrl, opts),
-			'dots-horizontal': formatAssetUrl(dotsHorizontalIconUrl, opts),
-			'dots-vertical': formatAssetUrl(dotsVerticalIconUrl, opts),
-			'drag-handle-dots': formatAssetUrl(dragHandleDotsIconUrl, opts),
-			duplicate: formatAssetUrl(duplicateIconUrl, opts),
-			edit: formatAssetUrl(editIconUrl, opts),
-			'external-link': formatAssetUrl(externalLinkIconUrl, opts),
-			file: formatAssetUrl(fileIconUrl, opts),
-			'fill-none': formatAssetUrl(fillNoneIconUrl, opts),
-			'fill-pattern': formatAssetUrl(fillPatternIconUrl, opts),
-			'fill-semi': formatAssetUrl(fillSemiIconUrl, opts),
-			'fill-solid': formatAssetUrl(fillSolidIconUrl, opts),
-			follow: formatAssetUrl(followIconUrl, opts),
-			following: formatAssetUrl(followingIconUrl, opts),
-			'font-draw': formatAssetUrl(fontDrawIconUrl, opts),
-			'font-mono': formatAssetUrl(fontMonoIconUrl, opts),
-			'font-sans': formatAssetUrl(fontSansIconUrl, opts),
-			'font-serif': formatAssetUrl(fontSerifIconUrl, opts),
-			'geo-arrow-down': formatAssetUrl(geoArrowDownIconUrl, opts),
-			'geo-arrow-left': formatAssetUrl(geoArrowLeftIconUrl, opts),
-			'geo-arrow-right': formatAssetUrl(geoArrowRightIconUrl, opts),
-			'geo-arrow-up': formatAssetUrl(geoArrowUpIconUrl, opts),
-			'geo-diamond': formatAssetUrl(geoDiamondIconUrl, opts),
-			'geo-ellipse': formatAssetUrl(geoEllipseIconUrl, opts),
-			'geo-hexagon': formatAssetUrl(geoHexagonIconUrl, opts),
-			'geo-octagon': formatAssetUrl(geoOctagonIconUrl, opts),
-			'geo-oval': formatAssetUrl(geoOvalIconUrl, opts),
-			'geo-pentagon': formatAssetUrl(geoPentagonIconUrl, opts),
-			'geo-rectangle': formatAssetUrl(geoRectangleIconUrl, opts),
-			'geo-rhombus-2': formatAssetUrl(geoRhombus2IconUrl, opts),
-			'geo-rhombus': formatAssetUrl(geoRhombusIconUrl, opts),
-			'geo-star': formatAssetUrl(geoStarIconUrl, opts),
-			'geo-trapezoid': formatAssetUrl(geoTrapezoidIconUrl, opts),
-			'geo-triangle': formatAssetUrl(geoTriangleIconUrl, opts),
-			'geo-x-box': formatAssetUrl(geoXBoxIconUrl, opts),
-			github: formatAssetUrl(githubIconUrl, opts),
-			group: formatAssetUrl(groupIconUrl, opts),
-			hidden: formatAssetUrl(hiddenIconUrl, opts),
-			image: formatAssetUrl(imageIconUrl, opts),
-			'info-circle': formatAssetUrl(infoCircleIconUrl, opts),
-			leading: formatAssetUrl(leadingIconUrl, opts),
-			link: formatAssetUrl(linkIconUrl, opts),
-			'lock-small': formatAssetUrl(lockSmallIconUrl, opts),
-			lock: formatAssetUrl(lockIconUrl, opts),
-			menu: formatAssetUrl(menuIconUrl, opts),
-			minus: formatAssetUrl(minusIconUrl, opts),
-			mixed: formatAssetUrl(mixedIconUrl, opts),
-			pack: formatAssetUrl(packIconUrl, opts),
-			page: formatAssetUrl(pageIconUrl, opts),
-			plus: formatAssetUrl(plusIconUrl, opts),
-			'question-mark-circle': formatAssetUrl(questionMarkCircleIconUrl, opts),
-			'question-mark': formatAssetUrl(questionMarkIconUrl, opts),
-			redo: formatAssetUrl(redoIconUrl, opts),
-			'reset-zoom': formatAssetUrl(resetZoomIconUrl, opts),
-			'rotate-ccw': formatAssetUrl(rotateCcwIconUrl, opts),
-			'rotate-cw': formatAssetUrl(rotateCwIconUrl, opts),
-			ruler: formatAssetUrl(rulerIconUrl, opts),
-			search: formatAssetUrl(searchIconUrl, opts),
-			'send-backward': formatAssetUrl(sendBackwardIconUrl, opts),
-			'send-to-back': formatAssetUrl(sendToBackIconUrl, opts),
-			'settings-horizontal': formatAssetUrl(settingsHorizontalIconUrl, opts),
-			'settings-vertical-1': formatAssetUrl(settingsVertical1IconUrl, opts),
-			'settings-vertical': formatAssetUrl(settingsVerticalIconUrl, opts),
-			'share-1': formatAssetUrl(share1IconUrl, opts),
-			'share-2': formatAssetUrl(share2IconUrl, opts),
-			'size-extra-large': formatAssetUrl(sizeExtraLargeIconUrl, opts),
-			'size-large': formatAssetUrl(sizeLargeIconUrl, opts),
-			'size-medium': formatAssetUrl(sizeMediumIconUrl, opts),
-			'size-small': formatAssetUrl(sizeSmallIconUrl, opts),
-			'spline-cubic': formatAssetUrl(splineCubicIconUrl, opts),
-			'spline-line': formatAssetUrl(splineLineIconUrl, opts),
-			'stack-horizontal': formatAssetUrl(stackHorizontalIconUrl, opts),
-			'stack-vertical': formatAssetUrl(stackVerticalIconUrl, opts),
-			'stretch-horizontal': formatAssetUrl(stretchHorizontalIconUrl, opts),
-			'stretch-vertical': formatAssetUrl(stretchVerticalIconUrl, opts),
-			'text-align-center': formatAssetUrl(textAlignCenterIconUrl, opts),
-			'text-align-justify': formatAssetUrl(textAlignJustifyIconUrl, opts),
-			'text-align-left': formatAssetUrl(textAlignLeftIconUrl, opts),
-			'text-align-right': formatAssetUrl(textAlignRightIconUrl, opts),
-			'tool-arrow': formatAssetUrl(toolArrowIconUrl, opts),
-			'tool-embed': formatAssetUrl(toolEmbedIconUrl, opts),
-			'tool-eraser': formatAssetUrl(toolEraserIconUrl, opts),
-			'tool-frame': formatAssetUrl(toolFrameIconUrl, opts),
-			'tool-hand': formatAssetUrl(toolHandIconUrl, opts),
-			'tool-highlighter': formatAssetUrl(toolHighlighterIconUrl, opts),
-			'tool-line': formatAssetUrl(toolLineIconUrl, opts),
-			'tool-media': formatAssetUrl(toolMediaIconUrl, opts),
-			'tool-note': formatAssetUrl(toolNoteIconUrl, opts),
-			'tool-pencil': formatAssetUrl(toolPencilIconUrl, opts),
-			'tool-pointer': formatAssetUrl(toolPointerIconUrl, opts),
-			'tool-text': formatAssetUrl(toolTextIconUrl, opts),
-			trash: formatAssetUrl(trashIconUrl, opts),
-			'triangle-down': formatAssetUrl(triangleDownIconUrl, opts),
-			'triangle-up': formatAssetUrl(triangleUpIconUrl, opts),
-			twitter: formatAssetUrl(twitterIconUrl, opts),
-			undo: formatAssetUrl(undoIconUrl, opts),
-			ungroup: formatAssetUrl(ungroupIconUrl, opts),
-			'unlock-small': formatAssetUrl(unlockSmallIconUrl, opts),
-			unlock: formatAssetUrl(unlockIconUrl, opts),
-			visible: formatAssetUrl(visibleIconUrl, opts),
-			'warning-triangle': formatAssetUrl(warningTriangleIconUrl, opts),
-			'zoom-in': formatAssetUrl(zoomInIconUrl, opts),
-			'zoom-out': formatAssetUrl(zoomOutIconUrl, opts),
+			'align-bottom-center': formatAssetUrl(
+				new URL('../icons/icon/align-bottom-center.svg', import.meta.url).href,
+				opts
+			),
+			'align-bottom-left': formatAssetUrl(
+				new URL('../icons/icon/align-bottom-left.svg', import.meta.url).href,
+				opts
+			),
+			'align-bottom-right': formatAssetUrl(
+				new URL('../icons/icon/align-bottom-right.svg', import.meta.url).href,
+				opts
+			),
+			'align-bottom': formatAssetUrl(
+				new URL('../icons/icon/align-bottom.svg', import.meta.url).href,
+				opts
+			),
+			'align-center-center': formatAssetUrl(
+				new URL('../icons/icon/align-center-center.svg', import.meta.url).href,
+				opts
+			),
+			'align-center-horizontal': formatAssetUrl(
+				new URL('../icons/icon/align-center-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'align-center-left': formatAssetUrl(
+				new URL('../icons/icon/align-center-left.svg', import.meta.url).href,
+				opts
+			),
+			'align-center-right': formatAssetUrl(
+				new URL('../icons/icon/align-center-right.svg', import.meta.url).href,
+				opts
+			),
+			'align-center-vertical': formatAssetUrl(
+				new URL('../icons/icon/align-center-vertical.svg', import.meta.url).href,
+				opts
+			),
+			'align-left': formatAssetUrl(
+				new URL('../icons/icon/align-left.svg', import.meta.url).href,
+				opts
+			),
+			'align-right': formatAssetUrl(
+				new URL('../icons/icon/align-right.svg', import.meta.url).href,
+				opts
+			),
+			'align-top-center': formatAssetUrl(
+				new URL('../icons/icon/align-top-center.svg', import.meta.url).href,
+				opts
+			),
+			'align-top-left': formatAssetUrl(
+				new URL('../icons/icon/align-top-left.svg', import.meta.url).href,
+				opts
+			),
+			'align-top-right': formatAssetUrl(
+				new URL('../icons/icon/align-top-right.svg', import.meta.url).href,
+				opts
+			),
+			'align-top': formatAssetUrl(
+				new URL('../icons/icon/align-top.svg', import.meta.url).href,
+				opts
+			),
+			'arrow-left': formatAssetUrl(
+				new URL('../icons/icon/arrow-left.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-arrow': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-arrow.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-bar': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-bar.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-diamond': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-diamond.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-dot': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-dot.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-none': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-none.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-square': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-square.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-triangle-inverted': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-triangle-inverted.svg', import.meta.url).href,
+				opts
+			),
+			'arrowhead-triangle': formatAssetUrl(
+				new URL('../icons/icon/arrowhead-triangle.svg', import.meta.url).href,
+				opts
+			),
+			'aspect-ratio': formatAssetUrl(
+				new URL('../icons/icon/aspect-ratio.svg', import.meta.url).href,
+				opts
+			),
+			avatar: formatAssetUrl(new URL('../icons/icon/avatar.svg', import.meta.url).href, opts),
+			blob: formatAssetUrl(new URL('../icons/icon/blob.svg', import.meta.url).href, opts),
+			'bring-forward': formatAssetUrl(
+				new URL('../icons/icon/bring-forward.svg', import.meta.url).href,
+				opts
+			),
+			'bring-to-front': formatAssetUrl(
+				new URL('../icons/icon/bring-to-front.svg', import.meta.url).href,
+				opts
+			),
+			check: formatAssetUrl(new URL('../icons/icon/check.svg', import.meta.url).href, opts),
+			'checkbox-checked': formatAssetUrl(
+				new URL('../icons/icon/checkbox-checked.svg', import.meta.url).href,
+				opts
+			),
+			'checkbox-empty': formatAssetUrl(
+				new URL('../icons/icon/checkbox-empty.svg', import.meta.url).href,
+				opts
+			),
+			'chevron-down': formatAssetUrl(
+				new URL('../icons/icon/chevron-down.svg', import.meta.url).href,
+				opts
+			),
+			'chevron-left': formatAssetUrl(
+				new URL('../icons/icon/chevron-left.svg', import.meta.url).href,
+				opts
+			),
+			'chevron-right': formatAssetUrl(
+				new URL('../icons/icon/chevron-right.svg', import.meta.url).href,
+				opts
+			),
+			'chevron-up': formatAssetUrl(
+				new URL('../icons/icon/chevron-up.svg', import.meta.url).href,
+				opts
+			),
+			'chevrons-ne': formatAssetUrl(
+				new URL('../icons/icon/chevrons-ne.svg', import.meta.url).href,
+				opts
+			),
+			'chevrons-sw': formatAssetUrl(
+				new URL('../icons/icon/chevrons-sw.svg', import.meta.url).href,
+				opts
+			),
+			'clipboard-copy': formatAssetUrl(
+				new URL('../icons/icon/clipboard-copy.svg', import.meta.url).href,
+				opts
+			),
+			code: formatAssetUrl(new URL('../icons/icon/code.svg', import.meta.url).href, opts),
+			collab: formatAssetUrl(new URL('../icons/icon/collab.svg', import.meta.url).href, opts),
+			color: formatAssetUrl(new URL('../icons/icon/color.svg', import.meta.url).href, opts),
+			comment: formatAssetUrl(new URL('../icons/icon/comment.svg', import.meta.url).href, opts),
+			'cross-2': formatAssetUrl(new URL('../icons/icon/cross-2.svg', import.meta.url).href, opts),
+			cross: formatAssetUrl(new URL('../icons/icon/cross.svg', import.meta.url).href, opts),
+			'dash-dashed': formatAssetUrl(
+				new URL('../icons/icon/dash-dashed.svg', import.meta.url).href,
+				opts
+			),
+			'dash-dotted': formatAssetUrl(
+				new URL('../icons/icon/dash-dotted.svg', import.meta.url).href,
+				opts
+			),
+			'dash-draw': formatAssetUrl(
+				new URL('../icons/icon/dash-draw.svg', import.meta.url).href,
+				opts
+			),
+			'dash-solid': formatAssetUrl(
+				new URL('../icons/icon/dash-solid.svg', import.meta.url).href,
+				opts
+			),
+			discord: formatAssetUrl(new URL('../icons/icon/discord.svg', import.meta.url).href, opts),
+			'distribute-horizontal': formatAssetUrl(
+				new URL('../icons/icon/distribute-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'distribute-vertical': formatAssetUrl(
+				new URL('../icons/icon/distribute-vertical.svg', import.meta.url).href,
+				opts
+			),
+			dot: formatAssetUrl(new URL('../icons/icon/dot.svg', import.meta.url).href, opts),
+			'dots-horizontal': formatAssetUrl(
+				new URL('../icons/icon/dots-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'dots-vertical': formatAssetUrl(
+				new URL('../icons/icon/dots-vertical.svg', import.meta.url).href,
+				opts
+			),
+			'drag-handle-dots': formatAssetUrl(
+				new URL('../icons/icon/drag-handle-dots.svg', import.meta.url).href,
+				opts
+			),
+			duplicate: formatAssetUrl(new URL('../icons/icon/duplicate.svg', import.meta.url).href, opts),
+			edit: formatAssetUrl(new URL('../icons/icon/edit.svg', import.meta.url).href, opts),
+			'external-link': formatAssetUrl(
+				new URL('../icons/icon/external-link.svg', import.meta.url).href,
+				opts
+			),
+			file: formatAssetUrl(new URL('../icons/icon/file.svg', import.meta.url).href, opts),
+			'fill-none': formatAssetUrl(
+				new URL('../icons/icon/fill-none.svg', import.meta.url).href,
+				opts
+			),
+			'fill-pattern': formatAssetUrl(
+				new URL('../icons/icon/fill-pattern.svg', import.meta.url).href,
+				opts
+			),
+			'fill-semi': formatAssetUrl(
+				new URL('../icons/icon/fill-semi.svg', import.meta.url).href,
+				opts
+			),
+			'fill-solid': formatAssetUrl(
+				new URL('../icons/icon/fill-solid.svg', import.meta.url).href,
+				opts
+			),
+			follow: formatAssetUrl(new URL('../icons/icon/follow.svg', import.meta.url).href, opts),
+			following: formatAssetUrl(new URL('../icons/icon/following.svg', import.meta.url).href, opts),
+			'font-draw': formatAssetUrl(
+				new URL('../icons/icon/font-draw.svg', import.meta.url).href,
+				opts
+			),
+			'font-mono': formatAssetUrl(
+				new URL('../icons/icon/font-mono.svg', import.meta.url).href,
+				opts
+			),
+			'font-sans': formatAssetUrl(
+				new URL('../icons/icon/font-sans.svg', import.meta.url).href,
+				opts
+			),
+			'font-serif': formatAssetUrl(
+				new URL('../icons/icon/font-serif.svg', import.meta.url).href,
+				opts
+			),
+			'geo-arrow-down': formatAssetUrl(
+				new URL('../icons/icon/geo-arrow-down.svg', import.meta.url).href,
+				opts
+			),
+			'geo-arrow-left': formatAssetUrl(
+				new URL('../icons/icon/geo-arrow-left.svg', import.meta.url).href,
+				opts
+			),
+			'geo-arrow-right': formatAssetUrl(
+				new URL('../icons/icon/geo-arrow-right.svg', import.meta.url).href,
+				opts
+			),
+			'geo-arrow-up': formatAssetUrl(
+				new URL('../icons/icon/geo-arrow-up.svg', import.meta.url).href,
+				opts
+			),
+			'geo-diamond': formatAssetUrl(
+				new URL('../icons/icon/geo-diamond.svg', import.meta.url).href,
+				opts
+			),
+			'geo-ellipse': formatAssetUrl(
+				new URL('../icons/icon/geo-ellipse.svg', import.meta.url).href,
+				opts
+			),
+			'geo-hexagon': formatAssetUrl(
+				new URL('../icons/icon/geo-hexagon.svg', import.meta.url).href,
+				opts
+			),
+			'geo-octagon': formatAssetUrl(
+				new URL('../icons/icon/geo-octagon.svg', import.meta.url).href,
+				opts
+			),
+			'geo-oval': formatAssetUrl(new URL('../icons/icon/geo-oval.svg', import.meta.url).href, opts),
+			'geo-pentagon': formatAssetUrl(
+				new URL('../icons/icon/geo-pentagon.svg', import.meta.url).href,
+				opts
+			),
+			'geo-rectangle': formatAssetUrl(
+				new URL('../icons/icon/geo-rectangle.svg', import.meta.url).href,
+				opts
+			),
+			'geo-rhombus-2': formatAssetUrl(
+				new URL('../icons/icon/geo-rhombus-2.svg', import.meta.url).href,
+				opts
+			),
+			'geo-rhombus': formatAssetUrl(
+				new URL('../icons/icon/geo-rhombus.svg', import.meta.url).href,
+				opts
+			),
+			'geo-star': formatAssetUrl(new URL('../icons/icon/geo-star.svg', import.meta.url).href, opts),
+			'geo-trapezoid': formatAssetUrl(
+				new URL('../icons/icon/geo-trapezoid.svg', import.meta.url).href,
+				opts
+			),
+			'geo-triangle': formatAssetUrl(
+				new URL('../icons/icon/geo-triangle.svg', import.meta.url).href,
+				opts
+			),
+			'geo-x-box': formatAssetUrl(
+				new URL('../icons/icon/geo-x-box.svg', import.meta.url).href,
+				opts
+			),
+			github: formatAssetUrl(new URL('../icons/icon/github.svg', import.meta.url).href, opts),
+			group: formatAssetUrl(new URL('../icons/icon/group.svg', import.meta.url).href, opts),
+			hidden: formatAssetUrl(new URL('../icons/icon/hidden.svg', import.meta.url).href, opts),
+			image: formatAssetUrl(new URL('../icons/icon/image.svg', import.meta.url).href, opts),
+			'info-circle': formatAssetUrl(
+				new URL('../icons/icon/info-circle.svg', import.meta.url).href,
+				opts
+			),
+			leading: formatAssetUrl(new URL('../icons/icon/leading.svg', import.meta.url).href, opts),
+			link: formatAssetUrl(new URL('../icons/icon/link.svg', import.meta.url).href, opts),
+			'lock-small': formatAssetUrl(
+				new URL('../icons/icon/lock-small.svg', import.meta.url).href,
+				opts
+			),
+			lock: formatAssetUrl(new URL('../icons/icon/lock.svg', import.meta.url).href, opts),
+			menu: formatAssetUrl(new URL('../icons/icon/menu.svg', import.meta.url).href, opts),
+			minus: formatAssetUrl(new URL('../icons/icon/minus.svg', import.meta.url).href, opts),
+			mixed: formatAssetUrl(new URL('../icons/icon/mixed.svg', import.meta.url).href, opts),
+			pack: formatAssetUrl(new URL('../icons/icon/pack.svg', import.meta.url).href, opts),
+			page: formatAssetUrl(new URL('../icons/icon/page.svg', import.meta.url).href, opts),
+			plus: formatAssetUrl(new URL('../icons/icon/plus.svg', import.meta.url).href, opts),
+			'question-mark-circle': formatAssetUrl(
+				new URL('../icons/icon/question-mark-circle.svg', import.meta.url).href,
+				opts
+			),
+			'question-mark': formatAssetUrl(
+				new URL('../icons/icon/question-mark.svg', import.meta.url).href,
+				opts
+			),
+			redo: formatAssetUrl(new URL('../icons/icon/redo.svg', import.meta.url).href, opts),
+			'reset-zoom': formatAssetUrl(
+				new URL('../icons/icon/reset-zoom.svg', import.meta.url).href,
+				opts
+			),
+			'rotate-ccw': formatAssetUrl(
+				new URL('../icons/icon/rotate-ccw.svg', import.meta.url).href,
+				opts
+			),
+			'rotate-cw': formatAssetUrl(
+				new URL('../icons/icon/rotate-cw.svg', import.meta.url).href,
+				opts
+			),
+			ruler: formatAssetUrl(new URL('../icons/icon/ruler.svg', import.meta.url).href, opts),
+			search: formatAssetUrl(new URL('../icons/icon/search.svg', import.meta.url).href, opts),
+			'send-backward': formatAssetUrl(
+				new URL('../icons/icon/send-backward.svg', import.meta.url).href,
+				opts
+			),
+			'send-to-back': formatAssetUrl(
+				new URL('../icons/icon/send-to-back.svg', import.meta.url).href,
+				opts
+			),
+			'settings-horizontal': formatAssetUrl(
+				new URL('../icons/icon/settings-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'settings-vertical-1': formatAssetUrl(
+				new URL('../icons/icon/settings-vertical-1.svg', import.meta.url).href,
+				opts
+			),
+			'settings-vertical': formatAssetUrl(
+				new URL('../icons/icon/settings-vertical.svg', import.meta.url).href,
+				opts
+			),
+			'share-1': formatAssetUrl(new URL('../icons/icon/share-1.svg', import.meta.url).href, opts),
+			'share-2': formatAssetUrl(new URL('../icons/icon/share-2.svg', import.meta.url).href, opts),
+			'size-extra-large': formatAssetUrl(
+				new URL('../icons/icon/size-extra-large.svg', import.meta.url).href,
+				opts
+			),
+			'size-large': formatAssetUrl(
+				new URL('../icons/icon/size-large.svg', import.meta.url).href,
+				opts
+			),
+			'size-medium': formatAssetUrl(
+				new URL('../icons/icon/size-medium.svg', import.meta.url).href,
+				opts
+			),
+			'size-small': formatAssetUrl(
+				new URL('../icons/icon/size-small.svg', import.meta.url).href,
+				opts
+			),
+			'spline-cubic': formatAssetUrl(
+				new URL('../icons/icon/spline-cubic.svg', import.meta.url).href,
+				opts
+			),
+			'spline-line': formatAssetUrl(
+				new URL('../icons/icon/spline-line.svg', import.meta.url).href,
+				opts
+			),
+			'stack-horizontal': formatAssetUrl(
+				new URL('../icons/icon/stack-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'stack-vertical': formatAssetUrl(
+				new URL('../icons/icon/stack-vertical.svg', import.meta.url).href,
+				opts
+			),
+			'stretch-horizontal': formatAssetUrl(
+				new URL('../icons/icon/stretch-horizontal.svg', import.meta.url).href,
+				opts
+			),
+			'stretch-vertical': formatAssetUrl(
+				new URL('../icons/icon/stretch-vertical.svg', import.meta.url).href,
+				opts
+			),
+			'text-align-center': formatAssetUrl(
+				new URL('../icons/icon/text-align-center.svg', import.meta.url).href,
+				opts
+			),
+			'text-align-justify': formatAssetUrl(
+				new URL('../icons/icon/text-align-justify.svg', import.meta.url).href,
+				opts
+			),
+			'text-align-left': formatAssetUrl(
+				new URL('../icons/icon/text-align-left.svg', import.meta.url).href,
+				opts
+			),
+			'text-align-right': formatAssetUrl(
+				new URL('../icons/icon/text-align-right.svg', import.meta.url).href,
+				opts
+			),
+			'tool-arrow': formatAssetUrl(
+				new URL('../icons/icon/tool-arrow.svg', import.meta.url).href,
+				opts
+			),
+			'tool-embed': formatAssetUrl(
+				new URL('../icons/icon/tool-embed.svg', import.meta.url).href,
+				opts
+			),
+			'tool-eraser': formatAssetUrl(
+				new URL('../icons/icon/tool-eraser.svg', import.meta.url).href,
+				opts
+			),
+			'tool-frame': formatAssetUrl(
+				new URL('../icons/icon/tool-frame.svg', import.meta.url).href,
+				opts
+			),
+			'tool-hand': formatAssetUrl(
+				new URL('../icons/icon/tool-hand.svg', import.meta.url).href,
+				opts
+			),
+			'tool-highlighter': formatAssetUrl(
+				new URL('../icons/icon/tool-highlighter.svg', import.meta.url).href,
+				opts
+			),
+			'tool-line': formatAssetUrl(
+				new URL('../icons/icon/tool-line.svg', import.meta.url).href,
+				opts
+			),
+			'tool-media': formatAssetUrl(
+				new URL('../icons/icon/tool-media.svg', import.meta.url).href,
+				opts
+			),
+			'tool-note': formatAssetUrl(
+				new URL('../icons/icon/tool-note.svg', import.meta.url).href,
+				opts
+			),
+			'tool-pencil': formatAssetUrl(
+				new URL('../icons/icon/tool-pencil.svg', import.meta.url).href,
+				opts
+			),
+			'tool-pointer': formatAssetUrl(
+				new URL('../icons/icon/tool-pointer.svg', import.meta.url).href,
+				opts
+			),
+			'tool-text': formatAssetUrl(
+				new URL('../icons/icon/tool-text.svg', import.meta.url).href,
+				opts
+			),
+			trash: formatAssetUrl(new URL('../icons/icon/trash.svg', import.meta.url).href, opts),
+			'triangle-down': formatAssetUrl(
+				new URL('../icons/icon/triangle-down.svg', import.meta.url).href,
+				opts
+			),
+			'triangle-up': formatAssetUrl(
+				new URL('../icons/icon/triangle-up.svg', import.meta.url).href,
+				opts
+			),
+			twitter: formatAssetUrl(new URL('../icons/icon/twitter.svg', import.meta.url).href, opts),
+			undo: formatAssetUrl(new URL('../icons/icon/undo.svg', import.meta.url).href, opts),
+			ungroup: formatAssetUrl(new URL('../icons/icon/ungroup.svg', import.meta.url).href, opts),
+			'unlock-small': formatAssetUrl(
+				new URL('../icons/icon/unlock-small.svg', import.meta.url).href,
+				opts
+			),
+			unlock: formatAssetUrl(new URL('../icons/icon/unlock.svg', import.meta.url).href, opts),
+			visible: formatAssetUrl(new URL('../icons/icon/visible.svg', import.meta.url).href, opts),
+			'warning-triangle': formatAssetUrl(
+				new URL('../icons/icon/warning-triangle.svg', import.meta.url).href,
+				opts
+			),
+			'zoom-in': formatAssetUrl(new URL('../icons/icon/zoom-in.svg', import.meta.url).href, opts),
+			'zoom-out': formatAssetUrl(new URL('../icons/icon/zoom-out.svg', import.meta.url).href, opts),
 		},
 		translations: {
-			ar: formatAssetUrl(arTranslationUrl, opts),
-			ca: formatAssetUrl(caTranslationUrl, opts),
-			da: formatAssetUrl(daTranslationUrl, opts),
-			de: formatAssetUrl(deTranslationUrl, opts),
-			en: formatAssetUrl(enTranslationUrl, opts),
-			es: formatAssetUrl(esTranslationUrl, opts),
-			fa: formatAssetUrl(faTranslationUrl, opts),
-			fi: formatAssetUrl(fiTranslationUrl, opts),
-			fr: formatAssetUrl(frTranslationUrl, opts),
-			gl: formatAssetUrl(glTranslationUrl, opts),
-			he: formatAssetUrl(heTranslationUrl, opts),
-			'hi-in': formatAssetUrl(hiInTranslationUrl, opts),
-			hu: formatAssetUrl(huTranslationUrl, opts),
-			it: formatAssetUrl(itTranslationUrl, opts),
-			ja: formatAssetUrl(jaTranslationUrl, opts),
-			'ko-kr': formatAssetUrl(koKrTranslationUrl, opts),
-			ku: formatAssetUrl(kuTranslationUrl, opts),
-			languages: formatAssetUrl(languagesTranslationUrl, opts),
-			main: formatAssetUrl(mainTranslationUrl, opts),
-			my: formatAssetUrl(myTranslationUrl, opts),
-			ne: formatAssetUrl(neTranslationUrl, opts),
-			no: formatAssetUrl(noTranslationUrl, opts),
-			pl: formatAssetUrl(plTranslationUrl, opts),
-			'pt-br': formatAssetUrl(ptBrTranslationUrl, opts),
-			'pt-pt': formatAssetUrl(ptPtTranslationUrl, opts),
-			ro: formatAssetUrl(roTranslationUrl, opts),
-			ru: formatAssetUrl(ruTranslationUrl, opts),
-			sv: formatAssetUrl(svTranslationUrl, opts),
-			te: formatAssetUrl(teTranslationUrl, opts),
-			th: formatAssetUrl(thTranslationUrl, opts),
-			tr: formatAssetUrl(trTranslationUrl, opts),
-			uk: formatAssetUrl(ukTranslationUrl, opts),
-			vi: formatAssetUrl(viTranslationUrl, opts),
-			'zh-cn': formatAssetUrl(zhCnTranslationUrl, opts),
-			'zh-tw': formatAssetUrl(zhTwTranslationUrl, opts),
+			ar: formatAssetUrl(new URL('../translations/ar.json', import.meta.url).href, opts),
+			ca: formatAssetUrl(new URL('../translations/ca.json', import.meta.url).href, opts),
+			da: formatAssetUrl(new URL('../translations/da.json', import.meta.url).href, opts),
+			de: formatAssetUrl(new URL('../translations/de.json', import.meta.url).href, opts),
+			en: formatAssetUrl(new URL('../translations/en.json', import.meta.url).href, opts),
+			es: formatAssetUrl(new URL('../translations/es.json', import.meta.url).href, opts),
+			fa: formatAssetUrl(new URL('../translations/fa.json', import.meta.url).href, opts),
+			fi: formatAssetUrl(new URL('../translations/fi.json', import.meta.url).href, opts),
+			fr: formatAssetUrl(new URL('../translations/fr.json', import.meta.url).href, opts),
+			gl: formatAssetUrl(new URL('../translations/gl.json', import.meta.url).href, opts),
+			he: formatAssetUrl(new URL('../translations/he.json', import.meta.url).href, opts),
+			'hi-in': formatAssetUrl(new URL('../translations/hi-in.json', import.meta.url).href, opts),
+			hu: formatAssetUrl(new URL('../translations/hu.json', import.meta.url).href, opts),
+			it: formatAssetUrl(new URL('../translations/it.json', import.meta.url).href, opts),
+			ja: formatAssetUrl(new URL('../translations/ja.json', import.meta.url).href, opts),
+			'ko-kr': formatAssetUrl(new URL('../translations/ko-kr.json', import.meta.url).href, opts),
+			ku: formatAssetUrl(new URL('../translations/ku.json', import.meta.url).href, opts),
+			languages: formatAssetUrl(
+				new URL('../translations/languages.json', import.meta.url).href,
+				opts
+			),
+			main: formatAssetUrl(new URL('../translations/main.json', import.meta.url).href, opts),
+			my: formatAssetUrl(new URL('../translations/my.json', import.meta.url).href, opts),
+			ne: formatAssetUrl(new URL('../translations/ne.json', import.meta.url).href, opts),
+			no: formatAssetUrl(new URL('../translations/no.json', import.meta.url).href, opts),
+			pl: formatAssetUrl(new URL('../translations/pl.json', import.meta.url).href, opts),
+			'pt-br': formatAssetUrl(new URL('../translations/pt-br.json', import.meta.url).href, opts),
+			'pt-pt': formatAssetUrl(new URL('../translations/pt-pt.json', import.meta.url).href, opts),
+			ro: formatAssetUrl(new URL('../translations/ro.json', import.meta.url).href, opts),
+			ru: formatAssetUrl(new URL('../translations/ru.json', import.meta.url).href, opts),
+			sv: formatAssetUrl(new URL('../translations/sv.json', import.meta.url).href, opts),
+			te: formatAssetUrl(new URL('../translations/te.json', import.meta.url).href, opts),
+			th: formatAssetUrl(new URL('../translations/th.json', import.meta.url).href, opts),
+			tr: formatAssetUrl(new URL('../translations/tr.json', import.meta.url).href, opts),
+			uk: formatAssetUrl(new URL('../translations/uk.json', import.meta.url).href, opts),
+			vi: formatAssetUrl(new URL('../translations/vi.json', import.meta.url).href, opts),
+			'zh-cn': formatAssetUrl(new URL('../translations/zh-cn.json', import.meta.url).href, opts),
+			'zh-tw': formatAssetUrl(new URL('../translations/zh-tw.json', import.meta.url).href, opts),
 		},
 		embedIcons: {
-			codepen: formatAssetUrl(codepenEmbedIconUrl, opts),
-			codesandbox: formatAssetUrl(codesandboxEmbedIconUrl, opts),
-			excalidraw: formatAssetUrl(excalidrawEmbedIconUrl, opts),
-			felt: formatAssetUrl(feltEmbedIconUrl, opts),
-			figma: formatAssetUrl(figmaEmbedIconUrl, opts),
-			github_gist: formatAssetUrl(githubGistEmbedIconUrl, opts),
-			google_calendar: formatAssetUrl(googleCalendarEmbedIconUrl, opts),
-			google_maps: formatAssetUrl(googleMapsEmbedIconUrl, opts),
-			google_slides: formatAssetUrl(googleSlidesEmbedIconUrl, opts),
-			observable: formatAssetUrl(observableEmbedIconUrl, opts),
-			replit: formatAssetUrl(replitEmbedIconUrl, opts),
-			scratch: formatAssetUrl(scratchEmbedIconUrl, opts),
-			spotify: formatAssetUrl(spotifyEmbedIconUrl, opts),
-			tldraw: formatAssetUrl(tldrawEmbedIconUrl, opts),
-			vimeo: formatAssetUrl(vimeoEmbedIconUrl, opts),
-			youtube: formatAssetUrl(youtubeEmbedIconUrl, opts),
+			codepen: formatAssetUrl(new URL('../embed-icons/codepen.png', import.meta.url).href, opts),
+			codesandbox: formatAssetUrl(
+				new URL('../embed-icons/codesandbox.png', import.meta.url).href,
+				opts
+			),
+			excalidraw: formatAssetUrl(
+				new URL('../embed-icons/excalidraw.png', import.meta.url).href,
+				opts
+			),
+			felt: formatAssetUrl(new URL('../embed-icons/felt.png', import.meta.url).href, opts),
+			figma: formatAssetUrl(new URL('../embed-icons/figma.png', import.meta.url).href, opts),
+			github_gist: formatAssetUrl(
+				new URL('../embed-icons/github_gist.png', import.meta.url).href,
+				opts
+			),
+			google_calendar: formatAssetUrl(
+				new URL('../embed-icons/google_calendar.png', import.meta.url).href,
+				opts
+			),
+			google_maps: formatAssetUrl(
+				new URL('../embed-icons/google_maps.png', import.meta.url).href,
+				opts
+			),
+			google_slides: formatAssetUrl(
+				new URL('../embed-icons/google_slides.png', import.meta.url).href,
+				opts
+			),
+			observable: formatAssetUrl(
+				new URL('../embed-icons/observable.png', import.meta.url).href,
+				opts
+			),
+			replit: formatAssetUrl(new URL('../embed-icons/replit.png', import.meta.url).href, opts),
+			scratch: formatAssetUrl(new URL('../embed-icons/scratch.png', import.meta.url).href, opts),
+			spotify: formatAssetUrl(new URL('../embed-icons/spotify.png', import.meta.url).href, opts),
+			tldraw: formatAssetUrl(new URL('../embed-icons/tldraw.png', import.meta.url).href, opts),
+			vimeo: formatAssetUrl(new URL('../embed-icons/vimeo.png', import.meta.url).href, opts),
+			youtube: formatAssetUrl(new URL('../embed-icons/youtube.png', import.meta.url).href, opts),
 		},
 	} as const
 }
