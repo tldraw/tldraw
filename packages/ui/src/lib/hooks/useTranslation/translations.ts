@@ -42,18 +42,27 @@ export const EN_TRANSLATION: TLTranslation = {
 	messages: DEFAULT_TRANSLATION as TLTranslationMessages,
 }
 
+async function fetchTranslationMessages(
+	language: (typeof LANGUAGES)[number],
+	assetUrls: UiAssetUrls
+): Promise<TLTranslationMessages> {
+	const assetUrl = assetUrls.translations[language.locale]
+
+	// if the asset URL is actually a URL, fetch it
+	if (typeof assetUrl === 'string') {
+		const response = await fetch(assetUrl)
+		return await response.json()
+	}
+
+	// otherwise, assume it's a json object and return it directly.
+	return assetUrl
+}
+
 /** @public */
 export async function fetchTranslation(
 	locale: TLTranslationLocale,
 	assetUrls: UiAssetUrls
 ): Promise<TLTranslation> {
-	const mainRes = await fetch(assetUrls.translations.en)
-
-	if (!mainRes.ok) {
-		console.warn(`No main translations found.`)
-		return EN_TRANSLATION
-	}
-
 	if (locale === 'en') {
 		return EN_TRANSLATION
 	}
@@ -65,8 +74,7 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	const res = await fetch(assetUrls.translations[language.locale])
-	const messages: TLTranslationMessages = await res.json()
+	const messages = await fetchTranslationMessages(language, assetUrls)
 
 	if (!messages) {
 		console.warn(`No messages found for locale ${locale}`)
