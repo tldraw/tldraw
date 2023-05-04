@@ -35,6 +35,7 @@ import {
 	TLInstance,
 	TLInstanceId,
 	TLInstancePageState,
+	TLInstancePropsForNextShape,
 	TLNullableShapeProps,
 	TLPage,
 	TLPageId,
@@ -7611,7 +7612,6 @@ export class App extends EventEmitter {
 				} = this
 
 				if (selectedIds.length > 0) {
-					this.trackEvent('app.prop.change', key)
 					const shapes = compact(
 						selectedIds.map((id) => {
 							const shape = this.getShapeById(id)
@@ -8753,6 +8753,15 @@ export class App extends EventEmitter {
 				this.trackEvent('page.rename')
 			}
 			if (prev.typeName === 'instance' && next.typeName === 'instance') {
+				// TODO: Not very performant
+				for (const key of Object.keys(next.propsForNextShape)) {
+					const prevValue = prev.propsForNextShape[key as keyof TLInstancePropsForNextShape]
+					const nextValue = next.propsForNextShape[key as keyof TLInstancePropsForNextShape]
+					if (prevValue !== nextValue) {
+						this.trackEvent(`instance.propsForNextShape.${key}.change`, nextValue)
+					}
+				}
+
 				if (prev.isToolLocked !== next.isToolLocked) {
 					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
 				}
