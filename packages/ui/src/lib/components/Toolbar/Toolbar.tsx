@@ -214,9 +214,16 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	toolbarItems: ToolbarItem[]
 }) {
 	const msg = useTranslation()
+	const track = useUiEvents()
+
 	return (
 		<div className="tlui-button-grid__four tlui-button-grid__reverse">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
+				const onSelectLocal = () => {
+					track('ui.actions.click', id)
+					onSelect()
+				}
+
 				return (
 					<M.Item
 						key={id}
@@ -225,7 +232,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
-						onClick={onSelect}
+						onClick={onSelectLocal}
 						title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
 						icon={icon}
 					/>
@@ -248,7 +255,6 @@ function ToolbarButton({
 
 	const onSelect = () => {
 		track('ui.actions.click', item.id)
-		console.log('item.onSelect', item.onSelect)
 		item.onSelect()
 	}
 
