@@ -32,7 +32,7 @@ export async function dataTransferItemAsString(item: DataTransferItem) {
 
 /** @public */
 export function correctSpacesToNbsp(input: string) {
-	return input.replace(/\s(\s+)/g, (_str, match) => {
+	return input.replace(/\t/g, '\xa0\xa0').replace(/\s(\s+)/g, (_str, match) => {
 		let out = ' '
 		for (let i = 0; i < match.length; i++) {
 			out += '\xa0'

@@ -96,12 +96,12 @@ export class TextManager {
 		// Split the text into words
 		const words: string[] = []
 
-		opts.text.split(wordSeparator).flatMap((word) =>
-			word
-				.split('\n')
-				.map((w) => w.trim())
-				.join('\n')
-		)
+		// opts.text.split(wordSeparator).flatMap((word) =>
+		// 	word
+		// 		.split('\n')
+		// 		.map((w) => w.trim())
+		// 		.join('\n')
+		// )
 
 		for (const str of opts.text.split(wordSeparator)) {
 			if (str.includes('\n')) {
@@ -112,7 +112,11 @@ export class TextManager {
 					if (i < splits.length - 1) words.push('\n')
 				}
 			} else {
-				words.push(str)
+				if (!str) {
+					words.push('\t')
+				} else {
+					words.push(str)
+				}
 			}
 		}
 
@@ -156,7 +160,7 @@ export class TextManager {
 
 			if (newHeight <= prevHeight) {
 				// If the height has not increased, then add the word to the current line
-				currentLine.push(currentLine.length ? ' ' + word.trim() : word.trim())
+				currentLine.push(currentLine.length ? ' ' + word : word)
 			} else {
 				// Hey, we've just caused a line break!
 				if (!opts.wrap || word === '\n') {
@@ -247,7 +251,7 @@ export class TextManager {
 			prevTextContent = elm.textContent
 		}
 
-		const result = lines.map((line) => line.join('').trim())
+		const result = lines.map((line) => line.join(''))
 
 		elm.remove()
 
