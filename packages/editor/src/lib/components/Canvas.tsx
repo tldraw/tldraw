@@ -37,8 +37,6 @@ export const Canvas = track(function Canvas({
 
 	const rCanvas = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
-	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
-	const rSvgLayer = React.useRef<SVGGElement>(null)
 
 	useScreenBounds()
 	useDocumentEvents()
@@ -80,18 +78,15 @@ export const Canvas = track(function Canvas({
 
 	React.useEffect(() => {
 		if (patternIsReady && app.isSafari) {
-			const svgElm = rSvgLayer.current
 			const htmlElm = rHtmlLayer.current
 
-			if (svgElm && htmlElm) {
+			if (htmlElm) {
 				// Wait for `patternContext` to be picked up
 				requestAnimationFrame(() => {
-					svgElm.style.display = 'none'
 					htmlElm.style.display = 'none'
 
 					// Wait for 'display = "none"' to take effect
 					requestAnimationFrame(() => {
-						svgElm.style.display = ''
 						htmlElm.style.display = ''
 					})
 				})

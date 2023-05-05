@@ -1,4 +1,4 @@
-import { Matrix2d, RotateCorner, toDomPrecision } from '@tldraw/primitives'
+import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { track } from 'signia-react'
@@ -53,13 +53,6 @@ export const SelectionFg = track(function SelectionFg() {
 
 	const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 	const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
-
-	const transform = Matrix2d.toCssString(
-		Matrix2d.Compose(
-			Matrix2d.Translate(bounds.minX, bounds.minY),
-			Matrix2d.Rotate(app.selectionRotation)
-		)
-	)
 
 	const onlyShape = shapes.length === 1 ? shapes[0] : null
 
