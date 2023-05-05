@@ -9,7 +9,7 @@ export function useZoomCss() {
 	const container = useContainer()
 
 	React.useEffect(() => {
-		const setScale = (s: number) => container.style.setProperty('--rs-zoom', s.toString())
+		const setScale = (s: number) => container.style.setProperty('--tl-zoom', s.toString())
 		const setScaleDebounced = debounce(setScale, 100)
 
 		const scheduler = new EffectScheduler('useZoomCss', () => {

@@ -23,16 +23,16 @@
 	--layer-grid: 150;
 	--layer-canvas: 200;
 	/* Misc */
-	--rs-zoom: 1;
-	--rs-cursor: default;
-	--rs-scale: calc(1 / var(--rs-zoom));
-	--rs-font-draw: 'tldraw_draw', sans-serif;
-	--rs-font-sans: 'tldraw_sans', sans-serif;
-	--rs-font-serif: 'tldraw_serif', serif;
-	--rs-font-mono: 'tldraw_mono', monospace;
-	--a: calc(min(0.5, 1 / var(--rs-zoom)) * 2px);
-	--b: calc(min(0.5, 1 / var(--rs-zoom)) * -2px);
-	--rs-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
+	--tl-zoom: 1;
+	--tl-cursor: default;
+	--tl-scale: calc(1 / var(--tl-zoom));
+	--tl-font-draw: 'tldraw_draw', sans-serif;
+	--tl-font-sans: 'tldraw_sans', sans-serif;
+	--tl-font-serif: 'tldraw_serif', serif;
+	--tl-font-mono: 'tldraw_mono', monospace;
+	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
+	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
+	--tl-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
 		var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
 		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
 	/* Own properties */
@@ -206,10 +206,10 @@
 }
 
 .tl-counter-scaled {
-	transform: scale(var(--rs-scale));
+	transform: scale(var(--tl-scale));
 	transform-origin: top left;
-	width: calc(100% * var(--rs-zoom));
-	height: calc(100% * var(--rs-zoom));
+	width: calc(100% * var(--tl-zoom));
+	height: calc(100% * var(--tl-zoom));
 }
 
 .tl-container,
@@ -245,7 +245,7 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
-	cursor: var(--rs-cursor);
+	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
 	touch-action: none;
@@ -321,7 +321,7 @@ input,
 /* ---------------------- Brush --------------------- */
 
 .tl-brush {
-	stroke-width: calc(var(--rs-scale) * 1px);
+	stroke-width: calc(var(--tl-scale) * 1px);
 }
 
 .tl-brush__default {
@@ -355,20 +355,20 @@ input,
 	fill: none;
 	stroke: transparent;
 	pointer-events: stroke;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 .tl-hitarea-fill {
 	fill: var(--color-background);
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 .tl-hitarea-fill-solid {
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -405,11 +405,11 @@ input,
 .tl-shape-indicator {
 	transform-origin: top left;
 	fill: none;
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-shape-indicator__hinting {
-	stroke-width: calc(2.5px * var(--rs-scale));
+	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -431,14 +431,14 @@ input,
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-corner-handle {
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-text-handle {
@@ -461,13 +461,13 @@ input,
 .tl-rotate-handle {
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: all;
 }
 
 .tl-mobile-rotate__bg {
 	pointer-events: all;
-	r: calc(max(calc(14px * var(--rs-scale)), 20px / max(1, var(--rs-zoom))));
+	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
 	cursor: grab;
 }
 
@@ -475,7 +475,7 @@ input,
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
 .tl-transparent {
@@ -494,14 +494,14 @@ input,
 	stroke: transparent;
 	pointer-events: all;
 	cursor: grab;
-	r: calc(12px / var(--rs-zoom));
+	r: calc(12px / var(--tl-zoom));
 }
 
 .tl-handle__fg {
 	fill: var(--color-background);
 	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--rs-scale));
-	r: calc(4px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
 	pointer-events: none;
 }
 
@@ -532,7 +532,7 @@ input,
 	}
 
 	.tl-handle__hint > .tl-handle__fg {
-		r: calc(3px * var(--rs-scale));
+		r: calc(3px * var(--tl-scale));
 	}
 }
 
@@ -560,7 +560,7 @@ input,
 }
 
 .tl-image__tg {
-	--scale: calc(min(2, var(--rs-scale)));
+	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;
 	top: calc(var(--scale) * 8px);
 	right: calc(var(--scale) * 8px);
@@ -652,7 +652,7 @@ input,
 	pointer-events: all;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 }
 
 .tl-text-shape__wrapper[data-align='start'] {
@@ -668,19 +668,19 @@ input,
 }
 
 .tl-text-shape__wrapper[data-font='draw'] {
-	font-family: var(--rs-font-draw);
+	font-family: var(--tl-font-draw);
 }
 
 .tl-text-shape__wrapper[data-font='sans'] {
-	font-family: var(--rs-font-sans);
+	font-family: var(--tl-font-sans);
 }
 
 .tl-text-shape__wrapper[data-font='serif'] {
-	font-family: var(--rs-font-serif);
+	font-family: var(--tl-font-serif);
 }
 
 .tl-text-shape__wrapper[data-font='mono'] {
-	font-family: var(--rs-font-mono);
+	font-family: var(--tl-font-mono);
 }
 
 .tl-text-shape__wrapper[data-isediting='true'] .tl-text-content {
@@ -778,13 +778,13 @@ input,
 
 .tl-snap-line {
 	stroke: var(--color-accent);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
 .tl-snap-point {
 	stroke: var(--color-accent);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
@@ -792,7 +792,7 @@ input,
 
 .tl-group {
 	stroke: var(--color-text);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	opacity: 0.5;
 }
 
@@ -945,7 +945,7 @@ input,
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 	overflow: hidden;
 	line-height: inherit;
 }
@@ -1026,22 +1026,22 @@ input,
 
 .tl-arrow-label[data-font='draw'],
 .tl-text-label[data-font='draw'] {
-	font-family: var(--rs-font-draw);
+	font-family: var(--tl-font-draw);
 }
 
 .tl-arrow-label[data-font='sans'],
 .tl-text-label[data-font='sans'] {
-	font-family: var(--rs-font-sans);
+	font-family: var(--tl-font-sans);
 }
 
 .tl-arrow-label[data-font='serif'],
 .tl-text-label[data-font='serif'] {
-	font-family: var(--rs-font-serif);
+	font-family: var(--tl-font-serif);
 }
 
 .tl-arrow-label[data-font='mono'],
 .tl-text-label[data-font='mono'] {
-	font-family: var(--rs-font-mono);
+	font-family: var(--tl-font-mono);
 }
 
 /* ------------------- Arrow Shape ------------------ */
@@ -1057,7 +1057,7 @@ input,
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 }
 
 .tl-arrow-label[data-isediting='true'] p {
@@ -1066,7 +1066,7 @@ input,
 
 .tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
 	background-color: var(--color-background);
-	border: calc(var(--rs-scale) * 1.5px) solid var(--color-selected);
+	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-arrow-label__inner {
@@ -1197,15 +1197,15 @@ input,
 .tl-frame__body {
 	fill: var(--palette-solid);
 	stroke: var(--color-text);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 }
 
 .tl-frame__background {
 	border-style: solid;
-	border-width: calc(1px * var(--rs-scale));
+	border-width: calc(1px * var(--tl-scale));
 	border-color: currentColor;
 	background-color: var(--palette-solid);
-	border-radius: calc(var(--radius-1) * var(--rs-scale));
+	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	width: 100%;
 	height: 100%;
 	z-index: 2;
@@ -1215,15 +1215,15 @@ input,
 
 .tl-frame__hitarea {
 	border-style: solid;
-	border-width: calc(8px * var(--rs-scale));
+	border-width: calc(8px * var(--tl-scale));
 	border-color: transparent;
 	background: none;
 	pointer-events: stroke;
 	box-sizing: border-box;
-	top: calc(-8px * var(--rs-scale));
-	left: calc(-8px * var(--rs-scale));
-	width: calc(100% + calc(16px * var(--rs-scale)));
-	height: calc(100% + calc(16px * var(--rs-scale)));
+	top: calc(-8px * var(--tl-scale));
+	left: calc(-8px * var(--tl-scale));
+	width: calc(100% + calc(16px * var(--tl-scale)));
+	height: calc(100% + calc(16px * var(--tl-scale)));
 	z-index: 1;
 	position: absolute;
 }
@@ -1349,10 +1349,10 @@ input,
 	width: 100%;
 	height: 100%;
 	background-color: var(--color-muted-1);
-	border-width: calc(1px * var(--rs-scale));
+	border-width: calc(1px * var(--tl-scale));
 	border-color: var(--color-muted-1);
 	border-style: solid;
-	border-radius: calc(var(--radius-1) * var(--rs-scale));
+	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1363,7 +1363,7 @@ input,
 }
 
 .tl-shape-error-boundary::after {
-	transform: scale(var(--rs-scale));
+	transform: scale(var(--tl-scale));
 	content: 'Error';
 	font-size: 12px;
 	font-family: inherit;
@@ -1527,7 +1527,7 @@ it from receiving any pointer events or affecting the cursor. */
 	}
 
 	.tl-canvas__mobile .tl-handle__bg {
-		r: calc(20px / var(--rs-zoom));
+		r: calc(20px / var(--tl-zoom));
 	}
 }
 

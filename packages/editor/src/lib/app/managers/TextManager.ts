@@ -23,8 +23,8 @@ export class TextManager {
 		this.app.getContainer().appendChild(elm)
 
 		elm.id = `__textMeasure_${uniqueId()}`
-		elm.classList.add('rs-text')
-		elm.classList.add('rs-text-measure')
+		elm.classList.add('tl-text')
+		elm.classList.add('tl-text-measure')
 		elm.tabIndex = -1
 
 		return elm
