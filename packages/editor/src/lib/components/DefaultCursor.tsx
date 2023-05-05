@@ -14,14 +14,14 @@ const _Cursor: TLCursorComponent = ({ zoom, point, color, name }) => {
 
 	return (
 		<div
-			className="rs-cursor"
+			className="tl-cursor"
 			style={{ transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})` }}
 		>
 			<svg>
 				<use href="#cursor" color={color} />
 			</svg>
 			{name !== null && name !== '' && (
-				<div className="rs-nametag" style={{ backgroundColor: color }}>
+				<div className="tl-nametag" style={{ backgroundColor: color }}>
 					{name}
 				</div>
 			)}

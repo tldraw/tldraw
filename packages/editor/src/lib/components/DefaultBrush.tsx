@@ -13,7 +13,7 @@ export const DefaultBrush: TLBrushComponent = ({ brush, color }) => {
 	return (
 		<svg className="tl-svg-origin-container" ref={rSvg}>
 			{color ? (
-				<g className="rs-brush">
+				<g className="tl-brush">
 					<rect
 						width={toDomPrecision(Math.max(1, brush.w))}
 						height={toDomPrecision(Math.max(1, brush.h))}
@@ -30,7 +30,7 @@ export const DefaultBrush: TLBrushComponent = ({ brush, color }) => {
 				</g>
 			) : (
 				<rect
-					className="rs-brush rs-brush__default"
+					className="tl-brush tl-brush__default"
 					width={toDomPrecision(Math.max(1, brush.w))}
 					height={toDomPrecision(Math.max(1, brush.h))}
 				/>

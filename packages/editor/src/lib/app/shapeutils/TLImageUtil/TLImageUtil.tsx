@@ -125,7 +125,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 				{asset?.props.src && showCropPreview && (
 					<div style={containerStyle}>
 						<div
-							className={`rs-image rs-image-${shape.id}-crop`}
+							className={`tl-image tl-image-${shape.id}-crop`}
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
@@ -137,10 +137,10 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 					</div>
 				)}
 				<HTMLContainer id={shape.id} style={{ overflow: 'hidden' }}>
-					<div className="rs-image-container" style={containerStyle}>
+					<div className="tl-image-container" style={containerStyle}>
 						{asset?.props.src ? (
 							<div
-								className={`rs-image rs-image-${shape.id}`}
+								className={`tl-image tl-image-${shape.id}`}
 								style={{
 									backgroundImage: `url(${
 										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
@@ -154,7 +154,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 							</g>
 						) : null}
 						{asset?.props.isAnimated && !shape.props.playing && (
-							<div className="rs-image__tg">GIF</div>
+							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
 				</HTMLContainer>

@@ -157,7 +157,7 @@ export const SelectionFg = track(function SelectionFg() {
 		<svg className="tl-svg-origin-container" ref={rSvg}>
 			<g data-wd="selection-foreground" className="tlui-selection__fg">
 				<rect
-					className={classNames('tlui-selection__fg__outline', { 'rs-hidden': !shouldDisplayBox })}
+					className={classNames('tlui-selection__fg__outline', { 'tl-hidden': !shouldDisplayBox })}
 					width={toDomPrecision(width)}
 					height={toDomPrecision(height)}
 				/>
@@ -206,8 +206,8 @@ export const SelectionFg = track(function SelectionFg() {
 				/>
 				{/* Targets */}
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideEdgeTargets,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideEdgeTargets,
 					})}
 					data-wd="selection.resize.top"
 					aria-label="top target"
@@ -220,8 +220,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...topEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideEdgeTargets,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideEdgeTargets,
 					})}
 					data-wd="selection.resize.right"
 					aria-label="right target"
@@ -234,8 +234,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...rightEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideEdgeTargets,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideEdgeTargets,
 					})}
 					data-wd="selection.resize.bottom"
 					aria-label="bottom target"
@@ -248,8 +248,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...bottomEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideEdgeTargets,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideEdgeTargets,
 					})}
 					data-wd="selection.resize.left"
 					aria-label="left target"
@@ -263,8 +263,8 @@ export const SelectionFg = track(function SelectionFg() {
 				/>
 				{/* Corner Targets */}
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideTopLeftCorner,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideTopLeftCorner,
 					})}
 					data-wd="selection.target.top-left"
 					aria-label="top-left target"
@@ -277,8 +277,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...topLeftEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideTopRightCorner,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideTopRightCorner,
 					})}
 					data-wd="selection.target.top-right"
 					aria-label="top-right target"
@@ -291,8 +291,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...topRightEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideBottomRightCorner,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideBottomRightCorner,
 					})}
 					data-wd="selection.target.bottom-right"
 					aria-label="bottom-right target"
@@ -305,8 +305,8 @@ export const SelectionFg = track(function SelectionFg() {
 					{...bottomRightEvents}
 				/>
 				<rect
-					className={classNames('rs-transparent', {
-						'rs-hidden': hideBottomLeftCorner,
+					className={classNames('tl-transparent', {
+						'tl-hidden': hideBottomLeftCorner,
 					})}
 					data-wd="selection.target.bottom-left"
 					aria-label="bottom-left target"
@@ -323,8 +323,8 @@ export const SelectionFg = track(function SelectionFg() {
 					<>
 						<rect
 							data-wd="selection.resize.top-left"
-							className={classNames('rs-corner-handle', {
-								'rs-hidden': hideTopLeftCorner,
+							className={classNames('tl-corner-handle', {
+								'tl-hidden': hideTopLeftCorner,
 							})}
 							aria-label="top_left handle"
 							x={toDomPrecision(0 - size / 2)}
@@ -334,8 +334,8 @@ export const SelectionFg = track(function SelectionFg() {
 						/>
 						<rect
 							data-wd="selection.resize.top-right"
-							className={classNames('rs-corner-handle', {
-								'rs-hidden': hideTopRightCorner,
+							className={classNames('tl-corner-handle', {
+								'tl-hidden': hideTopRightCorner,
 							})}
 							aria-label="top_right handle"
 							x={toDomPrecision(width - size / 2)}
@@ -345,8 +345,8 @@ export const SelectionFg = track(function SelectionFg() {
 						/>
 						<rect
 							data-wd="selection.resize.bottom-right"
-							className={classNames('rs-corner-handle', {
-								'rs-hidden': hideBottomRightCorner,
+							className={classNames('tl-corner-handle', {
+								'tl-hidden': hideBottomRightCorner,
 							})}
 							aria-label="bottom_right handle"
 							x={toDomPrecision(width - size / 2)}
@@ -356,8 +356,8 @@ export const SelectionFg = track(function SelectionFg() {
 						/>
 						<rect
 							data-wd="selection.resize.bottom-left"
-							className={classNames('rs-corner-handle', {
-								'rs-hidden': hideBottomLeftCorner,
+							className={classNames('tl-corner-handle', {
+								'tl-hidden': hideBottomLeftCorner,
 							})}
 							aria-label="bottom_left handle"
 							x={toDomPrecision(0 - size / 2)}
@@ -371,7 +371,7 @@ export const SelectionFg = track(function SelectionFg() {
 					<>
 						<rect
 							data-wd="selection.text-resize.left.handle"
-							className="rs-text-handle"
+							className="tl-text-handle"
 							aria-label="bottom_left handle"
 							x={toDomPrecision(0 - size / 4)}
 							y={toDomPrecision(height / 2 - textHandleHeight / 2)}
@@ -381,7 +381,7 @@ export const SelectionFg = track(function SelectionFg() {
 						/>
 						<rect
 							data-wd="selection.text-resize.right.handle"
-							className="rs-text-handle"
+							className="tl-text-handle"
 							aria-label="bottom_left handle"
 							rx={size / 4}
 							x={toDomPrecision(width - size / 4)}
@@ -427,7 +427,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	const events = useSelectionEvents(corner)
 	return (
 		<rect
-			className={classNames('rs-transparent', 'rs-rotate-corner', { 'rs-hidden': isHidden })}
+			className={classNames('tl-transparent', 'tl-rotate-corner', { 'tl-hidden': isHidden })}
 			data-wd={dataWd}
 			aria-label={`${corner} target`}
 			pointerEvents="all"
@@ -463,13 +463,13 @@ export const MobileRotateHandle = function RotateHandle({
 			<circle
 				data-wd={dataWd}
 				pointerEvents="all"
-				className={classNames('rs-transparent', 'rs-mobile-rotate__bg', { 'rs-hidden': isHidden })}
+				className={classNames('tl-transparent', 'tl-mobile-rotate__bg', { 'tl-hidden': isHidden })}
 				cx={cx}
 				cy={cy}
 				{...events}
 			/>
 			<circle
-				className={classNames('rs-mobile-rotate__fg', { 'rs-hidden': isHidden })}
+				className={classNames('tl-mobile-rotate__fg', { 'tl-hidden': isHidden })}
 				cx={cx}
 				cy={cy}
 				r={size / SQUARE_ROOT_PI}

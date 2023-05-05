@@ -25,12 +25,12 @@ function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
 	}
 
 	return (
-		<g className="rs-snap-line">
+		<g className="tl-snap-line">
 			<line x1={firstX} y1={firstY} x2={secondX} y2={secondY} />
 			{points.map((p, i) => (
 				<g transform={`translate(${p.x},${p.y})`} key={i}>
 					<path
-						className="rs-snap-point"
+						className="tl-snap-point"
 						d={`M ${-l},${-l} L ${l},${l} M ${-l},${l} L ${l},${-l}`}
 					/>
 				</g>
@@ -84,7 +84,7 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 	const midPoint = (edgeIntersection[0] + edgeIntersection[1]) / 2
 
 	return (
-		<g className="rs-snap-line">
+		<g className="tl-snap-line">
 			{gaps.map(({ startEdge, endEdge }, i) => (
 				<React.Fragment key={i}>
 					{horizontal ? (

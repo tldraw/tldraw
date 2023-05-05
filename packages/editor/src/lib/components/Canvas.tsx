@@ -99,12 +99,12 @@ export const Canvas = track(function Canvas({
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="rs-canvas" data-wd="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className="tl-canvas" data-wd="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
-			<div ref={rHtmlLayer} className="rs-html-layer" draggable={false}>
-				<svg className="rs-svg-context">
+			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
+				<svg className="tl-svg-context">
 					<defs>
 						{patternContext}
 						{Cursor && <Cursor />}
@@ -115,10 +115,10 @@ export const Canvas = track(function Canvas({
 					</defs>
 				</svg>
 				<SelectionBg />
-				<div className="rs-shapes">
+				<div className="tl-shapes">
 					<ShapesToDisplay />
 				</div>
-				<div className="rs-overlays">
+				<div className="tl-overlays">
 					<ScribbleWrapper />
 					<BrushWrapper />
 					<ZoomBrushWrapper />
@@ -378,7 +378,7 @@ function CollaboratorHint() {
 
 function ArrowheadDot() {
 	return (
-		<marker id="arrowhead-dot" className="rs-arrow-hint" refX="3.0" refY="3.0" orient="0">
+		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
 			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
 		</marker>
 	)
@@ -386,7 +386,7 @@ function ArrowheadDot() {
 
 function ArrowheadCross() {
 	return (
-		<marker id="arrowhead-cross" className="rs-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>

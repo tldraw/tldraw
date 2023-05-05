@@ -1,17 +1,10 @@
-/* -------------------- UI Layers ------------------- */
-.rs-container {
-	--sab: env(safe-area-inset-bottom);
-	--layer-panels: 300;
-	--layer-menus: 400;
-	--layer-main-menu: 450;
-	--layer-overlays: 500;
-	--layer-dialogs: 600;
-	--layer-toasts: 650;
-}
-
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
+	--layer-panels: 300;
+	--layer-menus: 400;
+	--layer-overlays: 500;
+	--layer-toasts: 650;
 	position: relative;
 	display: grid;
 	grid-template-columns: 1fr;
@@ -25,6 +18,7 @@
 	user-select: none;
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
+	--sab: env(safe-area-inset-bottom);
 }
 
 .tlui-layout__top {

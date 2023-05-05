@@ -16,7 +16,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 		<svg className="tl-svg-origin-container">
 			{/* Top left */}
 			<polyline
-				className="rs-corner-crop-handle"
+				className="tl-corner-crop-handle"
 				points={`
 						${toDomPrecision(0 - offset)},${toDomPrecision(size)} 
 						${toDomPrecision(0 - offset)},${toDomPrecision(0 - offset)} 
@@ -27,8 +27,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Top */}
 			<line
-				className={classNames('rs-corner-crop-edge-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-edge-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				x1={toDomPrecision(width / 2 - size)}
 				y1={toDomPrecision(0 - offset)}
@@ -40,8 +40,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Top right */}
 			<polyline
-				className={classNames('rs-corner-crop-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				points={`
 						${toDomPrecision(width - size)},${toDomPrecision(0 - offset)} 
@@ -53,8 +53,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Right */}
 			<line
-				className={classNames('rs-corner-crop-edge-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-edge-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				x1={toDomPrecision(width + offset)}
 				y1={toDomPrecision(height / 2 - size)}
@@ -66,7 +66,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Bottom right */}
 			<polyline
-				className="rs-corner-crop-handle"
+				className="tl-corner-crop-handle"
 				points={`
 						${toDomPrecision(width + offset)},${toDomPrecision(height - size)} 
 						${toDomPrecision(width + offset)},${toDomPrecision(height + offset)}
@@ -77,8 +77,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Bottom */}
 			<line
-				className={classNames('rs-corner-crop-edge-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-edge-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				x1={toDomPrecision(width / 2 - size)}
 				y1={toDomPrecision(height + offset)}
@@ -90,8 +90,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Bottom left */}
 			<polyline
-				className={classNames('rs-corner-crop-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				points={`
 						${toDomPrecision(0 + size)},${toDomPrecision(height + offset)} 
@@ -103,8 +103,8 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 			/>
 			{/* Left */}
 			<line
-				className={classNames('rs-corner-crop-edge-handle', {
-					'rs-hidden': hideAlternateHandles,
+				className={classNames('tl-corner-crop-edge-handle', {
+					'tl-hidden': hideAlternateHandles,
 				})}
 				x1={toDomPrecision(0 - offset)}
 				y1={toDomPrecision(height / 2 - size)}

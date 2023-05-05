@@ -5,7 +5,7 @@ import '@tldraw/tldraw/ui.css'
 const components: Partial<TLEditorComponents> = {
 	Brush: ({ brush }) => (
 		<rect
-			className="rs-brush"
+			className="tl-brush"
 			stroke="red"
 			fill="none"
 			width={Math.max(1, brush.w)}

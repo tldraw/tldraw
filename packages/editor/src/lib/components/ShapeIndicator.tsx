@@ -75,8 +75,8 @@ export const ShapeIndicator = React.memo(function ShapeIndicator({
 	return (
 		<svg className="tl-svg-origin-container">
 			<g
-				className={classNames('rs-shape-indicator', {
-					'rs-shape-indicator__hinting': isHinting,
+				className={classNames('tl-shape-indicator', {
+					'tl-shape-indicator__hinting': isHinting,
 				})}
 				transform={transform}
 				stroke={color ?? 'var(--color-selected)'}
