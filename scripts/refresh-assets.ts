@@ -11,10 +11,7 @@ import {
 } from './lib/file'
 
 // We'll need to copy the assets into these folders
-const PUBLIC_FOLDER_PATHS = [
-	join(BUBLIC_ROOT, 'packages', 'assets'),
-	join(BUBLIC_ROOT, 'apps', 'examples', 'www'),
-]
+const PUBLIC_FOLDER_PATHS = [join(BUBLIC_ROOT, 'packages', 'assets')]
 
 const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexMono-Medium': 'monospace',
@@ -26,16 +23,15 @@ const FONT_MAPPING: Record<string, string> = {
 const ASSETS_FOLDER_PATH = join(BUBLIC_ROOT, 'assets')
 
 const collectedAssetUrls: {
-	imports: { name: string; from: string }[]
-	assets: {
-		fonts: Record<string, string>
-		icons: Record<string, string>
-		translations: Record<string, string>
-		embedIcons: Record<string, string>
-	}
+	fonts: Record<string, string>
+	icons: Record<string, string>
+	translations: Record<string, string>
+	embedIcons: Record<string, string>
 } = {
-	imports: [],
-	assets: { fonts: {}, icons: {}, translations: {}, embedIcons: {} },
+	fonts: {},
+	icons: {},
+	translations: {},
+	embedIcons: {},
 }
 
 // 1. ICONS
@@ -100,12 +96,7 @@ async function copyIcons() {
 	// add to the asset declaration file
 	for (const icon of icons) {
 		const name = icon.replace('.svg', '')
-		const variableName = camelCase(`${name}IconUrl`)
-		collectedAssetUrls.imports.push({
-			name: variableName,
-			from: `icons/icon/${icon}`,
-		})
-		collectedAssetUrls.assets.icons[name] = variableName
+		collectedAssetUrls.icons[name] = `icons/icon/${icon}`
 	}
 }
 
@@ -138,12 +129,7 @@ async function copyEmbedIcons() {
 	// add to the asset declaration file
 	for (const item of itemsToCopy) {
 		const name = item.replace(extension, '')
-		const variableName = camelCase(`${name}EmbedIconUrl`)
-		collectedAssetUrls.imports.push({
-			name: variableName,
-			from: `${folderName}/${item}`,
-		})
-		collectedAssetUrls.assets.embedIcons[name] = variableName
+		collectedAssetUrls.embedIcons[name] = `${folderName}/${item}`
 	}
 }
 
@@ -181,12 +167,7 @@ async function copyFonts() {
 			console.log('Font mapping not found for', itemWithoutExtension)
 			process.exit(1)
 		}
-		const variableName = camelCase(`${name}FontUrl`)
-		collectedAssetUrls.imports.push({
-			name: variableName,
-			from: `${folderName}/${item}`,
-		})
-		collectedAssetUrls.assets.fonts[name] = variableName
+		collectedAssetUrls.fonts[name] = `${folderName}/${item}`
 	}
 }
 
@@ -255,38 +236,31 @@ async function copyTranslations() {
 	// add to the asset declaration file
 	for (const item of itemsToCopy) {
 		const name = item.replace(extension, '')
-		const variableName = camelCase(`${name}TranslationUrl`)
-		collectedAssetUrls.imports.push({
-			name: variableName,
-			from: `${folderName}/${item}`,
-		})
-		collectedAssetUrls.assets.translations[name] = variableName
+		collectedAssetUrls.translations[name] = `${folderName}/${item}`
 	}
 }
 
-// 4. ASSET DECLARATION FILE
-async function writeAssetDeclarationFile() {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'index.ts')
+// 4. ASSET DECLARATION FILES
+async function writeUrlBasedAssetDeclarationFile() {
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'urls.ts')
 	let assetDeclarationFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="../modules.d.ts" />
 		import {formatAssetUrl, AssetUrlOptions} from './utils';
 	`
 
-	for (const { name, from } of collectedAssetUrls.imports) {
-		assetDeclarationFile += `import ${name} from '../${from}';\n`
-	}
-
 	assetDeclarationFile += `
 		/** @public */
 		export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
 			return {
-				${Object.entries(collectedAssetUrls.assets)
+				${Object.entries(collectedAssetUrls)
 					.flatMap(([type, assets]) => [
 						`${type}: {`,
 						...Object.entries(assets).map(
-							([name, variableName]) =>
-								`${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),`
+							([name, href]) =>
+								`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
+									'../' + href
+								)}, import.meta.url).href, opts),`
 						),
 						'},',
 					])
@@ -297,9 +271,39 @@ async function writeAssetDeclarationFile() {
 
 	await writeTypescriptFile(assetDeclarationFilePath, assetDeclarationFile)
 }
+async function writeImportBasedAssetDeclarationFile(): Promise<void> {
+	let imports = `
+		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+		/// <reference path="../modules.d.ts" />
+		import {formatAssetUrl, AssetUrlOptions} from './utils';
+	`
 
-function camelCase(name: string) {
-	return name.replace(/[_-]([a-z0-9])/gi, (g) => g[1].toUpperCase())
+	let declarations = `
+		/** @public */
+		export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
+			return {
+	`
+
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		declarations += `${type}: {\n`
+		for (const [name, href] of Object.entries(assets)) {
+			const variableName = `${type}_${name}`
+				.replace(/[^a-zA-Z0-9_]/g, '_')
+				.replace(/_+/g, '_')
+				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
+			imports += `import ${variableName} from ${JSON.stringify('../' + href)};\n`
+			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
+		}
+		declarations += '},\n'
+	}
+
+	declarations += `
+			} as const
+		}
+	`
+
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'imports.ts')
+	await writeTypescriptFile(assetDeclarationFilePath, imports + declarations)
 }
 
 // --- RUN
@@ -313,7 +317,8 @@ async function main() {
 	console.log('Copying translations...')
 	await copyTranslations()
 	console.log('Writing asset declaration file...')
-	await writeAssetDeclarationFile()
+	await writeUrlBasedAssetDeclarationFile()
+	await writeImportBasedAssetDeclarationFile()
 	console.log('Done!')
 }
 

@@ -1,4 +1,4 @@
-# @tldraw/primitives
+# @tldraw/assets
 
 ## License
 

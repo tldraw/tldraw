@@ -603,6 +603,7 @@ export const debugFlags: {
     peopleMenu: Atom<boolean, unknown>;
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
+    newLiveCollaborators: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)
@@ -618,7 +619,7 @@ export const DEFAULT_BOOKMARK_HEIGHT = 320;
 export const DEFAULT_BOOKMARK_WIDTH = 300;
 
 // @public (undocumented)
-export const defaultEditorAssetUrls: EditorAssetUrls;
+export let defaultEditorAssetUrls: EditorAssetUrls;
 
 // @public (undocumented)
 export function defaultEmptyAs(str: string, dflt: string): string;
@@ -1441,6 +1442,9 @@ export const runtime: {
     refreshPage: () => void;
     hardReset: () => void;
 };
+
+// @internal (undocumented)
+export function setDefaultEditorAssetUrls(assetUrls: EditorAssetUrls): void;
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
@@ -2650,8 +2654,14 @@ export const useApp: () => App;
 // @public (undocumented)
 export function useContainer(): HTMLDivElement;
 
+// @internal (undocumented)
+export function usePeerIds(): TLUserId[];
+
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
+
+// @internal (undocumented)
+export function usePresence(userId: TLUserId): null | TLInstancePresence;
 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;

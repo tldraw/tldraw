@@ -260,7 +260,7 @@ function isFocusingInput() {
 
 	if (
 		activeElement &&
-		(activeElement.getAttribute('contenteditble') ||
+		(activeElement.getAttribute('contenteditable') ||
 			INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1)
 	) {
 		return true

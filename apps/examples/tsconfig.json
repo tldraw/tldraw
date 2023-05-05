@@ -1,29 +1,9 @@
 {
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["src", "./vite.config.ts"],
+	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
-		"target": "ESNext",
-		"useDefineForClassFields": true,
-		"lib": ["DOM", "DOM.Iterable", "ESNext"],
-		"allowJs": true,
-		"checkJs": true,
-		"skipLibCheck": true,
-		"esModuleInterop": true,
-		"removeComments": true,
-		"allowSyntheticDefaultImports": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"module": "ESNext",
-		"moduleResolution": "Node",
-		"resolveJsonModule": true,
-		"noEmit": true,
-		"jsx": "react-jsx",
-		"incremental": true,
-		"baseUrl": ".",
-		"composite": true,
-		"sourceMap": false,
-		"importHelpers": false,
-		"skipDefaultLibCheck": true,
-		"experimentalDecorators": true
+		"outDir": "./.tsbuild"
 	},
-	"include": ["src", "scripts"],
-	"references": [{ "path": "../../packages/tldraw" }]
+	"references": [{ "path": "../../packages/tldraw" }, { "path": "../../packages/assets" }]
 }

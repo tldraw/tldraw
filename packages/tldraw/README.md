@@ -49,4 +49,4 @@ See the [examples repo](https://github.com/tldraw/tldraw-examples) for more exam
 
 ## License
 
-This package is not yet licensed.
+The source code in this repository (as well as our 2.0+ distributions and releases) are currently licensed under Apache-2.0. These licenses are subject to change in our upcoming 2.0 release. If you are planning to use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
