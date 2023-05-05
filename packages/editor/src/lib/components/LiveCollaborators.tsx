@@ -136,6 +136,7 @@ const Collaborator = track(function Collaborator({
 					scribble={scribble}
 					color={color}
 					zoom={zoom}
+					opacity={0.1}
 				/>
 			) : null}
 			{CollaboratorShapeIndicator &&

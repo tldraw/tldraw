@@ -18,7 +18,7 @@ export const DefaultBrush: TLBrushComponent = ({ brush, color }) => {
 						width={toDomPrecision(Math.max(1, brush.w))}
 						height={toDomPrecision(Math.max(1, brush.h))}
 						fill={color}
-						opacity={0.1}
+						opacity={0.75}
 					/>
 					<rect
 						width={toDomPrecision(Math.max(1, brush.w))}
