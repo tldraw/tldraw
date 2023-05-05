@@ -62,6 +62,9 @@ export const DOUBLE_CLICK_DURATION = 450
 export const MULTI_CLICK_DURATION = 200
 
 /** @internal */
+export const COARSE_DRAG_DISTANCE = 6
+
+/** @internal */
 export const DRAG_DISTANCE = 4
 
 /** @internal */

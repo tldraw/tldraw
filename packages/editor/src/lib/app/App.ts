@@ -65,6 +65,7 @@ import { TLShapeDef } from '../config/TLShapeDefinition'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
+	COARSE_DRAG_DISTANCE,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -3631,7 +3632,8 @@ export class App extends EventEmitter {
 						if (
 							!inputs.isDragging &&
 							inputs.isPointing &&
-							originPagePoint.dist(currentPagePoint) > DRAG_DISTANCE / this.zoomLevel
+							originPagePoint.dist(currentPagePoint) >
+								(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
 						) {
 							inputs.isDragging = true
 						}
@@ -3718,7 +3720,8 @@ export class App extends EventEmitter {
 							if (
 								!inputs.isDragging &&
 								inputs.isPointing &&
-								originPagePoint.dist(currentPagePoint) > DRAG_DISTANCE / this.zoomLevel
+								originPagePoint.dist(currentPagePoint) >
+									(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
 							) {
 								inputs.isDragging = true
 							}

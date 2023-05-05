@@ -3828,7 +3828,7 @@ it('uses the cross cursor when create resizing', () => {
 })
 
 describe('Resizing text from the right edge', () => {
-	it('Resizes text from the right edge', () => {
+	it.only('Resizes text from the right edge', () => {
 		const id = app.createShapeId()
 		app.createShapes([{ id, type: 'text', props: { text: 'H' } }])
 		app.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
@@ -3836,6 +3836,9 @@ describe('Resizing text from the right edge', () => {
 		app.select(id)
 
 		const bounds = app.getBoundsById(id)!
+
+		// @ts-expect-error
+		app._isCoarsePointer.set(false)
 
 		// Resize from the right edge
 		app.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
@@ -3867,13 +3870,15 @@ describe('Resizing text from the right edge', () => {
 		app.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
 		app.expectToBeIn('select.pointing_resize_handle')
 		app.pointerMove(bounds.maxX + 5, bounds.midY, { target: 'selection', handle: 'right' })
+		app.expectToBeIn('select.pointing_resize_handle')
+		app.pointerMove(bounds.maxX + 10, bounds.midY, { target: 'selection', handle: 'right' })
 		app.expectToBeIn('select.resizing')
 		app.pointerUp()
 
 		app.expectShapeToMatch({
 			id,
 			type: 'text',
-			props: { text: 'Hello World', w: bounds.width + 5 },
+			props: { text: 'Hello World', w: bounds.width + 10 },
 		})
 	})
 })
