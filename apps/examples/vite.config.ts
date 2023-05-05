@@ -16,4 +16,8 @@ export default defineConfig({
 		outDir: path.join(__dirname, 'dist'),
 		assetsInlineLimit: 0,
 	},
+	server: {
+		port: 5420,
+	},
+	clearScreen: false,
 })
