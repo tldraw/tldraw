@@ -345,11 +345,11 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	if (!ids.length) return null
 
 	return (
-		<g aria-label="HINTED SHAPES">
+		<>
 			{ids.map((id) => (
 				<ShapeIndicator id={id} key={id + '_hinting'} isHinting />
 			))}
-		</g>
+		</>
 	)
 })
 

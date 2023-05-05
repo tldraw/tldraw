@@ -8,11 +8,11 @@ import { usePresence } from '../hooks/usePresence'
 export const LiveCollaboratorsNext = track(function Collaborators() {
 	const peerIds = usePeerIds()
 	return (
-		<g>
+		<>
 			{peerIds.map((id) => (
 				<Collaborator key={id} userId={id} />
 			))}
-		</g>
+		</>
 	)
 })
 
