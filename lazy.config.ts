@@ -16,6 +16,11 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		'dev-vscode': {
 			runsAfter: { 'build:vscode-editor': {} },
 		},
+		'dev-webdriver': {
+			execution: 'independent',
+			runsAfter: { 'refresh-assets': {}, prebuild: {}, 'build:vscode-editor': {} },
+			cache: 'none',
+		},
 		test: {
 			baseCommand: 'yarn run -T jest',
 			runsAfter: { 'refresh-assets': {} },

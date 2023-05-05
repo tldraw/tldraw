@@ -1,0 +1,36 @@
+{
+	"include": ["test"],
+	"exclude": ["node_modules", "dist", ".tsbuild*"],
+	"compilerOptions": {
+		"jsx": "react-jsx",
+		"skipLibCheck": true,
+		"resolveJsonModule": true,
+		"allowSyntheticDefaultImports": true,
+		"importHelpers": true,
+		"lib": ["dom", "esnext"],
+		"esModuleInterop": true,
+		"target": "ESNext",
+		"moduleResolution": "node16",
+		"types": [
+			"node",
+			"@wdio/globals/types",
+			"@wdio/mocha-framework",
+			"@types/mocha",
+			"wdio-vscode-service"
+		],
+		"noEmitOnError": false,
+		"noEmit": true
+	},
+	"ts-node": {
+		"compilerOptions": {
+			"moduleResolution": "node",
+			"module": "CommonJS"
+		}
+	},
+	"references": [
+		{ "path": "../packages/editor" },
+		{ "path": "../packages/tlschema" },
+		{ "path": "../packages/tlstore" },
+		{ "path": "../packages/primitives" }
+	]
+}
