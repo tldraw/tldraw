@@ -154,7 +154,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 							</g>
 						) : null}
 						{asset?.props.isAnimated && !shape.props.playing && (
-							<div className="rs-image__meda-tag">GIF</div>
+							<div className="rs-image__tg">GIF</div>
 						)}
 					</div>
 				</HTMLContainer>

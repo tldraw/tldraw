@@ -212,10 +212,6 @@
 	height: calc(100% * var(--rs-zoom));
 }
 
-.rs-pointer-events {
-	pointer-events: all;
-}
-
 .rs-container,
 .rs-container * {
 	-webkit-touch-callout: none;
@@ -236,30 +232,7 @@ input,
 	-webkit-user-select: text;
 }
 
-.rs-background {
-	position: absolute;
-	inset: 0px;
-	background-color: var(--color-background);
-}
-
-.rs-font-preload {
-	height: 1px;
-	width: 1px;
-	opacity: 0;
-	position: absolute;
-	top: -1000px;
-	left: -1000px;
-}
-
 /* Portals (menus, modals, popovers, etc) */
-
-.rs-panels {
-	z-index: var(--layer-panels);
-}
-
-.rs-portal {
-	z-index: var(--layer-portals);
-}
 
 .rs-overlay {
 	z-index: var(--layer-overlays);
@@ -267,14 +240,6 @@ input,
 
 .rs-modal {
 	z-index: var(--layer-dialogs);
-}
-
-.tlui-spacer {
-	flex-grow: 2;
-	min-height: 0px;
-	margin-left: calc(-1 * var(--space-4));
-	margin-top: calc(-1 * var(--space-4));
-	pointer-events: none;
 }
 
 /* -------------------------------------------------- */
@@ -295,6 +260,43 @@ input,
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
+}
+
+.rs-shapes {
+	position: relative;
+	z-index: 1;
+}
+
+.rs-overlays {
+	position: relative;
+	z-index: 2;
+}
+
+.rs-svg-context {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 1px;
+	width: 1px;
+	pointer-events: none;
+}
+
+.tl-svg-origin-container {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 1px;
+	height: 1px;
+	overflow: visible;
+	pointer-events: none;
+}
+
+/* ------------------- Background ------------------- */
+
+.rs-background {
+	position: absolute;
+	inset: 0px;
+	background-color: var(--color-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -324,18 +326,6 @@ input,
 	height: 1px;
 	contain: layout style size;
 	z-index: 3;
-}
-
-.rs-svg-layer {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	overflow: clip;
-	pointer-events: none;
-	contain: strict;
-	z-index: 4;
 }
 
 /* ---------------------- Brush --------------------- */
@@ -447,7 +437,7 @@ input,
 	pointer-events: none;
 }
 
-.tlui-selection__fg-outline {
+.tlui-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
@@ -509,7 +499,7 @@ input,
 	pointer-events: all;
 }
 
-.rs-handle-bg {
+.rs-handle__bg {
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
@@ -517,7 +507,7 @@ input,
 	r: calc(12px / var(--rs-zoom));
 }
 
-.rs-handle-fg {
+.rs-handle__fg {
 	fill: var(--color-background);
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--rs-scale));
@@ -525,33 +515,33 @@ input,
 	pointer-events: none;
 }
 
-.rs-handle-bg:active {
+.rs-handle__bg:active {
 	fill: none;
 }
 
-.rs-handle-bg:hover {
+.rs-handle__bg:hover {
 	cursor: grab;
 	fill: var(--color-selection-fill);
 }
 
-.rs-handle-hint {
+.rs-handle__hint {
 	opacity: 0;
 }
 
-.rs-handle-hint:hover {
+.rs-handle__hint:hover {
 	opacity: 1;
 }
 
 @media (pointer: coarse) {
-	.rs-handle-bg:active {
+	.rs-handle__bg:active {
 		fill: var(--color-selection-fill);
 	}
 
-	.rs-handle-hint {
+	.rs-handle__hint {
 		opacity: 1;
 	}
 
-	.rs-handle-hint > .rs-handle-fg {
+	.rs-handle__hint > .rs-handle__fg {
 		r: calc(3px * var(--rs-scale));
 	}
 }
@@ -579,7 +569,7 @@ input,
 	align-items: center;
 }
 
-.rs-image__meda-tag {
+.rs-image__tg {
 	--scale: calc(min(2, var(--rs-scale)));
 	position: absolute;
 	top: calc(var(--scale) * 8px);
@@ -590,49 +580,6 @@ input,
 	background-color: var(--color-background);
 	padding: 2px 4px;
 	border-radius: 4px;
-}
-
-/* --------------------- Assets --------------------- */
-
-.rs-asset-loading {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: var(--color-muted);
-	z-index: 1;
-	pointer-events: all;
-}
-
-.rs-shapes {
-	position: relative;
-	z-index: 1;
-}
-
-.rs-overlays {
-	position: relative;
-	z-index: 2;
-}
-
-.rs-svg-context {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	height: 1px;
-	width: 1px;
-	pointer-events: none;
-}
-
-.tl-svg-origin-container {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 1px;
-	height: 1px;
-	overflow: visible;
-	pointer-events: none;
 }
 
 /* --------------------- Nametag -------------------- */
@@ -1585,11 +1532,11 @@ it from receiving any pointer events or affecting the cursor. */
 
 @media screen and (pointer: coarse) {
 	/* If mobile always show handle-hint as there is no hover state */
-	.rs-canvas__mobile .rs-handle-hint {
+	.rs-canvas__mobile .rs-handle__hint {
 		opacity: 1;
 	}
 
-	.rs-canvas__mobile .rs-handle-bg {
+	.rs-canvas__mobile .rs-handle__bg {
 		r: calc(20px / var(--rs-zoom));
 	}
 }

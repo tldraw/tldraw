@@ -1938,6 +1938,14 @@
 
 /* Embed Dialog */
 
+.tlui-embed__spacer {
+	flex-grow: 2;
+	min-height: 0px;
+	margin-left: calc(-1 * var(--space-4));
+	margin-top: calc(-1 * var(--space-4));
+	pointer-events: none;
+}
+
 .tlui-embed-dialog__list {
 	display: flex;
 	flex-direction: column;

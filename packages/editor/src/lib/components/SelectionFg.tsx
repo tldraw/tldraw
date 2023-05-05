@@ -157,7 +157,7 @@ export const SelectionFg = track(function SelectionFg() {
 		<svg className="tl-svg-origin-container" ref={rSvg}>
 			<g data-wd="selection-foreground" className="tlui-selection__fg">
 				<rect
-					className={classNames('tlui-selection__fg-outline', { 'rs-hidden': !shouldDisplayBox })}
+					className={classNames('tlui-selection__fg__outline', { 'rs-hidden': !shouldDisplayBox })}
 					width={toDomPrecision(width)}
 					height={toDomPrecision(height)}
 				/>
