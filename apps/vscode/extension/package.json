@@ -122,7 +122,7 @@
 		"dependencies": false
 	},
 	"scripts": {
-		"dev-vscode": "tsx scripts/dev.ts",
+		"dev": "tsx scripts/dev.ts",
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "yarn build && tsx scripts/package.ts",

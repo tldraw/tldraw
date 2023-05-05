@@ -107,7 +107,11 @@ export {
 export { type RequiredKeys, type TLEasingType } from './lib/app/types/misc-types'
 export { type TLReorderOperation } from './lib/app/types/reorder-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/app/types/selection-types'
-export { defaultEditorAssetUrls, type EditorAssetUrls } from './lib/assetUrls'
+export {
+	defaultEditorAssetUrls,
+	setDefaultEditorAssetUrls,
+	type EditorAssetUrls,
+} from './lib/assetUrls'
 export { Canvas } from './lib/components/Canvas'
 export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {

@@ -1,4 +1,5 @@
 import { readFile, writeFile as writeFileUnchecked } from 'fs/promises'
+import json5 from 'json5'
 import { basename, dirname, join, relative } from 'path'
 import prettier from 'prettier'
 import { fileURLToPath } from 'url'
@@ -10,11 +11,11 @@ export const REPO_ROOT = join(__dirname, isBublic ? '../../..' : '../..')
 export const BUBLIC_ROOT = join(__dirname, '../..')
 
 export async function readJsonIfExists(file: string) {
-	try {
-		return JSON.parse(await readFile(file, 'utf8'))
-	} catch {
+	const fileContents = await readFileIfExists(file)
+	if (fileContents === null) {
 		return null
 	}
+	return json5.parse(fileContents)
 }
 
 export async function readFileIfExists(file: string) {
