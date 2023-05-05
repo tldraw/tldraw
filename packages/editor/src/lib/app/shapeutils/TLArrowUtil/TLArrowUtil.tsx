@@ -918,7 +918,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		const maskId = (shape.id + '_clip').replace(':', '_')
 
 		// If we have any arrowheads, then mask the arrowheads
-		if (as || ae) {
+		if (as || ae || labelSize) {
 			// Create mask for arrowheads
 
 			// Create defs
