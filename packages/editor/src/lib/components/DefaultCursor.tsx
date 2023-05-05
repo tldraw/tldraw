@@ -1,42 +1,31 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import { memo } from 'react'
-import { truncateStringWithEllipsis } from '../utils/dom'
 
 /** @public */
 export type TLCursorComponent = (props: {
 	point: Vec2dModel | null
 	zoom: number
 	color?: string
-	nameTag: string | null
+	name: string | null
 }) => any | null
 
-const _Cursor: TLCursorComponent = ({ zoom, point, color, nameTag }) => {
+const _Cursor: TLCursorComponent = ({ zoom, point, color, name }) => {
 	if (!point) return null
 
 	return (
-		<g transform={`translate(${point.x}, ${point.y}) scale(${1 / zoom})`}>
-			<use href="#cursor" color={color} />
-			{nameTag !== null && nameTag !== '' && (
-				<foreignObject
-					x="13"
-					y="16"
-					width="1"
-					height="1"
-					style={{
-						overflow: 'visible',
-					}}
-				>
-					<div
-						className="rs-nametag"
-						style={{
-							backgroundColor: color,
-						}}
-					>
-						{truncateStringWithEllipsis(nameTag, 40)}
-					</div>
-				</foreignObject>
+		<div
+			className="rs-cursor"
+			style={{ transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})` }}
+		>
+			<svg>
+				<use href="#cursor" color={color} />
+			</svg>
+			{name !== null && name !== '' && (
+				<div className="rs-nametag" style={{ backgroundColor: color }}>
+					{name}
+				</div>
 			)}
-		</g>
+		</div>
 	)
 }
 

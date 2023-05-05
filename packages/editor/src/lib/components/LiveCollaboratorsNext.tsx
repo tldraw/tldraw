@@ -56,7 +56,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId 
 					point={cursor}
 					color={color}
 					zoom={zoomLevel}
-					nameTag={userName !== 'New User' ? userName : null}
+					name={userName !== 'New User' ? userName : null}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint

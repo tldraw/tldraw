@@ -130,7 +130,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 								opacity: 0.1,
 								backgroundImage: `url(${
 									!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
-								}`,
+								})`,
 							}}
 							draggable={false}
 						/>
@@ -144,7 +144,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 								style={{
 									backgroundImage: `url(${
 										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
-									}`,
+									})`,
 								}}
 								draggable={false}
 							/>

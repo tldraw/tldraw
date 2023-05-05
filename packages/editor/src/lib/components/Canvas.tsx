@@ -37,6 +37,7 @@ export const Canvas = track(function Canvas({
 
 	const rCanvas = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
+	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
 	const rSvgLayer = React.useRef<SVGGElement>(null)
 
 	useScreenBounds()
@@ -49,9 +50,8 @@ export const Canvas = track(function Canvas({
 	useQuickReactor(
 		'position layers',
 		() => {
-			const svgElm = rSvgLayer.current
 			const htmlElm = rHtmlLayer.current
-			if (!(svgElm && htmlElm)) return
+			if (!htmlElm) return
 
 			const { x, y, z } = app.camera
 
@@ -61,10 +61,6 @@ export const Canvas = track(function Canvas({
 			const offset =
 				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-			svgElm.style.setProperty(
-				'transform',
-				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x)}px,${toDomPrecision(y)}px)`
-			)
 			htmlElm.style.setProperty(
 				'transform',
 				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
@@ -113,19 +109,21 @@ export const Canvas = track(function Canvas({
 			<GridWrapper />
 			<UiLogger />
 			<div ref={rHtmlLayer} className="rs-html-layer" draggable={false}>
+				<svg className="rs-svg-context">
+					<defs>
+						{patternContext}
+						{Cursor && <Cursor />}
+						<CollaboratorHint />
+						<ArrowheadDot />
+						<ArrowheadCross />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
 				<SelectionBg />
-				<ShapesToDisplay />
-			</div>
-			<svg className="rs-svg-layer">
-				{patternContext}
-				<defs>
-					{Cursor && <Cursor />}
-					<CollaboratorHint />
-					<ArrowheadDot />
-					<ArrowheadCross />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-				<g ref={rSvgLayer}>
+				<div className="rs-shapes">
+					<ShapesToDisplay />
+				</div>
+				<div className="rs-overlays">
 					<ScribbleWrapper />
 					<BrushWrapper />
 					<ZoomBrushWrapper />
@@ -140,8 +138,8 @@ export const Canvas = track(function Canvas({
 					) : (
 						<LiveCollaborators />
 					)}
-				</g>
-			</svg>
+				</div>
+			</div>
 		</div>
 	)
 })
@@ -255,11 +253,13 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
-		<g transform={Matrix2d.toCssString(transform)}>
-			{handlesToDisplay.map((handle) => {
-				return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
-			})}
-		</g>
+		<svg className="tl-svg-origin-container">
+			<g transform={Matrix2d.toCssString(transform)}>
+				{handlesToDisplay.map((handle) => {
+					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
+				})}
+			</g>
+		</svg>
 	)
 })
 
@@ -320,11 +320,11 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 	if (!shouldDisplay) return null
 
 	return (
-		<g>
+		<>
 			{app.selectedIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} id={id} />
 			))}
-		</g>
+		</>
 	)
 })
 

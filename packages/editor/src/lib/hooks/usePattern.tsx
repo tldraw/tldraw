@@ -126,7 +126,7 @@ export const usePattern = () => {
 	}, [dpr])
 
 	const context = (
-		<defs>
+		<>
 			{backgroundUrls.map((item) => {
 				const key = item.zoom + (item.darkMode ? '_dark' : '_light')
 				return (
@@ -141,7 +141,7 @@ export const usePattern = () => {
 					</pattern>
 				)
 			})}
-		</defs>
+		</>
 	)
 
 	return { context, isReady }

@@ -8,6 +8,7 @@ export default function UserPresenceExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				persistenceKey="user-presence-example"
 				onMount={(app) => {
 					// There are several records related to user presence that must be
 					// included for each user. These are created automatically by each
@@ -62,7 +63,7 @@ export default function UserPresenceExample() {
 								lastActivityTimestamp: Date.now(),
 							},
 						])
-					}, 16)
+					}, 100)
 				}}
 			/>
 		</div>

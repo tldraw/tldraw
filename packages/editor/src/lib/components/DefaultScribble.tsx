@@ -21,11 +21,13 @@ export const DefaultScribble: TLScribbleComponent = ({ scribble, zoom, color, op
 	)
 
 	return (
-		<path
-			className="tl-scribble"
-			d={d}
-			fill={color ?? `var(--color-${scribble.color})`}
-			opacity={opacity ?? scribble.opacity}
-		/>
+		<svg className="tl-svg-origin-container">
+			<path
+				className="tl-scribble"
+				d={d}
+				fill={color ?? `var(--color-${scribble.color})`}
+				opacity={opacity ?? scribble.opacity}
+			/>
+		</svg>
 	)
 }

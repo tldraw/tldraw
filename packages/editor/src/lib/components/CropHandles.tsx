@@ -11,8 +11,9 @@ interface CropHandlesProps {
 export function CropHandles({ size, width, height, hideAlternateHandles }: CropHandlesProps) {
 	const cropStrokeWidth = toDomPrecision(size / 3)
 	const offset = cropStrokeWidth / 2
+
 	return (
-		<>
+		<svg className="tl-svg-origin-container">
 			{/* Top left */}
 			<polyline
 				className="rs-corner-crop-handle"
@@ -113,6 +114,6 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 				data-wd="selection.crop.left"
 				aria-label="left handle"
 			/>
-		</>
+		</svg>
 	)
 }

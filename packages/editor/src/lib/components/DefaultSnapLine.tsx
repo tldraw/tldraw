@@ -151,12 +151,13 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 export type TLSnapLineComponent = (props: { line: SnapLine; zoom: number }) => any
 
 export const DefaultSnapLine: TLSnapLineComponent = ({ line, zoom }) => {
-	switch (line.type) {
-		case 'points':
-			return <PointsSnapLine {...line} zoom={zoom} />
-		case 'gaps':
-			return <GapsSnapLine {...line} zoom={zoom} />
-		default:
-			return null
-	}
+	return (
+		<svg className="tl-svg-origin-container">
+			{line.type === 'points' ? (
+				<PointsSnapLine {...line} zoom={zoom} />
+			) : line.type === 'gaps' ? (
+				<GapsSnapLine {...line} zoom={zoom} />
+			) : null}
+		</svg>
+	)
 }

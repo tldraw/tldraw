@@ -606,13 +606,54 @@ input,
 	pointer-events: all;
 }
 
+.rs-shapes {
+	position: relative;
+	z-index: 1;
+}
+
+.rs-overlays {
+	position: relative;
+	z-index: 2;
+}
+
+.rs-svg-context {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 1px;
+	width: 1px;
+	pointer-events: none;
+}
+
+.tl-svg-origin-container {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 1px;
+	height: 1px;
+	overflow: visible;
+	pointer-events: none;
+}
+
 /* --------------------- Nametag -------------------- */
+
+.rs-collaborator-cursor {
+	position: absolute;
+}
 
 /* Rounded corners */
 .rs-nametag {
+	position: absolute;
+	top: 16px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	max-width: 120px;
 	color: var(--color-selected-contrast);
 	white-space: nowrap;
 	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	border-radius: 10px;
 	padding: 2px 6px;
 	font-size: 12px;

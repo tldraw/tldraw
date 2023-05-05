@@ -29,7 +29,7 @@ const components: Partial<TLEditorComponents> = {
 export default function CustomComponentsExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw components={components} />
+			<Tldraw persistenceKey="custom-components-example" components={components} />
 		</div>
 	)
 }
