@@ -1317,7 +1317,7 @@ export type OnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
 // @public (undocumented)
 export type OnBeforeUpdateHandler<T extends TLShape> = (prev: T, next: T) => T | void;
 
-// @public (undocumented)
+// @internal (undocumented)
 export type OnBindingChangeHandler<T extends TLShape> = (shape: T) => TLShapePartial<T> | void;
 
 // @public (undocumented)
@@ -1348,15 +1348,7 @@ export type OnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
 export type OnResizeEndHandler<T extends TLShape> = EventChangeHandler<T>;
 
 // @public (undocumented)
-export type OnResizeHandler<T extends TLShape> = (shape: T, info: {
-    newPoint: Vec2dModel;
-    handle: TLResizeHandle;
-    mode: TLResizeMode;
-    scaleX: number;
-    scaleY: number;
-    initialBounds: Box2d;
-    initialShape: T;
-}) => Partial<TLShapePartial<T>> | undefined | void;
+export type OnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Partial<TLShapePartial<T>> | undefined | void;
 
 // @public (undocumented)
 export type OnResizeStartHandler<T extends TLShape> = EventStartHandler<T>;
@@ -2390,6 +2382,17 @@ export type TLReorderOperation = 'backward' | 'forward' | 'toBack' | 'toFront';
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
+export type TLResizeInfo<T extends TLShape> = {
+    newPoint: Vec2dModel;
+    handle: TLResizeHandle;
+    mode: TLResizeMode;
+    scaleX: number;
+    scaleY: number;
+    initialBounds: Box2d;
+    initialShape: T;
+};
+
+// @public
 export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 
 // @public (undocumented)
@@ -2438,53 +2441,33 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     hitTestLineSegment(shape: T, A: VecLike, B: VecLike): boolean;
     hitTestPoint(shape: T, point: VecLike): boolean;
     abstract indicator(shape: T): any;
-    // (undocumented)
     is(shape: TLBaseShape<string, object>): shape is T;
     isAspectRatioLocked: TLShapeUtilFlag<T>;
     isClosed: TLShapeUtilFlag<T>;
     onBeforeCreate?: OnBeforeCreateHandler<T>;
     onBeforeUpdate?: OnBeforeUpdateHandler<T>;
-    // (undocumented)
+    // @internal
     onBindingChange?: OnBindingChangeHandler<T>;
-    // (undocumented)
     onChildrenChange?: OnChildrenChangeHandler<T>;
-    // (undocumented)
     onClick?: OnClickHandler<T>;
-    // (undocumented)
     onDoubleClick?: OnDoubleClickHandler<T>;
-    // (undocumented)
     onDoubleClickEdge?: OnDoubleClickHandler<T>;
-    // (undocumented)
     onDoubleClickHandle?: OnDoubleClickHandleHandler<T>;
-    // (undocumented)
     onDragShapesOut?: OnDragHandler<T>;
-    // (undocumented)
     onDragShapesOver?: OnDragHandler<T, {
         shouldHint: boolean;
     }>;
-    // (undocumented)
     onDropShapesOver?: OnDragHandler<T>;
-    // (undocumented)
     onEditEnd?: OnEditEndHandler<T>;
-    // (undocumented)
     onHandleChange?: OnHandleChangeHandler<T>;
-    // (undocumented)
     onResize?: OnResizeHandler<T>;
-    // (undocumented)
     onResizeEnd?: OnResizeEndHandler<T>;
-    // (undocumented)
     onResizeStart?: OnResizeStartHandler<T>;
-    // (undocumented)
     onRotate?: OnRotateHandler<T>;
-    // (undocumented)
     onRotateEnd?: OnRotateEndHandler<T>;
-    // (undocumented)
     onRotateStart?: OnRotateStartHandler<T>;
-    // (undocumented)
     onTranslate?: OnTranslateHandler<T>;
-    // (undocumented)
     onTranslateEnd?: OnTranslateEndHandler<T>;
-    // (undocumented)
     onTranslateStart?: OnTranslateStartHandler<T>;
     outline(shape: T): Vec2dModel[];
     point(shape: T): Vec2dModel;

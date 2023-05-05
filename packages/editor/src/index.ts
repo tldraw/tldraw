@@ -56,6 +56,7 @@ export {
 	type OnTranslateEndHandler,
 	type OnTranslateHandler,
 	type OnTranslateStartHandler,
+	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
