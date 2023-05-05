@@ -936,6 +936,10 @@ input,
 	pointer-events: none;
 }
 
+.tl-hyperlink-button__hidden {
+	display: none;
+}
+
 /* ---------------- Geo shape ---------------- */
 
 .tl-text-label {

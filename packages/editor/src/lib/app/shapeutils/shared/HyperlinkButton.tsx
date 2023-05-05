@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import { stopEventPropagation } from '../../../utils/dom'
 
 const LINK_ICON =
@@ -6,7 +7,9 @@ const LINK_ICON =
 export function HyperlinkButton({ url, zoomLevel }: { url: string; zoomLevel: number }) {
 	return (
 		<a
-			className={`tl-hyperlink-button ${zoomLevel < 0.5 ? 'hidden' : ''}`}
+			className={classNames('tl-hyperlink-button', {
+				'tl-hyperlink-button__hidden': zoomLevel < 0.5,
+			})}
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer"

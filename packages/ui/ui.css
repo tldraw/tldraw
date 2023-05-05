@@ -1,10 +1,13 @@
-/* --------------------- Layout --------------------- */
-
-.tlui-layout {
+.tl-container {
 	--layer-panels: 300;
 	--layer-menus: 400;
 	--layer-overlays: 500;
 	--layer-toasts: 650;
+}
+
+/* --------------------- Layout --------------------- */
+
+.tlui-layout {
 	position: relative;
 	display: grid;
 	grid-template-columns: 1fr;
