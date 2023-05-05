@@ -9467,8 +9467,8 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.9.0
-    signia: ^0.1.1
-    signia-react: ^0.1.1
+    signia: 0.1.4
+    signia-react: 0.1.4
     vite: ^4.3.4
   languageName: unknown
   linkType: soft
@@ -16709,7 +16709,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signia-react@npm:^0.1.1":
+"signia-react@npm:0.1.4":
   version: 0.1.4
   resolution: "signia-react@npm:0.1.4"
   dependencies:
@@ -16720,7 +16720,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signia@npm:0.1.4, signia@npm:^0.1.1":
+"signia@npm:0.1.4":
   version: 0.1.4
   resolution: "signia@npm:0.1.4"
   checksum: 0daab872c3e335c74a464a3b592cfa0fc5e1e0b65e61eecdf4e0476830791543add8a661b9b33ce9e0f6c3f0f8093ef1965955a64ec510cfcaaf15066bd25e94
