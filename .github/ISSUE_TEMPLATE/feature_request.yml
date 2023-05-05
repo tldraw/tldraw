@@ -2,7 +2,7 @@ name: Feature request
 description: File a feature request
 title: '[Feature]: '
 labels: ['feature', 'triage']
-assignees:
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -13,8 +13,6 @@ body:
     attributes:
       label: What's the feature?
       description: Describe the feature, who it would help, and link to any examples from other apps.
-      placeholder: ''
-      value: ''
     validations:
       required: true
   - type: input

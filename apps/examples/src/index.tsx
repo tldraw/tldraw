@@ -1,4 +1,10 @@
-import { DefaultErrorFallback, ErrorBoundary } from '@tldraw/tldraw'
+import { getBundlerAssetUrls } from '@tldraw/assets/src/urls'
+import {
+	DefaultErrorFallback,
+	ErrorBoundary,
+	setDefaultEditorAssetUrls,
+	setDefaultUiAssetUrls,
+} from '@tldraw/tldraw'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -13,9 +19,18 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundaries/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
-import './index.css'
 
-const router = createBrowserRouter([
+// we use secret internal `setDefaultAssetUrls` functions to set these at the
+// top-level so assets don't need to be passed down in every single example.
+const assetUrls = getBundlerAssetUrls()
+setDefaultEditorAssetUrls(assetUrls)
+setDefaultUiAssetUrls(assetUrls)
+
+type Example = {
+	path: string
+	element: JSX.Element
+}
+export const allExamples: Example[] = [
 	{
 		path: '/',
 		element: <ExampleBasic />,
@@ -60,8 +75,9 @@ const router = createBrowserRouter([
 		path: '/user-presence',
 		element: <UserPresenceExample />,
 	},
-])
+]
 
+const router = createBrowserRouter(allExamples)
 const rootElement = document.getElementById('root')
 const root = createRoot(rootElement!)
 

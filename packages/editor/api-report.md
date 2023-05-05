@@ -619,7 +619,7 @@ export const DEFAULT_BOOKMARK_HEIGHT = 320;
 export const DEFAULT_BOOKMARK_WIDTH = 300;
 
 // @public (undocumented)
-export const defaultEditorAssetUrls: EditorAssetUrls;
+export let defaultEditorAssetUrls: EditorAssetUrls;
 
 // @public (undocumented)
 export function defaultEmptyAs(str: string, dflt: string): string;
@@ -1442,6 +1442,9 @@ export const runtime: {
     refreshPage: () => void;
     hardReset: () => void;
 };
+
+// @internal (undocumented)
+export function setDefaultEditorAssetUrls(assetUrls: EditorAssetUrls): void;
 
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
