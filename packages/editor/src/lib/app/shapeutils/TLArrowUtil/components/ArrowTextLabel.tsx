@@ -27,7 +27,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 
 	return (
 		<div
-			className="rs-arrow-label"
+			className="tl-arrow-label"
 			data-font={font}
 			data-align={'center'}
 			data-hastext={!isEmpty}
@@ -40,7 +40,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				color: labelColor,
 			}}
 		>
-			<div className="rs-arrow-label__inner">
+			<div className="tl-arrow-label__inner">
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
@@ -48,7 +48,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 					// Consider replacing with content-editable
 					<textarea
 						ref={rInput}
-						className="rs-text rs-text-input"
+						className="tl-text tl-text-input"
 						name="text"
 						tabIndex={-1}
 						autoComplete="false"

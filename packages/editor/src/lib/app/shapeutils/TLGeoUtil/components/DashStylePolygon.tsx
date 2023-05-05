@@ -26,7 +26,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 				lines.map((l, i) => (
 					<path
 						key={`line_bg_${i}`}
-						className={'rs-hitarea-stroke'}
+						className={'tl-hitarea-stroke'}
 						fill="none"
 						d={`M${l[0].x},${l[0].y}L${l[1].x},${l[1].y}`}
 					/>

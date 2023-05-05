@@ -69,13 +69,13 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 					}}
 				>
 					<div
-						className="rs-note__container rs-hitarea-fill"
+						className="tl-note__container tl-hitarea-fill"
 						style={{
 							color: `var(--palette-${adjustedColor})`,
 							backgroundColor: `var(--palette-${adjustedColor})`,
 						}}
 					>
-						<div className="rs-note__scrim" />
+						<div className="tl-note__scrim" />
 						<TextLabel
 							id={id}
 							type={type}

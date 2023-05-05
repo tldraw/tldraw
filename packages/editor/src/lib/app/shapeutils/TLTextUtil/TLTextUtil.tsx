@@ -101,7 +101,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		return (
 			<HTMLContainer id={shape.id}>
 				<div
-					className="rs-text-shape__wrapper rs-text-shadow"
+					className="tl-text-shape__wrapper tl-text-shadow"
 					data-font={shape.props.font}
 					data-align={shape.props.align}
 					data-hastext={!isEmpty}
@@ -116,13 +116,13 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 						height: Math.max(FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight, height),
 					}}
 				>
-					<div className="rs-text rs-text-content" dir="ltr">
+					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
 					{isEditing || isEditableFromHover ? (
 						<textarea
 							ref={rInput}
-							className="rs-text rs-text-input"
+							className="tl-text tl-text-input"
 							name="text"
 							tabIndex={-1}
 							autoComplete="false"

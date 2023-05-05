@@ -6,7 +6,7 @@ export type SVGContainerProps = React.HTMLAttributes<SVGElement>
 /** @public */
 export function SVGContainer({ children, className = '', ...rest }: SVGContainerProps) {
 	return (
-		<svg {...rest} className={`rs-svg-container ${className}`}>
+		<svg {...rest} className={`tl-svg-container ${className}`}>
 			{children}
 		</svg>
 	)

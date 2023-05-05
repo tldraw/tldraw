@@ -30,7 +30,7 @@ export const LiveCollaborators = track(function Collaborators() {
 	const presences = useActivePresences()
 
 	return (
-		<g>
+		<>
 			{presences.value.map((userPresence) => (
 				<Collaborator
 					key={userPresence.id}
@@ -39,7 +39,7 @@ export const LiveCollaborators = track(function Collaborators() {
 					zoom={zoomLevel}
 				/>
 			))}
-		</g>
+		</>
 	)
 })
 
@@ -119,7 +119,7 @@ const Collaborator = track(function Collaborator({
 					point={cursor}
 					color={color}
 					zoom={zoom}
-					nameTag={name !== 'New User' ? name : null}
+					name={name !== 'New User' ? name : null}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
@@ -136,6 +136,7 @@ const Collaborator = track(function Collaborator({
 					scribble={scribble}
 					color={color}
 					zoom={zoom}
+					opacity={0.1}
 				/>
 			) : null}
 			{CollaboratorShapeIndicator &&

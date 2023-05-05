@@ -114,6 +114,7 @@ export default function Example() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				persistenceKey="custom-config"
 				config={customTldrawConfig}
 				autoFocus
 				overrides={{

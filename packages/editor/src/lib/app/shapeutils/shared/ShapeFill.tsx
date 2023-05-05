@@ -14,15 +14,15 @@ export interface ShapeFillProps {
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
-			return <path className={'rs-hitarea-stroke'} fill="none" d={d} />
+			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
 		}
 		case 'solid': {
 			return (
-				<path className={'rs-hitarea-fill-solid'} fill={`var(--palette-${color}-semi)`} d={d} />
+				<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-semi)`} d={d} />
 			)
 		}
 		case 'semi': {
-			return <path className={'rs-hitarea-fill-solid'} fill={`var(--palette-solid)`} d={d} />
+			return <path className={'tl-hitarea-fill-solid'} fill={`var(--palette-solid)`} d={d} />
 		}
 		case 'pattern': {
 			return <PatternFill color={color} fill={fill} d={d} />
@@ -40,7 +40,7 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 
 	return (
 		<>
-			<path className={'rs-hitarea-fill-solid'} fill={`var(--palette-${color}-pattern)`} d={d} />
+			<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-pattern)`} d={d} />
 			<path
 				fill={
 					teenyTiny

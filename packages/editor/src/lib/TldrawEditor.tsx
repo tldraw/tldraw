@@ -115,7 +115,7 @@ export function TldrawEditor(props: TldrawEditorProps) {
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
 	return (
-		<div ref={setContainer} draggable={false} className="rs-container rs-theme__light" tabIndex={0}>
+		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback ? (error) => <ErrorFallback error={error} /> : null}
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
@@ -312,7 +312,7 @@ export function LoadingScreen({ children }: { children: any }) {
 	const { Spinner } = useEditorComponents()
 
 	return (
-		<div className="rs-loading">
+		<div className="tl-loading">
 			{Spinner ? <Spinner /> : null}
 			{children}
 		</div>
@@ -321,5 +321,5 @@ export function LoadingScreen({ children }: { children: any }) {
 
 /** @public */
 export function ErrorScreen({ children }: { children: any }) {
-	return <div className="rs-loading">{children}</div>
+	return <div className="tl-loading">{children}</div>
 }

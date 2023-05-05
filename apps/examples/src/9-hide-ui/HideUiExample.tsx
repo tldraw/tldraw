@@ -5,7 +5,7 @@ import '@tldraw/tldraw/ui.css'
 export default function HideUiExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw autoFocus hideUi />
+			<Tldraw persistenceKey="hide-ui-example" autoFocus hideUi />
 		</div>
 	)
 }

@@ -11,15 +11,15 @@ export function useDarkMode() {
 	React.useEffect(() => {
 		if (isDarkMode) {
 			container.setAttribute('data-color-mode', 'dark')
-			container.classList.remove('rs-theme__light')
-			container.classList.add('rs-theme__dark')
+			container.classList.remove('tl-theme__light')
+			container.classList.add('tl-theme__dark')
 			app.setCursor({
 				color: 'white',
 			})
 		} else {
 			container.setAttribute('data-color-mode', 'light')
-			container.classList.remove('rs-theme__dark')
-			container.classList.add('rs-theme__light')
+			container.classList.remove('tl-theme__dark')
+			container.classList.add('tl-theme__light')
 			app.setCursor({
 				color: 'black',
 			})
