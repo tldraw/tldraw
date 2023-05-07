@@ -30,6 +30,7 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLFrameShape,
+	TLGeoShape,
 	TLGroupShape,
 	TLImageAsset,
 	TLInstance,
@@ -4497,7 +4498,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 				const parentIndices = new Map<string, string>()
 
-				const shapeRecordsTocreate: TLShape[] = []
+				const shapeRecordsToCreate: TLShape[] = []
 
 				for (const partial of partials) {
 					const util = this.getShapeUtil(partial as TLShape)
@@ -4550,10 +4551,10 @@ export class App extends EventEmitter<TLEventMap> {
 						shapeRecordToCreate = next
 					}
 
-					shapeRecordsTocreate.push(shapeRecordToCreate)
+					shapeRecordsToCreate.push(shapeRecordToCreate)
 				}
 
-				this.store.put(shapeRecordsTocreate)
+				this.store.put(shapeRecordsToCreate)
 
 				// If we're also selecting the newly created shapes, attempt to select all of them;
 
@@ -4568,7 +4569,13 @@ export class App extends EventEmitter<TLEventMap> {
 				this.emit('create-shapes', {
 					pageId: currentPageId,
 					ids: createdIds,
-					types: shapeRecordsTocreate.map((s) => s.type),
+					types: [
+						...new Set(
+							shapeRecordsToCreate.map((s) =>
+								s.type === 'geo' ? `geo-${(s as TLGeoShape).props.geo}` : s.type
+							)
+						),
+					],
 				})
 			},
 			undo: ({ currentPageId, createdIds, prevSelectedIds }) => {
@@ -4880,7 +4887,15 @@ export class App extends EventEmitter<TLEventMap> {
 
 				this.emit('create-shapes', {
 					pageId: this.currentPageId,
-					types: deletedIds.map((id) => this.getShapeById(id)!).map((shape) => shape.type),
+					types: [
+						...new Set(
+							deletedIds
+								.map((id) => this.getShapeById(id)!)
+								.map((shape) =>
+									shape.type === 'geo' ? `geo-${(shape as TLGeoShape).props.geo}` : shape.type
+								)
+						),
+					],
 					ids: deletedIds,
 				})
 			},

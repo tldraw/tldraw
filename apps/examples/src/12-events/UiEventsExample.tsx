@@ -43,6 +43,7 @@ function TrackEvents({ app }: { app: App }) {
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 
 	useEffect(() => {
+		// Track simple events
 		for (const eventName of SIMPLE_LIST) {
 			app.on(eventName, () => {
 				setUiEvents((e) => [...e, eventName])
@@ -50,6 +51,7 @@ function TrackEvents({ app }: { app: App }) {
 			track(eventName, {})
 		}
 
+		// Track more complex events, where we want to send additional data
 		app.on('select-tool', ({ id }) => {
 			setUiEvents((e) => [...e, `select-tool (${id})`])
 			track('select-tool', { id })
