@@ -9,3 +9,5 @@
 **/.next/*
 *.mdx
 **/_archive/*
+**/*.json
+**/*.js

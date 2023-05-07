@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import posthog from 'posthog-js'
 import { useCallback, useEffect, useRef } from 'react'
 
