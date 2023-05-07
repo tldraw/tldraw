@@ -122,7 +122,7 @@
 		"dependencies": false
 	},
 	"scripts": {
-		"dev:vscode": "tsx scripts/dev.ts",
+		"dev": "tsx scripts/dev.ts",
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
 		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "yarn build && tsx scripts/package.ts",
@@ -142,7 +142,7 @@
 		"assert": "^2.0.0",
 		"esbuild": "^0.16.7",
 		"fs-extra": "^11.1.0",
-		"lazyrepo": "0.0.0-alpha.22",
+		"lazyrepo": "0.0.0-alpha.26",
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",

@@ -56,6 +56,7 @@ export {
 	type OnTranslateEndHandler,
 	type OnTranslateHandler,
 	type OnTranslateStartHandler,
+	type TLResizeInfo,
 	type TLResizeMode,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
@@ -107,7 +108,11 @@ export {
 } from './lib/app/types/history-types'
 export { type RequiredKeys, type TLEasingType } from './lib/app/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/app/types/selection-types'
-export { defaultEditorAssetUrls, type EditorAssetUrls } from './lib/assetUrls'
+export {
+	defaultEditorAssetUrls,
+	setDefaultEditorAssetUrls,
+	type EditorAssetUrls,
+} from './lib/assetUrls'
 export { Canvas } from './lib/components/Canvas'
 export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {
@@ -171,6 +176,8 @@ export { normalizeWheel } from './lib/hooks/shared'
 export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { usePeerIds } from './lib/hooks/usePeerIds'
+export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
 export { useUiEvents } from './lib/hooks/useUiEvents'

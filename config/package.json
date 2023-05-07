@@ -2,7 +2,7 @@
 	"name": "config",
 	"version": "2.0.0-alpha.8",
 	"main": "index.js",
-	"license": "MIT",
+	"license": "Apache-2.0",
 	"private": true,
 	"files": [
 		"eslint-preset.js"
@@ -12,6 +12,6 @@
 		"eslint-plugin-react": "7.28.0"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.22"
+		"lazyrepo": "0.0.0-alpha.26"
 	}
 }

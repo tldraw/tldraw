@@ -96,7 +96,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) 
 							}}
 							label="embed-dialog.back"
 						/>
-						<div className="tlui-spacer" />
+						<div className="tlui-embed__spacer" />
 						<Button label="embed-dialog.cancel" onClick={onClose} />
 						<Button
 							type="primary"

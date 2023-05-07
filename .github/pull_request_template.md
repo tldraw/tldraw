@@ -1,4 +1,4 @@
-Describe what your pull request does. Link to any relevant linear issues. If appropriate, add GIFs or images showing the before and after.
+Describe what your pull request does. If appropriate, add GIFs or images showing the before and after.
 
 ### Test Plan
 

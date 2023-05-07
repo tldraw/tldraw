@@ -18,7 +18,7 @@ export default function Example() {
 	const syncedStore = useLocalSyncClient({
 		instanceId,
 		userId: userData.id,
-		universalPersistenceKey: 'example',
+		universalPersistenceKey: 'exploded-example',
 		// config: myConfig // for custom config, see 3-custom-config
 	})
 

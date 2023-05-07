@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-yarn lazy run build:api
+# if the folder we're in is called "bublic", set YARN_RC_FILENAME:
+if [ "$(basename "$(pwd)")" = "bublic" ]; then
+  export YARN_RC_FILENAME=.yarnrc-private.yml
+fi
+
+npx lazy run build-api
 git add packages/*/api-report.md
-yarn lint-staged
+npx lint-staged

@@ -28,7 +28,7 @@ export function usePrint() {
 			prevStyleEl.current = style
 
 			// Random because this isn't for end users
-			const className = `rs-print-surface-${uniqueId()}`
+			const className = `tl-print-surface-${uniqueId()}`
 
 			el.className = className
 			// NOTE: Works in most envs except safari, needs further review

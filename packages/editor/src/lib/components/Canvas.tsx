@@ -17,6 +17,7 @@ import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
+import { LiveCollaboratorsNext } from './LiveCollaboratorsNext'
 import { SelectionBg } from './SelectionBg'
 import { SelectionFg } from './SelectionFg'
 import { Shape } from './Shape'
@@ -36,7 +37,6 @@ export const Canvas = track(function Canvas({
 
 	const rCanvas = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
-	const rSvgLayer = React.useRef<SVGGElement>(null)
 
 	useScreenBounds()
 	useDocumentEvents()
@@ -48,9 +48,8 @@ export const Canvas = track(function Canvas({
 	useQuickReactor(
 		'position layers',
 		() => {
-			const svgElm = rSvgLayer.current
 			const htmlElm = rHtmlLayer.current
-			if (!(svgElm && htmlElm)) return
+			if (!htmlElm) return
 
 			const { x, y, z } = app.camera
 
@@ -60,10 +59,6 @@ export const Canvas = track(function Canvas({
 			const offset =
 				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-			svgElm.style.setProperty(
-				'transform',
-				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x)}px,${toDomPrecision(y)}px)`
-			)
 			htmlElm.style.setProperty(
 				'transform',
 				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
@@ -83,18 +78,15 @@ export const Canvas = track(function Canvas({
 
 	React.useEffect(() => {
 		if (patternIsReady && app.isSafari) {
-			const svgElm = rSvgLayer.current
 			const htmlElm = rHtmlLayer.current
 
-			if (svgElm && htmlElm) {
+			if (htmlElm) {
 				// Wait for `patternContext` to be picked up
 				requestAnimationFrame(() => {
-					svgElm.style.display = 'none'
 					htmlElm.style.display = 'none'
 
 					// Wait for 'display = "none"' to take effect
 					requestAnimationFrame(() => {
-						svgElm.style.display = ''
 						htmlElm.style.display = ''
 					})
 				})
@@ -107,25 +99,26 @@ export const Canvas = track(function Canvas({
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="rs-canvas" data-wd="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className="tl-canvas" data-wd="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
-			<div ref={rHtmlLayer} className="rs-html-layer" draggable={false}>
+			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
+				<svg className="tl-svg-context">
+					<defs>
+						{patternContext}
+						{Cursor && <Cursor />}
+						<CollaboratorHint />
+						<ArrowheadDot />
+						<ArrowheadCross />
+						{SvgDefs && <SvgDefs />}
+					</defs>
+				</svg>
 				<SelectionBg />
-				<ShapesToDisplay />
-			</div>
-			<svg className="rs-svg-layer">
-				{patternContext}
-				<defs>
-					{Cursor && <Cursor />}
-					<CollaboratorHint />
-					<ArrowheadDot />
-					<ArrowheadCross />
-					{SvgDefs && <SvgDefs />}
-				</defs>
-				<g ref={rSvgLayer}>
-					<LiveCollaborators />
+				<div className="tl-shapes">
+					<ShapesToDisplay />
+				</div>
+				<div className="tl-overlays">
 					<ScribbleWrapper />
 					<BrushWrapper />
 					<ZoomBrushWrapper />
@@ -133,10 +126,15 @@ export const Canvas = track(function Canvas({
 					<HoveredShapeIndicator />
 					<SelectionFg />
 					<HintedShapeIndicator />
-					<HandlesWrapper />
 					<SnapLinesWrapper />
-				</g>
-			</svg>
+					<HandlesWrapper />
+					{debugFlags.newLiveCollaborators.value ? (
+						<LiveCollaboratorsNext />
+					) : (
+						<LiveCollaborators />
+					)}
+				</div>
+			</div>
 		</div>
 	)
 })
@@ -250,11 +248,13 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
-		<g transform={Matrix2d.toCssString(transform)}>
-			{handlesToDisplay.map((handle) => {
-				return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
-			})}
-		</g>
+		<svg className="tl-svg-origin-container">
+			<g transform={Matrix2d.toCssString(transform)}>
+				{handlesToDisplay.map((handle) => {
+					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
+				})}
+			</g>
+		</svg>
 	)
 })
 
@@ -315,11 +315,11 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 	if (!shouldDisplay) return null
 
 	return (
-		<g>
+		<>
 			{app.selectedIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} id={id} />
 			))}
-		</g>
+		</>
 	)
 })
 
@@ -345,11 +345,11 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	if (!ids.length) return null
 
 	return (
-		<g aria-label="HINTED SHAPES">
+		<>
 			{ids.map((id) => (
 				<ShapeIndicator id={id} key={id + '_hinting'} isHinting />
 			))}
-		</g>
+		</>
 	)
 })
 
@@ -378,7 +378,7 @@ function CollaboratorHint() {
 
 function ArrowheadDot() {
 	return (
-		<marker id="arrowhead-dot" className="rs-arrow-hint" refX="3.0" refY="3.0" orient="0">
+		<marker id="arrowhead-dot" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="0">
 			<circle cx="3" cy="3" r="2" strokeDasharray="100%" />
 		</marker>
 	)
@@ -386,7 +386,7 @@ function ArrowheadDot() {
 
 function ArrowheadCross() {
 	return (
-		<marker id="arrowhead-cross" className="rs-arrow-hint" refX="3.0" refY="3.0" orient="auto">
+		<marker id="arrowhead-cross" className="tl-arrow-hint" refX="3.0" refY="3.0" orient="auto">
 			<line x1="1.5" y1="1.5" x2="4.5" y2="4.5" strokeDasharray="100%" />
 			<line x1="1.5" y1="4.5" x2="4.5" y2="1.5" strokeDasharray="100%" />
 		</marker>

@@ -69,9 +69,9 @@ export const FrameLabelInput = forwardRef<
 	)
 
 	return (
-		<div className={`rs-frame-label ${isEditing ? 'rs-frame-label__editing' : ''}`}>
+		<div className={`tl-frame-label ${isEditing ? 'tl-frame-label__editing' : ''}`}>
 			<input
-				className="rs-frame-name-input"
+				className="tl-frame-name-input"
 				ref={ref}
 				style={{ display: isEditing ? undefined : 'none' }}
 				value={name}

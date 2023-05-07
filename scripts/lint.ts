@@ -15,7 +15,7 @@ async function main() {
 				'prettier',
 				shouldFix ? '--write' : '--check',
 				// we have to run prettier from root so it picks up the ignore file
-				join(relative(REPO_ROOT, process.cwd()), '**', '*.{ts,tsx}'),
+				join(relative(REPO_ROOT, process.cwd()), '**', '*.{ts,tsx,js,jsx,json}'),
 			],
 			{ pwd: REPO_ROOT }
 		)

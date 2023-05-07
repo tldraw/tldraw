@@ -537,6 +537,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/plugin-proposal-decorators@npm:^7.21.0":
+  version: 7.21.0
+  resolution: "@babel/plugin-proposal-decorators@npm:7.21.0"
+  dependencies:
+    "@babel/helper-create-class-features-plugin": ^7.21.0
+    "@babel/helper-plugin-utils": ^7.20.2
+    "@babel/helper-replace-supers": ^7.20.7
+    "@babel/helper-split-export-declaration": ^7.18.6
+    "@babel/plugin-syntax-decorators": ^7.21.0
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 2889a060010af7ac2e24f7a193262e50a94e254dd86d273e25a2bec2a2f97dd95b136bb933f63448c1cdde4f38ac7877837685657aa8161699eb226d9f1eb453
+  languageName: node
+  linkType: hard
+
 "@babel/plugin-proposal-dynamic-import@npm:^7.18.6":
   version: 7.18.6
   resolution: "@babel/plugin-proposal-dynamic-import@npm:7.18.6"
@@ -728,6 +743,17 @@ __metadata:
   peerDependencies:
     "@babel/core": ^7.0.0-0
   checksum: 3e80814b5b6d4fe17826093918680a351c2d34398a914ce6e55d8083d72a9bdde4fbaf6a2dcea0e23a03de26dc2917ae3efd603d27099e2b98380345703bf948
+  languageName: node
+  linkType: hard
+
+"@babel/plugin-syntax-decorators@npm:^7.21.0":
+  version: 7.21.0
+  resolution: "@babel/plugin-syntax-decorators@npm:7.21.0"
+  dependencies:
+    "@babel/helper-plugin-utils": ^7.20.2
+  peerDependencies:
+    "@babel/core": ^7.0.0-0
+  checksum: 31108e73c3e569f2795ddb4f5f1f32c13c6be97a107d41e318c8f58ca3fde0fa958af3d1a302ab64f36f73ce4d6dda7889732243561c087a7cc3b22192d42a65
   languageName: node
   linkType: hard
 
@@ -3499,9 +3525,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/react-popover@npm:^1.0.2":
-  version: 1.0.5
-  resolution: "@radix-ui/react-popover@npm:1.0.5"
+"@radix-ui/react-popover@npm:1.0.6-rc.5":
+  version: 1.0.6-rc.5
+  resolution: "@radix-ui/react-popover@npm:1.0.6-rc.5"
   dependencies:
     "@babel/runtime": ^7.13.10
     "@radix-ui/primitive": 1.0.0
@@ -3511,7 +3537,7 @@ __metadata:
     "@radix-ui/react-focus-guards": 1.0.0
     "@radix-ui/react-focus-scope": 1.0.2
     "@radix-ui/react-id": 1.0.0
-    "@radix-ui/react-popper": 1.1.1
+    "@radix-ui/react-popper": 1.1.2-rc.5
     "@radix-ui/react-portal": 1.0.2
     "@radix-ui/react-presence": 1.0.0
     "@radix-ui/react-primitive": 1.0.2
@@ -3522,7 +3548,7 @@ __metadata:
   peerDependencies:
     react: ^16.8 || ^17.0 || ^18.0
     react-dom: ^16.8 || ^17.0 || ^18.0
-  checksum: 5a748af34b9889350c0f4dc0a15b1d09c3ab8a8bacc6e7a358c70341de94acbbdb07aafbeadfbe0371cf77dabdaf4e273bbcf742f5d67f29543eb8cea58ee2a9
+  checksum: a9d758eaf1b1e0714e331be5aa4221a870676960e1c89f2e55c399a09480125792145a3fe329040aae302e03ea9008f1d775f801a2fdf54281eb06a8b1bc63c0
   languageName: node
   linkType: hard
 
@@ -3545,6 +3571,28 @@ __metadata:
     react: ^16.8 || ^17.0 || ^18.0
     react-dom: ^16.8 || ^17.0 || ^18.0
   checksum: d9be4be002116efa50dc91b4e2e99150cb64db5ac440c4ad85efbd8d36a99615fc316bddae5ccad6a06807242b1ba23ab04e57cf82f5c92f1bcc5d662c77be94
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-popper@npm:1.1.2-rc.5":
+  version: 1.1.2-rc.5
+  resolution: "@radix-ui/react-popper@npm:1.1.2-rc.5"
+  dependencies:
+    "@babel/runtime": ^7.13.10
+    "@floating-ui/react-dom": 0.7.2
+    "@radix-ui/react-arrow": 1.0.2
+    "@radix-ui/react-compose-refs": 1.0.0
+    "@radix-ui/react-context": 1.0.0
+    "@radix-ui/react-primitive": 1.0.2
+    "@radix-ui/react-use-callback-ref": 1.0.0
+    "@radix-ui/react-use-layout-effect": 1.0.0
+    "@radix-ui/react-use-rect": 1.0.0
+    "@radix-ui/react-use-size": 1.0.0
+    "@radix-ui/rect": 1.0.0
+  peerDependencies:
+    react: ^16.8 || ^17.0 || ^18.0
+    react-dom: ^16.8 || ^17.0 || ^18.0
+  checksum: 9a6a1773bec3ff7054e8cf815c89e490e1426ceb624e46ff3601dde18fa2a06e5ff9d0b5d54cce9a5a46ac3cf5344de76df757812c41cb733a5552c7a5273cf8
   languageName: node
   linkType: hard
 
@@ -4275,7 +4323,7 @@ __metadata:
   resolution: "@tldraw/assets@workspace:packages/assets"
   dependencies:
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     ts-node-dev: ^1.1.8
   languageName: unknown
   linkType: soft
@@ -4302,7 +4350,7 @@ __metadata:
     eslint: 8.36.0
     eslint-config-next: 13.2.4
     gray-matter: ^4.0.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     next: 13.2.4
     next-mdx-remote: ^4.4.1
     next-remote-watch: ^2.0.0
@@ -4333,6 +4381,7 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/benchmark": ^2.1.2
+    "@types/crc": ^3.8.0
     "@types/lodash.throttle": ^4.1.7
     "@types/lodash.uniq": ^4.5.7
     "@types/react-test-renderer": ^18.0.0
@@ -4340,6 +4389,7 @@ __metadata:
     "@use-gesture/react": ^10.2.24
     benchmark: ^2.1.4
     classnames: ^2.3.2
+    crc: ^4.3.2
     escape-string-regexp: ^5.0.0
     eventemitter3: ^4.0.7
     fake-indexeddb: ^4.0.0
@@ -4347,7 +4397,7 @@ __metadata:
     is-plain-object: ^5.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^29.4.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash.throttle: ^4.1.1
     lodash.uniq: ^4.5.0
     nanoid: ^3.0.0
@@ -4370,7 +4420,7 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4403,7 +4453,7 @@ __metadata:
     inquirer: ^9.1.4
     jest: ^28.1.1
     json5: ^2.2.3
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lint-staged: ">=10"
     open: ^8.4.0
     prettier: ^2.8.6
@@ -4420,7 +4470,7 @@ __metadata:
   resolution: "@tldraw/polyfills@workspace:packages/polyfills"
   dependencies:
     core-js: ^3.27.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4430,7 +4480,7 @@ __metadata:
   dependencies:
     "@tldraw/tlschema": "workspace:*"
     benchmark: ^2.1.4
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4448,7 +4498,7 @@ __metadata:
     glob: ^8.0.3
     is-ci: ^3.0.1
     kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     prettier: ^2.8.7
     recast: ^0.22.0
     rimraf: ^4.4.0
@@ -4474,7 +4524,7 @@ __metadata:
     gzip-size: ^7.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
     react: ^18
@@ -4490,7 +4540,7 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/utils": "workspace:*"
     kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     nanoid: ^3.0.0
   languageName: unknown
   linkType: soft
@@ -4502,7 +4552,7 @@ __metadata:
     "@peculiar/webcrypto": ^1.4.0
     "@tldraw/utils": "workspace:*"
     "@types/lodash.isequal": ^4.5.6
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash.isequal: ^4.5.0
     nanoid: ^3.0.0
     raf: ^3.4.1
@@ -4521,7 +4571,7 @@ __metadata:
     "@types/react": "*"
     "@types/react-dom": "*"
     idb: ^7.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     react: "*"
     ws: ^8.10.0
   peerDependencies:
@@ -4538,7 +4588,7 @@ __metadata:
   resolution: "@tldraw/tlvalidate@workspace:packages/tlvalidate"
   dependencies:
     "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4551,7 +4601,7 @@ __metadata:
     "@radix-ui/react-context-menu": ^2.1.1
     "@radix-ui/react-dialog": ^1.0.2
     "@radix-ui/react-dropdown-menu": ^2.0.1
-    "@radix-ui/react-popover": ^1.0.2
+    "@radix-ui/react-popover": 1.0.6-rc.5
     "@radix-ui/react-select": ^1.2.0
     "@radix-ui/react-slider": ^1.1.0
     "@radix-ui/react-toast": ^1.1.1
@@ -4570,7 +4620,7 @@ __metadata:
     idb: ^7.1.1
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lz-string: ^1.4.4
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
@@ -4585,7 +4635,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4610,7 +4660,7 @@ __metadata:
     dotenv: ^16.0.3
     esbuild: ^0.16.7
     fs-extra: ^11.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     nanoid: ^4.0.2
     react: ^18.2.0
     react-dom: ^18.2.0
@@ -4783,6 +4833,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/crc@npm:^3.8.0":
+  version: 3.8.0
+  resolution: "@types/crc@npm:3.8.0"
+  dependencies:
+    "@types/node": "*"
+  checksum: bcf040c3026ec812f4ac87423f42e7ef869483e8b87967184bd2bd26c9a9c358fce41217383adf83a36b53e821a608e784f6a973fd02192b540f55a5395c9180
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.0.0":
   version: 4.1.7
   resolution: "@types/debug@npm:4.1.7"
@@ -4876,15 +4935,6 @@ __metadata:
   version: 4.0.1
   resolution: "@types/http-cache-semantics@npm:4.0.1"
   checksum: 1048aacf627829f0d5f00184e16548205cd9f964bf0841c29b36bc504509230c40bc57c39778703a1c965a6f5b416ae2cbf4c1d4589c889d2838dd9dbfccf6e9
-  languageName: node
-  linkType: hard
-
-"@types/ip@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@types/ip@npm:1.1.0"
-  dependencies:
-    "@types/node": "*"
-  checksum: 05e1ef8b525e2f2d73f5cde7ef1e0e7aa1b027946e066b4063f9c8c2fde59a13762ec703e6df32e2db31db1dc3a54f46a7516bd6d970200d175ec7e9700bb83e
   languageName: node
   linkType: hard
 
@@ -6615,16 +6665,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"browserslist-to-esbuild@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "browserslist-to-esbuild@npm:1.2.0"
-  dependencies:
-    browserslist: ^4.17.3
-  checksum: a6c1adc2ad8da0db23aa4f0b3c71e13561cbf61599e9acedc7890793d79aca250edb0f599095042e81587c88e87569bf3a1a68633026e81e4ac7548eb1c71b49
-  languageName: node
-  linkType: hard
-
-"browserslist@npm:^4.17.3, browserslist@npm:^4.21.3, browserslist@npm:^4.21.5":
+"browserslist@npm:^4.21.3, browserslist@npm:^4.21.5":
   version: 4.21.5
   resolution: "browserslist@npm:4.21.5"
   dependencies:
@@ -6970,7 +7011,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0":
+"ci-info@npm:^3.1.0, ci-info@npm:^3.2.0, ci-info@npm:^3.8.0":
   version: 3.8.0
   resolution: "ci-info@npm:3.8.0"
   checksum: d0a4d3160497cae54294974a7246202244fff031b0a6ea20dd57b10ec510aa17399c41a1b0982142c105f3255aff2173e5c0dd7302ee1b2f28ba3debda375098
@@ -7305,33 +7346,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:^7.4.0":
-  version: 7.6.0
-  resolution: "concurrently@npm:7.6.0"
-  dependencies:
-    chalk: ^4.1.0
-    date-fns: ^2.29.1
-    lodash: ^4.17.21
-    rxjs: ^7.0.0
-    shell-quote: ^1.7.3
-    spawn-command: ^0.0.2-1
-    supports-color: ^8.1.0
-    tree-kill: ^1.2.2
-    yargs: ^17.3.1
-  bin:
-    conc: dist/bin/concurrently.js
-    concurrently: dist/bin/concurrently.js
-  checksum: f705c9a7960f1b16559ca64958043faeeef6385c0bf30a03d1375e15ab2d96dba4f8166f1bbbb1c85e8da35ca0ce3c353875d71dff2aa132b2357bb533b3332e
-  languageName: node
-  linkType: hard
-
 "config@workspace:config":
   version: 0.0.0-use.local
   resolution: "config@workspace:config"
   dependencies:
     eslint-config-prettier: ^8.3.0
     eslint-plugin-react: 7.28.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -7426,6 +7447,18 @@ __metadata:
     path-type: ^4.0.0
     yaml: ^1.10.0
   checksum: 6801feaa0249e9b9fdde5b3d70dc33b4f9c69095bec94d67e3fe08b66eac24dc7e2099f053597cfbc94b743de269aa5d2cfa7da3fde765433423b06bd122941a
+  languageName: node
+  linkType: hard
+
+"crc@npm:^4.3.2":
+  version: 4.3.2
+  resolution: "crc@npm:4.3.2"
+  peerDependencies:
+    buffer: ">=6.0.3"
+  peerDependenciesMeta:
+    buffer:
+      optional: true
+  checksum: 8231cc25331727083ffd22da3575110fc49b4dc8725de973bd43261d4426aba134ed3a75cc247f7c5e97a6e171f87dffc3325b82890e86d032de2e6bcef09c32
   languageName: node
   linkType: hard
 
@@ -7611,7 +7644,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^2.16.1, date-fns@npm:^2.29.1":
+"date-fns@npm:^2.16.1":
   version: 2.29.3
   resolution: "date-fns@npm:2.29.3"
   checksum: e01cf5b62af04e05dfff921bb9c9933310ed0e1ae9a81eb8653452e64dc841acf7f6e01e1a5ae5644d0337e9a7f936175fd2cb6819dc122fdd9c5e86c56be484
@@ -9434,21 +9467,18 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
+    "@babel/plugin-proposal-decorators": ^7.21.0
+    "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
-    "@types/ip": ^1.1.0
     "@vercel/analytics": ^1.0.1
-    browserslist-to-esbuild: ^1.2.0
-    concurrently: ^7.4.0
-    esbuild: ^0.16.7
-    ip: ^1.1.8
-    lazyrepo: 0.0.0-alpha.22
-    node-forge: ^1.3.1
+    lazyrepo: 0.0.0-alpha.26
     posthog-js: ^1.55.0
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.9.0
-    signia: 0.1.1
-    signia-react: 0.1.1
+    signia: 0.1.4
+    signia-react: 0.1.4
+    vite: ^4.3.4
   languageName: unknown
   linkType: soft
 
@@ -11038,7 +11068,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ip@npm:^1.1.5, ip@npm:^1.1.8":
+"ip@npm:^1.1.5":
   version: 1.1.8
   resolution: "ip@npm:1.1.8"
   checksum: a2ade53eb339fb0cbe9e69a44caab10d6e3784662285eb5d2677117ee4facc33a64679051c35e0dfdb1a3983a51ce2f5d2cb36446d52e10d01881789b76e28fb
@@ -12478,12 +12508,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lazyrepo@npm:0.0.0-alpha.22":
-  version: 0.0.0-alpha.22
-  resolution: "lazyrepo@npm:0.0.0-alpha.22"
+"lazyrepo@npm:0.0.0-alpha.26":
+  version: 0.0.0-alpha.26
+  resolution: "lazyrepo@npm:0.0.0-alpha.26"
   dependencies:
     "@sindresorhus/slugify": ^2.2.0
     cac: ^6.7.14
+    ci-info: ^3.8.0
     cross-spawn: ^7.0.3
     esbuild: ^0.17.15
     fast-glob: ^3.2.12
@@ -12499,7 +12530,7 @@ __metadata:
     zod-validation-error: ^1.3.0
   bin:
     lazy: bin.js
-  checksum: b8c0390dd8086386fe46b6a1a3184288a9eeb26139b28893491f8eec418a4ea7560361b087363c1cd74a312af1913be68d4026a9071f73c4f381699c2573af39
+  checksum: 47a874c49a004cf6afa04894f5cb3e9e72b623dd66484b7a879a649ea1efdbe39785cfbdfb609eec54fed66486a0a16c587f90650756a73e0bc5fc5f2d253fc1
   languageName: node
   linkType: hard
 
@@ -14276,13 +14307,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-forge@npm:^1.3.1":
-  version: 1.3.1
-  resolution: "node-forge@npm:1.3.1"
-  checksum: 08fb072d3d670599c89a1704b3e9c649ff1b998256737f0e06fbd1a5bf41cae4457ccaee32d95052d80bbafd9ffe01284e078c8071f0267dc9744e51c5ed42a9
-  languageName: node
-  linkType: hard
-
 "node-gyp-build@npm:^4.2.2":
   version: 4.6.0
   resolution: "node-gyp-build@npm:4.6.0"
@@ -15217,7 +15241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.19, postcss@npm:^8.4.21":
+"postcss@npm:^8.4.19, postcss@npm:^8.4.21, postcss@npm:^8.4.23":
   version: 8.4.23
   resolution: "postcss@npm:8.4.23"
   dependencies:
@@ -16421,6 +16445,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rollup@npm:^3.21.0":
+  version: 3.21.4
+  resolution: "rollup@npm:3.21.4"
+  dependencies:
+    fsevents: ~2.3.2
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    rollup: dist/bin/rollup
+  checksum: ad7dec30ce31b47e32c3daf464b14c25e52f4e07b6ad9fa610b0abcff480b1a1fb01aabdefa6bac30ff1ee23ab16762621cd24810798148cdff74efda1a98874
+  languageName: node
+  linkType: hard
+
 "rrweb-snapshot@npm:^1.1.14":
   version: 1.1.14
   resolution: "rrweb-snapshot@npm:1.1.14"
@@ -16453,7 +16491,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rxjs@npm:^7.0.0, rxjs@npm:^7.5.5, rxjs@npm:^7.8.0":
+"rxjs@npm:^7.5.5, rxjs@npm:^7.8.0":
   version: 7.8.0
   resolution: "rxjs@npm:7.8.0"
   dependencies:
@@ -16675,13 +16713,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shell-quote@npm:^1.7.3":
-  version: 1.8.1
-  resolution: "shell-quote@npm:1.8.1"
-  checksum: 5f01201f4ef504d4c6a9d0d283fa17075f6770bfbe4c5850b074974c68062f37929ca61700d95ad2ac8822e14e8c4b990ca0e6e9272e64befd74ce5e19f0736b
-  languageName: node
-  linkType: hard
-
 "side-channel@npm:^1.0.4":
   version: 1.0.4
   resolution: "side-channel@npm:1.0.4"
@@ -16711,21 +16742,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"signia-react@npm:0.1.1":
-  version: 0.1.1
-  resolution: "signia-react@npm:0.1.1"
+"signia-react@npm:0.1.4":
+  version: 0.1.4
+  resolution: "signia-react@npm:0.1.4"
   dependencies:
-    signia: 0.1.1
+    signia: 0.1.4
   peerDependencies:
     react: ^18
-  checksum: 134e32dad5f9b4e54f13d00e8ea0ed56d3b80a4fa9dcd469071906ee2501fec7f0dde8097f1c410be27c8dabf0bf81d3d73d76d579da22b3904a14d5005e872a
+  checksum: 7e443c9b94e60cd1eeb3726d048d66ab4ff6b26c14b4ca0fc9542ce2cd5997071b1d7a870481e5d88e7d0442332d65a14239a831b1f987463f4a9ca196d7de45
   languageName: node
   linkType: hard
 
-"signia@npm:0.1.1":
-  version: 0.1.1
-  resolution: "signia@npm:0.1.1"
-  checksum: 0fc961c533266604241543d079edd8a8d28264ec769d28c660a61d88d0c1da4ddbab8a04f89b5ff2c30474adfc36da98db8a22c881364de127d53c8315613b61
+"signia@npm:0.1.4":
+  version: 0.1.4
+  resolution: "signia@npm:0.1.4"
+  checksum: 0daab872c3e335c74a464a3b592cfa0fc5e1e0b65e61eecdf4e0476830791543add8a661b9b33ce9e0f6c3f0f8093ef1965955a64ec510cfcaaf15066bd25e94
   languageName: node
   linkType: hard
 
@@ -17479,7 +17510,7 @@ __metadata:
     assert: ^2.0.0
     esbuild: ^0.16.7
     fs-extra: ^11.1.0
-    lazyrepo: 0.0.0-alpha.22
+    lazyrepo: 0.0.0-alpha.26
     lodash: ^4.17.21
     mocha: ^9.1.1
     nanoid: ^4.0.1
@@ -18560,6 +18591,43 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 9b6084c92e234e74c47514d864477abb7ad40cf53aa904f84b0a87c1b1238d64ea13ecc7595cf06df4aab1649bda8fa86671f40731a8fc00f4bca3b2c6d76f93
+  languageName: node
+  linkType: hard
+
+"vite@npm:^4.3.4":
+  version: 4.3.4
+  resolution: "vite@npm:4.3.4"
+  dependencies:
+    esbuild: ^0.17.5
+    fsevents: ~2.3.2
+    postcss: ^8.4.23
+    rollup: ^3.21.0
+  peerDependencies:
+    "@types/node": ">= 14"
+    less: "*"
+    sass: "*"
+    stylus: "*"
+    sugarss: "*"
+    terser: ^5.4.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+    less:
+      optional: true
+    sass:
+      optional: true
+    stylus:
+      optional: true
+    sugarss:
+      optional: true
+    terser:
+      optional: true
+  bin:
+    vite: bin/vite.js
+  checksum: 90ce3923ef3e9a491851fb34effece43858d0ba915db17ea6ad0eb649bd77d81c69a71aafc55a6fbd11e4134b1a79eb7e2e3553f055d390d32ca0ff7c645acf6
   languageName: node
   linkType: hard
 

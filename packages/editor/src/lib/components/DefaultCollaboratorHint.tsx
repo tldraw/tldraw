@@ -1,5 +1,7 @@
 import { Box2d, clamp, radiansToDegrees, Vec2d } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
+import { useRef } from 'react'
+import { useTransform } from '../hooks/useTransform'
 
 export type TLCollaboratorHintComponent = (props: {
 	point: Vec2dModel
@@ -14,18 +16,19 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	color,
 	viewport,
 }) => {
-	const x = clamp(point.x, viewport.minX + 5 / zoom, viewport.maxX - 5 / zoom)
-	const y = clamp(point.y, viewport.minY + 5 / zoom, viewport.maxY - 5 / zoom)
+	const rSvg = useRef<SVGSVGElement>(null)
 
-	const direction = radiansToDegrees(Vec2d.Angle(viewport.center, point))
+	useTransform(
+		rSvg,
+		clamp(point.x, viewport.minX + 5 / zoom, viewport.maxX - 5 / zoom),
+		clamp(point.y, viewport.minY + 5 / zoom, viewport.maxY - 5 / zoom),
+		1 / zoom,
+		radiansToDegrees(Vec2d.Angle(viewport.center, point))
+	)
 
 	return (
-		<>
-			<use
-				href="#cursor_hint"
-				transform={`translate(${x}, ${y}) scale(${1 / zoom}) rotate(${direction})`}
-				color={color}
-			/>
-		</>
+		<svg ref={rSvg} className="tl-svg-origin-container">
+			<use href="#cursor_hint" color={color} />
+		</svg>
 	)
 }

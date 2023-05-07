@@ -37,7 +37,7 @@ export function useCopyAs() {
 							])
 						} else {
 							fallbackWriteTextAsync(async () =>
-								getSvgAsString(await getExportSvgElement(app, ids, format))
+								getSvgAsString(await getExportSvgElement(app, ids))
 							)
 						}
 					}
@@ -100,9 +100,9 @@ export function useCopyAs() {
 	)
 }
 
-async function getExportSvgElement(app: App, ids: TLShapeId[], format: TLCopyType) {
+async function getExportSvgElement(app: App, ids: TLShapeId[]) {
 	const svg = await app.getSvg(ids, {
-		scale: format === 'svg' ? 1 : 2,
+		scale: 1,
 		background: app.instanceState.exportBackground,
 	})
 
@@ -112,16 +112,16 @@ async function getExportSvgElement(app: App, ids: TLShapeId[], format: TLCopyTyp
 }
 
 async function getExportedSvgBlob(app: App, ids: TLShapeId[]) {
-	return new Blob([getSvgAsString(await getExportSvgElement(app, ids, 'svg'))], {
+	return new Blob([getSvgAsString(await getExportSvgElement(app, ids))], {
 		type: 'text/plain',
 	})
 }
 
 async function getExportedImageBlob(app: App, ids: TLShapeId[], format: 'png' | 'jpeg') {
-	return await getSvgAsImage(await getExportSvgElement(app, ids, format), {
+	return await getSvgAsImage(await getExportSvgElement(app, ids), {
 		type: format,
 		quality: 1,
-		scale: 1,
+		scale: 2,
 	})
 }
 

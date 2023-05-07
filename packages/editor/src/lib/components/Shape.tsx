@@ -111,7 +111,7 @@ export const Shape = track(function Shape({
 		<div
 			key={id}
 			ref={rContainer}
-			className="rs-shape"
+			className="tl-shape"
 			data-shape-type={shape.type}
 			draggable={false}
 			onPointerDown={events.onPointerDown}
@@ -148,7 +148,7 @@ const CulledShape = React.memo(
 		const bounds = util.bounds(shape)
 		return (
 			<div
-				className="rs-shape__culled"
+				className="tl-shape__culled"
 				style={{
 					transform: `translate(${bounds.minX}px, ${bounds.minY}px)`,
 					width: bounds.width,

@@ -30,7 +30,7 @@ export function useExportAs() {
 			}
 
 			const svg = await app.getSvg(ids, {
-				scale: format === 'svg' ? 1 : 2,
+				scale: 1,
 				background: app.instanceState.exportBackground,
 			})
 
@@ -59,7 +59,7 @@ export function useExportAs() {
 					const image = await getSvgAsImage(svg, {
 						type: format,
 						quality: 1,
-						scale: 1,
+						scale: 2,
 					})
 
 					if (!image) {

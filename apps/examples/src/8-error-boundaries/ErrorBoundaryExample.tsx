@@ -13,6 +13,7 @@ export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				persistenceKey="error-boundary-example"
 				components={{
 					// disable app-level error boundaries:
 					ErrorFallback: null,

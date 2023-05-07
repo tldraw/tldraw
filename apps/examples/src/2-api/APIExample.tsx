@@ -65,7 +65,7 @@ export default function Example() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw onMount={handleMount} autoFocus={false}>
+			<Tldraw persistenceKey="api-example" onMount={handleMount} autoFocus={false}>
 				<InsideOfAppContext />
 			</Tldraw>
 		</div>

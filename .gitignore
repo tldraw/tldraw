@@ -75,3 +75,5 @@ packages/*/api
 apps/examples/www/index.css
 apps/examples/www/index.js
 .tsbuild
+
+apps/examples/build.esbuild.json

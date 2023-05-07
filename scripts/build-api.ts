@@ -6,7 +6,7 @@ import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
-	// this depends on `build:types` being run first, but we'll rely on turbo to
+	// this depends on `build-types` being run first, but we'll rely on turbo to
 	// make that happen.
 
 	const relativeSourcePackageDir = path.relative(path.resolve(__dirname, '../..'), sourcePackageDir)

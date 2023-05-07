@@ -2,7 +2,7 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-export default function Example() {
+export default function ScrollExample() {
 	return (
 		<div
 			style={{
@@ -15,7 +15,7 @@ export default function Example() {
 			}}
 		>
 			<div style={{ width: '60vw', height: '80vh' }}>
-				<Tldraw autoFocus />
+				<Tldraw persistenceKey="scroll-example" autoFocus />
 			</div>
 		</div>
 	)

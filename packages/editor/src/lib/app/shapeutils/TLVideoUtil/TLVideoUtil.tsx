@@ -60,7 +60,7 @@ export const TLVideoShapeDef = defineShape<TLVideoShape, TLVideoUtil>({
 // Function from v1, could be improved bu explicitly using this.model.time (?)
 function serializeVideo(id: string): string {
 	const splitId = id.split(':')[1]
-	const video = document.querySelector(`.rs-video-shape-${splitId}`) as HTMLVideoElement
+	const video = document.querySelector(`.tl-video-shape-${splitId}`) as HTMLVideoElement
 	if (video) {
 		const canvas = document.createElement('canvas')
 		canvas.width = video.videoWidth
@@ -179,11 +179,11 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 	return (
 		<>
 			<HTMLContainer id={shape.id}>
-				<div className="rs-counter-scaled">
+				<div className="tl-counter-scaled">
 					{asset?.props.src ? (
 						<video
 							ref={rVideo}
-							className={`rs-video rs-video-shape-${shape.id.split(':')[1]} rs-hitarea-stroke`}
+							className={`tl-video tl-video-shape-${shape.id.split(':')[1]} tl-hitarea-stroke`}
 							width="100%"
 							height="100%"
 							draggable={false}

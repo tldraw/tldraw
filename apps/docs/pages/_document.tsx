@@ -3,7 +3,7 @@ import { Head, Html, Main, NextScript } from 'next/document'
 const TITLE = 'tldraw'
 const DESCRIPTION =
 	'Developer documentation for tldraw. Build infinite canvas experiences for the web.'
-const URL = 'https://docs.tldraw.dev'
+const URL = 'https://tldraw.dev'
 const TWITTER_HANDLE = '@tldraw'
 const TWITTER_CARD = 'social-twitter.png'
 const FACEBOOK_CARD = 'social-og.png'

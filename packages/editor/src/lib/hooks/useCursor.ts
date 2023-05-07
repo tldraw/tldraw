@@ -63,7 +63,7 @@ export function useCursor() {
 		'useCursor',
 		() => {
 			const { type, rotation, color } = app.cursor
-			container.style.setProperty('--rs-cursor', getCursor(type, rotation, color))
+			container.style.setProperty('--tl-cursor', getCursor(type, rotation, color))
 		},
 		[app, container]
 	)

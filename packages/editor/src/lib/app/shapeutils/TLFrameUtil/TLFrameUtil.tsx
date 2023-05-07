@@ -33,9 +33,9 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		return (
 			<>
 				<SVGContainer>
-					<rect className="rs-hitarea-stroke" width={bounds.width} height={bounds.height} />
+					<rect className="tl-hitarea-stroke" width={bounds.width} height={bounds.height} />
 					<rect
-						className="rs-frame__body"
+						className="tl-frame__body"
 						width={bounds.width}
 						height={bounds.height}
 						fill="none"
@@ -164,7 +164,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			<rect
 				width={toDomPrecision(bounds.width)}
 				height={toDomPrecision(bounds.height)}
-				className={`rs-frame-indicator`}
+				className={`tl-frame-indicator`}
 			/>
 		)
 	}

@@ -55,37 +55,37 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 		return (
 			<HTMLContainer>
 				<div
-					className="rs-bookmark__container rs-hitarea-stroke"
+					className="tl-bookmark__container tl-hitarea-stroke"
 					style={{
 						boxShadow: rotateBoxShadow(pageRotation, ROTATING_SHADOWS),
 					}}
 				>
-					<div className="rs-bookmark__image_container">
+					<div className="tl-bookmark__image_container">
 						{asset?.props.image ? (
 							<img
-								className="rs-bookmark__image"
+								className="tl-bookmark__image"
 								draggable={false}
 								src={asset?.props.image}
 								alt={asset?.props.title || ''}
 							/>
 						) : (
-							<div className="rs-bookmark__placeholder" />
+							<div className="tl-bookmark__placeholder" />
 						)}
 						<HyperlinkButton url={shape.props.url} zoomLevel={this.app.zoomLevel} />
 					</div>
-					<div className="rs-bookmark__copy_container">
+					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (
-							<h2 className="rs-bookmark__heading">
+							<h2 className="tl-bookmark__heading">
 								{truncateStringWithEllipsis(asset?.props.title || '', 54)}
 							</h2>
 						)}
 						{asset?.props.description && (
-							<p className="rs-bookmark__description">
+							<p className="tl-bookmark__description">
 								{truncateStringWithEllipsis(asset?.props.description || '', 128)}
 							</p>
 						)}
 						<a
-							className="rs-bookmark__link"
+							className="tl-bookmark__link"
 							href={shape.props.url || ''}
 							target="_blank"
 							rel="noopener noreferrer"

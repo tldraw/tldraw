@@ -42,7 +42,7 @@ export const TextLabel = React.memo(function TextLabel<
 
 	return (
 		<div
-			className="rs-text-label"
+			className="tl-text-label"
 			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
@@ -50,7 +50,7 @@ export const TextLabel = React.memo(function TextLabel<
 			data-textwrap={!!wrap}
 		>
 			<div
-				className="rs-text-label__inner"
+				className="tl-text-label__inner"
 				style={{
 					fontSize: LABEL_FONT_SIZES[size],
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
@@ -59,14 +59,14 @@ export const TextLabel = React.memo(function TextLabel<
 					color: labelColor,
 				}}
 			>
-				<div className="rs-text rs-text-content" dir="ltr">
+				<div className="tl-text tl-text-content" dir="ltr">
 					{TextHelpers.normalizeTextForDom(text)}
 				</div>
 				{isInteractive ? (
 					// Consider replacing with content-editable
 					<textarea
 						ref={rInput}
-						className="rs-text rs-text-input"
+						className="tl-text tl-text-input"
 						name="text"
 						tabIndex={-1}
 						autoComplete="false"
