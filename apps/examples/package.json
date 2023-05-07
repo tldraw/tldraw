@@ -43,9 +43,10 @@
 	},
 	"dependencies": {
 		"@tldraw/tldraw": "workspace:*",
+		"@vercel/analytics": "^1.0.1",
+		"posthog-js": "^1.55.0",
 		"react-router-dom": "^6.9.0",
 		"signia": "0.1.1",
-		"signia-react": "0.1.1",
-		"posthog-js": "^1.55.0"
+		"signia-react": "0.1.1"
 	}
 }

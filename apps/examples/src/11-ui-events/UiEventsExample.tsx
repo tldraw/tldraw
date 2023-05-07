@@ -1,60 +1,87 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { App, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
-import posthog from 'posthog-js'
 import { useCallback, useEffect, useState } from 'react'
+import { usePosthog } from './usePosthog'
 
 export default function Example() {
-	const track = usePosthog()
+	const [app, setApp] = useState<App>()
 
-	const [_uiEvents, setUiEvents] = useState<string[]>([])
-	const [uiEventLog, setUiEventLog] = useState('')
-	const onUiEvent = useCallback(
-		(eventName: string, eventData: any) => {
-			// eslint-disable-next-line no-console
-			console.log('[%cui-event%c]', 'color: red', 'color: initial', eventName)
-			setUiEvents((old) => old.concat(eventName))
-			let message = eventName
-			if (eventData !== null && eventData !== undefined) {
-				message += '=' + JSON.stringify(eventData, null, 2)
-			}
-			setUiEventLog((old) => old + message + '\n')
-
-			// !!!!!! NOTE: Uncomment to enable !!!!!!
-			// track(eventName, eventData)
-		},
-		[track]
-	)
+	const setAppToState = useCallback((app: App) => {
+		setApp(app)
+	}, [])
 
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '60vw', height: '100vh' }}>
-				<Tldraw autoFocus onUiEvent={onUiEvent} />
+				<Tldraw autoFocus onMount={setAppToState} />
 			</div>
-			<textarea
-				style={{
-					width: '40vw',
-					height: '100vh',
-					padding: 8,
-					background: '#eee',
-					border: 'none',
-					borderLeft: 'solid 2px #333',
-				}}
-				value={uiEventLog}
-				disabled={true}
-			/>
+			{app && <TrackEvents app={app} />}
 		</div>
 	)
 }
 
-function usePosthog() {
-	useEffect(() => {
-		posthog.init('phc_PcpuJUqYFJqfsY8GwJ9TPPCLEOjjarXGYWjlRR9gn3F', {
-			api_host: 'https://eu.posthog.com',
-		})
-	})
+const SIMPLE_LIST = [
+	'mount',
+	'align-shapes',
+	'duplicate-shapes',
+	'back-to-content',
+	'duplicate-page',
+	'distribute-shapes',
+	'flip-shapes',
+	'stretch-shapes',
+	'group-shapes',
+	'ungroup-shapes',
+	'reorder-shapes',
+	'change-page',
+	'delete-shapes',
+] as const
 
-	return useCallback((eventName: string, eventData: string) => {
-		posthog.capture(eventName, { value: eventData })
-	}, [])
+function TrackEvents({ app }: { app: App }) {
+	const track = usePosthog(app.instanceId)
+
+	const [uiEvents, setUiEvents] = useState<string[]>([])
+
+	useEffect(() => {
+		for (const eventName of SIMPLE_LIST) {
+			app.on(eventName, () => {
+				setUiEvents((e) => [...e, eventName])
+			})
+			track(eventName, {})
+		}
+
+		app.on('select-tool', ({ id }) => {
+			setUiEvents((e) => [...e, `select-tool (${id})`])
+			track('select-tool', { id })
+		})
+
+		app.on('create-shapes', ({ types }) => {
+			setUiEvents((e) => [...e, `create-shapes (${types})`])
+			track('create-shapes', { types })
+		})
+
+		return () => {
+			for (const eventName of SIMPLE_LIST) {
+				app.off(eventName)
+			}
+
+			app.off('select-tool')
+			app.off('create-shapes')
+		}
+	}, [app, track])
+
+	return (
+		<textarea
+			style={{
+				width: '40vw',
+				height: '100vh',
+				padding: 8,
+				background: '#eee',
+				border: 'none',
+				borderLeft: 'solid 2px #333',
+			}}
+			value={uiEvents.join('\n')}
+			disabled={true}
+		/>
+	)
 }

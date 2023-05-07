@@ -46,7 +46,7 @@ describe('distributeShapes command', () => {
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
 			const fn = jest.fn()
-			app.on('update_node', fn)
+			app.on('distribute-shapes', fn)
 			app.setSelectedIds([ids.boxA, ids.boxB])
 			app.distributeShapes('horizontal')
 			jest.advanceTimersByTime(1000)

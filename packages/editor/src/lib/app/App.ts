@@ -35,7 +35,6 @@ import {
 	TLInstance,
 	TLInstanceId,
 	TLInstancePageState,
-	TLInstancePropsForNextShape,
 	TLNullableShapeProps,
 	TLPage,
 	TLPageId,
@@ -86,7 +85,6 @@ import {
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
-import { DefaultEventHandler, UiEventHandler, uiEventsFactory } from '../hooks/useUiEvents'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
@@ -127,9 +125,9 @@ import { TLTextShapeDef } from './shapeutils/TLTextUtil/TLTextUtil'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
+import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
-import { TLReorderOperation } from './types/reorder-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -169,8 +167,6 @@ export interface AppOptions {
 	 * tab). If not given, one will be generated.
 	 */
 	instanceId?: TLInstanceId
-
-	onUiEvent?: UiEventHandler
 }
 
 /** @public */
@@ -179,13 +175,8 @@ export function isShapeWithHandles(shape: TLShape) {
 }
 
 /** @public */
-export class App extends EventEmitter {
-	constructor({
-		config = TldrawEditorConfig.default,
-		store,
-		getContainer,
-		onUiEvent = DefaultEventHandler,
-	}: AppOptions) {
+export class App extends EventEmitter<TLEventMap> {
+	constructor({ config = TldrawEditorConfig.default, store, getContainer }: AppOptions) {
 		super()
 
 		if (store.schema !== config.storeSchema) {
@@ -194,8 +185,6 @@ export class App extends EventEmitter {
 
 		this.config = config
 		this.store = store
-
-		this.trackEvent = uiEventsFactory(onUiEvent)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
@@ -230,8 +219,6 @@ export class App extends EventEmitter {
 		}
 
 		this.store.onBeforeDelete = (record) => {
-			this.checkTracking('delete', record, null)
-
 			if (record.typeName === 'shape') {
 				this._shapeWillBeDeleted(record)
 			} else if (record.typeName === 'page') {
@@ -240,8 +227,6 @@ export class App extends EventEmitter {
 		}
 
 		this.store.onAfterChange = (prev, next) => {
-			this.checkTracking('change', prev, next)
-
 			this._updateDepth++
 			if (this._updateDepth > 1000) {
 				console.error('[onAfterChange] Maximum update depth exceeded, bailing out.')
@@ -258,8 +243,6 @@ export class App extends EventEmitter {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
-			this.checkTracking('create', null, record)
-
 			if (record.typeName === 'shape' && TLArrowShapeDef.is(record)) {
 				this._arrowDidUpdate(record)
 			}
@@ -557,7 +540,7 @@ export class App extends EventEmitter {
 	crash(error: unknown) {
 		this._crashingError = error
 		this.store.markAsPossiblyCorrupted()
-		this.emit('crash')
+		this.emit('crash', { error })
 	}
 
 	get devicePixelRatio() {
@@ -1453,6 +1436,7 @@ export class App extends EventEmitter {
 		if (!backupPageId) return
 
 		this.store.put(instanceStates.map((state) => ({ ...state, currentPageId: backupPageId })))
+		this.emit('change-page', { toId: backupPageId, fromId: page.id })
 	}
 
 	/* -------------------- Shortcuts ------------------- */
@@ -1476,6 +1460,16 @@ export class App extends EventEmitter {
 		return this.store.get(this.userId)!
 	}
 
+	get isToolLocked() {
+		return this.instanceState.isToolLocked
+	}
+
+	setIsToolLocked(isToolLocked: boolean) {
+		if (isToolLocked === this.isToolLocked) return
+		this.emit('change-setting', { name: 'isToolLocked', value: isToolLocked })
+		this.updateInstanceState({ isToolLocked }, true)
+	}
+
 	/** @internal */
 	@computed private get _userDocumentSettings() {
 		return this.store.query.record('user_document', () => ({ userId: { eq: this.userId } }))
@@ -1485,23 +1479,33 @@ export class App extends EventEmitter {
 		return this._userDocumentSettings.value!
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
-
 	get isGridMode() {
 		return this.userDocumentSettings.isGridMode
 	}
 
 	setGridMode(isGridMode: boolean) {
+		if (isGridMode === this.isGridMode) return
+		this.emit('change-setting', { name: 'isGridMode', value: isGridMode })
 		this.updateUserDocumentSettings({ isGridMode }, true)
 	}
 
+	get isDarkMode() {
+		return this.userDocumentSettings.isDarkMode
+	}
+
 	setDarkMode(isDarkMode: boolean) {
+		if (isDarkMode === this.isDarkMode) return
+		this.emit('change-setting', { name: 'isGridMode', value: isDarkMode })
 		this.updateUserDocumentSettings({ isDarkMode }, true)
 	}
 
+	get isReadOnly() {
+		return this.userDocumentSettings.isReadOnly
+	}
+
 	setReadOnly(isReadOnly: boolean) {
+		if (isReadOnly === this.isReadOnly) return
+		this.emit('change-setting', { name: 'isReadOnly', value: isReadOnly })
 		this.updateUserDocumentSettings({ isReadOnly }, true)
 		if (isReadOnly) {
 			this.setSelectedTool('hand')
@@ -1520,7 +1524,8 @@ export class App extends EventEmitter {
 
 	setPenMode(isPenMode: boolean) {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
-
+		if (isPenMode === this.isPenMode) return
+		this.emit('change-setting', { name: 'isPenMode', value: isPenMode })
 		this._isPenMode.set(isPenMode)
 	}
 
@@ -3211,6 +3216,9 @@ export class App extends EventEmitter {
 	 */
 	setSelectedTool(id: string, info = {}) {
 		this.root.transition(id, info)
+		if (!('onInteractionEnd' in info)) {
+			this.emit('change-tool', { id: id.split('.')[0] })
+		}
 		return this
 	}
 
@@ -4431,6 +4439,8 @@ export class App extends EventEmitter {
 
 			return {
 				data: {
+					currentPageId: this.currentPageId,
+					createdIds: partials.map((p) => p.id),
 					prevSelectedIds,
 					partials: partialsToCreate,
 					select,
@@ -4438,7 +4448,7 @@ export class App extends EventEmitter {
 			}
 		},
 		{
-			do: ({ partials, select }) => {
+			do: ({ currentPageId, createdIds, partials, select }) => {
 				const { focusLayerId } = this
 
 				// 1. Parents
@@ -4543,14 +4553,23 @@ export class App extends EventEmitter {
 				this.store.put(shapeRecordsTocreate)
 
 				// If we're also selecting the newly created shapes, attempt to select all of them;
+
 				// the engine will filter out any shapes that are descendants of other new shapes.
 				if (select) {
-					const selectedIds = partials.map((partial) => partial.id)
-					this.store.update(this.pageState.id, (state) => ({ ...state, selectedIds }))
+					this.store.update(this.pageState.id, (state) => ({
+						...state,
+						selectedIds: createdIds,
+					}))
 				}
+
+				this.emit('create-shapes', {
+					pageId: currentPageId,
+					ids: createdIds,
+					types: shapeRecordsTocreate.map((s) => s.type),
+				})
 			},
-			undo: ({ partials, prevSelectedIds }) => {
-				this.store.remove(partials.map((p) => p.id))
+			undo: ({ currentPageId, createdIds, prevSelectedIds }) => {
+				this.store.remove(createdIds)
 
 				if (prevSelectedIds) {
 					this.store.update(this.pageState.id, (state) => ({
@@ -4558,6 +4577,8 @@ export class App extends EventEmitter {
 						selectedIds: prevSelectedIds,
 					}))
 				}
+
+				this.emit('delete-shapes', { pageId: currentPageId, ids: createdIds })
 			},
 		}
 	)
@@ -4844,13 +4865,21 @@ export class App extends EventEmitter {
 					...state,
 					selectedIds: postSelectedIds,
 				}))
+
+				this.emit('delete-shapes', { pageId: this.currentPageId, ids: deletedIds })
 			},
-			undo: ({ snapshots, prevSelectedIds }) => {
+			undo: ({ deletedIds, snapshots, prevSelectedIds }) => {
 				this.store.put(snapshots)
 				this.store.update(this.pageState.id, (state) => ({
 					...state,
 					selectedIds: prevSelectedIds,
 				}))
+
+				this.emit('create-shapes', {
+					pageId: this.currentPageId,
+					types: deletedIds.map((id) => this.getShapeById(id)!).map((shape) => shape.type),
+					ids: deletedIds,
+				})
 			},
 		}
 	)
@@ -4996,18 +5025,23 @@ export class App extends EventEmitter {
 			}
 		},
 		{
-			do: ({ newPage, newTabPageState, newCamera }) => {
+			do: ({ prevPageState, newPage, newTabPageState, newCamera }) => {
 				this.store.put([
 					newPage,
 					newCamera,
 					newTabPageState,
 					{ ...this.instanceState, currentPageId: newPage.id },
 				])
+				this.emit('create-page', { id: newPage.id })
+				this.emit('change-page', { toId: newPage.id, fromId: prevPageState.pageId })
 				this.updateCullingBounds()
 			},
 			undo: ({ newPage, prevPageState, prevTabState, newTabPageState }) => {
 				this.store.put([prevPageState, prevTabState])
 				this.store.remove([newTabPageState.id, newPage.id, newTabPageState.cameraId])
+
+				this.emit('delete-page', { id: newPage.id })
+				this.emit('change-page', { fromId: newPage.id, toId: prevPageState.pageId })
 				this.updateCullingBounds()
 			},
 		}
@@ -5025,6 +5059,8 @@ export class App extends EventEmitter {
 			this.createPage(page.name + ' Copy', createId, page.index)
 			this.setCurrentPageId(createId)
 			this.setCamera(camera.x, camera.y, camera.z)
+
+			this.emit('duplicate-page', { id, newPageId: createId })
 
 			// will change page automatically
 			if (content) {
@@ -5075,11 +5111,13 @@ export class App extends EventEmitter {
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
 				this.updateCullingBounds()
+				this.emit('delete-page', { id: deletedPage.id })
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
 				this.updateCullingBounds()
+				this.emit('create-page', { id: deletedPage.id })
 			},
 		}
 	)
@@ -5292,6 +5330,7 @@ export class App extends EventEmitter {
 				this.store.put(assets)
 			},
 			undo: ({ assets }) => {
+				// todo: should we actually remove assets here? or on cleanup elsewhere?
 				this.store.remove(assets.map((a) => a.id))
 			},
 		}
@@ -5778,9 +5817,10 @@ export class App extends EventEmitter {
 	 * @param ids - The ids to reorder.
 	 * @public
 	 */
-	reorderShapes(operation: TLReorderOperation, ids: TLShapeId[]) {
+	reorderShapes(operation: 'toBack' | 'toFront' | 'forward' | 'backward', ids: TLShapeId[]) {
 		if (this.isReadOnly) return this
 		if (ids.length === 0) return this
+		this.emit('reorder-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const parents = this.getParentsMappedToChildren(ids)
 
@@ -6035,6 +6075,8 @@ export class App extends EventEmitter {
 
 		if (!shapes.length) return this
 
+		this.emit('flip-shapes', { pageId: this.currentPageId, ids, operation })
+
 		shapes = shapes
 			.map((shape) => {
 				if (shape.type === 'group') {
@@ -6109,6 +6151,8 @@ export class App extends EventEmitter {
 		const len = shapes.length
 
 		if ((gap === undefined && len < 3) || len < 2) return this
+
+		this.emit('stack-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const pageBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getPageBounds(shape)!])
@@ -6222,6 +6266,8 @@ export class App extends EventEmitter {
 	packShapes(ids: TLShapeId[] = this.pageState.selectedIds, padding = 16) {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
+
+		this.emit('pack-shapes', { pageId: this.currentPageId, ids })
 
 		const shapes = compact(
 			ids
@@ -6382,6 +6428,8 @@ export class App extends EventEmitter {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
 
+		this.emit('align-shapes', { pageId: this.currentPageId, ids, operation })
+
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const shapePageBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getPageBounds(shape)])
@@ -6468,6 +6516,8 @@ export class App extends EventEmitter {
 	) {
 		if (this.isReadOnly) return this
 		if (ids.length < 3) return this
+
+		this.emit('distribute-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const len = ids.length
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
@@ -6797,6 +6847,8 @@ export class App extends EventEmitter {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
 
+		this.emit('stretch-shapes', { pageId: this.currentPageId, ids, operation })
+
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const shapeBounds = Object.fromEntries(shapes.map((shape) => [shape.id, this.getBounds(shape)]))
 		const shapePageBounds = Object.fromEntries(
@@ -7001,6 +7053,8 @@ export class App extends EventEmitter {
 		// page might have no shapes
 		if (ids.length <= 0) return this
 		this.setSelectedIds(ids)
+
+		this.emit('select-all')
 		return this
 	}
 
@@ -7041,10 +7095,12 @@ export class App extends EventEmitter {
 	 *
 	 * @public
 	 */
-	selectNone() {
+	selectNone(): this {
 		if (this.selectedIds.length > 0) {
 			this.setSelectedIds([])
+			this.emit('select-none')
 		}
+
 		return this
 	}
 
@@ -7061,7 +7117,7 @@ export class App extends EventEmitter {
 	 * @param options - Options for setting the current page.
 	 * @public
 	 */
-	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}) {
+	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}): this {
 		this._setCurrentPageId(pageId, { stopFollowing })
 		return this
 	}
@@ -7080,42 +7136,46 @@ export class App extends EventEmitter {
 			}
 
 			return {
-				data: { pageId, prev: this.currentPageId },
+				data: { toId: pageId, fromId: this.currentPageId },
 				squashing: true,
 				preservesRedoStack: true,
 			}
 		},
 		{
-			do: ({ pageId }) => {
-				if (!this.getPageStateByPageId(pageId)) {
+			do: ({ toId, fromId }) => {
+				if (!this.getPageStateByPageId(toId)) {
 					const camera = TLCamera.create({})
 					this.store.put([
 						camera,
 						TLInstancePageState.create({
-							pageId,
+							pageId: toId,
 							instanceId: this.instanceId,
 							cameraId: camera.id,
 						}),
 					])
 				}
 
-				this.store.put([{ ...this.instanceState, currentPageId: pageId }])
+				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
 				this.updateUserPresence({
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
+
+				this.emit('change-page', { toId, fromId })
 			},
-			undo: ({ prev }) => {
-				this.store.put([{ ...this.instanceState, currentPageId: prev }])
+			undo: ({ toId, fromId }) => {
+				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
 				this.updateUserPresence({
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
+
+				this.emit('change-page', { toId: fromId, fromId: toId })
 			},
-			squash: ({ prev }, { pageId }) => {
-				return { pageId, prev }
+			squash: ({ fromId }, { toId }) => {
+				return { toId, fromId }
 			},
 		}
 	)
@@ -7182,7 +7242,7 @@ export class App extends EventEmitter {
 	 * @param id - The id of the page to set as the current page
 	 * @public
 	 */
-	setHoveredId(id: TLShapeId | null = null) {
+	setHoveredId(id: TLShapeId | null = null): this {
 		if (id === this.pageState.hoveredId) return this
 
 		this.setInstancePageState({ hoveredId: id }, true)
@@ -7202,7 +7262,7 @@ export class App extends EventEmitter {
 	 * @param ids - The ids of shapes to set as erasing.
 	 * @public
 	 */
-	setErasingIds(ids: TLShapeId[] = []) {
+	setErasingIds(ids: TLShapeId[] = []): this {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
 
@@ -7223,7 +7283,7 @@ export class App extends EventEmitter {
 	 * @param cursor - A partial of the cursor object.
 	 * @public
 	 */
-	setCursor(cursor: Partial<TLCursor>) {
+	setCursor(cursor: Partial<TLCursor>): this {
 		const current = this.cursor
 		const next = {
 			...current,
@@ -7257,7 +7317,7 @@ export class App extends EventEmitter {
 	 * @param scribble - The new scribble object.
 	 * @public
 	 */
-	setScribble(scribble: TLScribble | null = null) {
+	setScribble(scribble: TLScribble | null = null): this {
 		this.updateInstanceState({ scribble }, true)
 		return this
 	}
@@ -7275,7 +7335,7 @@ export class App extends EventEmitter {
 	 * @param brush - The brush box model to set, or null for no brush model.
 	 * @public
 	 */
-	setBrush(brush: Box2dModel | null = null) {
+	setBrush(brush: Box2dModel | null = null): this {
 		if (!brush && !this.brush) return this
 		this.updateInstanceState({ brush }, true)
 		return this
@@ -7294,7 +7354,7 @@ export class App extends EventEmitter {
 	 * @param zoomBrush - The zoom box model to set, or null for no zoom model.
 	 * @public
 	 */
-	setZoomBrush(zoomBrush: Box2dModel | null = null) {
+	setZoomBrush(zoomBrush: Box2dModel | null = null): this {
 		if (!zoomBrush && !this.zoomBrush) return this
 		this.updateInstanceState({ zoomBrush }, true)
 		return this
@@ -7318,6 +7378,8 @@ export class App extends EventEmitter {
 
 		const snapshot = getRotationSnapshot({ app: this })
 		applyRotationToSnapshotShapes({ delta, snapshot, app: this, stage: 'one-off' })
+
+		this.emit('rotate-shapes', { ids, pageId: this.currentPageId })
 		return this
 	}
 
@@ -7376,6 +7438,8 @@ export class App extends EventEmitter {
 		}
 
 		this.updateShapes(changes, ephemeral)
+
+		this.emit('nudge-shapes', { ids, pageId: this.currentPageId })
 
 		return this
 	}
@@ -7562,6 +7626,12 @@ export class App extends EventEmitter {
 			}
 		})
 
+		this.emit('duplicate-shapes', {
+			ids: idsToCreate,
+			newShapeIds: ids,
+			pageId: this.currentPageId,
+		})
+
 		return this
 	}
 
@@ -7712,6 +7782,8 @@ export class App extends EventEmitter {
 				ephemeral,
 				squashing
 			)
+
+			this.emit('change-prop', { key, value })
 		})
 
 		return this
@@ -7724,7 +7796,9 @@ export class App extends EventEmitter {
 	private _setCamera(x: number, y: number, z = this.camera.z) {
 		const currentCamera = this.camera
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) return this
-		this.store.put([{ ...currentCamera, x, y, z }])
+		const nextCamera = { ...currentCamera, x, y, z }
+
+		this.store.put([nextCamera])
 
 		const { currentScreenPoint } = this.inputs
 
@@ -7747,7 +7821,7 @@ export class App extends EventEmitter {
 
 		this._cameraManager.tick()
 
-		this.emit('change-camera', this.camera)
+		this.emit('change-camera', nextCamera)
 
 		return this
 	}
@@ -7851,6 +7925,30 @@ export class App extends EventEmitter {
 	}
 
 	/**
+	 * Move the camera to the nearest content.
+	 *
+	 * @public
+	 */
+	backToContent() {
+		const bounds = this.selectedPageBounds ?? this.allShapesCommonBounds
+
+		if (bounds) {
+			this.zoomToBounds(
+				bounds.minX,
+				bounds.minY,
+				bounds.width,
+				bounds.height,
+				Math.min(1, this.zoomLevel),
+				{ duration: 220 }
+			)
+		}
+
+		this.emit('back-to-content')
+
+		return this
+	}
+
+	/**
 	 * Zoom the camera to fit the current page's content in the viewport.
 	 *
 	 * @example
@@ -7901,6 +7999,9 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / 1 - x) - (x / cz - x), cy + (y / 1 - y) - (y / cz - y), 1)
 		}
+
+		this.emit('reset-zoom')
+
 		return this
 	}
 
@@ -7944,6 +8045,9 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
+
+		this.emit('zoom-in')
+
 		return this
 	}
 
@@ -7988,6 +8092,9 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
+
+		this.emit('zoom-out')
+
 		return this
 	}
 
@@ -8019,6 +8126,9 @@ export class App extends EventEmitter {
 			Math.max(1, this.camera.z),
 			opts
 		)
+
+		this.emit('zoom-to-selection')
+
 		return this
 	}
 
@@ -8093,6 +8203,8 @@ export class App extends EventEmitter {
 				this.setCamera(camera.x + offsetX, camera.y + offsetY, camera.z)
 			}
 		}
+
+		this.emit('zoom-into-view')
 
 		return this
 	}
@@ -8629,14 +8741,14 @@ export class App extends EventEmitter {
 	 */
 	textMeasure: TextManager
 
-	trackEvent: UiEventHandler
-
 	/* --------------------- Groups --------------------- */
 
 	groupShapes(ids: TLShapeId[] = this.selectedIds, groupId = createShapeId()) {
 		if (this.isReadOnly) return this
 
 		if (ids.length <= 1) return this
+
+		this.emit('group-shapes', { ids, groupId })
 
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)
@@ -8714,6 +8826,11 @@ export class App extends EventEmitter {
 
 		if (groups.length === 0) return this
 
+		this.emit('ungroup-shapes', {
+			ids,
+			groupIds: groups.map((g) => g.id),
+		})
+
 		this.batch(() => {
 			let group: TLShape
 
@@ -8735,59 +8852,59 @@ export class App extends EventEmitter {
 		return this
 	}
 
-	checkTracking(
-		type: 'change' | 'create' | 'delete',
-		prev: TLRecord | null,
-		next: TLRecord | null
-	) {
-		if (type === 'create' && next) {
-			if (next && next.typeName === 'page') {
-				this.trackEvent('page.add')
-			}
-		} else if (type === 'delete' && prev) {
-			if (prev.typeName === 'page') {
-				this.trackEvent('page.remove')
-			}
-		} else if (prev && next && type === 'change') {
-			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
-				this.trackEvent('page.rename')
-			}
-			if (prev.typeName === 'instance' && next.typeName === 'instance') {
-				// TODO: Not very performant
-				for (const key of Object.keys(next.propsForNextShape)) {
-					const prevValue = prev.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-					const nextValue = next.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-					if (prevValue !== nextValue) {
-						this.trackEvent(`instance.propsForNextShape.${key}.change`, nextValue)
-					}
-				}
+	// 	checkTracking(
+	// 		type: 'change' | 'create' | 'delete',
+	// 		prev: TLRecord | null,
+	// 		next: TLRecord | null
+	// 	) {
+	// 		if (type === 'create' && next) {
+	// 			if (next && next.typeName === 'page') {
+	// 				this.trackEvent('page.add')
+	// 			}
+	// 		} else if (type === 'delete' && prev) {
+	// 			if (prev.typeName === 'page') {
+	// 				this.trackEvent('page.remove')
+	// 			}
+	// 		} else if (prev && next && type === 'change') {
+	// 			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
+	// 				this.trackEvent('page.rename')
+	// 			}
+	// 			if (prev.typeName === 'instance' && next.typeName === 'instance') {
+	// 				// TODO: Not very performant
+	// 				for (const key of Object.keys(next.propsForNextShape)) {
+	// 					const prevValue = prev.propsForNextShape[key as keyof TLInstancePropsForNextShape]
+	// 					const nextValue = next.propsForNextShape[key as keyof TLInstancePropsForNextShape]
+	// 					if (prevValue !== nextValue) {
+	// 						this.trackEvent(`instance.propsForNextShape.${key}.change`, nextValue)
+	// 					}
+	// 				}
 
-				if (prev.isToolLocked !== next.isToolLocked) {
-					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
-				}
-				if (prev.isDebugMode !== next.isDebugMode) {
-					this.trackEvent('instance.isDebugMode.enabled', next.isDebugMode)
-				}
-				if (prev.isFocusMode !== next.isFocusMode) {
-					this.trackEvent('instance.isFocusMode.enabled', next.isFocusMode)
-				}
-				if (prev.currentPageId !== next.currentPageId) {
-					this.trackEvent('instance.currentPageId.change')
-				}
-			}
-			if (prev.typeName === 'user_document' && next.typeName === 'user_document') {
-				if (prev.isDarkMode !== next.isDarkMode) {
-					this.trackEvent('instance.isDarkMode.change', next.isDarkMode)
-				}
-				if (prev.isGridMode !== next.isGridMode) {
-					this.trackEvent('instance.isGridMode.change', next.isGridMode)
-				}
-				if (prev.isSnapMode !== next.isSnapMode) {
-					this.trackEvent('instance.isSnapMode.change', next.isSnapMode)
-				}
-			}
-		}
-	}
+	// 				if (prev.isToolLocked !== next.isToolLocked) {
+	// 					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
+	// 				}
+	// 				if (prev.isDebugMode !== next.isDebugMode) {
+	// 					this.trackEvent('instance.isDebugMode.enabled', next.isDebugMode)
+	// 				}
+	// 				if (prev.isFocusMode !== next.isFocusMode) {
+	// 					this.trackEvent('instance.isFocusMode.enabled', next.isFocusMode)
+	// 				}
+	// 				if (prev.currentPageId !== next.currentPageId) {
+	// 					this.trackEvent('instance.currentPageId.change')
+	// 				}
+	// 			}
+	// 			if (prev.typeName === 'user_document' && next.typeName === 'user_document') {
+	// 				if (prev.isDarkMode !== next.isDarkMode) {
+	// 					this.trackEvent('instance.isDarkMode.change', next.isDarkMode)
+	// 				}
+	// 				if (prev.isGridMode !== next.isGridMode) {
+	// 					this.trackEvent('instance.isGridMode.change', next.isGridMode)
+	// 				}
+	// 				if (prev.isSnapMode !== next.isSnapMode) {
+	// 					this.trackEvent('instance.isSnapMode.change', next.isSnapMode)
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 }
 
 function alertMaxShapes(app: App, pageId = app.currentPageId) {

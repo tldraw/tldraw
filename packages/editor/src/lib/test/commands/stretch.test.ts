@@ -70,7 +70,7 @@ beforeEach(() => {
 describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
 		const fn = jest.fn()
-		app.on('update_shape', fn)
+		app.on('stretch-shapes', fn)
 		app.setSelectedIds([ids.boxB])
 		app.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)

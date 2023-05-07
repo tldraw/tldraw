@@ -23,7 +23,6 @@ import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
-import { DefaultEventHandler, UiEventHandler, UiEventsContext } from './hooks/useUiEvents'
 import { useZoomCss } from './hooks/useZoomCss'
 
 /** @public */
@@ -82,8 +81,6 @@ export interface TldrawEditorProps {
 	onCreateBookmarkFromUrl?: (
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
-
-	onUiEvent?: UiEventHandler
 
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -198,7 +195,6 @@ function TldrawEditorAfterLoading({
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
-	onUiEvent = DefaultEventHandler,
 	store,
 	autoFocus,
 }: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
@@ -215,7 +211,6 @@ function TldrawEditorAfterLoading({
 			store,
 			getContainer: () => container,
 			config,
-			onUiEvent,
 		})
 		setApp(app)
 
@@ -227,7 +222,7 @@ function TldrawEditorAfterLoading({
 			app.dispose()
 			setApp((prevApp) => (prevApp === app ? null : prevApp))
 		}
-	}, [container, config, store, autoFocus, onUiEvent])
+	}, [container, config, store, autoFocus])
 
 	React.useEffect(() => {
 		if (app) {
@@ -242,7 +237,11 @@ function TldrawEditorAfterLoading({
 		}
 	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
 
-	const onMountEvent = useEvent((app: App) => onMount?.(app))
+	const onMountEvent = useEvent((app: App) => {
+		onMount?.(app)
+		app.emit('mount')
+	})
+
 	React.useEffect(() => {
 		if (app) {
 			// Set the initial theme state.
@@ -291,9 +290,7 @@ function TldrawEditorAfterLoading({
 				<Crash crashingError={crashingError} />
 			) : (
 				<AppContext.Provider value={app}>
-					<UiEventsContext.Provider value={onUiEvent}>
-						<Layout>{children}</Layout>
-					</UiEventsContext.Provider>
+					<Layout>{children}</Layout>
 				</AppContext.Provider>
 			)}
 		</OptionalErrorBoundary>

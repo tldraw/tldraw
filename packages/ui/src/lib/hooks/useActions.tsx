@@ -803,12 +803,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				kbd: 'q',
 				onSelect() {
-					app.updateInstanceState(
-						{
-							isToolLocked: !app.instanceState.isToolLocked,
-						},
-						true
-					)
+					app.setIsToolLocked(!app.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -900,18 +895,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'arrow-left',
 				readonlyOk: true,
 				onSelect() {
-					const bounds = app.selectedPageBounds ?? app.allShapesCommonBounds
-
-					if (bounds) {
-						app.zoomToBounds(
-							bounds.minX,
-							bounds.minY,
-							bounds.width,
-							bounds.height,
-							Math.min(1, app.zoomLevel),
-							{ duration: 220 }
-						)
-					}
+					app.backToContent()
 				},
 			},
 		])

@@ -1,6 +1,7 @@
 import { devFreeze } from '@tldraw/tlstore'
 import { atom, transact } from 'signia'
 import { uniqueId } from '../../utils/data'
+import { TLEventMap } from '../types/emit-types'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
@@ -18,7 +19,9 @@ type CommandFn<Data> = (...args: any[]) =>
 type ExtractData<Fn> = Fn extends CommandFn<infer Data> ? Data : never
 type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
 
-export class HistoryManager<CTX extends { emit: (name: string) => void }> {
+export class HistoryManager<
+	CTX extends { emit: (name: 'change-history', ...args: TLEventMap['change-history']) => void }
+> {
 	_undos = atom<Stack<TLHistoryEntry>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
 	_redos = atom<Stack<TLHistoryEntry>>('HistoryManager.redos', stack()) // Updated when a user undoes
 	_batchDepth = 0 // A flag for whether the user is in a batch operation
@@ -103,7 +106,7 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 					this._redos.set(stack())
 				}
 
-				this.ctx.emit('change-history')
+				this.ctx.emit('change-history', { reason: 'push' })
 			}
 
 			return this.ctx
@@ -165,7 +168,6 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 	}) => {
 		this.ignoringUpdates((undos, redos) => {
 			if (undos.length === 0) {
-				this.ctx.emit('change-history')
 				return { undos, redos }
 			}
 
@@ -176,13 +178,19 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 					redos = redos.push(mark)
 				}
 				if (mark.id === toMark) {
-					this.ctx.emit('change-history')
+					this.ctx.emit(
+						'change-history',
+						pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
+					)
 					return { undos, redos }
 				}
 			}
 
 			if (undos.length === 0) {
-				this.ctx.emit('change-history')
+				this.ctx.emit(
+					'change-history',
+					pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
+				)
 				return { undos, redos }
 			}
 
@@ -196,7 +204,10 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 
 				if (command.type === 'STOP') {
 					if (command.onUndo && (!toMark || command.id === toMark)) {
-						this.ctx.emit('change-history')
+						this.ctx.emit(
+							'change-history',
+							pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
+						)
 						return { undos, redos }
 					}
 				} else {
@@ -205,7 +216,10 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 				}
 			}
 
-			this.ctx.emit('change-history')
+			this.ctx.emit(
+				'change-history',
+				pushToRedoStack ? { reason: 'undo' } : { reason: 'bail', markId: toMark }
+			)
 			return { undos, redos }
 		})
 
@@ -221,7 +235,6 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 	redo = () => {
 		this.ignoringUpdates((undos, redos) => {
 			if (redos.length === 0) {
-				this.ctx.emit('change-history')
 				return { undos, redos }
 			}
 
@@ -231,7 +244,7 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 			}
 
 			if (redos.length === 0) {
-				this.ctx.emit('change-history')
+				this.ctx.emit('change-history', { reason: 'redo' })
 				return { undos, redos }
 			}
 
@@ -254,7 +267,7 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 				}
 			}
 
-			this.ctx.emit('change-history')
+			this.ctx.emit('change-history', { reason: 'redo' })
 			return { undos, redos }
 		})
 
@@ -283,6 +296,8 @@ export class HistoryManager<CTX extends { emit: (name: string) => void }> {
 		}
 
 		this._undos.update((undos) => undos.push({ type: 'STOP', id, onUndo, onRedo }))
+
+		this.ctx.emit('change-history', { reason: 'mark', markId: id })
 
 		return id
 	}

@@ -120,7 +120,7 @@ export type AnimationOptions = Partial<{
 }>;
 
 // @public (undocumented)
-export class App extends EventEmitter {
+export class App extends EventEmitter<TLEventMap> {
     constructor({ config, store, getContainer }: AppOptions);
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -139,6 +139,7 @@ export class App extends EventEmitter {
         extras?: Record<string, unknown>;
     }): void;
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
+    backToContent(): this;
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
@@ -326,6 +327,8 @@ export class App extends EventEmitter {
     readonly isChromeForIos: boolean;
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
+    // (undocumented)
+    get isDarkMode(): boolean;
     get isFocused(): boolean;
     // (undocumented)
     get isGridMode(): boolean;
@@ -342,6 +345,8 @@ export class App extends EventEmitter {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
+    // (undocumented)
+    get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
     // (undocumented)
     lockShapes(_ids?: TLShapeId[]): this;
@@ -386,7 +391,7 @@ export class App extends EventEmitter {
         isCulled: boolean;
         isInViewport: boolean;
     }[];
-    reorderShapes(operation: TLReorderOperation, ids: TLShapeId[]): this;
+    reorderShapes(operation: 'backward' | 'forward' | 'toBack' | 'toFront', ids: TLShapeId[]): this;
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
     // (undocumented)
     replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]): void;
@@ -440,6 +445,8 @@ export class App extends EventEmitter {
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
+    // (undocumented)
+    setIsToolLocked(isToolLocked: boolean): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
@@ -1840,8 +1847,6 @@ export interface TldrawEditorProps {
         description: string;
     }>;
     onMount?: (app: App) => void;
-    // (undocumented)
-    onUiEvent?: (event: any) => void;
     store?: SyncedStore | TLStore;
     userId?: TLUserId;
 }
@@ -1997,6 +2002,208 @@ export interface TLEventHandlers {
 
 // @public (undocumented)
 export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
+
+// @public (undocumented)
+export interface TLEventMap {
+    // (undocumented)
+    'align-shapes': [
+        {
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
+    }
+    ];
+    // (undocumented)
+    'back-to-content': [];
+    // (undocumented)
+    'change-camera': [TLCamera];
+    // (undocumented)
+    'change-history': [
+        {
+        reason: 'bail';
+        markId?: string;
+    } | {
+        reason: 'mark';
+        markId: string;
+    } | {
+        reason: 'push' | 'redo' | 'undo';
+    }
+    ];
+    // (undocumented)
+    'change-page': [{
+        toId: TLPageId;
+        fromId: TLPageId;
+    }];
+    // (undocumented)
+    'change-prop': [{
+        key: string;
+        value: any;
+    }];
+    // (undocumented)
+    'change-setting': [
+        {
+        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isToolLocked';
+        value: boolean;
+    }
+    ];
+    // (undocumented)
+    'change-tool': {
+        id: string;
+    };
+    // (undocumented)
+    'create-new-project': [];
+    // (undocumented)
+    'create-page': [{
+        id: TLPageId;
+    }];
+    // (undocumented)
+    'create-shapes': [{
+        ids: TLShapeId[];
+        types: TLShapeType[];
+        pageId: TLPageId;
+    }];
+    // (undocumented)
+    'delete-page': [{
+        id: TLPageId;
+    }];
+    // (undocumented)
+    'delete-shapes': [{
+        ids: TLShapeId[];
+        pageId: TLPageId;
+    }];
+    // (undocumented)
+    'distribute-shapes': [
+        {
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'horizontal' | 'vertical';
+    }
+    ];
+    // (undocumented)
+    'duplicate-page': [{
+        id: TLPageId;
+        newPageId: TLPageId;
+    }];
+    // (undocumented)
+    'duplicate-shapes': {
+        ids: TLShapeId[];
+        newShapeIds: TLShapeId[];
+        pageId: TLPageId;
+    };
+    // (undocumented)
+    'flip-shapes': [{
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'horizontal' | 'vertical';
+    }];
+    // (undocumented)
+    'group-shapes': [{
+        ids: TLShapeId[];
+        groupId: TLShapeId;
+    }];
+    // (undocumented)
+    'max-shapes': [{
+        name: string;
+        pageId: TLPageId;
+        count: number;
+    }];
+    // (undocumented)
+    'moved-to-page': [{
+        name: string;
+        fromId: TLPageId;
+        toId: TLPageId;
+    }];
+    // (undocumented)
+    'nudge-shapes': [
+        {
+        ids: TLShapeId[];
+        pageId: TLPageId;
+    }
+    ];
+    // (undocumented)
+    'open-action-menu': [];
+    // (undocumented)
+    'open-file': [];
+    // (undocumented)
+    'open-help-menu': [];
+    // (undocumented)
+    'open-menu': [];
+    // (undocumented)
+    'open-share-menu': [];
+    // (undocumented)
+    'pack-shapes': [{
+        ids: TLShapeId[];
+        pageId: TLPageId;
+    }];
+    // (undocumented)
+    'reorder-shapes': [
+        {
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'backward' | 'forward' | 'toBack' | 'toFront';
+    }
+    ];
+    // (undocumented)
+    'reset-zoom': [];
+    // (undocumented)
+    'rotate-shapes': {
+        ids: TLShapeId[];
+        pageId: TLPageId;
+    };
+    // (undocumented)
+    'save-project-to-file': [];
+    // (undocumented)
+    'select-all': [];
+    // (undocumented)
+    'select-none': [];
+    // (undocumented)
+    'select-tool': [{
+        id: string;
+    }];
+    // (undocumented)
+    'stack-shapes': [{
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'horizontal' | 'vertical';
+    }];
+    // (undocumented)
+    'stop-camera-animation': [];
+    // (undocumented)
+    'stop-following': [];
+    // (undocumented)
+    'stretch-shapes': [{
+        ids: TLShapeId[];
+        pageId: TLPageId;
+        operation: 'horizontal' | 'vertical';
+    }];
+    // (undocumented)
+    'ungroup-shapes': [{
+        ids: TLShapeId[];
+        groupIds: TLShapeId[];
+    }];
+    // (undocumented)
+    'zoom-in': [];
+    // (undocumented)
+    'zoom-into-view': [];
+    // (undocumented)
+    'zoom-out': [];
+    // (undocumented)
+    'zoom-to-selection': [];
+    // (undocumented)
+    change: [TLChange];
+    // (undocumented)
+    crash: [{
+        error: unknown;
+    }];
+    // (undocumented)
+    event: [TLEventInfo];
+    // (undocumented)
+    mount: [];
+    // (undocumented)
+    tick: [number];
+    // (undocumented)
+    update: [];
+}
 
 // @public (undocumented)
 export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
@@ -2382,9 +2589,6 @@ export type TLPointerEventTarget = {
 };
 
 // @public (undocumented)
-export type TLReorderOperation = 'backward' | 'forward' | 'toBack' | 'toFront';
-
-// @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
@@ -2662,7 +2866,7 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
 // @public (undocumented)
-export const useUiEvents: () => UiEventHandler;
+export function useUiEvents(): UiEventHandler;
 
 // @public (undocumented)
 export function useUrlState(changeUrl: (params: Params) => void): void;

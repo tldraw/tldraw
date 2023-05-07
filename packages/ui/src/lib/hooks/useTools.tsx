@@ -53,6 +53,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('select')
+					app.emit('select-tool', { id: 'select' })
 				},
 			},
 			{
@@ -63,6 +64,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('hand')
+					app.emit('select-tool', { id: 'hand' })
 				},
 			},
 			{
@@ -73,6 +75,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('eraser')
+					app.emit('select-tool', { id: 'eraser' })
 				},
 			},
 			{
@@ -83,6 +86,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect() {
 					app.setSelectedTool('draw')
+					app.emit('select-tool', { id: 'draw' })
 				},
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
@@ -101,6 +105,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 							true
 						)
 						app.setSelectedTool('geo')
+						app.emit('select-tool', { id: `geo-${id}` })
 					})
 				},
 			})),
@@ -112,6 +117,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'a',
 				onSelect() {
 					app.setSelectedTool('arrow')
+					app.emit('select-tool', { id: 'arrow' })
 				},
 			},
 			{
@@ -122,6 +128,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'l',
 				onSelect() {
 					app.setSelectedTool('line')
+					app.emit('select-tool', { id: 'line' })
 				},
 			},
 			{
@@ -132,6 +139,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'f',
 				onSelect() {
 					app.setSelectedTool('frame')
+					app.emit('select-tool', { id: 'frame' })
 				},
 			},
 			{
@@ -142,6 +150,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 't',
 				onSelect() {
 					app.setSelectedTool('text')
+					app.emit('select-tool', { id: 'text' })
 				},
 			},
 			{
@@ -152,6 +161,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: '$u',
 				onSelect() {
 					insertMedia()
+					app.emit('select-tool', { id: 'media' })
 				},
 			},
 			{
@@ -162,6 +172,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'n',
 				onSelect() {
 					app.setSelectedTool('note')
+					app.emit('select-tool', { id: 'note' })
 				},
 			},
 			{
@@ -171,6 +182,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-embed',
 				onSelect() {
 					addDialog({ component: EmbedDialog })
+					app.emit('select-tool', { id: 'embed' })
 				},
 			},
 		])
