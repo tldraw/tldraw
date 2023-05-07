@@ -14,7 +14,7 @@ export function useTransform(
 
 		if (scale !== undefined) {
 			if (rotate !== undefined) {
-				elm.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}deg)`
+				elm.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}rad)`
 			} else {
 				elm.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
 			}
