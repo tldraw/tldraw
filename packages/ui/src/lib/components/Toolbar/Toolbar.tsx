@@ -1,4 +1,4 @@
-import { preventDefault, useApp, useUiEvents } from '@tldraw/editor'
+import { preventDefault, useApp } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { track, useValue } from 'signia-react'
@@ -214,16 +214,10 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	toolbarItems: ToolbarItem[]
 }) {
 	const msg = useTranslation()
-	const track = useUiEvents()
 
 	return (
 		<div className="tlui-button-grid__four tlui-button-grid__reverse">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
-				const onSelectLocal = () => {
-					track('ui.actions.click', id)
-					onSelect()
-				}
-
 				return (
 					<M.Item
 						key={id}
@@ -232,7 +226,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
-						onClick={onSelectLocal}
+						onClick={onSelect}
 						title={label ? `${msg(label)} ${kbd ? kbdStr(kbd) : ''}` : ''}
 						icon={icon}
 					/>
@@ -251,13 +245,6 @@ function ToolbarButton({
 	title: string
 	isSelected: boolean
 }) {
-	const track = useUiEvents()
-
-	const onSelect = () => {
-		track('ui.actions.click', item.id)
-		item.onSelect()
-	}
-
 	return (
 		<Button
 			className="tlui-toolbar__tools__button"
@@ -268,10 +255,10 @@ function ToolbarButton({
 			title={title}
 			icon={item.icon}
 			data-state={isSelected ? 'selected' : undefined}
-			onClick={onSelect}
+			onClick={item.onSelect}
 			onTouchStart={(e) => {
 				preventDefault(e)
-				onSelect()
+				item.onSelect()
 			}}
 		/>
 	)

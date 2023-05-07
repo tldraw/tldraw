@@ -755,12 +755,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-snap-mode.menu',
 				readonlyOk: false,
 				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isSnapMode: !app.userDocumentSettings.isSnapMode,
-						},
-						true
-					)
+					app.setDarkMode(!app.isSnapMode)
 				},
 				checkbox: true,
 			},
@@ -771,12 +766,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$/',
 				readonlyOk: true,
 				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isDarkMode: !app.userDocumentSettings.isDarkMode,
-						},
-						true
-					)
+					app.setDarkMode(!app.isDarkMode)
 				},
 				checkbox: true,
 			},
@@ -803,7 +793,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				kbd: 'q',
 				onSelect() {
-					app.setIsToolLocked(!app.isToolLocked)
+					app.setToolLocked(!app.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -821,12 +811,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						app.batch(() => {
 							clearDialogs()
 							clearToasts()
-							app.updateInstanceState(
-								{
-									isFocusMode: !app.instanceState.isFocusMode,
-								},
-								true
-							)
+							app.setFocusMode(!app.isFocusMode)
 						})
 					})
 				},
@@ -838,12 +823,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: "$'",
 				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isGridMode: !app.userDocumentSettings.isGridMode,
-						},
-						true
-					)
+					app.setGridMode(!app.isGridMode)
 				},
 				checkbox: true,
 			},
@@ -869,6 +849,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					printSelectionOrPages()
+					app.emit('print')
 				},
 			},
 			{

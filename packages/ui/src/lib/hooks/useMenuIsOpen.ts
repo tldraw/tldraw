@@ -12,6 +12,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 			if (isOpen) {
 				app.complete()
 				app.openMenus.add(id)
+				app.emit('open-menu', { id })
 			} else {
 				app.openMenus.delete(id)
 				app.openMenus.forEach((menuId) => {
@@ -19,6 +20,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 						app.openMenus.delete(menuId)
 					}
 				})
+				app.emit('close-menu', { id })
 			}
 
 			cb?.(isOpen)

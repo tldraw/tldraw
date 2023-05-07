@@ -17,7 +17,7 @@ export function FileOpen({
 }) {
 	const app = useApp()
 	const { msg, addToast, clearToasts } = useDefaultHelpers()
-	const [isFileLoaded, setIsFileLoaded] = React.useState(false)
+	const [isFileLoaded, setFileLoaded] = React.useState(false)
 
 	React.useEffect(() => {
 		if (isFileLoaded) return
@@ -40,7 +40,7 @@ export function FileOpen({
 		}
 
 		loadFile()
-		setIsFileLoaded(true)
+		setFileLoaded(true)
 		return () => {
 			clearToasts()
 		}

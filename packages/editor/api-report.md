@@ -331,6 +331,8 @@ export class App extends EventEmitter<TLEventMap> {
     get isDarkMode(): boolean;
     get isFocused(): boolean;
     // (undocumented)
+    get isFocusMode(): boolean;
+    // (undocumented)
     get isGridMode(): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
@@ -345,6 +347,8 @@ export class App extends EventEmitter<TLEventMap> {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
+    // (undocumented)
+    get isSnapMode(): boolean;
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
@@ -441,12 +445,12 @@ export class App extends EventEmitter<TLEventMap> {
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
     // (undocumented)
+    setFocusMode(isFocusMode: boolean): void;
+    // (undocumented)
     setGridMode(isGridMode: boolean): void;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
-    // (undocumented)
-    setIsToolLocked(isToolLocked: boolean): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
@@ -455,6 +459,10 @@ export class App extends EventEmitter<TLEventMap> {
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
+    // (undocumented)
+    setSnapMode(isSnapMode: boolean): void;
+    // (undocumented)
+    setToolLocked(isToolLocked: boolean): void;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];
@@ -2038,7 +2046,7 @@ export interface TLEventMap {
     // (undocumented)
     'change-setting': [
         {
-        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isToolLocked';
+        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isSnapMode' | 'isToolLocked';
         value: boolean;
     }
     ];
@@ -2046,6 +2054,10 @@ export interface TLEventMap {
     'change-tool': {
         id: string;
     };
+    // (undocumented)
+    'close-menu': [{
+        id: string;
+    }];
     // (undocumented)
     'create-new-project': [];
     // (undocumented)
@@ -2117,15 +2129,11 @@ export interface TLEventMap {
     }
     ];
     // (undocumented)
-    'open-action-menu': [];
-    // (undocumented)
     'open-file': [];
     // (undocumented)
-    'open-help-menu': [];
-    // (undocumented)
-    'open-menu': [];
-    // (undocumented)
-    'open-share-menu': [];
+    'open-menu': [{
+        id: string;
+    }];
     // (undocumented)
     'pack-shapes': [{
         ids: TLShapeId[];
@@ -2188,13 +2196,21 @@ export interface TLEventMap {
     // (undocumented)
     change: [TLChange];
     // (undocumented)
+    copy: [];
+    // (undocumented)
     crash: [{
         error: unknown;
     }];
     // (undocumented)
+    cut: [];
+    // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
     mount: [];
+    // (undocumented)
+    paste: [];
+    // (undocumented)
+    print: [];
     // (undocumented)
     tick: [number];
     // (undocumented)
@@ -2857,9 +2873,6 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @public (undocumented)
-export function useUiEvents(): UiEventHandler;
 
 // @public (undocumented)
 export function useUrlState(changeUrl: (params: Params) => void): void;

@@ -34,7 +34,6 @@ import {
 	TLTextShapeDef,
 	uniqueId,
 	useApp,
-	useUiEvents,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { compact, isNonNull } from '@tldraw/utils'
@@ -970,37 +969,34 @@ const handleNativeClipboardPaste = async (
 /** @public */
 export function useMenuClipboardEvents() {
 	const app = useApp()
-	const track = useUiEvents()
 
 	const copy = useCallback(
 		function onCopy() {
 			if (app.selectedIds.length === 0) return
 
-			track('app.copy')
 			handleMenuCopy(app)
+			app.emit('copy')
 		},
-		[app, track]
+		[app]
 	)
 
 	const cut = useCallback(
 		function onCut() {
 			if (app.selectedIds.length === 0) return
 
-			track('app.cut')
 			handleMenuCopy(app)
 			app.deleteShapes()
+			app.emit('cut')
 		},
-		[app, track]
+		[app]
 	)
 
 	const paste = useCallback(
 		async function onPaste(data: DataTransfer | ClipboardItem[], point?: VecLike) {
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
-				track('app.paste')
 				handleNativeClipboardPaste(app, data, point)
 			} else {
 				navigator.clipboard.read().then((clipboardItems) => {
-					track('app.paste')
 					paste(clipboardItems, app.inputs.currentPagePoint)
 				})
 			}
@@ -1008,8 +1004,10 @@ export function useMenuClipboardEvents() {
 			// else {
 			// 	handleScenePaste(app, point)
 			// }
+
+			app.emit('paste')
 		},
-		[app, track]
+		[app]
 	)
 
 	return {
@@ -1031,6 +1029,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
+			app.emit('copy')
 		}
 
 		function cut() {
@@ -1038,6 +1037,7 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
+			app.emit('cut')
 		}
 
 		const paste = (event: ClipboardEvent) => {
@@ -1051,6 +1051,7 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
+			app.emit('paste')
 		}
 
 		document.addEventListener('copy', copy)

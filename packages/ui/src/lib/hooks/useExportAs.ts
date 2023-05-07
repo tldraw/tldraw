@@ -6,7 +6,6 @@ import {
 	TLFrameShape,
 	TLShapeId,
 	useApp,
-	useUiEvents,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useToasts } from './useToastsProvider'
@@ -17,7 +16,6 @@ export function useExportAs() {
 	const app = useApp()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
-	const track = useUiEvents()
 
 	return useCallback(
 		async function exportAs(ids: TLShapeId[] = app.selectedIds, format: TLExportType = 'png') {
@@ -51,7 +49,6 @@ export function useExportAs() {
 				case 'svg': {
 					const dataURL = await getSvgAsDataUrl(svg)
 					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.svg`)
-					track('app.export')
 					return
 				}
 				case 'webp':
@@ -75,7 +72,6 @@ export function useExportAs() {
 					const dataURL = URL.createObjectURL(image)
 
 					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.${format}`)
-					track('app.export')
 
 					URL.revokeObjectURL(dataURL)
 					return
@@ -88,7 +84,6 @@ export function useExportAs() {
 					)
 
 					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.json`)
-					track('app.export')
 
 					URL.revokeObjectURL(dataURL)
 					return
@@ -98,6 +93,6 @@ export function useExportAs() {
 					throw new Error(`Export type ${format} not supported.`)
 			}
 		},
-		[app, addToast, msg, track]
+		[app, addToast, msg]
 	)
 }

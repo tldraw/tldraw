@@ -139,7 +139,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 		[isEditing, shape.id, videoUtil.app]
 	)
 
-	const [isLoaded, setIsLoaded] = React.useState(false)
+	const [isLoaded, setLoaded] = React.useState(false)
 
 	const handleLoadedData = React.useCallback<React.ReactEventHandler<HTMLVideoElement>>(
 		(e) => {
@@ -152,7 +152,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				video.pause()
 			}
 
-			setIsLoaded(true)
+			setLoaded(true)
 		},
 		[playing, time]
 	)

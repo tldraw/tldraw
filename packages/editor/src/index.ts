@@ -180,7 +180,6 @@ export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
-export { useUiEvents } from './lib/hooks/useUiEvents'
 export { useUrlState } from './lib/hooks/useUrlState'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {

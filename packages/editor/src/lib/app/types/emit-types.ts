@@ -33,6 +33,7 @@ export interface TLEventMap {
 		{
 			name:
 				| 'isToolLocked'
+				| 'isSnapMode'
 				| 'isGridMode'
 				| 'isDarkMode'
 				| 'isFocusMode'
@@ -85,12 +86,14 @@ export interface TLEventMap {
 	'zoom-into-view': []
 	'back-to-content': []
 	// UI
-	'open-help-menu': []
-	'open-menu': []
-	'open-action-menu': []
-	'open-share-menu': []
+	'open-menu': [{ id: string }]
+	'close-menu': [{ id: string }]
 	'create-new-project': []
 	'save-project-to-file': []
 	'open-file': []
 	'select-tool': [{ id: string }]
+	print: []
+	copy: []
+	paste: []
+	cut: []
 }

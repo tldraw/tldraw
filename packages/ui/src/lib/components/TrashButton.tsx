@@ -1,4 +1,4 @@
-import { useApp, useUiEvents } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useActions } from '../hooks/useActions'
 import { useReadonly } from '../hooks/useReadonly'
@@ -11,14 +11,8 @@ export const TrashButton = track(function TrashButton() {
 	const actions = useActions()
 	const msg = useTranslation()
 	const action = actions['delete']
-	const track = useUiEvents()
 
 	const isReadonly = useReadonly()
-
-	const onSelect = () => {
-		track('ui.main.click', 'redo')
-		action.onSelect()
-	}
 
 	if (isReadonly) return null
 
@@ -27,7 +21,7 @@ export const TrashButton = track(function TrashButton() {
 	return (
 		<Button
 			icon={action.icon}
-			onClick={onSelect}
+			onClick={action.onSelect}
 			disabled={noSelected}
 			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
 			smallIcon

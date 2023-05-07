@@ -1,4 +1,4 @@
-import { useApp, useUiEvents } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useActions } from '../hooks/useActions'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -10,19 +10,13 @@ export const DuplicateButton = track(function DuplicateButton() {
 	const actions = useActions()
 	const msg = useTranslation()
 	const action = actions['duplicate']
-	const track = useUiEvents()
-
-	const onSelect = () => {
-		track('ui.main.click', 'duplicate')
-		action.onSelect()
-	}
 
 	const noSelected = app.selectedIds.length <= 0
 
 	return (
 		<Button
 			icon={action.icon}
-			onClick={onSelect}
+			onClick={action.onSelect}
 			disabled={noSelected}
 			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
 			smallIcon

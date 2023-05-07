@@ -1,4 +1,3 @@
-import { useUiEvents } from '@tldraw/editor'
 import { memo } from 'react'
 import { useActions } from '../hooks/useActions'
 import { useCanRedo } from '../hooks/useCanRedo'
@@ -10,14 +9,8 @@ export const RedoButton = memo(function RedoButton() {
 	const msg = useTranslation()
 	const canRedo = useCanRedo()
 	const actions = useActions()
-	const track = useUiEvents()
 
 	const redo = actions['redo']
-
-	const onSelect = () => {
-		track('ui.main.click', 'redo')
-		redo.onSelect()
-	}
 
 	return (
 		<Button
@@ -25,7 +18,7 @@ export const RedoButton = memo(function RedoButton() {
 			icon={redo.icon}
 			title={`${msg(redo.label!)} ${kbdStr(redo.kbd!)}`}
 			disabled={!canRedo}
-			onClick={onSelect}
+			onClick={redo.onSelect}
 			smallIcon
 		/>
 	)

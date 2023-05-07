@@ -4,7 +4,7 @@ import { useAssetUrls } from './useAssetUrls'
 
 /** @internal */
 export function usePreloadIcons(): boolean {
-	const [isLoaded, setIsLoaded] = useState<boolean>(false)
+	const [isLoaded, setLoaded] = useState<boolean>(false)
 	const assetUrls = useAssetUrls()
 
 	useEffect(() => {
@@ -24,7 +24,7 @@ export function usePreloadIcons(): boolean {
 			)
 
 			if (cancelled) return
-			setIsLoaded(true)
+			setLoaded(true)
 		}
 
 		loadImages()

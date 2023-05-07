@@ -1462,11 +1462,41 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.store.get(this.userId)!
 	}
 
+	get isSnapMode() {
+		return this.userDocumentSettings.isSnapMode
+	}
+
+	setSnapMode(isSnapMode: boolean) {
+		if (isSnapMode === this.isSnapMode) return
+		this.emit('change-setting', { name: 'isSnapMode', value: isSnapMode })
+		this.updateUserDocumentSettings({ isSnapMode }, true)
+	}
+
+	get isDarkMode() {
+		return this.userDocumentSettings.isDarkMode
+	}
+
+	setDarkMode(isDarkMode: boolean) {
+		if (isDarkMode === this.isDarkMode) return
+		this.emit('change-setting', { name: 'isDarkMode', value: isDarkMode })
+		this.updateUserDocumentSettings({ isDarkMode }, true)
+	}
+
+	get isFocusMode() {
+		return this.instanceState.isFocusMode
+	}
+
+	setFocusMode(isFocusMode: boolean) {
+		if (isFocusMode === this.isFocusMode) return
+		this.emit('change-setting', { name: 'isFocusMode', value: isFocusMode })
+		this.updateInstanceState({ isFocusMode }, true)
+	}
+
 	get isToolLocked() {
 		return this.instanceState.isToolLocked
 	}
 
-	setIsToolLocked(isToolLocked: boolean) {
+	setToolLocked(isToolLocked: boolean) {
 		if (isToolLocked === this.isToolLocked) return
 		this.emit('change-setting', { name: 'isToolLocked', value: isToolLocked })
 		this.updateInstanceState({ isToolLocked }, true)
@@ -1489,16 +1519,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (isGridMode === this.isGridMode) return
 		this.emit('change-setting', { name: 'isGridMode', value: isGridMode })
 		this.updateUserDocumentSettings({ isGridMode }, true)
-	}
-
-	get isDarkMode() {
-		return this.userDocumentSettings.isDarkMode
-	}
-
-	setDarkMode(isDarkMode: boolean) {
-		if (isDarkMode === this.isDarkMode) return
-		this.emit('change-setting', { name: 'isGridMode', value: isDarkMode })
-		this.updateUserDocumentSettings({ isDarkMode }, true)
 	}
 
 	get isReadOnly() {
