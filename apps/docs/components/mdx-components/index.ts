@@ -46,6 +46,8 @@ export const components = {
 	li: ListItem,
 	img: Image,
 	Small: Small,
+	Image,
+	Video,
 	...customComponents,
 	...apiComponents,
 }
