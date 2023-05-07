@@ -213,12 +213,6 @@ body {
 	justify-self: flex-end;
 }
 
-.article__title {
-	display: grid;
-	grid-template-columns: 1fr auto;
-	grid-template-rows: auto;
-}
-
 /* Common Styles */
 
 .article > * {
@@ -226,11 +220,19 @@ body {
 }
 
 .article > h2,
-h3,
-h4,
-h5,
-h6 {
+.article > h3,
+.article > h4,
+.article > h5,
+.article > h6 {
 	line-height: 1.2;
+}
+
+.article > h2 > a,
+.article > h3 > a,
+.article > h4 > a,
+.article > h5 > a,
+.article > h6 > a {
+	color: var(--color-text);
 }
 
 .article h1 {

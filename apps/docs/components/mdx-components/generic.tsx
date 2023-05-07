@@ -1,7 +1,5 @@
 /* ---------------------- Lists --------------------- */
 
-import { Icon } from '../Icon'
-
 export const UnorderedList = (props: any) => {
 	return <ul {...props} />
 }
@@ -25,14 +23,7 @@ export const Heading2 = (props: any) => {
 }
 
 export const Heading3 = (props: any) => {
-	return (
-		<div className="article__title">
-			<h3 {...props} />
-			<button className="icon-button" onClick={() => window.scrollTo(0, 0)}>
-				<Icon icon="back-to-top" />
-			</button>
-		</div>
-	)
+	return <h3 {...props} />
 }
 
 export const Heading4 = (props: any) => {
@@ -95,7 +86,7 @@ export const Image = (props: any) => {
 	return (
 		<span className="artcle__image">
 			<img alt={props.title} {...props} />
-			{props.title && <span className="article__caption">{props.title}</span>}
+			{props.caption && <span className="article__caption">{props.caption}</span>}
 		</span>
 	)
 }
@@ -104,7 +95,7 @@ export const Video = (props: any) => {
 	return (
 		<span className="artcle__video">
 			<video alt={props.title} {...props} />
-			{props.title && <span className="article__caption">{props.title}</span>}
+			{props.caption && <span className="article__caption">{props.caption}</span>}
 		</span>
 	)
 }
