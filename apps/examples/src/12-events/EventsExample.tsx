@@ -2,7 +2,7 @@ import { App, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useCallback, useEffect, useState } from 'react'
-import { usePosthog } from './usePosthog'
+import { useAnalyticsTracking } from './useAnalyticsTracking'
 
 export default function Example() {
 	const [app, setApp] = useState<App>()
@@ -38,7 +38,7 @@ const SIMPLE_LIST = [
 ] as const
 
 function TrackEvents({ app }: { app: App }) {
-	const track = usePosthog(app.instanceId)
+	const track = useAnalyticsTracking(app.instanceId)
 
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 

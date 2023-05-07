@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef } from 'react'
 
 const VITE_POSTHOG_API_KEY = ''
 
-export function usePosthog(instanceId: string) {
+export function useAnalyticsTracking(instanceId: string) {
 	const rInitialized = useRef(false)
 
 	useEffect(() => {
