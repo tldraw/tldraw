@@ -371,12 +371,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				}
 				default: {
 					const outline = this.outline(shape)
-					const lines =
-						shape.props.geo === 'x-box'
-							? getXBoxLines(w, h, strokeWidth, props.dash)
-							: shape.props.geo === 'check-box'
-							? getCheckBoxLines(w, h)
-							: undefined
+					const lines = getLines(shape.props, strokeWidth)
 
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
 						return (
@@ -466,7 +461,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
 				}
 
-				const lines = getLines(shape.props, strokeWidth, props.dash)
+				const lines = getLines(shape.props, strokeWidth)
 
 				if (lines) {
 					for (const [A, B] of lines) {
@@ -569,7 +564,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			}
 			default: {
 				const outline = this.outline(shape)
-				const lines = getLines(shape.props, strokeWidth, props.dash)
+				const lines = getLines(shape.props, strokeWidth)
 
 				switch (props.dash) {
 					case 'draw':
@@ -945,10 +940,10 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 	}
 }
 
-function getLines(props: TLGeoShapeProps, sw: number, dash: TLDashType) {
+function getLines(props: TLGeoShapeProps, sw: number) {
 	switch (props.geo) {
 		case 'x-box': {
-			return getXBoxLines(props.w, props.h, sw, dash)
+			return getXBoxLines(props.w, props.h, sw, props.dash)
 		}
 		case 'check-box': {
 			return getCheckBoxLines(props.w, props.h)
