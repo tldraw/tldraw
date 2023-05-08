@@ -194,7 +194,7 @@ function _findMenuItem(menu: MenuSchema | MenuChild[], path: string[]): MenuChil
 	}
 }
 
-export const showUiPaste =
+export const showMenuPaste =
 	typeof window !== 'undefined' &&
 	'navigator' in window &&
 	Boolean(navigator.clipboard) &&
