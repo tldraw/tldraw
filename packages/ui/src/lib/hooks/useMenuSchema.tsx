@@ -83,7 +83,24 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 				menuSubmenu(
 					'file',
 					'menu.file',
-					menuGroup('print', menuItem(actions['print'], { disabled: emptyPage }))
+					menuGroup('print', menuItem(actions['print'], { disabled: emptyPage })),
+					menuGroup(
+						'export',
+						menuSubmenu(
+							'export-as',
+							'menu.export-as',
+							menuGroup(
+								'export-as-group',
+								menuItem(actions['export-as-svg'], { disabled: emptyPage }),
+								menuItem(actions['export-as-png'], { disabled: emptyPage }),
+								menuItem(actions['export-as-json'], { disabled: emptyPage })
+							),
+							menuGroup(
+								'export-bg',
+								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
+							)
+						)
+					)
 				),
 				menuSubmenu(
 					'edit',
@@ -114,20 +131,6 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 								menuItem(actions['copy-as-svg'], { disabled: emptyPage }),
 								menuItem(actions['copy-as-png'], { disabled: emptyPage || !hasClipboardWrite }),
 								menuItem(actions['copy-as-json'], { disabled: emptyPage })
-							),
-							menuGroup(
-								'export-bg',
-								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
-							)
-						),
-						menuSubmenu(
-							'export-as',
-							'menu.export-as',
-							menuGroup(
-								'export-as-group',
-								menuItem(actions['export-as-svg'], { disabled: emptyPage }),
-								menuItem(actions['export-as-png'], { disabled: emptyPage }),
-								menuItem(actions['export-as-json'], { disabled: emptyPage })
 							),
 							menuGroup(
 								'export-bg',
