@@ -13,11 +13,8 @@ export interface TLEventMap {
 	crash: [{ error: unknown }]
 	event: [TLEventInfo]
 	tick: [number]
-	'change-history': [
-		| { reason: 'undo' | 'redo' | 'push' }
-		| { reason: 'mark'; markId: string }
-		| { reason: 'bail'; markId?: string }
-	]
+	'change-history': [{ reason: 'undo' | 'redo' | 'push' } | { reason: 'bail'; markId?: string }]
+	'mark-history': [{ id: string }]
 	'change-prop': [{ key: string; value: any }]
 	'create-page': [{ id: TLPageId }]
 	'delete-page': [{ id: TLPageId }]

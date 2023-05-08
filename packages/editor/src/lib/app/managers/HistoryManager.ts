@@ -1,7 +1,6 @@
 import { devFreeze } from '@tldraw/tlstore'
 import { atom, transact } from 'signia'
 import { uniqueId } from '../../utils/data'
-import { TLEventMap } from '../types/emit-types'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
@@ -20,7 +19,9 @@ type ExtractData<Fn> = Fn extends CommandFn<infer Data> ? Data : never
 type ExtractArgs<Fn> = Parameters<Extract<Fn, (...args: any[]) => any>>
 
 export class HistoryManager<
-	CTX extends { emit: (name: 'change-history', ...args: TLEventMap['change-history']) => void }
+	CTX extends {
+		emit: (name: 'change-history' | 'mark-history', ...args: any) => void
+	}
 > {
 	_undos = atom<Stack<TLHistoryEntry>>('HistoryManager.undos', stack()) // Updated by each action that includes and undo
 	_redos = atom<Stack<TLHistoryEntry>>('HistoryManager.redos', stack()) // Updated when a user undoes
@@ -297,7 +298,7 @@ export class HistoryManager<
 
 		this._undos.update((undos) => undos.push({ type: 'STOP', id, onUndo, onRedo }))
 
-		this.ctx.emit('change-history', { reason: 'mark', markId: id })
+		this.ctx.emit('mark-history', { id })
 
 		return id
 	}

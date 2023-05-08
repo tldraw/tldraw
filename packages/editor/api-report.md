@@ -2022,17 +2022,12 @@ export interface TLEventMap {
     // (undocumented)
     'change-camera': [TLCamera];
     // (undocumented)
-    'change-history': [
-        {
+    'change-history': [{
         reason: 'bail';
         markId?: string;
     } | {
-        reason: 'mark';
-        markId: string;
-    } | {
         reason: 'push' | 'redo' | 'undo';
-    }
-    ];
+    }];
     // (undocumented)
     'change-page': [{
         toId: TLPageId;
@@ -2108,6 +2103,10 @@ export interface TLEventMap {
     'group-shapes': [{
         ids: TLShapeId[];
         groupId: TLShapeId;
+    }];
+    // (undocumented)
+    'mark-history': [{
+        id: string;
     }];
     // (undocumented)
     'max-shapes': [{
