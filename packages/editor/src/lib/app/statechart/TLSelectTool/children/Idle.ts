@@ -43,7 +43,7 @@ export class Idle extends StateNode {
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		if (this.app.isMenuOpen) return
 
-		const shouldEnterCropMode = this.shouldEnterCropMode(info)
+		const shouldEnterCropMode = this.shouldEnterCropMode(info, true)
 
 		if (info.ctrlKey && !shouldEnterCropMode) {
 			this.parent.transition('brushing', info)
@@ -267,43 +267,71 @@ export class Idle extends StateNode {
 	}
 
 	onKeyUp = (info: TLKeyboardEventInfo) => {
-		if (this.app.isReadOnly) return
-		switch (info.code) {
-			case 'Enter': {
-				const { selectedShapes } = this.app
-
-				if (selectedShapes.every((shape) => shape.type === 'group')) {
-					this.app.setSelectedIds(
-						selectedShapes.flatMap((shape) => this.app.getSortedChildIds(shape.id))
-					)
-					return
+		if (this.app.isReadOnly) {
+			switch (info.code) {
+				case 'Enter': {
+					if (this.shouldStartEditingShape() && this.app.onlySelectedShape) {
+						this.startEditingShape(this.app.onlySelectedShape, {
+							...info,
+							target: 'shape',
+							shape: this.app.onlySelectedShape,
+						})
+						return
+					}
+					break
 				}
+			}
+		} else {
+			switch (info.code) {
+				case 'Enter': {
+					const { selectedShapes } = this.app
 
-				const { onlySelectedShape } = this.app
-				const util = onlySelectedShape && this.app.getShapeUtil(onlySelectedShape)
-				if (util && util.canEdit(onlySelectedShape)) {
-					this.startEditingShape(onlySelectedShape, {
-						...info,
-						target: 'shape',
-						shape: onlySelectedShape,
-					})
-					return
-				}
+					if (selectedShapes.every((shape) => shape.type === 'group')) {
+						this.app.setSelectedIds(
+							selectedShapes.flatMap((shape) => this.app.getSortedChildIds(shape.id))
+						)
+						return
+					}
 
-				if (util && util.canCrop(onlySelectedShape)) {
-					this.parent.transition('crop', info)
+					if (this.shouldStartEditingShape() && this.app.onlySelectedShape) {
+						this.startEditingShape(this.app.onlySelectedShape, {
+							...info,
+							target: 'shape',
+							shape: this.app.onlySelectedShape,
+						})
+						return
+					}
+
+					if (this.shouldEnterCropMode(info, false)) {
+						this.parent.transition('crop', info)
+					}
+					break
 				}
-				break
 			}
 		}
 	}
 
-	private shouldEnterCropMode(info: TLPointerEventInfo): boolean {
+	private shouldStartEditingShape(): boolean {
+		const { onlySelectedShape } = this.app
+		if (!onlySelectedShape) return false
+
+		const util = this.app.getShapeUtil(onlySelectedShape)
+		return util.canEdit(onlySelectedShape)
+	}
+
+	private shouldEnterCropMode(
+		info: TLPointerEventInfo | TLKeyboardEventInfo,
+		withCtrlKey: boolean
+	): boolean {
 		const singleShape = this.app.onlySelectedShape
 		if (!singleShape) return false
 
 		const shapeUtil = this.app.getShapeUtil(singleShape)
-		return shapeUtil.canCrop(singleShape) && info.ctrlKey
+		if (withCtrlKey) {
+			return shapeUtil.canCrop(singleShape) && info.ctrlKey
+		} else {
+			return shapeUtil.canCrop(singleShape)
+		}
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
