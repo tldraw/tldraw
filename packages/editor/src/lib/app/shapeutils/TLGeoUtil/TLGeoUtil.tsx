@@ -11,7 +11,13 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { geoShapeMigrations, geoShapeTypeValidator, TLDashType, TLGeoShape } from '@tldraw/tlschema'
+import {
+	geoShapeMigrations,
+	geoShapeTypeValidator,
+	TLDashType,
+	TLGeoShape,
+	TLGeoShapeProps,
+} from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
@@ -73,10 +79,13 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			if (linesIntersect(A, B, C, D)) return true
 		}
 
-		if (shape.props.geo === 'x-box') {
-			const { w, h } = shape.props
-			if (linesIntersect(A, B, new Vec2d(0, 0), new Vec2d(w, h))) return true
-			if (linesIntersect(A, B, new Vec2d(0, h), new Vec2d(w, 0))) return true
+		switch (shape.props.geo) {
+			case 'x-box': {
+				const { w, h } = shape.props
+				if (linesIntersect(A, B, new Vec2d(0, 0), new Vec2d(w, h))) return true
+				if (linesIntersect(A, B, new Vec2d(0, h), new Vec2d(w, 0))) return true
+				break
+			}
 		}
 
 		return false
@@ -272,6 +281,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					new Vec2d(ox, h - oy),
 				]
 			}
+			case 'check-box':
 			case 'x-box':
 			case 'rectangle': {
 				return [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
@@ -362,7 +372,11 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				default: {
 					const outline = this.outline(shape)
 					const lines =
-						shape.props.geo === 'x-box' ? getXBoxLines(w, h, strokeWidth, props.dash) : undefined
+						shape.props.geo === 'x-box'
+							? getXBoxLines(w, h, strokeWidth, props.dash)
+							: shape.props.geo === 'check-box'
+							? getCheckBoxLines(w, h)
+							: undefined
 
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
 						return (
@@ -452,9 +466,9 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
 				}
 
-				if (shape.props.geo === 'x-box') {
-					const lines = getXBoxLines(w, h, strokeWidth, props.dash)
+				const lines = getLines(shape.props, strokeWidth, props.dash)
 
+				if (lines) {
 					for (const [A, B] of lines) {
 						path += `M${A.x},${A.y}L${B.x},${B.y}`
 					}
@@ -555,10 +569,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			}
 			default: {
 				const outline = this.outline(shape)
-				const lines =
-					shape.props.geo === 'x-box'
-						? getXBoxLines(shape.props.w, shape.props.h, strokeWidth, props.dash)
-						: undefined
+				const lines = getLines(shape.props, strokeWidth, props.dash)
 
 				switch (props.dash) {
 					case 'draw':
@@ -857,6 +868,33 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			}
 		}
 	}
+
+	onDoubleClick = (shape: TLGeoShape) => {
+		// Little easter egg: double-clicking a rectangle / checkbox while
+		// holding alt will toggle between check-box and rectangle
+		if (this.app.inputs.altKey) {
+			switch (shape.props.geo) {
+				case 'rectangle': {
+					return {
+						...shape,
+						props: {
+							geo: 'check-box' as const,
+						},
+					}
+				}
+				case 'check-box': {
+					return {
+						...shape,
+						props: {
+							geo: 'rectangle' as const,
+						},
+					}
+				}
+			}
+		}
+
+		return
+	}
 }
 
 function getLabelSize(app: App, shape: TLGeoShape) {
@@ -907,6 +945,20 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 	}
 }
 
+function getLines(props: TLGeoShapeProps, sw: number, dash: TLDashType) {
+	switch (props.geo) {
+		case 'x-box': {
+			return getXBoxLines(props.w, props.h, sw, dash)
+		}
+		case 'check-box': {
+			return getCheckBoxLines(props.w, props.h)
+		}
+		default: {
+			return undefined
+		}
+	}
+}
+
 function getXBoxLines(w: number, h: number, sw: number, dash: TLDashType) {
 	const inset = dash === 'draw' ? 0.62 : 0
 
@@ -922,6 +974,16 @@ function getXBoxLines(w: number, h: number, sw: number, dash: TLDashType) {
 	return [
 		[new Vec2d(sw * inset, sw * inset), new Vec2d(w - sw * inset, h - sw * inset)],
 		[new Vec2d(sw * inset, h - sw * inset), new Vec2d(w - sw * inset, sw * inset)],
+	]
+}
+
+function getCheckBoxLines(w: number, h: number) {
+	const size = Math.min(w, h) * 0.82
+	const ox = (w - size) / 2
+	const oy = (h - size) / 2
+	return [
+		[new Vec2d(ox + size * 0.25, oy + size * 0.52), new Vec2d(ox + size * 0.45, oy + size * 0.82)],
+		[new Vec2d(ox + size * 0.45, oy + size * 0.82), new Vec2d(ox + size * 0.82, oy + size * 0.22)],
 	]
 }
 

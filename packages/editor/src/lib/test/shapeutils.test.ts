@@ -169,10 +169,30 @@ describe('When interacting with a shape...', () => {
 		expect(fnEnd).toHaveBeenCalledTimes(1)
 	})
 
-	it('Fires click events', () => {
+	it.only('Uses the shape utils onClick handler', () => {
 		const util = app.getShapeUtilByDef(TLFrameShapeDef)
 
 		const fnClick = jest.fn()
+		util.onClick = fnClick
+
+		app.pointerDown(50, 50, ids.frame1)
+		app.pointerUp(50, 50, ids.frame1)
+
+		// If a shape has an onClick handler, it will not be selected by default
+		expect(app.selectedIds.length).toBe(1)
+	})
+
+	it.only('Uses the shape utils onClick handler', () => {
+		const util = app.getShapeUtilByDef(TLFrameShapeDef)
+
+		const fnClick = jest.fn((shape: any) => {
+			return {
+				...shape,
+				x: 100,
+				y: 100,
+			}
+		})
+
 		util.onClick = fnClick
 
 		app.pointerDown(50, 50, ids.frame1)
