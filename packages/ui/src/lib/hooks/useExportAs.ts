@@ -34,14 +34,12 @@ export function useExportAs() {
 
 			if (!svg) throw new Error('Could not construct SVG.')
 
-			let name = 'shapes'
+			let name = app.currentPage.name
 
 			if (ids.length === 1) {
 				const first = app.getShapeById(ids[0])!
 				if (first.type === 'frame') {
 					name = (first as TLFrameShape).props.name ?? 'frame'
-				} else {
-					name = first.id.replace(/:/, '_')
 				}
 			}
 
