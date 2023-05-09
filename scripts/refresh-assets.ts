@@ -314,7 +314,7 @@ async function writeUrlBasedAssetDeclarationFile() {
 	`
 
 	await writeCodeFile(
-		'scripts/refresh-assets.js',
+		'scripts/refresh-assets.ts',
 		'javascript',
 		assetDeclarationFilePath,
 		assetDeclarationFile
@@ -356,7 +356,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 
 	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
 	await writeCodeFile(
-		'scripts/refresh-assets.js',
+		'scripts/refresh-assets.ts',
 		'javascript',
 		assetDeclarationFilePath,
 		imports + declarations
@@ -386,7 +386,7 @@ async function writeAssetDeclarationDTSFile(fileName: string, functionName: stri
 	`
 
 	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', `${fileName}.d.ts`)
-	await writeCodeFile('scripts/refresh-assets.js', 'typescript', assetDeclarationFilePath, dts)
+	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
 // --- RUN
