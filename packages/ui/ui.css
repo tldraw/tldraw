@@ -1,11 +1,7 @@
-/* -------------------- UI Layers ------------------- */
-.rs-container {
-	--sab: env(safe-area-inset-bottom);
+.tl-container {
 	--layer-panels: 300;
 	--layer-menus: 400;
-	--layer-main-menu: 450;
 	--layer-overlays: 500;
-	--layer-dialogs: 600;
 	--layer-toasts: 650;
 }
 
@@ -25,6 +21,7 @@
 	user-select: none;
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
+	--sab: env(safe-area-inset-bottom);
 }
 
 .tlui-layout__top {
@@ -1937,6 +1934,14 @@
 }
 
 /* Embed Dialog */
+
+.tlui-embed__spacer {
+	flex-grow: 2;
+	min-height: 0px;
+	margin-left: calc(-1 * var(--space-4));
+	margin-top: calc(-1 * var(--space-4));
+	pointer-events: none;
+}
 
 .tlui-embed-dialog__list {
 	display: flex;

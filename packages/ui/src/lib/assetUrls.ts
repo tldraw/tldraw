@@ -8,7 +8,7 @@ export type UiAssetUrls = EditorAssetUrls & {
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
 }
 
-export const defaultUiAssetUrls: UiAssetUrls = {
+export let defaultUiAssetUrls: UiAssetUrls = {
 	...defaultEditorAssetUrls,
 	icons: Object.fromEntries(
 		TLUiIconTypes.map((name) => [name, `/icons/icon/${name}.svg`])
@@ -19,4 +19,9 @@ export const defaultUiAssetUrls: UiAssetUrls = {
 	embedIcons: Object.fromEntries(
 		EMBED_DEFINITIONS.map((def) => [def.type, `/embed-icons/${def.type}.png`])
 	) as Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>,
+}
+
+/** @internal */
+export function setDefaultUiAssetUrls(urls: UiAssetUrls) {
+	defaultUiAssetUrls = urls
 }

@@ -2,7 +2,7 @@ name: Bug Report
 description: File a bug report
 title: '[Bug]: '
 labels: ['bug', 'triage']
-assignees:
+assignees: []
 body:
   - type: markdown
     attributes:
@@ -13,8 +13,6 @@ body:
     attributes:
       label: What happened?
       description: Also tell us, what did you expect to happen?
-      placeholder: ''
-      value: ''
     validations:
       required: true
   - type: textarea
@@ -22,8 +20,6 @@ body:
     attributes:
       label: How can we reproduce the bug?
       description: If you can make the bug happen again, please share the steps involved.
-      placeholder: ''
-      value: ''
     validations:
       required: false
   - type: dropdown

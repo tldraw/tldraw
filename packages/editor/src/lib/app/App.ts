@@ -65,6 +65,7 @@ import { TLShapeDef } from '../config/TLShapeDefinition'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
+	COARSE_DRAG_DISTANCE,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -3631,7 +3632,8 @@ export class App extends EventEmitter {
 						if (
 							!inputs.isDragging &&
 							inputs.isPointing &&
-							originPagePoint.dist(currentPagePoint) > DRAG_DISTANCE / this.zoomLevel
+							originPagePoint.dist(currentPagePoint) >
+								(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
 						) {
 							inputs.isDragging = true
 						}
@@ -3718,7 +3720,8 @@ export class App extends EventEmitter {
 							if (
 								!inputs.isDragging &&
 								inputs.isPointing &&
-								originPagePoint.dist(currentPagePoint) > DRAG_DISTANCE / this.zoomLevel
+								originPagePoint.dist(currentPagePoint) >
+									(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
 							) {
 								inputs.isDragging = true
 							}
@@ -5428,7 +5431,7 @@ export class App extends EventEmitter {
 		// Get the styles from the container. We'll use these to pull out colors etc.
 		// NOTE: We can force force a light theme here becasue we don't want export
 		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `rs-container rs-theme__${darkMode ? 'dark' : 'light'}`
+		fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
 		document.body.appendChild(fakeContainerEl)
 
 		const containerStyle = getComputedStyle(fakeContainerEl)
@@ -5554,7 +5557,7 @@ export class App extends EventEmitter {
 					} else {
 						// For some reason these styles aren't present in the fake element
 						// so we need to get them from the real element
-						font = realContainerStyle.getPropertyValue(`--rs-font-${shape.props.font}`)
+						font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
 						fontsUsedInExport.set(shape.props.font, font)
 					}
 				}

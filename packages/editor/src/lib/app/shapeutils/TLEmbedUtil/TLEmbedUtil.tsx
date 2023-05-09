@@ -110,7 +110,7 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
 			if (idFromGistUrl) {
 				return (
-					<HTMLContainer className="rs-embed-container" id={shape.id}>
+					<HTMLContainer className="tl-embed-container" id={shape.id}>
 						<Gist
 							id={idFromGistUrl}
 							width={toDomPrecision(w)!}
@@ -129,10 +129,10 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 		})
 
 		return (
-			<HTMLContainer className="rs-embed-container" id={shape.id}>
+			<HTMLContainer className="tl-embed-container" id={shape.id}>
 				{embedInfo?.definition ? (
 					<iframe
-						className={`rs-embed rs-embed-${shape.id}`}
+						className={`tl-embed tl-embed-${shape.id}`}
 						sandbox={sandbox}
 						src={embedInfo.embedUrl}
 						width={toDomPrecision(w)}
@@ -197,7 +197,7 @@ function Gist({
 	return (
 		<iframe
 			ref={rIframe}
-			className="rs-embed"
+			className="tl-embed"
 			draggable={false}
 			width={toDomPrecision(width)}
 			height={toDomPrecision(height)}

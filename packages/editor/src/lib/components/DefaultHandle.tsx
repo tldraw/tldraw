@@ -5,9 +5,9 @@ export type TLHandleComponent = (props: { shapeId: TLShapeId; handle: TLHandle }
 
 export const DefaultHandle: TLHandleComponent = ({ handle }) => {
 	return (
-		<g className={classNames('rs-handle', { 'rs-handle-hint': handle.type !== 'vertex' })}>
-			<circle className="rs-handle-bg" />
-			<circle className="rs-handle-fg" />
+		<g className={classNames('tl-handle', { 'tl-handle__hint': handle.type !== 'vertex' })}>
+			<circle className="tl-handle__bg" />
+			<circle className="tl-handle__fg" />
 		</g>
 	)
 }

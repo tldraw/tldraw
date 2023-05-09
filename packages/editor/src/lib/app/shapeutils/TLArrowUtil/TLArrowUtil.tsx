@@ -576,7 +576,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			handlePath =
 				shape.props.start.type === 'binding' || shape.props.end.type === 'binding' ? (
 					<path
-						className="rs-arrow-hint"
+						className="tl-arrow-hint"
 						d={info.isStraight ? getStraightArrowHandlePath(info) : getCurvedArrowHandlePath(info)}
 						strokeDasharray={strokeDasharray}
 						strokeDashoffset={strokeDashoffset}
@@ -699,7 +699,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}
 					</g>
-					<path d={path} className="rs-hitarea-stroke" />
+					<path d={path} className="tl-hitarea-stroke" />
 				</SVGContainer>
 				<ArrowTextLabel
 					id={shape.id}
@@ -918,7 +918,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		const maskId = (shape.id + '_clip').replace(':', '_')
 
 		// If we have any arrowheads, then mask the arrowheads
-		if (as || ae) {
+		if (as || ae || labelSize) {
 			// Create mask for arrowheads
 
 			// Create defs

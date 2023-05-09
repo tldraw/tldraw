@@ -1,4 +1,4 @@
-.rs-container {
+.tl-container {
 	width: 100%;
 	height: 100%;
 	font-size: 12px;
@@ -23,16 +23,16 @@
 	--layer-grid: 150;
 	--layer-canvas: 200;
 	/* Misc */
-	--rs-zoom: 1;
-	--rs-cursor: default;
-	--rs-scale: calc(1 / var(--rs-zoom));
-	--rs-font-draw: 'tldraw_draw', sans-serif;
-	--rs-font-sans: 'tldraw_sans', sans-serif;
-	--rs-font-serif: 'tldraw_serif', serif;
-	--rs-font-mono: 'tldraw_mono', monospace;
-	--a: calc(min(0.5, 1 / var(--rs-zoom)) * 2px);
-	--b: calc(min(0.5, 1 / var(--rs-zoom)) * -2px);
-	--rs-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
+	--tl-zoom: 1;
+	--tl-cursor: default;
+	--tl-scale: calc(1 / var(--tl-zoom));
+	--tl-font-draw: 'tldraw_draw', sans-serif;
+	--tl-font-sans: 'tldraw_sans', sans-serif;
+	--tl-font-serif: 'tldraw_serif', serif;
+	--tl-font-mono: 'tldraw_mono', monospace;
+	--a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
+	--b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
+	--tl-text-outline: 0 var(--b) 0 var(--color-background), 0 var(--a) 0 var(--color-background),
 		var(--b) var(--b) 0 var(--color-background), var(--a) var(--b) 0 var(--color-background),
 		var(--a) var(--a) 0 var(--color-background), var(--b) var(--a) 0 var(--color-background);
 	/* Own properties */
@@ -44,7 +44,7 @@
 	overflow: hidden;
 }
 
-.rs-theme__light {
+.tl-theme__light {
 	--color-accent: #e64a4a;
 	--color-background: rgb(249, 250, 251);
 	--color-brush-fill: rgba(144, 144, 144, 0.102);
@@ -125,7 +125,7 @@
 		0px 2px 16px rgba(0, 0, 0, 0.06), inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
-.rs-theme__dark {
+.tl-theme__dark {
 	--color-accent: #e64a4a;
 	--color-background: #212529;
 	--color-brush-fill: rgba(180, 180, 180, 0.05);
@@ -205,19 +205,15 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
-.rs-counter-scaled {
-	transform: scale(var(--rs-scale));
+.tl-counter-scaled {
+	transform: scale(var(--tl-scale));
 	transform-origin: top left;
-	width: calc(100% * var(--rs-zoom));
-	height: calc(100% * var(--rs-zoom));
+	width: calc(100% * var(--tl-zoom));
+	height: calc(100% * var(--tl-zoom));
 }
 
-.rs-pointer-events {
-	pointer-events: all;
-}
-
-.rs-container,
-.rs-container * {
+.tl-container,
+.tl-container * {
 	-webkit-touch-callout: none;
 	-webkit-tap-highlight-color: transparent;
 	scrollbar-highlight-color: transparent;
@@ -226,7 +222,7 @@
 	outline: none;
 }
 
-.rs-container a {
+.tl-container a {
 	-webkit-touch-callout: initial;
 }
 
@@ -236,52 +232,11 @@ input,
 	-webkit-user-select: text;
 }
 
-.rs-background {
-	position: absolute;
-	inset: 0px;
-	background-color: var(--color-background);
-}
-
-.rs-font-preload {
-	height: 1px;
-	width: 1px;
-	opacity: 0;
-	position: absolute;
-	top: -1000px;
-	left: -1000px;
-}
-
-/* Portals (menus, modals, popovers, etc) */
-
-.rs-panels {
-	z-index: var(--layer-panels);
-}
-
-.rs-portal {
-	z-index: var(--layer-portals);
-}
-
-.rs-overlay {
-	z-index: var(--layer-overlays);
-}
-
-.rs-modal {
-	z-index: var(--layer-dialogs);
-}
-
-.tlui-spacer {
-	flex-grow: 2;
-	min-height: 0px;
-	margin-left: calc(-1 * var(--space-4));
-	margin-top: calc(-1 * var(--space-4));
-	pointer-events: none;
-}
-
 /* -------------------------------------------------- */
 /*                       Canvas                       */
 /* -------------------------------------------------- */
 
-.rs-canvas {
+.tl-canvas {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -290,11 +245,48 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
-	cursor: var(--rs-cursor);
+	cursor: var(--tl-cursor);
 	overflow: clip;
 	content-visibility: auto;
 	touch-action: none;
 	contain: strict;
+}
+
+.tl-shapes {
+	position: relative;
+	z-index: 1;
+}
+
+.tl-overlays {
+	position: relative;
+	z-index: 2;
+}
+
+.tl-svg-context {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 1px;
+	width: 1px;
+	pointer-events: none;
+}
+
+.tl-svg-origin-container {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 1px;
+	height: 1px;
+	overflow: visible;
+	pointer-events: none;
+}
+
+/* ------------------- Background ------------------- */
+
+.tl-background {
+	position: absolute;
+	inset: 0px;
+	background-color: var(--color-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -316,7 +308,7 @@ input,
 
 /* --------------------- Layers --------------------- */
 
-.rs-html-layer {
+.tl-html-layer {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -326,32 +318,20 @@ input,
 	z-index: 3;
 }
 
-.rs-svg-layer {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	height: 100%;
-	overflow: clip;
-	pointer-events: none;
-	contain: strict;
-	z-index: 4;
-}
-
 /* ---------------------- Brush --------------------- */
 
-.rs-brush {
-	stroke-width: calc(var(--rs-scale) * 1px);
+.tl-brush {
+	stroke-width: calc(var(--tl-scale) * 1px);
 }
 
-.rs-brush__default {
+.tl-brush__default {
 	stroke: var(--color-brush-stroke);
 	fill: var(--color-brush-fill);
 }
 
 /* -------------------- Scribble -------------------- */
 
-.rs-scribble {
+.tl-scribble {
 	stroke-linejoin: round;
 	stroke-linecap: round;
 	pointer-events: none;
@@ -359,41 +339,41 @@ input,
 
 /* ---------------------- Shape --------------------- */
 
-.rs-shape {
+.tl-shape {
 	position: absolute;
 	pointer-events: none;
 	overflow: visible;
 	transform-origin: top left;
 }
 
-.rs-shape__culled {
+.tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
 }
 
-.rs-hitarea-stroke {
+.tl-hitarea-stroke {
 	fill: none;
 	stroke: transparent;
 	pointer-events: stroke;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
-.rs-hitarea-fill {
+.tl-hitarea-fill {
 	fill: var(--color-background);
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
-.rs-hitarea-fill-solid {
+.tl-hitarea-fill-solid {
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--rs-scale)));
+	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 /* ---------------- Shape Containers ---------------- */
 
-.rs-svg-container {
+.tl-svg-container {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -406,7 +386,7 @@ input,
 	overflow: visible;
 }
 
-.rs-html-container {
+.tl-html-container {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -422,14 +402,14 @@ input,
 
 /* -------------------- Indicator ------------------- */
 
-.rs-shape-indicator {
+.tl-shape-indicator {
 	transform-origin: top left;
 	fill: none;
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.rs-shape-indicator__hinting {
-	stroke-width: calc(2.5px * var(--rs-scale));
+.tl-shape-indicator__hinting {
+	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -447,128 +427,128 @@ input,
 	pointer-events: none;
 }
 
-.tlui-selection__fg-outline {
+.tlui-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.rs-corner-handle {
+.tl-corner-handle {
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.rs-text-handle {
+.tl-text-handle {
 	pointer-events: none;
 	fill: var(--color-selection-stroke);
 }
 
-.rs-corner-crop-handle {
+.tl-corner-crop-handle {
 	pointer-events: none;
 	fill: none;
 	stroke: var(--color-selection-stroke);
 }
 
-.rs-corner-crop-edge-handle {
+.tl-corner-crop-edge-handle {
 	pointer-events: none;
 	fill: none;
 	stroke: var(--color-selection-stroke);
 }
 
-.rs-rotate-handle {
+.tl-rotate-handle {
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 	pointer-events: all;
 }
 
-.rs-mobile-rotate__bg {
+.tl-mobile-rotate__bg {
 	pointer-events: all;
-	r: calc(max(calc(14px * var(--rs-scale)), 20px / max(1, var(--rs-zoom))));
+	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
 	cursor: grab;
 }
 
-.rs-mobile-rotate__fg {
+.tl-mobile-rotate__fg {
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
 	fill: var(--color-background);
-	stroke-width: calc(1.5px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.rs-transparent {
+.tl-transparent {
 	fill: transparent;
 	stroke: transparent;
 }
 
 /* --------------------- Handles -------------------- */
 
-.rs-handle {
+.tl-handle {
 	pointer-events: all;
 }
 
-.rs-handle-bg {
+.tl-handle__bg {
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
 	cursor: grab;
-	r: calc(12px / var(--rs-zoom));
+	r: calc(12px / var(--tl-zoom));
 }
 
-.rs-handle-fg {
+.tl-handle__fg {
 	fill: var(--color-background);
 	stroke: var(--color-selection-stroke);
-	stroke-width: calc(1.5px * var(--rs-scale));
-	r: calc(4px * var(--rs-scale));
+	stroke-width: calc(1.5px * var(--tl-scale));
+	r: calc(4px * var(--tl-scale));
 	pointer-events: none;
 }
 
-.rs-handle-bg:active {
+.tl-handle__bg:active {
 	fill: none;
 }
 
-.rs-handle-bg:hover {
+.tl-handle__bg:hover {
 	cursor: grab;
 	fill: var(--color-selection-fill);
 }
 
-.rs-handle-hint {
+.tl-handle__hint {
 	opacity: 0;
 }
 
-.rs-handle-hint:hover {
+.tl-handle__hint:hover {
 	opacity: 1;
 }
 
 @media (pointer: coarse) {
-	.rs-handle-bg:active {
+	.tl-handle__bg:active {
 		fill: var(--color-selection-fill);
 	}
 
-	.rs-handle-hint {
+	.tl-handle__hint {
 		opacity: 1;
 	}
 
-	.rs-handle-hint > .rs-handle-fg {
-		r: calc(3px * var(--rs-scale));
+	.tl-handle__hint > .tl-handle__fg {
+		r: calc(3px * var(--tl-scale));
 	}
 }
 
 /* ------------------ Bounds Detail ----------------- */
 
-.rs-image,
-.rs-video {
+.tl-image,
+.tl-video {
 	object-fit: cover;
 	background-size: cover;
 	width: 100%;
 	height: 100%;
 }
 
-.rs-image-container,
-.rs-video-container,
-.rs-embed-container {
+.tl-image-container,
+.tl-video-container,
+.tl-embed-container {
 	width: 100%;
 	height: 100%;
 	pointer-events: all;
@@ -579,8 +559,8 @@ input,
 	align-items: center;
 }
 
-.rs-image__meda-tag {
-	--scale: calc(min(2, var(--rs-scale)));
+.tl-image__tg {
+	--scale: calc(min(2, var(--tl-scale)));
 	position: absolute;
 	top: calc(var(--scale) * 8px);
 	right: calc(var(--scale) * 8px);
@@ -592,27 +572,25 @@ input,
 	border-radius: 4px;
 }
 
-/* --------------------- Assets --------------------- */
-
-.rs-asset-loading {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: var(--color-muted);
-	z-index: 1;
-	pointer-events: all;
-}
-
 /* --------------------- Nametag -------------------- */
 
+.tl-collaborator-cursor {
+	position: absolute;
+}
+
 /* Rounded corners */
-.rs-nametag {
+.tl-nametag {
+	position: absolute;
+	top: 16px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	max-width: 120px;
 	color: var(--color-selected-contrast);
 	white-space: nowrap;
 	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	border-radius: 10px;
 	padding: 2px 6px;
 	font-size: 12px;
@@ -629,7 +607,7 @@ input,
 	}
 }
 
-.rs-spinner::after {
+.tl-spinner::after {
 	content: '';
 	box-sizing: border-box;
 	position: absolute;
@@ -648,20 +626,20 @@ input,
 
 /* -------------------- IconShape ------------------- */
 
-.rs-iconshape__icon {
+.tl-iconshape__icon {
 	pointer-events: all;
 	width: 100%;
 	height: 100%;
 }
 
-.rs-icon-preview {
+.tl-icon-preview {
 	width: 14px;
 	height: 14px;
 }
 
 /* ------------------- Text Shape ------------------- */
 
-.rs-text-shape__wrapper {
+.tl-text-shape__wrapper {
 	position: relative;
 	font-weight: normal;
 	min-width: 1px;
@@ -674,42 +652,42 @@ input,
 	pointer-events: all;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 }
 
-.rs-text-shape__wrapper[data-align='start'] {
+.tl-text-shape__wrapper[data-align='start'] {
 	text-align: left;
 }
 
-.rs-text-shape__wrapper[data-align='middle'] {
+.tl-text-shape__wrapper[data-align='middle'] {
 	text-align: center;
 }
 
-.rs-text-shape__wrapper[data-align='end'] {
+.tl-text-shape__wrapper[data-align='end'] {
 	text-align: right;
 }
 
-.rs-text-shape__wrapper[data-font='draw'] {
-	font-family: var(--rs-font-draw);
+.tl-text-shape__wrapper[data-font='draw'] {
+	font-family: var(--tl-font-draw);
 }
 
-.rs-text-shape__wrapper[data-font='sans'] {
-	font-family: var(--rs-font-sans);
+.tl-text-shape__wrapper[data-font='sans'] {
+	font-family: var(--tl-font-sans);
 }
 
-.rs-text-shape__wrapper[data-font='serif'] {
-	font-family: var(--rs-font-serif);
+.tl-text-shape__wrapper[data-font='serif'] {
+	font-family: var(--tl-font-serif);
 }
 
-.rs-text-shape__wrapper[data-font='mono'] {
-	font-family: var(--rs-font-mono);
+.tl-text-shape__wrapper[data-font='mono'] {
+	font-family: var(--tl-font-mono);
 }
 
-.rs-text-shape__wrapper[data-isediting='true'] .rs-text-content {
+.tl-text-shape__wrapper[data-isediting='true'] .tl-text-content {
 	opacity: 0;
 }
 
-.rs-text {
+.tl-text {
 	/* remove overflow from textarea on windows */
 	margin: 0px;
 	padding: 0px;
@@ -742,7 +720,7 @@ input,
 	word-spacing: 0px;
 }
 
-.rs-text-measure {
+.tl-text-measure {
 	position: absolute;
 	z-index: 999999;
 	top: -9999px;
@@ -761,14 +739,14 @@ input,
 	-webkit-user-select: none;
 }
 
-.rs-text-edit-container {
+.tl-text-edit-container {
 	position: relative;
 	width: 100%;
 	height: 100%;
 }
 
-.rs-text-input,
-.rs-text-content {
+.tl-text-input,
+.tl-text-content {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -779,18 +757,18 @@ input,
 	overflow: visible;
 }
 
-.rs-text-content {
+.tl-text-content {
 	pointer-events: none;
 }
 
-.rs-text-input {
+.tl-text-input {
 	resize: none;
 	user-select: all;
 	-webkit-user-select: text;
 	overflow: hidden;
 }
 
-.rs-text-input::selection {
+.tl-text-input::selection {
 	background: var(--color-selected);
 	color: var(--color-selected-contrast);
 	text-shadow: none;
@@ -798,29 +776,29 @@ input,
 
 /* ------------------- Snap Lines ------------------- */
 
-.rs-snap-line {
+.tl-snap-line {
 	stroke: var(--color-accent);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
-.rs-snap-point {
+.tl-snap-point {
 	stroke: var(--color-accent);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	fill: none;
 }
 
 /* -------------------- Groups ------------------ */
 
-.rs-group {
+.tl-group {
 	stroke: var(--color-text);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 	opacity: 0.5;
 }
 
 /* ------------------- Bookmark Shape ------------------- */
 
-.rs-bookmark__container {
+.tl-bookmark__container {
 	width: 100%;
 	height: 100%;
 	position: relative;
@@ -832,7 +810,7 @@ input,
 	overflow: hidden;
 }
 
-.rs-bookmark__image_container {
+.tl-bookmark__image_container {
 	flex: 1;
 	overflow: hidden;
 	border-top-left-radius: var(--radius-1);
@@ -844,51 +822,51 @@ input,
 	align-items: flex-start;
 }
 
-.rs-bookmark__image_container > .rs-hyperlink-button::after {
+.tl-bookmark__image_container > .tl-hyperlink-button::after {
 	background-color: var(--color-panel);
 }
 
-.rs-bookmark__placeholder {
+.tl-bookmark__placeholder {
 	width: 100%;
 	height: 100%;
 	background-color: var(--color-muted-2);
 	border-bottom: 1px solid var(--color-muted-2);
 }
 
-.rs-bookmark__image {
+.tl-bookmark__image {
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 	object-position: center;
 }
 
-.rs-bookmark__copy_container {
+.tl-bookmark__copy_container {
 	background-color: var(--color-muted);
 	padding: var(--space-4);
 	pointer-events: all;
 }
 
-.rs-bookmark__heading,
-.rs-bookmark__description,
-.rs-bookmark__link {
+.tl-bookmark__heading,
+.tl-bookmark__description,
+.tl-bookmark__link {
 	margin: 0;
 	width: 100%;
 	font-family: inherit;
 }
 
-.rs-bookmark__heading {
+.tl-bookmark__heading {
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
 	margin: 4px 0;
 }
 
-.rs-bookmark__description {
+.tl-bookmark__description {
 	font-size: 12px;
 	padding-bottom: var(--space-4);
 }
 
-.rs-bookmark__link {
+.tl-bookmark__link {
 	font-size: 14px;
 	pointer-events: all;
 	z-index: 999;
@@ -901,13 +879,13 @@ input,
 	color: var(--color-text-2);
 }
 
-.rs-bookmark__link:hover {
+.tl-bookmark__link:hover {
 	color: var(--color-selected);
 }
 
 /* ---------------- Hyperlink Button ---------------- */
 
-.rs-hyperlink-button {
+.tl-hyperlink-button {
 	background: none;
 	margin: 0px;
 	position: absolute;
@@ -929,7 +907,7 @@ input,
 	pointer-events: all;
 }
 
-.rs-hyperlink-button::after {
+.tl-hyperlink-button::after {
 	content: '';
 	z-index: -1;
 	position: absolute;
@@ -943,45 +921,49 @@ input,
 	pointer-events: none;
 }
 
-.rs-hyperlink-button:hover {
+.tl-hyperlink-button:hover {
 	color: var(--color-selected);
 }
 
-.rs-hyperlink-button:focus-visible {
+.tl-hyperlink-button:focus-visible {
 	color: var(--color-selected);
 }
 
-.rs-hyperlink-button__icon {
+.tl-hyperlink-button__icon {
 	width: 18px;
 	height: 18px;
 	background-color: currentColor;
 	pointer-events: none;
 }
 
+.tl-hyperlink-button__hidden {
+	display: none;
+}
+
 /* ---------------- Geo shape ---------------- */
 
-.rs-text-label {
+.tl-text-label {
 	width: 100%;
 	height: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 	overflow: hidden;
 	line-height: inherit;
 }
 
-.rs-text-label[data-isediting='true'] .rs-text-content {
+.tl-text-label[data-isediting='true'] .tl-text-content {
 	opacity: 0;
 }
 
-.rs-text-label[data-hastext='false'][data-isediting='false'] > .rs-text-label__inner {
+.tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
 	width: 40px;
 	height: 40px;
 }
 
-.rs-text-label__inner {
+.tl-text-label__inner {
 	position: relative;
 	width: fit-content;
 	height: fit-content;
@@ -992,7 +974,7 @@ input,
 	min-height: auto;
 }
 
-.rs-text-label__inner > .rs-text {
+.tl-text-label__inner > .tl-text {
 	position: relative;
 	top: 0px;
 	left: 0px;
@@ -1004,7 +986,7 @@ input,
 	z-index: 3;
 }
 
-.rs-text-label__inner > .rs-text-input {
+.tl-text-label__inner > .tl-text-input {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -1014,61 +996,61 @@ input,
 	z-index: 4;
 }
 
-.rs-text-label[data-textwrap='true'] > .rs-text-label__inner {
+.tl-text-label[data-textwrap='true'] > .tl-text-label__inner {
 	max-width: 100%;
 }
 
-.rs-text-label[data-isediting='true'] {
+.tl-text-label[data-isediting='true'] {
 	background-color: none;
 	min-height: auto;
 }
 
-.rs-text-label[data-isediting='true'] p {
+.tl-text-label[data-isediting='true'] p {
 	opacity: 0;
 }
 
-.rs-text-label[data-align='start'] {
+.tl-text-label[data-align='start'] {
 	text-align: left;
 }
 
-.rs-text-label[data-align='middle'] {
+.tl-text-label[data-align='middle'] {
 	text-align: center;
 }
 
-.rs-text-label[data-align='end'] {
+.tl-text-label[data-align='end'] {
 	text-align: right;
 }
 
-.rs-arrow-hint {
+.tl-arrow-hint {
 	stroke: var(--color-text-1);
 	fill: none;
 	stroke-linecap: round;
 	overflow: visible;
 }
 
-.rs-arrow-label[data-font='draw'],
-.rs-text-label[data-font='draw'] {
-	font-family: var(--rs-font-draw);
+.tl-arrow-label[data-font='draw'],
+.tl-text-label[data-font='draw'] {
+	font-family: var(--tl-font-draw);
 }
 
-.rs-arrow-label[data-font='sans'],
-.rs-text-label[data-font='sans'] {
-	font-family: var(--rs-font-sans);
+.tl-arrow-label[data-font='sans'],
+.tl-text-label[data-font='sans'] {
+	font-family: var(--tl-font-sans);
 }
 
-.rs-arrow-label[data-font='serif'],
-.rs-text-label[data-font='serif'] {
-	font-family: var(--rs-font-serif);
+.tl-arrow-label[data-font='serif'],
+.tl-text-label[data-font='serif'] {
+	font-family: var(--tl-font-serif);
 }
 
-.rs-arrow-label[data-font='mono'],
-.rs-text-label[data-font='mono'] {
-	font-family: var(--rs-font-mono);
+.tl-arrow-label[data-font='mono'],
+.tl-text-label[data-font='mono'] {
+	font-family: var(--tl-font-mono);
 }
 
 /* ------------------- Arrow Shape ------------------ */
 
-.rs-arrow-label {
+.tl-arrow-label {
 	position: absolute;
 	top: -1px;
 	left: -1px;
@@ -1079,19 +1061,19 @@ input,
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
-	text-shadow: var(--rs-text-outline);
+	text-shadow: var(--tl-text-outline);
 }
 
-.rs-arrow-label[data-isediting='true'] p {
+.tl-arrow-label[data-isediting='true'] p {
 	opacity: 0;
 }
 
-.rs-arrow-label[data-isediting='true'] > .rs-arrow-label__inner {
+.tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
 	background-color: var(--color-background);
-	border: calc(var(--rs-scale) * 1.5px) solid var(--color-selected);
+	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
-.rs-arrow-label__inner {
+.tl-arrow-label__inner {
 	border-radius: var(--radius-1);
 	box-sizing: content-box;
 	position: relative;
@@ -1103,8 +1085,8 @@ input,
 	align-items: center;
 }
 
-.rs-arrow-label p,
-.rs-arrow-label textarea {
+.tl-arrow-label p,
+.tl-arrow-label textarea {
 	margin: 0px;
 	padding: 0px;
 	border: 0px;
@@ -1136,7 +1118,7 @@ input,
 	word-spacing: 0px;
 }
 
-.rs-arrow-label p {
+.tl-arrow-label p {
 	position: relative;
 	height: max-content;
 	z-index: 2;
@@ -1144,7 +1126,7 @@ input,
 	overflow: visible;
 }
 
-.rs-arrow-label textarea {
+.tl-arrow-label textarea {
 	z-index: 3;
 	margin: 0px;
 	padding: 4px;
@@ -1163,7 +1145,7 @@ input,
 
 /* -------------------- NoteShape ------------------- */
 
-.rs-note__container {
+.tl-note__container {
 	position: relative;
 	width: 100%;
 	height: 100%;
@@ -1175,11 +1157,11 @@ input,
 	border-width: 1px;
 }
 
-.rs-note__container .rs-text-label {
+.tl-note__container .tl-text-label {
 	text-shadow: none;
 }
 
-.rs-note__scrim {
+.tl-note__scrim {
 	position: absolute;
 	z-index: 1;
 	top: 0px;
@@ -1190,7 +1172,7 @@ input,
 	opacity: 0.28;
 }
 
-.rs-loading {
+.tl-loading {
 	height: 100%;
 	width: 100%;
 	display: flex;
@@ -1216,18 +1198,18 @@ input,
 
 /* -------------------- FrameShape ------------------- */
 
-.rs-frame__body {
+.tl-frame__body {
 	fill: var(--palette-solid);
 	stroke: var(--color-text);
-	stroke-width: calc(1px * var(--rs-scale));
+	stroke-width: calc(1px * var(--tl-scale));
 }
 
-.rs-frame__background {
+.tl-frame__background {
 	border-style: solid;
-	border-width: calc(1px * var(--rs-scale));
+	border-width: calc(1px * var(--tl-scale));
 	border-color: currentColor;
 	background-color: var(--palette-solid);
-	border-radius: calc(var(--radius-1) * var(--rs-scale));
+	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	width: 100%;
 	height: 100%;
 	z-index: 2;
@@ -1235,22 +1217,22 @@ input,
 	pointer-events: none;
 }
 
-.rs-frame__hitarea {
+.tl-frame__hitarea {
 	border-style: solid;
-	border-width: calc(8px * var(--rs-scale));
+	border-width: calc(8px * var(--tl-scale));
 	border-color: transparent;
 	background: none;
 	pointer-events: stroke;
 	box-sizing: border-box;
-	top: calc(-8px * var(--rs-scale));
-	left: calc(-8px * var(--rs-scale));
-	width: calc(100% + calc(16px * var(--rs-scale)));
-	height: calc(100% + calc(16px * var(--rs-scale)));
+	top: calc(-8px * var(--tl-scale));
+	left: calc(-8px * var(--tl-scale));
+	width: calc(100% + calc(16px * var(--tl-scale)));
+	height: calc(100% + calc(16px * var(--tl-scale)));
 	z-index: 1;
 	position: absolute;
 }
 
-.rs-frame-heading {
+.tl-frame-heading {
 	display: flex;
 	align-items: center;
 	position: absolute;
@@ -1264,7 +1246,7 @@ input,
 	pointer-events: all;
 }
 
-.rs-frame-heading-hit-area {
+.tl-frame-heading-hit-area {
 	pointer-events: all;
 	/* scale from bottom left corner so we can pin it to the top left corner of the frame */
 	transform-origin: 0% 100%;
@@ -1276,7 +1258,7 @@ input,
 	background-color: var(--color-background);
 }
 
-.rs-frame-label {
+.tl-frame-label {
 	pointer-events: all;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1286,7 +1268,7 @@ input,
 	white-space: pre;
 }
 
-.rs-frame-label__editing {
+.tl-frame-label__editing {
 	color: transparent;
 	outline: 1.5px solid var(--color-selection-stroke);
 	white-space: pre;
@@ -1296,7 +1278,7 @@ input,
 	border-radius: var(--radius-1);
 }
 
-.rs-frame-name-input {
+.tl-frame-name-input {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -1320,21 +1302,21 @@ input,
 /* On iOS, font size under 16px in an input will make the page zoom into the input 🤦‍♂️ */
 /* https://css-tricks.com/16px-or-larger-text-prevents-ios-form-zoom/ */
 @media (max-width: 600px) {
-	.rs-frame-heading {
+	.tl-frame-heading {
 		font-size: 16px;
 	}
 }
 
 /* ------------------ iFrames Detail ----------------- */
 
-.rs-embed {
+.tl-embed {
 	border: none;
 	border-radius: var(--radius-2);
 }
 
 /* ------------------- Code Editor ------------------ */
 
-.rs-image__button {
+.tl-image__button {
 	padding: 4px 8px;
 	color: var(--color-text);
 	background-color: var(--color-panel);
@@ -1346,12 +1328,12 @@ input,
 	display: flex;
 }
 
-.rs-image__button:disabled {
+.tl-image__button:disabled {
 	opacity: 0.5;
 	pointer-events: none;
 }
 
-.rs-image__toolbox {
+.tl-image__toolbox {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -1361,20 +1343,20 @@ input,
 	padding: 10px;
 }
 
-.rs-image__toolbox__hidden {
+.tl-image__toolbox__hidden {
 	display: none;
 }
 
 /* -------------- Shape Error Boundary -------------- */
 
-.rs-shape-error-boundary {
+.tl-shape-error-boundary {
 	width: 100%;
 	height: 100%;
 	background-color: var(--color-muted-1);
-	border-width: calc(1px * var(--rs-scale));
+	border-width: calc(1px * var(--tl-scale));
 	border-color: var(--color-muted-1);
 	border-style: solid;
-	border-radius: calc(var(--radius-1) * var(--rs-scale));
+	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1384,8 +1366,8 @@ input,
 	padding: var(--space-2);
 }
 
-.rs-shape-error-boundary::after {
-	transform: scale(var(--rs-scale));
+.tl-shape-error-boundary::after {
+	transform: scale(var(--tl-scale));
 	content: 'Error';
 	font-size: 12px;
 	font-family: inherit;
@@ -1394,7 +1376,7 @@ input,
 
 /* ----------------- Error Boundary ----------------- */
 
-.rs-error-boundary {
+.tl-error-boundary {
 	width: 100%;
 	height: 100%;
 	display: flex;
@@ -1404,22 +1386,22 @@ input,
 	background-color: var(--color-background);
 	color: var(--color-text-1);
 	position: absolute;
-	z-index: var(--layer-dialogs);
+	z-index: 600;
 }
 
-.rs-error-boundary__overlay {
+.tl-error-boundary__overlay {
 	position: absolute;
 	inset: 0px;
 	background-color: var(--color-overlay);
 }
 
-.rs-error-boundary__content * {
+.tl-error-boundary__content * {
 	user-select: all;
 	-webkit-user-select: text;
 	pointer-events: all;
 }
 
-.rs-error-boundary__canvas {
+.tl-error-boundary__canvas {
 	pointer-events: none;
 	position: absolute;
 	inset: 0;
@@ -1428,16 +1410,16 @@ input,
 /* some browsers seem to have some weird interactions between stacking contexts
 and pointer-events. this ::after pseudo element covers the canvas and prevents
 it from receiving any pointer events or affecting the cursor. */
-.rs-error-boundary__canvas::after {
+.tl-error-boundary__canvas::after {
 	content: ' ';
 	display: block;
 	position: absolute;
 	inset: 0;
-	z-index: var(--layer-dialogs);
+	z-index: 600;
 	pointer-events: auto;
 }
 
-.rs-error-boundary__content {
+.tl-error-boundary__content {
 	width: fit-content;
 	height: fit-content;
 	max-width: 100%;
@@ -1454,22 +1436,22 @@ it from receiving any pointer events or affecting the cursor. */
 	gap: var(--space-5);
 	overflow: auto;
 }
-.rs-error-boundary__content__expanded {
+.tl-error-boundary__content__expanded {
 	width: 600px;
 }
 
-.rs-error-boundary__content h2 {
+.tl-error-boundary__content h2 {
 	font-size: 16px;
 	margin: 0px;
 	font-weight: 500;
 }
 
-.rs-error-boundary__content p {
+.tl-error-boundary__content p {
 	line-height: 1.5;
 	margin: 0;
 }
 
-.rs-error-boundary__content pre {
+.tl-error-boundary__content pre {
 	background-color: var(--color-muted-2);
 	padding: var(--space-5);
 	border-radius: var(--radius-2);
@@ -1479,7 +1461,7 @@ it from receiving any pointer events or affecting the cursor. */
 	margin: 0;
 }
 
-.rs-error-boundary__content button {
+.tl-error-boundary__content button {
 	background: none;
 	border: none;
 	font-family: inherit;
@@ -1491,23 +1473,23 @@ it from receiving any pointer events or affecting the cursor. */
 	color: inherit;
 	background-color: transparent;
 }
-.rs-error-boundary__content button:hover {
+.tl-error-boundary__content button:hover {
 	background-color: var(--color-low);
 }
 
-.rs-error-boundary__content a {
+.tl-error-boundary__content a {
 	color: var(--color-text-1);
 	font-weight: 500;
 	text-decoration: none;
 }
-.rs-error-boundary__content a:hover {
+.tl-error-boundary__content a:hover {
 	color: var(--color-text-2);
 }
 
-.rs-error-boundary__content__error {
+.tl-error-boundary__content__error {
 	position: relative;
 }
-.rs-error-boundary__content__error button {
+.tl-error-boundary__content__error button {
 	position: absolute;
 	top: var(--space-2);
 	right: var(--space-2);
@@ -1517,25 +1499,25 @@ it from receiving any pointer events or affecting the cursor. */
 	border-radius: var(--radius-1);
 }
 
-.rs-error-boundary__content__actions {
+.tl-error-boundary__content__actions {
 	display: flex;
 	justify-content: space-between;
 	gap: var(--space-4);
 	margin: calc(var(--space-4) * -1);
 	margin-top: 0;
 }
-.rs-error-boundary__content__actions__group {
+.tl-error-boundary__content__actions__group {
 	display: flex;
 	gap: var(--space-4);
 }
-.rs-error-boundary__content .rs-error-boundary__reset {
+.tl-error-boundary__content .tl-error-boundary__reset {
 	color: var(--color-warn);
 }
-.rs-error-boundary__content .rs-error-boundary__refresh {
+.tl-error-boundary__content .tl-error-boundary__refresh {
 	background-color: var(--color-primary);
 	color: var(--color-selected-contrast);
 }
-.rs-error-boundary__content .rs-error-boundary__refresh:hover {
+.tl-error-boundary__content .tl-error-boundary__refresh:hover {
 	background-color: var(--color-primary);
 	opacity: 0.9;
 }
@@ -1544,16 +1526,16 @@ it from receiving any pointer events or affecting the cursor. */
 
 @media screen and (pointer: coarse) {
 	/* If mobile always show handle-hint as there is no hover state */
-	.rs-canvas__mobile .rs-handle-hint {
+	.tl-canvas__mobile .tl-handle__hint {
 		opacity: 1;
 	}
 
-	.rs-canvas__mobile .rs-handle-bg {
-		r: calc(20px / var(--rs-zoom));
+	.tl-canvas__mobile .tl-handle__bg {
+		r: calc(20px / var(--tl-zoom));
 	}
 }
 
-.rs-hidden {
+.tl-hidden {
 	opacity: 0;
 	pointer-events: none;
 }

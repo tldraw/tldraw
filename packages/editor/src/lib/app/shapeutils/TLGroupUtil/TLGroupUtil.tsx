@@ -75,7 +75,7 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 
 		return (
 			<SVGContainer id={shape.id}>
-				<DashedOutlineBox className="rs-group" bounds={bounds} zoomLevel={zoomLevel} />
+				<DashedOutlineBox className="tl-group" bounds={bounds} zoomLevel={zoomLevel} />
 			</SVGContainer>
 		)
 	}

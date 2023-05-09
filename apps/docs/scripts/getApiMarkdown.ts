@@ -244,6 +244,23 @@ async function addDocComment(result: Result, member: ApiItem) {
 		member instanceof ApiEnum ||
 		member instanceof ApiNamespace
 	) {
+		const params = member.tsdocComment?.params
+		if (params && params.count > 0) {
+			result.markdown += `##### Parameters\n\n\n`
+			result.markdown += '<ParametersTable>\n\n'
+			for (const block of params.blocks) {
+				result.markdown += '<ParametersTableRow>\n'
+				result.markdown += '<ParametersTableName>\n\n'
+				result.markdown += `\`${block.parameterName}\`\n\n`
+				result.markdown += `</ParametersTableName>\n`
+				result.markdown += `<ParametersTableDescription>\n\n`
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(block.content)
+				result.markdown += `\n\n</ParametersTableDescription>\n`
+				result.markdown += `</ParametersTableRow>\n`
+			}
+			result.markdown += '</ParametersTable>\n\n'
+		}
+
 		// no specific docs for these types
 		result.markdown += `##### Signature\n\n\n`
 		result.markdown += await typeExcerptToMarkdown(member.excerpt, { kind: member.kind })

@@ -8,11 +8,11 @@ import { usePresence } from '../hooks/usePresence'
 export const LiveCollaboratorsNext = track(function Collaborators() {
 	const peerIds = usePeerIds()
 	return (
-		<g>
+		<>
 			{peerIds.map((id) => (
 				<Collaborator key={id} userId={id} />
 			))}
-		</g>
+		</>
 	)
 })
 
@@ -56,7 +56,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId 
 					point={cursor}
 					color={color}
 					zoom={zoomLevel}
-					nameTag={userName !== 'New User' ? userName : null}
+					name={userName !== 'New User' ? userName : null}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint

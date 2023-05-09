@@ -62,6 +62,9 @@ export const DOUBLE_CLICK_DURATION = 450
 export const MULTI_CLICK_DURATION = 200
 
 /** @internal */
+export const COARSE_DRAG_DISTANCE = 6
+
+/** @internal */
 export const DRAG_DISTANCE = 4
 
 /** @internal */
@@ -167,10 +170,10 @@ export const ICON_SIZES: Record<TLSizeType, number> = {
 
 /** @public */
 export const FONT_FAMILIES: Record<TLFontType, string> = {
-	draw: 'var(--rs-font-draw)',
-	sans: 'var(--rs-font-sans)',
-	serif: 'var(--rs-font-serif)',
-	mono: 'var(--rs-font-mono)',
+	draw: 'var(--tl-font-draw)',
+	sans: 'var(--tl-font-sans)',
+	serif: 'var(--tl-font-serif)',
+	mono: 'var(--tl-font-mono)',
 }
 
 /** @public */

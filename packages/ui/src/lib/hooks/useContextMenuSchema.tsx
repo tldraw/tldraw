@@ -8,7 +8,7 @@ import {
 	menuItem,
 	MenuSchema,
 	menuSubmenu,
-	showUiPaste,
+	showMenuPaste,
 	useAllowGroup,
 	useAllowUngroup,
 	useThreeStackableItems,
@@ -163,7 +163,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 				'clipboard-group',
 				oneSelected && menuItem(actions['cut']),
 				oneSelected && menuItem(actions['copy']),
-				showUiPaste && menuCustom('MENU_PASTE', { readonlyOk: false })
+				showMenuPaste && menuCustom('MENU_PASTE', { readonlyOk: false })
 			),
 			atLeastOneShapeOnPage &&
 				menuGroup(
