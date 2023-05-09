@@ -39,6 +39,15 @@
 	height: 100%;
 }
 
+.tlui-layout__top__center {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	width: 100%;
+	height: 100%;
+}
+
 .tlui-layout__top__right {
 	display: flex;
 	flex-direction: column;

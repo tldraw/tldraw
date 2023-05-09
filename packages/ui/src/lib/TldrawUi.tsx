@@ -11,6 +11,7 @@ import { HelpMenu } from './components/HelpMenu'
 import { MenuZone } from './components/MenuZone'
 import { NavigationZone } from './components/NavigationZone/NavigationZone'
 import { ExitPenMode } from './components/PenModeToggle'
+import { RoomName } from './components/RoomName'
 import { StopFollowing } from './components/StopFollowing'
 import { StylePanel } from './components/StylePanel/StylePanel'
 import { ToastViewport, Toasts } from './components/Toasts'
@@ -126,6 +127,9 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 									<BackToContent />
 									<StopFollowing />
 								</div>
+							</div>
+							<div className="tlui-layout__top__center">
+								<RoomName />
 							</div>
 							<div className="tlui-layout__top__right">
 								{shareZone && (
