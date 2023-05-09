@@ -132,7 +132,11 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 									<StopFollowing />
 								</div>
 							</div>
-							{topZone && <div className="tlui-layout__top__center">{topZone}</div>}
+							{topZone && (
+								<div className="tlui-layout__top__center">
+									<div className="tlui-top-zone">{topZone}</div>
+								</div>
+							)}
 							<div className="tlui-layout__top__right">
 								{shareZone && (
 									<div className="tlui-share-zone" draggable={false}>
