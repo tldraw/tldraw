@@ -1,4 +1,4 @@
-BUILD_NAME = `test-suite-${new Date().toISOString()}`
+const BUILD_NAME = `test-suite-${new Date().toISOString()}`
 
 global.webdriverService = 'browserstack'
 global.webdriverTestUrl = 'http://localhost:5420/'
