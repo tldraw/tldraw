@@ -258,9 +258,6 @@ async function copyTranslations() {
 }
 
 const assetDeclarationFileCommon = `
-	// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-	/// <reference path="./modules.d.ts" />
-
 	/** @typedef {string | { src: string }} AssetUrl */
 	/** @typedef {{ baseUrl?: string } | ((assetUrl: string) => string)} AssetUrlOptions */
 
@@ -287,6 +284,9 @@ const assetDeclarationFileCommon = `
 async function writeUrlBasedAssetDeclarationFile() {
 	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
 	let assetDeclarationFile = `
+		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+		/// <reference path="./modules.d.ts" />
+
 		${assetDeclarationFileCommon}
 	`
 
@@ -323,7 +323,10 @@ async function writeUrlBasedAssetDeclarationFile() {
 	await writeAssetDeclarationDTSFile('urls', 'getAssetUrlsByMetaUrl')
 }
 async function writeImportBasedAssetDeclarationFile(): Promise<void> {
-	let imports = ''
+	let imports = `
+		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+		/// <reference path="./modules.d.ts" />
+	`
 
 	let declarations = `
 		${assetDeclarationFileCommon}
