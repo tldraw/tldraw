@@ -40,7 +40,7 @@ export const documentTypeMigrations = defineMigrations({
 	migrators: {
 		[Versions.AddName]: {
 			up: (document: TLDocument) => {
-				return { ...document, name: 'Home Project' }
+				return { ...document, name: 'Project' }
 			},
 			down: ({ name: _, ...document }: TLDocument) => {
 				return document

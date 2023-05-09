@@ -3,6 +3,7 @@ import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
+import { documentTypeMigrations } from './records/TLDocument'
 import { instanceTypeMigrations } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
@@ -650,6 +651,18 @@ describe('Adding instance_presence to the schema', () => {
 		).toEqual({
 			'instance:123': { id: 'instance:123', typeName: 'instance' },
 		})
+	})
+})
+
+describe('Adding name to document', () => {
+	const { up, down } = documentTypeMigrations.migrators[1]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ name: 'Project' })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ name: 'Project' })).toEqual({})
 	})
 })
 
