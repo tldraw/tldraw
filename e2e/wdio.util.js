@@ -23,4 +23,4 @@ browser_url: <${respJson.automation_session.browser_url}>
 ==================================`)
 }
 
-module.exports = { BUILD_NAME }
+module.exports = { BUILD_NAME, logBrowserstackUrl }
