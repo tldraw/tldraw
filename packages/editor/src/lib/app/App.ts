@@ -28,6 +28,7 @@ import {
 	TLColorType,
 	TLCursor,
 	TLCursorType,
+	TLDocument,
 	TLDOCUMENT_ID,
 	TLFrameShape,
 	TLGroupShape,
@@ -1446,8 +1447,20 @@ export class App extends EventEmitter {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
+	updateDocumentSettings(settings: Partial<TLDocument>) {
+		this.store.put([{ ...this.documentSettings, ...settings }])
+	}
+
 	get gridSize() {
 		return this.documentSettings.gridSize
+	}
+
+	get documentName() {
+		return this.documentSettings.name
+	}
+
+	setDocumentName(name: string) {
+		this.updateDocumentSettings({ name })
 	}
 
 	/**

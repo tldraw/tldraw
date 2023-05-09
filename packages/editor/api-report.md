@@ -202,6 +202,8 @@ export class App extends EventEmitter {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    // (undocumented)
+    get documentName(): string;
     get documentSettings(): TLDocument;
     // (undocumented)
     duplicatePage(id?: TLPageId, createId?: TLPageId): void;
@@ -432,6 +434,8 @@ export class App extends EventEmitter {
     setCursor(cursor: Partial<TLCursor>): this;
     // (undocumented)
     setDarkMode(isDarkMode: boolean): void;
+    // (undocumented)
+    setDocumentName(name: string): void;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
@@ -477,6 +481,8 @@ export class App extends EventEmitter {
     updateAssets(assets: TLAssetPartial[]): this;
     // @internal
     updateCullingBounds(): this;
+    // (undocumented)
+    updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;

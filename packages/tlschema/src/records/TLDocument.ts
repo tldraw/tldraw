@@ -8,6 +8,7 @@ import { T } from '@tldraw/tlvalidate'
  */
 export interface TLDocument extends BaseRecord<'document'> {
 	gridSize: number
+	name: string
 }
 
 // --- VALIDATION ---
@@ -18,6 +19,7 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 		typeName: T.literal('document'),
 		id: T.literal('document:document' as ID<TLDocument>),
 		gridSize: T.number,
+		name: T.string,
 	})
 )
 
@@ -26,6 +28,7 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 // It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
+	AddName: 1,
 } as const
 
 /** @public */
@@ -34,7 +37,16 @@ export const documentTypeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.Initial,
 	// STEP 3: Add an up+down migration for the new version here
-	migrators: {},
+	migrators: {
+		[Versions.AddName]: {
+			up: (document: TLDocument) => {
+				return { ...document, name: 'Home Project' }
+			},
+			down: ({ name: _, ...document }: TLDocument) => {
+				return document
+			},
+		},
+	},
 })
 
 /** @public */
@@ -45,6 +57,7 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
+		name: 'Home Project',
 	})
 )
 

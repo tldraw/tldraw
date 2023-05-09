@@ -723,6 +723,8 @@ export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 export interface TLDocument extends BaseRecord<'document'> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    name: string;
 }
 
 // @public (undocumented)
