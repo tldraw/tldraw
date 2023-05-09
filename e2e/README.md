@@ -31,6 +31,8 @@ Or to test remotely via browserstack
 ./scripts/e2e-run-tests remote
 ```
 
+**Note**: You'll need to set `BROWSERSTACK_USER` and `BROWSERSTACK_KEY` in your environment, which you can grab from <https://automate.browserstack.com/dashboard>
+
 There are three parts to the testing API
 
 - `runtime` — the tldraw `App` instance in the browser window. This calls methods in the JS runtime of the app
