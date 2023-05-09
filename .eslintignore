@@ -15,3 +15,6 @@
 !**/pages/api/*
 **/*.json
 **/lazy.config.ts
+**/next.config.js
+**/setupTests.js
+**/setupJest.js

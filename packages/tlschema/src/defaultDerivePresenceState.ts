@@ -1,5 +1,6 @@
-import { TLInstancePresence, TLStore } from '@tldraw/tlschema'
 import { Signal, computed } from 'signia'
+import { TLStore } from './TLStore'
+import { TLInstancePresence } from './records/TLInstancePresence'
 
 /** @internal */
 export const defaultDerivePresenceState = (store: TLStore): Signal<TLInstancePresence | null> => {

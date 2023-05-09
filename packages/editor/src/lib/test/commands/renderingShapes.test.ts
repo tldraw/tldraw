@@ -65,7 +65,7 @@ beforeEach(() => {
 	app.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
 })
 
-it.only('updates the culling viewport', () => {
+it('updates the culling viewport', () => {
 	app.updateCullingBounds = jest.fn(app.updateCullingBounds)
 	app.pan(-201, -201)
 	jest.advanceTimersByTime(500)
@@ -74,7 +74,7 @@ it.only('updates the culling viewport', () => {
 	expect(app.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
-it.only('lists shapes in viewport', () => {
+it('lists shapes in viewport', () => {
 	expect(
 		app.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
@@ -122,25 +122,24 @@ it.only('lists shapes in viewport', () => {
 })
 
 it('lists shapes in viewport sorted by id', () => {
-	// Expect the results to have the correct index
-	expect(app.renderingShapes.map(({ index }) => index)).toStrictEqual([0, 1, 2])
-
 	// Expect the results to be sorted correctly by id
 	expect(app.renderingShapes.map(({ id, index }) => [id, index])).toStrictEqual([
 		[ids.A, 0],
 		[ids.B, 1],
 		[ids.C, 2],
-		// A is at the back, then C, then its child ellipse1
+		[ids.D, 3],
+		// A is at the back, then B, and then B's children
 	])
 
-	// Send C to the back
+	// Send B to the back
 	app.reorderShapes('toBack', [ids.B])
 
 	// The items should still be sorted by id
 	expect(app.renderingShapes.map(({ id, index }) => [id, index])).toStrictEqual([
-		[ids.A, 2],
+		[ids.A, 3],
 		[ids.B, 0],
 		[ids.C, 1],
-		// C is now at the back, then its child, and finally A is now in the front
+		[ids.D, 2],
+		// B is now at the back, then its children, and finally A is now in the front
 	])
 })

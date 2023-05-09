@@ -44,6 +44,7 @@ const box = (id: TLShapeId, x: number, y: number, w = 10, h = 10): TLShapePartia
 	props: {
 		w,
 		h,
+		fill: 'solid',
 	},
 })
 const arrow = (id: TLShapeId, start: VecLike, end: VecLike): TLShapePartial => ({

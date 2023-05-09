@@ -15,7 +15,7 @@ beforeEach(() => {
 })
 
 describe('When resizing', () => {
-	it.only('sets the viewport bounds with App.resize', () => {
+	it('sets the viewport bounds with App.resize', () => {
 		app.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
 		expect(app.viewportScreenBounds).toMatchObject({
 			x: 0,
@@ -25,7 +25,7 @@ describe('When resizing', () => {
 		})
 	})
 
-	it.only('updates the viewport as an ephemeral change', () => {
+	it('updates the viewport as an ephemeral change', () => {
 		app.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
 
 		app.undo() // this should have no effect

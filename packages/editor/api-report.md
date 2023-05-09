@@ -2049,12 +2049,14 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     // (undocumented)
     hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean;
     // (undocumented)
+    hitTestPoint(shape: TLGeoShape, point: VecLike): boolean;
+    // (undocumented)
     indicator(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {
         props: {
             growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             fill: "none" | "pattern" | "semi" | "solid";
@@ -2082,7 +2084,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
         props: {
             growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             fill: "none" | "pattern" | "semi" | "solid";
@@ -2095,6 +2097,34 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+        };
+        type: "geo";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        isLocked: boolean;
+        id: ID<TLGeoShape>;
+        typeName: "shape";
+    } | undefined;
+    // (undocumented)
+    onDoubleClick: (shape: TLGeoShape) => {
+        props: {
+            geo: "check-box";
+        };
+        type: "geo";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        isLocked: boolean;
+        id: ID<TLGeoShape>;
+        typeName: "shape";
+    } | {
+        props: {
+            geo: "rectangle";
         };
         type: "geo";
         x: number;

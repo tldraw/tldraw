@@ -11,7 +11,6 @@ module.exports = {
 			rootDir: ['apps/*/', 'packages/*/'],
 		},
 	},
-	ignorePatterns: ['**/*.js', '**/vscode-script-utils/*'],
 	rules: {
 		'@next/next/no-html-link-for-pages': 'off',
 		'react/jsx-key': 'off',

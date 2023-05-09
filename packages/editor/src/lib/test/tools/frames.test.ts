@@ -112,7 +112,9 @@ describe('creating frames', () => {
 	})
 
 	it('can snap', () => {
-		app.createShapes([{ type: 'geo', id: ids.boxA, x: 0, y: 0, props: { w: 50, h: 50 } }])
+		app.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 0, y: 0, props: { w: 50, h: 50, fill: 'solid' } },
+		])
 
 		app.setSelectedTool('frame')
 		app.pointerDown(100, 100).pointerMove(49, 149)
@@ -242,7 +244,9 @@ describe('frame shapes', () => {
 
 		const frameId = app.onlySelectedShape!.id
 
-		app.createShapes([{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50 } }])
+		app.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
 
 		expect(app.onlySelectedShape!.parentId).toBe(app.currentPageId)
 
@@ -276,7 +280,9 @@ describe('frame shapes', () => {
 		const frameId = app.onlySelectedShape!.id
 
 		// Create a new shape off of the frame
-		app.createShapes([{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50 } }])
+		app.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
 
 		// It should be a child of the page
 		expect(app.onlySelectedShape!.parentId).toBe(app.currentPageId)
@@ -333,7 +339,9 @@ describe('frame shapes', () => {
 		app.setSelectedTool('frame')
 		app.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		app.createShapes([{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50 } }])
+		app.createShapes([
+			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
+		])
 
 		app.setSelectedTool('select')
 		app.select(ids.boxA)
@@ -480,7 +488,7 @@ describe('frame shapes', () => {
 		const frameId = app.onlySelectedShape!.id
 
 		app.setSelectedTool('geo')
-		app.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
+		app.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175).setProp('fill', 'solid')
 		const boxId = app.onlySelectedShape!.id
 
 		app.setSelectedTool('arrow')
@@ -587,7 +595,7 @@ describe('frame shapes', () => {
 
 		// make a shape inside the frame that extends out of the frame
 		app.setSelectedTool('geo')
-		app.pointerDown(150, 150).pointerMove(400, 400).pointerUp(400, 400)
+		app.pointerDown(150, 150).pointerMove(400, 400).pointerUp(400, 400).setProp('fill', 'solid')
 		const innerBoxId = app.onlySelectedShape!.id
 
 		// Make an arrow that binds to the inner box's bottom right corner
@@ -636,15 +644,15 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	const frameId = app.onlySelectedShape!.id
 
 	app.setSelectedTool('geo')
-	app.pointerDown(110, 110).pointerMove(120, 120).pointerUp(120, 120)
+	app.pointerDown(110, 110).pointerMove(120, 120).pointerUp(120, 120).setProp('fill', 'solid')
 	const boxAId = app.onlySelectedShape!.id
 
 	app.setSelectedTool('geo')
-	app.pointerDown(180, 110).pointerMove(190, 120).pointerUp(190, 120)
+	app.pointerDown(180, 110).pointerMove(190, 120).pointerUp(190, 120).setProp('fill', 'solid')
 	const boxBId = app.onlySelectedShape!.id
 
 	app.setSelectedTool('geo')
-	app.pointerDown(160, 160).pointerMove(170, 170).pointerUp(170, 170)
+	app.pointerDown(160, 160).pointerMove(170, 170).pointerUp(170, 170).setProp('fill', 'solid')
 	const boxCId = app.onlySelectedShape!.id
 
 	app.setSelectedTool('select')

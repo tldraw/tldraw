@@ -154,6 +154,7 @@ export const TL_GEO_TYPES = new Set([
 	'arrow-up',
 	'arrow-down',
 	'x-box',
+	'check-box',
 ] as const)
 
 /** @public */
