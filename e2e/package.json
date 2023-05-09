@@ -29,7 +29,7 @@
 		"test:local": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.local.conf.js",
 		"test:remote": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.remote.conf.js",
 		"test:nightly": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.nightly.conf.js",
-		"lint": "yarn run -T tsx ../bublic/scripts/lint.ts"
+		"lint": "yarn run -T tsx ../scripts/lint.ts"
 	},
 	"devDependencies": {
 		"@sitespeed.io/edgedriver": "^112.0.1722-34",
