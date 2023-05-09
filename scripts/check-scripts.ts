@@ -57,6 +57,10 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 	},
 	'@tldraw/assets': {
 		test: () => 'lazy inherit --passWithNoTests',
+		'build-package': () => undefined,
+		'build-api': () => undefined,
+		prepack: () => undefined,
+		postpack: () => undefined,
 	},
 }
 
