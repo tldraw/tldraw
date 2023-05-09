@@ -1,4 +1,4 @@
-BUILD_NAME = `test-suite-${new Date().toISOString()}`
+const { BUILD_NAME } = require('./wdio.util')
 
 global.webdriverService = 'browserstack'
 global.webdriverTestUrl = 'http://localhost:5420/'
@@ -232,9 +232,15 @@ exports.config = {
 			acceptInsecureCerts: true,
 			'bstack:options': {
 				...capability['bstack:options'],
-				projectName: 'smoke-tests',
+				projectName: 'tldraw',
 				buildName: BUILD_NAME,
 				consoleLogs: 'verbose',
+				testObservability: true,
+				testObservabilityOptions: {
+					projectName: 'tldraw',
+					buildName: BUILD_NAME,
+					buildTag: process.env.GITHUB_SHA || 'local',
+				},
 			},
 			'tldraw:options': {
 				...capability['tldraw:options'],
