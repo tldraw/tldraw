@@ -14,6 +14,9 @@ declare global {
 
 const assetUrls = getBundlerAssetUrls()
 
+// NOTE: This is currently very similar to `apps/examples/src/1-basic/BasicExample.tsx`
+// and should probably stay that way to make writing new tests easier as it's
+// what we're most familiar with
 export default function Example() {
 	const [instanceKey, setInstanceKey] = useState(0)
 

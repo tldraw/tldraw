@@ -2,7 +2,7 @@ import { DefaultErrorFallback, ErrorBoundary } from '@tldraw/tldraw'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import ExampleBasic from './1-basic/BasicExample'
+import ExampleBasic from './1-basic/BasicExampleWebdriver'
 import './index.css'
 
 const router = createBrowserRouter([
