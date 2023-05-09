@@ -2,7 +2,7 @@ import { exec } from './lib/exec'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 
 async function main() {
-	const sha = (await exec('git', ['rev-parse', '--short', 'HEAD'])).trim()
+	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
 	async function setCanaryVersions(bump: 'major' | 'minor' | 'patch') {
 		const latestVersion = getLatestVersion()
