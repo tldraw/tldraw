@@ -12,4 +12,7 @@ export default defineConfig({
 		port: 5420,
 	},
 	clearScreen: false,
+	optimizeDeps: {
+		exclude: ['@tldraw/assets'],
+	},
 })
