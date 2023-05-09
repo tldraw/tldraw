@@ -627,6 +627,7 @@ export interface TLDialog {
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{
     shareZone?: ReactNode;
+    topZone?: ReactNode;
     renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
     children?: ReactNode;
     hideUi?: boolean | undefined;
