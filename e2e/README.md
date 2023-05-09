@@ -41,7 +41,7 @@ The `ui` is further broken up into
 
 ![test overview ui](test-overview-ui.png)
 
-tldraw room for above is at <https://www.tldraw.com/r/v2_c_wZCNpZ3z6mMcWMcMpHkVM>
+tldraw room for above is at <https://www.tldraw.com/v/CZw_c_7vMVkHpMcMWcMm1z8ZpN>
 
 ## Nightly tests
 We run all the tests on all browsers via browserstack each night at 02:00am. You can search https://github.com/tldraw/tldraw-lite/actions/workflows/webdriver-nightly.yml for the results of the previous evenings tests
