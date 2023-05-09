@@ -84,7 +84,7 @@ describe('text measurement', () => {
 	const measureTextOptions = {
 		text: 'testing',
 		width: 'fit-content',
-		fontFamily: 'var(--rs-font-draw)',
+		fontFamily: 'var(--tl-font-draw)',
 		fontSize: 24,
 		lineHeight: 1.35,
 		fontWeight: 'normal',
@@ -101,7 +101,7 @@ describe('text measurement', () => {
 		padding: 0,
 		fontSize: 24,
 		fontWeight: 'normal',
-		fontFamily: 'var(--rs-font-draw)',
+		fontFamily: 'var(--tl-font-draw)',
 		fontStyle: 'normal',
 		lineHeight: 1.35,
 		textAlign: 'start' as 'start' | 'middle' | 'end',
