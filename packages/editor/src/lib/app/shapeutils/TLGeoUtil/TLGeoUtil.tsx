@@ -7,6 +7,7 @@ import {
 	linesIntersect,
 	PI,
 	PI2,
+	pointInPolygon,
 	TAU,
 	Vec2d,
 	VecLike,
@@ -73,22 +74,49 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 	hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
 		const outline = this.outline(shape)
 
+		// Check the outline
 		for (let i = 0; i < outline.length; i++) {
 			const C = outline[i]
 			const D = outline[(i + 1) % outline.length]
 			if (linesIntersect(A, B, C, D)) return true
 		}
 
-		switch (shape.props.geo) {
-			case 'x-box': {
-				const { w, h } = shape.props
-				if (linesIntersect(A, B, new Vec2d(0, 0), new Vec2d(w, h))) return true
-				if (linesIntersect(A, B, new Vec2d(0, h), new Vec2d(w, 0))) return true
-				break
+		// Also check lines, if any
+		const lines = getLines(shape.props, 0)
+		if (lines !== undefined) {
+			for (const [C, D] of lines) {
+				if (linesIntersect(A, B, C, D)) return true
 			}
 		}
 
 		return false
+	}
+
+	hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
+		const outline = this.outline(shape)
+
+		if (shape.props.fill === 'none') {
+			const zoomLevel = this.app.zoomLevel
+			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			// Check the outline
+			for (let i = 0; i < outline.length; i++) {
+				const C = outline[i]
+				const D = outline[(i + 1) % outline.length]
+				if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
+			}
+
+			// Also check lines, if any
+			const lines = getLines(shape.props, 1)
+			if (lines !== undefined) {
+				for (const [C, D] of lines) {
+					if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
+				}
+			}
+
+			return false
+		}
+
+		return pointInPolygon(point, outline)
 	}
 
 	getBounds(shape: TLGeoShape) {

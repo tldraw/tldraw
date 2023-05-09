@@ -23,18 +23,27 @@ beforeEach(() => {
 			type: 'geo',
 			x: 0,
 			y: 0,
+			props: {
+				fill: 'none',
+			},
 		},
 		{
 			id: ids.box2,
 			type: 'geo',
 			x: 75, // overlapping box1
 			y: 75,
+			props: {
+				fill: 'solid',
+			},
 		},
 		{
 			id: ids.box3,
 			type: 'geo',
 			x: 300,
 			y: 300,
+			props: {
+				fill: 'solid',
+			},
 		},
 		{
 			id: ids.frame1,
@@ -52,6 +61,9 @@ beforeEach(() => {
 			parentId: ids.frame1,
 			x: 50,
 			y: 50, // clipped by frame
+			props: {
+				fill: 'solid',
+			},
 		},
 		{
 			id: ids.draw1,
@@ -89,7 +101,7 @@ describe('When clicking', () => {
 
 		const shapesBeforeCount = app.shapesArray.length
 
-		app.pointerDown(25, 25) // in box1
+		app.pointerDown(0, 0) // near enough to box1
 
 		// Enters the pointing state
 		app.expectPathToBe('root.eraser.pointing')
@@ -129,7 +141,7 @@ describe('When clicking', () => {
 
 		const shapesBeforeCount = app.shapesArray.length
 
-		app.pointerDown(80, 80) // in box1 AND box2
+		app.pointerDown(99, 99) // neat to box1 AND in box2
 
 		expect(new Set(app.erasingIds)).toEqual(new Set([ids.box1, ids.box2]))
 		expect(app.erasingIdsSet).toEqual(new Set([ids.box1, ids.box2]))
@@ -240,7 +252,7 @@ describe('When clicking', () => {
 
 		const shapesBeforeCount = app.shapesArray.length
 
-		app.pointerDown(25, 25) // in box1
+		app.pointerDown(0, 0) // in box1
 		app.expectPathToBe('root.eraser.pointing')
 
 		expect(app.erasingIds).toEqual([ids.box1])
@@ -267,7 +279,7 @@ describe('When clicking', () => {
 
 		const shapesBeforeCount = app.shapesArray.length
 
-		app.pointerDown(25, 25) // in box1
+		app.pointerDown(0, 0) // near to box1
 		app.expectPathToBe('root.eraser.pointing')
 
 		expect(app.erasingIds).toEqual([ids.box1])
@@ -380,6 +392,7 @@ describe('When clicking and dragging', () => {
 	it('Only erases masked shapes when pointer is inside the mask', () => {
 		app.setSelectedTool('eraser')
 		app.pointerDown(425, 0) // Above the masked part of box3
+		expect(app.erasingIds).toEqual([])
 		app.pointerMove(425, 500) // Through the masked part of box3
 		jest.advanceTimersByTime(16)
 		expect(app.scribble).not.toBe(null)

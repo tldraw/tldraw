@@ -2049,6 +2049,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     // (undocumented)
     hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean;
     // (undocumented)
+    hitTestPoint(shape: TLGeoShape, point: VecLike): boolean;
+    // (undocumented)
     indicator(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {

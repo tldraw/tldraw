@@ -4,6 +4,7 @@ import {
 	linesIntersect,
 	longAngleDist,
 	Matrix2d,
+	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
 	Vec2d,
@@ -262,14 +263,19 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 							this.app.getShapesAtPoint(pointInPageSpace).filter((hitShape) => {
 								if (hitShape.id === shape.id) return
 								const util = this.app.getShapeUtil(hitShape)
+								if (!util.canBind(hitShape)) return
 
-								return (
-									util.canBind(next) &&
-									util.hitTestPoint(
+								if (util.isClosed(hitShape)) {
+									return pointInPolygon(
+										this.app.getPointInShapeSpace(hitShape, pointInPageSpace),
+										util.outline(hitShape)
+									)
+								} else {
+									return util.hitTestPoint(
 										hitShape,
 										this.app.getPointInShapeSpace(hitShape, pointInPageSpace)
 									)
-								)
+								}
 							})
 					  )
 
@@ -504,12 +510,14 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
+		const zoomLevel = this.app.zoomLevel
+		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
 			const D = outline[i + 1]
 
-			if (Vec2d.DistanceToLineSegment(C, D, point) < 4) return true
+			if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
 		}
 
 		return false
