@@ -87,6 +87,7 @@ export function getBundlerAssetUrls(opts?: AssetUrlOptions): {
         readonly 'geo-arrow-left': string;
         readonly 'geo-arrow-right': string;
         readonly 'geo-arrow-up': string;
+        readonly 'geo-check-box': string;
         readonly 'geo-diamond': string;
         readonly 'geo-ellipse': string;
         readonly 'geo-hexagon': string;

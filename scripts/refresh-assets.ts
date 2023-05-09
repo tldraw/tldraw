@@ -4,10 +4,10 @@ import { optimize } from 'svgo'
 import {
 	BUBLIC_ROOT,
 	readJsonIfExists,
+	writeCodeFile,
 	writeFile,
 	writeJsonFile,
 	writeStringFile,
-	writeTypescriptFile,
 } from './lib/file'
 
 // We'll need to copy the assets into these folders
@@ -88,7 +88,9 @@ async function copyIcons() {
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
 		] as const`
 
-	await writeTypescriptFile(
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
 		join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'icon-types.ts'),
 		iconTypeFile
 	)
@@ -207,11 +209,16 @@ async function copyTranslations() {
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	await writeTypescriptFile(languagesFilePath, languagesFile)
+	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', languagesFilePath, languagesFile)
 
 	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
-	await writeTypescriptFile(schemaLanguagesFilePath, languagesFile)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		schemaLanguagesFilePath,
+		languagesFile
+	)
 
 	// main.ts
 
@@ -221,7 +228,12 @@ async function copyTranslations() {
 		/** @internal */
 		export const DEFAULT_TRANSLATION = ${JSON.stringify(defaultTranslation)}
 	`
-	await writeTypescriptFile(defaultTranslationFilePath, defaultTranslationFile)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		defaultTranslationFilePath,
+		defaultTranslationFile
+	)
 
 	// translationKeys.ts
 
@@ -231,7 +243,12 @@ async function copyTranslations() {
 		/** @public */
 		export type TLTranslationKey = ${translationKeys.join(' | ')}
 	`
-	await writeTypescriptFile(translationKeysFilePath, translationKeysFile)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'typescript',
+		translationKeysFilePath,
+		translationKeysFile
+	)
 
 	// add to the asset declaration file
 	for (const item of itemsToCopy) {
@@ -240,18 +257,45 @@ async function copyTranslations() {
 	}
 }
 
+const assetDeclarationFileCommon = `
+	/** @typedef {string | { src: string }} AssetUrl */
+	/** @typedef {{ baseUrl?: string } | ((assetUrl: string) => string)} AssetUrlOptions */
+
+	/**
+	 * @param {AssetUrl} assetUrl
+	 * @param {AssetUrlOptions} [format]
+	 * @returns {string}
+	 */
+	function formatAssetUrl(assetUrl, format = {}) {
+		const assetUrlString = typeof assetUrl === 'string' ? assetUrl : assetUrl.src
+
+		if (typeof format === 'function') return format(assetUrlString)
+
+		const { baseUrl = '' } = format
+
+		if (assetUrlString.startsWith('data:')) return assetUrlString
+		if (assetUrlString.match(/^https?:\\/\\//)) return assetUrlString
+
+		return \`\${baseUrl.replace(/\\/$/, '')}/\${assetUrlString.replace(/^\\.?\\//, '')}\`
+	}
+`
+
 // 4. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'urls.ts')
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
 	let assetDeclarationFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-		/// <reference path="../modules.d.ts" />
-		import {formatAssetUrl, AssetUrlOptions} from './utils';
+		/// <reference path="./modules.d.ts" />
+
+		${assetDeclarationFileCommon}
 	`
 
 	assetDeclarationFile += `
-		/** @public */
-		export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
+		/**
+		 * @param {AssetUrlOptions} [opts]
+		 * @public
+		 */
+		export function getAssetUrlsByMetaUrl(opts) {
 			return {
 				${Object.entries(collectedAssetUrls)
 					.flatMap(([type, assets]) => [
@@ -259,28 +303,39 @@ async function writeUrlBasedAssetDeclarationFile() {
 						...Object.entries(assets).map(
 							([name, href]) =>
 								`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
-									'../' + href
+									'./' + href
 								)}, import.meta.url).href, opts),`
 						),
 						'},',
 					])
 					.join('\n')}
-			} as const
+			}
 		}
 	`
 
-	await writeTypescriptFile(assetDeclarationFilePath, assetDeclarationFile)
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'javascript',
+		assetDeclarationFilePath,
+		assetDeclarationFile
+	)
+
+	await writeAssetDeclarationDTSFile('urls', 'getAssetUrlsByMetaUrl')
 }
 async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 	let imports = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
-		/// <reference path="../modules.d.ts" />
-		import {formatAssetUrl, AssetUrlOptions} from './utils';
+		/// <reference path="./modules.d.ts" />
 	`
 
 	let declarations = `
-		/** @public */
-		export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
+		${assetDeclarationFileCommon}
+		
+		/**
+		 * @param {AssetUrlOptions} [opts]
+		 * @public
+		 */
+		export function getAssetUrlsByImport(opts) {
 			return {
 	`
 
@@ -291,19 +346,50 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 				.replace(/[^a-zA-Z0-9_]/g, '_')
 				.replace(/_+/g, '_')
 				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
-			imports += `import ${variableName} from ${JSON.stringify('../' + href)};\n`
+			imports += `import ${variableName} from ${JSON.stringify('./' + href)};\n`
 			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
 		}
 		declarations += '},\n'
 	}
 
 	declarations += `
-			} as const
+			}
 		}
 	`
 
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'src', 'imports.ts')
-	await writeTypescriptFile(assetDeclarationFilePath, imports + declarations)
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
+	await writeCodeFile(
+		'scripts/refresh-assets.ts',
+		'javascript',
+		assetDeclarationFilePath,
+		imports + declarations
+	)
+
+	await writeAssetDeclarationDTSFile('imports', 'getAssetUrlsByImport')
+}
+
+async function writeAssetDeclarationDTSFile(fileName: string, functionName: string) {
+	let dts = `
+		type AssetUrl = string | { src: string }
+		type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
+
+		export function ${functionName}(opts?: AssetUrlOptions): {
+	`
+
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		dts += `${type}: {\n`
+		for (const name of Object.keys(assets)) {
+			dts += `${JSON.stringify(name)}: string,\n`
+		}
+		dts += '},\n'
+	}
+
+	dts += `
+		}
+	`
+
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', `${fileName}.d.ts`)
+	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
 // --- RUN

@@ -1,24 +1,23 @@
-import { execSync } from 'child_process'
-import { pathToFileURL } from 'url'
+import { exec } from './lib/exec'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 
-const sha = execSync('git rev-parse --short HEAD').toString().trim()
+async function main() {
+	const sha = (await exec('git', ['rev-parse', 'HEAD'])).trim().slice(0, 12)
 
-async function setCanaryVersions(bump: 'major' | 'minor' | 'patch') {
-	const latestVersion = getLatestVersion()
+	async function setCanaryVersions(bump: 'major' | 'minor' | 'patch') {
+		const latestVersion = getLatestVersion()
 
-	const nextVersion = latestVersion.prerelease.length
-		? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
-		  latestVersion
-		: latestVersion?.inc(bump)
-	const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-canary.${sha}`
+		const nextVersion = latestVersion.prerelease.length
+			? // if the package is in prerelease mode, we want to release a canary for the current version rather than bumping
+			  latestVersion
+			: latestVersion?.inc(bump)
+		const versionString = `${nextVersion.major}.${nextVersion.minor}.${nextVersion.patch}-canary.${sha}`
 
-	setAllVersions(versionString)
-}
+		setAllVersions(versionString)
+	}
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	// module was called directly
-	const bumpType = execSync('auto version').toString().trim() as 'major' | 'minor' | 'patch' | ''
+	const bumpType = (await exec('auto', ['version'])).trim() as 'major' | 'minor' | 'patch' | ''
 
 	console.log('bumpType', bumpType)
 	if (bumpType === '') {
@@ -31,3 +30,5 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 		throw new Error('Invalid bump type provided')
 	}
 }
+
+main()
