@@ -1,9 +1,10 @@
 import { hardReset, Tldraw } from '@tldraw/tldraw'
 /* eslint-disable import/no-internal-modules */
+import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 /* eslint-enable import/no-internal-modules */
-import { getBundlerAssetUrls } from '@tldraw/assets'
+
 import { useEffect, useState } from 'react'
 
 declare global {
@@ -12,7 +13,7 @@ declare global {
 	}
 }
 
-const assetUrls = getBundlerAssetUrls()
+const assetUrls = getAssetUrlsByImport()
 
 // NOTE: This is currently very similar to `apps/examples/src/1-basic/BasicExample.tsx`
 // and should probably stay that way to make writing new tests easier as it's

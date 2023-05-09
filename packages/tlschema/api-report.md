@@ -5,13 +5,16 @@
 ```ts
 
 import { BaseRecord } from '@tldraw/tlstore';
+import { defineMigrations } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { Migrations } from '@tldraw/tlstore';
 import { RecordType } from '@tldraw/tlstore';
+import { Signal } from 'signia';
 import { Store } from '@tldraw/tlstore';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSchemaOptions } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
+import { StoreValidator } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
 
 // @internal (undocumented)
@@ -103,13 +106,30 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public (undocumented)
+export function createTLSchema({ customShapeDefs, allowUnknownShapes, derivePresenceState, }: {
+    customShapeDefs?: readonly CustomShapeTypeInfo[];
+    allowUnknownShapes?: boolean;
+    derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
+}): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
 export const cursorTypeValidator: T.Validator<string>;
 
 // @public (undocumented)
 export const cursorValidator: T.Validator<TLCursor>;
 
+// @public (undocumented)
+export type CustomShapeTypeInfo = {
+    type: string;
+    migrations: ReturnType<typeof defineMigrations>;
+    validator?: StoreValidator<TLShape>;
+};
+
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+
+// @internal (undocumented)
+export const defaultDerivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export const documentTypeMigrations: Migrations;
@@ -344,7 +364,7 @@ export const geoShapeMigrations: Migrations;
 export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 
 // @internal (undocumented)
-export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export const groupShapeMigrations: Migrations;
@@ -490,7 +510,7 @@ export const TL_FILL_TYPES: Set<"none" | "pattern" | "semi" | "solid">;
 export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
-export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export const TL_HANDLE_TYPES: Set<"create" | "vertex" | "virtual">;

@@ -63,5 +63,8 @@
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"nanoid": "^3.0.0"
+	},
+	"peerDependencies": {
+		"signia": "*"
 	}
 }
