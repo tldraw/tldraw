@@ -5,6 +5,7 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@next/next/core-web-vitals',
 	],
+	ignorePatterns: ['e2e/wdio.*.js'],
 	plugins: ['@typescript-eslint', 'no-only-tests', 'import', 'local', '@next/next', 'react-hooks'],
 	settings: {
 		next: {
