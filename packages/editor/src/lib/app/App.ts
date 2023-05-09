@@ -2277,27 +2277,14 @@ export class App extends EventEmitter {
 	 */
 	getShapesAtPoint(point: VecLike): TLShape[] {
 		return this.shapesArray.filter((shape) => {
-			let didHit = false
-
-			const util = this.getShapeUtil(shape)
-
-			if (util.isClosed(shape)) {
-				// If the shape is closed, just check the outline
-				didHit = pointInPolygon(this.getPointInShapeSpace(shape, point), util.outline(shape))
-			} else {
-				// Otherwise, use the shape's own hit test method
-				didHit = util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+			// Check the page mask too
+			const pageMask = this._pageMaskCache.get(shape.id)
+			if (pageMask) {
+				return pointInPolygon(point, pageMask)
 			}
 
-			// If we did strike a hit, check the page mask too
-			if (didHit) {
-				const pageMask = this._pageMaskCache.get(shape.id)
-				if (pageMask) {
-					return pointInPolygon(point, pageMask)
-				}
-			}
-
-			return didHit
+			// Otherwise, use the shape's own hit test method
+			return this.getShapeUtil(shape).hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
 		})
 	}
 
