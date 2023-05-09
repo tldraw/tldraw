@@ -420,6 +420,8 @@ export interface InputProps {
     // (undocumented)
     label?: TLTranslationKey;
     // (undocumented)
+    onBlur?: (value: string) => void;
+    // (undocumented)
     onCancel?: (value: string) => void;
     // (undocumented)
     onComplete?: (value: string) => void;
