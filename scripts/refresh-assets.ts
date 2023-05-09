@@ -303,7 +303,7 @@ async function writeUrlBasedAssetDeclarationFile() {
 						...Object.entries(assets).map(
 							([name, href]) =>
 								`${JSON.stringify(name)}: formatAssetUrl(new URL(${JSON.stringify(
-									'../' + href
+									'./' + href
 								)}, import.meta.url).href, opts),`
 						),
 						'},',
@@ -346,7 +346,7 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 				.replace(/[^a-zA-Z0-9_]/g, '_')
 				.replace(/_+/g, '_')
 				.replace(/_(.)/g, (_, letter) => letter.toUpperCase())
-			imports += `import ${variableName} from ${JSON.stringify('../' + href)};\n`
+			imports += `import ${variableName} from ${JSON.stringify('./' + href)};\n`
 			declarations += `${JSON.stringify(name)}: formatAssetUrl(${variableName}, opts),\n`
 		}
 		declarations += '},\n'
