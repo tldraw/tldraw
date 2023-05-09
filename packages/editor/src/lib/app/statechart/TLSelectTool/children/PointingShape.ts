@@ -11,19 +11,12 @@ export class PointingShape extends StateNode {
 	didSelectOnEnter = false
 
 	onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
-		const { shape } = info
-
-		if (shape) {
-			// If a shape has a click handler, then don't do anything here;
-			// we're run its click handler on pointer up.
-			const util = this.app.getShapeUtil(shape)
-			if (util.onClick !== undefined) return
-		}
-
 		this.eventTargetShape = info.shape
 		this.selectingShape = this.app.getOutermostSelectableShape(info.shape)
 
-		if (this.selectingShape.id === this.app.focusLayerId) {
+		const util = this.app.getShapeUtil(info.shape)
+
+		if (util.onClick || this.selectingShape.id === this.app.focusLayerId) {
 			this.didSelectOnEnter = false
 			return
 		}
@@ -67,8 +60,9 @@ export class PointingShape extends StateNode {
 				const change = util.onClick?.(shape)
 				if (change) {
 					this.app.updateShapes([change])
+					this.parent.transition('idle', info)
+					return
 				}
-				return
 			}
 		}
 

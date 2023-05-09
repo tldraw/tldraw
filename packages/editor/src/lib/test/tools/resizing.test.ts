@@ -3828,7 +3828,7 @@ it('uses the cross cursor when create resizing', () => {
 })
 
 describe('Resizing text from the right edge', () => {
-	it.only('Resizes text from the right edge', () => {
+	it('Resizes text from the right edge', () => {
 		const id = app.createShapeId()
 		app.createShapes([{ id, type: 'text', props: { text: 'H' } }])
 		app.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size

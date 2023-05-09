@@ -275,6 +275,10 @@ export function getBundlerAssetUrls(opts?: AssetUrlOptions) {
 				new URL('../icons/icon/geo-arrow-up.svg', import.meta.url).href,
 				opts
 			),
+			'geo-check-box': formatAssetUrl(
+				new URL('../icons/icon/geo-check-box.svg', import.meta.url).href,
+				opts
+			),
 			'geo-diamond': formatAssetUrl(
 				new URL('../icons/icon/geo-diamond.svg', import.meta.url).href,
 				opts
