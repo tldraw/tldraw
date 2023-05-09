@@ -106,7 +106,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		[onComplete, onCancel]
 	)
 
-	const handleBlur = React.useCallback(() => setIsFocused(false), [])
+	const handleBlur = React.useCallback(() => {
+		setIsFocused(false)
+		onComplete?.(rCurrentValue.current)
+	}, [onComplete])
 
 	React.useEffect(() => {
 		const visualViewport = window.visualViewport
