@@ -502,11 +502,6 @@
 	height: 15px;
 }
 
-/* ------------------- Room Name ------------------- */
-.tlui-room-name__input {
-	flex-grow: 1;
-}
-
 /* ------------------- Style Panel ------------------ */
 
 .tlui-style-panel__wrapper {
@@ -1362,6 +1357,22 @@
 	display: flex;
 	align-items: flex-end;
 	justify-content: center;
+}
+
+/* ------------------ Da Top Zone ------------------- */
+.tlui-top-zone {
+	height: 44px;
+	width: auto;
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-3);
+	justify-content: flex-end;
+	z-index: var(--layer-panels);
+	align-items: center;
+}
+
+.tlui-room-name__input {
+	flex-grow: 1;
 }
 
 /* ------------------ Da Share Zone ----------------- */
