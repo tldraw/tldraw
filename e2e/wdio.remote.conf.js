@@ -13,6 +13,12 @@ exports.config = {
 			'browserstack',
 			{
 				browserstackLocal: true,
+				testObservability: true,
+				testObservabilityOptions: {
+					projectName: 'tldraw',
+					buildName: BUILD_NAME,
+					buildTag: process.env.GITHUB_SHA || 'local',
+				},
 				opts: {
 					verbose: 'true',
 				},
@@ -235,12 +241,6 @@ exports.config = {
 				projectName: 'tldraw',
 				buildName: BUILD_NAME,
 				consoleLogs: 'verbose',
-				testObservability: true,
-				testObservabilityOptions: {
-					projectName: 'tldraw',
-					buildName: BUILD_NAME,
-					buildTag: process.env.GITHUB_SHA || 'local',
-				},
 			},
 			'tldraw:options': {
 				...capability['tldraw:options'],
