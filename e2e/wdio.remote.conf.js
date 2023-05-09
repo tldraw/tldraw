@@ -1,4 +1,4 @@
-const { BUILD_NAME } = require('./wdio.util')
+const { BUILD_NAME, logBrowserstackUrl } = require('./wdio.util')
 
 global.webdriverService = 'browserstack'
 global.webdriverTestUrl = 'http://localhost:5420/'
@@ -267,21 +267,7 @@ exports.config = {
 		global.tldrawOptions = capabilities['tldraw:options']
 	},
 	afterSession: async (_config, capabilities, _specs) => {
-		const sessionId = capabilities['webdriver.remote.sessionid']
-
-		const headers = new Headers()
-		headers.set(
-			'Authorization',
-			'Basic ' + btoa(process.env.BROWSERSTACK_USER + ':' + process.env.BROWSERSTACK_KEY)
-		)
-		const resp = await fetch(`https://api.browserstack.com/automate/sessions/${sessionId}.json`, {
-			method: 'GET',
-			headers: headers,
-		})
-		const respJson = await resp.json()
-		console.log(`==================================
-browser_url: <${respJson.automation_session.browser_url}>
-==================================`)
+		await logBrowserstackUrl()
 	},
 	autoCompileOpts: {
 		autoCompile: true,

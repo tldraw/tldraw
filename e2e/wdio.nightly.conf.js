@@ -1,4 +1,4 @@
-const { BUILD_NAME } = require('./wdio.util')
+const { BUILD_NAME, logBrowserstackUrl } = require('./wdio.util')
 
 global.webdriverService = 'browserstack'
 global.webdriverTestUrl = 'http://localhost:5420/'
@@ -274,6 +274,9 @@ exports.config = {
 	connectionRetryCount: 3,
 	beforeSession: (_config, capabilities) => {
 		global.tldrawOptions = capabilities['tldraw:options']
+	},
+	afterSession: async (_config, capabilities, _specs) => {
+		await logBrowserstackUrl()
 	},
 	autoCompileOpts: {
 		autoCompile: true,
