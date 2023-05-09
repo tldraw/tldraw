@@ -327,6 +327,7 @@ export class Idle extends StateNode {
 		if (!singleShape) return false
 
 		const shapeUtil = this.app.getShapeUtil(singleShape)
+		// Should the Ctrl key be pressed to enter crop mode
 		if (withCtrlKey) {
 			return shapeUtil.canCrop(singleShape) && info.ctrlKey
 		} else {
