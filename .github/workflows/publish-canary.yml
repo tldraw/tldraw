@@ -2,7 +2,7 @@ name: Publish Canary Packages
 
 on:
   push:
-    branches: [main, 'alex/better-publish-debugging']
+    branches: [main]
 
 jobs:
   deploy:
