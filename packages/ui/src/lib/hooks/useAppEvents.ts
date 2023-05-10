@@ -33,10 +33,10 @@ export function useAppEvents() {
 		}
 
 		app.addListener('max-shapes', handleMaxShapes)
-		app.addListener('moved-to-page', handleMoveToPage)
+		app.addListener('move-to-page', handleMoveToPage)
 		return () => {
 			app.removeListener('max-shapes', handleMaxShapes)
-			app.removeListener('moved-to-page', handleMoveToPage)
+			app.removeListener('move-to-page', handleMoveToPage)
 		}
 	}, [app, addToast])
 }

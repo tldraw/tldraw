@@ -30,7 +30,6 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLFrameShape,
-	TLGeoShape,
 	TLGroupShape,
 	TLImageAsset,
 	TLInstance,
@@ -56,11 +55,11 @@ import {
 	TLVideoAsset,
 	Vec2dModel,
 } from '@tldraw/tlschema'
-import { ComputedCache, HistoryEntry } from '@tldraw/tlstore'
+import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
 import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
-import { atom, computed, EMPTY_ARRAY, transact } from 'signia'
+import { atom, computed, EMPTY_ARRAY, react, transact } from 'signia'
 import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
 import { TLShapeDef } from '../config/TLShapeDefinition'
 import {
@@ -133,7 +132,7 @@ import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
-export type TLChange = HistoryEntry<any>
+export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>
 
 /** @public */
 export type AnimationOptions = Partial<{
@@ -291,13 +290,19 @@ export class App extends EventEmitter<TLEventMap> {
 			true
 		)
 
-		this.root.enter(undefined, 'initial')
-
 		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
 		}
 
 		this.updateCullingBounds()
+
+		this.disposables.add(
+			react('change-path', () => {
+				this.emit('change-path', { path: this.root.path.value })
+			})
+		)
+
+		this.root.enter(undefined, 'initial')
 
 		requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -549,20 +554,66 @@ export class App extends EventEmitter<TLEventMap> {
 		return this._dprManager.dpr.value
 	}
 
+	private _openMenus = atom('open-menus', [] as string[])
+
 	/**
-	 * A set of strings representing any open menus or modals.
+	 * A set of strings representing any open menus. When menus are open,
+	 * certain interactions will behave differently; for example, when a
+	 * draw tool is selected and a menu is open, a pointer-down will not
+	 * create a dot (because the user is probably trying to close the menu)
+	 * however a pointer-down event followed by a drag will begin drawing
+	 * a line (because the user is BOTH trying to close the menu AND start
+	 * drawing a line).
 	 *
 	 * @public
 	 */
-	openMenus = new Set<string>()
+	@computed get openMenus(): string[] {
+		return this._openMenus.value
+	}
+
+	/**
+	 * Add an open menu.
+	 *
+	 * ```ts
+	 * app.addOpenMenu('menu-id')
+	 * ```
+	 * @public
+	 */
+	addOpenMenu = (id: string) => {
+		const menus = new Set(this.openMenus)
+		if (!menus.has(id)) {
+			menus.add(id)
+			this._openMenus.set([...menus])
+			this.emit('open-menu', { id })
+		}
+		return this
+	}
+
+	/**
+	 * Delete an open menu.
+	 *
+	 * ```ts
+	 * app.deleteOpenMenu('menu-id')
+	 * ```
+	 * @public
+	 */
+	deleteOpenMenu = (id: string) => {
+		const menus = new Set(this.openMenus)
+		if (menus.has(id)) {
+			menus.delete(id)
+			this._openMenus.set([...menus])
+			this.emit('close-menu', { id })
+		}
+		return this
+	}
 
 	/**
 	 * Get whether any menus are open.
 	 *
 	 * @public
 	 */
-	get isMenuOpen() {
-		return this.openMenus.size > 0
+	@computed get isMenuOpen() {
+		return this.openMenus.length > 0
 	}
 
 	/** @internal */
@@ -1438,7 +1489,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (!backupPageId) return
 
 		this.store.put(instanceStates.map((state) => ({ ...state, currentPageId: backupPageId })))
-		this.emit('change-page', { toId: backupPageId, fromId: page.id })
 	}
 
 	/* -------------------- Shortcuts ------------------- */
@@ -1468,7 +1518,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setSnapMode(isSnapMode: boolean) {
 		if (isSnapMode === this.isSnapMode) return
-		this.emit('change-setting', { name: 'isSnapMode', value: isSnapMode })
+		this.emit('set-setting', { name: 'isSnapMode', value: isSnapMode })
 		this.updateUserDocumentSettings({ isSnapMode }, true)
 	}
 
@@ -1478,7 +1528,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setDarkMode(isDarkMode: boolean) {
 		if (isDarkMode === this.isDarkMode) return
-		this.emit('change-setting', { name: 'isDarkMode', value: isDarkMode })
+		this.emit('set-setting', { name: 'isDarkMode', value: isDarkMode })
 		this.updateUserDocumentSettings({ isDarkMode }, true)
 	}
 
@@ -1488,7 +1538,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setFocusMode(isFocusMode: boolean) {
 		if (isFocusMode === this.isFocusMode) return
-		this.emit('change-setting', { name: 'isFocusMode', value: isFocusMode })
+		this.emit('set-setting', { name: 'isFocusMode', value: isFocusMode })
 		this.updateInstanceState({ isFocusMode }, true)
 	}
 
@@ -1498,7 +1548,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setToolLocked(isToolLocked: boolean) {
 		if (isToolLocked === this.isToolLocked) return
-		this.emit('change-setting', { name: 'isToolLocked', value: isToolLocked })
+		this.emit('set-setting', { name: 'isToolLocked', value: isToolLocked })
 		this.updateInstanceState({ isToolLocked }, true)
 	}
 
@@ -1517,7 +1567,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setGridMode(isGridMode: boolean) {
 		if (isGridMode === this.isGridMode) return
-		this.emit('change-setting', { name: 'isGridMode', value: isGridMode })
+		this.emit('set-setting', { name: 'isGridMode', value: isGridMode })
 		this.updateUserDocumentSettings({ isGridMode }, true)
 	}
 
@@ -1527,7 +1577,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setReadOnly(isReadOnly: boolean) {
 		if (isReadOnly === this.isReadOnly) return
-		this.emit('change-setting', { name: 'isReadOnly', value: isReadOnly })
+		this.emit('set-setting', { name: 'isReadOnly', value: isReadOnly })
 		this.updateUserDocumentSettings({ isReadOnly }, true)
 		if (isReadOnly) {
 			this.setSelectedTool('hand')
@@ -1547,7 +1597,7 @@ export class App extends EventEmitter<TLEventMap> {
 	setPenMode(isPenMode: boolean) {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode === this.isPenMode) return
-		this.emit('change-setting', { name: 'isPenMode', value: isPenMode })
+		this.emit('set-setting', { name: 'isPenMode', value: isPenMode })
 		this._isPenMode.set(isPenMode)
 	}
 
@@ -3238,9 +3288,6 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	setSelectedTool(id: string, info = {}) {
 		this.root.transition(id, info)
-		if (!('onInteractionEnd' in info)) {
-			this.emit('change-tool', { id: id.split('.')[0] })
-		}
 		return this
 	}
 
@@ -4585,18 +4632,6 @@ export class App extends EventEmitter<TLEventMap> {
 						selectedIds: createdIds,
 					}))
 				}
-
-				this.emit('create-shapes', {
-					pageId: currentPageId,
-					ids: createdIds,
-					types: [
-						...new Set(
-							shapeRecordsToCreate.map((s) =>
-								s.type === 'geo' ? `geo-${(s as TLGeoShape).props.geo}` : s.type
-							)
-						),
-					],
-				})
 			},
 			undo: ({ currentPageId, createdIds, prevSelectedIds }) => {
 				this.store.remove(createdIds)
@@ -4607,8 +4642,6 @@ export class App extends EventEmitter<TLEventMap> {
 						selectedIds: prevSelectedIds,
 					}))
 				}
-
-				this.emit('delete-shapes', { pageId: currentPageId, ids: createdIds })
 			},
 		}
 	)
@@ -4895,29 +4928,13 @@ export class App extends EventEmitter<TLEventMap> {
 					...state,
 					selectedIds: postSelectedIds,
 				}))
-
-				this.emit('delete-shapes', { pageId: this.currentPageId, ids: deletedIds })
 			},
-			undo: ({ deletedIds, snapshots, prevSelectedIds }) => {
+			undo: ({ snapshots, prevSelectedIds }) => {
 				this.store.put(snapshots)
 				this.store.update(this.pageState.id, (state) => ({
 					...state,
 					selectedIds: prevSelectedIds,
 				}))
-
-				this.emit('create-shapes', {
-					pageId: this.currentPageId,
-					types: [
-						...new Set(
-							deletedIds
-								.map((id) => this.getShapeById(id)!)
-								.map((shape) =>
-									shape.type === 'geo' ? `geo-${(shape as TLGeoShape).props.geo}` : shape.type
-								)
-						),
-					],
-					ids: deletedIds,
-				})
 			},
 		}
 	)
@@ -5070,16 +5087,12 @@ export class App extends EventEmitter<TLEventMap> {
 					newTabPageState,
 					{ ...this.instanceState, currentPageId: newPage.id },
 				])
-				this.emit('create-page', { id: newPage.id })
-				this.emit('change-page', { toId: newPage.id, fromId: prevPageState.pageId })
 				this.updateCullingBounds()
 			},
 			undo: ({ newPage, prevPageState, prevTabState, newTabPageState }) => {
 				this.store.put([prevPageState, prevTabState])
 				this.store.remove([newTabPageState.id, newPage.id, newTabPageState.cameraId])
 
-				this.emit('delete-page', { id: newPage.id })
-				this.emit('change-page', { fromId: newPage.id, toId: prevPageState.pageId })
 				this.updateCullingBounds()
 			},
 		}
@@ -5149,13 +5162,11 @@ export class App extends EventEmitter<TLEventMap> {
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
 				this.updateCullingBounds()
-				this.emit('delete-page', { id: deletedPage.id })
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
 				this.updateCullingBounds()
-				this.emit('create-page', { id: deletedPage.id })
 			},
 		}
 	)
@@ -5837,7 +5848,7 @@ export class App extends EventEmitter<TLEventMap> {
 			this.centerOnPoint(x, y)
 		})
 
-		this.emit('moved-to-page', { name: this.currentPage.name, toId: pageId, fromId: currentPageId })
+		this.emit('move-to-page', { name: this.currentPage.name, toId: pageId, fromId: currentPageId })
 
 		return this
 	}
@@ -7199,8 +7210,6 @@ export class App extends EventEmitter<TLEventMap> {
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
-
-				this.emit('change-page', { toId, fromId })
 			},
 			undo: ({ toId, fromId }) => {
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
@@ -7209,8 +7218,6 @@ export class App extends EventEmitter<TLEventMap> {
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
-
-				this.emit('change-page', { toId: fromId, fromId: toId })
 			},
 			squash: ({ fromId }, { toId }) => {
 				return { toId, fromId }
@@ -7821,7 +7828,7 @@ export class App extends EventEmitter<TLEventMap> {
 				squashing
 			)
 
-			this.emit('change-prop', { key, value })
+			this.emit('set-prop', { key, value })
 		})
 
 		return this
@@ -7836,30 +7843,30 @@ export class App extends EventEmitter<TLEventMap> {
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) return this
 		const nextCamera = { ...currentCamera, x, y, z }
 
-		this.store.put([nextCamera])
+		this.batch(() => {
+			this.store.put([nextCamera])
 
-		const { currentScreenPoint } = this.inputs
+			const { currentScreenPoint } = this.inputs
 
-		this.dispatch({
-			type: 'pointer',
-			target: 'canvas',
-			name: 'pointer_move',
-			point: currentScreenPoint,
-			pointerId: 0,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			shiftKey: this.inputs.shiftKey,
-			button: 0,
-			isPen: this.isPenMode ?? false,
+			this.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_move',
+				point: currentScreenPoint,
+				pointerId: 0,
+				ctrlKey: this.inputs.ctrlKey,
+				altKey: this.inputs.altKey,
+				shiftKey: this.inputs.shiftKey,
+				button: 0,
+				isPen: this.isPenMode ?? false,
+			})
+
+			this.updateUserPresence({
+				viewportPageBounds: this.viewportPageBounds.toJson(),
+			})
+
+			this._cameraManager.tick()
 		})
-
-		this.updateUserPresence({
-			viewportPageBounds: this.viewportPageBounds.toJson(),
-		})
-
-		this._cameraManager.tick()
-
-		this.emit('change-camera', nextCamera)
 
 		return this
 	}
@@ -7967,7 +7974,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	backToContent() {
+	zoomToContent() {
 		const bounds = this.selectedPageBounds ?? this.allShapesCommonBounds
 
 		if (bounds) {
@@ -7981,7 +7988,7 @@ export class App extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		this.emit('back-to-content')
+		this.emit('zoom-to-content')
 
 		return this
 	}

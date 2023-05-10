@@ -61,10 +61,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 	const rInitialValue = React.useRef<string>(defaultValue ?? '')
 	const rCurrentValue = React.useRef<string>(defaultValue ?? '')
 
-	const [isFocused, setFocused] = React.useState(false)
+	const [isFocused, setIsFocused] = React.useState(false)
 	const handleFocus = React.useCallback(
 		(e: React.FocusEvent<HTMLInputElement>) => {
-			setFocused(true)
+			setIsFocused(true)
 			const elm = e.currentTarget as HTMLInputElement
 			rCurrentValue.current = elm.value
 			requestAnimationFrame(() => {
@@ -106,7 +106,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		[onComplete, onCancel]
 	)
 
-	const handleBlur = React.useCallback(() => setFocused(false), [])
+	const handleBlur = React.useCallback(() => setIsFocused(false), [])
 
 	React.useEffect(() => {
 		const visualViewport = window.visualViewport

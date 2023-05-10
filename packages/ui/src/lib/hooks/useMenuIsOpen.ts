@@ -9,21 +9,21 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
 			rIsOpen.current = isOpen
-			if (isOpen) {
-				app.complete()
-				app.openMenus.add(id)
-				app.emit('open-menu', { id })
-			} else {
-				app.openMenus.delete(id)
-				app.openMenus.forEach((menuId) => {
-					if (menuId.startsWith(id)) {
-						app.openMenus.delete(menuId)
-					}
-				})
-				app.emit('close-menu', { id })
-			}
+			app.batch(() => {
+				if (isOpen) {
+					app.complete()
+					app.addOpenMenu(id)
+				} else {
+					app.deleteOpenMenu(id)
+					app.openMenus.forEach((menuId) => {
+						if (menuId.startsWith(id)) {
+							app.deleteOpenMenu(menuId)
+						}
+					})
+				}
 
-			cb?.(isOpen)
+				cb?.(isOpen)
+			})
 		},
 		[app, id, cb]
 	)
@@ -38,18 +38,18 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
-			app.openMenus.add(id)
+			app.addOpenMenu(id)
 		}
 
 		return () => {
 			if (rIsOpen.current) {
 				// Close menu on unmount
-				app.openMenus.delete(id)
+				app.deleteOpenMenu(id)
 
 				// Close menu and all submenus when the parent is closed
 				app.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
-						app.openMenus.delete(menuId)
+						app.deleteOpenMenu(menuId)
 					}
 				})
 

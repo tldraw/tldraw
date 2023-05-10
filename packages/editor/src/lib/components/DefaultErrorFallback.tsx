@@ -40,11 +40,11 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 		},
 		[app]
 	)
-	const [isDarkMode, setDarkMode] = useState<null | boolean>(null)
+	const [isDarkMode, setIsDarkMode] = useState<null | boolean>(null)
 	useLayoutEffect(() => {
 		// if we found a theme class from the app, we can just use that
 		if (isDarkModeFromApp !== null) {
-			setDarkMode(isDarkModeFromApp)
+			setIsDarkMode(isDarkModeFromApp)
 		}
 
 		// do any of our parents have a theme class? if yes then we can just
@@ -62,13 +62,13 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 			parent = parent.parentElement
 		}
 		if (foundParentThemeClass) {
-			setDarkMode(null)
+			setIsDarkMode(null)
 			return
 		}
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		setDarkMode(window.matchMedia('(prefetl-color-scheme: dark)').matches)
+		setIsDarkMode(window.matchMedia('(prefetl-color-scheme: dark)').matches)
 	}, [isDarkModeFromApp])
 
 	useEffect(() => {

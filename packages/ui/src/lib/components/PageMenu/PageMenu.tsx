@@ -34,18 +34,18 @@ export const PageMenu = function PageMenu() {
 	const isCoarsePointer = useValue('isCoarsePointer', () => app.isCoarsePointer, [app])
 
 	// The component has an "editing state" that may be toggled to expose additional controls
-	const [isEditing, setEditing] = useState(false)
+	const [isEditing, setIsEditing] = useState(false)
 
 	const toggleEditing = useCallback(() => {
 		if (isReadonlyMode) return
-		setEditing((s) => !s)
+		setIsEditing((s) => !s)
 	}, [isReadonlyMode])
 
-	const [isOpen, setOpen] = useState(false)
+	const [isOpen, setIsOpen] = useState(false)
 
 	const handleOpenChange = useCallback((isOpen: boolean) => {
-		setOpen(isOpen)
-		setEditing(false)
+		setIsOpen(isOpen)
+		setIsEditing(false)
 	}, [])
 
 	const rMutables = useRef({
@@ -234,7 +234,7 @@ export const PageMenu = function PageMenu() {
 		app.mark('creating page')
 		const newPageId = TLPage.createId()
 		app.createPage(msg('page-menu.new-page-initial-name'), newPageId)
-		setEditing(true)
+		setIsEditing(true)
 	}, [app, msg, isReadonlyMode])
 
 	return (
@@ -376,7 +376,7 @@ export const PageMenu = function PageMenu() {
 															app.renamePage(page.id, name)
 														}
 													} else {
-														setEditing(true)
+														setIsEditing(true)
 														app.setCurrentPageId(page.id)
 													}
 												}}

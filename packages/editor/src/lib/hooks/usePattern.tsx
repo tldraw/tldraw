@@ -88,7 +88,7 @@ const getDefaultPatterns = () => {
 export const usePattern = () => {
 	const app = useApp()
 	const dpr = app.devicePixelRatio
-	const [isReady, setReady] = useState(false)
+	const [isReady, setIsReady] = useState(false)
 	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)
 
@@ -116,12 +116,12 @@ export const usePattern = () => {
 		Promise.all(promises).then((urls) => {
 			if (isCancelled) return
 			setBackgroundUrls(urls)
-			setReady(true)
+			setIsReady(true)
 		})
 
 		return () => {
 			isCancelled = true
-			setReady(false)
+			setIsReady(false)
 		}
 	}, [dpr])
 

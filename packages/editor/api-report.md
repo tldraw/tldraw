@@ -7,6 +7,7 @@
 /// <reference types="react" />
 
 import { Atom } from 'signia';
+import { BaseRecord } from '@tldraw/tlstore';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
@@ -122,6 +123,7 @@ export type AnimationOptions = Partial<{
 // @public (undocumented)
 export class App extends EventEmitter<TLEventMap> {
     constructor({ config, store, getContainer }: AppOptions);
+    addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
     animateCamera(x: number, y: number, z?: number, opts?: AnimationOptions): this;
@@ -139,7 +141,6 @@ export class App extends EventEmitter<TLEventMap> {
         extras?: Record<string, unknown>;
     }): void;
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
-    backToContent(): this;
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
@@ -194,6 +195,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
+    deleteOpenMenu: (id: string) => this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
@@ -364,7 +366,7 @@ export class App extends EventEmitter<TLEventMap> {
         description: string;
     }>;
     get onlySelectedShape(): TLBaseShape<any, any> | null;
-    openMenus: Set<string>;
+    get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
     get pageState(): TLInstancePageState;
@@ -522,6 +524,7 @@ export class App extends EventEmitter<TLEventMap> {
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: AnimationOptions): this;
     zoomToBounds(x: number, y: number, width: number, height: number, targetZoom?: number, opts?: AnimationOptions): this;
+    zoomToContent(): this;
     zoomToFit(opts?: AnimationOptions): this;
     zoomToSelection(opts?: AnimationOptions): this;
 }
@@ -1746,7 +1749,7 @@ export type TLCancelEventInfo = {
 };
 
 // @public (undocumented)
-export type TLChange = HistoryEntry<any>;
+export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>;
 
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
@@ -2018,10 +2021,6 @@ export interface TLEventMap {
     }
     ];
     // (undocumented)
-    'back-to-content': [];
-    // (undocumented)
-    'change-camera': [TLCamera];
-    // (undocumented)
     'change-history': [{
         reason: 'bail';
         markId?: string;
@@ -2029,51 +2028,15 @@ export interface TLEventMap {
         reason: 'push' | 'redo' | 'undo';
     }];
     // (undocumented)
-    'change-page': [{
-        toId: TLPageId;
-        fromId: TLPageId;
+    'change-path': [{
+        path: string;
     }];
-    // (undocumented)
-    'change-prop': [{
-        key: string;
-        value: any;
-    }];
-    // (undocumented)
-    'change-setting': [
-        {
-        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isSnapMode' | 'isToolLocked';
-        value: boolean;
-    }
-    ];
-    // (undocumented)
-    'change-tool': {
-        id: string;
-    };
     // (undocumented)
     'close-menu': [{
         id: string;
     }];
     // (undocumented)
     'create-new-project': [];
-    // (undocumented)
-    'create-page': [{
-        id: TLPageId;
-    }];
-    // (undocumented)
-    'create-shapes': [{
-        ids: TLShapeId[];
-        types: TLShapeType[];
-        pageId: TLPageId;
-    }];
-    // (undocumented)
-    'delete-page': [{
-        id: TLPageId;
-    }];
-    // (undocumented)
-    'delete-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-    }];
     // (undocumented)
     'distribute-shapes': [
         {
@@ -2088,11 +2051,11 @@ export interface TLEventMap {
         newPageId: TLPageId;
     }];
     // (undocumented)
-    'duplicate-shapes': {
+    'duplicate-shapes': [{
         ids: TLShapeId[];
         newShapeIds: TLShapeId[];
         pageId: TLPageId;
-    };
+    }];
     // (undocumented)
     'flip-shapes': [{
         ids: TLShapeId[];
@@ -2115,18 +2078,16 @@ export interface TLEventMap {
         count: number;
     }];
     // (undocumented)
-    'moved-to-page': [{
+    'move-to-page': [{
         name: string;
         fromId: TLPageId;
         toId: TLPageId;
     }];
     // (undocumented)
-    'nudge-shapes': [
-        {
+    'nudge-shapes': [{
         ids: TLShapeId[];
         pageId: TLPageId;
-    }
-    ];
+    }];
     // (undocumented)
     'open-file': [];
     // (undocumented)
@@ -2149,10 +2110,10 @@ export interface TLEventMap {
     // (undocumented)
     'reset-zoom': [];
     // (undocumented)
-    'rotate-shapes': {
+    'rotate-shapes': [{
         ids: TLShapeId[];
         pageId: TLPageId;
-    };
+    }];
     // (undocumented)
     'save-project-to-file': [];
     // (undocumented)
@@ -2163,6 +2124,18 @@ export interface TLEventMap {
     'select-tool': [{
         id: string;
     }];
+    // (undocumented)
+    'set-prop': [{
+        key: string;
+        value: any;
+    }];
+    // (undocumented)
+    'set-setting': [
+        {
+        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isSnapMode' | 'isToolLocked';
+        value: boolean;
+    }
+    ];
     // (undocumented)
     'stack-shapes': [{
         ids: TLShapeId[];
@@ -2191,9 +2164,11 @@ export interface TLEventMap {
     // (undocumented)
     'zoom-out': [];
     // (undocumented)
+    'zoom-to-content': [];
+    // (undocumented)
     'zoom-to-selection': [];
     // (undocumented)
-    change: [TLChange];
+    change: [TLChange<TLRecord>];
     // (undocumented)
     copy: [];
     // (undocumented)
@@ -2215,6 +2190,9 @@ export interface TLEventMap {
     // (undocumented)
     update: [];
 }
+
+// @public (undocumented)
+export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
 
 // @public (undocumented)
 export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;

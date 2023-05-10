@@ -66,7 +66,7 @@ export { TLVideoShapeDef, TLVideoUtil } from './lib/app/shapeutils/TLVideoUtil/T
 export { StateNode, type StateNodeConstructor } from './lib/app/statechart/StateNode'
 export { TLBoxTool, type TLBoxLike } from './lib/app/statechart/TLBoxTool/TLBoxTool'
 export { type ClipboardPayload, type TLClipboardModel } from './lib/app/types/clipboard-types'
-export { type TLEventMap } from './lib/app/types/emit-types'
+export { type TLEventMap, type TLEventMapHandler } from './lib/app/types/emit-types'
 export {
 	EVENT_NAME_MAP,
 	type TLBaseEventInfo,

@@ -130,9 +130,9 @@ export function usePrint() {
 
 			const afterPrintHandler = () => {
 				// TODO: This is kind of lazy at the moment. I guess we need an event for 'something-happens-on-canvas'
-				app.once('change-camera', () => {
+				setTimeout(() => {
 					clearElements(el, style)
-				})
+				}, 2000)
 			}
 
 			window.addEventListener('beforeprint', beforePrintHandler)

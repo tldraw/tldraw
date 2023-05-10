@@ -876,7 +876,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'arrow-left',
 				readonlyOk: true,
 				onSelect() {
-					app.backToContent()
+					app.zoomToContent()
 				},
 			},
 		])
