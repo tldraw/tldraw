@@ -235,6 +235,7 @@ export const DEFAULT_TRANSLATION = {
 		'Anyone with the link will be able to view (but not edit) this project.',
 	'share-menu.project-too-large':
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
+	'export-menu.title': 'Export',
 	'people-menu.title': 'People',
 	'people-menu.change-name': 'Change name',
 	'people-menu.change-color': 'Change color',

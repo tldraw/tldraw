@@ -900,18 +900,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'arrow-left',
 				readonlyOk: true,
 				onSelect() {
-					const bounds = app.selectedPageBounds ?? app.allShapesCommonBounds
-
-					if (bounds) {
-						app.zoomToBounds(
-							bounds.minX,
-							bounds.minY,
-							bounds.width,
-							bounds.height,
-							Math.min(1, app.zoomLevel),
-							{ duration: 220 }
-						)
-					}
+					zoomToContents(app)
 				},
 			},
 		])
@@ -936,6 +925,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	])
 
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
+}
+
+export function zoomToContents(app: App) {
+	const bounds = app.selectedPageBounds ?? app.allShapesCommonBounds
+
+	if (bounds) {
+		app.zoomToBounds(
+			bounds.minX,
+			bounds.minY,
+			bounds.width,
+			bounds.height,
+			Math.min(1, app.zoomLevel),
+			{ duration: 220 }
+		)
+	}
 }
 
 /** @public */

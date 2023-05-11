@@ -232,6 +232,7 @@ export type TLTranslationKey =
 	| 'share-menu.copy-link-note'
 	| 'share-menu.copy-readonly-link-note'
 	| 'share-menu.project-too-large'
+	| 'export-menu.title'
 	| 'people-menu.title'
 	| 'people-menu.change-name'
 	| 'people-menu.change-color'
