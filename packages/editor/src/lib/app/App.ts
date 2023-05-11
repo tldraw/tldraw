@@ -1526,7 +1526,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isDarkMode
 	}
 
-	setDarkMode(isDarkMode: boolean) {
+	setIsDarkMode(isDarkMode: boolean) {
 		if (isDarkMode === this.isDarkMode) return
 		this.emit('set-setting', { name: 'isDarkMode', value: isDarkMode })
 		this.updateUserDocumentSettings({ isDarkMode }, true)
@@ -1536,7 +1536,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.instanceState.isFocusMode
 	}
 
-	setFocusMode(isFocusMode: boolean) {
+	setIsFocusMode(isFocusMode: boolean) {
 		if (isFocusMode === this.isFocusMode) return
 		this.emit('set-setting', { name: 'isFocusMode', value: isFocusMode })
 		this.updateInstanceState({ isFocusMode }, true)
@@ -1546,7 +1546,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.instanceState.isToolLocked
 	}
 
-	setToolLocked(isToolLocked: boolean) {
+	setIsToolLocked(isToolLocked: boolean) {
 		if (isToolLocked === this.isToolLocked) return
 		this.emit('set-setting', { name: 'isToolLocked', value: isToolLocked })
 		this.updateInstanceState({ isToolLocked }, true)
@@ -1565,7 +1565,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isGridMode
 	}
 
-	setGridMode(isGridMode: boolean) {
+	setIsGridMode(isGridMode: boolean) {
 		if (isGridMode === this.isGridMode) return
 		this.emit('set-setting', { name: 'isGridMode', value: isGridMode })
 		this.updateUserDocumentSettings({ isGridMode }, true)
@@ -1575,7 +1575,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isReadOnly
 	}
 
-	setReadOnly(isReadOnly: boolean) {
+	setIsReadOnly(isReadOnly: boolean) {
 		if (isReadOnly === this.isReadOnly) return
 		this.emit('set-setting', { name: 'isReadOnly', value: isReadOnly })
 		this.updateUserDocumentSettings({ isReadOnly }, true)
@@ -1594,7 +1594,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this._isPenMode.value
 	}
 
-	setPenMode(isPenMode: boolean) {
+	setIsPenMode(isPenMode: boolean) {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode === this.isPenMode) return
 		this.emit('set-setting', { name: 'isPenMode', value: isPenMode })
@@ -3756,7 +3756,7 @@ export class App extends EventEmitter<TLEventMap> {
 									// decrement the remaining taps before exiting pen mode
 									this._touchEventsRemainingBeforeExitingPenMode--
 									if (this._touchEventsRemainingBeforeExitingPenMode === 0) {
-										this.setPenMode(false)
+										this.setIsPenMode(false)
 									} else {
 										return
 									}
@@ -3766,7 +3766,7 @@ export class App extends EventEmitter<TLEventMap> {
 								}
 							} else {
 								if (isPen) {
-									this.setPenMode(true)
+									this.setIsPenMode(true)
 								}
 							}
 
