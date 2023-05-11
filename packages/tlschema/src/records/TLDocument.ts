@@ -1,4 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import {
+	BaseRecord,
+	createRecordType,
+	DEFAULT_PROJECT_NAME,
+	defineMigrations,
+	ID,
+} from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 
 /**
@@ -40,7 +46,7 @@ export const documentTypeMigrations = defineMigrations({
 	migrators: {
 		[Versions.AddName]: {
 			up: (document: TLDocument) => {
-				return { ...document, name: 'Project' }
+				return { ...document, name: DEFAULT_PROJECT_NAME }
 			},
 			down: ({ name: _, ...document }: TLDocument) => {
 				return document
@@ -57,7 +63,7 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
-		name: 'Home Project',
+		name: 'Untitled Project',
 	})
 )
 

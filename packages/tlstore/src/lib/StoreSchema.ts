@@ -51,7 +51,10 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 	ensureStoreIsUsable?: (store: Store<R, P>) => void
 	/** @internal */
 	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
+	createProjectName?: () => string
 }
+
+export const DEFAULT_PROJECT_NAME = 'Project'
 
 /** @public */
 export class StoreSchema<R extends BaseRecord, P = unknown> {
@@ -247,6 +250,11 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 	/** @internal */
 	derivePresenceState(store: Store<R, P>): Signal<R | null> | undefined {
 		return this.options.derivePresenceState?.(store)
+	}
+
+	/** @public */
+	createProjectName(): string {
+		return this.options.createProjectName?.() ?? DEFAULT_PROJECT_NAME
 	}
 
 	serialize(): SerializedSchema {

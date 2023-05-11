@@ -103,7 +103,7 @@ export function ensureStoreIsUsable(store: TLStore): void {
 	const { userId, instanceId: tabId } = store.props
 	// make sure we have exactly one document
 	if (!store.has(TLDOCUMENT_ID)) {
-		store.put([TLDocument.create({ id: TLDOCUMENT_ID })])
+		store.put([TLDocument.create({ id: TLDOCUMENT_ID, name: store.schema.createProjectName() })])
 		return ensureStoreIsUsable(store)
 	}
 

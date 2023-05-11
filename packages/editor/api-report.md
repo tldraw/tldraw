@@ -202,8 +202,6 @@ export class App extends EventEmitter {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
-    // (undocumented)
-    get documentName(): string;
     get documentSettings(): TLDocument;
     // (undocumented)
     duplicatePage(id?: TLPageId, createId?: TLPageId): void;
@@ -370,6 +368,8 @@ export class App extends EventEmitter {
     panZoomIntoView(ids: TLShapeId[], opts?: AnimationOptions): this;
     // (undocumented)
     popFocusLayer(): this;
+    // (undocumented)
+    get projectName(): string;
     // @internal
     get props(): null | TLNullableShapeProps;
     // (undocumented)
@@ -434,8 +434,6 @@ export class App extends EventEmitter {
     setCursor(cursor: Partial<TLCursor>): this;
     // (undocumented)
     setDarkMode(isDarkMode: boolean): void;
-    // (undocumented)
-    setDocumentName(name: string): void;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
@@ -446,6 +444,8 @@ export class App extends EventEmitter {
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): void;
+    // (undocumented)
+    setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)
     setReadOnly(isReadOnly: boolean): void;
@@ -1806,6 +1806,7 @@ export class TldrawEditorConfig {
         tools?: readonly StateNodeConstructor[];
         allowUnknownShapes?: boolean;
         derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
+        createProjectName?: () => string;
     });
     // (undocumented)
     createStore(config: {

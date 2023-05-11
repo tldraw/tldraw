@@ -23,6 +23,7 @@ import {
 	storeMigrations,
 } from '@tldraw/tlschema'
 import {
+	DEFAULT_PROJECT_NAME,
 	RecordType,
 	Store,
 	StoreSchema,
@@ -79,12 +80,14 @@ export class TldrawEditorConfig {
 		allowUnknownShapes?: boolean
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+		createProjectName?: () => string
 	}) {
 		const {
 			shapes = [],
 			tools = [],
 			allowUnknownShapes = false,
 			derivePresenceState = defaultDerivePresenceState,
+			createProjectName = () => DEFAULT_PROJECT_NAME,
 		} = args
 		this.tools = tools
 
@@ -140,6 +143,7 @@ export class TldrawEditorConfig {
 				onValidationFailure,
 				ensureStoreIsUsable,
 				derivePresenceState,
+				createProjectName,
 			}
 		)
 	}
