@@ -5,6 +5,7 @@ import { AssetUrlsProvider } from './hooks/useAssetUrls'
 import { BreakPointProvider } from './hooks/useBreakpoint'
 import { ContextMenuSchemaProvider } from './hooks/useContextMenuSchema'
 import { DialogsProvider } from './hooks/useDialogsProvider'
+import { EventsProvider, TLUiEventHandler } from './hooks/useEventsProvider'
 import { HelpMenuSchemaProvider } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProvider } from './hooks/useKeyboardShortcutsSchema'
 import { MenuSchemaProvider } from './hooks/useMenuSchema'
@@ -18,6 +19,7 @@ import { TldrawUiOverrides, useMergedOverrides, useMergedTranslationOverrides } 
 export interface TldrawUiContextProviderProps {
 	assetUrls?: UiAssetUrls
 	overrides?: TldrawUiOverrides | TldrawUiOverrides[]
+	onEvent?: TLUiEventHandler
 	children?: any
 }
 
@@ -25,6 +27,7 @@ export interface TldrawUiContextProviderProps {
 export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
+	onEvent,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -33,7 +36,9 @@ export function TldrawUiContextProvider({
 				<ToastsProvider>
 					<DialogsProvider>
 						<BreakPointProvider>
-							<InternalProviders overrides={overrides}>{children}</InternalProviders>
+							<EventsProvider onEvent={onEvent}>
+								<InternalProviders overrides={overrides}>{children}</InternalProviders>
+							</EventsProvider>
 						</BreakPointProvider>
 					</DialogsProvider>
 				</ToastsProvider>

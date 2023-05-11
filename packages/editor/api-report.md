@@ -458,13 +458,13 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     setIsReadOnly(isReadOnly: boolean): this;
     // (undocumented)
+    setIsSnapMode(isSnapMode: boolean): this;
+    // (undocumented)
     setIsToolLocked(isToolLocked: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
-    // (undocumented)
-    setSnapMode(isSnapMode: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];
@@ -2013,59 +2013,11 @@ export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEvent
 // @public (undocumented)
 export interface TLEventMap {
     // (undocumented)
-    'align-shapes': [
-        {
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top';
-    }
-    ];
-    // (undocumented)
     'change-history': [{
         reason: 'bail';
         markId?: string;
     } | {
         reason: 'push' | 'redo' | 'undo';
-    }];
-    // (undocumented)
-    'change-path': [{
-        path: string;
-    }];
-    // (undocumented)
-    'close-menu': [{
-        id: string;
-    }];
-    // (undocumented)
-    'create-new-project': [];
-    // (undocumented)
-    'distribute-shapes': [
-        {
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'horizontal' | 'vertical';
-    }
-    ];
-    // (undocumented)
-    'duplicate-page': [{
-        id: TLPageId;
-        newPageId: TLPageId;
-    }];
-    // (undocumented)
-    'duplicate-shapes': [{
-        ids: TLShapeId[];
-        newShapeIds: TLShapeId[];
-        pageId: TLPageId;
-    }];
-    // (undocumented)
-    'flip-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'horizontal' | 'vertical';
-    }];
-    // (undocumented)
-    'group-shapes': [{
-        ids: TLShapeId[];
-        groupId: TLShapeId;
     }];
     // (undocumented)
     'mark-history': [{
@@ -2078,113 +2030,19 @@ export interface TLEventMap {
         count: number;
     }];
     // (undocumented)
-    'move-to-page': [{
-        name: string;
-        fromId: TLPageId;
-        toId: TLPageId;
-    }];
-    // (undocumented)
-    'nudge-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-    }];
-    // (undocumented)
-    'open-file': [];
-    // (undocumented)
-    'open-menu': [{
-        id: string;
-    }];
-    // (undocumented)
-    'pack-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-    }];
-    // (undocumented)
-    'reorder-shapes': [
-        {
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'backward' | 'forward' | 'toBack' | 'toFront';
-    }
-    ];
-    // (undocumented)
-    'reset-zoom': [];
-    // (undocumented)
-    'rotate-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-    }];
-    // (undocumented)
-    'save-project-to-file': [];
-    // (undocumented)
-    'select-all': [];
-    // (undocumented)
-    'select-none': [];
-    // (undocumented)
-    'select-tool': [{
-        id: string;
-    }];
-    // (undocumented)
-    'set-prop': [{
-        key: string;
-        value: any;
-    }];
-    // (undocumented)
-    'set-setting': [
-        {
-        name: 'isDarkMode' | 'isFocusMode' | 'isGridMode' | 'isPenMode' | 'isReadOnly' | 'isSnapMode' | 'isToolLocked';
-        value: boolean;
-    }
-    ];
-    // (undocumented)
-    'stack-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'horizontal' | 'vertical';
-    }];
-    // (undocumented)
     'stop-camera-animation': [];
     // (undocumented)
     'stop-following': [];
     // (undocumented)
-    'stretch-shapes': [{
-        ids: TLShapeId[];
-        pageId: TLPageId;
-        operation: 'horizontal' | 'vertical';
-    }];
-    // (undocumented)
-    'ungroup-shapes': [{
-        ids: TLShapeId[];
-        groupIds: TLShapeId[];
-    }];
-    // (undocumented)
-    'zoom-in': [];
-    // (undocumented)
-    'zoom-into-view': [];
-    // (undocumented)
-    'zoom-out': [];
-    // (undocumented)
-    'zoom-to-content': [];
-    // (undocumented)
-    'zoom-to-selection': [];
-    // (undocumented)
     change: [TLChange<TLRecord>];
-    // (undocumented)
-    copy: [];
     // (undocumented)
     crash: [{
         error: unknown;
     }];
     // (undocumented)
-    cut: [];
-    // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
     mount: [];
-    // (undocumented)
-    paste: [];
-    // (undocumented)
-    print: [];
     // (undocumented)
     tick: [number];
     // (undocumented)

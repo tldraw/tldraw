@@ -3,6 +3,7 @@ import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
+import { useEvents } from './useEventsProvider'
 import { useInsertMedia } from './useInsertMedia'
 import { TLTranslationKey } from './useTranslation/TLTranslationKey'
 
@@ -39,6 +40,7 @@ export type ToolsProviderProps = {
 /** @public */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	const app = useApp()
+	const event = useEvents()
 
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()
@@ -53,7 +55,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('select')
-					app.emit('select-tool', { id: 'select' })
+					event('select-tool', { id: 'select' })
 				},
 			},
 			{
@@ -64,7 +66,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('hand')
-					app.emit('select-tool', { id: 'hand' })
+					event('select-tool', { id: 'hand' })
 				},
 			},
 			{
@@ -75,7 +77,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('eraser')
-					app.emit('select-tool', { id: 'eraser' })
+					event('select-tool', { id: 'eraser' })
 				},
 			},
 			{
@@ -86,7 +88,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect() {
 					app.setSelectedTool('draw')
-					app.emit('select-tool', { id: 'draw' })
+					event('select-tool', { id: 'draw' })
 				},
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
@@ -105,7 +107,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 							true
 						)
 						app.setSelectedTool('geo')
-						app.emit('select-tool', { id: `geo-${id}` })
+						event('select-tool', { id: `geo-${id}` })
 					})
 				},
 			})),
@@ -117,7 +119,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'a',
 				onSelect() {
 					app.setSelectedTool('arrow')
-					app.emit('select-tool', { id: 'arrow' })
+					event('select-tool', { id: 'arrow' })
 				},
 			},
 			{
@@ -128,7 +130,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'l',
 				onSelect() {
 					app.setSelectedTool('line')
-					app.emit('select-tool', { id: 'line' })
+					event('select-tool', { id: 'line' })
 				},
 			},
 			{
@@ -139,7 +141,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'f',
 				onSelect() {
 					app.setSelectedTool('frame')
-					app.emit('select-tool', { id: 'frame' })
+					event('select-tool', { id: 'frame' })
 				},
 			},
 			{
@@ -150,7 +152,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 't',
 				onSelect() {
 					app.setSelectedTool('text')
-					app.emit('select-tool', { id: 'text' })
+					event('select-tool', { id: 'text' })
 				},
 			},
 			{
@@ -161,7 +163,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: '$u',
 				onSelect() {
 					insertMedia()
-					app.emit('select-tool', { id: 'media' })
+					event('select-tool', { id: 'media' })
 				},
 			},
 			{
@@ -172,7 +174,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'n',
 				onSelect() {
 					app.setSelectedTool('note')
-					app.emit('select-tool', { id: 'note' })
+					event('select-tool', { id: 'note' })
 				},
 			},
 			{
@@ -182,7 +184,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-embed',
 				onSelect() {
 					addDialog({ component: EmbedDialog })
-					app.emit('select-tool', { id: 'embed' })
+					event('select-tool', { id: 'embed' })
 				},
 			},
 		])
@@ -192,7 +194,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 		}
 
 		return tools
-	}, [app, overrides, insertMedia, addDialog])
+	}, [app, event, overrides, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

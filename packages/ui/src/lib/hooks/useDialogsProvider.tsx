@@ -1,5 +1,6 @@
 import { App, uniqueId, useApp } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { useEvents } from './useEventsProvider'
 
 /** @public */
 export interface DialogProps {
@@ -34,6 +35,7 @@ export type DialogsProviderProps = {
 /** @public */
 export function DialogsProvider({ children }: DialogsProviderProps) {
 	const app = useApp()
+	const event = useEvents()
 
 	const [dialogs, setDialogs] = useState<TLDialog[]>([])
 
@@ -44,11 +46,12 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 			})
 
+			event('open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
 		},
-		[app]
+		[app, event]
 	)
 
 	const updateDialog = useCallback(
@@ -65,11 +68,12 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
+			event('open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
 		},
-		[app]
+		[app, event]
 	)
 
 	const removeDialog = useCallback(
@@ -84,22 +88,24 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
+			event('close-menu', { id })
 			app.deleteOpenMenu(id)
 
 			return id
 		},
-		[app]
+		[app, event]
 	)
 
 	const clearDialogs = useCallback(() => {
 		setDialogs((d) => {
 			d.forEach((m) => {
 				m.onClose?.()
+				event('close-menu', { id: m.id })
 				app.deleteOpenMenu(m.id)
 			})
 			return []
 		})
-	}, [app])
+	}, [app, event])
 
 	return (
 		<DialogsContext.Provider

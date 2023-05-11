@@ -59,7 +59,7 @@ import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
 import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
-import { atom, computed, EMPTY_ARRAY, react, transact } from 'signia'
+import { atom, computed, EMPTY_ARRAY, transact } from 'signia'
 import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
 import { TLShapeDef } from '../config/TLShapeDefinition'
 import {
@@ -295,12 +295,6 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		this.updateCullingBounds()
-
-		this.disposables.add(
-			react('change-path', () => {
-				this.emit('change-path', { path: this.root.path.value })
-			})
-		)
 
 		this.root.enter(undefined, 'initial')
 
@@ -584,7 +578,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (!menus.has(id)) {
 			menus.add(id)
 			this._openMenus.set([...menus])
-			this.emit('open-menu', { id })
 		}
 		return this
 	}
@@ -602,7 +595,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (menus.has(id)) {
 			menus.delete(id)
 			this._openMenus.set([...menus])
-			this.emit('close-menu', { id })
 		}
 		return this
 	}
@@ -1516,9 +1508,8 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isSnapMode
 	}
 
-	setSnapMode(isSnapMode: boolean) {
+	setIsSnapMode(isSnapMode: boolean) {
 		if (isSnapMode !== this.isSnapMode) {
-			this.emit('set-setting', { name: 'isSnapMode', value: isSnapMode })
 			this.updateUserDocumentSettings({ isSnapMode }, true)
 		}
 		return this
@@ -1530,7 +1521,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setIsDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
-			this.emit('set-setting', { name: 'isDarkMode', value: isDarkMode })
 			this.updateUserDocumentSettings({ isDarkMode }, true)
 		}
 		return this
@@ -1542,7 +1532,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setIsFocusMode(isFocusMode: boolean) {
 		if (isFocusMode !== this.isFocusMode) {
-			this.emit('set-setting', { name: 'isFocusMode', value: isFocusMode })
 			this.updateInstanceState({ isFocusMode }, true)
 		}
 		return this
@@ -1554,7 +1543,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setIsToolLocked(isToolLocked: boolean) {
 		if (isToolLocked !== this.isToolLocked) {
-			this.emit('set-setting', { name: 'isToolLocked', value: isToolLocked })
 			this.updateInstanceState({ isToolLocked }, true)
 		}
 		return this
@@ -1575,7 +1563,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setIsGridMode(isGridMode: boolean): this {
 		if (isGridMode === this.isGridMode) {
-			this.emit('set-setting', { name: 'isGridMode', value: isGridMode })
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
 		return this
@@ -1587,7 +1574,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 	setIsReadOnly(isReadOnly: boolean): this {
 		if (isReadOnly !== this.isReadOnly) {
-			this.emit('set-setting', { name: 'isReadOnly', value: isReadOnly })
 			this.updateUserDocumentSettings({ isReadOnly }, true)
 			if (isReadOnly) {
 				this.setSelectedTool('hand')
@@ -1609,7 +1595,6 @@ export class App extends EventEmitter<TLEventMap> {
 	setIsPenMode(isPenMode: boolean): this {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode !== this.isPenMode) {
-			this.emit('set-setting', { name: 'isPenMode', value: isPenMode })
 			this._isPenMode.set(isPenMode)
 		}
 		return this
@@ -5125,8 +5110,6 @@ export class App extends EventEmitter<TLEventMap> {
 			this.setCurrentPageId(createId)
 			this.setCamera(camera.x, camera.y, camera.z)
 
-			this.emit('duplicate-page', { id, newPageId: createId })
-
 			// will change page automatically
 			if (content) {
 				return this.putContent(content)
@@ -5862,8 +5845,6 @@ export class App extends EventEmitter<TLEventMap> {
 			this.centerOnPoint(x, y)
 		})
 
-		this.emit('move-to-page', { name: this.currentPage.name, toId: pageId, fromId: currentPageId })
-
 		return this
 	}
 
@@ -5883,7 +5864,7 @@ export class App extends EventEmitter<TLEventMap> {
 	reorderShapes(operation: 'toBack' | 'toFront' | 'forward' | 'backward', ids: TLShapeId[]) {
 		if (this.isReadOnly) return this
 		if (ids.length === 0) return this
-		this.emit('reorder-shapes', { pageId: this.currentPageId, ids, operation })
+		// this.emit('reorder-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const parents = this.getParentsMappedToChildren(ids)
 
@@ -6138,8 +6119,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (!shapes.length) return this
 
-		this.emit('flip-shapes', { pageId: this.currentPageId, ids, operation })
-
 		shapes = shapes
 			.map((shape) => {
 				if (shape.type === 'group') {
@@ -6214,8 +6193,6 @@ export class App extends EventEmitter<TLEventMap> {
 		const len = shapes.length
 
 		if ((gap === undefined && len < 3) || len < 2) return this
-
-		this.emit('stack-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const pageBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getPageBounds(shape)!])
@@ -6329,8 +6306,6 @@ export class App extends EventEmitter<TLEventMap> {
 	packShapes(ids: TLShapeId[] = this.pageState.selectedIds, padding = 16) {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
-
-		this.emit('pack-shapes', { pageId: this.currentPageId, ids })
 
 		const shapes = compact(
 			ids
@@ -6491,8 +6466,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
 
-		this.emit('align-shapes', { pageId: this.currentPageId, ids, operation })
-
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const shapePageBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getPageBounds(shape)])
@@ -6579,8 +6552,6 @@ export class App extends EventEmitter<TLEventMap> {
 	) {
 		if (this.isReadOnly) return this
 		if (ids.length < 3) return this
-
-		this.emit('distribute-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const len = ids.length
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
@@ -6910,8 +6881,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (this.isReadOnly) return this
 		if (ids.length < 2) return this
 
-		this.emit('stretch-shapes', { pageId: this.currentPageId, ids, operation })
-
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const shapeBounds = Object.fromEntries(shapes.map((shape) => [shape.id, this.getBounds(shape)]))
 		const shapePageBounds = Object.fromEntries(
@@ -7117,7 +7086,6 @@ export class App extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 		this.setSelectedIds(ids)
 
-		this.emit('select-all')
 		return this
 	}
 
@@ -7161,7 +7129,6 @@ export class App extends EventEmitter<TLEventMap> {
 	selectNone(): this {
 		if (this.selectedIds.length > 0) {
 			this.setSelectedIds([])
-			this.emit('select-none')
 		}
 
 		return this
@@ -7438,7 +7405,6 @@ export class App extends EventEmitter<TLEventMap> {
 		const snapshot = getRotationSnapshot({ app: this })
 		applyRotationToSnapshotShapes({ delta, snapshot, app: this, stage: 'one-off' })
 
-		this.emit('rotate-shapes', { ids, pageId: this.currentPageId })
 		return this
 	}
 
@@ -7497,8 +7463,6 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		this.updateShapes(changes, ephemeral)
-
-		this.emit('nudge-shapes', { ids, pageId: this.currentPageId })
 
 		return this
 	}
@@ -7685,12 +7649,6 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this.emit('duplicate-shapes', {
-			ids: idsToCreate,
-			newShapeIds: ids,
-			pageId: this.currentPageId,
-		})
-
 		return this
 	}
 
@@ -7841,8 +7799,6 @@ export class App extends EventEmitter<TLEventMap> {
 				ephemeral,
 				squashing
 			)
-
-			this.emit('set-prop', { key, value })
 		})
 
 		return this
@@ -8002,8 +7958,6 @@ export class App extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		this.emit('zoom-to-content')
-
 		return this
 	}
 
@@ -8059,8 +8013,6 @@ export class App extends EventEmitter<TLEventMap> {
 			this.setCamera(cx + (x / 1 - x) - (x / cz - x), cy + (y / 1 - y) - (y / cz - y), 1)
 		}
 
-		this.emit('reset-zoom')
-
 		return this
 	}
 
@@ -8104,8 +8056,6 @@ export class App extends EventEmitter<TLEventMap> {
 		} else {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
-
-		this.emit('zoom-in')
 
 		return this
 	}
@@ -8152,8 +8102,6 @@ export class App extends EventEmitter<TLEventMap> {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
 
-		this.emit('zoom-out')
-
 		return this
 	}
 
@@ -8185,8 +8133,6 @@ export class App extends EventEmitter<TLEventMap> {
 			Math.max(1, this.camera.z),
 			opts
 		)
-
-		this.emit('zoom-to-selection')
 
 		return this
 	}
@@ -8262,8 +8208,6 @@ export class App extends EventEmitter<TLEventMap> {
 				this.setCamera(camera.x + offsetX, camera.y + offsetY, camera.z)
 			}
 		}
-
-		this.emit('zoom-into-view')
 
 		return this
 	}
@@ -8807,8 +8751,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 1) return this
 
-		this.emit('group-shapes', { ids, groupId })
-
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)
 		const pageBounds = Box2d.Common(compact(shapes.map((id) => this.getPageBounds(id))))
@@ -8884,11 +8826,6 @@ export class App extends EventEmitter<TLEventMap> {
 		})
 
 		if (groups.length === 0) return this
-
-		this.emit('ungroup-shapes', {
-			ids,
-			groupIds: groups.map((g) => g.id),
-		})
 
 		this.batch(() => {
 			let group: TLShape

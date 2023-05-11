@@ -1,10 +1,12 @@
 import { useApp } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
+import { useEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const app = useApp()
 	const rIsOpen = useRef(false)
+	const event = useEvents()
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -38,6 +40,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
+			event('open-menu', { id })
 			app.addOpenMenu(id)
 		}
 
@@ -49,6 +52,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				// Close menu and all submenus when the parent is closed
 				app.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
+						event('close-menu', { id })
 						app.deleteOpenMenu(menuId)
 					}
 				})
@@ -56,7 +60,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				rIsOpen.current = false
 			}
 		}
-	}, [app, id])
+	}, [app, id, event])
 
 	return onOpenChange
 }
