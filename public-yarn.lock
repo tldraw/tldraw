@@ -4694,9 +4694,11 @@ __metadata:
     prettier: ^2.8.6
     prettier-plugin-organize-imports: ^3.2.2
     rimraf: ^4.4.0
+    tree-kill: ^1.2.2
     tsx: ^3.12.2
     typescript: ^5.0.2
     vercel: ^28.16.15
+    yargs: ^17.7.2
   languageName: unknown
   linkType: soft
 
@@ -23276,7 +23278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yargs@npm:^17.5.1":
+"yargs@npm:^17.5.1, yargs@npm:^17.7.2":
   version: 17.7.2
   resolution: "yargs@npm:17.7.2"
   dependencies:

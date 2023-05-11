@@ -50,7 +50,8 @@
 		"typecheck": "yarn refresh-assets && tsx scripts/typecheck.ts",
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
-		"test": "lazy test"
+		"test": "lazy test",
+		"e2e": "tsx scripts/e2e/index.ts"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
@@ -96,8 +97,10 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.26",
 		"rimraf": "^4.4.0",
+		"tree-kill": "^1.2.2",
 		"tsx": "^3.12.2",
-		"vercel": "^28.16.15"
+		"vercel": "^28.16.15",
+		"yargs": "^17.7.2"
 	},
 	"resolutions": {
 		"@microsoft/api-extractor@^7.34.1": "patch:@microsoft/api-extractor@npm%3A7.34.1#./.yarn/patches/@microsoft-api-extractor-npm-7.34.1-af268a32f8.patch"

@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -eux
-
-mode="${1:-local}"
-export BROWSERS="${2:-chrome}"
-# if [[ "$mode" == "remote" ]]; then
-#     export ENABLE_SSL=1
-# fi
-yarn workspace @tldraw/e2e "test:${mode}"

@@ -27,7 +27,7 @@
 	],
 	"scripts": {
 		"test:local": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.local.conf.js",
-		"test:remote": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.remote.conf.js",
+		"test:browserstack": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.browserstack.conf.js",
 		"test:nightly": "TS_NODE_PROJECT=./tsconfig.json wdio run wdio.nightly.conf.js",
 		"lint": "yarn run -T tsx ../scripts/lint.ts"
 	},
