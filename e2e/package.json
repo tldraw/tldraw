@@ -56,6 +56,6 @@
 		"wdio-edgedriver-service": "^2.1.2",
 		"wdio-geckodriver-service": "^4.1.1",
 		"wdio-safaridriver-service": "^2.1.0",
-		"wdio-vscode-service": "^5.0.0"
+		"wdio-vscode-service": "^5.1.0"
 	}
 }

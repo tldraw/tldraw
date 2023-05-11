@@ -34,7 +34,7 @@ export function getTextSvgElement(
 	textElm.setAttribute('dominant-baseline', 'mathematical')
 	textElm.setAttribute('alignment-baseline', 'mathematical')
 
-	const lines = opts.lines.map((line) => line.trim())
+	const lines = opts.lines.map((line) => line)
 
 	const tspans: SVGElement[] = []
 
@@ -48,7 +48,8 @@ export function getTextSvgElement(
 		const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
 		tspan.setAttribute('alignment-baseline', 'mathematical')
 
-		tspan.textContent = correctSpacesToNbsp(lines[i])
+		const cleanText = correctSpacesToNbsp(lines[i])
+		tspan.textContent = cleanText
 
 		if (lines.length > 1 && i < lines.length - 1) {
 			tspan.textContent += '\n'
@@ -78,7 +79,7 @@ export function getTextSvgElement(
 			tspans.forEach((tspan, i) => {
 				const w = app.textMeasure.measureText({
 					...TEXT_PROPS,
-					text: lines[i].trim(),
+					text: lines[i],
 					fontFamily: opts.fontFamily,
 					fontSize: opts.fontSize,
 					width: 'fit-content',
@@ -95,7 +96,7 @@ export function getTextSvgElement(
 			tspans.forEach((tspan, i) => {
 				const w = app.textMeasure.measureText({
 					...TEXT_PROPS,
-					text: lines[i].trim(),
+					text: lines[i],
 					fontFamily: opts.fontFamily,
 					fontSize: opts.fontSize,
 					width: 'fit-content',

@@ -523,9 +523,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 export interface AppOptions {
     config?: TldrawEditorConfig;
     getContainer: () => HTMLElement;
-    instanceId?: TLInstanceId;
     store: TLStore;
-    userId?: TLUserId;
 }
 
 // @public (undocumented)
