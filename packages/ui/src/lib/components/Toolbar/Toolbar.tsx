@@ -114,7 +114,7 @@ export const Toolbar = function Toolbar() {
 								'tlui-toolbar__extras__hidden': !showExtraActions,
 							})}
 						>
-							{breakpoint < 5 && (
+							{breakpoint < 6 && (
 								<div className="tlui-toolbar__extras__controls">
 									<UndoButton />
 									<RedoButton />
