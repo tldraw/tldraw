@@ -21,7 +21,7 @@ export const TrashButton = track(function TrashButton() {
 	return (
 		<Button
 			icon={action.icon}
-			onClick={action.onSelect}
+			onClick={() => action.onSelect('quick-actions')}
 			disabled={noSelected}
 			title={`${msg(action.label!)} ${kbdStr(action.kbd!)}`}
 			smallIcon

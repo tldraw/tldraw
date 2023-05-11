@@ -46,7 +46,7 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 			})
 
-			event('open-menu', { id })
+			event('dialog', 'open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
@@ -68,7 +68,7 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
-			event('open-menu', { id })
+			event('dialog', 'open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
@@ -88,7 +88,7 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
-			event('close-menu', { id })
+			event('dialog', 'close-menu', { id })
 			app.deleteOpenMenu(id)
 
 			return id
@@ -100,7 +100,7 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 		setDialogs((d) => {
 			d.forEach((m) => {
 				m.onClose?.()
-				event('close-menu', { id: m.id })
+				event('dialog', 'close-menu', { id: m.id })
 				app.deleteOpenMenu(m.id)
 			})
 			return []

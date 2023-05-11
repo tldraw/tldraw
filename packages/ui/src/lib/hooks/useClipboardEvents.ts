@@ -977,7 +977,7 @@ export function useMenuClipboardEvents() {
 			if (app.selectedIds.length === 0) return
 
 			handleMenuCopy(app)
-			event('copy')
+			event('menu', 'copy')
 		},
 		[app, event]
 	)
@@ -988,7 +988,7 @@ export function useMenuClipboardEvents() {
 
 			handleMenuCopy(app)
 			app.deleteShapes()
-			event('cut')
+			event('menu', 'cut')
 		},
 		[app, event]
 	)
@@ -1007,7 +1007,7 @@ export function useMenuClipboardEvents() {
 			// 	handleScenePaste(app, point)
 			// }
 
-			event('paste')
+			event('menu', 'paste')
 		},
 		[app, event]
 	)
@@ -1032,7 +1032,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
-			event('copy')
+			event('kbd', 'copy')
 		}
 
 		function cut() {
@@ -1040,7 +1040,7 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
-			event('cut')
+			event('kbd', 'cut')
 		}
 
 		const paste = (e: ClipboardEvent) => {
@@ -1054,7 +1054,7 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
-			event('paste')
+			event('kbd', 'paste')
 		}
 
 		document.addEventListener('copy', copy)

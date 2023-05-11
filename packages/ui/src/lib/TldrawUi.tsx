@@ -113,7 +113,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 							className="tlui-focus-button"
 							title={`${msg('focus-mode.toggle-focus-mode')}`}
 							icon="dot"
-							onClick={toggleFocus.onSelect}
+							onClick={() => toggleFocus.onSelect('menu')}
 						/>
 					</div>
 				) : (

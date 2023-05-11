@@ -164,7 +164,7 @@ function ContextMenuContent() {
 							dir="ltr"
 							disabled={item.disabled}
 							onSelect={(e) => {
-								onSelect()
+								onSelect('context-menu')
 								preventDefault(e)
 							}}
 							title={labelStr ? labelStr : undefined}
@@ -199,7 +199,7 @@ function ContextMenuContent() {
 								if (disableClicks) {
 									setDisableClicks(false)
 								} else {
-									onSelect()
+									onSelect('context-menu')
 								}
 							}}
 						/>

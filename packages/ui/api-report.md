@@ -39,7 +39,7 @@ export interface ActionItem {
     // (undocumented)
     menuLabel?: TLTranslationKey;
     // (undocumented)
-    onSelect: () => Promise<void> | void;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)

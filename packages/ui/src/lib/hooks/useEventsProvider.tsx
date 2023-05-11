@@ -1,6 +1,24 @@
 import * as React from 'react'
 
 /** @public */
+export type TLUiEventSource =
+	| 'menu'
+	| 'context-menu'
+	| 'zoom-menu'
+	| 'navigation-zone'
+	| 'quick-actions'
+	| 'actions-menu'
+	| 'kbd'
+	| 'debug-panel'
+	| 'page-menu'
+	| 'share-menu'
+	| 'toolbar'
+	| 'people-menu'
+	| 'dialog'
+	| 'help-menu'
+	| 'helper-buttons'
+
+/** @public */
 export interface TLUiEventMap {
 	// Actions
 	undo: undefined
@@ -63,6 +81,7 @@ export interface TLUiEventMap {
 
 /** @public */
 export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
+	source: string,
 	name: T,
 	data?: TLUiEventMap[T]
 ) => void

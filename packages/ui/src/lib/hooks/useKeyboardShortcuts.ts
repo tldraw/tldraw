@@ -45,7 +45,7 @@ export function useKeyboardShortcuts() {
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
 				if (areShortcutsDisabled()) return
 				preventDefault(event)
-				action.onSelect()
+				action.onSelect('kbd')
 			})
 		}
 
@@ -71,17 +71,17 @@ export function useKeyboardShortcuts() {
 
 		hot('backspace,del', () => {
 			if (areShortcutsDisabled()) return
-			actions['delete'].onSelect()
+			actions['delete'].onSelect('kbd')
 		})
 
 		hot('=', () => {
 			if (areShortcutsDisabled()) return
-			actions['zoom-in'].onSelect()
+			actions['zoom-in'].onSelect('kbd')
 		})
 
 		hot('-', () => {
 			if (areShortcutsDisabled()) return
-			actions['zoom-out'].onSelect()
+			actions['zoom-out'].onSelect('kbd')
 		})
 
 		hotkeys.setScope(app.instanceId)
