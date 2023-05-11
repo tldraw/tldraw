@@ -19,6 +19,9 @@ export class TextManager {
 	constructor(public app: App) {}
 
 	getTextElement() {
+		const oldElm = document.querySelector('.tl-text-measure')
+		oldElm?.remove()
+
 		const elm = document.createElement('div')
 		this.app.getContainer().appendChild(elm)
 
@@ -58,8 +61,6 @@ export class TextManager {
 		elm.textContent = TextHelpers.normalizeTextForDom(opts.text)
 
 		const rect = elm.getBoundingClientRect()
-
-		elm.remove()
 
 		return {
 			x: 0,
@@ -252,7 +253,7 @@ export class TextManager {
 		elm.remove()
 
 		// We're done! Join the words in each line.
-		const result: string[] = lines.map((line) => line.join(''))
+		const result: string[] = lines.map((line) => line.join('').trimEnd())
 
 		return result
 	}

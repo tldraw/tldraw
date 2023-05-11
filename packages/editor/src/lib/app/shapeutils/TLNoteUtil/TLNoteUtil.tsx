@@ -206,13 +206,13 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			props: { text },
 		} = shape
 
-		if (text.trim() !== shape.props.text) {
+		if (text.trimEnd() !== shape.props.text) {
 			this.app.updateShapes([
 				{
 					id,
 					type,
 					props: {
-						text: text.trim(),
+						text: text.trimEnd(),
 					},
 				},
 			])
