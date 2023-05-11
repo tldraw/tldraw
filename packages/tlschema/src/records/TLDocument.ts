@@ -63,7 +63,7 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
-		name: 'Untitled Project',
+		name: DEFAULT_PROJECT_NAME,
 	})
 )
 
