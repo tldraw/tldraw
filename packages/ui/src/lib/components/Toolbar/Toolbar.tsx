@@ -214,6 +214,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	toolbarItems: ToolbarItem[]
 }) {
 	const msg = useTranslation()
+
 	return (
 		<div className="tlui-button-grid__four tlui-button-grid__reverse">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {

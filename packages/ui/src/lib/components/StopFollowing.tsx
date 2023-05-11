@@ -13,5 +13,11 @@ export const StopFollowing = track(function ExitPenMode() {
 
 	const action = actions['stop-following']
 
-	return <Button label={action.label} iconLeft={action.icon} onClick={action.onSelect} />
+	return (
+		<Button
+			label={action.label}
+			iconLeft={action.icon}
+			onClick={() => action.onSelect('people-menu')}
+		/>
+	)
 })

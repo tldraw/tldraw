@@ -11,6 +11,7 @@ import { RouterProvider, createBrowserRouter } from 'react-router-dom'
 import ExampleBasic from './1-basic/BasicExample'
 import CustomComponentsExample from './10-custom-components/CustomComponentsExample'
 import UserPresenceExample from './11-user-presence/UserPresenceExample'
+import EventsExample from './12-events/EventsExample'
 import ExampleApi from './2-api/APIExample'
 import CustomConfigExample from './3-custom-config/CustomConfigExample'
 import CustomUiExample from './4-custom-ui/CustomUiExample'
@@ -70,6 +71,10 @@ export const allExamples: Example[] = [
 	{
 		path: '/custom-components',
 		element: <CustomComponentsExample />,
+	},
+	{
+		path: '/events',
+		element: <EventsExample />,
 	},
 	{
 		path: '/user-presence',

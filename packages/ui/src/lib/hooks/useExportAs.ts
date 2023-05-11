@@ -72,6 +72,7 @@ export function useExportAs() {
 					const dataURL = URL.createObjectURL(image)
 
 					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.${format}`)
+
 					URL.revokeObjectURL(dataURL)
 					return
 				}
@@ -83,6 +84,7 @@ export function useExportAs() {
 					)
 
 					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.json`)
+
 					URL.revokeObjectURL(dataURL)
 					return
 				}

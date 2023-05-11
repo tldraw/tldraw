@@ -39,7 +39,7 @@ export interface ActionItem {
     // (undocumented)
     menuLabel?: TLTranslationKey;
     // (undocumented)
-    onSelect: () => Promise<void> | void;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
@@ -636,7 +636,7 @@ export const TldrawUi: React_2.NamedExoticComponent<{
 export const TldrawUiContent: React_2.NamedExoticComponent<TldrawUiContentProps>;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, children, }: TldrawUiContextProviderProps): JSX.Element;
+export function TldrawUiContextProvider({ overrides, assetUrls, onEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
@@ -644,6 +644,8 @@ export interface TldrawUiContextProviderProps {
     assetUrls?: UiAssetUrls;
     // (undocumented)
     children?: any;
+    // (undocumented)
+    onEvent?: TLUiEventHandler;
     // (undocumented)
     overrides?: TldrawUiOverrides | TldrawUiOverrides[];
 }

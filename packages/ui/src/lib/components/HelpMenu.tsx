@@ -88,7 +88,15 @@ function HelpMenuContent() {
 			}
 			case 'item': {
 				const { id, kbd, label, onSelect, icon } = item.actionItem
-				return <M.Item key={id} kbd={kbd} label={label} onClick={onSelect} iconLeft={icon} />
+				return (
+					<M.Item
+						key={id}
+						kbd={kbd}
+						label={label}
+						onClick={() => onSelect('help-menu')}
+						iconLeft={icon}
+					/>
+				)
 			}
 		}
 	}

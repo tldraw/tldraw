@@ -78,7 +78,7 @@ function ZoomMenuItem(props: {
 			label={actions[action].label}
 			kbd={actions[action].kbd}
 			data-wd={props['data-wd']}
-			onClick={actions[action].onSelect}
+			onClick={() => actions[action].onSelect('zoom-menu')}
 			noClose={noClose}
 			disabled={disabled}
 		/>

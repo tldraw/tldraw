@@ -3,6 +3,7 @@ import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
+import { useEvents } from './useEventsProvider'
 import { useInsertMedia } from './useInsertMedia'
 import { TLTranslationKey } from './useTranslation/TLTranslationKey'
 
@@ -39,6 +40,7 @@ export type ToolsProviderProps = {
 /** @public */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	const app = useApp()
+	const trackEvent = useEvents()
 
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()
@@ -53,6 +55,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('select')
+					trackEvent('toolbar', 'select-tool', { id: 'select' })
 				},
 			},
 			{
@@ -63,6 +66,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('hand')
+					trackEvent('toolbar', 'select-tool', { id: 'hand' })
 				},
 			},
 			{
@@ -73,6 +77,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('eraser')
+					trackEvent('toolbar', 'select-tool', { id: 'eraser' })
 				},
 			},
 			{
@@ -83,6 +88,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect() {
 					app.setSelectedTool('draw')
+					trackEvent('toolbar', 'select-tool', { id: 'draw' })
 				},
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
@@ -101,6 +107,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 							true
 						)
 						app.setSelectedTool('geo')
+						trackEvent('toolbar', 'select-tool', { id: `geo-${id}` })
 					})
 				},
 			})),
@@ -112,6 +119,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'a',
 				onSelect() {
 					app.setSelectedTool('arrow')
+					trackEvent('toolbar', 'select-tool', { id: 'arrow' })
 				},
 			},
 			{
@@ -122,6 +130,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'l',
 				onSelect() {
 					app.setSelectedTool('line')
+					trackEvent('toolbar', 'select-tool', { id: 'line' })
 				},
 			},
 			{
@@ -132,6 +141,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'f',
 				onSelect() {
 					app.setSelectedTool('frame')
+					trackEvent('toolbar', 'select-tool', { id: 'frame' })
 				},
 			},
 			{
@@ -142,6 +152,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 't',
 				onSelect() {
 					app.setSelectedTool('text')
+					trackEvent('toolbar', 'select-tool', { id: 'text' })
 				},
 			},
 			{
@@ -152,6 +163,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: '$u',
 				onSelect() {
 					insertMedia()
+					trackEvent('toolbar', 'select-tool', { id: 'media' })
 				},
 			},
 			{
@@ -162,6 +174,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'n',
 				onSelect() {
 					app.setSelectedTool('note')
+					trackEvent('toolbar', 'select-tool', { id: 'note' })
 				},
 			},
 			{
@@ -171,6 +184,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-embed',
 				onSelect() {
 					addDialog({ component: EmbedDialog })
+					trackEvent('toolbar', 'select-tool', { id: 'embed' })
 				},
 			},
 		])
@@ -180,7 +194,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 		}
 
 		return tools
-	}, [app, overrides, insertMedia, addDialog])
+	}, [app, trackEvent, overrides, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }
