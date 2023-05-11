@@ -40,7 +40,7 @@ yargs(hideBin(process.argv))
 					alias: 'b',
 					type: 'array',
 					description: 'run with browsers',
-					choices: ['chrome', 'firefox', 'safari', 'edge'],
+					choices: ['chrome', 'firefox', 'safari', 'edge', 'vscode'],
 					default: ['chrome'],
 				})
 				.option('os', {
