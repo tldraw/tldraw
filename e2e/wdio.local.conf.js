@@ -209,7 +209,7 @@ exports.config = {
 					// HACK: If we don't have edge as a capability but we do have
 					// this service then `wdio-edgedriver-service` throws an scary
 					// error (which doesn't actually effect anything)
-					...(!browsers.includes('edge')
+					...(!process.env.BROWSERS.split(',').includes('edge')
 						? []
 						: [
 								[
