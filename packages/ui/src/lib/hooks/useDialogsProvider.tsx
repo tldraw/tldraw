@@ -35,7 +35,7 @@ export type DialogsProviderProps = {
 /** @public */
 export function DialogsProvider({ children }: DialogsProviderProps) {
 	const app = useApp()
-	const event = useEvents()
+	const trackEvent = useEvents()
 
 	const [dialogs, setDialogs] = useState<TLDialog[]>([])
 
@@ -46,12 +46,12 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 			})
 
-			event('dialog', 'open-menu', { id })
+			trackEvent('dialog', 'open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	const updateDialog = useCallback(
@@ -68,12 +68,12 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
-			event('dialog', 'open-menu', { id })
+			trackEvent('dialog', 'open-menu', { id })
 			app.addOpenMenu(id)
 
 			return id
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	const removeDialog = useCallback(
@@ -88,24 +88,24 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 				})
 			)
 
-			event('dialog', 'close-menu', { id })
+			trackEvent('dialog', 'close-menu', { id })
 			app.deleteOpenMenu(id)
 
 			return id
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	const clearDialogs = useCallback(() => {
 		setDialogs((d) => {
 			d.forEach((m) => {
 				m.onClose?.()
-				event('dialog', 'close-menu', { id: m.id })
+				trackEvent('dialog', 'close-menu', { id: m.id })
 				app.deleteOpenMenu(m.id)
 			})
 			return []
 		})
-	}, [app, event])
+	}, [app, trackEvent])
 
 	return (
 		<DialogsContext.Provider

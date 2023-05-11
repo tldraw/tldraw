@@ -40,7 +40,7 @@ export type ToolsProviderProps = {
 /** @public */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	const app = useApp()
-	const event = useEvents()
+	const trackEvent = useEvents()
 
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()
@@ -55,7 +55,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('select')
-					event('toolbar', 'select-tool', { id: 'select' })
+					trackEvent('toolbar', 'select-tool', { id: 'select' })
 				},
 			},
 			{
@@ -66,7 +66,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('hand')
-					event('toolbar', 'select-tool', { id: 'hand' })
+					trackEvent('toolbar', 'select-tool', { id: 'hand' })
 				},
 			},
 			{
@@ -77,7 +77,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				onSelect() {
 					app.setSelectedTool('eraser')
-					event('toolbar', 'select-tool', { id: 'eraser' })
+					trackEvent('toolbar', 'select-tool', { id: 'eraser' })
 				},
 			},
 			{
@@ -88,7 +88,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'd,b,x',
 				onSelect() {
 					app.setSelectedTool('draw')
-					event('toolbar', 'select-tool', { id: 'draw' })
+					trackEvent('toolbar', 'select-tool', { id: 'draw' })
 				},
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
@@ -107,7 +107,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 							true
 						)
 						app.setSelectedTool('geo')
-						event('toolbar', 'select-tool', { id: `geo-${id}` })
+						trackEvent('toolbar', 'select-tool', { id: `geo-${id}` })
 					})
 				},
 			})),
@@ -119,7 +119,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'a',
 				onSelect() {
 					app.setSelectedTool('arrow')
-					event('toolbar', 'select-tool', { id: 'arrow' })
+					trackEvent('toolbar', 'select-tool', { id: 'arrow' })
 				},
 			},
 			{
@@ -130,7 +130,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'l',
 				onSelect() {
 					app.setSelectedTool('line')
-					event('toolbar', 'select-tool', { id: 'line' })
+					trackEvent('toolbar', 'select-tool', { id: 'line' })
 				},
 			},
 			{
@@ -141,7 +141,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'f',
 				onSelect() {
 					app.setSelectedTool('frame')
-					event('toolbar', 'select-tool', { id: 'frame' })
+					trackEvent('toolbar', 'select-tool', { id: 'frame' })
 				},
 			},
 			{
@@ -152,7 +152,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 't',
 				onSelect() {
 					app.setSelectedTool('text')
-					event('toolbar', 'select-tool', { id: 'text' })
+					trackEvent('toolbar', 'select-tool', { id: 'text' })
 				},
 			},
 			{
@@ -163,7 +163,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: '$u',
 				onSelect() {
 					insertMedia()
-					event('toolbar', 'select-tool', { id: 'media' })
+					trackEvent('toolbar', 'select-tool', { id: 'media' })
 				},
 			},
 			{
@@ -174,7 +174,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'n',
 				onSelect() {
 					app.setSelectedTool('note')
-					event('toolbar', 'select-tool', { id: 'note' })
+					trackEvent('toolbar', 'select-tool', { id: 'note' })
 				},
 			},
 			{
@@ -184,7 +184,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-embed',
 				onSelect() {
 					addDialog({ component: EmbedDialog })
-					event('toolbar', 'select-tool', { id: 'embed' })
+					trackEvent('toolbar', 'select-tool', { id: 'embed' })
 				},
 			},
 		])
@@ -194,7 +194,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 		}
 
 		return tools
-	}, [app, event, overrides, insertMedia, addDialog])
+	}, [app, trackEvent, overrides, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

@@ -970,16 +970,16 @@ const handleNativeClipboardPaste = async (
 /** @public */
 export function useMenuClipboardEvents() {
 	const app = useApp()
-	const event = useEvents()
+	const trackEvent = useEvents()
 
 	const copy = useCallback(
 		function onCopy() {
 			if (app.selectedIds.length === 0) return
 
 			handleMenuCopy(app)
-			event('menu', 'copy')
+			trackEvent('menu', 'copy')
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	const cut = useCallback(
@@ -988,9 +988,9 @@ export function useMenuClipboardEvents() {
 
 			handleMenuCopy(app)
 			app.deleteShapes()
-			event('menu', 'cut')
+			trackEvent('menu', 'cut')
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	const paste = useCallback(
@@ -1007,9 +1007,9 @@ export function useMenuClipboardEvents() {
 			// 	handleScenePaste(app, point)
 			// }
 
-			event('menu', 'paste')
+			trackEvent('menu', 'paste')
 		},
-		[app, event]
+		[app, trackEvent]
 	)
 
 	return {
@@ -1022,7 +1022,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const app = useApp()
-	const event = useEvents()
+	const trackEvent = useEvents()
 
 	const appIsFocused = useAppIsFocused()
 
@@ -1032,7 +1032,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
-			event('kbd', 'copy')
+			trackEvent('kbd', 'copy')
 		}
 
 		function cut() {
@@ -1040,7 +1040,7 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
-			event('kbd', 'cut')
+			trackEvent('kbd', 'cut')
 		}
 
 		const paste = (e: ClipboardEvent) => {
@@ -1054,7 +1054,7 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
-			event('kbd', 'paste')
+			trackEvent('kbd', 'paste')
 		}
 
 		document.addEventListener('copy', copy)
@@ -1066,5 +1066,5 @@ export function useNativeClipboardEvents() {
 			document.removeEventListener('cut', cut)
 			document.removeEventListener('paste', paste)
 		}
-	}, [app, event, appIsFocused])
+	}, [app, trackEvent, appIsFocused])
 }

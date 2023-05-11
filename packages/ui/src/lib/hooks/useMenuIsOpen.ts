@@ -6,7 +6,7 @@ import { useEvents } from './useEventsProvider'
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const app = useApp()
 	const rIsOpen = useRef(false)
-	const event = useEvents()
+	const trackEvent = useEvents()
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
@@ -40,7 +40,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
-			event('menu', 'open-menu', { id })
+			trackEvent('menu', 'open-menu', { id })
 			app.addOpenMenu(id)
 		}
 
@@ -52,7 +52,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				// Close menu and all submenus when the parent is closed
 				app.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
-						event('menu', 'close-menu', { id })
+						trackEvent('menu', 'close-menu', { id })
 						app.deleteOpenMenu(menuId)
 					}
 				})
@@ -60,7 +60,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				rIsOpen.current = false
 			}
 		}
-	}, [app, id, event])
+	}, [app, id, trackEvent])
 
 	return onOpenChange
 }
