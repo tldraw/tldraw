@@ -1548,7 +1548,3 @@ it from receiving any pointer events or affecting the cursor. */
 	font-size: 12px;
 	font-family: monospace;
 }
-
-.tl-shapes {
-	isolation: isolate;
-}

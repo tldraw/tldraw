@@ -211,8 +211,6 @@ export class App extends EventEmitter {
     get editingShape(): null | TLUnknownShape;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
-    // (undocumented)
-    get exportColors(): TLExportColors;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -387,8 +385,6 @@ export class App extends EventEmitter {
         opacity: number;
         isCulled: boolean;
         isInViewport: boolean;
-        blendMode: 'multiply' | 'normal';
-        bounds: Box2d;
     }[];
     reorderShapes(operation: TLReorderOperation, ids: TLShapeId[]): this;
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
@@ -1852,8 +1848,6 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
     // (undocumented)
     defaultProps(): TLDrawShape['props'];
     // (undocumented)
-    getBlendMode(shape: TLDrawShape): 'multiply' | 'normal';
-    // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
@@ -2464,8 +2458,6 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     canUnmount: TLShapeUtilFlag<T>;
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];
-    // @internal (undocumented)
-    getBlendMode(shape: T): 'multiply' | 'normal';
     protected abstract getBounds(shape: T): Box2d;
     abstract getCenter(shape: T): Vec2dModel;
     getEditingBounds: (shape: T) => Box2d;

@@ -603,11 +603,6 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 * @public
 	 */
 	onEditEnd?: OnEditEndHandler<T>
-
-	/** @internal */
-	getBlendMode(shape: T): 'normal' | 'multiply' {
-		return 'normal'
-	}
 }
 
 /** @public */

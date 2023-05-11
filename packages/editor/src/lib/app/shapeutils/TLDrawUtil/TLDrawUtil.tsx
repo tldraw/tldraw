@@ -16,12 +16,9 @@ import {
 	TLDrawShapeSegment,
 } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import { useValue } from 'signia-react'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
-import { App } from '../../App'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -306,10 +303,6 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			},
 		}
 	}
-
-	override getBlendMode(shape: TLDrawShape): 'normal' | 'multiply' {
-		return shape.props.size === 'xl' ? 'multiply' : 'normal'
-	}
 }
 
 /** @public */
@@ -325,113 +318,4 @@ function getDot(point: VecLike, sw: number) {
 	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
 		r * 2
 	},0`
-}
-
-// render(shape: TLDrawShape) {
-// 	const forceSolid = useForceSolid()
-// 	const strokeWidth = this.app.getStrokeWidth(shape.props.size)
-
-// 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-
-// 	const pathDrawFn = useCallback(
-// 		(ctx: CanvasRenderingContext2D) => {
-// 			const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
-// 			let sw = strokeWidth
-// 			if (
-// 				!forceSolid &&
-// 				!shape.props.isPen &&
-// 				shape.props.dash === 'draw' &&
-// 				allPointsFromSegments.length === 1
-// 			) {
-// 				sw += rng(shape.id)() * (strokeWidth / 6)
-// 			}
-
-// 			const options = getFreehandOptions(shape, sw, showAsComplete, forceSolid)
-// 			const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
-// 			const solidStrokePath =
-// 				strokePoints.length > 1
-// 					? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
-// 					: getDot(allPointsFromSegments[0], sw)
-
-// 			if ((!forceSolid && shape.props.dash === 'draw') || strokePoints.length < 2) {
-// 				setStrokePointRadii(strokePoints, options)
-// 				const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
-// 				const svgPath = new Path2D(getSvgPathFromStroke(strokeOutlinePoints, true))
-
-// 				ctx.lineCap = 'round'
-// 				ctx.fillStyle = this.app.exportColors.fill[shape.props.color]
-// 				ctx.fill(svgPath)
-// 			} else {
-// 				const svgPath = new Path2D(solidStrokePath)
-// 				ctx.lineCap = 'round'
-// 				ctx.strokeStyle = this.app.exportColors.fill[shape.props.color]
-// 				ctx.lineWidth = strokeWidth
-// 				// ctx.setLineDash(getDrawShapeStrokeDashArray(shape, strokeWidth))
-// 				ctx.stroke(svgPath)
-// 			}
-// 		},
-// 		[forceSolid, shape, showAsComplete, strokeWidth]
-// 	)
-
-// 	return <Canvas bounds={this.bounds(shape)} draw={pathDrawFn} app={this.app} />
-// }
-
-function Canvas({
-	bounds,
-	draw,
-	app,
-}: {
-	bounds: Box2d
-	draw: (ctx: CanvasRenderingContext2D) => void
-	app: App
-}) {
-	const canvasRef = useRef<HTMLCanvasElement>(null)
-	const scaleFactor = useDebounced(
-		useValue('zoomLevel', () => app.zoomLevel, [app]) * window.devicePixelRatio,
-		250
-	)
-
-	const expandedBounds = useMemo(() => Box2d.ExpandBy(bounds, 16), [bounds])
-
-	useLayoutEffect(() => {
-		const canvas = canvasRef.current
-		if (!canvas) return
-
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
-		ctx.save()
-		ctx.scale(scaleFactor, scaleFactor)
-		ctx.translate(-expandedBounds.x, -expandedBounds.y)
-		draw(ctx)
-		ctx.restore()
-	}, [expandedBounds, draw, scaleFactor])
-
-	return (
-		<canvas
-			ref={canvasRef}
-			style={{
-				position: 'absolute',
-				left: expandedBounds.x,
-				top: expandedBounds.y,
-				width: expandedBounds.width,
-				height: expandedBounds.height,
-			}}
-			width={expandedBounds.width * scaleFactor}
-			height={expandedBounds.height * scaleFactor}
-		/>
-	)
-}
-
-function useDebounced<T>(value: T, delayMs: number) {
-	const [state, setState] = useState(value)
-	useEffect(() => {
-		const timeout = setTimeout(() => {
-			setState(value)
-		}, delayMs)
-		return () => clearTimeout(timeout)
-	}, [value, delayMs])
-	return state
 }

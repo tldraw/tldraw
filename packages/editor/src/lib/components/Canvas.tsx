@@ -275,76 +275,26 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	const app = useApp()
 
 	const { renderingShapes } = app
-	const unisolatedGroup: typeof renderingShapes = []
-	const isolationGroups = new Map<string, typeof renderingShapes>()
-	for (const shape of renderingShapes.sort((a, b) => {
-		if (a.index < b.index) {
-			return 1
-		} else if (a.index > b.index) {
-			return -1
-		}
-		return 0
-	})) {
-		const candidateIsolationGroups = []
-		for (const [groupId, group] of isolationGroups) {
-			if (group.some(({ bounds }) => bounds.collides(shape.bounds))) {
-				candidateIsolationGroups.push(groupId)
-			}
-		}
-		if (candidateIsolationGroups.length === 0) {
-			if (shape.blendMode === 'normal') {
-				unisolatedGroup.push(shape)
-			} else {
-				isolationGroups.set(shape.id, [shape])
-			}
-		} else {
-			let mergedIsolationGroup = undefined
-			for (const groupId of candidateIsolationGroups) {
-				const group = isolationGroups.get(groupId)!
-				if (mergedIsolationGroup) {
-					mergedIsolationGroup.push(...group)
-					isolationGroups.delete(groupId)
-				} else {
-					mergedIsolationGroup = group
-				}
-			}
-			mergedIsolationGroup!.push(shape)
-		}
+
+	const debugSvg = debugFlags.debugSvg.value
+	if (debugSvg) {
+		return (
+			<>
+				{renderingShapes.map((result) => (
+					<React.Fragment key={result.id + '_fragment'}>
+						<Shape {...result} />
+						<DebugSvgCopy id={result.id} />
+					</React.Fragment>
+				))}
+			</>
+		)
 	}
-
-	const groups: [string, typeof renderingShapes][] = [
-		['unisolated', unisolatedGroup],
-		...isolationGroups.entries(),
-	]
-
-	// const debugSvg = debugFlags.debugSvg.value
-	// if (debugSvg) {
-	// 	return (
-	// 		<>
-	// 			{renderingShapes.map((result) => (
-	// 				<React.Fragment key={result.id + '_fragment'}>
-	// 					<Shape {...result} />
-	// 					<DebugSvgCopy id={result.id} />
-	// 				</React.Fragment>
-	// 			))}
-	// 		</>
-	// 	)
-	// }
 
 	return (
 		<>
-			{groups.map(([id, group]) => {
-				return (
-					<div
-						key={id}
-						style={{ isolation: 'isolate', position: 'relative', zIndex: group[0]?.index ?? 1 }}
-					>
-						{group.map((result) => (
-							<Shape key={result.id + '_shape'} {...result} />
-						))}
-					</div>
-				)
-			})}
+			{renderingShapes.map((result) => (
+				<Shape key={result.id + '_shape'} {...result} />
+			))}
 		</>
 	)
 })

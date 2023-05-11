@@ -2146,8 +2146,6 @@ export class App extends EventEmitter {
 			opacity: number
 			isCulled: boolean
 			isInViewport: boolean
-			blendMode: 'normal' | 'multiply'
-			bounds: Box2d
 		}[] = []
 
 		const getShapeToDisplay = (
@@ -2179,15 +2177,7 @@ export class App extends EventEmitter {
 			// - Editing shapes should never be culled.
 			const isCulled = bounds ? editingId !== id && !cullingBoundsExpanded.includes(bounds) : true
 
-			renderingShapes.push({
-				id,
-				index: renderingShapes.length,
-				opacity,
-				isCulled,
-				isInViewport,
-				blendMode: this.getShapeUtil(shape).getBlendMode(shape),
-				bounds: bounds ?? new Box2d(0, 0, 0, 0),
-			})
+			renderingShapes.push({ id, index: renderingShapes.length, opacity, isCulled, isInViewport })
 
 			this.getSortedChildIds(id).forEach((id) => {
 				getShapeToDisplay(id, opacity, isAncestorErasing || isShapeErasing)
@@ -5410,44 +5400,6 @@ export class App extends EventEmitter {
 	 */
 	getAssetById(id: TLAssetId): TLAsset | undefined {
 		return this.store.get(id) as TLAsset | undefined
-	}
-
-	@computed get exportColors(): TLExportColors {
-		const darkMode = this.userDocumentSettings.isDarkMode
-
-		// // Get the styles from the container. We'll use these to pull out colors etc.
-		// // NOTE: We can force force a light theme here becasue we don't want export
-		// const fakeContainerEl = document.createElement('div')
-		// fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
-		// document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(this.getContainer())
-		// document.body.removeChild(fakeContainerEl)
-		console.log('compute styles')
-
-		return {
-			fill: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}`),
-				])
-			) as Record<TLColorType, string>,
-			pattern: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
-				])
-			) as Record<TLColorType, string>,
-			semi: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
-				])
-			) as Record<TLColorType, string>,
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
 	}
 
 	/* ------------------- SubCommands ------------------ */
