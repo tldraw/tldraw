@@ -20,15 +20,13 @@ function CustomShareZone() {
 	return (
 		<div
 			style={{
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				width: '200px',
-				height: '100%',
-				backgroundColor: 'var(--palette-light-red)',
+				backgroundColor: 'var(--palette-light-blue)',
+				width: '100%',
+				textAlign: 'center',
+				minWidth: '80px',
 			}}
 		>
-			<p>Hello from the share zone!</p>
+			<p>Share Zone</p>
 		</div>
 	)
 }
@@ -37,15 +35,12 @@ function CustomTopZone() {
 	return (
 		<div
 			style={{
-				display: 'flex',
-				justifyContent: 'center',
-				alignItems: 'center',
-				width: '200px',
-				height: '100%',
-				backgroundColor: 'var(--palette-light-blue)',
+				width: '100%',
+				backgroundColor: 'var(--palette-light-green)',
+				textAlign: 'center',
 			}}
 		>
-			<p>Hello from the top zone!</p>
+			<p>Top Zone</p>
 		</div>
 	)
 }
