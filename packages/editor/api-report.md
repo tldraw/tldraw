@@ -448,23 +448,23 @@ export class App extends EventEmitter<TLEventMap> {
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
-    setIsDarkMode(isDarkMode: boolean): void;
+    setIsDarkMode(isDarkMode: boolean): this;
     // (undocumented)
-    setIsFocusMode(isFocusMode: boolean): void;
+    setIsFocusMode(isFocusMode: boolean): this;
     // (undocumented)
-    setIsGridMode(isGridMode: boolean): void;
+    setIsGridMode(isGridMode: boolean): this;
     // (undocumented)
-    setIsPenMode(isPenMode: boolean): void;
+    setIsPenMode(isPenMode: boolean): this;
     // (undocumented)
-    setIsReadOnly(isReadOnly: boolean): void;
+    setIsReadOnly(isReadOnly: boolean): this;
     // (undocumented)
-    setIsToolLocked(isToolLocked: boolean): void;
+    setIsToolLocked(isToolLocked: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
     // (undocumented)
-    setSnapMode(isSnapMode: boolean): void;
+    setSnapMode(isSnapMode: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];

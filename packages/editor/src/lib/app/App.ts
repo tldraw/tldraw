@@ -1517,9 +1517,11 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setSnapMode(isSnapMode: boolean) {
-		if (isSnapMode === this.isSnapMode) return
-		this.emit('set-setting', { name: 'isSnapMode', value: isSnapMode })
-		this.updateUserDocumentSettings({ isSnapMode }, true)
+		if (isSnapMode !== this.isSnapMode) {
+			this.emit('set-setting', { name: 'isSnapMode', value: isSnapMode })
+			this.updateUserDocumentSettings({ isSnapMode }, true)
+		}
+		return this
 	}
 
 	get isDarkMode() {
@@ -1527,9 +1529,11 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setIsDarkMode(isDarkMode: boolean) {
-		if (isDarkMode === this.isDarkMode) return
-		this.emit('set-setting', { name: 'isDarkMode', value: isDarkMode })
-		this.updateUserDocumentSettings({ isDarkMode }, true)
+		if (isDarkMode !== this.isDarkMode) {
+			this.emit('set-setting', { name: 'isDarkMode', value: isDarkMode })
+			this.updateUserDocumentSettings({ isDarkMode }, true)
+		}
+		return this
 	}
 
 	get isFocusMode() {
@@ -1537,9 +1541,11 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setIsFocusMode(isFocusMode: boolean) {
-		if (isFocusMode === this.isFocusMode) return
-		this.emit('set-setting', { name: 'isFocusMode', value: isFocusMode })
-		this.updateInstanceState({ isFocusMode }, true)
+		if (isFocusMode !== this.isFocusMode) {
+			this.emit('set-setting', { name: 'isFocusMode', value: isFocusMode })
+			this.updateInstanceState({ isFocusMode }, true)
+		}
+		return this
 	}
 
 	get isToolLocked() {
@@ -1547,9 +1553,11 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setIsToolLocked(isToolLocked: boolean) {
-		if (isToolLocked === this.isToolLocked) return
-		this.emit('set-setting', { name: 'isToolLocked', value: isToolLocked })
-		this.updateInstanceState({ isToolLocked }, true)
+		if (isToolLocked !== this.isToolLocked) {
+			this.emit('set-setting', { name: 'isToolLocked', value: isToolLocked })
+			this.updateInstanceState({ isToolLocked }, true)
+		}
+		return this
 	}
 
 	/** @internal */
@@ -1565,23 +1573,27 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isGridMode
 	}
 
-	setIsGridMode(isGridMode: boolean) {
-		if (isGridMode === this.isGridMode) return
-		this.emit('set-setting', { name: 'isGridMode', value: isGridMode })
-		this.updateUserDocumentSettings({ isGridMode }, true)
+	setIsGridMode(isGridMode: boolean): this {
+		if (isGridMode === this.isGridMode) {
+			this.emit('set-setting', { name: 'isGridMode', value: isGridMode })
+			this.updateUserDocumentSettings({ isGridMode }, true)
+		}
+		return this
 	}
 
 	get isReadOnly() {
 		return this.userDocumentSettings.isReadOnly
 	}
 
-	setIsReadOnly(isReadOnly: boolean) {
-		if (isReadOnly === this.isReadOnly) return
-		this.emit('set-setting', { name: 'isReadOnly', value: isReadOnly })
-		this.updateUserDocumentSettings({ isReadOnly }, true)
-		if (isReadOnly) {
-			this.setSelectedTool('hand')
+	setIsReadOnly(isReadOnly: boolean): this {
+		if (isReadOnly !== this.isReadOnly) {
+			this.emit('set-setting', { name: 'isReadOnly', value: isReadOnly })
+			this.updateUserDocumentSettings({ isReadOnly }, true)
+			if (isReadOnly) {
+				this.setSelectedTool('hand')
+			}
 		}
+		return this
 	}
 
 	/** @internal */
@@ -1594,11 +1606,13 @@ export class App extends EventEmitter<TLEventMap> {
 		return this._isPenMode.value
 	}
 
-	setIsPenMode(isPenMode: boolean) {
+	setIsPenMode(isPenMode: boolean): this {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
-		if (isPenMode === this.isPenMode) return
-		this.emit('set-setting', { name: 'isPenMode', value: isPenMode })
-		this._isPenMode.set(isPenMode)
+		if (isPenMode !== this.isPenMode) {
+			this.emit('set-setting', { name: 'isPenMode', value: isPenMode })
+			this._isPenMode.set(isPenMode)
+		}
+		return this
 	}
 
 	// User / User App State
@@ -4519,7 +4533,7 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		},
 		{
-			do: ({ currentPageId, createdIds, partials, select }) => {
+			do: ({ createdIds, partials, select }) => {
 				const { focusLayerId } = this
 
 				// 1. Parents
@@ -4633,7 +4647,7 @@ export class App extends EventEmitter<TLEventMap> {
 					}))
 				}
 			},
-			undo: ({ currentPageId, createdIds, prevSelectedIds }) => {
+			undo: ({ createdIds, prevSelectedIds }) => {
 				this.store.remove(createdIds)
 
 				if (prevSelectedIds) {
@@ -5080,7 +5094,7 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		},
 		{
-			do: ({ prevPageState, newPage, newTabPageState, newCamera }) => {
+			do: ({ newPage, newTabPageState, newCamera }) => {
 				this.store.put([
 					newPage,
 					newCamera,
@@ -7191,7 +7205,7 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		},
 		{
-			do: ({ toId, fromId }) => {
+			do: ({ toId }) => {
 				if (!this.getPageStateByPageId(toId)) {
 					const camera = TLCamera.create({})
 					this.store.put([
@@ -7211,7 +7225,7 @@ export class App extends EventEmitter<TLEventMap> {
 				})
 				this.updateCullingBounds()
 			},
-			undo: ({ toId, fromId }) => {
+			undo: ({ fromId }) => {
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
 				this.updateUserPresence({
