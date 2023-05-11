@@ -17,13 +17,17 @@ yargs(hideBin(process.argv))
 		}
 	)
 	.command(
-		'test:ci',
+		'test:ci [env]',
 		'runner for CI (github-actions)',
 		(yargs) => {
-			return yargs
+			return yargs.positional('env', {
+				type: 'string',
+				default: 'local',
+				choices: ['local', 'nightly'],
+			})
 		},
-		async () => {
-			const exitCode = await commands.testCi()
+		async (argv) => {
+			const exitCode = await commands.testCi({ testEnv: argv.env })
 			process.exit(exitCode)
 		}
 	)

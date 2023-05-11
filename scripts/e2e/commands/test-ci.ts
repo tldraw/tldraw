@@ -2,7 +2,7 @@ import { ChildProcess, spawn } from 'node:child_process'
 import kill from 'tree-kill'
 import { promiseSpawn } from './util'
 
-export default async function testCi() {
+export default async function testCi({ testEnv }: { testEnv: string }) {
 	await promiseSpawn('yarn', ['workspace', '@tldraw/tldraw', 'prebuild'], {
 		env: {
 			...process.env,
@@ -43,7 +43,7 @@ export default async function testCi() {
 		process.exit(1)
 	}
 
-	const exitCode = await promiseSpawn('yarn', ['workspace', '@tldraw/e2e', 'test:local'], {
+	const exitCode = await promiseSpawn('yarn', ['workspace', '@tldraw/e2e', `test:${testEnv}`], {
 		env: {
 			...process.env,
 			BROWSERS: ['chrome'].join(','),

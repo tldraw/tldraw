@@ -57,7 +57,7 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - run: ./scripts/e2e-run-ci local
+      - run: yarn e2e test:ci local
         env:
           CI: true
           DOWNLOADS_DIR: /home/runner/work/_temp/e2e/

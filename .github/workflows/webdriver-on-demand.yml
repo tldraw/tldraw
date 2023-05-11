@@ -103,7 +103,7 @@ jobs:
       - name: Run server
         run: yarn dev-webdriver &
 
-      - run: ./scripts/e2e-run-ci nightly
+      - run: yarn e2e test:ci nightly
         env:
           CI: true
           DOWNLOADS_DIR: '/home/runner/work/_temp/e2e/'
