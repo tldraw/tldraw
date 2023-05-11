@@ -1392,6 +1392,7 @@ input,
 .tl-error-boundary__overlay {
 	position: absolute;
 	inset: 0px;
+	z-index: 500;
 	background-color: var(--color-overlay);
 }
 
@@ -1435,6 +1436,7 @@ it from receiving any pointer events or affecting the cursor. */
 	flex-direction: column;
 	gap: var(--space-5);
 	overflow: auto;
+	z-index: 600;
 }
 .tl-error-boundary__content__expanded {
 	width: 600px;

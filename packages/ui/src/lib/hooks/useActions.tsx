@@ -755,7 +755,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-snap-mode.menu',
 				readonlyOk: false,
 				onSelect() {
-					app.setDarkMode(!app.isSnapMode)
+					app.setIsDarkMode(!app.isSnapMode)
 				},
 				checkbox: true,
 			},
@@ -766,7 +766,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$/',
 				readonlyOk: true,
 				onSelect() {
-					app.setDarkMode(!app.isDarkMode)
+					app.setIsDarkMode(!app.isDarkMode)
 				},
 				checkbox: true,
 			},
@@ -793,7 +793,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				kbd: 'q',
 				onSelect() {
-					app.setToolLocked(!app.isToolLocked)
+					app.setIsToolLocked(!app.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -811,7 +811,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						app.batch(() => {
 							clearDialogs()
 							clearToasts()
-							app.setFocusMode(!app.isFocusMode)
+							app.setIsFocusMode(!app.isFocusMode)
 						})
 					})
 				},
@@ -823,7 +823,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: "$'",
 				onSelect() {
-					app.setGridMode(!app.isGridMode)
+					app.setIsGridMode(!app.isGridMode)
 				},
 				checkbox: true,
 			},
@@ -858,7 +858,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'cross-2',
 				readonlyOk: true,
 				onSelect() {
-					app.setPenMode(false)
+					app.setIsPenMode(false)
 				},
 			},
 			{
@@ -876,7 +876,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'arrow-left',
 				readonlyOk: true,
 				onSelect() {
-					app.backToContent()
+					app.zoomToContent()
 				},
 			},
 		])
