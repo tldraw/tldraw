@@ -202,7 +202,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		app = new TestApp()
-		app.setIsReadOnly(true)
+		app.setReadOnly(true)
 		expect(app.currentToolId).toBe('hand')
 	})
 })

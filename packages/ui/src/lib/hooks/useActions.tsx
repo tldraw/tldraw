@@ -777,7 +777,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					event(source, 'toggle-snap-mode')
-					app.setIsSnapMode(!app.isSnapMode)
+					app.setSnapMode(!app.isSnapMode)
 				},
 				checkbox: true,
 			},
@@ -789,7 +789,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					event(source, 'toggle-dark-mode')
-					app.setIsDarkMode(!app.isDarkMode)
+					app.setDarkMode(!app.isDarkMode)
 				},
 				checkbox: true,
 			},
@@ -818,7 +818,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					event(source, 'toggle-tool-lock')
-					app.setIsToolLocked(!app.isToolLocked)
+					app.setToolLocked(!app.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -837,7 +837,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							event(source, 'toggle-focus-mode')
 							clearDialogs()
 							clearToasts()
-							app.setIsFocusMode(!app.isFocusMode)
+							app.setFocusMode(!app.isFocusMode)
 						})
 					})
 				},
@@ -850,7 +850,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					event(source, 'toggle-grid-mode')
-					app.setIsGridMode(!app.isGridMode)
+					app.setGridMode(!app.isGridMode)
 				},
 				checkbox: true,
 			},
@@ -887,7 +887,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					event(source, 'exit-pen-mode')
-					app.setIsPenMode(false)
+					app.setPenMode(false)
 				},
 			},
 			{

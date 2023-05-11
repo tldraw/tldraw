@@ -1500,7 +1500,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isSnapMode
 	}
 
-	setIsSnapMode(isSnapMode: boolean) {
+	setSnapMode(isSnapMode: boolean) {
 		if (isSnapMode !== this.isSnapMode) {
 			this.updateUserDocumentSettings({ isSnapMode }, true)
 		}
@@ -1511,7 +1511,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isDarkMode
 	}
 
-	setIsDarkMode(isDarkMode: boolean) {
+	setDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
 			this.updateUserDocumentSettings({ isDarkMode }, true)
 		}
@@ -1522,7 +1522,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.instanceState.isFocusMode
 	}
 
-	setIsFocusMode(isFocusMode: boolean) {
+	setFocusMode(isFocusMode: boolean) {
 		if (isFocusMode !== this.isFocusMode) {
 			this.updateInstanceState({ isFocusMode }, true)
 		}
@@ -1533,7 +1533,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.instanceState.isToolLocked
 	}
 
-	setIsToolLocked(isToolLocked: boolean) {
+	setToolLocked(isToolLocked: boolean) {
 		if (isToolLocked !== this.isToolLocked) {
 			this.updateInstanceState({ isToolLocked }, true)
 		}
@@ -1553,7 +1553,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isGridMode
 	}
 
-	setIsGridMode(isGridMode: boolean): this {
+	setGridMode(isGridMode: boolean): this {
 		if (isGridMode === this.isGridMode) {
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
@@ -1564,7 +1564,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.userDocumentSettings.isReadOnly
 	}
 
-	setIsReadOnly(isReadOnly: boolean): this {
+	setReadOnly(isReadOnly: boolean): this {
 		if (isReadOnly !== this.isReadOnly) {
 			this.updateUserDocumentSettings({ isReadOnly }, true)
 			if (isReadOnly) {
@@ -1584,7 +1584,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this._isPenMode.value
 	}
 
-	setIsPenMode(isPenMode: boolean): this {
+	setPenMode(isPenMode: boolean): this {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode !== this.isPenMode) {
 			this._isPenMode.set(isPenMode)
@@ -3748,7 +3748,7 @@ export class App extends EventEmitter<TLEventMap> {
 									// decrement the remaining taps before exiting pen mode
 									this._touchEventsRemainingBeforeExitingPenMode--
 									if (this._touchEventsRemainingBeforeExitingPenMode === 0) {
-										this.setIsPenMode(false)
+										this.setPenMode(false)
 									} else {
 										return
 									}
@@ -3758,7 +3758,7 @@ export class App extends EventEmitter<TLEventMap> {
 								}
 							} else {
 								if (isPen) {
-									this.setIsPenMode(true)
+									this.setPenMode(true)
 								}
 							}
 

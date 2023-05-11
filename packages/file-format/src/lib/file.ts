@@ -268,5 +268,5 @@ export async function parseAndLoadDocument(
 	// restored. we could change this in the future.
 	app.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
 
-	if (forceDarkMode) app.setIsDarkMode(true)
+	if (forceDarkMode) app.setDarkMode(true)
 }

@@ -441,30 +441,30 @@ export class App extends EventEmitter<TLEventMap> {
     setCroppingId(id: null | TLShapeId): this;
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: ViewportOptions): this;
     setCursor(cursor: Partial<TLCursor>): this;
+    // (undocumented)
+    setDarkMode(isDarkMode: boolean): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
+    // (undocumented)
+    setFocusMode(isFocusMode: boolean): this;
+    // (undocumented)
+    setGridMode(isGridMode: boolean): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
-    setIsDarkMode(isDarkMode: boolean): this;
-    // (undocumented)
-    setIsFocusMode(isFocusMode: boolean): this;
-    // (undocumented)
-    setIsGridMode(isGridMode: boolean): this;
-    // (undocumented)
-    setIsPenMode(isPenMode: boolean): this;
-    // (undocumented)
-    setIsReadOnly(isReadOnly: boolean): this;
-    // (undocumented)
-    setIsSnapMode(isSnapMode: boolean): this;
-    // (undocumented)
-    setIsToolLocked(isToolLocked: boolean): this;
+    setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
+    // (undocumented)
+    setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
+    // (undocumented)
+    setSnapMode(isSnapMode: boolean): this;
+    // (undocumented)
+    setToolLocked(isToolLocked: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];
