@@ -160,14 +160,6 @@ export interface AppOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer: () => HTMLElement
-
-	/** The id of the current user. If not given, one will be generated. */
-	userId?: TLUserId
-	/**
-	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
-	 * tab). If not given, one will be generated.
-	 */
-	instanceId?: TLInstanceId
 }
 
 /** @public */
