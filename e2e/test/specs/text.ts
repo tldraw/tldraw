@@ -80,7 +80,7 @@ describe('text', () => {
 	)
 })
 
-describe.only('text measurement', () => {
+describe('text measurement', () => {
 	const measureTextOptions = {
 		text: 'testing',
 		width: 'fit-content',
