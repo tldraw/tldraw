@@ -54,6 +54,7 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 	createProjectName?: () => string
 }
 
+/** @public */
 export const DEFAULT_PROJECT_NAME = 'Project'
 
 /** @public */
