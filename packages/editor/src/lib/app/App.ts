@@ -5050,7 +5050,10 @@ export class App extends EventEmitter<TLEventMap> {
 			const newPage = TLPage.create({
 				id,
 				name: title,
-				index: bottomIndex ? getIndexBetween(topIndex, bottomIndex) : getIndexAbove(topIndex),
+				index:
+					bottomIndex && topIndex !== bottomIndex
+						? getIndexBetween(topIndex, bottomIndex)
+						: getIndexAbove(topIndex),
 			})
 
 			const newCamera = TLCamera.create({})
