@@ -80,7 +80,7 @@ describe('text', () => {
 	)
 })
 
-describe('text measurement', () => {
+describe.only('text measurement', () => {
 	const measureTextOptions = {
 		text: 'testing',
 		width: 'fit-content',
@@ -152,7 +152,7 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(lines).toEqual(['testing ', 'testing'])
 		})
 
 		it('should strip whitespace at line breaks', async () => {
@@ -164,7 +164,7 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(lines).toEqual(['testing  ', 'testing'])
 		})
 
 		it('should strip whitespace at the end of wrapped lines', async () => {
@@ -176,10 +176,10 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(lines).toEqual(['testing ', 'testing  '])
 		})
 
-		it('should strip whitespace at the end of unwrapped lines', async () => {
+		it('does not strip whitespace at the end of unwrapped lines', async () => {
 			await ui.app.setup()
 			const lines = await browser.execute((options) => {
 				return window.app.textMeasure.getTextLines({
@@ -189,10 +189,10 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing testing'])
+			expect(lines).toEqual(['testing testing  '])
 		})
 
-		it('should strip whitespace from the start of an unwrapped line', async () => {
+		it('does not whitespace from the start of an unwrapped line', async () => {
 			await ui.app.setup()
 			const lines = await browser.execute((options) => {
 				return window.app.textMeasure.getTextLines({
@@ -202,7 +202,7 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing testing'])
+			expect(lines).toEqual(['  testing testing'])
 		})
 
 		it('should place starting whitespace on its own line if it has to', async () => {
@@ -214,10 +214,34 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['', 'testing', 'testing'])
+			expect(lines).toEqual(['  ', 'testing ', 'testing'])
+		})
+
+		it('should respect ending whitespace', async () => {
+			await ui.app.setup()
+			const lines = await browser.execute((options) => {
+				return window.app.textMeasure.getTextLines({
+					...options,
+					text: 'testing testing                  ',
+				})
+			}, getTextLinesOptions)
+
+			expect(lines).toEqual(['testing ', 'testing                  '])
 		})
 
 		it('should place ending whitespace on its own line if it has to', async () => {
+			await ui.app.setup()
+			const lines = await browser.execute((options) => {
+				return window.app.textMeasure.getTextLines({
+					...options,
+					text: 'testing testing                  testing',
+				})
+			}, getTextLinesOptions)
+
+			expect(lines).toEqual(['testing ', 'testing                  ', 'testing'])
+		})
+
+		it('should handle multiline text', async () => {
 			await ui.app.setup()
 			const lines = await browser.execute((options) => {
 				return window.app.textMeasure.getTextLines({
@@ -226,8 +250,21 @@ describe('text measurement', () => {
 				})
 			}, getTextLinesOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(lines).toEqual(['testing ', 'testing  '])
 		})
+
+		it('should break long strings of text', async () => {
+			await ui.app.setup()
+			const lines = await browser.execute((options) => {
+				return window.app.textMeasure.getTextLines({
+					...options,
+					text: 'testingtestingtestingtestingtestingtesting',
+				})
+			}, getTextLinesOptions)
+
+			expect(lines).toEqual(['testingt', 'estingte', 'stingtes', 'tingtest', 'ingtesti', 'ng'])
+		})
+
 		it('should return an empty array if the text is empty', async () => {
 			await ui.app.setup()
 			const lines = await browser.execute((options) => {
