@@ -102,10 +102,10 @@ export const Shape = track(function Shape({
 	}, [opacity, index])
 
 	const shape = app.getShapeById(id)
-
 	if (!shape) return null
 
 	const util = app.getShapeUtil(shape)
+	const blendMode = util.getBlendMode(shape)
 
 	return (
 		<div
@@ -119,6 +119,7 @@ export const Shape = track(function Shape({
 			onPointerUp={events.onPointerUp}
 			onPointerEnter={events.onPointerEnter}
 			onPointerLeave={events.onPointerLeave}
+			style={{ mixBlendMode: isCulled ? 'normal' : blendMode }}
 		>
 			{isCulled && util.canUnmount(shape) ? (
 				<CulledShape shape={shape} util={util} />
