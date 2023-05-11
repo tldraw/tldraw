@@ -13,8 +13,11 @@ export default function Example() {
 
 	const [uiEvents, setUiEvents] = useState<string[]>([])
 
-	const handleEvent = useCallback<TLUiEventHandler>((name, data) => {
-		setUiEvents((events) => [name + ' ' + JSON.stringify(data), ...events])
+	const handleEvent = useCallback<TLUiEventHandler>((source, name, data) => {
+		setUiEvents((events) => [
+			data ? `${source} ${name} ${JSON.stringify(data)}` : `${source} ${name}`,
+			...events,
+		])
 	}, [])
 
 	useEffect(() => {

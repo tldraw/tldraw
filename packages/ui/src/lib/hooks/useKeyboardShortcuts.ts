@@ -11,6 +11,7 @@ const SKIP_KBDS = [
 	'copy',
 	'cut',
 	'paste',
+	'delete',
 	// There's also an upload asset action, so we don't want to set the kbd twice
 	'asset',
 ]
@@ -69,7 +70,7 @@ export function useKeyboardShortcuts() {
 			app.setSelectedTool('geo')
 		})
 
-		hot('backspace,del', () => {
+		hot('del,backspace', () => {
 			if (areShortcutsDisabled()) return
 			actions['delete'].onSelect('kbd')
 		})
