@@ -653,6 +653,18 @@ describe('Adding instance_presence to the schema', () => {
 	})
 })
 
+describe('Adding check-box to geo shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[4]
+
+	test('up works as expected', () => {
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
+		expect(down({ props: { geo: 'check-box' } })).toEqual({ props: { geo: 'rectangle' } })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

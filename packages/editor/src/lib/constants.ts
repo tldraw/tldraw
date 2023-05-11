@@ -253,6 +253,7 @@ export const STYLES: TLStyleCollections = {
 		{ id: 'arrow-up', type: 'geo', icon: 'geo-arrow-up' },
 		{ id: 'arrow-down', type: 'geo', icon: 'geo-arrow-down' },
 		{ id: 'x-box', type: 'geo', icon: 'geo-x-box' },
+		{ id: 'check-box', type: 'geo', icon: 'geo-check-box' },
 	],
 	arrowheadStart: [
 		{ id: 'none', type: 'arrowheadStart', icon: 'arrowhead-none' },

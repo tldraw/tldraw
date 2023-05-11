@@ -160,14 +160,6 @@ export interface AppOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer: () => HTMLElement
-
-	/** The id of the current user. If not given, one will be generated. */
-	userId?: TLUserId
-	/**
-	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
-	 * tab). If not given, one will be generated.
-	 */
-	instanceId?: TLInstanceId
 }
 
 /** @public */
@@ -2369,12 +2361,13 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	getShapesAtPoint(point: VecLike): TLShape[] {
 		return this.shapesArray.filter((shape) => {
+			// Check the page mask too
 			const pageMask = this._pageMaskCache.get(shape.id)
 			if (pageMask) {
-				const hasHit = pointInPolygon(point, pageMask)
-				if (!hasHit) return false
+				return pointInPolygon(point, pageMask)
 			}
 
+			// Otherwise, use the shape's own hit test method
 			return this.getShapeUtil(shape).hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
 		})
 	}

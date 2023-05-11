@@ -1,4 +1,4 @@
-import { getBundlerAssetUrls } from '@tldraw/assets/src/urls'
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 import {
 	DefaultErrorFallback,
 	ErrorBoundary,
@@ -23,7 +23,7 @@ import HideUiExample from './9-hide-ui/HideUiExample'
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
-const assetUrls = getBundlerAssetUrls()
+const assetUrls = getAssetUrlsByMetaUrl()
 setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 

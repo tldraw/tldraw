@@ -173,7 +173,9 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	}
 
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
-		return pointNearToPolyline(point, this.outline(shape))
+		const zoomLevel = this.app.zoomLevel
+		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		return pointNearToPolyline(point, this.outline(shape), offsetDist)
 	}
 
 	hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {

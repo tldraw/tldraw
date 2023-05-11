@@ -28,6 +28,7 @@ describe('arrowBindingsIndex', () => {
 				props: {
 					w: 100,
 					h: 100,
+					fill: 'solid',
 				},
 			},
 			{
@@ -38,6 +39,7 @@ describe('arrowBindingsIndex', () => {
 				props: {
 					w: 100,
 					h: 100,
+					fill: 'solid',
 				},
 			},
 		])

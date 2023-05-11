@@ -15,3 +15,9 @@
 !**/pages/api/*
 **/*.json
 **/lazy.config.ts
+**/next.config.js
+**/setupTests.js
+**/setupJest.js
+apps/webdriver/www
+apps/vscode/extension/editor
+apps/examples/www

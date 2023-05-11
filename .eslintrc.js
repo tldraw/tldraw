@@ -5,13 +5,13 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@next/next/core-web-vitals',
 	],
+	ignorePatterns: ['e2e/wdio.*.js'],
 	plugins: ['@typescript-eslint', 'no-only-tests', 'import', 'local', '@next/next', 'react-hooks'],
 	settings: {
 		next: {
 			rootDir: ['apps/*/', 'packages/*/'],
 		},
 	},
-	ignorePatterns: ['**/*.js', '**/vscode-script-utils/*'],
 	rules: {
 		'@next/next/no-html-link-for-pages': 'off',
 		'react/jsx-key': 'off',

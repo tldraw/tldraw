@@ -28,6 +28,7 @@
 		"apps/*",
 		"packages/*",
 		"apps/vscode/*",
+		"e2e",
 		"config",
 		"scripts"
 	],
@@ -40,6 +41,7 @@
 		"dev": "lazy run dev --filter='{,bublic/}apps/examples' --filter='{,bublic/}packages/tldraw'",
 		"dev-docs": "lazy run dev-docs",
 		"dev-vscode": "code ./apps/vscode/extension && lazy run dev --filter='{,bublic/}apps/vscode/{extension,editor}'",
+		"dev-webdriver": "lazy run dev-webdriver --filter='apps/webdriver'",
 		"build-types": "lazy inherit",
 		"build-api": "lazy build-api",
 		"build-package": "lazy build-package",

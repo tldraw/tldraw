@@ -1,0 +1,17 @@
+export const SHAPES = [
+	{ type: 'geo', tool: 'rectangle' },
+	// { type: 'geo', tool: 'ellipse' },
+	// { type: 'geo', tool: 'triangle' },
+	// { type: 'geo', tool: 'diamond' },
+	// { type: 'geo', tool: 'pentagon' },
+	// { type: 'geo', tool: 'hexagon' },
+	// { type: 'geo', tool: 'octagon' },
+	// { type: 'geo', tool: 'star' },
+	// { type: 'geo', tool: 'rhombus' },
+	// { type: 'geo', tool: 'oval' },
+	// { type: 'geo', tool: 'trapezoid' },
+	// { type: 'geo', tool: 'arrow-right' },
+	// { type: 'geo', tool: 'arrow-left' },
+	// { type: 'geo', tool: 'arrow-up' },
+	// { type: 'geo', tool: 'arrow-down' },
+]
