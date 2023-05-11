@@ -156,6 +156,9 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 	 */
 	abstract render(shape: T): any
 
+	/** @internal */
+	renderBackground?(shape: T): any
+
 	/**
 	 * Get JSX describing the shape's indicator (as an SVG element).
 	 *

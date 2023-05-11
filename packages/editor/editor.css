@@ -86,6 +86,21 @@
 	--palette-violet: #ae3ec9;
 	--palette-white: #ffffff;
 	--palette-yellow: #ffc078;
+
+	--palette-black-highlight: rgb(255,228,0);
+	--palette-blue-highlight: rgb(117, 166, 255);
+	--palette-green-highlight: rgb(81, 225, 170);
+	--palette-grey-highlight: rgb(150, 255, 255);
+	--palette-light-blue-highlight: rgb(150, 255, 255);
+	--palette-light-green-highlight: rgb(139, 255, 160);
+	--palette-light-red-highlight: rgb(255,114,135)
+	--palette-light-violet-highlight: rgb(255,154,255);
+	--palette-orange-highlight: rgb(255, 180, 87);
+	--palette-red-highlight: rgb(255, 113, 104);
+	--palette-violet-highlight: rgb(255, 123, 255);
+	--palette-white-highlight: rgb(255, 255, 255);
+	--palette-yellow-highlight: rgb(255,228,0);
+
 	/* TODO: fill style colors should be generated at runtime (later task) */
 	/* for fill style 'semi' */
 	--palette-solid: #fcfffe;
@@ -203,6 +218,20 @@
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-3: 0px 1px 3px #00000077, 0px 2px 12px rgba(0, 0, 0, 0.22),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
+
+		--palette-black-highlight: rgb(255,228,0);
+		--palette-blue-highlight: rgb(117, 166, 255);
+		--palette-green-highlight: rgb(81, 225, 170);
+		--palette-grey-highlight: rgb(150, 255, 255);
+		--palette-light-blue-highlight: rgb(150, 255, 255);
+		--palette-light-green-highlight: rgb(139, 255, 160);
+		--palette-light-red-highlight: rgb(255,114,135)
+		--palette-light-violet-highlight: rgb(255,154,255);
+		--palette-orange-highlight: rgb(255, 180, 87);
+		--palette-red-highlight: rgb(255, 113, 104);
+		--palette-violet-highlight: rgb(255, 123, 255);
+		--palette-white-highlight: rgb(255, 255, 255);
+		--palette-yellow-highlight: rgb(255,228,0);
 }
 
 .tl-counter-scaled {

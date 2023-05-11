@@ -127,6 +127,86 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	}
 
 	render(shape: TLDrawShape) {
+		const opacity = shape.props.size === 'xl' ? 0.33 : 1
+		const forceSolid = useForceSolid()
+		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+
+		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+
+		let sw = strokeWidth
+		if (
+			!forceSolid &&
+			!shape.props.isPen &&
+			shape.props.dash === 'draw' &&
+			allPointsFromSegments.length === 1
+		) {
+			sw += rng(shape.id)() * (strokeWidth / 6)
+		}
+
+		const options = getFreehandOptions(shape, sw, showAsComplete, forceSolid)
+		if (shape.props.size === 'xl') {
+			options.size! *= 2
+		}
+
+		const strokePoints = getStrokePoints(allPointsFromSegments, options)
+
+		const solidStrokePath =
+			strokePoints.length > 1
+				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
+				: getDot(allPointsFromSegments[0], sw)
+
+		if ((!forceSolid && shape.props.dash === 'draw') || strokePoints.length < 2) {
+			setStrokePointRadii(strokePoints, options)
+			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
+
+			return (
+				<SVGContainer id={shape.id} style={{ opacity }}>
+					<ShapeFill
+						fill={shape.props.isClosed ? shape.props.fill : 'none'}
+						color={shape.props.color}
+						d={solidStrokePath}
+					/>
+					<path
+						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
+						strokeLinecap="round"
+						fill={
+							shape.props.size === 'xl'
+								? `var(--palette-${shape.props.color}-highlight)`
+								: 'currentColor'
+						}
+					/>
+				</SVGContainer>
+			)
+		}
+
+		return (
+			<SVGContainer id={shape.id} style={{ opacity }}>
+				<ShapeFill
+					color={shape.props.color}
+					fill={shape.props.isClosed ? shape.props.fill : 'none'}
+					d={solidStrokePath}
+				/>
+				<path
+					d={solidStrokePath}
+					strokeLinecap="round"
+					fill="none"
+					stroke={
+						shape.props.size === 'xl'
+							? `var(--palette-${shape.props.color}-highlight)`
+							: 'currentColor'
+					}
+					strokeWidth={strokeWidth}
+					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
+					strokeDashoffset="0"
+				/>
+			</SVGContainer>
+		)
+	}
+
+	renderBackground(shape: TLDrawShape) {
+		if (shape.props.size !== 'xl') return null
+
 		const forceSolid = useForceSolid()
 		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
@@ -146,6 +226,10 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		const options = getFreehandOptions(shape, sw, showAsComplete, forceSolid)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
+		if (shape.props.size === 'xl') {
+			options.size! *= 2
+		}
+
 		const solidStrokePath =
 			strokePoints.length > 1
 				? getSvgPathFromStrokePoints(strokePoints, shape.props.isClosed)
@@ -156,7 +240,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
 
 			return (
-				<SVGContainer id={shape.id}>
+				<SVGContainer>
 					<ShapeFill
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						color={shape.props.color}
@@ -165,14 +249,18 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
 						strokeLinecap="round"
-						fill="currentColor"
+						fill={
+							shape.props.size === 'xl'
+								? `var(--palette-${shape.props.color}-highlight)`
+								: 'currentColor'
+						}
 					/>
 				</SVGContainer>
 			)
 		}
 
 		return (
-			<SVGContainer id={shape.id}>
+			<SVGContainer>
 				<ShapeFill
 					color={shape.props.color}
 					fill={shape.props.isClosed ? shape.props.fill : 'none'}
@@ -182,7 +270,11 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 					d={solidStrokePath}
 					strokeLinecap="round"
 					fill="none"
-					stroke="currentColor"
+					stroke={
+						shape.props.size === 'xl'
+							? `var(--palette-${shape.props.color}-highlight)`
+							: 'currentColor'
+					}
 					strokeWidth={strokeWidth}
 					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"

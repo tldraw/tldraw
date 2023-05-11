@@ -1874,6 +1874,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
     // (undocumented)
     render(shape: TLDrawShape): JSX.Element;
     // (undocumented)
+    renderBackground(shape: TLDrawShape): JSX.Element | null;
+    // (undocumented)
     toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
     static type: string;
@@ -2502,6 +2504,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     outline(shape: T): Vec2dModel[];
     point(shape: T): Vec2dModel;
     abstract render(shape: T): any;
+    // @internal (undocumented)
+    renderBackground?(shape: T): any;
     snapPoints(shape: T): Vec2d[];
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     transform(shape: T): Matrix2d;

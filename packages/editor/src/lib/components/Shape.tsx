@@ -42,11 +42,13 @@ export const Shape = track(function Shape({
 	const events = useShapeEvents(id)
 
 	const rContainer = React.useRef<HTMLDivElement>(null)
+	const rBackground = React.useRef<HTMLDivElement>(null)
 
 	useQuickReactor(
 		'set shape container transform position',
 		() => {
 			const elm = rContainer.current
+			const elmBeneath = rBackground.current
 			if (!elm) return
 
 			const shape = app.getShapeById(id)
@@ -56,6 +58,7 @@ export const Shape = track(function Shape({
 
 			const transform = Matrix2d.toCssString(pageTransform)
 			elm.style.setProperty('transform', transform)
+			elmBeneath?.style.setProperty('transform', transform)
 		},
 		[app]
 	)
@@ -64,14 +67,17 @@ export const Shape = track(function Shape({
 		'set shape container clip path / color',
 		() => {
 			const elm = rContainer.current
+			const elmBeneath = rBackground.current
 			const shape = app.getShapeById(id)
 			if (!elm) return
 			if (!shape) return null
 
 			const clipPath = app.getClipPathById(id)
 			elm.style.setProperty('clip-path', clipPath ?? 'none')
+			elmBeneath?.style.setProperty('clip-path', clipPath ?? 'none')
 			if ('color' in shape.props) {
 				elm.style.setProperty('color', app.getCssColor(shape.props.color))
+				elmBeneath?.style.setProperty('color', app.getCssColor(shape.props.color))
 			}
 		},
 		[app]
@@ -81,6 +87,7 @@ export const Shape = track(function Shape({
 		'set shape height and width',
 		() => {
 			const elm = rContainer.current
+			const elmBeneath = rBackground.current
 			const shape = app.getShapeById(id)
 			if (!elm) return
 			if (!shape) return null
@@ -88,7 +95,9 @@ export const Shape = track(function Shape({
 			const util = app.getShapeUtil(shape)
 			const bounds = util.bounds(shape)
 			elm.style.setProperty('width', Math.ceil(bounds.width) + 'px')
+			elmBeneath?.style.setProperty('width', Math.ceil(bounds.width) + 'px')
 			elm.style.setProperty('height', Math.ceil(bounds.height) + 'px')
+			elmBeneath?.style.setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
 		[app]
 	)
@@ -96,9 +105,12 @@ export const Shape = track(function Shape({
 	// Set the opacity of the container when the opacity changes
 	React.useLayoutEffect(() => {
 		const elm = rContainer.current
+		const elmBeneath = rBackground.current
 		if (!elm) return
 		elm.style.setProperty('opacity', opacity + '')
-		elm.style.setProperty('z-index', index + '')
+		elmBeneath?.style.setProperty('opacity', opacity + '')
+		elm.style.setProperty('z-index', index + 10_000 + '')
+		elmBeneath?.style.setProperty('z-index', index + '')
 	}, [opacity, index])
 
 	const shape = app.getShapeById(id)
@@ -108,37 +120,69 @@ export const Shape = track(function Shape({
 	const util = app.getShapeUtil(shape)
 
 	return (
-		<div
-			key={id}
-			ref={rContainer}
-			className="tl-shape"
-			data-shape-type={shape.type}
-			draggable={false}
-			onPointerDown={events.onPointerDown}
-			onPointerMove={events.onPointerMove}
-			onPointerUp={events.onPointerUp}
-			onPointerEnter={events.onPointerEnter}
-			onPointerLeave={events.onPointerLeave}
-		>
-			{isCulled && util.canUnmount(shape) ? (
-				<CulledShape shape={shape} util={util} />
-			) : (
-				<OptionalErrorBoundary
-					fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-					onError={(error) =>
-						app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-					}
+		<>
+			{util.renderBackground && (
+				<div
+					key={`${id}-bg`}
+					ref={rBackground}
+					className="tl-shape tl-shape-bg"
+					data-shape-type={shape.type}
+					draggable={false}
 				>
-					<InnerShape shape={shape} util={util} />
-				</OptionalErrorBoundary>
+					{!isCulled && (
+						<OptionalErrorBoundary
+							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
+							onError={(error) =>
+								app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+							}
+						>
+							<InnerShape shape={shape} util={util} background={true} />
+						</OptionalErrorBoundary>
+					)}
+				</div>
 			)}
-		</div>
+			<div
+				key={id}
+				ref={rContainer}
+				className="tl-shape"
+				data-shape-type={shape.type}
+				draggable={false}
+				onPointerDown={events.onPointerDown}
+				onPointerMove={events.onPointerMove}
+				onPointerUp={events.onPointerUp}
+				onPointerEnter={events.onPointerEnter}
+				onPointerLeave={events.onPointerLeave}
+			>
+				{isCulled && util.canUnmount(shape) ? (
+					<CulledShape shape={shape} util={util} />
+				) : (
+					<OptionalErrorBoundary
+						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
+						onError={(error) =>
+							app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+						}
+					>
+						<InnerShape shape={shape} util={util} background={false} />
+					</OptionalErrorBoundary>
+				)}
+			</div>
+		</>
 	)
 })
 
 const InnerShape = React.memo(
-	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: TLShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + util.type, () => util.render(shape))
+	function InnerShape<T extends TLShape>({
+		shape,
+		util,
+		background,
+	}: {
+		shape: T
+		util: TLShapeUtil<T>
+		background: boolean
+	}) {
+		return useStateTracking('InnerShape:' + util.type, () =>
+			background ? util.renderBackground?.(shape) : util.render(shape)
+		)
 	},
 	(prev, next) => prev.shape.props === next.shape.props
 )
