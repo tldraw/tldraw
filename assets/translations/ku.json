@@ -66,7 +66,6 @@
 	"context-menu.export-as": "هەناردەکردن وەک",
 	"context-menu.move-to-page": "بچۆ بۆ لاپەڕە",
 	"page-menu.create-new-page": "دروستکردنی لاپەڕە",
-	"page-menu.page": "لاپەڕە",
 	"page-menu.edit-start": "دەستکاری",
 	"page-menu.submenu.duplicate-page": "دووبارەکردنەوە",
 	"page-menu.submenu.delete": "سڕینەوە",
@@ -75,9 +74,6 @@
 	"help-menu.keyboard-shortcuts": "کورتکراوەکانی تەختەکلیل",
 	"edit-link-dialog.cancel": "ڕەتکردنەوە",
 	"embed-dialog.cancel": "ڕەتکردنەوە",
-	"edit-pages-dialog.create-new-page": "دروستکردنی لاپەڕە",
-	"edit-pages-dialog.delete": "سڕینەوە",
-	"edit-pages-dialog.duplicate-page": "دووبارەکردنەوە",
 	"shortcuts-dialog.title": "کورتکراوەکانی تەختەکلیل",
 	"shortcuts-dialog.edit": "دەستکاری",
 	"shortcuts-dialog.file": "فایلێک",
@@ -92,8 +88,6 @@
 	"style-panel.fill": "پڕکردنەوە",
 	"style-panel.font": "هێڵ",
 	"style-panel.size": "قەبارە",
-	"style-panel.text": "دەق",
-	"tool-panel.tools": "ئامرازەکان",
 	"focus-mode.toggle-focus-mode": "دۆخی فۆکەس",
 	"file-system.confirm-open.cancel": "ڕەتکردنەوە"
 }
