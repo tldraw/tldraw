@@ -224,6 +224,7 @@ export type TLTranslationKey =
 	| 'page-menu.submenu.delete'
 	| 'share-menu.title'
 	| 'share-menu.share-project'
+	| 'share-menu.default-project-name'
 	| 'share-menu.copy-link'
 	| 'share-menu.readonly-link'
 	| 'share-menu.copy-readonly-link'

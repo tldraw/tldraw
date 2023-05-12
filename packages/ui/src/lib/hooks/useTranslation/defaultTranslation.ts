@@ -224,6 +224,7 @@ export const DEFAULT_TRANSLATION = {
 	'page-menu.submenu.delete': 'Delete',
 	'share-menu.title': 'Share',
 	'share-menu.share-project': 'Share this project',
+	'share-menu.default-project-name': 'Shared Project',
 	'share-menu.copy-link': 'Copy link',
 	'share-menu.readonly-link': 'Read-only',
 	'share-menu.copy-readonly-link': 'Copy read-only link',
