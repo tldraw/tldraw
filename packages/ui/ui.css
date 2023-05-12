@@ -1645,9 +1645,35 @@
 }
 
 /* ------------------ Project Menu ------------------ */
+.tlui-project-menu__wrapper {
+	pointer-events: all;
+	display: flex;
+	width: 100%;
+	align-items: center;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	min-width: 0px;
+}
+
+.tlui-project-menu__button {
+	display: flex;
+	gap: var(--space-4);
+}
+
+.tlui-project-menu__button__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0px;
+}
+
 .tlui-project-menu__input {
 	min-width: 0px;
 	text-align: center;
+
+	/* Position slightly to the right so that it doesn't jump around */
+	/* 40px is the width of the icon */
 	margin-left: 40px;
 }
 
