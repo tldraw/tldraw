@@ -36,7 +36,7 @@
 	"scripts": {
 		"test": "lazy inherit --passWithNoTests",
 		"test-coverage": "yarn run -T jest --passWithNoTests --coverage",
-		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",

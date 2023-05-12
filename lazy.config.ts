@@ -3,23 +3,31 @@ import { LazyConfig } from 'lazyrepo'
 export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') {
 	return {
 		build: {
-			runsAfter: { 'build-package': {}, prebuild: {} },
-		},
-		'build:vscode-editor': {
-			runsAfter: { 'refresh-assets': {} },
+			baseCommand: 'exit 0',
+			runsAfter: { 'build-package': { in: 'self-only' }, prebuild: {}, 'refresh-assets': {} },
+			workspaceOverrides: {
+				'apps/docs': { runsAfter: { 'docs-content': {} } },
+				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
+				'packages/*': {
+					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
+					cache: {
+						inputs: ['api/**/*', 'src/**/*'],
+					},
+				},
+			},
 		},
 		dev: {
 			execution: 'independent',
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
-		},
-		'dev-vscode': {
-			runsAfter: { 'build:vscode-editor': {} },
-		},
-		'dev-webdriver': {
-			execution: 'independent',
-			runsAfter: { 'refresh-assets': {}, prebuild: {}, 'build:vscode-editor': {} },
-			cache: 'none',
+			workspaceOverrides: {
+				'apps/docs': { runsAfter: { 'docs-content': { in: 'self-only' } } },
+				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
+				'apps/webdriver': {
+					runsAfter: { 'refresh-assets': {}, prebuild: {} },
+					cache: 'none',
+				},
+			},
 		},
 		test: {
 			baseCommand: 'yarn run -T jest',
@@ -27,16 +35,11 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		},
 		'test-coverage': {
 			baseCommand: 'yarn run -T jest --coverage',
+			runsAfter: { 'refresh-assets': {} },
 		},
 		lint: {
 			execution: 'independent',
 			runsAfter: { 'build-types': {} },
-		},
-		'build-package': {
-			runsAfter: { 'build-api': {}, prebuild: {} },
-			cache: {
-				inputs: ['api/**/*', 'src/**/*'],
-			},
 		},
 		'pack-tarball': {
 			parallel: false,
@@ -78,12 +81,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 					usesOutput: false,
 				},
 			},
-		},
-		'build-docs': {
-			runsAfter: { 'docs-content': {} },
-		},
-		'dev-docs': {
-			runsAfter: { 'docs-content': {} },
 		},
 		'docs-content': {
 			runsAfter: { 'build-api': {} },
