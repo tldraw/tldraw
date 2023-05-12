@@ -311,6 +311,12 @@ export type EmbedInfo = {
 export const EN_TRANSLATION: TLTranslation;
 
 // @public (undocumented)
+export type EventsProviderProps = {
+    onEvent?: TLUiEventHandler;
+    children: any;
+};
+
+// @public (undocumented)
 export function fetchTranslation(locale: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
 
 // @public (undocumented)
@@ -902,6 +908,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): DialogsContextType;
+
+// @public (undocumented)
+export function useEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
