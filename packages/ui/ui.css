@@ -1644,6 +1644,13 @@
 	}
 }
 
+/* ------------------ Project Menu ------------------ */
+.tlui-project-menu__input {
+	min-width: 0px;
+	width: fit-content;
+	text-align: center;
+}
+
 /* ------------------- Navigation ------------------- */
 
 .tlui-navigation-zone {
