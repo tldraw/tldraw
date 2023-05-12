@@ -60,7 +60,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest-16-cores]
+        os: [ubuntu-latest-16-cores-open]
         node-version: [16]
 
     container:
