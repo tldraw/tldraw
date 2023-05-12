@@ -54,9 +54,6 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Run server
-        run: yarn dev-webdriver &
-
       - run: yarn e2e test:ci nightly
         env:
           CI: true
