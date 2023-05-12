@@ -1647,8 +1647,8 @@
 /* ------------------ Project Menu ------------------ */
 .tlui-project-menu__input {
 	min-width: 0px;
-	width: fit-content;
 	text-align: center;
+	margin-left: 40px;
 }
 
 /* ------------------- Navigation ------------------- */
