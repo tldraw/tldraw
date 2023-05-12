@@ -622,9 +622,12 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 		}
 	}
 
+	private _integrityChecker?: () => void | undefined
+
 	/** @internal */
 	ensureStoreIsUsable() {
-		this.schema.ensureStoreIsUsable(this)
+		this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+		this._integrityChecker?.()
 	}
 
 	private _isPossiblyCorrupted = false
