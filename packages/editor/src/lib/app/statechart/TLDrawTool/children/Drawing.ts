@@ -39,6 +39,9 @@ export class Drawing extends StateNode {
 	currentLineLength = 0
 	idsToGroup: TLShapeId[] = []
 
+	prevShapeId: TLShapeId | null = null
+	prevEndTime = 0
+
 	canDraw = false
 
 	onEnter = (info: TLPointerEventInfo) => {
@@ -46,6 +49,18 @@ export class Drawing extends StateNode {
 		this.idsToGroup = []
 		this.canDraw = !this.app.isMenuOpen
 		this.lastRecordedPoint = this.app.inputs.currentPagePoint.clone()
+
+		if (this.prevShapeId && this.prevEndTime + 2000 > Date.now()) {
+			const prevShape = this.app.getShapeById(this.prevShapeId)
+			if (prevShape && prevShape.type === 'group') {
+				const childIds = this.app.getSortedChildIds(prevShape.id)
+				this.app.ungroupShapes([prevShape.id])
+				this.idsToGroup = [...childIds]
+			} else {
+				this.idsToGroup = [this.prevShapeId]
+			}
+		}
+
 		if (this.canDraw) {
 			this.startShape()
 		}
@@ -667,8 +682,14 @@ export class Drawing extends StateNode {
 
 		if (this.idsToGroup.length > 0) {
 			const groupingIds = [...this.idsToGroup, initialShape.id]
-			this.app.groupShapes(groupingIds)
+			const groupId = this.app.createShapeId()
+			this.app.groupShapes(groupingIds, groupId)
+			this.prevShapeId = groupId
+		} else {
+			this.prevShapeId = initialShape.id
 		}
+
+		this.prevEndTime = Date.now()
 
 		this.idsToGroup = []
 		this.parent.transition('idle', {})
