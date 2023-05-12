@@ -337,7 +337,7 @@ export const embedShapeMigrations: Migrations;
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape>;
 
 // @internal (undocumented)
-export function ensureStoreIsUsable(store: TLStore): void;
+export function ensureStoreIsUsable(store: TLStore): () => void;
 
 // @internal (undocumented)
 export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;

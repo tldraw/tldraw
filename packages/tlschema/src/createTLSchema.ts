@@ -2,7 +2,7 @@ import { StoreSchema, StoreValidator, createRecordType, defineMigrations } from 
 import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
 import { TLRecord } from './TLRecord'
-import { TLStore, TLStoreProps, ensureStoreIsUsable, onValidationFailure } from './TLStore'
+import { TLStore, TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { defaultDerivePresenceState } from './defaultDerivePresenceState'
 import { TLAsset } from './records/TLAsset'
 import { TLCamera } from './records/TLCamera'
@@ -112,7 +112,7 @@ export function createTLSchema({
 		{
 			snapshotMigrations: storeMigrations,
 			onValidationFailure,
-			ensureStoreIsUsable,
+			createIntegrityChecker: createIntegrityChecker,
 			derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
 		}
 	)
