@@ -57,6 +57,7 @@ packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
+apps/webdriver/www/
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons
@@ -77,3 +78,8 @@ apps/examples/www/index.js
 .tsbuild
 
 apps/examples/build.esbuild.json
+
+e2e/screenshots
+e2e/downloads
+e2e/driver-logs
+e2e/.wdio-vscode-service/

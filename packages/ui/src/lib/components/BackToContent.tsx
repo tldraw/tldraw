@@ -42,7 +42,7 @@ export function BackToContent() {
 			iconLeft={action.icon}
 			label={action.label}
 			onClick={() => {
-				action.onSelect()
+				action.onSelect('helper-buttons')
 				setShowBackToContent(false)
 			}}
 		/>

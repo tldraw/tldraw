@@ -21,6 +21,7 @@ import { TLUiIconType } from '../icon-types'
 import { useMenuClipboardEvents } from './useClipboardEvents'
 import { useCopyAs } from './useCopyAs'
 import { useDialogs } from './useDialogsProvider'
+import { TLUiEventSource, useEvents } from './useEventsProvider'
 import { useExportAs } from './useExportAs'
 import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
@@ -39,7 +40,7 @@ export interface ActionItem {
 	contextMenuLabel?: TLTranslationKey
 	readonlyOk: boolean
 	checkbox?: boolean
-	onSelect: () => Promise<void> | void
+	onSelect: (source: TLUiEventSource) => Promise<void> | void
 }
 
 /** @public */
@@ -72,50 +73,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
-	const { cut, copy } = useMenuClipboardEvents()
+	const { cut, copy } = useMenuClipboardEvents('unknown')
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
+
+	const trackEvent = useEvents()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<ActionsContextType>(() => {
 		const actions = makeActions([
-			// 'new-project': {
-			// 	id: 'file.new',
-			// 	label: 'file.new',
-			// 	onSelect() {
-			// 		newFile()
-			// 	},
-			// },
-			// 'open-project': {
-			// 	id: 'file.open',
-			// 	label: 'file.open',
-			// 	kbd: '$o',
-			// 	onSelect() {
-			// 		openFile()
-			// 	},
-			// },
-			// 'save-project': {
-			// 	id: 'file.save',
-			// 	label: 'file.save',
-			// 	kbd: '$s',
-			// 	onSelect() {
-			// 		saveFile()
-			// 	},
-			// },
-			// 'save-project-as': {
-			// 	id: 'file.save-as',
-			// 	label: 'file.save-as',
-			// 	kbd: '$!s',
-			// 	onSelect() {
-			// 		saveFileAs()
-			// 	},
-			// },
 			{
 				id: 'edit-link',
 				label: 'action.edit-link',
 				icon: 'link',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('edit-link', { source })
 					app.mark('edit-link')
 					addDialog({ component: EditLinkDialog })
 				},
@@ -125,7 +98,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.insert-embed',
 				readonlyOk: false,
 				kbd: '$i',
-				onSelect() {
+				onSelect(source) {
+					trackEvent('insert-embed', { source })
 					addDialog({ component: EmbedDialog })
 				},
 			},
@@ -134,7 +108,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.insert-media',
 				kbd: '$u',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('insert-media', { source })
 					insertMedia()
 				},
 			},
@@ -144,7 +119,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'undo',
 				kbd: '$z',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('undo', { source })
 					app.undo()
 				},
 			},
@@ -154,7 +130,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'redo',
 				kbd: '$!z',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('redo', { source })
 					app.redo()
 				},
 			},
@@ -164,7 +141,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.export-as-svg.short',
 				contextMenuLabel: 'action.export-as-svg.short',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('export-as', { format: 'svg', source })
 					exportAs(app.selectedIds, 'svg')
 				},
 			},
@@ -174,7 +152,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.export-as-png.short',
 				contextMenuLabel: 'action.export-as-png.short',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('export-as', { format: 'png', source })
 					exportAs(app.selectedIds, 'png')
 				},
 			},
@@ -184,7 +163,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.export-as-json.short',
 				contextMenuLabel: 'action.export-as-json.short',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('export-as', { format: 'json', source })
 					exportAs(app.selectedIds, 'json')
 				},
 			},
@@ -195,7 +175,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.copy-as-svg.short',
 				kbd: '$!c',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('copy-as', { format: 'svg', source })
 					copyAs(app.selectedIds, 'svg')
 				},
 			},
@@ -205,7 +186,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.copy-as-png.short',
 				contextMenuLabel: 'action.copy-as-png.short',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('copy-as', { format: 'png', source })
 					copyAs(app.selectedIds, 'png')
 				},
 			},
@@ -215,7 +197,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.copy-as-json.short',
 				contextMenuLabel: 'action.copy-as-json.short',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('copy-as', { format: 'json', source })
 					copyAs(app.selectedIds, 'json')
 				},
 			},
@@ -223,7 +206,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-auto-size',
 				label: 'action.toggle-auto-size',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('toggle-auto-size', { source })
 					app.mark()
 					app.updateShapes(
 						app.selectedShapes
@@ -246,7 +230,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-embed-link',
 				label: 'action.open-embed-link',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('open-embed-link', { source })
 					const ids = app.selectedIds
 					const warnMsg = 'No embed shapes selected'
 					if (ids.length !== 1) {
@@ -266,7 +251,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('convert-to-bookmark', { source })
 					const ids = app.selectedIds
 					const shapes = ids.map((id) => app.getShapeById(id))
 
@@ -308,7 +294,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'convert-to-embed',
 				label: 'action.convert-to-embed',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('convert-to-embed', { source })
 					const ids = app.selectedIds
 					const shapes = compact(ids.map((id) => app.getShapeById(id)))
 
@@ -358,8 +345,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.duplicate',
 				icon: 'duplicate',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
 					if (app.currentToolId !== 'select') return
+					trackEvent('duplicate-shapes', { source })
 					const ids = app.selectedIds
 					const commonBounds = Box2d.Common(compact(ids.map((id) => app.getPageBoundsById(id))))
 					const offset = app.canMoveCamera
@@ -381,7 +369,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$!g',
 				icon: 'ungroup',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('ungroup-shapes', { source })
 					app.mark('ungroup')
 					app.ungroupShapes(app.selectedIds)
 				},
@@ -392,7 +381,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$g',
 				icon: 'group',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('group-shapes', { source })
 					if (app.selectedShapes.length === 1 && app.selectedShapes[0].type === 'group') {
 						app.mark('ungroup')
 						app.ungroupShapes(app.selectedIds)
@@ -408,7 +398,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?A',
 				icon: 'align-left',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'left', source })
 					app.mark('align left')
 					app.alignShapes('left', app.selectedIds)
 				},
@@ -420,7 +411,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?H',
 				icon: 'align-center-horizontal',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'center-horizontal', source })
 					app.mark('align center horizontal')
 					app.alignShapes('center-horizontal', app.selectedIds)
 				},
@@ -431,7 +423,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?D',
 				icon: 'align-right',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'right', source })
 					app.mark('align right')
 					app.alignShapes('right', app.selectedIds)
 				},
@@ -443,7 +436,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?V',
 				icon: 'align-center-vertical',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'center-vertical', source })
 					app.mark('align center vertical')
 					app.alignShapes('center-vertical', app.selectedIds)
 				},
@@ -454,7 +448,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-top',
 				kbd: '?W',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'top', source })
 					app.mark('align top')
 					app.alignShapes('top', app.selectedIds)
 				},
@@ -465,7 +460,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-bottom',
 				kbd: '?S',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('align-shapes', { operation: 'bottom', source })
 					app.mark('align bottom')
 					app.alignShapes('bottom', app.selectedIds)
 				},
@@ -476,7 +472,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.distribute-horizontal.short',
 				icon: 'distribute-horizontal',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('distribute-shapes', { operation: 'horizontal', source })
 					app.mark('distribute horizontal')
 					app.distributeShapes('horizontal', app.selectedIds)
 				},
@@ -487,7 +484,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.distribute-vertical.short',
 				icon: 'distribute-vertical',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('distribute-shapes', { operation: 'vertical', source })
 					app.mark('distribute vertical')
 					app.distributeShapes('vertical', app.selectedIds)
 				},
@@ -498,7 +496,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.stretch-horizontal.short',
 				icon: 'stretch-horizontal',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('stretch-shapes', { operation: 'horizontal', source })
 					app.mark('stretch horizontal')
 					app.stretchShapes('horizontal', app.selectedIds)
 				},
@@ -509,7 +508,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.stretch-vertical.short',
 				icon: 'stretch-vertical',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('stretch-shapes', { operation: 'vertical', source })
 					app.mark('stretch vertical')
 					app.stretchShapes('vertical', app.selectedIds)
 				},
@@ -520,7 +520,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.flip-horizontal.short',
 				kbd: '!h',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					app.mark('flip horizontal')
 					app.flipShapes('horizontal', app.selectedIds)
 				},
@@ -531,7 +532,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.flip-vertical.short',
 				kbd: '!v',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('flip-shapes', { operation: 'vertical', source })
 					app.mark('flip vertical')
 					app.flipShapes('vertical', app.selectedIds)
 				},
@@ -541,7 +543,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.pack',
 				icon: 'pack',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('pack-shapes', { source })
 					app.mark('pack')
 					app.packShapes(app.selectedIds)
 				},
@@ -552,7 +555,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.stack-vertical.short',
 				icon: 'stack-vertical',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('stack-shapes', { operation: 'vertical', source })
 					app.mark('stack-vertical')
 					app.stackShapes('vertical', app.selectedIds)
 				},
@@ -563,7 +567,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				contextMenuLabel: 'action.stack-horizontal.short',
 				icon: 'stack-horizontal',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					app.mark('stack-horizontal')
 					app.stackShapes('horizontal', app.selectedIds)
 				},
@@ -574,7 +579,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: ']',
 				icon: 'bring-to-front',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('reorder-shapes', { operation: 'toFront', source })
 					app.mark('bring to front')
 					app.bringToFront()
 				},
@@ -585,7 +591,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'bring-forward',
 				kbd: '?]',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('reorder-shapes', { operation: 'forward', source })
 					app.mark('bring forward')
 					app.bringForward()
 				},
@@ -596,7 +603,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'send-backward',
 				kbd: '?[',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('reorder-shapes', { operation: 'backward', source })
 					app.mark('send backward')
 					app.sendBackward()
 				},
@@ -607,7 +615,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'send-to-back',
 				kbd: '[',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('reorder-shapes', { operation: 'toBack', source })
 					app.mark('send to back')
 					app.sendToBack()
 				},
@@ -617,7 +626,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.cut',
 				kbd: '$x',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('cut', { source })
 					app.mark('cut')
 					cut()
 				},
@@ -627,7 +637,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.copy',
 				kbd: '$c',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('copy', { source })
 					copy()
 				},
 			},
@@ -646,7 +657,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.select-all',
 				kbd: '$a',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('select-all-shapes', { source })
 					if (app.currentToolId !== 'select') {
 						app.cancel()
 						app.setSelectedTool('select')
@@ -660,7 +672,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'select-none',
 				label: 'action.select-none',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('select-none-shapes', { source })
 					app.mark('select none')
 					app.selectNone()
 				},
@@ -671,8 +684,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '⌫',
 				icon: 'trash',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
 					if (app.currentToolId !== 'select') return
+					trackEvent('delete-shapes', { source })
 					app.mark('delete')
 					app.deleteShapes()
 				},
@@ -682,8 +696,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.rotate-cw',
 				icon: 'rotate-cw',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
 					if (app.selectedIds.length === 0) return
+					trackEvent('rotate-cw', { source })
 					app.mark('rotate-cw')
 					const offset = app.selectionRotation % (TAU / 2)
 					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
@@ -695,8 +710,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.rotate-ccw',
 				icon: 'rotate-ccw',
 				readonlyOk: false,
-				onSelect() {
+				onSelect(source) {
 					if (app.selectedIds.length === 0) return
+					trackEvent('rotate-ccw', { source })
 					app.mark('rotate-ccw')
 					const offset = app.selectionRotation % (TAU / 2)
 					const offsetCloseToZero = approximately(offset, 0)
@@ -708,7 +724,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-in',
 				kbd: '$=',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('zoom-in', { source })
 					app.zoomIn(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
@@ -717,7 +734,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-out',
 				kbd: '$-',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('zoom-out', { source })
 					app.zoomOut(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
@@ -727,7 +745,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'reset-zoom',
 				kbd: '!0',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('reset-zoom', { source })
 					app.resetZoom(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
@@ -736,7 +755,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-to-fit',
 				kbd: '!1',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('zoom-to-fit', { source })
 					app.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
@@ -745,7 +765,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.zoom-to-selection',
 				kbd: '!2',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('zoom-to-selection', { source })
 					app.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
@@ -754,13 +775,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-snap-mode',
 				menuLabel: 'action.toggle-snap-mode.menu',
 				readonlyOk: false,
-				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isSnapMode: !app.userDocumentSettings.isSnapMode,
-						},
-						true
-					)
+				onSelect(source) {
+					trackEvent('toggle-snap-mode', { source })
+					app.setSnapMode(!app.isSnapMode)
 				},
 				checkbox: true,
 			},
@@ -770,13 +787,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-dark-mode.menu',
 				kbd: '$/',
 				readonlyOk: true,
-				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isDarkMode: !app.userDocumentSettings.isDarkMode,
-						},
-						true
-					)
+				onSelect(source) {
+					trackEvent('toggle-dark-mode', { source })
+					app.setDarkMode(!app.isDarkMode)
 				},
 				checkbox: true,
 			},
@@ -786,7 +799,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-transparent.menu',
 				contextMenuLabel: 'action.toggle-transparent.context-menu',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('toggle-transparent', { source })
 					app.updateInstanceState(
 						{
 							exportBackground: !app.instanceState.exportBackground,
@@ -802,13 +816,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-tool-lock.menu',
 				readonlyOk: false,
 				kbd: 'q',
-				onSelect() {
-					app.updateInstanceState(
-						{
-							isToolLocked: !app.instanceState.isToolLocked,
-						},
-						true
-					)
+				onSelect(source) {
+					trackEvent('toggle-tool-lock', { source })
+					app.setToolLocked(!app.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -819,19 +829,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: '$.',
 				checkbox: true,
-				onSelect() {
+				onSelect(source) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
 					requestAnimationFrame(() => {
 						app.batch(() => {
+							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							app.updateInstanceState(
-								{
-									isFocusMode: !app.instanceState.isFocusMode,
-								},
-								true
-							)
+							app.setFocusMode(!app.isFocusMode)
 						})
 					})
 				},
@@ -842,13 +848,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				menuLabel: 'action.toggle-grid.menu',
 				readonlyOk: true,
 				kbd: "$'",
-				onSelect() {
-					app.updateUserDocumentSettings(
-						{
-							isGridMode: !app.userDocumentSettings.isGridMode,
-						},
-						true
-					)
+				onSelect(source) {
+					trackEvent('toggle-grid-mode', { source })
+					app.setGridMode(!app.isGridMode)
 				},
 				checkbox: true,
 			},
@@ -857,7 +859,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-debug-mode',
 				menuLabel: 'action.toggle-debug-mode.menu',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('toggle-debug-mode', { source })
 					app.updateInstanceState(
 						{
 							isDebugMode: !app.instanceState.isDebugMode,
@@ -872,7 +875,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.print',
 				kbd: '$p',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('print', { source })
 					printSelectionOrPages()
 				},
 			},
@@ -881,7 +885,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.exit-pen-mode',
 				icon: 'cross-2',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('exit-pen-mode', { source })
 					app.setPenMode(false)
 				},
 			},
@@ -890,7 +895,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.stop-following',
 				icon: 'cross-2',
 				readonlyOk: true,
-				onSelect() {
+				onSelect(source) {
+					trackEvent('stop-following', { source })
 					app.stopFollowingUser()
 				},
 			},
@@ -899,19 +905,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.back-to-content',
 				icon: 'arrow-left',
 				readonlyOk: true,
-				onSelect() {
-					const bounds = app.selectedPageBounds ?? app.allShapesCommonBounds
-
-					if (bounds) {
-						app.zoomToBounds(
-							bounds.minX,
-							bounds.minY,
-							bounds.width,
-							bounds.height,
-							Math.min(1, app.zoomLevel),
-							{ duration: 220 }
-						)
-					}
+				onSelect(source) {
+					trackEvent('zoom-to-content', { source })
+					app.zoomToContent()
 				},
 			},
 		])
@@ -922,6 +918,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		return actions
 	}, [
+		trackEvent,
 		overrides,
 		app,
 		addDialog,

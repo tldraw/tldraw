@@ -5,13 +5,13 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@next/next/core-web-vitals',
 	],
+	ignorePatterns: ['e2e/wdio.*.js'],
 	plugins: ['@typescript-eslint', 'no-only-tests', 'import', 'local', '@next/next', 'react-hooks'],
 	settings: {
 		next: {
 			rootDir: ['apps/*/', 'packages/*/'],
 		},
 	},
-	ignorePatterns: ['**/*.js', '**/vscode-script-utils/*'],
 	rules: {
 		'@next/next/no-html-link-for-pages': 'off',
 		'react/jsx-key': 'off',
@@ -43,6 +43,7 @@ module.exports = {
 			{ fixMixedExportsWithInlineTypeSpecifier: true },
 		],
 		'local/no-export-star': 'error',
+		'no-only-tests/no-only-tests': 'error',
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -55,7 +56,6 @@ module.exports = {
 			rules: {
 				'@typescript-eslint/explicit-module-boundary-types': [0],
 				'no-console': ['error', { allow: ['warn', 'error'] }],
-				'no-only-tests/no-only-tests': ['error', { fix: true }],
 			},
 		},
 		{

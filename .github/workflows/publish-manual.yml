@@ -13,6 +13,13 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
+      - name: tldraw-repo-sync token
+        id: tldraw-repo-sync
+        uses: getsentry/action-github-app-token@v2
+        with:
+          app_id: ${{ secrets.HUPPY_APP_ID }}
+          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
+
       - name: Check out code
         uses: actions/checkout@v3
 
@@ -32,5 +39,5 @@ jobs:
       - name: Publish
         run: yarn tsx ./scripts/publish-manual.ts
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

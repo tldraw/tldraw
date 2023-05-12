@@ -14,5 +14,11 @@ export const ExitPenMode = track(function ExitPenMode() {
 
 	const action = actions['exit-pen-mode']
 
-	return <Button label={action.label} iconLeft={action.icon} onClick={action.onSelect} />
+	return (
+		<Button
+			label={action.label}
+			iconLeft={action.icon}
+			onClick={() => action.onSelect('helper-buttons')}
+		/>
+	)
 })

@@ -10,8 +10,16 @@
 **/*.css.map
 **/*.js.map
 **/*.d.ts
-**/*.test.ts
 **/api/*
 !**/pages/api/*
 **/*.json
 **/lazy.config.ts
+**/next.config.js
+**/setupTests.js
+**/setupJest.js
+apps/webdriver/www
+apps/vscode/extension/editor
+apps/examples/www
+apps/docs/content.json
+apps/vscode/extension/editor/index.js
+apps/vscode/extension/editor/tldraw-assets.json

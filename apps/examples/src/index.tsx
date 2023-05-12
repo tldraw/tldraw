@@ -1,4 +1,4 @@
-import { getBundlerAssetUrls } from '@tldraw/assets/src/urls'
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 import {
 	DefaultErrorFallback,
 	ErrorBoundary,
@@ -12,6 +12,8 @@ import ExampleBasic from './1-basic/BasicExample'
 import CustomComponentsExample from './10-custom-components/CustomComponentsExample'
 import UserPresenceExample from './11-user-presence/UserPresenceExample'
 import ZonesExample from './12-custom-zones/ZonesExample'
+import UiEventsExample from './12-ui-events/UiEventsExample'
+import StoreEventsExample from './13-store/StoreEventsExample'
 import ExampleApi from './2-api/APIExample'
 import CustomConfigExample from './3-custom-config/CustomConfigExample'
 import CustomUiExample from './4-custom-ui/CustomUiExample'
@@ -23,7 +25,7 @@ import HideUiExample from './9-hide-ui/HideUiExample'
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
-const assetUrls = getBundlerAssetUrls()
+const assetUrls = getAssetUrlsByMetaUrl()
 setDefaultEditorAssetUrls(assetUrls)
 setDefaultUiAssetUrls(assetUrls)
 
@@ -71,6 +73,14 @@ export const allExamples: Example[] = [
 	{
 		path: '/custom-components',
 		element: <CustomComponentsExample />,
+	},
+	{
+		path: '/ui-events',
+		element: <UiEventsExample />,
+	},
+	{
+		path: '/store-events',
+		element: <StoreEventsExample />,
 	},
 	{
 		path: '/user-presence',

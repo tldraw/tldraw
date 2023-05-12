@@ -280,13 +280,13 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
         };
     }, options?: StoreSchemaOptions<R, P>): StoreSchema<R, P>;
     // @internal (undocumented)
+    createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
+    // @internal (undocumented)
     createProjectName(): string;
     // (undocumented)
     get currentStoreVersion(): number;
     // @internal (undocumented)
     derivePresenceState(store: Store<R, P>): Signal<null | R> | undefined;
-    // @internal (undocumented)
-    ensureStoreIsUsable(store: Store<R, P>): void;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
@@ -313,7 +313,7 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         recordBefore: null | R;
     }) => R;
-    ensureStoreIsUsable?: (store: Store<R, P>) => void;
+    createIntegrityChecker?: (store: Store<R, P>) => void;
     derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
     createProjectName?: () => string;
 };

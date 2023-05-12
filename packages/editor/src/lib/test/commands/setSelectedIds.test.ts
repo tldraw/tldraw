@@ -14,7 +14,7 @@ beforeEach(() => {
 	app.createShapes(createDefaultShapes())
 })
 
-it.only('Sets selected shapes', () => {
+it('Sets selected shapes', () => {
 	expect(app.selectedIds).toMatchObject([])
 	app.setSelectedIds([ids.box1, ids.box2])
 	expect(app.selectedIds).toMatchObject([ids.box1, ids.box2])

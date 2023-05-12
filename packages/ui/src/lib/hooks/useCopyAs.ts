@@ -47,28 +47,46 @@ export function useCopyAs() {
 				case 'jpeg':
 				case 'png': {
 					const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
+					const blobPromise = getExportedImageBlob(app, ids, format).then((blob) => {
+						if (blob) {
+							if (window.navigator.clipboard) {
+								return blob
+							}
+							throw new Error('Copy not supported')
+						} else {
+							addToast({
+								id: 'copy-fail',
+								icon: 'warning-triangle',
+								title: msg('toast.error.copy-fail.title'),
+								description: msg('toast.error.copy-fail.desc'),
+							})
+							throw new Error('Copy not possible')
+						}
+					})
 
-					window.navigator.clipboard.write([
-						new ClipboardItem({
-							// Note: This needs to use the promise based approach for safari/ios to not bail on a permissions error.
-							[mimeType]: getExportedImageBlob(app, ids, format).then((blob) => {
-								if (blob) {
-									if (window.navigator.clipboard) {
-										return blob
-									}
-									throw new Error('Copy not supported')
-								} else {
-									addToast({
-										id: 'copy-fail',
-										icon: 'warning-triangle',
-										title: msg('toast.error.copy-fail.title'),
-										description: msg('toast.error.copy-fail.desc'),
-									})
-									throw new Error('Copy not possible')
-								}
+					window.navigator.clipboard
+						.write([
+							new ClipboardItem({
+								// Note: This needs to use the promise based approach for safari/ios to not bail on a permissions error.
+								[mimeType]: blobPromise,
 							}),
-						}),
-					])
+						])
+						.catch((err: any) => {
+							// Firefox will fail with the above if `dom.events.asyncClipboard.clipboardItem` is enabled.
+							// See <https://github.com/tldraw/tldraw/issues/1325>
+							if (!err.toString().match(/^TypeError: DOMString not supported/)) {
+								console.error(err)
+							}
+
+							blobPromise.then((blob) => {
+								window.navigator.clipboard.write([
+									new ClipboardItem({
+										// Note: This needs to use the promise based approach for safari/ios to not bail on a permissions error.
+										[mimeType]: blob,
+									}),
+								])
+							})
+						})
 
 					break
 				}

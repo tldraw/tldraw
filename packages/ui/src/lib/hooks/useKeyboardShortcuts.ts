@@ -11,6 +11,7 @@ const SKIP_KBDS = [
 	'copy',
 	'cut',
 	'paste',
+	'delete',
 	// There's also an upload asset action, so we don't want to set the kbd twice
 	'asset',
 ]
@@ -45,7 +46,7 @@ export function useKeyboardShortcuts() {
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
 				if (areShortcutsDisabled()) return
 				preventDefault(event)
-				action.onSelect()
+				action.onSelect('kbd')
 			})
 		}
 
@@ -57,7 +58,7 @@ export function useKeyboardShortcuts() {
 			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled()) return
 				preventDefault(event)
-				tool.onSelect()
+				tool.onSelect('kbd')
 			})
 		}
 
@@ -69,19 +70,19 @@ export function useKeyboardShortcuts() {
 			app.setSelectedTool('geo')
 		})
 
-		hot('backspace,del', () => {
+		hot('del,backspace', () => {
 			if (areShortcutsDisabled()) return
-			actions['delete'].onSelect()
+			actions['delete'].onSelect('kbd')
 		})
 
 		hot('=', () => {
 			if (areShortcutsDisabled()) return
-			actions['zoom-in'].onSelect()
+			actions['zoom-in'].onSelect('kbd')
 		})
 
 		hot('-', () => {
 			if (areShortcutsDisabled()) return
-			actions['zoom-out'].onSelect()
+			actions['zoom-out'].onSelect('kbd')
 		})
 
 		hotkeys.setScope(app.instanceId)

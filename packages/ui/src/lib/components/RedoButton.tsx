@@ -18,7 +18,7 @@ export const RedoButton = memo(function RedoButton() {
 			icon={redo.icon}
 			title={`${msg(redo.label!)} ${kbdStr(redo.kbd!)}`}
 			disabled={!canRedo}
-			onClick={redo.onSelect}
+			onClick={() => redo.onSelect('quick-actions')}
 			smallIcon
 		/>
 	)

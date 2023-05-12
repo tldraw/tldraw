@@ -50,9 +50,9 @@ describe('distributeShapes command', () => {
 
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
-			const fn = jest.fn()
-			app.on('update_node', fn)
 			app.setSelectedIds([ids.boxA, ids.boxB])
+			const fn = jest.fn()
+			app.on('change-history', fn)
 			app.stackShapes('horizontal')
 			jest.advanceTimersByTime(1000)
 			expect(fn).not.toHaveBeenCalled()

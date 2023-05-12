@@ -79,6 +79,12 @@ export {
 	type DialogsProviderProps,
 	type TLDialog,
 } from './lib/hooks/useDialogsProvider'
+export {
+	useEvents,
+	type EventsProviderProps,
+	type TLUiEventHandler,
+	type TLUiEventSource,
+} from './lib/hooks/useEventsProvider'
 export { useExportAs } from './lib/hooks/useExportAs'
 export {
 	HelpMenuSchemaContext,
