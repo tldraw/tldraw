@@ -253,7 +253,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		return this.options.derivePresenceState?.(store)
 	}
 
-	/** @public */
+	/** @internal */
 	createProjectName(): string {
 		return this.options.createProjectName?.() ?? DEFAULT_PROJECT_NAME
 	}

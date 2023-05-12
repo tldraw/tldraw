@@ -80,6 +80,7 @@ export class TldrawEditorConfig {
 		allowUnknownShapes?: boolean
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+		/** @internal */
 		createProjectName?: () => string
 	}) {
 		const {

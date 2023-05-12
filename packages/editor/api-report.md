@@ -368,7 +368,7 @@ export class App extends EventEmitter {
     panZoomIntoView(ids: TLShapeId[], opts?: AnimationOptions): this;
     // (undocumented)
     popFocusLayer(): this;
-    // (undocumented)
+    // @internal (undocumented)
     get projectName(): string;
     // @internal
     get props(): null | TLNullableShapeProps;
@@ -444,7 +444,7 @@ export class App extends EventEmitter {
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): void;
-    // (undocumented)
+    // @internal (undocumented)
     setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)

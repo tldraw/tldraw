@@ -1455,10 +1455,12 @@ export class App extends EventEmitter {
 		return this.documentSettings.gridSize
 	}
 
+	/** @internal */
 	get projectName() {
 		return this.documentSettings.name
 	}
 
+	/** @internal */
 	setProjectName(name: string) {
 		this.updateDocumentSettings({ name })
 	}

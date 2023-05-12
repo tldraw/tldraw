@@ -279,7 +279,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
             createId: any;
         };
     }, options?: StoreSchemaOptions<R, P>): StoreSchema<R, P>;
-    // (undocumented)
+    // @internal (undocumented)
     createProjectName(): string;
     // (undocumented)
     get currentStoreVersion(): number;
