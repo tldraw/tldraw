@@ -1,4 +1,8 @@
-const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+const isTest = () =>
+	typeof process !== 'undefined' &&
+	process.env.NODE_ENV === 'test' &&
+	// @ts-expect-error
+	!globalThis.__FORCE_RAF_IN_TESTS__
 
 const rafQueue: Array<() => void> = []
 
@@ -29,7 +33,7 @@ function raf() {
  * @internal
  */
 export function rafThrottle(fn: () => void) {
-	if (isTest) {
+	if (isTest()) {
 		return fn
 	}
 
@@ -50,7 +54,7 @@ export function rafThrottle(fn: () => void) {
  * @internal
  */
 export function throttledRaf(fn: () => void) {
-	if (isTest) {
+	if (isTest()) {
 		return fn()
 	}
 
