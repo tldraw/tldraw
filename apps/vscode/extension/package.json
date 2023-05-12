@@ -153,7 +153,7 @@
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
-		"nanoid": "^4.0.1",
+		"nanoid": "4.0.2",
 		"node-fetch": "^2.0.0"
 	}
 }

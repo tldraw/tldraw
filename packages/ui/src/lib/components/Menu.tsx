@@ -37,7 +37,7 @@ function MenuContent() {
 	const menuSchema = useMenuSchema()
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents()
+	const { paste } = useMenuClipboardEvents('menu')
 
 	function getMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
 		switch (item.type) {
@@ -121,7 +121,7 @@ function MenuContent() {
 					return (
 						<M.CheckboxItem
 							key={id}
-							onSelect={onSelect}
+							onSelect={() => onSelect('menu')}
 							title={labelStr ? labelStr : ''}
 							checked={item.checked}
 							disabled={item.disabled}
@@ -139,7 +139,7 @@ function MenuContent() {
 						data-wd={`menu-item.${item.id}`}
 						kbd={kbd}
 						label={labelToUse}
-						onClick={onSelect}
+						onClick={() => onSelect('menu')}
 						disabled={item.disabled}
 					/>
 				)

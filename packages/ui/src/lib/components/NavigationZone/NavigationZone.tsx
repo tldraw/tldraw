@@ -46,14 +46,14 @@ export const NavigationZone = memo(function NavigationZone() {
 							icon="minus"
 							data-wd="minimap.zoom-out"
 							title={`${msg(actions['zoom-out'].label!)} ${kbdStr(actions['zoom-out'].kbd!)}`}
-							onClick={actions['zoom-out'].onSelect}
+							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 						/>
 						<ZoomMenu />
 						<Button
 							icon="plus"
 							data-wd="minimap.zoom-in"
 							title={`${msg(actions['zoom-in'].label!)} ${kbdStr(actions['zoom-in'].kbd!)}`}
-							onClick={actions['zoom-in'].onSelect}
+							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 						/>
 						<Button
 							title={msg('navigation-zone.toggle-minimap')}

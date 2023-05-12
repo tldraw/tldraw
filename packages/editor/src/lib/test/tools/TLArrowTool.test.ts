@@ -111,7 +111,7 @@ describe('When dragging the arrow', () => {
 	})
 
 	it('returns to arrow.idle, keeping shape, on pointer up when tool lock is active', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		const shapesBefore = app.shapesArray.length
 		app
 			.setSelectedTool('arrow')

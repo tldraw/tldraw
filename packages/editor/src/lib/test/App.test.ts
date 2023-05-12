@@ -332,8 +332,8 @@ describe('isFocused', () => {
 	})
 
 	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
-		const focusMock = jest.spyOn(app.elm, 'focus').mockImplementation(() => {})
-		const blurMock = jest.spyOn(app.elm, 'blur').mockImplementation(() => {})
+		const focusMock = jest.spyOn(app.elm, 'focus').mockImplementation()
+		const blurMock = jest.spyOn(app.elm, 'blur').mockImplementation()
 
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()

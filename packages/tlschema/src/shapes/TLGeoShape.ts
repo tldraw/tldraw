@@ -73,13 +73,14 @@ const Versions = {
 	AddUrlProp: 1,
 	AddLabelColor: 2,
 	RemoveJustify: 3,
+	AddCheckBox: 4,
 } as const
 
 /** @public */
 export const geoShapeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	firstVersion: Versions.Initial,
-	currentVersion: Versions.RemoveJustify,
+	currentVersion: Versions.AddCheckBox,
 	migrators: {
 		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddUrlProp]: {
@@ -126,6 +127,20 @@ export const geoShapeMigrations = defineMigrations({
 			},
 			down: (shape) => {
 				return { ...shape }
+			},
+		},
+		[Versions.AddCheckBox]: {
+			up: (shape) => {
+				return { ...shape }
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						geo: shape.props.geo === 'check-box' ? 'rectangle' : shape.props.geo,
+					},
+				}
 			},
 		},
 	},

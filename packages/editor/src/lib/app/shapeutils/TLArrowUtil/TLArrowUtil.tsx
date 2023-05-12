@@ -4,6 +4,7 @@ import {
 	linesIntersect,
 	longAngleDist,
 	Matrix2d,
+	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
 	Vec2d,
@@ -256,77 +257,101 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				const pageTransform = this.app.getPageTransformById(next.id)!
 				const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, handle)
 
-				const target = this.app.inputs.ctrlKey
-					? undefined
-					: last(
-							this.app.getShapesAtPoint(pointInPageSpace).filter((hitShape) => {
-								if (hitShape.id === shape.id) return
-								const util = this.app.getShapeUtil(hitShape)
-
-								return (
-									util.canBind(next) &&
-									util.hitTestPoint(
-										hitShape,
-										this.app.getPointInShapeSpace(hitShape, pointInPageSpace)
-									)
-								)
-							})
-					  )
-
-				if (target) {
-					const targetBounds = this.app.getBounds(target)
-					const pointInTargetSpace = this.app.getPointInShapeSpace(target, pointInPageSpace)
-
-					const prevHandle = next.props[handle.id]
-
-					const startBindingId =
-						shape.props.start.type === 'binding' && shape.props.start.boundShapeId
-					const endBindingId = shape.props.end.type === 'binding' && shape.props.end.boundShapeId
-
-					let precise =
-						// If externally precise, then always precise
-						isPrecise ||
-						// If the other handle is bound to the same shape, then precise
-						((startBindingId || endBindingId) && startBindingId === endBindingId) ||
-						// If the other shape is not closed, then precise
-						!this.app.getShapeUtil(target).isClosed(next)
-
-					if (
-						// If we're switching to a new bound shape, then precise only if moving slowly
-						prevHandle.type === 'point' ||
-						(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
-					) {
-						precise = this.app.inputs.pointerVelocity.len() < 0.5
-					}
-
-					if (precise) {
-						// Funky math but we want the snap distance to be 4 at the minimum and either
-						// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-						precise =
-							Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
-							Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
-								this.app.zoomLevel
-					}
-
-					next.props[handle.id] = {
-						type: 'binding',
-						boundShapeId: target.id,
-						normalizedAnchor: precise
-							? {
-									x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-									y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-							  }
-							: { x: 0.5, y: 0.5 },
-						isExact: this.app.inputs.altKey,
-					}
-				} else {
+				if (this.app.inputs.ctrlKey) {
 					next.props[handle.id] = {
 						type: 'point',
 						x: handle.x,
 						y: handle.y,
 					}
-				}
+				} else {
+					const target = last(
+						this.app.sortedShapesArray.filter((hitShape) => {
+							if (hitShape.id === shape.id) {
+								// We're testing against the arrow
+								return
+							}
 
+							const util = this.app.getShapeUtil(hitShape)
+							if (!util.canBind(hitShape)) {
+								// The shape can't be bound to
+								return
+							}
+
+							// Check the page mask
+							const pageMask = this.app.getPageMaskById(hitShape.id)
+							if (pageMask) {
+								if (!pointInPolygon(pointInPageSpace, pageMask)) return
+							}
+
+							const pointInTargetSpace = this.app.getPointInShapeSpace(hitShape, pointInPageSpace)
+
+							if (util.isClosed(hitShape)) {
+								// Test the polygon
+								return pointInPolygon(pointInTargetSpace, util.outline(hitShape))
+							}
+
+							// Test the point using the shape's idea of what a hit is
+							return util.hitTestPoint(hitShape, pointInTargetSpace)
+						})
+					)
+
+					if (target) {
+						const targetBounds = this.app.getBounds(target)
+						const pointInTargetSpace = this.app.getPointInShapeSpace(target, pointInPageSpace)
+
+						const prevHandle = next.props[handle.id]
+
+						const startBindingId =
+							shape.props.start.type === 'binding' && shape.props.start.boundShapeId
+						const endBindingId = shape.props.end.type === 'binding' && shape.props.end.boundShapeId
+
+						let precise =
+							// If externally precise, then always precise
+							isPrecise ||
+							// If the other handle is bound to the same shape, then precise
+							((startBindingId || endBindingId) && startBindingId === endBindingId) ||
+							// If the other shape is not closed, then precise
+							!this.app.getShapeUtil(target).isClosed(next)
+
+						if (
+							// If we're switching to a new bound shape, then precise only if moving slowly
+							prevHandle.type === 'point' ||
+							(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+						) {
+							precise = this.app.inputs.pointerVelocity.len() < 0.5
+						}
+
+						if (precise) {
+							// Funky math but we want the snap distance to be 4 at the minimum and either
+							// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+							precise =
+								Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
+								Math.max(
+									4,
+									Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)
+								) /
+									this.app.zoomLevel
+						}
+
+						next.props[handle.id] = {
+							type: 'binding',
+							boundShapeId: target.id,
+							normalizedAnchor: precise
+								? {
+										x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+										y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+								  }
+								: { x: 0.5, y: 0.5 },
+							isExact: this.app.inputs.altKey,
+						}
+					} else {
+						next.props[handle.id] = {
+							type: 'point',
+							x: handle.x,
+							y: handle.y,
+						}
+					}
+				}
 				break
 			}
 
@@ -504,12 +529,14 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
+		const zoomLevel = this.app.zoomLevel
+		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
 			const D = outline[i + 1]
 
-			if (Vec2d.DistanceToLineSegment(C, D, point) < 4) return true
+			if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
 		}
 
 		return false
@@ -883,13 +910,13 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			props: { text },
 		} = shape
 
-		if (text.trim() !== shape.props.text) {
+		if (text.trimEnd() !== shape.props.text) {
 			this.app.updateShapes([
 				{
 					id,
 					type,
 					props: {
-						text: text.trim(),
+						text: text.trimEnd(),
 					},
 				},
 			])

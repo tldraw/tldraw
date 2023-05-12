@@ -1,4 +1,3 @@
-import { getBundlerAssetUrls } from '@tldraw/assets'
 import {
 	App,
 	Canvas,
@@ -12,6 +11,8 @@ import { linksUiOverrides } from './utils/links'
 import '@tldraw/editor/editor.css'
 import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
 import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
+// eslint-disable-next-line import/no-internal-modules
+import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/ui/ui.css'
 import { useEffect, useMemo, useState } from 'react'
@@ -135,7 +136,7 @@ function TldrawInner({ uri, assetSrc, userId, isDarkMode, fileContents }: TLDraw
 		userId,
 	})
 
-	const assetUrls = useMemo(() => getBundlerAssetUrls({ baseUrl: assetSrc }), [assetSrc])
+	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	return (
 		<TldrawEditor

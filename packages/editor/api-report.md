@@ -7,6 +7,7 @@
 /// <reference types="react" />
 
 import { Atom } from 'signia';
+import { BaseRecord } from '@tldraw/tlstore';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
@@ -120,8 +121,9 @@ export type AnimationOptions = Partial<{
 }>;
 
 // @public (undocumented)
-export class App extends EventEmitter {
+export class App extends EventEmitter<TLEventMap> {
     constructor({ config, store, getContainer }: AppOptions);
+    addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
     animateCamera(x: number, y: number, z?: number, opts?: AnimationOptions): this;
@@ -193,6 +195,7 @@ export class App extends EventEmitter {
     // (undocumented)
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
+    deleteOpenMenu: (id: string) => this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
@@ -326,7 +329,11 @@ export class App extends EventEmitter {
     readonly isChromeForIos: boolean;
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
+    // (undocumented)
+    get isDarkMode(): boolean;
     get isFocused(): boolean;
+    // (undocumented)
+    get isFocusMode(): boolean;
     // (undocumented)
     get isGridMode(): boolean;
     isIn(path: string): boolean;
@@ -342,6 +349,10 @@ export class App extends EventEmitter {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
+    // (undocumented)
+    get isSnapMode(): boolean;
+    // (undocumented)
+    get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
     // (undocumented)
     lockShapes(_ids?: TLShapeId[]): this;
@@ -355,7 +366,7 @@ export class App extends EventEmitter {
         description: string;
     }>;
     get onlySelectedShape(): TLBaseShape<any, any> | null;
-    openMenus: Set<string>;
+    get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
     get pageState(): TLInstancePageState;
@@ -386,7 +397,7 @@ export class App extends EventEmitter {
         isCulled: boolean;
         isInViewport: boolean;
     }[];
-    reorderShapes(operation: TLReorderOperation, ids: TLShapeId[]): this;
+    reorderShapes(operation: 'backward' | 'forward' | 'toBack' | 'toFront', ids: TLShapeId[]): this;
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
     // (undocumented)
     replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]): void;
@@ -431,23 +442,29 @@ export class App extends EventEmitter {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: ViewportOptions): this;
     setCursor(cursor: Partial<TLCursor>): this;
     // (undocumented)
-    setDarkMode(isDarkMode: boolean): void;
+    setDarkMode(isDarkMode: boolean): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
     // (undocumented)
-    setGridMode(isGridMode: boolean): void;
+    setFocusMode(isFocusMode: boolean): this;
+    // (undocumented)
+    setGridMode(isGridMode: boolean): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
-    setPenMode(isPenMode: boolean): void;
+    setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)
-    setReadOnly(isReadOnly: boolean): void;
+    setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
+    // (undocumented)
+    setSnapMode(isSnapMode: boolean): this;
+    // (undocumented)
+    setToolLocked(isToolLocked: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];
@@ -507,6 +524,7 @@ export class App extends EventEmitter {
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: AnimationOptions): this;
     zoomToBounds(x: number, y: number, width: number, height: number, targetZoom?: number, opts?: AnimationOptions): this;
+    zoomToContent(): this;
     zoomToFit(opts?: AnimationOptions): this;
     zoomToSelection(opts?: AnimationOptions): this;
 }
@@ -523,9 +541,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 export interface AppOptions {
     config?: TldrawEditorConfig;
     getContainer: () => HTMLElement;
-    instanceId?: TLInstanceId;
     store: TLStore;
-    userId?: TLUserId;
 }
 
 // @public (undocumented)
@@ -1731,7 +1747,7 @@ export type TLCancelEventInfo = {
 };
 
 // @public (undocumented)
-export type TLChange = HistoryEntry<any>;
+export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>;
 
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
@@ -1993,6 +2009,48 @@ export interface TLEventHandlers {
 export type TLEventInfo = TLCancelEventInfo | TLClickEventInfo | TLCompleteEventInfo | TLInterruptEventInfo | TLKeyboardEventInfo | TLPinchEventInfo | TLPointerEventInfo | TLWheelEventInfo;
 
 // @public (undocumented)
+export interface TLEventMap {
+    // (undocumented)
+    'change-history': [{
+        reason: 'bail';
+        markId?: string;
+    } | {
+        reason: 'push' | 'redo' | 'undo';
+    }];
+    // (undocumented)
+    'mark-history': [{
+        id: string;
+    }];
+    // (undocumented)
+    'max-shapes': [{
+        name: string;
+        pageId: TLPageId;
+        count: number;
+    }];
+    // (undocumented)
+    'stop-camera-animation': [];
+    // (undocumented)
+    'stop-following': [];
+    // (undocumented)
+    change: [TLChange<TLRecord>];
+    // (undocumented)
+    crash: [{
+        error: unknown;
+    }];
+    // (undocumented)
+    event: [TLEventInfo];
+    // (undocumented)
+    mount: [];
+    // (undocumented)
+    tick: [number];
+    // (undocumented)
+    update: [];
+}
+
+// @public (undocumented)
+export type TLEventMapHandler<T extends keyof TLEventMap> = (...args: TLEventMap[T]) => void;
+
+// @public (undocumented)
 export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLickEventName | TLKeyboardEventName | TLPinchEventName | TLPointerEventName;
 
 // @public (undocumented)
@@ -2049,12 +2107,14 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     // (undocumented)
     hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean;
     // (undocumented)
+    hitTestPoint(shape: TLGeoShape, point: VecLike): boolean;
+    // (undocumented)
     indicator(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {
         props: {
             growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             fill: "none" | "pattern" | "semi" | "solid";
@@ -2082,7 +2142,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
         props: {
             growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
             labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             fill: "none" | "pattern" | "semi" | "solid";
@@ -2095,6 +2155,34 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             w: number;
             h: number;
             text: string;
+        };
+        type: "geo";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        isLocked: boolean;
+        id: ID<TLGeoShape>;
+        typeName: "shape";
+    } | undefined;
+    // (undocumented)
+    onDoubleClick: (shape: TLGeoShape) => {
+        props: {
+            geo: "check-box";
+        };
+        type: "geo";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        isLocked: boolean;
+        id: ID<TLGeoShape>;
+        typeName: "shape";
+    } | {
+        props: {
+            geo: "rectangle";
         };
         type: "geo";
         x: number;
@@ -2374,9 +2462,6 @@ export type TLPointerEventTarget = {
     target: 'shape';
     shape: TLShape;
 };
-
-// @public (undocumented)
-export type TLReorderOperation = 'backward' | 'forward' | 'toBack' | 'toFront';
 
 // @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;

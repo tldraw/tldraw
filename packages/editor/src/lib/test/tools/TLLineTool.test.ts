@@ -89,7 +89,7 @@ describe('When dragging the line', () => {
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		const shapesBefore = app.shapesArray.length
 		app
 			.setSelectedTool('line')
@@ -113,7 +113,7 @@ describe('When dragging the line', () => {
 
 describe('When extending the line with the shift-key in tool-lock mode', () => {
 	it('extends a line by joining-the-dots', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -130,7 +130,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line after a click by shift-click dragging', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -147,7 +147,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-click dragging', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -165,7 +165,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointerdown', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
@@ -185,7 +185,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointermove', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })

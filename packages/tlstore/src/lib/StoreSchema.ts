@@ -48,7 +48,7 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 		recordBefore: R | null
 	}) => R
 	/** @internal */
-	ensureStoreIsUsable?: (store: Store<R, P>) => void
+	createIntegrityChecker?: (store: Store<R, P>) => void
 	/** @internal */
 	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
 }
@@ -240,8 +240,8 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 	}
 
 	/** @internal */
-	ensureStoreIsUsable(store: Store<R, P>): void {
-		this.options.ensureStoreIsUsable?.(store)
+	createIntegrityChecker(store: Store<R, P>): (() => void) | undefined {
+		return this.options.createIntegrityChecker?.(store) ?? undefined
 	}
 
 	/** @internal */
