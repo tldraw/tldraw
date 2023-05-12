@@ -44,6 +44,7 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
+          cache-dependency-path: 'public-yarn.lock'
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
