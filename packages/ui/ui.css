@@ -1677,6 +1677,13 @@
 	margin-left: 40px;
 }
 
+.tlui-rename-project-dialog__input {
+	background-color: var(--color-muted-2);
+	flex-grow: 2;
+	border-radius: var(--radius-2);
+	padding: 0px var(--space-4);
+}
+
 /* ------------------- Navigation ------------------- */
 
 .tlui-navigation-zone {
