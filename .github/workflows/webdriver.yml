@@ -55,13 +55,12 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - run: yarn e2e test:ci local
+      - run: DOCKER_HOST=selenium yarn e2e test:ci local
         env:
           CI: true
           DOWNLOADS_DIR: /home/runner/work/_temp/e2e/
           BROWSER: ${{ matrix.browser }}
           TEST_URL: "https://testhost:5421"
-          DOCKER_HOST: selenium
           GH_EVENT_NAME: ${{ github.event_name }}
           GH_PR_NUMBER: ${{ github.pull_request.number }}
 
