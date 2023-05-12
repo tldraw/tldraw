@@ -39,15 +39,12 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		p.stdout.on('close', endHandler)
 	})
 
-	console.log('>>> STEP 1')
 	if (!foundStartMessage) {
 		console.error('Failed to start server')
 		process.exit(1)
 	}
 
-	const cmdArgs = ['workspace', '@tldraw/e2e', `test:${testEnv}`]
-	console.log('>>> STEP 2', cmdArgs)
-	const exitCode = await exec('yarn', cmdArgs, {
+	const exitCode = await exec('yarn', ['workspace', '@tldraw/e2e', `test:${testEnv}`], {
 		env: {
 			...process.env,
 			BROWSERS: ['chrome'].join(','),
@@ -55,7 +52,6 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		},
 	})
 
-	console.log('>>> STEP 3')
 	if (commandProcess.pid) {
 		kill(commandProcess.pid)
 	}
