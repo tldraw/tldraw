@@ -46,7 +46,7 @@ export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], 
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const DEFAULT_PROJECT_NAME = "Project";
 
 // @public (undocumented)

@@ -1447,6 +1447,7 @@ export class App extends EventEmitter {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
+	/** @internal */
 	updateDocumentSettings(settings: Partial<TLDocument>) {
 		this.store.put([{ ...this.documentSettings, ...settings }])
 	}
