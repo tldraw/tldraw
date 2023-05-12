@@ -28,8 +28,8 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		}
 
 		const dataHandler = (data: any) => {
-			if (data.toString().match(/[tldraw:process_ready]/gm)) {
-				p.stdout.off('data', dataHandler)
+			if (data.toString().match(/\[tldraw:process_ready\]/gm)) {
+				// p.stdout.off('data', dataHandler)
 				resolve({ success: true, commandProcess: p })
 			}
 			console.log(`stdout: ${data}`)
