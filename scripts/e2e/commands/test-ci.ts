@@ -44,8 +44,9 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		process.exit(1)
 	}
 
-	console.log('>>> STEP 2')
-	const exitCode = await promiseSpawn('yarn', ['workspace', '@tldraw/e2e', `test:${testEnv}`], {
+	const cmdArgs = ['workspace', '@tldraw/e2e', `test:${testEnv}`]
+	console.log('>>> STEP 2', cmdArgs)
+	const exitCode = await promiseSpawn('yarn', cmdArgs, {
 		env: {
 			...process.env,
 			BROWSERS: ['chrome'].join(','),
