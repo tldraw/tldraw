@@ -1,10 +1,7 @@
 const edgeDriver = require('@sitespeed.io/edgedriver')
+const { filterCapabilities } = require('./wdio.util')
 
-const CURRENT_OS = {
-	win32: 'windows',
-	linux: 'linux',
-	darwin: 'macos',
-}[process.platform]
+const CURRENT_OS = process.platform
 
 global.webdriverService = 'local'
 global.webdriverTestUrl = process.env.TEST_URL ?? 'http://localhost:5420/'
@@ -158,31 +155,21 @@ if (process.env.CI === 'true') {
 				input: ['mouse'],
 			},
 		},
+		{
+			maxInstances: 1,
+			browserName: 'firefox',
+			platformName: 'Linux',
+			acceptInsecureCerts: true,
+			'tldraw:options': {
+				browser: 'firefox',
+				os: 'linux',
+				ui: 'desktop',
+				device: 'desktop',
+				input: ['mouse'],
+			},
+		},
 	]
 }
-
-let browsers = (process.env.BROWSERS || 'chrome').split(',').map((b) => b.trim())
-const validBrowsers = ['chrome', 'safari', 'firefox', 'edge', 'vscode']
-const skippedBrowsers = []
-
-if (browsers.includes('safari')) {
-	console.log(
-		'NOTE: In safari you need to run `safaridriver --enable`, see <https://developer.apple.com/documentation/webkit/testing_with_webdriver_in_safari> for details.'
-	)
-}
-
-for (const browser of browsers) {
-	if (!validBrowsers.includes(browser)) {
-		throw new Error(`'${browser}' not a valid browser name`)
-	}
-	if (skippedBrowsers.includes(browser)) {
-		console.error(`'${browser}' not currently supported`)
-	}
-}
-
-capabilities = capabilities.filter((capability) => {
-	return browsers.includes(capability['tldraw:options'].browser)
-})
 
 exports.config = {
 	specs: ['./test/specs/index.ts'],
@@ -219,7 +206,7 @@ exports.config = {
 				// HACK: If we don't have edge as a capability but we do have
 				// this service then `wdio-edgedriver-service` throws an scary
 				// error (which doesn't actually effect anything)
-				...(!browsers.includes('edge')
+				...(!process.env.BROWSERS.split(',').includes('edge')
 					? []
 					: [
 							[
@@ -234,7 +221,7 @@ exports.config = {
 					  ]),
 		  ],
 	maxInstances: 1,
-	capabilities: capabilities,
+	capabilities: filterCapabilities(capabilities),
 	logLevel: process.env.WD_LOG_LEVEL ?? 'error',
 	bail: 0,
 	baseUrl: 'http://localhost',

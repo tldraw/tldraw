@@ -187,6 +187,9 @@ async function main() {
 				console.log(e)
 			})
 			sslServer.listen(SSL_PORT, () => {
+				// TODO: Nasty, but gets detected by script runner
+				log('[tldraw:process_ready]');
+
 				log(`Running on:\n`)
 				log(chalk.bold().cyan(`  https://localhost:${SSL_PORT}`))
 				log(`\nNetwork:\n`)
