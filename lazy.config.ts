@@ -31,6 +31,11 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		lint: {
 			execution: 'independent',
 			runsAfter: { 'build-types': {} },
+			cache: {
+				inputs: {
+					exclude: ['**/*.tsbuildinfo'],
+				},
+			},
 		},
 		'build-package': {
 			runsAfter: { 'build-api': {}, prebuild: {} },

@@ -10,7 +10,6 @@
 **/*.css.map
 **/*.js.map
 **/*.d.ts
-**/*.test.ts
 **/api/*
 !**/pages/api/*
 **/*.json
