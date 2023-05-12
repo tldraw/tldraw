@@ -4829,22 +4829,21 @@ export class App extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ updates }) => {
-				const arr = Object.values(updates)
-
 				// Iterate through array; if any shape has an onUpdate handler, call it
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				let shape: TLShape
-				let next: TLShape | void
-				for (let i = 0, n = arr.length; i < n; i++) {
-					shape = arr[i]
-					next = this.getShapeUtil(shape).onBeforeUpdate?.(this.store.get(shape.id)!, shape)
+				const result = Object.values(updates)
+				for (let i = 0; i < result.length; i++) {
+					const shape = result[i]
+					const current = this.store.get(shape.id)
+					if (!current) continue
+					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
 					if (next) {
-						arr[i] = next
+						result[i] = next
 					}
 				}
-				this.store.put(arr)
+				this.store.put(result)
 			},
 			undo: ({ snapshots }) => {
 				this.store.put(Object.values(snapshots))
@@ -5152,6 +5151,15 @@ export class App extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ deletedPage, deletedPageStates }) => {
+				const { pages } = this
+				if (pages.length === 1) return
+
+				if (deletedPage.id === this.currentPageId) {
+					const index = pages.findIndex((page) => page.id === deletedPage.id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPageId(next.id)
+				}
+
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
 				this.updateCullingBounds()
