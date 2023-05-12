@@ -1,5 +1,6 @@
 import { ChildProcess, spawn } from 'node:child_process'
 import kill from 'tree-kill'
+import { exec } from '../../lib/exec'
 import { promiseSpawn } from './util'
 
 export default async function testCi({ testEnv }: { testEnv: string }) {
@@ -46,13 +47,12 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 
 	const cmdArgs = ['workspace', '@tldraw/e2e', `test:${testEnv}`]
 	console.log('>>> STEP 2', cmdArgs)
-	const exitCode = await promiseSpawn('yarn', cmdArgs, {
+	const exitCode = await exec('yarn', cmdArgs, {
 		env: {
 			...process.env,
 			BROWSERS: ['chrome'].join(','),
 			// OS: [process.platform].join(','),
 		},
-		stdio: [0, 0, 0], // Use parent's [stdin, stdout, stderr]
 	})
 
 	console.log('>>> STEP 3')

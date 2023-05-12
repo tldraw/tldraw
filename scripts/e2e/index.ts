@@ -27,8 +27,8 @@ yargs(hideBin(process.argv))
 			})
 		},
 		async (argv) => {
-			const exitCode = await commands.testCi({ testEnv: argv.env })
-			process.exit(exitCode)
+			await commands.testCi({ testEnv: argv.env })
+			// process.exit(exitCode)
 		}
 	)
 	.command(
