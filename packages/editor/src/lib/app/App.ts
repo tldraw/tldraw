@@ -4833,13 +4833,14 @@ export class App extends EventEmitter<TLEventMap> {
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				const result = []
-				for (const shape of Object.values(updates)) {
+				const result = Object.values(updates)
+				for (let i = 0; i < result.length; i++) {
+					const shape = result[i]
 					const current = this.store.get(shape.id)
 					if (!current) continue
-					const next = this.getShapeUtil(shape).onBeforeUpdate?.(this.store.get(shape.id)!, shape)
+					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
 					if (next) {
-						result.push(next)
+						result[i] = next
 					}
 				}
 				this.store.put(result)
