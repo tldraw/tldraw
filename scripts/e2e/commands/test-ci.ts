@@ -38,11 +38,13 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		p.stdout.on('close', endHandler)
 	})
 
+	console.log('>>> STEP 1')
 	if (!foundStartMessage) {
 		console.error('Failed to start server')
 		process.exit(1)
 	}
 
+	console.log('>>> STEP 2')
 	const exitCode = await promiseSpawn('yarn', ['workspace', '@tldraw/e2e', `test:${testEnv}`], {
 		env: {
 			...process.env,
@@ -52,6 +54,7 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		stdio: [0, 0, 0], // Use parent's [stdin, stdout, stderr]
 	})
 
+	console.log('>>> STEP 3')
 	if (commandProcess.pid) {
 		kill(commandProcess.pid)
 	}
