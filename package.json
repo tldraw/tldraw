@@ -10,7 +10,7 @@
 	"homepage": "https://tldraw.dev",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/tldraw/tldraw-lite"
+		"url": "https://github.com/tldraw/tldraw"
 	},
 	"bugs": {
 		"url": "https://github.com/tldraw/tldraw/issues"
