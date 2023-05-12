@@ -1,7 +1,7 @@
 export { type TLRecord } from './TLRecord'
 export {
 	USER_COLORS,
-	createIntegrityChecker as ensureStoreIsUsable,
+	createIntegrityChecker,
 	onValidationFailure,
 	type TLStore,
 	type TLStoreProps,
