@@ -293,3 +293,6 @@ export const BLACKLISTED_PROPS = new Set([
 	'url',
 	'growY',
 ])
+
+/** @public */
+export const MAX_DRAW_POINTS = 500

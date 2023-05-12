@@ -8752,14 +8752,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const parentId = this.findCommonAncestor(shapes) ?? this.currentPageId
 
-		// Only group when the select tool is active
-		if (this.currentToolId !== 'select') return this
-
-		// If not already in idle, cancel the current interaction (get back to idle)
-		if (!this.isIn('select.idle')) {
-			this.cancel()
-		}
-
 		// Find all the shapes that have the same parentId, and use the highest index.
 		const shapesWithRootParent = shapes
 			.filter((shape) => shape.parentId === parentId)

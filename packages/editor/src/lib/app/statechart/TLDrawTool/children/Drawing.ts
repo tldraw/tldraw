@@ -3,11 +3,12 @@ import {
 	createShapeId,
 	TLDrawShape,
 	TLDrawShapeSegment,
+	TLShapeId,
 	TLSizeType,
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
-import { DRAG_DISTANCE } from '../../../../constants'
+import { DRAG_DISTANCE, MAX_DRAW_POINTS } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
 import { TLDrawShapeDef } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
@@ -36,11 +37,13 @@ export class Drawing extends StateNode {
 	lastRecordedPoint = {} as Vec2d
 	mergeNextPoint = false
 	currentLineLength = 0
+	idsToGroup: TLShapeId[] = []
 
 	canDraw = false
 
 	onEnter = (info: TLPointerEventInfo) => {
 		this.info = info
+		this.idsToGroup = []
 		this.canDraw = !this.app.isMenuOpen
 		this.lastRecordedPoint = this.app.inputs.currentPagePoint.clone()
 		if (this.canDraw) {
@@ -574,8 +577,9 @@ export class Drawing extends StateNode {
 				)
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
-				if (newPoints.length > 500) {
+				if (newPoints.length > MAX_DRAW_POINTS) {
 					this.app.updateShapes([{ id, type: 'draw', props: { isComplete: true } }])
+					this.idsToGroup.push(id)
 
 					const { currentPagePoint } = this.app.inputs
 
@@ -661,10 +665,17 @@ export class Drawing extends StateNode {
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
 
+		if (this.idsToGroup.length > 0) {
+			const groupingIds = [...this.idsToGroup, initialShape.id]
+			this.app.groupShapes(groupingIds)
+		}
+
+		this.idsToGroup = []
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
+		this.idsToGroup = []
 		this.parent.transition('idle', this.info)
 	}
 }
