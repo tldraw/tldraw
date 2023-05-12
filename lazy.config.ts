@@ -6,9 +6,9 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			baseCommand: 'exit 0',
 			runsAfter: { 'build-package': { in: 'self-only' }, prebuild: {}, 'refresh-assets': {} },
 			workspaceOverrides: {
-				'apps/docs': { runsAfter: { 'docs-content': {} } },
-				'apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
-				'packages/*': {
+				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': {} } },
+				'{bublic/,}apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
+				'{bublic/,}packages/*': {
 					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
 					cache: {
 						inputs: ['api/**/*', 'src/**/*'],
@@ -21,9 +21,9 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
 			workspaceOverrides: {
-				'apps/docs': { runsAfter: { 'docs-content': { in: 'self-only' } } },
-				'apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
-				'apps/webdriver': {
+				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': { in: 'self-only' } } },
+				'{bublic/,}apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
+				'{bublic/,}apps/webdriver': {
 					runsAfter: { 'refresh-assets': {}, prebuild: {} },
 					cache: 'none',
 				},
