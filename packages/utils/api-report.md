@@ -122,6 +122,9 @@ export function promiseWithResolve<T>(): Promise<T> & {
     reject: (reason?: any) => void;
 };
 
+// @internal
+export function rafThrottle(fn: () => void): () => void;
+
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
@@ -143,6 +146,9 @@ export { structuredClone_2 as structuredClone }
 
 // @public
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
+
+// @internal
+export function throttledRaf(fn: () => void): void;
 
 // (No @packageDocumentation comment for this package)
 
