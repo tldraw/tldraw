@@ -7,9 +7,6 @@ on:
   push:
     branches: [main, production]
 
-env:
-  YARN_RC_FILENAME: .yarnrc-private.yml
-
 jobs:
   test:
     name: 'test/standalone-${{ matrix.browser }} (${{ matrix.os }})'

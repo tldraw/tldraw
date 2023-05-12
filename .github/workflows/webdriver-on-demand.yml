@@ -49,9 +49,6 @@ on:
         default: true
         type: boolean
 
-env:
-  YARN_RC_FILENAME: .yarnrc-private.yml
-
 jobs:
   test:
     name: 'on-demand'
