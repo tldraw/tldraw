@@ -19,7 +19,7 @@ import { TldrawUiOverrides, useMergedOverrides, useMergedTranslationOverrides } 
 export interface TldrawUiContextProviderProps {
 	assetUrls?: UiAssetUrls
 	overrides?: TldrawUiOverrides | TldrawUiOverrides[]
-	onEvent?: TLUiEventHandler
+	onUiEvent?: TLUiEventHandler
 	children?: any
 }
 
@@ -27,7 +27,7 @@ export interface TldrawUiContextProviderProps {
 export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
-	onEvent,
+	onUiEvent,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -36,7 +36,7 @@ export function TldrawUiContextProvider({
 				<ToastsProvider>
 					<DialogsProvider>
 						<BreakPointProvider>
-							<EventsProvider onEvent={onEvent}>
+							<EventsProvider onEvent={onUiEvent}>
 								<InternalProviders overrides={overrides}>{children}</InternalProviders>
 							</EventsProvider>
 						</BreakPointProvider>
