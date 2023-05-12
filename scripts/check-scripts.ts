@@ -25,7 +25,7 @@ const expectedPackageScripts = {
 // published packages should have these scripts
 const expectedPublishedPackageScripts = {
 	...expectedPackageScripts,
-	'build-package': tsScript('build-package.ts'),
+	build: tsScript('build-package.ts'),
 	'build-api': tsScript('build-api.ts'),
 	prepack: tsScript('prepack.ts'),
 	postpack: (packageDir: string) => scriptPath(packageDir, 'postpack.sh'),
@@ -57,7 +57,7 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 	},
 	'@tldraw/assets': {
 		test: () => undefined,
-		'build-package': () => undefined,
+		build: () => undefined,
 		'build-api': () => undefined,
 		prepack: () => undefined,
 		postpack: () => undefined,
