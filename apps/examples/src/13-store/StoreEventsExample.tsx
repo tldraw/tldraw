@@ -1,27 +1,22 @@
 import { App, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
-import { TLUiEventHandler } from '@tldraw/ui/src/lib/hooks/useEventsProvider'
 import { useCallback, useEffect, useState } from 'react'
 
-export default function Example() {
+export default function StoreEventsExample() {
 	const [app, setApp] = useState<App>()
 
 	const setAppToState = useCallback((app: App) => {
 		setApp(app)
 	}, [])
 
-	const [uiEvents, setUiEvents] = useState<string[]>([])
-
-	const handleEvent = useCallback<TLUiEventHandler>((name, data) => {
-		setUiEvents((events) => [`${name} ${JSON.stringify(data)}`, ...events])
-	}, [])
+	const [storeEvents, setStoreEvents] = useState<string[]>([])
 
 	useEffect(() => {
 		if (!app) return
 
 		function logChangeEvent(eventName: string) {
-			setUiEvents((events) => [eventName, ...events])
+			setStoreEvents((events) => [eventName, ...events])
 		}
 
 		// This is the fire hose, it will be called at the end of every transaction
@@ -64,7 +59,7 @@ export default function Example() {
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '60vw', height: '100vh' }}>
-				<Tldraw autoFocus onMount={setAppToState} onEvent={handleEvent} />
+				<Tldraw autoFocus onMount={setAppToState} />
 			</div>
 			<div>
 				<div
@@ -82,7 +77,7 @@ export default function Example() {
 						overflow: 'auto',
 					}}
 				>
-					{uiEvents.map((t, i) => (
+					{storeEvents.map((t, i) => (
 						<div key={i}>{t}</div>
 					))}
 				</div>
