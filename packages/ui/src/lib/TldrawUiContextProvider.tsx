@@ -33,15 +33,15 @@ export function TldrawUiContextProvider({
 	return (
 		<AssetUrlsProvider assetUrls={assetUrls ?? defaultUiAssetUrls}>
 			<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
-				<ToastsProvider>
-					<DialogsProvider>
-						<BreakPointProvider>
-							<EventsProvider onEvent={onUiEvent}>
+				<EventsProvider onEvent={onUiEvent}>
+					<ToastsProvider>
+						<DialogsProvider>
+							<BreakPointProvider>
 								<InternalProviders overrides={overrides}>{children}</InternalProviders>
-							</EventsProvider>
-						</BreakPointProvider>
-					</DialogsProvider>
-				</ToastsProvider>
+							</BreakPointProvider>
+						</DialogsProvider>
+					</ToastsProvider>
+				</EventsProvider>
 			</TranslationProvider>
 		</AssetUrlsProvider>
 	)
