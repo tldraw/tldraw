@@ -61,7 +61,7 @@ function ContextMenuContent() {
 	const handleSubOpenChange = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents()
+	const { paste } = useMenuClipboardEvents('context-menu')
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 

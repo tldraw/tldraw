@@ -58,7 +58,7 @@ export function useKeyboardShortcuts() {
 			hot(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled()) return
 				preventDefault(event)
-				tool.onSelect()
+				tool.onSelect('kbd')
 			})
 		}
 

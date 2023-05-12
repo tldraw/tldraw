@@ -40,7 +40,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
-			trackEvent('menu', 'open-menu', { id })
+			trackEvent('open-menu', { source: 'unknown', id })
 			app.addOpenMenu(id)
 		}
 
@@ -52,7 +52,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				// Close menu and all submenus when the parent is closed
 				app.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
-						trackEvent('menu', 'close-menu', { id })
+						trackEvent('close-menu', { source: 'unknown', id })
 						app.deleteOpenMenu(menuId)
 					}
 				})
