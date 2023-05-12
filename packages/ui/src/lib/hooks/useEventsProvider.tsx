@@ -17,28 +17,29 @@ export type TLUiEventSource =
 	| 'dialog'
 	| 'help-menu'
 	| 'helper-buttons'
+	| 'unknown'
 
 /** @public */
 export interface TLUiEventMap {
 	// Actions
-	undo: undefined
-	redo: undefined
-	'group-shapes': undefined
-	'ungroup-shapes': undefined
-	'convert-to-embed': undefined
-	'convert-to-bookmark': undefined
-	'open-embed-link': undefined
-	'toggle-auto-size': undefined
+	undo: null
+	redo: null
+	'group-shapes': null
+	'ungroup-shapes': null
+	'convert-to-embed': null
+	'convert-to-bookmark': null
+	'open-embed-link': null
+	'toggle-auto-size': null
 	'copy-as': { format: 'svg' | 'png' | 'json' }
 	'export-as': { format: 'svg' | 'png' | 'json' }
-	'edit-link': undefined
-	'insert-embed': undefined
-	'insert-media': undefined
+	'edit-link': null
+	'insert-embed': null
+	'insert-media': null
 	'align-shapes': {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom'
 	}
-	'duplicate-shapes': undefined
-	'pack-shapes': undefined
+	'duplicate-shapes': null
+	'pack-shapes': null
 	'stack-shapes': { operation: 'horizontal' | 'vertical' }
 	'flip-shapes': { operation: 'horizontal' | 'vertical' }
 	'distribute-shapes': { operation: 'horizontal' | 'vertical' }
@@ -46,44 +47,47 @@ export interface TLUiEventMap {
 	'reorder-shapes': {
 		operation: 'toBack' | 'toFront' | 'forward' | 'backward'
 	}
-	'delete-shapes': undefined
-	'select-all-shapes': undefined
-	'select-none-shapes': undefined
-	'rotate-ccw': undefined
-	'rotate-cw': undefined
-	'zoom-in': undefined
-	'zoom-out': undefined
-	'zoom-to-fit': undefined
-	'zoom-to-selection': undefined
-	'reset-zoom': undefined
-	'zoom-into-view': undefined
-	'zoom-to-content': undefined
+	'delete-shapes': null
+	'select-all-shapes': null
+	'select-none-shapes': null
+	'rotate-ccw': null
+	'rotate-cw': null
+	'zoom-in': null
+	'zoom-out': null
+	'zoom-to-fit': null
+	'zoom-to-selection': null
+	'reset-zoom': null
+	'zoom-into-view': null
+	'zoom-to-content': null
 	'open-menu': { id: string }
 	'close-menu': { id: string }
-	'create-new-project': undefined
-	'save-project-to-file': undefined
-	'open-file': undefined
+	'create-new-project': null
+	'save-project-to-file': null
+	'open-file': null
 	'select-tool': { id: string }
-	print: undefined
-	copy: undefined
-	paste: undefined
-	cut: undefined
-	'toggle-transparent': undefined
-	'toggle-snap-mode': undefined
-	'toggle-tool-lock': undefined
-	'toggle-grid-mode': undefined
-	'toggle-dark-mode': undefined
-	'toggle-focus-mode': undefined
-	'toggle-debug-mode': undefined
-	'exit-pen-mode': undefined
-	'stop-following': undefined
+	print: null
+	copy: null
+	paste: null
+	cut: null
+	'toggle-transparent': null
+	'toggle-snap-mode': null
+	'toggle-tool-lock': null
+	'toggle-grid-mode': null
+	'toggle-dark-mode': null
+	'toggle-focus-mode': null
+	'toggle-debug-mode': null
+	'exit-pen-mode': null
+	'stop-following': null
 }
+
+type Join<T, K> = K extends null
+	? { [R in keyof T]: T[R] }
+	: { [R in keyof T]: T[R] } & { [R in keyof K]: K[R] }
 
 /** @public */
 export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
-	source: string,
 	name: T,
-	data?: TLUiEventMap[T]
+	data: Join<{ source: TLUiEventSource }, TLUiEventMap[T]>
 ) => void
 
 /** @internal */

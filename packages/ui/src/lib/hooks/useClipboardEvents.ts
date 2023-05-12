@@ -40,7 +40,7 @@ import { compact, isNonNull } from '@tldraw/utils'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { useAppIsFocused } from './useAppIsFocused'
-import { useEvents } from './useEventsProvider'
+import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 /** @public */
 export type EmbedInfo = {
@@ -968,7 +968,7 @@ const handleNativeClipboardPaste = async (
 }
 
 /** @public */
-export function useMenuClipboardEvents() {
+export function useMenuClipboardEvents(source: TLUiEventSource) {
 	const app = useApp()
 	const trackEvent = useEvents()
 
@@ -977,9 +977,9 @@ export function useMenuClipboardEvents() {
 			if (app.selectedIds.length === 0) return
 
 			handleMenuCopy(app)
-			trackEvent('menu', 'copy')
+			trackEvent('copy', { source })
 		},
-		[app, trackEvent]
+		[app, trackEvent, source]
 	)
 
 	const cut = useCallback(
@@ -988,9 +988,9 @@ export function useMenuClipboardEvents() {
 
 			handleMenuCopy(app)
 			app.deleteShapes()
-			trackEvent('menu', 'cut')
+			trackEvent('cut', { source })
 		},
-		[app, trackEvent]
+		[app, trackEvent, source]
 	)
 
 	const paste = useCallback(
@@ -1007,7 +1007,7 @@ export function useMenuClipboardEvents() {
 			// 	handleScenePaste(app, point)
 			// }
 
-			trackEvent('menu', 'paste')
+			trackEvent('paste', { source: 'menu' })
 		},
 		[app, trackEvent]
 	)
@@ -1032,7 +1032,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
-			trackEvent('kbd', 'copy')
+			trackEvent('copy', { source: 'kbd' })
 		}
 
 		function cut() {
@@ -1040,7 +1040,7 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
-			trackEvent('kbd', 'cut')
+			trackEvent('cut', { source: 'kbd' })
 		}
 
 		const paste = (e: ClipboardEvent) => {
@@ -1054,7 +1054,7 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
-			trackEvent('kbd', 'paste')
+			trackEvent('paste', { source: 'kbd' })
 		}
 
 		document.addEventListener('copy', copy)

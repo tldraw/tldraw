@@ -799,7 +799,7 @@ export interface ToolItem {
         [key: string]: any;
     };
     // (undocumented)
-    onSelect: () => void;
+    onSelect: (source: TLUiEventSource) => void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
@@ -1019,7 +1019,7 @@ export function useLanguages(): {
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
 
 // @public (undocumented)
-export function useMenuClipboardEvents(): {
+export function useMenuClipboardEvents(source: TLUiEventSource): {
     copy: () => void;
     cut: () => void;
     paste: (data: ClipboardItem[] | DataTransfer, point?: VecLike) => Promise<void>;

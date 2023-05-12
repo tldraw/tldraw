@@ -282,13 +282,13 @@ export class App extends EventEmitter<TLEventMap> {
 			true
 		)
 
+		this.root.enter(undefined, 'initial')
+
 		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
 		}
 
 		this.updateCullingBounds()
-
-		this.root.enter(undefined, 'initial')
 
 		requestAnimationFrame(() => {
 			this._tickManager.start()
