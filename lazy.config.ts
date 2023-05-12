@@ -4,7 +4,7 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 	return {
 		build: {
 			baseCommand: 'exit 0',
-			runsAfter: { 'build-package': { in: 'self-only' }, prebuild: {}, 'refresh-assets': {} },
+			runsAfter: { prebuild: {}, 'refresh-assets': {} },
 			workspaceOverrides: {
 				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': {} } },
 				'{bublic/,}apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
