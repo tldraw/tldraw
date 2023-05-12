@@ -47,7 +47,7 @@ export default async function testCi({ testEnv }: { testEnv: string }) {
 		env: {
 			...process.env,
 			BROWSERS: ['chrome'].join(','),
-			OS: [process.platform].join(','),
+			// OS: [process.platform].join(','),
 		},
 		stdio: [0, 0, 0], // Use parent's [stdin, stdout, stderr]
 	})

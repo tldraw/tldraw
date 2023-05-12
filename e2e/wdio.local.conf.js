@@ -4,9 +4,7 @@ const { filterCapabilities } = require('./wdio.util')
 const CURRENT_OS = process.platform
 
 global.webdriverService = 'local'
-global.webdriverTestUrl =
-	process.env.TEST_URL ??
-	(process.env.OS === 'linux' ? 'http://host.docker.internal:5420/' : 'http://localhost:5420/')
+global.webdriverTestUrl = process.env.TEST_URL ?? 'http://localhost:5420/'
 
 let capabilities
 if (process.env.CI === 'true') {
@@ -177,52 +175,51 @@ exports.config = {
 	specs: ['./test/specs/index.ts'],
 	hostname: process.env.DOCKER_HOST || 'localhost',
 	exclude: [],
-	services:
-		process.env.DOCKER_HOST || process.env.OS === 'linux'
-			? []
-			: [
-					['vscode', { verboseLogging: true }],
-					[
-						'geckodriver',
-						{
-							outputDir: './driver-logs',
-							logFileName: 'wdio-geckodriver.log',
-						},
-					],
-					[
-						'safaridriver',
-						{
-							outputDir: './driver-logs',
-							logFileName: 'wdio-safaridriver.log',
-						},
-					],
-					[
-						'chromedriver',
-						{
-							logFileName: 'wdio-chromedriver.log',
-							outputDir: './driver-logs',
-							args: ['--silent'],
-							// NOTE: Must be on a different port that 7676 otherwise it conflicts with 'vscode' service.
-							port: 7677,
-						},
-					],
-					// HACK: If we don't have edge as a capability but we do have
-					// this service then `wdio-edgedriver-service` throws an scary
-					// error (which doesn't actually effect anything)
-					...(!process.env.BROWSERS.split(',').includes('edge')
-						? []
-						: [
-								[
-									'edgedriver',
-									{
-										port: 17556, // default for EdgeDriver
-										logFileName: 'wdio-edgedriver.log',
-										outputDir: './driver-logs',
-										edgedriverCustomPath: edgeDriver.binPath(),
-									},
-								],
-						  ]),
-			  ],
+	services: process.env.DOCKER_HOST
+		? []
+		: [
+				['vscode', { verboseLogging: true }],
+				[
+					'geckodriver',
+					{
+						outputDir: './driver-logs',
+						logFileName: 'wdio-geckodriver.log',
+					},
+				],
+				[
+					'safaridriver',
+					{
+						outputDir: './driver-logs',
+						logFileName: 'wdio-safaridriver.log',
+					},
+				],
+				[
+					'chromedriver',
+					{
+						logFileName: 'wdio-chromedriver.log',
+						outputDir: './driver-logs',
+						args: ['--silent'],
+						// NOTE: Must be on a different port that 7676 otherwise it conflicts with 'vscode' service.
+						port: 7677,
+					},
+				],
+				// HACK: If we don't have edge as a capability but we do have
+				// this service then `wdio-edgedriver-service` throws an scary
+				// error (which doesn't actually effect anything)
+				...(!process.env.BROWSERS.split(',').includes('edge')
+					? []
+					: [
+							[
+								'edgedriver',
+								{
+									port: 17556, // default for EdgeDriver
+									logFileName: 'wdio-edgedriver.log',
+									outputDir: './driver-logs',
+									edgedriverCustomPath: edgeDriver.binPath(),
+								},
+							],
+					  ]),
+		  ],
 	maxInstances: 1,
 	capabilities: filterCapabilities(capabilities),
 	logLevel: process.env.WD_LOG_LEVEL ?? 'error',

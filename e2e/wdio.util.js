@@ -45,20 +45,18 @@ function filterCapabilities(capabilities) {
 		}
 	}
 
-	let oses = (process.env.OS || process.platform).split(',').map((b) => b.trim())
-	const validOses = ['darwin', 'win32', 'linux']
+	// let oses = (process.env.OS || process.platform).split(',').map((b) => b.trim())
+	// const validOses = ['darwin', 'win32', 'linux']
 
-	for (const os of oses) {
-		if (!validOses.includes(os)) {
-			throw new Error(`'${os}' not a valid OS name`)
-		}
-	}
+	// for (const os of oses) {
+	// 	if (!validOses.includes(os)) {
+	// 		throw new Error(`'${os}' not a valid OS name`)
+	// 	}
+	// }
 
 	const filterFn = (capability) => {
-		return (
-			browsers.includes(capability['tldraw:options'].browser) &&
-			oses.includes(capability['tldraw:options'].os)
-		)
+		return browsers.includes(capability['tldraw:options'].browser)
+		// oses.includes(capability['tldraw:options'].os)
 	}
 
 	return capabilities.filter(filterFn)
