@@ -303,6 +303,10 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			},
 		}
 	}
+
+	expandSelectionOutlinePx(shape: TLDrawShape): number {
+		return (this.app.getStrokeWidth(shape.props.size) * 1.6) / 2
+	}
 }
 
 /** @public */

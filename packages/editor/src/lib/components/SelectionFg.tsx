@@ -25,11 +25,17 @@ export const SelectionFg = track(function SelectionFg() {
 	const isDefaultCursor = !app.isMenuOpen && app.cursor.type === 'default'
 	const isCoarsePointer = app.isCoarsePointer
 
-	const bounds = app.selectionBounds
+	let bounds = app.selectionBounds
+	let expandBy = 0
+	if (app.selectedShapes.length === 1) {
+		const shape = app.selectedShapes[0]
+		expandBy = app.getShapeUtil(shape).expandSelectionOutlinePx(shape)
+	}
 
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation)
+	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation, { x: -expandBy, y: -expandBy })
 
 	if (!bounds) return null
+	bounds = bounds.clone().expandBy(expandBy)
 
 	const zoom = app.zoomLevel
 	const shapes = app.selectedShapes
@@ -61,6 +67,7 @@ export const SelectionFg = track(function SelectionFg() {
 		!isChangingStyles
 
 	const shouldDisplayBox =
+		true ||
 		(showSelectionBounds &&
 			app.isInAny(
 				'select.idle',

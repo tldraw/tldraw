@@ -1,3 +1,4 @@
+import { VecLike } from '@tldraw/primitives'
 import { useLayoutEffect } from 'react'
 
 export function useTransform(
@@ -5,21 +6,24 @@ export function useTransform(
 	x?: number,
 	y?: number,
 	scale?: number,
-	rotate?: number
+	rotate?: number,
+	additionalOffset?: VecLike
 ) {
 	useLayoutEffect(() => {
 		const elm = ref.current
 		if (!elm) return
 		if (x === undefined) return
 
+		let trans = `translate(${x}px, ${y}px)`
 		if (scale !== undefined) {
-			if (rotate !== undefined) {
-				elm.style.transform = `translate(${x}px, ${y}px) scale(${scale}) rotate(${rotate}rad)`
-			} else {
-				elm.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
-			}
-		} else {
-			elm.style.transform = `translate(${x}px, ${y}px)`
+			trans += ` scale(${scale})`
 		}
+		if (rotate !== undefined) {
+			trans += ` rotate(${rotate}rad)`
+		}
+		if (additionalOffset) {
+			trans += ` translate(${additionalOffset.x}px, ${additionalOffset.y}px)`
+		}
+		elm.style.transform = trans
 	})
 }

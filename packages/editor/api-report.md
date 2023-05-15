@@ -1864,6 +1864,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
     // (undocumented)
     defaultProps(): TLDrawShape['props'];
     // (undocumented)
+    expandSelectionOutlinePx(shape: TLDrawShape): number;
+    // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
@@ -2513,6 +2515,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     canUnmount: TLShapeUtilFlag<T>;
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];
+    // @internal (undocumented)
+    expandSelectionOutlinePx(shape: T): number;
     protected abstract getBounds(shape: T): Box2d;
     abstract getCenter(shape: T): Vec2dModel;
     getEditingBounds: (shape: T) => Box2d;
