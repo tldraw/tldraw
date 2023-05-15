@@ -1,4 +1,4 @@
-import { TLPageId, useApp } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useToasts } from './useToastsProvider'
 
@@ -15,28 +15,9 @@ export function useAppEvents() {
 			})
 		}
 
-		function handleMoveToPage({ name, fromId }: { name: string; fromId: TLPageId }) {
-			addToast({
-				title: 'Changed Page',
-				description: `Moved to ${name}.`,
-				actions: [
-					{
-						label: 'Go Back',
-						type: 'primary',
-						onClick: () => {
-							app.mark('change-page')
-							app.setCurrentPageId(fromId)
-						},
-					}, // prev page
-				],
-			})
-		}
-
 		app.addListener('max-shapes', handleMaxShapes)
-		app.addListener('moved-to-page', handleMoveToPage)
 		return () => {
 			app.removeListener('max-shapes', handleMaxShapes)
-			app.removeListener('moved-to-page', handleMoveToPage)
 		}
 	}, [app, addToast])
 }

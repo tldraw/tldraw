@@ -15,6 +15,24 @@ keywords:
   - styles
 ---
 
-Coming soon.
+## Events
 
-See the [tldraw-examples repository](https://github.com/tldraw/tldraw-examples) for an example of how to customize tldraw's user interface.
+The `<Tldraw>` component has a prop, `onUiEvent`, that the user interface will call when certain events occur.
+
+```tsx
+function Example() {
+  function handleEvent(name, data) {
+    // do something with the event
+  }
+
+  return (
+    <Tldraw onUiEvent={handleEvent}/>
+  )
+}
+```
+
+The `onUiEvent` callback is called with the name of the event as a string and an object with information about the event's source (e.g. `menu` or `context-menu`) and possibly other data specific to each event, such as the direction in an `align-shapes` event.
+
+Note that `onUiEvent` is only called when interacting with the user interface. It is not called when running commands manually against the app, e.g. `app.alignShapes()` will not call `onUiEvent`.
+
+See the [tldraw repository](https://github.com/tldraw/tldraw) for an example of how to customize tldraw's user interface.

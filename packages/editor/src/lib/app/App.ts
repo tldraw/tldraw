@@ -55,7 +55,7 @@ import {
 	TLVideoAsset,
 	Vec2dModel,
 } from '@tldraw/tlschema'
-import { ComputedCache, HistoryEntry } from '@tldraw/tlstore'
+import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
 import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
@@ -126,13 +126,13 @@ import { TLTextShapeDef } from './shapeutils/TLTextUtil/TLTextUtil'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
+import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
-import { TLReorderOperation } from './types/reorder-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
-export type TLChange = HistoryEntry<any>
+export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>
 
 /** @public */
 export type AnimationOptions = Partial<{
@@ -160,14 +160,6 @@ export interface AppOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer: () => HTMLElement
-
-	/** The id of the current user. If not given, one will be generated. */
-	userId?: TLUserId
-	/**
-	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
-	 * tab). If not given, one will be generated.
-	 */
-	instanceId?: TLInstanceId
 }
 
 /** @public */
@@ -176,7 +168,7 @@ export function isShapeWithHandles(shape: TLShape) {
 }
 
 /** @public */
-export class App extends EventEmitter {
+export class App extends EventEmitter<TLEventMap> {
 	constructor({ config = TldrawEditorConfig.default, store, getContainer }: AppOptions) {
 		super()
 
@@ -541,27 +533,71 @@ export class App extends EventEmitter {
 	crash(error: unknown) {
 		this._crashingError = error
 		this.store.markAsPossiblyCorrupted()
-		this.emit('crash')
+		this.emit('crash', { error })
 	}
 
 	get devicePixelRatio() {
 		return this._dprManager.dpr.value
 	}
 
+	private _openMenus = atom('open-menus', [] as string[])
+
 	/**
-	 * A set of strings representing any open menus or modals.
+	 * A set of strings representing any open menus. When menus are open,
+	 * certain interactions will behave differently; for example, when a
+	 * draw tool is selected and a menu is open, a pointer-down will not
+	 * create a dot (because the user is probably trying to close the menu)
+	 * however a pointer-down event followed by a drag will begin drawing
+	 * a line (because the user is BOTH trying to close the menu AND start
+	 * drawing a line).
 	 *
 	 * @public
 	 */
-	openMenus = new Set<string>()
+	@computed get openMenus(): string[] {
+		return this._openMenus.value
+	}
+
+	/**
+	 * Add an open menu.
+	 *
+	 * ```ts
+	 * app.addOpenMenu('menu-id')
+	 * ```
+	 * @public
+	 */
+	addOpenMenu = (id: string) => {
+		const menus = new Set(this.openMenus)
+		if (!menus.has(id)) {
+			menus.add(id)
+			this._openMenus.set([...menus])
+		}
+		return this
+	}
+
+	/**
+	 * Delete an open menu.
+	 *
+	 * ```ts
+	 * app.deleteOpenMenu('menu-id')
+	 * ```
+	 * @public
+	 */
+	deleteOpenMenu = (id: string) => {
+		const menus = new Set(this.openMenus)
+		if (menus.has(id)) {
+			menus.delete(id)
+			this._openMenus.set([...menus])
+		}
+		return this
+	}
 
 	/**
 	 * Get whether any menus are open.
 	 *
 	 * @public
 	 */
-	get isMenuOpen() {
-		return this.openMenus.size > 0
+	@computed get isMenuOpen() {
+		return this.openMenus.length > 0
 	}
 
 	/** @internal */
@@ -1260,6 +1296,10 @@ export class App extends EventEmitter {
 	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
 	// 	return update ?? next
 	// }
+	@computed
+	private get _allPageStates() {
+		return this.store.query.records('instance_page_state')
+	}
 
 	/** @internal */
 	private _shapeWillBeDeleted(deletedShape: TLShape) {
@@ -1276,8 +1316,8 @@ export class App extends EventEmitter {
 				this._unbindArrowTerminal(arrow, handleId)
 			}
 		}
+		const pageStates = this._allPageStates.value
 
-		const pageStates = this.store.query.records('instance_page_state').value
 		const deletedIds = new Set([deletedShape.id])
 		const updates = compact(
 			pageStates.map((pageState) => {
@@ -1460,6 +1500,50 @@ export class App extends EventEmitter {
 		return this.store.get(this.userId)!
 	}
 
+	get isSnapMode() {
+		return this.userDocumentSettings.isSnapMode
+	}
+
+	setSnapMode(isSnapMode: boolean) {
+		if (isSnapMode !== this.isSnapMode) {
+			this.updateUserDocumentSettings({ isSnapMode }, true)
+		}
+		return this
+	}
+
+	get isDarkMode() {
+		return this.userDocumentSettings.isDarkMode
+	}
+
+	setDarkMode(isDarkMode: boolean) {
+		if (isDarkMode !== this.isDarkMode) {
+			this.updateUserDocumentSettings({ isDarkMode }, true)
+		}
+		return this
+	}
+
+	get isFocusMode() {
+		return this.instanceState.isFocusMode
+	}
+
+	setFocusMode(isFocusMode: boolean) {
+		if (isFocusMode !== this.isFocusMode) {
+			this.updateInstanceState({ isFocusMode }, true)
+		}
+		return this
+	}
+
+	get isToolLocked() {
+		return this.instanceState.isToolLocked
+	}
+
+	setToolLocked(isToolLocked: boolean) {
+		if (isToolLocked !== this.isToolLocked) {
+			this.updateInstanceState({ isToolLocked }, true)
+		}
+		return this
+	}
+
 	/** @internal */
 	@computed private get _userDocumentSettings() {
 		return this.store.query.record('user_document', () => ({ userId: { eq: this.userId } }))
@@ -1469,27 +1553,29 @@ export class App extends EventEmitter {
 		return this._userDocumentSettings.value!
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
-
 	get isGridMode() {
 		return this.userDocumentSettings.isGridMode
 	}
 
-	setGridMode(isGridMode: boolean) {
-		this.updateUserDocumentSettings({ isGridMode }, true)
-	}
-
-	setDarkMode(isDarkMode: boolean) {
-		this.updateUserDocumentSettings({ isDarkMode }, true)
-	}
-
-	setReadOnly(isReadOnly: boolean) {
-		this.updateUserDocumentSettings({ isReadOnly }, true)
-		if (isReadOnly) {
-			this.setSelectedTool('hand')
+	setGridMode(isGridMode: boolean): this {
+		if (isGridMode === this.isGridMode) {
+			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
+		return this
+	}
+
+	get isReadOnly() {
+		return this.userDocumentSettings.isReadOnly
+	}
+
+	setReadOnly(isReadOnly: boolean): this {
+		if (isReadOnly !== this.isReadOnly) {
+			this.updateUserDocumentSettings({ isReadOnly }, true)
+			if (isReadOnly) {
+				this.setSelectedTool('hand')
+			}
+		}
+		return this
 	}
 
 	/** @internal */
@@ -1502,10 +1588,12 @@ export class App extends EventEmitter {
 		return this._isPenMode.value
 	}
 
-	setPenMode(isPenMode: boolean) {
+	setPenMode(isPenMode: boolean): this {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
-
-		this._isPenMode.set(isPenMode)
+		if (isPenMode !== this.isPenMode) {
+			this._isPenMode.set(isPenMode)
+		}
+		return this
 	}
 
 	// User / User App State
@@ -2277,12 +2365,13 @@ export class App extends EventEmitter {
 	 */
 	getShapesAtPoint(point: VecLike): TLShape[] {
 		return this.shapesArray.filter((shape) => {
+			// Check the page mask too
 			const pageMask = this._pageMaskCache.get(shape.id)
 			if (pageMask) {
-				const hasHit = pointInPolygon(point, pageMask)
-				if (!hasHit) return false
+				return pointInPolygon(point, pageMask)
 			}
 
+			// Otherwise, use the shape's own hit test method
 			return this.getShapeUtil(shape).hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
 		})
 	}
@@ -4417,6 +4506,8 @@ export class App extends EventEmitter {
 
 			return {
 				data: {
+					currentPageId: this.currentPageId,
+					createdIds: partials.map((p) => p.id),
 					prevSelectedIds,
 					partials: partialsToCreate,
 					select,
@@ -4424,7 +4515,7 @@ export class App extends EventEmitter {
 			}
 		},
 		{
-			do: ({ partials, select }) => {
+			do: ({ createdIds, partials, select }) => {
 				const { focusLayerId } = this
 
 				// 1. Parents
@@ -4470,7 +4561,7 @@ export class App extends EventEmitter {
 
 				const parentIndices = new Map<string, string>()
 
-				const shapeRecordsTocreate: TLShape[] = []
+				const shapeRecordsToCreate: TLShape[] = []
 
 				for (const partial of partials) {
 					const util = this.getShapeUtil(partial as TLShape)
@@ -4523,20 +4614,23 @@ export class App extends EventEmitter {
 						shapeRecordToCreate = next
 					}
 
-					shapeRecordsTocreate.push(shapeRecordToCreate)
+					shapeRecordsToCreate.push(shapeRecordToCreate)
 				}
 
-				this.store.put(shapeRecordsTocreate)
+				this.store.put(shapeRecordsToCreate)
 
 				// If we're also selecting the newly created shapes, attempt to select all of them;
+
 				// the engine will filter out any shapes that are descendants of other new shapes.
 				if (select) {
-					const selectedIds = partials.map((partial) => partial.id)
-					this.store.update(this.pageState.id, (state) => ({ ...state, selectedIds }))
+					this.store.update(this.pageState.id, (state) => ({
+						...state,
+						selectedIds: createdIds,
+					}))
 				}
 			},
-			undo: ({ partials, prevSelectedIds }) => {
-				this.store.remove(partials.map((p) => p.id))
+			undo: ({ createdIds, prevSelectedIds }) => {
+				this.store.remove(createdIds)
 
 				if (prevSelectedIds) {
 					this.store.update(this.pageState.id, (state) => ({
@@ -4739,22 +4833,21 @@ export class App extends EventEmitter {
 		},
 		{
 			do: ({ updates }) => {
-				const arr = Object.values(updates)
-
 				// Iterate through array; if any shape has an onUpdate handler, call it
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				let shape: TLShape
-				let next: TLShape | void
-				for (let i = 0, n = arr.length; i < n; i++) {
-					shape = arr[i]
-					next = this.getShapeUtil(shape).onBeforeUpdate?.(this.store.get(shape.id)!, shape)
+				const result = Object.values(updates)
+				for (let i = 0; i < result.length; i++) {
+					const shape = result[i]
+					const current = this.store.get(shape.id)
+					if (!current) continue
+					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
 					if (next) {
-						arr[i] = next
+						result[i] = next
 					}
 				}
-				this.store.put(arr)
+				this.store.put(result)
 			},
 			undo: ({ snapshots }) => {
 				this.store.put(Object.values(snapshots))
@@ -4960,7 +5053,10 @@ export class App extends EventEmitter {
 			const newPage = TLPage.create({
 				id,
 				name: title,
-				index: bottomIndex ? getIndexBetween(topIndex, bottomIndex) : getIndexAbove(topIndex),
+				index:
+					bottomIndex && topIndex !== bottomIndex
+						? getIndexBetween(topIndex, bottomIndex)
+						: getIndexAbove(topIndex),
 			})
 
 			const newCamera = TLCamera.create({})
@@ -4994,6 +5090,7 @@ export class App extends EventEmitter {
 			undo: ({ newPage, prevPageState, prevTabState, newTabPageState }) => {
 				this.store.put([prevPageState, prevTabState])
 				this.store.remove([newTabPageState.id, newPage.id, newTabPageState.cameraId])
+
 				this.updateCullingBounds()
 			},
 		}
@@ -5058,6 +5155,15 @@ export class App extends EventEmitter {
 		},
 		{
 			do: ({ deletedPage, deletedPageStates }) => {
+				const { pages } = this
+				if (pages.length === 1) return
+
+				if (deletedPage.id === this.currentPageId) {
+					const index = pages.findIndex((page) => page.id === deletedPage.id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPageId(next.id)
+				}
+
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
 				this.updateCullingBounds()
@@ -5278,6 +5384,7 @@ export class App extends EventEmitter {
 				this.store.put(assets)
 			},
 			undo: ({ assets }) => {
+				// todo: should we actually remove assets here? or on cleanup elsewhere?
 				this.store.remove(assets.map((a) => a.id))
 			},
 		}
@@ -5746,8 +5853,6 @@ export class App extends EventEmitter {
 			this.centerOnPoint(x, y)
 		})
 
-		this.emit('moved-to-page', { name: this.currentPage.name, toId: pageId, fromId: currentPageId })
-
 		return this
 	}
 
@@ -5764,9 +5869,10 @@ export class App extends EventEmitter {
 	 * @param ids - The ids to reorder.
 	 * @public
 	 */
-	reorderShapes(operation: TLReorderOperation, ids: TLShapeId[]) {
+	reorderShapes(operation: 'toBack' | 'toFront' | 'forward' | 'backward', ids: TLShapeId[]) {
 		if (this.isReadOnly) return this
 		if (ids.length === 0) return this
+		// this.emit('reorder-shapes', { pageId: this.currentPageId, ids, operation })
 
 		const parents = this.getParentsMappedToChildren(ids)
 
@@ -6987,6 +7093,7 @@ export class App extends EventEmitter {
 		// page might have no shapes
 		if (ids.length <= 0) return this
 		this.setSelectedIds(ids)
+
 		return this
 	}
 
@@ -7027,10 +7134,11 @@ export class App extends EventEmitter {
 	 *
 	 * @public
 	 */
-	selectNone() {
+	selectNone(): this {
 		if (this.selectedIds.length > 0) {
 			this.setSelectedIds([])
 		}
+
 		return this
 	}
 
@@ -7047,7 +7155,7 @@ export class App extends EventEmitter {
 	 * @param options - Options for setting the current page.
 	 * @public
 	 */
-	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}) {
+	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}): this {
 		this._setCurrentPageId(pageId, { stopFollowing })
 		return this
 	}
@@ -7066,42 +7174,42 @@ export class App extends EventEmitter {
 			}
 
 			return {
-				data: { pageId, prev: this.currentPageId },
+				data: { toId: pageId, fromId: this.currentPageId },
 				squashing: true,
 				preservesRedoStack: true,
 			}
 		},
 		{
-			do: ({ pageId }) => {
-				if (!this.getPageStateByPageId(pageId)) {
+			do: ({ toId }) => {
+				if (!this.getPageStateByPageId(toId)) {
 					const camera = TLCamera.create({})
 					this.store.put([
 						camera,
 						TLInstancePageState.create({
-							pageId,
+							pageId: toId,
 							instanceId: this.instanceId,
 							cameraId: camera.id,
 						}),
 					])
 				}
 
-				this.store.put([{ ...this.instanceState, currentPageId: pageId }])
+				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
 				this.updateUserPresence({
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
 			},
-			undo: ({ prev }) => {
-				this.store.put([{ ...this.instanceState, currentPageId: prev }])
+			undo: ({ fromId }) => {
+				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
 				this.updateUserPresence({
 					viewportPageBounds: this.viewportPageBounds.toJson(),
 				})
 				this.updateCullingBounds()
 			},
-			squash: ({ prev }, { pageId }) => {
-				return { pageId, prev }
+			squash: ({ fromId }, { toId }) => {
+				return { toId, fromId }
 			},
 		}
 	)
@@ -7168,7 +7276,7 @@ export class App extends EventEmitter {
 	 * @param id - The id of the page to set as the current page
 	 * @public
 	 */
-	setHoveredId(id: TLShapeId | null = null) {
+	setHoveredId(id: TLShapeId | null = null): this {
 		if (id === this.pageState.hoveredId) return this
 
 		this.setInstancePageState({ hoveredId: id }, true)
@@ -7188,7 +7296,7 @@ export class App extends EventEmitter {
 	 * @param ids - The ids of shapes to set as erasing.
 	 * @public
 	 */
-	setErasingIds(ids: TLShapeId[] = []) {
+	setErasingIds(ids: TLShapeId[] = []): this {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
 
@@ -7209,7 +7317,7 @@ export class App extends EventEmitter {
 	 * @param cursor - A partial of the cursor object.
 	 * @public
 	 */
-	setCursor(cursor: Partial<TLCursor>) {
+	setCursor(cursor: Partial<TLCursor>): this {
 		const current = this.cursor
 		const next = {
 			...current,
@@ -7243,7 +7351,7 @@ export class App extends EventEmitter {
 	 * @param scribble - The new scribble object.
 	 * @public
 	 */
-	setScribble(scribble: TLScribble | null = null) {
+	setScribble(scribble: TLScribble | null = null): this {
 		this.updateInstanceState({ scribble }, true)
 		return this
 	}
@@ -7261,7 +7369,7 @@ export class App extends EventEmitter {
 	 * @param brush - The brush box model to set, or null for no brush model.
 	 * @public
 	 */
-	setBrush(brush: Box2dModel | null = null) {
+	setBrush(brush: Box2dModel | null = null): this {
 		if (!brush && !this.brush) return this
 		this.updateInstanceState({ brush }, true)
 		return this
@@ -7280,7 +7388,7 @@ export class App extends EventEmitter {
 	 * @param zoomBrush - The zoom box model to set, or null for no zoom model.
 	 * @public
 	 */
-	setZoomBrush(zoomBrush: Box2dModel | null = null) {
+	setZoomBrush(zoomBrush: Box2dModel | null = null): this {
 		if (!zoomBrush && !this.zoomBrush) return this
 		this.updateInstanceState({ zoomBrush }, true)
 		return this
@@ -7304,6 +7412,7 @@ export class App extends EventEmitter {
 
 		const snapshot = getRotationSnapshot({ app: this })
 		applyRotationToSnapshotShapes({ delta, snapshot, app: this, stage: 'one-off' })
+
 		return this
 	}
 
@@ -7710,30 +7819,32 @@ export class App extends EventEmitter {
 	private _setCamera(x: number, y: number, z = this.camera.z) {
 		const currentCamera = this.camera
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) return this
-		this.store.put([{ ...currentCamera, x, y, z }])
+		const nextCamera = { ...currentCamera, x, y, z }
 
-		const { currentScreenPoint } = this.inputs
+		this.batch(() => {
+			this.store.put([nextCamera])
 
-		this.dispatch({
-			type: 'pointer',
-			target: 'canvas',
-			name: 'pointer_move',
-			point: currentScreenPoint,
-			pointerId: 0,
-			ctrlKey: this.inputs.ctrlKey,
-			altKey: this.inputs.altKey,
-			shiftKey: this.inputs.shiftKey,
-			button: 0,
-			isPen: this.isPenMode ?? false,
+			const { currentScreenPoint } = this.inputs
+
+			this.dispatch({
+				type: 'pointer',
+				target: 'canvas',
+				name: 'pointer_move',
+				point: currentScreenPoint,
+				pointerId: 0,
+				ctrlKey: this.inputs.ctrlKey,
+				altKey: this.inputs.altKey,
+				shiftKey: this.inputs.shiftKey,
+				button: 0,
+				isPen: this.isPenMode ?? false,
+			})
+
+			this.updateUserPresence({
+				viewportPageBounds: this.viewportPageBounds.toJson(),
+			})
+
+			this._cameraManager.tick()
 		})
-
-		this.updateUserPresence({
-			viewportPageBounds: this.viewportPageBounds.toJson(),
-		})
-
-		this._cameraManager.tick()
-
-		this.emit('change-camera', this.camera)
 
 		return this
 	}
@@ -7837,6 +7948,28 @@ export class App extends EventEmitter {
 	}
 
 	/**
+	 * Move the camera to the nearest content.
+	 *
+	 * @public
+	 */
+	zoomToContent() {
+		const bounds = this.selectedPageBounds ?? this.allShapesCommonBounds
+
+		if (bounds) {
+			this.zoomToBounds(
+				bounds.minX,
+				bounds.minY,
+				bounds.width,
+				bounds.height,
+				Math.min(1, this.zoomLevel),
+				{ duration: 220 }
+			)
+		}
+
+		return this
+	}
+
+	/**
 	 * Zoom the camera to fit the current page's content in the viewport.
 	 *
 	 * @example
@@ -7887,6 +8020,7 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / 1 - x) - (x / cz - x), cy + (y / 1 - y) - (y / cz - y), 1)
 		}
+
 		return this
 	}
 
@@ -7930,6 +8064,7 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
+
 		return this
 	}
 
@@ -7974,6 +8109,7 @@ export class App extends EventEmitter {
 		} else {
 			this.setCamera(cx + (x / zoom - x) - (x / cz - x), cy + (y / zoom - y) - (y / cz - y), zoom)
 		}
+
 		return this
 	}
 
@@ -8005,6 +8141,7 @@ export class App extends EventEmitter {
 			Math.max(1, this.camera.z),
 			opts
 		)
+
 		return this
 	}
 

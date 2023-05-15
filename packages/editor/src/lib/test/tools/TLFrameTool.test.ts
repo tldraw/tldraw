@@ -123,7 +123,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		expect(app.shapesArray.length).toBe(0)
 		app.setSelectedTool('frame')
 		app.pointerDown(50, 50)
@@ -152,7 +152,7 @@ describe('When in the resizing state', () => {
 	})
 
 	it('Returns to frame.idle on complete if tool lock is enabled', () => {
-		app.updateInstanceState({ isToolLocked: true })
+		app.setToolLocked(true)
 		app.setSelectedTool('frame')
 		app.pointerDown(50, 50)
 		app.pointerMove(100, 100)

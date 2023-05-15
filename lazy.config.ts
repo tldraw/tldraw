@@ -3,18 +3,31 @@ import { LazyConfig } from 'lazyrepo'
 export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') {
 	return {
 		build: {
-			runsAfter: { 'build-package': {}, prebuild: {} },
-		},
-		'build:vscode-editor': {
-			runsAfter: { 'refresh-assets': {} },
+			baseCommand: 'exit 0',
+			runsAfter: { prebuild: {}, 'refresh-assets': {} },
+			workspaceOverrides: {
+				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': {} } },
+				'{bublic/,}apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
+				'{bublic/,}packages/*': {
+					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
+					cache: {
+						inputs: ['api/**/*', 'src/**/*'],
+					},
+				},
+			},
 		},
 		dev: {
 			execution: 'independent',
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
-		},
-		'dev-vscode': {
-			runsAfter: { 'build:vscode-editor': {} },
+			workspaceOverrides: {
+				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': { in: 'self-only' } } },
+				'{bublic/,}apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
+				'{bublic/,}apps/webdriver': {
+					runsAfter: { 'refresh-assets': {}, prebuild: {} },
+					cache: 'none',
+				},
+			},
 		},
 		test: {
 			baseCommand: 'yarn run -T jest',
@@ -22,15 +35,15 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		},
 		'test-coverage': {
 			baseCommand: 'yarn run -T jest --coverage',
+			runsAfter: { 'refresh-assets': {} },
 		},
 		lint: {
 			execution: 'independent',
 			runsAfter: { 'build-types': {} },
-		},
-		'build-package': {
-			runsAfter: { 'build-api': {}, prebuild: {} },
 			cache: {
-				inputs: ['api/**/*', 'src/**/*'],
+				inputs: {
+					exclude: ['**/*.tsbuildinfo'],
+				},
 			},
 		},
 		'pack-tarball': {
@@ -73,12 +86,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 					usesOutput: false,
 				},
 			},
-		},
-		'build-docs': {
-			runsAfter: { 'docs-content': {} },
-		},
-		'dev-docs': {
-			runsAfter: { 'docs-content': {} },
 		},
 		'docs-content': {
 			runsAfter: { 'build-api': {} },

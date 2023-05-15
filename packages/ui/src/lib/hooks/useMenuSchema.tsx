@@ -8,7 +8,7 @@ import {
 	menuGroup,
 	menuItem,
 	menuSubmenu,
-	showUiPaste,
+	showMenuPaste,
 	useAllowGroup,
 	useAllowUngroup,
 } from './menuHelpers'
@@ -100,7 +100,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						{
 							id: 'MENU_PASTE',
 							type: 'custom',
-							disabled: !showUiPaste,
+							disabled: !showMenuPaste,
 							readonlyOk: false,
 						}
 					),

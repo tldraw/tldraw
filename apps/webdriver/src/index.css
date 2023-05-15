@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+html,
+body {
+	padding: 0;
+	margin: 0;
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+	touch-action: none;
+	min-height: 100vh;
+	/* mobile viewport bug fix */
+	min-height: -webkit-fill-available;
+	height: 100%;
+}
+
+html,
+* {
+	box-sizing: border-box;
+}
+
+.tldraw__editor {
+	position: fixed;
+	inset: 0px;
+	overflow: hidden;
+}

@@ -1,3 +1,4 @@
+import { throttledRaf } from '@tldraw/utils'
 import { atom, Atom, computed, Computed, Reactor, reactor, transact } from 'signia'
 import { BaseRecord, ID } from './BaseRecord'
 import { Cache } from './Cache'
@@ -172,7 +173,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 				// If we have accumulated history, flush it and update listeners
 				this._flushHistory()
 			},
-			{ scheduleEffect: (cb) => requestAnimationFrame(cb) }
+			{ scheduleEffect: (cb) => throttledRaf(cb) }
 		)
 	}
 
@@ -621,9 +622,12 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 		}
 	}
 
+	private _integrityChecker?: () => void | undefined
+
 	/** @internal */
 	ensureStoreIsUsable() {
-		this.schema.ensureStoreIsUsable(this)
+		this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+		this._integrityChecker?.()
 	}
 
 	private _isPossiblyCorrupted = false

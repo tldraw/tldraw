@@ -469,26 +469,33 @@ describe('Store', () => {
 	})
 
 	it('flushes history before attaching listeners', async () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
-		const firstListener = jest.fn()
-		store.listen(firstListener)
-		expect(firstListener).toHaveBeenCalledTimes(0)
+		try {
+			// @ts-expect-error
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			const firstListener = jest.fn()
+			store.listen(firstListener)
+			expect(firstListener).toHaveBeenCalledTimes(0)
 
-		store.put([Author.create({ name: 'Chips McCoy', id: Author.createCustomId('chips') })])
+			store.put([Author.create({ name: 'Chips McCoy', id: Author.createCustomId('chips') })])
 
-		expect(firstListener).toHaveBeenCalledTimes(0)
+			expect(firstListener).toHaveBeenCalledTimes(0)
 
-		const secondListener = jest.fn()
+			const secondListener = jest.fn()
 
-		store.listen(secondListener)
+			store.listen(secondListener)
 
-		expect(firstListener).toHaveBeenCalledTimes(1)
-		expect(secondListener).toHaveBeenCalledTimes(0)
+			expect(firstListener).toHaveBeenCalledTimes(1)
+			expect(secondListener).toHaveBeenCalledTimes(0)
 
-		await new Promise((resolve) => requestAnimationFrame(resolve))
+			await new Promise((resolve) => requestAnimationFrame(resolve))
 
-		expect(firstListener).toHaveBeenCalledTimes(1)
-		expect(secondListener).toHaveBeenCalledTimes(0)
+			expect(firstListener).toHaveBeenCalledTimes(1)
+			expect(secondListener).toHaveBeenCalledTimes(0)
+		} finally {
+			// @ts-expect-error
+			globalThis.__FORCE_RAF_IN_TESTS__ = false
+		}
 	})
 
 	it('does not overwrite default properties with undefined', () => {

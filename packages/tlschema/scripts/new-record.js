@@ -1,4 +1,5 @@
 // @ts-check
+/* eslint-disable */
 
 const kleur = require('kleur')
 const fs = require('fs')

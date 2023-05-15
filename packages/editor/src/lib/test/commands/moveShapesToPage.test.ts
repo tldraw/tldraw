@@ -149,24 +149,25 @@ describe('arrows', () => {
 	let arrow: TLShape
 	beforeEach(() => {
 		// draw a first box
-		app.setSelectedTool('geo')
-		app.pointerDown(200, 200)
-		app.pointerMove(300, 300)
-		app.pointerUp(300, 300)
+		app
+			.setSelectedTool('geo')
+			.pointerDown(200, 200)
+			.pointerMove(300, 300)
+			.pointerUp(300, 300)
+			.setProp('fill', 'solid')
 		firstBox = app.onlySelectedShape!
 
 		// draw a second box
-		app.setSelectedTool('geo')
-		app.pointerDown(400, 400)
-		app.pointerMove(500, 500)
-		app.pointerUp(500, 500)
+		app
+			.setSelectedTool('geo')
+			.pointerDown(400, 400)
+			.pointerMove(500, 500)
+			.pointerUp(500, 500)
+			.setProp('fill', 'solid')
 		secondBox = app.onlySelectedShape!
 
 		// draw an arrow from the first box to the second box
-		app.setSelectedTool('arrow')
-		app.pointerDown(250, 250)
-		app.pointerMove(450, 450)
-		app.pointerUp(450, 450)
+		app.setSelectedTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 		arrow = app.onlySelectedShape!
 	})
 

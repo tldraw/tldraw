@@ -1,6 +1,6 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["src"],
+	"include": ["src", "scripts"],
 	"exclude": ["node_modules", "docs", "dist", ".tsbuild*"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",

@@ -9,3 +9,7 @@
 **/.next/*
 *.mdx
 **/_archive/*
+apps/docs/content.json
+apps/vscode/extension/editor/index.js
+apps/vscode/extension/editor/tldraw-assets.json
+apps/webdriver/www/index.js

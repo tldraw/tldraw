@@ -165,22 +165,23 @@ export class Idle extends StateNode {
 					const change = util.onDoubleClick?.(shape)
 					if (change) {
 						this.app.updateShapes([change])
+						return
 					} else if (util.canCrop(shape)) {
 						// crop on double click
 						this.app.mark('select and crop')
 						this.app.select(info.shape?.id)
 						this.parent.transition('crop', info)
+						return
 					}
+				}
+				// If the shape can edit, then begin editing
+				if (util.canEdit(shape)) {
+					this.startEditingShape(shape, info)
 				} else {
-					// If the shape can edit, then begin editing
-					if (util.canEdit(shape)) {
-						this.startEditingShape(shape, info)
-					} else {
-						// If the shape's double click handler has not created a change,
-						// and if the shape cannot edit, then create a text shape and
-						// begin editing the text shape
-						this.createTextShapeAtPoint(info)
-					}
+					// If the shape's double click handler has not created a change,
+					// and if the shape cannot edit, then create a text shape and
+					// begin editing the text shape
+					this.createTextShapeAtPoint(info)
 				}
 				break
 			}

@@ -38,7 +38,7 @@
 		"new-asset": "node ./scripts/new-asset.js",
 		"index": "node ./scripts/build-index.js && yarn format",
 		"format": "yarn run -T prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
-		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
@@ -62,6 +62,9 @@
 		"@tldraw/tlstore": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"nanoid": "^3.0.0"
+		"nanoid": "4.0.2"
+	},
+	"peerDependencies": {
+		"signia": "*"
 	}
 }

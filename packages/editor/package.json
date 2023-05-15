@@ -37,8 +37,7 @@
 		"test": "lazy inherit",
 		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",
 		"test-coverage": "lazy inherit",
-		"build": "lazy build-package",
-		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
@@ -59,7 +58,7 @@
 		"is-plain-object": "^5.0.0",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0",
-		"nanoid": "^3.0.0"
+		"nanoid": "4.0.2"
 	},
 	"peerDependencies": {
 		"react": "^18",

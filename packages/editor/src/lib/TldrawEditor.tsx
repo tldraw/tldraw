@@ -237,7 +237,11 @@ function TldrawEditorAfterLoading({
 		}
 	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
 
-	const onMountEvent = useEvent((app: App) => onMount?.(app))
+	const onMountEvent = useEvent((app: App) => {
+		onMount?.(app)
+		app.emit('mount')
+	})
+
 	React.useEffect(() => {
 		if (app) {
 			// Set the initial theme state.

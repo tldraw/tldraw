@@ -1,0 +1,51 @@
+{
+	"name": "webdriver",
+	"description": "A tiny little drawing app (for webdriver).",
+	"version": "2.0.0-alpha.11",
+	"private": true,
+	"author": {
+		"name": "tldraw GB Ltd.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"keywords": [
+		"tldraw",
+		"drawing",
+		"app",
+		"development",
+		"whiteboard",
+		"canvas",
+		"infinite"
+	],
+	"scripts": {
+		"dev": "concurrently --names \"tsc,esbuild\" \"yarn run -T tsx ../../scripts/typecheck.ts --build --watch --preserveWatchOutput\" \"node ./scripts/dev.mjs\"",
+		"lint": "yarn run -T tsx ../../scripts/lint.ts"
+	},
+	"devDependencies": {
+		"@types/ip": "^1.1.0",
+		"@types/node-forge": "^1.3.1",
+		"browserslist-to-esbuild": "^1.2.0",
+		"concurrently": "^7.4.0",
+		"esbuild": "^0.16.7",
+		"ip": "^1.1.8",
+		"kleur": "^4.1.5",
+		"lazyrepo": "0.0.0-alpha.26",
+		"node-forge": "^1.3.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
+	},
+	"dependencies": {
+		"@tldraw/assets": "workspace:*",
+		"@tldraw/tldraw": "workspace:*",
+		"react-router-dom": "^6.9.0",
+		"signia": "0.1.4",
+		"signia-react": "0.1.4"
+	}
+}

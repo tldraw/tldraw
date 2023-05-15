@@ -31,18 +31,17 @@
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
-	"devDependencies": {
-		"@babel/plugin-proposal-decorators": "^7.21.0",
-		"lazyrepo": "0.0.0-alpha.26",
-		"vite": "^4.3.4"
-	},
 	"dependencies": {
+		"@babel/plugin-proposal-decorators": "^7.21.0",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
+		"@vercel/analytics": "^1.0.1",
+		"lazyrepo": "0.0.0-alpha.26",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.9.0",
 		"signia": "0.1.4",
-		"signia-react": "0.1.4"
+		"signia-react": "0.1.4",
+		"vite": "^4.3.4"
 	}
 }

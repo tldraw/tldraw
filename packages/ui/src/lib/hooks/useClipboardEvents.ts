@@ -40,6 +40,7 @@ import { compact, isNonNull } from '@tldraw/utils'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { useAppIsFocused } from './useAppIsFocused'
+import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 /** @public */
 export type EmbedInfo = {
@@ -967,24 +968,29 @@ const handleNativeClipboardPaste = async (
 }
 
 /** @public */
-export function useMenuClipboardEvents() {
+export function useMenuClipboardEvents(source: TLUiEventSource) {
 	const app = useApp()
+	const trackEvent = useEvents()
 
 	const copy = useCallback(
 		function onCopy() {
 			if (app.selectedIds.length === 0) return
+
 			handleMenuCopy(app)
+			trackEvent('copy', { source })
 		},
-		[app]
+		[app, trackEvent, source]
 	)
 
 	const cut = useCallback(
 		function onCut() {
 			if (app.selectedIds.length === 0) return
+
 			handleMenuCopy(app)
 			app.deleteShapes()
+			trackEvent('cut', { source })
 		},
-		[app]
+		[app, trackEvent, source]
 	)
 
 	const paste = useCallback(
@@ -1000,8 +1006,10 @@ export function useMenuClipboardEvents() {
 			// else {
 			// 	handleScenePaste(app, point)
 			// }
+
+			trackEvent('paste', { source: 'menu' })
 		},
-		[app]
+		[app, trackEvent]
 	)
 
 	return {
@@ -1014,6 +1022,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const app = useApp()
+	const trackEvent = useEvents()
 
 	const appIsFocused = useAppIsFocused()
 
@@ -1023,6 +1032,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
+			trackEvent('copy', { source: 'kbd' })
 		}
 
 		function cut() {
@@ -1030,9 +1040,24 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
+			trackEvent('cut', { source: 'kbd' })
+		}
+
+		let disablingMiddleClickPaste = false
+		const pointerUpHandler = (e: PointerEvent) => {
+			if (e.button === 1) {
+				disablingMiddleClickPaste = true
+				requestAnimationFrame(() => {
+					disablingMiddleClickPaste = false
+				})
+			}
 		}
 
 		const paste = (event: ClipboardEvent) => {
+			if (disablingMiddleClickPaste) {
+				event.stopPropagation()
+				return
+			}
 			if (app.editingId !== null || disallowClipboardEvents(app)) return
 			if (event.clipboardData && !app.inputs.shiftKey) {
 				handleNativeDataTransferPaste(app, event.clipboardData)
@@ -1043,16 +1068,19 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
+			trackEvent('paste', { source: 'kbd' })
 		}
 
 		document.addEventListener('copy', copy)
 		document.addEventListener('cut', cut)
 		document.addEventListener('paste', paste)
+		document.addEventListener('pointerup', pointerUpHandler)
 
 		return () => {
 			document.removeEventListener('copy', copy)
 			document.removeEventListener('cut', cut)
 			document.removeEventListener('paste', paste)
+			document.removeEventListener('pointerup', pointerUpHandler)
 		}
-	}, [app, appIsFocused])
+	}, [app, trackEvent, appIsFocused])
 }

@@ -10,6 +10,10 @@ env:
   CI: 1
   PRINT_GITHUB_ANNOTATIONS: 1
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   build:
     name: 'Build and run checks'
@@ -19,8 +23,6 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
@@ -47,13 +49,13 @@ jobs:
       - name: Check API declarations and docs work as intended
         run: yarn api-check
 
-      - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
-
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
+
+      - name: Pack public packages
+        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
 
       - name: Test
         run: yarn test
