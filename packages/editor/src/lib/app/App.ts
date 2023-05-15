@@ -8855,60 +8855,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		return this
 	}
-
-	// 	checkTracking(
-	// 		type: 'change' | 'create' | 'delete',
-	// 		prev: TLRecord | null,
-	// 		next: TLRecord | null
-	// 	) {
-	// 		if (type === 'create' && next) {
-	// 			if (next && next.typeName === 'page') {
-	// 				this.trackEvent('page.add')
-	// 			}
-	// 		} else if (type === 'delete' && prev) {
-	// 			if (prev.typeName === 'page') {
-	// 				this.trackEvent('page.remove')
-	// 			}
-	// 		} else if (prev && next && type === 'change') {
-	// 			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
-	// 				this.trackEvent('page.rename')
-	// 			}
-	// 			if (prev.typeName === 'instance' && next.typeName === 'instance') {
-	// 				// TODO: Not very performant
-	// 				for (const key of Object.keys(next.propsForNextShape)) {
-	// 					const prevValue = prev.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-	// 					const nextValue = next.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-	// 					if (prevValue !== nextValue) {
-	// 						this.trackEvent(`instance.propsForNextShape.${key}.change`, nextValue)
-	// 					}
-	// 				}
-
-	// 				if (prev.isToolLocked !== next.isToolLocked) {
-	// 					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
-	// 				}
-	// 				if (prev.isDebugMode !== next.isDebugMode) {
-	// 					this.trackEvent('instance.isDebugMode.enabled', next.isDebugMode)
-	// 				}
-	// 				if (prev.isFocusMode !== next.isFocusMode) {
-	// 					this.trackEvent('instance.isFocusMode.enabled', next.isFocusMode)
-	// 				}
-	// 				if (prev.currentPageId !== next.currentPageId) {
-	// 					this.trackEvent('instance.currentPageId.change')
-	// 				}
-	// 			}
-	// 			if (prev.typeName === 'user_document' && next.typeName === 'user_document') {
-	// 				if (prev.isDarkMode !== next.isDarkMode) {
-	// 					this.trackEvent('instance.isDarkMode.change', next.isDarkMode)
-	// 				}
-	// 				if (prev.isGridMode !== next.isGridMode) {
-	// 					this.trackEvent('instance.isGridMode.change', next.isGridMode)
-	// 				}
-	// 				if (prev.isSnapMode !== next.isSnapMode) {
-	// 					this.trackEvent('instance.isSnapMode.change', next.isSnapMode)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
 }
 
 function alertMaxShapes(app: App, pageId = app.currentPageId) {
