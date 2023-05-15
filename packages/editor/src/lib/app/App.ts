@@ -211,11 +211,25 @@ export class App extends EventEmitter<TLEventMap> {
 			})
 		}
 
+		let deletedShapes: TLShape[] | undefined = undefined
+
 		this.store.onBeforeDelete = (record) => {
-			if (record.typeName === 'shape') {
-				this._shapeWillBeDeleted(record)
-			} else if (record.typeName === 'page') {
-				this._pageWillBeDeleted(record)
+			switch (record.typeName) {
+				case 'shape': {
+					if (deletedShapes === undefined) {
+						deletedShapes = []
+					}
+					deletedShapes.push(record)
+					break
+				}
+				case 'page': {
+					this._pageWillBeDeleted(record)
+					break
+				}
+			}
+
+			if (deletedShapes !== undefined) {
+				this._shapesWillBeDeleted(deletedShapes)
 			}
 		}
 
@@ -1298,23 +1312,25 @@ export class App extends EventEmitter<TLEventMap> {
 	// }
 
 	/** @internal */
-	private _shapeWillBeDeleted(deletedShape: TLShape) {
-		// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
-		if (deletedShape.parentId && isShapeId(deletedShape.parentId)) {
-			this._invalidParents.add(deletedShape.parentId)
-		}
-		// clean up any arrows bound to this shape
-		const bindings = this._arrowBindingsIndex.value[deletedShape.id]
-		if (bindings?.length) {
-			for (const { arrowId, handleId } of bindings) {
-				const arrow = this.getShapeById<TLArrowShape>(arrowId)
-				if (!arrow) continue
-				this._unbindArrowTerminal(arrow, handleId)
+	private _shapesWillBeDeleted(deletedShapes: TLShape[]) {
+		for (const deletedShape of deletedShapes) {
+			// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
+			if (deletedShape.parentId && isShapeId(deletedShape.parentId)) {
+				this._invalidParents.add(deletedShape.parentId)
+			}
+			// clean up any arrows bound to this shape
+			const bindings = this._arrowBindingsIndex.value[deletedShape.id]
+			if (bindings?.length) {
+				for (const { arrowId, handleId } of bindings) {
+					const arrow = this.getShapeById<TLArrowShape>(arrowId)
+					if (!arrow) continue
+					this._unbindArrowTerminal(arrow, handleId)
+				}
 			}
 		}
 
 		const pageStates = this.store.query.records('instance_page_state').value
-		const deletedIds = new Set([deletedShape.id])
+		const deletedIds = new Set(deletedShapes.map((d) => d.id))
 		const updates = compact(
 			pageStates.map((pageState) => {
 				return this._cleanupInstancePageState(pageState, deletedIds)
