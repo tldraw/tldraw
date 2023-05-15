@@ -307,6 +307,12 @@ export const DEFAULT_TRANSLATION = {
 	'file-system.confirm-open.cancel': 'Cancel',
 	'file-system.confirm-open.open': 'Open file',
 	'file-system.confirm-open.dont-show-again': "Don't ask again",
+	'file-system.confirm-open-shared.title': 'Leave shared project?',
+	'file-system.confirm-open-shared.description':
+		'Opening a file will make you leave the current project. It will replace your home project and any unsaved changes will be lost. Are you sure you want to continue?',
+	'file-system.confirm-open-shared.cancel': 'Cancel',
+	'file-system.confirm-open-shared.open': 'Open file',
+	'file-system.confirm-open-shared.dont-show-again': "Don't ask again",
 	'file-system.confirm-clear.title': 'Clear current project?',
 	'file-system.confirm-clear.description':
 		'Creating a new project will clear your current project and any unsaved changes will be lost. Are you sure you want to continue?',
@@ -315,13 +321,10 @@ export const DEFAULT_TRANSLATION = {
 	'file-system.confirm-clear.dont-show-again': "Don't ask again",
 	'file-system.confirm-clear-shared.title': 'Leave shared project?',
 	'file-system.confirm-clear-shared.description':
-		'Creating a new project will leave the current project and clear your home project. Are you sure you want to continue?',
+		'Creating a new project will make you leave the current project. It will clear your home project and any unsaved changes will be lost. Are you sure you want to continue?',
 	'file-system.confirm-clear-shared.cancel': 'Cancel',
 	'file-system.confirm-clear-shared.continue': 'Continue',
 	'file-system.confirm-clear-shared.dont-show-again': "Don't ask again",
-	'file-system.shared-document-file-open-error.title': 'Could not open file',
-	'file-system.shared-document-file-open-error.description':
-		'Opening files from shared projects is not supported.',
 	'toast.error.export-fail.title': 'Failed export',
 	'toast.error.export-fail.desc': 'Failed to export image',
 	'toast.error.copy-fail.title': 'Failed copy',
