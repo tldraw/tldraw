@@ -227,10 +227,10 @@ export class App extends EventEmitter<TLEventMap> {
 					break
 				}
 			}
+		}
 
-			if (deletedShapes !== undefined) {
-				this._shapesWillBeDeleted(deletedShapes)
-			}
+		if (deletedShapes !== undefined) {
+			this._shapesWillBeDeleted(deletedShapes)
 		}
 
 		this.store.onAfterChange = (prev, next) => {
