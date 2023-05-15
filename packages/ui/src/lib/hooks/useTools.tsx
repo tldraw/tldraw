@@ -74,7 +74,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				label: 'tool.eraser',
 				icon: 'tool-eraser',
 				kbd: 'e',
-				readonlyOk: true,
+				readonlyOk: false,
 				onSelect(source) {
 					app.setSelectedTool('eraser')
 					trackEvent('select-tool', { source, id: 'eraser' })
@@ -83,7 +83,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'draw',
 				label: 'tool.draw',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
 				onSelect(source) {
@@ -94,7 +94,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			...[...TL_GEO_TYPES].map((id) => ({
 				id,
 				label: `tool.${id}` as TLTranslationKey,
-				readonlyOk: true,
+				readonlyOk: false,
 				meta: {
 					geo: id,
 				},
@@ -114,7 +114,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'arrow',
 				label: 'tool.arrow',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-arrow',
 				kbd: 'a',
 				onSelect(source) {
@@ -125,7 +125,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'line',
 				label: 'tool.line',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-line',
 				kbd: 'l',
 				onSelect(source) {
@@ -136,7 +136,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'frame',
 				label: 'tool.frame',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-frame',
 				kbd: 'f',
 				onSelect(source) {
@@ -147,7 +147,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'text',
 				label: 'tool.text',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-text',
 				kbd: 't',
 				onSelect(source) {
@@ -158,7 +158,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'asset',
 				label: 'tool.asset',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-media',
 				kbd: '$u',
 				onSelect(source) {
@@ -169,7 +169,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'note',
 				label: 'tool.note',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-note',
 				kbd: 'n',
 				onSelect(source) {
@@ -180,7 +180,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'embed',
 				label: 'tool.embed',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-embed',
 				onSelect(source) {
 					addDialog({ component: EmbedDialog })
