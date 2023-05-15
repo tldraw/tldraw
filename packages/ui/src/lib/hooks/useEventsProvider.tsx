@@ -12,6 +12,7 @@ export type TLUiEventSource =
 	| 'debug-panel'
 	| 'page-menu'
 	| 'share-menu'
+	| 'export-menu'
 	| 'toolbar'
 	| 'people-menu'
 	| 'dialog'

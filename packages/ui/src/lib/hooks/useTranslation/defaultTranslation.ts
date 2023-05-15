@@ -226,6 +226,7 @@ export const DEFAULT_TRANSLATION = {
 	'share-menu.share-project': 'Share this project',
 	'share-menu.copy-link': 'Copy link',
 	'share-menu.readonly-link': 'Read-only',
+	'share-menu.create-snapshot-link': 'Create snapshot link',
 	'share-menu.copy-readonly-link': 'Copy read-only link',
 	'share-menu.offline-note':
 		'Sharing this project will create a hosted live copy at a new URL. You can share the URL with up to thirty other people to view and edit the project together.',
@@ -234,6 +235,7 @@ export const DEFAULT_TRANSLATION = {
 		'Anyone with the link will be able to view (but not edit) this project.',
 	'share-menu.project-too-large':
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
+	'export-menu.title': 'Export',
 	'people-menu.title': 'People',
 	'people-menu.change-name': 'Change name',
 	'people-menu.change-color': 'Change color',
