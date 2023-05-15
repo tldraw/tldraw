@@ -113,6 +113,9 @@ export type OkResult<T> = {
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;
 
+// @internal (undocumented)
+export function once(target: unknown, key: string, descriptor: PropertyDescriptor): PropertyDescriptor;
+
 // @internal
 export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]];
 

@@ -4,6 +4,7 @@ export {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
+	once,
 	promiseWithResolve,
 	type ErrorResult,
 	type OkResult,

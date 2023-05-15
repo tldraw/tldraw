@@ -56,7 +56,15 @@ import {
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
-import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
+import {
+	annotateError,
+	compact,
+	dedupe,
+	deepCopy,
+	once,
+	partition,
+	structuredClone,
+} from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { atom, computed, EMPTY_ARRAY, transact } from 'signia'
@@ -1541,7 +1549,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _userDocumentSettings() {
+	@once private get _userDocumentSettings() {
 		return this.store.query.record('user_document', () => ({ userId: { eq: this.userId } }))
 	}
 
@@ -1625,7 +1633,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _pageState() {
+	@once private get _pageState() {
 		return this.store.query.record(
 			'instance_page_state',
 			() => {
@@ -1678,7 +1686,7 @@ export class App extends EventEmitter<TLEventMap> {
 	// Pages
 
 	/** @internal */
-	@computed private get _pages() {
+	@once private get _pages() {
 		return this.store.query.records('page')
 	}
 
@@ -1726,7 +1734,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _pageStates() {
+	@once private get _pageStates() {
 		return this.store.query.records('instance_page_state', () => ({
 			instanceId: { eq: this.instanceId },
 		}))
@@ -5217,7 +5225,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _currentUserPresence() {
+	@once private get _currentUserPresence() {
 		return this.store.query.record('user_presence', () => ({ userId: { eq: this.userId } }))
 	}
 
@@ -5332,7 +5340,7 @@ export class App extends EventEmitter<TLEventMap> {
 	/* --------------------- Assets --------------------- */
 
 	/** @internal */
-	@computed private get _assets() {
+	@once private get _assets() {
 		return this.store.query.records('asset')
 	}
 

@@ -58,3 +58,25 @@ export function promiseWithResolve<T>(): Promise<T> & {
 		reject: reject!,
 	})
 }
+
+/** @internal */
+export function once(
+	target: unknown,
+	key: string,
+	descriptor: PropertyDescriptor
+): PropertyDescriptor {
+	const originalMethod = descriptor.get
+	const values = new WeakMap<any, any>()
+
+	descriptor.get = function (this: any) {
+		if (values.has(this)) {
+			return values.get(this)
+		}
+
+		const value = originalMethod!.call(this)
+		values.set(this, value)
+		return value
+	}
+
+	return descriptor
+}
