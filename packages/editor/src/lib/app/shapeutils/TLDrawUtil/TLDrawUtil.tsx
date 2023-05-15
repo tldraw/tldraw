@@ -305,7 +305,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	}
 
 	expandSelectionOutlinePx(shape: TLDrawShape): number {
-		return (this.app.getStrokeWidth(shape.props.size) * 1.6) / 2
+		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
+		return (this.app.getStrokeWidth(shape.props.size) * multiplier) / 2
 	}
 }
 
