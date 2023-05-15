@@ -935,21 +935,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	return <ActionsContext.Provider value={asActions(actions)}>{children}</ActionsContext.Provider>
 }
 
-export function zoomToContents(app: App) {
-	const bounds = app.selectedPageBounds ?? app.allShapesCommonBounds
-
-	if (bounds) {
-		app.zoomToBounds(
-			bounds.minX,
-			bounds.minY,
-			bounds.width,
-			bounds.height,
-			Math.min(1, app.zoomLevel),
-			{ duration: 220 }
-		)
-	}
-}
-
 /** @public */
 export function useActions() {
 	const ctx = React.useContext(ActionsContext)
