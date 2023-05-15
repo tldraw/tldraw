@@ -5,6 +5,7 @@ let app: TestApp
 
 const ids = {
 	box1: createCustomShapeId('box1'),
+	embed1: createCustomShapeId('embed1'),
 }
 
 jest.useFakeTimers()
@@ -349,4 +350,41 @@ describe('When editing shapes', () => {
 	})
 
 	it.todo('restores selection after changing styles')
+})
+
+describe('When in readonly mode', () => {
+	beforeEach(() => {
+		app.createShapes([
+			{
+				id: ids.embed1,
+				type: 'embed',
+				x: 100,
+				y: 100,
+				props: { opacity: '1', w: 100, h: 100, url: '', doesResize: false },
+			},
+		])
+		app.updateUserDocumentSettings({ isReadOnly: true })
+	})
+
+	it('Begins editing embed when double clicked', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.isReadOnly).toBe(true)
+
+		const shape = app.getShapeById(ids.embed1)
+		app.doubleClick(100, 100, { target: 'shape', shape })
+		expect(app.editingId).toBe(ids.embed1)
+	})
+
+	it('Begins editing embed when pressing Enter on a selected embed', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.isReadOnly).toBe(true)
+
+		app.setSelectedIds([ids.embed1])
+		expect(app.selectedIds.length).toBe(1)
+
+		app.keyUp('Enter')
+		expect(app.editingId).toBe(ids.embed1)
+	})
 })
