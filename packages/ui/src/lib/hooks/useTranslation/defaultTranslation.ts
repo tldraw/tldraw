@@ -313,6 +313,12 @@ export const DEFAULT_TRANSLATION = {
 	'file-system.confirm-clear.cancel': 'Cancel',
 	'file-system.confirm-clear.continue': 'Continue',
 	'file-system.confirm-clear.dont-show-again': "Don't ask again",
+	'file-system.confirm-clear-shared.title': 'Leave shared project?',
+	'file-system.confirm-clear-shared.description':
+		'Creating a new project will leave the current project and clear your home project. Are you sure you want to continue?',
+	'file-system.confirm-clear-shared.cancel': 'Cancel',
+	'file-system.confirm-clear-shared.continue': 'Continue',
+	'file-system.confirm-clear-shared.dont-show-again': "Don't ask again",
 	'file-system.shared-document-file-open-error.title': 'Could not open file',
 	'file-system.shared-document-file-open-error.description':
 		'Opening files from shared projects is not supported.',
