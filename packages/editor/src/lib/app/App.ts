@@ -1296,6 +1296,10 @@ export class App extends EventEmitter<TLEventMap> {
 	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
 	// 	return update ?? next
 	// }
+	@computed
+	private get _allPageStates() {
+		return this.store.query.records('instance_page_state')
+	}
 
 	/** @internal */
 	private _shapeWillBeDeleted(deletedShape: TLShape) {
@@ -1312,8 +1316,8 @@ export class App extends EventEmitter<TLEventMap> {
 				this._unbindArrowTerminal(arrow, handleId)
 			}
 		}
+		const pageStates = this._allPageStates.value
 
-		const pageStates = this.store.query.records('instance_page_state').value
 		const deletedIds = new Set([deletedShape.id])
 		const updates = compact(
 			pageStates.map((pageState) => {
