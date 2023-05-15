@@ -275,10 +275,9 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	width: 1px;
-	height: 1px;
 	overflow: visible;
 	pointer-events: none;
+	transform-origin: top left;
 }
 
 /* ------------------- Background ------------------- */
