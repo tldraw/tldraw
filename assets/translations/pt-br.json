@@ -82,7 +82,6 @@
 	"context-menu.export-as": "Exportar como",
 	"context-menu.move-to-page": "Mover para Página",
 	"page-menu.create-new-page": "Criar Página",
-	"page-menu.page": "Página",
 	"page-menu.edit-start": "Editar",
 	"page-menu.submenu.duplicate-page": "Duplicar",
 	"page-menu.submenu.delete": "Deletar",
@@ -91,9 +90,6 @@
 	"help-menu.keyboard-shortcuts": "Atalhos de Teclado",
 	"edit-link-dialog.cancel": "Cancelar",
 	"embed-dialog.cancel": "Cancelar",
-	"edit-pages-dialog.create-new-page": "Criar Página",
-	"edit-pages-dialog.delete": "Deletar",
-	"edit-pages-dialog.duplicate-page": "Duplicar",
 	"shortcuts-dialog.title": "Atalhos de Teclado",
 	"shortcuts-dialog.edit": "Editar",
 	"shortcuts-dialog.file": "Arquivo",
@@ -108,8 +104,6 @@
 	"style-panel.fill": "Preencher",
 	"style-panel.font": "Fonte",
 	"style-panel.size": "Tamanho",
-	"style-panel.text": "Texto",
-	"tool-panel.tools": "Ferramentas",
 	"focus-mode.toggle-focus-mode": "Modo Foco",
 	"file-system.confirm-open.cancel": "Cancelar"
 }

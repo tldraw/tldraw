@@ -103,7 +103,7 @@ function generateSection(
 				author: parsed.data.author
 					? authors[parsed.data.author as keyof typeof authors] ?? null
 					: null,
-				sourceUrl: `https://github.com/tldraw/tldraw-lite/tree/main/apps/docs/content/${section.id}/${articleId}${extension}`,
+				sourceUrl: `https://github.com/tldraw/tldraw/tree/main/apps/docs/content/${section.id}/${articleId}${extension}`,
 			}
 
 			if (article.id === section.id) {

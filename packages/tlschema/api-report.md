@@ -88,6 +88,9 @@ export function createAssetValidator<Type extends string, Props extends object>(
 // @public (undocumented)
 export function createCustomShapeId(id: string): TLShapeId;
 
+// @internal (undocumented)
+export function createIntegrityChecker(store: TLStore): () => void;
+
 // @public (undocumented)
 export function createShapeId(): TLShapeId;
 
@@ -335,9 +338,6 @@ export const embedShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape>;
-
-// @internal (undocumented)
-export function ensureStoreIsUsable(store: TLStore): void;
 
 // @internal (undocumented)
 export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;

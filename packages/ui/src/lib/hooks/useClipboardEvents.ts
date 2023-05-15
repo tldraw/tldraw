@@ -40,6 +40,7 @@ import { compact, isNonNull } from '@tldraw/utils'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { useAppIsFocused } from './useAppIsFocused'
+import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 /** @public */
 export type EmbedInfo = {
@@ -967,24 +968,29 @@ const handleNativeClipboardPaste = async (
 }
 
 /** @public */
-export function useMenuClipboardEvents() {
+export function useMenuClipboardEvents(source: TLUiEventSource) {
 	const app = useApp()
+	const trackEvent = useEvents()
 
 	const copy = useCallback(
 		function onCopy() {
 			if (app.selectedIds.length === 0) return
+
 			handleMenuCopy(app)
+			trackEvent('copy', { source })
 		},
-		[app]
+		[app, trackEvent, source]
 	)
 
 	const cut = useCallback(
 		function onCut() {
 			if (app.selectedIds.length === 0) return
+
 			handleMenuCopy(app)
 			app.deleteShapes()
+			trackEvent('cut', { source })
 		},
-		[app]
+		[app, trackEvent, source]
 	)
 
 	const paste = useCallback(
@@ -1000,8 +1006,10 @@ export function useMenuClipboardEvents() {
 			// else {
 			// 	handleScenePaste(app, point)
 			// }
+
+			trackEvent('paste', { source: 'menu' })
 		},
-		[app]
+		[app, trackEvent]
 	)
 
 	return {
@@ -1014,6 +1022,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const app = useApp()
+	const trackEvent = useEvents()
 
 	const appIsFocused = useAppIsFocused()
 
@@ -1023,6 +1032,7 @@ export function useNativeClipboardEvents() {
 			if (app.selectedIds.length === 0 || app.editingId !== null || disallowClipboardEvents(app))
 				return
 			handleMenuCopy(app)
+			trackEvent('copy', { source: 'kbd' })
 		}
 
 		function cut() {
@@ -1030,12 +1040,13 @@ export function useNativeClipboardEvents() {
 				return
 			handleMenuCopy(app)
 			app.deleteShapes()
+			trackEvent('cut', { source: 'kbd' })
 		}
 
-		const paste = (event: ClipboardEvent) => {
+		const paste = (e: ClipboardEvent) => {
 			if (app.editingId !== null || disallowClipboardEvents(app)) return
-			if (event.clipboardData && !app.inputs.shiftKey) {
-				handleNativeDataTransferPaste(app, event.clipboardData)
+			if (e.clipboardData && !app.inputs.shiftKey) {
+				handleNativeDataTransferPaste(app, e.clipboardData)
 			} else {
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
@@ -1043,6 +1054,7 @@ export function useNativeClipboardEvents() {
 					}
 				})
 			}
+			trackEvent('paste', { source: 'kbd' })
 		}
 
 		document.addEventListener('copy', copy)
@@ -1054,5 +1066,5 @@ export function useNativeClipboardEvents() {
 			document.removeEventListener('cut', cut)
 			document.removeEventListener('paste', paste)
 		}
-	}, [app, appIsFocused])
+	}, [app, trackEvent, appIsFocused])
 }

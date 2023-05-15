@@ -70,9 +70,6 @@
 	"share-menu.copy-link": "Copiar Link de Convite",
 	"edit-link-dialog.cancel": "Cancelar",
 	"embed-dialog.cancel": "Cancelar",
-	"edit-pages-dialog.create-new-page": "Criar Página",
-	"edit-pages-dialog.delete": "Apagar",
-	"edit-pages-dialog.duplicate-page": "Duplicar",
 	"shortcuts-dialog.edit": "Editar",
 	"shortcuts-dialog.file": "Ficheiro",
 	"shortcuts-dialog.preferences": "Preferências",
@@ -84,7 +81,6 @@
 	"style-panel.fill": "Preencher",
 	"style-panel.font": "Fonte",
 	"style-panel.size": "Tamanho",
-	"style-panel.text": "Texto",
 	"focus-mode.toggle-focus-mode": "Modo Foco",
 	"file-system.confirm-open.cancel": "Cancelar"
 }

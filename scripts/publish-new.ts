@@ -8,7 +8,7 @@ async function main() {
 		plugins: ['npm'],
 		baseBranch: 'main',
 		owner: 'tldraw',
-		repo: 'tldraw-lite',
+		repo: 'tldraw',
 		verbose: true,
 	})
 

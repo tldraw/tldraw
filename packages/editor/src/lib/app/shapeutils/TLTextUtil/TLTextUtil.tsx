@@ -263,7 +263,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			props: { text },
 		} = shape
 
-		const trimmedText = shape.props.text.trim()
+		const trimmedText = shape.props.text.trimEnd()
 
 		if (trimmedText.length === 0) {
 			this.app.deleteShapes([shape.id])
@@ -274,7 +274,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 						id,
 						type,
 						props: {
-							text: text.trim(),
+							text: text.trimEnd(),
 						},
 					},
 				])

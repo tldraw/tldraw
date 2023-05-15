@@ -25,7 +25,7 @@ export const EditLinkDialog = track(function EditLink({ onClose }: DialogProps) 
 
 	const selectedShape = app.onlySelectedShape
 
-	const [validState, setIsValid] = useState(valiateUrl(selectedShape?.props.url))
+	const [validState, setValid] = useState(valiateUrl(selectedShape?.props.url))
 
 	const rInitialValue = useRef(selectedShape?.props.url)
 
@@ -46,7 +46,7 @@ export const EditLinkDialog = track(function EditLink({ onClose }: DialogProps) 
 		setUrlValue(value)
 
 		const validStateUrl = valiateUrl(value.trim())
-		setIsValid((s) => (s === validStateUrl ? s : validStateUrl))
+		setValid((s) => (s === validStateUrl ? s : validStateUrl))
 		if (validStateUrl) {
 			rValue.current = value
 		}

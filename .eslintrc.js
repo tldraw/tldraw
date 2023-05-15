@@ -43,6 +43,7 @@ module.exports = {
 			{ fixMixedExportsWithInlineTypeSpecifier: true },
 		],
 		'local/no-export-star': 'error',
+		'no-only-tests/no-only-tests': 'error',
 	},
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
@@ -55,7 +56,6 @@ module.exports = {
 			rules: {
 				'@typescript-eslint/explicit-module-boundary-types': [0],
 				'no-console': ['error', { allow: ['warn', 'error'] }],
-				'no-only-tests/no-only-tests': ['error', { fix: true }],
 			},
 		},
 		{

@@ -1,27 +1,31 @@
 import { useApp } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
+import { useEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const app = useApp()
 	const rIsOpen = useRef(false)
+	const trackEvent = useEvents()
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
 			rIsOpen.current = isOpen
-			if (isOpen) {
-				app.complete()
-				app.openMenus.add(id)
-			} else {
-				app.openMenus.delete(id)
-				app.openMenus.forEach((menuId) => {
-					if (menuId.startsWith(id)) {
-						app.openMenus.delete(menuId)
-					}
-				})
-			}
+			app.batch(() => {
+				if (isOpen) {
+					app.complete()
+					app.addOpenMenu(id)
+				} else {
+					app.deleteOpenMenu(id)
+					app.openMenus.forEach((menuId) => {
+						if (menuId.startsWith(id)) {
+							app.deleteOpenMenu(menuId)
+						}
+					})
+				}
 
-			cb?.(isOpen)
+				cb?.(isOpen)
+			})
 		},
 		[app, id, cb]
 	)
@@ -36,25 +40,27 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// hook but it's necessary to handle the case where the
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
-			app.openMenus.add(id)
+			trackEvent('open-menu', { source: 'unknown', id })
+			app.addOpenMenu(id)
 		}
 
 		return () => {
 			if (rIsOpen.current) {
 				// Close menu on unmount
-				app.openMenus.delete(id)
+				app.deleteOpenMenu(id)
 
 				// Close menu and all submenus when the parent is closed
 				app.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
-						app.openMenus.delete(menuId)
+						trackEvent('close-menu', { source: 'unknown', id })
+						app.deleteOpenMenu(menuId)
 					}
 				})
 
 				rIsOpen.current = false
 			}
 		}
-	}, [app, id])
+	}, [app, id, trackEvent])
 
 	return onOpenChange
 }

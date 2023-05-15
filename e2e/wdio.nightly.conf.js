@@ -1,4 +1,4 @@
-const BUILD_NAME = `test-suite-${new Date().toISOString()}`
+const { BUILD_NAME, logBrowserstackUrl } = require('./wdio.util')
 
 global.webdriverService = 'browserstack'
 global.webdriverTestUrl = 'http://localhost:5420/'
@@ -13,6 +13,12 @@ exports.config = {
 			'browserstack',
 			{
 				browserstackLocal: true,
+				testObservability: true,
+				testObservabilityOptions: {
+					projectName: 'tldraw',
+					buildName: BUILD_NAME,
+					buildTag: process.env.GITHUB_SHA || 'local',
+				},
 				opts: {
 					verbose: 'true',
 				},
@@ -233,7 +239,7 @@ exports.config = {
 				acceptInsecureCerts: true,
 				'bstack:options': {
 					...capability['bstack:options'],
-					projectName: 'smoke-tests',
+					projectName: 'tldraw',
 					buildName: BUILD_NAME,
 					consoleLogs: 'verbose',
 				},
@@ -268,6 +274,9 @@ exports.config = {
 	connectionRetryCount: 3,
 	beforeSession: (_config, capabilities) => {
 		global.tldrawOptions = capabilities['tldraw:options']
+	},
+	afterSession: async (_config, capabilities, _specs) => {
+		await logBrowserstackUrl()
 	},
 	autoCompileOpts: {
 		autoCompile: true,

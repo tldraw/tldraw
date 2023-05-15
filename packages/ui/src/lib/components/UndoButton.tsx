@@ -18,7 +18,7 @@ export const UndoButton = memo(function UndoButton() {
 			icon={undo.icon}
 			title={`${msg(undo.label!)} ${kbdStr(undo.kbd!)}`}
 			disabled={!canUndo}
-			onClick={undo.onSelect}
+			onClick={() => undo.onSelect('quick-actions')}
 			smallIcon
 		/>
 	)

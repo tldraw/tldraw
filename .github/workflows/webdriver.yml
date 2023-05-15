@@ -1,0 +1,67 @@
+name: Webdriver checks
+
+on:
+  merge_group:
+  pull_request:
+    branches: [main, production]
+  push:
+    branches: [main, production]
+
+jobs:
+  test:
+    name: 'test/standalone-${{ matrix.browser }} (${{ matrix.os }})'
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest-16-cores-open]
+        node-version: [16]
+        browser: [chrome]
+        browser-version: ['111.0']
+
+    container:
+      image: node:${{ matrix.node-version }}
+      options: --network-alias testhost
+      volumes:
+        - /home/runner/work/_temp/e2e:/home/runner/work/_temp/e2e
+
+    services:
+      selenium:
+        image: selenium/standalone-${{ matrix.browser }}:${{ matrix.browser-version }}
+        ports:
+          - 4444:4444
+        options: --shm-size=2gb
+        volumes:
+          - /home/runner/work/_temp/e2e/:/home/seluser/files
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: 'public-yarn.lock'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - run: DOCKER_HOST=selenium yarn e2e test:ci local
+        env:
+          CI: true
+          DOWNLOADS_DIR: /home/runner/work/_temp/e2e/
+          BROWSER: ${{ matrix.browser }}
+          TEST_URL: "https://testhost:5421"
+          GH_EVENT_NAME: ${{ github.event_name }}
+          GH_PR_NUMBER: ${{ github.pull_request.number }}
+
+

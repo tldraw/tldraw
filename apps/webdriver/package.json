@@ -25,7 +25,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev-webdriver": "concurrently --names \"tsc,esbuild\" \"yarn run -T tsx ../../scripts/typecheck.ts --build --watch --preserveWatchOutput\" \"node ./scripts/dev.mjs\"",
+		"dev": "concurrently --names \"tsc,esbuild\" \"yarn run -T tsx ../../scripts/typecheck.ts --build --watch --preserveWatchOutput\" \"node ./scripts/dev.mjs\"",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"devDependencies": {

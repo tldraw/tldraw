@@ -70,9 +70,6 @@
 	"share-menu.copy-link": "העתק קישור הזמנה",
 	"edit-link-dialog.cancel": "בטל",
 	"embed-dialog.cancel": "בטל",
-	"edit-pages-dialog.create-new-page": "צור דף",
-	"edit-pages-dialog.delete": "מחק",
-	"edit-pages-dialog.duplicate-page": "שכפל",
 	"shortcuts-dialog.edit": "עריכה",
 	"shortcuts-dialog.file": "קובץ",
 	"shortcuts-dialog.preferences": "מאפיינים",
@@ -84,7 +81,6 @@
 	"style-panel.fill": "מלא",
 	"style-panel.font": "גופן",
 	"style-panel.size": "גודל",
-	"style-panel.text": "טקסט",
 	"focus-mode.toggle-focus-mode": "מצב פוקוס",
 	"file-system.confirm-open.cancel": "בטל"
 }

@@ -61,7 +61,7 @@ function ContextMenuContent() {
 	const handleSubOpenChange = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents()
+	const { paste } = useMenuClipboardEvents('context-menu')
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
@@ -164,7 +164,7 @@ function ContextMenuContent() {
 							dir="ltr"
 							disabled={item.disabled}
 							onSelect={(e) => {
-								onSelect()
+								onSelect('context-menu')
 								preventDefault(e)
 							}}
 							title={labelStr ? labelStr : undefined}
@@ -199,7 +199,7 @@ function ContextMenuContent() {
 								if (disableClicks) {
 									setDisableClicks(false)
 								} else {
-									onSelect()
+									onSelect('context-menu')
 								}
 							}}
 						/>

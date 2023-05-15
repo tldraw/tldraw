@@ -324,13 +324,13 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			props: { text },
 		} = shape
 
-		if (text.trim() !== shape.props.text) {
+		if (text.trimEnd() !== shape.props.text) {
 			this.app.updateShapes([
 				{
 					id,
 					type,
 					props: {
-						text: text.trim(),
+						text: text.trimEnd(),
 					},
 				},
 			])
@@ -808,8 +808,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 	}
 
 	onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
-		const prevText = prev.props.text.trim()
-		const nextText = next.props.text.trim()
+		const prevText = prev.props.text.trimEnd()
+		const nextText = next.props.text.trimEnd()
 
 		if (
 			prevText === nextText &&
@@ -876,7 +876,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				props: {
 					...next.props,
 					growY,
-					w: nextWidth,
+					w: Math.max(next.props.w, nextWidth),
 				},
 			}
 		}
@@ -921,7 +921,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 }
 
 function getLabelSize(app: App, shape: TLGeoShape) {
-	const text = shape.props.text.trim()
+	const text = shape.props.text.trimEnd()
 
 	if (!text) {
 		return { w: 0, h: 0 }

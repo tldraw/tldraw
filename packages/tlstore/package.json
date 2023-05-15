@@ -33,7 +33,7 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
-		"build-package": "yarn run -T tsx ../../scripts/build-package.ts",
+		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",
 		"prepack": "yarn run -T tsx ../../scripts/prepack.ts",
 		"postpack": "../../scripts/postpack.sh",
@@ -43,7 +43,7 @@
 	"dependencies": {
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",
-		"nanoid": "^3.0.0"
+		"nanoid": "4.0.2"
 	},
 	"peerDependencies": {
 		"signia": "*"

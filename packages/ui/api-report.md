@@ -39,7 +39,7 @@ export interface ActionItem {
     // (undocumented)
     menuLabel?: TLTranslationKey;
     // (undocumented)
-    onSelect: () => Promise<void> | void;
+    onSelect: (source: TLUiEventSource) => Promise<void> | void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
@@ -309,6 +309,12 @@ export type EmbedInfo = {
 
 // @public (undocumented)
 export const EN_TRANSLATION: TLTranslation;
+
+// @public (undocumented)
+export type EventsProviderProps = {
+    onEvent?: TLUiEventHandler;
+    children: any;
+};
 
 // @public (undocumented)
 export function fetchTranslation(locale: TLTranslationLocale, assetUrls: UiAssetUrls): Promise<TLTranslation>;
@@ -636,7 +642,7 @@ export const TldrawUi: React_2.NamedExoticComponent<{
 export const TldrawUiContent: React_2.NamedExoticComponent<TldrawUiContentProps>;
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, children, }: TldrawUiContextProviderProps): JSX.Element;
+export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
 
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
@@ -644,6 +650,8 @@ export interface TldrawUiContextProviderProps {
     assetUrls?: UiAssetUrls;
     // (undocumented)
     children?: any;
+    // (undocumented)
+    onUiEvent?: TLUiEventHandler;
     // (undocumented)
     overrides?: TldrawUiOverrides | TldrawUiOverrides[];
 }
@@ -727,6 +735,14 @@ export type TLTranslationMessages = Record<TLTranslationKey, string>;
 export type TLTranslations = TLTranslation[];
 
 // @public (undocumented)
+export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (name: T, data: Join<{
+    source: TLUiEventSource;
+}, TLUiEventMap[T]>) => void;
+
+// @public (undocumented)
+export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 'dialog' | 'export-menu' | 'help-menu' | 'helper-buttons' | 'kbd' | 'menu' | 'navigation-zone' | 'page-menu' | 'people-menu' | 'quick-actions' | 'share-menu' | 'toolbar' | 'unknown' | 'zoom-menu';
+
+// @public (undocumented)
 export type TLUiIconType = 'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlighter' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
 
 // @public (undocumented)
@@ -797,7 +813,7 @@ export interface ToolItem {
         [key: string]: any;
     };
     // (undocumented)
-    onSelect: () => void;
+    onSelect: (source: TLUiEventSource) => void;
     // (undocumented)
     readonlyOk: boolean;
     // (undocumented)
@@ -892,6 +908,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): DialogsContextType;
+
+// @public (undocumented)
+export function useEvents(): TLUiEventHandler<keyof TLUiEventMap>;
 
 // @public (undocumented)
 export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
@@ -1017,7 +1036,7 @@ export function useLanguages(): {
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
 
 // @public (undocumented)
-export function useMenuClipboardEvents(): {
+export function useMenuClipboardEvents(source: TLUiEventSource): {
     copy: () => void;
     cut: () => void;
     paste: (data: ClipboardItem[] | DataTransfer, point?: VecLike) => Promise<void>;
