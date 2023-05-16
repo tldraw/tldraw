@@ -226,10 +226,12 @@ export const DEFAULT_TRANSLATION = {
 	'share-menu.share-project': 'Share this project',
 	'share-menu.copy-link': 'Copy link',
 	'share-menu.readonly-link': 'Read-only',
-	'share-menu.create-snapshot-link': 'Create snapshot link',
+	'share-menu.create-snapshot-link': 'Copy a snapshot link',
+	'share-menu.snapshot-link-note':
+		"Capture and share your project's current state as a read-only link.",
 	'share-menu.copy-readonly-link': 'Copy read-only link',
 	'share-menu.offline-note':
-		'Sharing this project will create a hosted live copy at a new URL. You can share the URL with up to thirty other people to view and edit the project together.',
+		'Create a public collaborative copy of your project hosted at a new URL.',
 	'share-menu.copy-link-note': 'Anyone with the link will be able to view and edit this project.',
 	'share-menu.copy-readonly-link-note':
 		'Anyone with the link will be able to view (but not edit) this project.',

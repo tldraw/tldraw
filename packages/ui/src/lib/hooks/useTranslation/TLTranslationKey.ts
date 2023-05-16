@@ -227,6 +227,7 @@ export type TLTranslationKey =
 	| 'share-menu.copy-link'
 	| 'share-menu.readonly-link'
 	| 'share-menu.create-snapshot-link'
+	| 'share-menu.snapshot-link-note'
 	| 'share-menu.copy-readonly-link'
 	| 'share-menu.offline-note'
 	| 'share-menu.copy-link-note'

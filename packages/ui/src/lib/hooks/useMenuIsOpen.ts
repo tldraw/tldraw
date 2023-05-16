@@ -1,5 +1,6 @@
 import { useApp } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
+import { useValue } from 'signia-react'
 import { useEvents } from './useEventsProvider'
 
 /** @public */
@@ -62,5 +63,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		}
 	}, [app, id, trackEvent])
 
-	return onOpenChange
+	const isOpen = useValue('is menu open', () => app.openMenus.includes(id), [app, id])
+
+	return [isOpen, onOpenChange] as const
 }
