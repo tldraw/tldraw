@@ -848,7 +848,7 @@ input,
 .tl-bookmark__heading,
 .tl-bookmark__description,
 .tl-bookmark__link {
-	margin: 0;
+	margin: 0px;
 	width: 100%;
 	font-family: inherit;
 }
@@ -857,7 +857,7 @@ input,
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 4px 0;
+	margin: 4px 0px;
 }
 
 .tl-bookmark__description {
@@ -1404,7 +1404,7 @@ input,
 .tl-error-boundary__canvas {
 	pointer-events: none;
 	position: absolute;
-	inset: 0;
+	inset: 0px;
 	z-index: -1;
 }
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1414,7 +1414,7 @@ it from receiving any pointer events or affecting the cursor. */
 	content: ' ';
 	display: block;
 	position: absolute;
-	inset: 0;
+	inset: 0px;
 	z-index: 600;
 	pointer-events: auto;
 }
@@ -1449,7 +1449,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-error-boundary__content p {
 	line-height: 1.5;
-	margin: 0;
+	margin: 0px;
 }
 
 .tl-error-boundary__content pre {
@@ -1459,7 +1459,7 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-	margin: 0;
+	margin: 0px;
 }
 
 .tl-error-boundary__content button {
@@ -1505,7 +1505,7 @@ it from receiving any pointer events or affecting the cursor. */
 	justify-content: space-between;
 	gap: var(--space-4);
 	margin: calc(var(--space-4) * -1);
-	margin-top: 0;
+	margin-top: 0px;
 }
 .tl-error-boundary__content__actions__group {
 	display: flex;
