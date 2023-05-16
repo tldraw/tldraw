@@ -73,7 +73,7 @@ export const SelectionFg = track(function SelectionFg() {
 		(onlyShape ? !app.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
 		!isChangingStyles
 
-	const shouldDisplayBox =
+	let shouldDisplayBox =
 		(showSelectionBounds &&
 			app.isInAny(
 				'select.idle',
@@ -85,10 +85,16 @@ export const SelectionFg = track(function SelectionFg() {
 				'select.crop.idle',
 				'select.crop.pointing_crop',
 				'select.pointing_resize_handle',
-				'select.pointing_crop_handle'
+				'select.pointing_crop_handle',
+				'select.editing_shape'
 			)) ||
-		(IS_FIREFOX ? false : app.isIn('select.editing_shape')) ||
 		(showSelectionBounds && app.isIn('select.resizing') && onlyShape && shapes[0].type === 'text')
+
+	if (IS_FIREFOX && shouldDisplayBox) {
+		if (app.onlySelectedShape?.type === 'embed') {
+			shouldDisplayBox = false
+		}
+	}
 
 	const showCropHandles =
 		app.isInAny('select.pointing_crop_handle', 'select.crop.idle', 'select.crop.pointing_crop') &&
