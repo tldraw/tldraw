@@ -1558,7 +1558,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setGridMode(isGridMode: boolean): this {
-		if (isGridMode === this.isGridMode) {
+		if (isGridMode !== this.isGridMode) {
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
 		return this
