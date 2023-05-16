@@ -162,7 +162,7 @@ export const SelectionFg = track(function SelectionFg() {
 		textHandleHeight * zoom >= 4
 
 	return (
-		<svg className="tl-svg-origin-container" ref={rSvg}>
+		<svg className="tl-overlays__item" ref={rSvg}>
 			<g data-wd="selection-foreground" className="tlui-selection__fg">
 				<rect
 					className={classNames('tlui-selection__fg__outline', { 'tl-hidden': !shouldDisplayBox })}

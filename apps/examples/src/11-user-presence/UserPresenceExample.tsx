@@ -3,6 +3,11 @@ import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
 
+const SHOW_MOVING_CURSOR = false
+const CURSOR_SPEED = 0.1
+const CIRCLE_RADIUS = 100
+const UPDATE_FPS = 60
+
 export default function UserPresenceExample() {
 	const rTimeout = useRef<any>(-1)
 	return (
@@ -17,6 +22,7 @@ export default function UserPresenceExample() {
 					// we're having to create these ourselves.
 
 					const userId = TLUser.createCustomId('user-1')
+
 					const user = TLUser.create({
 						id: userId,
 						name: 'User 1',
@@ -48,22 +54,34 @@ export default function UserPresenceExample() {
 						clearTimeout(rTimeout.current)
 					}
 
-					rTimeout.current = setInterval(() => {
-						const SPEED = 0.1
-						const R = 400
-						const k = 1000 / SPEED
-						const t = (Date.now() % k) / k
-						// rotate in a circle
-						const x = Math.cos(t * Math.PI * 2) * R
-						const y = Math.sin(t * Math.PI * 2) * R
+					if (SHOW_MOVING_CURSOR) {
+						rTimeout.current = setInterval(() => {
+							const k = 1000 / CURSOR_SPEED
+							const now = Date.now()
+							const t = (now % k) / k
+							// rotate in a circle
+							app.store.put([
+								{
+									...userPresence,
+									cursor: {
+										x: Math.cos(t * Math.PI * 2) * CIRCLE_RADIUS,
+										y: Math.sin(t * Math.PI * 2) * CIRCLE_RADIUS,
+									},
+									lastActivityTimestamp: now,
+								},
+							])
+						}, 1000 / UPDATE_FPS)
+					} else {
 						app.store.put([
-							{
-								...userPresence,
-								cursor: { x, y },
-								lastActivityTimestamp: Date.now(),
-							},
+							{ ...userPresence, cursor: { x: 0, y: 0 }, lastActivityTimestamp: Date.now() },
 						])
-					}, 100)
+
+						rTimeout.current = setInterval(() => {
+							app.store.put([
+								{ ...userPresence, cursor: { x: 0, y: 0 }, lastActivityTimestamp: Date.now() },
+							])
+						}, 1000)
+					}
 				}}
 			/>
 		</div>

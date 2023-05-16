@@ -271,7 +271,7 @@ input,
 	pointer-events: none;
 }
 
-.tl-svg-origin-container {
+.tl-overlays__item {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -399,16 +399,70 @@ input,
 	color: inherit;
 }
 
+/* --------------- Overlay Stack --------------- */
+
+/* back of the stack, behind user's stuff */
+.tl-collaborator__scribble {
+	z-index: 10;
+}
+
+.tl-collaborator__brush {
+	z-index: 11;
+}
+
+.tl-collaborator__shape-indicator {
+	z-index: 12;
+}
+
+.tl-user-handles {
+	z-index: 50;
+}
+
+.tl-user-scribble {
+	z-index: 52;
+}
+
+.tl-user-brush {
+	z-index: 51;
+}
+
+.tl-user-indicator__selected {
+	z-index: 51;
+}
+
+.tl-user-indicator__hovered {
+	z-index: 52;
+}
+
+.tl-user-snapline {
+	z-index: 53;
+}
+
+.tlui-selection__fg {
+	pointer-events: none;
+	z-index: 54;
+}
+
+.tl-user-indicator__hint {
+	z-index: 55;
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 56;
+}
+
+.tl-collaborator__cursor {
+	z-index: 57;
+}
+
 /* -------------------- Indicator ------------------- */
 
 .tl-shape-indicator {
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
-}
-
-.tl-shape-indicator__hinting {
-	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -420,10 +474,6 @@ input,
 	transform-origin: top left;
 	background-color: transparent;
 	pointer-events: all;
-}
-
-.tlui-selection__fg {
-	pointer-events: none;
 }
 
 .tlui-selection__fg__outline {

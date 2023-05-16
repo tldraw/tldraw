@@ -1,22 +1,25 @@
 import { Vec2dModel } from '@tldraw/tlschema'
-import { memo } from 'react'
+import classNames from 'classnames'
+import { memo, useRef } from 'react'
+import { useTransform } from '../hooks/useTransform'
 
 /** @public */
 export type TLCursorComponent = (props: {
+	className?: string
 	point: Vec2dModel | null
 	zoom: number
 	color?: string
 	name: string | null
 }) => any | null
 
-const _Cursor: TLCursorComponent = ({ zoom, point, color, name }) => {
+const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name }) => {
+	const rDiv = useRef<HTMLDivElement>(null)
+	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
+
 	if (!point) return null
 
 	return (
-		<div
-			className="tl-cursor"
-			style={{ transform: `translate(${point.x}px, ${point.y}px) scale(${1 / zoom})` }}
-		>
+		<div ref={rDiv} className={classNames('tl-overlays__item', className)}>
 			<svg>
 				<use href="#cursor" color={color} />
 			</svg>
