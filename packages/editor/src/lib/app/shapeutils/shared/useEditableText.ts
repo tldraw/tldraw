@@ -135,7 +135,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting
-			const untabbedText = text.replace(/\t/g, '  ')
+			const untabbedText = text.replace(/\t/g, TextHelpers.INDENT)
 			if (untabbedText !== text) {
 				const selectionStart = e.currentTarget.selectionStart
 				e.currentTarget.value = untabbedText
