@@ -156,7 +156,7 @@ const pastePlainText = async (app: App, text: string, point?: VecLike) => {
 		width: 'fit-content',
 	})
 
-	app.mark('paste') //hi
+	app.mark('paste')
 	app.createShapes([
 		{
 			id: createShapeId(),
