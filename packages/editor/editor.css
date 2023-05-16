@@ -262,15 +262,6 @@ input,
 	z-index: 2;
 }
 
-.tl-svg-context {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	height: 1px;
-	width: 1px;
-	pointer-events: none;
-}
-
 .tl-overlays__item {
 	position: absolute;
 	top: 0px;
@@ -278,6 +269,15 @@ input,
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
+}
+
+.tl-svg-context {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	height: 1px;
+	width: 1px;
+	pointer-events: none;
 }
 
 /* ------------------- Background ------------------- */
@@ -455,6 +455,10 @@ input,
 
 .tl-collaborator__cursor {
 	z-index: 57;
+}
+
+.tl-cursor {
+	overflow: visible;
 }
 
 /* -------------------- Indicator ------------------- */

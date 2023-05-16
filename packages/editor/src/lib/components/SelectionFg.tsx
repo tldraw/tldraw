@@ -84,13 +84,8 @@ export const SelectionFg = track(function SelectionFg() {
 				'select.pointing_resize_handle',
 				'select.pointing_crop_handle'
 			)) ||
-		IS_FIREFOX
-			? false
-			: app.isIn('select.editing_shape') ||
-			  (showSelectionBounds &&
-					app.isIn('select.resizing') &&
-					onlyShape &&
-					shapes[0].type === 'text')
+		(IS_FIREFOX ? false : app.isIn('select.editing_shape')) ||
+		(showSelectionBounds && app.isIn('select.resizing') && onlyShape && shapes[0].type === 'text')
 
 	const showCropHandles =
 		app.isInAny('select.pointing_crop_handle', 'select.crop.idle', 'select.crop.pointing_crop') &&
@@ -175,7 +170,6 @@ export const SelectionFg = track(function SelectionFg() {
 					className={classNames('tl-selection__fg__outline')}
 					width={toDomPrecision(width)}
 					height={toDomPrecision(height)}
-					pointerEvents="none"
 				/>
 			)}
 			<RotateCornerHandle

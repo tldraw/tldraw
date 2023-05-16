@@ -20,7 +20,7 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name }) => 
 
 	return (
 		<div ref={rDiv} className={classNames('tl-overlays__item', className)}>
-			<svg>
+			<svg className="tl-cursor">
 				<use href="#cursor" color={color} />
 			</svg>
 			{name !== null && name !== '' && (
