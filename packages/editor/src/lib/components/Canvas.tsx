@@ -119,15 +119,15 @@ export const Canvas = track(function Canvas({
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					<ScribbleWrapper />
+					<HandlesWrapper />
 					<BrushWrapper />
+					<ScribbleWrapper />
 					<ZoomBrushWrapper />
 					<SelectedIdIndicators />
 					<HoveredShapeIndicator />
-					<SelectionFg />
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
-					<HandlesWrapper />
+					<SelectionFg />
 					{debugFlags.newLiveCollaborators.value ? (
 						<LiveCollaboratorsNext />
 					) : (
@@ -162,7 +162,7 @@ const ScribbleWrapper = track(function ScribbleWrapper() {
 
 	if (!(Scribble && scribble)) return null
 
-	return <Scribble scribble={scribble} zoom={zoom} />
+	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoom} />
 })
 
 const BrushWrapper = track(function BrushWrapper() {
@@ -172,7 +172,7 @@ const BrushWrapper = track(function BrushWrapper() {
 
 	if (!(Brush && brush && app.isIn('select.brushing'))) return null
 
-	return <Brush brush={brush} />
+	return <Brush className="tl-user-brush" brush={brush} />
 })
 
 export const ZoomBrushWrapper = track(function Zoom() {
@@ -182,7 +182,7 @@ export const ZoomBrushWrapper = track(function Zoom() {
 
 	if (!(ZoomBrush && zoomBrush && app.isIn('zoom'))) return null
 
-	return <ZoomBrush brush={zoomBrush} />
+	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
 })
 
 export const SnapLinesWrapper = track(function SnapLines() {
@@ -198,7 +198,7 @@ export const SnapLinesWrapper = track(function SnapLines() {
 	return (
 		<>
 			{lines.map((line) => (
-				<SnapLine line={line} key={line.id} zoom={zoomLevel} />
+				<SnapLine key={line.id} className="tl-user-snapline" line={line} zoom={zoomLevel} />
 			))}
 		</>
 	)
@@ -248,7 +248,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
-		<svg className="tl-svg-origin-container">
+		<svg className="tl-user-handles tl-overlays__item">
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
 					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
@@ -317,7 +317,7 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 	return (
 		<>
 			{app.selectedIds.map((id) => (
-				<ShapeIndicator key={id + '_indicator'} id={id} />
+				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
 	)
@@ -334,7 +334,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 
 	if (!displayingHoveredId) return null
 
-	return <ShapeIndicator id={displayingHoveredId} />
+	return <ShapeIndicator className="tl-user-indicator__hovered" id={displayingHoveredId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
@@ -347,7 +347,7 @@ const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	return (
 		<>
 			{ids.map((id) => (
-				<ShapeIndicator id={id} key={id + '_hinting'} isHinting />
+				<ShapeIndicator className="tl-user-indicator__hint" id={id} key={id + '_hinting'} />
 			))}
 		</>
 	)
@@ -373,7 +373,7 @@ function Cursor() {
 }
 
 function CollaboratorHint() {
-	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" opacity=".8" />
+	return <path id="cursor_hint" fill="currentColor" d="M -2,-5 2,0 -2,5 Z" />
 }
 
 function ArrowheadDot() {
