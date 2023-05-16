@@ -8,6 +8,8 @@ import { useSelectionEvents } from '../hooks/useSelectionEvents'
 import { useTransform } from '../hooks/useTransform'
 import { CropHandles } from './CropHandles'
 
+const IS_FIREFOX = navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+
 export const SelectionFg = track(function SelectionFg() {
 	const app = useApp()
 	const rSvg = useRef<SVGSVGElement>(null)
@@ -82,7 +84,13 @@ export const SelectionFg = track(function SelectionFg() {
 				'select.pointing_resize_handle',
 				'select.pointing_crop_handle'
 			)) ||
-		(showSelectionBounds && app.isIn('select.resizing') && onlyShape && shapes[0].type === 'text')
+		IS_FIREFOX
+			? false
+			: app.isIn('select.editing_shape') ||
+			  (showSelectionBounds &&
+					app.isIn('select.resizing') &&
+					onlyShape &&
+					shapes[0].type === 'text')
 
 	const showCropHandles =
 		app.isInAny('select.pointing_crop_handle', 'select.crop.idle', 'select.crop.pointing_crop') &&
