@@ -15,6 +15,7 @@ import {
 	isSvgText,
 	isValidHttpURL,
 	TEXT_PROPS,
+	TextHelpers,
 	TLAlignType,
 	TLArrowheadType,
 	TLArrowShapeDef,
@@ -144,16 +145,18 @@ const pastePlainText = async (app: App, text: string, point?: VecLike) => {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 	const defaultProps = app.getShapeUtilByDef(TLTextShapeDef).defaultProps()
 
+	const cleanText = TextHelpers.normalizeText(stripHtml(text)).replace(/\t/g, TextHelpers.INDENT)
+
 	// Measure the text with default values
 	const { w, h } = app.textMeasure.measureText({
 		...TEXT_PROPS,
-		text: stripHtml(text),
+		text: cleanText,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
 		width: 'fit-content',
 	})
 
-	app.mark('paste')
+	app.mark('paste') //hi
 	app.createShapes([
 		{
 			id: createShapeId(),
@@ -161,7 +164,7 @@ const pastePlainText = async (app: App, text: string, point?: VecLike) => {
 			x: p.x - w / 2,
 			y: p.y - h / 2,
 			props: {
-				text: stripHtml(text),
+				text: cleanText,
 				autoSize: true,
 			},
 		},

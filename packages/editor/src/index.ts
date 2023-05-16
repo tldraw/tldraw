@@ -62,6 +62,7 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/app/shapeutils/TLShapeUtil'
 export { TLTextShapeDef, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
+export { TextHelpers } from './lib/app/shapeutils/TLTextUtil/TextHelpers'
 export { TLVideoShapeDef, TLVideoUtil } from './lib/app/shapeutils/TLVideoUtil/TLVideoUtil'
 export { StateNode, type StateNodeConstructor } from './lib/app/statechart/StateNode'
 export { TLBoxTool, type TLBoxLike } from './lib/app/statechart/TLBoxTool/TLBoxTool'

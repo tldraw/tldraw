@@ -1593,6 +1593,35 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
+export class TextHelpers {
+    // (undocumented)
+    static findLineEnd(value: string, currentEnd: number): number;
+    // (undocumented)
+    static fixNewLines: RegExp;
+    static getSelection(field: HTMLInputElement | HTMLTextAreaElement): string;
+    // (undocumented)
+    static INDENT: string;
+    // (undocumented)
+    static indent(element: HTMLTextAreaElement): void;
+    // (undocumented)
+    static indentCE(element: HTMLElement): void;
+    static insert(field: HTMLInputElement | HTMLTextAreaElement, text: string): void;
+    // (undocumented)
+    static insertTextFirefox(field: HTMLInputElement | HTMLTextAreaElement, text: string): void;
+    // (undocumented)
+    static normalizeText(text: string): string;
+    // (undocumented)
+    static normalizeTextForDom(text: string): string;
+    static replace(field: HTMLInputElement | HTMLTextAreaElement, searchValue: RegExp | string, replacer: ReplacerCallback | string): void;
+    static set(field: HTMLInputElement | HTMLTextAreaElement, text: string): void;
+    // (undocumented)
+    static unindent(element: HTMLTextAreaElement): void;
+    // (undocumented)
+    static unindentCE(element: HTMLElement): void;
+    static wrapSelection(field: HTMLInputElement | HTMLTextAreaElement, wrap: string, wrapEnd?: string): void;
+}
+
+// @public (undocumented)
 export const TLArrowShapeDef: TLShapeDef<TLArrowShape, TLArrowUtil>;
 
 // @public (undocumented)
