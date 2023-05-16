@@ -184,6 +184,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.diamond': 'Diamond',
 	'tool.ellipse': 'Ellipse',
 	'tool.hexagon': 'Hexagon',
+	'tool.highlight': 'Highlight',
 	'tool.line': 'Line',
 	'tool.octagon': 'Octagon',
 	'tool.oval': 'Oval',

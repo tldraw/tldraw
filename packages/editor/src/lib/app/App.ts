@@ -4844,6 +4844,7 @@ export class App extends EventEmitter<TLEventMap> {
 					if (!prev) return null
 					let newRecord = null as null | TLShape
 					for (const [k, v] of Object.entries(partial)) {
+						if (v === undefined) continue
 						switch (k) {
 							case 'id':
 							case 'type':
@@ -4857,7 +4858,12 @@ export class App extends EventEmitter<TLEventMap> {
 									}
 
 									if (k === 'props') {
-										newRecord!.props = { ...prev.props, ...(v as any) }
+										const nextProps = { ...prev.props } as Record<string, unknown>
+										for (const [propKey, propValue] of Object.entries(v as object)) {
+											if (propValue === undefined) continue
+											nextProps[propKey] = propValue
+										}
+										newRecord!.props = nextProps
 									} else {
 										;(newRecord as any)[k] = v
 									}

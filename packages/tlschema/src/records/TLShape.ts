@@ -8,6 +8,7 @@ import { TLEmbedShape } from '../shapes/TLEmbedShape'
 import { TLFrameShape } from '../shapes/TLFrameShape'
 import { TLGeoShape } from '../shapes/TLGeoShape'
 import { TLGroupShape } from '../shapes/TLGroupShape'
+import { TLHighlightShape } from '../shapes/TLHighlightShape'
 import { TLIconShape } from '../shapes/TLIconShape'
 import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
@@ -35,6 +36,7 @@ export type TLDefaultShape =
 	| TLTextShape
 	| TLVideoShape
 	| TLIconShape
+	| TLHighlightShape
 
 /**
  * A type for a shape that is available in the editor but whose type is

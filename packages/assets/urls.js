@@ -494,6 +494,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-hand.svg', import.meta.url).href,
 				opts
 			),
+			'tool-highlight': formatAssetUrl(
+				new URL('./icons/icon/tool-highlight.svg', import.meta.url).href,
+				opts
+			),
 			'tool-highlighter': formatAssetUrl(
 				new URL('./icons/icon/tool-highlighter.svg', import.meta.url).href,
 				opts
