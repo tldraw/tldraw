@@ -438,7 +438,7 @@ input,
 	z-index: 53;
 }
 
-.tlui-selection__fg {
+.tl-selection__fg {
 	pointer-events: none;
 	z-index: 54;
 }
@@ -467,7 +467,7 @@ input,
 
 /* ------------------ SelectionBox ------------------ */
 
-.tlui-selection__bg {
+.tl-selection__bg {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -476,7 +476,7 @@ input,
 	pointer-events: all;
 }
 
-.tlui-selection__fg__outline {
+.tl-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
