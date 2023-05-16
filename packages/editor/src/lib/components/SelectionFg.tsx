@@ -8,7 +8,10 @@ import { useSelectionEvents } from '../hooks/useSelectionEvents'
 import { useTransform } from '../hooks/useTransform'
 import { CropHandles } from './CropHandles'
 
-const IS_FIREFOX = navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+const IS_FIREFOX =
+	typeof navigator !== 'undefined' &&
+	navigator.userAgent &&
+	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const SelectionFg = track(function SelectionFg() {
 	const app = useApp()
