@@ -1043,10 +1043,24 @@ export function useNativeClipboardEvents() {
 			trackEvent('cut', { source: 'kbd' })
 		}
 
-		const paste = (e: ClipboardEvent) => {
+		let disablingMiddleClickPaste = false
+		const pointerUpHandler = (e: PointerEvent) => {
+			if (e.button === 1) {
+				disablingMiddleClickPaste = true
+				requestAnimationFrame(() => {
+					disablingMiddleClickPaste = false
+				})
+			}
+		}
+
+		const paste = (event: ClipboardEvent) => {
+			if (disablingMiddleClickPaste) {
+				event.stopPropagation()
+				return
+			}
 			if (app.editingId !== null || disallowClipboardEvents(app)) return
-			if (e.clipboardData && !app.inputs.shiftKey) {
-				handleNativeDataTransferPaste(app, e.clipboardData)
+			if (event.clipboardData && !app.inputs.shiftKey) {
+				handleNativeDataTransferPaste(app, event.clipboardData)
 			} else {
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
@@ -1060,11 +1074,13 @@ export function useNativeClipboardEvents() {
 		document.addEventListener('copy', copy)
 		document.addEventListener('cut', cut)
 		document.addEventListener('paste', paste)
+		document.addEventListener('pointerup', pointerUpHandler)
 
 		return () => {
 			document.removeEventListener('copy', copy)
 			document.removeEventListener('cut', cut)
 			document.removeEventListener('paste', paste)
+			document.removeEventListener('pointerup', pointerUpHandler)
 		}
 	}, [app, trackEvent, appIsFocused])
 }

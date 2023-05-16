@@ -1,9 +1,14 @@
 import { Auto } from '@auto-it/core'
+import fetch from 'cross-fetch'
+import { assert } from 'node:console'
 import { parse } from 'semver'
 import { exec } from './lib/exec'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 
 async function main() {
+	const huppyToken = process.env.HUPPY_TOKEN
+	assert(huppyToken && typeof huppyToken === 'string', 'HUPPY_ACCESS_KEY env var must be set')
+
 	const auto = new Auto({
 		plugins: ['npm'],
 		baseBranch: 'main',
@@ -61,6 +66,18 @@ async function main() {
 
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()
+
+	console.log('Notifying huppy of release...')
+	const huppyResponse = await fetch('http://localhost:3000/api/on-release', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ apiKey: huppyToken, tagToRelease: `v${nextVersion}`, canary: false }),
+	})
+	console.log(
+		`huppy: [${huppyResponse.status} ${huppyResponse.statusText}] ${await huppyResponse.text()}`
+	)
 }
 
 main()
