@@ -1,5 +1,5 @@
-import { TLAlignType } from '@tldraw/tlschema'
-import { TEXT_PROPS } from '../../../constants'
+import { Box2d } from '@tldraw/primitives'
+import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { correctSpacesToNbsp } from '../../../utils/string'
 import { App } from '../../App'
 
@@ -7,7 +7,7 @@ import { App } from '../../App'
 export function getTextSvgElement(
 	app: App,
 	opts: {
-		lines: string[]
+		spans: { text: string; box: Box2dModel }[]
 		fontSize: number
 		fontFamily: string
 		textAlign: TLAlignType
@@ -20,6 +20,8 @@ export function getTextSvgElement(
 		strokeWidth?: number
 		fill?: string
 		padding?: number
+		offsetX?: number
+		offsetY?: number
 	}
 ) {
 	const { padding = 0 } = opts
@@ -34,33 +36,40 @@ export function getTextSvgElement(
 	textElm.setAttribute('dominant-baseline', 'mathematical')
 	textElm.setAttribute('alignment-baseline', 'mathematical')
 
-	const lines = opts.lines.map((line) => line)
+	if (opts.spans.length === 0) return textElm
 
-	const tspans: SVGElement[] = []
+	const bounds = Box2d.From(opts.spans[0].box)
+	for (const { box } of opts.spans) {
+		bounds.union(box)
+	}
 
-	const innerHeight = lines.length * (opts.lineHeight * opts.fontSize)
+	const offsetX = padding + (opts.offsetX ?? 0)
+	const offsetY = (Math.ceil(opts.height) - bounds.height + opts.fontSize) / 2 + (opts.offsetY ?? 0)
 
-	const offsetY = (Math.ceil(opts.height) - innerHeight) / 2
-	const offsetX = padding
-
-	// Create text span elements for each line
-	for (let i = 0; i < lines.length; i++) {
-		const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
-		tspan.setAttribute('alignment-baseline', 'mathematical')
-
-		const cleanText = correctSpacesToNbsp(lines[i])
-		tspan.textContent = cleanText
-
-		if (lines.length > 1 && i < lines.length - 1) {
-			tspan.textContent += '\n'
+	// Create text span elements for each work
+	let currentLineTop = null
+	for (const { text, box } of opts.spans) {
+		// if we broke a line, add a line break span. This helps tools like
+		// figma import our exported svg correctly
+		const didBreakLine = currentLineTop !== null && box.y > currentLineTop
+		if (didBreakLine) {
+			const lineBreakTspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+			lineBreakTspan.setAttribute('alignment-baseline', 'mathematical')
+			lineBreakTspan.setAttribute('x', offsetX + 'px')
+			lineBreakTspan.setAttribute('y', box.y + offsetY + 'px')
+			lineBreakTspan.textContent = '\n'
+			textElm.appendChild(lineBreakTspan)
 		}
 
-		tspan.setAttribute(
-			'y',
-			offsetY + opts.fontSize / 2 + opts.lineHeight * opts.fontSize * i + 'px'
-		)
+		const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan')
+		tspan.setAttribute('alignment-baseline', 'mathematical')
+		tspan.setAttribute('x', box.x + offsetX + 'px')
+		tspan.setAttribute('y', box.y + offsetY + 'px')
+		const cleanText = correctSpacesToNbsp(text)
+		tspan.textContent = cleanText
 		textElm.appendChild(tspan)
-		tspans.push(tspan)
+
+		currentLineTop = box.y
 	}
 
 	if (opts.stroke && opts.strokeWidth) {
@@ -70,48 +79,6 @@ export function getTextSvgElement(
 
 	if (opts.fill) {
 		textElm.setAttribute('fill', opts.fill)
-	}
-
-	switch (opts.textAlign) {
-		case 'middle': {
-			textElm.setAttribute('text-align', 'center')
-			textElm.setAttribute('text-anchor', 'start')
-			tspans.forEach((tspan, i) => {
-				const w = app.textMeasure.measureText({
-					...TEXT_PROPS,
-					text: lines[i],
-					fontFamily: opts.fontFamily,
-					fontSize: opts.fontSize,
-					width: 'fit-content',
-					padding: `${padding}px`,
-				}).w
-
-				tspan.setAttribute('x', offsetX + (opts.width - w) / 2 + '')
-			})
-			break
-		}
-		case 'end': {
-			textElm.setAttribute('text-align', 'right')
-			textElm.setAttribute('text-anchor', 'start')
-			tspans.forEach((tspan, i) => {
-				const w = app.textMeasure.measureText({
-					...TEXT_PROPS,
-					text: lines[i],
-					fontFamily: opts.fontFamily,
-					fontSize: opts.fontSize,
-					width: 'fit-content',
-					padding: `${padding}px`,
-				}).w
-
-				tspan.setAttribute('x', offsetX + opts.width - w + '')
-			})
-			break
-		}
-		default: {
-			textElm.setAttribute('text-align', 'left')
-			textElm.setAttribute('text-anchor', 'start')
-			tspans.forEach((tspan) => tspan.setAttribute('x', offsetX + ''))
-		}
 	}
 
 	return textElm

@@ -141,39 +141,19 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			wrap: 'wrap' as const,
 		}
 
-		const lines = this.app.textMeasure.getTextLines({
+		const spans = this.app.textMeasure.getTextSpans({
 			text: shape.props.text,
-			wrap: true,
 			...opts,
 		})
 
-		const maxWidth = lines.reduce((max, line) => {
-			return Math.max(
-				max,
-				this.app.textMeasure.measureText({
-					...TEXT_PROPS,
-					text: line.trim(),
-					fontFamily: opts.fontFamily,
-					fontSize: opts.fontSize,
-					width: 'fit-content',
-					padding: `0px`,
-				}).w
-			)
-		}, 0)
-
-		if (shape.props.align === 'start') {
-			opts.padding = (bounds.width - maxWidth) / 2
-		} else if (shape.props.align === 'end') {
-			opts.padding = -(bounds.width - maxWidth) / 2
-		} else {
-			opts.padding = PADDING
-		}
 		opts.width = bounds.width
+		opts.padding = PADDING
 
 		const textElm = getTextSvgElement(this.app, {
-			lines,
+			spans,
 			...opts,
 		})
 		textElm.setAttribute('fill', colors.text)

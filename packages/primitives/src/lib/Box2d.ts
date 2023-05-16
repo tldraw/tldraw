@@ -312,6 +312,18 @@ export class Box2d {
 		this.height = Math.abs(b1y - b0y)
 	}
 
+	union(box: Box2dModel) {
+		const minX = Math.min(this.minX, box.x)
+		const minY = Math.min(this.minY, box.y)
+		const maxX = Math.max(this.maxX, box.x + box.w)
+		const maxY = Math.max(this.maxY, box.y + box.h)
+
+		this.x = minX
+		this.y = minY
+		this.width = maxX - minX
+		this.height = maxY - minY
+	}
+
 	static From(box: Box2dModel) {
 		return new Box2d(box.x, box.y, box.w, box.h)
 	}

@@ -15,6 +15,23 @@ const textAlignmentsForLtr: Record<TLAlignType, string> = {
 	end: 'right',
 }
 
+type WrapMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+type GetTextSpanOpts = {
+	text: string
+	wrap: WrapMode
+	width: number
+	height: number
+	padding: number
+	fontSize: number
+	fontWeight: string
+	fontFamily: string
+	fontStyle: string
+	lineHeight: number
+	textAlign: TLAlignType
+}
+
+const spaceCharacterRegex = /\s/
+
 export class TextManager {
 	constructor(public app: App) {}
 
@@ -70,22 +87,23 @@ export class TextManager {
 		}
 	}
 
-	getTextLines(opts: {
-		text: string
-		wrap: boolean
-		width: number
-		height: number
-		padding: number
-		fontSize: number
-		fontWeight: string
-		fontFamily: string
-		fontStyle: string
-		lineHeight: number
-		textAlign: TLAlignType
-	}): string[] {
-		const elm = this.getTextElement()
+	/**
+	 * Measure text into individual spans. Spans are created by rendering the
+	 * text, then dividing it up according to line breaks and word boundaries.
+	 *
+	 * It works by having the browser render the text, then measuring the
+	 * position of each character. You can use this to replicate the text-layout
+	 * algorithm of the current browser in e.g. an SVG export.
+	 */
+	getTextSpans(opts: GetTextSpanOpts): { text: string; box: Box2dModel }[] {
+		const shouldTruncateToFirstLine =
+			opts.wrap === 'truncate-ellipsis' || opts.wrap === 'truncate-clip'
 
-		elm.style.setProperty('width', opts.width - opts.padding * 2 + 'px')
+		console.log('getTextSpans', opts.text, opts.width)
+
+		// Create a measurement element:
+		const elm = this.getTextElement()
+		elm.style.setProperty('width', Math.ceil(opts.width - opts.padding * 2) + 'px')
 		elm.style.setProperty('height', 'min-content')
 		elm.style.setProperty('dir', 'ltr')
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
@@ -94,167 +112,116 @@ export class TextManager {
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
 		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
-		// Split the text into words
-		const words = opts.text
-			// Replace all double spaces with tabs
-			.replace(/ {2}/g, '\t')
-			// Then split on spaces and tabs and new lines
-			.split(/( |\t|\n)/)
-			// Remove any empty strings
-			.filter(Boolean)
-			// Replacing the tabs with double spaces again.
-			.map((str) => (str === '\t' ? '  ' : str))
-
-		// Collect each line in an array of arrays
-		const lines: string[][] = []
-
-		// The current line that we're adding words to
-		let currentLine: string[] = []
-
-		// Clear the text element
-		elm.textContent = ''
-
-		// Set initial values for the loop
-		let prevHeight = elm.offsetHeight
-		let prevTextContent = elm.textContent
-
-		for (let i = 0, n = words.length; i < n; i++) {
-			const word = words[i]
-
-			// add the word to the text element
-			elm.textContent += word
-
-			// measure the text element's new height
-			const newHeight = elm.offsetHeight
-
-			// If the height has not increased, then add the word to the current line
-			if (newHeight <= prevHeight) {
-				currentLine.push(word)
-				prevTextContent = elm.textContent
-				continue
-			}
-
-			/*
-			If the height HAS increased, then we've just caused a line break!
-			This could have been caused by two things:
-				1. we just encountered a newline character
-				2. the word we just added was too long to fit on the line
-			*/
-
-			if (word === '\n') {
-				// New lines are easy, just start a new line
-				currentLine = []
-				lines.push(currentLine)
-				prevTextContent = elm.textContent
-				continue
-			}
-
-			/*
-			If we have a newline because we're wrapping, then buckle the
-			fuck up because need to find out whether we can fit the word on a
-			single line or else break it into multiple lines in order to
-			replicate CSS's `break-word` for `overflow-wrap` and `word-wrap`.
-
-			For example:
-
-			_____________
-			| hello woooo|rld
-		
-			Should become:
-			_____________
-			| hello      |
-			| woooorld   |
-		
-			But:
-
-			_____________
-			| hello woooo|oooooooooooorld
-
-			Should become:
-
-			_____________
-			| hello      | // first new line
-			| wooooooooo | // second new line
-			| ooooorld   |
-			*/
-
-			// Save the state of the text content that caused the break to occur.
-			// We'll put this back again at the end of the loop, so that we can
-			// continue from this point.
-			const afterTextContent: string = elm.textContent
-
-			// Set the text content to the previous text content, before adding
-			// the word, so that we can begin to find line breaks.
-			elm.textContent = prevTextContent
-
-			// Force a new line, since we know that the text will break the line
-			// and we want to start measuring from the start of the line.
-			elm.textContent += '\n'
-
-			// Split the word into individual characters.
-			const chars = [...word]
-
-			// Add the first character to the measurement element's text content.
-			elm.textContent += chars[0]
-
-			// Set the "previous height" to the text element's offset height.
-			prevHeight = elm.offsetHeight
-
-			// Similar to how we're breaking with words, we're going to loop
-			// through each character looking for new lines within the word
-			// (sublines). We'll start with a collection of one subline that
-			// contains the first character in the word.
-			let currentSubLine: string[] = [chars[0]]
-			const subLines: string[][] = [currentSubLine]
-
-			// For each remaining character in the word...
-			for (let i = 1; i < chars.length; i++) {
-				const char = chars[i]
-
-				// ...add the character to the text element
-				elm.textContent += char
-
-				// ...and measure the height
-				const newHeight = elm.offsetHeight
-
-				if (newHeight > prevHeight) {
-					// If the height has increased, then we've triggered a "break-word".
-					// Create a new current subline containing the character, and add
-					// it to the sublines array.
-					currentSubLine = [char]
-					subLines.push(currentSubLine)
-
-					// Also update the prev height for next time
-					prevHeight = newHeight
-				} else {
-					// If the height hasn't increased, then we're still on the same
-					// subline and can just push the char in.
-					currentSubLine.push(char)
-				}
-			}
-
-			// Finally, turn each subline of characters into a string and push
-			// each line into the lines array.
-			const joinedSubLines = subLines.map((b) => [b.join('')])
-			lines.push(...joinedSubLines)
-
-			// Set the current line to the last subline
-			currentLine = lines[lines.length - 1]
-
-			// Restore the text content that caused the line break to occur
-			elm.textContent = afterTextContent
-
-			// And set prevHeight to the new height
-			prevHeight = elm.offsetHeight
-			prevTextContent = elm.textContent
+		if (shouldTruncateToFirstLine) {
+			elm.style.setProperty('overflow-wrap', 'anywhere')
+			elm.style.setProperty('word-break', 'break-all')
+			elm.style.top = '400px'
+			elm.style.left = '400px'
+			elm.style.opacity = '1'
 		}
 
-		// We can remove the measurement div now.
+		// Divide the text into individual characters. It's important to use a
+		// for-of loop here because it splits the string on unicode characters
+		// rather than individual bytes. That means that e.g. emoji characters
+		// don't get split into multiple spans.
+		const chars = []
+		for (const char of opts.text) {
+			const span = document.createElement('span')
+			span.textContent = char
+			elm.appendChild(span)
+			chars.push({ char, span })
+		}
+
+		// Measurements of individual spans are relative to the containing element
+		const elmBounds = elm.getBoundingClientRect()
+		const offsetX = -elmBounds.left
+		const offsetY = -elmBounds.top
+
+		// Group the character into spans
+		const spans = []
+		let currentSpan = null
+		let prevCharWasSpaceCharacter = null
+		let prevCharTop = 0
+		let didTruncate = false
+		for (const { char, span } of chars) {
+			const rect = span.getBoundingClientRect()
+			const top = rect.top + offsetY
+			const left = rect.left + offsetX
+			const right = rect.right + offsetX
+
+			const isSpaceCharacter = spaceCharacterRegex.test(char)
+
+			if (
+				// If we're at a word boundary...
+				isSpaceCharacter !== prevCharWasSpaceCharacter ||
+				// ...or we're on a different line...
+				top !== prevCharTop ||
+				// ...or we're at the start of the text and haven't created a span yet...
+				!currentSpan
+			) {
+				// ...then we're at a span boundary!
+
+				// if we just finished a span
+				if (currentSpan) {
+					// if we're truncating to a single line & we just finished the first line, stop there
+					if (shouldTruncateToFirstLine && top !== prevCharTop) {
+						didTruncate = true
+						break
+					}
+					// otherwise add the span to the list ready to start a new one
+					spans.push(currentSpan)
+				}
+
+				// start a new span
+				currentSpan = {
+					box: { x: left, y: top, w: rect.width, h: rect.height },
+					text: char,
+				}
+			} else {
+				// otherwise we just need to extend the current span with the next character
+				currentSpan.box.w = right - currentSpan.box.x
+				currentSpan.text += char
+			}
+
+			prevCharWasSpaceCharacter = isSpaceCharacter
+			prevCharTop = top
+		}
+
+		// Add the last span
+		if (currentSpan) {
+			spans.push(currentSpan)
+		}
+
 		elm.remove()
 
-		// We're done! Join the words in each line.
-		const result: string[] = lines.map((line) => line.join('').trimEnd())
+		if (opts.wrap === 'truncate-ellipsis' && didTruncate) {
+			// debugger
 
-		return result
+			const ellipsisWidth = Math.ceil(
+				this.getTextSpans({ ...opts, wrap: 'truncate-clip', text: '…' })[0].box.w
+			)
+
+			const truncatedSpans = this.getTextSpans({
+				...opts,
+				wrap: 'truncate-clip',
+				width: opts.width - ellipsisWidth,
+			})
+			// if we're truncating with an ellipsis, at this point we should
+			// have the truncated line in the spans array. Add in the ellipsis
+			// at the end of the line.
+			const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
+			truncatedSpans.push({
+				text: '…',
+				box: {
+					x: Math.min(lastSpan.box.x + lastSpan.box.w, opts.width - opts.padding - ellipsisWidth),
+					y: lastSpan.box.y,
+					w: ellipsisWidth,
+					h: lastSpan.box.h,
+				},
+			})
+			return truncatedSpans
+		}
+
+		return spans
 	}
 }

@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { textShapeMigrations, textShapeTypeValidator, TLTextShape } from '@tldraw/tlschema'
+import { useValue } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { debugFlags } from '../../../utils/debug-flags'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { App } from '../../App'
@@ -98,6 +100,8 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			handleBlur,
 		} = useEditableText(id, type, text)
 
+		const spanify = useValue(debugFlags.spanify)
+
 		return (
 			<HTMLContainer id={shape.id}>
 				<div
@@ -117,7 +121,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 					}}
 				>
 					<div className="tl-text tl-text-content" dir="ltr">
-						{text}
+						{spanify ? Array.from(text, (s, i) => <span key={i}>{s}</span>) : text}
 					</div>
 					{isEditing || isEditableFromHover ? (
 						<textarea
@@ -171,11 +175,11 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			wrap: 'wrap' as const,
 		}
 
-		const lines = this.app.textMeasure.getTextLines({
+		const spans = this.app.textMeasure.getTextSpans({
 			text: text,
-			wrap: true,
 			...opts,
 		})
 
@@ -183,7 +187,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = getTextSvgElement(this.app, {
-			lines,
+			spans,
 			...opts,
 			stroke: colors.background,
 			strokeWidth: 2,

@@ -24,6 +24,8 @@ export const debugFlags = {
 	logMessages: createDebugValue('tldrawUiLog', []),
 	resetConnectionEveryPing: createDebugValue('tldrawResetConnectionEveryPing', false),
 	newLiveCollaborators: createDebugValue('tldrawNewLiveCollaborators', false),
+
+	spanify: createDebugValue('spanify', false),
 }
 
 declare global {

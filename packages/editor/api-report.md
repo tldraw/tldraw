@@ -620,6 +620,7 @@ export const debugFlags: {
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
     newLiveCollaborators: Atom<boolean, unknown>;
+    spanify: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)

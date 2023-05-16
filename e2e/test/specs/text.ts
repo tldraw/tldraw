@@ -1,3 +1,4 @@
+import { Box2dModel } from '@tldraw/editor'
 import { runtime, ui } from '../helpers'
 import { diffScreenshot, takeRegionScreenshot } from '../helpers/webdriver'
 import { describe, env, it } from '../mocha-ext'
@@ -80,7 +81,7 @@ describe('text', () => {
 	)
 })
 
-describe('text measurement', () => {
+describe.only('text measurement', () => {
 	const measureTextOptions = {
 		text: 'testing',
 		width: 'fit-content',
@@ -93,11 +94,11 @@ describe('text measurement', () => {
 		maxWidth: 'auto',
 	}
 
-	const getTextLinesOptions = {
+	const getTextSpansOptions = {
 		text: 'testing',
 		width: 100,
 		height: 1000,
-		wrap: true,
+		wrap: 'wrap' as const,
 		padding: 0,
 		fontSize: 24,
 		fontWeight: 'normal',
@@ -105,6 +106,29 @@ describe('text measurement', () => {
 		fontStyle: 'normal',
 		lineHeight: 1.35,
 		textAlign: 'start' as 'start' | 'middle' | 'end',
+	}
+
+	function formatLines(spans: { box: Box2dModel; text: string }[]) {
+		const lines = []
+
+		let currentLine = null
+		let currentLineTop = null
+		for (const span of spans) {
+			if (currentLineTop !== span.box.y) {
+				if (currentLine !== null) {
+					lines.push(currentLine)
+				}
+				currentLine = []
+				currentLineTop = span.box.y
+			}
+			currentLine.push([span.text, Math.round(span.box.x)])
+		}
+
+		if (currentLine !== null) {
+			lines.push(currentLine)
+		}
+
+		return lines
 	}
 
 	env({}, () => {
@@ -120,173 +144,281 @@ describe('text measurement', () => {
 			expect(h).toBeCloseTo(32.3984375, 1)
 		})
 
-		it('should get a single text line', async () => {
+		it('should get a single text span', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing'])
+			expect(formatLines(spans)).toEqual([[['testing', 0]]])
 		})
 
 		it('should wrap a word when it has to', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					width: 50,
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['test', 'ing'])
+			expect(formatLines(spans)).toEqual([[['test', 0]], [['ing', 0]]])
 		})
 
 		it('should wrap between words when it has to', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					text: 'testing testing',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['testing', 0],
+					[' ', 86],
+				],
+				[['testing', 0]],
+			])
 		})
 
-		it('should strip whitespace at line breaks', async () => {
+		it('should collapse whitespace at line breaks', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
-					text: 'testing  testing',
+					text: 'testing   testing',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['testing', 0],
+					['   ', 86],
+				],
+				[['testing', 0]],
+			])
 		})
 
-		it('should strip whitespace at the end of wrapped lines', async () => {
+		it('should collapse whitespace at the end of wrapped lines', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
-					text: 'testing testing  ',
+					text: 'testing testing   ',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['testing', 0],
+					[' ', 86],
+				],
+				[
+					['testing', 0],
+					['   ', 86],
+				],
+			])
 		})
 
-		it('strips whitespace at the end of unwrapped lines', async () => {
+		it('preserves whitespace at the end of unwrapped lines', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					width: 200,
-					text: 'testing testing  ',
+					text: 'testing testing   ',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['testing', 0],
+					[' ', 86],
+					['testing', 94],
+					['   ', 180],
+				],
+			])
 		})
 
 		it('preserves whitespace at the start of an unwrapped line', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					width: 200,
 					text: '  testing testing',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['  testing testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['  ', 0],
+					['testing', 16],
+					[' ', 102],
+					['testing', 111],
+				],
+			])
 		})
 
 		it('should place starting whitespace on its own line if it has to', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					text: '  testing testing',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['', 'testing', 'testing'])
-		})
-
-		it('trims ending whitespace', async () => {
-			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
-					...options,
-					text: 'testing testing                  ',
-				})
-			}, getTextLinesOptions)
-
-			expect(lines).toEqual(['testing', 'testing'])
-		})
-
-		it('allows whitespace to cause breaks, however trims it at the end anyway', async () => {
-			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
-					...options,
-					text: 'ok hi                  testing',
-				})
-			}, getTextLinesOptions)
-
-			expect(lines).toEqual(['ok hi', 'testing'])
-		})
-
-		it('respects leading whitespace', async () => {
-			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
-					...options,
-					text: '  ok hi testing  ',
-				})
-			}, getTextLinesOptions)
-
-			expect(lines).toEqual(['  ok hi', 'testing'])
+			expect(formatLines(spans)).toEqual([
+				[['  ', 0]],
+				[
+					['testing', 0],
+					[' ', 86],
+				],
+				[['testing', 0]],
+			])
 		})
 
 		it('should handle multiline text', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
-					text: 'testing testing  ',
+					text: '   test\ning testing   \n  t',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testing', 'testing'])
+			expect(formatLines(spans)).toEqual([
+				[
+					['   ', 0],
+					['test', 25],
+					['\n', 73],
+				],
+				[
+					['ing', 0],
+					[' ', 38],
+				],
+				[
+					['testing', 0],
+					['   \n', 86],
+				],
+				[
+					['  ', 0],
+					['t', 16],
+				],
+			])
 		})
 
 		it('should break long strings of text', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					text: 'testingtestingtestingtestingtestingtesting',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual(['testingt', 'estingte', 'stingtes', 'tingtest', 'ingtesti', 'ng'])
+			expect(formatLines(spans)).toEqual([
+				[['testingt', 0]],
+				[['estingte', 0]],
+				[['stingtes', 0]],
+				[['tingtest', 0]],
+				[['ingtesti', 0]],
+				[['ng', 0]],
+			])
 		})
 
 		it('should return an empty array if the text is empty', async () => {
 			await ui.app.setup()
-			const lines = await browser.execute((options) => {
-				return window.app.textMeasure.getTextLines({
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
 					...options,
 					text: '',
 				})
-			}, getTextLinesOptions)
+			}, getTextSpansOptions)
 
-			expect(lines).toEqual([])
+			expect(formatLines(spans)).toEqual([])
+		})
+
+		it('preserves emojis and other multi-byte characters', async () => {
+			await ui.app.setup()
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
+					...options,
+					text: '且🎉é世🧦丕👩‍👩‍👧‍👧丗é🧦丘👩🏽‍❤️‍💋‍👨🏼🧦',
+				})
+			}, getTextSpansOptions)
+
+			expect(formatLines(spans)).toEqual([
+				[['且🎉é世', 0]],
+				[['🧦丕👩‍👩‍👧‍👧丗', 0]],
+				[['é🧦丘👩🏽‍❤️‍💋‍👨🏼', 0]],
+				[['🧦', 0]],
+			])
+		})
+
+		it('handles right-aligned text', async () => {
+			await ui.app.setup()
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
+					...options,
+					text: 'this is some right aligned text',
+					textAlign: 'end',
+				})
+			}, getTextSpansOptions)
+
+			expect(formatLines(spans)).toEqual([
+				[
+					['this', 18],
+					[' ', 64],
+					['is', 72],
+					[' ', 92],
+				],
+				[
+					['some', 29],
+					[' ', 92],
+				],
+				[
+					['right', 31],
+					[' ', 92],
+				],
+				[
+					['aligned', 0],
+					[' ', 92],
+				],
+				[['text', 50]],
+			])
+		})
+
+		it('handles center-aligned text', async () => {
+			await ui.app.setup()
+			const spans = await browser.execute((options) => {
+				return window.app.textMeasure.getTextSpans({
+					...options,
+					text: 'center aligned 4 lyf',
+					textAlign: 'middle',
+				})
+			}, getTextSpansOptions)
+
+			expect(formatLines(spans)).toEqual([
+				[
+					['center', 7],
+					[' ', 85],
+				],
+				[
+					['aligned', 0],
+					[' ', 92],
+				],
+				[
+					['4', 22],
+					[' ', 39],
+					['lyf', 47],
+				],
+			])
 		})
 	})
 })

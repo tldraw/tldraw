@@ -257,7 +257,7 @@ export class TextHelpers {
 
 	static fixNewLines = /\r?\n|\r/g
 
-	static INDENT = '  '
+	static INDENT = '\t'
 
 	static normalizeText(text: string) {
 		return text.replace(TextHelpers.fixNewLines, '\n')

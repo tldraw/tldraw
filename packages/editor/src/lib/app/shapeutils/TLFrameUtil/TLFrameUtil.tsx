@@ -7,9 +7,11 @@ import {
 	TLShapeId,
 	TLShapeType,
 } from '@tldraw/tlschema'
+import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { defaultEmptyAs } from '../../../utils/string'
+import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { TLExportColors } from '../shared/TLExportColors'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnResizeEndHandler } from '../TLShapeUtil'
@@ -103,50 +105,35 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			fontSize: 12,
 			fontFamily: 'Inter, sans-serif',
 			textAlign: 'start' as const,
-			width: shape.props.w + 16,
+			width: shape.props.w,
 			height: 30,
-			padding: 8,
+			padding: 0,
 			lineHeight: 1,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
 		}
 
-		let textContent = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
-
-		const lines = this.app.textMeasure.getTextLines({
-			text: textContent,
-			wrap: true,
+		const spans = this.app.textMeasure.getTextSpans({
+			text: defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+			wrap: 'truncate-ellipsis',
 			...opts,
 		})
 
-		textContent = lines.length > 1 ? lines[0] + '…' : lines[0]
-
-		const size = this.app.textMeasure.measureText({
-			fontSize: 12,
-			fontFamily: 'Inter, sans-serif',
-			lineHeight: 1,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			text: textContent,
-			width: 'fit-content',
-			maxWidth: 'unset',
-			padding: '0px',
+		const firstSpan = spans[0]
+		const lastSpan = last(spans)!
+		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+		const text = getTextSvgElement(this.app, {
+			spans,
+			offsetY: -32,
+			...opts,
 		})
-
-		const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-		text.setAttribute('x', '0')
-		text.setAttribute('y', -(8 + size.h / 2) + 'px')
-		text.setAttribute('font-family', '"Inter", sans-serif')
-		text.setAttribute('font-size', '12px')
-		text.setAttribute('font-weight', '400')
 		text.style.setProperty('transform', labelTranslate)
-		text.textContent = textContent
 
 		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		textBg.setAttribute('x', ' -4px')
-		textBg.setAttribute('y', -(16 + size.h) + 'px')
-		textBg.setAttribute('width', size.w + 8 + 'px')
-		textBg.setAttribute('height', size.h + 8 + 'px')
+		textBg.setAttribute('x', '-8px')
+		textBg.setAttribute('y', -32 + 'px')
+		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
+		textBg.setAttribute('height', '28px')
 		textBg.setAttribute('rx', 4 + 'px')
 		textBg.setAttribute('ry', 4 + 'px')
 		textBg.setAttribute('fill', colors.background)

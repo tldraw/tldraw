@@ -1057,17 +1057,17 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				height: labelSize.h,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
+				wrap: 'wrap' as const,
 			}
 
-			const lines = this.app.textMeasure.getTextLines({
+			const spans = this.app.textMeasure.getTextSpans({
 				text: shape.props.text,
-				wrap: true,
 				...opts,
 				width: labelSize.w - 8,
 			})
 
 			const textElm = getTextSvgElement(this.app, {
-				lines,
+				spans,
 				...opts,
 				width: labelSize.w - 8,
 			})

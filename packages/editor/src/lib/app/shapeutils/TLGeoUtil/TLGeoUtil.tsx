@@ -647,11 +647,11 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				fontWeight: 'normal',
 				width: Math.ceil(bounds.width),
 				height: Math.ceil(bounds.height),
+				wrap: 'wrap' as const,
 			}
 
-			const lines = this.app.textMeasure.getTextLines({
+			const spans = this.app.textMeasure.getTextSpans({
 				text: props.text,
-				wrap: true,
 				...opts,
 			})
 
@@ -661,7 +661,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const textBgEl = getTextSvgElement(this.app, {
 				...opts,
-				lines,
+				spans,
 				strokeWidth: 2,
 				stroke: colors.background,
 				fill: colors.background,
