@@ -46,6 +46,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.group': 'Group',
 	'action.insert-embed': 'Insert embed',
 	'action.insert-media': 'Upload media',
+	'action.leave-shared-project': 'Leave shared project',
 	'action.new-project': 'New project',
 	'action.new-shared-project': 'New shared project',
 	'action.open-file': 'Open file',

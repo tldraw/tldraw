@@ -46,6 +46,7 @@ export type TLTranslationKey =
 	| 'action.group'
 	| 'action.insert-embed'
 	| 'action.insert-media'
+	| 'action.leave-shared-project'
 	| 'action.new-project'
 	| 'action.new-shared-project'
 	| 'action.open-file'
