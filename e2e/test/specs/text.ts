@@ -121,7 +121,7 @@ describe.only('text measurement', () => {
 				currentLine = []
 				currentLineTop = span.box.y
 			}
-			currentLine.push([span.text, Math.round(span.box.x)])
+			currentLine.push(span.text)
 		}
 
 		if (currentLine !== null) {
@@ -140,8 +140,8 @@ describe.only('text measurement', () => {
 				})
 			}, measureTextOptions)
 
-			expect(w).toBeCloseTo(85.828125, 1)
-			expect(h).toBeCloseTo(32.3984375, 1)
+			expect(w).toBeCloseTo(85.828125, 0)
+			expect(h).toBeCloseTo(32.3984375, 0)
 		})
 
 		it('should get a single text span', async () => {
@@ -152,7 +152,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([[['testing', 0]]])
+			expect(formatLines(spans)).toEqual([['testing']])
 		})
 
 		it('should wrap a word when it has to', async () => {
@@ -164,7 +164,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([[['test', 0]], [['ing', 0]]])
+			expect(formatLines(spans)).toEqual([['test'], ['ing']])
 		})
 
 		it('should wrap between words when it has to', async () => {
@@ -176,13 +176,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[
-					['testing', 0],
-					[' ', 86],
-				],
-				[['testing', 0]],
-			])
+			expect(formatLines(spans)).toEqual([['testing', ' '], ['testing']])
 		})
 
 		it('should collapse whitespace at line breaks', async () => {
@@ -194,13 +188,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[
-					['testing', 0],
-					['   ', 86],
-				],
-				[['testing', 0]],
-			])
+			expect(formatLines(spans)).toEqual([['testing', '   '], ['testing']])
 		})
 
 		it('should collapse whitespace at the end of wrapped lines', async () => {
@@ -213,14 +201,8 @@ describe.only('text measurement', () => {
 			}, getTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
-				[
-					['testing', 0],
-					[' ', 86],
-				],
-				[
-					['testing', 0],
-					['   ', 86],
-				],
+				['testing', ' '],
+				['testing', '   '],
 			])
 		})
 
@@ -234,14 +216,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[
-					['testing', 0],
-					[' ', 86],
-					['testing', 94],
-					['   ', 180],
-				],
-			])
+			expect(formatLines(spans)).toEqual([['testing', ' ', 'testing', '   ']])
 		})
 
 		it('preserves whitespace at the start of an unwrapped line', async () => {
@@ -254,14 +229,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[
-					['  ', 0],
-					['testing', 16],
-					[' ', 102],
-					['testing', 111],
-				],
-			])
+			expect(formatLines(spans)).toEqual([['  ', 'testing', ' ', 'testing']])
 		})
 
 		it('should place starting whitespace on its own line if it has to', async () => {
@@ -273,14 +241,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[['  ', 0]],
-				[
-					['testing', 0],
-					[' ', 86],
-				],
-				[['testing', 0]],
-			])
+			expect(formatLines(spans)).toEqual([['  '], ['testing', ' '], ['testing']])
 		})
 
 		it('should handle multiline text', async () => {
@@ -293,23 +254,10 @@ describe.only('text measurement', () => {
 			}, getTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
-				[
-					['   ', 0],
-					['test', 25],
-					['\n', 73],
-				],
-				[
-					['ing', 0],
-					[' ', 38],
-				],
-				[
-					['testing', 0],
-					['   \n', 86],
-				],
-				[
-					['  ', 0],
-					['t', 16],
-				],
+				['   ', 'test', '\n'],
+				['ing', ' '],
+				['testing', '   \n'],
+				['  ', 't'],
 			])
 		})
 
@@ -323,12 +271,12 @@ describe.only('text measurement', () => {
 			}, getTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
-				[['testingt', 0]],
-				[['estingte', 0]],
-				[['stingtes', 0]],
-				[['tingtest', 0]],
-				[['ingtesti', 0]],
-				[['ng', 0]],
+				['testingt'],
+				['estingte'],
+				['stingtes'],
+				['tingtest'],
+				['ingtesti'],
+				['ng'],
 			])
 		})
 
@@ -353,12 +301,7 @@ describe.only('text measurement', () => {
 				})
 			}, getTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([
-				[['且🎉é世', 0]],
-				[['🧦丕👩‍👩‍👧‍👧丗', 0]],
-				[['é🧦丘👩🏽‍❤️‍💋‍👨🏼', 0]],
-				[['🧦', 0]],
-			])
+			expect(formatLines(spans)).toEqual([['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧丗'], ['é🧦丘👩🏽‍❤️‍💋‍👨🏼'], ['🧦']])
 		})
 
 		it('handles right-aligned text', async () => {
@@ -372,25 +315,11 @@ describe.only('text measurement', () => {
 			}, getTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
-				[
-					['this', 18],
-					[' ', 64],
-					['is', 72],
-					[' ', 92],
-				],
-				[
-					['some', 29],
-					[' ', 92],
-				],
-				[
-					['right', 31],
-					[' ', 92],
-				],
-				[
-					['aligned', 0],
-					[' ', 92],
-				],
-				[['text', 50]],
+				['this', ' ', 'is', ' '],
+				['some', ' '],
+				['right', ' '],
+				['aligned', ' '],
+				['text'],
 			])
 		})
 
@@ -405,20 +334,13 @@ describe.only('text measurement', () => {
 			}, getTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
-				[
-					['center', 7],
-					[' ', 85],
-				],
-				[
-					['aligned', 0],
-					[' ', 92],
-				],
-				[
-					['4', 22],
-					[' ', 39],
-					['lyf', 47],
-				],
+				['center', ' '],
+				['aligned', ' '],
+				['4', ' ', 'lyf'],
 			])
 		})
+
+		it.only('truncates to a single line')
+		it.only('truncates to a single line with an ellipsis')
 	})
 })

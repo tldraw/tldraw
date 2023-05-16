@@ -99,8 +99,6 @@ export class TextManager {
 		const shouldTruncateToFirstLine =
 			opts.wrap === 'truncate-ellipsis' || opts.wrap === 'truncate-clip'
 
-		console.log('getTextSpans', opts.text, opts.width)
-
 		// Create a measurement element:
 		const elm = this.getTextElement()
 		elm.style.setProperty('width', Math.ceil(opts.width - opts.padding * 2) + 'px')
@@ -120,37 +118,42 @@ export class TextManager {
 			elm.style.opacity = '1'
 		}
 
-		// Divide the text into individual characters. It's important to use a
-		// for-of loop here because it splits the string on unicode characters
-		// rather than individual bytes. That means that e.g. emoji characters
-		// don't get split into multiple spans.
-		const chars = []
-		for (const char of opts.text) {
-			const span = document.createElement('span')
-			span.textContent = char
-			elm.appendChild(span)
-			chars.push({ char, span })
-		}
+		// Render the text into the measurement element:
+		const text = opts.text
+		elm.textContent = text
+
+		const spans = []
 
 		// Measurements of individual spans are relative to the containing element
 		const elmBounds = elm.getBoundingClientRect()
 		const offsetX = -elmBounds.left
 		const offsetY = -elmBounds.top
 
-		// Group the character into spans
-		const spans = []
+		// we measure by creating a range that spans each character in the elements text node
+		const range = new Range()
+		const textNode = elm.childNodes[0]
+		let idx = 0
+
 		let currentSpan = null
 		let prevCharWasSpaceCharacter = null
 		let prevCharTop = 0
 		let didTruncate = false
-		for (const { char, span } of chars) {
-			const rect = span.getBoundingClientRect()
+		for (const char of text) {
+			// place the range around the characters we're interested in
+			range.setStart(textNode, idx)
+			range.setEnd(textNode, idx + char.length)
+			// measure the range. some browsers return multiple rects for the
+			// first char in a new line - one for the line break, and one for
+			// the character itself. we're only interested in the character.
+			const rects = range.getClientRects()
+			const rect = rects[rects.length - 1]!
+
+			// calculate the position of the character relative to the element
 			const top = rect.top + offsetY
 			const left = rect.left + offsetX
 			const right = rect.right + offsetX
 
 			const isSpaceCharacter = spaceCharacterRegex.test(char)
-
 			if (
 				// If we're at a word boundary...
 				isSpaceCharacter !== prevCharWasSpaceCharacter ||
@@ -185,6 +188,7 @@ export class TextManager {
 
 			prevCharWasSpaceCharacter = isSpaceCharacter
 			prevCharTop = top
+			idx += char.length
 		}
 
 		// Add the last span
