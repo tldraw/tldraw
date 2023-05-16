@@ -1,4 +1,5 @@
 import { rangeIntersection } from '@tldraw/primitives'
+import classNames from 'classnames'
 import * as React from 'react'
 import { type GapsSnapLine, type PointsSnapLine, type SnapLine } from '../app/managers/SnapManager'
 
@@ -148,11 +149,15 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 	)
 }
 
-export type TLSnapLineComponent = (props: { line: SnapLine; zoom: number }) => any
+export type TLSnapLineComponent = (props: {
+	className?: string
+	line: SnapLine
+	zoom: number
+}) => any
 
-export const DefaultSnapLine: TLSnapLineComponent = ({ line, zoom }) => {
+export const DefaultSnapLine: TLSnapLineComponent = ({ className, line, zoom }) => {
 	return (
-		<svg className="tl-svg-origin-container">
+		<svg className={classNames('tl-overlays__item', className)}>
 			{line.type === 'points' ? (
 				<PointsSnapLine {...line} zoom={zoom} />
 			) : line.type === 'gaps' ? (

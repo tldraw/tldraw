@@ -59,6 +59,9 @@ export class EditingShape extends StateNode {
 					const editingShape = this.app.getShapeById(editingId)
 
 					if (editingShape) {
+						const editingShapeUtil = this.app.getShapeUtil(editingShape)
+						editingShapeUtil.onEditEnd?.(editingShape)
+
 						const util = this.app.getShapeUtil(shape)
 
 						// If the user has clicked onto a different shape of the same type

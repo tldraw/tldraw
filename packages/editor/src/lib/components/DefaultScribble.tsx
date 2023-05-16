@@ -1,5 +1,6 @@
 import { EASINGS, getStroke } from '@tldraw/primitives'
 import { TLScribble } from '@tldraw/tlschema'
+import classNames from 'classnames'
 import { getSvgPathFromStroke } from '../utils/svg'
 
 /** @public */
@@ -8,9 +9,16 @@ export type TLScribbleComponent = (props: {
 	zoom: number
 	color?: string
 	opacity?: number
+	className?: string
 }) => any
 
-export const DefaultScribble: TLScribbleComponent = ({ scribble, zoom, color, opacity }) => {
+export const DefaultScribble: TLScribbleComponent = ({
+	scribble,
+	zoom,
+	color,
+	opacity,
+	className,
+}) => {
 	const d = getSvgPathFromStroke(
 		getStroke(scribble.points, {
 			size: scribble.size / zoom,
@@ -21,7 +29,7 @@ export const DefaultScribble: TLScribbleComponent = ({ scribble, zoom, color, op
 	)
 
 	return (
-		<svg className="tl-svg-origin-container">
+		<svg className={className ? classNames('tl-overlays__item', className) : className}>
 			<path
 				className="tl-scribble"
 				d={d}
