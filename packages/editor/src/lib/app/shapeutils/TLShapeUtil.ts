@@ -369,6 +369,11 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
 		return false
 	}
 
+	/** @internal */
+	expandSelectionOutlinePx(shape: T): number {
+		return 0
+	}
+
 	//  Events
 
 	/**

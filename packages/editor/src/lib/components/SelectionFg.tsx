@@ -25,14 +25,24 @@ export const SelectionFg = track(function SelectionFg() {
 	const isDefaultCursor = !app.isMenuOpen && app.cursor.type === 'default'
 	const isCoarsePointer = app.isCoarsePointer
 
-	const bounds = app.selectionBounds
+	let bounds = app.selectionBounds
+	const shapes = app.selectedShapes
+	const onlyShape = shapes.length === 1 ? shapes[0] : null
 
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation)
+	// if all shapes have an expandBy for the selection outline, we can expand by the l
+	const expandOutlineBy = onlyShape
+		? app.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
+		: 0
+
+	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation, {
+		x: -expandOutlineBy,
+		y: -expandOutlineBy,
+	})
 
 	if (!bounds) return null
+	bounds = bounds.clone().expandBy(expandOutlineBy)
 
 	const zoom = app.zoomLevel
-	const shapes = app.selectedShapes
 	const rotation = app.selectionRotation
 	const isChangingStyles = app.isChangingStyle
 
@@ -53,8 +63,6 @@ export const SelectionFg = track(function SelectionFg() {
 
 	const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 	const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
-
-	const onlyShape = shapes.length === 1 ? shapes[0] : null
 
 	const showSelectionBounds =
 		(onlyShape ? !app.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
