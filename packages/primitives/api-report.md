@@ -117,7 +117,7 @@ export class Box2d {
     // (undocumented)
     translate(delta: VecLike): this;
     // (undocumented)
-    union(box: Box2dModel): void;
+    union(box: Box2dModel): this;
     // (undocumented)
     w: number;
     // (undocumented)

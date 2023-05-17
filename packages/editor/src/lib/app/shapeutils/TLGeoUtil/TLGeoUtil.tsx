@@ -636,12 +636,13 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 		if (props.text) {
 			const bounds = this.bounds(shape)
+			const padding = 16
 
 			const opts = {
 				fontSize: LABEL_FONT_SIZES[shape.props.size],
 				fontFamily: font,
 				textAlign: shape.props.align,
-				padding: 16,
+				padding,
 				lineHeight: TEXT_PROPS.lineHeight,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
@@ -651,21 +652,22 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			}
 
 			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
+			const textBounds = spans.reduce((a, b) => a.union(b.box), Box2d.From(spans[0].box))
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-			const labelSize = getLabelSize(this.app, shape)
 
 			const textBgEl = getTextSvgElement(this.app, spans, {
 				...opts,
 				strokeWidth: 2,
 				stroke: colors.background,
 				fill: colors.background,
-				width: labelSize.w,
+				offsetX:
+					shape.props.align === 'start'
+						? (bounds.width - textBounds.width) / 2 - padding * 2
+						: shape.props.align === 'end'
+						? -(bounds.width - textBounds.width) / 2 + padding * 2
+						: 0,
 			})
-
-			// yuck, include padding as magic number
-			textBgEl.setAttribute('transform', `translate(${(bounds.width - labelSize.w) / 2}, 0)`)
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])

@@ -14,7 +14,7 @@ describe('text', () => {
 			const tests = [
 				{
 					name: 'multiline (align center)',
-					fails: true,
+					fails: false,
 					handler: async () => {
 						await ui.tools.click('select')
 						await ui.tools.click('text')
@@ -281,7 +281,13 @@ describe('text measurement', () => {
 				return window.app.textMeasure.measureTextSpans('且🎉é世🧦丕👩‍👩‍👧‍👧丗é🧦丘👩🏽‍❤️‍💋‍👨🏼🧦', options)
 			}, measureTextSpansOptions)
 
-			expect(formatLines(spans)).toEqual([['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧丗'], ['é🧦丘👩🏽‍❤️‍💋‍👨🏼'], ['🧦']])
+			const { tldrawOptions } = global as any
+			const expectedResult =
+				tldrawOptions.os === 'linux'
+					? [['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧'], ['丗é🧦丘'], ['👩🏽‍❤️‍💋‍👨🏼🧦']]
+					: [['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧丗'], ['é🧦丘👩🏽‍❤️‍💋‍👨🏼'], ['🧦']]
+
+			expect(formatLines(spans)).toEqual(expectedResult)
 		})
 	})
 })

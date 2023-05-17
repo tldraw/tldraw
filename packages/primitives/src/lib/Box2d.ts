@@ -322,6 +322,8 @@ export class Box2d {
 		this.y = minY
 		this.width = maxX - minX
 		this.height = maxY - minY
+
+		return this
 	}
 
 	static From(box: Box2dModel) {

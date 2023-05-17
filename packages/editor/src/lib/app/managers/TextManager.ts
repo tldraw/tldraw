@@ -217,6 +217,7 @@ export class TextManager {
 
 			// then, we need to subtract that space from the width we have and measure again:
 			element.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+			element.textContent = textToMeasure
 			const truncatedSpans = this.measureElementTextNodeSpans(element, {
 				shouldTruncateToFirstLine: true,
 			}).spans

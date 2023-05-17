@@ -106,7 +106,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			fontFamily: 'Inter, sans-serif',
 			textAlign: 'start' as const,
 			width: shape.props.w,
-			height: 30,
+			height: 32,
 			padding: 0,
 			lineHeight: 1,
 			fontStyle: 'normal',
@@ -122,14 +122,14 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = getTextSvgElement(this.app, spans, { offsetY: -32, ...opts })
+		const text = getTextSvgElement(this.app, spans, { offsetY: -opts.height - 2, ...opts })
 		text.style.setProperty('transform', labelTranslate)
 
 		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		textBg.setAttribute('x', '-8px')
-		textBg.setAttribute('y', -32 + 'px')
+		textBg.setAttribute('y', -opts.height - 4 + 'px')
 		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
-		textBg.setAttribute('height', '28px')
+		textBg.setAttribute('height', `${opts.height}px`)
 		textBg.setAttribute('rx', 4 + 'px')
 		textBg.setAttribute('ry', 4 + 'px')
 		textBg.setAttribute('fill', colors.background)
