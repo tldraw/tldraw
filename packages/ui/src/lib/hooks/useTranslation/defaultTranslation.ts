@@ -231,7 +231,7 @@ export const DEFAULT_TRANSLATION = {
 	'share-menu.create-snapshot-link': 'Copy snapshot link',
 	'share-menu.snapshot-link-note': 'Capture and share this project as a read-only snapshot link.',
 	'share-menu.copy-readonly-link': 'Copy read-only link',
-	'share-menu.offline-note': 'Create a new shared project based on your local project.',
+	'share-menu.offline-note': 'Create a new shared project based on your current project.',
 	'share-menu.copy-link-note': 'Anyone with the link will be able to view and edit this project.',
 	'share-menu.copy-readonly-link-note':
 		'Anyone with the link will be able to view (but not edit) this project.',
