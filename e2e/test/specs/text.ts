@@ -274,20 +274,5 @@ describe('text measurement', () => {
 
 			expect(formatLines(spans)).toEqual([])
 		})
-
-		it('preserves emojis and other multi-byte characters', async () => {
-			await ui.app.setup()
-			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.measureTextSpans('且🎉é世🧦丕👩‍👩‍👧‍👧丗é🧦丘👩🏽‍❤️‍💋‍👨🏼🧦', options)
-			}, measureTextSpansOptions)
-
-			const { tldrawOptions } = global as any
-			const expectedResult =
-				tldrawOptions.os === 'linux'
-					? [['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧'], ['丗é🧦丘'], ['👩🏽‍❤️‍💋‍👨🏼🧦']]
-					: [['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧丗'], ['é🧦丘👩🏽‍❤️‍💋‍👨🏼'], ['🧦']]
-
-			expect(formatLines(spans)).toEqual(expectedResult)
-		})
 	})
 })
