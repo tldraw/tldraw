@@ -201,7 +201,7 @@ const handlePasteFromEventClipboardData = async (
  * https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem
  *
  * @param app - The app
- * @param clipboardData - The clipboard data
+ * @param clipboardItems - The clipboard items to handle
  * @param point - (optional) The point to paste at
  */
 const handlePasteFromClipboardApi = async (
