@@ -32,6 +32,11 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 		test: {
 			baseCommand: 'yarn run -T jest',
 			runsAfter: { 'refresh-assets': {} },
+			cache: {
+				inputs: {
+					exclude: ['*.tsbuildinfo'],
+				},
+			},
 		},
 		'test-coverage': {
 			baseCommand: 'yarn run -T jest --coverage',
@@ -42,7 +47,7 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			runsAfter: { 'build-types': {} },
 			cache: {
 				inputs: {
-					exclude: ['**/*.tsbuildinfo'],
+					exclude: ['*.tsbuildinfo'],
 				},
 			},
 		},

@@ -364,6 +364,7 @@ describe('When in readonly mode', () => {
 			},
 		])
 		app.setReadOnly(true)
+		app.setSelectedTool('select')
 	})
 
 	it('Begins editing embed when double clicked', () => {
