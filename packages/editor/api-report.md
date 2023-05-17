@@ -2741,9 +2741,6 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
 
-// @public (undocumented)
-export function useUrlState(changeUrl: (params: Params) => void): void;
-
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;
 
