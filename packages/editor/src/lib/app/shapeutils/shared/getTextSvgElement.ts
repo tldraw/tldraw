@@ -46,7 +46,7 @@ export function getTextSvgElement(
 	const offsetX = padding + (opts.offsetX ?? 0)
 	const offsetY = (Math.ceil(opts.height) - bounds.height + opts.fontSize) / 2 + (opts.offsetY ?? 0)
 
-	// Create text span elements for each work
+	// Create text span elements for each word
 	let currentLineTop = null
 	for (const { text, box } of spans) {
 		// if we broke a line, add a line break span. This helps tools like

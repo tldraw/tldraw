@@ -135,7 +135,6 @@ export class TextManager {
 				) {
 					// ...then we're at a span boundary!
 
-					// if we just finished a span
 					if (currentSpan) {
 						// if we're truncating to a single line & we just finished the first line, stop there
 						if (shouldTruncateToFirstLine && top !== prevCharTop) {
