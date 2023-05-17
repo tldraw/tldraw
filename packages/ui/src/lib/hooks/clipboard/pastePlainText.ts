@@ -2,6 +2,7 @@ import {
 	App,
 	FONT_FAMILIES,
 	FONT_SIZES,
+	INDENT,
 	TEXT_PROPS,
 	TLTextShapeDef,
 	createShapeId,
@@ -16,7 +17,7 @@ const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\u
  * @internal
  */
 function replaceTabsWithSpaces(text: string) {
-	return text.replace(/\t/g, '  ')
+	return text.replace(/\t/g, INDENT)
 }
 
 /**
