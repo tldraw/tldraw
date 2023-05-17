@@ -8,6 +8,8 @@ import {
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 
+const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
+
 /**
  * Replace any tabs with double spaces.
  * @param text - The text to replace tabs in.
@@ -76,10 +78,7 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 	const isMultiLine = textToPaste.split('\n').length > 1
 
 	// check whether the text contains the most common characters in RTL languages
-	const isRtl =
-		/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(
-			textToPaste
-		)
+	const isRtl = rtlRegex.test(textToPaste)
 
 	if (isMultiLine) {
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
@@ -115,6 +114,10 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 		w = rawSize.w
 		h = rawSize.h
 		autoSize = true
+	}
+
+	if (p.y - h / 2 < app.viewportPageBounds.minY + 40) {
+		p.y = app.viewportPageBounds.minY + 40 + h / 2
 	}
 
 	app.mark('paste')
