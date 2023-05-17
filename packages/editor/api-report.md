@@ -456,7 +456,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // (undocumented)
+    // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;

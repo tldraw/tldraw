@@ -274,7 +274,7 @@ describe('creating groups', () => {
 		// │ A │   │ B │   │ C │
 		// └───┘   └───┘   └───┘
 		app.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
-		app.updateUserDocumentSettings({ isReadOnly: true })
+		app.setReadOnly(true)
 		app.selectAll()
 		expect(app.selectedIds.length).toBe(3)
 		app.groupShapes()
@@ -485,8 +485,8 @@ describe('ungrouping shapes', () => {
 		expect(app.selectedIds.length).toBe(3)
 		app.groupShapes()
 		expect(app.selectedIds.length).toBe(1)
+		app.setReadOnly(true)
 
-		app.updateUserDocumentSettings({ isReadOnly: true })
 		app.ungroupShapes()
 		expect(app.selectedIds.length).toBe(1)
 		expect(onlySelectedShape().type).toBe(TLGroupUtil.type)

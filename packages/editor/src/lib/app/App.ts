@@ -1564,18 +1564,19 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
+	/** @internal */
 	setReadOnly(isReadOnly: boolean): this {
-		if (isReadOnly !== this.isReadOnly) {
-			this.updateUserDocumentSettings({ isReadOnly }, true)
-			if (isReadOnly) {
-				this.setSelectedTool('hand')
-			}
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
 		}
 		return this
+	}
+
+	get isReadOnly() {
+		return this._isReadOnly.value
 	}
 
 	/** @internal */
