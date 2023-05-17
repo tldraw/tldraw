@@ -61,11 +61,10 @@ const clearPersistedClipboard = () => {
  * @internal
  */
 function stripHtml(html: string) {
-	const leadingWhitespace = html.match(/^\s+/)?.[0] ?? ''
 	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
 	const doc = document.implementation.createHTMLDocument('')
-	doc.documentElement.innerHTML = html
-	return leadingWhitespace + (doc.body.textContent || doc.body.innerText || '')
+	doc.documentElement.innerHTML = html.trim()
+	return doc.body.textContent || doc.body.innerText || ''
 }
 
 /**
