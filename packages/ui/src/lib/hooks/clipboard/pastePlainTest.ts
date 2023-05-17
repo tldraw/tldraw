@@ -3,7 +3,6 @@ import {
 	FONT_FAMILIES,
 	FONT_SIZES,
 	TEXT_PROPS,
-	TLAlignType,
 	TLTextShapeDef,
 	createShapeId,
 } from '@tldraw/editor'
@@ -16,19 +15,6 @@ import { VecLike } from '@tldraw/primitives'
  */
 function replaceTabsWithSpaces(text: string) {
 	return text.replace(/\t/g, '  ')
-}
-
-/**
- * Strip HTML tags from a string.
- * @param html - The HTML to strip.
- * @internal
- */
-function stripHtml(html: string) {
-	const leadingWhitespace = html.match(/^\s+/)?.[0] ?? ''
-	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = document.implementation.createHTMLDocument('')
-	doc.documentElement.innerHTML = html
-	return leadingWhitespace + (doc.body.textContent || doc.body.innerText || '')
 }
 
 /**
@@ -78,16 +64,26 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 	const defaultProps = app.getShapeUtilByDef(TLTextShapeDef).defaultProps()
 
 	const textToPaste = stripTrailingWhitespace(
-		stripCommonMinimumIndentation(replaceTabsWithSpaces(stripHtml(text)))
+		stripCommonMinimumIndentation(replaceTabsWithSpaces(text))
 	)
 
 	// Measure the text with default values
 	let w: number
 	let h: number
 	let autoSize: boolean
-	let align: TLAlignType
+	let align = 'middle'
 
 	const isMultiLine = textToPaste.split('\n').length > 1
+
+	// check whether the text contains the most common characters in RTL languages
+	const isRtl =
+		/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(
+			textToPaste
+		)
+
+	if (isMultiLine) {
+		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
+	}
 
 	const rawSize = app.textMeasure.measureText({
 		...TEXT_PROPS,
@@ -97,8 +93,12 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 		width: 'fit-content',
 	})
 
-	const minWidth = Math.min(920, Math.max(200, app.viewportPageBounds.width * 0.9))
-	if (!isMultiLine && rawSize.w > minWidth) {
+	const minWidth = Math.min(
+		isMultiLine ? app.viewportPageBounds.width * 0.9 : 920,
+		Math.max(200, app.viewportPageBounds.width * 0.9)
+	)
+
+	if (rawSize.w > minWidth) {
 		const shrunkSize = app.textMeasure.measureText({
 			...TEXT_PROPS,
 			text: textToPaste,
@@ -109,19 +109,12 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 		w = shrunkSize.w
 		h = shrunkSize.h
 		autoSize = false
-		align = 'start'
+		align = isRtl ? 'end' : 'start'
 	} else {
 		// autosize is fine
 		w = rawSize.w
 		h = rawSize.h
 		autoSize = true
-
-		// check whether the text contains the most common characters in RTL languages
-		const isRtl =
-			/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(
-				textToPaste
-			)
-		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
 	app.mark('paste')

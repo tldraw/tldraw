@@ -56,6 +56,19 @@ const clearPersistedClipboard = () => {
 }
 
 /**
+ * Strip HTML tags from a string.
+ * @param html - The HTML to strip.
+ * @internal
+ */
+function stripHtml(html: string) {
+	const leadingWhitespace = html.match(/^\s+/)?.[0] ?? ''
+	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
+	const doc = document.implementation.createHTMLDocument('')
+	doc.documentElement.innerHTML = html
+	return leadingWhitespace + (doc.body.textContent || doc.body.innerText || '')
+}
+
+/**
  * Write serialized data to the local storage.
  *
  * @param data - The string to write.
@@ -426,7 +439,7 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(app, result.data, point)
+				handleText(app, stripHtml(result.data), point)
 				return
 			}
 		}
