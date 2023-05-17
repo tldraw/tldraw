@@ -1569,6 +1569,9 @@ export class App extends EventEmitter<TLEventMap> {
 	/** @internal */
 	setReadOnly(isReadOnly: boolean): this {
 		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
+		}
 		return this
 	}
 
