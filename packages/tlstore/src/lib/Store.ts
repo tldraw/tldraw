@@ -431,9 +431,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	}
 
 	/**
-	 * Opposite of `deserialize`. Creates a JSON payload from the record store.
-	 *
-	 * @param filter - A function to filter structs that do not satisfy the predicate.
+	 * The same as `serialize`, but only serializes records with a scope of `document`.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
 	serializeDocumentState = (): StoreSnapshot<R> => {
