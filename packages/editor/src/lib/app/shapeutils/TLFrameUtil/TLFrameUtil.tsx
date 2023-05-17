@@ -111,22 +111,18 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			lineHeight: 1,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			overflow: 'truncate-ellipsis' as const,
 		}
 
-		const spans = this.app.textMeasure.getTextSpans({
-			text: defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
-			wrap: 'truncate-ellipsis',
-			...opts,
-		})
+		const spans = this.app.textMeasure.measureTextSpans(
+			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+			opts
+		)
 
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = getTextSvgElement(this.app, {
-			spans,
-			offsetY: -32,
-			...opts,
-		})
+		const text = getTextSvgElement(this.app, spans, { offsetY: -32, ...opts })
 		text.style.setProperty('transform', labelTranslate)
 
 		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')

@@ -175,25 +175,23 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
-			wrap: 'wrap' as const,
+			overflow: 'wrap' as const,
 		}
-
-		const spans = this.app.textMeasure.getTextSpans({
-			text: text,
-			...opts,
-		})
 
 		const color = colors.fill[shape.props.color]
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-		const textBgEl = getTextSvgElement(this.app, {
-			spans,
-			...opts,
-			stroke: colors.background,
-			strokeWidth: 2,
-			fill: colors.background,
-			padding: 0,
-		})
+		const textBgEl = getTextSvgElement(
+			this.app,
+			this.app.textMeasure.measureTextSpans(text, opts),
+			{
+				...opts,
+				stroke: colors.background,
+				strokeWidth: 2,
+				fill: colors.background,
+				padding: 0,
+			}
+		)
 
 		const textElm = textBgEl.cloneNode(true) as SVGTextElement
 		textElm.setAttribute('fill', color)
@@ -391,9 +389,8 @@ function getTextSize(app: App, props: TLTextShape['props']) {
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
 		  Math.floor(Math.max(minWidth, w)) + 'px'
 
-	const result = app.textMeasure.measureText({
+	const result = app.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		text,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
 		width: cw,

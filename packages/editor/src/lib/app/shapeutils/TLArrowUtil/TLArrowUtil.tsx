@@ -845,9 +845,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (!info) return null
 			if (!text.trim()) return null
 
-			const { w, h } = this.app.textMeasure.measureText({
+			const { w, h } = this.app.textMeasure.measureText(text, {
 				...TEXT_PROPS,
-				text,
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: ARROW_LABEL_FONT_SIZES[size],
 				width: 'fit-content',
@@ -859,9 +858,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (bounds.width > bounds.height) {
 				width = Math.max(Math.min(w, 64), Math.min(bounds.width - 64, w))
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText({
+				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
 					...TEXT_PROPS,
-					text,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
 					width: width + 'px',
@@ -874,9 +872,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (width > 16 * ARROW_LABEL_FONT_SIZES[size]) {
 				width = 16 * ARROW_LABEL_FONT_SIZES[size]
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText({
+				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
 					...TEXT_PROPS,
-					text,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
 					width: width + 'px',
@@ -1053,25 +1050,18 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				fontFamily: font,
 				padding: 0,
 				textAlign: 'middle' as const,
-				width: labelSize.w,
+				width: labelSize.w - 8,
 				height: labelSize.h,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
-				wrap: 'wrap' as const,
+				overflow: 'wrap' as const,
 			}
 
-			const spans = this.app.textMeasure.getTextSpans({
-				text: shape.props.text,
-				...opts,
-				width: labelSize.w - 8,
-			})
-
-			const textElm = getTextSvgElement(this.app, {
-				spans,
-				...opts,
-				width: labelSize.w - 8,
-			})
-
+			const textElm = getTextSvgElement(
+				this.app,
+				this.app.textMeasure.measureTextSpans(shape.props.text, opts),
+				opts
+			)
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
 
 			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]

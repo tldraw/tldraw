@@ -647,21 +647,17 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				fontWeight: 'normal',
 				width: Math.ceil(bounds.width),
 				height: Math.ceil(bounds.height),
-				wrap: 'wrap' as const,
+				overflow: 'wrap' as const,
 			}
 
-			const spans = this.app.textMeasure.getTextSpans({
-				text: props.text,
-				...opts,
-			})
+			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 			const labelSize = getLabelSize(this.app, shape)
 
-			const textBgEl = getTextSvgElement(this.app, {
+			const textBgEl = getTextSvgElement(this.app, spans, {
 				...opts,
-				spans,
 				strokeWidth: 2,
 				stroke: colors.background,
 				fill: colors.background,
@@ -927,9 +923,8 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = app.textMeasure.measureText({
+	const minSize = app.textMeasure.measureText('w', {
 		...TEXT_PROPS,
-		text: 'w',
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: 'fit-content',
@@ -944,9 +939,8 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = app.textMeasure.measureText({
+	const size = app.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		text: text,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: 'fit-content',

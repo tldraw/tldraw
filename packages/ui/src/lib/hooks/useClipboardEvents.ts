@@ -145,9 +145,8 @@ const pastePlainText = async (app: App, text: string, point?: VecLike) => {
 	const defaultProps = app.getShapeUtilByDef(TLTextShapeDef).defaultProps()
 
 	// Measure the text with default values
-	const { w, h } = app.textMeasure.measureText({
+	const { w, h } = app.textMeasure.measureText(stripHtml(text), {
 		...TEXT_PROPS,
-		text: stripHtml(text),
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
 		width: 'fit-content',

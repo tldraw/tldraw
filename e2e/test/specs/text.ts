@@ -81,9 +81,8 @@ describe('text', () => {
 	)
 })
 
-describe.only('text measurement', () => {
+describe('text measurement', () => {
 	const measureTextOptions = {
-		text: 'testing',
 		width: 'fit-content',
 		fontFamily: 'var(--tl-font-draw)',
 		fontSize: 24,
@@ -94,11 +93,10 @@ describe.only('text measurement', () => {
 		maxWidth: 'auto',
 	}
 
-	const getTextSpansOptions = {
-		text: 'testing',
+	const measureTextSpansOptions = {
 		width: 100,
 		height: 1000,
-		wrap: 'wrap' as const,
+		overflow: 'wrap' as const,
 		padding: 0,
 		fontSize: 24,
 		fontWeight: 'normal',
@@ -135,22 +133,30 @@ describe.only('text measurement', () => {
 		it('should measure text', async () => {
 			await ui.app.setup()
 			const { w, h } = await browser.execute((options) => {
-				return window.app.textMeasure.measureText({
-					...options,
-				})
+				return window.app.textMeasure.measureText('testing', options)
 			}, measureTextOptions)
 
 			expect(w).toBeCloseTo(85.828125, 0)
 			expect(h).toBeCloseTo(32.3984375, 0)
 		})
 
+		// The text-measurement tests below this point aren't super useful any
+		// more. They were added when we had a different approach to text SVG
+		// exports (trying to replicate browser decisions with our own code) to
+		// what we do now (letting the browser make those decisions then
+		// measuring the results).
+		//
+		// It's hard to write better tests here (e.g. ones where we actually
+		// look at the measured values) because the specifics of text layout
+		// vary from browser to browser. The ideal thing would be to replace
+		// these with visual regression tests for text SVG exports, but we don't
+		// have a way of doing visual regression testing right now.
+
 		it('should get a single text span', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('testing', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['testing']])
 		})
@@ -158,11 +164,8 @@ describe.only('text measurement', () => {
 		it('should wrap a word when it has to', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					width: 50,
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('testing', { ...options, width: 50 })
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['test'], ['ing']])
 		})
@@ -170,35 +173,26 @@ describe.only('text measurement', () => {
 		it('should wrap between words when it has to', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'testing testing',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('testing testing', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['testing', ' '], ['testing']])
 		})
 
-		it('should collapse whitespace at line breaks', async () => {
+		it('should preserve whitespace at line breaks', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'testing   testing',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('testing   testing', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['testing', '   '], ['testing']])
 		})
 
-		it('should collapse whitespace at the end of wrapped lines', async () => {
+		it('should preserve whitespace at the end of wrapped lines', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'testing testing   ',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('testing testing   ', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
 				['testing', ' '],
@@ -209,12 +203,11 @@ describe.only('text measurement', () => {
 		it('preserves whitespace at the end of unwrapped lines', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
+				return window.app.textMeasure.measureTextSpans('testing testing   ', {
 					...options,
 					width: 200,
-					text: 'testing testing   ',
 				})
-			}, getTextSpansOptions)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['testing', ' ', 'testing', '   ']])
 		})
@@ -222,12 +215,11 @@ describe.only('text measurement', () => {
 		it('preserves whitespace at the start of an unwrapped line', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
+				return window.app.textMeasure.measureTextSpans('  testing testing', {
 					...options,
 					width: 200,
-					text: '  testing testing',
 				})
-			}, getTextSpansOptions)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['  ', 'testing', ' ', 'testing']])
 		})
@@ -235,11 +227,8 @@ describe.only('text measurement', () => {
 		it('should place starting whitespace on its own line if it has to', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: '  testing testing',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('  testing testing', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['  '], ['testing', ' '], ['testing']])
 		})
@@ -247,11 +236,8 @@ describe.only('text measurement', () => {
 		it('should handle multiline text', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: '   test\ning testing   \n  t',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('   test\ning testing   \n  t', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
 				['   ', 'test', '\n'],
@@ -264,11 +250,11 @@ describe.only('text measurement', () => {
 		it('should break long strings of text', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'testingtestingtestingtestingtestingtesting',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans(
+					'testingtestingtestingtestingtestingtesting',
+					options
+				)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([
 				['testingt'],
@@ -283,11 +269,8 @@ describe.only('text measurement', () => {
 		it('should return an empty array if the text is empty', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: '',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([])
 		})
@@ -295,52 +278,10 @@ describe.only('text measurement', () => {
 		it('preserves emojis and other multi-byte characters', async () => {
 			await ui.app.setup()
 			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: '且🎉é世🧦丕👩‍👩‍👧‍👧丗é🧦丘👩🏽‍❤️‍💋‍👨🏼🧦',
-				})
-			}, getTextSpansOptions)
+				return window.app.textMeasure.measureTextSpans('且🎉é世🧦丕👩‍👩‍👧‍👧丗é🧦丘👩🏽‍❤️‍💋‍👨🏼🧦', options)
+			}, measureTextSpansOptions)
 
 			expect(formatLines(spans)).toEqual([['且🎉é世'], ['🧦丕👩‍👩‍👧‍👧丗'], ['é🧦丘👩🏽‍❤️‍💋‍👨🏼'], ['🧦']])
 		})
-
-		it('handles right-aligned text', async () => {
-			await ui.app.setup()
-			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'this is some right aligned text',
-					textAlign: 'end',
-				})
-			}, getTextSpansOptions)
-
-			expect(formatLines(spans)).toEqual([
-				['this', ' ', 'is', ' '],
-				['some', ' '],
-				['right', ' '],
-				['aligned', ' '],
-				['text'],
-			])
-		})
-
-		it('handles center-aligned text', async () => {
-			await ui.app.setup()
-			const spans = await browser.execute((options) => {
-				return window.app.textMeasure.getTextSpans({
-					...options,
-					text: 'center aligned 4 lyf',
-					textAlign: 'middle',
-				})
-			}, getTextSpansOptions)
-
-			expect(formatLines(spans)).toEqual([
-				['center', ' '],
-				['aligned', ' '],
-				['4', ' ', 'lyf'],
-			])
-		})
-
-		it.only('truncates to a single line')
-		it.only('truncates to a single line with an ellipsis')
 	})
 })

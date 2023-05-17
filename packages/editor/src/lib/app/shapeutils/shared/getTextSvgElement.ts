@@ -6,8 +6,8 @@ import { App } from '../../App'
 /** Get an SVG element for a text shape. */
 export function getTextSvgElement(
 	app: App,
+	spans: { text: string; box: Box2dModel }[],
 	opts: {
-		spans: { text: string; box: Box2dModel }[]
 		fontSize: number
 		fontFamily: string
 		textAlign: TLAlignType
@@ -36,10 +36,10 @@ export function getTextSvgElement(
 	textElm.setAttribute('dominant-baseline', 'mathematical')
 	textElm.setAttribute('alignment-baseline', 'mathematical')
 
-	if (opts.spans.length === 0) return textElm
+	if (spans.length === 0) return textElm
 
-	const bounds = Box2d.From(opts.spans[0].box)
-	for (const { box } of opts.spans) {
+	const bounds = Box2d.From(spans[0].box)
+	for (const { box } of spans) {
 		bounds.union(box)
 	}
 
@@ -48,7 +48,7 @@ export function getTextSvgElement(
 
 	// Create text span elements for each work
 	let currentLineTop = null
-	for (const { text, box } of opts.spans) {
+	for (const { text, box } of spans) {
 		// if we broke a line, add a line break span. This helps tools like
 		// figma import our exported svg correctly
 		const didBreakLine = currentLineTop !== null && box.y > currentLineTop

@@ -3,22 +3,15 @@ import { uniqueId } from '../../utils/data'
 import { App } from '../App'
 import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
-// const wordSeparator = new RegExp(
-// 	`${[0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
-// 		.map((c) => String.fromCodePoint(c))
-// 		.join('|')}`
-// )
-
 const textAlignmentsForLtr: Record<TLAlignType, string> = {
 	start: 'left',
 	middle: 'center',
 	end: 'right',
 }
 
-type WrapMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type GetTextSpanOpts = {
-	text: string
-	wrap: WrapMode
+type OverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+type MeasureTextSpanOpts = {
+	overflow: OverflowMode
 	width: number
 	height: number
 	padding: number
@@ -50,18 +43,20 @@ export class TextManager {
 		return elm
 	}
 
-	measureText = (opts: {
-		text: string
-		fontStyle: string
-		fontWeight: string
-		fontFamily: string
-		fontSize: number
-		lineHeight: number
-		width: string
-		minWidth?: string
-		maxWidth: string
-		padding: string
-	}): Box2dModel => {
+	measureText = (
+		textToMeasure: string,
+		opts: {
+			fontStyle: string
+			fontWeight: string
+			fontFamily: string
+			fontSize: number
+			lineHeight: number
+			width: string
+			minWidth?: string
+			maxWidth: string
+			padding: string
+		}
+	): Box2dModel => {
 		const elm = this.getTextElement()
 
 		elm.setAttribute('dir', 'ltr')
@@ -75,7 +70,7 @@ export class TextManager {
 		elm.style.setProperty('max-width', opts.maxWidth)
 		elm.style.setProperty('padding', opts.padding)
 
-		elm.textContent = TextHelpers.normalizeTextForDom(opts.text)
+		elm.textContent = TextHelpers.normalizeTextForDom(textToMeasure)
 
 		const rect = elm.getBoundingClientRect()
 
@@ -88,107 +83,84 @@ export class TextManager {
 	}
 
 	/**
-	 * Measure text into individual spans. Spans are created by rendering the
-	 * text, then dividing it up according to line breaks and word boundaries.
-	 *
-	 * It works by having the browser render the text, then measuring the
-	 * position of each character. You can use this to replicate the text-layout
-	 * algorithm of the current browser in e.g. an SVG export.
+	 * Given an html element, measure the position of each span of unbroken
+	 * word/white-space characters within any text nodes it contains.
 	 */
-	getTextSpans(opts: GetTextSpanOpts): { text: string; box: Box2dModel }[] {
-		const shouldTruncateToFirstLine =
-			opts.wrap === 'truncate-ellipsis' || opts.wrap === 'truncate-clip'
-
-		// Create a measurement element:
-		const elm = this.getTextElement()
-		elm.style.setProperty('width', Math.ceil(opts.width - opts.padding * 2) + 'px')
-		elm.style.setProperty('height', 'min-content')
-		elm.style.setProperty('dir', 'ltr')
-		elm.style.setProperty('font-size', opts.fontSize + 'px')
-		elm.style.setProperty('font-family', opts.fontFamily)
-		elm.style.setProperty('font-weight', opts.fontWeight)
-		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		elm.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
-
-		if (shouldTruncateToFirstLine) {
-			elm.style.setProperty('overflow-wrap', 'anywhere')
-			elm.style.setProperty('word-break', 'break-all')
-			elm.style.top = '400px'
-			elm.style.left = '400px'
-			elm.style.opacity = '1'
-		}
-
-		// Render the text into the measurement element:
-		const text = opts.text
-		elm.textContent = text
-
+	measureElementTextNodeSpans(
+		element: HTMLElement,
+		{ shouldTruncateToFirstLine = false }: { shouldTruncateToFirstLine?: boolean } = {}
+	): { spans: { box: Box2dModel; text: string }[]; didTruncate: boolean } {
 		const spans = []
 
 		// Measurements of individual spans are relative to the containing element
-		const elmBounds = elm.getBoundingClientRect()
+		const elmBounds = element.getBoundingClientRect()
 		const offsetX = -elmBounds.left
 		const offsetY = -elmBounds.top
 
 		// we measure by creating a range that spans each character in the elements text node
 		const range = new Range()
-		const textNode = elm.childNodes[0]
+		const textNode = element.childNodes[0]
 		let idx = 0
 
 		let currentSpan = null
 		let prevCharWasSpaceCharacter = null
 		let prevCharTop = 0
 		let didTruncate = false
-		for (const char of text) {
-			// place the range around the characters we're interested in
-			range.setStart(textNode, idx)
-			range.setEnd(textNode, idx + char.length)
-			// measure the range. some browsers return multiple rects for the
-			// first char in a new line - one for the line break, and one for
-			// the character itself. we're only interested in the character.
-			const rects = range.getClientRects()
-			const rect = rects[rects.length - 1]!
+		for (const childNode of element.childNodes) {
+			if (childNode.nodeType !== Node.TEXT_NODE) continue
 
-			// calculate the position of the character relative to the element
-			const top = rect.top + offsetY
-			const left = rect.left + offsetX
-			const right = rect.right + offsetX
+			for (const char of childNode.textContent ?? '') {
+				// place the range around the characters we're interested in
+				range.setStart(textNode, idx)
+				range.setEnd(textNode, idx + char.length)
+				// measure the range. some browsers return multiple rects for the
+				// first char in a new line - one for the line break, and one for
+				// the character itself. we're only interested in the character.
+				const rects = range.getClientRects()
+				const rect = rects[rects.length - 1]!
 
-			const isSpaceCharacter = spaceCharacterRegex.test(char)
-			if (
-				// If we're at a word boundary...
-				isSpaceCharacter !== prevCharWasSpaceCharacter ||
-				// ...or we're on a different line...
-				top !== prevCharTop ||
-				// ...or we're at the start of the text and haven't created a span yet...
-				!currentSpan
-			) {
-				// ...then we're at a span boundary!
+				// calculate the position of the character relative to the element
+				const top = rect.top + offsetY
+				const left = rect.left + offsetX
+				const right = rect.right + offsetX
 
-				// if we just finished a span
-				if (currentSpan) {
-					// if we're truncating to a single line & we just finished the first line, stop there
-					if (shouldTruncateToFirstLine && top !== prevCharTop) {
-						didTruncate = true
-						break
+				const isSpaceCharacter = spaceCharacterRegex.test(char)
+				if (
+					// If we're at a word boundary...
+					isSpaceCharacter !== prevCharWasSpaceCharacter ||
+					// ...or we're on a different line...
+					top !== prevCharTop ||
+					// ...or we're at the start of the text and haven't created a span yet...
+					!currentSpan
+				) {
+					// ...then we're at a span boundary!
+
+					// if we just finished a span
+					if (currentSpan) {
+						// if we're truncating to a single line & we just finished the first line, stop there
+						if (shouldTruncateToFirstLine && top !== prevCharTop) {
+							didTruncate = true
+							break
+						}
+						// otherwise add the span to the list ready to start a new one
+						spans.push(currentSpan)
 					}
-					// otherwise add the span to the list ready to start a new one
-					spans.push(currentSpan)
+
+					// start a new span
+					currentSpan = {
+						box: { x: left, y: top, w: rect.width, h: rect.height },
+						text: char,
+					}
+				} else {
+					// otherwise we just need to extend the current span with the next character
+					currentSpan.box.w = right - currentSpan.box.x
+					currentSpan.text += char
 				}
 
-				// start a new span
-				currentSpan = {
-					box: { x: left, y: top, w: rect.width, h: rect.height },
-					text: char,
-				}
-			} else {
-				// otherwise we just need to extend the current span with the next character
-				currentSpan.box.w = right - currentSpan.box.x
-				currentSpan.text += char
+				prevCharWasSpaceCharacter = isSpaceCharacter
+				prevCharTop = top
+				idx += char.length
 			}
-
-			prevCharWasSpaceCharacter = isSpaceCharacter
-			prevCharTop = top
-			idx += char.length
 		}
 
 		// Add the last span
@@ -196,23 +168,64 @@ export class TextManager {
 			spans.push(currentSpan)
 		}
 
-		elm.remove()
+		return { spans, didTruncate }
+	}
 
-		if (opts.wrap === 'truncate-ellipsis' && didTruncate) {
-			// debugger
+	/**
+	 * Measure text into individual spans. Spans are created by rendering the
+	 * text, then dividing it up according to line breaks and word boundaries.
+	 *
+	 * It works by having the browser render the text, then measuring the
+	 * position of each character. You can use this to replicate the text-layout
+	 * algorithm of the current browser in e.g. an SVG export.
+	 */
+	measureTextSpans(
+		textToMeasure: string,
+		opts: MeasureTextSpanOpts
+	): { text: string; box: Box2dModel }[] {
+		const shouldTruncateToFirstLine =
+			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 
-			const ellipsisWidth = Math.ceil(
-				this.getTextSpans({ ...opts, wrap: 'truncate-clip', text: '…' })[0].box.w
-			)
+		// Create a measurement element:
+		const element = this.getTextElement()
+		const elementWidth = Math.ceil(opts.width - opts.padding * 2)
+		element.style.setProperty('width', `${elementWidth}px`)
+		element.style.setProperty('height', 'min-content')
+		element.style.setProperty('dir', 'ltr')
+		element.style.setProperty('font-size', `${opts.fontSize}px`)
+		element.style.setProperty('font-family', opts.fontFamily)
+		element.style.setProperty('font-weight', opts.fontWeight)
+		element.style.setProperty('line-height', `${opts.lineHeight * opts.fontSize}px`)
+		element.style.setProperty('text-align', textAlignmentsForLtr[opts.textAlign])
 
-			const truncatedSpans = this.getTextSpans({
-				...opts,
-				wrap: 'truncate-clip',
-				width: opts.width - ellipsisWidth,
-			})
-			// if we're truncating with an ellipsis, at this point we should
-			// have the truncated line in the spans array. Add in the ellipsis
-			// at the end of the line.
+		if (shouldTruncateToFirstLine) {
+			element.style.setProperty('overflow-wrap', 'anywhere')
+			element.style.setProperty('word-break', 'break-all')
+		}
+
+		// Render the text into the measurement element:
+		element.textContent = textToMeasure
+
+		// actually measure the text:
+		const { spans, didTruncate } = this.measureElementTextNodeSpans(element, {
+			shouldTruncateToFirstLine,
+		})
+
+		if (opts.overflow === 'truncate-ellipsis' && didTruncate) {
+			// we need to measure the ellipsis to know how much space it takes up
+			element.textContent = '…'
+			const ellipsisWidth = Math.ceil(this.measureElementTextNodeSpans(element).spans[0].box.w)
+
+			// then, we need to subtract that space from the width we have and measure again:
+			element.style.setProperty('width', `${elementWidth - ellipsisWidth}px`)
+			const truncatedSpans = this.measureElementTextNodeSpans(element, {
+				shouldTruncateToFirstLine: true,
+			}).spans
+
+			// Finally, we add in our ellipsis at the end of the last span. We
+			// have to do this after measuring, not before, because adding the
+			// ellipsis changes how whitespace might be getting collapsed by the
+			// browser.
 			const lastSpan = truncatedSpans[truncatedSpans.length - 1]!
 			truncatedSpans.push({
 				text: '…',
@@ -225,6 +238,8 @@ export class TextManager {
 			})
 			return truncatedSpans
 		}
+
+		element.remove()
 
 		return spans
 	}

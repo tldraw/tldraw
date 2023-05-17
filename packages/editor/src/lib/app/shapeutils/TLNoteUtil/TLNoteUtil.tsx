@@ -141,21 +141,15 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
-			wrap: 'wrap' as const,
+			overflow: 'wrap' as const,
 		}
 
-		const spans = this.app.textMeasure.getTextSpans({
-			text: shape.props.text,
-			...opts,
-		})
+		const spans = this.app.textMeasure.measureTextSpans(shape.props.text, opts)
 
 		opts.width = bounds.width
 		opts.padding = PADDING
 
-		const textElm = getTextSvgElement(this.app, {
-			spans,
-			...opts,
-		})
+		const textElm = getTextSvgElement(this.app, spans, opts)
 		textElm.setAttribute('fill', colors.text)
 		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
 		g.appendChild(textElm)
@@ -211,9 +205,8 @@ export const TLNoteShapeDef = defineShape<TLNoteShape, TLNoteUtil>({
 function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
-	const nextTextSize = app.textMeasure.measureText({
+	const nextTextSize = app.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
-		text: shape.props.text,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: NOTE_SIZE - PADDING * 2 + 'px',
