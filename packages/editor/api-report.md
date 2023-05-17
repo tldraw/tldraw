@@ -880,6 +880,9 @@ export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const INDENT = "  ";
+
+// @public (undocumented)
 export function indexGenerator(n?: number): Generator<string, void, unknown>;
 
 // @public (undocumented)

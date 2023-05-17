@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
 import { useApp } from '../../../hooks/useApp'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
-import { TextHelpers } from '../TLTextUtil/TextHelpers'
+import { INDENT, TextHelpers } from '../TLTextUtil/TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
 	id: T['id'],
@@ -135,7 +135,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			// ------- Bug fix ------------
 			// Replace tabs with spaces when pasting
-			const untabbedText = text.replace(/\t/g, '  ')
+			const untabbedText = text.replace(/\t/g, INDENT)
 			if (untabbedText !== text) {
 				const selectionStart = e.currentTarget.selectionStart
 				e.currentTarget.value = untabbedText

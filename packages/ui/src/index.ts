@@ -57,11 +57,7 @@ export { AssetUrlsProvider, useAssetUrls } from './lib/hooks/useAssetUrls'
 export { BreakPointProvider, useBreakpoint } from './lib/hooks/useBreakpoint'
 export { useCanRedo } from './lib/hooks/useCanRedo'
 export { useCanUndo } from './lib/hooks/useCanUndo'
-export {
-	useMenuClipboardEvents,
-	useNativeClipboardEvents,
-	type EmbedInfo,
-} from './lib/hooks/useClipboardEvents'
+export { useMenuClipboardEvents, useNativeClipboardEvents } from './lib/hooks/useClipboardEvents'
 export {
 	ContextMenuSchemaContext,
 	ContextMenuSchemaProvider,
