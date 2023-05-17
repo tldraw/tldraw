@@ -3,6 +3,7 @@ import {
 	FONT_FAMILIES,
 	FONT_SIZES,
 	TEXT_PROPS,
+	TLAlignType,
 	TLTextShapeDef,
 	createShapeId,
 } from '@tldraw/editor'
@@ -76,18 +77,52 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 	const defaultProps = app.getShapeUtilByDef(TLTextShapeDef).defaultProps()
 
+	const textToPaste = stripTrailingWhitespace(
+		stripCommonMinimumIndentation(replaceTabsWithSpaces(stripHtml(text)))
+	)
+
 	// Measure the text with default values
-	const { w, h } = app.textMeasure.measureText({
+	let w: number
+	let h: number
+	let autoSize: boolean
+	let align: TLAlignType
+
+	const isMultiLine = textToPaste.split('\n').length > 1
+
+	const rawSize = app.textMeasure.measureText({
 		...TEXT_PROPS,
-		text: stripHtml(text),
+		text: textToPaste,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
 		width: 'fit-content',
 	})
 
-	const textToPaste = stripTrailingWhitespace(
-		stripCommonMinimumIndentation(replaceTabsWithSpaces(stripHtml(text)))
-	)
+	const minWidth = Math.min(920, Math.max(200, app.viewportPageBounds.width * 0.9))
+	if (!isMultiLine && rawSize.w > minWidth) {
+		const shrunkSize = app.textMeasure.measureText({
+			...TEXT_PROPS,
+			text: textToPaste,
+			fontFamily: FONT_FAMILIES[defaultProps.font],
+			fontSize: FONT_SIZES[defaultProps.size],
+			width: minWidth + 'px',
+		})
+		w = shrunkSize.w
+		h = shrunkSize.h
+		autoSize = false
+		align = 'start'
+	} else {
+		// autosize is fine
+		w = rawSize.w
+		h = rawSize.h
+		autoSize = true
+
+		// check whether the text contains the most common characters in RTL languages
+		const isRtl =
+			/[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(
+				textToPaste
+			)
+		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
+	}
 
 	app.mark('paste')
 	app.createShapes([
@@ -99,8 +134,9 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 			props: {
 				text: textToPaste,
 				// if the text has more than one line, align it to the left
-				align: textToPaste.split('\n').length > 1 ? 'start' : defaultProps.align,
-				autoSize: true,
+				align,
+				autoSize,
+				w,
 			},
 		},
 	])
