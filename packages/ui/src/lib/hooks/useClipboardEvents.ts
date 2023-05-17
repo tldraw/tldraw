@@ -26,6 +26,12 @@ import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 const INPUTS = ['input', 'select', 'textarea']
 
+/**
+ * Get whether to disallow clipboard events.
+ *
+ * @param app - The app instance.
+ * @internal
+ */
 function disallowClipboardEvents(app: App) {
 	const { activeElement } = document
 	return (
@@ -36,6 +42,12 @@ function disallowClipboardEvents(app: App) {
 	)
 }
 
+/**
+ * Get a blob as a string.
+ *
+ * @param blob - The blob to get as a string.
+ * @internal
+ */
 async function blobAsString(blob: Blob) {
 	return new Promise<string>((resolve, reject) => {
 		const reader = new FileReader()
@@ -48,11 +60,6 @@ async function blobAsString(blob: Blob) {
 		})
 		reader.readAsText(blob)
 	})
-}
-
-// Clear the clipboard when the user copies nothing
-const clearPersistedClipboard = () => {
-	window.navigator.clipboard.writeText('')
 }
 
 /**
@@ -68,24 +75,21 @@ function stripHtml(html: string) {
 }
 
 /**
- * Write serialized data to the local storage.
- *
- * @param data - The string to write.
- * @param kind - The kind of data to write.
+ * Whether a ClipboardItem is a file.
+ * @param item - The ClipboardItem to check.
  * @internal
  */
-const getStringifiedClipboard = (data: any, kind: 'text' | 'file' | 'content') => {
-	const s = compressToBase64(
-		JSON.stringify({
-			type: 'application/tldraw',
-			kind,
-			data,
-		})
-	)
-
-	return s
+const isFile = (item: ClipboardItem) => {
+	return item.types.find((i) => i.match(/^image\//))
 }
 
+/**
+ * Handle text pasted into the app.
+ * @param app - The app instance.
+ * @param data - The text to paste.
+ * @param point - (optional) The point at which to paste the text.
+ * @internal
+ */
 const handleText = (app: App, data: string, point?: VecLike) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
@@ -101,11 +105,10 @@ const handleText = (app: App, data: string, point?: VecLike) => {
 	}
 }
 
-const handleFileBlobs = async (app: App, blobs: (File | Blob | null)[], point?: VecLike) => {
-	const urls = (blobs.filter(Boolean) as (File | Blob)[]).map((blob) => URL.createObjectURL(blob))
-	return await pasteFiles(app, urls, point)
-}
-
+/**
+ * Something found on the clipboard, either through the event's clipboard data or the browser's clipboard API.
+ * @internal
+ */
 type ClipboardThing =
 	| {
 			type: 'file'
@@ -132,6 +135,10 @@ type ClipboardThing =
 			source: Promise<string>
 	  }
 
+/**
+ * The result of processing a `ClipboardThing`.
+ * @internal
+ */
 type ClipboardResult =
 	| {
 			type: 'tldraw'
@@ -160,6 +167,7 @@ type ClipboardResult =
  * @param app - The app
  * @param clipboardData - The clipboard data
  * @param point - (optional) The point to paste at
+ * @internal
  */
 const handlePasteFromEventClipboardData = async (
 	app: App,
@@ -215,6 +223,7 @@ const handlePasteFromEventClipboardData = async (
  * @param app - The app
  * @param clipboardItems - The clipboard items to handle
  * @param point - (optional) The point to paste at
+ * @internal
  */
 const handlePasteFromClipboardApi = async (
 	app: App,
@@ -227,10 +236,6 @@ const handlePasteFromClipboardApi = async (
 	// the clipboard data from the paste event.
 
 	const things: ClipboardThing[] = []
-
-	const isFile = (item: ClipboardItem) => {
-		return item.types.find((i) => i.match(/^image\//))
-	}
 
 	for (const item of clipboardItems) {
 		if (isFile(item)) {
@@ -285,7 +290,10 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
 	// Just paste the files, nothing else
 	if (files.length) {
 		const fileBlobs = await Promise.all(files.map((t) => t.source!))
-		return await handleFileBlobs(app, fileBlobs, point)
+		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
+			URL.createObjectURL(blob)
+		)
+		return await pasteFiles(app, urls, point)
 	}
 
 	// 2. Generate clipboard results for non-file things
@@ -471,11 +479,17 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
 const handleNativeOrMenuCopy = (app: App) => {
 	const content = app.getContent()
 	if (!content) {
-		clearPersistedClipboard()
+		window.navigator.clipboard.writeText('')
 		return
 	}
 
-	const stringifiedClipboard = getStringifiedClipboard(content, 'content')
+	const stringifiedClipboard = compressToBase64(
+		JSON.stringify({
+			type: 'application/tldraw',
+			kind: 'content',
+			data: content,
+		})
+	)
 
 	if (typeof window?.navigator !== 'undefined') {
 		// Extract the text from the clipboard
