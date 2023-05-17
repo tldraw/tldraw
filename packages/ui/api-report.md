@@ -299,15 +299,6 @@ interface DropdownMenuItemProps extends ButtonProps {
 }
 
 // @public (undocumented)
-export type EmbedInfo = {
-    width: number;
-    height: number;
-    doesResize: boolean;
-    isEmbedUrl: (url: string) => boolean;
-    toEmbed: (url: string) => string;
-};
-
-// @public (undocumented)
 export const EN_TRANSLATION: TLTranslation;
 
 // @public (undocumented)
