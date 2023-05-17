@@ -23,7 +23,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -656,7 +656,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-			const textBgEl = getTextSvgElement(this.app, spans, {
+			const textBgEl = createTextSvgElementFromSpans(this.app, spans, {
 				...opts,
 				strokeWidth: 2,
 				stroke: colors.background,

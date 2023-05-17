@@ -7,7 +7,7 @@ import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { resizeScaled } from '../shared/resizeScaled'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useEditableText } from '../shared/useEditableText'
@@ -177,7 +177,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		const color = colors.fill[shape.props.color]
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-		const textBgEl = getTextSvgElement(
+		const textBgEl = createTextSvgElementFromSpans(
 			this.app,
 			this.app.textMeasure.measureTextSpans(text, opts),
 			{

@@ -29,8 +29,8 @@ import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import {
@@ -1057,7 +1057,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				overflow: 'wrap' as const,
 			}
 
-			const textElm = getTextSvgElement(
+			const textElm = createTextSvgElementFromSpans(
 				this.app,
 				this.app.textMeasure.measureTextSpans(shape.props.text, opts),
 				opts

@@ -3,7 +3,7 @@ import { noteShapeMigrations, noteShapeTypeValidator, TLNoteShape } from '@tldra
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -157,7 +157,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		opts.width = bounds.width
 		opts.padding = PADDING
 
-		const textElm = getTextSvgElement(this.app, spans, opts)
+		const textElm = createTextSvgElementFromSpans(this.app, spans, opts)
 		textElm.setAttribute('fill', colors.text)
 		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
 		g.appendChild(textElm)

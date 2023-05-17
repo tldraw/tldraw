@@ -11,7 +11,7 @@ import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { defaultEmptyAs } from '../../../utils/string'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { TLExportColors } from '../shared/TLExportColors'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnResizeEndHandler } from '../TLShapeUtil'
@@ -122,7 +122,10 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = getTextSvgElement(this.app, spans, { offsetY: -opts.height - 2, ...opts })
+		const text = createTextSvgElementFromSpans(this.app, spans, {
+			offsetY: -opts.height - 2,
+			...opts,
+		})
 		text.style.setProperty('transform', labelTranslate)
 
 		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')

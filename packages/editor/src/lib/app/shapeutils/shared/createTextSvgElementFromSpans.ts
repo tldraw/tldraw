@@ -4,7 +4,7 @@ import { correctSpacesToNbsp } from '../../../utils/string'
 import { App } from '../../App'
 
 /** Get an SVG element for a text shape. */
-export function getTextSvgElement(
+export function createTextSvgElementFromSpans(
 	app: App,
 	spans: { text: string; box: Box2dModel }[],
 	opts: {
