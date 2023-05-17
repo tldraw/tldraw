@@ -363,7 +363,7 @@ describe('When in readonly mode', () => {
 				props: { opacity: '1', w: 100, h: 100, url: '', doesResize: false },
 			},
 		])
-		app.updateUserDocumentSettings({ isReadOnly: true })
+		app.setReadOnly(true)
 	})
 
 	it('Begins editing embed when double clicked', () => {
