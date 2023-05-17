@@ -1437,7 +1437,7 @@
 .tlui-share-zone__details {
 	font-size: 11px;
 	font-weight: 400;
-	padding: var(--space-3) var(--space-4) var(--space-4) var(--space-4);
+	padding: var(--space-4);
 	color: var(--color-text-1);
 	line-height: 1.5;
 	margin: 0px;

@@ -131,7 +131,20 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	// When the text changes, update the text value.
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			const text = TextHelpers.normalizeText(e.currentTarget.value)
+			let text = TextHelpers.normalizeText(e.currentTarget.value)
+
+			// ------- Bug fix ------------
+			// Replace tabs with spaces when pasting
+			const untabbedText = text.replace(/\t/g, '  ')
+			if (untabbedText !== text) {
+				const selectionStart = e.currentTarget.selectionStart
+				e.currentTarget.value = untabbedText
+				e.currentTarget.selectionStart = selectionStart + (untabbedText.length - text.length)
+				e.currentTarget.selectionEnd = selectionStart + (untabbedText.length - text.length)
+				text = untabbedText
+			}
+			// ----------------------------
+
 			app.updateShapes([{ id, type, props: { text } }])
 		},
 		[app, id, type]

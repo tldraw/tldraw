@@ -1558,24 +1558,25 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setGridMode(isGridMode: boolean): this {
-		if (isGridMode === this.isGridMode) {
+		if (isGridMode !== this.isGridMode) {
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
 		return this
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
+	/** @internal */
 	setReadOnly(isReadOnly: boolean): this {
-		if (isReadOnly !== this.isReadOnly) {
-			this.updateUserDocumentSettings({ isReadOnly }, true)
-			if (isReadOnly) {
-				this.setSelectedTool('hand')
-			}
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
 		}
 		return this
+	}
+
+	get isReadOnly() {
+		return this._isReadOnly.value
 	}
 
 	/** @internal */

@@ -181,9 +181,7 @@ function DebugMenuContent({
 				<DropdownMenu.Item
 					onClick={() => {
 						// We need to do this manually because `updateUserDocumentSettings` does not allow toggling `isReadOnly`)
-						app.store.put([
-							{ ...app.userDocumentSettings, isReadOnly: !app.userDocumentSettings.isReadOnly },
-						])
+						app.setReadOnly(!app.isReadOnly)
 					}}
 				>
 					<span>Toggle read-only</span>
