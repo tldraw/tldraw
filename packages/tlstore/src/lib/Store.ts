@@ -3,6 +3,7 @@ import { atom, Atom, computed, Computed, Reactor, reactor, transact } from 'sign
 import { BaseRecord, ID } from './BaseRecord'
 import { Cache } from './Cache'
 import { devFreeze } from './devFreeze'
+import { RecordType } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { StoreSchema } from './StoreSchema'
 
@@ -427,6 +428,19 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 			result[id] = record
 		}
 		return result
+	}
+
+	/**
+	 * Opposite of `deserialize`. Creates a JSON payload from the record store.
+	 *
+	 * @param filter - A function to filter structs that do not satisfy the predicate.
+	 * @returns The record store snapshot as a JSON payload.
+	 */
+	serializeDocumentState = (): StoreSnapshot<R> => {
+		return this.serialize((r) => {
+			const type = this.schema.types[r.typeName as R['typeName']] as RecordType<any, any>
+			return type.scope === 'document'
+		})
 	}
 
 	/**

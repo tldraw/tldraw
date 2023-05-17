@@ -250,6 +250,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;
     serialize: (filter?: ((record: R) => boolean) | undefined) => StoreSnapshot<R>;
+    serializeDocumentState: () => StoreSnapshot<R>;
     unsafeGetWithoutCapture: <K extends ID<R>>(id: K) => RecFromId<K> | undefined;
     update: <K extends ID<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
     // (undocumented)
