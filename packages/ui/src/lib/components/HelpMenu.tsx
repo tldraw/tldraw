@@ -27,11 +27,11 @@ export interface HelpMenuProps {
 export const HelpMenu = React.memo(function HelpMenu() {
 	const container = useContainer()
 	const msg = useTranslation()
-	const onOpenChange = useMenuIsOpen('help menu')
+	const [isOpen, onOpenChange] = useMenuIsOpen('help menu')
 
 	return (
 		<div className="tlui-help-menu">
-			<Root dir="ltr" onOpenChange={onOpenChange} modal={false}>
+			<Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 				<Trigger
 					className="tlui-button tlui-help-menu__button"
 					dir="ltr"

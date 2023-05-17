@@ -61,6 +61,7 @@ import iconsChevronRight from './icons/icon/chevron-right.svg'
 import iconsChevronUp from './icons/icon/chevron-up.svg'
 import iconsChevronsNe from './icons/icon/chevrons-ne.svg'
 import iconsChevronsSw from './icons/icon/chevrons-sw.svg'
+import iconsClipboardCopied from './icons/icon/clipboard-copied.svg'
 import iconsClipboardCopy from './icons/icon/clipboard-copy.svg'
 import iconsCode from './icons/icon/code.svg'
 import iconsCollab from './icons/icon/collab.svg'
@@ -287,6 +288,7 @@ export function getAssetUrlsByImport(opts) {
 			'chevron-up': formatAssetUrl(iconsChevronUp, opts),
 			'chevrons-ne': formatAssetUrl(iconsChevronsNe, opts),
 			'chevrons-sw': formatAssetUrl(iconsChevronsSw, opts),
+			'clipboard-copied': formatAssetUrl(iconsClipboardCopied, opts),
 			'clipboard-copy': formatAssetUrl(iconsClipboardCopy, opts),
 			code: formatAssetUrl(iconsCode, opts),
 			collab: formatAssetUrl(iconsCollab, opts),

@@ -50,6 +50,7 @@ export function getAssetUrlsByMetaUrl(opts?: AssetUrlOptions): {
 		'chevron-up': string
 		'chevrons-ne': string
 		'chevrons-sw': string
+		'clipboard-copied': string
 		'clipboard-copy': string
 		code: string
 		collab: string
