@@ -40,7 +40,7 @@ export const documentTypeMigrations = defineMigrations({
 	migrators: {
 		[Versions.AddName]: {
 			up: (document: TLDocument) => {
-				return { ...document, name: 'Migration Placeholder Name Lol' }
+				return { ...document, name: '' }
 			},
 			down: ({ name: _, ...document }: TLDocument) => {
 				return document
@@ -57,7 +57,7 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
-		name: 'Default Placeholder Name Lol',
+		name: '',
 	})
 )
 

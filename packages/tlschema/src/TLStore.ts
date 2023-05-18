@@ -118,7 +118,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const { userId, instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
-			store.put([TLDocument.create({ id: TLDOCUMENT_ID, name: 'Integrity Placeholder Name Lol' })])
+			store.put([TLDocument.create({ id: TLDOCUMENT_ID })])
 			return ensureStoreIsUsable()
 		}
 

@@ -658,11 +658,11 @@ describe('Adding name to document', () => {
 	const { up, down } = documentTypeMigrations.migrators[1]
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ name: 'Project' })
+		expect(up({})).toEqual({ name: '' })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ name: 'Project' })).toEqual({})
+		expect(down({ name: '' })).toEqual({})
 	})
 })
 
