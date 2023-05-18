@@ -8448,12 +8448,12 @@ export class App extends EventEmitter<TLEventMap> {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
-		const leaderPresenceRecord = this.store.query.record('instance_presence', () => ({
+		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
 
 		// If the leader is following us, then we can't follow them
-		if (leaderPresenceRecord.value?.followingUserId === this.userId) {
+		if (leaderPresences.value.some((p) => p.followingUserId === this.userId)) {
 			return
 		}
 
@@ -8474,7 +8474,11 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderPresence = leaderPresenceRecord.value
+			const leaderPresence = [...leaderPresences.value]
+				.sort((a, b) => {
+					return a.lastActivityTimestamp - b.lastActivityTimestamp
+				})
+				.pop()
 			if (!leaderPresence) {
 				this.stopFollowingUser()
 				return
