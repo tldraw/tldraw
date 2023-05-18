@@ -1,5 +1,6 @@
 import { App, TLNullableShapeProps, TLStyleItem, useApp } from '@tldraw/editor'
 import React, { useCallback } from 'react'
+
 import { useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -161,7 +162,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
-	const { font, align } = props
+	const { font, align, verticalAlign } = props
 	if (font === undefined && align === undefined) {
 		return null
 	}
@@ -189,12 +190,23 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 						value={align}
 						onValueChange={handleValueChange}
 					/>
-					<Button
-						title={msg('style-panel.position')}
-						data-wd="position"
-						icon="align-center-center"
-						disabled
-					/>
+					{verticalAlign === undefined ? (
+						<Button
+							title={msg('style-panel.position')}
+							data-wd="position"
+							icon="align-center-center"
+							disabled
+						/>
+					) : (
+						<DropdownPicker
+							id="geo-vertical-alignment"
+							styleType="verticalAlign"
+							data-wd="style-panel.geo-vertical-align"
+							items={styles.verticalAlign}
+							value={verticalAlign}
+							onValueChange={handleValueChange}
+						/>
+					)}
 				</div>
 			)}
 		</div>
