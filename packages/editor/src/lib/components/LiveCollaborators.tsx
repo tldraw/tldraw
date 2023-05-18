@@ -1,60 +1,24 @@
-import { Box2d } from '@tldraw/primitives'
-import { TLUserPresence } from '@tldraw/tlschema'
-import React, { useMemo } from 'react'
-import { track, useAtom } from 'signia-react'
+import { TLUserId } from '@tldraw/tlschema'
+import { track } from 'signia-react'
 import { useApp } from '../hooks/useApp'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-
-export const useActivePresences = () => {
-	const app = useApp()
-	const time = useAtom('time', Date.now())
-
-	React.useEffect(() => {
-		const interval = setInterval(() => time.set(Date.now()), 1000 * 5)
-		return () => clearInterval(interval)
-	}, [time])
-
-	return useMemo(
-		() =>
-			app.store.query.records('user_presence', () => ({
-				lastActivityTimestamp: { gt: time.value - COLLABORATOR_INACTIVITY_TIMEOUT },
-				userId: { neq: app.userId },
-			})),
-		[app, time]
-	)
-}
+import { usePeerIds } from '../hooks/usePeerIds'
+import { usePresence } from '../hooks/usePresence'
 
 export const LiveCollaborators = track(function Collaborators() {
-	const app = useApp()
-	const { viewportPageBounds, zoomLevel } = app
-	const presences = useActivePresences()
-
+	const peerIds = usePeerIds()
 	return (
 		<>
-			{presences.value.map((userPresence) => (
-				<Collaborator
-					key={userPresence.id}
-					presence={userPresence}
-					viewport={viewportPageBounds}
-					zoom={zoomLevel}
-				/>
+			{peerIds.map((id) => (
+				<Collaborator key={id} userId={id} />
 			))}
 		</>
 	)
 })
 
-const COLLABORATOR_INACTIVITY_TIMEOUT = 1000 * 10
-
-const Collaborator = track(function Collaborator({
-	presence,
-	viewport,
-	zoom,
-}: {
-	presence: TLUserPresence
-	viewport: Box2d
-	zoom: number
-}) {
+const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId }) {
 	const app = useApp()
+	const { viewportPageBounds, zoomLevel } = app
 
 	const {
 		CollaboratorBrush,
@@ -64,48 +28,21 @@ const Collaborator = track(function Collaborator({
 		CollaboratorShapeIndicator,
 	} = useEditorComponents()
 
-	const { userId, color, cursor, lastUsedInstanceId } = presence
-
-	const pageState = useMemo(
-		() =>
-			lastUsedInstanceId
-				? app.store.query.record('instance_page_state', () => ({
-						instanceId: { eq: lastUsedInstanceId },
-						pageId: { eq: app.currentPageId },
-				  }))
-				: null,
-		[app, lastUsedInstanceId]
-	)
-
-	const user = useMemo(
-		() =>
-			app.store.query.record('user', () => ({
-				id: { eq: userId },
-			})),
-		[app, userId]
-	)
-
-	if (!lastUsedInstanceId || !pageState || !user) return null
-	const instance = app.store.get(lastUsedInstanceId)
-	if (!instance) return null
+	const latestPresence = usePresence(userId)
+	if (!latestPresence) return null
 
 	// if the collaborator is on another page, ignore them
-	if (instance.currentPageId !== app.currentPageId) return null
+	if (latestPresence.currentPageId !== app.currentPageId) return null
 
-	if (!pageState.value) return null
-	if (!user.value) return null
-
-	const { brush, scribble } = instance
-	const { selectedIds } = pageState.value
-	const { name } = user.value
+	const { brush, scribble, selectedIds, userName, cursor, color } = latestPresence
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
 	const isCursorInViewport = !(
-		cursor.x < viewport.minX - 12 / zoom ||
-		cursor.y < viewport.minY - 16 / zoom ||
-		cursor.x > viewport.maxX - 12 / zoom ||
-		cursor.y > viewport.maxY - 16 / zoom
+		cursor.x < viewportPageBounds.minX - 12 / zoomLevel ||
+		cursor.y < viewportPageBounds.minY - 16 / zoomLevel ||
+		cursor.x > viewportPageBounds.maxX - 12 / zoomLevel ||
+		cursor.y > viewportPageBounds.maxY - 16 / zoomLevel
 	)
 
 	return (
@@ -125,8 +62,8 @@ const Collaborator = track(function Collaborator({
 					key={userId + '_cursor'}
 					point={cursor}
 					color={color}
-					zoom={zoom}
-					name={name !== 'New User' ? name : null}
+					zoom={zoomLevel}
+					name={userName !== 'New User' ? userName : null}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
@@ -134,8 +71,8 @@ const Collaborator = track(function Collaborator({
 					key={userId + '_cursor_hint'}
 					point={cursor}
 					color={color}
-					zoom={zoom}
-					viewport={viewport}
+					zoom={zoomLevel}
+					viewport={viewportPageBounds}
 				/>
 			) : null}
 			{scribble && CollaboratorScribble ? (
@@ -144,7 +81,7 @@ const Collaborator = track(function Collaborator({
 					key={userId + '_scribble'}
 					scribble={scribble}
 					color={color}
-					zoom={zoom}
+					zoom={zoomLevel}
 					opacity={0.1}
 				/>
 			) : null}
