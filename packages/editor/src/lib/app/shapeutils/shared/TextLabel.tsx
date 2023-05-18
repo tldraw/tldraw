@@ -1,4 +1,5 @@
 import { TLAlignType, TLFillType, TLFontType, TLShape, TLSizeType } from '@tldraw/tlschema'
+import { TLVerticalAlignType } from '@tldraw/tlschema/src/style-types'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
@@ -15,6 +16,8 @@ export const TextLabel = React.memo(function TextLabel<
 	labelColor,
 	font,
 	align,
+	verticalAlign = 'center',
+	height,
 	wrap,
 }: {
 	id: T['id']
@@ -23,6 +26,8 @@ export const TextLabel = React.memo(function TextLabel<
 	font: TLFontType
 	fill?: TLFillType
 	align: TLAlignType
+	verticalAlign?: TLVerticalAlignType
+	height: number | undefined
 	wrap?: boolean
 	text: string
 	labelColor: string
@@ -40,6 +45,15 @@ export const TextLabel = React.memo(function TextLabel<
 
 	const isInteractive = isEditing || isEditableFromHover
 
+	let verticalOffset = 0
+	if (height) {
+		if (verticalAlign === 'top') {
+			verticalOffset = -height / 2 + 20
+		} else if (verticalAlign === 'bottom') {
+			verticalOffset = height / 2 - 20
+		}
+	}
+
 	return (
 		<div
 			className="tl-text-label"
@@ -56,6 +70,7 @@ export const TextLabel = React.memo(function TextLabel<
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
 					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
+					top: verticalOffset,
 					color: labelColor,
 				}}
 			>

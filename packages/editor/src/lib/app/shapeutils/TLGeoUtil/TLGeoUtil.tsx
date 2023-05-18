@@ -344,7 +344,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const forceSolid = useForceSolid()
 		const strokeWidth = this.app.getStrokeWidth(props.size)
 
-		const { w, color, labelColor, fill, dash, growY, font, align, size, text } = props
+		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
+			props
 
 		const getShape = () => {
 			const h = props.h + growY
@@ -449,6 +450,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					fill={fill}
 					size={size}
 					align={align}
+					verticalAlign={verticalAlign}
+					height={props.h}
 					text={text}
 					labelColor={this.app.getCssColor(labelColor)}
 					wrap
