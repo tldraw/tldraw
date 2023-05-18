@@ -1,5 +1,11 @@
-import { TLAlignType, TLFillType, TLFontType, TLShape, TLSizeType } from '@tldraw/tlschema'
-import { TLVerticalAlignType } from '@tldraw/tlschema/src/style-types'
+import {
+	TLAlignType,
+	TLFillType,
+	TLFontType,
+	TLShape,
+	TLSizeType,
+	TLVerticalAlignType,
+} from '@tldraw/tlschema'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
@@ -16,7 +22,7 @@ export const TextLabel = React.memo(function TextLabel<
 	labelColor,
 	font,
 	align,
-	verticalAlign = 'center',
+	verticalAlign,
 	height,
 	wrap,
 }: {
@@ -26,7 +32,7 @@ export const TextLabel = React.memo(function TextLabel<
 	font: TLFontType
 	fill?: TLFillType
 	align: TLAlignType
-	verticalAlign?: TLVerticalAlignType
+	verticalAlign: TLVerticalAlignType
 	height: number | undefined
 	wrap?: boolean
 	text: string

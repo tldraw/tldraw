@@ -1342,6 +1342,9 @@ export const TLUserPresence: RecordType<TLUserPresence, "userId">;
 export type TLUserPresenceId = ID<TLUserPresence>;
 
 // @public (undocumented)
+export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
+
+// @public (undocumented)
 export type TLVideoAsset = TLBaseAsset<'video', {
     w: number;
     h: number;
