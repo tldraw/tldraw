@@ -1,5 +1,6 @@
-import { createCustomShapeId, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { TestApp } from '../../test/TestApp'
+import { TL } from '../../test/jsx'
 
 let app: TestApp
 
@@ -7,41 +8,11 @@ beforeEach(() => {
 	app = new TestApp()
 })
 
-const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
-
-	box4: createCustomShapeId('box4'),
-	box5: createCustomShapeId('box5'),
-	box6: createCustomShapeId('box6'),
-}
-
 describe('arrowBindingsIndex', () => {
 	it('keeps a mapping from bound shapes to the arrows that bind to them', () => {
-		app.createShapes([
-			{
-				type: 'geo',
-				id: ids.box1,
-				x: 0,
-				y: 0,
-				props: {
-					w: 100,
-					h: 100,
-					fill: 'solid',
-				},
-			},
-			{
-				type: 'geo',
-				id: ids.box2,
-				x: 200,
-				y: 0,
-				props: {
-					w: 100,
-					h: 100,
-					fill: 'solid',
-				},
-			},
+		const ids = app.createShapesFromJsx([
+			<TL.geo ref="box1" x={0} y={0} w={100} h={100} fill="solid" />,
+			<TL.geo ref="box2" x={200} y={0} w={100} h={100} fill="solid" />,
 		])
 
 		app.setSelectedTool('arrow')
@@ -54,27 +25,9 @@ describe('arrowBindingsIndex', () => {
 	})
 
 	it('works if there are many arrows', () => {
-		app.createShapes([
-			{
-				type: 'geo',
-				id: ids.box1,
-				x: 0,
-				y: 0,
-				props: {
-					w: 100,
-					h: 100,
-				},
-			},
-			{
-				type: 'geo',
-				id: ids.box2,
-				x: 200,
-				y: 0,
-				props: {
-					w: 100,
-					h: 100,
-				},
-			},
+		const ids = app.createShapesFromJsx([
+			<TL.geo ref="box1" x={0} y={0} w={100} h={100} />,
+			<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
 		])
 
 		app.setSelectedTool('arrow')
@@ -134,28 +87,11 @@ describe('arrowBindingsIndex', () => {
 		let arrowCId: TLShapeId
 		let arrowDId: TLShapeId
 		let arrowEId: TLShapeId
+		let ids: Record<string, TLShapeId>
 		beforeEach(() => {
-			app.createShapes([
-				{
-					type: 'geo',
-					id: ids.box1,
-					x: 0,
-					y: 0,
-					props: {
-						w: 100,
-						h: 100,
-					},
-				},
-				{
-					type: 'geo',
-					id: ids.box2,
-					x: 200,
-					y: 0,
-					props: {
-						w: 100,
-						h: 100,
-					},
-				},
+			ids = app.createShapesFromJsx([
+				<TL.geo ref="box1" x={0} y={0} w={100} h={100} />,
+				<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
 			])
 
 			// span both boxes
@@ -227,18 +163,7 @@ describe('arrowBindingsIndex', () => {
 
 			// create a new box
 
-			app.createShapes([
-				{
-					type: 'geo',
-					id: ids.box3,
-					x: 400,
-					y: 0,
-					props: {
-						w: 100,
-						h: 100,
-					},
-				},
-			])
+			const { box3 } = app.createShapesFromJsx(<TL.geo ref="box3" x={400} y={0} w={100} h={100} />)
 
 			// draw from box 2 to box 3
 
@@ -246,7 +171,7 @@ describe('arrowBindingsIndex', () => {
 			app.pointerDown(250, 50).pointerMove(450, 50).pointerUp(450, 50)
 			expect(app.getArrowsBoundTo(ids.box2)).toHaveLength(5)
 			expect(app.getArrowsBoundTo(ids.box1)).toHaveLength(4)
-			expect(app.getArrowsBoundTo(ids.box3)).toHaveLength(1)
+			expect(app.getArrowsBoundTo(box3)).toHaveLength(1)
 		})
 
 		it('works when copy pasting', () => {
@@ -280,18 +205,7 @@ describe('arrowBindingsIndex', () => {
 
 			// create another box
 
-			app.createShapes([
-				{
-					type: 'geo',
-					id: ids.box3,
-					x: 400,
-					y: 0,
-					props: {
-						w: 100,
-						h: 100,
-					},
-				},
-			])
+			const { box3 } = app.createShapesFromJsx(<TL.geo ref="box3" x={400} y={0} w={100} h={100} />)
 
 			// move arrowA from box2 to box3
 			app.updateShapes([
@@ -302,7 +216,7 @@ describe('arrowBindingsIndex', () => {
 						end: {
 							type: 'binding',
 							isExact: false,
-							boundShapeId: ids.box3,
+							boundShapeId: box3,
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 						},
 					},
@@ -311,7 +225,7 @@ describe('arrowBindingsIndex', () => {
 
 			expect(app.getArrowsBoundTo(ids.box2)).toHaveLength(2)
 			expect(app.getArrowsBoundTo(ids.box1)).toHaveLength(3)
-			expect(app.getArrowsBoundTo(ids.box3)).toHaveLength(1)
+			expect(app.getArrowsBoundTo(box3)).toHaveLength(1)
 		})
 	})
 })
