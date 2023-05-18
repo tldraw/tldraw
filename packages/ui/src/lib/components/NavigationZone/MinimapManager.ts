@@ -1,4 +1,4 @@
-import { App, TLShapeId, TLUserPresence, uniqueId } from '@tldraw/editor'
+import { App, TLInstancePresence, TLShapeId, uniqueId } from '@tldraw/editor'
 import { Box2d, PI2, Vec2d, clamp } from '@tldraw/primitives'
 
 export class MinimapManager {
@@ -13,7 +13,7 @@ export class MinimapManager {
 	id = uniqueId()
 	cvs: HTMLCanvasElement | null = null
 	pageBounds: (Box2d & { id: TLShapeId })[] = []
-	collaborators: TLUserPresence[] = []
+	collaborators: TLInstancePresence[] = []
 
 	canvasScreenBounds = new Box2d()
 	canvasPageBounds = new Box2d()
@@ -291,13 +291,10 @@ export class MinimapManager {
 
 		const { currentPageId } = app
 
-		let collaborator: TLUserPresence
+		let collaborator: TLInstancePresence
 		for (let i = 0; i < this.collaborators.length; i++) {
 			collaborator = this.collaborators[i]
-			const instance = collaborator.lastUsedInstanceId
-				? app.store.get(collaborator.lastUsedInstanceId)
-				: null
-			if (instance?.currentPageId !== currentPageId) {
+			if (collaborator.currentPageId !== currentPageId) {
 				continue
 			}
 
