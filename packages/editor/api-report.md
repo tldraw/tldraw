@@ -1825,7 +1825,6 @@ export class TldrawEditorConfig {
         tools?: readonly StateNodeConstructor[];
         allowUnknownShapes?: boolean;
         derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
-        createProjectName?: () => string;
     });
     // (undocumented)
     createStore(config: {

@@ -109,11 +109,10 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public (undocumented)
-export function createTLSchema({ customShapeDefs, allowUnknownShapes, derivePresenceState, createProjectName, }: {
+export function createTLSchema({ customShapeDefs, allowUnknownShapes, derivePresenceState, }: {
     customShapeDefs?: readonly CustomShapeTypeInfo[];
     allowUnknownShapes?: boolean;
     derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
-    createProjectName?: () => string;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)

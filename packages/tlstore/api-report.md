@@ -46,9 +46,6 @@ export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], 
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
-// @internal (undocumented)
-export const DEFAULT_PROJECT_NAME = "Project";
-
 // @public (undocumented)
 export function defineMigrations<FirstVersion extends number, CurrentVersion extends number>({ firstVersion, currentVersion, migrators, subTypeKey, subTypeMigrations, }: {
     firstVersion: FirstVersion;
@@ -282,8 +279,6 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
     }, options?: StoreSchemaOptions<R, P>): StoreSchema<R, P>;
     // @internal (undocumented)
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
-    // @internal (undocumented)
-    createProjectName(): string;
     // (undocumented)
     get currentStoreVersion(): number;
     // @internal (undocumented)
@@ -316,7 +311,6 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
     }) => R;
     createIntegrityChecker?: (store: Store<R, P>) => void;
     derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
-    createProjectName?: () => string;
 };
 
 // @public

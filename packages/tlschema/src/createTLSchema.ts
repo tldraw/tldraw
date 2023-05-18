@@ -1,10 +1,4 @@
-import {
-	DEFAULT_PROJECT_NAME,
-	StoreSchema,
-	StoreValidator,
-	createRecordType,
-	defineMigrations,
-} from '@tldraw/tlstore'
+import { StoreSchema, StoreValidator, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
 import { TLRecord } from './TLRecord'
@@ -66,12 +60,10 @@ export function createTLSchema({
 	customShapeDefs,
 	allowUnknownShapes,
 	derivePresenceState,
-	createProjectName,
 }: {
 	customShapeDefs?: readonly CustomShapeTypeInfo[]
 	allowUnknownShapes?: boolean
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-	createProjectName?: () => string
 }) {
 	const allShapeDefs = [...CORE_SHAPE_DEFS, ...(customShapeDefs ?? [])]
 	const typeSet = new Set<string>()
@@ -122,7 +114,6 @@ export function createTLSchema({
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,
 			derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
-			createProjectName: createProjectName ?? (() => DEFAULT_PROJECT_NAME),
 		}
 	)
 }

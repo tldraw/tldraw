@@ -51,11 +51,7 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 	createIntegrityChecker?: (store: Store<R, P>) => void
 	/** @internal */
 	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
-	createProjectName?: () => string
 }
-
-/** @internal */
-export const DEFAULT_PROJECT_NAME = 'Project'
 
 /** @public */
 export class StoreSchema<R extends BaseRecord, P = unknown> {
@@ -251,11 +247,6 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 	/** @internal */
 	derivePresenceState(store: Store<R, P>): Signal<R | null> | undefined {
 		return this.options.derivePresenceState?.(store)
-	}
-
-	/** @internal */
-	createProjectName(): string {
-		return this.options.createProjectName?.() ?? DEFAULT_PROJECT_NAME
 	}
 
 	serialize(): SerializedSchema {

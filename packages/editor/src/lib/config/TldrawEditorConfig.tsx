@@ -12,13 +12,7 @@ import {
 	TLUserId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import {
-	DEFAULT_PROJECT_NAME,
-	RecordType,
-	Store,
-	StoreSchema,
-	StoreSnapshot,
-} from '@tldraw/tlstore'
+import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
 import { TLArrowShapeDef } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkShapeDef } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
@@ -50,16 +44,8 @@ export class TldrawEditorConfig {
 		allowUnknownShapes?: boolean
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-		/** @internal */
-		createProjectName?: () => string
 	}) {
-		const {
-			shapes = [],
-			tools = [],
-			allowUnknownShapes = false,
-			derivePresenceState,
-			createProjectName = () => DEFAULT_PROJECT_NAME,
-		} = args
+		const { shapes = [], tools = [], allowUnknownShapes = false, derivePresenceState } = args
 
 		this.tools = tools
 
@@ -83,7 +69,6 @@ export class TldrawEditorConfig {
 			allowUnknownShapes,
 			customShapeDefs: shapes,
 			derivePresenceState,
-			createProjectName,
 		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<

@@ -13,7 +13,7 @@ export type {
 	StoreValidator,
 	StoreValidators,
 } from './lib/Store'
-export { DEFAULT_PROJECT_NAME, StoreSchema } from './lib/StoreSchema'
+export { StoreSchema } from './lib/StoreSchema'
 export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
 export { compareSchemas } from './lib/compareSchemas'
 export { devFreeze } from './lib/devFreeze'
