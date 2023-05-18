@@ -1592,7 +1592,7 @@ export const TEXT_PROPS: {
     maxWidth: string;
 };
 
-// @public (undocumented)
+// @internal (undocumented)
 export class TextHelpers {
     // (undocumented)
     static findLineEnd(value: string, currentEnd: number): number;

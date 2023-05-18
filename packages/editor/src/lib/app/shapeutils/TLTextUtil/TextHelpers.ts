@@ -6,7 +6,7 @@
 /** @public */
 export type ReplacerCallback = (substring: string, ...args: unknown[]) => string
 
-/** @public */
+/** @internal */
 export class TextHelpers {
 	static insertTextFirefox(field: HTMLTextAreaElement | HTMLInputElement, text: string): void {
 		// Found on https://www.everythingfrontend.com/blog/insert-text-into-textarea-at-cursor-position.html 🎈
