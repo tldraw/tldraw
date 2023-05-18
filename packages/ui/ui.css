@@ -1646,7 +1646,6 @@
 
 /* ------------------ Project Menu ------------------ */
 .tlui-project-menu__wrapper {
-	pointer-events: all;
 	display: flex;
 	width: 100%;
 	align-items: center;
@@ -1659,6 +1658,7 @@
 .tlui-project-menu__button {
 	display: flex;
 	gap: var(--space-4);
+	pointer-events: all;
 }
 
 .tlui-project-menu__button__name {
@@ -1671,6 +1671,7 @@
 .tlui-project-menu__input {
 	min-width: 0px;
 	text-align: center;
+	pointer-events: all;
 
 	/* Position slightly to the right so that it doesn't jump around */
 	/* 40px is the width of the icon */
