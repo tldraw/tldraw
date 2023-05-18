@@ -151,6 +151,35 @@ function DebugMenuContent({
 					<span>Count shapes and nodes</span>
 				</DropdownMenu.Item>
 
+				<DropdownMenu.Item
+					onClick={() => {
+						if (!debugFlags.debugCursors.value) {
+							debugFlags.debugCursors.set(true)
+
+							const MAX_COLUMNS = 5
+							const shapes = CURSOR_NAMES.map((name, i) => {
+								return {
+									id: app.createShapeId(name),
+									type: 'geo',
+									x: (i % MAX_COLUMNS) * 175,
+									y: Math.floor(i / MAX_COLUMNS) * 175,
+									props: {
+										text: name,
+										w: 150,
+										h: 150,
+									},
+								}
+							})
+
+							app.createShapes(shapes)
+						} else {
+							debugFlags.debugCursors.set(false)
+						}
+					}}
+				>
+					<span>Debug cursors</span>
+				</DropdownMenu.Item>
+
 				{(() => {
 					if (error) throw Error('oh no!')
 				})()}
@@ -191,6 +220,30 @@ function DebugMenuContent({
 		</>
 	)
 }
+
+const CURSOR_NAMES = [
+	'none',
+	'default',
+	'pointer',
+	'cross',
+	'move',
+	'grab',
+	'grabbing',
+	'text',
+	'resize-edge',
+	'resize-corner',
+	'ew-resize',
+	'ns-resize',
+	'nesw-resize',
+	'nwse-resize',
+	'rotate',
+	'nwse-rotate',
+	'nesw-rotate',
+	'senw-rotate',
+	'swne-rotate',
+	'zoom-in',
+	'zoom-out',
+]
 
 function ExampleDialog({
 	title = 'title',

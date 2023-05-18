@@ -23,6 +23,7 @@ export const debugFlags = {
 	peopleMenu: createDebugValue('tldrawPeopleMenu', false),
 	logMessages: createDebugValue('tldrawUiLog', []),
 	resetConnectionEveryPing: createDebugValue('tldrawResetConnectionEveryPing', false),
+	debugCursors: createDebugValue('tldrawDebugCursors', false),
 }
 
 declare global {
