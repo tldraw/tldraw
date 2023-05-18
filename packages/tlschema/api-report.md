@@ -1205,6 +1205,7 @@ export type TLStoreProps = {
     userId: TLUserId;
     instanceId: TLInstanceId;
     documentId: typeof TLDOCUMENT_ID;
+    defaultProjectName: string;
 };
 
 // @public (undocumented)

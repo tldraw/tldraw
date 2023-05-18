@@ -15,11 +15,13 @@ export function useLocalSyncClient({
 	instanceId,
 	userId,
 	config = TldrawEditorConfig.default,
+	defaultProjectName = '',
 }: {
 	universalPersistenceKey: string
 	instanceId: TLInstanceId
 	userId: TLUserId
 	config?: TldrawEditorConfig
+	defaultProjectName?: string
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
 
@@ -38,7 +40,7 @@ export function useLocalSyncClient({
 			})
 		}
 
-		const store = config.createStore({ userId, instanceId })
+		const store = config.createStore({ userId, instanceId, defaultProjectName })
 
 		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey,
@@ -57,7 +59,7 @@ export function useLocalSyncClient({
 			userDataUnsubcribe()
 			client.close()
 		}
-	}, [instanceId, universalPersistenceKey, config, userId])
+	}, [instanceId, universalPersistenceKey, config, userId, defaultProjectName])
 
 	return state?.syncedStore ?? { status: 'loading' }
 }

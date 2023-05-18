@@ -1831,6 +1831,7 @@ export class TldrawEditorConfig {
         initialData?: StoreSnapshot<TLRecord>;
         userId: TLUserId;
         instanceId: TLInstanceId;
+        defaultProjectName?: string;
     }): TLStore;
     // (undocumented)
     static readonly default: TldrawEditorConfig;

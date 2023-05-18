@@ -82,6 +82,7 @@ export class TldrawEditorConfig {
 		initialData?: StoreSnapshot<TLRecord>
 		userId: TLUserId
 		instanceId: TLInstanceId
+		defaultProjectName?: string
 	}): TLStore {
 		let initialData = config.initialData
 		if (initialData) {
@@ -94,6 +95,7 @@ export class TldrawEditorConfig {
 				userId: config?.userId ?? TLUser.createId(),
 				instanceId: config?.instanceId ?? TLInstance.createId(),
 				documentId: TLDOCUMENT_ID,
+				defaultProjectName: config?.defaultProjectName ?? '',
 			},
 		})
 	}

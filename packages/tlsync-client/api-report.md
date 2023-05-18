@@ -97,11 +97,12 @@ export class TLLocalSyncClient {
 }
 
 // @public
-export function useLocalSyncClient({ universalPersistenceKey, instanceId, userId, config, }: {
+export function useLocalSyncClient({ universalPersistenceKey, instanceId, userId, config, defaultProjectName, }: {
     universalPersistenceKey: string;
     instanceId: TLInstanceId;
     userId: TLUserId;
     config?: TldrawEditorConfig;
+    defaultProjectName?: string;
 }): SyncedStore;
 
 // (No @packageDocumentation comment for this package)

@@ -58,6 +58,7 @@ export type TLStoreProps = {
 	userId: TLUserId
 	instanceId: TLInstanceId
 	documentId: typeof TLDOCUMENT_ID
+	defaultProjectName: string
 }
 
 /** @public */
@@ -118,7 +119,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const { userId, instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
-			store.put([TLDocument.create({ id: TLDOCUMENT_ID })])
+			store.put([TLDocument.create({ id: TLDOCUMENT_ID, name: store.props.defaultProjectName })])
 			return ensureStoreIsUsable()
 		}
 
