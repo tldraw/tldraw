@@ -10,13 +10,17 @@ import {
 } from '@tldraw/primitives'
 import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
+import { CSSProperties } from 'react'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
+import { App } from '../../App'
 import { ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getFreehandOptions, getPointsFromSegments } from '../TLDrawUtil/getPath'
 import { OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
+
+const overlayStyle = { opacity: 0.4 }
 
 /** @public */
 export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
@@ -103,59 +107,11 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 	}
 
 	render(shape: TLHighlightShape) {
-		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
-		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+		return <HighlightRenderer app={this.app} shape={shape} style={overlayStyle} />
+	}
 
-		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-
-		let sw = strokeWidth
-		if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
-			sw += rng(shape.id)() * (strokeWidth / 6)
-		}
-
-		const options = getFreehandOptions(
-			{ isComplete: shape.props.isComplete, isPen: shape.props.isPen, dash: 'draw' },
-			sw,
-			showAsComplete,
-			forceSolid
-		)
-		const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
-		const solidStrokePath =
-			strokePoints.length > 1
-				? getSvgPathFromStrokePoints(strokePoints, false)
-				: getDot(allPointsFromSegments[0], sw)
-
-		if (!forceSolid || strokePoints.length < 2) {
-			setStrokePointRadii(strokePoints, options)
-			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
-
-			return (
-				<SVGContainer id={shape.id}>
-					<ShapeFill fill="none" color={shape.props.color} d={solidStrokePath} />
-					<path
-						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
-						strokeLinecap="round"
-						fill="currentColor"
-					/>
-				</SVGContainer>
-			)
-		}
-
-		return (
-			<SVGContainer id={shape.id}>
-				<ShapeFill fill="none" color={shape.props.color} d={solidStrokePath} />
-				<path
-					d={solidStrokePath}
-					strokeLinecap="round"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={strokeWidth}
-					strokeDashoffset="0"
-				/>
-			</SVGContainer>
-		)
+	renderBackground(shape: TLHighlightShape) {
+		return <HighlightRenderer app={this.app} shape={shape} />
 	}
 
 	indicator(shape: TLHighlightShape) {
@@ -251,4 +207,68 @@ function getDot(point: VecLike, sw: number) {
 	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
 		r * 2
 	},0`
+}
+
+function HighlightRenderer({
+	app,
+	shape,
+	style,
+}: {
+	app: App
+	shape: TLHighlightShape
+	style?: CSSProperties
+}) {
+	const forceSolid = useForceSolid()
+	const strokeWidth = app.getStrokeWidth(shape.props.size)
+	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+
+	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+
+	let sw = strokeWidth
+	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
+		sw += rng(shape.id)() * (strokeWidth / 6)
+	}
+
+	const options = getFreehandOptions(
+		{ isComplete: shape.props.isComplete, isPen: shape.props.isPen, dash: 'draw' },
+		sw,
+		showAsComplete,
+		forceSolid
+	)
+	const strokePoints = getStrokePoints(allPointsFromSegments, options)
+
+	const solidStrokePath =
+		strokePoints.length > 1
+			? getSvgPathFromStrokePoints(strokePoints, false)
+			: getDot(allPointsFromSegments[0], sw)
+
+	if (!forceSolid || strokePoints.length < 2) {
+		setStrokePointRadii(strokePoints, options)
+		const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
+
+		return (
+			<SVGContainer id={shape.id} style={style}>
+				<ShapeFill fill="none" color={shape.props.color} d={solidStrokePath} />
+				<path
+					d={getSvgPathFromStroke(strokeOutlinePoints, true)}
+					strokeLinecap="round"
+					fill="currentColor"
+				/>
+			</SVGContainer>
+		)
+	}
+
+	return (
+		<SVGContainer id={shape.id} style={style}>
+			<ShapeFill fill="none" color={shape.props.color} d={solidStrokePath} />
+			<path
+				d={solidStrokePath}
+				strokeLinecap="round"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth={strokeWidth}
+				strokeDashoffset="0"
+			/>
+		</SVGContainer>
+	)
 }

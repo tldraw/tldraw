@@ -67,6 +67,7 @@ import {
 import { ComputedCache, HistoryEntry, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
+	assertExists,
 	compact,
 	dedupe,
 	deepCopy,
@@ -2228,48 +2229,82 @@ export class App extends EventEmitter<TLEventMap> {
 		const renderingShapes: {
 			id: TLShapeId
 			index: number
+			backgroundIndex: number
 			opacity: number
 			isCulled: boolean
 			isInViewport: boolean
 		}[] = []
 
-		const getShapeToDisplay = (
-			id: TLShapeId,
+		let nextIndex = MAX_SHAPES_PER_PAGE
+		let nextBackgroundIndex = 0
+
+		const addShapesFromParent = (
+			parentId: TLParentId,
 			parentOpacity: number,
 			isAncestorErasing: boolean
 		) => {
-			const shape = this.getShapeById(id)
+			const childIds = this.getSortedChildIds(parentId)
+			if (childIds.length === 0) return
 
-			if (!shape) return
-
-			// todo: move opacity to a property of shape, rather than a property of props
-			let opacity = (+(shape.props as { opacity: string }).opacity ?? 1) * parentOpacity
-			let isShapeErasing = false
-
-			if (!isAncestorErasing && erasingIdsSet.has(id)) {
-				isShapeErasing = true
-				opacity *= 0.32
+			let backgroundIndexToRestore = null
+			if (isShapeId(parentId)) {
+				const parent = assertExists(this.getShapeById(parentId), 'parent must exist')
+				const parentUtil = this.getShapeUtil(parent)
+				if (parentUtil.providesBackgroundForChildren(parent)) {
+					backgroundIndexToRestore = nextBackgroundIndex
+					nextBackgroundIndex = nextIndex
+					nextIndex += MAX_SHAPES_PER_PAGE
+				}
 			}
 
-			// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
-			const bounds = this.getMaskedPageBoundsById(id)
+			for (const id of childIds) {
+				const shape = this.getShapeById(id)
 
-			// Whether the shape is on screen. Use the "strict" viewport here.
-			const isInViewport = bounds ? cullingBounds.includes(bounds) : false
+				if (!shape) continue
 
-			// Whether the shape should actually be culled / unmounted.
-			// - Use the "expanded" culling viewport to include shapes that are just off-screen.
-			// - Editing shapes should never be culled.
-			const isCulled = bounds ? editingId !== id && !cullingBoundsExpanded.includes(bounds) : true
+				// todo: move opacity to a property of shape, rather than a property of props
+				let opacity = (+(shape.props as { opacity: string }).opacity ?? 1) * parentOpacity
+				let isShapeErasing = false
 
-			renderingShapes.push({ id, index: renderingShapes.length, opacity, isCulled, isInViewport })
+				if (!isAncestorErasing && erasingIdsSet.has(id)) {
+					isShapeErasing = true
+					opacity *= 0.32
+				}
 
-			this.getSortedChildIds(id).forEach((id) => {
-				getShapeToDisplay(id, opacity, isAncestorErasing || isShapeErasing)
-			})
+				// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
+				const bounds = this.getMaskedPageBoundsById(id)
+
+				// Whether the shape is on screen. Use the "strict" viewport here.
+				const isInViewport = bounds ? cullingBounds.includes(bounds) : false
+
+				// Whether the shape should actually be culled / unmounted.
+				// - Use the "expanded" culling viewport to include shapes that are just off-screen.
+				// - Editing shapes should never be culled.
+				const isCulled = bounds ? editingId !== id && !cullingBoundsExpanded.includes(bounds) : true
+
+				renderingShapes.push({
+					id,
+					index: nextIndex,
+					backgroundIndex: nextBackgroundIndex,
+					opacity,
+					isCulled,
+					isInViewport,
+				})
+
+				nextIndex += 1
+				nextBackgroundIndex += 1
+
+				addShapesFromParent(id, opacity, isAncestorErasing || isShapeErasing)
+			}
+
+			if (backgroundIndexToRestore !== null) {
+				nextBackgroundIndex = backgroundIndexToRestore
+			}
+
+			return nextIndex
 		}
 
-		this.getSortedChildIds(currentPageId).forEach((shapeId) => getShapeToDisplay(shapeId, 1, false))
+		addShapesFromParent(currentPageId, 1, false)
 
 		return renderingShapes.sort(sortById)
 	}

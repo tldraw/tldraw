@@ -410,6 +410,7 @@ export class App extends EventEmitter<TLEventMap> {
     get renderingShapes(): {
         id: TLShapeId;
         index: number;
+        backgroundIndex: number;
         opacity: number;
         isCulled: boolean;
         isInViewport: boolean;
@@ -2057,6 +2058,8 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     onResizeEnd: OnResizeEndHandler<TLFrameShape>;
     // (undocumented)
+    providesBackgroundForChildren(): boolean;
+    // (undocumented)
     render(shape: TLFrameShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
@@ -2236,6 +2239,8 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
     onResize: OnResizeHandler<TLHighlightShape>;
     // (undocumented)
     render(shape: TLHighlightShape): JSX.Element;
+    // (undocumented)
+    renderBackground(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
@@ -2542,7 +2547,11 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     onTranslateStart?: OnTranslateStartHandler<T>;
     outline(shape: T): Vec2dModel[];
     point(shape: T): Vec2dModel;
+    // @internal
+    providesBackgroundForChildren(shape: T): boolean;
     abstract render(shape: T): any;
+    // @internal
+    renderBackground?(shape: T): any;
     snapPoints(shape: T): Vec2d[];
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     transform(shape: T): Matrix2d;
