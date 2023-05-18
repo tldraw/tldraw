@@ -1,4 +1,3 @@
-import { Matrix2d } from '@tldraw/primitives'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import * as React from 'react'
@@ -51,15 +50,14 @@ export const InnerIndicator = ({ app, id }: { app: App; id: TLShapeId }) => {
 	)
 }
 
-export const ShapeIndicator = React.memo(function ShapeIndicator({
-	id,
-	isHinting,
-	color,
-}: {
+export type TLShapeIndicatorComponent = (props: {
 	id: TLShapeId
-	isHinting?: boolean
-	color?: string
-}) {
+	color?: string | undefined
+	opacity?: number
+	className?: string
+}) => JSX.Element | null
+
+const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
 	const app = useApp()
 
 	const transform = useValue(
@@ -67,28 +65,23 @@ export const ShapeIndicator = React.memo(function ShapeIndicator({
 		() => {
 			const pageTransform = app.getPageTransformById(id)
 			if (!pageTransform) return ''
-			return Matrix2d.toCssString(pageTransform)
+			return pageTransform.toCssString()
 		},
 		[app, id]
 	)
 
 	return (
-		<svg className="tl-svg-origin-container">
+		<svg className={classNames('tl-overlays__item', className)}>
 			<g
-				className={classNames('tl-shape-indicator', {
-					'tl-shape-indicator__hinting': isHinting,
-				})}
+				className="tl-shape-indicator"
 				transform={transform}
 				stroke={color ?? 'var(--color-selected)'}
+				opacity={opacity}
 			>
 				<InnerIndicator app={app} id={id} />
 			</g>
 		</svg>
 	)
-})
+}
 
-export type TLShapeIndicatorComponent = (props: {
-	id: TLShapeId
-	isHinting?: boolean | undefined
-	color?: string | undefined
-}) => JSX.Element | null
+export const ShapeIndicator = React.memo(_ShapeIndicator)

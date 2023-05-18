@@ -7,7 +7,7 @@ import { documentTypeMigrations } from './records/TLDocument'
 import { instanceTypeMigrations } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
-import { userDocumentTypeMigrations } from './records/TLUserDocument'
+import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
 import { userPresenceTypeMigrations } from './records/TLUserPresence'
 import { storeMigrations } from './schema'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
@@ -677,6 +677,45 @@ describe('Adding check-box to geo shape', () => {
 		expect(down({ props: { geo: 'check-box' } })).toEqual({ props: { geo: 'rectangle' } })
 	})
 })
+
+describe('Removing isReadOnly from user_document', () => {
+	const { up, down } = userDocumentTypeMigrations.migrators[userDocumentVersions.RemoveIsReadOnly]
+	const prev = {
+		id: 'user_document:123',
+		typeName: 'user_document',
+		userId: 'user:123',
+		isReadOnly: false,
+		isPenMode: false,
+		isGridMode: false,
+		isDarkMode: false,
+		isMobileMode: false,
+		isSnapMode: false,
+		lastUpdatedPageId: null,
+		lastUsedTabId: null,
+	}
+
+	const next = {
+		id: 'user_document:123',
+		typeName: 'user_document',
+		userId: 'user:123',
+		isPenMode: false,
+		isGridMode: false,
+		isDarkMode: false,
+		isMobileMode: false,
+		isSnapMode: false,
+		lastUpdatedPageId: null,
+		lastUsedTabId: null,
+	}
+
+	test('up removes the isReadOnly property', () => {
+		expect(up(prev)).toEqual(next)
+	})
+	test('down adds the isReadOnly property', () => {
+		expect(down(next)).toEqual(prev)
+	})
+})
+
+/* ---  PUT YOU
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 

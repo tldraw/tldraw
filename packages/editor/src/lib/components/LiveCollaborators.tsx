@@ -111,10 +111,17 @@ const Collaborator = track(function Collaborator({
 	return (
 		<>
 			{brush && CollaboratorBrush ? (
-				<CollaboratorBrush key={userId + '_brush'} brush={brush} color={color} />
+				<CollaboratorBrush
+					className="tl-collaborator__brush"
+					key={userId + '_brush'}
+					brush={brush}
+					color={color}
+					opacity={0.1}
+				/>
 			) : null}
 			{isCursorInViewport && CollaboratorCursor ? (
 				<CollaboratorCursor
+					className="tl-collaborator__cursor"
 					key={userId + '_cursor'}
 					point={cursor}
 					color={color}
@@ -123,6 +130,7 @@ const Collaborator = track(function Collaborator({
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
+					className="tl-collaborator__cursor-hint"
 					key={userId + '_cursor_hint'}
 					point={cursor}
 					color={color}
@@ -132,6 +140,7 @@ const Collaborator = track(function Collaborator({
 			) : null}
 			{scribble && CollaboratorScribble ? (
 				<CollaboratorScribble
+					className="tl-collaborator__scribble"
 					key={userId + '_scribble'}
 					scribble={scribble}
 					color={color}
@@ -141,7 +150,13 @@ const Collaborator = track(function Collaborator({
 			) : null}
 			{CollaboratorShapeIndicator &&
 				selectedIds.map((shapeId) => (
-					<CollaboratorShapeIndicator key={userId + '_' + shapeId} id={shapeId} color={color} />
+					<CollaboratorShapeIndicator
+						className="tl-collaborator__shape-indicator"
+						key={userId + '_' + shapeId}
+						id={shapeId}
+						color={color}
+						opacity={0.5}
+					/>
 				))}
 		</>
 	)

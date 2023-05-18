@@ -120,7 +120,7 @@ export const SelectionBg = track(function SelectionBg() {
 
 	return (
 		<div
-			className="tlui-selection__bg"
+			className="tl-selection__bg"
 			draggable={false}
 			style={{
 				transform,

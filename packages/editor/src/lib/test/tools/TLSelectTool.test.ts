@@ -5,6 +5,7 @@ let app: TestApp
 
 const ids = {
 	box1: createCustomShapeId('box1'),
+	embed1: createCustomShapeId('embed1'),
 }
 
 jest.useFakeTimers()
@@ -348,5 +349,88 @@ describe('When editing shapes', () => {
 		expect(app.onlySelectedShape?.id).toBe(ids.text2)
 	})
 
+	it('Double clicking the canvas creates a new text shape', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.shapesArray.length).toBe(5)
+		app.doubleClick(750, 750)
+		expect(app.shapesArray.length).toBe(6)
+		expect(app.shapesArray[5].type).toBe('text')
+	})
+
+	it('It deletes an empty text shape when your click away', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.shapesArray.length).toBe(5)
+
+		// Create a new shape by double clicking
+		app.doubleClick(750, 750)
+		expect(app.selectedIds.length).toBe(1)
+		expect(app.shapesArray.length).toBe(6)
+		const shapeId = app.selectedIds[0]
+
+		// Click away
+		app.click(1000, 1000)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.shapesArray.length).toBe(5)
+		expect(app.getShapeById(shapeId)).toBe(undefined)
+	})
+
+	it('It deletes an empty text shape when your click another text shape', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.shapesArray.length).toBe(5)
+
+		// Create a new shape by double clicking
+		app.doubleClick(750, 750)
+		expect(app.selectedIds.length).toBe(1)
+		expect(app.shapesArray.length).toBe(6)
+		const shapeId = app.selectedIds[0]
+
+		// Click another text shape
+		app.click(50, 50, { target: 'shape', shape: app.getShapeById(ids.text1) })
+		expect(app.selectedIds.length).toBe(1)
+		expect(app.shapesArray.length).toBe(5)
+		expect(app.getShapeById(shapeId)).toBe(undefined)
+	})
+
 	it.todo('restores selection after changing styles')
+})
+
+describe('When in readonly mode', () => {
+	beforeEach(() => {
+		app.createShapes([
+			{
+				id: ids.embed1,
+				type: 'embed',
+				x: 100,
+				y: 100,
+				props: { opacity: '1', w: 100, h: 100, url: '', doesResize: false },
+			},
+		])
+		app.setReadOnly(true)
+		app.setSelectedTool('select')
+	})
+
+	it('Begins editing embed when double clicked', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.isReadOnly).toBe(true)
+
+		const shape = app.getShapeById(ids.embed1)
+		app.doubleClick(100, 100, { target: 'shape', shape })
+		expect(app.editingId).toBe(ids.embed1)
+	})
+
+	it('Begins editing embed when pressing Enter on a selected embed', () => {
+		expect(app.editingId).toBe(null)
+		expect(app.selectedIds.length).toBe(0)
+		expect(app.isReadOnly).toBe(true)
+
+		app.setSelectedIds([ids.embed1])
+		expect(app.selectedIds.length).toBe(1)
+
+		app.keyUp('Enter')
+		expect(app.editingId).toBe(ids.embed1)
+	})
 })

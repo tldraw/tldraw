@@ -1,0 +1,64 @@
+# name: Webdriver nightly (browserstack)
+
+# on:
+#   workflow_dispatch:
+#   schedule:
+#     - cron: '0 2 * * *' # run at 2 AM UTC
+
+# jobs:
+#   test:
+#     name: 'nightly'
+#     runs-on: ${{ matrix.os }}
+
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         os: [ubuntu-latest-16-cores-open]
+#         node-version: [16]
+
+#     container:
+#       image: node:${{ matrix.node-version }}
+#       options: --network-alias testhost
+#       volumes:
+#         - /home/runner/work/_temp/e2e:/home/runner/work/_temp/e2e
+
+#     steps:
+#       # start browserstack
+#       - name: 'BrowserStack Env Setup' # Invokes the setup-env action
+#         uses: browserstack/github-actions/setup-env@master
+#         with:
+#           username: jamieblair_YXsTBS
+#           access-key: BUcyZn9PF4iwKgayXinm
+#       - name: 'BrowserStack Local Tunnel Setup' # Invokes the setup-local action
+#         uses: browserstack/github-actions/setup-local@master
+#         with:
+#           local-testing: start
+#           local-identifier: random
+
+#       - name: Check out code
+#         uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 0
+#           submodules: true
+
+#       - name: Setup Node.js environment
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: 18
+#           cache: 'yarn'
+#           cache-dependency-path: 'public-yarn.lock'
+
+#       - name: Enable corepack
+#         run: corepack enable
+
+#       - name: Install dependencies
+#         run: yarn
+
+#       - run: yarn e2e test:ci nightly
+#         env:
+#           CI: true
+#           DOWNLOADS_DIR: '/home/runner/work/_temp/e2e/'
+#           TEST_URL: 'https://testhost:5421'
+#           WB_BUILD_NAME: 'nightly'
+#           BROWSERSTACK_USER: ${{ secrets.BROWSERSTACK_USER }}
+#           BROWSERSTACK_KEY: ${{ secrets.BROWSERSTACK_KEY }}

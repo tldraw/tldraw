@@ -1,7 +1,7 @@
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
 import { App } from '../App'
-import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
+import { INDENT, TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
 // const wordSeparator = new RegExp(
 // 	`${[0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
@@ -103,7 +103,7 @@ export class TextManager {
 			// Remove any empty strings
 			.filter(Boolean)
 			// Replacing the tabs with double spaces again.
-			.map((str) => (str === '\t' ? '  ' : str))
+			.map((str) => (str === '\t' ? INDENT : str))
 
 		// Collect each line in an array of arrays
 		const lines: string[][] = []

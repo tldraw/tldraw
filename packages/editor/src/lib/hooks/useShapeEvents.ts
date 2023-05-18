@@ -13,7 +13,7 @@ const pointerEventHandler = (
 	capturedPointerIdLookup: Set<string>
 ) => {
 	return (e: React.PointerEvent) => {
-		if (app.pageState.editingId === shapeId) (e as any).isKilled = true
+		if (name !== 'pointer_move' && app.pageState.editingId === shapeId) (e as any).isKilled = true
 		if ((e as any).isKilled) return
 
 		let pointerInfo = getPointerInfo(e, app.getContainer())

@@ -13,7 +13,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 	const offset = cropStrokeWidth / 2
 
 	return (
-		<svg className="tl-svg-origin-container">
+		<svg className="tl-overlays__item">
 			{/* Top left */}
 			<polyline
 				className="tl-corner-crop-handle"

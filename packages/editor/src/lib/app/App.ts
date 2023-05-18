@@ -1297,6 +1297,10 @@ export class App extends EventEmitter<TLEventMap> {
 	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
 	// 	return update ?? next
 	// }
+	@computed
+	private get _allPageStates() {
+		return this.store.query.records('instance_page_state')
+	}
 
 	/** @internal */
 	private _shapeWillBeDeleted(deletedShape: TLShape) {
@@ -1313,8 +1317,8 @@ export class App extends EventEmitter<TLEventMap> {
 				this._unbindArrowTerminal(arrow, handleId)
 			}
 		}
+		const pageStates = this._allPageStates.value
 
-		const pageStates = this.store.query.records('instance_page_state').value
 		const deletedIds = new Set([deletedShape.id])
 		const updates = compact(
 			pageStates.map((pageState) => {
@@ -1570,24 +1574,25 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setGridMode(isGridMode: boolean): this {
-		if (isGridMode === this.isGridMode) {
+		if (isGridMode !== this.isGridMode) {
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
 		return this
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
+	/** @internal */
 	setReadOnly(isReadOnly: boolean): this {
-		if (isReadOnly !== this.isReadOnly) {
-			this.updateUserDocumentSettings({ isReadOnly }, true)
-			if (isReadOnly) {
-				this.setSelectedTool('hand')
-			}
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
 		}
 		return this
+	}
+
+	get isReadOnly() {
+		return this._isReadOnly.value
 	}
 
 	/** @internal */
@@ -4845,22 +4850,21 @@ export class App extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ updates }) => {
-				const arr = Object.values(updates)
-
 				// Iterate through array; if any shape has an onUpdate handler, call it
 				// and, if the handler returns a new shape, replace the old shape with
 				// the new one. This is used for example when repositioning a text shape
 				// based on its new text content.
-				let shape: TLShape
-				let next: TLShape | void
-				for (let i = 0, n = arr.length; i < n; i++) {
-					shape = arr[i]
-					next = this.getShapeUtil(shape).onBeforeUpdate?.(this.store.get(shape.id)!, shape)
+				const result = Object.values(updates)
+				for (let i = 0; i < result.length; i++) {
+					const shape = result[i]
+					const current = this.store.get(shape.id)
+					if (!current) continue
+					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
 					if (next) {
-						arr[i] = next
+						result[i] = next
 					}
 				}
-				this.store.put(arr)
+				this.store.put(result)
 			},
 			undo: ({ snapshots }) => {
 				this.store.put(Object.values(snapshots))
@@ -5168,6 +5172,15 @@ export class App extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ deletedPage, deletedPageStates }) => {
+				const { pages } = this
+				if (pages.length === 1) return
+
+				if (deletedPage.id === this.currentPageId) {
+					const index = pages.findIndex((page) => page.id === deletedPage.id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPageId(next.id)
+				}
+
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
 				this.updateCullingBounds()
@@ -8859,60 +8872,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		return this
 	}
-
-	// 	checkTracking(
-	// 		type: 'change' | 'create' | 'delete',
-	// 		prev: TLRecord | null,
-	// 		next: TLRecord | null
-	// 	) {
-	// 		if (type === 'create' && next) {
-	// 			if (next && next.typeName === 'page') {
-	// 				this.trackEvent('page.add')
-	// 			}
-	// 		} else if (type === 'delete' && prev) {
-	// 			if (prev.typeName === 'page') {
-	// 				this.trackEvent('page.remove')
-	// 			}
-	// 		} else if (prev && next && type === 'change') {
-	// 			if (prev.typeName === 'page' && next.typeName === 'page' && prev.name !== next.name) {
-	// 				this.trackEvent('page.rename')
-	// 			}
-	// 			if (prev.typeName === 'instance' && next.typeName === 'instance') {
-	// 				// TODO: Not very performant
-	// 				for (const key of Object.keys(next.propsForNextShape)) {
-	// 					const prevValue = prev.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-	// 					const nextValue = next.propsForNextShape[key as keyof TLInstancePropsForNextShape]
-	// 					if (prevValue !== nextValue) {
-	// 						this.trackEvent(`instance.propsForNextShape.${key}.change`, nextValue)
-	// 					}
-	// 				}
-
-	// 				if (prev.isToolLocked !== next.isToolLocked) {
-	// 					this.trackEvent('instance.isToolLocked.enabled', next.isToolLocked)
-	// 				}
-	// 				if (prev.isDebugMode !== next.isDebugMode) {
-	// 					this.trackEvent('instance.isDebugMode.enabled', next.isDebugMode)
-	// 				}
-	// 				if (prev.isFocusMode !== next.isFocusMode) {
-	// 					this.trackEvent('instance.isFocusMode.enabled', next.isFocusMode)
-	// 				}
-	// 				if (prev.currentPageId !== next.currentPageId) {
-	// 					this.trackEvent('instance.currentPageId.change')
-	// 				}
-	// 			}
-	// 			if (prev.typeName === 'user_document' && next.typeName === 'user_document') {
-	// 				if (prev.isDarkMode !== next.isDarkMode) {
-	// 					this.trackEvent('instance.isDarkMode.change', next.isDarkMode)
-	// 				}
-	// 				if (prev.isGridMode !== next.isGridMode) {
-	// 					this.trackEvent('instance.isGridMode.change', next.isGridMode)
-	// 				}
-	// 				if (prev.isSnapMode !== next.isSnapMode) {
-	// 					this.trackEvent('instance.isSnapMode.change', next.isSnapMode)
-	// 				}
-	// 			}
-	// 		}
-	// 	}
 }
 
 function alertMaxShapes(app: App, pageId = app.currentPageId) {

@@ -3,10 +3,13 @@
 
 // TODO: Most of this file can be moved into a DOM utils library.
 
-/** @public */
+/** @internal */
 export type ReplacerCallback = (substring: string, ...args: unknown[]) => string
 
-/** @public */
+/**	@public */
+export const INDENT = '  '
+
+/** @internal */
 export class TextHelpers {
 	static insertTextFirefox(field: HTMLTextAreaElement | HTMLInputElement, text: string): void {
 		// Found on https://www.everythingfrontend.com/blog/insert-text-into-textarea-at-cursor-position.html 🎈
@@ -131,7 +134,7 @@ export class TextHelpers {
 			const newSelection = element.value.slice(firstLineStart, selectionEnd - 1)
 			const indentedText = newSelection.replace(
 				/^|\n/g, // Match all line starts
-				`$&${TextHelpers.INDENT}`
+				`$&${INDENT}`
 			)
 			const replacementsCount = indentedText.length - newSelection.length
 
@@ -142,7 +145,7 @@ export class TextHelpers {
 			// Restore selection position, including the indentation
 			element.setSelectionRange(selectionStart + 1, selectionEnd + replacementsCount)
 		} else {
-			TextHelpers.insert(element, TextHelpers.INDENT)
+			TextHelpers.insert(element, INDENT)
 		}
 	}
 
@@ -192,7 +195,7 @@ export class TextHelpers {
 			const newSelection = value.slice(firstLineStart, selectionEnd - 1)
 			const indentedText = newSelection.replace(
 				/^|\n/g, // Match all line starts
-				`$&${TextHelpers.INDENT}`
+				`$&${INDENT}`
 			)
 			const replacementsCount = indentedText.length - newSelection.length
 
@@ -213,10 +216,9 @@ export class TextHelpers {
 			}
 		} else {
 			const selection = window.getSelection()
-			element.innerText =
-				value.slice(0, selectionStart) + TextHelpers.INDENT + value.slice(selectionStart)
+			element.innerText = value.slice(0, selectionStart) + INDENT + value.slice(selectionStart)
 			selection?.setBaseAndExtent(element, selectionStart + 1, element, selectionStart + 2)
-			// TextHelpers.insert(element, TextHelpers.INDENT)
+			// TextHelpers.insert(element, INDENT)
 		}
 	}
 
@@ -256,8 +258,6 @@ export class TextHelpers {
 	}
 
 	static fixNewLines = /\r?\n|\r/g
-
-	static INDENT = '  '
 
 	static normalizeText(text: string) {
 		return text.replace(TextHelpers.fixNewLines, '\n')

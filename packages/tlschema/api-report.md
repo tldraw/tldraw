@@ -1293,8 +1293,6 @@ export interface TLUserDocument extends BaseRecord<'user_document'> {
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)
-    isReadOnly: boolean;
-    // (undocumented)
     isSnapMode: boolean;
     // (undocumented)
     lastUpdatedPageId: ID<TLPage> | null;

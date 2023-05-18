@@ -8,16 +8,14 @@ import { Icon } from './Icon'
 /** @public */
 export function Root({
 	id,
-	open,
 	children,
 	modal = false,
 }: {
 	id: string
 	children: any
-	open?: boolean
 	modal?: boolean
 }) {
-	const onOpenChange = useMenuIsOpen(id)
+	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
 		<DropdownMenu.Root open={open} dir="ltr" modal={modal} onOpenChange={onOpenChange}>
@@ -68,8 +66,8 @@ export function Content({
 }
 
 /** @public */
-export function Sub({ id, children, open }: { id: string; children: any; open?: boolean }) {
-	const onOpenChange = useMenuIsOpen(id)
+export function Sub({ id, children }: { id: string; children: any }) {
+	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
 		<DropdownMenu.Sub open={open} onOpenChange={onOpenChange}>

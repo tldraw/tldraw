@@ -262,22 +262,21 @@ input,
 	z-index: 2;
 }
 
+.tl-overlays__item {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	overflow: visible;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
 .tl-svg-context {
 	position: absolute;
 	top: 0px;
 	left: 0px;
 	height: 1px;
 	width: 1px;
-	pointer-events: none;
-}
-
-.tl-svg-origin-container {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 1px;
-	height: 1px;
-	overflow: visible;
 	pointer-events: none;
 }
 
@@ -400,6 +399,68 @@ input,
 	color: inherit;
 }
 
+/* --------------- Overlay Stack --------------- */
+
+/* back of the stack, behind user's stuff */
+.tl-collaborator__scribble {
+	z-index: 10;
+}
+
+.tl-collaborator__brush {
+	z-index: 11;
+}
+
+.tl-collaborator__shape-indicator {
+	z-index: 12;
+}
+
+.tl-user-handles {
+	z-index: 50;
+}
+
+.tl-user-scribble {
+	z-index: 52;
+}
+
+.tl-user-brush {
+	z-index: 51;
+}
+
+.tl-user-indicator__selected {
+	z-index: 51;
+}
+
+.tl-user-indicator__hovered {
+	z-index: 52;
+}
+
+.tl-user-snapline {
+	z-index: 53;
+}
+
+.tl-selection__fg {
+	pointer-events: none;
+	z-index: 54;
+}
+
+.tl-user-indicator__hint {
+	z-index: 55;
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 56;
+}
+
+.tl-collaborator__cursor {
+	z-index: 57;
+}
+
+.tl-cursor {
+	overflow: visible;
+}
+
 /* -------------------- Indicator ------------------- */
 
 .tl-shape-indicator {
@@ -408,13 +469,9 @@ input,
 	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.tl-shape-indicator__hinting {
-	stroke-width: calc(2.5px * var(--tl-scale));
-}
-
 /* ------------------ SelectionBox ------------------ */
 
-.tlui-selection__bg {
+.tl-selection__bg {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -423,11 +480,7 @@ input,
 	pointer-events: all;
 }
 
-.tlui-selection__fg {
-	pointer-events: none;
-}
-
-.tlui-selection__fg__outline {
+.tl-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);
@@ -849,7 +902,7 @@ input,
 .tl-bookmark__heading,
 .tl-bookmark__description,
 .tl-bookmark__link {
-	margin: 0;
+	margin: 0px;
 	width: 100%;
 	font-family: inherit;
 }
@@ -858,7 +911,7 @@ input,
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 4px 0;
+	margin: 4px 0px;
 }
 
 .tl-bookmark__description {
@@ -1405,7 +1458,7 @@ input,
 .tl-error-boundary__canvas {
 	pointer-events: none;
 	position: absolute;
-	inset: 0;
+	inset: 0px;
 	z-index: -1;
 }
 /* some browsers seem to have some weird interactions between stacking contexts
@@ -1415,7 +1468,7 @@ it from receiving any pointer events or affecting the cursor. */
 	content: ' ';
 	display: block;
 	position: absolute;
-	inset: 0;
+	inset: 0px;
 	z-index: 600;
 	pointer-events: auto;
 }
@@ -1450,7 +1503,7 @@ it from receiving any pointer events or affecting the cursor. */
 
 .tl-error-boundary__content p {
 	line-height: 1.5;
-	margin: 0;
+	margin: 0px;
 }
 
 .tl-error-boundary__content pre {
@@ -1460,7 +1513,7 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-	margin: 0;
+	margin: 0px;
 }
 
 .tl-error-boundary__content button {
@@ -1506,7 +1559,7 @@ it from receiving any pointer events or affecting the cursor. */
 	justify-content: space-between;
 	gap: var(--space-4);
 	margin: calc(var(--space-4) * -1);
-	margin-top: 0;
+	margin-top: 0px;
 }
 .tl-error-boundary__content__actions__group {
 	display: flex;

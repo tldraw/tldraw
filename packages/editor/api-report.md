@@ -460,7 +460,7 @@ export class App extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // (undocumented)
+    // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
@@ -884,6 +884,9 @@ export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const ICON_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const INDENT = "  ";
 
 // @public (undocumented)
 export function indexGenerator(n?: number): Generator<string, void, unknown>;
@@ -1871,6 +1874,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
     // (undocumented)
     defaultProps(): TLDrawShape['props'];
     // (undocumented)
+    expandSelectionOutlinePx(shape: TLDrawShape): number;
+    // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
@@ -2520,6 +2525,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     canUnmount: TLShapeUtilFlag<T>;
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];
+    // @internal (undocumented)
+    expandSelectionOutlinePx(shape: T): number;
     protected abstract getBounds(shape: T): Box2d;
     abstract getCenter(shape: T): Vec2dModel;
     getEditingBounds: (shape: T) => Box2d;
@@ -2743,9 +2750,6 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @public (undocumented)
-export function useUrlState(changeUrl: (params: Params) => void): void;
 
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;

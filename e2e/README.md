@@ -6,30 +6,49 @@ Webdriver testing can be tricky because you're sending commands to an actual bro
 
 > **A note on stability**: Webdriver tests are a lot more flakey than other types of testing, the major benefit is that you can run them on real devices, so we can hopefully get a good smoke test of various real devices. You can also screenshot those devices during test runs, to check look. You however probably don't want to write too many webdriver tests, they are best placed for smoke testing and testing stuff that's very browser specific.
 
+There is a script called `yarn e2e`, running `yarn e2e --help` will show you it's usage
+
+```
+Usage: yarn e2e <command> [options]
+
+Commands:
+  yarn e2e serve              start test server
+  yarn e2e test:ci            runner for CI (github-actions)
+  yarn e2e test:local         run webdriver tests locally
+  yarn e2e test:browserstack  run webdriver tests on browserstack
+  yarn e2e selenium:grid      start selenium grid (test linux)
+
+Options:
+  --help     Show help                                                 [boolean]
+  --version  Show version number                                       [boolean]
+```
+
 To run the tests you first must start the server with
 
 ```sh
-./scripts/e2e-start-server
+yarn e2e serve
 ```
 
 You can then either test locally with
 
 ```sh
-./scripts/e2e-run-tests local
+yarn e2e test:local
 ```
 
 By default it'll just run the chrome tests. You can also specify other browsers to run like this
 
 ```sh
 # Note edge, safari are a work in progress and will just be skipped for now.
-./scripts/e2e-run-tests local firefox,chrome,edge,safari
+yarn e2e test:local -b firefox,chrome,edge,safari
 ```
 
 Or to test remotely via browserstack
 
 ```sh
-./scripts/e2e-run-tests remote
+yarn e2e test:browserstack
 ```
+
+**Note**: You'll need to set `BROWSERSTACK_USER` and `BROWSERSTACK_KEY` in your environment, which you can grab from <https://automate.browserstack.com/dashboard>
 
 There are three parts to the testing API
 
@@ -139,13 +158,13 @@ To run the above tests, we'd probably want to first isolate the test and `only` 
 Now lets start the dev server and run the tests locally. In one terminal session run
 
 ```sh
-./scripts/e2e-start-server
+yarn e2e serve
 ```
 
 In another terminal session run
 
 ```sh
-./scripts/e2e-run-tests local
+yarn e2e test:local
 ```
 
 The test should run twice in chrome. Once in desktop chrome and once chrome mobile emulation mode. The results should look something like
@@ -176,15 +195,15 @@ Spec Files:     2 passed, 2 total (100% completed) in 00:00:05
 
 Yay, passing tests 🎉
 
-However we're not done quite yet. Next up, we need to test them across the rest of our supported browsers. With the `e2e-start-server` still running
+However we're not done quite yet. Next up, we need to test them across the rest of our supported browsers. With the test server still running
 
 ```sh
-./scripts/e2e-run-tests remote
+yarn e2e test:browserstack
 ```
 
 This will start a tunnel from browserstack to your local machine, running the tests against the local server. You can head to browserstack to see the completed test suite <https://automate.browserstack.com/dashboard/v2/builds/2d87ffb21f5466b93e6ef8b4007df995d23da7b3>
 
-In you terminal you should see the results
+In your terminal you should see the results
 
 ```
 ------------------------------------------------------------------
@@ -296,3 +315,19 @@ This module isn't actually used but is required for `wdio-edgedriver-service` to
 
 ### `safaridriver`
 Locally safari webdriver tests are currently somewhat buggy, there appear to be some tests that don't complete. Please take on this task if you have time 🙂 
+
+
+## Experimental
+You can now also run _linux_ tests on _macos_. To do this start up a selenium grid with. Note, you **must** have `docker` installed locally.
+
+```sh
+yarn e2e selenium:grid
+```
+
+Then run
+
+```sh
+yarn e2e test:local --os linux -b firefox
+```
+
+**Note**: Currently only `firefox` is supported. You can hit <http://localhost:7900/?autoconnect=1&resize=scale&password=secret> to see a VNC of the app runing in a docker container.

@@ -27,10 +27,8 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev": "lazy dev-docs",
-		"dev-docs": "next dev",
-		"build": "lazy build-docs",
-		"build-docs": "next build",
+		"dev": "next dev",
+		"build": "next build",
 		"start": "next start",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"docs-content": "ts-node --project tsconfig.content.json ./scripts/index.ts",

@@ -193,6 +193,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/chevrons-sw.svg', import.meta.url).href,
 				opts
 			),
+			'clipboard-copied': formatAssetUrl(
+				new URL('./icons/icon/clipboard-copied.svg', import.meta.url).href,
+				opts
+			),
 			'clipboard-copy': formatAssetUrl(
 				new URL('./icons/icon/clipboard-copy.svg', import.meta.url).href,
 				opts

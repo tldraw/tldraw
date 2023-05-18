@@ -70,9 +70,6 @@
 	"share-menu.copy-link": "共有リンクをクリップボードにコピー",
 	"edit-link-dialog.cancel": "キャンセル",
 	"embed-dialog.cancel": "キャンセル",
-	"edit-pages-dialog.create-new-page": "ページを作成",
-	"edit-pages-dialog.delete": "削除",
-	"edit-pages-dialog.duplicate-page": "複製",
 	"shortcuts-dialog.edit": "編集",
 	"shortcuts-dialog.file": "ファイル",
 	"shortcuts-dialog.preferences": "設定",
@@ -84,7 +81,6 @@
 	"style-panel.fill": "塗りつぶし",
 	"style-panel.font": "フォント",
 	"style-panel.size": "大きさ",
-	"style-panel.text": "テキスト",
 	"focus-mode.toggle-focus-mode": "フォーカスモード",
 	"file-system.confirm-open.cancel": "キャンセル"
 }
