@@ -194,6 +194,7 @@ export type TLTranslationKey =
 	| 'tool.asset'
 	| 'tool.frame'
 	| 'tool.note'
+	| 'tool.laser'
 	| 'tool.embed'
 	| 'tool.text'
 	| 'menu.title'

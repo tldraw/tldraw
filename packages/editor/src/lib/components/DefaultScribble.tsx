@@ -25,6 +25,7 @@ export const DefaultScribble: TLScribbleComponent = ({
 			start: { taper: true, easing: EASINGS.linear },
 			last: scribble.state === 'stopping',
 			simulatePressure: false,
+			streamline: 0.32,
 		})
 	)
 

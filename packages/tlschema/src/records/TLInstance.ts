@@ -102,13 +102,14 @@ const Versions = {
 	AddFollowingUserId: 6,
 	RemoveAlignJustify: 7,
 	AddZoom: 8,
+	AddScribbleDelay: 9,
 } as const
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
 	firstVersion: Versions.Initial,
 	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddZoom,
+	currentVersion: Versions.AddScribbleDelay,
 	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -204,6 +205,21 @@ export const instanceTypeMigrations = defineMigrations({
 			},
 			down: ({ zoomBrush: _, ...instance }: TLInstance) => {
 				return instance
+			},
+		},
+		[Versions.AddScribbleDelay]: {
+			up: (instance) => {
+				if (instance.scribble !== null) {
+					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+				}
+				return { ...instance }
+			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
 			},
 		},
 	},

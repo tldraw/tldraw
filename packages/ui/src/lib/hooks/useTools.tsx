@@ -178,6 +178,17 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				},
 			},
 			{
+				id: 'laser',
+				label: 'tool.laser',
+				readonlyOk: false,
+				icon: 'tool-laser',
+				kbd: 'l',
+				onSelect(source) {
+					app.setSelectedTool('laser')
+					trackEvent('select-tool', { source, id: 'laser' })
+				},
+			},
+			{
 				id: 'embed',
 				label: 'tool.embed',
 				readonlyOk: false,
