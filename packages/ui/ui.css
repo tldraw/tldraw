@@ -1870,7 +1870,7 @@
 .tlui-page_menu__item__sortable__handle {
 	touch-action: none;
 	width: 32px;
-	height: 100%;
+	height: 40px;
 	cursor: grab;
 	color: var(--color-text-3);
 	flex-shrink: 0;
