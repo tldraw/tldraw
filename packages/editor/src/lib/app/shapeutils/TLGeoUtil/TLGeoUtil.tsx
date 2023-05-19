@@ -672,8 +672,16 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				width: labelSize.w,
 			})
 
-			// yuck, include padding as magic number
-			textBgEl.setAttribute('transform', `translate(${(bounds.width - labelSize.w) / 2}, 0)`)
+			switch (shape.props.align) {
+				case 'middle': {
+					textBgEl.setAttribute('transform', `translate(${(bounds.width - labelSize.w) / 2}, 0)`)
+					break
+				}
+				case 'end': {
+					textBgEl.setAttribute('transform', `translate(${bounds.width - labelSize.w}, 0)`)
+					break
+				}
+			}
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
