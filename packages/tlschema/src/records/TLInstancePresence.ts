@@ -73,7 +73,7 @@ const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
-export const userPresenceTypeMigrations = defineMigrations({
+export const instancePresenceTypeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddScribbleDelay,
@@ -99,7 +99,7 @@ export const userPresenceTypeMigrations = defineMigrations({
 
 /** @public */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
-	migrations: userPresenceTypeMigrations,
+	migrations: instancePresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,
 	scope: 'presence',
 })
