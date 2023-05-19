@@ -18,6 +18,9 @@ export type TLUiIconType =
 	| 'align-top-left'
 	| 'align-top-right'
 	| 'align-top'
+	| 'align-vertical-center'
+	| 'align-vertical-end'
+	| 'align-vertical-start'
 	| 'arrow-left'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
@@ -178,6 +181,9 @@ export const TLUiIconTypes = [
 	'align-top-left',
 	'align-top-right',
 	'align-top',
+	'align-vertical-center',
+	'align-vertical-end',
+	'align-vertical-start',
 	'arrow-left',
 	'arrowhead-arrow',
 	'arrowhead-bar',
