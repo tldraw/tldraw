@@ -157,9 +157,9 @@ function DebugMenuContent({
 							debugFlags.debugCursors.set(true)
 
 							const MAX_COLUMNS = 5
-							const shapes = CURSOR_NAMES.map((name, i) => {
+							const partials = CURSOR_NAMES.map((name, i) => {
 								return {
-									id: app.createShapeId(name),
+									id: app.createShapeId(),
 									type: 'geo',
 									x: (i % MAX_COLUMNS) * 175,
 									y: Math.floor(i / MAX_COLUMNS) * 175,
@@ -167,17 +167,18 @@ function DebugMenuContent({
 										text: name,
 										w: 150,
 										h: 150,
+										fill: 'semi',
 									},
 								}
 							})
 
-							app.createShapes(shapes)
+							app.createShapes(partials)
 						} else {
 							debugFlags.debugCursors.set(false)
 						}
 					}}
 				>
-					<span>Debug cursors</span>
+					<span>{debugFlags.debugCursors.value ? 'Debug cursors ✓' : 'Debug cursors'}</span>
 				</DropdownMenu.Item>
 
 				{(() => {
