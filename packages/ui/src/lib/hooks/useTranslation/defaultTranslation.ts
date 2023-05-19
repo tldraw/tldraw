@@ -279,6 +279,7 @@ export const DEFAULT_TRANSLATION = {
 	'shortcuts-dialog.view': 'View',
 	'style-panel.title': 'Styles',
 	'style-panel.align': 'Align',
+	'style-panel.align-vertical': 'Vertical align',
 	'style-panel.position': 'Position',
 	'style-panel.arrowheads': 'Arrowheads',
 	'style-panel.arrowhead-start': 'Start',
