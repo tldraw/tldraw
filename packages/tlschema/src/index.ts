@@ -227,6 +227,7 @@ export {
 	type TLStyleItem,
 	type TLStyleProps,
 	type TLStyleType,
+	type TLVerticalAlignType,
 } from './style-types'
 export {
 	TL_CURSOR_TYPES,

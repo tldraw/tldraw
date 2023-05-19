@@ -277,6 +277,7 @@ export type TLTranslationKey =
 	| 'shortcuts-dialog.view'
 	| 'style-panel.title'
 	| 'style-panel.align'
+	| 'style-panel.vertical-align'
 	| 'style-panel.position'
 	| 'style-panel.arrowheads'
 	| 'style-panel.arrowhead-start'

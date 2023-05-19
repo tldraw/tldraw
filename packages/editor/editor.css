@@ -1002,7 +1002,6 @@ input,
 	height: 100%;
 	display: flex;
 	justify-content: center;
-	align-items: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
 	overflow: hidden;

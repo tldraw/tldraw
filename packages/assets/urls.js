@@ -543,6 +543,18 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			unlock: formatAssetUrl(new URL('./icons/icon/unlock.svg', import.meta.url).href, opts),
+			'vertical-align-center': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-center.svg', import.meta.url).href,
+				opts
+			),
+			'vertical-align-end': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-end.svg', import.meta.url).href,
+				opts
+			),
+			'vertical-align-start': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-start.svg', import.meta.url).href,
+				opts
+			),
 			visible: formatAssetUrl(new URL('./icons/icon/visible.svg', import.meta.url).href, opts),
 			'warning-triangle': formatAssetUrl(
 				new URL('./icons/icon/warning-triangle.svg', import.meta.url).href,

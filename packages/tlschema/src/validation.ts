@@ -18,6 +18,7 @@ import {
 	TL_OPACITY_TYPES,
 	TL_SIZE_TYPES,
 	TL_SPLINE_TYPES,
+	TL_VERTICAL_ALIGN_TYPES,
 } from './style-types'
 
 /** @internal */
@@ -64,6 +65,8 @@ export const sizeValidator = T.setEnum(TL_SIZE_TYPES)
 export const fontValidator = T.setEnum(TL_FONT_TYPES)
 /** @internal */
 export const alignValidator = T.setEnum(TL_ALIGN_TYPES)
+/** @internal */
+export const verticalAlignValidator = T.setEnum(TL_VERTICAL_ALIGN_TYPES)
 /** @internal */
 export const arrowheadValidator = T.setEnum(TL_ARROWHEAD_TYPES)
 /** @internal */

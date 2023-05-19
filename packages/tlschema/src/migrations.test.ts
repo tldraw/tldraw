@@ -666,6 +666,42 @@ describe('Adding check-box to geo shape', () => {
 	})
 })
 
+describe('Add verticalAlign to geo shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[5]
+
+	test('up works as expected', () => {
+		expect(up({ props: { type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse', verticalAlign: 'middle' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { verticalAlign: 'middle', type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse' },
+		})
+	})
+})
+
+describe('Add verticalAlign to props for next shape', () => {
+	const { up, down } = instanceTypeMigrations.migrators[9]
+	test('up works as expected', () => {
+		expect(up({ propsForNextShape: { color: 'red' } })).toEqual({
+			propsForNextShape: {
+				color: 'red',
+				verticalAlign: 'middle',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		const instance = { propsForNextShape: { color: 'red', verticalAlign: 'middle' } }
+		expect(down(instance)).toEqual({
+			propsForNextShape: {
+				color: 'red',
+			},
+		})
+	})
+})
+
 describe('Removing isReadOnly from user_document', () => {
 	const { up, down } = userDocumentTypeMigrations.migrators[userDocumentVersions.RemoveIsReadOnly]
 	const prev = {

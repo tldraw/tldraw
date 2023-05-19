@@ -1,4 +1,11 @@
-import { TLAlignType, TLFillType, TLFontType, TLShape, TLSizeType } from '@tldraw/tlschema'
+import {
+	TLAlignType,
+	TLFillType,
+	TLFontType,
+	TLShape,
+	TLSizeType,
+	TLVerticalAlignType,
+} from '@tldraw/tlschema'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
@@ -15,6 +22,7 @@ export const TextLabel = React.memo(function TextLabel<
 	labelColor,
 	font,
 	align,
+	verticalAlign,
 	wrap,
 }: {
 	id: T['id']
@@ -23,6 +31,7 @@ export const TextLabel = React.memo(function TextLabel<
 	font: TLFontType
 	fill?: TLFillType
 	align: TLAlignType
+	verticalAlign: TLVerticalAlignType
 	wrap?: boolean
 	text: string
 	labelColor: string
@@ -48,6 +57,7 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
+			style={{ alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign }}
 		>
 			<div
 				className="tl-text-label__inner"
