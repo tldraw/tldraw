@@ -27,6 +27,7 @@
 	--tl-cursor: default;
 
 	/* These cursor values get programmatically overridden */
+	/* They're just here to help your editor autocomplete */
 	--tl-cursor-none: none;
 	--tl-cursor-default: default;
 	--tl-cursor-pointer: pointer;
@@ -545,7 +546,7 @@ input,
 .tl-mobile-rotate__bg {
 	pointer-events: all;
 	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 }
 
 .tl-mobile-rotate__fg {
@@ -570,7 +571,7 @@ input,
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
-	cursor: grab;
+	cursor: var(--tl-cursor-grabbing);
 	r: calc(12px / var(--tl-zoom));
 }
 
@@ -587,7 +588,7 @@ input,
 }
 
 .tl-handle__bg:hover {
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 	fill: var(--color-selection-fill);
 }
 
@@ -1399,7 +1400,7 @@ input,
 	border-radius: var(--radius-2);
 	box-shadow: var(--shadow-1);
 	pointer-events: all;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	outline: none;
 	display: flex;
 }
@@ -1547,7 +1548,7 @@ it from receiving any pointer events or affecting the cursor. */
 	font-weight: 500;
 	padding: var(--space-4);
 	border-radius: var(--radius-3);
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	color: inherit;
 	background-color: transparent;
 }
