@@ -1,4 +1,5 @@
 import classNames from 'classnames'
+import { getCursor } from '../../../hooks/useCursor'
 import { stopEventPropagation } from '../../../utils/dom'
 
 const LINK_ICON =
@@ -10,6 +11,9 @@ export function HyperlinkButton({ url, zoomLevel }: { url: string; zoomLevel: nu
 			className={classNames('tl-hyperlink-button', {
 				'tl-hyperlink-button__hidden': zoomLevel < 0.5,
 			})}
+			style={{
+				cursor: getCursor('pointer'),
+			}}
 			href={url}
 			target="_blank"
 			rel="noopener noreferrer"
