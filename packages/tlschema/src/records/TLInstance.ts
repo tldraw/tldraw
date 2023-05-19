@@ -215,7 +215,7 @@ export const instanceTypeMigrations = defineMigrations({
 					...instance,
 					propsForNextShape: {
 						...instance.propsForNextShape,
-						verticalAlign: 'center',
+						verticalAlign: 'middle',
 					},
 				}
 			},
