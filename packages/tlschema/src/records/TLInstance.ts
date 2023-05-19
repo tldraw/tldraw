@@ -248,7 +248,7 @@ export const TLInstance = createRecordType<TLInstance>('instance', {
 			icon: 'file',
 			font: 'draw',
 			align: 'middle',
-			verticalAlign: 'center',
+			verticalAlign: 'middle',
 			geo: 'rectangle',
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',

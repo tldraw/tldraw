@@ -167,7 +167,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			fontSize: FONT_SIZES[shape.props.size],
 			fontFamily: font!,
 			textAlign: shape.props.align,
-			verticalTextAlign: 'center' as const,
+			verticalTextAlign: 'middle' as const,
 			width,
 			height,
 			padding: 0, // no padding?

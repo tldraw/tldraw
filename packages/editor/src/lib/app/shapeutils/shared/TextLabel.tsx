@@ -49,14 +49,6 @@ export const TextLabel = React.memo(function TextLabel<
 
 	const isInteractive = isEditing || isEditableFromHover
 
-	let alignItems = 'center'
-	if (verticalAlign === 'top') {
-		alignItems = 'start'
-	}
-	if (verticalAlign === 'bottom') {
-		alignItems = 'end'
-	}
-
 	return (
 		<div
 			className="tl-text-label"
@@ -65,7 +57,7 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
-			style={{ alignItems }}
+			style={{ alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign }}
 		>
 			<div
 				className="tl-text-label__inner"

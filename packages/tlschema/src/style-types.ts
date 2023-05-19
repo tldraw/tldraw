@@ -142,7 +142,7 @@ export interface TLAlignStyle extends TLBaseStyle {
 
 // Geo Text Vertical Align
 /** @public */
-export const TL_VERTICAL_ALIGN_TYPES = new Set(['top', 'center', 'bottom'] as const)
+export const TL_VERTICAL_ALIGN_TYPES = TL_ALIGN_TYPES
 
 /** @public */
 export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>

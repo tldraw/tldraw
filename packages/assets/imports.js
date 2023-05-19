@@ -179,6 +179,9 @@ import iconsUndo from './icons/icon/undo.svg'
 import iconsUngroup from './icons/icon/ungroup.svg'
 import iconsUnlockSmall from './icons/icon/unlock-small.svg'
 import iconsUnlock from './icons/icon/unlock.svg'
+import iconsVerticalAlignCenter from './icons/icon/vertical-align-center.svg'
+import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg'
+import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg'
 import iconsVisible from './icons/icon/visible.svg'
 import iconsWarningTriangle from './icons/icon/warning-triangle.svg'
 import iconsZoomIn from './icons/icon/zoom-in.svg'
@@ -409,6 +412,9 @@ export function getAssetUrlsByImport(opts) {
 			ungroup: formatAssetUrl(iconsUngroup, opts),
 			'unlock-small': formatAssetUrl(iconsUnlockSmall, opts),
 			unlock: formatAssetUrl(iconsUnlock, opts),
+			'vertical-align-center': formatAssetUrl(iconsVerticalAlignCenter, opts),
+			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
+			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),
 			visible: formatAssetUrl(iconsVisible, opts),
 			'warning-triangle': formatAssetUrl(iconsWarningTriangle, opts),
 			'zoom-in': formatAssetUrl(iconsZoomIn, opts),

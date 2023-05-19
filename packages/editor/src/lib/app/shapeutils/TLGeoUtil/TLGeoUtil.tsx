@@ -66,7 +66,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			font: 'draw',
 			text: '',
 			align: 'middle',
-			verticalAlign: 'center',
+			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
 		}

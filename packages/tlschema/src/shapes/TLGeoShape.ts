@@ -154,7 +154,7 @@ export const geoShapeMigrations = defineMigrations({
 					...shape,
 					props: {
 						...shape.props,
-						verticalAlign: 'center',
+						verticalAlign: 'middle',
 					},
 				}
 			},

@@ -236,9 +236,9 @@ export const STYLES: TLStyleCollections = {
 		{ id: 'end', type: 'align', icon: 'text-align-right' },
 	],
 	verticalAlign: [
-		{ id: 'top', type: 'verticalAlign', icon: 'align-vertical-start' },
-		{ id: 'center', type: 'verticalAlign', icon: 'align-vertical-center' },
-		{ id: 'bottom', type: 'verticalAlign', icon: 'align-vertical-end' },
+		{ id: 'start', type: 'verticalAlign', icon: 'vertical-align-start' },
+		{ id: 'middle', type: 'verticalAlign', icon: 'vertical-align-center' },
+		{ id: 'end', type: 'verticalAlign', icon: 'vertical-align-end' },
 	],
 	geo: [
 		{ id: 'rectangle', type: 'geo', icon: 'geo-rectangle' },

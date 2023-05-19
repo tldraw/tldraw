@@ -43,11 +43,11 @@ export function getTextSvgElement(
 
 	let offsetY: number
 	switch (opts.verticalTextAlign) {
-		case 'top': {
+		case 'start': {
 			offsetY = padding
 			break
 		}
-		case 'bottom': {
+		case 'end': {
 			offsetY = opts.height - padding - innerHeight
 			break
 		}
