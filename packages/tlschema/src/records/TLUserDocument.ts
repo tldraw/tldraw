@@ -14,7 +14,6 @@ import { TLUserId } from './TLUser'
  */
 export interface TLUserDocument extends BaseRecord<'user_document'> {
 	userId: TLUserId
-	isReadOnly: boolean
 	isPenMode: boolean
 	isGridMode: boolean
 	isDarkMode: boolean
@@ -35,7 +34,6 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 		typeName: T.literal('user_document'),
 		id: idValidator<TLUserDocumentId>('user_document'),
 		userId: userIdValidator,
-		isReadOnly: T.boolean,
 		isPenMode: T.boolean,
 		isGridMode: T.boolean,
 		isDarkMode: T.boolean,
@@ -49,20 +47,21 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 // --- MIGRATIONS ---
 // STEP 1: Add a new version number here, give it a meaningful name.
 // It should be 1 higher than the current version
-const Versions = {
+export const userDocumentVersions = {
 	Initial: 0,
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
+	RemoveIsReadOnly: 3,
 } as const
 
 /** @public */
 export const userDocumentTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
+	firstVersion: userDocumentVersions.Initial,
 	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddMissingIsMobileMode,
+	currentVersion: userDocumentVersions.RemoveIsReadOnly,
 	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
-		[Versions.AddSnapMode]: {
+		[userDocumentVersions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isSnapMode: false }
 			},
@@ -70,12 +69,20 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return userDocument
 			},
 		},
-		[Versions.AddMissingIsMobileMode]: {
+		[userDocumentVersions.AddMissingIsMobileMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isMobileMode: userDocument.isMobileMode ?? false }
 			},
 			down: ({ isMobileMode: _, ...userDocument }: TLUserDocument) => {
 				return userDocument
+			},
+		},
+		[userDocumentVersions.RemoveIsReadOnly]: {
+			up: ({ isReadOnly: _, ...userDocument }: TLUserDocument & { isReadOnly: boolean }) => {
+				return userDocument
+			},
+			down: (userDocument: TLUserDocument) => {
+				return { ...userDocument, isReadOnly: false }
 			},
 		},
 	},
@@ -91,7 +98,6 @@ export const TLUserDocument = createRecordType<TLUserDocument>('user_document', 
 }).withDefaultProperties(
 	(): Omit<TLUserDocument, 'id' | 'typeName' | 'userId'> => ({
 		/* STEP 6: Add any new default values for properties here */
-		isReadOnly: false,
 		isPenMode: false,
 		isGridMode: false,
 		isDarkMode: false,

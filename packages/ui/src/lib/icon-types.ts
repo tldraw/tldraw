@@ -41,6 +41,7 @@ export type TLUiIconType =
 	| 'chevron-up'
 	| 'chevrons-ne'
 	| 'chevrons-sw'
+	| 'clipboard-copied'
 	| 'clipboard-copy'
 	| 'code'
 	| 'collab'
@@ -200,6 +201,7 @@ export const TLUiIconTypes = [
 	'chevron-up',
 	'chevrons-ne',
 	'chevrons-sw',
+	'clipboard-copied',
 	'clipboard-copy',
 	'code',
 	'collab',

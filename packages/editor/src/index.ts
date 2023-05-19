@@ -61,7 +61,7 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/app/shapeutils/TLShapeUtil'
-export { TLTextShapeDef, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
+export { INDENT, TLTextShapeDef, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
 export { TLVideoShapeDef, TLVideoUtil } from './lib/app/shapeutils/TLVideoUtil/TLVideoUtil'
 export { StateNode, type StateNodeConstructor } from './lib/app/statechart/StateNode'
 export { TLBoxTool, type TLBoxLike } from './lib/app/statechart/TLBoxTool/TLBoxTool'
@@ -180,7 +180,6 @@ export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
-export { useUrlState } from './lib/hooks/useUrlState'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,

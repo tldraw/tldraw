@@ -10,11 +10,11 @@ type PopoverProps = {
 	onOpenChange?: (isOpen: boolean) => void
 }
 
-export const Popover: FC<PopoverProps> = ({ id, open, children, onOpenChange }) => {
-	const handleOpenChange = useMenuIsOpen(id, onOpenChange)
+export const Popover: FC<PopoverProps> = ({ id, children, onOpenChange }) => {
+	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
-		<PopoverPrimitive.Root onOpenChange={handleOpenChange} open={open}>
+		<PopoverPrimitive.Root onOpenChange={handleOpenChange} open={isOpen}>
 			<div className="tlui-popover">{children}</div>
 		</PopoverPrimitive.Root>
 	)

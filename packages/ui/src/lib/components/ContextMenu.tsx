@@ -25,7 +25,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const app = useApp()
 
 	const contextMenuSchema = useContextMenuSchema()
-	const handleOpenChange = useMenuIsOpen('context menu')
+	const [_, handleOpenChange] = useMenuIsOpen('context menu')
 
 	// If every item in the menu is readonly, then we don't want to show the menu
 	const isReadonly = useReadonly()
@@ -58,7 +58,7 @@ function ContextMenuContent() {
 	const app = useApp()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
-	const handleSubOpenChange = useMenuIsOpen('context menu sub')
+	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
 	const { paste } = useMenuClipboardEvents('context-menu')
