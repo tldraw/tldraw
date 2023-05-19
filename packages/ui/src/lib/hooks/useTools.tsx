@@ -182,7 +182,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				label: 'tool.laser',
 				readonlyOk: true,
 				icon: 'tool-laser',
-				kbd: 'l',
+				kbd: 'k',
 				onSelect(source) {
 					app.setSelectedTool('laser')
 					trackEvent('select-tool', { source, id: 'laser' })
