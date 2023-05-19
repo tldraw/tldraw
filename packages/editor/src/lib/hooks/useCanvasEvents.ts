@@ -101,11 +101,21 @@ export function useCanvasEvents() {
 
 			async function onDrop(e: React.DragEvent<Element>) {
 				preventDefault(e)
-				if (!e.dataTransfer?.files?.length) return
+				let files: File[] = []
+				if (e.dataTransfer?.files?.length) {
+					files = Array.from(e.dataTransfer.files)
+				} else {
+					const url = e.dataTransfer.getData('URL')
+					if (!url) return
 
-				const files = Array.from(e.dataTransfer.files).filter(
-					(file) => !file.name.endsWith('.tldr')
-				)
+					const result = await (await fetch(url)).blob()
+					const file = new File([result], url.split('/').pop()!, {
+						type: result.type,
+					})
+					files = [file]
+				}
+				files = files.filter((file) => !file.name.endsWith('.tldr'))
+				if (files.length === 0) return
 
 				await createShapesFromFiles(app, files, app.screenToPage(e.clientX, e.clientY), false)
 			}
