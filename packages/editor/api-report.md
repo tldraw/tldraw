@@ -625,7 +625,6 @@ export const debugFlags: {
     peopleMenu: Atom<boolean, unknown>;
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
-    newLiveCollaborators: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)
@@ -1727,7 +1726,7 @@ export abstract class TLBoxTool extends StateNode {
     // (undocumented)
     abstract shapeType: string;
     // (undocumented)
-    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline")[];
+    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign")[];
 }
 
 // @public (undocumented)
@@ -2135,6 +2134,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;
@@ -2163,6 +2163,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;

@@ -8464,20 +8464,12 @@ export class App extends EventEmitter<TLEventMap> {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
-		const leaderPresenceRecord = this.store.query.record('user_presence', () => ({
+		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
-
-		const leaderInstanceRecord = this.store.query.record('instance', () => ({
-			userId: { eq: userId },
-		}))
-
-		if (!leaderInstanceRecord || !leaderPresenceRecord) {
-			throw new Error("Couldn't find user to follow")
-		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderInstanceRecord.value?.followingUserId === this.userId) {
+		if (leaderPresences.value.some((p) => p.followingUserId === this.userId)) {
 			return
 		}
 
@@ -8498,32 +8490,37 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderInstance = leaderInstanceRecord.value
-			const leaderPresence = leaderPresenceRecord.value
-			if (!leaderInstance || !leaderPresence) {
+			const leaderPresence = [...leaderPresences.value]
+				.sort((a, b) => {
+					return a.lastActivityTimestamp - b.lastActivityTimestamp
+				})
+				.pop()
+			if (!leaderPresence) {
 				this.stopFollowingUser()
 				return
 			}
 
 			// Change page if leader is on a different page
-			const isOnSamePage = leaderInstance.currentPageId === this.currentPageId
+			const isOnSamePage = leaderPresence.currentPageId === this.currentPageId
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
-				this.setCurrentPageId(leaderInstance.currentPageId, { stopFollowing: false })
+				this.setCurrentPageId(leaderPresence.currentPageId, { stopFollowing: false })
 			}
 
 			// Get the bounds of the follower (me) and the leader (them)
 			const { center, width, height } = this.viewportPageBounds
-			const {
-				width: leaderWidth,
-				height: leaderHeight,
-				center: leaderCenter,
-			} = Box2d.From(leaderPresence.viewportPageBounds)
+			const leaderScreen = Box2d.From(leaderPresence.screenBounds)
+			const leaderWidth = leaderScreen.width / leaderPresence.camera.z
+			const leaderHeight = leaderScreen.height / leaderPresence.camera.z
+			const leaderCenter = new Vec2d(
+				leaderWidth / 2 - leaderPresence.camera.x,
+				leaderHeight / 2 - leaderPresence.camera.y
+			)
 
 			// At this point, let's check if we're following someone who's following us.
 			// If so, we can't try to contain their entire viewport
 			// because that would become a feedback loop where we zoom, they zoom, etc.
-			const isFollowingFollower = leaderInstance.followingUserId === this.userId
+			const isFollowingFollower = leaderPresence.followingUserId === this.userId
 
 			// Figure out how much to zoom
 			const desiredWidth = width + (leaderWidth - width) * chaseProportion

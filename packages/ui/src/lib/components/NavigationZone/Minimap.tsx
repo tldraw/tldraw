@@ -9,33 +9,13 @@ import {
 } from '@tldraw/editor'
 import { Box2d, intersectPolygonPolygon, Vec2d } from '@tldraw/primitives'
 import * as React from 'react'
-import { track, useAtom } from 'signia-react'
+import { track } from 'signia-react'
 import { MinimapManager } from './MinimapManager'
 
 export interface MinimapProps {
 	shapeFill: string
 	selectFill: string
 	viewportFill: string
-}
-
-const COLLABORATOR_INACTIVITY_TIMEOUT = 10000
-
-export const useActivePresences = () => {
-	const app = useApp()
-	const time = useAtom('time', Date.now())
-
-	React.useEffect(() => {
-		const interval = setInterval(() => time.set(Date.now()), 1000 * 5)
-		return () => clearInterval(interval)
-	}, [time])
-	return React.useMemo(
-		() =>
-			app.store.query.records('user_presence', () => ({
-				lastActivityTimestamp: { gt: time.value - COLLABORATOR_INACTIVITY_TIMEOUT },
-				userId: { neq: app.userId },
-			})),
-		[app, time]
-	)
 }
 
 export const Minimap = track(function Minimap({
@@ -196,7 +176,9 @@ export const Minimap = track(function Minimap({
 		[app, minimap]
 	)
 
-	const presences = useActivePresences()
+	const presences = React.useMemo(() => {
+		return app.store.query.records('instance_presence')
+	}, [app])
 
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',

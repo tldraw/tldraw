@@ -286,6 +286,7 @@ export const DEFAULT_TRANSLATION = {
 	'home-project-dialog.ok': 'Ok',
 	'style-panel.title': 'Styles',
 	'style-panel.align': 'Align',
+	'style-panel.vertical-align': 'Vertical align',
 	'style-panel.position': 'Position',
 	'style-panel.arrowheads': 'Arrowheads',
 	'style-panel.arrowhead-start': 'Start',

@@ -18,6 +18,7 @@ import {
 	sizeValidator,
 	splineValidator,
 	userIdValidator,
+	verticalAlignValidator,
 } from '../validation'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
@@ -72,6 +73,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 			opacity: opacityValidator,
 			font: fontValidator,
 			align: alignValidator,
+			verticalAlign: verticalAlignValidator,
 			icon: iconValidator,
 			geo: geoValidator,
 			arrowheadStart: arrowheadValidator,
@@ -102,13 +104,14 @@ const Versions = {
 	AddFollowingUserId: 6,
 	RemoveAlignJustify: 7,
 	AddZoom: 8,
+	AddVerticalAlign: 9,
 } as const
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
 	firstVersion: Versions.Initial,
 	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddZoom,
+	currentVersion: Versions.AddVerticalAlign,
 	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -206,6 +209,24 @@ export const instanceTypeMigrations = defineMigrations({
 				return instance
 			},
 		},
+		[Versions.AddVerticalAlign]: {
+			up: (instance: TLInstance) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						...instance.propsForNextShape,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (instance: TLInstance) => {
+				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
+				return {
+					...instance,
+					propsForNextShape,
+				}
+			},
+		},
 	},
 })
 
@@ -227,6 +248,7 @@ export const TLInstance = createRecordType<TLInstance>('instance', {
 			icon: 'file',
 			font: 'draw',
 			align: 'middle',
+			verticalAlign: 'middle',
 			geo: 'rectangle',
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',

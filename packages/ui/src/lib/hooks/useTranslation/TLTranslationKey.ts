@@ -283,6 +283,7 @@ export type TLTranslationKey =
 	| 'home-project-dialog.ok'
 	| 'style-panel.title'
 	| 'style-panel.align'
+	| 'style-panel.vertical-align'
 	| 'style-panel.position'
 	| 'style-panel.arrowheads'
 	| 'style-panel.arrowhead-start'
