@@ -409,54 +409,54 @@ input,
 }
 
 .tl-collaborator__brush {
-	z-index: 11;
+	z-index: 20;
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: 12;
-}
-
-.tl-user-handles {
-	z-index: 50;
+	z-index: 30;
 }
 
 .tl-user-scribble {
-	z-index: 52;
+	z-index: 40;
 }
 
 .tl-user-brush {
-	z-index: 51;
+	z-index: 50;
 }
 
 .tl-user-indicator__selected {
-	z-index: 51;
+	z-index: 60;
 }
 
 .tl-user-indicator__hovered {
-	z-index: 52;
+	z-index: 70;
+}
+
+.tl-user-handles {
+	z-index: 80;
 }
 
 .tl-user-snapline {
-	z-index: 53;
+	z-index: 90;
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: 54;
+	z-index: 100;
 }
 
 .tl-user-indicator__hint {
-	z-index: 55;
+	z-index: 110;
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: 56;
+	z-index: 120;
 }
 
 .tl-collaborator__cursor {
-	z-index: 57;
+	z-index: 130;
 }
 
 .tl-cursor {
