@@ -644,6 +644,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				fontSize: LABEL_FONT_SIZES[shape.props.size],
 				fontFamily: font,
 				textAlign: shape.props.align,
+				verticalTextAlign: shape.props.verticalAlign,
 				padding: 16,
 				lineHeight: TEXT_PROPS.lineHeight,
 				fontStyle: 'normal',

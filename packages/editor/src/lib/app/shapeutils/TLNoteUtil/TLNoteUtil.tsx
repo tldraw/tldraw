@@ -136,6 +136,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			fontSize: LABEL_FONT_SIZES[shape.props.size],
 			fontFamily: font,
 			textAlign: shape.props.align,
+			verticalTextAlign: 'center' as const,
 			width: bounds.width - PADDING * 2,
 			height: bounds.height - PADDING * 2,
 			padding: 0,
