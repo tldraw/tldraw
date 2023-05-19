@@ -80,8 +80,7 @@ export function useCursor() {
 		'useStaticCursor',
 		() => {
 			for (const key in CURSORS) {
-				const color = app.cursor.color
-				container.style.setProperty(`--tl-cursor-${key}`, getCursor(key, 0, color))
+				container.style.setProperty(`--tl-cursor-${key}`, getCursor(key, 0, 'black'))
 			}
 		},
 		[app, container]

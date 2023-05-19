@@ -24,10 +24,10 @@
 	--layer-canvas: 200;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-cursor: default;
 
 	/* These cursor values get programmatically overridden */
 	/* They're just here to help your editor autocomplete */
+	--tl-cursor: var(--tl-cursor-default);
 	--tl-cursor-none: none;
 	--tl-cursor-default: default;
 	--tl-cursor-pointer: pointer;

@@ -110,7 +110,7 @@
 	position: relative;
 	flex-grow: 1;
 	height: 44px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 }
 
 .tlui-slider__track::after {
@@ -135,7 +135,7 @@
 
 .tlui-slider__thumb {
 	all: unset;
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 	display: block;
 	width: 18px;
 	height: 18px;
@@ -147,7 +147,7 @@
 }
 
 .tlui-slider__thumb:active {
-	cursor: grabbing;
+	cursor: var(--tl-cursor-grabbing);
 	box-shadow: inset 0px 0px 0px 2px var(--color-text-2), var(--shadow-1);
 }
 
@@ -200,7 +200,7 @@
 	font-weight: inherit;
 	color: var(--color-text-1);
 	padding: 0px 13px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	border: none;
 	outline: none;
 	user-select: none;
@@ -240,7 +240,7 @@
 }
 
 .tlui-button:disabled {
-	cursor: default;
+	cursor: var(--tl-cursor-default);
 	color: var(--color-text-3);
 }
 
@@ -641,7 +641,7 @@
 }
 
 .tlui-prompt__content {
-	cursor: default;
+	cursor: var(--tl-cursor-default);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	border-radius: var(--radius-4);
@@ -696,7 +696,7 @@
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	cursor: default;
+	cursor: var(--tl-cursor-default);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	border-radius: var(--radius-4);
@@ -1419,7 +1419,7 @@
 .tlui-share-zone__qr-code {
 	width: 200px;
 	height: 200px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	background: none;
 	background-color: var(--color-muted-2);
 	background-size: cover;
@@ -1871,14 +1871,14 @@
 	touch-action: none;
 	width: 32px;
 	height: 40px;
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 	color: var(--color-text-3);
 	flex-shrink: 0;
 	margin-right: -9px;
 }
 
 .tlui-page_menu__item__sortable__handle:active {
-	cursor: grabbing;
+	cursor: var(--tl-cursor-grabbing);
 }
 
 .tlui-page-menu__item__input {
@@ -1893,7 +1893,7 @@
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
 	flex: 0;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	margin: 0px;
 	display: none;
 }
@@ -1957,7 +1957,7 @@
 	display: flex;
 	text-align: left;
 	gap: var(--space-3);
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	padding: 0;
 	align-items: center;
 	color: var(--color-text);
