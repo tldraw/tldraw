@@ -23,7 +23,6 @@ export const TextLabel = React.memo(function TextLabel<
 	font,
 	align,
 	verticalAlign,
-	height,
 	wrap,
 }: {
 	id: T['id']
@@ -33,7 +32,6 @@ export const TextLabel = React.memo(function TextLabel<
 	fill?: TLFillType
 	align: TLAlignType
 	verticalAlign: TLVerticalAlignType
-	height: number | undefined
 	wrap?: boolean
 	text: string
 	labelColor: string
@@ -51,13 +49,12 @@ export const TextLabel = React.memo(function TextLabel<
 
 	const isInteractive = isEditing || isEditableFromHover
 
-	let verticalOffset = 0
-	if (height) {
-		if (verticalAlign === 'top') {
-			verticalOffset = -height / 2 + 20
-		} else if (verticalAlign === 'bottom') {
-			verticalOffset = height / 2 - 20
-		}
+	let alignItems = 'center'
+	if (verticalAlign === 'top') {
+		alignItems = 'start'
+	}
+	if (verticalAlign === 'bottom') {
+		alignItems = 'end'
 	}
 
 	return (
@@ -68,6 +65,7 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
+			style={{ alignItems }}
 		>
 			<div
 				className="tl-text-label__inner"
@@ -76,7 +74,6 @@ export const TextLabel = React.memo(function TextLabel<
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
 					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
-					top: verticalOffset,
 					color: labelColor,
 				}}
 			>
