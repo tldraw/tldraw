@@ -192,9 +192,9 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 					/>
 					{verticalAlign === undefined ? (
 						<Button
-							title={msg('style-panel.align-vertical')}
+							title={msg('style-panel.vertical-align')}
 							data-wd="vertical-align"
-							icon="align-vertical-center"
+							icon="vertical-align-center"
 							disabled
 						/>
 					) : (

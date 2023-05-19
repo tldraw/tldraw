@@ -38,9 +38,6 @@ import iconsAlignTopCenter from './icons/icon/align-top-center.svg'
 import iconsAlignTopLeft from './icons/icon/align-top-left.svg'
 import iconsAlignTopRight from './icons/icon/align-top-right.svg'
 import iconsAlignTop from './icons/icon/align-top.svg'
-import iconsAlignVerticalCenter from './icons/icon/align-vertical-center.svg'
-import iconsAlignVerticalEnd from './icons/icon/align-vertical-end.svg'
-import iconsAlignVerticalStart from './icons/icon/align-vertical-start.svg'
 import iconsArrowLeft from './icons/icon/arrow-left.svg'
 import iconsArrowheadArrow from './icons/icon/arrowhead-arrow.svg'
 import iconsArrowheadBar from './icons/icon/arrowhead-bar.svg'
@@ -271,9 +268,6 @@ export function getAssetUrlsByImport(opts) {
 			'align-top-left': formatAssetUrl(iconsAlignTopLeft, opts),
 			'align-top-right': formatAssetUrl(iconsAlignTopRight, opts),
 			'align-top': formatAssetUrl(iconsAlignTop, opts),
-			'align-vertical-center': formatAssetUrl(iconsAlignVerticalCenter, opts),
-			'align-vertical-end': formatAssetUrl(iconsAlignVerticalEnd, opts),
-			'align-vertical-start': formatAssetUrl(iconsAlignVerticalStart, opts),
 			'arrow-left': formatAssetUrl(iconsArrowLeft, opts),
 			'arrowhead-arrow': formatAssetUrl(iconsArrowheadArrow, opts),
 			'arrowhead-bar': formatAssetUrl(iconsArrowheadBar, opts),

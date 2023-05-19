@@ -27,9 +27,6 @@ export function getAssetUrlsByImport(opts?: AssetUrlOptions): {
 		'align-top-left': string
 		'align-top-right': string
 		'align-top': string
-		'align-vertical-center': string
-		'align-vertical-end': string
-		'align-vertical-start': string
 		'arrow-left': string
 		'arrowhead-arrow': string
 		'arrowhead-bar': string

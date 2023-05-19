@@ -110,18 +110,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/align-top.svg', import.meta.url).href,
 				opts
 			),
-			'align-vertical-center': formatAssetUrl(
-				new URL('./icons/icon/align-vertical-center.svg', import.meta.url).href,
-				opts
-			),
-			'align-vertical-end': formatAssetUrl(
-				new URL('./icons/icon/align-vertical-end.svg', import.meta.url).href,
-				opts
-			),
-			'align-vertical-start': formatAssetUrl(
-				new URL('./icons/icon/align-vertical-start.svg', import.meta.url).href,
-				opts
-			),
 			'arrow-left': formatAssetUrl(
 				new URL('./icons/icon/arrow-left.svg', import.meta.url).href,
 				opts
