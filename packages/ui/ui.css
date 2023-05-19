@@ -55,6 +55,19 @@
 	overscroll-behavior: none;
 }
 
+/* --------------------- Cursor ---------------------- */
+
+input,
+*[contenteditable],
+*[contenteditable] *,
+textarea {
+	cursor: var(--tl-cursor-text);
+}
+
+a {
+	cursor: var(--tl-cursor-pointer);
+}
+
 /* ----------------- Helper Buttons ---------------- */
 
 .tlui-helper-buttons {
