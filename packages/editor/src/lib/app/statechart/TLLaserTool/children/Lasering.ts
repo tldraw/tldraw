@@ -26,18 +26,6 @@ export class Lasering extends StateNode {
 		this.complete()
 	}
 
-	override onKeyDown = () => {
-		this.pushPointToScribble()
-	}
-
-	override onKeyUp = () => {
-		if (!this.app.inputs.altKey) {
-			this.parent.transition('brushing', {})
-		} else {
-			this.pushPointToScribble()
-		}
-	}
-
 	private startScribble = () => {
 		if (this.scribble.tick) {
 			this.app.off('tick', this.scribble?.tick)
