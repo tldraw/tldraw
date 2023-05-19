@@ -3527,6 +3527,9 @@ export class App extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _selectedIdsAtPointerDown: TLShapeId[] = []
 
+	/** @internal */
+	capturedPointerId: number | null = null
+
 	/**
 	 * Dispatch an event to the app.
 	 *
@@ -3742,6 +3745,12 @@ export class App extends EventEmitter<TLEventMap> {
 						case 'pointer_down': {
 							this._selectedIdsAtPointerDown = this.selectedIds.slice()
 
+							// Firefox bug fix...
+							// If it's a left-mouse-click, we store the pointer id for later user
+							if (info.button === 0) {
+								this.capturedPointerId = info.pointerId
+							}
+
 							// Add the button from the buttons set
 							inputs.buttons.add(info.button)
 
@@ -3831,6 +3840,14 @@ export class App extends EventEmitter<TLEventMap> {
 
 							if (!isPen && this.isPenMode) {
 								return
+							}
+
+							// Firefox bug fix...
+							// If it's the same pointer that we stored earlier...
+							// ... then it's probably still a left-mouse-click!
+							if (this.capturedPointerId === info.pointerId) {
+								this.capturedPointerId = null
+								info.button = 0
 							}
 
 							if (inputs.isPanning) {

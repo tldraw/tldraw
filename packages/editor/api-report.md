@@ -156,6 +156,8 @@ export class App extends EventEmitter<TLEventMap> {
     set canMoveCamera(canMove: boolean);
     get canRedo(): boolean;
     get canUndo(): boolean;
+    // @internal (undocumented)
+    capturedPointerId: null | number;
     centerOnPoint(x: number, y: number, opts?: AnimationOptions): this;
     // @internal
     protected _clickManager: ClickManager;
