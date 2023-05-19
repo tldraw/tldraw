@@ -25,6 +25,30 @@
 	/* Misc */
 	--tl-zoom: 1;
 	--tl-cursor: default;
+
+	/* These cursor values get programmatically overridden */
+	--tl-cursor-none: none;
+	--tl-cursor-default: default;
+	--tl-cursor-pointer: pointer;
+	--tl-cursor-cross: crosshair;
+	--tl-cursor-move: move;
+	--tl-cursor-grab: grab;
+	--tl-cursor-grabbing: grabbing;
+	--tl-cursor-text: text;
+	--tl-cursor-resize-edge: ew-resize;
+	--tl-cursor-resize-corner: nesw-resize;
+	--tl-cursor-ew-resize: ew-resize;
+	--tl-cursor-ns-resize: ns-resize;
+	--tl-cursor-nesw-resize: nesw-resize;
+	--tl-cursor-nwse-resize: nwse-resize;
+	--tl-cursor-rotate: pointer;
+	--tl-cursor-nwse-rotate: pointer;
+	--tl-cursor-nesw-rotate: pointer;
+	--tl-cursor-senw-rotate: pointer;
+	--tl-cursor-swne-rotate: pointer;
+	--tl-cursor-zoom-in: zoom-in;
+	--tl-cursor-zoom-out: zoom-out;
+
 	--tl-scale: calc(1 / var(--tl-zoom));
 	--tl-font-draw: 'tldraw_draw', sans-serif;
 	--tl-font-sans: 'tldraw_sans', sans-serif;
@@ -924,7 +948,6 @@ input,
 	pointer-events: all;
 	z-index: 999;
 	overflow: hidden;
-	cursor: pointer;
 	display: block;
 	color: var(--color-text);
 	text-overflow: ellipsis;
@@ -954,7 +977,7 @@ input,
 	font-weight: 400;
 	color: var(--color-text-1);
 	padding: 13px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	border: none;
 	outline: none;
 	pointer-events: all;
