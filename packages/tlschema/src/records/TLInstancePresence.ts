@@ -70,20 +70,36 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 // It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
+	AddScribbleDelay: 1,
 } as const
 
-export const userPresenceTypeMigrations = defineMigrations({
+export const instancePresenceTypeMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.Initial,
 	firstVersion: Versions.Initial,
+	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		// STEP 3: Add an up+down migration for the new version here
+		[Versions.AddScribbleDelay]: {
+			up: (instance) => {
+				if (instance.scribble !== null) {
+					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+				}
+				return { ...instance }
+			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
+			},
+		},
 	},
 })
 
 /** @public */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
-	migrations: userPresenceTypeMigrations,
+	migrations: instancePresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,
 	scope: 'presence',
 })

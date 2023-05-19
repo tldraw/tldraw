@@ -5,6 +5,7 @@ import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { instanceTypeMigrations } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
+import { instancePresenceTypeMigrations } from './records/TLInstancePresence'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
 import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
 import { userPresenceTypeMigrations } from './records/TLUserPresence'
@@ -738,7 +739,129 @@ describe('Removing isReadOnly from user_document', () => {
 	})
 })
 
-/* ---  PUT YOU
+describe('Adds delay to scribble', () => {
+	const { up, down } = instanceTypeMigrations.migrators[10]
+
+	test('up has no effect when scribble is null', () => {
+		expect(
+			up({
+				scribble: null,
+			})
+		).toEqual({ scribble: null })
+	})
+
+	test('up adds the delay property', () => {
+		expect(
+			up({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+				delay: 0,
+			},
+		})
+	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+			},
+		})
+	})
+})
+
+describe('Adds delay to scribble', () => {
+	const { up, down } = instancePresenceTypeMigrations.migrators[1]
+
+	test('up has no effect when scribble is null', () => {
+		expect(
+			up({
+				scribble: null,
+			})
+		).toEqual({ scribble: null })
+	})
+
+	test('up adds the delay property', () => {
+		expect(
+			up({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+				delay: 0,
+			},
+		})
+	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+			},
+		})
+	})
+})
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 

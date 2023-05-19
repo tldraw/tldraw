@@ -73,6 +73,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #000000;
+	--color-laser: #ff0000;
 	--palette-black: #1d1d1d;
 	--palette-blue: #4263eb;
 	--palette-green: #099268;
@@ -154,6 +155,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #f8f9fa;
+	--color-laser: #ff0000;
 	--palette-black: #e1e1e1;
 	--palette-blue: #4156be;
 	--palette-green: #3b7b5e;

@@ -105,13 +105,14 @@ const Versions = {
 	RemoveAlignJustify: 7,
 	AddZoom: 8,
 	AddVerticalAlign: 9,
+	AddScribbleDelay: 10,
 } as const
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
 	firstVersion: Versions.Initial,
 	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddVerticalAlign,
+	currentVersion: Versions.AddScribbleDelay,
 	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -225,6 +226,21 @@ export const instanceTypeMigrations = defineMigrations({
 					...instance,
 					propsForNextShape,
 				}
+			},
+		},
+		[Versions.AddScribbleDelay]: {
+			up: (instance) => {
+				if (instance.scribble !== null) {
+					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+				}
+				return { ...instance }
+			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
 			},
 		},
 	},

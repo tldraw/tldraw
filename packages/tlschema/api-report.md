@@ -534,7 +534,7 @@ export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
 
 // @public (undocumented)
-export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -1158,6 +1158,7 @@ export type TLScribble = {
     color: TLUiColorType;
     opacity: number;
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
+    delay: number;
 };
 
 // @public
@@ -1369,7 +1370,7 @@ export type TLVideoShapeProps = {
 };
 
 // @public (undocumented)
-export const uiColorTypeValidator: T.Validator<"accent" | "black" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
 export const USER_COLORS: string[];
