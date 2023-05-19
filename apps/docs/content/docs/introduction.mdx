@@ -30,7 +30,7 @@ yarn add @tldraw/tldraw@alpha signia signia-react
 npm install @tldraw/tldraw@alpha signia signia-react
 ```
 
-Next, copy the following folders: `icons`, `embed-icons`, `fonts`, and `translations` from the [tldraw-examples](https://github.com/tldraw/tldraw-examples/tree/main/public) repository. Put them in your project's public path so that, e.g. `your-website.com/icons` points to the icons folder you copied. (Ability to customize the base asset URL is coming soon!)
+Next, copy the following folders: `icons`, `embed-icons`, `fonts`, and `translations` from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets). Put them in your project's public path so that, e.g. `your-website.com/icons` points to the icons folder you copied. (Ability to customize the base asset URL is coming soon!)
 
 ## Usage
 
@@ -98,7 +98,7 @@ If you wanted to have more granular control, you could also use those subcompone
 
 In order to use the `<Tldraw/>` component, the app must be able to find certain assets on the host. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. If you are using the `<Tldraw/>` component in your app, you must also copy these folders into your public path.
 
-You can copy these files from the [tldraw-examples](https://github.com/tldraw/tldraw-examples) repository. Place the folders in your project's public path as shown in that repository.
+You can copy these files from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets) repository. Place the folders in your project's public path as shown in that repository.
 
 > **Note:** This requirement is very likely to change in the near future.
 
