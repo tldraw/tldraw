@@ -740,7 +740,7 @@ describe('Removing isReadOnly from user_document', () => {
 })
 
 describe('Adds delay to scribble', () => {
-	const { up, down } = instanceTypeMigrations.migrators[9]
+	const { up, down } = instanceTypeMigrations.migrators[10]
 
 	test('up has no effect when scribble is null', () => {
 		expect(
