@@ -12,7 +12,7 @@ type AllStyles = typeof App.styles
 
 interface DropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
 	id: string
-	label: TLTranslationKey
+	label?: TLTranslationKey
 	items: T[]
 	styleType: TLStyleType
 	value: T['id'] | null
@@ -52,7 +52,8 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 			<DropdownMenu.Content side="left" align="center" alignOffset={0}>
 				<div
 					className={classNames('tlui-button-grid', {
-						'tlui-button-grid__two': items.length < 4,
+						'tlui-button-grid__two': items.length < 3,
+						'tlui-button-grid__three': items.length == 3,
 						'tlui-button-grid__four': items.length >= 4,
 					})}
 				>

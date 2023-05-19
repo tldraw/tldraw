@@ -1,4 +1,4 @@
-import { TLAlignType } from '@tldraw/tlschema'
+import { TLAlignType, TLVerticalAlignType } from '@tldraw/tlschema'
 import { TEXT_PROPS } from '../../../constants'
 import { correctSpacesToNbsp } from '../../../utils/string'
 import { App } from '../../App'
@@ -11,6 +11,7 @@ export function getTextSvgElement(
 		fontSize: number
 		fontFamily: string
 		textAlign: TLAlignType
+		verticalTextAlign: TLVerticalAlignType
 		fontWeight: string
 		fontStyle: string
 		lineHeight: number
@@ -40,7 +41,21 @@ export function getTextSvgElement(
 
 	const innerHeight = lines.length * (opts.lineHeight * opts.fontSize)
 
-	const offsetY = (Math.ceil(opts.height) - innerHeight) / 2
+	let offsetY: number
+	switch (opts.verticalTextAlign) {
+		case 'start': {
+			offsetY = padding
+			break
+		}
+		case 'end': {
+			offsetY = opts.height - padding - innerHeight
+			break
+		}
+		default: {
+			offsetY = (Math.ceil(opts.height) - innerHeight) / 2
+		}
+	}
+
 	const offsetX = padding
 
 	// Create text span elements for each line

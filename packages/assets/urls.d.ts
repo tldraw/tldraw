@@ -165,6 +165,9 @@ export function getAssetUrlsByMetaUrl(opts?: AssetUrlOptions): {
 		ungroup: string
 		'unlock-small': string
 		unlock: string
+		'vertical-align-center': string
+		'vertical-align-end': string
+		'vertical-align-start': string
 		visible: string
 		'warning-triangle': string
 		'zoom-in': string

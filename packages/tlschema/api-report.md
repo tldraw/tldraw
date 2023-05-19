@@ -531,10 +531,18 @@ export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
 export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
-export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline">;
+export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
 
 // @public (undocumented)
 export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export interface TLAlignStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLAlignType;
+    // (undocumented)
+    type: 'align';
+}
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -860,6 +868,7 @@ export type TLGeoShapeProps = {
     opacity: TLOpacityType;
     font: TLFontType;
     align: TLAlignType;
+    verticalAlign: TLVerticalAlignType;
     url: string;
     w: number;
     h: number;
@@ -1235,6 +1244,8 @@ export interface TLStyleCollections {
     size: TLSizeStyle[];
     // (undocumented)
     spline: TLSplineTypeStyle[];
+    // (undocumented)
+    verticalAlign: TLVerticalAlignStyle[];
 }
 
 // @public (undocumented)
@@ -1329,6 +1340,9 @@ export const TLUserPresence: RecordType<TLUserPresence, "userId">;
 
 // @public (undocumented)
 export type TLUserPresenceId = ID<TLUserPresence>;
+
+// @public (undocumented)
+export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
 
 // @public (undocumented)
 export type TLVideoAsset = TLBaseAsset<'video', {
