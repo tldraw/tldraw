@@ -41,6 +41,8 @@ export function getTextSvgElement(
 
 	const innerHeight = lines.length * (opts.lineHeight * opts.fontSize)
 
+	const offsetX = padding
+
 	let offsetY: number
 	switch (opts.verticalTextAlign) {
 		case 'start': {
@@ -55,8 +57,6 @@ export function getTextSvgElement(
 			offsetY = (Math.ceil(opts.height) - innerHeight) / 2
 		}
 	}
-
-	const offsetX = padding
 
 	// Create text span elements for each line
 	for (let i = 0; i < lines.length; i++) {

@@ -57,7 +57,10 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
-			style={{ alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign }}
+			style={{
+				justifyContent: align === 'middle' ? 'center' : align,
+				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+			}}
 		>
 			<div
 				className="tl-text-label__inner"
