@@ -1,3 +1,4 @@
+import { sortByIndex } from '@tldraw/indices'
 import { approximately, Box2d, VecLike } from '@tldraw/primitives'
 import {
 	createCustomShapeId,
@@ -16,7 +17,6 @@ import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
 import { TLEraserTool } from '../../app/statechart/TLEraserTool/TLEraserTool'
 import { TLLineTool } from '../../app/statechart/TLLineTool/TLLineTool'
 import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
-import { sortByIndex } from '../../utils/reordering/reordering'
 import { TestApp } from '../TestApp'
 
 let i = 0

@@ -1,6 +1,20 @@
 // Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
 // incorrect output. https://github.com/evanw/esbuild/issues/1737
 
+export {
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	getIndexGenerator,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBelow,
+	getIndicesBetween,
+	getMaxIndex,
+	indexGenerator,
+	sortById,
+	sortByIndex,
+} from '@tldraw/indices'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
@@ -243,20 +257,6 @@ export { hardResetApp } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndexGenerator,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	getMaxIndex,
-	indexGenerator,
-	sortById,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
