@@ -20,16 +20,20 @@ export function defineMigrations<
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
 }): Migrations {
-	const {
-		currentVersion = 0,
-		firstVersion = 0,
-		migrators = {},
-		subTypeKey,
-		subTypeMigrations,
-	} = opts
+	const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrations } = opts
+
+	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
+	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
+		if ((currentVersion as number) === (firstVersion as number)) {
+			throw Error(`Current version is equal to initial version.`)
+		} else if (currentVersion < firstVersion) {
+			throw Error(`Current version is lower than initial version.`)
+		}
+	}
+
 	return {
-		firstVersion: firstVersion as number,
-		currentVersion: currentVersion as number,
+		firstVersion: (firstVersion as number) ?? 0, // defaults
+		currentVersion: (currentVersion as number) ?? 0, // defaults
 		migrators,
 		subTypeKey,
 		subTypeMigrations,
