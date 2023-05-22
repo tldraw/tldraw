@@ -9,13 +9,13 @@ const Versions = {
 } as const
 
 // empty migrators
-const a = defineMigrations({
+defineMigrations({
 	// @ts-expect-error
 	migrators: {},
 })
 
 // no versions!
-const a1 = defineMigrations({
+defineMigrations({
 	// @ts-expect-error
 	migrators: {
 		[Versions.February]: {
@@ -26,7 +26,7 @@ const a1 = defineMigrations({
 })
 
 // wrong current version!
-const a2 = defineMigrations({
+defineMigrations({
 	currentVersion: Versions.January,
 	migrators: {
 		// @ts-expect-error
@@ -37,7 +37,7 @@ const a2 = defineMigrations({
 	},
 })
 
-const a3 = defineMigrations({
+defineMigrations({
 	currentVersion: Versions.February,
 	migrators: {
 		// has a default zero version
@@ -54,21 +54,21 @@ const a3 = defineMigrations({
 })
 
 // can't provide only first version
-const b1 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.January,
 	// @ts-expect-error
 	migrators: {},
 })
 
 // missing only 0 version
-const b2 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.Initial,
 	migrators: {},
 })
 
 // missing only version
-const b2a = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.January,
 	currentVersion: Versions.January,
 	// @ts-expect-error
@@ -76,7 +76,7 @@ const b2a = defineMigrations({
 })
 
 // only version, explicit start and current
-const b3 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.January,
 	currentVersion: Versions.January,
 	migrators: {
@@ -88,7 +88,7 @@ const b3 = defineMigrations({
 })
 
 // missing later versions
-const b4 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.January,
 	currentVersion: Versions.February,
 	// @ts-expect-error
@@ -96,7 +96,7 @@ const b4 = defineMigrations({
 })
 
 // missing later versions
-const b5 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.February,
 	// @ts-expect-error
@@ -109,7 +109,7 @@ const b5 = defineMigrations({
 })
 
 // missing earlier versions
-const b6 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.February,
 	// @ts-expect-error
@@ -122,7 +122,7 @@ const b6 = defineMigrations({
 })
 
 // got em all
-const b7 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.February,
 	migrators: {
@@ -138,7 +138,7 @@ const b7 = defineMigrations({
 })
 
 // got em all starting later
-const b8 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.January,
 	currentVersion: Versions.March,
 	migrators: {
@@ -154,7 +154,7 @@ const b8 = defineMigrations({
 })
 
 // first migration should be first version + 1
-const b9 = defineMigrations({
+defineMigrations({
 	firstVersion: Versions.February,
 	currentVersion: Versions.March,
 	migrators: {
