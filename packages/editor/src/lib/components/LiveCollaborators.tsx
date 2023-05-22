@@ -82,7 +82,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId 
 					scribble={scribble}
 					color={color}
 					zoom={zoomLevel}
-					opacity={0.1}
+					opacity={scribble.color === 'laser' ? 0.5 : 0.1}
 				/>
 			) : null}
 			{CollaboratorShapeIndicator &&
