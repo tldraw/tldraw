@@ -86,7 +86,7 @@ export function createTLSchema({
 		migrators: rootShapeTypeMigrations.migrators,
 		subTypeKey: 'type',
 		subTypeMigrations: Object.fromEntries(
-			allShapeDefs.map((def) => [def.type, def.migrations ?? { validate: (rec: any) => rec }])
+			allShapeDefs.map((def) => [def.type, def.migrations ?? {}])
 		) as Record<string, Migrations>,
 	})
 
