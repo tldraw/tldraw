@@ -125,6 +125,7 @@ export {
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
+	frameShapeTypeMigrations,
 	frameShapeTypeValidator,
 	type TLFrameShape,
 	type TLFrameShapeProps,
@@ -136,11 +137,13 @@ export {
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
+	groupShapeTypeMigrations,
 	groupShapeTypeValidator,
 	type TLGroupShape,
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
+	iconShapeTypeMigrations,
 	iconShapeTypeValidator,
 	type TLIconShape,
 	type TLIconShapeProps,
@@ -153,6 +156,7 @@ export {
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {
+	lineShapeTypeMigrations,
 	lineShapeTypeValidator,
 	type TLLineShape,
 	type TLLineShapeProps,

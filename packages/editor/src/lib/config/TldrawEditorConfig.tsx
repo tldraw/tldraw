@@ -22,12 +22,15 @@ import {
 	drawShapeTypeValidator,
 	embedShapeTypeMigrations,
 	embedShapeTypeValidator,
+	frameShapeTypeMigrations,
 	frameShapeTypeValidator,
 	geoShapeTypeMigrations,
 	geoShapeTypeValidator,
+	groupShapeTypeMigrations,
 	groupShapeTypeValidator,
 	imageShapeTypeMigrations,
 	imageShapeTypeValidator,
+	lineShapeTypeMigrations,
 	lineShapeTypeValidator,
 	noteShapeTypeMigrations,
 	noteShapeTypeValidator,
@@ -36,9 +39,6 @@ import {
 	videoShapeTypeMigrations,
 	videoShapeTypeValidator,
 } from '@tldraw/tlschema'
-import { frameShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLFrameShape'
-import { groupShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLGroupShape'
-import { lineShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLLineShape'
 import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'

@@ -347,6 +347,9 @@ export function fixupRecord(oldRecord: TLRecord): {
 export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
+export const frameShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
 export const frameShapeTypeValidator: T.Validator<TLFrameShape>;
 
 // @public (undocumented)
@@ -359,10 +362,16 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
+export const groupShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
 export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 
 // @public (undocumented)
 export const handleTypeValidator: T.Validator<TLHandle>;
+
+// @public (undocumented)
+export const iconShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const iconShapeTypeValidator: T.Validator<TLIconShape>;
@@ -405,6 +414,9 @@ export function isShape(record?: BaseRecord<string>): record is TLShape;
 
 // @public (undocumented)
 export function isShapeId(id?: string): id is TLShapeId;
+
+// @public (undocumented)
+export const lineShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
