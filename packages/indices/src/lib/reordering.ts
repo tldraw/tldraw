@@ -1,4 +1,4 @@
-import { generateKeyBetween, generateNKeysBetween } from './dgreensp'
+import { generateNKeysBetween } from './dgreensp'
 
 /**
  * Get a number of indices between two indices.
@@ -70,33 +70,6 @@ export function getIndices(n: number, start = 'a1') {
 }
 
 /**
- * Create a generator that yields indices.
- * @public
- */
-export function getIndexGenerator() {
-	let order = 'a1'
-	return () => {
-		order = generateKeyBetween(order, undefined)
-		return order
-	}
-}
-
-/**
- * Create a generator that yields indices.
- * @param n - The number of indices to yield.
- * @public
- */
-export function* indexGenerator(n = 1) {
-	let order = 'a1'
-	let i = 0
-	while (i < n) {
-		i++
-		order = generateKeyBetween(order, undefined)
-		yield order
-	}
-}
-
-/**
  * Sort by index.
  * @param a - An object with an index property.
  * @param b - An object with an index property.
@@ -108,27 +81,4 @@ export function sortByIndex<T extends { index: string }>(a: T, b: T) {
 		return 1
 	}
 	return 0
-}
-
-/**
- * Sort by id.
- * @param a - An object with an id property.
- * @param b - An object with an id property.
- * @public */
-export function sortById<T extends { id: string }>(a: T, b: T) {
-	if (a.id < b.id) {
-		return -1
-	} else if (a.id > b.id) {
-		return 1
-	}
-	return 0
-}
-
-/**
- * Get the maximum index from a list of indices.
- * @param indices - A list of indices.
- * @public
- */
-export function getMaxIndex(...indices: (string | undefined)[]): string {
-	return indices.reduce((acc, curr) => (!curr ? acc : acc! < curr ? curr : acc), 'a1')!
 }

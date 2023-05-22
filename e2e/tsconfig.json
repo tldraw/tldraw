@@ -29,6 +29,7 @@
 	},
 	"references": [
 		{ "path": "../packages/editor" },
+		{ "path": "../packages/indices" },
 		{ "path": "../packages/tlschema" },
 		{ "path": "../packages/tlstore" },
 		{ "path": "../packages/primitives" }

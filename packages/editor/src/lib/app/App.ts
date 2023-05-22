@@ -4,7 +4,6 @@ import {
 	getIndices,
 	getIndicesAbove,
 	getIndicesBetween,
-	sortById,
 	sortByIndex,
 } from '@tldraw/indices'
 import {
@@ -65,7 +64,15 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
-import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
+import {
+	annotateError,
+	compact,
+	dedupe,
+	deepCopy,
+	partition,
+	sortById,
+	structuredClone,
+} from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'

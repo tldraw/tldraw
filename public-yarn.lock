@@ -4577,6 +4577,7 @@ __metadata:
   dependencies:
     "@sitespeed.io/edgedriver": ^112.0.1722-34
     "@tldraw/editor": "workspace:*"
+    "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@types/mocha": ^10.0.1
     "@types/sharp": ^0.31.1

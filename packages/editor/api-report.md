@@ -20,15 +20,12 @@ import { getHashForString } from '@tldraw/utils';
 import { getIndexAbove } from '@tldraw/indices';
 import { getIndexBelow } from '@tldraw/indices';
 import { getIndexBetween } from '@tldraw/indices';
-import { getIndexGenerator } from '@tldraw/indices';
 import { getIndices } from '@tldraw/indices';
 import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
-import { getMaxIndex } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
-import { indexGenerator } from '@tldraw/indices';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -43,7 +40,6 @@ import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
-import { sortById } from '@tldraw/indices';
 import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
@@ -772,8 +768,6 @@ export { getIndexBelow }
 
 export { getIndexBetween }
 
-export { getIndexGenerator }
-
 export { getIndices }
 
 export { getIndicesAbove }
@@ -781,8 +775,6 @@ export { getIndicesAbove }
 export { getIndicesBelow }
 
 export { getIndicesBetween }
-
-export { getMaxIndex }
 
 // @public
 export function getMediaAssetFromFile(file: File): Promise<TLAsset>;
@@ -885,8 +877,6 @@ export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
 export const INDENT = "  ";
-
-export { indexGenerator }
 
 // @public (undocumented)
 export interface InitializingSyncedStore {
@@ -1471,8 +1461,6 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function snapToGrid(n: number, gridSize: number): number;
-
-export { sortById }
 
 export { sortByIndex }
 

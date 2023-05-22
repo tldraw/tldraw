@@ -5,14 +5,10 @@ export {
 	getIndexAbove,
 	getIndexBelow,
 	getIndexBetween,
-	getIndexGenerator,
 	getIndices,
 	getIndicesAbove,
 	getIndicesBelow,
 	getIndicesBetween,
-	getMaxIndex,
-	indexGenerator,
-	sortById,
 	sortByIndex,
 } from '@tldraw/indices'
 // eslint-disable-next-line local/no-export-star

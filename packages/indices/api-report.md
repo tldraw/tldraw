@@ -14,9 +14,6 @@ export function getIndexBelow(above: string): string;
 export function getIndexBetween(below: string, above?: string): string;
 
 // @public
-export function getIndexGenerator(): () => string;
-
-// @public
 export function getIndices(n: number, start?: string): string[];
 
 // @public
@@ -27,17 +24,6 @@ export function getIndicesBelow(above: string, n: number): string[];
 
 // @public
 export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
-
-// @public
-export function getMaxIndex(...indices: (string | undefined)[]): string;
-
-// @public
-export function indexGenerator(n?: number): Generator<string, void, unknown>;
-
-// @public
-export function sortById<T extends {
-    id: string;
-}>(a: T, b: T): -1 | 0 | 1;
 
 // @public
 export function sortByIndex<T extends {
