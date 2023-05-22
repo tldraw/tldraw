@@ -53,7 +53,6 @@ export interface TLInstance extends BaseRecord<'instance'> {
 /** @public */
 export type TLInstanceId = ID<TLInstance>
 
-// --- VALIDATION ---
 /** @public */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
@@ -91,11 +90,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -110,10 +105,7 @@ const Versions = {
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.AddScribbleDelay,
-	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {

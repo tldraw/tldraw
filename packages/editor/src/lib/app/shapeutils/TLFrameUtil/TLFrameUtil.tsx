@@ -1,6 +1,5 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
 import {
-	frameShapeMigrations,
 	frameShapeTypeValidator,
 	TLFrameShape,
 	TLShape,
@@ -218,5 +217,4 @@ export const TLFrameShapeDef = defineShape<TLFrameShape, TLFrameUtil>({
 	type: 'frame',
 	getShapeUtil: () => TLFrameUtil,
 	validator: frameShapeTypeValidator,
-	migrations: frameShapeMigrations,
 })

@@ -1,5 +1,5 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLVideoShape, videoShapeMigrations, videoShapeTypeValidator } from '@tldraw/tlschema'
+import { TLVideoShape, videoShapeTypeMigrations, videoShapeTypeValidator } from '@tldraw/tlschema'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
@@ -54,7 +54,7 @@ export const TLVideoShapeDef = defineShape<TLVideoShape, TLVideoUtil>({
 	type: 'video',
 	getShapeUtil: () => TLVideoUtil,
 	validator: videoShapeTypeValidator,
-	migrations: videoShapeMigrations,
+	migrations: videoShapeTypeMigrations,
 })
 
 // Function from v1, could be improved bu explicitly using this.model.time (?)

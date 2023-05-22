@@ -13,7 +13,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import {
-	geoShapeMigrations,
+	geoShapeTypeMigrations,
 	geoShapeTypeValidator,
 	TLDashType,
 	TLGeoShape,
@@ -1008,5 +1008,5 @@ export const TLGeoShapeDef = defineShape<TLGeoShape, TLGeoUtil>({
 	type: 'geo',
 	getShapeUtil: () => TLGeoUtil,
 	validator: geoShapeTypeValidator,
-	migrations: geoShapeMigrations,
+	migrations: geoShapeTypeMigrations,
 })

@@ -33,9 +33,6 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
-		"new-record": "node ./scripts/new-record.js",
-		"new-shape": "node ./scripts/new-shape.js",
-		"new-asset": "node ./scripts/new-asset.js",
 		"index": "node ./scripts/build-index.js && yarn format",
 		"format": "yarn run -T prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",

@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
 import {
-	embedShapeMigrations,
+	embedShapeTypeMigrations,
 	embedShapeTypeValidator,
 	TLEmbedShape,
 	tlEmbedShapePermissionDefaults,
@@ -236,5 +236,5 @@ export const TLEmbedShapeDef = defineShape<TLEmbedShape, TLEmbedUtil>({
 	type: 'embed',
 	getShapeUtil: () => TLEmbedUtil,
 	validator: embedShapeTypeValidator,
-	migrations: embedShapeMigrations,
+	migrations: embedShapeTypeMigrations,
 })

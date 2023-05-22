@@ -47,12 +47,16 @@ export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], 
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public (undocumented)
-export function defineMigrations<FirstVersion extends number, CurrentVersion extends number>({ firstVersion, currentVersion, migrators, subTypeKey, subTypeMigrations, }: {
-    firstVersion: FirstVersion;
-    currentVersion: CurrentVersion;
-    migrators: {
+export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL>(opts: {
+    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
+    currentVersion?: CurrentVersion;
+    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+    } : {
         [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration;
-    };
+    } : {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+    } : never;
     subTypeKey?: string;
     subTypeMigrations?: Record<string, BaseMigrationsInfo>;
 }): Migrations;
@@ -106,9 +110,9 @@ export function migrateRecord<R extends BaseRecord>({ record, migrations, fromVe
 }): MigrationResult<R>;
 
 // @public (undocumented)
-export type Migration<T = any> = {
-    up: (oldState: T) => T;
-    down: (newState: T) => T;
+export type Migration<Before = any, After = any> = {
+    up: (oldState: Before) => After;
+    down: (newState: After) => Before;
 };
 
 // @public (undocumented)

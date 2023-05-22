@@ -46,7 +46,6 @@ export type TLGeoShapeProps = {
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidator(
 	'geo',
@@ -69,11 +68,7 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidat
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	AddLabelColor: 2,
 	RemoveJustify: 3,
@@ -82,12 +77,9 @@ const Versions = {
 } as const
 
 /** @public */
-export const geoShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	firstVersion: Versions.Initial,
+export const geoShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddVerticalAlign,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
 				return { ...shape, props: { ...shape.props, url: '' } }

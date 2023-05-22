@@ -9,12 +9,7 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import {
-	TLHandle,
-	TLLineShape,
-	lineShapeMigrations,
-	lineShapeTypeValidator,
-} from '@tldraw/tlschema'
+import { TLHandle, TLLineShape, lineShapeTypeValidator } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
@@ -345,7 +340,6 @@ export const TLLineShapeDef = defineShape<TLLineShape, TLLineUtil>({
 	type: 'line',
 	getShapeUtil: () => TLLineUtil,
 	validator: lineShapeTypeValidator,
-	migrations: lineShapeMigrations,
 })
 
 /** @public */

@@ -78,7 +78,6 @@ export type TLEmbedShapeProps = {
 /** @public */
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
 	'embed',
@@ -605,21 +604,14 @@ export const EMBED_DEFINITIONS = [
 	},
 ] as const satisfies readonly EmbedDefinition[]
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	GenOriginalUrlInEmbed: 1,
 } as const
 
 /** @public */
-export const embedShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
+export const embedShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.GenOriginalUrlInEmbed,
-	firstVersion: Versions.Initial,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.GenOriginalUrlInEmbed]: {
 			// add tmpOldUrl property
 			up: (shape) => {

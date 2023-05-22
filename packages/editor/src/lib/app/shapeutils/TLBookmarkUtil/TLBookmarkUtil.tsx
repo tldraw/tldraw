@@ -1,6 +1,6 @@
 import { toDomPrecision } from '@tldraw/primitives'
 import {
-	bookmarkShapeMigrations,
+	bookmarkShapeTypeMigrations,
 	bookmarkShapeTypeValidator,
 	TLAsset,
 	TLAssetId,
@@ -197,5 +197,5 @@ export const TLBookmarkShapeDef = defineShape<TLBookmarkShape, TLBookmarkUtil>({
 	type: 'bookmark',
 	getShapeUtil: () => TLBookmarkUtil,
 	validator: bookmarkShapeTypeValidator,
-	migrations: bookmarkShapeMigrations,
+	migrations: bookmarkShapeTypeMigrations,
 })

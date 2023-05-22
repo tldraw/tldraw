@@ -10,7 +10,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import {
-	drawShapeMigrations,
+	drawShapeTypeMigrations,
 	drawShapeTypeValidator,
 	TLDrawShape,
 	TLDrawShapeSegment,
@@ -314,7 +314,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 export const TLDrawShapeDef = defineShape<TLDrawShape, TLDrawUtil>({
 	type: 'draw',
 	getShapeUtil: () => TLDrawUtil,
-	migrations: drawShapeMigrations,
+	migrations: drawShapeTypeMigrations,
 	validator: drawShapeTypeValidator,
 })
 

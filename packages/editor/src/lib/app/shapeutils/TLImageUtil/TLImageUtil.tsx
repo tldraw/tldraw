@@ -3,7 +3,7 @@ import { Vec2d, toDomPrecision } from '@tldraw/primitives'
 import {
 	TLImageShape,
 	TLShapePartial,
-	imageShapeMigrations,
+	imageShapeTypeMigrations,
 	imageShapeTypeValidator,
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
@@ -275,7 +275,7 @@ export const TLImageShapeDef = defineShape<TLImageShape, TLImageUtil>({
 	type: 'image',
 	getShapeUtil: () => TLImageUtil,
 	validator: imageShapeTypeValidator,
-	migrations: imageShapeMigrations,
+	migrations: imageShapeTypeMigrations,
 })
 
 /**

@@ -11,7 +11,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import {
-	arrowShapeMigrations,
+	arrowShapeTypeMigrations,
 	arrowShapeTypeValidator,
 	TLArrowheadType,
 	TLArrowShape,
@@ -1141,5 +1141,5 @@ export const TLArrowShapeDef = defineShape<TLArrowShape, TLArrowUtil>({
 	type: 'arrow',
 	getShapeUtil: () => TLArrowUtil,
 	validator: arrowShapeTypeValidator,
-	migrations: arrowShapeMigrations,
+	migrations: arrowShapeTypeMigrations,
 })
