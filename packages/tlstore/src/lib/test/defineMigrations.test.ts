@@ -8,6 +8,18 @@ const Versions = {
 	March: 3,
 } as const
 
+// no versions
+defineMigrations({
+	// @ts-expect-error first version without current version
+	firstVersion: Versions.Initial,
+})
+
+// no versions
+defineMigrations({
+	// @ts-expect-error first version without current version
+	firstVersion: Versions.February,
+})
+
 // empty migrators
 defineMigrations({
 	// @ts-expect-error
@@ -55,8 +67,9 @@ defineMigrations({
 
 // can't provide only first version
 defineMigrations({
+	// @ts-expect-error first version without current version
 	firstVersion: Versions.January,
-	// @ts-expect-error
+	// @ts-expect-error migrators without current version
 	migrators: {},
 })
 

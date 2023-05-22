@@ -47,8 +47,8 @@ export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], 
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public (undocumented)
-export function defineMigrations<FirstVersion extends number | string = 'ok', CurrentVersion extends Exclude<number, 0> | string = 'ok'>(opts: {
-    firstVersion?: FirstVersion;
+export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL>(opts: {
+    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
     currentVersion?: CurrentVersion;
     migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
         [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;

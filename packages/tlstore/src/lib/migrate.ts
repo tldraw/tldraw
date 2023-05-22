@@ -1,12 +1,14 @@
 import { BaseRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
 
+type EMPTY_SYMBOL = symbol
+
 /** @public */
 export function defineMigrations<
-	FirstVersion extends number | string = 'ok',
-	CurrentVersion extends Exclude<number, 0> | string = 'ok'
+	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
+	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL
 >(opts: {
-	firstVersion?: FirstVersion
+	firstVersion?: CurrentVersion extends number ? FirstVersion : never
 	currentVersion?: CurrentVersion
 	migrators?: CurrentVersion extends number
 		? FirstVersion extends number
