@@ -19,6 +19,8 @@ export const DefaultScribble: TLScribbleComponent = ({
 	opacity,
 	className,
 }) => {
+	if (!scribble.points.length) return
+
 	const d = getSvgPathFromStroke(
 		getStroke(scribble.points, {
 			size: scribble.size / zoom,
