@@ -656,7 +656,6 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			}
 
 			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
-			const textBounds = spans.reduce((a, b) => a.union(b.box), Box2d.From(spans[0].box))
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
@@ -665,12 +664,6 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				strokeWidth: 2,
 				stroke: colors.background,
 				fill: colors.background,
-				offsetX:
-					shape.props.align === 'start'
-						? (bounds.width - textBounds.width) / 2 - padding * 2
-						: shape.props.align === 'end'
-						? -(bounds.width - textBounds.width) / 2 + padding * 2
-						: 0,
 			})
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement

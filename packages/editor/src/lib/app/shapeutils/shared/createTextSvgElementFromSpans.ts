@@ -48,6 +48,7 @@ export function createTextSvgElementFromSpans(
 	// const offsetY = (Math.ceil(opts.height) - bounds.height + opts.fontSize) / 2 + (opts.offsetY ?? 0)
 	const offsetY =
 		(opts.offsetY ?? 0) +
+		opts.fontSize / 2 +
 		(opts.verticalTextAlign === 'start'
 			? padding
 			: opts.verticalTextAlign === 'end'
