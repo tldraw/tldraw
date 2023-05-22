@@ -112,6 +112,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			fontStyle: 'normal',
 			fontWeight: 'normal',
 			overflow: 'truncate-ellipsis' as const,
+			verticalTextAlign: 'middle' as const,
 		}
 
 		const spans = this.app.textMeasure.measureTextSpans(

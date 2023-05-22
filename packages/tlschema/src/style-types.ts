@@ -11,6 +11,7 @@ export const TL_STYLE_TYPES = new Set([
 	'opacity',
 	'font',
 	'align',
+	'verticalAlign',
 	'icon',
 	'geo',
 	'arrowheadStart',
@@ -131,6 +132,25 @@ export type TLAlignType = SetValue<typeof TL_ALIGN_TYPES>
 export interface TLAlignStyle extends TLBaseStyle {
 	id: TLAlignType
 	type: 'align'
+}
+
+/** @public */
+export interface TLAlignStyle extends TLBaseStyle {
+	id: TLAlignType
+	type: 'align'
+}
+
+// Geo Text Vertical Align
+/** @public */
+export const TL_VERTICAL_ALIGN_TYPES = TL_ALIGN_TYPES
+
+/** @public */
+export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>
+
+/** @public */
+export interface TLVerticalAlignStyle extends TLBaseStyle {
+	id: TLVerticalAlignType
+	type: 'verticalAlign'
 }
 
 // Geo
@@ -527,6 +547,7 @@ export interface TLStyleCollections {
 	opacity: TLOpacityStyle[]
 	font: TLFontStyle[]
 	align: TLAlignStyle[]
+	verticalAlign: TLVerticalAlignStyle[]
 	geo: TLGeoStyle[]
 	arrowheadStart: TLArrowheadStartStyle[]
 	arrowheadEnd: TLArrowheadEndStyle[]

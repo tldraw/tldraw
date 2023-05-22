@@ -32,6 +32,10 @@ export class Erasing extends StateNode {
 	}
 
 	private startScribble = () => {
+		if (this.scribble.tick) {
+			this.app.off('tick', this.scribble?.tick)
+		}
+
 		this.scribble = new ScribbleManager({
 			onUpdate: this.onScribbleUpdate,
 			onComplete: this.onScribbleComplete,

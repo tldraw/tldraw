@@ -82,6 +82,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 							font={font}
 							size={size}
 							align={align}
+							verticalAlign="middle"
 							text={text}
 							labelColor="inherit"
 							wrap
@@ -135,6 +136,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			fontSize: LABEL_FONT_SIZES[shape.props.size],
 			fontFamily: font,
 			textAlign: shape.props.align,
+			verticalTextAlign: 'middle' as const,
 			width: bounds.width - PADDING * 2,
 			height: bounds.height - PADDING * 2,
 			padding: 0,

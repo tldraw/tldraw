@@ -1,3 +1,4 @@
+import { sortByIndex } from '@tldraw/indices'
 import {
 	Box2d,
 	flipSelectionHandleX,
@@ -15,7 +16,6 @@ import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
-import { sortByIndex } from '../../utils/reordering/reordering'
 import type { App } from '../App'
 import { getSplineForLineShape, TLLineShapeDef } from '../shapeutils/TLLineUtil/TLLineUtil'
 

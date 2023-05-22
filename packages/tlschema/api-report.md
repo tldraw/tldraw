@@ -531,10 +531,18 @@ export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
 export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
-export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline">;
+export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
 
 // @public (undocumented)
-export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export interface TLAlignStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLAlignType;
+    // (undocumented)
+    type: 'align';
+}
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -860,6 +868,7 @@ export type TLGeoShapeProps = {
     opacity: TLOpacityType;
     font: TLFontType;
     align: TLAlignType;
+    verticalAlign: TLVerticalAlignType;
     url: string;
     w: number;
     h: number;
@@ -1149,6 +1158,7 @@ export type TLScribble = {
     color: TLUiColorType;
     opacity: number;
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
+    delay: number;
 };
 
 // @public
@@ -1235,6 +1245,8 @@ export interface TLStyleCollections {
     size: TLSizeStyle[];
     // (undocumented)
     spline: TLSplineTypeStyle[];
+    // (undocumented)
+    verticalAlign: TLVerticalAlignStyle[];
 }
 
 // @public (undocumented)
@@ -1290,8 +1302,6 @@ export interface TLUserDocument extends BaseRecord<'user_document'> {
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)
-    isReadOnly: boolean;
-    // (undocumented)
     isSnapMode: boolean;
     // (undocumented)
     lastUpdatedPageId: ID<TLPage> | null;
@@ -1333,6 +1343,9 @@ export const TLUserPresence: RecordType<TLUserPresence, "userId">;
 export type TLUserPresenceId = ID<TLUserPresence>;
 
 // @public (undocumented)
+export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
+
+// @public (undocumented)
 export type TLVideoAsset = TLBaseAsset<'video', {
     w: number;
     h: number;
@@ -1357,7 +1370,7 @@ export type TLVideoShapeProps = {
 };
 
 // @public (undocumented)
-export const uiColorTypeValidator: T.Validator<"accent" | "black" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
 export const USER_COLORS: string[];

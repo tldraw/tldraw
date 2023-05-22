@@ -6,6 +6,7 @@ import { TLEraserTool } from './TLEraserTool/TLEraserTool'
 import { TLFrameTool } from './TLFrameTool/TLFrameTool'
 import { TLGeoTool } from './TLGeoTool/TLGeoTool'
 import { TLHandTool } from './TLHandTool/TLHandTool'
+import { TLLaserTool } from './TLLaserTool/TLLaserTool'
 import { TLLineTool } from './TLLineTool/TLLineTool'
 import { TLNoteTool } from './TLNoteTool/TLNoteTool'
 import { TLSelectTool } from './TLSelectTool/TLSelectTool'
@@ -27,6 +28,7 @@ export class RootState extends StateNode {
 		TLNoteTool,
 		TLFrameTool,
 		TLZoomTool,
+		TLLaserTool,
 	]
 
 	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {

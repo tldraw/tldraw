@@ -1,29 +1,29 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+import { getIndexBetween, sortByIndex } from '@tldraw/indices'
 import {
 	CubicSpline2d,
-	getDrawLinePathData,
-	intersectLineSegmentPolyline,
-	pointNearToPolyline,
 	Polyline2d,
 	Vec2d,
 	VecLike,
+	getDrawLinePathData,
+	intersectLineSegmentPolyline,
+	pointNearToPolyline,
 } from '@tldraw/primitives'
 import {
-	lineShapeMigrations,
-	lineShapeTypeValidator,
 	TLHandle,
 	TLLineShape,
+	lineShapeMigrations,
+	lineShapeTypeValidator,
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
-import { getIndexBetween, sortByIndex } from '../../../utils/reordering/reordering'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
+import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useForceSolid } from '../shared/useForceSolid'
-import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'
 

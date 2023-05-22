@@ -61,6 +61,7 @@ import iconsChevronRight from './icons/icon/chevron-right.svg'
 import iconsChevronUp from './icons/icon/chevron-up.svg'
 import iconsChevronsNe from './icons/icon/chevrons-ne.svg'
 import iconsChevronsSw from './icons/icon/chevrons-sw.svg'
+import iconsClipboardCopied from './icons/icon/clipboard-copied.svg'
 import iconsClipboardCopy from './icons/icon/clipboard-copy.svg'
 import iconsCode from './icons/icon/code.svg'
 import iconsCollab from './icons/icon/collab.svg'
@@ -161,6 +162,7 @@ import iconsToolEraser from './icons/icon/tool-eraser.svg'
 import iconsToolFrame from './icons/icon/tool-frame.svg'
 import iconsToolHand from './icons/icon/tool-hand.svg'
 import iconsToolHighlighter from './icons/icon/tool-highlighter.svg'
+import iconsToolLaser from './icons/icon/tool-laser.svg'
 import iconsToolLine from './icons/icon/tool-line.svg'
 import iconsToolMedia from './icons/icon/tool-media.svg'
 import iconsToolNote from './icons/icon/tool-note.svg'
@@ -175,6 +177,9 @@ import iconsUndo from './icons/icon/undo.svg'
 import iconsUngroup from './icons/icon/ungroup.svg'
 import iconsUnlockSmall from './icons/icon/unlock-small.svg'
 import iconsUnlock from './icons/icon/unlock.svg'
+import iconsVerticalAlignCenter from './icons/icon/vertical-align-center.svg'
+import iconsVerticalAlignEnd from './icons/icon/vertical-align-end.svg'
+import iconsVerticalAlignStart from './icons/icon/vertical-align-start.svg'
 import iconsVisible from './icons/icon/visible.svg'
 import iconsWarningTriangle from './icons/icon/warning-triangle.svg'
 import iconsZoomIn from './icons/icon/zoom-in.svg'
@@ -287,6 +292,7 @@ export function getAssetUrlsByImport(opts) {
 			'chevron-up': formatAssetUrl(iconsChevronUp, opts),
 			'chevrons-ne': formatAssetUrl(iconsChevronsNe, opts),
 			'chevrons-sw': formatAssetUrl(iconsChevronsSw, opts),
+			'clipboard-copied': formatAssetUrl(iconsClipboardCopied, opts),
 			'clipboard-copy': formatAssetUrl(iconsClipboardCopy, opts),
 			code: formatAssetUrl(iconsCode, opts),
 			collab: formatAssetUrl(iconsCollab, opts),
@@ -387,6 +393,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-frame': formatAssetUrl(iconsToolFrame, opts),
 			'tool-hand': formatAssetUrl(iconsToolHand, opts),
 			'tool-highlighter': formatAssetUrl(iconsToolHighlighter, opts),
+			'tool-laser': formatAssetUrl(iconsToolLaser, opts),
 			'tool-line': formatAssetUrl(iconsToolLine, opts),
 			'tool-media': formatAssetUrl(iconsToolMedia, opts),
 			'tool-note': formatAssetUrl(iconsToolNote, opts),
@@ -401,6 +408,9 @@ export function getAssetUrlsByImport(opts) {
 			ungroup: formatAssetUrl(iconsUngroup, opts),
 			'unlock-small': formatAssetUrl(iconsUnlockSmall, opts),
 			unlock: formatAssetUrl(iconsUnlock, opts),
+			'vertical-align-center': formatAssetUrl(iconsVerticalAlignCenter, opts),
+			'vertical-align-end': formatAssetUrl(iconsVerticalAlignEnd, opts),
+			'vertical-align-start': formatAssetUrl(iconsVerticalAlignStart, opts),
 			visible: formatAssetUrl(iconsVisible, opts),
 			'warning-triangle': formatAssetUrl(iconsWarningTriangle, opts),
 			'zoom-in': formatAssetUrl(iconsZoomIn, opts),

@@ -193,6 +193,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/chevrons-sw.svg', import.meta.url).href,
 				opts
 			),
+			'clipboard-copied': formatAssetUrl(
+				new URL('./icons/icon/clipboard-copied.svg', import.meta.url).href,
+				opts
+			),
 			'clipboard-copy': formatAssetUrl(
 				new URL('./icons/icon/clipboard-copy.svg', import.meta.url).href,
 				opts
@@ -494,6 +498,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-highlighter.svg', import.meta.url).href,
 				opts
 			),
+			'tool-laser': formatAssetUrl(
+				new URL('./icons/icon/tool-laser.svg', import.meta.url).href,
+				opts
+			),
 			'tool-line': formatAssetUrl(
 				new URL('./icons/icon/tool-line.svg', import.meta.url).href,
 				opts
@@ -535,6 +543,18 @@ export function getAssetUrlsByMetaUrl(opts) {
 				opts
 			),
 			unlock: formatAssetUrl(new URL('./icons/icon/unlock.svg', import.meta.url).href, opts),
+			'vertical-align-center': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-center.svg', import.meta.url).href,
+				opts
+			),
+			'vertical-align-end': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-end.svg', import.meta.url).href,
+				opts
+			),
+			'vertical-align-start': formatAssetUrl(
+				new URL('./icons/icon/vertical-align-start.svg', import.meta.url).href,
+				opts
+			),
 			visible: formatAssetUrl(new URL('./icons/icon/visible.svg', import.meta.url).href, opts),
 			'warning-triangle': formatAssetUrl(
 				new URL('./icons/icon/warning-triangle.svg', import.meta.url).href,

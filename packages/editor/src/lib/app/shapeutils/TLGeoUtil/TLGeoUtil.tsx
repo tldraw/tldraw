@@ -66,6 +66,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			font: 'draw',
 			text: '',
 			align: 'middle',
+			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
 		}
@@ -343,7 +344,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const forceSolid = useForceSolid()
 		const strokeWidth = this.app.getStrokeWidth(props.size)
 
-		const { w, color, labelColor, fill, dash, growY, font, align, size, text } = props
+		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
+			props
 
 		const getShape = () => {
 			const h = props.h + growY
@@ -448,6 +450,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					fill={fill}
 					size={size}
 					align={align}
+					verticalAlign={verticalAlign}
 					text={text}
 					labelColor={this.app.getCssColor(labelColor)}
 					wrap
@@ -643,6 +646,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				fontFamily: font,
 				textAlign: shape.props.align,
 				padding,
+				verticalTextAlign: shape.props.verticalAlign,
 				lineHeight: TEXT_PROPS.lineHeight,
 				fontStyle: 'normal',
 				fontWeight: 'normal',

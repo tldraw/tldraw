@@ -1,15 +1,7 @@
+import { sortByIndex } from '@tldraw/indices'
 import { runtime, ui } from '../helpers'
 import { app } from '../helpers/ui'
 import { describe, it } from '../mocha-ext'
-
-const sortByIndex = (a, b) => {
-	if (a.index < b.index) {
-		return -1
-	} else if (a.index > b.index) {
-		return 1
-	}
-	return 0
-}
 
 describe('reorder', () => {
 	const createShapes = async () => {

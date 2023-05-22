@@ -63,14 +63,15 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 			toolbarItem(tools['octagon']),
 			toolbarItem(tools['star']),
 			toolbarItem(tools['oval']),
-			toolbarItem(tools['x-box']),
+			toolbarItem(tools.line),
 			toolbarItem(tools['arrow-right']),
 			toolbarItem(tools['arrow-left']),
 			toolbarItem(tools['arrow-up']),
 			toolbarItem(tools['arrow-down']),
-			toolbarItem(tools.line),
+			toolbarItem(tools['x-box']),
+			toolbarItem(tools['check-box']),
 			toolbarItem(tools.frame),
-			toolbarItem(tools.embed),
+			toolbarItem(tools.laser),
 		]
 
 		if (overrides) {

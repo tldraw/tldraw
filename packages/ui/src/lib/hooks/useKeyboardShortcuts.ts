@@ -51,7 +51,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd) continue
+			if (!tool.kbd || (!tool.readonlyOk && app.isReadOnly)) continue
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 

@@ -1,24 +1,28 @@
 import {
-	approximately,
-	areAnglesCompatible,
+	getIndexAbove,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBetween,
+	sortByIndex,
+} from '@tldraw/indices'
+import {
 	Box2d,
-	clamp,
 	EASINGS,
-	intersectPolygonPolygon,
 	MatLike,
 	Matrix2d,
 	Matrix2dModel,
 	PI2,
-	pointInPolygon,
 	Vec2d,
 	VecLike,
+	approximately,
+	areAnglesCompatible,
+	clamp,
+	intersectPolygonPolygon,
+	pointInPolygon,
 } from '@tldraw/primitives'
 import {
 	Box2dModel,
-	createCustomShapeId,
-	createShapeId,
-	isShape,
-	isShapeId,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -54,14 +58,26 @@ import {
 	TLUserId,
 	TLVideoAsset,
 	Vec2dModel,
+	createCustomShapeId,
+	createShapeId,
+	isShape,
+	isShapeId,
 } from '@tldraw/tlschema'
 import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
-import { annotateError, compact, dedupe, deepCopy, partition, structuredClone } from '@tldraw/utils'
+import {
+	annotateError,
+	compact,
+	dedupe,
+	deepCopy,
+	partition,
+	sortById,
+	structuredClone,
+} from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
-import { atom, computed, EMPTY_ARRAY, transact } from 'signia'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TLShapeDef } from '../config/TLShapeDefinition'
+import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -79,27 +95,18 @@ import {
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
-	MIN_ZOOM,
 	MINOR_NUDGE_FACTOR,
+	MIN_ZOOM,
 	STYLES,
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
+import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
-import {
-	getIndexAbove,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBetween,
-	sortById,
-	sortByIndex,
-} from '../utils/reordering/reordering'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
-import { WeakMapCache } from '../utils/WeakMapCache'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
 import { shapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
@@ -111,18 +118,18 @@ import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
-import { TLExportColors } from './shapeutils/shared/TLExportColors'
+import { TLArrowShapeDef } from './shapeutils/TLArrowUtil/TLArrowUtil'
 import { getCurvedArrowInfo } from './shapeutils/TLArrowUtil/arrow/curved-arrow'
 import {
 	getArrowTerminalsInArrowSpace,
 	getIsArrowStraight,
 } from './shapeutils/TLArrowUtil/arrow/shared'
 import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
-import { TLArrowShapeDef } from './shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLFrameShapeDef } from './shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGroupShapeDef } from './shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
 import { TLTextShapeDef } from './shapeutils/TLTextUtil/TLTextUtil'
+import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
@@ -1558,24 +1565,25 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setGridMode(isGridMode: boolean): this {
-		if (isGridMode === this.isGridMode) {
+		if (isGridMode !== this.isGridMode) {
 			this.updateUserDocumentSettings({ isGridMode }, true)
 		}
 		return this
 	}
 
-	get isReadOnly() {
-		return this.userDocumentSettings.isReadOnly
-	}
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
+	/** @internal */
 	setReadOnly(isReadOnly: boolean): this {
-		if (isReadOnly !== this.isReadOnly) {
-			this.updateUserDocumentSettings({ isReadOnly }, true)
-			if (isReadOnly) {
-				this.setSelectedTool('hand')
-			}
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
 		}
 		return this
+	}
+
+	get isReadOnly() {
+		return this._isReadOnly.value
 	}
 
 	/** @internal */
@@ -3526,6 +3534,9 @@ export class App extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _selectedIdsAtPointerDown: TLShapeId[] = []
 
+	/** @internal */
+	capturedPointerId: number | null = null
+
 	/**
 	 * Dispatch an event to the app.
 	 *
@@ -3741,6 +3752,12 @@ export class App extends EventEmitter<TLEventMap> {
 						case 'pointer_down': {
 							this._selectedIdsAtPointerDown = this.selectedIds.slice()
 
+							// Firefox bug fix...
+							// If it's a left-mouse-click, we store the pointer id for later user
+							if (info.button === 0) {
+								this.capturedPointerId = info.pointerId
+							}
+
 							// Add the button from the buttons set
 							inputs.buttons.add(info.button)
 
@@ -3830,6 +3847,14 @@ export class App extends EventEmitter<TLEventMap> {
 
 							if (!isPen && this.isPenMode) {
 								return
+							}
+
+							// Firefox bug fix...
+							// If it's the same pointer that we stored earlier...
+							// ... then it's probably still a left-mouse-click!
+							if (this.capturedPointerId === info.pointerId) {
+								this.capturedPointerId = null
+								info.button = 0
 							}
 
 							if (inputs.isPanning) {
@@ -8447,20 +8472,12 @@ export class App extends EventEmitter<TLEventMap> {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
-		const leaderPresenceRecord = this.store.query.record('user_presence', () => ({
+		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
-
-		const leaderInstanceRecord = this.store.query.record('instance', () => ({
-			userId: { eq: userId },
-		}))
-
-		if (!leaderInstanceRecord || !leaderPresenceRecord) {
-			throw new Error("Couldn't find user to follow")
-		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderInstanceRecord.value?.followingUserId === this.userId) {
+		if (leaderPresences.value.some((p) => p.followingUserId === this.userId)) {
 			return
 		}
 
@@ -8481,32 +8498,37 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderInstance = leaderInstanceRecord.value
-			const leaderPresence = leaderPresenceRecord.value
-			if (!leaderInstance || !leaderPresence) {
+			const leaderPresence = [...leaderPresences.value]
+				.sort((a, b) => {
+					return a.lastActivityTimestamp - b.lastActivityTimestamp
+				})
+				.pop()
+			if (!leaderPresence) {
 				this.stopFollowingUser()
 				return
 			}
 
 			// Change page if leader is on a different page
-			const isOnSamePage = leaderInstance.currentPageId === this.currentPageId
+			const isOnSamePage = leaderPresence.currentPageId === this.currentPageId
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
-				this.setCurrentPageId(leaderInstance.currentPageId, { stopFollowing: false })
+				this.setCurrentPageId(leaderPresence.currentPageId, { stopFollowing: false })
 			}
 
 			// Get the bounds of the follower (me) and the leader (them)
 			const { center, width, height } = this.viewportPageBounds
-			const {
-				width: leaderWidth,
-				height: leaderHeight,
-				center: leaderCenter,
-			} = Box2d.From(leaderPresence.viewportPageBounds)
+			const leaderScreen = Box2d.From(leaderPresence.screenBounds)
+			const leaderWidth = leaderScreen.width / leaderPresence.camera.z
+			const leaderHeight = leaderScreen.height / leaderPresence.camera.z
+			const leaderCenter = new Vec2d(
+				leaderWidth / 2 - leaderPresence.camera.x,
+				leaderHeight / 2 - leaderPresence.camera.y
+			)
 
 			// At this point, let's check if we're following someone who's following us.
 			// If so, we can't try to contain their entire viewport
 			// because that would become a feedback loop where we zoom, they zoom, etc.
-			const isFollowingFollower = leaderInstance.followingUserId === this.userId
+			const isFollowingFollower = leaderPresence.followingUserId === this.userId
 
 			// Figure out how much to zoom
 			const desiredWidth = width + (leaderWidth - width) * chaseProportion

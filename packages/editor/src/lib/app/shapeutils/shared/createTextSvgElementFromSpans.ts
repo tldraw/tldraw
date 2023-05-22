@@ -1,5 +1,5 @@
 import { Box2d } from '@tldraw/primitives'
-import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
+import { Box2dModel, TLAlignType, TLVerticalAlignType } from '@tldraw/tlschema'
 import { correctSpacesToNbsp } from '../../../utils/string'
 import { App } from '../../App'
 
@@ -11,6 +11,7 @@ export function createTextSvgElementFromSpans(
 		fontSize: number
 		fontFamily: string
 		textAlign: TLAlignType
+		verticalTextAlign: TLVerticalAlignType
 		fontWeight: string
 		fontStyle: string
 		lineHeight: number
@@ -44,7 +45,14 @@ export function createTextSvgElementFromSpans(
 	}
 
 	const offsetX = padding + (opts.offsetX ?? 0)
-	const offsetY = (Math.ceil(opts.height) - bounds.height + opts.fontSize) / 2 + (opts.offsetY ?? 0)
+	// const offsetY = (Math.ceil(opts.height) - bounds.height + opts.fontSize) / 2 + (opts.offsetY ?? 0)
+	const offsetY =
+		(opts.offsetY ?? 0) +
+		(opts.verticalTextAlign === 'start'
+			? padding
+			: opts.verticalTextAlign === 'end'
+			? opts.height - padding - bounds.height
+			: (Math.ceil(opts.height) - bounds.height) / 2)
 
 	// Create text span elements for each word
 	let currentLineTop = null

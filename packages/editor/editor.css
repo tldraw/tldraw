@@ -73,6 +73,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #000000;
+	--color-laser: #ff0000;
 	--palette-black: #1d1d1d;
 	--palette-blue: #4263eb;
 	--palette-green: #099268;
@@ -154,6 +155,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #f8f9fa;
+	--color-laser: #ff0000;
 	--palette-black: #e1e1e1;
 	--palette-blue: #4156be;
 	--palette-green: #3b7b5e;
@@ -262,6 +264,15 @@ input,
 	z-index: 2;
 }
 
+.tl-overlays__item {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	overflow: visible;
+	pointer-events: none;
+	transform-origin: top left;
+}
+
 .tl-svg-context {
 	position: absolute;
 	top: 0px;
@@ -269,15 +280,6 @@ input,
 	height: 1px;
 	width: 1px;
 	pointer-events: none;
-}
-
-.tl-svg-origin-container {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	overflow: visible;
-	pointer-events: none;
-	transform-origin: top left;
 }
 
 /* ------------------- Background ------------------- */
@@ -399,6 +401,68 @@ input,
 	color: inherit;
 }
 
+/* --------------- Overlay Stack --------------- */
+
+/* back of the stack, behind user's stuff */
+.tl-collaborator__scribble {
+	z-index: 10;
+}
+
+.tl-collaborator__brush {
+	z-index: 20;
+}
+
+.tl-collaborator__shape-indicator {
+	z-index: 30;
+}
+
+.tl-user-scribble {
+	z-index: 40;
+}
+
+.tl-user-brush {
+	z-index: 50;
+}
+
+.tl-user-indicator__selected {
+	z-index: 60;
+}
+
+.tl-user-indicator__hovered {
+	z-index: 70;
+}
+
+.tl-user-handles {
+	z-index: 80;
+}
+
+.tl-user-snapline {
+	z-index: 90;
+}
+
+.tl-selection__fg {
+	pointer-events: none;
+	z-index: 100;
+}
+
+.tl-user-indicator__hint {
+	z-index: 110;
+	stroke-width: calc(2.5px * var(--tl-scale));
+}
+
+/* behind collaborator cursor */
+.tl-collaborator__cursor-hint {
+	z-index: 120;
+}
+
+.tl-collaborator__cursor {
+	z-index: 130;
+}
+
+.tl-cursor {
+	overflow: visible;
+}
+
 /* -------------------- Indicator ------------------- */
 
 .tl-shape-indicator {
@@ -407,13 +471,9 @@ input,
 	stroke-width: calc(1.5px * var(--tl-scale));
 }
 
-.tl-shape-indicator__hinting {
-	stroke-width: calc(2.5px * var(--tl-scale));
-}
-
 /* ------------------ SelectionBox ------------------ */
 
-.tlui-selection__bg {
+.tl-selection__bg {
 	position: absolute;
 	top: 0px;
 	left: 0px;
@@ -422,11 +482,7 @@ input,
 	pointer-events: all;
 }
 
-.tlui-selection__fg {
-	pointer-events: none;
-}
-
-.tlui-selection__fg__outline {
+.tl-selection__fg__outline {
 	fill: none;
 	pointer-events: none;
 	stroke: var(--color-selection-stroke);

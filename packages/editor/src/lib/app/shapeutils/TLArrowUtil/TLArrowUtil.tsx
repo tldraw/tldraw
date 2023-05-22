@@ -1051,6 +1051,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				padding: 0,
 				textAlign: 'middle' as const,
 				width: labelSize.w - 8,
+				verticalTextAlign: 'middle' as const,
 				height: labelSize.h,
 				fontStyle: 'normal',
 				fontWeight: 'normal',

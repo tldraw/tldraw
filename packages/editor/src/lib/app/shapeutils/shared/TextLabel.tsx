@@ -1,4 +1,11 @@
-import { TLAlignType, TLFillType, TLFontType, TLShape, TLSizeType } from '@tldraw/tlschema'
+import {
+	TLAlignType,
+	TLFillType,
+	TLFontType,
+	TLShape,
+	TLSizeType,
+	TLVerticalAlignType,
+} from '@tldraw/tlschema'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
@@ -15,6 +22,7 @@ export const TextLabel = React.memo(function TextLabel<
 	labelColor,
 	font,
 	align,
+	verticalAlign,
 	wrap,
 }: {
 	id: T['id']
@@ -23,6 +31,7 @@ export const TextLabel = React.memo(function TextLabel<
 	font: TLFontType
 	fill?: TLFillType
 	align: TLAlignType
+	verticalAlign: TLVerticalAlignType
 	wrap?: boolean
 	text: string
 	labelColor: string
@@ -39,6 +48,8 @@ export const TextLabel = React.memo(function TextLabel<
 	} = useEditableText(id, type, text)
 
 	const isInteractive = isEditing || isEditableFromHover
+	const finalText = TextHelpers.normalizeTextForDom(text)
+	const hasText = finalText.trim().length > 0
 
 	return (
 		<div
@@ -48,6 +59,14 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
+			style={
+				hasText || isInteractive
+					? {
+							justifyContent: align === 'middle' ? 'center' : align,
+							alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+					  }
+					: undefined
+			}
 		>
 			<div
 				className="tl-text-label__inner"
@@ -60,7 +79,7 @@ export const TextLabel = React.memo(function TextLabel<
 				}}
 			>
 				<div className="tl-text tl-text-content" dir="ltr">
-					{TextHelpers.normalizeTextForDom(text)}
+					{finalText}
 				</div>
 				{isInteractive ? (
 					// Consider replacing with content-editable

@@ -17,6 +17,13 @@ import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
+import { getIndexAbove } from '@tldraw/indices';
+import { getIndexBelow } from '@tldraw/indices';
+import { getIndexBetween } from '@tldraw/indices';
+import { getIndices } from '@tldraw/indices';
+import { getIndicesAbove } from '@tldraw/indices';
+import { getIndicesBelow } from '@tldraw/indices';
+import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
@@ -33,6 +40,7 @@ import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
+import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StoreValidator } from '@tldraw/tlstore';
@@ -156,6 +164,8 @@ export class App extends EventEmitter<TLEventMap> {
     set canMoveCamera(canMove: boolean);
     get canRedo(): boolean;
     get canUndo(): boolean;
+    // @internal (undocumented)
+    capturedPointerId: null | number;
     centerOnPoint(x: number, y: number, opts?: AnimationOptions): this;
     // @internal
     protected _clickManager: ClickManager;
@@ -456,7 +466,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // (undocumented)
+    // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
@@ -619,7 +629,6 @@ export const debugFlags: {
     peopleMenu: Atom<boolean, unknown>;
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
-    newLiveCollaborators: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)
@@ -753,32 +762,19 @@ export function getImageSizeFromSrc(dataURL: string): Promise<{
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
-// @public (undocumented)
-export function getIndexAbove(below: string): string;
+export { getIndexAbove }
 
-// @public (undocumented)
-export function getIndexBelow(above: string): string;
+export { getIndexBelow }
 
-// @public (undocumented)
-export function getIndexBetween(below: string, above?: string): string;
+export { getIndexBetween }
 
-// @public (undocumented)
-export function getIndexGenerator(): () => string;
+export { getIndices }
 
-// @public (undocumented)
-export function getIndices(n: number): string[];
+export { getIndicesAbove }
 
-// @public (undocumented)
-export function getIndicesAbove(below: string, n: number): string[];
+export { getIndicesBelow }
 
-// @public (undocumented)
-export function getIndicesBelow(above: string, n: number): string[];
-
-// @public (undocumented)
-export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
-
-// @public (undocumented)
-export function getMaxIndex(...indices: (string | undefined)[]): string;
+export { getIndicesBetween }
 
 // @public
 export function getMediaAssetFromFile(file: File): Promise<TLAsset>;
@@ -880,7 +876,7 @@ export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
 export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export function indexGenerator(n?: number): Generator<string, void, unknown>;
+export const INDENT = "  ";
 
 // @public (undocumented)
 export interface InitializingSyncedStore {
@@ -1466,15 +1462,7 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 // @public (undocumented)
 export function snapToGrid(n: number, gridSize: number): number;
 
-// @public (undocumented)
-export function sortById<T extends {
-    id: string;
-}>(a: T, b: T): -1 | 0 | 1;
-
-// @public (undocumented)
-export function sortByIndex<T extends {
-    index: string;
-}>(a: T, b: T): -1 | 0 | 1;
+export { sortByIndex }
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
@@ -1718,7 +1706,7 @@ export abstract class TLBoxTool extends StateNode {
     // (undocumented)
     abstract shapeType: string;
     // (undocumented)
-    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline")[];
+    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign")[];
 }
 
 // @public (undocumented)
@@ -2125,6 +2113,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;
@@ -2153,6 +2142,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;
@@ -2740,9 +2730,6 @@ export function useQuickReactor(name: string, reactFn: () => void, deps?: any[])
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @public (undocumented)
-export function useUrlState(changeUrl: (params: Params) => void): void;
 
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;

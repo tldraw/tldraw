@@ -3,6 +3,7 @@ import { TLPage, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
+import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
@@ -15,6 +16,10 @@ export const PageMenu = function PageMenu() {
 	const app = useApp()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
+
+	const handleOpenChange = useCallback(() => setIsEditing(false), [])
+
+	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
 	const ITEM_HEIGHT = breakpoint < 5 ? 36 : 40
 
@@ -40,13 +45,6 @@ export const PageMenu = function PageMenu() {
 		if (isReadonlyMode) return
 		setIsEditing((s) => !s)
 	}, [isReadonlyMode])
-
-	const [isOpen, setIsOpen] = useState(false)
-
-	const handleOpenChange = useCallback((isOpen: boolean) => {
-		setIsOpen(isOpen)
-		setIsEditing(false)
-	}, [])
 
 	const rMutables = useRef({
 		isPointing: false,
@@ -238,7 +236,7 @@ export const PageMenu = function PageMenu() {
 	}, [app, msg, isReadonlyMode])
 
 	return (
-		<Popover id="page menu" onOpenChange={handleOpenChange} open={isOpen}>
+		<Popover id="page menu" onOpenChange={onOpenChange} open={isOpen}>
 			<PopoverTrigger>
 				<Button
 					className="tlui-page-menu__trigger tlui-menu__trigger"

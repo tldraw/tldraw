@@ -5,8 +5,9 @@ import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { instanceTypeMigrations } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
+import { instancePresenceTypeMigrations } from './records/TLInstancePresence'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
-import { userDocumentTypeMigrations } from './records/TLUserDocument'
+import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
 import { userPresenceTypeMigrations } from './records/TLUserPresence'
 import { storeMigrations } from './schema'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
@@ -662,6 +663,203 @@ describe('Adding check-box to geo shape', () => {
 	test('down works as expected', () => {
 		expect(down({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
 		expect(down({ props: { geo: 'check-box' } })).toEqual({ props: { geo: 'rectangle' } })
+	})
+})
+
+describe('Add verticalAlign to geo shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[5]
+
+	test('up works as expected', () => {
+		expect(up({ props: { type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse', verticalAlign: 'middle' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { verticalAlign: 'middle', type: 'ellipse' } })).toEqual({
+			props: { type: 'ellipse' },
+		})
+	})
+})
+
+describe('Add verticalAlign to props for next shape', () => {
+	const { up, down } = instanceTypeMigrations.migrators[9]
+	test('up works as expected', () => {
+		expect(up({ propsForNextShape: { color: 'red' } })).toEqual({
+			propsForNextShape: {
+				color: 'red',
+				verticalAlign: 'middle',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		const instance = { propsForNextShape: { color: 'red', verticalAlign: 'middle' } }
+		expect(down(instance)).toEqual({
+			propsForNextShape: {
+				color: 'red',
+			},
+		})
+	})
+})
+
+describe('Removing isReadOnly from user_document', () => {
+	const { up, down } = userDocumentTypeMigrations.migrators[userDocumentVersions.RemoveIsReadOnly]
+	const prev = {
+		id: 'user_document:123',
+		typeName: 'user_document',
+		userId: 'user:123',
+		isReadOnly: false,
+		isPenMode: false,
+		isGridMode: false,
+		isDarkMode: false,
+		isMobileMode: false,
+		isSnapMode: false,
+		lastUpdatedPageId: null,
+		lastUsedTabId: null,
+	}
+
+	const next = {
+		id: 'user_document:123',
+		typeName: 'user_document',
+		userId: 'user:123',
+		isPenMode: false,
+		isGridMode: false,
+		isDarkMode: false,
+		isMobileMode: false,
+		isSnapMode: false,
+		lastUpdatedPageId: null,
+		lastUsedTabId: null,
+	}
+
+	test('up removes the isReadOnly property', () => {
+		expect(up(prev)).toEqual(next)
+	})
+	test('down adds the isReadOnly property', () => {
+		expect(down(next)).toEqual(prev)
+	})
+})
+
+describe('Adds delay to scribble', () => {
+	const { up, down } = instanceTypeMigrations.migrators[10]
+
+	test('up has no effect when scribble is null', () => {
+		expect(
+			up({
+				scribble: null,
+			})
+		).toEqual({ scribble: null })
+	})
+
+	test('up adds the delay property', () => {
+		expect(
+			up({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+				delay: 0,
+			},
+		})
+	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+			},
+		})
+	})
+})
+
+describe('Adds delay to scribble', () => {
+	const { up, down } = instancePresenceTypeMigrations.migrators[1]
+
+	test('up has no effect when scribble is null', () => {
+		expect(
+			up({
+				scribble: null,
+			})
+		).toEqual({ scribble: null })
+	})
+
+	test('up adds the delay property', () => {
+		expect(
+			up({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+				delay: 0,
+			},
+		})
+	})
+
+	test('down has no effect when scribble is null', () => {
+		expect(down({ scribble: null })).toEqual({ scribble: null })
+	})
+
+	test('removes the delay property', () => {
+		expect(
+			down({
+				scribble: {
+					points: [{ x: 0, y: 0 }],
+					size: 4,
+					color: 'black',
+					opacity: 1,
+					state: 'starting',
+					delay: 0,
+				},
+			})
+		).toEqual({
+			scribble: {
+				points: [{ x: 0, y: 0 }],
+				size: 4,
+				color: 'black',
+				opacity: 1,
+				state: 'starting',
+			},
+		})
 	})
 })
 

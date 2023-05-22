@@ -1,6 +1,16 @@
 // Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
 // incorrect output. https://github.com/evanw/esbuild/issues/1737
 
+export {
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBelow,
+	getIndicesBetween,
+	sortByIndex,
+} from '@tldraw/indices'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
@@ -61,7 +71,7 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/app/shapeutils/TLShapeUtil'
-export { TLTextShapeDef, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
+export { INDENT, TLTextShapeDef, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
 export { TLVideoShapeDef, TLVideoUtil } from './lib/app/shapeutils/TLVideoUtil/TLVideoUtil'
 export { StateNode, type StateNodeConstructor } from './lib/app/statechart/StateNode'
 export { TLBoxTool, type TLBoxLike } from './lib/app/statechart/TLBoxTool/TLBoxTool'
@@ -180,7 +190,6 @@ export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
-export { useUrlState } from './lib/hooks/useUrlState'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -244,20 +253,6 @@ export { hardResetApp } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndexGenerator,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	getMaxIndex,
-	indexGenerator,
-	sortById,
-	sortByIndex,
-} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
