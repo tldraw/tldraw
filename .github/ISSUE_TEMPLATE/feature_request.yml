@@ -1,7 +1,7 @@
 name: Feature request
 description: File a feature request
 title: '[Feature]: '
-labels: ['feature', 'triage']
+labels: ['enhancement']
 assignees: []
 body:
   - type: markdown
