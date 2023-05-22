@@ -36,6 +36,9 @@ import {
 	videoShapeTypeMigrations,
 	videoShapeTypeValidator,
 } from '@tldraw/tlschema'
+import { frameShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLFrameShape'
+import { groupShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLGroupShape'
+import { lineShapeTypeMigrations } from '@tldraw/tlschema/src/shapes/TLLineShape'
 import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
@@ -109,11 +112,11 @@ export class TldrawEditorConfig {
 			bookmark: bookmarkShapeTypeMigrations,
 			draw: drawShapeTypeMigrations,
 			embed: embedShapeTypeMigrations,
-			frame: undefined,
+			frame: frameShapeTypeMigrations,
 			geo: geoShapeTypeMigrations,
-			group: undefined,
+			group: groupShapeTypeMigrations,
 			image: imageShapeTypeMigrations,
-			line: undefined,
+			line: lineShapeTypeMigrations,
 			note: noteShapeTypeMigrations,
 			text: textShapeTypeMigrations,
 			video: videoShapeTypeMigrations,
