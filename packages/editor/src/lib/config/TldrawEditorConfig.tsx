@@ -117,7 +117,7 @@ export class TldrawEditorConfig {
 			note: noteShapeMigrations,
 			text: textShapeMigrations,
 			video: videoShapeMigrations,
-			...shapeUtils,
+			...migrations,
 		}
 
 		this.validators = {
@@ -133,13 +133,13 @@ export class TldrawEditorConfig {
 			note: noteShapeTypeValidator,
 			text: textShapeTypeValidator,
 			video: videoShapeTypeValidator,
-			...shapeUtils,
+			...validators,
 		}
 
 		this.storeSchema = createTLSchema({
 			allowUnknownShapes,
-			migrations,
-			validators,
+			migrations: this.migrations,
+			validators: this.validators,
 			derivePresenceState,
 		})
 
