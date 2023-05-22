@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { getDefaultTranslationLocale } from '../translations'
 import { userIdValidator } from '../validation'
@@ -27,11 +27,7 @@ export const userTypeValidator: T.Validator<TLUser> = T.model(
 )
 
 /** @public */
-export const userTypeMigrations = defineMigrations({})
-
-/** @public */
 export const TLUser = createRecordType<TLUser>('user', {
-	migrations: userTypeMigrations,
 	validator: userTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {

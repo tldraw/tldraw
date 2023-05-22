@@ -37,18 +37,8 @@ export {
 	type TLAssetPartial,
 	type TLAssetShape,
 } from './records/TLAsset'
-export {
-	TLCamera,
-	cameraTypeMigrations,
-	cameraTypeValidator,
-	type TLCameraId,
-} from './records/TLCamera'
-export {
-	TLDOCUMENT_ID,
-	TLDocument,
-	documentTypeMigrations,
-	documentTypeValidator,
-} from './records/TLDocument'
+export { TLCamera, cameraTypeValidator, type TLCameraId } from './records/TLCamera'
+export { TLDOCUMENT_ID, TLDocument, documentTypeValidator } from './records/TLDocument'
 export {
 	TLInstance,
 	instanceTypeMigrations,
@@ -63,7 +53,7 @@ export {
 	type TLInstancePageStateId,
 } from './records/TLInstancePageState'
 export { TLInstancePresence } from './records/TLInstancePresence'
-export { TLPage, pageTypeMigrations, pageTypeValidator, type TLPageId } from './records/TLPage'
+export { TLPage, pageTypeValidator, type TLPageId } from './records/TLPage'
 export {
 	createCustomShapeId,
 	createShapeId,
@@ -80,7 +70,7 @@ export {
 	type TLShapeType,
 	type TLUnknownShape,
 } from './records/TLShape'
-export { TLUser, userTypeMigrations, userTypeValidator, type TLUserId } from './records/TLUser'
+export { TLUser, userTypeValidator, type TLUserId } from './records/TLUser'
 export {
 	TLUserDocument,
 	userDocumentTypeMigrations,
@@ -131,7 +121,6 @@ export {
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
-	frameShapeMigrations,
 	frameShapeTypeValidator,
 	type TLFrameShape,
 	type TLFrameShapeProps,
@@ -143,13 +132,11 @@ export {
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
-	groupShapeMigrations,
 	groupShapeTypeValidator,
 	type TLGroupShape,
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
-	iconShapeMigrations,
 	iconShapeTypeValidator,
 	type TLIconShape,
 	type TLIconShapeProps,
@@ -162,7 +149,6 @@ export {
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {
-	lineShapeMigrations,
 	lineShapeTypeValidator,
 	type TLLineShape,
 	type TLLineShapeProps,

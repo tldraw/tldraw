@@ -5,7 +5,6 @@
 ```ts
 
 import { BaseRecord } from '@tldraw/tlstore';
-import { defineMigrations } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { Migrations } from '@tldraw/tlstore';
 import { RecordType } from '@tldraw/tlstore';
@@ -66,9 +65,6 @@ export interface Box2dModel {
 }
 
 // @public (undocumented)
-export const cameraTypeMigrations: Migrations;
-
-// @public (undocumented)
 export const cameraTypeValidator: T.Validator<TLCamera>;
 
 // @internal (undocumented)
@@ -124,7 +120,7 @@ export const cursorValidator: T.Validator<TLCursor>;
 // @public (undocumented)
 export type CustomShapeTypeInfo = {
     type: string;
-    migrations: ReturnType<typeof defineMigrations>;
+    migrations?: Migrations;
     validator?: StoreValidator<TLShape>;
 };
 
@@ -133,9 +129,6 @@ export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @internal (undocumented)
 export const defaultDerivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
-
-// @public (undocumented)
-export const documentTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;
@@ -352,9 +345,6 @@ export function fixupRecord(oldRecord: TLRecord): {
 export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
-export const frameShapeMigrations: Migrations;
-
-// @public (undocumented)
 export const frameShapeTypeValidator: T.Validator<TLFrameShape>;
 
 // @public (undocumented)
@@ -367,16 +357,10 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
-export const groupShapeMigrations: Migrations;
-
-// @public (undocumented)
 export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 
 // @public (undocumented)
 export const handleTypeValidator: T.Validator<TLHandle>;
-
-// @public (undocumented)
-export const iconShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const iconShapeTypeValidator: T.Validator<TLIconShape>;
@@ -421,9 +405,6 @@ export function isShape(record?: BaseRecord<string>): record is TLShape;
 export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
-export const lineShapeMigrations: Migrations;
-
-// @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
 
 // @public (undocumented)
@@ -440,9 +421,6 @@ export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1"
 
 // @internal (undocumented)
 export const pageIdValidator: T.Validator<TLPageId>;
-
-// @public (undocumented)
-export const pageTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const pageTypeValidator: T.Validator<TLPage>;
@@ -1389,9 +1367,6 @@ export const userPresenceTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
-
-// @public (undocumented)
-export const userTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUser>;

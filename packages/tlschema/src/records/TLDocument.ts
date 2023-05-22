@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 
 /**
@@ -21,11 +21,7 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 )
 
 /** @public */
-export const documentTypeMigrations = defineMigrations({})
-
-/** @public */
 export const TLDocument = createRecordType<TLDocument>('document', {
-	migrations: documentTypeMigrations,
 	validator: documentTypeValidator,
 	scope: 'document',
 }).withDefaultProperties(
