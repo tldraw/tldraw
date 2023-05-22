@@ -136,3 +136,36 @@ const b7 = defineMigrations({
 		},
 	},
 })
+
+// got em all starting later
+const b8 = defineMigrations({
+	firstVersion: Versions.January,
+	currentVersion: Versions.March,
+	migrators: {
+		[Versions.February]: {
+			up: (rec: any) => rec,
+			down: (rec: any) => rec,
+		},
+		[Versions.March]: {
+			up: (rec: any) => rec,
+			down: (rec: any) => rec,
+		},
+	},
+})
+
+// first migration should be first version + 1
+const b9 = defineMigrations({
+	firstVersion: Versions.February,
+	currentVersion: Versions.March,
+	migrators: {
+		// @ts-expect-error
+		[Versions.February]: {
+			up: (rec: any) => rec,
+			down: (rec: any) => rec,
+		},
+		[Versions.March]: {
+			up: (rec: any) => rec,
+			down: (rec: any) => rec,
+		},
+	},
+})
