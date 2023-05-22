@@ -23,7 +23,7 @@ export const alignValidator: T.Validator<"end" | "middle" | "start">;
 export const arrowheadValidator: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const arrowShapeMigrations: Migrations;
+export const arrowShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const arrowShapeTypeValidator: T.Validator<TLArrowShape>;
@@ -47,7 +47,7 @@ export const bookmarkAssetMigrations: Migrations;
 export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset>;
 
 // @public (undocumented)
-export const bookmarkShapeMigrations: Migrations;
+export const bookmarkShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const bookmarkShapeTypeValidator: T.Validator<TLBookmarkShape>;
@@ -136,7 +136,7 @@ export const defaultDerivePresenceState: (store: TLStore) => Signal<null | TLIns
 export const documentTypeValidator: T.Validator<TLDocument>;
 
 // @public (undocumented)
-export const drawShapeMigrations: Migrations;
+export const drawShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const drawShapeTypeValidator: T.Validator<TLDrawShape>;
@@ -329,7 +329,7 @@ export type EmbedDefinition = {
 };
 
 // @public (undocumented)
-export const embedShapeMigrations: Migrations;
+export const embedShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape>;
@@ -350,7 +350,7 @@ export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 export const frameShapeTypeValidator: T.Validator<TLFrameShape>;
 
 // @public (undocumented)
-export const geoShapeMigrations: Migrations;
+export const geoShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
@@ -380,7 +380,7 @@ export const imageAssetMigrations: Migrations;
 export const imageAssetTypeValidator: T.Validator<TLImageAsset>;
 
 // @public (undocumented)
-export const imageShapeMigrations: Migrations;
+export const imageShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const imageShapeTypeValidator: T.Validator<TLImageShape>;
@@ -413,7 +413,7 @@ export const lineShapeTypeValidator: T.Validator<TLLineShape>;
 export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations | undefined>;
 
 // @public (undocumented)
-export const noteShapeMigrations: Migrations;
+export const noteShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const noteShapeTypeValidator: T.Validator<TLNoteShape>;
@@ -460,7 +460,7 @@ export const splineValidator: T.Validator<"cubic" | "line">;
 export const storeMigrations: Migrations;
 
 // @public (undocumented)
-export const textShapeMigrations: Migrations;
+export const textShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const textShapeTypeValidator: T.Validator<TLTextShape>;
@@ -1398,7 +1398,7 @@ export const videoAssetMigrations: Migrations;
 export const videoAssetTypeValidator: T.Validator<TLVideoAsset>;
 
 // @public (undocumented)
-export const videoShapeMigrations: Migrations;
+export const videoShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const videoShapeTypeValidator: T.Validator<TLVideoShape>;
