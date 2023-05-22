@@ -19,8 +19,8 @@ interface User extends BaseRecord<'user'> {
 }
 
 const userMigrations = defineMigrations({
-	currentVersion: UserVersion.AddPhoneNumber,
 	firstVersion: UserVersion.Initial,
+	currentVersion: UserVersion.AddPhoneNumber,
 	migrators: {
 		[UserVersion.AddLocale]: {
 			up: (record) => ({
@@ -207,8 +207,8 @@ const StoreVersions = {
 }
 
 const snapshotMigrations = defineMigrations({
-	currentVersion: StoreVersions.RemoveOrg,
 	firstVersion: StoreVersions.Initial,
+	currentVersion: StoreVersions.RemoveOrg,
 	migrators: {
 		[StoreVersions.RemoveOrg]: {
 			up: (store: StoreSnapshot<any>) => {

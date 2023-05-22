@@ -26,7 +26,6 @@ export type TLLineShapeProps = {
 /** @public */
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const lineShapeTypeValidator: T.Validator<TLLineShape> = createShapeValidator(
 	'line',
@@ -40,19 +39,13 @@ export const lineShapeTypeValidator: T.Validator<TLLineShape> = createShapeValid
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
 } as const
 
 /** @public */
 export const lineShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.Initial,
 	firstVersion: Versions.Initial,
-	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
-	},
+	migrators: {},
 })

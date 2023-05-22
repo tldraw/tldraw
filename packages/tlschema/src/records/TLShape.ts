@@ -68,9 +68,6 @@ export type TLParentId = TLPageId | TLShapeId
 /** @public */
 export type TLNullableShapeProps = { [K in TLShapeProp]?: TLShapeProps[K] | null }
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
 	AddIsLocked: 1,
@@ -78,11 +75,9 @@ const Versions = {
 
 /** @internal */
 export const rootShapeTypeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddIsLocked,
 	firstVersion: Versions.Initial,
+	currentVersion: Versions.AddIsLocked,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddIsLocked]: {
 			up: (record) => {
 				return {

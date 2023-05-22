@@ -14,8 +14,8 @@ interface User extends BaseRecord<'user'> {
 }
 
 const userMigrations = defineMigrations({
-	currentVersion: UserVersion.Initial,
 	firstVersion: UserVersion.Initial,
+	currentVersion: UserVersion.Initial,
 	migrators: {},
 })
 

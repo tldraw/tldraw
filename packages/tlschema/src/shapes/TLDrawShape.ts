@@ -37,7 +37,6 @@ export type TLDrawShapeProps = {
 /** @public */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValidator(
 	'draw',
@@ -59,9 +58,6 @@ export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValid
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
 	AddInPen: 1,
@@ -69,11 +65,9 @@ const Versions = {
 
 /** @public */
 export const drawShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
 	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddInPen,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddInPen]: {
 			up: (shape) => {
 				// Rather than checking to see whether the shape is a pen at runtime,

@@ -56,15 +56,11 @@ export type ${typeName}Props = {}
 
 export type ${typeName} = Extract<TLAsset, { type: '${snakeCaseName}' }>
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	Initial: 0,
 } as const
 
 export const ${lowerAssetName}Migrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.Initial,
 	firstVersion: Versions.Initial,
 	migrators: {

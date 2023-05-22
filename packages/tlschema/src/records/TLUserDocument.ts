@@ -26,7 +26,6 @@ export interface TLUserDocument extends BaseRecord<'user_document'> {
 /** @public */
 export type TLUserDocumentId = ID<TLUserDocument>
 
-// --- VALIDATION ---
 /** @public */
 export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	'user_document',
@@ -44,9 +43,6 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 export const userDocumentVersions = {
 	Initial: 0,
 	AddSnapMode: 1,
@@ -57,9 +53,7 @@ export const userDocumentVersions = {
 /** @public */
 export const userDocumentTypeMigrations = defineMigrations({
 	firstVersion: userDocumentVersions.Initial,
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: userDocumentVersions.RemoveIsReadOnly,
-	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[userDocumentVersions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
