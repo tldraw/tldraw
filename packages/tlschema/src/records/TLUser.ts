@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { getDefaultTranslationLocale } from '../translations'
 import { userIdValidator } from '../validation'
@@ -40,3 +40,6 @@ export const TLUser = createRecordType<TLUser>('user', {
 		locale,
 	}
 })
+
+/** @public */
+export const userTypeMigrations = defineMigrations({})

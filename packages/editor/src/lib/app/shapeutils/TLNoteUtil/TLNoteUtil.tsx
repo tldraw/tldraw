@@ -1,5 +1,5 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { noteShapeMigrations, noteShapeTypeValidator, TLNoteShape } from '@tldraw/tlschema'
+import { noteShapeTypeMigrations, noteShapeTypeValidator, TLNoteShape } from '@tldraw/tlschema'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
@@ -207,7 +207,7 @@ export const TLNoteShapeDef = defineShape<TLNoteShape, TLNoteUtil>({
 	getShapeUtil: () => TLNoteUtil,
 	type: 'note',
 	validator: noteShapeTypeValidator,
-	migrations: noteShapeMigrations,
+	migrations: noteShapeTypeMigrations,
 })
 
 function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {

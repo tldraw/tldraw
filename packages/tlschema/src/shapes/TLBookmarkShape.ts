@@ -34,7 +34,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const bookmarkShapeMigrations = defineMigrations({
+export const bookmarkShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.NullAssetId,
 	migrators: {
 		[Versions.NullAssetId]: {

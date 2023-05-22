@@ -52,7 +52,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const imageShapeMigrations = defineMigrations({
+export const imageShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

@@ -77,7 +77,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const geoShapeMigrations = defineMigrations({
+export const geoShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddVerticalAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

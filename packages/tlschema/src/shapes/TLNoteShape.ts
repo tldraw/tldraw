@@ -46,7 +46,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const noteShapeMigrations = defineMigrations({
+export const noteShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.AddUrlProp]: {

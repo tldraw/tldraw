@@ -609,7 +609,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const embedShapeMigrations = defineMigrations({
+export const embedShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.GenOriginalUrlInEmbed,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {

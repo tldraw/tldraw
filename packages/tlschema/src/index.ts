@@ -86,7 +86,7 @@ export {
 export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
-	arrowShapeMigrations,
+	arrowShapeTypeMigrations,
 	arrowShapeTypeValidator,
 	arrowTerminalTypeValidator,
 	type TLArrowHeadModel,
@@ -96,14 +96,14 @@ export {
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
 export {
-	bookmarkShapeMigrations,
+	bookmarkShapeTypeMigrations,
 	bookmarkShapeTypeValidator,
 	type TLBookmarkShape,
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
 	TL_DRAW_SHAPE_SEGMENT_TYPE,
-	drawShapeMigrations,
+	drawShapeTypeMigrations,
 	drawShapeTypeValidator,
 	type TLDrawShape,
 	type TLDrawShapeProps,
@@ -111,7 +111,7 @@ export {
 } from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
-	embedShapeMigrations,
+	embedShapeTypeMigrations,
 	embedShapeTypeValidator,
 	tlEmbedShapePermissionDefaults,
 	type EmbedDefinition,
@@ -126,7 +126,7 @@ export {
 	type TLFrameShapeProps,
 } from './shapes/TLFrameShape'
 export {
-	geoShapeMigrations,
+	geoShapeTypeMigrations,
 	geoShapeTypeValidator,
 	type TLGeoShape,
 	type TLGeoShapeProps,
@@ -142,7 +142,7 @@ export {
 	type TLIconShapeProps,
 } from './shapes/TLIconShape'
 export {
-	imageShapeMigrations,
+	imageShapeTypeMigrations,
 	imageShapeTypeValidator,
 	type TLImageCrop,
 	type TLImageShape,
@@ -154,19 +154,19 @@ export {
 	type TLLineShapeProps,
 } from './shapes/TLLineShape'
 export {
-	noteShapeMigrations,
+	noteShapeTypeMigrations,
 	noteShapeTypeValidator,
 	type TLNoteShape,
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
 export {
-	textShapeMigrations,
+	textShapeTypeMigrations,
 	textShapeTypeValidator,
 	type TLTextShape,
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export {
-	videoShapeMigrations,
+	videoShapeTypeMigrations,
 	videoShapeTypeValidator,
 	type TLVideoShape,
 	type TLVideoShapeProps,

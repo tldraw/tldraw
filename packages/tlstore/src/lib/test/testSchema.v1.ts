@@ -99,7 +99,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeMigrations = defineMigrations({
+const shapeTypeMigrations = defineMigrations({
 	currentVersion: ShapeVersion.AddParent,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
@@ -173,7 +173,7 @@ const shapeMigrations = defineMigrations({
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeMigrations,
+	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')

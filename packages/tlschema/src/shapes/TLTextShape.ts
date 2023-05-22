@@ -47,7 +47,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const textShapeMigrations = defineMigrations({
+export const textShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.RemoveJustify]: {

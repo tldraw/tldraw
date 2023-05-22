@@ -42,7 +42,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeMigrations = defineMigrations({
+const shapeTypeMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {
 		rectangle: defineMigrations({}),
@@ -50,7 +50,7 @@ const shapeMigrations = defineMigrations({
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeMigrations,
+	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(

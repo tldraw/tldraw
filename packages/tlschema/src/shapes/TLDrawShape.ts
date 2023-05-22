@@ -63,7 +63,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const drawShapeMigrations = defineMigrations({
+export const drawShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddInPen,
 	migrators: {
 		[Versions.AddInPen]: {

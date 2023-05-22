@@ -38,7 +38,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const videoShapeMigrations = defineMigrations({
+export const videoShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddUrlProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

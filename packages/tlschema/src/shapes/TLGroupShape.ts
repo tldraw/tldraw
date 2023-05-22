@@ -1,3 +1,4 @@
+import { defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLOpacityType } from '../style-types'
 import { opacityValidator } from '../validation'
@@ -18,3 +19,6 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape> = createShapeVal
 		opacity: opacityValidator,
 	})
 )
+
+/** @public */
+export const groupShapeTypeMigrations = defineMigrations({})

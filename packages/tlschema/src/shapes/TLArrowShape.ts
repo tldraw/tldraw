@@ -110,7 +110,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const arrowShapeMigrations = defineMigrations({
+export const arrowShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddLabelColor,
 	migrators: {
 		[Versions.AddLabelColor]: {
