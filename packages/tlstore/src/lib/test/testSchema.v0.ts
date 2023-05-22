@@ -4,20 +4,12 @@ import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
 import { defineMigrations } from '../migrate'
 
-const UserVersion = {
-	Initial: 0,
-} as const
-
 /** A user of tldraw */
 interface User extends BaseRecord<'user'> {
 	name: string
 }
 
-const userMigrations = defineMigrations({
-	firstVersion: UserVersion.Initial,
-	currentVersion: UserVersion.Initial,
-	migrators: {},
-})
+const userMigrations = defineMigrations({})
 
 const User = createRecordType<User>('user', {
 	migrations: userMigrations,
@@ -31,14 +23,6 @@ const User = createRecordType<User>('user', {
 	},
 	scope: 'document',
 })
-
-const ShapeVersion = {
-	Initial: 0,
-} as const
-
-const RectangleVersion = {
-	Initial: 0,
-} as const
 
 interface Shape<Props> extends BaseRecord<'shape'> {
 	type: string
@@ -59,16 +43,9 @@ interface OvalProps {
 }
 
 const shapeMigrations = defineMigrations({
-	currentVersion: ShapeVersion.Initial,
-	firstVersion: ShapeVersion.Initial,
-	migrators: {},
 	subTypeKey: 'type',
 	subTypeMigrations: {
-		rectangle: defineMigrations({
-			currentVersion: RectangleVersion.Initial,
-			firstVersion: RectangleVersion.Initial,
-			migrators: {},
-		}),
+		rectangle: defineMigrations({}),
 	},
 })
 
@@ -100,7 +77,7 @@ interface Org extends BaseRecord<'org'> {
 }
 
 const Org = createRecordType<Org>('org', {
-	migrations: defineMigrations({ currentVersion: 0, firstVersion: 0, migrators: {} }),
+	migrations: defineMigrations({}),
 	validator: {
 		validate: (record) => {
 			assert(
@@ -119,6 +96,6 @@ export const testSchemaV0 = StoreSchema.create(
 		org: Org,
 	},
 	{
-		snapshotMigrations: defineMigrations({ currentVersion: 0, firstVersion: 0, migrators: {} }),
+		snapshotMigrations: defineMigrations({}),
 	}
 )

@@ -45,7 +45,7 @@ const __TopLeftSnapOnlyShapeDef = defineShape<__TopLeftSnapOnlyShape, __TopLeftS
 	type: '__test_top_left_snap_only',
 	getShapeUtil: () => __TopLeftSnapOnlyShapeUtil,
 	validator: { validate: (record) => record as __TopLeftSnapOnlyShape },
-	migrations: defineMigrations({ currentVersion: 0, firstVersion: 0, migrators: {} }),
+	migrations: defineMigrations({}),
 })
 
 const configWithCustomShape = new TldrawEditorConfig({ shapes: [__TopLeftSnapOnlyShapeDef] })
