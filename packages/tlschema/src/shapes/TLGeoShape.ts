@@ -69,7 +69,6 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidat
 )
 
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	AddLabelColor: 2,
 	RemoveJustify: 3,
@@ -79,7 +78,6 @@ const Versions = {
 
 /** @public */
 export const geoShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddVerticalAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

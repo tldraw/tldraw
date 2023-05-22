@@ -25,13 +25,5 @@ export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAs
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const bookmarkAssetMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const bookmarkAssetMigrations = defineMigrations({})

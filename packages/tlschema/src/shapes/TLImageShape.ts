@@ -47,14 +47,12 @@ export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeVal
 )
 
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	AddCropProp: 2,
 } as const
 
 /** @public */
 export const imageShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

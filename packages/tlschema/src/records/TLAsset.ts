@@ -24,15 +24,8 @@ export const assetTypeValidator: T.Validator<TLAsset> = T.model(
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
 export const assetTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
 	subTypeKey: 'type',
 	subTypeMigrations: {
 		image: imageAssetMigrations,

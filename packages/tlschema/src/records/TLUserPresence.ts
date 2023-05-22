@@ -34,13 +34,11 @@ export const userPresenceTypeValidator: T.Validator<TLUserPresence> = T.model(
 )
 
 const Versions = {
-	Initial: 0,
 	AddViewportPageBounds: 1,
 } as const
 
 /** @public */
 export const userPresenceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddViewportPageBounds,
 	migrators: {
 		[Versions.AddViewportPageBounds]: {

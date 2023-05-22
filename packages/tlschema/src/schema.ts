@@ -2,14 +2,12 @@ import { defineMigrations, StoreSnapshot } from '@tldraw/tlstore'
 import { TLRecord } from './TLRecord'
 
 const Versions = {
-	Initial: 0,
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
 } as const
 
 /** @public */
 export const storeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddInstancePresenceType,
 	migrators: {
 		[Versions.RemoveCodeAndIconShapeTypes]: {

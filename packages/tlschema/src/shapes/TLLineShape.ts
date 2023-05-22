@@ -39,13 +39,5 @@ export const lineShapeTypeValidator: T.Validator<TLLineShape> = createShapeValid
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const lineShapeMigrations = defineMigrations({
-	currentVersion: Versions.Initial,
-	firstVersion: Versions.Initial,
-	migrators: {},
-})
+export const lineShapeMigrations = defineMigrations({})

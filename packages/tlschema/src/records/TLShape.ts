@@ -69,13 +69,11 @@ export type TLParentId = TLPageId | TLShapeId
 export type TLNullableShapeProps = { [K in TLShapeProp]?: TLShapeProps[K] | null }
 
 const Versions = {
-	Initial: 0,
 	AddIsLocked: 1,
 } as const
 
 /** @internal */
 export const rootShapeTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddIsLocked,
 	migrators: {
 		[Versions.AddIsLocked]: {

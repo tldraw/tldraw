@@ -30,13 +30,11 @@ export const bookmarkShapeTypeValidator: T.Validator<TLBookmarkShape> = createSh
 )
 
 const Versions = {
-	Initial: 0,
 	NullAssetId: 1,
 } as const
 
 /** @public */
 export const bookmarkShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.NullAssetId,
 	migrators: {
 		[Versions.NullAssetId]: {

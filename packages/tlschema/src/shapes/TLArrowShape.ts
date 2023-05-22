@@ -106,13 +106,11 @@ export const arrowShapeTypeValidator: T.Validator<TLArrowShape> = createShapeVal
 )
 
 const Versions = {
-	Initial: 0,
 	AddLabelColor: 1,
 } as const
 
 /** @public */
 export const arrowShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddLabelColor,
 	migrators: {
 		[Versions.AddLabelColor]: {

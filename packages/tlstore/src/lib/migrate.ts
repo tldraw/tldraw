@@ -2,28 +2,42 @@ import { BaseRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
 
 /** @public */
-export function defineMigrations<FirstVersion extends number, CurrentVersion extends number>({
-	firstVersion,
-	currentVersion,
-	migrators,
-	subTypeKey,
-	subTypeMigrations,
-}: {
-	firstVersion: FirstVersion
-	currentVersion: CurrentVersion
-	migrators: {
-		[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration
-	}
+export function defineMigrations<
+	FirstVersion extends number | string = 'ok',
+	CurrentVersion extends Exclude<number, 0> | string = 'ok'
+>(opts: {
+	firstVersion?: FirstVersion
+	currentVersion?: CurrentVersion
+	migrators?: CurrentVersion extends number
+		? FirstVersion extends number
+			? CurrentVersion extends FirstVersion
+				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
+			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+		: never
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
 }): Migrations {
-	return { currentVersion, firstVersion, migrators, subTypeKey, subTypeMigrations }
+	const {
+		currentVersion = 0,
+		firstVersion = 0,
+		migrators = {},
+		subTypeKey,
+		subTypeMigrations,
+	} = opts
+	return {
+		firstVersion: firstVersion as number,
+		currentVersion: currentVersion as number,
+		migrators,
+		subTypeKey,
+		subTypeMigrations,
+	}
 }
 
 /** @public */
-export type Migration<T = any> = {
-	up: (oldState: T) => T
-	down: (newState: T) => T
+export type Migration<Before = any, After = any> = {
+	up: (oldState: Before) => After
+	down: (newState: After) => Before
 }
 
 interface BaseMigrationsInfo {

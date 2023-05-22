@@ -26,16 +26,8 @@ export const userTypeValidator: T.Validator<TLUser> = T.model(
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const userTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const userTypeMigrations = defineMigrations({})
 
 /** @public */
 export const TLUser = createRecordType<TLUser>('user', {

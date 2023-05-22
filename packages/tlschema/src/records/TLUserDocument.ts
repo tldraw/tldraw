@@ -43,8 +43,7 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	})
 )
 
-export const userDocumentVersions = {
-	Initial: 0,
+export const Versions = {
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
 	RemoveIsReadOnly: 3,
@@ -52,10 +51,9 @@ export const userDocumentVersions = {
 
 /** @public */
 export const userDocumentTypeMigrations = defineMigrations({
-	firstVersion: userDocumentVersions.Initial,
-	currentVersion: userDocumentVersions.RemoveIsReadOnly,
+	currentVersion: Versions.RemoveIsReadOnly,
 	migrators: {
-		[userDocumentVersions.AddSnapMode]: {
+		[Versions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isSnapMode: false }
 			},
@@ -63,7 +61,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return userDocument
 			},
 		},
-		[userDocumentVersions.AddMissingIsMobileMode]: {
+		[Versions.AddMissingIsMobileMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isMobileMode: userDocument.isMobileMode ?? false }
 			},
@@ -71,7 +69,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return userDocument
 			},
 		},
-		[userDocumentVersions.RemoveIsReadOnly]: {
+		[Versions.RemoveIsReadOnly]: {
 			up: ({ isReadOnly: _, ...userDocument }: TLUserDocument & { isReadOnly: boolean }) => {
 				return userDocument
 			},
@@ -101,3 +99,5 @@ export const TLUserDocument = createRecordType<TLUserDocument>('user_document', 
 		lastUsedTabId: null,
 	})
 )
+
+export { Versions as userDocumentVersions }

@@ -26,16 +26,8 @@ export const pageTypeValidator: T.Validator<TLPage> = T.model(
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const pageTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const pageTypeMigrations = defineMigrations({})
 
 /** @public */
 export const TLPage = createRecordType<TLPage>('page', {

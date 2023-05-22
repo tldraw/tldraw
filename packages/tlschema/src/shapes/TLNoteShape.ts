@@ -41,14 +41,12 @@ export const noteShapeTypeValidator: T.Validator<TLNoteShape> = createShapeValid
 )
 
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 } as const
 
 /** @public */
 export const noteShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.AddUrlProp]: {

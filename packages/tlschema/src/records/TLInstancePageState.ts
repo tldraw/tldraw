@@ -46,13 +46,11 @@ export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = 
 )
 
 const Versions = {
-	Initial: 0,
 	AddCroppingId: 1,
 } as const
 
 /** @public */
 export const instancePageStateMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddCroppingId,
 	migrators: {
 		[Versions.AddCroppingId]: {

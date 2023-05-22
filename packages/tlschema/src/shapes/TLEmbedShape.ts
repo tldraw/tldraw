@@ -605,13 +605,11 @@ export const EMBED_DEFINITIONS = [
 ] as const satisfies readonly EmbedDefinition[]
 
 const Versions = {
-	Initial: 0,
 	GenOriginalUrlInEmbed: 1,
 } as const
 
 /** @public */
 export const embedShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.GenOriginalUrlInEmbed,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {

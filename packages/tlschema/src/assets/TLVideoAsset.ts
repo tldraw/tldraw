@@ -31,14 +31,12 @@ export const videoAssetTypeValidator: T.Validator<TLVideoAsset> = createAssetVal
 )
 
 const Versions = {
-	Initial: 0,
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 } as const
 
 /** @public */
 export const videoAssetMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {
 		[Versions.AddIsAnimated]: {

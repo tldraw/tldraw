@@ -30,14 +30,12 @@ export const imageAssetTypeValidator: T.Validator<TLImageAsset> = createAssetVal
 )
 
 const Versions = {
-	Initial: 0,
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 } as const
 
 /** @public */
 export const imageAssetMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {
 		[Versions.AddIsAnimated]: {

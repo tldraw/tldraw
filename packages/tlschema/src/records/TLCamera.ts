@@ -28,16 +28,8 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const cameraTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const cameraTypeMigrations = defineMigrations({})
 
 /** @public */
 export const TLCamera = createRecordType<TLCamera>('camera', {

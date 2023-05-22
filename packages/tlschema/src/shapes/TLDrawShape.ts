@@ -59,13 +59,11 @@ export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValid
 )
 
 const Versions = {
-	Initial: 0,
 	AddInPen: 1,
 } as const
 
 /** @public */
 export const drawShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddInPen,
 	migrators: {
 		[Versions.AddInPen]: {

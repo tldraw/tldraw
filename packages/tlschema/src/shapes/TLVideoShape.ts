@@ -34,13 +34,11 @@ export const videoShapeTypeValidator: T.Validator<TLVideoShape> = createShapeVal
 )
 
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 } as const
 
 /** @public */
 export const videoShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddUrlProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

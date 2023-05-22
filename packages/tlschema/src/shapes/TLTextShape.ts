@@ -43,13 +43,11 @@ export const textShapeTypeValidator: T.Validator<TLTextShape> = createShapeValid
 )
 
 const Versions = {
-	Initial: 0,
 	RemoveJustify: 1,
 } as const
 
 /** @public */
 export const textShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.RemoveJustify]: {

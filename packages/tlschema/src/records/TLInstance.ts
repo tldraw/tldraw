@@ -91,7 +91,6 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 )
 
 const Versions = {
-	Initial: 0,
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -106,7 +105,6 @@ const Versions = {
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {

@@ -36,13 +36,5 @@ export const iconShapeTypeValidator: T.Validator<TLIconShape> = createShapeValid
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const iconShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const iconShapeMigrations = defineMigrations({})

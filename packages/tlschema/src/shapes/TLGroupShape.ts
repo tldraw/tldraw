@@ -20,13 +20,5 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape> = createShapeVal
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const groupShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const groupShapeMigrations = defineMigrations({})

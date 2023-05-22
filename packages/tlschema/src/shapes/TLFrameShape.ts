@@ -26,13 +26,5 @@ export const frameShapeTypeValidator: T.Validator<TLFrameShape> = createShapeVal
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const frameShapeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const frameShapeMigrations = defineMigrations({})

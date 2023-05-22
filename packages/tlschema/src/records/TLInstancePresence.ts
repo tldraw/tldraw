@@ -66,12 +66,10 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 )
 
 const Versions = {
-	Initial: 0,
 	AddScribbleDelay: 1,
 } as const
 
 export const instancePresenceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddScribbleDelay]: {

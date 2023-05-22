@@ -20,16 +20,8 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 	})
 )
 
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const documentTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {},
-})
+export const documentTypeMigrations = defineMigrations({})
 
 /** @public */
 export const TLDocument = createRecordType<TLDocument>('document', {
