@@ -17,6 +17,13 @@ import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
+import { getIndexAbove } from '@tldraw/indices';
+import { getIndexBelow } from '@tldraw/indices';
+import { getIndexBetween } from '@tldraw/indices';
+import { getIndices } from '@tldraw/indices';
+import { getIndicesAbove } from '@tldraw/indices';
+import { getIndicesBelow } from '@tldraw/indices';
+import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
@@ -33,6 +40,7 @@ import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
+import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StoreValidator } from '@tldraw/tlstore';
@@ -754,32 +762,19 @@ export function getImageSizeFromSrc(dataURL: string): Promise<{
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
-// @public (undocumented)
-export function getIndexAbove(below: string): string;
+export { getIndexAbove }
 
-// @public (undocumented)
-export function getIndexBelow(above: string): string;
+export { getIndexBelow }
 
-// @public (undocumented)
-export function getIndexBetween(below: string, above?: string): string;
+export { getIndexBetween }
 
-// @public (undocumented)
-export function getIndexGenerator(): () => string;
+export { getIndices }
 
-// @public (undocumented)
-export function getIndices(n: number): string[];
+export { getIndicesAbove }
 
-// @public (undocumented)
-export function getIndicesAbove(below: string, n: number): string[];
+export { getIndicesBelow }
 
-// @public (undocumented)
-export function getIndicesBelow(above: string, n: number): string[];
-
-// @public (undocumented)
-export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
-
-// @public (undocumented)
-export function getMaxIndex(...indices: (string | undefined)[]): string;
+export { getIndicesBetween }
 
 // @public
 export function getMediaAssetFromFile(file: File): Promise<TLAsset>;
@@ -882,9 +877,6 @@ export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
 export const INDENT = "  ";
-
-// @public (undocumented)
-export function indexGenerator(n?: number): Generator<string, void, unknown>;
 
 // @public (undocumented)
 export interface InitializingSyncedStore {
@@ -1470,15 +1462,7 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 // @public (undocumented)
 export function snapToGrid(n: number, gridSize: number): number;
 
-// @public (undocumented)
-export function sortById<T extends {
-    id: string;
-}>(a: T, b: T): -1 | 0 | 1;
-
-// @public (undocumented)
-export function sortByIndex<T extends {
-    index: string;
-}>(a: T, b: T): -1 | 0 | 1;
+export { sortByIndex }
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
