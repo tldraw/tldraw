@@ -148,14 +148,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		}
 
 		const spans = this.app.textMeasure.measureTextSpans(shape.props.text, opts)
-		const textBounds = spans.reduce((a, b) => a.union(b.box), Box2d.From(spans[0].box))
 
-		opts.offsetX =
-			shape.props.align === 'start'
-				? (opts.width - textBounds.width) / 2
-				: shape.props.align === 'end'
-				? -(opts.width - textBounds.width) / 2
-				: 0
 		opts.width = bounds.width
 		opts.padding = PADDING
 
