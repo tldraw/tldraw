@@ -1,5 +1,5 @@
+import { TLLineShape } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
-import { TLLineShapeDef } from '../../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -124,7 +124,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(20, 10)
 
 		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(TLLineShapeDef.is(line))
+		assert(app.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -141,7 +141,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(TLLineShapeDef.is(line))
+		assert(app.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -159,7 +159,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(TLLineShapeDef.is(line))
+		assert(app.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -179,7 +179,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(TLLineShapeDef.is(line))
+		assert(app.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -201,7 +201,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(40, 10)
 
 		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(TLLineShapeDef.is(line))
+		assert(app.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})

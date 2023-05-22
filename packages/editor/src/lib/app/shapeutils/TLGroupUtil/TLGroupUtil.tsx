@@ -1,7 +1,6 @@
 import { Box2d, Matrix2d } from '@tldraw/primitives'
-import { TLGroupShape, Vec2dModel, groupShapeTypeValidator } from '@tldraw/tlschema'
+import { TLGroupShape, Vec2dModel } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { OnChildrenChangeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { DashedOutlineBox } from '../shared/DashedOutlineBox'
 
@@ -104,10 +103,3 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLGroupShapeDef = defineShape<TLGroupShape, TLGroupUtil>({
-	type: 'group',
-	getShapeUtil: () => TLGroupUtil,
-	validator: groupShapeTypeValidator,
-})

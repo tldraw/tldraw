@@ -1,11 +1,4 @@
-import {
-	createShapeId,
-	defineShape,
-	TLBaseShape,
-	TLBoxUtil,
-	Tldraw,
-	TldrawEditorConfig,
-} from '@tldraw/tldraw'
+import { createShapeId, TLBaseShape, TLBoxUtil, Tldraw, TldrawEditorConfig } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
@@ -44,24 +37,23 @@ export default function ErrorBoundaryExample() {
 // shape type that always throws an error. See CustomConfigExample for more info
 // on creating custom shapes.
 type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
-const ErrorShape = defineShape<ErrorShape>({
-	type: 'error',
-	getShapeUtil: () =>
-		class ErrorShapeUtil extends TLBoxUtil<ErrorShape> {
-			static type = 'error'
-			defaultProps() {
-				return { message: 'Error!', w: 100, h: 100 }
-			}
-			render(shape: ErrorShape) {
-				throw new Error(shape.props.message)
-			}
-			indicator() {
-				throw new Error(`Error shape indicator!`)
-			}
-		},
-})
+
+class ErrorUtil extends TLBoxUtil<ErrorShape> {
+	static type = 'error'
+	defaultProps() {
+		return { message: 'Error!', w: 100, h: 100 }
+	}
+	render(shape: ErrorShape) {
+		throw new Error(shape.props.message)
+	}
+	indicator() {
+		throw new Error(`Error shape indicator!`)
+	}
+}
 
 const customConfigWithErrorShape = new TldrawEditorConfig({
-	shapes: [ErrorShape],
+	shapeUtils: { error: ErrorUtil },
+	validators: { error: undefined },
+	migrations: { error: undefined },
 	allowUnknownShapes: true,
 })

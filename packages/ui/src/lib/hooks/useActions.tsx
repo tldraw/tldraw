@@ -5,8 +5,8 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	getEmbedInfo,
 	openWindow,
-	TLBookmarkShapeDef,
-	TLEmbedShapeDef,
+	TLBookmarkShape,
+	TLEmbedShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -239,7 +239,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = app.getShapeById(ids[0])
-					if (!shape || !TLEmbedShapeDef.is(shape)) {
+					if (!shape || !app.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
 						console.error(warnMsg)
 						return
 					}
@@ -259,7 +259,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !TLEmbedShapeDef.is(shape) || !shape.props.url) continue
+						if (!shape || !app.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+							continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -302,7 +303,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!TLBookmarkShapeDef.is(shape)) continue
+						if (!app.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
 
 						const { url } = shape.props
 

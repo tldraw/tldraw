@@ -1,16 +1,10 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Vec2d, toDomPrecision } from '@tldraw/primitives'
-import {
-	TLImageShape,
-	TLShapePartial,
-	imageShapeTypeMigrations,
-	imageShapeTypeValidator,
-} from '@tldraw/tlschema'
+import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { useValue } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsCropping } from '../../../hooks/useIsCropping'
 import { usePrefersReducedMotion } from '../../../utils/dom'
@@ -269,14 +263,6 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 		this.app.updateShapes([partial])
 	}
 }
-
-/** @public */
-export const TLImageShapeDef = defineShape<TLImageShape, TLImageUtil>({
-	type: 'image',
-	getShapeUtil: () => TLImageUtil,
-	validator: imageShapeTypeValidator,
-	migrations: imageShapeTypeMigrations,
-})
 
 /**
  * When an image is cropped we need to translate the image to show the portion withing the cropped

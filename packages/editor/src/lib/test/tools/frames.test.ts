@@ -1,5 +1,5 @@
 import { createCustomShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { TLFrameShapeDef } from '../../app/shapeutils/TLFrameUtil/TLFrameUtil'
+import { TLFrameUtil } from '../../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -33,7 +33,7 @@ describe('creating frames', () => {
 		app.setSelectedTool('frame')
 		app.pointerDown(100, 100).pointerUp(100, 100)
 		expect(app.onlySelectedShape?.type).toBe('frame')
-		const { w, h } = app.getShapeUtilByDef(TLFrameShapeDef).defaultProps()
+		const { w, h } = app.getShapeUtilByType<TLFrameUtil>('frame').defaultProps()
 		expect(app.getPageBounds(app.onlySelectedShape!)).toMatchObject({
 			x: 100 - w / 2,
 			y: 100 - h / 2,

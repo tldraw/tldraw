@@ -1,8 +1,5 @@
 import { TLBookmarkShape } from '@tldraw/tlschema'
-import {
-	TLBookmarkShapeDef,
-	TLBookmarkUtil,
-} from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
+import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -81,7 +78,7 @@ describe('The URL formatter', () => {
 		const e = app.getShapeById(ids.e) as TLBookmarkShape
 		const f = app.getShapeById(ids.f) as TLBookmarkShape
 
-		const util = app.getShapeUtilByDef(TLBookmarkShapeDef)
+		const util = app.getShapeUtilByType<TLBookmarkUtil>('bookmark')
 		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')

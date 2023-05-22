@@ -9,7 +9,7 @@ import {
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
-import { TLDrawShapeDef } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
+import { TLDrawUtil } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
 import { StateNode } from '../../StateNode'
@@ -21,7 +21,7 @@ export class Drawing extends StateNode {
 
 	initialShape?: TLDrawShape
 
-	util = this.app.getShapeUtilByDef(TLDrawShapeDef)
+	util = this.app.getShapeUtilByType<TLDrawUtil>('draw')
 
 	isPen = false
 

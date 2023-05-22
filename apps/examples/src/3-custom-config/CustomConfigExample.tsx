@@ -1,5 +1,4 @@
 import {
-	defineShape,
 	HTMLContainer,
 	MenuGroup,
 	menuItem,
@@ -29,16 +28,6 @@ type CardShape = TLBaseShape<
 		opacity: TLOpacityType
 	}
 >
-
-// Shape Definition
-// ----------------
-// The shape definition is used to tell TypeScript about the shape
-// and to register the shape with the app.
-export const CardShape = defineShape<CardShape>({
-	type: 'card',
-	getShapeUtil: () => CardUtil,
-	// validator: createShapeValidator({ ... })
-})
 
 // Shape Util
 // ----------
@@ -105,8 +94,9 @@ export class CardTool extends TLBoxTool {
 // Finally, collect the custom tools and shapes into a config object
 const customTldrawConfig = new TldrawEditorConfig({
 	tools: [CardTool],
-	shapes: [CardShape],
-	allowUnknownShapes: true,
+	shapeUtils: { card: CardUtil },
+	validators: { card: undefined },
+	migrations: { card: undefined },
 })
 
 // ... and we can make our custom shape example!

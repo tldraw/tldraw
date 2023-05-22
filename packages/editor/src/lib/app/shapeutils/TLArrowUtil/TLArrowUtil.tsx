@@ -11,8 +11,6 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import {
-	arrowShapeTypeMigrations,
-	arrowShapeTypeValidator,
 	TLArrowheadType,
 	TLArrowShape,
 	TLColorType,
@@ -27,7 +25,6 @@ import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
@@ -1145,11 +1142,3 @@ function getArrowheadSvgPath(
 function isPrecise(normalizedAnchor: Vec2dModel) {
 	return normalizedAnchor.x !== 0.5 || normalizedAnchor.y !== 0.5
 }
-
-/** @public */
-export const TLArrowShapeDef = defineShape<TLArrowShape, TLArrowUtil>({
-	type: 'arrow',
-	getShapeUtil: () => TLArrowUtil,
-	validator: arrowShapeTypeValidator,
-	migrations: arrowShapeTypeMigrations,
-})

@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { textShapeTypeMigrations, textShapeTypeValidator, TLTextShape } from '@tldraw/tlschema'
+import { TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
@@ -370,14 +369,6 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLTextShapeDef = defineShape<TLTextShape, TLTextUtil>({
-	type: 'text',
-	getShapeUtil: () => TLTextUtil,
-	validator: textShapeTypeValidator,
-	migrations: textShapeTypeMigrations,
-})
 
 function getTextSize(app: App, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props

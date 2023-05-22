@@ -1,13 +1,6 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import {
-	frameShapeTypeValidator,
-	TLFrameShape,
-	TLShape,
-	TLShapeId,
-	TLShapeType,
-} from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId, TLShapeType } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { defaultEmptyAs } from '../../../utils/string'
 import { TLExportColors } from '../shared/TLExportColors'
 import { TLBoxUtil } from '../TLBoxUtil'
@@ -224,10 +217,3 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLFrameShapeDef = defineShape<TLFrameShape, TLFrameUtil>({
-	type: 'frame',
-	getShapeUtil: () => TLFrameUtil,
-	validator: frameShapeTypeValidator,
-})

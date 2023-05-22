@@ -1,6 +1,5 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { noteShapeTypeMigrations, noteShapeTypeValidator, TLNoteShape } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/TLShapeDefinition'
+import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
 import { getTextSvgElement } from '../shared/getTextSvgElement'
@@ -201,14 +200,6 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLNoteShapeDef = defineShape<TLNoteShape, TLNoteUtil>({
-	getShapeUtil: () => TLNoteUtil,
-	type: 'note',
-	validator: noteShapeTypeValidator,
-	migrations: noteShapeTypeMigrations,
-})
 
 function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17

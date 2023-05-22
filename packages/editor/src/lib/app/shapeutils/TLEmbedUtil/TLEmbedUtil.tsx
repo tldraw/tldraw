@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
 import {
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
 	TLEmbedShape,
 	tlEmbedShapePermissionDefaults,
 	TLEmbedShapePermissions,
@@ -11,7 +9,6 @@ import * as React from 'react'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { ROTATING_SHADOWS } from '../../../constants'
 import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsEditing } from '../../../hooks/useIsEditing'
@@ -230,11 +227,3 @@ function Gist({
 		/>
 	)
 }
-
-/** @public */
-export const TLEmbedShapeDef = defineShape<TLEmbedShape, TLEmbedUtil>({
-	type: 'embed',
-	getShapeUtil: () => TLEmbedUtil,
-	validator: embedShapeTypeValidator,
-	migrations: embedShapeTypeMigrations,
-})

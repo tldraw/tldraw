@@ -1,15 +1,7 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import {
-	bookmarkShapeTypeMigrations,
-	bookmarkShapeTypeValidator,
-	TLAsset,
-	TLAssetId,
-	TLBookmarkAsset,
-	TLBookmarkShape,
-} from '@tldraw/tlschema'
+import { TLAsset, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import {
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
@@ -20,9 +12,9 @@ import {
 	stopEventPropagation,
 	truncateStringWithEllipsis,
 } from '../../../utils/dom'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnBeforeCreateHandler, OnBeforeUpdateHandler } from '../TLShapeUtil'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
 export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
@@ -191,11 +183,3 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 		}
 	}, 500)
 }
-
-/** @public */
-export const TLBookmarkShapeDef = defineShape<TLBookmarkShape, TLBookmarkUtil>({
-	type: 'bookmark',
-	getShapeUtil: () => TLBookmarkUtil,
-	validator: bookmarkShapeTypeValidator,
-	migrations: bookmarkShapeTypeMigrations,
-})

@@ -1,4 +1,4 @@
-import { App, getEmbedInfo, TLBookmarkShapeDef, TLEmbedShapeDef, useApp } from '@tldraw/editor'
+import { App, getEmbedInfo, TLBookmarkShape, TLEmbedShape, useApp } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
@@ -63,7 +63,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && TLEmbedShapeDef.is(shape) && shape.props.url
+				return shape && app.isShapeOfType<TLEmbedShape>(shape, 'embed') && shape.props.url
 			})
 		},
 		[]
@@ -74,7 +74,11 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && TLBookmarkShapeDef.is(shape) && getEmbedInfo(shape.props.url)
+				return (
+					shape &&
+					app.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') &&
+					getEmbedInfo(shape.props.url)
+				)
 			})
 		},
 		[]

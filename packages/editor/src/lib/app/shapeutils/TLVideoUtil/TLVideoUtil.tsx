@@ -1,9 +1,8 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLVideoShape, videoShapeTypeMigrations, videoShapeTypeValidator } from '@tldraw/tlschema'
+import { TLVideoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { usePrefersReducedMotion } from '../../../utils/dom'
@@ -48,14 +47,6 @@ export class TLVideoUtil extends TLBoxUtil<TLVideoShape> {
 		return g
 	}
 }
-
-/** @public */
-export const TLVideoShapeDef = defineShape<TLVideoShape, TLVideoUtil>({
-	type: 'video',
-	getShapeUtil: () => TLVideoUtil,
-	validator: videoShapeTypeValidator,
-	migrations: videoShapeTypeMigrations,
-})
 
 // Function from v1, could be improved bu explicitly using this.model.time (?)
 function serializeVideo(id: string): string {

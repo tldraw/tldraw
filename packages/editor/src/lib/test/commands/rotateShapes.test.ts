@@ -1,5 +1,5 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TLGeoShapeDef } from '../../app/shapeutils/TLGeoUtil/TLGeoUtil'
+import { TLGeoUtil } from '../../app/shapeutils/TLGeoUtil/TLGeoUtil'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -43,7 +43,7 @@ beforeEach(() => {
 describe('app.rotateShapes', () => {
 	it('Rotates shapes and fires events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = app.getShapeUtilByDef(TLGeoShapeDef)
+		const util = app.getShapeUtil<TLGeoUtil>('geo')
 
 		// Bad! who did this (did I do this)
 		const fnStart = jest.fn()

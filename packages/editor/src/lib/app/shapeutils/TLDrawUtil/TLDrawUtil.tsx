@@ -9,15 +9,9 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import {
-	drawShapeTypeMigrations,
-	drawShapeTypeValidator,
-	TLDrawShape,
-	TLDrawShapeSegment,
-} from '@tldraw/tlschema'
+import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -309,14 +303,6 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		return (this.app.getStrokeWidth(shape.props.size) * multiplier) / 2
 	}
 }
-
-/** @public */
-export const TLDrawShapeDef = defineShape<TLDrawShape, TLDrawUtil>({
-	type: 'draw',
-	getShapeUtil: () => TLDrawUtil,
-	migrations: drawShapeTypeMigrations,
-	validator: drawShapeTypeValidator,
-})
 
 function getDot(point: VecLike, sw: number) {
 	const r = (sw + 1) * 0.5
