@@ -26,7 +26,7 @@ import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLAr
 import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
 import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
-import { frameShapeTypeValidator } from './shapes/TLFrameShape'
+import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
 import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
 import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
 import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
@@ -50,7 +50,7 @@ const CORE_SHAPE_DEFS: readonly CustomShapeTypeInfo[] = [
 		migrations: bookmarkShapeTypeMigrations,
 		validator: bookmarkShapeTypeValidator,
 	},
-	{ type: 'frame', validator: frameShapeTypeValidator },
+	{ type: 'frame', migrations: frameShapeTypeMigrations, validator: frameShapeTypeValidator },
 	{ type: 'embed', migrations: embedShapeTypeMigrations, validator: embedShapeTypeValidator },
 ]
 
