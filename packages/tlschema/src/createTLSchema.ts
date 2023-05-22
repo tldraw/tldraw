@@ -86,12 +86,8 @@ export function createTLSchema({
 		migrators: rootShapeTypeMigrations.migrators,
 		subTypeKey: 'type',
 		subTypeMigrations: Object.fromEntries(
-			(
-				allShapeDefs.filter((def) => def.migrations) as (CustomShapeTypeInfo & {
-					migrations: Migrations
-				})[]
-			).map((def) => [def.type, def.migrations])
-		),
+			allShapeDefs.map((def) => [def.type, def.migrations ?? {}])
+		) as Record<string, Migrations>,
 	})
 
 	let shapeValidator = T.union('type', {
