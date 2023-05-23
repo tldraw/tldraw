@@ -123,7 +123,14 @@ export interface TLFontStyle extends TLBaseStyle {
 
 // Text Align
 /** @public */
-export const TL_ALIGN_TYPES = new Set(['start', 'middle', 'end'] as const)
+export const TL_ALIGN_TYPES = new Set([
+	'start',
+	'middle',
+	'end',
+	'start-legacy',
+	'middle-legacy',
+	'end-legacy',
+] as const)
 
 /** @public */
 export type TLAlignType = SetValue<typeof TL_ALIGN_TYPES>

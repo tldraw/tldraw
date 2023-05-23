@@ -74,11 +74,12 @@ const Versions = {
 	RemoveJustify: 3,
 	AddCheckBox: 4,
 	AddVerticalAlign: 5,
+	MigrateLegacyAlign: 6,
 } as const
 
 /** @public */
 export const geoShapeTypeMigrations = defineMigrations({
-	currentVersion: Versions.AddVerticalAlign,
+	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -155,6 +156,52 @@ export const geoShapeTypeMigrations = defineMigrations({
 				return {
 					...shape,
 					props,
+				}
+			},
+		},
+		[Versions.MigrateLegacyAlign]: {
+			up: (shape) => {
+				let newAlign: TLAlignType
+				switch (shape.props.align) {
+					case 'start':
+						newAlign = 'start-legacy'
+						break
+					case 'end':
+						newAlign = 'end-legacy'
+						break
+					default:
+						newAlign = 'middle-legacy'
+						break
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: newAlign,
+					},
+				}
+			},
+			down: (shape) => {
+				let oldAlign: TLAlignType
+				switch (shape.props.align) {
+					case 'start-legacy':
+						oldAlign = 'start'
+						break
+					case 'end-legacy':
+						oldAlign = 'end'
+						break
+					case 'middle-legacy':
+						oldAlign = 'middle'
+						break
+					default:
+						oldAlign = shape.props.align
+				}
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						align: oldAlign,
+					},
 				}
 			},
 		},

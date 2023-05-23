@@ -5,8 +5,11 @@ import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
 const textAlignmentsForLtr: Record<TLAlignType, string> = {
 	start: 'left',
+	'start-legacy': 'left',
 	middle: 'center',
+	'middle-legacy': 'center',
 	end: 'right',
+	'end-legacy': 'right',
 }
 
 type OverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'

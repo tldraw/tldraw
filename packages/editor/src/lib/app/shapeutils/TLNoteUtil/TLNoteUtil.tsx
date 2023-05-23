@@ -1,6 +1,7 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { getOffsetX } from '../../../utils/legacy'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -149,6 +150,11 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		const spans = this.app.textMeasure.measureTextSpans(shape.props.text, opts)
 
 		opts.width = bounds.width
+		const offsetX = getOffsetX(shape.props.align, PADDING, spans, bounds.width)
+		if (offsetX) {
+			opts.offsetX = offsetX
+		}
+
 		opts.padding = PADDING
 
 		const textElm = createTextSvgElementFromSpans(this.app, spans, opts)

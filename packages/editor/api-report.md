@@ -2095,8 +2095,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             size: "l" | "m" | "s" | "xl";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end" | "middle" | "start";
-            verticalAlign: "end" | "middle" | "start";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            verticalAlign: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             url: string;
             w: number;
             h: number;
@@ -2124,8 +2124,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             size: "l" | "m" | "s" | "xl";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end" | "middle" | "start";
-            verticalAlign: "end" | "middle" | "start";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            verticalAlign: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             url: string;
             w: number;
             h: number;
@@ -2332,7 +2332,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end" | "middle" | "start";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
@@ -2354,7 +2354,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end" | "middle" | "start";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
@@ -2569,7 +2569,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
             color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
-            align: "end" | "middle" | "start";
+            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             text: string;
             scale: number;
