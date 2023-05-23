@@ -24,6 +24,7 @@ import {
 } from '@tldraw/tlschema'
 import { transact } from 'signia'
 import { App } from '../app/App'
+import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { MAX_SHAPES_PER_PAGE } from '../constants'
 
 const TLDRAW_V1_VERSION = 15.5
@@ -515,8 +516,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const v2ShapeStale = app.getShapeById<TLArrowShape>(v2ShapeId)!
-					const util = app.getShapeUtil(v2ShapeStale)
+					const util = app.getShapeUtil(TLArrowUtil)
 
 					// dumb but necessary
 					app.inputs.ctrlKey = false

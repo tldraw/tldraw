@@ -33,13 +33,13 @@ export type TLShape =
 	| TLFrameShape
 	| TLGeoShape
 	| TLGroupShape
-	| TLIconShape
 	| TLImageShape
 	| TLLineShape
 	| TLNoteShape
 	| TLTextShape
 	| TLVideoShape
 	| TLUnknownShape
+	| TLIconShape
 
 /** @public */
 export type TLShapeType = TLShape['type']

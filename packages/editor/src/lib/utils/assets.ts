@@ -2,16 +2,14 @@ import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import {
 	TLAsset,
 	TLAssetId,
-	TLAssetShape,
 	TLBookmarkAsset,
 	TLImageShape,
-	TLShape,
 	TLShapePartial,
 	TLVideoShape,
 	Vec2dModel,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { compact, getHashForString, isNonNullish } from '@tldraw/utils'
+import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
 import { App } from '../app/App'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
@@ -328,7 +326,7 @@ export async function createShapesFromFiles(
 
 	const shapeUpdates = await Promise.all(
 		files.map(async (file, i) => {
-			const shape = results[i] as TLShapePartial<TLImageShape | TLVideoShape>
+			const shape = results[i]
 			if (!shape) return
 
 			const asset = newAssetsForFiles.get(file)
@@ -344,7 +342,7 @@ export async function createShapesFromFiles(
 					shape.props.assetId = existing.id
 				}
 
-				return shape as TLShape
+				return shape
 			}
 
 			existing = app.getAssetBySrc(asset.props!.src!)
@@ -354,7 +352,7 @@ export async function createShapesFromFiles(
 					shape.props.assetId = existing.id
 				}
 
-				return shape as TLAssetShape
+				return shape
 			}
 
 			// Create a new model for the new source file
@@ -366,7 +364,7 @@ export async function createShapesFromFiles(
 		})
 	)
 
-	const filteredUpdates = shapeUpdates.filter(isNonNullish)
+	const filteredUpdates = compact(shapeUpdates)
 
 	app.createAssets(compact([...newAssetsForFiles.values()]))
 	app.createShapes(filteredUpdates)

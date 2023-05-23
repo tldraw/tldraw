@@ -1,5 +1,4 @@
 import {
-	defineShape,
 	HTMLContainer,
 	MenuGroup,
 	menuItem,
@@ -30,23 +29,13 @@ type CardShape = TLBaseShape<
 	}
 >
 
-// Shape Definition
-// ----------------
-// The shape definition is used to tell TypeScript about the shape
-// and to register the shape with the app.
-export const CardShape = defineShape<CardShape>({
-	type: 'card',
-	getShapeUtil: () => CardUtil,
-	// validator: createShapeValidator({ ... })
-})
-
 // Shape Util
 // ----------
 // The CardUtil class is used by the app to answer questions about a
 // shape of the 'card' type. For example, what is the default props
 // for this shape? What should we render for it, or for its indicator?
 class CardUtil extends TLBoxUtil<CardShape> {
-	static type = 'card'
+	static override type = 'card' as const
 
 	// There are a LOT of other things we could add here, like these flags
 	override isAspectRatioLocked = (_shape: CardShape) => false
@@ -105,8 +94,11 @@ export class CardTool extends TLBoxTool {
 // Finally, collect the custom tools and shapes into a config object
 const customTldrawConfig = new TldrawEditorConfig({
 	tools: [CardTool],
-	shapes: [CardShape],
-	allowUnknownShapes: true,
+	shapes: {
+		card: {
+			util: CardUtil,
+		},
+	},
 })
 
 // ... and we can make our custom shape example!

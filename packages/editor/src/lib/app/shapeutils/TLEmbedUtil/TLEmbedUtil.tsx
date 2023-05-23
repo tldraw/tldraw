@@ -1,8 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
 import {
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
 	TLEmbedShape,
 	tlEmbedShapePermissionDefaults,
 	TLEmbedShapePermissions,
@@ -10,10 +8,9 @@ import {
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
+import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { ROTATING_SHADOWS } from '../../../constants'
-import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { rotateBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
@@ -30,7 +27,7 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 
 /** @public */
 export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
-	static type = 'embed'
+	static override type = 'embed'
 
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = () => false
 	override canResize = (shape: TLEmbedShape) => {
@@ -83,8 +80,6 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
-
-		const { Spinner } = useEditorComponents()
 
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
@@ -150,11 +145,11 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 							background: embedInfo?.definition.backgroundColor,
 						}}
 					/>
-				) : Spinner ? (
+				) : (
 					<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-						<Spinner />
+						<DefaultSpinner />
 					</g>
-				) : null}
+				)}
 			</HTMLContainer>
 		)
 	}
@@ -230,11 +225,3 @@ function Gist({
 		/>
 	)
 }
-
-/** @public */
-export const TLEmbedShapeDef = defineShape<TLEmbedShape, TLEmbedUtil>({
-	type: 'embed',
-	getShapeUtil: () => TLEmbedUtil,
-	validator: embedShapeTypeValidator,
-	migrations: embedShapeTypeMigrations,
-})

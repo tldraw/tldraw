@@ -1,6 +1,5 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { noteShapeTypeMigrations, noteShapeTypeValidator, TLNoteShape } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/TLShapeDefinition'
+import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
@@ -13,7 +12,7 @@ const NOTE_SIZE = 200
 
 /** @public */
 export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
-	static type = 'note'
+	static override type = 'note'
 
 	canEdit = () => true
 	hideResizeHandles = () => true
@@ -196,14 +195,6 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLNoteShapeDef = defineShape<TLNoteShape, TLNoteUtil>({
-	getShapeUtil: () => TLNoteUtil,
-	type: 'note',
-	validator: noteShapeTypeValidator,
-	migrations: noteShapeTypeMigrations,
-})
 
 function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17

@@ -3,7 +3,7 @@ import {
 	getSvgAsDataUrl,
 	getSvgAsImage,
 	TLExportType,
-	TLFrameShape,
+	TLFrameUtil,
 	TLShapeId,
 	useApp,
 } from '@tldraw/editor'
@@ -38,8 +38,8 @@ export function useExportAs() {
 
 			if (ids.length === 1) {
 				const first = app.getShapeById(ids[0])!
-				if (first.type === 'frame') {
-					name = (first as TLFrameShape).props.name ?? 'frame'
+				if (app.isShapeOfType(first, TLFrameUtil)) {
+					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')
 				}

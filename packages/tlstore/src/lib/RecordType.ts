@@ -218,8 +218,7 @@ export function createRecordType<R extends BaseRecord>(
 	typeName: R['typeName'],
 	config: {
 		migrations?: Migrations
-		// todo: optional validations
-		validator: StoreValidator<R>
+		validator?: StoreValidator<R>
 		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {

@@ -169,7 +169,7 @@ describe('Misc', () => {
 		const boxID = createCustomShapeId('box1')
 		app.createShapes([{ id: boxID, type: 'geo', x: 500, y: 150, props: { w: 100, h: 50 } }])
 
-		const box = app.getShapeById(boxID)! as TLGeoShape
+		const box = app.getShapeById<TLGeoShape>(boxID)!
 		const line = app.getShapeById<TLLineShape>(id)!
 
 		app.select(boxID, id)

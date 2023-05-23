@@ -42,7 +42,7 @@ export type ComputedCache<Data, R extends BaseRecord> = {
 // @public
 export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
-    validator: StoreValidator<R>;
+    validator?: StoreValidator<R>;
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
