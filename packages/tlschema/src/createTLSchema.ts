@@ -11,21 +11,20 @@ import { TLInstance } from './records/TLInstance'
 import { TLInstancePageState } from './records/TLInstancePageState'
 import { TLInstancePresence } from './records/TLInstancePresence'
 import { TLPage } from './records/TLPage'
-import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
+import { TLShape, TLUnknownShape, rootShapeTypeMigrations } from './records/TLShape'
 import { TLUser } from './records/TLUser'
 import { TLUserDocument } from './records/TLUserDocument'
 import { TLUserPresence } from './records/TLUserPresence'
 import { storeMigrations } from './schema'
-import { TLBaseShape } from './shapes/shape-validation'
 
 /** @public */
-export type ValidatorsForShapes<T extends TLBaseShape<any, any>> = Record<
+export type ValidatorsForShapes<T extends TLUnknownShape> = Record<
 	T['type'],
 	{ validate: (record: T) => T }
 >
 
 /** @public */
-export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations>
+export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>
 
 /** @public */
 export function createTLSchema({

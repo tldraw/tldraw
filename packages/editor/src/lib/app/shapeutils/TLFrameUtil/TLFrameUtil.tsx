@@ -11,7 +11,7 @@ import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
 export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
-	static type = 'frame'
+	static override type = 'frame'
 
 	override canBind = () => true
 

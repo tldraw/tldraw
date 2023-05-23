@@ -10,8 +10,8 @@ import { getSnapLines } from '../testutils/getSnapLines'
 type __TopLeftSnapOnlyShape = any
 
 class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
-	type = '__test_top_left_snap_only' as const
-	static type = '__test_top_left_snap_only' as const
+	static override type = '__test_top_left_snap_only' as const
+
 	defaultProps(): __TopLeftSnapOnlyShape['props'] {
 		return { width: 10, height: 10 }
 	}

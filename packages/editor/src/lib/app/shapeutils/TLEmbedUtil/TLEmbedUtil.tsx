@@ -27,7 +27,7 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 
 /** @public */
 export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
-	static type = 'embed'
+	static override type = 'embed'
 
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = () => false
 	override canResize = (shape: TLEmbedShape) => {

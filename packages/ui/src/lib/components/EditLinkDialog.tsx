@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { TLBookmarkUtil, TLShape, useApp } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { DialogProps } from '../hooks/useDialogsProvider'
@@ -19,11 +19,29 @@ function valiateUrl(url: string) {
 	return false
 }
 
-export const EditLinkDialog = track(function EditLink({ onClose }: DialogProps) {
+export const EditLinkDialog = track(function EditLinkDialog({ onClose }: DialogProps) {
 	const app = useApp()
-	const msg = useTranslation()
 
 	const selectedShape = app.onlySelectedShape
+
+	if (!(selectedShape && 'url' in selectedShape.props)) {
+		return null
+	}
+
+	return (
+		<EditLinkDialogInner
+			onClose={onClose}
+			selectedShape={selectedShape as TLShape & { props: { url: string } }}
+		/>
+	)
+})
+
+export const EditLinkDialogInner = track(function EditLinkDialogInner({
+	onClose,
+	selectedShape,
+}: DialogProps & { selectedShape: TLShape & { props: { url: string } } }) {
+	const app = useApp()
+	const msg = useTranslation()
 
 	const [validState, setValid] = useState(valiateUrl(selectedShape?.props.url))
 
@@ -64,13 +82,13 @@ export const EditLinkDialog = track(function EditLink({ onClose }: DialogProps) 
 
 			const shape = app.selectedShapes[0]
 
-			if (shape) {
+			if (shape && 'url' in shape.props) {
 				const current = shape.props.url
 				const next = validState
 					? validState === 'needs protocol'
 						? 'https://' + value
 						: value
-					: shape.type === 'bookmark'
+					: app.isShapeOfType(shape, TLBookmarkUtil)
 					? rInitialValue.current
 					: ''
 

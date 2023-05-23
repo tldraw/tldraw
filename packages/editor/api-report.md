@@ -383,7 +383,7 @@ export class App extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
-    get onlySelectedShape(): TLBaseShape<any, any> | null;
+    get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -444,7 +444,7 @@ export class App extends EventEmitter<TLEventMap> {
     get selectedIds(): TLShapeId[];
     get selectedIdsSet(): ReadonlySet<TLShapeId>;
     get selectedPageBounds(): Box2d | null;
-    get selectedShapes(): TLBaseShape<any, any>[];
+    get selectedShapes(): TLShape[];
     // (undocumented)
     get selectionBounds(): Box2d | undefined;
     // (undocumented)
@@ -805,7 +805,7 @@ export function getRotationSnapshot({ app }: {
     initialCursorAngle: number;
     initialSelectionRotation: number;
     shapeSnapshots: {
-        shape: TLBaseShape<any, any>;
+        shape: TLShape;
         initialPagePoint: Vec2d;
     }[];
 };
@@ -2511,6 +2511,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
+    // (undocumented)
+    static type: string;
 }
 
 // @public (undocumented)

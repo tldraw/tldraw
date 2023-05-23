@@ -42,7 +42,8 @@ export default function ErrorBoundaryExample() {
 type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
 
 class ErrorUtil extends TLBoxUtil<ErrorShape> {
-	static type = 'error'
+	override type = 'error' as const
+
 	defaultProps() {
 		return { message: 'Error!', w: 100, h: 100 }
 	}

@@ -1,7 +1,6 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
 	MigrationsForShapes,
-	TLBaseShape,
 	TLDOCUMENT_ID,
 	TLInstance,
 	TLInstanceId,
@@ -10,6 +9,7 @@ import {
 	TLShape,
 	TLStore,
 	TLStoreProps,
+	TLUnknownShape,
 	TLUser,
 	TLUserId,
 	ValidatorsForShapes,
@@ -64,18 +64,15 @@ import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
 
-type CustomShapeInfo<T extends TLBaseShape<any, any>> = {
+type CustomShapeInfo<T extends TLUnknownShape> = {
 	util: TLShapeUtilConstructor<any>
 	validator?: { validate: (record: T) => T }
 	migrations?: Migrations
 }
 
-type UtilsForShapes<T extends TLBaseShape<any, any>> = Record<
-	T['type'],
-	TLShapeUtilConstructor<any>
->
+type UtilsForShapes<T extends TLUnknownShape> = Record<T['type'], TLShapeUtilConstructor<any>>
 
-type TldrawEditorConfigOptions<T extends TLBaseShape<any, any> = TLShape> = {
+type TldrawEditorConfigOptions<T extends TLUnknownShape = TLShape> = {
 	tools?: readonly StateNodeConstructor[]
 	shapes?: { [K in T['type']]: CustomShapeInfo<T> }
 	/** @internal */

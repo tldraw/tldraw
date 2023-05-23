@@ -10,6 +10,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	TLTextUtil,
 	useApp,
 } from '@tldraw/editor'
 import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
@@ -210,19 +211,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-auto-size', { source })
 					app.mark()
 					app.updateShapes(
-						app.selectedShapes
-							.filter((shape) => shape && shape.type === 'text' && shape.props.autoSize === false)
-							.map((shape: TLTextShape) => {
-								return {
-									id: shape.id,
-									type: shape.type,
-									props: {
-										...shape.props,
-										w: 8,
-										autoSize: true,
-									},
-								}
-							})
+						(
+							app.selectedShapes.filter(
+								(shape) => app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+							) as TLTextShape[]
+						).map((shape) => {
+							return {
+								id: shape.id,
+								type: shape.type,
+								props: {
+									...shape.props,
+									w: 8,
+									autoSize: true,
+								},
+							}
+						})
 					)
 				},
 			},

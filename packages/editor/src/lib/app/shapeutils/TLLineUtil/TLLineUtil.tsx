@@ -26,7 +26,7 @@ const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class TLLineUtil extends TLShapeUtil<TLLineShape> {
-	static type = 'line'
+	static override type = 'line'
 
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true

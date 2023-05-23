@@ -49,7 +49,7 @@ async function getDataURIFromURL(url: string): Promise<string> {
 
 /** @public */
 export class TLImageUtil extends TLBoxUtil<TLImageShape> {
-	static type = 'image'
+	static override type = 'image'
 
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true

@@ -124,7 +124,7 @@ export class Idle extends StateNode {
 
 				const { onlySelectedShape } = this.app
 				if (onlySelectedShape) {
-					const util = this.app.getShapeUtil(onlySelectedShape.type)
+					const util = this.app.getShapeUtil(onlySelectedShape)
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -316,7 +316,7 @@ export class Idle extends StateNode {
 		const { onlySelectedShape } = this.app
 		if (!onlySelectedShape) return false
 
-		const util = this.app.getShapeUtil(onlySelectedShape.type)
+		const util = this.app.getShapeUtil(onlySelectedShape)
 		return util.canEdit(onlySelectedShape)
 	}
 
@@ -327,7 +327,7 @@ export class Idle extends StateNode {
 		const singleShape = this.app.onlySelectedShape
 		if (!singleShape) return false
 
-		const shapeUtil = this.app.getShapeUtil(singleShape.type)
+		const shapeUtil = this.app.getShapeUtil(singleShape)
 		// Should the Ctrl key be pressed to enter crop mode
 		if (withCtrlKey) {
 			return shapeUtil.canCrop(singleShape) && info.ctrlKey

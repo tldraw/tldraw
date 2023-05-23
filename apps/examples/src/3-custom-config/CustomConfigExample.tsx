@@ -35,7 +35,7 @@ type CardShape = TLBaseShape<
 // shape of the 'card' type. For example, what is the default props
 // for this shape? What should we render for it, or for its indicator?
 class CardUtil extends TLBoxUtil<CardShape> {
-	static type = 'card'
+	static override type = 'card' as const
 
 	// There are a LOT of other things we could add here, like these flags
 	override isAspectRatioLocked = (_shape: CardShape) => false

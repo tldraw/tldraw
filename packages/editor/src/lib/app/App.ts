@@ -3075,7 +3075,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @readonly
 	 */
-	@computed get selectedShapes() {
+	@computed get selectedShapes(): TLShape[] {
 		const { selectedIds } = this.pageState
 		return compact(selectedIds.map((id) => this.store.get(id)))
 	}
@@ -3094,7 +3094,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 * @readonly
 	 */
-	@computed get onlySelectedShape() {
+	@computed get onlySelectedShape(): TLShape | null {
 		const { selectedShapes } = this
 		return selectedShapes.length === 1 ? selectedShapes[0] : null
 	}

@@ -18,7 +18,7 @@ const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width
 
 /** @public */
 export class TLTextUtil extends TLShapeUtil<TLTextShape> {
-	static type = 'text'
+	static override type = 'text'
 
 	canEdit = () => true
 

@@ -412,7 +412,7 @@ export const lineShapeTypeMigrations: Migrations;
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
 
 // @public (undocumented)
-export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations>;
+export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>;
 
 // @public (undocumented)
 export const noteShapeTypeMigrations: Migrations;
@@ -1379,7 +1379,7 @@ export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
 export const userTypeValidator: T.Validator<TLUser>;
 
 // @public (undocumented)
-export type ValidatorsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], {
+export type ValidatorsForShapes<T extends TLUnknownShape> = Record<T['type'], {
     validate: (record: T) => T;
 }>;
 

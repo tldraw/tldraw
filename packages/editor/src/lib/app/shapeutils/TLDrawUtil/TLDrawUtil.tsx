@@ -21,7 +21,7 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 
 /** @public */
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
-	static type = 'draw'
+	static override type = 'draw'
 
 	hideResizeHandles = (shape: TLDrawShape) => this.getIsDot(shape)
 	hideRotateHandle = (shape: TLDrawShape) => this.getIsDot(shape)

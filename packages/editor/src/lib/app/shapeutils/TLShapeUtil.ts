@@ -34,6 +34,8 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	constructor(public app: App, public readonly type: T['type']) {}
 
+	static type: string
+
 	/**
 	 * Check if a shape is of this type.
 	 *

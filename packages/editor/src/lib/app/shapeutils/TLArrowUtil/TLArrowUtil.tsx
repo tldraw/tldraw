@@ -57,7 +57,7 @@ let globalRenderIndex = 0
 
 /** @public */
 export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
-	static type = 'arrow'
+	static override type = 'arrow'
 
 	override canEdit = () => true
 	override canBind = () => false

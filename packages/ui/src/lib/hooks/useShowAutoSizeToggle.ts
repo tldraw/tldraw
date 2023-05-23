@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { TLTextUtil, useApp } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function useShowAutoSizeToggle() {
@@ -9,7 +9,7 @@ export function useShowAutoSizeToggle() {
 			const { selectedShapes } = app
 			return (
 				selectedShapes.length === 1 &&
-				selectedShapes[0].type === 'text' &&
+				app.isShapeOfType(selectedShapes[0], TLTextUtil) &&
 				selectedShapes[0].props.autoSize === false
 			)
 		},

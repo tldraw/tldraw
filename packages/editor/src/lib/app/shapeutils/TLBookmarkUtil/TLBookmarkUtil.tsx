@@ -18,7 +18,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
 export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
-	static type = 'bookmark'
+	static override type = 'bookmark'
 
 	override canResize = () => false
 

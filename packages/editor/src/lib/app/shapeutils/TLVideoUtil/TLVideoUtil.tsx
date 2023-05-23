@@ -11,7 +11,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
 export class TLVideoUtil extends TLBoxUtil<TLVideoShape> {
-	static type = 'video'
+	static override type = 'video'
 
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true

@@ -12,7 +12,7 @@ const NOTE_SIZE = 200
 
 /** @public */
 export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
-	static type = 'note'
+	static override type = 'note'
 
 	canEdit = () => true
 	hideResizeHandles = () => true
