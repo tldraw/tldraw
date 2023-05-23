@@ -69,28 +69,19 @@ export function createTLSchema({
 		),
 	})
 
-	const shapeTypeValidator = T.union(
-		'type',
-		Object.fromEntries(
-			Object.entries(shapeValidators).map(([type, validator]) => [type, validator ?? T.any]) as [
-				TLShape['type'],
-				T.Validator<TLShape>
-			][]
-		)
-	)
+	const shapeTypeValidator = T.union('type', {
+		...Object.fromEntries(
+			Object.entries(shapeValidators).map(([type, validator]) => [
+				type,
+				validator ?? (T.any as any),
+			])
+		),
+	}) as T.UnionValidator<'type', any, any>
 
 	const shapeRecord = createRecordType<TLShape>('shape', {
 		migrations: shapeTypeMigrations,
-		validator: shapeTypeValidator,
-		// {
-		// 	validate: (record: any) => {
-		// 		validator = validators[record.type]
-		// 		if (validator) {
-		// 			return validator.validate(record)
-		// 		}
-		// 		return record
-		// 	},
-		// },
+		validator: T.model('shape', shapeTypeValidator),
+
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
