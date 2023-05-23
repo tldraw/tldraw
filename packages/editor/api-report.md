@@ -30,7 +30,6 @@ import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/tlstore';
-import { MigrationsForShapes } from '@tldraw/tlschema';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -45,6 +44,7 @@ import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
+import { T } from '@tldraw/tlvalidate';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
@@ -103,7 +103,6 @@ import { TLUserId } from '@tldraw/tlschema';
 import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
-import { ValidatorsForShapes } from '@tldraw/tlschema';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -1807,7 +1806,7 @@ export class TldrawEditorConfig {
     // (undocumented)
     readonly shapeUtils: UtilsForShapes<TLShape>;
     // (undocumented)
-    readonly shapeValidators: ValidatorsForShapes<TLShape>;
+    readonly shapeValidators: Record<TLShape['type'], T.Validator<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)

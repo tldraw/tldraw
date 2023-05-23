@@ -24,11 +24,6 @@ export {
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
-export {
-	createTLSchema,
-	type MigrationsForShapes,
-	type ValidatorsForShapes,
-} from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'

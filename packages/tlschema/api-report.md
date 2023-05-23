@@ -104,13 +104,6 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public (undocumented)
-export function createTLSchema({ shapeMigrations, shapeValidators, derivePresenceState, }: {
-    shapeValidators: ValidatorsForShapes<TLShape>;
-    shapeMigrations: MigrationsForShapes<TLShape>;
-    derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
-}): StoreSchema<TLRecord, TLStoreProps>;
-
-// @public (undocumented)
 export const cursorTypeValidator: T.Validator<string>;
 
 // @public (undocumented)
@@ -410,9 +403,6 @@ export const lineShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
-
-// @public (undocumented)
-export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>;
 
 // @public (undocumented)
 export const noteShapeTypeMigrations: Migrations;
@@ -1377,11 +1367,6 @@ export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUser>;
-
-// @public (undocumented)
-export type ValidatorsForShapes<T extends TLUnknownShape> = Record<T['type'], {
-    validate: (record: T) => T;
-}>;
 
 // @public (undocumented)
 export interface Vec2dModel {
