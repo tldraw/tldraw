@@ -21,14 +21,11 @@ import { TLBaseShape } from './shapes/shape-validation'
 /** @public */
 export type ValidatorsForShapes<T extends TLBaseShape<any, any>> = Record<
 	T['type'],
-	{ validate: (record: T) => T } | undefined
+	{ validate: (record: T) => T }
 >
 
 /** @public */
-export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<
-	T['type'],
-	Migrations | undefined
->
+export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations>
 
 /** @public */
 export function createTLSchema({
@@ -48,21 +45,14 @@ export function createTLSchema({
 		migrators: rootShapeTypeMigrations.migrators,
 		subTypeKey: 'type',
 		subTypeMigrations: Object.fromEntries(
-			Object.entries(shapeMigrations).map(([type, migrations]) => [type, migrations ?? {}]) as [
-				TLShape['type'],
-				Migrations
-			][]
+			Object.entries(shapeMigrations) as [TLShape['type'], Migrations][]
 		),
 	})
 
-	const shapeTypeValidator = T.union('type', {
-		...Object.fromEntries(
-			Object.entries(shapeValidators).map(([type, validator]) => [
-				type,
-				validator ?? (T.any as any),
-			])
-		),
-	}) as T.UnionValidator<'type', any, any>
+	const shapeTypeValidator = T.union(
+		'type',
+		Object.fromEntries(Object.entries(shapeValidators) as [TLShape['type'], T.Validator<any>][])
+	)
 
 	const shapeRecord = createRecordType<TLShape>('shape', {
 		migrations: shapeTypeMigrations,

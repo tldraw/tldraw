@@ -13,9 +13,7 @@ export const storeMigrations = defineMigrations({
 		[Versions.RemoveCodeAndIconShapeTypes]: {
 			up: (store: StoreSnapshot<TLRecord>) => {
 				return Object.fromEntries(
-					Object.entries(store).filter(
-						([_, v]) => v.typeName !== 'shape' || (v.type !== 'icon' && v.type !== 'code')
-					)
+					Object.entries(store).filter(([_, v]) => v.typeName !== 'shape' || v.type !== 'icon')
 				)
 			},
 			down: (store: StoreSnapshot<TLRecord>) => {

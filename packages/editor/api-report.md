@@ -29,6 +29,7 @@ import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
+import { Migrations } from '@tldraw/tlstore';
 import { MigrationsForShapes } from '@tldraw/tlschema';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
@@ -1785,13 +1786,7 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor(opts: {
-        shapeUtils?: UtilsForShapes<TLShape>;
-        shapeValidators?: ValidatorsForShapes<TLShape>;
-        shapeMigrations?: MigrationsForShapes<TLShape>;
-        tools?: readonly StateNodeConstructor[];
-        derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
-    });
+    constructor(opts: TldrawEditorConfigOptions);
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;

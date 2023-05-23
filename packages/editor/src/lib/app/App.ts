@@ -1159,6 +1159,7 @@ export class App extends EventEmitter<TLEventMap> {
 				},
 			])
 		}
+
 		for (const parentId of this._invalidParents) {
 			this._invalidParents.delete(parentId)
 			const parent = this.getShapeById(parentId)

@@ -41,14 +41,10 @@ class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
 }
 
 const configWithCustomShape = new TldrawEditorConfig({
-	shapeUtils: {
-		__test_top_left_snap_only: __TopLeftSnapOnlyShapeUtil,
-	},
-	shapeValidators: {
-		__test_top_left_snap_only: { validate: (record) => record as __TopLeftSnapOnlyShape },
-	},
-	shapeMigrations: {
-		__test_top_left_snap_only: undefined,
+	shapes: {
+		__test_top_left_snap_only: {
+			util: __TopLeftSnapOnlyShapeUtil,
+		},
 	},
 })
 

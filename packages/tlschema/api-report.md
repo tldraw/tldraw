@@ -412,7 +412,7 @@ export const lineShapeTypeMigrations: Migrations;
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
 
 // @public (undocumented)
-export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations | undefined>;
+export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], Migrations>;
 
 // @public (undocumented)
 export const noteShapeTypeMigrations: Migrations;
@@ -1381,7 +1381,7 @@ export const userTypeValidator: T.Validator<TLUser>;
 // @public (undocumented)
 export type ValidatorsForShapes<T extends TLBaseShape<any, any>> = Record<T['type'], {
     validate: (record: T) => T;
-} | undefined>;
+}>;
 
 // @public (undocumented)
 export interface Vec2dModel {

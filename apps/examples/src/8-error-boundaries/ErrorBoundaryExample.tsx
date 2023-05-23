@@ -6,7 +6,6 @@ export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="error-boundary-example"
 				components={{
 					// disable app-level error boundaries:
 					ErrorFallback: null,
@@ -27,6 +26,10 @@ export default function ErrorBoundaryExample() {
 							props: { message: 'Something has gone wrong' },
 						},
 					])
+
+					// center the camera on the error shape
+					app.zoomToFit()
+					app.resetZoom()
 				}}
 			/>
 		</div>
@@ -52,7 +55,9 @@ class ErrorUtil extends TLBoxUtil<ErrorShape> {
 }
 
 const customConfigWithErrorShape = new TldrawEditorConfig({
-	shapeUtils: { error: ErrorUtil },
-	shapeValidators: { error: undefined },
-	shapeMigrations: { error: undefined },
+	shapes: {
+		error: {
+			util: ErrorUtil,
+		},
+	},
 })

@@ -39,7 +39,15 @@ import {
 	videoShapeTypeMigrations,
 	videoShapeTypeValidator,
 } from '@tldraw/tlschema'
-import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import {
+	Migrations,
+	RecordType,
+	Store,
+	StoreSchema,
+	StoreSnapshot,
+	defineMigrations,
+} from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
@@ -56,8 +64,22 @@ import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
 
-type UtilsForShapes<T extends TLBaseShape<any, any>> = {
-	[K in T['type']]: TLShapeUtilConstructor<any>
+type CustomShapeInfo<T extends TLBaseShape<any, any>> = {
+	util: TLShapeUtilConstructor<any>
+	validator?: { validate: (record: T) => T }
+	migrations?: Migrations
+}
+
+type UtilsForShapes<T extends TLBaseShape<any, any>> = Record<
+	T['type'],
+	TLShapeUtilConstructor<any>
+>
+
+type TldrawEditorConfigOptions<T extends TLBaseShape<any, any> = TLShape> = {
+	tools?: readonly StateNodeConstructor[]
+	shapes?: { [K in T['type']]: CustomShapeInfo<T> }
+	/** @internal */
+	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }
 
 /** @public */
@@ -72,21 +94,8 @@ export class TldrawEditorConfig {
 	readonly shapeValidators: ValidatorsForShapes<TLShape>
 	readonly shapeMigrations: MigrationsForShapes<TLShape>
 
-	constructor(opts: {
-		shapeUtils?: UtilsForShapes<TLShape>
-		shapeValidators?: ValidatorsForShapes<TLShape>
-		shapeMigrations?: MigrationsForShapes<TLShape>
-		tools?: readonly StateNodeConstructor[]
-		/** @internal */
-		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-	}) {
-		const {
-			shapeUtils = {},
-			shapeMigrations = {},
-			shapeValidators = {},
-			tools = [],
-			derivePresenceState,
-		} = opts
+	constructor(opts: TldrawEditorConfigOptions) {
+		const { shapes = [], tools = [], derivePresenceState } = opts
 
 		this.tools = tools
 
@@ -103,7 +112,6 @@ export class TldrawEditorConfig {
 			note: TLNoteUtil,
 			text: TLTextUtil,
 			video: TLVideoUtil,
-			...shapeUtils,
 		}
 
 		this.shapeMigrations = {
@@ -119,7 +127,6 @@ export class TldrawEditorConfig {
 			note: noteShapeTypeMigrations,
 			text: textShapeTypeMigrations,
 			video: videoShapeTypeMigrations,
-			...shapeMigrations,
 		}
 
 		this.shapeValidators = {
@@ -135,7 +142,12 @@ export class TldrawEditorConfig {
 			note: noteShapeTypeValidator,
 			text: textShapeTypeValidator,
 			video: videoShapeTypeValidator,
-			...shapeValidators,
+		}
+
+		for (const [type, shape] of Object.entries(shapes)) {
+			this.shapeUtils[type] = shape.util
+			this.shapeMigrations[type] = shape.migrations ?? defineMigrations({})
+			this.shapeValidators[type] = shape.validator ?? T.any
 		}
 
 		this.storeSchema = createTLSchema({
