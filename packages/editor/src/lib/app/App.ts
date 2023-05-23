@@ -8490,7 +8490,7 @@ export class App extends EventEmitter<TLEventMap> {
 		})
 
 		const cancel = () => {
-			this.removeListener('tick', moveTowardsUser)
+			this.removeListener('frame', moveTowardsUser)
 			this.removeListener('stop-following', cancel)
 		}
 
@@ -8578,7 +8578,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		this.once('stop-following', cancel)
-		this.addListener('tick', moveTowardsUser)
+		this.addListener('frame', moveTowardsUser)
 
 		return this
 	}

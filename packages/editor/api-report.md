@@ -2030,6 +2030,8 @@ export interface TLEventMap {
     // (undocumented)
     event: [TLEventInfo];
     // (undocumented)
+    frame: [number];
+    // (undocumented)
     mount: [];
     // (undocumented)
     tick: [number];
