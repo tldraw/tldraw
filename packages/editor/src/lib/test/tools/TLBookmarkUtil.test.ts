@@ -1,8 +1,5 @@
 import { TLBookmarkShape } from '@tldraw/tlschema'
-import {
-	TLBookmarkShapeDef,
-	TLBookmarkUtil,
-} from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
+import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -74,14 +71,14 @@ describe('The URL formatter', () => {
 			},
 		])
 
-		const a = app.getShapeById(ids.a) as TLBookmarkShape
-		const b = app.getShapeById(ids.b) as TLBookmarkShape
-		const c = app.getShapeById(ids.c) as TLBookmarkShape
-		const d = app.getShapeById(ids.d) as TLBookmarkShape
-		const e = app.getShapeById(ids.e) as TLBookmarkShape
-		const f = app.getShapeById(ids.f) as TLBookmarkShape
+		const a = app.getShapeById<TLBookmarkShape>(ids.a)!
+		const b = app.getShapeById<TLBookmarkShape>(ids.b)!
+		const c = app.getShapeById<TLBookmarkShape>(ids.c)!
+		const d = app.getShapeById<TLBookmarkShape>(ids.d)!
+		const e = app.getShapeById<TLBookmarkShape>(ids.e)!
+		const f = app.getShapeById<TLBookmarkShape>(ids.f)!
 
-		const util = app.getShapeUtilByDef(TLBookmarkShapeDef)
+		const util = app.getShapeUtil(TLBookmarkUtil)
 		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')

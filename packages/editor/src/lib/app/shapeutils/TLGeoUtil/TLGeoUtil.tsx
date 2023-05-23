@@ -12,15 +12,8 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import {
-	geoShapeTypeMigrations,
-	geoShapeTypeValidator,
-	TLDashType,
-	TLGeoShape,
-	TLGeoShapeProps,
-} from '@tldraw/tlschema'
+import { TLDashType, TLGeoShape, TLGeoShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
@@ -48,7 +41,7 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
 export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
-	static type = 'geo'
+	static override type = 'geo'
 
 	canEdit = () => true
 
@@ -1002,11 +995,3 @@ function getCheckBoxLines(w: number, h: number) {
 		[new Vec2d(ox + size * 0.45, oy + size * 0.82), new Vec2d(ox + size * 0.82, oy + size * 0.22)],
 	]
 }
-
-/** @public */
-export const TLGeoShapeDef = defineShape<TLGeoShape, TLGeoUtil>({
-	type: 'geo',
-	getShapeUtil: () => TLGeoUtil,
-	validator: geoShapeTypeValidator,
-	migrations: geoShapeTypeMigrations,
-})

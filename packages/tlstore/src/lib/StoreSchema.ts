@@ -152,7 +152,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		const persistedSubTypeVersion =
 			'subTypeVersions' in persistedType
 				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
-				: null
+				: undefined
 
 		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
 		// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
@@ -165,7 +165,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		// if the persistedSubTypeVersion is undefined then the record was either created after the schema
 		// was persisted, or it was created in a different place to where the schema was persisted.
 		// either way we don't know what to do with it safely, so let's return failure.
-		if (persistedSubTypeVersion == null) {
+		if (persistedSubTypeVersion === undefined) {
 			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
 		}
 

@@ -9,10 +9,9 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import { TLHandle, TLLineShape, lineShapeTypeValidator } from '@tldraw/tlschema'
+import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
@@ -27,7 +26,7 @@ const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class TLLineUtil extends TLShapeUtil<TLLineShape> {
-	static type = 'line'
+	static override type = 'line'
 
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true
@@ -334,13 +333,6 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 		return getLineSvg(shape, spline, color, this.app.getStrokeWidth(size))
 	}
 }
-
-/** @public */
-export const TLLineShapeDef = defineShape<TLLineShape, TLLineUtil>({
-	type: 'line',
-	getShapeUtil: () => TLLineUtil,
-	validator: lineShapeTypeValidator,
-})
 
 /** @public */
 export function getSplineForLineShape(shape: TLLineShape) {

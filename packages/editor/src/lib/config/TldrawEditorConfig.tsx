@@ -1,5 +1,6 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
+	MigrationsForShapes,
 	TLDOCUMENT_ID,
 	TLInstance,
 	TLInstanceId,
@@ -8,65 +9,147 @@ import {
 	TLShape,
 	TLStore,
 	TLStoreProps,
+	TLUnknownShape,
 	TLUser,
 	TLUserId,
+	ValidatorsForShapes,
+	arrowShapeTypeMigrations,
+	arrowShapeTypeValidator,
+	bookmarkShapeTypeMigrations,
+	bookmarkShapeTypeValidator,
 	createTLSchema,
+	drawShapeTypeMigrations,
+	drawShapeTypeValidator,
+	embedShapeTypeMigrations,
+	embedShapeTypeValidator,
+	frameShapeTypeMigrations,
+	frameShapeTypeValidator,
+	geoShapeTypeMigrations,
+	geoShapeTypeValidator,
+	groupShapeTypeMigrations,
+	groupShapeTypeValidator,
+	imageShapeTypeMigrations,
+	imageShapeTypeValidator,
+	lineShapeTypeMigrations,
+	lineShapeTypeValidator,
+	noteShapeTypeMigrations,
+	noteShapeTypeValidator,
+	textShapeTypeMigrations,
+	textShapeTypeValidator,
+	videoShapeTypeMigrations,
+	videoShapeTypeValidator,
 } from '@tldraw/tlschema'
-import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import {
+	Migrations,
+	RecordType,
+	Store,
+	StoreSchema,
+	StoreSnapshot,
+	defineMigrations,
+} from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
-import { TLArrowShapeDef } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { TLBookmarkShapeDef } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TLDrawShapeDef } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
-import { TLEmbedShapeDef } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
-import { TLFrameShapeDef } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
-import { TLGeoShapeDef } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TLGroupShapeDef } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLImageShapeDef } from '../app/shapeutils/TLImageUtil/TLImageUtil'
-import { TLLineShapeDef } from '../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TLNoteShapeDef } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
-import { TLTextShapeDef } from '../app/shapeutils/TLTextUtil/TLTextUtil'
-import { TLVideoShapeDef } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
+import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
+import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
+import { TLDrawUtil } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
+import { TLEmbedUtil } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
+import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
+import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
+import { TLGroupUtil } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
+import { TLImageUtil } from '../app/shapeutils/TLImageUtil/TLImageUtil'
+import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
+import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
+import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
+import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
+import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
-import { TLShapeDef, TLUnknownShapeDef } from './TLShapeDefinition'
+
+type CustomShapeInfo<T extends TLUnknownShape> = {
+	util: TLShapeUtilConstructor<any>
+	validator?: { validate: (record: T) => T }
+	migrations?: Migrations
+}
+
+type UtilsForShapes<T extends TLUnknownShape> = Record<T['type'], TLShapeUtilConstructor<any>>
+
+type TldrawEditorConfigOptions<T extends TLUnknownShape = TLShape> = {
+	tools?: readonly StateNodeConstructor[]
+	shapes?: { [K in T['type']]: CustomShapeInfo<T> }
+	/** @internal */
+	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+}
 
 /** @public */
 export class TldrawEditorConfig {
 	static readonly default = new TldrawEditorConfig({})
 
 	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
-	readonly shapes: readonly TLUnknownShapeDef[]
 	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
 	readonly tools: readonly StateNodeConstructor[]
 
-	constructor(args: {
-		shapes?: readonly TLShapeDef<any, any>[]
-		tools?: readonly StateNodeConstructor[]
-		allowUnknownShapes?: boolean
-		/** @internal */
-		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-	}) {
-		const { shapes = [], tools = [], allowUnknownShapes = false, derivePresenceState } = args
+	readonly shapeUtils: UtilsForShapes<TLShape>
+	readonly shapeValidators: ValidatorsForShapes<TLShape>
+	readonly shapeMigrations: MigrationsForShapes<TLShape>
+
+	constructor(opts: TldrawEditorConfigOptions) {
+		const { shapes = [], tools = [], derivePresenceState } = opts
+
 		this.tools = tools
 
-		this.shapes = [
-			TLArrowShapeDef,
-			TLBookmarkShapeDef,
-			TLDrawShapeDef,
-			TLEmbedShapeDef,
-			TLFrameShapeDef,
-			TLGeoShapeDef,
-			TLGroupShapeDef,
-			TLImageShapeDef,
-			TLLineShapeDef,
-			TLNoteShapeDef,
-			TLTextShapeDef,
-			TLVideoShapeDef,
-			...shapes,
-		]
+		this.shapeUtils = {
+			arrow: TLArrowUtil,
+			bookmark: TLBookmarkUtil,
+			draw: TLDrawUtil,
+			embed: TLEmbedUtil,
+			frame: TLFrameUtil,
+			geo: TLGeoUtil,
+			group: TLGroupUtil,
+			image: TLImageUtil,
+			line: TLLineUtil,
+			note: TLNoteUtil,
+			text: TLTextUtil,
+			video: TLVideoUtil,
+		}
+
+		this.shapeMigrations = {
+			arrow: arrowShapeTypeMigrations,
+			bookmark: bookmarkShapeTypeMigrations,
+			draw: drawShapeTypeMigrations,
+			embed: embedShapeTypeMigrations,
+			frame: frameShapeTypeMigrations,
+			geo: geoShapeTypeMigrations,
+			group: groupShapeTypeMigrations,
+			image: imageShapeTypeMigrations,
+			line: lineShapeTypeMigrations,
+			note: noteShapeTypeMigrations,
+			text: textShapeTypeMigrations,
+			video: videoShapeTypeMigrations,
+		}
+
+		this.shapeValidators = {
+			arrow: arrowShapeTypeValidator,
+			bookmark: bookmarkShapeTypeValidator,
+			draw: drawShapeTypeValidator,
+			embed: embedShapeTypeValidator,
+			frame: frameShapeTypeValidator,
+			geo: geoShapeTypeValidator,
+			group: groupShapeTypeValidator,
+			image: imageShapeTypeValidator,
+			line: lineShapeTypeValidator,
+			note: noteShapeTypeValidator,
+			text: textShapeTypeValidator,
+			video: videoShapeTypeValidator,
+		}
+
+		for (const [type, shape] of Object.entries(shapes)) {
+			this.shapeUtils[type] = shape.util
+			this.shapeMigrations[type] = shape.migrations ?? defineMigrations({})
+			this.shapeValidators[type] = shape.validator ?? T.any
+		}
 
 		this.storeSchema = createTLSchema({
-			allowUnknownShapes,
-			customShapeDefs: shapes,
+			shapeMigrations: this.shapeMigrations,
+			shapeValidators: this.shapeValidators,
 			derivePresenceState,
 		})
 

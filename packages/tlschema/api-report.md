@@ -13,7 +13,6 @@ import { Store } from '@tldraw/tlstore';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSchemaOptions } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
-import { StoreValidator } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
 
 // @internal (undocumented)
@@ -105,9 +104,9 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public (undocumented)
-export function createTLSchema({ customShapeDefs, allowUnknownShapes, derivePresenceState, }: {
-    customShapeDefs?: readonly CustomShapeTypeInfo[];
-    allowUnknownShapes?: boolean;
+export function createTLSchema({ shapeMigrations, shapeValidators, derivePresenceState, }: {
+    shapeValidators: ValidatorsForShapes<TLShape>;
+    shapeMigrations: MigrationsForShapes<TLShape>;
     derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
@@ -116,13 +115,6 @@ export const cursorTypeValidator: T.Validator<string>;
 
 // @public (undocumented)
 export const cursorValidator: T.Validator<TLCursor>;
-
-// @public (undocumented)
-export type CustomShapeTypeInfo = {
-    type: string;
-    migrations?: Migrations;
-    validator?: StoreValidator<TLShape>;
-};
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
@@ -345,6 +337,9 @@ export function fixupRecord(oldRecord: TLRecord): {
 export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
+export const frameShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
 export const frameShapeTypeValidator: T.Validator<TLFrameShape>;
 
 // @public (undocumented)
@@ -357,10 +352,16 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
+export const groupShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
 export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 
 // @public (undocumented)
 export const handleTypeValidator: T.Validator<TLHandle>;
+
+// @public (undocumented)
+export const iconShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const iconShapeTypeValidator: T.Validator<TLIconShape>;
@@ -405,7 +406,13 @@ export function isShape(record?: BaseRecord<string>): record is TLShape;
 export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
+export const lineShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
+
+// @public (undocumented)
+export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>;
 
 // @public (undocumented)
 export const noteShapeTypeMigrations: Migrations;
@@ -1370,6 +1377,11 @@ export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUser>;
+
+// @public (undocumented)
+export type ValidatorsForShapes<T extends TLUnknownShape> = Record<T['type'], {
+    validate: (record: T) => T;
+}>;
 
 // @public (undocumented)
 export interface Vec2dModel {

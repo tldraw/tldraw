@@ -24,8 +24,11 @@ export {
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
-export { createTLSchema } from './createTLSchema'
-export type { CustomShapeTypeInfo } from './createTLSchema'
+export {
+	createTLSchema,
+	type MigrationsForShapes,
+	type ValidatorsForShapes,
+} from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
@@ -121,6 +124,7 @@ export {
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
+	frameShapeTypeMigrations,
 	frameShapeTypeValidator,
 	type TLFrameShape,
 	type TLFrameShapeProps,
@@ -132,11 +136,13 @@ export {
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
+	groupShapeTypeMigrations,
 	groupShapeTypeValidator,
 	type TLGroupShape,
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
+	iconShapeTypeMigrations,
 	iconShapeTypeValidator,
 	type TLIconShape,
 	type TLIconShapeProps,
@@ -149,6 +155,7 @@ export {
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {
+	lineShapeTypeMigrations,
 	lineShapeTypeValidator,
 	type TLLineShape,
 	type TLLineShapeProps,

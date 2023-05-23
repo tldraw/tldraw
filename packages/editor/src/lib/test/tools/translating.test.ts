@@ -1,9 +1,7 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createCustomShapeId } from '@tldraw/tlschema'
-import { defineMigrations } from '@tldraw/tlstore'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
-import { defineShape } from '../../config/TLShapeDefinition'
 import { TldrawEditorConfig } from '../../config/TldrawEditorConfig'
 import { TestApp } from '../TestApp'
 
@@ -12,8 +10,8 @@ import { getSnapLines } from '../testutils/getSnapLines'
 type __TopLeftSnapOnlyShape = any
 
 class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
-	type = '__test_top_left_snap_only' as const
-	static type = '__test_top_left_snap_only' as const
+	static override type = '__test_top_left_snap_only' as const
+
 	defaultProps(): __TopLeftSnapOnlyShape['props'] {
 		return { width: 10, height: 10 }
 	}
@@ -41,14 +39,14 @@ class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
 		return [Vec2d.From({ x: shape.x, y: shape.y })]
 	}
 }
-const __TopLeftSnapOnlyShapeDef = defineShape<__TopLeftSnapOnlyShape, __TopLeftSnapOnlyShapeUtil>({
-	type: '__test_top_left_snap_only',
-	getShapeUtil: () => __TopLeftSnapOnlyShapeUtil,
-	validator: { validate: (record) => record as __TopLeftSnapOnlyShape },
-	migrations: defineMigrations({}),
-})
 
-const configWithCustomShape = new TldrawEditorConfig({ shapes: [__TopLeftSnapOnlyShapeDef] })
+const configWithCustomShape = new TldrawEditorConfig({
+	shapes: {
+		__test_top_left_snap_only: {
+			util: __TopLeftSnapOnlyShapeUtil,
+		},
+	},
+})
 
 let app: TestApp
 

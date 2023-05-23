@@ -1,5 +1,5 @@
 import { createShapeId, TLArrowShape, TLShapeType } from '@tldraw/tlschema'
-import { TLArrowShapeDef } from '../../../shapeutils/TLArrowUtil/TLArrowUtil'
+import { TLArrowUtil } from '../../../shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { TLArrowTool } from '../TLArrowTool'
@@ -48,8 +48,8 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const util = this.app.getShapeUtilByDef(TLArrowShapeDef)
-		const shape = this.app.getShapeById(id) as TLArrowShape
+		const util = this.app.getShapeUtil(TLArrowUtil)
+		const shape = this.app.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
 		const handles = util.handles?.(shape)
@@ -96,7 +96,7 @@ export class Pointing extends StateNode {
 			}
 
 			if (!this.didTimeout) {
-				const util = this.app.getShapeUtilByDef(TLArrowShapeDef)
+				const util = this.app.getShapeUtil(TLArrowUtil)
 				const shape = this.app.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return

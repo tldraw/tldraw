@@ -1,14 +1,7 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import {
-	frameShapeTypeValidator,
-	TLFrameShape,
-	TLShape,
-	TLShapeId,
-	TLShapeType,
-} from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId, TLShapeType } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { defaultEmptyAs } from '../../../utils/string'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -18,7 +11,7 @@ import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
 export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
-	static type = 'frame'
+	static override type = 'frame'
 
 	override canBind = () => true
 
@@ -211,10 +204,3 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLFrameShapeDef = defineShape<TLFrameShape, TLFrameUtil>({
-	type: 'frame',
-	getShapeUtil: () => TLFrameUtil,
-	validator: frameShapeTypeValidator,
-})

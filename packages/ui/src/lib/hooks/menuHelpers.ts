@@ -1,4 +1,4 @@
-import { App, TLArrowShapeDef, useApp } from '@tldraw/editor'
+import { App, TLArrowUtil, useApp } from '@tldraw/editor'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { useValue } from 'signia-react'
 import { ActionItem } from './useActions'
@@ -136,10 +136,10 @@ function shapesWithUnboundArrows(app: App) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (TLArrowShapeDef.is(shape) && shape.props.start.type === 'binding') {
+		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.start.type === 'binding') {
 			return false
 		}
-		if (TLArrowShapeDef.is(shape) && shape.props.end.type === 'binding') {
+		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.end.type === 'binding') {
 			return false
 		}
 		return true

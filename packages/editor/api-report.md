@@ -30,6 +30,7 @@ import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/tlstore';
+import { MigrationsForShapes } from '@tldraw/tlschema';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -43,7 +44,6 @@ import { Signal } from 'signia';
 import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
-import { StoreValidator } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
@@ -103,6 +103,7 @@ import { TLUserId } from '@tldraw/tlschema';
 import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { ValidatorsForShapes } from '@tldraw/tlschema';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -286,8 +287,11 @@ export class App extends EventEmitter<TLEventMap> {
     getShapesAndDescendantsInOrder(ids: TLShapeId[]): TLShape[];
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapesInPage(pageId: TLPageId): TLShape[];
-    getShapeUtil<T extends TLShape = TLShape>(shape: T): TLShapeUtil<T>;
-    getShapeUtilByDef<Def extends TLShapeDef<any, any>>(def: Def): ReturnType<Def['createShapeUtils']>;
+    getShapeUtil<C extends {
+        new (...args: any[]): TLShapeUtil<any>;
+        type: string;
+    }>(util: C): InstanceType<C>;
+    getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     getStrokeWidth(id: TLSizeStyle['id']): number;
@@ -359,6 +363,10 @@ export class App extends EventEmitter<TLEventMap> {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
+    isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, util: {
+        new (...args: any): TLShapeUtil<T>;
+        type: string;
+    }): shape is T;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)
@@ -375,7 +383,7 @@ export class App extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
-    get onlySelectedShape(): TLBaseShape<any, any> | null;
+    get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -436,7 +444,7 @@ export class App extends EventEmitter<TLEventMap> {
     get selectedIds(): TLShapeId[];
     get selectedIdsSet(): ReadonlySet<TLShapeId>;
     get selectedPageBounds(): Box2d | null;
-    get selectedShapes(): TLBaseShape<any, any>[];
+    get selectedShapes(): TLShape[];
     // (undocumented)
     get selectionBounds(): Box2d | undefined;
     // (undocumented)
@@ -652,14 +660,6 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallback;
 
-// @public (undocumented)
-export function defineShape<ShapeType extends TLUnknownShape, ShapeUtil extends TLShapeUtil<ShapeType> = TLShapeUtil<ShapeType>>({ type, getShapeUtil, validator, migrations, }: {
-    type: ShapeType['type'];
-    getShapeUtil: () => TLShapeUtilConstructor<ShapeType, ShapeUtil>;
-    validator?: StoreValidator<ShapeType>;
-    migrations?: Migrations;
-}): TLShapeDef<ShapeType, ShapeUtil>;
-
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
 
@@ -805,7 +805,7 @@ export function getRotationSnapshot({ app }: {
     initialCursorAngle: number;
     initialSelectionRotation: number;
     shapeSnapshots: {
-        shape: TLBaseShape<any, any>;
+        shape: TLShape;
         initialPagePoint: Vec2d;
     }[];
 };
@@ -1581,9 +1581,6 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
-export const TLArrowShapeDef: TLShapeDef<TLArrowShape, TLArrowUtil>;
-
-// @public (undocumented)
 export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -1656,9 +1653,6 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
-
-// @public (undocumented)
-export const TLBookmarkShapeDef: TLShapeDef<TLBookmarkShape, TLBookmarkUtil>;
 
 // @public (undocumented)
 export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
@@ -1799,12 +1793,7 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor(args: {
-        shapes?: readonly TLShapeDef<any, any>[];
-        tools?: readonly StateNodeConstructor[];
-        allowUnknownShapes?: boolean;
-        derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
-    });
+    constructor(opts: TldrawEditorConfigOptions);
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;
@@ -1814,7 +1803,11 @@ export class TldrawEditorConfig {
     // (undocumented)
     static readonly default: TldrawEditorConfig;
     // (undocumented)
-    readonly shapes: readonly TLUnknownShapeDef[];
+    readonly shapeMigrations: MigrationsForShapes<TLShape>;
+    // (undocumented)
+    readonly shapeUtils: UtilsForShapes<TLShape>;
+    // (undocumented)
+    readonly shapeValidators: ValidatorsForShapes<TLShape>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
@@ -1843,9 +1836,6 @@ export interface TldrawEditorProps {
     store?: SyncedStore | TLStore;
     userId?: TLUserId;
 }
-
-// @public (undocumented)
-export const TLDrawShapeDef: TLShapeDef<TLDrawShape, TLDrawUtil>;
 
 // @public (undocumented)
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
@@ -1927,9 +1917,6 @@ export interface TLEditorComponents {
     // (undocumented)
     ZoomBrush: null | TLBrushComponent;
 }
-
-// @public (undocumented)
-export const TLEmbedShapeDef: TLShapeDef<TLEmbedShape, TLEmbedUtil>;
 
 // @public (undocumented)
 export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
@@ -2049,9 +2036,6 @@ export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLic
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
-export const TLFrameShapeDef: TLShapeDef<TLFrameShape, TLFrameUtil>;
-
-// @public (undocumented)
 export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -2080,9 +2064,6 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     static type: string;
 }
-
-// @public (undocumented)
-export const TLGeoShapeDef: TLShapeDef<TLGeoShape, TLGeoUtil>;
 
 // @public (undocumented)
 export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
@@ -2201,9 +2182,6 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 }
 
 // @public (undocumented)
-export const TLGroupShapeDef: TLShapeDef<TLGroupShape, TLGroupUtil>;
-
-// @public (undocumented)
 export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -2231,9 +2209,6 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLMark;
-
-// @public (undocumented)
-export const TLImageShapeDef: TLShapeDef<TLImageShape, TLImageUtil>;
 
 // @public (undocumented)
 export class TLImageUtil extends TLBoxUtil<TLImageShape> {
@@ -2279,9 +2254,6 @@ export type TLKeyboardEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLKeyboardEventName = 'key_down' | 'key_repeat' | 'key_up';
-
-// @public (undocumented)
-export const TLLineShapeDef: TLShapeDef<TLLineShape, TLLineUtil>;
 
 // @public (undocumented)
 export class TLLineUtil extends TLShapeUtil<TLLineShape> {
@@ -2330,9 +2302,6 @@ export type TLMark = {
     onUndo: boolean;
     onRedo: boolean;
 };
-
-// @public (undocumented)
-export const TLNoteShapeDef: TLShapeDef<TLNoteShape, TLNoteUtil>;
 
 // @public (undocumented)
 export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
@@ -2478,21 +2447,7 @@ export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
-export interface TLShapeDef<ShapeType extends TLUnknownShape, ShapeUtil extends TLShapeUtil<ShapeType> = TLShapeUtil<ShapeType>> {
-    // (undocumented)
-    readonly createShapeUtils: (app: App) => ShapeUtil;
-    // (undocumented)
-    readonly is: (shape: TLUnknownShape) => shape is ShapeType;
-    // (undocumented)
-    readonly migrations: Migrations;
-    // (undocumented)
-    readonly type: ShapeType['type'];
-    // (undocumented)
-    readonly validator?: StoreValidator<ShapeType>;
-}
-
-// @public (undocumented)
-export abstract class TLShapeUtil<T extends TLUnknownShape> {
+export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     constructor(app: App, type: T['type']);
     // (undocumented)
     app: App;
@@ -2558,6 +2513,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape> {
     transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
+    // (undocumented)
+    static type: string;
 }
 
 // @public (undocumented)
@@ -2568,9 +2525,6 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, ShapeUtil exte
 
 // @public (undocumented)
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
-
-// @public (undocumented)
-export const TLTextShapeDef: TLShapeDef<TLTextShape, TLTextUtil>;
 
 // @public (undocumented)
 export class TLTextUtil extends TLShapeUtil<TLTextShape> {
@@ -2659,12 +2613,6 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
-
-// @public (undocumented)
-export type TLUnknownShapeDef = TLShapeDef<TLUnknownShape, TLShapeUtil<TLUnknownShape>>;
-
-// @public (undocumented)
-export const TLVideoShapeDef: TLShapeDef<TLVideoShape, TLVideoUtil>;
 
 // @public (undocumented)
 export class TLVideoUtil extends TLBoxUtil<TLVideoShape> {

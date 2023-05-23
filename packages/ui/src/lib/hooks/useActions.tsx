@@ -5,11 +5,12 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	getEmbedInfo,
 	openWindow,
-	TLBookmarkShapeDef,
-	TLEmbedShapeDef,
+	TLBookmarkUtil,
+	TLEmbedUtil,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	TLTextUtil,
 	useApp,
 } from '@tldraw/editor'
 import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
@@ -210,19 +211,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-auto-size', { source })
 					app.mark()
 					app.updateShapes(
-						app.selectedShapes
-							.filter((shape) => shape && shape.type === 'text' && shape.props.autoSize === false)
-							.map((shape: TLTextShape) => {
-								return {
-									id: shape.id,
-									type: shape.type,
-									props: {
-										...shape.props,
-										w: 8,
-										autoSize: true,
-									},
-								} as TLTextShape
-							})
+						(
+							app.selectedShapes.filter(
+								(shape) => app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+							) as TLTextShape[]
+						).map((shape) => {
+							return {
+								id: shape.id,
+								type: shape.type,
+								props: {
+									...shape.props,
+									w: 8,
+									autoSize: true,
+								},
+							}
+						})
 					)
 				},
 			},
@@ -239,7 +242,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = app.getShapeById(ids[0])
-					if (!shape || !TLEmbedShapeDef.is(shape)) {
+					if (!shape || !app.isShapeOfType(shape, TLEmbedUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -259,7 +262,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !TLEmbedShapeDef.is(shape) || !shape.props.url) continue
+						if (!shape || !app.isShapeOfType(shape, TLEmbedUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -302,7 +305,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!TLBookmarkShapeDef.is(shape)) continue
+						if (!app.isShapeOfType(shape, TLBookmarkUtil)) continue
 
 						const { url } = shape.props
 

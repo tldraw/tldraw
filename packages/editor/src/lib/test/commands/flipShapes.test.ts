@@ -406,7 +406,7 @@ describe('flipping rotated shapes', () => {
 	const getStartAndEndPoints = (id: TLShapeId) => {
 		const transform = app.getPageTransformById(id)
 		if (!transform) throw new Error('no transform')
-		const arrow = app.getShapeById(id) as TLArrowShape
+		const arrow = app.getShapeById<TLArrowShape>(id)!
 		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')
 			throw new Error('not a point')
 		const start = Matrix2d.applyToPoint(transform, arrow.props.start)
