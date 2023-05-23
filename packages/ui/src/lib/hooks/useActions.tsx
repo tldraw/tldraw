@@ -239,7 +239,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = app.getShapeById(ids[0])
-					if (!shape || !app.isShapeOfType(TLEmbedUtil, shape)) {
+					if (!shape || !app.isShapeOfType(shape, TLEmbedUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -259,7 +259,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !app.isShapeOfType(TLEmbedUtil, shape) || !shape.props.url) continue
+						if (!shape || !app.isShapeOfType(shape, TLEmbedUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -302,7 +302,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!app.isShapeOfType(TLBookmarkUtil, shape)) continue
+						if (!app.isShapeOfType(shape, TLBookmarkUtil)) continue
 
 						const { url } = shape.props
 

@@ -496,13 +496,13 @@ const handleNativeOrMenuCopy = (app: App) => {
 		const textItems = content.shapes
 			.map((shape) => {
 				if (
-					app.isShapeOfType(TLTextUtil, shape) ||
-					app.isShapeOfType(TLGeoUtil, shape) ||
-					app.isShapeOfType(TLArrowUtil, shape)
+					app.isShapeOfType(shape, TLTextUtil) ||
+					app.isShapeOfType(shape, TLGeoUtil) ||
+					app.isShapeOfType(shape, TLArrowUtil)
 				) {
 					return shape.props.text
 				}
-				if (app.isShapeOfType(TLBookmarkUtil, shape) || app.isShapeOfType(TLEmbedUtil, shape)) {
+				if (app.isShapeOfType(shape, TLBookmarkUtil) || app.isShapeOfType(shape, TLEmbedUtil)) {
 					return shape.props.url
 				}
 				return null

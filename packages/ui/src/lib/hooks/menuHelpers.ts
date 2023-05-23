@@ -136,10 +136,10 @@ function shapesWithUnboundArrows(app: App) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (app.isShapeOfType(TLArrowUtil, shape) && shape.props.start.type === 'binding') {
+		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.start.type === 'binding') {
 			return false
 		}
-		if (app.isShapeOfType(TLArrowUtil, shape) && shape.props.end.type === 'binding') {
+		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.end.type === 'binding') {
 			return false
 		}
 		return true

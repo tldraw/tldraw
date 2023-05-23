@@ -38,7 +38,7 @@ export function useExportAs() {
 
 			if (ids.length === 1) {
 				const first = app.getShapeById(ids[0])!
-				if (app.isShapeOfType(TLFrameUtil, first)) {
+				if (app.isShapeOfType(first, TLFrameUtil)) {
 					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')

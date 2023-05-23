@@ -63,7 +63,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(TLEmbedUtil, shape) && shape.props.url
+				return shape && app.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
 			})
 		},
 		[]
@@ -74,7 +74,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(TLBookmarkUtil, shape) && getEmbedInfo(shape.props.url)
+				return shape && app.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
 			})
 		},
 		[]
