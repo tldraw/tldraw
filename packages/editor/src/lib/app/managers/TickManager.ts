@@ -29,6 +29,8 @@ export class TickManager {
 		this.last = now
 		this.t += elapsed
 
+		this.app.emit('frame', elapsed)
+
 		if (this.t < 16) {
 			this.raf = requestAnimationFrame(this.tick)
 			return
