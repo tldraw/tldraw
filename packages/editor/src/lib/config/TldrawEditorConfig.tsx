@@ -1,23 +1,29 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
-	MigrationsForShapes,
+	TLAsset,
+	TLCamera,
 	TLDOCUMENT_ID,
+	TLDocument,
 	TLInstance,
 	TLInstanceId,
+	TLInstancePageState,
 	TLInstancePresence,
+	TLPage,
 	TLRecord,
 	TLShape,
 	TLStore,
 	TLStoreProps,
 	TLUnknownShape,
 	TLUser,
+	TLUserDocument,
 	TLUserId,
-	ValidatorsForShapes,
+	TLUserPresence,
 	arrowShapeTypeMigrations,
 	arrowShapeTypeValidator,
 	bookmarkShapeTypeMigrations,
 	bookmarkShapeTypeValidator,
-	createTLSchema,
+	createIntegrityChecker,
+	defaultDerivePresenceState,
 	drawShapeTypeMigrations,
 	drawShapeTypeValidator,
 	embedShapeTypeMigrations,
@@ -34,6 +40,9 @@ import {
 	lineShapeTypeValidator,
 	noteShapeTypeMigrations,
 	noteShapeTypeValidator,
+	onValidationFailure,
+	rootShapeTypeMigrations,
+	storeMigrations,
 	textShapeTypeMigrations,
 	textShapeTypeValidator,
 	videoShapeTypeMigrations,
@@ -45,6 +54,7 @@ import {
 	Store,
 	StoreSchema,
 	StoreSnapshot,
+	createRecordType,
 	defineMigrations,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
@@ -63,6 +73,15 @@ import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
 import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
+
+/** @public */
+export type ValidatorsForShapes<T extends TLUnknownShape> = Record<
+	T['type'],
+	{ validate: (record: T) => T }
+>
+
+/** @public */
+export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>
 
 type CustomShapeInfo<T extends TLUnknownShape> = {
 	util: TLShapeUtilConstructor<any>
@@ -147,11 +166,50 @@ export class TldrawEditorConfig {
 			this.shapeValidators[type] = shape.validator ?? T.any
 		}
 
-		this.storeSchema = createTLSchema({
-			shapeMigrations: this.shapeMigrations,
-			shapeValidators: this.shapeValidators,
-			derivePresenceState,
+		const shapeTypeMigrations = defineMigrations({
+			currentVersion: rootShapeTypeMigrations.currentVersion,
+			firstVersion: rootShapeTypeMigrations.firstVersion,
+			migrators: rootShapeTypeMigrations.migrators,
+			subTypeKey: 'type',
+			subTypeMigrations: Object.fromEntries(
+				Object.entries(this.shapeMigrations) as [TLShape['type'], Migrations][]
+			),
 		})
+
+		const shapeTypeValidator = T.union(
+			'type',
+			Object.fromEntries(
+				Object.entries(this.shapeValidators) as [TLShape['type'], T.Validator<any>][]
+			)
+		)
+
+		const shapeRecord = createRecordType<TLShape>('shape', {
+			migrations: shapeTypeMigrations,
+			validator: T.model('shape', shapeTypeValidator),
+			scope: 'document',
+		}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
+
+		this.storeSchema = StoreSchema.create<TLRecord, TLStoreProps>(
+			{
+				asset: TLAsset,
+				camera: TLCamera,
+				document: TLDocument,
+				instance: TLInstance,
+				instance_page_state: TLInstancePageState,
+				page: TLPage,
+				shape: shapeRecord,
+				user: TLUser,
+				user_document: TLUserDocument,
+				user_presence: TLUserPresence,
+				instance_presence: TLInstancePresence,
+			},
+			{
+				snapshotMigrations: storeMigrations,
+				onValidationFailure,
+				createIntegrityChecker: createIntegrityChecker,
+				derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
+			}
+		)
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<
 			TLShape,
