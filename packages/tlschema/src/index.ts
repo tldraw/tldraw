@@ -29,7 +29,6 @@ export {
 	type MigrationsForShapes,
 	type ValidatorsForShapes,
 } from './createTLSchema'
-export type { CustomShapeTypeInfo } from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'

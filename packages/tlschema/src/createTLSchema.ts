@@ -1,10 +1,4 @@
-import {
-	Migrations,
-	StoreSchema,
-	StoreValidator,
-	createRecordType,
-	defineMigrations,
-} from '@tldraw/tlstore'
+import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
 import { TLRecord } from './TLRecord'
@@ -37,13 +31,6 @@ export type MigrationsForShapes<T extends TLBaseShape<any, any>> = Record<
 >
 
 /** @public */
-export type CustomShapeTypeInfo = {
-	type: string
-	migrations?: Migrations
-	validator?: StoreValidator<TLShape>
-}
-
-/** @public */
 export function createTLSchema({
 	shapeMigrations,
 	shapeValidators,
@@ -51,7 +38,6 @@ export function createTLSchema({
 }: {
 	shapeValidators: ValidatorsForShapes<TLShape>
 	shapeMigrations: MigrationsForShapes<TLShape>
-	customShapeDefs?: readonly CustomShapeTypeInfo[]
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }) {
 	// Removed check to see whether a shape type has already been defined
@@ -81,7 +67,6 @@ export function createTLSchema({
 	const shapeRecord = createRecordType<TLShape>('shape', {
 		migrations: shapeTypeMigrations,
 		validator: T.model('shape', shapeTypeValidator),
-
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 

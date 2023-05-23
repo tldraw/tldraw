@@ -13,7 +13,6 @@ import { Store } from '@tldraw/tlstore';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSchemaOptions } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
-import { StoreValidator } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
 
 // @internal (undocumented)
@@ -108,7 +107,6 @@ export function createShapeValidator<Type extends string, Props extends object>(
 export function createTLSchema({ shapeMigrations, shapeValidators, derivePresenceState, }: {
     shapeValidators: ValidatorsForShapes<TLShape>;
     shapeMigrations: MigrationsForShapes<TLShape>;
-    customShapeDefs?: readonly CustomShapeTypeInfo[];
     derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
@@ -117,13 +115,6 @@ export const cursorTypeValidator: T.Validator<string>;
 
 // @public (undocumented)
 export const cursorValidator: T.Validator<TLCursor>;
-
-// @public (undocumented)
-export type CustomShapeTypeInfo = {
-    type: string;
-    migrations?: Migrations;
-    validator?: StoreValidator<TLShape>;
-};
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
