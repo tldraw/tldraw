@@ -290,7 +290,6 @@ export class App extends EventEmitter<TLEventMap> {
         new (...args: any[]): TLShapeUtil<any>;
         type: string;
     }>(util: C): InstanceType<C>;
-    // (undocumented)
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;

@@ -939,12 +939,24 @@ export class App extends EventEmitter<TLEventMap> {
 	 * app.getShapeUtil(TLArrowUtil)
 	 * ```
 	 *
-	 * @param type - The shape type.
+	 * @param util - The shape util.
 	 * @public
 	 */
 	getShapeUtil<C extends { new (...args: any[]): TLShapeUtil<any>; type: string }>(
 		util: C
 	): InstanceType<C>
+	/**
+	 * Get a shape util from a shape itself.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * const util app.getShapeUtil(myShae)
+	 * ```
+	 *
+	 * @param shape - A shape or shape partial.
+	 * @public
+	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>
 	getShapeUtil<T extends TLShapeUtil>({
 		type,
@@ -3087,16 +3099,16 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get whether a shape is of a given type.
+	 * Get whether a shape matches the type of a TLShapeUtil.
 	 *
 	 * @example
 	 *
 	 * ```ts
-	 * const isArrowShape = isShapeofType<TLArrowShape>(someShape, "arrow")
+	 * const isArrowShape = isShapeOfType(TLArrowUtil, someShape)
 	 * ```
 	 *
+	 * @param util - the TLShapeUtil constructor to test against
 	 * @param shape - the shape to test
-	 * @param type - the type to expect
 	 *
 	 * @public
 	 */
