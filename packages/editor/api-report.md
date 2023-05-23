@@ -2096,7 +2096,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;
@@ -2125,7 +2125,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             w: number;
             h: number;
