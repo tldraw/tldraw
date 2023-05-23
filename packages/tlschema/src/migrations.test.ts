@@ -704,6 +704,60 @@ describe('Add verticalAlign to props for next shape', () => {
 	})
 })
 
+describe('Migrate GeoShape legacy horizontal alignment', () => {
+	const { up, down } = geoShapeTypeMigrations.migrators[6]
+
+	test('up works as expected', () => {
+		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
+			props: { align: 'start-legacy', type: 'ellipse' },
+		})
+		expect(up({ props: { type: 'ellipse', align: 'middle' } })).toEqual({
+			props: { align: 'middle-legacy', type: 'ellipse' },
+		})
+		expect(up({ props: { type: 'ellipse', align: 'end' } })).toEqual({
+			props: { align: 'end-legacy', type: 'ellipse' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'start', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'middle-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'middle', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'end-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'end', type: 'ellipse' },
+		})
+	})
+})
+
+describe('Migrate NoteShape legacy horizontal alignment', () => {
+	const { up, down } = noteShapeTypeMigrations.migrators[3]
+
+	test('up works as expected', () => {
+		expect(up({ props: { align: 'start', color: 'red' } })).toEqual({
+			props: { align: 'start-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'middle', color: 'red' } })).toEqual({
+			props: { align: 'middle-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'end', color: 'red' } })).toEqual({
+			props: { align: 'end-legacy', color: 'red' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', color: 'red' } })).toEqual({
+			props: { align: 'start', color: 'red' },
+		})
+		expect(down({ props: { align: 'middle-legacy', color: 'red' } })).toEqual({
+			props: { align: 'middle', color: 'red' },
+		})
+		expect(down({ props: { align: 'end-legacy', color: 'red' } })).toEqual({
+			props: { align: 'end', color: 'red' },
+		})
+	})
+})
+
 describe('Removing isReadOnly from user_document', () => {
 	const { up, down } = userDocumentTypeMigrations.migrators[userDocumentVersions.RemoveIsReadOnly]
 	const prev = {
