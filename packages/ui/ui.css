@@ -55,19 +55,6 @@
 	overscroll-behavior: none;
 }
 
-/* --------------------- Cursor ---------------------- */
-
-input,
-*[contenteditable],
-*[contenteditable] *,
-textarea {
-	cursor: var(--tl-cursor-text);
-}
-
-a {
-	cursor: var(--tl-cursor-pointer);
-}
-
 /* ----------------- Helper Buttons ---------------- */
 
 .tlui-helper-buttons {
@@ -123,7 +110,7 @@ a {
 	position: relative;
 	flex-grow: 1;
 	height: 44px;
-	cursor: var(--tl-cursor-pointer);
+	cursor: pointer;
 }
 
 .tlui-slider__track::after {
@@ -148,7 +135,7 @@ a {
 
 .tlui-slider__thumb {
 	all: unset;
-	cursor: var(--tl-cursor-grab);
+	cursor: grab;
 	display: block;
 	width: 18px;
 	height: 18px;
@@ -160,7 +147,7 @@ a {
 }
 
 .tlui-slider__thumb:active {
-	cursor: var(--tl-cursor-grabbing);
+	cursor: grabbing;
 	box-shadow: inset 0px 0px 0px 2px var(--color-text-2), var(--shadow-1);
 }
 
@@ -213,7 +200,7 @@ a {
 	font-weight: inherit;
 	color: var(--color-text-1);
 	padding: 0px 13px;
-	cursor: var(--tl-cursor-pointer);
+	cursor: pointer;
 	border: none;
 	outline: none;
 	user-select: none;
@@ -253,7 +240,7 @@ a {
 }
 
 .tlui-button:disabled {
-	cursor: var(--tl-cursor-default);
+	cursor: default;
 	color: var(--color-text-3);
 }
 
@@ -654,7 +641,7 @@ a {
 }
 
 .tlui-prompt__content {
-	cursor: var(--tl-cursor-default);
+	cursor: default;
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	border-radius: var(--radius-4);
@@ -709,7 +696,7 @@ a {
 	display: flex;
 	flex-direction: column;
 	position: relative;
-	cursor: var(--tl-cursor-default);
+	cursor: default;
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	border-radius: var(--radius-4);
@@ -1432,7 +1419,7 @@ a {
 .tlui-share-zone__qr-code {
 	width: 200px;
 	height: 200px;
-	cursor: var(--tl-cursor-pointer);
+	cursor: pointer;
 	background: none;
 	background-color: var(--color-muted-2);
 	background-size: cover;
@@ -1884,14 +1871,14 @@ a {
 	touch-action: none;
 	width: 32px;
 	height: 40px;
-	cursor: var(--tl-cursor-grab);
+	cursor: grab;
 	color: var(--color-text-3);
 	flex-shrink: 0;
 	margin-right: -9px;
 }
 
 .tlui-page_menu__item__sortable__handle:active {
-	cursor: var(--tl-cursor-grabbing);
+	cursor: grabbing;
 }
 
 .tlui-page-menu__item__input {
@@ -1906,7 +1893,7 @@ a {
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
 	flex: 0;
-	cursor: var(--tl-cursor-pointer);
+	cursor: pointer;
 	margin: 0px;
 	display: none;
 }
@@ -1970,7 +1957,7 @@ a {
 	display: flex;
 	text-align: left;
 	gap: var(--space-3);
-	cursor: var(--tl-cursor-pointer);
+	cursor: pointer;
 	padding: 0;
 	align-items: center;
 	color: var(--color-text);

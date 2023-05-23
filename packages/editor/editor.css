@@ -846,6 +846,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	overflow: hidden;
+	cursor: var(--tl-cursor-text);
 }
 
 .tl-text-input::selection {
@@ -956,6 +957,7 @@ input,
 	text-overflow: ellipsis;
 	text-decoration: none;
 	color: var(--color-text-2);
+	cursor: var(--tl-cursor-pointer);
 }
 
 .tl-bookmark__link:hover {
@@ -1375,6 +1377,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	white-space: pre;
+	cursor: var(--tl-cursor-text);
 }
 
 /* If mobile use 16px as font size */
