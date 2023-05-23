@@ -2,7 +2,7 @@ import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -142,21 +142,16 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			overflow: 'wrap' as const,
+			offsetX: 0,
 		}
 
-		const lines = this.app.textMeasure.getTextLines({
-			text: shape.props.text,
-			wrap: true,
-			...opts,
-		})
+		const spans = this.app.textMeasure.measureTextSpans(shape.props.text, opts)
 
-		opts.padding = PADDING
 		opts.width = bounds.width
+		opts.padding = PADDING
 
-		const textElm = getTextSvgElement(this.app, {
-			lines,
-			...opts,
-		})
+		const textElm = createTextSvgElementFromSpans(this.app, spans, opts)
 		textElm.setAttribute('fill', colors.text)
 		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
 		g.appendChild(textElm)
@@ -204,9 +199,8 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
-	const nextTextSize = app.textMeasure.measureText({
+	const nextTextSize = app.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
-		text: shape.props.text,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: NOTE_SIZE - PADDING * 2 + 'px',

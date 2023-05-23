@@ -72,17 +72,19 @@ export class TestApp extends App {
 		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
-		this.textMeasure.measureText = (opts: {
-			text: string
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			width: string
-			maxWidth: string
-		}): Box2dModel => {
-			const breaks = opts.text.split('\n')
+		this.textMeasure.measureText = (
+			textToMeasure: string,
+			opts: {
+				fontStyle: string
+				fontWeight: string
+				fontFamily: string
+				fontSize: number
+				lineHeight: number
+				width: string
+				maxWidth: string
+			}
+		): Box2dModel => {
+			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
 			}, '')
@@ -98,6 +100,16 @@ export class TestApp extends App {
 						? Math.ceil(w % +opts.width.replace('px', '')) + breaks.length
 						: breaks.length) * opts.fontSize,
 			}
+		}
+
+		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
+			const box = this.textMeasure.measureText(textToMeasure, {
+				...opts,
+				width: `${opts.width}px`,
+				padding: `${opts.padding}px`,
+				maxWidth: 'auto',
+			})
+			return [{ box, text: textToMeasure }]
 		}
 	}
 

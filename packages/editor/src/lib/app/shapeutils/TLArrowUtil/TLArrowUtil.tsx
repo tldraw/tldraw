@@ -26,8 +26,8 @@ import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import {
@@ -842,9 +842,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (!info) return null
 			if (!text.trim()) return null
 
-			const { w, h } = this.app.textMeasure.measureText({
+			const { w, h } = this.app.textMeasure.measureText(text, {
 				...TEXT_PROPS,
-				text,
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: ARROW_LABEL_FONT_SIZES[size],
 				width: 'fit-content',
@@ -856,9 +855,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (bounds.width > bounds.height) {
 				width = Math.max(Math.min(w, 64), Math.min(bounds.width - 64, w))
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText({
+				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
 					...TEXT_PROPS,
-					text,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
 					width: width + 'px',
@@ -871,9 +869,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (width > 16 * ARROW_LABEL_FONT_SIZES[size]) {
 				width = 16 * ARROW_LABEL_FONT_SIZES[size]
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText({
+				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
 					...TEXT_PROPS,
-					text,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
 					width: width + 'px',
@@ -1050,26 +1047,19 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				fontFamily: font,
 				padding: 0,
 				textAlign: 'middle' as const,
+				width: labelSize.w - 8,
 				verticalTextAlign: 'middle' as const,
-				width: labelSize.w,
 				height: labelSize.h,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
+				overflow: 'wrap' as const,
 			}
 
-			const lines = this.app.textMeasure.getTextLines({
-				text: shape.props.text,
-				wrap: true,
-				...opts,
-				width: labelSize.w - 8,
-			})
-
-			const textElm = getTextSvgElement(this.app, {
-				lines,
-				...opts,
-				width: labelSize.w - 8,
-			})
-
+			const textElm = createTextSvgElementFromSpans(
+				this.app,
+				this.app.textMeasure.measureTextSpans(shape.props.text, opts),
+				opts
+			)
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
 
 			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]

@@ -85,9 +85,8 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
-	const rawSize = app.textMeasure.measureText({
+	const rawSize = app.textMeasure.measureText(textToPaste, {
 		...TEXT_PROPS,
-		text: textToPaste,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
 		width: 'fit-content',
@@ -99,9 +98,8 @@ export async function pastePlainText(app: App, text: string, point?: VecLike) {
 	)
 
 	if (rawSize.w > minWidth) {
-		const shrunkSize = app.textMeasure.measureText({
+		const shrunkSize = app.textMeasure.measureText(textToPaste, {
 			...TEXT_PROPS,
-			text: textToPaste,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
 			fontSize: FONT_SIZES[defaultProps.size],
 			width: minWidth + 'px',

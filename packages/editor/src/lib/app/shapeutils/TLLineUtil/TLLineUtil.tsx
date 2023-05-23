@@ -334,7 +334,6 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	}
 }
 
-/** @public */
 export function getSplineForLineShape(shape: TLLineShape) {
 	return splinesCache.get(shape.props, () => {
 		const { spline, handles } = shape.props
