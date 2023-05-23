@@ -1,7 +1,7 @@
 /** @public */
 export type ID<R extends UnknownRecord> = string & { __type__: R }
 
-/** @internal */
+/** @public */
 export type IdOf<R extends UnknownRecord> = R['id']
 
 /**
@@ -14,7 +14,7 @@ export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord
 	readonly typeName: TypeName
 }
 
-/** @internal */
+/** @public */
 export type UnknownRecord = BaseRecord<string, ID<UnknownRecord>>
 
 export type OmitMeta<R extends UnknownRecord> = R extends R ? Omit<R, 'id' | 'typeName'> : R
