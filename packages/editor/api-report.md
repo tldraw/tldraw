@@ -636,6 +636,7 @@ export const debugFlags: {
     peopleMenu: Atom<boolean, unknown>;
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
+    debugCursors: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)

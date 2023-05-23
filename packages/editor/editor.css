@@ -24,7 +24,32 @@
 	--layer-canvas: 200;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-cursor: default;
+
+	/* These cursor values get programmatically overridden */
+	/* They're just here to help your editor autocomplete */
+	--tl-cursor: var(--tl-cursor-default);
+	--tl-cursor-none: none;
+	--tl-cursor-default: default;
+	--tl-cursor-pointer: pointer;
+	--tl-cursor-cross: crosshair;
+	--tl-cursor-move: move;
+	--tl-cursor-grab: grab;
+	--tl-cursor-grabbing: grabbing;
+	--tl-cursor-text: text;
+	--tl-cursor-resize-edge: ew-resize;
+	--tl-cursor-resize-corner: nesw-resize;
+	--tl-cursor-ew-resize: ew-resize;
+	--tl-cursor-ns-resize: ns-resize;
+	--tl-cursor-nesw-resize: nesw-resize;
+	--tl-cursor-nwse-resize: nwse-resize;
+	--tl-cursor-rotate: pointer;
+	--tl-cursor-nwse-rotate: pointer;
+	--tl-cursor-nesw-rotate: pointer;
+	--tl-cursor-senw-rotate: pointer;
+	--tl-cursor-swne-rotate: pointer;
+	--tl-cursor-zoom-in: zoom-in;
+	--tl-cursor-zoom-out: zoom-out;
+
 	--tl-scale: calc(1 / var(--tl-zoom));
 	--tl-font-draw: 'tldraw_draw', sans-serif;
 	--tl-font-sans: 'tldraw_sans', sans-serif;
@@ -523,7 +548,7 @@ input,
 .tl-mobile-rotate__bg {
 	pointer-events: all;
 	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 }
 
 .tl-mobile-rotate__fg {
@@ -548,7 +573,7 @@ input,
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
-	cursor: grab;
+	cursor: var(--tl-cursor-grabbing);
 	r: calc(12px / var(--tl-zoom));
 }
 
@@ -565,7 +590,7 @@ input,
 }
 
 .tl-handle__bg:hover {
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 	fill: var(--color-selection-fill);
 }
 
@@ -821,6 +846,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	overflow: hidden;
+	cursor: var(--tl-cursor-text);
 }
 
 .tl-text-input::selection {
@@ -926,12 +952,12 @@ input,
 	pointer-events: all;
 	z-index: 999;
 	overflow: hidden;
-	cursor: pointer;
 	display: block;
 	color: var(--color-text);
 	text-overflow: ellipsis;
 	text-decoration: none;
 	color: var(--color-text-2);
+	cursor: var(--tl-cursor-pointer);
 }
 
 .tl-bookmark__link:hover {
@@ -956,7 +982,7 @@ input,
 	font-weight: 400;
 	color: var(--color-text-1);
 	padding: 13px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	border: none;
 	outline: none;
 	pointer-events: all;
@@ -1351,6 +1377,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	white-space: pre;
+	cursor: var(--tl-cursor-text);
 }
 
 /* If mobile use 16px as font size */
@@ -1378,7 +1405,7 @@ input,
 	border-radius: var(--radius-2);
 	box-shadow: var(--shadow-1);
 	pointer-events: all;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	outline: none;
 	display: flex;
 }
@@ -1526,7 +1553,7 @@ it from receiving any pointer events or affecting the cursor. */
 	font-weight: 500;
 	padding: var(--space-4);
 	border-radius: var(--radius-3);
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	color: inherit;
 	background-color: transparent;
 }
