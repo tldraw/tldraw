@@ -8,9 +8,9 @@ import {
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
+import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { ROTATING_SHADOWS } from '../../../constants'
-import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { rotateBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
@@ -81,8 +81,6 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
 
-		const { Spinner } = useEditorComponents()
-
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
 			() => {
@@ -147,11 +145,11 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 							background: embedInfo?.definition.backgroundColor,
 						}}
 					/>
-				) : Spinner ? (
+				) : (
 					<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-						<Spinner />
+						<DefaultSpinner />
 					</g>
-				) : null}
+				)}
 			</HTMLContainer>
 		)
 	}

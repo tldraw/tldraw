@@ -4,8 +4,8 @@ import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { useValue } from 'signia-react'
+import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsCropping } from '../../../hooks/useIsCropping'
 import { usePrefersReducedMotion } from '../../../utils/dom'
 import { TLBoxUtil } from '../TLBoxUtil'
@@ -71,7 +71,6 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 		const isCropping = useIsCropping(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
-		const { Spinner } = useEditorComponents()
 
 		const { w, h } = shape.props
 		const asset = shape.props.assetId ? this.app.getAssetById(shape.props.assetId) : undefined
@@ -142,11 +141,11 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 								}}
 								draggable={false}
 							/>
-						) : Spinner ? (
+						) : (
 							<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-								<Spinner />
+								<DefaultSpinner />
 							</g>
-						) : null}
+						)}
 						{asset?.props.isAnimated && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}

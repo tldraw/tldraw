@@ -2,8 +2,8 @@ import { toDomPrecision } from '@tldraw/primitives'
 import { TLVideoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { track } from 'signia-react'
+import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useEditorComponents } from '../../../hooks/useEditorComponents'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { usePrefersReducedMotion } from '../../../utils/dom'
 import { TLBoxUtil } from '../TLBoxUtil'
@@ -65,7 +65,6 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 	shape: TLVideoShape
 	videoUtil: TLVideoUtil
 }) {
-	const { Spinner } = useEditorComponents()
 	const { shape, videoUtil } = props
 	const showControls = videoUtil.app.getBounds(shape).w * videoUtil.app.zoomLevel >= 110
 	const asset = shape.props.assetId ? videoUtil.app.getAssetById(shape.props.assetId) : null
@@ -193,11 +192,11 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 						>
 							<source src={asset.props.src} />
 						</video>
-					) : Spinner ? (
+					) : (
 						<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-							<Spinner />
+							<DefaultSpinner />
 						</g>
-					) : null}
+					)}
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && (
