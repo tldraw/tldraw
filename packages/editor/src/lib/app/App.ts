@@ -52,7 +52,6 @@ import {
 	TLShapeType,
 	TLSizeStyle,
 	TLStore,
-	TLTextShape,
 	TLUnknownShape,
 	TLUser,
 	TLUserDocument,
@@ -125,7 +124,10 @@ import {
 	getIsArrowStraight,
 } from './shapeutils/TLArrowUtil/arrow/shared'
 import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
+import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
+import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
+import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
@@ -237,7 +239,7 @@ export class App extends EventEmitter<TLEventMap> {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
-			if (record.typeName === 'shape' && this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
+			if (record.typeName === 'shape' && this.isShapeOfType(TLArrowUtil, record)) {
 				this._arrowDidUpdate(record)
 			}
 		}
@@ -677,7 +679,7 @@ export class App extends EventEmitter<TLEventMap> {
 			if (!pageTransform) return new Box2d()
 
 			const result = Box2d.FromPoints(
-				Matrix2d.applyToPoints(pageTransform, this.getShapeUtil(shape.type).outline(shape))
+				Matrix2d.applyToPoints(pageTransform, this.getShapeUtil(shape).outline(shape))
 			)
 
 			return result
@@ -934,13 +936,33 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * app.getShapeUtil<TLArrowUtil>('arrow')
+	 * app.getShapeUtil(TLArrowUtil)
 	 * ```
 	 *
-	 * @param type - The shape type.
+	 * @param util - The shape util.
 	 * @public
 	 */
-	getShapeUtil<T = TLShapeUtil>(type: T extends TLShapeUtil<infer R> ? R['type'] : string): T {
+	getShapeUtil<C extends { new (...args: any[]): TLShapeUtil<any>; type: string }>(
+		util: C
+	): InstanceType<C>
+	/**
+	 * Get a shape util from a shape itself.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * const util app.getShapeUtil(myShae)
+	 * ```
+	 *
+	 * @param shape - A shape or shape partial.
+	 * @public
+	 */
+	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>
+	getShapeUtil<T extends TLShapeUtil>({
+		type,
+	}: {
+		type: T extends TLShapeUtil<infer R> ? R['type'] : string
+	}): T {
 		return this.shapeUtils[type] as T
 	}
 
@@ -1165,7 +1187,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const parent = this.getShapeById(parentId)
 			if (!parent) continue
 
-			const util = this.getShapeUtil(parent.type)
+			const util = this.getShapeUtil(parent)
 			const changes = util.onChildrenChange?.(parent)
 
 			if (changes?.length) {
@@ -1379,7 +1401,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _shapeDidChange(prev: TLShape, next: TLShape) {
-		if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
+		if (this.isShapeOfType(TLArrowUtil, next)) {
 			this._arrowDidUpdate(next)
 		}
 
@@ -1777,7 +1799,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getTransform(shape: TLShape) {
-		const util = this.getShapeUtil(shape.type)
+		const util = this.getShapeUtil(shape)
 		return util.transform(shape)
 	}
 
@@ -1865,7 +1887,7 @@ export class App extends EventEmitter<TLEventMap> {
 	getPageCenter(shape: TLShape) {
 		const pageTransform = this.getPageTransformById(shape.id)
 		if (!pageTransform) return null
-		const util = this.getShapeUtil(shape.type)
+		const util = this.getShapeUtil(shape)
 		const center = util.center(shape)
 		return Matrix2d.applyToPoint(pageTransform, center)
 	}
@@ -1929,7 +1951,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getBounds(shape: TLShape): Box2d {
-		return this.getShapeUtil(shape.type).bounds(shape)
+		return this.getShapeUtil(shape).bounds(shape)
 	}
 
 	/**
@@ -2039,7 +2061,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getOutline(shape: TLShape) {
-		return this.getShapeUtil(shape.type).outline(shape)
+		return this.getShapeUtil(shape).outline(shape)
 	}
 
 	/**
@@ -2326,7 +2348,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isPointInShape(point: VecLike, shape: TLShape): boolean {
-		const util = this.getShapeUtil(shape.type)
+		const util = this.getShapeUtil(shape)
 
 		const pageMask = this._pageMaskCache.get(shape.id)
 
@@ -2359,10 +2381,7 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 
 			// Otherwise, use the shape's own hit test method
-			return this.getShapeUtil(shape.type).hitTestPoint(
-				shape,
-				this.getPointInShapeSpace(shape, point)
-			)
+			return this.getShapeUtil(shape).hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
 		})
 	}
 
@@ -2793,7 +2812,7 @@ export class App extends EventEmitter<TLEventMap> {
 		} else {
 			if (id !== this.editingId) {
 				const shape = this.getShapeById(id)!
-				const util = this.getShapeUtil(shape.type)
+				const util = this.getShapeUtil(shape)
 				if (shape && util.canEdit(shape)) {
 					this.setInstancePageState({ editingId: id, hoveredId: null }, false)
 					const { viewportPageBounds } = this
@@ -2834,7 +2853,7 @@ export class App extends EventEmitter<TLEventMap> {
 				}
 			} else {
 				const shape = this.getShapeById(id)!
-				const util = this.getShapeUtil(shape.type)
+				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
 					this.setInstancePageState({ croppingId: id, hoveredId: null })
 				}
@@ -2848,7 +2867,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
-			const util = this.getShapeUtil(shape.type)
+			const util = this.getShapeUtil(shape)
 			if (!util.canReceiveNewChildrenOfType(shapeType)) continue
 			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
 			if (
@@ -2870,7 +2889,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const shape = shapes[i]
 			// don't allow dropping a shape on itself or one of it's children
 			if (droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))) continue
-			const util = this.getShapeUtil(shape.type)
+			const util = this.getShapeUtil(shape)
 			if (!util.canDropShapes(shape, droppingShapes)) continue
 			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
 			if (
@@ -3081,21 +3100,24 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get whether a shape is of a given type.
+	 * Get whether a shape matches the type of a TLShapeUtil.
 	 *
 	 * @example
 	 *
 	 * ```ts
-	 * const isArrowShape = isShapeofType<TLArrowShape>(someShape, "arrow")
+	 * const isArrowShape = isShapeOfType(TLArrowUtil, someShape)
 	 * ```
 	 *
+	 * @param util - the TLShapeUtil constructor to test against
 	 * @param shape - the shape to test
-	 * @param type - the type to expect
 	 *
 	 * @public
 	 */
-	isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is T {
-		return type === shape.type
+	isShapeOfType<T extends TLUnknownShape>(
+		util: { new (...args: any): TLShapeUtil<T>; type: string },
+		shape: TLUnknownShape
+	): shape is T {
+		return shape.type === util.type
 	}
 
 	/**
@@ -4040,14 +4062,14 @@ export class App extends EventEmitter<TLEventMap> {
 
 			shape = structuredClone(shape) as typeof shape
 
-			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, shape)) {
 				const startBindingId =
 					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
 
 				const endBindingId =
 					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
 
-				const info = this.getShapeUtil<TLArrowUtil>(shape.type).getArrowInfo(shape)
+				const info = this.getShapeUtil(TLArrowUtil).getArrowInfo(shape)
 
 				if (shape.props.start.type === 'binding') {
 					if (!shapes.some((s) => s.id === startBindingId)) {
@@ -4223,8 +4245,8 @@ export class App extends EventEmitter<TLEventMap> {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
 						if (
-							this.isShapeOfType<TLFrameShape>(parent, 'frame') &&
-							this.isShapeOfType<TLFrameShape>(rootShape, 'frame') &&
+							this.isShapeOfType(TLFrameUtil, parent) &&
+							this.isShapeOfType(TLFrameUtil, rootShape) &&
 							rootShape.props.w === parent?.props.w &&
 							rootShape.props.h === parent?.props.h
 						) {
@@ -4280,7 +4302,7 @@ export class App extends EventEmitter<TLEventMap> {
 				index = getIndexAbove(index)
 			}
 
-			if (this.isShapeOfType<TLArrowShape>(newShape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, newShape)) {
 				if (newShape.props.start.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.start.boundShapeId)
 					newShape.props.start = mappedId
@@ -4413,7 +4435,7 @@ export class App extends EventEmitter<TLEventMap> {
 				if (!TLPage.isId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShapeById(pasteParentId)!
-					const util = this.getShapeUtil(shape.type)
+					const util = this.getShapeUtil(shape)
 					point = util.center(shape)
 				} else {
 					const { viewportPageBounds } = this
@@ -4435,7 +4457,7 @@ export class App extends EventEmitter<TLEventMap> {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+								this.isShapeOfType(TLFrameUtil, shape) &&
 								shape.props.w === onlyRoot.props.w &&
 								shape.props.h === onlyRoot.props.h
 						)
@@ -4589,7 +4611,7 @@ export class App extends EventEmitter<TLEventMap> {
 				const shapeRecordsToCreate: TLShape[] = []
 
 				for (const partial of partials) {
-					const util = this.getShapeUtil(partial.type)
+					const util = this.getShapeUtil(partial)
 
 					// If an index is not explicitly provided, then add the
 					// shapes to the top of their parents' children; using the
@@ -4633,9 +4655,7 @@ export class App extends EventEmitter<TLEventMap> {
 						throw Error('no index!')
 					}
 
-					const next = this.getShapeUtil(shapeRecordToCreate.type).onBeforeCreate?.(
-						shapeRecordToCreate
-					)
+					const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
 
 					if (next) {
 						shapeRecordToCreate = next
@@ -4869,7 +4889,7 @@ export class App extends EventEmitter<TLEventMap> {
 					const shape = result[i]
 					const current = this.store.get(shape.id)
 					if (!current) continue
-					const next = this.getShapeUtil(shape.type).onBeforeUpdate?.(current, shape)
+					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
 					if (next) {
 						result[i] = next
 					}
@@ -5697,7 +5717,7 @@ export class App extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			const util = this.getShapeUtil(shape.type)
+			const util = this.getShapeUtil(shape)
 
 			let utilSvgElement = await util.toSvg?.(shape, font, colors)
 
@@ -6170,7 +6190,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			for (const shape of shapes) {
-				const util = this.getShapeUtil(shape.type)
+				const util = this.getShapeUtil(shape)
 				const bounds = util.bounds(shape)
 				const initialPageTransform = this.getPageTransformById(shape.id)
 				if (!initialPageTransform) continue
@@ -6218,7 +6238,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const shapes = compact(ids.map((id) => this.getShapeById(id))).filter((shape) => {
 			if (!shape) return false
 
-			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, shape)) {
 				if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 					return false
 				}
@@ -6311,7 +6331,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const parent = this.getParentShape(shape)
 			const localDelta = parent ? Vec2d.Rot(delta, -this.getPageRotation(parent)) : delta
 
-			const translateStartChanges = this.getShapeUtil(shape.type).onTranslateStart?.(shape)
+			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
 			changes.push(
 				translateStartChanges
@@ -6350,7 +6370,7 @@ export class App extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					if (this.isShapeOfType(TLArrowUtil, shape)) {
 						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 							return false
 						}
@@ -6463,7 +6483,7 @@ export class App extends EventEmitter<TLEventMap> {
 				y: shape.y + delta.y,
 			}
 
-			const translateStartChange = this.getShapeUtil(shape.type).onTranslateStart?.({
+			const translateStartChange = this.getShapeUtil(shape).onTranslateStart?.({
 				...shape,
 				...change,
 			})
@@ -6547,7 +6567,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const parent = this.getParentShape(shape)
 			const localDelta = parent ? Vec2d.Rot(delta, -this.getPageRotation(parent)) : delta
 
-			const translateChanges = this.getShapeUtil(shape.type).onTranslateStart?.(shape)
+			const translateChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
 			changes.push(
 				translateChanges
@@ -6634,7 +6654,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 				const parent = this.getParentShape(shape)
 				const localDelta = parent ? Vec2d.Rot(delta, -this.getPageRotation(parent)) : delta
-				const translateStartChanges = this.getShapeUtil(shape.type).onTranslateStart?.(shape)
+				const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
 				changes.push(
 					translateStartChanges
@@ -6799,7 +6819,7 @@ export class App extends EventEmitter<TLEventMap> {
 			})
 		}
 
-		const util = this.getShapeUtil(initialShape.type)
+		const util = this.getShapeUtil(initialShape)
 
 		if (util.isAspectRatioLocked(initialShape)) {
 			if (Math.abs(scale.x) > Math.abs(scale.y)) {
@@ -7481,7 +7501,7 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 
 			const localDelta = this.getDeltaInParentSpace(shape, steppedDelta)
-			const translateStartChanges = this.getShapeUtil(shape.type).onTranslateStart?.(shape)
+			const translateStartChanges = this.getShapeUtil(shape).onTranslateStart?.(shape)
 
 			changes.push(
 				translateStartChanges
@@ -7571,11 +7591,8 @@ export class App extends EventEmitter<TLEventMap> {
 
 				let newShape: TLShape = deepCopy(shape)
 
-				if (
-					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-					this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
-				) {
-					const info = this.getShapeUtil<TLArrowUtil>(shape.type).getArrowInfo(shape)
+				if (this.isShapeOfType(TLArrowUtil, shape) && this.isShapeOfType(TLArrowUtil, newShape)) {
+					const info = this.getShapeUtil(TLArrowUtil).getArrowInfo(shape)
 					let newStartShapeId: TLShapeId | undefined = undefined
 					let newEndShapeId: TLShapeId | undefined = undefined
 
@@ -7785,7 +7802,7 @@ export class App extends EventEmitter<TLEventMap> {
 						for (const shape of shapes) {
 							const currentShape = this.getShapeById(shape.id)
 							if (!currentShape) continue
-							const util = this.getShapeUtil(currentShape.type)
+							const util = this.getShapeUtil(currentShape)
 
 							const boundsA = util.bounds(shape)
 							const boundsB = util.bounds(currentShape)
@@ -7797,7 +7814,7 @@ export class App extends EventEmitter<TLEventMap> {
 							if (boundsA.width !== boundsB.width) {
 								didChange = true
 
-								if (this.isShapeOfType<TLTextShape>(shape, 'text')) {
+								if (this.isShapeOfType(TLTextUtil, shape)) {
 									switch (shape.props.align) {
 										case 'middle': {
 											change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
@@ -8855,7 +8872,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapes.forEach((shape) => {
-			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (this.isShapeOfType(TLGroupUtil, shape)) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)

@@ -155,7 +155,7 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-				const util = this.app.getShapeUtil(shape.type)
+				const util = this.app.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.app.isReadOnly) break
@@ -189,7 +189,7 @@ export class Idle extends StateNode {
 				if (this.app.isReadOnly) break
 				const { shape, handle } = info
 
-				const util = this.app.getShapeUtil(shape.type)
+				const util = this.app.getShapeUtil(shape)
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {

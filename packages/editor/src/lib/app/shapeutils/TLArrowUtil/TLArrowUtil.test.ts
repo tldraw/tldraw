@@ -2,6 +2,7 @@ import { TAU } from '@tldraw/primitives'
 import { createCustomShapeId, TLArrowShape, TLArrowTerminal, TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { TestApp } from '../../../test/TestApp'
+import { TLArrowUtil } from './TLArrowUtil'
 
 let app: TestApp
 
@@ -298,7 +299,7 @@ describe('Other cases when arrow are moved', () => {
 
 		app.setSelectedTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
+		assert(app.isShapeOfType(TLArrowUtil, arrow))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 
@@ -307,7 +308,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// arrow should still be bound to box3
 		arrow = app.getShapeById(arrow.id)!
-		assert(app.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
+		assert(app.isShapeOfType(TLArrowUtil, arrow))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 	})

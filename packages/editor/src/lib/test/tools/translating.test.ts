@@ -393,7 +393,7 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 		const shapeD = app.getShapeById(ids.boxD)!
 
 		expect(app.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
-		expect(app.getShapeUtil(shapeD.type).center(shapeD)).toMatchObject(new Vec2d(5, 5))
+		expect(app.getShapeUtil(shapeD).center(shapeD)).toMatchObject(new Vec2d(5, 5))
 		expect(app.getPageCenter(shapeD)).toMatchObject(new Vec2d(35, 35))
 
 		const rads = 0

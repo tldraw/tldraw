@@ -1671,7 +1671,7 @@ describe('moving handles within a group', () => {
 			target: 'handle',
 			shape: arrow,
 			handle: app
-				.getShapeUtil<TLArrowUtil>('arrow')
+				.getShapeUtil(TLArrowUtil)
 				.handles(arrow)
 				.find((h) => h.id === 'end'),
 		})
@@ -1890,7 +1890,7 @@ describe('Group opacity', () => {
 		app.setProp('opacity', '0.5')
 		app.groupShapes()
 		const group = app.getShapeById(onlySelectedId())!
-		assert(app.isShapeOfType<TLGroupShape>(group, 'group'))
+		assert(app.isShapeOfType(TLGroupUtil, group))
 		expect(group.props.opacity).toBe('1')
 	})
 })

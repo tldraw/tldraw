@@ -33,7 +33,7 @@ export class Pointing extends StateNode {
 
 		// if user is holding shift then we are adding points to an existing line
 		if (inputs.shiftKey && shapeExists) {
-			const handles = this.app.getShapeUtil(this.shape.type).handles(this.shape)
+			const handles = this.app.getShapeUtil(this.shape).handles(this.shape)
 
 			const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
 			const endHandle = vertexHandles[vertexHandles.length - 1]
@@ -100,7 +100,7 @@ export class Pointing extends StateNode {
 		if (!this.shape) return
 
 		if (this.app.inputs.isDragging) {
-			const util = this.app.getShapeUtil(this.shape.type)
+			const util = this.app.getShapeUtil(this.shape)
 			const handles = util.handles?.(this.shape)
 			if (!handles) {
 				this.app.bailToMark('creating')

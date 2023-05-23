@@ -85,7 +85,7 @@ export const Shape = track(function Shape({
 			if (!elm) return
 			if (!shape) return null
 
-			const util = app.getShapeUtil(shape.type)
+			const util = app.getShapeUtil(shape)
 			const bounds = util.bounds(shape)
 			elm.style.setProperty('width', Math.ceil(bounds.width) + 'px')
 			elm.style.setProperty('height', Math.ceil(bounds.height) + 'px')
@@ -105,7 +105,7 @@ export const Shape = track(function Shape({
 
 	if (!shape) return null
 
-	const util = app.getShapeUtil(shape.type)
+	const util = app.getShapeUtil(shape)
 
 	return (
 		<div

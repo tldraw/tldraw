@@ -105,7 +105,7 @@ export const SelectionBg = track(function SelectionBg() {
 		if (!shape) {
 			return null
 		}
-		const util = app.getShapeUtil(shape.type)
+		const util = app.getShapeUtil(shape)
 		if (util.hideSelectionBoundsBg(shape)) {
 			return null
 		}

@@ -287,7 +287,11 @@ export class App extends EventEmitter<TLEventMap> {
     getShapesAndDescendantsInOrder(ids: TLShapeId[]): TLShape[];
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapesInPage(pageId: TLPageId): TLShape[];
-    getShapeUtil<T = TLShapeUtil>(type: T extends TLShapeUtil<infer R> ? R['type'] : string): T;
+    getShapeUtil<C extends {
+        new (...args: any[]): TLShapeUtil<any>;
+        type: string;
+    }>(util: C): InstanceType<C>;
+    getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     getStrokeWidth(id: TLSizeStyle['id']): number;
@@ -359,7 +363,10 @@ export class App extends EventEmitter<TLEventMap> {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
-    isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is T;
+    isShapeOfType<T extends TLUnknownShape>(util: {
+        new (...args: any): TLShapeUtil<T>;
+        type: string;
+    }, shape: TLUnknownShape): shape is T;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)
