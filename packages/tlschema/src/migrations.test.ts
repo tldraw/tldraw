@@ -711,10 +711,10 @@ describe('Migrate GeoShape legacy horizontal alignment', () => {
 		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
 			props: { align: 'start-legacy', type: 'ellipse' },
 		})
-		expect(up({ props: { type: 'ellipse', align: 'middle' } })).toEqual({
+		expect(up({ props: { align: 'middle', type: 'ellipse' } })).toEqual({
 			props: { align: 'middle-legacy', type: 'ellipse' },
 		})
-		expect(up({ props: { type: 'ellipse', align: 'end' } })).toEqual({
+		expect(up({ props: { align: 'end', type: 'ellipse' } })).toEqual({
 			props: { align: 'end-legacy', type: 'ellipse' },
 		})
 	})
