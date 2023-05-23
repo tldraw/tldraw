@@ -951,7 +951,9 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * const util app.getShapeUtil(myShae)
+	 * const util = app.getShapeUtil(myShape)
+	 * const util = app.getShapeUtil<TLArrowUtil>(myShape)
+	 * const util = app.getShapeUtil(TLArrowUtil)
 	 * ```
 	 *
 	 * @param shape - A shape or shape partial.
