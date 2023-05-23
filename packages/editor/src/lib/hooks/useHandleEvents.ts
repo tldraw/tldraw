@@ -7,7 +7,7 @@ import { useApp } from './useApp'
 
 function getHandle(app: App, id: TLShapeId, handleId: string) {
 	const shape = app.getShapeById<TLArrowShape | TLLineShape>(id)!
-	const util = app.getShapeUtil(shape.type)
+	const util = app.getShapeUtil(shape)
 	const handles = util.handles(shape)
 	return { shape, handle: handles.find((h) => h.id === handleId) }
 }

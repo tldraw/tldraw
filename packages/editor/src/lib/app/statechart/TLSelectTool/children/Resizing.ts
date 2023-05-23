@@ -116,7 +116,7 @@ export class Resizing extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const change = util.onResizeStart?.(shape)
 			if (change) {
 				changes.push(change)
@@ -135,7 +135,7 @@ export class Resizing extends StateNode {
 
 		shapeSnapshots.forEach(({ shape }) => {
 			const current = this.app.getShapeById(shape.id)!
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
 				changes.push(change)
@@ -396,7 +396,7 @@ export class Resizing extends StateNode {
 
 	_createShapeSnapshot = (shape: TLShape) => {
 		const pageTransform = this.app.getPageTransform(shape)!
-		const util = this.app.getShapeUtil(shape.type)
+		const util = this.app.getShapeUtil(shape)
 
 		return {
 			shape,

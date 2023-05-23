@@ -44,7 +44,7 @@ export const InnerIndicator = ({ app, id }: { app: App; id: TLShapeId }) => {
 			<EvenInnererIndicator
 				key={shape.shape.id}
 				shape={shape.shape}
-				util={app.getShapeUtil(shape.shape.type)}
+				util={app.getShapeUtil(shape.shape)}
 			/>
 		</OptionalErrorBoundary>
 	)

@@ -64,7 +64,7 @@ function stripTrailingWhitespace(text: string): string {
  */
 export async function pastePlainText(app: App, text: string, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
-	const defaultProps = app.getShapeUtil<TLTextUtil>('text').defaultProps()
+	const defaultProps = app.getShapeUtil(TLTextUtil).defaultProps()
 
 	const textToPaste = stripTrailingWhitespace(
 		stripCommonMinimumIndentation(replaceTabsWithSpaces(text))

@@ -43,7 +43,7 @@ beforeEach(() => {
 describe('app.rotateShapes', () => {
 	it('Rotates shapes and fires events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = app.getShapeUtil<TLGeoUtil>('geo')
+		const util = app.getShapeUtil(TLGeoUtil)
 
 		// Bad! who did this (did I do this)
 		const fnStart = jest.fn()

@@ -286,7 +286,12 @@ export class App extends EventEmitter<TLEventMap> {
     getShapesAndDescendantsInOrder(ids: TLShapeId[]): TLShape[];
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapesInPage(pageId: TLPageId): TLShape[];
-    getShapeUtil<T = TLShapeUtil>(type: T extends TLShapeUtil<infer R> ? R['type'] : string): T;
+    getShapeUtil<C extends {
+        new (...args: any[]): TLShapeUtil<any>;
+        type: string;
+    }>(util: C): InstanceType<C>;
+    // (undocumented)
+    getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     getStrokeWidth(id: TLSizeStyle['id']): number;

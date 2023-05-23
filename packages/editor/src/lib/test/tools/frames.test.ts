@@ -33,7 +33,7 @@ describe('creating frames', () => {
 		app.setSelectedTool('frame')
 		app.pointerDown(100, 100).pointerUp(100, 100)
 		expect(app.onlySelectedShape?.type).toBe('frame')
-		const { w, h } = app.getShapeUtil<TLFrameUtil>('frame').defaultProps()
+		const { w, h } = app.getShapeUtil(TLFrameUtil).defaultProps()
 		expect(app.getPageBounds(app.onlySelectedShape!)).toMatchObject({
 			x: 100 - w / 2,
 			y: 100 - h / 2,

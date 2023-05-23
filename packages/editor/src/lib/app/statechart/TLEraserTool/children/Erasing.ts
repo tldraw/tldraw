@@ -104,7 +104,7 @@ export class Erasing extends StateNode {
 			}
 
 			// Hit test the shape using a line segment
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const A = this.app.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.app.getPointInShapeSpace(shape, currentPagePoint)
 

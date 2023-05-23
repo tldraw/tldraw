@@ -101,7 +101,7 @@ export class ScribbleBrushing extends StateNode {
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
-			util = this.app.getShapeUtil(shape.type)
+			util = this.app.getShapeUtil(shape)
 
 			if (
 				shape.type === 'group' ||

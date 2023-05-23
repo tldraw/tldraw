@@ -56,7 +56,7 @@ beforeEach(() => {
 describe('When interacting with a shape...', () => {
 	it('fires rotate events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = app.getShapeUtil<TLFrameUtil>('frame')
+		const util = app.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onRotateStart = fnStart
@@ -89,12 +89,12 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('cleans up events', () => {
-		const util = app.getShapeUtil<TLGeoUtil>('geo')
+		const util = app.getShapeUtil(TLGeoUtil)
 		expect(util.onRotateStart).toBeUndefined()
 	})
 
 	it('fires double click handler event', () => {
-		const util = app.getShapeUtil<TLGeoUtil>('geo')
+		const util = app.getShapeUtil(TLGeoUtil)
 
 		const fnStart = jest.fn()
 		util.onDoubleClick = fnStart
@@ -105,7 +105,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires resisizing events', () => {
-		const util = app.getShapeUtil<TLFrameUtil>('frame')
+		const util = app.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onResizeStart = fnStart
@@ -142,7 +142,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires translating events', () => {
-		const util = app.getShapeUtil<TLFrameUtil>('frame')
+		const util = app.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onTranslateStart = fnStart
@@ -170,7 +170,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = app.getShapeUtil<TLFrameUtil>('frame')
+		const util = app.getShapeUtil(TLFrameUtil)
 
 		const fnClick = jest.fn()
 		util.onClick = fnClick
@@ -184,7 +184,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = app.getShapeUtil<TLFrameUtil>('frame')
+		const util = app.getShapeUtil(TLFrameUtil)
 
 		const fnClick = jest.fn((shape: any) => {
 			return {

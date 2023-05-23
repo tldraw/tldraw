@@ -77,7 +77,7 @@ export class Cropping extends StateNode {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
-		const util = this.app.getShapeUtil<TLImageUtil>(shape.type)
+		const util = this.app.getShapeUtil(TLImageUtil)
 		if (!util) return
 
 		const props = shape.props as TLImageShapeProps

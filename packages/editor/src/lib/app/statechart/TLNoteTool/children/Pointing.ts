@@ -97,7 +97,7 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		const util = this.app.getShapeUtil<TLNoteUtil>('note')
+		const util = this.app.getShapeUtil(TLNoteUtil)
 		const shape = this.app.getShapeById<TLNoteShape>(id)!
 		const bounds = util.bounds(shape)
 

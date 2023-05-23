@@ -48,7 +48,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const util = this.app.getShapeUtil<TLArrowUtil>('arrow')
+		const util = this.app.getShapeUtil(TLArrowUtil)
 		const shape = this.app.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
@@ -87,7 +87,7 @@ export class Pointing extends StateNode {
 		if (!this.shape) return
 
 		if (this.app.inputs.isDragging) {
-			const util = this.app.getShapeUtil(this.shape.type)
+			const util = this.app.getShapeUtil(this.shape)
 			const handles = util.handles?.(this.shape)
 
 			if (!handles) {
@@ -96,7 +96,7 @@ export class Pointing extends StateNode {
 			}
 
 			if (!this.didTimeout) {
-				const util = this.app.getShapeUtil<TLArrowUtil>('arrow')
+				const util = this.app.getShapeUtil(TLArrowUtil)
 				const shape = this.app.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return

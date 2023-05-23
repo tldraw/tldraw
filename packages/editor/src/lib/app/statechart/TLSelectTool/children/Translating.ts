@@ -180,7 +180,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const change = util.onTranslateStart?.(shape)
 			if (change) {
 				changes.push(change)
@@ -199,7 +199,7 @@ export class Translating extends StateNode {
 
 		movingShapes.forEach((shape) => {
 			const current = this.app.getShapeById(shape.id)!
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const change = util.onTranslateEnd?.(shape, current)
 			if (change) {
 				changes.push(change)
@@ -218,7 +218,7 @@ export class Translating extends StateNode {
 
 		movingShapes.forEach((shape) => {
 			const current = this.app.getShapeById(shape.id)!
-			const util = this.app.getShapeUtil(shape.type)
+			const util = this.app.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
 				changes.push(change)

@@ -1671,7 +1671,7 @@ describe('moving handles within a group', () => {
 			target: 'handle',
 			shape: arrow,
 			handle: app
-				.getShapeUtil<TLArrowUtil>('arrow')
+				.getShapeUtil(TLArrowUtil)
 				.handles(arrow)
 				.find((h) => h.id === 'end'),
 		})

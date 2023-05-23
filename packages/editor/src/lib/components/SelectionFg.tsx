@@ -148,7 +148,7 @@ export const SelectionFg = track(function SelectionFg() {
 
 	if (
 		hideEdgeTargetsDueToCoarsePointer &&
-		shapes.every((shape) => app.getShapeUtil(shape.type).isAspectRatioLocked(shape))
+		shapes.every((shape) => app.getShapeUtil(shape).isAspectRatioLocked(shape))
 	) {
 		hideEdgeTargetsDueToCoarsePointer = false
 	}

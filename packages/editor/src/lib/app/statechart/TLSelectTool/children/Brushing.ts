@@ -133,7 +133,7 @@ export class Brushing extends StateNode {
 			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
-				util = this.app.getShapeUtil(shape.type)
+				util = this.app.getShapeUtil(shape)
 
 				pageTransform = this.app.getPageTransform(shape)
 
