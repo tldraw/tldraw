@@ -1,3 +1,7 @@
+/*
+https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22grey%22,%22white%22,%22green%22,%22light-green%22,%22blue%22,%22light-blue%22,%22violet%22,%22light-violet%22,%22red%22,%22light-red%22,%22orange%22,%22yellow%22%5D,%22shades%22:%5B%22light-mode%22,%22dark-mode%22,%22hl-light%22,%22hl-dark%22%5D,%22colors%22:%5B%5B%5B0.2308,0,null%5D,%5B0.9097,0,null%5D,%5B0.2308,0,null%5D,%5B0.2308,0,null%5D%5D,%5B%5B0.7692,0.0145,248.02%5D,%5B0.6778,0.0118,256.72%5D,%5B0.7692,0.0145,248.02%5D,%5B0.7692,0.0145,248.02%5D%5D,%5B%5B1,0,null%5D,%5B0.2308,0,null%5D,%5B1,0,null%5D,%5B1,0,null%5D%5D,%5B%5B0.5851,0.1227,164.1%5D,%5B0.5319,0.0811,162.23%5D,%5B0.8016,0.2083,173.3%5D,%5B0.6777,0.1757,173.3%5D%5D,%5B%5B0.7146,0.1835,146.44%5D,%5B0.6384,0.1262,143.36%5D,%5B0.7869,0.2868,140.11%5D,%5B0.7183,0.2683,140.11%5D%5D,%5B%5B0.5566,0.2082,268.35%5D,%5B0.4961,0.1644,270.65%5D,%5B0.642,0.2082,257.63%5D,%5B0.5461,0.2418,257.63%5D%5D,%5B%5B0.718,0.1422,246.06%5D,%5B0.6366,0.1055,250.98%5D,%5B0.7406,0.1709,234.5%5D,%5B0.6659,0.1879,237.62%5D%5D,%5B%5B0.5783,0.2186,319.15%5D,%5B0.5043,0.1647,315.37%5D,%5B0.6566,0.337,321.29%5D,%5B0.572,0.2956,319.97%5D%5D,%5B%5B0.7904,0.1516,319.77%5D,%5B0.6841,0.1139,315.99%5D,%5B0.7904,0.2357,327.8%5D,%5B0.6972,0.2781,321.05%5D%5D,%5B%5B0.5928,0.2106,26.53%5D,%5B0.5112,0.1455,26.18%5D,%5B0.6825,0.2661,14.81%5D,%5B0.578,0.2599,14.81%5D%5D,%5B%5B0.7563,0.146,21.1%5D,%5B0.6561,0.0982,20.86%5D,%5B0.773,0.176,11.95%5D,%5B0.7196,0.228,11.95%5D%5D,%5B%5B0.6851,0.1954,44.57%5D,%5B0.5958,0.1366,46.6%5D,%5B0.7811,0.1954,59.9%5D,%5B0.6948,0.1872,57.83%5D%5D,%5B%5B0.8503,0.1149,68.95%5D,%5B0.7404,0.0813,72.25%5D,%5B0.8682,0.1992,88.92%5D,%5B0.8316,0.196,88.92%5D%5D%5D%7D&selected=3
+*/
+
 .tl-container {
 	width: 100%;
 	height: 100%;
@@ -142,6 +146,21 @@
 	--palette-violet-pattern: #bd63d3;
 	--palette-white-pattern: #ffffff;
 	--palette-yellow-pattern: #fecb92;
+
+	/* for highlighter pen */
+	--palette-black-highlight: #ffcd36;
+	--palette-blue-highlight: #3489ff;
+	--palette-green-highlight: #00ddb5;
+	--palette-grey-highlight: #ff83fd;
+	--palette-light-blue-highlight: #00b9fe;
+	--palette-light-green-highlight: #44dd00;
+	--palette-light-red-highlight: #ff8e9e;
+	--palette-light-violet-highlight: #ff83fd;
+	--palette-orange-highlight: #ff9d41;
+	--palette-red-highlight: #ff516f;
+	--palette-violet-highlight: #e006ff;
+	--palette-yellow-highlight: #ffcd36;
+
 	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.22), 0px 1px 3px rgba(0, 0, 0, 0.09);
 	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.12), 0px 2px 3px rgba(0, 0, 0, 0.24),
 		0px 2px 6px rgba(0, 0, 0, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
@@ -210,6 +229,7 @@
 	--palette-violet-semi: #31293c;
 	--palette-white-semi: #ffffff;
 	--palette-yellow-semi: #3c3934;
+
 	/* for fill style 'pattern' */
 	--palette-black-pattern: #989898;
 	--palette-blue-pattern: #3a4b9e;
@@ -224,12 +244,110 @@
 	--palette-violet-pattern: #763a8b;
 	--palette-white-pattern: #ffffff;
 	--palette-yellow-pattern: #fecb92;
+
+	/* for highlighter pen */
+	--palette-black-highlight: #f4c000;
+	--palette-blue-highlight: #006ae1;
+	--palette-green-highlight: #00b190;
+	--palette-grey-highlight: #e44eff;
+	--palette-light-blue-highlight: #009fe2;
+	--palette-light-green-highlight: #3bc400;
+	--palette-light-red-highlight: #ff6d86;
+	--palette-light-violet-highlight: #e44eff;
+	--palette-orange-highlight: #e77d00;
+	--palette-red-highlight: #e1004c;
+	--palette-violet-highlight: #b900d8;
+	--palette-yellow-highlight: #f4c000;
+
 	--shadow-1: 0px 1px 2px #00000029, 0px 1px 3px #00000038,
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-2: 0px 1px 3px #00000077, 0px 2px 6px #00000055,
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
 	--shadow-3: 0px 1px 3px #00000077, 0px 2px 12px rgba(0, 0, 0, 0.22),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
+}
+
+/** p3 colors */
+@media (color-gamut: p3) {
+	.tl-theme__light:not(.tl-theme__force-sRGB) {
+		/* for highlighter pen */
+		--palette-black-highlight: color(
+			display-p3 0.9688322646809243 0.8106351360201058 0.3392197380513407
+		);
+		--palette-blue-highlight: color(
+			display-p3 0.29857538644532033 0.5309035608985295 0.9682212137925025
+		);
+		--palette-green-highlight: color(
+			display-p3 0.3944913314011378 0.8556062248044292 0.7187026932970417
+		);
+		--palette-grey-highlight: color(
+			display-p3 0.9370837691956402 0.540157251937067 0.9690795859874631
+		);
+		--palette-light-blue-highlight: color(
+			display-p3 0.32449886360144325 0.7139421077561615 0.9717367626834733
+		);
+		--palette-light-green-highlight: color(
+			display-p3 0.45724856701542355 0.85623565062544 0.2566372729783503
+		);
+		--palette-light-red-highlight: color(
+			display-p3 0.9408518966174026 0.5807329582428037 0.6247408507206869
+		);
+		--palette-light-violet-highlight: color(
+			display-p3 0.9370837691956402 0.540157251937067 0.9690795859874631
+		);
+		--palette-orange-highlight: color(
+			display-p3 0.9462599764696525 0.6328595884719898 0.33015383778250856
+		);
+		--palette-red-highlight: color(
+			display-p3 0.9245888931987424 0.3690630883933916 0.44538496856787296
+		);
+		--palette-violet-highlight: color(
+			display-p3 0.8050867906199788 0.17734612554009102 0.9654838292794122
+		);
+		--palette-yellow-highlight: color(
+			display-p3 0.9688322646809243 0.8106351360201058 0.3392197380513407
+		);
+	}
+
+	.tl-theme__dark:not(.tl-theme__force-sRGB) {
+		/* for highlighter pen */
+		--palette-black-highlight: color(
+			display-p3 0.9258476809318121 0.7620555681470941 0.25722619747306114
+		);
+		--palette-blue-highlight: color(
+			display-p3 0.17376214902503978 0.40848915487683707 0.8513147403277292
+		);
+		--palette-green-highlight: color(
+			display-p3 0.30942244172246597 0.6832321481403588 0.5722271250751376
+		);
+		--palette-grey-highlight: color(
+			display-p3 0.8265744437441017 0.34710686435467636 0.9682123274565607
+		);
+		--palette-light-blue-highlight: color(
+			display-p3 0.2749314543586324 0.6133182321511768 0.8647403323565394
+		);
+		--palette-light-green-highlight: color(
+			display-p3 0.4020483342231425 0.7581602574313369 0.2230689980151523
+		);
+		--palette-light-red-highlight: color(
+			display-p3 0.9306358116815425 0.46161896911479255 0.5339641526392853
+		);
+		--palette-light-violet-highlight: color(
+			display-p3 0.8265744437441017 0.34710686435467636 0.9682123274565607
+		);
+		--palette-orange-highlight: color(
+			display-p3 0.8506189992556527 0.5126051643506042 0.1849208922648983
+		);
+		--palette-red-highlight: color(
+			display-p3 0.808280310916696 0.17163167969981305 0.3104511106836902
+		);
+		--palette-violet-highlight: color(
+			display-p3 0.6639934042198969 0.13379700954340898 0.8184008102285174
+		);
+		--palette-yellow-highlight: color(
+			display-p3 0.9258476809318121 0.7620555681470941 0.25722619747306114
+		);
+	}
 }
 
 .tl-counter-scaled {

@@ -51,6 +51,7 @@ export const debugFlags = {
 	debugCursors: createDebugValue('debugCursors', {
 		defaults: { all: false },
 	}),
+	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 }
 
 declare global {

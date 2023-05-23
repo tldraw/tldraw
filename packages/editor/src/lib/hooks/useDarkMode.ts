@@ -1,5 +1,6 @@
 import React from 'react'
 import { useValue } from 'signia-react'
+import { debugFlags } from '../utils/debug-flags'
 import { useApp } from './useApp'
 import { useContainer } from './useContainer'
 
@@ -7,6 +8,7 @@ export function useDarkMode() {
 	const app = useApp()
 	const container = useContainer()
 	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
+	const forceSrgb = useValue(debugFlags.forceSrgb)
 
 	React.useEffect(() => {
 		if (isDarkMode) {
@@ -24,5 +26,10 @@ export function useDarkMode() {
 				color: 'black',
 			})
 		}
-	}, [app, container, isDarkMode])
+		if (forceSrgb) {
+			container.classList.add('tl-theme__force-sRGB')
+		} else {
+			container.classList.remove('tl-theme__force-sRGB')
+		}
+	}, [app, container, forceSrgb, isDarkMode])
 }

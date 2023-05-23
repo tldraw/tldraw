@@ -5617,7 +5617,9 @@ export class App extends EventEmitter<TLEventMap> {
 		// Get the styles from the container. We'll use these to pull out colors etc.
 		// NOTE: We can force force a light theme here becasue we don't want export
 		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
+		fakeContainerEl.className = `tl-container tl-theme__${
+			darkMode ? 'dark' : 'light'
+		} tl-theme__force-sRGB`
 		document.body.appendChild(fakeContainerEl)
 
 		const containerStyle = getComputedStyle(fakeContainerEl)
@@ -5640,6 +5642,12 @@ export class App extends EventEmitter<TLEventMap> {
 				STYLES.color.map((color) => [
 					color.id,
 					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
+				])
+			) as Record<TLColorType, string>,
+			highlight: Object.fromEntries(
+				STYLES.color.map((color) => [
+					color.id,
+					containerStyle.getPropertyValue(`--palette-${color.id}-highlight`),
 				])
 			) as Record<TLColorType, string>,
 			text: containerStyle.getPropertyValue(`--color-text`),
