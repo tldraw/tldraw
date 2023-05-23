@@ -367,7 +367,7 @@ export class StoreQueries<R extends UnknownRecord> {
 					objectMapValues(this.atoms.value).flatMap((v) => {
 						const r = v.value
 						if (r.typeName === typeName) {
-							return r.id as IdOf<S>
+							return r.id
 						} else {
 							return []
 						}

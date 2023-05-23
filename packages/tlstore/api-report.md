@@ -12,7 +12,7 @@ import { Signal } from 'signia';
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
 
 // @public
-export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is ID<R>;
+export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
 
 // @public
 export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord>> {
@@ -171,15 +171,15 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     });
     clone(record: R): R;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
-    createCustomId(id: string): ID<R>;
+    createCustomId(id: string): IdOf<R>;
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-    createId(): ID<R>;
-    isId(id?: string): id is ID<R>;
+    createId(): IdOf<R>;
+    isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
     // (undocumented)
     readonly migrations: Migrations;
-    parseId(id: string): ID<R>;
+    parseId(id: string): IdOf<R>;
     // (undocumented)
     readonly scope: Scope;
     readonly typeName: R['typeName'];

@@ -1,6 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { ID, OmitMeta, UnknownRecord } from './BaseRecord'
+import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 import { Migrations } from './migrate'
 
@@ -97,8 +97,8 @@ export class RecordType<
 	 * @returns The new ID.
 	 * @public
 	 */
-	createId(): ID<R> {
-		return (this.typeName + ':' + nanoid()) as ID<R>
+	createId(): IdOf<R> {
+		return (this.typeName + ':' + nanoid()) as IdOf<R>
 	}
 
 	/**
@@ -113,8 +113,8 @@ export class RecordType<
 	 * @param id - The ID to base the new ID on.
 	 * @returns The new ID.
 	 */
-	createCustomId(id: string): ID<R> {
-		return (this.typeName + ':' + id) as ID<R>
+	createCustomId(id: string): IdOf<R> {
+		return (this.typeName + ':' + id) as IdOf<R>
 	}
 
 	/**
@@ -123,12 +123,12 @@ export class RecordType<
 	 * @param id - The id
 	 * @returns
 	 */
-	parseId(id: string): ID<R> {
+	parseId(id: string): IdOf<R> {
 		if (!this.isId(id)) {
 			throw new Error(`ID "${id}" is not a valid ID for type "${this.typeName}"`)
 		}
 
-		return id.slice(this.typeName.length + 1) as ID<R>
+		return id.slice(this.typeName.length + 1) as IdOf<R>
 	}
 
 	/**
@@ -159,7 +159,7 @@ export class RecordType<
 	 * @param id - The id to check.
 	 * @returns Whether the id is an id of this type.
 	 */
-	isId(id?: string): id is ID<R> {
+	isId(id?: string): id is IdOf<R> {
 		if (!id) return false
 		for (let i = 0; i < this.typeName.length; i++) {
 			if (id[i] !== this.typeName[i]) return false
@@ -246,7 +246,7 @@ export function createRecordType<R extends UnknownRecord>(
 export function assertIdType<R extends UnknownRecord>(
 	id: string | undefined,
 	type: RecordType<R, any>
-): asserts id is ID<R> {
+): asserts id is IdOf<R> {
 	if (!id || !type.isId(id)) {
 		throw new Error(`string ${JSON.stringify(id)} is not a valid ${type.typeName} id`)
 	}

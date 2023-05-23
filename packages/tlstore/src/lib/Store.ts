@@ -394,7 +394,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// If we have an onAfterChange, run it for each removed record.
 			if (this.onAfterDelete && this._runCallbacks) {
 				for (let i = 0, n = ids.length; i < n; i++) {
-					this.onAfterDelete(removed[ids[i]]!)
+					this.onAfterDelete(removed[ids[i]])
 				}
 			}
 		})
@@ -427,7 +427,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @returns The record store snapshot as a JSON payload.
 	 */
 	serialize = (filter?: (record: R) => boolean): StoreSnapshot<R> => {
-		const result: StoreSnapshot<R> = {} as StoreSnapshot<R>
+		const result = {} as StoreSnapshot<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.value)) {
 			const record = atom.value
 			if (typeof filter === 'function' && !filter(record)) continue
