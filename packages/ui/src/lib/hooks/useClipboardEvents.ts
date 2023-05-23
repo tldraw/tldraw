@@ -3,12 +3,12 @@ import {
 	getValidHttpURLList,
 	isSvgText,
 	isValidHttpURL,
-	TLArrowShape,
-	TLBookmarkShape,
+	TLArrowUtil,
+	TLBookmarkUtil,
 	TLClipboardModel,
-	TLEmbedShape,
-	TLGeoShape,
-	TLTextShape,
+	TLEmbedUtil,
+	TLGeoUtil,
+	TLTextUtil,
 	useApp,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
@@ -496,16 +496,13 @@ const handleNativeOrMenuCopy = (app: App) => {
 		const textItems = content.shapes
 			.map((shape) => {
 				if (
-					app.isShapeOfType<TLTextShape>(shape, 'text') ||
-					app.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-					app.isShapeOfType<TLArrowShape>(shape, 'arrow')
+					app.isShapeOfType(TLTextUtil, shape) ||
+					app.isShapeOfType(TLGeoUtil, shape) ||
+					app.isShapeOfType(TLArrowUtil, shape)
 				) {
 					return shape.props.text
 				}
-				if (
-					app.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
-					app.isShapeOfType<TLEmbedShape>(shape, 'embed')
-				) {
+				if (app.isShapeOfType(TLBookmarkUtil, shape) || app.isShapeOfType(TLEmbedUtil, shape)) {
 					return shape.props.url
 				}
 				return null

@@ -52,7 +52,6 @@ import {
 	TLShapeType,
 	TLSizeStyle,
 	TLStore,
-	TLTextShape,
 	TLUnknownShape,
 	TLUser,
 	TLUserDocument,
@@ -125,7 +124,10 @@ import {
 	getIsArrowStraight,
 } from './shapeutils/TLArrowUtil/arrow/shared'
 import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
+import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
+import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
+import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
@@ -237,7 +239,7 @@ export class App extends EventEmitter<TLEventMap> {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
-			if (record.typeName === 'shape' && this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
+			if (record.typeName === 'shape' && this.isShapeOfType(TLArrowUtil, record)) {
 				this._arrowDidUpdate(record)
 			}
 		}
@@ -1386,7 +1388,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _shapeDidChange(prev: TLShape, next: TLShape) {
-		if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
+		if (this.isShapeOfType(TLArrowUtil, next)) {
 			this._arrowDidUpdate(next)
 		}
 
@@ -3098,8 +3100,11 @@ export class App extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is T {
-		return type === shape.type
+	isShapeOfType<T extends TLUnknownShape>(
+		util: { new (...args: any): TLShapeUtil<T>; type: string },
+		shape: TLUnknownShape
+	): shape is T {
+		return shape.type === util.type
 	}
 
 	/**
@@ -4044,7 +4049,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 			shape = structuredClone(shape) as typeof shape
 
-			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, shape)) {
 				const startBindingId =
 					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
 
@@ -4227,8 +4232,8 @@ export class App extends EventEmitter<TLEventMap> {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
 						if (
-							this.isShapeOfType<TLFrameShape>(parent, 'frame') &&
-							this.isShapeOfType<TLFrameShape>(rootShape, 'frame') &&
+							this.isShapeOfType(TLFrameUtil, parent) &&
+							this.isShapeOfType(TLFrameUtil, rootShape) &&
 							rootShape.props.w === parent?.props.w &&
 							rootShape.props.h === parent?.props.h
 						) {
@@ -4284,7 +4289,7 @@ export class App extends EventEmitter<TLEventMap> {
 				index = getIndexAbove(index)
 			}
 
-			if (this.isShapeOfType<TLArrowShape>(newShape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, newShape)) {
 				if (newShape.props.start.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.start.boundShapeId)
 					newShape.props.start = mappedId
@@ -4439,7 +4444,7 @@ export class App extends EventEmitter<TLEventMap> {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+								this.isShapeOfType(TLFrameUtil, shape) &&
 								shape.props.w === onlyRoot.props.w &&
 								shape.props.h === onlyRoot.props.h
 						)
@@ -6220,7 +6225,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const shapes = compact(ids.map((id) => this.getShapeById(id))).filter((shape) => {
 			if (!shape) return false
 
-			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+			if (this.isShapeOfType(TLArrowUtil, shape)) {
 				if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 					return false
 				}
@@ -6352,7 +6357,7 @@ export class App extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
+					if (this.isShapeOfType(TLArrowUtil, shape)) {
 						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 							return false
 						}
@@ -7573,10 +7578,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 				let newShape: TLShape = deepCopy(shape)
 
-				if (
-					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-					this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
-				) {
+				if (this.isShapeOfType(TLArrowUtil, shape) && this.isShapeOfType(TLArrowUtil, newShape)) {
 					const info = this.getShapeUtil(TLArrowUtil).getArrowInfo(shape)
 					let newStartShapeId: TLShapeId | undefined = undefined
 					let newEndShapeId: TLShapeId | undefined = undefined
@@ -7799,7 +7801,7 @@ export class App extends EventEmitter<TLEventMap> {
 							if (boundsA.width !== boundsB.width) {
 								didChange = true
 
-								if (this.isShapeOfType<TLTextShape>(shape, 'text')) {
+								if (this.isShapeOfType(TLTextUtil, shape)) {
 									switch (shape.props.align) {
 										case 'middle': {
 											change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
@@ -8857,7 +8859,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapes.forEach((shape) => {
-			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (this.isShapeOfType(TLGroupUtil, shape)) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)

@@ -363,7 +363,10 @@ export class App extends EventEmitter<TLEventMap> {
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeInViewport(id: TLShapeId): boolean;
-    isShapeOfType<T extends TLShape>(shape: TLShape, type: T['type']): shape is T;
+    isShapeOfType<T extends TLUnknownShape>(util: {
+        new (...args: any): TLShapeUtil<T>;
+        type: string;
+    }, shape: TLUnknownShape): shape is T;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)
