@@ -1,3 +1,4 @@
+import { objectMapValues } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import {
 	Atom,
@@ -8,34 +9,34 @@ import {
 	RESET_VALUE,
 	withDiff,
 } from 'signia'
-import { BaseRecord, ID } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'
 import { diffSets } from './setUtils'
 import { CollectionDiff, RecordsDiff } from './Store'
 
 export type RSIndexDiff<
-	R extends BaseRecord = BaseRecord,
+	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R
-> = Map<R[Property], CollectionDiff<ID<R>>>
+> = Map<R[Property], CollectionDiff<IdOf<R>>>
 
 export type RSIndexMap<
-	R extends BaseRecord = BaseRecord,
+	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R
-> = Map<R[Property], Set<ID<R>>>
+> = Map<R[Property], Set<IdOf<R>>>
 
 export type RSIndex<
-	R extends BaseRecord = BaseRecord,
+	R extends UnknownRecord,
 	Property extends string & keyof R = string & keyof R
-> = Computed<Map<R[Property], Set<ID<R>>>, RSIndexDiff<R, Property>>
+> = Computed<Map<R[Property], Set<IdOf<R>>>, RSIndexDiff<R, Property>>
 
 /**
  * A class that provides a 'namespace' for the various kinds of indexes one may wish to derive from
  * the record store.
  */
-export class StoreQueries<R extends BaseRecord = BaseRecord> {
+export class StoreQueries<R extends UnknownRecord> {
 	constructor(
-		private readonly atoms: Atom<Record<ID<R>, Atom<R>>>,
+		private readonly atoms: Atom<Record<IdOf<R>, Atom<R>>>,
 		private readonly history: Atom<number, RecordsDiff<R>>
 	) {}
 
@@ -79,56 +80,56 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 				const diff = this.history.getDiffSince(lastComputedEpoch)
 				if (diff === RESET_VALUE) return this.history.value
 
-				const res: RecordsDiff<S> = { added: {}, removed: {}, updated: {} }
+				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
 				let numAdded = 0
 				let numRemoved = 0
 				let numUpdated = 0
 
 				for (const changes of diff) {
-					for (const added of Object.values(changes.added)) {
+					for (const added of objectMapValues(changes.added)) {
 						if (added.typeName === typeName) {
-							if (res.removed[added.id]) {
-								const original = res.removed[added.id]
-								delete res.removed[added.id]
+							if (res.removed[added.id as IdOf<S>]) {
+								const original = res.removed[added.id as IdOf<S>]
+								delete res.removed[added.id as IdOf<S>]
 								numRemoved--
 								if (original !== added) {
-									res.updated[added.id] = [original, added as S]
+									res.updated[added.id as IdOf<S>] = [original, added as S]
 									numUpdated++
 								}
 							} else {
-								res.added[added.id] = added as S
+								res.added[added.id as IdOf<S>] = added as S
 								numAdded++
 							}
 						}
 					}
 
-					for (const [from, to] of Object.values(changes.updated)) {
+					for (const [from, to] of objectMapValues(changes.updated)) {
 						if (to.typeName === typeName) {
-							if (res.added[to.id]) {
-								res.added[to.id] = to as S
-							} else if (res.updated[to.id]) {
-								res.updated[to.id] = [res.updated[to.id][0], to as S]
+							if (res.added[to.id as IdOf<S>]) {
+								res.added[to.id as IdOf<S>] = to as S
+							} else if (res.updated[to.id as IdOf<S>]) {
+								res.updated[to.id as IdOf<S>] = [res.updated[to.id as IdOf<S>][0], to as S]
 							} else {
-								res.updated[to.id] = [from as S, to as S]
+								res.updated[to.id as IdOf<S>] = [from as S, to as S]
 								numUpdated++
 							}
 						}
 					}
 
-					for (const removed of Object.values(changes.removed)) {
+					for (const removed of objectMapValues(changes.removed)) {
 						if (removed.typeName === typeName) {
-							if (res.added[removed.id]) {
+							if (res.added[removed.id as IdOf<S>]) {
 								// was added during this diff sequence, so just undo the add
-								delete res.added[removed.id]
+								delete res.added[removed.id as IdOf<S>]
 								numAdded--
-							} else if (res.updated[removed.id]) {
+							} else if (res.updated[removed.id as IdOf<S>]) {
 								// remove oldest version
-								res.removed[removed.id] = res.updated[removed.id][0]
-								delete res.updated[removed.id]
+								res.removed[removed.id as IdOf<S>] = res.updated[removed.id as IdOf<S>][0]
+								delete res.updated[removed.id as IdOf<S>]
 								numUpdated--
 								numRemoved++
 							} else {
-								res.removed[removed.id] = removed as S
+								res.removed[removed.id as IdOf<S>] = removed as S
 								numRemoved++
 							}
 						}
@@ -192,15 +193,15 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
 			typeHistory.value
-			const res = new Map<S[Property], Set<ID<S>>>()
-			for (const atom of Object.values(this.atoms.value)) {
+			const res = new Map<S[Property], Set<IdOf<S>>>()
+			for (const atom of objectMapValues(this.atoms.value)) {
 				const record = atom.value
 				if (record.typeName === typeName) {
 					const value = (record as S)[property]
 					if (!res.has(value)) {
 						res.set(value, new Set())
 					}
-					res.get(value)!.add((record as S).id)
+					res.get(value)!.add(record.id)
 				}
 			}
 
@@ -217,44 +218,46 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 					return fromScratch()
 				}
 
-				const setConstructors = new Map<any, IncrementalSetConstructor<ID<S>>>()
+				const setConstructors = new Map<any, IncrementalSetConstructor<IdOf<S>>>()
 
-				const add = (value: S[Property], id: ID<S>) => {
+				const add = (value: S[Property], id: IdOf<S>) => {
 					let setConstructor = setConstructors.get(value)
 					if (!setConstructor)
-						setConstructor = new IncrementalSetConstructor<ID<S>>(prevValue.get(value) ?? new Set())
+						setConstructor = new IncrementalSetConstructor<IdOf<S>>(
+							prevValue.get(value) ?? new Set()
+						)
 					setConstructor.add(id)
 					setConstructors.set(value, setConstructor)
 				}
 
-				const remove = (value: S[Property], id: ID<S>) => {
+				const remove = (value: S[Property], id: IdOf<S>) => {
 					let set = setConstructors.get(value)
-					if (!set) set = new IncrementalSetConstructor<ID<S>>(prevValue.get(value) ?? new Set())
+					if (!set) set = new IncrementalSetConstructor<IdOf<S>>(prevValue.get(value) ?? new Set())
 					set.remove(id)
 					setConstructors.set(value, set)
 				}
 
 				for (const changes of history) {
-					for (const record of Object.values(changes.added)) {
+					for (const record of objectMapValues(changes.added)) {
 						if (record.typeName === typeName) {
 							const value = (record as S)[property]
-							add(value, (record as S).id)
+							add(value, record.id)
 						}
 					}
-					for (const [from, to] of Object.values(changes.updated)) {
+					for (const [from, to] of objectMapValues(changes.updated)) {
 						if (to.typeName === typeName) {
 							const prev = (from as S)[property]
 							const next = (to as S)[property]
 							if (prev !== next) {
-								remove(prev, (to as S).id)
-								add(next, (to as S).id)
+								remove(prev, to.id)
+								add(next, to.id)
 							}
 						}
 					}
-					for (const record of Object.values(changes.removed)) {
+					for (const record of objectMapValues(changes.removed)) {
 						if (record.typeName === typeName) {
 							const value = (record as S)[property]
-							remove(value, (record as S).id)
+							remove(value, record.id)
 						}
 					}
 				}
@@ -348,8 +351,8 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 		queryCreator: () => QueryExpression<Extract<R, { typeName: TypeName }>> = () => ({}),
 		name = 'ids:' + typeName + (queryCreator ? ':' + queryCreator.toString() : '')
 	): Computed<
-		Set<ID<Extract<R, { typeName: TypeName }>>>,
-		CollectionDiff<ID<Extract<R, { typeName: TypeName }>>>
+		Set<IdOf<Extract<R, { typeName: TypeName }>>>,
+		CollectionDiff<IdOf<Extract<R, { typeName: TypeName }>>>
 	> {
 		type S = Extract<R, { typeName: TypeName }>
 
@@ -360,11 +363,11 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 			typeHistory.value
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
-				return new Set<ID<S>>(
-					Object.values(this.atoms.value).flatMap((v) => {
+				return new Set<IdOf<S>>(
+					objectMapValues(this.atoms.value).flatMap((v) => {
 						const r = v.value
 						if (r.typeName === typeName) {
-							return r.id as ID<S>
+							return r.id as IdOf<S>
 						} else {
 							return []
 						}
@@ -375,7 +378,7 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 			return executeQuery(this, typeName, query)
 		}
 
-		const fromScratchWithDiff = (prevValue: Set<ID<S>>) => {
+		const fromScratchWithDiff = (prevValue: Set<IdOf<S>>) => {
 			const nextValue = fromScratch()
 			const diff = diffSets(prevValue, nextValue)
 			if (diff) {
@@ -407,28 +410,28 @@ export class StoreQueries<R extends BaseRecord = BaseRecord> {
 					return fromScratchWithDiff(prevValue)
 				}
 
-				const setConstructor = new IncrementalSetConstructor<ID<S>>(
+				const setConstructor = new IncrementalSetConstructor<IdOf<S>>(
 					prevValue
-				) as IncrementalSetConstructor<ID<S>>
+				) as IncrementalSetConstructor<IdOf<S>>
 
 				for (const changes of history) {
-					for (const added of Object.values(changes.added)) {
+					for (const added of objectMapValues(changes.added)) {
 						if (added.typeName === typeName && objectMatchesQuery(query, added)) {
-							setConstructor.add(added.id as ID<S>)
+							setConstructor.add(added.id)
 						}
 					}
-					for (const [_, updated] of Object.values(changes.updated)) {
+					for (const [_, updated] of objectMapValues(changes.updated)) {
 						if (updated.typeName === typeName) {
 							if (objectMatchesQuery(query, updated)) {
-								setConstructor.add(updated.id as ID<S>)
+								setConstructor.add(updated.id)
 							} else {
-								setConstructor.remove(updated.id as ID<S>)
+								setConstructor.remove(updated.id)
 							}
 						}
 					}
-					for (const removed of Object.values(changes.removed)) {
+					for (const removed of objectMapValues(changes.removed)) {
 						if (removed.typeName === typeName) {
-							setConstructor.remove(removed.id as ID<S>)
+							setConstructor.remove(removed.id)
 						}
 					}
 				}

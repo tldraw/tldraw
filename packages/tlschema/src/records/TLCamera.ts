@@ -7,7 +7,7 @@ import { idValidator } from '../validation'
  *
  * @public
  */
-export interface TLCamera extends BaseRecord<'camera'> {
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 	x: number
 	y: number
 	z: number

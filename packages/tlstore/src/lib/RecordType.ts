@@ -1,6 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { BaseRecord, ID, OmitMeta } from './BaseRecord'
+import { ID, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 import { Migrations } from './migrate'
 
@@ -24,7 +24,7 @@ export type Scope = 'instance' | 'document' | 'presence'
  * @public
  */
 export class RecordType<
-	R extends BaseRecord,
+	R extends UnknownRecord,
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
@@ -143,7 +143,7 @@ export class RecordType<
 	 * @param record - The record to check.
 	 * @returns Whether the record is an instance of this record type.
 	 */
-	isInstance = (record?: BaseRecord): record is R => {
+	isInstance = (record?: UnknownRecord): record is R => {
 		return record?.typeName === this.typeName
 	}
 
@@ -214,7 +214,7 @@ export class RecordType<
  * @param typeName - The name of the type to create.
  * @public
  */
-export function createRecordType<R extends BaseRecord>(
+export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
 		migrations?: Migrations
@@ -243,7 +243,7 @@ export function createRecordType<R extends BaseRecord>(
  * @param type - The type of the record.
  * @public
  */
-export function assertIdType<R extends BaseRecord>(
+export function assertIdType<R extends UnknownRecord>(
 	id: string | undefined,
 	type: RecordType<R, any>
 ): asserts id is ID<R> {

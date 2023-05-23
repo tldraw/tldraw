@@ -9,7 +9,7 @@ import { TLShapeId } from './TLShape'
 import { TLUserId } from './TLUser'
 
 /** @public */
-export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
 	instanceId: TLInstanceId
 	userId: TLUserId
 	userName: string

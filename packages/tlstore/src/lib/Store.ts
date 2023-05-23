@@ -1,23 +1,29 @@
-import { throttledRaf } from '@tldraw/utils'
-import { atom, Atom, computed, Computed, Reactor, reactor, transact } from 'signia'
-import { BaseRecord, ID } from './BaseRecord'
+import {
+	objectMapEntries,
+	objectMapFromEntries,
+	objectMapKeys,
+	objectMapValues,
+	throttledRaf,
+} from '@tldraw/utils'
+import { Atom, Computed, Reactor, atom, computed, reactor, transact } from 'signia'
+import { ID, IdOf, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
-import { devFreeze } from './devFreeze'
 import { RecordType } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { StoreSchema } from './StoreSchema'
+import { devFreeze } from './devFreeze'
 
-type RecFromId<K extends ID> = K extends ID<infer R> ? R : never
+type RecFromId<K extends ID<UnknownRecord>> = K extends ID<infer R> ? R : never
 
 /**
  * A diff describing the changes to a record.
  *
  * @public
  */
-export type RecordsDiff<R extends BaseRecord> = {
-	added: Record<string, R>
-	updated: Record<string, [from: R, to: R]>
-	removed: Record<string, R>
+export type RecordsDiff<R extends UnknownRecord> = {
+	added: Record<IdOf<R>, R>
+	updated: Record<IdOf<R>, [from: R, to: R]>
+	removed: Record<IdOf<R>, R>
 }
 
 /**
@@ -32,7 +38,7 @@ export type CollectionDiff<T> = { added?: Set<T>; removed?: Set<T> }
  *
  * @public
  */
-export type HistoryEntry<R extends BaseRecord = BaseRecord> = {
+export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
 	changes: RecordsDiff<R>
 	source: 'user' | 'remote'
 }
@@ -42,15 +48,15 @@ export type HistoryEntry<R extends BaseRecord = BaseRecord> = {
  *
  * @public
  */
-export type StoreListener<R extends BaseRecord> = (entry: HistoryEntry<R>) => void
+export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void
 
 /**
  * A record store is a collection of records of different types.
  *
  * @public
  */
-export type ComputedCache<Data, R extends BaseRecord> = {
-	get(id: ID<R>): Data | undefined
+export type ComputedCache<Data, R extends UnknownRecord> = {
+	get(id: IdOf<R>): Data | undefined
 }
 
 /**
@@ -58,15 +64,15 @@ export type ComputedCache<Data, R extends BaseRecord> = {
  *
  * @public
  */
-export type StoreSnapshot<R extends BaseRecord> = Record<string, R>
+export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>
 
 /** @public */
-export type StoreValidator<R extends BaseRecord> = {
+export type StoreValidator<R extends UnknownRecord> = {
 	validate: (record: unknown) => R
 }
 
 /** @public */
-export type StoreValidators<R extends BaseRecord> = {
+export type StoreValidators<R extends UnknownRecord> = {
 	[K in R['typeName']]: StoreValidator<Extract<R, { typeName: K }>>
 }
 
@@ -87,14 +93,14 @@ export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : n
  *
  * @public
  */
-export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
+export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
 	 * An atom containing the store's atoms.
 	 *
 	 * @internal
 	 * @readonly
 	 */
-	private readonly atoms: Atom<Record<ID<R>, Atom<R>>> = atom('store_atoms', {})
+	private readonly atoms = atom('store_atoms', {} as Record<IdOf<R>, Atom<R>>)
 
 	/**
 	 * An atom containing the store's history.
@@ -157,8 +163,8 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 
 		if (initialData) {
 			this.atoms.set(
-				Object.fromEntries(
-					Object.entries(initialData).map(([id, record]) => [
+				objectMapFromEntries(
+					objectMapEntries(initialData).map(([id, record]) => [
 						id,
 						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
 					])
@@ -249,11 +255,11 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 */
 	put = (records: R[], phaseOverride?: 'initialize'): void => {
 		transact(() => {
-			const updates: Record<ID<R>, [from: R, to: R]> = {}
-			const additions: Record<ID<R>, R> = {}
+			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
+			const additions: Record<IdOf<UnknownRecord>, R> = {}
 
 			const currentMap = this.atoms.__unsafe__getWithoutCapture()
-			let map = null as null | Record<ID<R>, Atom<R>>
+			let map = null as null | Record<IdOf<UnknownRecord>, Atom<R>>
 
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
@@ -267,7 +273,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
 
-				const recordAtom = (map ?? currentMap)[record.id]
+				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
 					// If we already have an atom for this record, update its value.
@@ -326,7 +332,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 			this.updateHistory({
 				added: additions,
 				updated: updates,
-				removed: {},
+				removed: {} as Record<IdOf<R>, R>,
 			})
 
 			const { onAfterCreate, onAfterChange } = this
@@ -353,7 +359,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @param ids - The ids of the records to remove.
 	 * @public
 	 */
-	remove = (ids: ID<R>[]): void => {
+	remove = (ids: IdOf<R>[]): void => {
 		transact(() => {
 			if (this.onBeforeDelete && this._runCallbacks) {
 				for (const id of ids) {
@@ -373,7 +379,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 				for (const id of ids) {
 					if (!(id in atoms)) continue
 					if (!result) result = { ...atoms }
-					if (!removed) removed = {}
+					if (!removed) removed = {} as Record<IdOf<R>, R>
 					delete result[id]
 					removed[id] = atoms[id].value
 				}
@@ -383,12 +389,12 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 
 			if (!removed) return
 			// Update the history with the removed records.
-			this.updateHistory({ added: {}, updated: {}, removed })
+			this.updateHistory({ added: {}, updated: {}, removed } as RecordsDiff<R>)
 
 			// If we have an onAfterChange, run it for each removed record.
 			if (this.onAfterDelete && this._runCallbacks) {
 				for (let i = 0, n = ids.length; i < n; i++) {
-					this.onAfterDelete(removed[ids[i]])
+					this.onAfterDelete(removed[ids[i]]!)
 				}
 			}
 		})
@@ -400,7 +406,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	get = <K extends ID<R>>(id: K): RecFromId<K> | undefined => {
+	get = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
 		return this.atoms.value[id]?.value as any
 	}
 
@@ -410,7 +416,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @param id - The id of the record to get.
 	 * @public
 	 */
-	unsafeGetWithoutCapture = <K extends ID<R>>(id: K): RecFromId<K> | undefined => {
+	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
 		return this.atoms.value[id]?.__unsafe__getWithoutCapture() as any
 	}
 
@@ -421,11 +427,11 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @returns The record store snapshot as a JSON payload.
 	 */
 	serialize = (filter?: (record: R) => boolean): StoreSnapshot<R> => {
-		const result: Record<string, any> = {}
-		for (const [id, atom] of Object.entries(this.atoms.value)) {
+		const result: StoreSnapshot<R> = {} as StoreSnapshot<R>
+		for (const [id, atom] of objectMapEntries(this.atoms.value)) {
 			const record = atom.value
 			if (typeof filter === 'function' && !filter(record)) continue
-			result[id] = record
+			result[id as IdOf<R>] = record
 		}
 		return result
 	}
@@ -462,7 +468,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @public
 	 */
 	allRecords = (): R[] => {
-		return Object.values(this.atoms.value).map((atom) => atom.value)
+		return objectMapValues(this.atoms.value).map((atom) => atom.value)
 	}
 
 	/**
@@ -471,7 +477,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @public
 	 */
 	clear = (): void => {
-		this.remove(Object.keys(this.atoms.value) as any)
+		this.remove(objectMapKeys(this.atoms.value))
 	}
 
 	/**
@@ -481,7 +487,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @param id - The id of the record to update.
 	 * @param updater - A function that updates the record.
 	 */
-	update = <K extends ID<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => {
+	update = <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => {
 		const atom = this.atoms.value[id]
 		if (!atom) {
 			console.error(`Record ${id} not found. This is probably an error`)
@@ -496,7 +502,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	 * @param id - The id of the record to check.
 	 * @public
 	 */
-	has = <K extends ID<R>>(id: K): boolean => {
+	has = <K extends IdOf<R>>(id: K): boolean => {
 		return !!this.atoms.value[id]
 	}
 
@@ -562,10 +568,10 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 		try {
 			this._runCallbacks = runCallbacks
 			transact(() => {
-				const toPut = Object.values(diff.added).concat(
-					Object.values(diff.updated).map(([_from, to]) => to)
+				const toPut = objectMapValues(diff.added).concat(
+					objectMapValues(diff.updated).map(([_from, to]) => to)
 				)
-				const toRemove = Object.keys(diff.removed) as ID<R>[]
+				const toRemove = objectMapKeys(diff.removed)
 				if (toPut.length) {
 					this.put(toPut)
 				}
@@ -591,7 +597,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	): ComputedCache<T, V> => {
 		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
 		return {
-			get: (id: ID<V>) => {
+			get: (id: IdOf<V>) => {
 				const atom = this.atoms.value[id]
 				if (!atom) {
 					return undefined
@@ -618,7 +624,7 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
 	): ComputedCache<J, V> => {
 		const cache = new Cache<Atom<any>, Computed<J | undefined>>()
 		return {
-			get: (id: ID<V>) => {
+			get: (id: IdOf<V>) => {
 				const atom = this.atoms.value[id]
 				if (!atom) {
 					return undefined
@@ -660,11 +666,13 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
  * @returns A single diff that represents the squashed diffs.
  * @public
  */
-export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T> {
-	const result: RecordsDiff<T> = { added: {}, removed: {}, updated: {} }
+export function squashRecordDiffs<T extends UnknownRecord>(
+	diffs: RecordsDiff<T>[]
+): RecordsDiff<T> {
+	const result = { added: {}, removed: {}, updated: {} } as RecordsDiff<T>
 
 	for (const diff of diffs) {
-		for (const [id, value] of Object.entries(diff.added)) {
+		for (const [id, value] of objectMapEntries(diff.added)) {
 			if (result.removed[id]) {
 				const original = result.removed[id]
 				delete result.removed[id]
@@ -676,7 +684,7 @@ export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[])
 			}
 		}
 
-		for (const [id, [_from, to]] of Object.entries(diff.updated)) {
+		for (const [id, [_from, to]] of objectMapEntries(diff.updated)) {
 			if (result.added[id]) {
 				result.added[id] = to
 				delete result.updated[id]
@@ -693,7 +701,7 @@ export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[])
 			delete result.removed[id]
 		}
 
-		for (const [id, value] of Object.entries(diff.removed)) {
+		for (const [id, value] of objectMapEntries(diff.removed)) {
 			// the same record was added in this diff sequence, just drop it
 			if (result.added[id]) {
 				delete result.added[id]
@@ -716,7 +724,9 @@ export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[])
  * @returns A map of history entries by their sources.
  * @public
  */
-function squashHistoryEntries<T extends BaseRecord>(entries: HistoryEntry<T>[]): HistoryEntry<T>[] {
+function squashHistoryEntries<T extends UnknownRecord>(
+	entries: HistoryEntry<T>[]
+): HistoryEntry<T>[] {
 	const result: HistoryEntry<T>[] = []
 
 	let current = entries[0]
@@ -750,7 +760,7 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 	return result
 }
 
-class HistoryAccumulator<T extends BaseRecord> {
+class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
 
 	private _inteceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()

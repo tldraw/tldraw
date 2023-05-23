@@ -12,7 +12,7 @@ import { TLUserId } from './TLUser'
  *
  * @public
  */
-export interface TLUserDocument extends BaseRecord<'user_document'> {
+export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
 	userId: TLUserId
 	isPenMode: boolean
 	isGridMode: boolean

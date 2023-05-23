@@ -1,4 +1,4 @@
-import { TLBookmarkUtil, TLShape, useApp } from '@tldraw/editor'
+import { TLBaseShape, TLBookmarkUtil, useApp } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { DialogProps } from '../hooks/useDialogsProvider'
@@ -13,46 +13,45 @@ const validUrlRegex = new RegExp(
 
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()
-function valiateUrl(url: string) {
+function validateUrl(url: string) {
 	if (validUrlRegex.test(url)) return true
 	if (validUrlRegex.test('https://' + url)) return 'needs protocol'
 	return false
 }
+
+type ShapeWithUrl = TLBaseShape<string, { url: string }>
 
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: DialogProps) {
 	const app = useApp()
 
 	const selectedShape = app.onlySelectedShape
 
-	if (!(selectedShape && 'url' in selectedShape.props)) {
+	if (
+		!(selectedShape && 'url' in selectedShape.props && typeof selectedShape.props.url === 'string')
+	) {
 		return null
 	}
 
-	return (
-		<EditLinkDialogInner
-			onClose={onClose}
-			selectedShape={selectedShape as TLShape & { props: { url: string } }}
-		/>
-	)
+	return <EditLinkDialogInner onClose={onClose} selectedShape={selectedShape as ShapeWithUrl} />
 })
 
 export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	onClose,
 	selectedShape,
-}: DialogProps & { selectedShape: TLShape & { props: { url: string } } }) {
+}: DialogProps & { selectedShape: ShapeWithUrl }) {
 	const app = useApp()
 	const msg = useTranslation()
 
-	const [validState, setValid] = useState(valiateUrl(selectedShape?.props.url))
+	const [validState, setValid] = useState(validateUrl(selectedShape.props.url))
 
-	const rInitialValue = useRef(selectedShape?.props.url)
+	const rInitialValue = useRef(selectedShape.props.url)
 
-	const rValue = useRef(selectedShape?.props.url)
+	const rValue = useRef(selectedShape.props.url)
 	const [urlValue, setUrlValue] = useState<string>(
 		validState
 			? validState === 'needs protocol'
-				? 'https://' + selectedShape?.props.url
-				: selectedShape?.props.url
+				? 'https://' + selectedShape.props.url
+				: selectedShape.props.url
 			: 'https://'
 	)
 
@@ -63,7 +62,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 		})
 		setUrlValue(value)
 
-		const validStateUrl = valiateUrl(value.trim())
+		const validStateUrl = validateUrl(value.trim())
 		setValid((s) => (s === validStateUrl ? s : validStateUrl))
 		if (validStateUrl) {
 			rValue.current = value
@@ -78,7 +77,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const handleComplete = useCallback(
 		(value: string) => {
 			value = value.trim()
-			const validState = valiateUrl(value)
+			const validState = validateUrl(value)
 
 			const shape = app.selectedShapes[0]
 

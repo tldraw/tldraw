@@ -6,7 +6,7 @@ import { T } from '@tldraw/tlvalidate'
  *
  * @public
  */
-export interface TLDocument extends BaseRecord<'document'> {
+export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
 	gridSize: number
 }
 

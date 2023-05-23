@@ -1,5 +1,4 @@
-import type { ID } from '@tldraw/tlstore'
-import { BaseRecord } from '@tldraw/tlstore'
+import type { ID, UnknownRecord } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'
@@ -22,7 +21,7 @@ import {
 } from './style-types'
 
 /** @internal */
-export function idValidator<Id extends ID<BaseRecord<any>>>(
+export function idValidator<Id extends ID<UnknownRecord>>(
 	prefix: Id['__type__']['typeName']
 ): T.Validator<Id> {
 	return T.string.refine((id) => {

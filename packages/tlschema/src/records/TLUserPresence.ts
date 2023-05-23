@@ -6,7 +6,7 @@ import { TLInstanceId } from './TLInstance'
 import { TLUserId } from './TLUser'
 
 /** @public */
-export interface TLUserPresence extends BaseRecord<'user_presence'> {
+export interface TLUserPresence extends BaseRecord<'user_presence', TLUserPresenceId> {
 	userId: TLUserId
 	lastUsedInstanceId: TLInstanceId | null
 	lastActivityTimestamp: number

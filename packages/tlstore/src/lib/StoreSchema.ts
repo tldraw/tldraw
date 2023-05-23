@@ -1,6 +1,6 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { Signal } from 'signia'
-import { BaseRecord } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { Store, StoreSnapshot } from './Store'
 import {
@@ -36,7 +36,7 @@ export interface SerializedSchema {
 }
 
 /** @public */
-export type StoreSchemaOptions<R extends BaseRecord, P> = {
+export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
 	snapshotMigrations?: Migrations
 	/** @public */
@@ -54,8 +54,8 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 }
 
 /** @public */
-export class StoreSchema<R extends BaseRecord, P = unknown> {
-	static create<R extends BaseRecord, P = unknown>(
+export class StoreSchema<R extends UnknownRecord, P = unknown> {
+	static create<R extends UnknownRecord, P = unknown>(
 		// HACK: making this param work with RecordType is an enormous pain
 		// let's just settle for making sure each typeName has a corresponding RecordType
 		// and accept that this function won't be able to infer the record type from it's arguments
@@ -222,7 +222,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		}
 
 		const updated: R[] = []
-		for (const r of Object.values(storeSnapshot)) {
+		for (const r of objectMapValues(storeSnapshot)) {
 			const result = this.migratePersistedRecord(r, persistedSchema)
 			if (result.type === 'error') {
 				return result
@@ -233,7 +233,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		if (updated.length) {
 			storeSnapshot = { ...storeSnapshot }
 			for (const r of updated) {
-				storeSnapshot[r.id] = r
+				storeSnapshot[r.id as IdOf<R>] = r
 			}
 		}
 		return { type: 'success', value: storeSnapshot }

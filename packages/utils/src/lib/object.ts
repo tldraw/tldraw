@@ -89,6 +89,18 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }
 
 /**
+ * An alias for `Object.fromEntries` that treats the object as a map and so preserves the type of the
+ * keys.
+ *
+ * @internal
+ */
+export function objectMapFromEntries<Key extends string, Value>(
+	entries: ReadonlyArray<readonly [Key, Value]>
+): { [K in Key]: Value } {
+	return Object.fromEntries(entries) as { [K in Key]: Value }
+}
+
+/**
  * Filters an object using a predicate function.
  * @returns a new object with only the entries that pass the predicate
  * @internal

@@ -7,7 +7,7 @@ import { pageIdValidator } from '../validation'
  *
  * @public
  */
-export interface TLPage extends BaseRecord<'page'> {
+export interface TLPage extends BaseRecord<'page', TLPageId> {
 	name: string
 	index: string
 }

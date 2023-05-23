@@ -211,21 +211,22 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-auto-size', { source })
 					app.mark()
 					app.updateShapes(
-						(
-							app.selectedShapes.filter(
-								(shape) => app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
-							) as TLTextShape[]
-						).map((shape) => {
-							return {
-								id: shape.id,
-								type: shape.type,
-								props: {
-									...shape.props,
-									w: 8,
-									autoSize: true,
-								},
-							}
-						})
+						app.selectedShapes
+							.filter(
+								(shape): shape is TLTextShape =>
+									app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+							)
+							.map((shape) => {
+								return {
+									id: shape.id,
+									type: shape.type,
+									props: {
+										...shape.props,
+										w: 8,
+										autoSize: true,
+									},
+								}
+							})
 					)
 				},
 			},

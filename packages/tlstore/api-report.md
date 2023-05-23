@@ -11,13 +11,17 @@ import { Signal } from 'signia';
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "assertIdType" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export function assertIdType<R extends BaseRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is ID<R>;
+export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is ID<R>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "BaseRecord" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export interface BaseRecord<TypeName extends string = string> {
+export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord>> {
     // (undocumented)
-    readonly id: ID<this>;
+    readonly id: Id;
     // (undocumented)
     readonly typeName: TypeName;
 }
@@ -34,13 +38,17 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion): -1 | 
 // @public (undocumented)
 export const compareSchemas: (a: SerializedSchema, b: SerializedSchema) => -1 | 0 | 1;
 
+// Warning: (ae-incompatible-release-tags) The symbol "ComputedCache" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export type ComputedCache<Data, R extends BaseRecord> = {
-    get(id: ID<R>): Data | undefined;
+export type ComputedCache<Data, R extends UnknownRecord> = {
+    get(id: IdOf<R>): Data | undefined;
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "createRecordType" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], config: {
+export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
     validator?: StoreValidator<R>;
     scope: Scope;
@@ -64,19 +72,28 @@ export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EM
 // @public
 export function devFreeze<T>(object: T): T;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getRecordVersion" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export function getRecordVersion(record: BaseRecord, serializedSchema: SerializedSchema): RecordVersion;
+export function getRecordVersion(record: UnknownRecord, serializedSchema: SerializedSchema): RecordVersion;
 
+// Warning: (ae-incompatible-release-tags) The symbol "HistoryEntry" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export type HistoryEntry<R extends BaseRecord = BaseRecord> = {
+export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
     changes: RecordsDiff<R>;
     source: 'remote' | 'user';
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "ID" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export type ID<R extends BaseRecord = BaseRecord> = string & {
+export type ID<R extends UnknownRecord> = string & {
     __type__: R;
 };
+
+// @internal (undocumented)
+export type IdOf<R extends UnknownRecord> = R['id'];
 
 // @internal
 export class IncrementalSetConstructor<T> {
@@ -101,8 +118,10 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
     toVersion: number;
 }): MigrationResult<T>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "migrateRecord" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export function migrateRecord<R extends BaseRecord>({ record, migrations, fromVersion, toVersion, }: {
+export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
     record: unknown;
     migrations: Migrations;
     fromVersion: number;
@@ -148,15 +167,19 @@ export interface Migrations extends BaseMigrationsInfo {
     subTypeMigrations?: Record<string, BaseMigrationsInfo>;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "RecordsDiff" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export type RecordsDiff<R extends BaseRecord> = {
-    added: Record<string, R>;
-    updated: Record<string, [from: R, to: R]>;
-    removed: Record<string, R>;
+export type RecordsDiff<R extends UnknownRecord> = {
+    added: Record<IdOf<R>, R>;
+    updated: Record<IdOf<R>, [from: R, to: R]>;
+    removed: Record<IdOf<R>, R>;
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "RecordType" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export class RecordType<R extends BaseRecord, RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>> {
+export class RecordType<R extends UnknownRecord, RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>> {
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
@@ -173,7 +196,7 @@ export class RecordType<R extends BaseRecord, RequiredProperties extends keyof O
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
     createId(): ID<R>;
     isId(id?: string): id is ID<R>;
-    isInstance: (record?: BaseRecord) => record is R;
+    isInstance: (record?: UnknownRecord) => record is R;
     // (undocumented)
     readonly migrations: Migrations;
     parseId(id: string): ID<R>;
@@ -210,11 +233,15 @@ export interface SerializedSchema {
     storeVersion: number;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "squashRecordDiffs" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
+export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "Store" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
+export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
         initialData?: StoreSnapshot<R>;
         schema: StoreSchema<R, Props>;
@@ -233,8 +260,10 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
     extractingChanges(fn: () => void): RecordsDiff<R>;
     // (undocumented)
     _flushHistory(): void;
-    get: <K extends ID<R>>(id: K) => RecFromId<K> | undefined;
-    has: <K extends ID<R>>(id: K) => boolean;
+    // Warning: (ae-incompatible-release-tags) The symbol "get" is marked as @public, but its signature references "IdOf" which is marked as @internal
+    get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    // Warning: (ae-incompatible-release-tags) The symbol "has" is marked as @public, but its signature references "IdOf" which is marked as @internal
+    has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
@@ -250,13 +279,16 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;
     readonly query: StoreQueries<R>;
-    remove: (ids: ID<R>[]) => void;
+    // Warning: (ae-incompatible-release-tags) The symbol "remove" is marked as @public, but its signature references "IdOf" which is marked as @internal
+    remove: (ids: IdOf<R>[]) => void;
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;
     serialize: (filter?: ((record: R) => boolean) | undefined) => StoreSnapshot<R>;
     serializeDocumentState: () => StoreSnapshot<R>;
-    unsafeGetWithoutCapture: <K extends ID<R>>(id: K) => RecFromId<K> | undefined;
-    update: <K extends ID<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
+    // Warning: (ae-incompatible-release-tags) The symbol "unsafeGetWithoutCapture" is marked as @public, but its signature references "IdOf" which is marked as @internal
+    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    // Warning: (ae-incompatible-release-tags) The symbol "update" is marked as @public, but its signature references "IdOf" which is marked as @internal
+    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
@@ -270,13 +302,17 @@ export type StoreError = {
     isExistingValidationIssue: boolean;
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreListener" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public
-export type StoreListener<R extends BaseRecord> = (entry: HistoryEntry<R>) => void;
+export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void;
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreSchema" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export class StoreSchema<R extends BaseRecord, P = unknown> {
+export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
-    static create<R extends BaseRecord, P = unknown>(types: {
+    static create<R extends UnknownRecord, P = unknown>(types: {
         [TypeName in R['typeName']]: {
             createId: any;
         };
@@ -303,8 +339,10 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
     validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreSchemaOptions" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export type StoreSchemaOptions<R extends BaseRecord, P> = {
+export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     snapshotMigrations?: Migrations;
     onValidationFailure?: (data: {
         error: unknown;
@@ -317,20 +355,37 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
     derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreSnapshot" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "StoreSnapshot" is marked as @public, but its signature references "IdOf" which is marked as @internal
+//
 // @public
-export type StoreSnapshot<R extends BaseRecord> = Record<string, R>;
+export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreValidator" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export type StoreValidator<R extends BaseRecord> = {
+export type StoreValidator<R extends UnknownRecord> = {
     validate: (record: unknown) => R;
 };
 
+// Warning: (ae-incompatible-release-tags) The symbol "StoreValidators" is marked as @public, but its signature references "UnknownRecord" which is marked as @internal
+//
 // @public (undocumented)
-export type StoreValidators<R extends BaseRecord> = {
+export type StoreValidators<R extends UnknownRecord> = {
     [K in R['typeName']]: StoreValidator<Extract<R, {
         typeName: K;
     }>>;
 };
+
+// @internal (undocumented)
+export type UnknownRecord = BaseRecord<string, ID<UnknownRecord>>;
+
+// Warnings were encountered during analysis:
+//
+// src/lib/Store.ts:24:2 - (ae-incompatible-release-tags) The symbol "added" is marked as @public, but its signature references "IdOf" which is marked as @internal
+// src/lib/Store.ts:25:2 - (ae-incompatible-release-tags) The symbol "updated" is marked as @public, but its signature references "IdOf" which is marked as @internal
+// src/lib/Store.ts:26:2 - (ae-incompatible-release-tags) The symbol "removed" is marked as @public, but its signature references "IdOf" which is marked as @internal
+// src/lib/Store.ts:59:2 - (ae-incompatible-release-tags) The symbol "get" is marked as @public, but its signature references "IdOf" which is marked as @internal
 
 // (No @packageDocumentation comment for this package)
 
