@@ -516,7 +516,6 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const v2ShapeStale = app.getShapeById<TLArrowShape>(v2ShapeId)!
 					const util = app.getShapeUtil(TLArrowUtil)
 
 					// dumb but necessary
