@@ -1279,6 +1279,7 @@ export class App extends EventEmitter<TLEventMap> {
 	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
 	// 	return update ?? next
 	// }
+
 	@computed
 	private get _allPageStates() {
 		return this.store.query.records('instance_page_state')
