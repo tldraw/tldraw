@@ -57,7 +57,7 @@ export class DraggingHandle extends StateNode {
 
 		this.app.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
-		const handles = this.app.getShapeUtil(shape).handles(shape).sort(sortByIndex)
+		const handles = this.app.getShapeUtil(shape.type).handles(shape).sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
 		this.initialAdjacentHandle = null
@@ -225,7 +225,7 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const util = this.app.getShapeUtil(shape)
+		const util = this.app.getShapeUtil(shape.type)
 
 		const changes = util.onHandleChange?.(shape, {
 			handle: {

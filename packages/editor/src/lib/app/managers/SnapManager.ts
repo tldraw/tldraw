@@ -227,7 +227,7 @@ export class SnapManager {
 		return this.app.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
 			const pageTransfrorm = this.app.getPageTransformById(shape.id)
 			if (!pageTransfrorm) return undefined
-			const util = this.app.getShapeUtil(shape)
+			const util = this.app.getShapeUtil(shape.type)
 			const snapPoints = util.snapPoints(shape)
 			return snapPoints.map((point, i) => {
 				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
@@ -495,7 +495,7 @@ export class SnapManager {
 		// and then pass them to the snap function as 'additionalOutlines'
 
 		// First, let's find which handle we're dragging
-		const util = this.app.getShapeUtil<TLLineUtil>(line)
+		const util = this.app.getShapeUtil<TLLineUtil>(line.type)
 		const handles = util.handles(line).sort(sortByIndex)
 		if (handles.length < 3) return { nudge: new Vec2d(0, 0) }
 
@@ -568,7 +568,7 @@ export class SnapManager {
 
 			const outline = deepCopy(this.app.getOutlineById(visibleShape.id))
 
-			const isClosed = this.app.getShapeUtil(shape).isClosed?.(shape)
+			const isClosed = this.app.getShapeUtil(shape.type).isClosed?.(shape)
 
 			if (isClosed) {
 				outline.push(outline[0])

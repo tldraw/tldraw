@@ -214,7 +214,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
-	const util = app.getShapeUtil(onlySelectedShape)
+	const util = app.getShapeUtil(onlySelectedShape.type)
 	const handles = util.handles?.(onlySelectedShape)
 
 	if (!handles) return null

@@ -95,8 +95,8 @@ export class CardTool extends TLBoxTool {
 const customTldrawConfig = new TldrawEditorConfig({
 	tools: [CardTool],
 	shapeUtils: { card: CardUtil },
-	validators: { card: undefined },
-	migrations: { card: undefined },
+	shapeValidators: { card: undefined },
+	shapeMigrations: { card: undefined },
 })
 
 // ... and we can make our custom shape example!

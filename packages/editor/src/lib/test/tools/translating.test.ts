@@ -44,11 +44,11 @@ const configWithCustomShape = new TldrawEditorConfig({
 	shapeUtils: {
 		__test_top_left_snap_only: __TopLeftSnapOnlyShapeUtil,
 	},
-	validators: {
-		_test_top_left_snap_only: { validate: (record) => record as __TopLeftSnapOnlyShape },
+	shapeValidators: {
+		__test_top_left_snap_only: { validate: (record) => record as __TopLeftSnapOnlyShape },
 	},
-	migrations: {
-		_test_top_left_snap_only: undefined,
+	shapeMigrations: {
+		__test_top_left_snap_only: undefined,
 	},
 })
 
@@ -397,7 +397,7 @@ describe('When translating shapes that are descendants of a rotated shape...', (
 		const shapeD = app.getShapeById(ids.boxD)!
 
 		expect(app.getPageCenter(shapeA)).toMatchObject(new Vec2d(60, 60))
-		expect(app.getShapeUtil(shapeD).center(shapeD)).toMatchObject(new Vec2d(5, 5))
+		expect(app.getShapeUtil(shapeD.type).center(shapeD)).toMatchObject(new Vec2d(5, 5))
 		expect(app.getPageCenter(shapeD)).toMatchObject(new Vec2d(35, 35))
 
 		const rads = 0

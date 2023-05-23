@@ -26,7 +26,7 @@ export function getBoundShapeInfoForTerminal(
 	}
 
 	const shape = app.getShapeById(terminal.boundShapeId)!
-	const util = app.getShapeUtil(shape)
+	const util = app.getShapeUtil(shape.type)
 	const transform = app.getPageTransform(shape)!
 
 	return {

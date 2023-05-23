@@ -64,12 +64,14 @@ export class DragAndDropManager {
 		this.prevDroppingShapeId = this.currDroppingShapeId
 
 		if (prevDroppingShape) {
-			this.app.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
+			this.app
+				.getShapeUtil(prevDroppingShape.type)
+				.onDragShapesOut?.(prevDroppingShape, movingShapes)
 		}
 
 		if (nextDroppingShape) {
 			const res = this.app
-				.getShapeUtil(nextDroppingShape)
+				.getShapeUtil(nextDroppingShape.type)
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
 
 			if (res && res.shouldHint) {
@@ -91,7 +93,7 @@ export class DragAndDropManager {
 		if (currDroppingShapeId) {
 			const shape = this.app.getShapeById(currDroppingShapeId)
 			if (!shape) return
-			this.app.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
+			this.app.getShapeUtil(shape.type).onDropShapesOver?.(shape, shapes)
 		}
 	}
 

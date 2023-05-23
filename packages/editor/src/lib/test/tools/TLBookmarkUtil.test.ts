@@ -78,7 +78,7 @@ describe('The URL formatter', () => {
 		const e = app.getShapeById(ids.e) as TLBookmarkShape
 		const f = app.getShapeById(ids.f) as TLBookmarkShape
 
-		const util = app.getShapeUtilByType<TLBookmarkUtil>('bookmark')
+		const util = app.getShapeUtil<TLBookmarkUtil>('bookmark')
 		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')

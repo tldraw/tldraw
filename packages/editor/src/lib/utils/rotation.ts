@@ -81,7 +81,7 @@ export function applyRotationToSnapshotShapes({
 	shapeSnapshots.forEach(({ shape }) => {
 		const current = app.getShapeById(shape.id)
 		if (!current) return
-		const util = app.getShapeUtil(shape)
+		const util = app.getShapeUtil(shape.type)
 
 		if (stage === 'start' || stage === 'one-off') {
 			const changeStart = util.onRotateStart?.(shape)

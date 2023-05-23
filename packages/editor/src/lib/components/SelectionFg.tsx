@@ -36,7 +36,7 @@ export const SelectionFg = track(function SelectionFg() {
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
 	const expandOutlineBy = onlyShape
-		? app.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
+		? app.getShapeUtil(onlyShape.type).expandSelectionOutlinePx(onlyShape)
 		: 0
 
 	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation, {
@@ -70,7 +70,7 @@ export const SelectionFg = track(function SelectionFg() {
 	const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 
 	const showSelectionBounds =
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
+		(onlyShape ? !app.getShapeUtil(onlyShape.type).hideSelectionBoundsFg(onlyShape) : true) &&
 		!isChangingStyles
 
 	let shouldDisplayBox =
@@ -115,19 +115,19 @@ export const SelectionFg = track(function SelectionFg() {
 		!isCoarsePointer &&
 		!(isTinyX || isTinyY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+		(onlyShape ? !app.getShapeUtil(onlyShape.type).hideRotateHandle(onlyShape) : true)
 
 	const showMobileRotateHandle =
 		isCoarsePointer &&
 		(!isSmallX || !isSmallY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+		(onlyShape ? !app.getShapeUtil(onlyShape.type).hideRotateHandle(onlyShape) : true)
 
 	const showResizeHandles =
 		shouldDisplayControls &&
 		(onlyShape
-			? app.getShapeUtil(onlyShape).canResize(onlyShape) &&
-			  !app.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+			? app.getShapeUtil(onlyShape.type).canResize(onlyShape) &&
+			  !app.getShapeUtil(onlyShape.type).hideResizeHandles(onlyShape)
 			: true) &&
 		!showCropHandles
 
@@ -148,7 +148,7 @@ export const SelectionFg = track(function SelectionFg() {
 
 	if (
 		hideEdgeTargetsDueToCoarsePointer &&
-		shapes.every((shape) => app.getShapeUtil(shape).isAspectRatioLocked(shape))
+		shapes.every((shape) => app.getShapeUtil(shape.type).isAspectRatioLocked(shape))
 	) {
 		hideEdgeTargetsDueToCoarsePointer = false
 	}

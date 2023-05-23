@@ -124,7 +124,7 @@ export class Idle extends StateNode {
 
 				const { onlySelectedShape } = this.app
 				if (onlySelectedShape) {
-					const util = this.app.getShapeUtil(onlySelectedShape)
+					const util = this.app.getShapeUtil(onlySelectedShape.type)
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -155,7 +155,7 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-				const util = this.app.getShapeUtil(shape)
+				const util = this.app.getShapeUtil(shape.type)
 
 				// Allow playing videos and embeds
 				if (shape.type !== 'video' && shape.type !== 'embed' && this.app.isReadOnly) break
@@ -189,7 +189,7 @@ export class Idle extends StateNode {
 				if (this.app.isReadOnly) break
 				const { shape, handle } = info
 
-				const util = this.app.getShapeUtil(shape)
+				const util = this.app.getShapeUtil(shape.type)
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {
@@ -316,7 +316,7 @@ export class Idle extends StateNode {
 		const { onlySelectedShape } = this.app
 		if (!onlySelectedShape) return false
 
-		const util = this.app.getShapeUtil(onlySelectedShape)
+		const util = this.app.getShapeUtil(onlySelectedShape.type)
 		return util.canEdit(onlySelectedShape)
 	}
 
@@ -327,7 +327,7 @@ export class Idle extends StateNode {
 		const singleShape = this.app.onlySelectedShape
 		if (!singleShape) return false
 
-		const shapeUtil = this.app.getShapeUtil(singleShape)
+		const shapeUtil = this.app.getShapeUtil(singleShape.type)
 		// Should the Ctrl key be pressed to enter crop mode
 		if (withCtrlKey) {
 			return shapeUtil.canCrop(singleShape) && info.ctrlKey

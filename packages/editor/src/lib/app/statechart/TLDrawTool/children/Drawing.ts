@@ -21,7 +21,7 @@ export class Drawing extends StateNode {
 
 	initialShape?: TLDrawShape
 
-	util = this.app.getShapeUtilByType<TLDrawUtil>('draw')
+	util = this.app.getShapeUtil<TLDrawUtil>('draw')
 
 	isPen = false
 

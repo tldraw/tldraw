@@ -53,7 +53,7 @@ export class Idle extends StateNode {
 					this.app.setSelectedTool('select.crop.pointing_crop', info)
 					return
 				} else {
-					if (this.app.getShapeUtil(info.shape)?.canCrop(info.shape)) {
+					if (this.app.getShapeUtil(info.shape.type)?.canCrop(info.shape)) {
 						this.app.setCroppingId(info.shape.id)
 						this.app.setSelectedIds([info.shape.id])
 						this.app.setSelectedTool('select.crop.pointing_crop', info)
@@ -114,7 +114,7 @@ export class Idle extends StateNode {
 		const shape = this.app.getShapeById(this.app.croppingId)
 		if (!shape) return
 
-		const util = this.app.getShapeUtil(shape)
+		const util = this.app.getShapeUtil(shape.type)
 		if (!util) return
 
 		if (info.target === 'selection') {

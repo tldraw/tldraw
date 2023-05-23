@@ -92,7 +92,7 @@ export class Pointing extends StateNode {
 		])
 
 		const shape = this.app.getShapeById<TLBoxLike>(id)!
-		const { w, h } = this.app.getShapeUtil(shape).defaultProps() as TLBoxLike['props']
+		const { w, h } = this.app.getShapeUtil(shape.type).defaultProps() as TLBoxLike['props']
 		const delta = this.app.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
 
 		this.app.updateShapes([

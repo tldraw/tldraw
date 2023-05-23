@@ -36,7 +36,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 					// the editing shape must be the same type as this shape
 					editingShape.type === type &&
 					// and this shape must be capable of being editing in its current form
-					app.getShapeUtil(editingShape).canEdit(editingShape)
+					app.getShapeUtil(editingShape.type).canEdit(editingShape)
 				)
 			}
 

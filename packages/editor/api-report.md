@@ -286,8 +286,7 @@ export class App extends EventEmitter<TLEventMap> {
     getShapesAndDescendantsInOrder(ids: TLShapeId[]): TLShape[];
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapesInPage(pageId: TLPageId): TLShape[];
-    getShapeUtil<T extends TLShapeUtil<any>>(shape: T extends TLShapeUtil<infer R> ? R : string): T;
-    getShapeUtilByType<T extends TLShapeUtil<any>>(type: T extends TLShapeUtil<infer R> ? R['type'] : string): T;
+    getShapeUtil<T = TLShapeUtil>(type: T extends TLShapeUtil<infer R> ? R['type'] : string): T;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     getStrokeWidth(id: TLSizeStyle['id']): number;
@@ -1786,12 +1785,11 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor(args: {
+    constructor(opts: {
         shapeUtils?: UtilsForShapes<TLShape>;
-        validators?: ValidatorsForShapes<TLShape>;
-        migrations?: MigrationsForShapes<TLShape>;
+        shapeValidators?: ValidatorsForShapes<TLShape>;
+        shapeMigrations?: MigrationsForShapes<TLShape>;
         tools?: readonly StateNodeConstructor[];
-        allowUnknownShapes?: boolean;
         derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
     });
     // (undocumented)
@@ -1803,17 +1801,17 @@ export class TldrawEditorConfig {
     // (undocumented)
     static readonly default: TldrawEditorConfig;
     // (undocumented)
-    readonly migrations: MigrationsForShapes<TLShape>;
+    readonly shapeMigrations: MigrationsForShapes<TLShape>;
     // (undocumented)
     readonly shapeUtils: UtilsForShapes<TLShape>;
+    // (undocumented)
+    readonly shapeValidators: ValidatorsForShapes<TLShape>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
     readonly TLShape: RecordType<TLShape, 'index' | 'parentId' | 'props' | 'type'>;
     // (undocumented)
     readonly tools: readonly StateNodeConstructor[];
-    // (undocumented)
-    readonly validators: ValidatorsForShapes<TLShape>;
 }
 
 // @public (undocumented)
@@ -2445,7 +2443,7 @@ export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
-export abstract class TLShapeUtil<T extends TLUnknownShape> {
+export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     constructor(app: App, type: T['type']);
     // (undocumented)
     app: App;

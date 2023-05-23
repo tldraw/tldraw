@@ -14,7 +14,7 @@ export class PointingShape extends StateNode {
 		this.eventTargetShape = info.shape
 		this.selectingShape = this.app.getOutermostSelectableShape(info.shape)
 
-		const util = this.app.getShapeUtil(info.shape)
+		const util = this.app.getShapeUtil(info.shape.type)
 
 		if (util.onClick || this.selectingShape.id === this.app.focusLayerId) {
 			this.didSelectOnEnter = false
@@ -55,7 +55,7 @@ export class PointingShape extends StateNode {
 		const { shape } = info
 
 		if (shape) {
-			const util = this.app.getShapeUtil(shape)
+			const util = this.app.getShapeUtil(shape.type)
 			if (util.onClick) {
 				const change = util.onClick?.(shape)
 				if (change) {

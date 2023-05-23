@@ -268,7 +268,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 								return
 							}
 
-							const util = this.app.getShapeUtil(hitShape)
+							const util = this.app.getShapeUtil(hitShape.type)
 							if (!util.canBind(hitShape)) {
 								// The shape can't be bound to
 								return
@@ -308,7 +308,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 							// If the other handle is bound to the same shape, then precise
 							((startBindingId || endBindingId) && startBindingId === endBindingId) ||
 							// If the other shape is not closed, then precise
-							!this.app.getShapeUtil(target).isClosed(next)
+							!this.app.getShapeUtil(target.type).isClosed(next)
 
 						if (
 							// If we're switching to a new bound shape, then precise only if moving slowly

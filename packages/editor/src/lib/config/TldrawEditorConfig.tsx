@@ -69,26 +69,25 @@ export class TldrawEditorConfig {
 	readonly tools: readonly StateNodeConstructor[]
 
 	readonly shapeUtils: UtilsForShapes<TLShape>
-	readonly validators: ValidatorsForShapes<TLShape>
-	readonly migrations: MigrationsForShapes<TLShape>
+	readonly shapeValidators: ValidatorsForShapes<TLShape>
+	readonly shapeMigrations: MigrationsForShapes<TLShape>
 
-	constructor(args: {
+	constructor(opts: {
 		shapeUtils?: UtilsForShapes<TLShape>
-		validators?: ValidatorsForShapes<TLShape>
-		migrations?: MigrationsForShapes<TLShape>
+		shapeValidators?: ValidatorsForShapes<TLShape>
+		shapeMigrations?: MigrationsForShapes<TLShape>
 		tools?: readonly StateNodeConstructor[]
-		allowUnknownShapes?: boolean
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}) {
 		const {
 			shapeUtils = {},
-			migrations = {},
-			validators = {},
+			shapeMigrations = {},
+			shapeValidators = {},
 			tools = [],
-			allowUnknownShapes = false,
 			derivePresenceState,
-		} = args
+		} = opts
+
 		this.tools = tools
 
 		this.shapeUtils = {
@@ -107,7 +106,7 @@ export class TldrawEditorConfig {
 			...shapeUtils,
 		}
 
-		this.migrations = {
+		this.shapeMigrations = {
 			arrow: arrowShapeTypeMigrations,
 			bookmark: bookmarkShapeTypeMigrations,
 			draw: drawShapeTypeMigrations,
@@ -120,10 +119,10 @@ export class TldrawEditorConfig {
 			note: noteShapeTypeMigrations,
 			text: textShapeTypeMigrations,
 			video: videoShapeTypeMigrations,
-			...migrations,
+			...shapeMigrations,
 		}
 
-		this.validators = {
+		this.shapeValidators = {
 			arrow: arrowShapeTypeValidator,
 			bookmark: bookmarkShapeTypeValidator,
 			draw: drawShapeTypeValidator,
@@ -136,13 +135,12 @@ export class TldrawEditorConfig {
 			note: noteShapeTypeValidator,
 			text: textShapeTypeValidator,
 			video: videoShapeTypeValidator,
-			...validators,
+			...shapeValidators,
 		}
 
 		this.storeSchema = createTLSchema({
-			allowUnknownShapes,
-			migrations: this.migrations,
-			validators: this.validators,
+			shapeMigrations: this.shapeMigrations,
+			shapeValidators: this.shapeValidators,
 			derivePresenceState,
 		})
 

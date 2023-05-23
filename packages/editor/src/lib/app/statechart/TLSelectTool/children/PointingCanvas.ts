@@ -26,7 +26,7 @@ export class PointingCanvas extends StateNode {
 			return false
 		}
 		const clickPoint = this.app.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
-		const util = this.app.getShapeUtil(groupShape)
+		const util = this.app.getShapeUtil(groupShape.type)
 		return util.hitTestPoint(groupShape, clickPoint)
 	}
 

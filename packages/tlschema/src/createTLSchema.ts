@@ -45,15 +45,13 @@ export type CustomShapeTypeInfo = {
 
 /** @public */
 export function createTLSchema({
-	migrations,
-	validators,
-	allowUnknownShapes,
+	shapeMigrations,
+	shapeValidators,
 	derivePresenceState,
 }: {
-	validators: ValidatorsForShapes<TLShape>
-	migrations: MigrationsForShapes<TLShape>
+	shapeValidators: ValidatorsForShapes<TLShape>
+	shapeMigrations: MigrationsForShapes<TLShape>
 	customShapeDefs?: readonly CustomShapeTypeInfo[]
-	allowUnknownShapes?: boolean
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }) {
 	// Removed check to see whether a shape type has already been defined
@@ -64,8 +62,8 @@ export function createTLSchema({
 		migrators: rootShapeTypeMigrations.migrators,
 		subTypeKey: 'type',
 		subTypeMigrations: Object.fromEntries(
-			Object.entries(migrations).map(([type, migrations]) => [type, migrations ?? {}]) as [
-				TLShape['id'],
+			Object.entries(shapeMigrations).map(([type, migrations]) => [type, migrations ?? {}]) as [
+				TLShape['type'],
 				Migrations
 			][]
 		),
@@ -74,8 +72,8 @@ export function createTLSchema({
 	const shapeTypeValidator = T.union(
 		'type',
 		Object.fromEntries(
-			Object.entries(validators).filter(([_, validator]) => validator) as [
-				TLShape['id'],
+			Object.entries(shapeValidators).map(([type, validator]) => [type, validator ?? T.any]) as [
+				TLShape['type'],
 				T.Validator<TLShape>
 			][]
 		)
@@ -83,7 +81,16 @@ export function createTLSchema({
 
 	const shapeRecord = createRecordType<TLShape>('shape', {
 		migrations: shapeTypeMigrations,
-		validator: allowUnknownShapes ? undefined : shapeTypeValidator,
+		validator: shapeTypeValidator,
+		// {
+		// 	validate: (record: any) => {
+		// 		validator = validators[record.type]
+		// 		if (validator) {
+		// 			return validator.validate(record)
+		// 		}
+		// 		return record
+		// 	},
+		// },
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
