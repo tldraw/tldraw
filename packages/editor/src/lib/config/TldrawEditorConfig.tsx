@@ -106,8 +106,11 @@ export class TldrawEditorConfig {
 	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
 	readonly tools: readonly StateNodeConstructor[]
 
+	// Custom shape utils
 	readonly shapeUtils: UtilsForShapes<TLShape>
-	readonly shapeValidators: ValidatorsForShapes<TLShape>
+	// Validators for shape subtypes
+	readonly shapeValidators: Record<TLShape['type'], T.Validator<any>>
+	// Migrations for shape subtypes
 	readonly shapeMigrations: MigrationsForShapes<TLShape>
 
 	constructor(opts: TldrawEditorConfigOptions) {
@@ -160,32 +163,22 @@ export class TldrawEditorConfig {
 			video: videoShapeTypeValidator,
 		}
 
+		// Add custom shapes
 		for (const [type, shape] of Object.entries(shapes)) {
 			this.shapeUtils[type] = shape.util
 			this.shapeMigrations[type] = shape.migrations ?? defineMigrations({})
-			this.shapeValidators[type] = shape.validator ?? T.any
+			this.shapeValidators[type] = (shape.validator ?? T.any) as T.Validator<any>
 		}
 
-		const shapeTypeMigrations = defineMigrations({
-			currentVersion: rootShapeTypeMigrations.currentVersion,
-			firstVersion: rootShapeTypeMigrations.firstVersion,
-			migrators: rootShapeTypeMigrations.migrators,
-			subTypeKey: 'type',
-			subTypeMigrations: Object.fromEntries(
-				Object.entries(this.shapeMigrations) as [TLShape['type'], Migrations][]
-			),
-		})
-
-		const shapeTypeValidator = T.union(
-			'type',
-			Object.fromEntries(
-				Object.entries(this.shapeValidators) as [TLShape['type'], T.Validator<any>][]
-			)
-		)
-
 		const shapeRecord = createRecordType<TLShape>('shape', {
-			migrations: shapeTypeMigrations,
-			validator: T.model('shape', shapeTypeValidator),
+			migrations: defineMigrations({
+				currentVersion: rootShapeTypeMigrations.currentVersion,
+				firstVersion: rootShapeTypeMigrations.firstVersion,
+				migrators: rootShapeTypeMigrations.migrators,
+				subTypeKey: 'type',
+				subTypeMigrations: this.shapeMigrations,
+			}),
+			validator: T.model('shape', T.union('type', { ...this.shapeValidators })),
 			scope: 'document',
 		}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 

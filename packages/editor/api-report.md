@@ -44,6 +44,7 @@ import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
+import { T } from '@tldraw/tlvalidate';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
@@ -1805,7 +1806,7 @@ export class TldrawEditorConfig {
     // (undocumented)
     readonly shapeUtils: UtilsForShapes<TLShape>;
     // (undocumented)
-    readonly shapeValidators: ValidatorsForShapes<TLShape>;
+    readonly shapeValidators: Record<TLShape['type'], T.Validator<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
