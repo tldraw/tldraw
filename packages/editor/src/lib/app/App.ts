@@ -1189,7 +1189,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _reparentArrow(arrowId: TLShapeId) {
-		const arrow = this.getShapeById(arrowId) as TLArrowShape | undefined
+		const arrow = this.getShapeById<TLArrowShape>(arrowId)
 		if (!arrow) return
 		const { start, end } = arrow.props
 		const startShape = start.type === 'binding' ? this.getShapeById(start.boundShapeId) : undefined
@@ -1213,7 +1213,8 @@ export class App extends EventEmitter<TLEventMap> {
 			this.reparentShapesById([arrowId], nextParentId)
 		}
 
-		const reparentedArrow = this.getShapeById(arrowId) as TLArrowShape
+		const reparentedArrow = this.getShapeById<TLArrowShape>(arrowId)
+		if (!reparentedArrow) throw Error('no reparented arrow')
 
 		const startSibling = this.getNearestSiblingShape(reparentedArrow, startShape)
 		const endSibling = this.getNearestSiblingShape(reparentedArrow, endShape)
@@ -2999,8 +3000,8 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get shapesArray() {
-		return Array.from(this.shapeIds).map((id) => this.store.get(id)! as TLShape)
+	@computed get shapesArray(): TLShape[] {
+		return Array.from(this.shapeIds).map((id) => this.store.get(id)!)
 	}
 
 	/**
@@ -4022,12 +4023,12 @@ export class App extends EventEmitter<TLEventMap> {
 
 		let shapes = dedupe(
 			ids
-				.map((id) => this.getShapeById(id) as TLShape)
+				.map((id) => this.getShapeById(id)!)
 				.sort(sortByIndex)
 				.flatMap((shape) => {
 					const allShapes = [shape]
 					this.visitDescendants(shape.id, (descendant) => {
-						allShapes.push(this.getShapeById(descendant) as TLShape)
+						allShapes.push(this.getShapeById(descendant)!)
 					})
 					return allShapes
 				})
@@ -4247,7 +4248,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const rootShapes: TLShape[] = []
 
-		const newShapes: TLShapePartial[] = shapes.map((shape): TLShape => {
+		const newShapes: TLShape[] = shapes.map((shape): TLShape => {
 			let newShape: TLShape
 
 			if (preserveIds) {
@@ -4372,7 +4373,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i] as TLShape
+			const shape = newShapes[i]
 			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
 			if (result.type === 'success') {
 				newShapes[i] = result.value as TLShape
@@ -4850,7 +4851,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 					return newRecord ?? prev
 				})
-			) as TLShape[]
+			)
 
 			const updates = Object.fromEntries(updated.map((shape) => [shape.id, shape]))
 
@@ -5535,9 +5536,9 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/* ------------------- SubCommands ------------------ */
 	async getSvg(
-		ids: TLShapeId[] = (this.selectedIds.length
+		ids: TLShapeId[] = this.selectedIds.length
 			? this.selectedIds
-			: Object.keys(this.shapeIds)) as TLShapeId[],
+			: (Object.keys(this.shapeIds) as TLShapeId[]),
 		opts = {} as Partial<{
 			scale: number
 			background: boolean
@@ -6152,15 +6153,17 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (!shapes.length) return this
 
-		shapes = shapes
-			.map((shape) => {
-				if (shape.type === 'group') {
-					return this.getSortedChildIds(shape.id).map((id) => this.getShapeById(id))
-				}
+		shapes = compact(
+			shapes
+				.map((shape) => {
+					if (shape.type === 'group') {
+						return this.getSortedChildIds(shape.id).map((id) => this.getShapeById(id))
+					}
 
-				return shape
-			})
-			.flat() as TLShape[]
+					return shape
+				})
+				.flat()
+		)
 
 		const scaleOriginPage = Box2d.Common(compact(shapes.map((id) => this.getPageBounds(id)))).center
 
@@ -6462,7 +6465,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const translateStartChange = this.getShapeUtil(shape.type).onTranslateStart?.({
 				...shape,
 				...change,
-			} as TLShape)
+			})
 
 			if (translateStartChange) {
 				changes.push({ ...change, ...translateStartChange })
@@ -7770,7 +7773,7 @@ export class App extends EventEmitter<TLEventMap> {
 								id: shape.id,
 								type: shape.type,
 								props,
-							} as TLShape
+							}
 						}),
 						ephemeral
 					)
@@ -8861,10 +8864,10 @@ export class App extends EventEmitter<TLEventMap> {
 		if (groups.length === 0) return this
 
 		this.batch(() => {
-			let group: TLShape
+			let group: TLGroupShape
 
 			for (let i = 0, n = groups.length; i < n; i++) {
-				group = groups[i] as TLGroupShape
+				group = groups[i]
 				const childIds = this.getSortedChildIds(group.id)
 
 				for (let j = 0, n = childIds.length; j < n; j++) {

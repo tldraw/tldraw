@@ -221,7 +221,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 										w: 8,
 										autoSize: true,
 									},
-								} as TLTextShape
+								}
 							})
 					)
 				},

@@ -157,7 +157,7 @@ export class Drawing extends StateNode {
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.app.getShapeById(this.initialShape.id) as TLDrawShape
+			const shape = this.app.getShapeById<TLDrawShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots

@@ -249,7 +249,7 @@ export class SnapManager {
 		const processParent = (parentId: TLParentId) => {
 			const children = this.app.getSortedChildIds(parentId)
 			for (const id of children) {
-				const shape = this.app.getShapeById(id) as TLShape
+				const shape = this.app.getShapeById(id)
 				if (!shape) continue
 				if (shape.type === 'arrow') continue
 				if (selectedIds.includes(id)) continue
