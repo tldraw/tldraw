@@ -13,7 +13,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import {
-	geoShapeMigrations,
+	geoShapeTypeMigrations,
 	geoShapeTypeValidator,
 	TLDashType,
 	TLGeoShape,
@@ -23,7 +23,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -66,6 +66,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			font: 'draw',
 			text: '',
 			align: 'middle',
+			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
 		}
@@ -343,7 +344,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const forceSolid = useForceSolid()
 		const strokeWidth = this.app.getStrokeWidth(props.size)
 
-		const { w, color, labelColor, fill, dash, growY, font, align, size, text } = props
+		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
+			props
 
 		const getShape = () => {
 			const h = props.h + growY
@@ -448,6 +450,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					fill={fill}
 					size={size}
 					align={align}
+					verticalAlign={verticalAlign}
 					text={text}
 					labelColor={this.app.getCssColor(labelColor)}
 					wrap
@@ -636,40 +639,32 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 		if (props.text) {
 			const bounds = this.bounds(shape)
+			const padding = 16
 
 			const opts = {
 				fontSize: LABEL_FONT_SIZES[shape.props.size],
 				fontFamily: font,
 				textAlign: shape.props.align,
-				padding: 16,
+				padding,
+				verticalTextAlign: shape.props.verticalAlign,
 				lineHeight: TEXT_PROPS.lineHeight,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
 				width: Math.ceil(bounds.width),
 				height: Math.ceil(bounds.height),
+				overflow: 'wrap' as const,
 			}
 
-			const lines = this.app.textMeasure.getTextLines({
-				text: props.text,
-				wrap: true,
-				...opts,
-			})
+			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-			const labelSize = getLabelSize(this.app, shape)
-
-			const textBgEl = getTextSvgElement(this.app, {
+			const textBgEl = createTextSvgElementFromSpans(this.app, spans, {
 				...opts,
-				lines,
 				strokeWidth: 2,
 				stroke: colors.background,
 				fill: colors.background,
-				width: labelSize.w,
 			})
-
-			// yuck, include padding as magic number
-			textBgEl.setAttribute('transform', `translate(${(bounds.width - labelSize.w) / 2}, 0)`)
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
@@ -927,9 +922,8 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = app.textMeasure.measureText({
+	const minSize = app.textMeasure.measureText('w', {
 		...TEXT_PROPS,
-		text: 'w',
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: 'fit-content',
@@ -944,9 +938,8 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = app.textMeasure.measureText({
+	const size = app.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		text: text,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
 		width: 'fit-content',
@@ -1015,5 +1008,5 @@ export const TLGeoShapeDef = defineShape<TLGeoShape, TLGeoUtil>({
 	type: 'geo',
 	getShapeUtil: () => TLGeoUtil,
 	validator: geoShapeTypeValidator,
-	migrations: geoShapeMigrations,
+	migrations: geoShapeTypeMigrations,
 })

@@ -141,6 +141,11 @@ export function rng(seed?: string): () => number;
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
 // @public (undocumented)
+export function sortById<T extends {
+    id: any;
+}>(a: T, b: T): -1 | 1;
+
+// @public (undocumented)
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 

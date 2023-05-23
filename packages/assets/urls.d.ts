@@ -151,6 +151,7 @@ export function getAssetUrlsByMetaUrl(opts?: AssetUrlOptions): {
 		'tool-frame': string
 		'tool-hand': string
 		'tool-highlighter': string
+		'tool-laser': string
 		'tool-line': string
 		'tool-media': string
 		'tool-note': string
@@ -165,6 +166,9 @@ export function getAssetUrlsByMetaUrl(opts?: AssetUrlOptions): {
 		ungroup: string
 		'unlock-small': string
 		unlock: string
+		'vertical-align-center': string
+		'vertical-align-end': string
+		'vertical-align-start': string
 		visible: string
 		'warning-triangle': string
 		'zoom-in': string

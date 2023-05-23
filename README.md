@@ -19,7 +19,7 @@ Learn more at [tldraw.dev](https://tldraw.dev).
 
 ## Installation & Usage
 
-To learn more about using tldraw in your React application, follow our guide [here](https://tldraw.dev/docs/ucg/installation) or see [this CodeSandbox](https://codesandbox.io/p/github/tldraw/tldraw-examples/main?file=%2FREADME.md).
+To learn more about using tldraw in your React application, follow our guide [here](https://tldraw.dev/docs/ucg/installation) or see [this StackBlitz](https://stackblitz.com/github/tldraw/tldraw/tree/examples?file=src%2F1-basic%2FBasicExample.tsx).
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'

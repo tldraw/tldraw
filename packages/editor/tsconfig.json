@@ -15,6 +15,7 @@
 		{ "path": "../tlschema" },
 		{ "path": "../tlstore" },
 		{ "path": "../tlvalidate" },
-		{ "path": "../utils" }
+		{ "path": "../utils" },
+		{ "path": "../indices" }
 	]
 }

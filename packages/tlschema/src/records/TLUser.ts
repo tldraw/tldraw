@@ -15,7 +15,6 @@ export interface TLUser extends BaseRecord<'user'> {
 /** @public */
 export type TLUserId = ID<TLUser>
 
-// --- VALIDATION ---
 /** @public */
 export const userTypeValidator: T.Validator<TLUser> = T.model(
 	'user',
@@ -27,26 +26,8 @@ export const userTypeValidator: T.Validator<TLUser> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
-const Versions = {
-	Initial: 0,
-} as const
-
-/** @public */
-export const userTypeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.Initial,
-	firstVersion: Versions.Initial,
-	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
-	},
-})
-
 /** @public */
 export const TLUser = createRecordType<TLUser>('user', {
-	migrations: userTypeMigrations,
 	validator: userTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
@@ -59,3 +40,6 @@ export const TLUser = createRecordType<TLUser>('user', {
 		locale,
 	}
 })
+
+/** @public */
+export const userTypeMigrations = defineMigrations({})

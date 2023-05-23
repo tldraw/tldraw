@@ -18,6 +18,7 @@ import {
 	sizeValidator,
 	splineValidator,
 	userIdValidator,
+	verticalAlignValidator,
 } from '../validation'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
@@ -52,7 +53,6 @@ export interface TLInstance extends BaseRecord<'instance'> {
 /** @public */
 export type TLInstanceId = ID<TLInstance>
 
-// --- VALIDATION ---
 /** @public */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
@@ -72,6 +72,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 			opacity: opacityValidator,
 			font: fontValidator,
 			align: alignValidator,
+			verticalAlign: verticalAlignValidator,
 			icon: iconValidator,
 			geo: geoValidator,
 			arrowheadStart: arrowheadValidator,
@@ -89,11 +90,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -102,14 +99,13 @@ const Versions = {
 	AddFollowingUserId: 6,
 	RemoveAlignJustify: 7,
 	AddZoom: 8,
+	AddVerticalAlign: 9,
+	AddScribbleDelay: 10,
 } as const
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddZoom,
-	// STEP 3: Add an up+down migration for the new version here
+	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -206,6 +202,39 @@ export const instanceTypeMigrations = defineMigrations({
 				return instance
 			},
 		},
+		[Versions.AddVerticalAlign]: {
+			up: (instance: TLInstance) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						...instance.propsForNextShape,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (instance: TLInstance) => {
+				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
+				return {
+					...instance,
+					propsForNextShape,
+				}
+			},
+		},
+		[Versions.AddScribbleDelay]: {
+			up: (instance) => {
+				if (instance.scribble !== null) {
+					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+				}
+				return { ...instance }
+			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
+			},
+		},
 	},
 })
 
@@ -227,6 +256,7 @@ export const TLInstance = createRecordType<TLInstance>('instance', {
 			icon: 'file',
 			font: 'draw',
 			align: 'middle',
+			verticalAlign: 'middle',
 			geo: 'rectangle',
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',

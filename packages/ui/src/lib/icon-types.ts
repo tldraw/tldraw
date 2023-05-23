@@ -142,6 +142,7 @@ export type TLUiIconType =
 	| 'tool-frame'
 	| 'tool-hand'
 	| 'tool-highlighter'
+	| 'tool-laser'
 	| 'tool-line'
 	| 'tool-media'
 	| 'tool-note'
@@ -156,6 +157,9 @@ export type TLUiIconType =
 	| 'ungroup'
 	| 'unlock-small'
 	| 'unlock'
+	| 'vertical-align-center'
+	| 'vertical-align-end'
+	| 'vertical-align-start'
 	| 'visible'
 	| 'warning-triangle'
 	| 'zoom-in'
@@ -302,6 +306,7 @@ export const TLUiIconTypes = [
 	'tool-frame',
 	'tool-hand',
 	'tool-highlighter',
+	'tool-laser',
 	'tool-line',
 	'tool-media',
 	'tool-note',
@@ -316,6 +321,9 @@ export const TLUiIconTypes = [
 	'ungroup',
 	'unlock-small',
 	'unlock',
+	'vertical-align-center',
+	'vertical-align-end',
+	'vertical-align-start',
 	'visible',
 	'warning-triangle',
 	'zoom-in',

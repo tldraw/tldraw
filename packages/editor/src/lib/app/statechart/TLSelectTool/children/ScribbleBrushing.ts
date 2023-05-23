@@ -8,8 +8,6 @@ import { StateNode } from '../../StateNode'
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
 
-	static canActivateInReadOnly = true
-
 	hits = new Set<TLShapeId>()
 
 	size = 0
@@ -61,6 +59,10 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private startScribble = () => {
+		if (this.scribble.tick) {
+			this.app.off('tick', this.scribble?.tick)
+		}
+
 		this.scribble = new ScribbleManager({
 			onUpdate: this.onScribbleUpdate,
 			onComplete: this.onScribbleComplete,

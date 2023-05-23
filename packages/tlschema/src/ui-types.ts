@@ -9,6 +9,7 @@ export const TL_UI_COLOR_TYPES = new Set([
 	'black',
 	'selection-stroke',
 	'selection-fill',
+	'laser',
 	'muted-1',
 ] as const)
 
@@ -70,6 +71,7 @@ export type TLScribble = {
 	color: TLUiColorType
 	opacity: number
 	state: SetValue<typeof TL_SCRIBBLE_STATES>
+	delay: number
 }
 
 /** @public */
@@ -79,6 +81,7 @@ export const scribbleTypeValidator: T.Validator<TLScribble> = T.object({
 	color: uiColorTypeValidator,
 	opacity: T.number,
 	state: T.setEnum(TL_SCRIBBLE_STATES),
+	delay: T.number,
 })
 
 /** @public */

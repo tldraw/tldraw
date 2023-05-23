@@ -25,7 +25,6 @@ export type TLNoteShapeProps = {
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const noteShapeTypeValidator: T.Validator<TLNoteShape> = createShapeValidator(
 	'note',
@@ -41,22 +40,15 @@ export const noteShapeTypeValidator: T.Validator<TLNoteShape> = createShapeValid
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 } as const
 
 /** @public */
-export const noteShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	firstVersion: Versions.Initial,
+export const noteShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
 				return { ...shape, props: { ...shape.props, url: '' } }

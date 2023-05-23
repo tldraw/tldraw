@@ -43,7 +43,7 @@ export function useCanvasEvents() {
 
 			function onPointerUp(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
-				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
+				if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return
 				lastX = e.clientX
 				lastY = e.clientY
 

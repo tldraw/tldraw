@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { textShapeMigrations, textShapeTypeValidator, TLTextShape } from '@tldraw/tlschema'
+import { textShapeTypeMigrations, textShapeTypeValidator, TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { defineShape } from '../../../config/TLShapeDefinition'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { App } from '../../App'
-import { getTextSvgElement } from '../shared/getTextSvgElement'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { resizeScaled } from '../shared/resizeScaled'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useEditableText } from '../shared/useEditableText'
@@ -167,31 +167,30 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			fontSize: FONT_SIZES[shape.props.size],
 			fontFamily: font!,
 			textAlign: shape.props.align,
+			verticalTextAlign: 'middle' as const,
 			width,
 			height,
 			padding: 0, // no padding?
 			lineHeight: TEXT_PROPS.lineHeight,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			overflow: 'wrap' as const,
 		}
-
-		const lines = this.app.textMeasure.getTextLines({
-			text: text,
-			wrap: true,
-			...opts,
-		})
 
 		const color = colors.fill[shape.props.color]
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-		const textBgEl = getTextSvgElement(this.app, {
-			lines,
-			...opts,
-			stroke: colors.background,
-			strokeWidth: 2,
-			fill: colors.background,
-			padding: 0,
-		})
+		const textBgEl = createTextSvgElementFromSpans(
+			this.app,
+			this.app.textMeasure.measureTextSpans(text, opts),
+			{
+				...opts,
+				stroke: colors.background,
+				strokeWidth: 2,
+				fill: colors.background,
+				padding: 0,
+			}
+		)
 
 		const textElm = textBgEl.cloneNode(true) as SVGTextElement
 		textElm.setAttribute('fill', color)
@@ -375,7 +374,7 @@ export const TLTextShapeDef = defineShape<TLTextShape, TLTextUtil>({
 	type: 'text',
 	getShapeUtil: () => TLTextUtil,
 	validator: textShapeTypeValidator,
-	migrations: textShapeMigrations,
+	migrations: textShapeTypeMigrations,
 })
 
 function getTextSize(app: App, props: TLTextShape['props']) {
@@ -389,9 +388,8 @@ function getTextSize(app: App, props: TLTextShape['props']) {
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
 		  Math.floor(Math.max(minWidth, w)) + 'px'
 
-	const result = app.textMeasure.measureText({
+	const result = app.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		text,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
 		width: cw,
