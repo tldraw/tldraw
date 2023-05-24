@@ -528,17 +528,6 @@ export interface TLIconStyle extends TLBaseStyle {
 }
 
 /** @public */
-export type TLStyleItem =
-	| TLColorStyle
-	| TLDashStyle
-	| TLFillStyle
-	| TLSizeStyle
-	| TLOpacityStyle
-	| TLFontStyle
-	| TLAlignStyle
-//	| TLIconStyle
-
-/** @public */
 export type TLDefaultShapeStyles = {
 	color: TLColorStyle[]
 	fill: TLFillStyle[]

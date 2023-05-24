@@ -213,7 +213,6 @@ export {
 	type TLSizeType,
 	type TLSplineType,
 	type TLSplineTypeStyle,
-	type TLStyleItem,
 	type TLStyleProps,
 	type TLStyleType,
 	type TLVerticalAlignType,

@@ -1220,9 +1220,6 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLOpacityStyle | TLSizeStyle;
-
-// @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
 
 // @public (undocumented)
