@@ -158,7 +158,7 @@ export class Idle extends StateNode {
 					}
 
 					// For corners OR edges
-					if (util.canCrop(onlySelectedShape)) {
+					if (util.canCrop(onlySelectedShape) && !onlySelectedShape.isLocked) {
 						this.parent.transition('crop', info)
 						return
 					}
@@ -182,7 +182,7 @@ export class Idle extends StateNode {
 					if (change) {
 						this.app.updateShapes([change])
 						return
-					} else if (util.canCrop(shape)) {
+					} else if (util.canCrop(shape) && !shape.isLocked) {
 						// crop on double click
 						this.app.mark('select and crop')
 						this.app.select(info.shape?.id)
@@ -342,6 +342,7 @@ export class Idle extends StateNode {
 	): boolean {
 		const singleShape = this.app.onlySelectedShape
 		if (!singleShape) return false
+		if (singleShape.isLocked) return false
 
 		const shapeUtil = this.app.getShapeUtil(singleShape)
 		// Should the Ctrl key be pressed to enter crop mode

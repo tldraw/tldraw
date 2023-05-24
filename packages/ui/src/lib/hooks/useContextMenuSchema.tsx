@@ -96,7 +96,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			menuGroup(
 				'selection',
 				oneEmbedSelected && menuItem(actions['open-embed-link']),
-				oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
+				oneEmbedSelected && !isShapeLocked && menuItem(actions['convert-to-bookmark']),
 				oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed']),
 				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
 				showEditLink && !isShapeLocked && menuItem(actions['edit-link']),
