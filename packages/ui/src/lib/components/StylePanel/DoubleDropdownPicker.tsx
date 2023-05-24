@@ -80,7 +80,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							'tlui-button-grid__four': itemsA.length >= 4,
 						})}
 					>
-						{itemsA.map((item) => {
+						{itemsA.map((item, i) => {
 							return (
 								<DropdownMenu.Item
 									className="tlui-button-grid__button"
@@ -88,7 +88,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 										msg(labelA) + ' — ' + msg(`${styleTypeA}-style.${item.id}` as TLTranslationKey)
 									}
 									data-wd={`${startWdPrefix}.${item.id}`}
-									key={item.id}
+									key={`${item.id}_${i}`}
 									icon={item.icon as TLUiIconType}
 									onClick={() => onValueChange(item, styleTypeA, false)}
 									invertIcon
@@ -120,7 +120,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							'tlui-button-grid__four': itemsA.length >= 4,
 						})}
 					>
-						{itemsB.map((item) => {
+						{itemsB.map((item, i) => {
 							return (
 								<DropdownMenu.Item
 									className="tlui-button-grid__button"
@@ -128,7 +128,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 										msg(labelB) + ' — ' + msg(`${styleTypeB}-style.${item.id}` as TLTranslationKey)
 									}
 									data-wd={`${endWdPrefix}.${item.id}`}
-									key={item.id}
+									key={`${item.id}_${i}`}
 									icon={item.icon as TLUiIconType}
 									onClick={() => onValueChange(item, styleTypeB, false)}
 								/>

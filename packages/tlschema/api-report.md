@@ -731,6 +731,22 @@ export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 // @public
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
+// @public (undocumented)
+export type TLDefaultShapeStyles = {
+    color: TLColorStyle[];
+    fill: TLFillStyle[];
+    dash: TLDashStyle[];
+    size: TLSizeStyle[];
+    opacity: TLOpacityStyle[];
+    font: TLFontStyle[];
+    align: TLAlignStyle[];
+    verticalAlign: TLVerticalAlignStyle[];
+    geo: TLGeoStyle[];
+    arrowheadStart: TLArrowheadStartStyle[];
+    arrowheadEnd: TLArrowheadEndStyle[];
+    spline: TLSplineTypeStyle[];
+};
+
 // @public
 export interface TLDocument extends BaseRecord<'document'> {
     // (undocumented)
@@ -1201,22 +1217,6 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
-
-// @public (undocumented)
-export type TLStyleCollections = {
-    color: TLColorStyle[];
-    fill: TLFillStyle[];
-    dash: TLDashStyle[];
-    size: TLSizeStyle[];
-    opacity: TLOpacityStyle[];
-    font: TLFontStyle[];
-    align: TLAlignStyle[];
-    verticalAlign: TLVerticalAlignStyle[];
-    geo: TLGeoStyle[];
-    arrowheadStart: TLArrowheadStartStyle[];
-    arrowheadEnd: TLArrowheadEndStyle[];
-    spline: TLSplineTypeStyle[];
-};
 
 // @public (undocumented)
 export type TLStyleItem = TLAlignStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLOpacityStyle | TLSizeStyle;

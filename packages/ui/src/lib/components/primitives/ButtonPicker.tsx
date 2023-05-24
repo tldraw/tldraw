@@ -91,9 +91,9 @@ function _ButtonPicker<T extends TLUiStyle>(props: ButtonPickerProps<T>) {
 				'tlui-button-grid__four': columns === 4,
 			})}
 		>
-			{items.map((item) => (
+			{items.map((item, i) => (
 				<Button
-					key={item.id}
+					key={`${item.id}_${i}`}
 					data-id={item.id}
 					data-wd={`${props['data-wd']}.${item.id}`}
 					aria-label={item.id}

@@ -1,4 +1,4 @@
-import { App, TLStyleCollections, useApp } from '@tldraw/editor'
+import { App, TLDefaultShapeStyles, useApp } from '@tldraw/editor'
 import * as React from 'react'
 
 export type TLUiStyle = {
@@ -51,7 +51,7 @@ export function useStyles() {
 	return React.useContext(StylesContext)
 }
 
-const defaultStyles: TLStyleCollections = {
+const defaultStyles: TLDefaultShapeStyles = {
 	color: [
 		{ id: 'black', type: 'color', icon: 'color' },
 		{ id: 'grey', type: 'color', icon: 'color' },

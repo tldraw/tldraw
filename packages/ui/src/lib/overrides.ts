@@ -169,6 +169,14 @@ export function mergeOverrides(
 			}
 			return schema
 		},
+		styles: (app, styles) => {
+			for (const override of overrides) {
+				if (override.styles) {
+					styles = override.styles(app, styles)
+				}
+			}
+			return styles
+		},
 		translations: mergedTranslations,
 	}
 }

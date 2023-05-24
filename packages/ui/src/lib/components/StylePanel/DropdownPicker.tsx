@@ -53,13 +53,13 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends TLUiS
 						'tlui-button-grid__four': items.length >= 4,
 					})}
 				>
-					{items.map((item) => {
+					{items.map((item, i) => {
 						return (
 							<DropdownMenu.Item
 								className="tlui-button-grid__button"
 								data-wd={`${dataWd}.${item.id}`}
 								title={msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
-								key={item.id}
+								key={`${item.id}_${i}`}
 								icon={item.icon as TLUiIconType}
 								onClick={() => onValueChange(item, styleType, false)}
 							/>
