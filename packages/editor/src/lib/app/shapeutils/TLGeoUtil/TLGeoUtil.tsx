@@ -15,6 +15,7 @@ import {
 import { TLDashType, TLGeoShape, TLGeoShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { getLegacyOffsetX } from '../../../utils/legacy'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -646,9 +647,14 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				width: Math.ceil(bounds.width),
 				height: Math.ceil(bounds.height),
 				overflow: 'wrap' as const,
+				offsetX: 0,
 			}
 
 			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
+			const offsetX = getLegacyOffsetX(shape.props.align, padding, spans, bounds.width)
+			if (offsetX) {
+				opts.offsetX = offsetX
+			}
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 

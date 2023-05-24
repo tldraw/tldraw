@@ -1090,15 +1090,18 @@ input,
 	opacity: 0;
 }
 
-.tl-text-label[data-align='start'] {
+.tl-text-label[data-align='start'],
+.tl-text-label[data-align='start-legacy'] {
 	text-align: left;
 }
 
-.tl-text-label[data-align='middle'] {
+.tl-text-label[data-align='middle'],
+.tl-text-label[data-align='middle-legacy'] {
 	text-align: center;
 }
 
-.tl-text-label[data-align='end'] {
+.tl-text-label[data-align='end'],
+.tl-text-label[data-align='end-legacy'] {
 	text-align: right;
 }
 
