@@ -25,7 +25,15 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const app = useApp()
 
 	const contextMenuSchema = useContextMenuSchema()
-	const [_, handleOpenChange] = useMenuIsOpen('context menu')
+	const cb = (isOpen: boolean) => {
+		if (isOpen) return
+		const { onlySelectedShape } = app
+		if (onlySelectedShape && onlySelectedShape.isLocked) {
+			app.setSelectedIds([])
+		}
+	}
+
+	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
 	const isReadonly = useReadonly()

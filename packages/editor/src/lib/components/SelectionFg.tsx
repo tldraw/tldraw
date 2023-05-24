@@ -33,6 +33,7 @@ export const SelectionFg = track(function SelectionFg() {
 	let bounds = app.selectionBounds
 	const shapes = app.selectedShapes
 	const onlyShape = shapes.length === 1 ? shapes[0] : null
+	const isLockedShape = onlyShape && onlyShape.isLocked
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
 	const expandOutlineBy = onlyShape
@@ -115,13 +116,15 @@ export const SelectionFg = track(function SelectionFg() {
 		!isCoarsePointer &&
 		!(isTinyX || isTinyY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
+		!isLockedShape
 
 	const showMobileRotateHandle =
 		isCoarsePointer &&
 		(!isSmallX || !isSmallY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true)
+		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
+		!isLockedShape
 
 	const showResizeHandles =
 		shouldDisplayControls &&
@@ -129,7 +132,8 @@ export const SelectionFg = track(function SelectionFg() {
 			? app.getShapeUtil(onlyShape).canResize(onlyShape) &&
 			  !app.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
 			: true) &&
-		!showCropHandles
+		!showCropHandles &&
+		!isLockedShape
 
 	const hideAlternateCornerHandles = isTinyX || isTinyY
 	const showOnlyOneHandle = isTinyX && isTinyY

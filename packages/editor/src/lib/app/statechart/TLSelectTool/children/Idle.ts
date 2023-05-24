@@ -71,6 +71,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
+				if (info.shape.isLocked) break
 				this.parent.transition('pointing_shape', info)
 				break
 			}
@@ -162,7 +163,7 @@ export class Idle extends StateNode {
 						return
 					}
 
-					if (util.canEdit(onlySelectedShape)) {
+					if (util.canEdit(onlySelectedShape) && !onlySelectedShape.isLocked) {
 						this.startEditingShape(onlySelectedShape, info)
 					}
 				}
@@ -190,7 +191,7 @@ export class Idle extends StateNode {
 					}
 				}
 				// If the shape can edit, then begin editing
-				if (util.canEdit(shape)) {
+				if (util.canEdit(shape) && !shape.isLocked) {
 					this.startEditingShape(shape, info)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -329,7 +330,7 @@ export class Idle extends StateNode {
 
 	private shouldStartEditingShape(): boolean {
 		const { onlySelectedShape } = this.app
-		if (!onlySelectedShape) return false
+		if (!onlySelectedShape || onlySelectedShape.isLocked) return false
 
 		const util = this.app.getShapeUtil(onlySelectedShape)
 		return util.canEdit(onlySelectedShape)
@@ -352,6 +353,7 @@ export class Idle extends StateNode {
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
+		if (shape.isLocked) return
 		this.app.mark('editing shape')
 		this.app.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)

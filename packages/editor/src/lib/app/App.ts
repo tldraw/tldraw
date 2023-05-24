@@ -4814,17 +4814,20 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateShapes(partials: (TLShapePartial | null | undefined)[], squashing = false) {
+		let compactedPartials = compact(partials)
 		if (this.animatingShapes.size > 0) {
-			let partial: TLShapePartial | null | undefined
-			for (let i = 0; i < partials.length; i++) {
-				partial = partials[i]
-				if (partial) {
-					this.animatingShapes.delete(partial.id)
-				}
-			}
+			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
 		}
 
-		this._updateShapes(partials, squashing)
+		compactedPartials = compactedPartials.filter((p) => {
+			const shape = this.getShapeById(p.id)
+			if (!shape) return false
+
+			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
+			return !shape.isLocked || Object.hasOwn(p, 'isLocked')
+		})
+
+		this._updateShapes(compactedPartials, squashing)
 		return this
 	}
 
@@ -4912,6 +4915,11 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 	)
 
+	/** @internal */
+	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
+		return ids.filter((id) => !this.getShapeById(id)?.isLocked)
+	}
+
 	/**
 	 * Delete shapes.
 	 *
@@ -4926,7 +4934,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteShapes(ids: TLShapeId[] = this.selectedIds) {
-		this._deleteShapes(ids)
+		this._deleteShapes(this._getUnlockedShapeIds(ids))
 		return this
 	}
 
@@ -5924,6 +5932,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 		if (allUnlocked) {
 			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
+			this.setSelectedIds([])
 		} else if (allLocked) {
 			this.updateShapes(
 				shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
@@ -7167,7 +7176,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const ids = this.getSortedChildIds(this.currentPageId)
 		// page might have no shapes
 		if (ids.length <= 0) return this
-		this.setSelectedIds(ids)
+		this.setSelectedIds(this._getUnlockedShapeIds(ids))
 
 		return this
 	}
@@ -8831,7 +8840,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 1) return this
 
-		const shapes = compact(ids.map((id) => this.getShapeById(id)))
+		const shapes = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShapeById(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)
 		const pageBounds = Box2d.Common(compact(shapes.map((id) => this.getPageBounds(id))))
 

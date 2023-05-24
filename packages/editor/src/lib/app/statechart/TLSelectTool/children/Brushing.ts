@@ -112,6 +112,8 @@ export class Brushing extends StateNode {
 
 			if (results.has(shape.id)) continue testAllShapes
 
+			if (shape.isLocked) continue testAllShapes
+
 			pageBounds = this.app.getPageBounds(shape)
 			if (!pageBounds) continue testAllShapes
 
