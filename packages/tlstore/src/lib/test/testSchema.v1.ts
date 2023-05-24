@@ -17,7 +17,7 @@ interface User extends BaseRecord<'user', ID<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = new Migrator({
+const userTypeMigrator = new Migrator({
 	currentVersion: UserVersion.AddPhoneNumber,
 	migrators: {
 		[UserVersion.AddLocale]: {
@@ -87,7 +87,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const ShapeTypeMigrator = new Migrator({
+const shapeTypeMigrator = new Migrator({
 	currentVersion: ShapeVersion.AddParent,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
@@ -187,8 +187,8 @@ const snapshotMigrator = new Migrator({
 })
 
 const migrators: Record<StoreRecord['typeName'], Migrator> = {
-	shape: ShapeTypeMigrator,
-	user: userMigrations,
+	shape: shapeTypeMigrator,
+	user: userTypeMigrator,
 }
 
 type StoreRecord = User | Shape<any>

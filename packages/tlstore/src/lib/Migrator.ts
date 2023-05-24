@@ -64,7 +64,7 @@ export class Migrator<
 		direction: 'up' | 'down',
 		version: number
 	): MigrationResult<R> {
-		const fromVersion = direction === 'down' ? version : this.currentVersion
+		const fromVersion = direction === 'up' ? version : this.currentVersion
 		const toVersion = direction === 'up' ? this.currentVersion : version
 
 		let currentVersion = fromVersion
@@ -110,7 +110,7 @@ export class Migrator<
 		direction: 'up' | 'down',
 		version: number
 	): MigrationResult<T> {
-		const fromVersion = direction === 'down' ? version : this.currentVersion
+		const fromVersion = direction === 'up' ? version : this.currentVersion
 		const toVersion = direction === 'up' ? this.currentVersion : version
 
 		let currentVersion = fromVersion
@@ -150,16 +150,16 @@ export class Migrator<
 	serialize() {
 		return this.subTypeKey && this.subTypeMigrators
 			? {
-					version: this.firstVersion,
+					version: this.currentVersion,
 					subTypeKey: this.subTypeKey,
 					subTypeVersions: this.subTypeMigrators
 						? Object.fromEntries(
-								Object.entries(this.subTypeMigrators).map(([k, v]) => [k, v.firstVersion])
+								Object.entries(this.subTypeMigrators).map(([k, v]) => [k, v.currentVersion])
 						  )
 						: undefined,
 			  }
 			: {
-					version: this.firstVersion,
+					version: this.currentVersion,
 			  }
 	}
 
