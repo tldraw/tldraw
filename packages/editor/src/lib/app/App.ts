@@ -49,7 +49,6 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLShapeProp,
-	TLShapeType,
 	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
@@ -160,7 +159,7 @@ export interface AppOptions {
 	 */
 	store: TLStore
 	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config?: TldrawEditorConfig
+	config: TldrawEditorConfig
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -175,14 +174,15 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
-	constructor({ config = TldrawEditorConfig.default, store, getContainer }: AppOptions) {
+	constructor({ config, store, getContainer }: AppOptions) {
 		super()
 
-		if (store.schema !== config.storeSchema) {
+		this.config = config
+
+		if (store.schema !== this.config.storeSchema) {
 			throw new Error('Store schema does not match schema given to App')
 		}
 
-		this.config = config
 		this.store = store
 
 		this.getContainer = getContainer ?? (() => document.body)
@@ -191,7 +191,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Set the shape utils
 		this.shapeUtils = Object.fromEntries(
-			Object.entries(config.shapeUtils).map(([type, Util]) => [type, new Util(this, type)])
+			Object.entries(this.config.shapeUtils).map(([type, Util]) => [type, new Util(this, type)])
 		)
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -209,7 +209,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 		if (this.root.children) {
-			config.tools.forEach((Ctor) => {
+			this.config.tools.forEach((Ctor) => {
 				this.root.children![Ctor.id] = new Ctor(this)
 			})
 		}
@@ -2864,7 +2864,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShapeType) {
+	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
 		const shapes = this.sortedShapesArray
 
 		for (let i = shapes.length - 1; i >= 0; i--) {

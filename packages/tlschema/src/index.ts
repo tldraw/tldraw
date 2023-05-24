@@ -24,6 +24,7 @@ export {
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
+export { createTLSchema } from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
@@ -58,6 +59,7 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeTypeMigrations,
+	type TLDefaultShape,
 	type TLNullableShapeProps,
 	type TLParentId,
 	type TLShape,
@@ -65,7 +67,6 @@ export {
 	type TLShapePartial,
 	type TLShapeProp,
 	type TLShapeProps,
-	type TLShapeType,
 	type TLUnknownShape,
 } from './records/TLShape'
 export { TLUser, userTypeValidator, type TLUserId } from './records/TLUser'
