@@ -5913,7 +5913,7 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	toggleLock(ids: TLShapeId[] = this.pageState.selectedIds): this {
+	toggleLock(ids: TLShapeId[] = this.selectedIds): this {
 		if (this.isReadOnly || ids.length === 0) return this
 
 		let allLocked = true,
