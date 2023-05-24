@@ -107,9 +107,9 @@ export function menuCustom(
 export function menuItem(
 	actionItem: ActionItem | ToolItem,
 	opts = {} as Partial<{ checked: boolean; disabled: boolean }>
-): MenuItem {
+): MenuItem | null {
 	if (!actionItem) {
-		throw Error('No action item provided to menuItem')
+		return null
 	}
 
 	if (!actionItem.label) {

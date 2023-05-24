@@ -534,7 +534,7 @@ export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 	return new Validator((value) => {
 		if (!values.has(value as T)) {
 			const valuesString = Array.from(values, (value) => JSON.stringify(value)).join(' or ')
-			throw new ValidationError(`Expected ${valuesString}, got ${value}`)
+			throw new ValidationError(`Expected ${valuesString}, got "${value}"`)
 		}
 		return value as T
 	})

@@ -8,6 +8,7 @@ import {
 	Tldraw,
 	TldrawEditorConfig,
 	TLOpacityType,
+	TLStyleType,
 	toolbarItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -25,6 +26,7 @@ type CardShape = TLBaseShape<
 	{
 		w: number
 		h: number
+		color: string
 		opacity: TLOpacityType
 	}
 >
@@ -42,11 +44,14 @@ class CardUtil extends TLBoxUtil<CardShape> {
 	override canResize = (_shape: CardShape) => true
 	override canBind = (_shape: CardShape) => true
 
+	static styles = ['color']
+
 	override defaultProps(): CardShape['props'] {
 		return {
 			opacity: '1',
 			w: 300,
 			h: 300,
+			color: 'black',
 		}
 	}
 
@@ -60,15 +65,21 @@ class CardUtil extends TLBoxUtil<CardShape> {
 			<HTMLContainer
 				id={shape.id}
 				style={{
-					border: '1px solid black',
+					border: '1px solid currentColor',
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
 				}}
 			>
-				{/* Anything you want can go here—it's a regular React component */}
-				{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				<span
+					style={{
+						color: `var(--color-text)`,
+					}}
+				>
+					{/* Anything you want can go here—it's a regular React component */}
+					{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				</span>
 			</HTMLContainer>
 		)
 	}
@@ -89,10 +100,12 @@ export class CardTool extends TLBoxTool {
 	static override id = 'card'
 	static override initial = 'idle'
 	override shapeType = 'card'
+	override styles = ['color'] as TLStyleType[]
 }
 
 // Finally, collect the custom tools and shapes into a config object
 const customTldrawConfig = new TldrawEditorConfig({
+	validate: false, // this is important, since we haven't written any custom validators
 	tools: [CardTool],
 	shapes: {
 		card: {
@@ -111,6 +124,11 @@ export default function Example() {
 				autoFocus
 				overrides={{
 					tools(app, tools) {
+						for (const id in tools) {
+							if (!(id == 'select' || id === 'hand' || id === 'draw' || id === 'eraser')) {
+								delete tools[id]
+							}
+						}
 						// In order for our custom tool to show up in the UI...
 						// We need to add it to the tools list. This "toolItem"
 						// has information about its icon, label, keyboard shortcut,
@@ -130,8 +148,7 @@ export default function Example() {
 					toolbar(app, toolbar, { tools }) {
 						// The toolbar is an array of items. We can add it to the
 						// end of the array or splice it in, then return the array.
-						toolbar.splice(4, 0, toolbarItem(tools.card))
-						return toolbar
+						return [...toolbar.slice(0, 4), toolbarItem(tools.card)!]
 					},
 					keyboardShortcutsMenu(app, keyboardShortcutsMenu, { tools }) {
 						// Same for the keyboard shortcuts menu, but this menu contains
@@ -140,7 +157,7 @@ export default function Example() {
 						const toolsGroup = keyboardShortcutsMenu.find(
 							(group) => group.id === 'shortcuts-dialog.tools'
 						) as MenuGroup
-						toolsGroup.children.push(menuItem(tools.card))
+						toolsGroup.children.push(menuItem(tools.card)!)
 						return keyboardShortcutsMenu
 					},
 				}}

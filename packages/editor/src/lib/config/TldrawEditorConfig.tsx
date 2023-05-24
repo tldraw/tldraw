@@ -52,6 +52,7 @@ const DEFAULT_SHAPE_UTILS: {
 
 /** @public */
 export type TldrawEditorConfigOptions = {
+	validate?: boolean
 	tools?: readonly StateNodeConstructor[]
 	shapes?: Record<
 		string,
@@ -80,7 +81,7 @@ export class TldrawEditorConfig {
 	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const { shapes = {}, tools = [], derivePresenceState } = opts
+		const { validate = true, shapes = {}, tools = [], derivePresenceState } = opts
 
 		this.tools = tools
 
@@ -90,6 +91,7 @@ export class TldrawEditorConfig {
 		}
 
 		this.storeSchema = createTLSchema({
+			validate,
 			customShapes: shapes,
 			derivePresenceState: derivePresenceState,
 		})

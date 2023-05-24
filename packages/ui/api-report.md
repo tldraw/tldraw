@@ -504,7 +504,7 @@ export type MenuItem = {
 export function menuItem(actionItem: ActionItem | ToolItem, opts?: Partial<{
     checked: boolean;
     disabled: boolean;
-}>): MenuItem;
+}>): MenuItem | null;
 
 // @public (undocumented)
 export type MenuSchema = (CustomMenuItem | MenuGroup | MenuItem)[];
@@ -768,7 +768,7 @@ export type ToolbarItem = {
 };
 
 // @public (undocumented)
-export function toolbarItem(toolItem: ToolItem): ToolbarItem;
+export function toolbarItem(toolItem: ToolItem): null | ToolbarItem;
 
 // @public (undocumented)
 export const ToolbarSchemaContext: React_2.Context<ToolbarSchemaContextType>;

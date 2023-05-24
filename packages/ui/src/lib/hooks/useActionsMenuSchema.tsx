@@ -1,4 +1,5 @@
 import { App, useApp } from '@tldraw/editor'
+import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
 import {
@@ -54,7 +55,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const isZoomedTo100 = app.zoomLevel === 1
 
 	const actionMenuSchema = useMemo<MenuSchema>(() => {
-		const results = [
+		const results = compact([
 			menuItem(actions['align-left'], { disabled: !twoSelected }),
 			menuItem(actions['align-center-horizontal'], { disabled: !twoSelected }),
 			menuItem(actions['align-right'], { disabled: !twoSelected }),
@@ -81,7 +82,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 				: allowUngroup
 				? menuItem(actions['ungroup'])
 				: menuItem(actions['group'], { disabled: !twoSelected }),
-		]
+		])
 
 		if (overrides) {
 			return overrides(app, results, { actions, oneSelected, twoSelected, threeSelected })

@@ -60,11 +60,12 @@ type CustomShapeInfo<T extends TLUnknownShape> = {
  *  @public */
 export function createTLSchema<T extends TLUnknownShape>(
 	opts = {} as {
+		validate: boolean
 		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}
 ) {
-	const { customShapes = {}, derivePresenceState } = opts
+	const { validate = false, customShapes = {}, derivePresenceState } = opts
 
 	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
 		TLShape['type'],
@@ -110,25 +111,31 @@ export function createTLSchema<T extends TLUnknownShape>(
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
-	return StoreSchema.create<TLRecord, TLStoreProps>(
-		{
-			asset: TLAsset,
-			camera: TLCamera,
-			document: TLDocument,
-			instance: TLInstance,
-			instance_page_state: TLInstancePageState,
-			page: TLPage,
-			shape: shapeRecord,
-			user: TLUser,
-			user_document: TLUserDocument,
-			user_presence: TLUserPresence,
-			instance_presence: TLInstancePresence,
-		},
-		{
-			snapshotMigrations: storeMigrations,
-			onValidationFailure,
-			createIntegrityChecker: createIntegrityChecker,
-			derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
-		}
-	)
+	let recordTypes = {
+		asset: TLAsset,
+		camera: TLCamera,
+		document: TLDocument,
+		instance: TLInstance,
+		instance_page_state: TLInstancePageState,
+		page: TLPage,
+		shape: shapeRecord,
+		user: TLUser,
+		user_document: TLUserDocument,
+		user_presence: TLUserPresence,
+		instance_presence: TLInstancePresence,
+	}
+
+	// Turn off all the validations if we're not validating
+	if (!validate) {
+		recordTypes = Object.fromEntries(
+			Object.entries(recordTypes).map(([k, v]) => [k, v.cloneWithoutValidator()])
+		) as typeof recordTypes
+	}
+
+	return StoreSchema.create<TLRecord, TLStoreProps>(recordTypes, {
+		snapshotMigrations: storeMigrations,
+		onValidationFailure,
+		createIntegrityChecker: createIntegrityChecker,
+		derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
+	})
 }

@@ -1,27 +1,38 @@
-import { Tldraw, TldrawEditorConfig } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useEffect } from 'react'
 
-const config = new TldrawEditorConfig({
-	shapes: {},
-})
-
-export default function CustomColorsExample() {
+export default function Example() {
 	useEffect(() => {
 		// set new CSS variable for "blueish" color
-		document.body.style.setProperty('--palette-blueish', '#00f')
+		document.body.style.setProperty('--palette-blueish', '#03f')
+		document.body.style.setProperty('--palette-greenish', '#0d0')
 	}, [])
 
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				autoFocus
-				config={config}
 				overrides={{
 					styles(app, styles) {
-						styles.color[0].id = 'blueish'
-						return styles
+						return {
+							...styles,
+							color: [
+								...styles.color,
+
+								{
+									id: 'blueish',
+									color: '#00f',
+									icon: 'color',
+								},
+								{
+									id: 'greenish',
+									color: '#0f0',
+									icon: 'color',
+								},
+							],
+						}
 					},
 				}}
 			/>

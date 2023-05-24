@@ -1,4 +1,5 @@
 import { App, useApp } from '@tldraw/editor'
+import { compact } from '@tldraw/utils'
 import React from 'react'
 import { ToolItem, ToolsContextType, useTools } from './useTools'
 
@@ -11,7 +12,9 @@ export type ToolbarItem = {
 }
 
 /** @public */
-export function toolbarItem(toolItem: ToolItem): ToolbarItem {
+export function toolbarItem(toolItem: ToolItem): ToolbarItem | null {
+	if (!toolItem) return null
+
 	return {
 		id: toolItem.id,
 		type: 'item',
@@ -43,7 +46,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 	const tools = useTools()
 
 	const toolbarSchema = React.useMemo<ToolbarSchemaContextType>(() => {
-		const schema: ToolbarSchemaContextType = [
+		const schema: ToolbarSchemaContextType = compact([
 			toolbarItem(tools.select),
 			toolbarItem(tools.hand),
 			toolbarItem(tools.draw),
@@ -72,7 +75,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 			toolbarItem(tools['check-box']),
 			toolbarItem(tools.frame),
 			toolbarItem(tools.laser),
-		]
+		])
 
 		if (overrides) {
 			return overrides(app, schema, { tools })

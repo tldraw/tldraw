@@ -70,7 +70,7 @@ describe('validations', () => {
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
-			`"At shape(id = abc13).color: Expected \\"red\\" or \\"green\\" or \\"blue\\", got rubbish"`
+			`"At shape(id = abc13).color: Expected \\"red\\" or \\"green\\" or \\"blue\\", got \\"rubbish\\""`
 		)
 	})
 

@@ -167,6 +167,7 @@ export class RecordType<R extends BaseRecord, RequiredProperties extends keyof O
         readonly scope?: Scope;
     });
     clone(record: R): R;
+    cloneWithoutValidator(): RecordType<R, RequiredProperties>;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
     createCustomId(id: string): ID<R>;
     // (undocumented)

@@ -6,7 +6,7 @@ import {
 	useLocalSyncClient,
 } from '@tldraw/tlsync-client'
 import { ContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 
 /** @public */
 export function Tldraw(
@@ -18,21 +18,27 @@ export function Tldraw(
 			hideUi?: boolean
 			/** A custom configuration for this Tldraw editor */
 			config?: TldrawEditorProps['config']
+			/** Whether to validate the schema */
+			validate?: boolean
 		}
 ) {
 	const {
 		config,
 		children,
+		validate = true,
 		persistenceKey = DEFAULT_DOCUMENT_NAME,
 		instanceId = TAB_ID,
 		...rest
 	} = props
 
-	const [_config, _setConfig] = useState(() => config ?? new TldrawEditorConfig())
-
-	useEffect(() => {
-		_setConfig(config ?? new TldrawEditorConfig())
-	}, [config])
+	const _config = useMemo(
+		() =>
+			config ??
+			new TldrawEditorConfig({
+				validate,
+			}),
+		[config, validate]
+	)
 
 	const userData = getUserData()
 
