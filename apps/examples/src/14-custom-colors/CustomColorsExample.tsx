@@ -13,6 +13,7 @@ export default function Example() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
+				validate={false}
 				autoFocus
 				overrides={{
 					styles(app, styles) {
@@ -20,7 +21,6 @@ export default function Example() {
 							...styles,
 							color: [
 								...styles.color,
-
 								{
 									id: 'blueish',
 									color: '#00f',
