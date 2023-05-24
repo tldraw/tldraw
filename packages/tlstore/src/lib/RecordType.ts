@@ -200,17 +200,6 @@ export class RecordType<
 	validate(record: unknown): R {
 		return this.validator.validate(record)
 	}
-
-	/**
-	 * Create a clone of this record type without a validator.
-	 */
-	cloneWithoutValidator() {
-		return new RecordType<R, RequiredProperties>(this.typeName, {
-			createDefaultProperties: this.createDefaultProperties,
-			migrations: this.migrations,
-			scope: this.scope,
-		})
-	}
 }
 
 /**

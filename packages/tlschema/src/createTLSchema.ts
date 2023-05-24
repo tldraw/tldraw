@@ -128,7 +128,10 @@ export function createTLSchema<T extends TLUnknownShape>(
 	// Turn off all the validations if we're not validating
 	if (!validate) {
 		recordTypes = Object.fromEntries(
-			Object.entries(recordTypes).map(([k, v]) => [k, v.cloneWithoutValidator()])
+			Object.entries(recordTypes).map(([k, v]) => {
+				v.validate = (r) => r as any
+				return [k, v]
+			})
 		) as typeof recordTypes
 	}
 
