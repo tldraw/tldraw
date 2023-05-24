@@ -5,7 +5,6 @@ import { TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
-// --- DEFINITION ---
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 

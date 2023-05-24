@@ -1,7 +1,6 @@
 import { Migrator } from '@tldraw/tlstore'
 import { TLBaseAsset } from './asset-validation'
 
-// --- DEFINITION ---
 // TODO: figure out what is actually being used
 /** @public */
 export type TLVideoAsset = TLBaseAsset<
