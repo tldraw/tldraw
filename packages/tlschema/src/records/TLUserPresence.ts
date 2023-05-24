@@ -56,7 +56,6 @@ export const userPresenceTypeMigrations = defineMigrations({
 /** @public */
 export const TLUserPresence = createRecordType<TLUserPresence>('user_presence', {
 	migrations: userPresenceTypeMigrations,
-	validator: userPresenceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLUserPresence, 'id' | 'typeName' | 'userId'> => ({

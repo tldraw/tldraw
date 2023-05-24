@@ -42,7 +42,6 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
-    validator?: StoreValidator<R>;
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
@@ -164,9 +163,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
         readonly migrations: Migrations;
-        readonly validator?: {
-            validate: (r: unknown) => R;
-        } | StoreValidator<R>;
         readonly scope?: Scope;
     });
     clone(record: R): R;
@@ -183,11 +179,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     // (undocumented)
     readonly scope: Scope;
     readonly typeName: R['typeName'];
-    validate(record: unknown): R;
-    // (undocumented)
-    readonly validator: {
-        validate: (r: unknown) => R;
-    } | StoreValidator<R>;
     withDefaultProperties<DefaultProps extends Omit<Partial<R>, 'id' | 'typeName'>>(createDefaultProperties: () => DefaultProps): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>;
 }
 
@@ -303,7 +294,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
         [Record in R as Record['typeName']]: RecordType<R, any>;
     };
     // (undocumented)
-    validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
+    validateRecord: (record: any) => R;
+    // (undocumented)
+    validateRecordOnCreateOrUpdate(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
 }
 
 // @public (undocumented)
@@ -316,6 +309,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         recordBefore: null | R;
     }) => R;
+    validateRecord?: (record: any) => R;
     createIntegrityChecker?: (store: Store<R, P>) => void;
     derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
 };

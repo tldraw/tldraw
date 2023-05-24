@@ -13,14 +13,6 @@ const userMigrations = defineMigrations({})
 
 const User = createRecordType<User>('user', {
 	migrations: userMigrations,
-	validator: {
-		validate: (record) => {
-			assert(
-				record && typeof record === 'object' && 'name' in record && typeof record.name === 'string'
-			)
-			return record as User
-		},
-	},
 	scope: 'document',
 })
 
@@ -51,8 +43,30 @@ const shapeTypeMigrations = defineMigrations({
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	migrations: shapeTypeMigrations,
-	validator: {
-		validate: (record) => {
+	scope: 'document',
+})
+
+// this interface only exists to be removed
+interface Org extends BaseRecord<'org', ID<Org>> {
+	name: string
+}
+
+const Org = createRecordType<Org>('org', {
+	migrations: defineMigrations({}),
+	scope: 'document',
+})
+
+type StoreRecord = Org | User | Shape<RectangleProps | OvalProps>
+
+const validateRecord = (record: StoreRecord): StoreRecord => {
+	switch (record.typeName) {
+		case 'org': {
+			assert(
+				record && typeof record === 'object' && 'name' in record && typeof record.name === 'string'
+			)
+			return record
+		}
+		case 'user': {
 			assert(
 				record &&
 					typeof record === 'object' &&
@@ -65,29 +79,16 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 					'props' in record &&
 					typeof record.props === 'object'
 			)
-			return record as Shape<RectangleProps | OvalProps>
-		},
-	},
-	scope: 'document',
-})
-
-// this interface only exists to be removed
-interface Org extends BaseRecord<'org', ID<Org>> {
-	name: string
-}
-
-const Org = createRecordType<Org>('org', {
-	migrations: defineMigrations({}),
-	validator: {
-		validate: (record) => {
+			return record
+		}
+		case 'shape': {
 			assert(
 				record && typeof record === 'object' && 'name' in record && typeof record.name === 'string'
 			)
-			return record as Org
-		},
-	},
-	scope: 'document',
-})
+			return record
+		}
+	}
+}
 
 export const testSchemaV0 = StoreSchema.create(
 	{
@@ -97,5 +98,6 @@ export const testSchemaV0 = StoreSchema.create(
 	},
 	{
 		snapshotMigrations: defineMigrations({}),
+		validateRecord,
 	}
 )

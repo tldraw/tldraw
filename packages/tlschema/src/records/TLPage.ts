@@ -28,7 +28,6 @@ export const pageTypeValidator: T.Validator<TLPage> = T.model(
 
 /** @public */
 export const TLPage = createRecordType<TLPage>('page', {
-	validator: pageTypeValidator,
 	scope: 'document',
 })
 

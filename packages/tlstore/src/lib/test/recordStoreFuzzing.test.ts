@@ -11,16 +11,6 @@ interface Author extends BaseRecord<'author', ID<Author>> {
 	age: number
 }
 const Author = createRecordType<Author>('author', {
-	validator: {
-		validate(value) {
-			const author = value as Author
-			if (author.typeName !== 'author') throw Error()
-			if (!author.id.startsWith('author:')) throw Error()
-			if (!Number.isFinite(author.age)) throw Error()
-			if (author.age < 0) throw Error()
-			return author
-		},
-	},
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
@@ -29,16 +19,6 @@ interface Book extends BaseRecord<'book', ID<Book>> {
 	authorId: ID<Author>
 }
 const Book = createRecordType<Book>('book', {
-	validator: {
-		validate(value) {
-			const book = value as Book
-			if (!book.id.startsWith('book:')) throw Error()
-			if (book.typeName !== 'book') throw Error()
-			if (typeof book.title !== 'string') throw Error()
-			if (!book.authorId.startsWith('author')) throw Error()
-			return book
-		},
-	},
 	scope: 'document',
 })
 
@@ -51,12 +31,12 @@ function rng(seed: number) {
 	}
 }
 
-type Record = Author | Book
+type StoreRecord = Author | Book
 
 type Op =
-	| { readonly type: 'add'; readonly record: Record }
-	| { readonly type: 'delete'; readonly id: IdOf<Record> }
-	| { readonly type: 'update'; readonly record: Record }
+	| { readonly type: 'add'; readonly record: StoreRecord }
+	| { readonly type: 'delete'; readonly id: IdOf<StoreRecord> }
+	| { readonly type: 'update'; readonly record: StoreRecord }
 	| { readonly type: 'set_book_name_query_param'; readonly bookName: BookName }
 	| { readonly type: 'set_author_id_query_param'; readonly authorId: IdOf<Author> }
 
@@ -325,6 +305,27 @@ function reacreateSetFromDiffs<T>(diffs: CollectionDiff<T>[]) {
 
 const NUM_OPS = 200
 
+const validateRecord = (record: StoreRecord): StoreRecord => {
+	switch (record.typeName) {
+		case 'book': {
+			const book = record as Book
+			if (!book.id.startsWith('book:')) throw Error()
+			if (book.typeName !== 'book') throw Error()
+			if (typeof book.title !== 'string') throw Error()
+			if (!book.authorId.startsWith('author')) throw Error()
+			return book
+		}
+		case 'author': {
+			const author = record as Author
+			if (author.typeName !== 'author') throw Error()
+			if (!author.id.startsWith('author:')) throw Error()
+			if (!Number.isFinite(author.age)) throw Error()
+			if (author.age < 0) throw Error()
+			return author
+		}
+	}
+}
+
 function runTest(seed: number) {
 	const store = new Store({
 		props: {},
@@ -339,6 +340,7 @@ function runTest(seed: number) {
 					firstVersion: 0,
 					migrators: {},
 				},
+				validateRecord,
 			}
 		),
 	})

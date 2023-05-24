@@ -10,17 +10,6 @@ interface Book extends BaseRecord<'book', ID<Book>> {
 }
 
 const Book = createRecordType<Book>('book', {
-	validator: {
-		validate(value) {
-			const book = value as Book
-			if (!book.id.startsWith('book:')) throw Error()
-			if (book.typeName !== 'book') throw Error()
-			if (typeof book.title !== 'string') throw Error()
-			if (!Number.isFinite(book.numPages)) throw Error()
-			if (book.numPages < 0) throw Error()
-			return book
-		},
-	},
 	scope: 'document',
 })
 
@@ -30,22 +19,36 @@ interface Author extends BaseRecord<'author', ID<Author>> {
 }
 
 const Author = createRecordType<Author>('author', {
-	validator: {
-		validate(value) {
-			const author = value as Author
-			if (author.typeName !== 'author') throw Error()
-			if (!author.id.startsWith('author:')) throw Error()
-			if (typeof author.name !== 'string') throw Error()
-			if (typeof author.isPseudonym !== 'boolean') throw Error()
-			return author
-		},
-	},
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	isPseudonym: false,
 }))
 
-const schema = StoreSchema.create<Book | Author>(
+type StoreRecord = Book | Author
+
+const validateRecord = (record: StoreRecord): StoreRecord => {
+	switch (record.typeName) {
+		case 'book': {
+			const book = record
+			if (!book.id.startsWith('book:')) throw Error()
+			if (book.typeName !== 'book') throw Error()
+			if (typeof book.title !== 'string') throw Error()
+			if (!Number.isFinite(book.numPages)) throw Error()
+			if (book.numPages < 0) throw Error()
+			return book
+		}
+		case 'author': {
+			const author = record
+			if (author.typeName !== 'author') throw Error()
+			if (!author.id.startsWith('author:')) throw Error()
+			if (typeof author.name !== 'string') throw Error()
+			if (typeof author.isPseudonym !== 'boolean') throw Error()
+			return author
+		}
+	}
+}
+
+const schema = StoreSchema.create<StoreRecord>(
 	{
 		book: Book,
 		author: Author,
@@ -56,6 +59,7 @@ const schema = StoreSchema.create<Book | Author>(
 			firstVersion: 0,
 			migrators: {},
 		},
+		validateRecord,
 	}
 )
 

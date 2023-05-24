@@ -6,7 +6,7 @@ import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { instanceTypeMigrations } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
 import { instancePresenceTypeMigrations } from './records/TLInstancePresence'
-import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
+import { rootShapeTypeMigrations } from './records/TLShape'
 import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
 import { userPresenceTypeMigrations } from './records/TLUserPresence'
 import { storeMigrations } from './schema'
@@ -174,7 +174,6 @@ describe('TLImageAsset AddIsAnimated', () => {
 })
 
 const ShapeRecord = createRecordType('shape', {
-	validator: { validate: (record) => record as TLShape },
 	scope: 'document',
 })
 

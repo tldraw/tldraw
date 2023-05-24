@@ -1,7 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
-import { StoreValidator } from './Store'
 import { Migrations } from './migrate'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
@@ -29,7 +28,6 @@ export class RecordType<
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 	readonly migrations: Migrations
-	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
 	readonly scope: Scope
 
@@ -44,13 +42,11 @@ export class RecordType<
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 			readonly migrations: Migrations
-			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
 			readonly scope?: Scope
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
 		this.migrations = config.migrations
-		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
 		this.scope = config.scope ?? 'document'
 	}
 
@@ -188,17 +184,8 @@ export class RecordType<
 		return new RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>(this.typeName, {
 			createDefaultProperties: createDefaultProperties as any,
 			migrations: this.migrations,
-			validator: this.validator,
 			scope: this.scope,
 		})
-	}
-
-	/**
-	 * Check that the passed in record passes the validations for this type. Returns its input
-	 * correctly typed if it does, but throws an error otherwise.
-	 */
-	validate(record: unknown): R {
-		return this.validator.validate(record)
 	}
 }
 
@@ -218,14 +205,12 @@ export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
 		migrations?: Migrations
-		validator?: StoreValidator<R>
 		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({} as any),
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
-		validator: config.validator,
 		scope: config.scope,
 	})
 }

@@ -28,7 +28,6 @@ export const userTypeValidator: T.Validator<TLUser> = T.model(
 
 /** @public */
 export const TLUser = createRecordType<TLUser>('user', {
-	validator: userTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
 	let locale = 'en'

@@ -166,7 +166,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				objectMapFromEntries(
 					objectMapEntries(initialData).map(([id, record]) => [
 						id,
-						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
+						atom(
+							'atom:' + id,
+							this.schema.validateRecordOnCreateOrUpdate(this, record, 'initialize', null)
+						),
 					])
 				)
 			)
@@ -211,7 +214,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
-		this.allRecords().forEach((record) => this.schema.validateRecord(this, record, phase, null))
+		this.allRecords().forEach((record) =>
+			this.schema.validateRecordOnCreateOrUpdate(this, record, phase, null)
+		)
 	}
 
 	/**
@@ -281,7 +286,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
 
 					// Validate the record
-					record = this.schema.validateRecord(
+					record = this.schema.validateRecordOnCreateOrUpdate(
 						this,
 						record,
 						phaseOverride ?? 'updateRecord',
@@ -304,7 +309,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					// If we don't have an atom, create one.
 
 					// Validate the record
-					record = this.schema.validateRecord(
+					record = this.schema.validateRecordOnCreateOrUpdate(
 						this,
 						record as R,
 						phaseOverride ?? 'createRecord',
