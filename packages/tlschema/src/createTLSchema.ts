@@ -58,19 +58,20 @@ type CustomShapeInfo<T extends TLUnknownShape> = {
 /**
  * Create a store schema for a tldraw store that includes all the default shapes together with any custom shapes.
  *  @public */
-export function createTLSchema<T extends TLUnknownShape>({
-	customShapes,
-	derivePresenceState,
-}: {
-	customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
-	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-}) {
+export function createTLSchema<T extends TLUnknownShape>(
+	opts = {} as {
+		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
+		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+	}
+) {
+	const { customShapes = {}, derivePresenceState } = opts
+
 	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
 		TLShape['type'],
 		DefaultShapeInfo<TLShape>
 	][]
 
-	const customShapeSubTypeEntries = Object.entries(customShapes ?? {}) as [
+	const customShapeSubTypeEntries = Object.entries(customShapes) as [
 		T['type'],
 		CustomShapeInfo<T>
 	][]

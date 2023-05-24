@@ -104,11 +104,9 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public
-export function createTLSchema<T extends TLUnknownShape>({ customShapes, derivePresenceState, }: {
-    customShapes?: {
-        [K in T['type']]: CustomShapeInfo<T>;
-    };
-    derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
+export function createTLSchema<T extends TLUnknownShape>(opts?: {
+    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
