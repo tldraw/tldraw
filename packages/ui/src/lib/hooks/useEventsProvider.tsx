@@ -77,6 +77,7 @@ export interface TLUiEventMap {
 	'toggle-dark-mode': null
 	'toggle-focus-mode': null
 	'toggle-debug-mode': null
+	'toggle-lock': null
 	'exit-pen-mode': null
 	'stop-following': null
 }

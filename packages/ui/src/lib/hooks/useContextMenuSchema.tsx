@@ -101,7 +101,8 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 				showEditLink && menuItem(actions['edit-link']),
 				oneSelected && menuItem(actions['duplicate']),
 				allowGroup && menuItem(actions['group']),
-				allowUngroup && menuItem(actions['ungroup'])
+				allowUngroup && menuItem(actions['ungroup']),
+				oneSelected && menuItem(actions['toggle-lock'])
 			),
 			menuGroup(
 				'modify',

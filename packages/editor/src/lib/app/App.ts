@@ -5905,9 +5905,33 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	lockShapes(_ids: TLShapeId[] = this.pageState.selectedIds): this {
-		if (this.isReadOnly) return this
-		// todo
+	toggleLock(ids: TLShapeId[] = this.pageState.selectedIds): this {
+		if (this.isReadOnly || ids.length === 0) return this
+
+		let allLocked = true,
+			allUnlocked = true
+		const shapes: TLShape[] = []
+		for (const id of ids) {
+			const shape = this.getShapeById(id)
+			if (shape) {
+				shapes.push(shape)
+				if (shape.isLocked) {
+					allUnlocked = false
+				} else {
+					allLocked = false
+				}
+			}
+		}
+		if (allUnlocked) {
+			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
+		} else if (allLocked) {
+			this.updateShapes(
+				shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
+			)
+		} else {
+			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
+		}
+
 		return this
 	}
 

@@ -368,8 +368,6 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
-    // (undocumented)
-    lockShapes(_ids?: TLShapeId[]): this;
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
@@ -502,6 +500,8 @@ export class App extends EventEmitter<TLEventMap> {
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     static styles: TLStyleCollections;
     textMeasure: TextManager;
+    // (undocumented)
+    toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
     // (undocumented)
     ungroupShapes(ids?: TLShapeId[]): this;

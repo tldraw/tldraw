@@ -79,6 +79,7 @@ export type TLTranslationKey =
 	| 'action.toggle-focus-mode'
 	| 'action.toggle-grid.menu'
 	| 'action.toggle-grid'
+	| 'action.toggle-lock'
 	| 'action.toggle-snap-mode.menu'
 	| 'action.toggle-snap-mode'
 	| 'action.toggle-tool-lock.menu'
