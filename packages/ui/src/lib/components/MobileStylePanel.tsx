@@ -15,7 +15,7 @@ export function MobileStylePanel() {
 		'current color',
 		() => {
 			const { props } = app
-			return props ? (props.color ? app.getCssColor(props.color) : null) : 'var(--color-muted-1)'
+			return props ? (props.color ? `var(--palette-${props.color})` : null) : 'var(--color-muted-1)'
 		},
 		[app]
 	)

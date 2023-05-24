@@ -2,7 +2,7 @@ import { Vec2d, VecLike } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export const DashStylePolygon = React.memo(function DashStylePolygon({
@@ -88,19 +88,19 @@ export function DashStylePolygonSvg({
 	dash,
 	fill,
 	color,
-	colors,
+	isDarkMode,
 	strokeWidth,
 	outline,
 	lines,
 }: Pick<TLGeoShape['props'], 'dash' | 'fill' | 'color'> & {
 	outline: VecLike[]
 	strokeWidth: number
-	colors: TLExportColors
+	isDarkMode: boolean
 	lines?: VecLike[][]
 }) {
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', getColorForSvgExport({ type: 'fill', color, isDarkMode }))
 	strokeElement.setAttribute('fill', 'none')
 
 	Array.from(Array(outline.length)).forEach((_, i) => {
@@ -150,7 +150,7 @@ export function DashStylePolygonSvg({
 		d: 'M' + outline[0] + 'L' + outline.slice(1) + 'Z',
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

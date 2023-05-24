@@ -15,8 +15,9 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+import { getColorForSvgExport } from '../shared/getContainerColor'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'
@@ -168,7 +169,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = getStrokeWidth(shape.props.size) / zoomLevel
 		return pointNearToPolyline(point, this.outline(shape), offsetDist)
 	}
 
@@ -179,7 +180,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	render(shape: TLLineShape) {
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 
 		const { dash, color } = shape.props
 
@@ -305,7 +306,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 		const spline = getSplineForLineShape(shape)
 		const { dash } = shape.props
 
@@ -326,11 +327,12 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 		return <path d={path} />
 	}
 
-	toSvg(shape: TLLineShape, _font: string, colors: TLExportColors) {
+	toSvg(shape: TLLineShape, _font: string, isDarkMode: boolean) {
 		const { color: _color, size } = shape.props
-		const color = colors.fill[_color]
+
+		const color = getColorForSvgExport({ type: 'fill', color: _color, isDarkMode })
 		const spline = getSplineForLineShape(shape)
-		return getLineSvg(shape, spline, color, this.app.getStrokeWidth(size))
+		return getLineSvg(shape, spline, color, getStrokeWidth(size))
 	}
 }
 

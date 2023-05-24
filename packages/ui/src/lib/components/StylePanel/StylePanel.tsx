@@ -1,7 +1,8 @@
-import { App, TLNullableShapeProps, TLStyleItem, useApp } from '@tldraw/editor'
+import { TLNullableShapeProps, useApp } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 
 import { useValue } from 'signia-react'
+import { TLUiStyle, useStyles } from '../../hooks/useStylesProvider'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -49,15 +50,13 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	)
 }
 
-const { styles } = App
-
 function useStyleChangeCallback() {
 	const app = useApp()
 
 	return React.useCallback(
-		(item: TLStyleItem, squashing: boolean) => {
+		(item: TLUiStyle, type: string, squashing: boolean) => {
 			app.batch(() => {
-				app.setProp(item.type, item.id, false, squashing)
+				app.setProp(type, item.id, false, squashing)
 				app.isChangingStyle = true
 			})
 		},
@@ -67,6 +66,7 @@ function useStyleChangeCallback() {
 
 function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const app = useApp()
+	const styles = useStyles()
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
@@ -74,10 +74,11 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = styles.opacity[value]
-			app.setProp(item.type, item.id, ephemeral)
+			if (!item) return
+			app.setProp('opacity', item.id, ephemeral)
 			app.isChangingStyle = true
 		},
-		[app]
+		[app, styles]
 	)
 
 	const { color, fill, dash, size, opacity } = props
@@ -160,6 +161,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 
 function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const msg = useTranslation()
+	const styles = useStyles()
 	const handleValueChange = useStyleChangeCallback()
 
 	const { font, align, verticalAlign } = props
@@ -215,6 +217,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 
 function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const handleValueChange = useStyleChangeCallback()
+	const styles = useStyles()
 
 	const { geo } = props
 	if (geo === undefined) {
@@ -236,6 +239,7 @@ function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 
 function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const handleValueChange = useStyleChangeCallback()
+	const styles = useStyles()
 
 	const { spline } = props
 	if (spline === undefined) {
@@ -257,6 +261,7 @@ function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 
 function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const handleValueChange = useStyleChangeCallback()
+	const styles = useStyles()
 
 	const { arrowheadEnd, arrowheadStart } = props
 	if (arrowheadEnd === undefined && arrowheadStart === undefined) {

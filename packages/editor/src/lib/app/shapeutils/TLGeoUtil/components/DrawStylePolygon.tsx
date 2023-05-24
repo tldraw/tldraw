@@ -1,8 +1,8 @@
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints, VecLike } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
 
 export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	id,
@@ -43,14 +43,14 @@ export function DrawStylePolygonSvg({
 	lines,
 	fill,
 	color,
-	colors,
+	isDarkMode,
 	strokeWidth,
 }: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
 	id: TLGeoShape['id']
 	outline: VecLike[]
 	lines?: VecLike[][]
 	strokeWidth: number
-	colors: TLExportColors
+	isDarkMode: boolean
 }) {
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
 
@@ -65,10 +65,12 @@ export function DrawStylePolygonSvg({
 	const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
 	const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
 
+	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', fillColor)
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
 
 	// Get the fill element, if any
@@ -76,7 +78,7 @@ export function DrawStylePolygonSvg({
 		d: innerPathData,
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

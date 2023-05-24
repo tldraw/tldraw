@@ -1,187 +1,57 @@
-import { EASINGS } from '@tldraw/primitives'
-import { TLFontType, TLSizeType, TLStyleCollections } from '@tldraw/tlschema'
+import { App, TLStyleCollections, useApp } from '@tldraw/editor'
+import * as React from 'react'
 
-/** @internal */
-export const MAX_SHAPES_PER_PAGE = 2000
-/** @internal */
-export const MAX_PAGES = 40
-
-/** @internal */
-export const REMOVE_SYMBOL = Symbol('remove')
-
-/** @internal */
-export const RICH_TYPES: Record<string, boolean> = {
-	Date: true,
-	RegExp: true,
-	String: true,
-	Number: true,
+export type TLUiStyle = {
+	id: string
+	icon: string
 }
 
-/** @internal */
-export const ANIMATION_SHORT_MS = 80
-/** @internal */
-export const ANIMATION_MEDIUM_MS = 320
-
-/** @internal */
-export const ZOOMS = [0.1, 0.25, 0.5, 1, 2, 4, 8]
-/** @internal */
-export const MIN_ZOOM = 0.1
-/** @internal */
-export const MAX_ZOOM = 8
-
-/** @internal */
-export const FOLLOW_CHASE_PROPORTION = 0.5
-/** @internal */
-export const FOLLOW_CHASE_PAN_SNAP = 0.1
-/** @internal */
-export const FOLLOW_CHASE_PAN_UNSNAP = 0.2
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_SNAP = 0.005
-/** @internal */
-export const FOLLOW_CHASE_ZOOM_UNSNAP = 0.05
-
-/** @internal */
-export const MAJOR_NUDGE_FACTOR = 10
-/** @internal */
-export const MINOR_NUDGE_FACTOR = 1
-
-/** @internal */
-export const MAX_ASSET_WIDTH = 1000
-/** @internal */
-export const MAX_ASSET_HEIGHT = 1000
-
-/** @internal */
-export const GRID_INCREMENT = 5
-
-/** @internal */
-export const MIN_CROP_SIZE = 8
-
-/** @internal */
-export const DOUBLE_CLICK_DURATION = 450
-/** @internal */
-export const MULTI_CLICK_DURATION = 200
-
-/** @internal */
-export const COARSE_DRAG_DISTANCE = 6
-
-/** @internal */
-export const DRAG_DISTANCE = 4
-
-/** @internal */
-export const SVG_PADDING = 32
-
-/** @internal */
-export const HASH_PATERN_ZOOM_NAMES: Record<string, string> = {}
-
-for (let zoom = 1; zoom <= Math.ceil(MAX_ZOOM); zoom++) {
-	HASH_PATERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
+export type TLUiStyles = {
+	[key: string]: TLUiStyle[]
 }
 
-/** @internal */
-export const DEFAULT_ANIMATION_OPTIONS = {
-	duration: 0,
-	easing: EASINGS.easeInOutCubic,
-}
+// 	color: string[]
+// 	fill: string[]
+// 	dash: string[]
+// 	size: string[]
+// 	opacity: string[]
+// 	font: string[]
+// 	align: string[]
+// 	verticalAlign: string[]
+// 	geo: string[]
+// 	arrowheadStart: string[]
+// 	arrowheadEnd: string[]
+// 	spline: string[]
+// }
 
 /** @internal */
-export const HAND_TOOL_FRICTION = 0.09
-
-/** @internal */
-export const MIN_ARROW_LENGTH = 48
-/** @internal */
-export const BOUND_ARROW_OFFSET = 10
-/** @internal */
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
-
-/** @internal */
-export const DEFAULT_BOOKMARK_WIDTH = 300
-
-/** @internal */
-export const DEFAULT_BOOKMARK_HEIGHT = 320
+export const StylesContext = React.createContext({} as TLUiStyles)
 
 /** @public */
-export const ROTATING_SHADOWS = [
-	{
-		offsetX: 0,
-		offsetY: 2,
-		blur: 4,
-		spread: 0,
-		color: '#00000029',
-	},
-	{
-		offsetX: 0,
-		offsetY: 3,
-		blur: 6,
-		spread: 0,
-		color: '#0000001f',
-	},
-]
-
-/** @public */
-export const GRID_STEPS = [
-	{ min: -1, mid: 0.15, step: 100 },
-	{ min: 0.05, mid: 0.375, step: 25 },
-	{ min: 0.15, mid: 1, step: 5 },
-	{ min: 0.7, mid: 2.5, step: 1 },
-]
-
-/** @public */
-export const TEXT_PROPS = {
-	lineHeight: 1.35,
-	fontWeight: 'normal',
-	fontVariant: 'normal',
-	fontStyle: 'normal',
-	padding: '0px',
-	maxWidth: 'auto',
+export type StylesProviderProps = {
+	overrides?: (app: App, styles: TLUiStyles) => TLUiStyles
+	children: any
 }
 
 /** @public */
-export const FONT_SIZES: Record<TLSizeType, number> = {
-	s: 18,
-	m: 24,
-	l: 36,
-	xl: 44,
+export function StylesProvider({ overrides, children }: StylesProviderProps) {
+	const app = useApp()
+
+	return (
+		<StylesContext.Provider
+			value={overrides ? overrides(app, defaultStyles as TLUiStyles) : defaultStyles}
+		>
+			{children}
+		</StylesContext.Provider>
+	)
 }
 
 /** @public */
-export const LABEL_FONT_SIZES: Record<TLSizeType, number> = {
-	s: 18,
-	m: 22,
-	l: 26,
-	xl: 32,
+export function useStyles() {
+	return React.useContext(StylesContext)
 }
 
-/** @public */
-export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number> = {
-	s: 18,
-	m: 20,
-	l: 24,
-	xl: 28,
-}
-
-/** @public */
-export const FONT_FAMILIES: Record<TLFontType, string> = {
-	draw: 'var(--tl-font-draw)',
-	sans: 'var(--tl-font-sans)',
-	serif: 'var(--tl-font-serif)',
-	mono: 'var(--tl-font-mono)',
-}
-
-// These props should not cause App.props to update
-export const BLACKLISTED_PROPS = new Set([
-	'bend',
-	'w',
-	'h',
-	'start',
-	'end',
-	'text',
-	'name',
-	'url',
-	'growY',
-])
-
-const _STYLES: TLStyleCollections = {
+const defaultStyles: TLStyleCollections = {
 	color: [
 		{ id: 'black', type: 'color', icon: 'color' },
 		{ id: 'grey', type: 'color', icon: 'color' },
@@ -281,11 +151,4 @@ const _STYLES: TLStyleCollections = {
 		{ id: 'line', type: 'spline', icon: 'spline-line' },
 		{ id: 'cubic', type: 'spline', icon: 'spline-cubic' },
 	],
-}
-
-const _strokeWidthSizes = {
-	s: 2,
-	m: 3.5,
-	l: 5,
-	xl: 10,
 }

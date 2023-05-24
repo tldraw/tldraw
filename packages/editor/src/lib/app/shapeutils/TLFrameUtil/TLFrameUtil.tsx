@@ -4,7 +4,7 @@ import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { TLExportColors } from '../shared/TLExportColors'
+import { getColorForSvgExport } from '../shared/getContainerColor'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnResizeEndHandler } from '../TLShapeUtil'
 import { FrameHeading } from './components/FrameHeading'
@@ -48,16 +48,16 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 	override toSvg(
 		shape: TLFrameShape,
 		font: string,
-		colors: TLExportColors
+		isDarkMode: boolean
 	): SVGElement | Promise<SVGElement> {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		rect.setAttribute('width', shape.props.w.toString())
 		rect.setAttribute('height', shape.props.h.toString())
-		rect.setAttribute('fill', colors.solid)
+		rect.setAttribute('fill', getColorForSvgExport({ type: 'solid', isDarkMode }))
 		rect.setAttribute('opacity', shape.props.opacity)
-		rect.setAttribute('stroke', colors.fill.black)
+		rect.setAttribute('stroke', getColorForSvgExport({ type: 'fill', color: 'black', isDarkMode }))
 		rect.setAttribute('stroke-width', '1')
 		rect.setAttribute('rx', '1')
 		rect.setAttribute('ry', '1')
@@ -128,7 +128,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		textBg.setAttribute('height', `${opts.height}px`)
 		textBg.setAttribute('rx', 4 + 'px')
 		textBg.setAttribute('ry', 4 + 'px')
-		textBg.setAttribute('fill', colors.background)
+		textBg.setAttribute('fill', getColorForSvgExport({ type: 'background', isDarkMode }))
 
 		g.appendChild(textBg)
 		g.appendChild(text)

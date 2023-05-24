@@ -12,8 +12,8 @@ import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 import * as React from 'react'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	id,
@@ -44,22 +44,24 @@ export function DrawStyleEllipseSvg({
 	strokeWidth: sw,
 	fill,
 	color,
-	colors,
+	isDarkMode,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
 	strokeWidth: number
 	id: TLShapeId
-	colors: TLExportColors
+	isDarkMode: boolean
 }) {
+	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', getEllipsePath(id, w, h, sw))
-	strokeElement.setAttribute('fill', colors.fill[color])
+	strokeElement.setAttribute('fill', fillColor)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({
 		d: getEllipseIndicatorPath(id, w, h, sw),
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

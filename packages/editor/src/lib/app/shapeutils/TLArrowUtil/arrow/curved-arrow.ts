@@ -19,6 +19,7 @@ import {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 } from '../../../../constants'
 import type { App } from '../../../App'
+import { getStrokeWidth } from '../../shared/getStrokeWidth'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
@@ -105,9 +106,9 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 			if (arrowheadStart !== 'none') {
 				const offset =
 					BOUND_ARROW_OFFSET +
-					app.getStrokeWidth(shape.props.size) / 2 +
+					getStrokeWidth(shape.props.size) / 2 +
 					('size' in startShapeInfo.shape.props
-						? app.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+						? getStrokeWidth(startShapeInfo.shape.props.size) / 2
 						: 0)
 
 				a.setTo(
@@ -180,9 +181,9 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 			if (arrowheadEnd !== 'none') {
 				let offset =
 					BOUND_ARROW_OFFSET +
-					app.getStrokeWidth(shape.props.size) / 2 +
+					getStrokeWidth(shape.props.size) / 2 +
 					('size' in endShapeInfo.shape.props
-						? app.getStrokeWidth(endShapeInfo.shape.props.size) / 2
+						? getStrokeWidth(endShapeInfo.shape.props.size) / 2
 						: 0)
 
 				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {

@@ -9,6 +9,7 @@ import { useDialogs } from './hooks/useDialogsProvider'
 import { HelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
 import { MenuSchemaProviderProps } from './hooks/useMenuSchema'
+import { StylesProviderProps } from './hooks/useStylesProvider'
 import { useToasts } from './hooks/useToastsProvider'
 import { ToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
 import { ToolsProviderProps } from './hooks/useTools'
@@ -71,6 +72,7 @@ export interface TldrawUiOverrides {
 	>
 	tools?: WithDefaultHelpers<NonNullable<ToolsProviderProps['overrides']>>
 	translations?: TranslationProviderProps['overrides']
+	styles?: StylesProviderProps['overrides']
 }
 
 export interface TldrawUiOverridesWithoutDefaults {
@@ -83,6 +85,7 @@ export interface TldrawUiOverridesWithoutDefaults {
 	keyboardShortcutsMenu?: KeyboardShortcutsSchemaProviderProps['overrides']
 	tools?: ToolsProviderProps['overrides']
 	translations?: TranslationProviderProps['overrides']
+	styles?: StylesProviderProps['overrides']
 }
 
 export function mergeOverrides(

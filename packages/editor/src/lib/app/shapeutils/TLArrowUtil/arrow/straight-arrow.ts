@@ -10,6 +10,7 @@ import {
 import { TLArrowShape } from '@tldraw/tlschema'
 import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../../../constants'
 import { App } from '../../../App'
+import { getStrokeWidth } from '../../shared/getStrokeWidth'
 import { ArrowInfo } from './arrow-types'
 import {
 	BoundShapeInfo,
@@ -87,9 +88,9 @@ export function getStraightArrowInfo(app: App, shape: TLArrowShape): ArrowInfo {
 		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				app.getStrokeWidth(shape.props.size) / 2 +
+				getStrokeWidth(shape.props.size) / 2 +
 				('size' in startShapeInfo.shape.props
-					? app.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+					? getStrokeWidth(startShapeInfo.shape.props.size) / 2
 					: 0)
 
 			minDist -= offset
@@ -101,10 +102,8 @@ export function getStraightArrowInfo(app: App, shape: TLArrowShape): ArrowInfo {
 		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				app.getStrokeWidth(shape.props.size) / 2 +
-				('size' in endShapeInfo.shape.props
-					? app.getStrokeWidth(endShapeInfo.shape.props.size) / 2
-					: 0)
+				getStrokeWidth(shape.props.size) / 2 +
+				('size' in endShapeInfo.shape.props ? getStrokeWidth(endShapeInfo.shape.props.size) / 2 : 0)
 
 			minDist -= offset
 			b.nudge(a, offset * (didFlip ? -1 : 1))

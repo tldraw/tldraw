@@ -13,8 +13,9 @@ import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
+import { getColorForSvgExport } from '../shared/getContainerColor'
+import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 import { OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
@@ -63,7 +64,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
 		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = getStrokeWidth(shape.props.size) / zoomLevel
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
@@ -92,7 +93,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			const zoomLevel = this.app.zoomLevel
-			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			const offsetDist = getStrokeWidth(shape.props.size) / zoomLevel
 
 			if (
 				shape.props.segments[0].points.some(
@@ -122,7 +123,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	render(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -187,7 +188,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	indicator(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = strokeWidth
@@ -211,10 +212,10 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors) {
+	toSvg(shape: TLDrawShape, _font: string | undefined, isDarkMode: boolean) {
 		const { color } = shape.props
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -233,20 +234,22 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 		let foregroundPath: SVGPathElement | undefined
 
+		const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 		if (shape.props.dash === 'draw' || strokePoints.length < 2) {
 			setStrokePointRadii(strokePoints, options)
 			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
 
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
-			p.setAttribute('fill', colors.fill[color])
+			p.setAttribute('fill', fillColor)
 			p.setAttribute('stroke-linecap', 'round')
 
 			foregroundPath = p
 		} else {
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', solidStrokePath)
-			p.setAttribute('stroke', colors.fill[color])
+			p.setAttribute('stroke', fillColor)
 			p.setAttribute('fill', 'none')
 			p.setAttribute('stroke-linecap', 'round')
 			p.setAttribute('stroke-width', strokeWidth.toString())
@@ -260,7 +263,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			fill: shape.props.isClosed ? shape.props.fill : 'none',
 			d: solidStrokePath,
 			color: shape.props.color,
-			colors,
+			isDarkMode,
 		})
 
 		if (fillPath) {
@@ -300,7 +303,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (this.app.getStrokeWidth(shape.props.size) * multiplier) / 2
+		return (getStrokeWidth(shape.props.size) * multiplier) / 2
 	}
 }
 

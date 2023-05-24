@@ -539,7 +539,7 @@ export type TLStyleItem =
 //	| TLIconStyle
 
 /** @public */
-export interface TLStyleCollections {
+export type TLStyleCollections = {
 	color: TLColorStyle[]
 	fill: TLFillStyle[]
 	dash: TLDashStyle[]

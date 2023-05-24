@@ -7,8 +7,8 @@ import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getColorForSvgExport } from '../shared/getContainerColor'
 import { resizeScaled } from '../shared/resizeScaled'
-import { TLExportColors } from '../shared/TLExportColors'
 import { useEditableText } from '../shared/useEditableText'
 import { OnEditEndHandler, OnResizeHandler, TLShapeUtil, TLShapeUtilFlag } from '../TLShapeUtil'
 
@@ -155,7 +155,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors) {
+	toSvg(shape: TLTextShape, font: string | undefined, isDarkMode: boolean) {
 		const bounds = this.bounds(shape)
 		const text = shape.props.text
 
@@ -176,7 +176,9 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			overflow: 'wrap' as const,
 		}
 
-		const color = colors.fill[shape.props.color]
+		const color = getColorForSvgExport({ type: 'fill', color: shape.props.color, isDarkMode })
+		const backgroundColor = getColorForSvgExport({ type: 'background', isDarkMode })
+
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = createTextSvgElementFromSpans(
@@ -184,9 +186,9 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			this.app.textMeasure.measureTextSpans(text, opts),
 			{
 				...opts,
-				stroke: colors.background,
+				stroke: backgroundColor,
 				strokeWidth: 2,
-				fill: colors.background,
+				fill: backgroundColor,
 				padding: 0,
 			}
 		)

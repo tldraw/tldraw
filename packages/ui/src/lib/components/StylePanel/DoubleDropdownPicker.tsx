@@ -1,16 +1,15 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { App, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { TLStyleType } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
+import { TLUiStyle } from '../../hooks/useStylesProvider'
 import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
 
-type AllStyles = typeof App.styles
-
-interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
+interface DoubleDropdownPickerProps<T extends TLUiStyle> {
 	label: TLTranslationKey
 	labelA: TLTranslationKey
 	labelB: TLTranslationKey
@@ -20,13 +19,11 @@ interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]
 	styleTypeB: TLStyleType
 	valueA: T['id'] | null | undefined
 	valueB: T['id'] | null | undefined
-	onValueChange: (value: TLStyleItem, squashing: boolean) => void
+	onValueChange: (value: T, styleType: string, squashing: boolean) => void
 	'data-wd'?: string
 }
 
-export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
-	T extends AllStyles[keyof AllStyles][number]
->({
+export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T extends TLUiStyle>({
 	'data-wd': dataWd,
 	label,
 	labelA,
@@ -93,7 +90,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									data-wd={`${startWdPrefix}.${item.id}`}
 									key={item.id}
 									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(item as TLStyleItem, false)}
+									onClick={() => onValueChange(item, styleTypeA, false)}
 									invertIcon
 								/>
 							)
@@ -133,7 +130,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									data-wd={`${endWdPrefix}.${item.id}`}
 									key={item.id}
 									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(item as TLStyleItem, false)}
+									onClick={() => onValueChange(item, styleTypeB, false)}
 								/>
 							)
 						})}

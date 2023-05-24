@@ -12,6 +12,7 @@ import { uniqueId } from '../../../../utils/data'
 import { TLDrawUtil } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
+import { getStrokeWidth } from '../../../shapeutils/shared/getStrokeWidth'
 import { StateNode } from '../../StateNode'
 
 export class Drawing extends StateNode {
@@ -128,7 +129,7 @@ export class Drawing extends StateNode {
 	}
 
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLSizeType) {
-		const strokeWidth = this.app.getStrokeWidth(size)
+		const strokeWidth = getStrokeWidth(size)
 		const firstPoint = segments[0].points[0]
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]

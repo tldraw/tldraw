@@ -3,9 +3,9 @@ import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getColorForSvgExport } from '../shared/getContainerColor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
-import { TLExportColors } from '../shared/TLExportColors'
 import { OnEditEndHandler, TLShapeUtil } from '../TLShapeUtil'
 
 const NOTE_SIZE = 200
@@ -105,19 +105,22 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		)
 	}
 
-	toSvg(shape: TLNoteShape, font: string, colors: TLExportColors) {
+	toSvg(shape: TLNoteShape, font: string, isDarkMode: boolean) {
 		const bounds = this.bounds(shape)
 
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const adjustedColor = shape.props.color === 'black' ? 'yellow' : shape.props.color
 
+		const color = getColorForSvgExport({ type: 'fill', color: adjustedColor, isDarkMode })
+		const backgroundColor = getColorForSvgExport({ type: 'background', isDarkMode })
+
 		const rect1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		rect1.setAttribute('rx', '10')
 		rect1.setAttribute('width', NOTE_SIZE.toString())
 		rect1.setAttribute('height', bounds.height.toString())
-		rect1.setAttribute('fill', colors.fill[adjustedColor])
-		rect1.setAttribute('stroke', colors.fill[adjustedColor])
+		rect1.setAttribute('fill', color)
+		rect1.setAttribute('stroke', color)
 		rect1.setAttribute('stroke-width', '1')
 		g.appendChild(rect1)
 
@@ -125,7 +128,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		rect2.setAttribute('rx', '10')
 		rect2.setAttribute('width', NOTE_SIZE.toString())
 		rect2.setAttribute('height', bounds.height.toString())
-		rect2.setAttribute('fill', colors.background)
+		rect2.setAttribute('fill', backgroundColor)
 		rect2.setAttribute('opacity', '.28')
 		g.appendChild(rect2)
 
@@ -151,8 +154,9 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		opts.width = bounds.width
 		opts.padding = PADDING
 
+		const textColor = getColorForSvgExport({ type: 'text', isDarkMode })
 		const textElm = createTextSvgElementFromSpans(this.app, spans, opts)
-		textElm.setAttribute('fill', colors.text)
+		textElm.setAttribute('fill', textColor)
 		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
 		g.appendChild(textElm)
 

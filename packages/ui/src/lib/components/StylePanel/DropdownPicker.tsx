@@ -1,28 +1,24 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { App, TLStyleItem, TLStyleType } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
+import { TLUiStyle } from '../../hooks/useStylesProvider'
 import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
 
-type AllStyles = typeof App.styles
-
-interface DropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
+interface DropdownPickerProps<T extends TLUiStyle> {
 	id: string
 	label?: TLTranslationKey
 	items: T[]
-	styleType: TLStyleType
+	styleType: string
 	value: T['id'] | null
 	'data-wd'?: string
-	onValueChange: (value: TLStyleItem, squashing: boolean) => void
+	onValueChange: (value: T, styleType: string, squashing: boolean) => void
 }
 
-export const DropdownPicker = React.memo(function DropdownPicker<
-	T extends AllStyles[keyof AllStyles][number]
->({
+export const DropdownPicker = React.memo(function DropdownPicker<T extends TLUiStyle>({
 	id,
 	items,
 	styleType,
@@ -65,7 +61,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 								title={msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
 								key={item.id}
 								icon={item.icon as TLUiIconType}
-								onClick={() => onValueChange(item as TLStyleItem, false)}
+								onClick={() => onValueChange(item, styleType, false)}
 							/>
 						)
 					})}

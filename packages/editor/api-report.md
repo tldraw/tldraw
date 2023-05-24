@@ -54,8 +54,6 @@ import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
-import { TLColorStyle } from '@tldraw/tlschema';
-import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
@@ -84,13 +82,10 @@ import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
-import { TLShapeProp } from '@tldraw/tlschema';
 import { TLShapeProps } from '@tldraw/tlschema';
-import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
-import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
@@ -244,7 +239,6 @@ export class App extends EventEmitter<TLEventMap> {
     getContainer: () => HTMLElement;
     // (undocumented)
     getContent(ids?: TLShapeId[]): TLClipboardModel | undefined;
-    getCssColor(id: TLColorStyle['id']): string;
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     // (undocumented)
@@ -291,7 +285,6 @@ export class App extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
-    getStrokeWidth(id: TLSizeStyle['id']): number;
     // (undocumented)
     getSvg(ids?: TLShapeId[], opts?: Partial<{
         scale: number;
@@ -470,7 +463,7 @@ export class App extends EventEmitter<TLEventMap> {
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
-    setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
+    setProp(key: string, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
@@ -501,7 +494,6 @@ export class App extends EventEmitter<TLEventMap> {
     stopFollowingUser: () => this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
-    static styles: TLStyleCollections;
     textMeasure: TextManager;
     undo(): HistoryManager<this>;
     // (undocumented)
@@ -730,9 +722,6 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function fileToBase64(file: Blob): Promise<string>;
 
 // @public (undocumented)
-export const FONT_ALIGNMENT: Record<TLAlignType, string>;
-
-// @public (undocumented)
 export const FONT_FAMILIES: Record<TLFontType, string>;
 
 // @public (undocumented)
@@ -869,9 +858,6 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
-
-// @public (undocumented)
-export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
 export const INDENT = "  ";
@@ -1553,9 +1539,6 @@ export interface StateNodeConstructor {
     styles?: TLStyleType[];
 }
 
-// @public (undocumented)
-export const STYLES: TLStyleCollections;
-
 // @internal (undocumented)
 export const SVG_PADDING = 32;
 
@@ -1635,7 +1618,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
     // (undocumented)
     snapPoints(_shape: TLArrowShape): Vec2d[];
     // (undocumented)
-    toSvg(shape: TLArrowShape, font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLArrowShape, font: string, isDarkMode: boolean): SVGGElement;
     // (undocumented)
     static type: string;
 }
@@ -1862,7 +1845,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
     // (undocumented)
     render(shape: TLDrawShape): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLDrawShape, _font: string | undefined, isDarkMode: boolean): SVGGElement;
     // (undocumented)
     static type: string;
 }
@@ -2052,7 +2035,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     render(shape: TLFrameShape): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape, font: string, isDarkMode: boolean): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: string;
 }
@@ -2168,7 +2151,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
     // (undocumented)
     render(shape: TLGeoShape): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
+    toSvg(shape: TLGeoShape, font: string, isDarkMode: boolean): SVGElement;
     // (undocumented)
     static type: string;
 }
@@ -2282,7 +2265,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
     // (undocumented)
     render(shape: TLLineShape): JSX.Element | undefined;
     // (undocumented)
-    toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLLineShape, _font: string, isDarkMode: boolean): SVGGElement;
     // (undocumented)
     static type: string;
 }
@@ -2366,7 +2349,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
     // (undocumented)
     render(shape: TLNoteShape): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLNoteShape, font: string, isDarkMode: boolean): SVGGElement;
     // (undocumented)
     static type: string;
 }
@@ -2501,7 +2484,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     point(shape: T): Vec2dModel;
     abstract render(shape: T): any;
     snapPoints(shape: T): Vec2d[];
-    toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
+    toSvg?(shape: T, font: string | undefined, isDarkMode: boolean): Promise<SVGElement> | SVGElement;
     transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
@@ -2598,7 +2581,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
     // (undocumented)
     render(shape: TLTextShape): JSX.Element;
     // (undocumented)
-    toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLTextShape, font: string | undefined, isDarkMode: boolean): SVGGElement;
     // (undocumented)
     static type: string;
 }

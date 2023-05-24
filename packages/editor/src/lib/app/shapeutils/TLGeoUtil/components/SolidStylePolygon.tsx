@@ -2,7 +2,7 @@ import { VecLike } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 
 export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 	outline,
@@ -36,12 +36,12 @@ export function SolidStylePolygonSvg({
 	lines,
 	fill,
 	color,
+	isDarkMode,
 	strokeWidth,
-	colors,
 }: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
 	outline: VecLike[]
 	strokeWidth: number
-	colors: TLExportColors
+	isDarkMode: boolean
 	lines?: VecLike[][]
 }) {
 	const pathData = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
@@ -55,10 +55,12 @@ export function SolidStylePolygonSvg({
 		}
 	}
 
+	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', fillColor)
 	strokeElement.setAttribute('fill', 'none')
 
 	// Get the fill element, if any
@@ -66,7 +68,7 @@ export function SolidStylePolygonSvg({
 		d: fillPathData,
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

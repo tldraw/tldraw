@@ -1203,32 +1203,20 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
-export interface TLStyleCollections {
-    // (undocumented)
-    align: TLAlignStyle[];
-    // (undocumented)
-    arrowheadEnd: TLArrowheadEndStyle[];
-    // (undocumented)
-    arrowheadStart: TLArrowheadStartStyle[];
-    // (undocumented)
+export type TLStyleCollections = {
     color: TLColorStyle[];
-    // (undocumented)
-    dash: TLDashStyle[];
-    // (undocumented)
     fill: TLFillStyle[];
-    // (undocumented)
-    font: TLFontStyle[];
-    // (undocumented)
-    geo: TLGeoStyle[];
-    // (undocumented)
-    opacity: TLOpacityStyle[];
-    // (undocumented)
+    dash: TLDashStyle[];
     size: TLSizeStyle[];
-    // (undocumented)
-    spline: TLSplineTypeStyle[];
-    // (undocumented)
+    opacity: TLOpacityStyle[];
+    font: TLFontStyle[];
+    align: TLAlignStyle[];
     verticalAlign: TLVerticalAlignStyle[];
-}
+    geo: TLGeoStyle[];
+    arrowheadStart: TLArrowheadStartStyle[];
+    arrowheadEnd: TLArrowheadEndStyle[];
+    spline: TLSplineTypeStyle[];
+};
 
 // @public (undocumented)
 export type TLStyleItem = TLAlignStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLOpacityStyle | TLSizeStyle;

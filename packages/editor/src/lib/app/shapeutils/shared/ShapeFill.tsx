@@ -3,7 +3,7 @@ import * as React from 'react'
 import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
 import { useApp } from '../../../hooks/useApp'
-import { TLExportColors } from './TLExportColors'
+import { getColorForSvgExport } from './getContainerColor'
 
 export interface ShapeFillProps {
 	d: string
@@ -57,8 +57,8 @@ export function getShapeFillSvg({
 	d,
 	color,
 	fill,
-	colors,
-}: ShapeFillProps & { colors: TLExportColors }) {
+	isDarkMode,
+}: ShapeFillProps & { isDarkMode: boolean }) {
 	if (fill === 'none') {
 		return
 	}
@@ -67,7 +67,7 @@ export function getShapeFillSvg({
 		const gEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const path1El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path1El.setAttribute('d', d)
-		path1El.setAttribute('fill', colors.pattern[color])
+		path1El.setAttribute('fill', getColorForSvgExport({ type: 'pattern', color, isDarkMode }))
 
 		const path2El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path2El.setAttribute('d', d)
@@ -83,12 +83,12 @@ export function getShapeFillSvg({
 
 	switch (fill) {
 		case 'semi': {
-			path.setAttribute('fill', colors.solid)
+			path.setAttribute('fill', getColorForSvgExport({ type: 'solid', isDarkMode }))
 			break
 		}
 		case 'solid': {
 			{
-				path.setAttribute('fill', colors.semi[color])
+				path.setAttribute('fill', getColorForSvgExport({ type: 'semi', color, isDarkMode }))
 			}
 			break
 		}

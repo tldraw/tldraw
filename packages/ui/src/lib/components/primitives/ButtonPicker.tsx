@@ -1,25 +1,26 @@
-import { TLStyleItem, TLStyleType, useApp } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useRef } from 'react'
+import { TLUiStyle } from '../../hooks/useStylesProvider'
 import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from './Button'
 
 /** @public */
-export interface ButtonPickerProps<T extends TLStyleItem> {
+export interface ButtonPickerProps<T extends TLUiStyle> {
 	title: string
 	items: T[]
-	styleType: TLStyleType
+	styleType: string
 	value?: string | number | null
 	columns?: 2 | 3 | 4
 	'data-wd'?: string
-	onValueChange: (item: T, squashing: boolean) => void
+	onValueChange: (item: T, type: string, squashing: boolean) => void
 }
 
-function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
+function _ButtonPicker<T extends TLUiStyle>(props: ButtonPickerProps<T>) {
 	const {
 		items,
 		title,
@@ -49,14 +50,14 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			if (value === id) return
 
 			app.mark('point picker item')
-			onValueChange(items.find((i) => i.id === id)!, false)
+			onValueChange(items.find((i) => i.id === id)!, styleType, false)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
 			app.mark('point picker item')
-			onValueChange(items.find((i) => i.id === id)!, true)
+			onValueChange(items.find((i) => i.id === id)!, styleType, true)
 
 			rPointing.current = true
 			window.addEventListener('pointerup', handlePointerUp) // see TLD-658
@@ -66,12 +67,12 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			if (!rPointing.current) return
 
 			const { id } = e.currentTarget.dataset
-			onValueChange(items.find((i) => i.id === id)!, true)
+			onValueChange(items.find((i) => i.id === id)!, styleType, true)
 		}
 
 		const handleButtonPointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
-			onValueChange(items.find((i) => i.id === id)!, false)
+			onValueChange(items.find((i) => i.id === id)!, styleType, false)
 		}
 
 		return {
@@ -80,7 +81,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [app, value, onValueChange, items])
+	}, [app, value, styleType, onValueChange, items])
 
 	return (
 		<div
@@ -99,7 +100,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 					data-state={value === item.id ? 'hinted' : undefined}
 					title={title + ' — ' + msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
 					className={classNames('tlui-button-grid__button')}
-					style={item.type === 'color' ? { color: `var(--palette-${item.id})` } : undefined}
+					style={styleType === 'color' ? { color: `var(--palette-${item.id})` } : undefined}
 					onPointerEnter={handleButtonPointerEnter}
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}

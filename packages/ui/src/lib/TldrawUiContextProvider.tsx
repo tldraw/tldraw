@@ -9,6 +9,7 @@ import { EventsProvider, TLUiEventHandler } from './hooks/useEventsProvider'
 import { HelpMenuSchemaProvider } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProvider } from './hooks/useKeyboardShortcutsSchema'
 import { MenuSchemaProvider } from './hooks/useMenuSchema'
+import { StylesProvider } from './hooks/useStylesProvider'
 import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
@@ -60,7 +61,7 @@ function InternalProviders({
 							<ContextMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
 								<HelpMenuSchemaProvider overrides={mergedOverrides.helpMenu}>
 									<MenuSchemaProvider overrides={mergedOverrides.menu}>
-										{children}
+										<StylesProvider overrides={mergedOverrides.styles}>{children}</StylesProvider>
 									</MenuSchemaProvider>
 								</HelpMenuSchemaProvider>
 							</ContextMenuSchemaProvider>

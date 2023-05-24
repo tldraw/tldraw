@@ -18,8 +18,6 @@ import { ReactNode } from 'react';
 import { TLCopyType } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
-import { TLStyleItem } from '@tldraw/editor';
-import { TLStyleType } from '@tldraw/editor';
 import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)
@@ -111,7 +109,7 @@ export const Button: React_3.ForwardRefExoticComponent<ButtonProps & React_3.Ref
 export const ButtonPicker: React_3.MemoExoticComponent<typeof _ButtonPicker>;
 
 // @public (undocumented)
-export interface ButtonPickerProps<T extends TLStyleItem> {
+export interface ButtonPickerProps<T extends TLUiStyle> {
     // (undocumented)
     'data-wd'?: string;
     // (undocumented)
@@ -119,9 +117,9 @@ export interface ButtonPickerProps<T extends TLStyleItem> {
     // (undocumented)
     items: T[];
     // (undocumented)
-    onValueChange: (item: T, squashing: boolean) => void;
+    onValueChange: (item: T, type: string, squashing: boolean) => void;
     // (undocumented)
-    styleType: TLStyleType;
+    styleType: string;
     // (undocumented)
     title: string;
     // (undocumented)
@@ -659,6 +657,8 @@ export interface TldrawUiOverrides {
     keyboardShortcutsMenu?: WithDefaultHelpers<NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>>;
     // (undocumented)
     menu?: WithDefaultHelpers<NonNullable<MenuSchemaProviderProps['overrides']>>;
+    // (undocumented)
+    styles?: StylesProviderProps['overrides'];
     // (undocumented)
     toolbar?: WithDefaultHelpers<NonNullable<ToolbarSchemaProviderProps['overrides']>>;
     // (undocumented)

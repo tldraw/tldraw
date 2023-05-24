@@ -27,9 +27,11 @@ import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getColorForSvgExport } from '../shared/getContainerColor'
+import { getCssColor } from '../shared/getCssColor'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
 import {
 	OnEditEndHandler,
 	OnHandleChangeHandler,
@@ -527,7 +529,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
 		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = getStrokeWidth(shape.props.size) / zoomLevel
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
@@ -574,7 +576,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 		if (!info?.isValid) return null
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -732,7 +734,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={info.middle}
 					width={labelSize?.w ?? 0}
-					labelColor={this.app.getCssColor(shape.props.labelColor)}
+					labelColor={getCssColor(shape.props.labelColor)}
 				/>
 			</>
 		)
@@ -748,7 +750,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -917,12 +919,16 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, font: string, colors: TLExportColors) {
-		const color = colors.fill[shape.props.color]
+	toSvg(shape: TLArrowShape, font: string, isDarkMode: boolean) {
+		const color = getColorForSvgExport({
+			type: 'fill',
+			color: shape.props.color,
+			isDarkMode: this.app.isDarkMode,
+		})
 
 		const info = this.getArrowInfo(shape)
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = getStrokeWidth(shape.props.size)
 
 		// Group for arrow
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
@@ -1022,7 +1028,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadStart === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					isDarkMode
 				)
 			)
 		}
@@ -1034,7 +1040,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadEnd === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					isDarkMode
 				)
 			)
 		}
@@ -1060,7 +1066,15 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 				this.app.textMeasure.measureTextSpans(shape.props.text, opts),
 				opts
 			)
-			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
+
+			textElm.setAttribute(
+				'fill',
+				getColorForSvgExport({
+					type: 'fill',
+					color: shape.props.labelColor,
+					isDarkMode: this.app.isDarkMode,
+				})
+			)
 
 			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]
 
@@ -1101,12 +1115,12 @@ function getArrowheadSvgPath(
 	color: TLColorType,
 	strokeWidth: number,
 	fill: TLFillType,
-	colors: TLExportColors
+	isDarkMode: boolean
 ) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', colors.fill[color])
+	path.setAttribute('stroke', getColorForSvgExport({ type: 'fill', color, isDarkMode }))
 	path.setAttribute('stroke-width', strokeWidth + '')
 
 	// Get the fill element, if any
@@ -1114,7 +1128,7 @@ function getArrowheadSvgPath(
 		d,
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	if (shapeFill) {

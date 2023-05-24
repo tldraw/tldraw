@@ -17,9 +17,11 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getColorForSvgExport } from '../shared/getContainerColor'
+import { getCssColor } from '../shared/getCssColor'
+import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
-import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnEditEndHandler, OnResizeHandler } from '../TLShapeUtil'
@@ -91,7 +93,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 		if (shape.props.fill === 'none') {
 			const zoomLevel = this.app.zoomLevel
-			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			const offsetDist = getStrokeWidth(shape.props.size) / zoomLevel
 			// Check the outline
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
@@ -335,7 +337,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const { id, type, props } = shape
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(props.size)
+		const strokeWidth = getStrokeWidth(props.size)
 
 		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
 			props
@@ -445,7 +447,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					align={align}
 					verticalAlign={verticalAlign}
 					text={text}
-					labelColor={this.app.getCssColor(labelColor)}
+					labelColor={getCssColor(labelColor)}
 					wrap
 				/>
 				{'url' in shape.props && shape.props.url && (
@@ -460,7 +462,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const { w, h, growY, size } = props
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(size)
+		const strokeWidth = getStrokeWidth(size)
 
 		switch (props.geo) {
 			case 'ellipse': {
@@ -498,9 +500,9 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		}
 	}
 
-	toSvg(shape: TLGeoShape, font: string, colors: TLExportColors) {
+	toSvg(shape: TLGeoShape, font: string, isDarkMode: boolean) {
 		const { id, props } = shape
-		const strokeWidth = this.app.getStrokeWidth(props.size)
+		const strokeWidth = getStrokeWidth(props.size)
 
 		let svgElm: SVGElement
 
@@ -515,7 +517,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							color: props.color,
 							fill: props.fill,
 							strokeWidth,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -526,7 +528,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							h: props.h,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -539,7 +541,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							isDarkMode,
 						})
 						break
 				}
@@ -557,7 +559,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -568,7 +570,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							h: props.h,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -581,7 +583,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							isDarkMode,
 						})
 				}
 				break
@@ -599,7 +601,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -610,7 +612,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							isDarkMode,
 						})
 						break
 
@@ -622,7 +624,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							isDarkMode,
 						})
 						break
 				}
@@ -652,15 +654,21 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
+			const backgroundColor = getColorForSvgExport({ type: 'background', isDarkMode })
+
 			const textBgEl = createTextSvgElementFromSpans(this.app, spans, {
 				...opts,
 				strokeWidth: 2,
-				stroke: colors.background,
-				fill: colors.background,
+				stroke: backgroundColor,
+				fill: backgroundColor,
 			})
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement
-			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
+
+			textElm.setAttribute(
+				'fill',
+				getColorForSvgExport({ type: 'fill', color: shape.props.labelColor, isDarkMode })
+			)
 			textElm.setAttribute('stroke', 'none')
 
 			groupEl.append(textBgEl)

@@ -28,8 +28,6 @@ import {
 	TLAssetId,
 	TLAssetPartial,
 	TLCamera,
-	TLColorStyle,
-	TLColorType,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -49,7 +47,6 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLShapeProp,
-	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
 	TLUser,
@@ -95,7 +92,6 @@ import {
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
-	STYLES,
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
@@ -127,7 +123,6 @@ import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
 import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
-import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
@@ -205,7 +200,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// Set styles
-		this.colors = new Map(App.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
+		// this.colors = new Map(App.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
 
 		this.root = new RootState(this)
 		if (this.root.children) {
@@ -2931,13 +2926,6 @@ export class App extends EventEmitter<TLEventMap> {
 	/* --------------------- Shapes --------------------- */
 
 	/**
-	 * The app's set of styles.
-	 *
-	 * @public
-	 */
-	static styles = STYLES
-
-	/**
 	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of
 	 * the selection bounding box when the selection has been rotated)
 	 *
@@ -3221,59 +3209,6 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		return shapeIsInPage
-	}
-
-	/* --------------------- Styles --------------------- */
-
-	/**
-	 * A mapping of color ids to CSS color values.
-	 *
-	 * @internal
-	 */
-	private colors: Map<TLColorStyle['id'], string>
-
-	/**
-	 * A mapping of size ids to size values.
-	 *
-	 * @internal
-	 */
-	private sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
-
-	/**
-	 * Get the CSS color value for a given color id.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * app.getCssColor('red')
-	 * ```
-	 *
-	 * @param id - The id of the color to get.
-	 * @public
-	 */
-	getCssColor(id: TLColorStyle['id']): string {
-		return this.colors.get(id)!
-	}
-
-	/**
-	 * Get the stroke width value for a given size id.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * app.getStrokeWidth('m')
-	 * ```
-	 *
-	 * @param id - The id of the size to get.
-	 * @public
-	 */
-	getStrokeWidth(id: TLSizeStyle['id']): number {
-		return this.sizes[id]
 	}
 
 	/* ------------------- Statechart ------------------- */
@@ -5577,48 +5512,69 @@ export class App extends EventEmitter<TLEventMap> {
 			scale = 1,
 			background = false,
 			padding = SVG_PADDING,
-			darkMode = this.userDocumentSettings.isDarkMode,
 			preserveAspectRatio = false,
 		} = opts
 
 		const realContainerEl = this.getContainer()
 		const realContainerStyle = getComputedStyle(realContainerEl)
 
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here becasue we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
 		const fontsUsedInExport = new Map<string, string>()
 
-		const colors: TLExportColors = {
-			fill: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}`),
-				])
-			) as Record<TLColorType, string>,
-			pattern: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
-				])
-			) as Record<TLColorType, string>,
-			semi: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
-				])
-			) as Record<TLColorType, string>,
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
+		// Get the styles from the container. We'll use these to pull out colors etc.
+		// NOTE: We can force force a light theme here becasue we don't want export
+		// const fakeContainerEl = document.createElement('div')
+		// fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
+		// document.body.appendChild(fakeContainerEl)
+
+		// const containerStyle = getComputedStyle(fakeContainerEl)
+
+		// const colors = {
+		// 	fill: new Map<TLColorType, string>(),
+		// 	// containerStyle.getPropertyValue(`--palette-${color.id}`)
+		// 	pattern: new Map<TLColorType, string>(),
+		// 	// containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
+		// 	semi: new Map<TLColorType, string>(),
+		// 	// containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
+		// 	text: containerStyle.getPropertyValue(`--color-text`),
+		// 	background: containerStyle.getPropertyValue(`--color-background`),
+		// 	solid: containerStyle.getPropertyValue(`--palette-solid`),
+		// }
+
+		// function getColor(
+		// 	opts:
+		// 		| { type: 'text' | 'background' | 'solid' }
+		// 		| { type: 'fill' | 'pattern' | 'semi'; color: TLColorType }
+		// ): string {
+		// 	switch (opts.type) {
+		// 		case 'fill': {
+		// 			const { color } = opts
+		// 			if (!colors.fill.has(color)) {
+		// 				colors.fill.set(color, containerStyle.getPropertyValue(`--palette-${color}`))
+		// 			}
+		// 			return colors.fill.get(color)!
+		// 		}
+		// 		case 'pattern': {
+		// 			const { color } = opts
+		// 			if (!colors.pattern.has(color)) {
+		// 				colors.pattern.set(color, containerStyle.getPropertyValue(`--palette-${color}-pattern`))
+		// 			}
+		// 			return colors.pattern.get(color)!
+		// 		}
+		// 		case 'semi': {
+		// 			const { color } = opts
+		// 			if (!colors.semi.has(color)) {
+		// 				colors.semi.set(color, containerStyle.getPropertyValue(`--palette-${color}-pattern`))
+		// 			}
+		// 			return colors.semi.get(color)!
+		// 		}
+		// 		default: {
+		// 			return colors[opts.type]
+		// 		}
+		// 	}
+		// }
 
 		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
+		// document.body.removeChild(fakeContainerEl)
 
 		// ---Figure out which shapes we need to include
 
@@ -5671,9 +5627,9 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (background) {
 			if (isSingleFrameShape) {
-				svg.style.setProperty('background', colors.solid)
+				svg.style.setProperty('background', `var(--palette-solid)`)
 			} else {
-				svg.style.setProperty('background-color', colors.background)
+				svg.style.setProperty('background-color', `var(--color-background)`)
 			}
 		} else {
 			svg.style.setProperty('background-color', 'transparent')
@@ -5682,7 +5638,7 @@ export class App extends EventEmitter<TLEventMap> {
 		// Add the defs to the svg
 		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
+		for (const element of Array.from(exportPatternSvgDefs(`var(--palette-solid)`))) {
 			defs.appendChild(element)
 		}
 
@@ -5693,6 +5649,8 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		svg.append(defs)
+
+		const { isDarkMode } = this
 
 		// Must happen in order, not using a promise.all, or else the order of the
 		// elements in the svg will be wrong.
@@ -5721,15 +5679,15 @@ export class App extends EventEmitter<TLEventMap> {
 
 			const util = this.getShapeUtil(shape)
 
-			let utilSvgElement = await util.toSvg?.(shape, font, colors)
+			let utilSvgElement = await util.toSvg?.(shape, font, isDarkMode)
 
 			if (!utilSvgElement) {
 				const bounds = this.getPageBounds(shape)!
 				const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 				elm.setAttribute('width', bounds.width + '')
 				elm.setAttribute('height', bounds.height + '')
-				elm.setAttribute('fill', colors.solid)
-				elm.setAttribute('stroke', colors.pattern.grey)
+				elm.setAttribute('fill', `var(--palette-solid)`)
+				elm.setAttribute('stroke', `var(--palette-grey-pattern)`)
 				elm.setAttribute('stroke-width', '1')
 				utilSvgElement = elm
 			}
@@ -7726,7 +7684,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param ephemeral - Whether the style is ephemeral. Defaults to false.
 	 * @public
 	 */
-	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false) {
+	setProp(key: string, value: any, ephemeral = false, squashing = false) {
 		const children: (TLShape | undefined)[] = []
 		// We can have many deep levels of grouped shape
 		// Making a recursive function to look through all the levels

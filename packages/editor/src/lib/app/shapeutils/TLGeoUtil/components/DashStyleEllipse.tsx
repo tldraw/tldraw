@@ -2,7 +2,7 @@ import { perimeterOfEllipse, toDomPrecision } from '@tldraw/primitives'
 import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export const DashStyleEllipse = React.memo(function DashStyleEllipse({
@@ -59,12 +59,12 @@ export function DashStyleEllipseSvg({
 	strokeWidth: sw,
 	dash,
 	color,
-	colors,
+	isDarkMode,
 	fill,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'color' | 'fill'> & {
 	strokeWidth: number
 	id: TLShapeId
-	colors: TLExportColors
+	isDarkMode: boolean
 }) {
 	const cx = w / 2
 	const cy = h / 2
@@ -85,13 +85,15 @@ export function DashStyleEllipseSvg({
 
 	const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
+	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
 	strokeElement.setAttribute('stroke-width', sw.toString())
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', fillColor)
 	strokeElement.setAttribute('stroke-dasharray', strokeDasharray)
 	strokeElement.setAttribute('stroke-dashoffset', strokeDashoffset)
 
@@ -100,7 +102,7 @@ export function DashStyleEllipseSvg({
 		d,
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

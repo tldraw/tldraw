@@ -1,7 +1,7 @@
 import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
 
 export const SolidStyleOval = React.memo(function SolidStyleOval({
 	w,
@@ -27,26 +27,29 @@ export function SolidStyleOvalSvg({
 	strokeWidth: sw,
 	fill,
 	color,
-	colors,
+	isDarkMode,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
 	strokeWidth: number
-	colors: TLExportColors
+	isDarkMode: boolean
 }) {
 	const d = getOvalIndicatorPath(w, h)
+
+	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
 	strokeElement.setAttribute('stroke-width', sw.toString())
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', fillColor)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({
 		d,
 		fill,
 		color,
-		colors,
+		isDarkMode,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

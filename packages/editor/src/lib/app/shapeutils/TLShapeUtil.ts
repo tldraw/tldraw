@@ -2,6 +2,7 @@
 import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
 import {
 	TLBaseShape,
+	TLColorType,
 	TLHandle,
 	TLShape,
 	TLShapePartial,
@@ -13,10 +14,15 @@ import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { App } from '../App'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
 
 const points = new WeakMapCache<TLShape, Vec2dModel>()
 const transforms = new WeakMapCache<TLShape, Matrix2d>()
+
+export type GetColorFunction = (
+	opts:
+		| { type: 'text' | 'background' | 'solid' }
+		| { type: 'fill' | 'pattern' | 'semi'; color: TLColorType }
+) => string
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -331,11 +337,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: T,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: T, font: string | undefined, isDarkMode: boolean): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get whether a point intersects the shape.
