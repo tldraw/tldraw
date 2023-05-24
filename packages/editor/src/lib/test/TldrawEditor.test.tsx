@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe('<Tldraw />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = TldrawEditorConfig.default.createStore({
+		const initialStore = new TldrawEditorConfig().createStore({
 			instanceId: TLInstance.createCustomId('test'),
 			userId: TLUser.createCustomId('test'),
 		})
@@ -49,7 +49,7 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 
 		// re-render with a new store:
-		const newStore = TldrawEditorConfig.default.createStore({
+		const newStore = new TldrawEditorConfig().createStore({
 			instanceId: TLInstance.createCustomId('test'),
 			userId: TLUser.createCustomId('test'),
 		})

@@ -1076,19 +1076,6 @@ export interface LegacyTldrawDocument {
 
 /* ------------------ Translations ------------------ */
 
-// const v1ShapeTypesToV2ShapeTypes: Record<TDShapeType, TLShapeType> = {
-// 	[TDShapeType.Rectangle]: 'geo',
-// 	[TDShapeType.Ellipse]: 'geo',
-// 	[TDShapeType.Text]: 'text',
-// 	[TDShapeType.Image]: 'image',
-// 	[TDShapeType.Video]: 'video',
-// 	[TDShapeType.Group]: 'group',
-// 	[TDShapeType.Arrow]: 'arrow',
-// 	[TDShapeType.Sticky]: 'note',
-// 	[TDShapeType.Draw]: 'draw',
-// 	[TDShapeType.Triangle]: 'geo',
-// }
-
 const v1ColorsToV2Colors: Record<ColorStyle, TLColorType> = {
 	[ColorStyle.White]: 'black',
 	[ColorStyle.Black]: 'black',

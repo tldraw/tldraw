@@ -59,7 +59,7 @@ export class TestApp extends App {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
 		super({
-			store: (options.config ?? TldrawEditorConfig.default).createStore({
+			store: (options.config ?? new TldrawEditorConfig()).createStore({
 				userId: TEST_USER_ID,
 				instanceId: TEST_INSTANCE_ID,
 			}),

@@ -14,7 +14,7 @@ export function useLocalSyncClient({
 	universalPersistenceKey,
 	instanceId,
 	userId,
-	config = TldrawEditorConfig.default,
+	config = new TldrawEditorConfig(),
 }: {
 	universalPersistenceKey: string
 	instanceId: TLInstanceId

@@ -133,12 +133,14 @@ export function TldrawEditor(props: TldrawEditorProps) {
 }
 
 function TldrawEditorBeforeLoading({
-	config = TldrawEditorConfig.default,
+	config,
 	userId,
 	instanceId,
 	store,
 	...props
 }: TldrawEditorProps) {
+	config ??= new TldrawEditorConfig()
+
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
