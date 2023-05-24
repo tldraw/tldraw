@@ -46,7 +46,6 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeProp,
 	TLStore,
 	TLUnknownShape,
 	TLUser,
@@ -1042,7 +1041,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
+	private _extractSharedProps(shape: TLShape, sharedProps: Record<string, any>) {
 		if (shape.type === 'group') {
 			// For groups, ignore the props of the group shape and instead include
 			// the props of the group's children. These are the shapes that would have
@@ -1055,9 +1054,9 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		} else {
 			const props = Object.entries(shape.props)
-			let prop: [TLShapeProp, any]
+			let prop: [string, any]
 			for (let i = 0, n = props.length; i < n; i++) {
-				prop = props[i] as [TLShapeProp, any]
+				prop = props[i]
 
 				// We should probably white list rather than black list here
 				if (BLACKLISTED_PROPS.has(prop[0])) continue
