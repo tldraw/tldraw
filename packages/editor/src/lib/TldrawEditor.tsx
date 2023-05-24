@@ -132,8 +132,6 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-let i = 0
-
 function TldrawEditorBeforeLoading({
 	config,
 	userId,
@@ -156,12 +154,6 @@ function TldrawEditorBeforeLoading({
 	})
 
 	useEffect(() => {
-		i++
-		console.log(i)
-		if (i > 1000) {
-			throw Error('loop')
-		}
-
 		_setStore(() => {
 			return (
 				store ??
