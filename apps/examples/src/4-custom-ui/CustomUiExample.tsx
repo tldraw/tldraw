@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { track } from 'signia-react'
 import './custom-ui.css'
 
-const config = new TldrawEditorConfig()
+const config = new TldrawEditorConfig({ validate: true })
 
 export default function Example() {
 	return (

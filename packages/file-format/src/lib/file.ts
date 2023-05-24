@@ -208,7 +208,7 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		config: new TldrawEditorConfig(),
+		config: new TldrawEditorConfig({ validate: true }),
 		json: document,
 		instanceId: app.instanceId,
 		userId: app.userId,

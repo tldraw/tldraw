@@ -4,13 +4,13 @@ import * as vscode from 'vscode'
 
 export const defaultFileContents: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: new TldrawEditorConfig().storeSchema.serialize(),
+	schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
 	records: [],
 }
 
 export const fileContentWithErrors: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: new TldrawEditorConfig().storeSchema.serialize(),
+	schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
 	records: [{ typeName: 'shape', id: null } as any],
 }
 
