@@ -34,7 +34,7 @@ function testClient(
 	userId: TLUserId = TLUser.createCustomId('test'),
 	channel = new BroadcastChannelMock('test')
 ) {
-	const store = new TldrawEditorConfig({ validate: true }).createStore({
+	const store = new TldrawEditorConfig().createStore({
 		userId,
 		instanceId,
 	})

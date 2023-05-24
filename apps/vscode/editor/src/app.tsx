@@ -25,7 +25,7 @@ import { FullPageMessage } from './FullPageMessage'
 import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
-const config = new TldrawEditorConfig({ validate: true })
+const config = new TldrawEditorConfig()
 
 // @ts-ignore
 

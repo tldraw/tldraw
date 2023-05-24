@@ -36,7 +36,7 @@ describe('parseTldrawJsonFile', () => {
 			new TldrawEditorConfig({ validate: true }),
 			serialize({
 				tldrawFileFormatVersion: 0,
-				schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
+				schema: new TldrawEditorConfig().storeSchema.serialize(),
 				records: [],
 			})
 		)
@@ -49,7 +49,7 @@ describe('parseTldrawJsonFile', () => {
 			new TldrawEditorConfig({ validate: true }),
 			serialize({
 				tldrawFileFormatVersion: 100,
-				schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
+				schema: new TldrawEditorConfig().storeSchema.serialize(),
 				records: [],
 			})
 		)
@@ -58,7 +58,7 @@ describe('parseTldrawJsonFile', () => {
 	})
 
 	it('returns an error if migrations fail', () => {
-		const serializedSchema = new TldrawEditorConfig({ validate: true }).storeSchema.serialize()
+		const serializedSchema = new TldrawEditorConfig().storeSchema.serialize()
 		serializedSchema.storeVersion = 100
 		const result = parseTldrawJsonFile(
 			new TldrawEditorConfig({ validate: true }),
@@ -72,7 +72,7 @@ describe('parseTldrawJsonFile', () => {
 		assert(result.error.type === 'migrationFailed')
 		expect(result.error.reason).toBe(MigrationFailureReason.TargetVersionTooOld)
 
-		const serializedSchema2 = new TldrawEditorConfig({ validate: true }).storeSchema.serialize()
+		const serializedSchema2 = new TldrawEditorConfig().storeSchema.serialize()
 		serializedSchema2.recordVersions.shape.version = 100
 		const result2 = parseTldrawJsonFile(
 			new TldrawEditorConfig({ validate: true }),
@@ -93,7 +93,7 @@ describe('parseTldrawJsonFile', () => {
 			new TldrawEditorConfig({ validate: true }),
 			serialize({
 				tldrawFileFormatVersion: 1,
-				schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
+				schema: new TldrawEditorConfig().storeSchema.serialize(),
 				records: [
 					{
 						typeName: 'shape',
@@ -116,7 +116,7 @@ describe('parseTldrawJsonFile', () => {
 			new TldrawEditorConfig({ validate: true }),
 			serialize({
 				tldrawFileFormatVersion: 1,
-				schema: new TldrawEditorConfig({ validate: true }).storeSchema.serialize(),
+				schema: new TldrawEditorConfig().storeSchema.serialize(),
 				records: [],
 			})
 		)

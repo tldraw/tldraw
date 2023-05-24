@@ -58,7 +58,7 @@ export class TestApp extends App {
 	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
-		const config = options.config ?? new TldrawEditorConfig({ validate: true })
+		const config = options.config ?? new TldrawEditorConfig()
 		super({
 			config,
 			store: config.createStore({

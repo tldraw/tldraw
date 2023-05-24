@@ -13,7 +13,7 @@ import '@tldraw/tldraw/ui.css'
 
 const instanceId = TLInstance.createCustomId('example')
 
-const config = new TldrawEditorConfig({ validate: true })
+const config = new TldrawEditorConfig()
 
 export default function Example() {
 	const userData = getUserData()

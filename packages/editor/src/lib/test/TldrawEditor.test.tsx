@@ -21,7 +21,7 @@ afterEach(() => {
 
 describe('<Tldraw />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const config = new TldrawEditorConfig({ validate: true })
+		const config = new TldrawEditorConfig()
 
 		const initialStore = config.createStore({
 			instanceId: TLInstance.createCustomId('test'),
