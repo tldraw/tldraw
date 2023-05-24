@@ -6,7 +6,6 @@
 
 import { Atom } from 'signia';
 import { Computed } from 'signia';
-import { Signal } from 'signia';
 
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
@@ -288,8 +287,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
     // (undocumented)
     get currentStoreVersion(): number;
-    // @internal (undocumented)
-    derivePresenceState(store: Store<R, P>): Signal<null | R> | undefined;
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
@@ -317,7 +314,6 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
         recordBefore: null | R;
     }) => R;
     createIntegrityChecker?: (store: Store<R, P>) => void;
-    derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
 };
 
 // @public

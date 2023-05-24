@@ -6,7 +6,6 @@
 
 import { RecordsDiff } from '@tldraw/tlstore';
 import { SerializedSchema } from '@tldraw/tlstore';
-import { Store } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { SyncedStore } from '@tldraw/editor';
 import { TldrawEditorConfig } from '@tldraw/editor';
@@ -14,8 +13,6 @@ import { TLInstanceId } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSchema } from '@tldraw/editor';
-import { TLUser } from '@tldraw/editor';
-import { TLUserId } from '@tldraw/editor';
 
 // @public (undocumented)
 export function addDbName(name: string): void;
@@ -39,9 +36,6 @@ export const DEFAULT_DOCUMENT_NAME: any;
 
 // @public (undocumented)
 export function getAllIndexDbNames(): string[];
-
-// @public (undocumented)
-export function getUserData(): TLUser;
 
 // @public (undocumented)
 export function hardReset({ shouldReload }?: {
@@ -70,9 +64,6 @@ export function storeSnapshotInIndexedDb(universalPersistenceKey: string, schema
 }): Promise<void>;
 
 // @public (undocumented)
-export function subscribeToUserData(store: Store<any>): () => void;
-
-// @public (undocumented)
 export const TAB_ID: TLInstanceId;
 
 // @public (undocumented)
@@ -97,10 +88,9 @@ export class TLLocalSyncClient {
 }
 
 // @public
-export function useLocalSyncClient({ universalPersistenceKey, instanceId, userId, config, }: {
+export function useLocalSyncClient({ universalPersistenceKey, instanceId, config, }: {
     universalPersistenceKey: string;
     instanceId: TLInstanceId;
-    userId: TLUserId;
     config: TldrawEditorConfig;
 }): SyncedStore;
 
