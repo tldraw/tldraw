@@ -104,11 +104,10 @@ export function createShapeValidator<Type extends string, Props extends object>(
     props: Props;
 }>;
 
-// @public (undocumented)
-export function createTLSchema({ shapeMigrations, shapeValidators, derivePresenceState, }: {
-    shapeValidators: ValidatorsForShapes<TLShape>;
-    shapeMigrations: MigrationsForShapes<TLShape>;
-    derivePresenceState?: (store: TLStore) => Signal<null | TLInstancePresence>;
+// @public
+export function createTLSchema<T extends TLUnknownShape>(opts?: {
+    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -411,9 +410,6 @@ export const lineShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
-
-// @public (undocumented)
-export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>;
 
 // @public (undocumented)
 export const noteShapeTypeMigrations: Migrations;
@@ -732,6 +728,9 @@ export interface TLDashStyle extends TLBaseStyle {
 
 // @public (undocumented)
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
+
+// @public
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
@@ -1148,7 +1147,7 @@ export type TLScribble = {
 };
 
 // @public
-export type TLShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLUnknownShape | TLVideoShape;
+export type TLShape = TLDefaultShape | TLUnknownShape;
 
 // @public (undocumented)
 export type TLShapeId = ID<TLUnknownShape>;
@@ -1165,9 +1164,6 @@ export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>;
-
-// @public (undocumented)
-export type TLShapeType = TLShape['type'];
 
 // @public (undocumented)
 export interface TLSizeStyle extends TLBaseStyle {
@@ -1263,7 +1259,7 @@ export type TLTextShapeProps = {
 // @public (undocumented)
 export type TLUiColorType = SetValue<typeof TL_UI_COLOR_TYPES>;
 
-// @public (undocumented)
+// @public
 export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
@@ -1378,11 +1374,6 @@ export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
 
 // @public (undocumented)
 export const userTypeValidator: T.Validator<TLUser>;
-
-// @public (undocumented)
-export type ValidatorsForShapes<T extends TLUnknownShape> = Record<T['type'], {
-    validate: (record: T) => T;
-}>;
 
 // @public (undocumented)
 export interface Vec2dModel {

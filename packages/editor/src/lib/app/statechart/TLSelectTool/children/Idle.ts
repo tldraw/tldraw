@@ -1,5 +1,6 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createShapeId, TLShape } from '@tldraw/tlschema'
+import { createShapeId, TLGeoShapeProps, TLShape } from '@tldraw/tlschema'
+import { debugFlags } from '../../../../utils/debug-flags'
 import {
 	TLClickEventInfo,
 	TLEventHandlers,
@@ -26,6 +27,20 @@ export class Idle extends StateNode {
 				if (hoveringShape.id !== focusLayerId) {
 					this.app.setHoveredId(hoveringShape.id)
 				}
+
+				// Custom cursor debugging!
+				// Change the cursor to the type specified by the shape's text label
+				if (debugFlags.debugCursors.value) {
+					if (hoveringShape.type !== 'geo') break
+					const cursorType = (hoveringShape.props as TLGeoShapeProps).text
+					try {
+						this.app.setCursor({ type: cursorType })
+					} catch (e) {
+						console.error(`Cursor type not recognized: '${cursorType}'`)
+						this.app.setCursor({ type: 'default' })
+					}
+				}
+
 				break
 			}
 		}

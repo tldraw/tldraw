@@ -17,15 +17,11 @@ import { TLVideoShape } from '../shapes/TLVideoShape'
 import { SmooshedUnionObject } from '../util-types'
 import { TLPageId } from './TLPage'
 
-/** @public */
-export type TLUnknownShape = TLBaseShape<string, object>
-
 /**
- * TLShape
+ * The default set of shapes that are available in the editor.
  *
- * @public
- */
-export type TLShape =
+ * @public */
+export type TLDefaultShape =
 	| TLArrowShape
 	| TLBookmarkShape
 	| TLDrawShape
@@ -38,11 +34,21 @@ export type TLShape =
 	| TLNoteShape
 	| TLTextShape
 	| TLVideoShape
-	| TLUnknownShape
 	| TLIconShape
 
-/** @public */
-export type TLShapeType = TLShape['type']
+/**
+ * A type for a shape that is available in the editor but whose type is
+ * unknown—either one of the editor's default shapes or else a custom shape.
+ *
+ * @public */
+export type TLUnknownShape = TLBaseShape<string, object>
+
+/**
+ * The set of all shapes that are available in the editor, including unknown shapes.
+ *
+ * @public
+ */
+export type TLShape = TLDefaultShape | TLUnknownShape
 
 /** @public */
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T

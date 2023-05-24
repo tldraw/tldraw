@@ -28,7 +28,6 @@ import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/tlstore';
-import { MigrationsForShapes } from '@tldraw/tlschema';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -85,7 +84,6 @@ import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLShapeProp } from '@tldraw/tlschema';
 import { TLShapeProps } from '@tldraw/tlschema';
-import { TLShapeType } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
@@ -102,7 +100,6 @@ import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/tlstore';
-import { ValidatorsForShapes } from '@tldraw/tlschema';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -274,7 +271,7 @@ export class App extends EventEmitter<TLEventMap> {
     getPageTransform(shape: TLShape): Matrix2d | undefined;
     getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     // (undocumented)
-    getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShapeType): TLPageId | TLShapeId;
+    getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
     getParentPageId(shape?: TLShape): TLPageId | undefined;
     getParentShape(shape?: TLShape): TLShape | undefined;
     getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLShape>>;
@@ -556,7 +553,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 
 // @public (undocumented)
 export interface AppOptions {
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     getContainer: () => HTMLElement;
     store: TLStore;
 }
@@ -636,6 +633,7 @@ export const debugFlags: {
     peopleMenu: Atom<boolean, unknown>;
     logMessages: Atom<never[], unknown>;
     resetConnectionEveryPing: Atom<boolean, unknown>;
+    debugCursors: Atom<boolean, unknown>;
 };
 
 // @internal (undocumented)
@@ -1792,7 +1790,7 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor(opts: TldrawEditorConfigOptions);
+    constructor(opts?: TldrawEditorConfigOptions);
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;
@@ -1800,13 +1798,7 @@ export class TldrawEditorConfig {
         instanceId: TLInstanceId;
     }): TLStore;
     // (undocumented)
-    static readonly default: TldrawEditorConfig;
-    // (undocumented)
-    readonly shapeMigrations: MigrationsForShapes<TLShape>;
-    // (undocumented)
-    readonly shapeUtils: UtilsForShapes<TLShape>;
-    // (undocumented)
-    readonly shapeValidators: ValidatorsForShapes<TLShape>;
+    readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
@@ -1822,7 +1814,7 @@ export interface TldrawEditorProps {
     // (undocumented)
     children?: any;
     components?: Partial<TLEditorComponents>;
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     instanceId?: TLInstanceId;
     isDarkMode?: boolean;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
@@ -2043,7 +2035,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (_type: TLShapeType) => boolean;
+    canReceiveNewChildrenOfType: (_type: TLShape['type']) => boolean;
     // (undocumented)
     defaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -2455,7 +2447,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canCrop: TLShapeUtilFlag<T>;
     canDropShapes(shape: T, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<T>;
-    canReceiveNewChildrenOfType(type: TLShapeType): boolean;
+    canReceiveNewChildrenOfType(type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;
