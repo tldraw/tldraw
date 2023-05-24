@@ -4,6 +4,7 @@ import {
 	ErrorBoundary,
 	setRuntimeOverrides,
 	TldrawEditor,
+	TldrawEditorConfig,
 	TLUserId,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
@@ -23,6 +24,8 @@ import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
 import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
+
+const config = new TldrawEditorConfig()
 
 // @ts-ignore
 
@@ -96,6 +99,7 @@ export const TldrawWrapper = () => {
 						uri: message.data.uri,
 						userId: message.data.userId as TLUserId,
 						isDarkMode: message.data.isDarkMode,
+						config,
 					})
 					// We only want to listen for this message once
 					window.removeEventListener('message', handleMessage)
@@ -126,20 +130,30 @@ export type TLDrawInnerProps = {
 	uri: string
 	userId: TLUserId
 	isDarkMode: boolean
+	config: TldrawEditorConfig
 }
 
-function TldrawInner({ uri, assetSrc, userId, isDarkMode, fileContents }: TLDrawInnerProps) {
+function TldrawInner({
+	uri,
+	config,
+	assetSrc,
+	userId,
+	isDarkMode,
+	fileContents,
+}: TLDrawInnerProps) {
 	const instanceId = TAB_ID
 	const syncedStore = useLocalSyncClient({
 		universalPersistenceKey: uri,
 		instanceId,
 		userId,
+		config,
 	})
 
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	return (
 		<TldrawEditor
+			config={config}
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
 			userId={userId}

@@ -67,8 +67,6 @@ export type TldrawEditorConfigOptions = {
 
 /** @public */
 export class TldrawEditorConfig {
-	static default = new TldrawEditorConfig()
-
 	// Custom tools
 	readonly tools: readonly StateNodeConstructor[]
 

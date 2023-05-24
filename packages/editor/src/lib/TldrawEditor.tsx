@@ -1,7 +1,7 @@
 import { TLAsset, TLInstance, TLInstanceId, TLStore, TLUser, TLUserId } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { useCallback, useSyncExternalStore } from 'react'
+import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -28,12 +28,12 @@ import { useZoomCss } from './hooks/useZoomCss'
 /** @public */
 export interface TldrawEditorProps {
 	children?: any
+	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
+	config: TldrawEditorConfig
 	/** Overrides for the tldraw components */
 	components?: Partial<TLEditorComponents>
 	/** Whether to display the dark mode. */
 	isDarkMode?: boolean
-	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config?: TldrawEditorConfig
 	/**
 	 * Called when the app has mounted.
 	 *
@@ -132,6 +132,8 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
+let i = 0
+
 function TldrawEditorBeforeLoading({
 	config,
 	userId,
@@ -139,32 +141,53 @@ function TldrawEditorBeforeLoading({
 	store,
 	...props
 }: TldrawEditorProps) {
-	config ??= new TldrawEditorConfig()
-
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
-	store ??= config.createStore({
-		userId: userId ?? TLUser.createId(),
-		instanceId: instanceId ?? TLInstance.createId(),
+	const [_store, _setStore] = useState<TLStore | SyncedStore>(() => {
+		return (
+			store ??
+			config.createStore({
+				userId: userId ?? TLUser.createId(),
+				instanceId: instanceId ?? TLInstance.createId(),
+			})
+		)
 	})
 
-	let loadedStore
-	if (!(store instanceof Store)) {
-		if (store.error) {
+	useEffect(() => {
+		i++
+		console.log(i)
+		if (i > 1000) {
+			throw Error('loop')
+		}
+
+		_setStore(() => {
+			return (
+				store ??
+				config.createStore({
+					userId: userId ?? TLUser.createId(),
+					instanceId: instanceId ?? TLInstance.createId(),
+				})
+			)
+		})
+	}, [store, config, userId, instanceId])
+
+	let loadedStore: TLStore | SyncedStore
+	if (!(_store instanceof Store)) {
+		if (_store.error) {
 			// for error handling, we fall back to the default error boundary.
 			// if users want to handle this error differently, they can render
 			// their own error screen before the TldrawEditor component
-			throw store.error
+			throw _store.error
 		}
-		if (!store.store) {
+		if (!_store.store) {
 			return <LoadingScreen>Connecting...</LoadingScreen>
 		}
 
-		loadedStore = store.store
+		loadedStore = _store.store
 	} else {
-		loadedStore = store
+		loadedStore = _store
 	}
 
 	if (instanceId && loadedStore.props.instanceId !== instanceId) {
@@ -211,8 +234,8 @@ function TldrawEditorAfterLoading({
 	React.useLayoutEffect(() => {
 		const app = new App({
 			store,
-			getContainer: () => container,
 			config,
+			getContainer: () => container,
 		})
 		setApp(app)
 

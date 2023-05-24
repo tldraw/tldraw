@@ -14,12 +14,12 @@ export function useLocalSyncClient({
 	universalPersistenceKey,
 	instanceId,
 	userId,
-	config = new TldrawEditorConfig(),
+	config,
 }: {
 	universalPersistenceKey: string
 	instanceId: TLInstanceId
 	userId: TLUserId
-	config?: TldrawEditorConfig
+	config: TldrawEditorConfig
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
 

@@ -554,7 +554,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 
 // @public (undocumented)
 export interface AppOptions {
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     getContainer: () => HTMLElement;
     store: TLStore;
 }
@@ -1799,8 +1799,6 @@ export class TldrawEditorConfig {
         instanceId: TLInstanceId;
     }): TLStore;
     // (undocumented)
-    static default: TldrawEditorConfig;
-    // (undocumented)
     readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
@@ -1817,7 +1815,7 @@ export interface TldrawEditorProps {
     // (undocumented)
     children?: any;
     components?: Partial<TLEditorComponents>;
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     instanceId?: TLInstanceId;
     isDarkMode?: boolean;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;

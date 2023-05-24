@@ -159,7 +159,7 @@ export interface AppOptions {
 	 */
 	store: TLStore
 	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config?: TldrawEditorConfig
+	config: TldrawEditorConfig
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -177,7 +177,7 @@ export class App extends EventEmitter<TLEventMap> {
 	constructor({ config, store, getContainer }: AppOptions) {
 		super()
 
-		this.config = config ?? new TldrawEditorConfig()
+		this.config = config
 
 		if (store.schema !== this.config.storeSchema) {
 			throw new Error('Store schema does not match schema given to App')
