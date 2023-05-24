@@ -62,7 +62,7 @@ import {
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
-import { BaseRecord, ComputedCache, HistoryEntry } from '@tldraw/tlstore'
+import { ComputedCache, HistoryEntry, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
 	compact,
@@ -137,7 +137,7 @@ import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
-export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>
+export type TLChange<T extends UnknownRecord = any> = HistoryEntry<T>
 
 /** @public */
 export type AnimationOptions = Partial<{

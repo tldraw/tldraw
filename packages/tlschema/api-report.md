@@ -14,6 +14,7 @@ import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSchemaOptions } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
+import { UnknownRecord } from '@tldraw/tlstore';
 
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;
@@ -369,7 +370,7 @@ export const iconShapeTypeValidator: T.Validator<TLIconShape>;
 export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
 
 // @internal (undocumented)
-export function idValidator<Id extends ID<BaseRecord<any>>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+export function idValidator<Id extends ID<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
 export const imageAssetMigrations: Migrations;
@@ -399,7 +400,7 @@ export const instanceTypeMigrations: Migrations;
 export const instanceTypeValidator: T.Validator<TLInstance>;
 
 // @public (undocumented)
-export function isShape(record?: BaseRecord<string>): record is TLShape;
+export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public (undocumented)
 export function isShapeId(id?: string): id is TLShapeId;
@@ -622,7 +623,7 @@ export type TLAssetShape = Extract<TLShape, {
 }>;
 
 // @public (undocumented)
-export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset'> {
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
     // (undocumented)
     props: Props;
     // (undocumented)
@@ -630,7 +631,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public (undocumented)
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape'> {
+export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
     index: string;
     // (undocumented)
@@ -678,7 +679,7 @@ export type TLBookmarkShapeProps = {
 };
 
 // @public
-export interface TLCamera extends BaseRecord<'camera'> {
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
     // (undocumented)
     x: number;
     // (undocumented)
@@ -732,7 +733,7 @@ export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
-export interface TLDocument extends BaseRecord<'document'> {
+export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
 }
@@ -959,7 +960,7 @@ export type TLImageShapeProps = {
 };
 
 // @public
-export interface TLInstance extends BaseRecord<'instance'> {
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
@@ -995,7 +996,7 @@ export const TLInstance: RecordType<TLInstance, "currentPageId" | "userId">;
 export type TLInstanceId = ID<TLInstance>;
 
 // @public
-export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
+export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
     // (undocumented)
     cameraId: ID<TLCamera>;
     // (undocumented)
@@ -1025,7 +1026,7 @@ export const TLInstancePageState: RecordType<TLInstancePageState, "cameraId" | "
 export type TLInstancePageStateId = ID<TLInstancePageState>;
 
 // @public (undocumented)
-export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
@@ -1116,7 +1117,7 @@ export interface TLOpacityStyle extends TLBaseStyle {
 export type TLOpacityType = SetValue<typeof TL_OPACITY_TYPES>;
 
 // @public
-export interface TLPage extends BaseRecord<'page'> {
+export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
     index: string;
     // (undocumented)
@@ -1149,7 +1150,7 @@ export type TLScribble = {
 export type TLShape = TLDefaultShape | TLUnknownShape;
 
 // @public (undocumented)
-export type TLShapeId = ID<TLBaseShape<any, any>>;
+export type TLShapeId = ID<TLUnknownShape>;
 
 // @public (undocumented)
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
@@ -1262,7 +1263,7 @@ export type TLUiColorType = SetValue<typeof TL_UI_COLOR_TYPES>;
 export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
-export interface TLUser extends BaseRecord<'user'> {
+export interface TLUser extends BaseRecord<'user', TLUserId> {
     // (undocumented)
     locale: string;
     // (undocumented)
@@ -1273,7 +1274,7 @@ export interface TLUser extends BaseRecord<'user'> {
 export const TLUser: RecordType<TLUser, never>;
 
 // @public
-export interface TLUserDocument extends BaseRecord<'user_document'> {
+export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
     // (undocumented)
     isDarkMode: boolean;
     // (undocumented)
@@ -1302,7 +1303,7 @@ export type TLUserDocumentId = ID<TLUserDocument>;
 export type TLUserId = ID<TLUser>;
 
 // @public (undocumented)
-export interface TLUserPresence extends BaseRecord<'user_presence'> {
+export interface TLUserPresence extends BaseRecord<'user_presence', TLUserPresenceId> {
     // (undocumented)
     color: string;
     // (undocumented)

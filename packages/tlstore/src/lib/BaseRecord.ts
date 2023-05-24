@@ -1,18 +1,24 @@
 /** @public */
-export type ID<R extends BaseRecord = BaseRecord> = string & { __type__: R }
+export type ID<R extends UnknownRecord> = string & { __type__: R }
+
+/** @public */
+export type IdOf<R extends UnknownRecord> = R['id']
 
 /**
  * The base record that all records must extend.
  *
  * @public
  */
-export interface BaseRecord<TypeName extends string = string> {
-	readonly id: ID<this>
+export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord>> {
+	readonly id: Id
 	readonly typeName: TypeName
 }
 
-export type OmitMeta<R extends BaseRecord> = R extends R ? Omit<R, 'id' | 'typeName'> : R
+/** @public */
+export type UnknownRecord = BaseRecord<string, ID<UnknownRecord>>
 
-export function isRecord(record: unknown): record is BaseRecord {
+export type OmitMeta<R extends UnknownRecord> = R extends R ? Omit<R, 'id' | 'typeName'> : R
+
+export function isRecord(record: unknown): record is UnknownRecord {
 	return typeof record === 'object' && record !== null && 'id' in record && 'typeName' in record
 }

@@ -7,7 +7,6 @@
 /// <reference types="react" />
 
 import { Atom } from 'signia';
-import { BaseRecord } from '@tldraw/tlstore';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
@@ -25,7 +24,6 @@ import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
-import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -101,6 +99,7 @@ import { TLUserId } from '@tldraw/tlschema';
 import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { UnknownRecord } from '@tldraw/tlstore';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -1727,7 +1726,7 @@ export type TLCancelEventInfo = {
 };
 
 // @public (undocumented)
-export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>;
+export type TLChange<T extends UnknownRecord = any> = HistoryEntry<T>;
 
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
@@ -2101,7 +2100,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2130,7 +2129,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2145,7 +2144,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | {
         props: {
@@ -2158,7 +2157,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2336,7 +2335,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLNoteShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2358,7 +2357,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLNoteShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2549,7 +2548,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         props: TLTextShapeProps;
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2572,19 +2571,19 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
     onDoubleClickEdge: (shape: TLTextShape) => {
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         type: "text";
         props: {
             autoSize: boolean;
             scale?: undefined;
         };
     } | {
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         type: "text";
         props: {
             scale: number;

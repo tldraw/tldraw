@@ -1,12 +1,12 @@
 import { atom, EffectScheduler, RESET_VALUE } from 'signia'
-import { BaseRecord, ID } from '../BaseRecord'
+import { BaseRecord, ID, IdOf, UnknownRecord } from '../BaseRecord'
 import { executeQuery } from '../executeQuery'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, Store } from '../Store'
 import { RSIndexDiff } from '../StoreQueries'
 import { StoreSchema } from '../StoreSchema'
 
-interface Author extends BaseRecord<'author'> {
+interface Author extends BaseRecord<'author', ID<Author>> {
 	name: AuthorName
 	age: number
 }
@@ -24,7 +24,7 @@ const Author = createRecordType<Author>('author', {
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
-interface Book extends BaseRecord<'book'> {
+interface Book extends BaseRecord<'book', ID<Book>> {
 	title: BookName
 	authorId: ID<Author>
 }
@@ -55,10 +55,10 @@ type Record = Author | Book
 
 type Op =
 	| { readonly type: 'add'; readonly record: Record }
-	| { readonly type: 'delete'; readonly id: ID<Record> }
+	| { readonly type: 'delete'; readonly id: IdOf<Record> }
 	| { readonly type: 'update'; readonly record: Record }
 	| { readonly type: 'set_book_name_query_param'; readonly bookName: BookName }
-	| { readonly type: 'set_author_id_query_param'; readonly authorId: ID<Author> }
+	| { readonly type: 'set_author_id_query_param'; readonly authorId: IdOf<Author> }
 
 const BOOK_NAMES = [
 	'Breakfast of Champions',
@@ -281,11 +281,11 @@ function getRandomOp(
 	}
 }
 
-function recreateIndexFromDiffs(diffs: RSIndexDiff[]) {
-	const result = new Map<string, Set<ID>>()
+function recreateIndexFromDiffs(diffs: RSIndexDiff<any>[]) {
+	const result = new Map<string, Set<IdOf<UnknownRecord>>>()
 	for (const diff of diffs) {
 		for (const [key, changes] of diff) {
-			const index = result.get(key) || new Set<ID>()
+			const index = result.get(key) || new Set<IdOf<UnknownRecord>>()
 			if (changes.added) {
 				for (const id of changes.added) {
 					index.add(id)
@@ -352,8 +352,8 @@ function runTest(seed: number) {
 	const authorNameIndex = store.query.index('author', 'name')
 	const authorIdIndex = store.query.index('book', 'authorId')
 
-	const authorNameIndexDiffs: RSIndexDiff[] = []
-	const authorIdIndexDiffs: RSIndexDiff[] = []
+	const authorNameIndexDiffs: RSIndexDiff<Author>[] = []
+	const authorIdIndexDiffs: RSIndexDiff<Book>[] = []
 
 	const authorIdQueryParam = atom('authorId', Author.createCustomId('does-not-exist'))
 	const bookTitleQueryParam = atom('bookTitle', getRandomBookName(getRandomNumber))

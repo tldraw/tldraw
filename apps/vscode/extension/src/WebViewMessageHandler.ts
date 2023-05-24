@@ -1,4 +1,4 @@
-import { BaseRecord } from '@tldraw/tlstore'
+import { UnknownRecord } from '@tldraw/tlstore'
 import { isEqual } from 'lodash'
 import fetch from 'node-fetch'
 import * as vscode from 'vscode'
@@ -173,7 +173,7 @@ export class WebViewMessageHandler {
 		}
 	}
 
-	private omit = (records: BaseRecord<any>[], keys: RegExp) => {
+	private omit = (records: UnknownRecord[], keys: RegExp) => {
 		return records.filter((record) => {
 			return !record.id.match(keys)
 		})

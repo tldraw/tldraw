@@ -1,11 +1,11 @@
 import { assert } from '@tldraw/utils'
-import { BaseRecord } from '../BaseRecord'
+import { BaseRecord, ID } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
 import { defineMigrations } from '../migrate'
 
 /** A user of tldraw */
-interface User extends BaseRecord<'user'> {
+interface User extends BaseRecord<'user', ID<User>> {
 	name: string
 }
 
@@ -24,7 +24,7 @@ const User = createRecordType<User>('user', {
 	scope: 'document',
 })
 
-interface Shape<Props> extends BaseRecord<'shape'> {
+interface Shape<Props> extends BaseRecord<'shape', ID<Shape<object>>> {
 	type: string
 	x: number
 	y: number
@@ -72,7 +72,7 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 })
 
 // this interface only exists to be removed
-interface Org extends BaseRecord<'org'> {
+interface Org extends BaseRecord<'org', ID<Org>> {
 	name: string
 }
 

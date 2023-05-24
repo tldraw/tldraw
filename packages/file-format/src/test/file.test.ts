@@ -1,5 +1,5 @@
 import { createCustomShapeId, TldrawEditorConfig, TLInstance, TLUser } from '@tldraw/editor'
-import { BaseRecord, MigrationFailureReason } from '@tldraw/tlstore'
+import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
 import { assert } from '@tldraw/utils'
 import { parseTldrawJsonFile as _parseTldrawJsonFile, TldrawFile } from '../lib/file'
 
@@ -100,7 +100,7 @@ describe('parseTldrawJsonFile', () => {
 						id: createCustomShapeId('shape'),
 						type: 'geo',
 						props: {},
-					} as BaseRecord,
+					} as UnknownRecord,
 				],
 			})
 		)

@@ -8,7 +8,7 @@ import { userIdValidator } from '../validation'
  *
  * @public
  */
-export interface TLUser extends BaseRecord<'user'> {
+export interface TLUser extends BaseRecord<'user', TLUserId> {
 	name: string
 	locale: string
 }

@@ -12,12 +12,12 @@ import { Signal } from 'signia';
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
 
 // @public
-export function assertIdType<R extends BaseRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is ID<R>;
+export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
 
 // @public
-export interface BaseRecord<TypeName extends string = string> {
+export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord>> {
     // (undocumented)
-    readonly id: ID<this>;
+    readonly id: Id;
     // (undocumented)
     readonly typeName: TypeName;
 }
@@ -35,12 +35,12 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion): -1 | 
 export const compareSchemas: (a: SerializedSchema, b: SerializedSchema) => -1 | 0 | 1;
 
 // @public
-export type ComputedCache<Data, R extends BaseRecord> = {
-    get(id: ID<R>): Data | undefined;
+export type ComputedCache<Data, R extends UnknownRecord> = {
+    get(id: IdOf<R>): Data | undefined;
 };
 
 // @public
-export function createRecordType<R extends BaseRecord>(typeName: R['typeName'], config: {
+export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
     validator?: StoreValidator<R>;
     scope: Scope;
@@ -65,18 +65,21 @@ export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EM
 export function devFreeze<T>(object: T): T;
 
 // @public (undocumented)
-export function getRecordVersion(record: BaseRecord, serializedSchema: SerializedSchema): RecordVersion;
+export function getRecordVersion(record: UnknownRecord, serializedSchema: SerializedSchema): RecordVersion;
 
 // @public
-export type HistoryEntry<R extends BaseRecord = BaseRecord> = {
+export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
     changes: RecordsDiff<R>;
     source: 'remote' | 'user';
 };
 
 // @public (undocumented)
-export type ID<R extends BaseRecord = BaseRecord> = string & {
+export type ID<R extends UnknownRecord> = string & {
     __type__: R;
 };
+
+// @public (undocumented)
+export type IdOf<R extends UnknownRecord> = R['id'];
 
 // @internal
 export class IncrementalSetConstructor<T> {
@@ -102,7 +105,7 @@ export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
 }): MigrationResult<T>;
 
 // @public (undocumented)
-export function migrateRecord<R extends BaseRecord>({ record, migrations, fromVersion, toVersion, }: {
+export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
     record: unknown;
     migrations: Migrations;
     fromVersion: number;
@@ -149,14 +152,14 @@ export interface Migrations extends BaseMigrationsInfo {
 }
 
 // @public
-export type RecordsDiff<R extends BaseRecord> = {
-    added: Record<string, R>;
-    updated: Record<string, [from: R, to: R]>;
-    removed: Record<string, R>;
+export type RecordsDiff<R extends UnknownRecord> = {
+    added: Record<IdOf<R>, R>;
+    updated: Record<IdOf<R>, [from: R, to: R]>;
+    removed: Record<IdOf<R>, R>;
 };
 
 // @public
-export class RecordType<R extends BaseRecord, RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>> {
+export class RecordType<R extends UnknownRecord, RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>> {
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
@@ -168,15 +171,15 @@ export class RecordType<R extends BaseRecord, RequiredProperties extends keyof O
     });
     clone(record: R): R;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
-    createCustomId(id: string): ID<R>;
+    createCustomId(id: string): IdOf<R>;
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-    createId(): ID<R>;
-    isId(id?: string): id is ID<R>;
-    isInstance: (record?: BaseRecord) => record is R;
+    createId(): IdOf<R>;
+    isId(id?: string): id is IdOf<R>;
+    isInstance: (record?: UnknownRecord) => record is R;
     // (undocumented)
     readonly migrations: Migrations;
-    parseId(id: string): ID<R>;
+    parseId(id: string): IdOf<R>;
     // (undocumented)
     readonly scope: Scope;
     readonly typeName: R['typeName'];
@@ -211,10 +214,10 @@ export interface SerializedSchema {
 }
 
 // @public
-export function squashRecordDiffs<T extends BaseRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
+export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
 
 // @public
-export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
+export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
         initialData?: StoreSnapshot<R>;
         schema: StoreSchema<R, Props>;
@@ -233,8 +236,8 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
     extractingChanges(fn: () => void): RecordsDiff<R>;
     // (undocumented)
     _flushHistory(): void;
-    get: <K extends ID<R>>(id: K) => RecFromId<K> | undefined;
-    has: <K extends ID<R>>(id: K) => boolean;
+    get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
@@ -250,13 +253,13 @@ export class Store<R extends BaseRecord = BaseRecord, Props = unknown> {
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;
     readonly query: StoreQueries<R>;
-    remove: (ids: ID<R>[]) => void;
+    remove: (ids: IdOf<R>[]) => void;
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;
     serialize: (filter?: ((record: R) => boolean) | undefined) => StoreSnapshot<R>;
     serializeDocumentState: () => StoreSnapshot<R>;
-    unsafeGetWithoutCapture: <K extends ID<R>>(id: K) => RecFromId<K> | undefined;
-    update: <K extends ID<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
+    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
@@ -271,12 +274,12 @@ export type StoreError = {
 };
 
 // @public
-export type StoreListener<R extends BaseRecord> = (entry: HistoryEntry<R>) => void;
+export type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void;
 
 // @public (undocumented)
-export class StoreSchema<R extends BaseRecord, P = unknown> {
+export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
-    static create<R extends BaseRecord, P = unknown>(types: {
+    static create<R extends UnknownRecord, P = unknown>(types: {
         [TypeName in R['typeName']]: {
             createId: any;
         };
@@ -304,7 +307,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 }
 
 // @public (undocumented)
-export type StoreSchemaOptions<R extends BaseRecord, P> = {
+export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     snapshotMigrations?: Migrations;
     onValidationFailure?: (data: {
         error: unknown;
@@ -318,19 +321,22 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 };
 
 // @public
-export type StoreSnapshot<R extends BaseRecord> = Record<string, R>;
+export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>;
 
 // @public (undocumented)
-export type StoreValidator<R extends BaseRecord> = {
+export type StoreValidator<R extends UnknownRecord> = {
     validate: (record: unknown) => R;
 };
 
 // @public (undocumented)
-export type StoreValidators<R extends BaseRecord> = {
+export type StoreValidators<R extends UnknownRecord> = {
     [K in R['typeName']]: StoreValidator<Extract<R, {
         typeName: K;
     }>>;
 };
+
+// @public (undocumented)
+export type UnknownRecord = BaseRecord<string, ID<UnknownRecord>>;
 
 // (No @packageDocumentation comment for this package)
 

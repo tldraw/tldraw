@@ -13,7 +13,8 @@ import { TLShapeId } from './TLShape'
  *
  * @public
  */
-export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
+export interface TLInstancePageState
+	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
 	instanceId: ID<TLInstance>
 	pageId: ID<TLPage>
 	cameraId: ID<TLCamera>

@@ -34,7 +34,7 @@ export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
  *
  * @public
  */
-export interface TLInstance extends BaseRecord<'instance'> {
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	userId: TLUserId
 	currentPageId: TLPageId
 	followingUserId: TLUserId | null
