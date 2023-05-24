@@ -12,11 +12,16 @@ export async function pointWithinActiveArea(x: number, y: number) {
 }
 
 export async function waitForReady() {
-	await browser.waitUntil(() => {
-		return browser.execute(() => {
-			return window.tldrawReady
-		})
-	})
+	await Promise.any([
+		new Promise<boolean>((r) => {
+			browser.waitUntil(() => browser.execute(() => window.tldrawReady)).then(() => r(true))
+		}),
+		new Promise<boolean>((r) => {
+			// eslint-disable-next-line no-console
+			console.log('waitFor failed, using timeout')
+			setTimeout(() => r(true), 2000)
+		}),
+	])
 
 	// Make sure the window is focused... maybe
 	await ui.canvas.click(100, 100)

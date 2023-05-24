@@ -1,5 +1,5 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import { TLFrameShape, TLShape, TLShapeId, TLShapeType } from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
@@ -148,7 +148,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType = (_type: TLShapeType) => {
+	override canReceiveNewChildrenOfType = (_type: TLShape['type']) => {
 		return true
 	}
 

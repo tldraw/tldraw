@@ -1,63 +1,19 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
-	TLAsset,
-	TLCamera,
 	TLDOCUMENT_ID,
-	TLDocument,
+	TLDefaultShape,
 	TLInstance,
 	TLInstanceId,
-	TLInstancePageState,
 	TLInstancePresence,
-	TLPage,
 	TLRecord,
 	TLShape,
 	TLStore,
 	TLStoreProps,
-	TLUnknownShape,
 	TLUser,
-	TLUserDocument,
 	TLUserId,
-	TLUserPresence,
-	arrowShapeTypeMigrations,
-	arrowShapeTypeValidator,
-	bookmarkShapeTypeMigrations,
-	bookmarkShapeTypeValidator,
-	createIntegrityChecker,
-	defaultDerivePresenceState,
-	drawShapeTypeMigrations,
-	drawShapeTypeValidator,
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
-	frameShapeTypeMigrations,
-	frameShapeTypeValidator,
-	geoShapeTypeMigrations,
-	geoShapeTypeValidator,
-	groupShapeTypeMigrations,
-	groupShapeTypeValidator,
-	imageShapeTypeMigrations,
-	imageShapeTypeValidator,
-	lineShapeTypeMigrations,
-	lineShapeTypeValidator,
-	noteShapeTypeMigrations,
-	noteShapeTypeValidator,
-	onValidationFailure,
-	rootShapeTypeMigrations,
-	storeMigrations,
-	textShapeTypeMigrations,
-	textShapeTypeValidator,
-	videoShapeTypeMigrations,
-	videoShapeTypeValidator,
+	createTLSchema,
 } from '@tldraw/tlschema'
-import {
-	Migrations,
-	RecordType,
-	Store,
-	StoreSchema,
-	StoreSnapshot,
-	createRecordType,
-	defineMigrations,
-} from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
@@ -74,135 +30,69 @@ import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
 
-/** @public */
-export type ValidatorsForShapes<T extends TLUnknownShape> = Record<
-	T['type'],
-	{ validate: (record: T) => T }
->
+// Secret shape types that don't have a shape util yet
+type ShapeTypesNotImplemented = 'icon'
 
-/** @public */
-export type MigrationsForShapes<T extends TLUnknownShape> = Record<T['type'], Migrations>
-
-type CustomShapeInfo<T extends TLUnknownShape> = {
-	util: TLShapeUtilConstructor<any>
-	validator?: { validate: (record: T) => T }
-	migrations?: Migrations
+const DEFAULT_SHAPE_UTILS: {
+	[K in Exclude<TLDefaultShape['type'], ShapeTypesNotImplemented>]: TLShapeUtilConstructor<any>
+} = {
+	arrow: TLArrowUtil,
+	bookmark: TLBookmarkUtil,
+	draw: TLDrawUtil,
+	embed: TLEmbedUtil,
+	frame: TLFrameUtil,
+	geo: TLGeoUtil,
+	group: TLGroupUtil,
+	image: TLImageUtil,
+	line: TLLineUtil,
+	note: TLNoteUtil,
+	text: TLTextUtil,
+	video: TLVideoUtil,
 }
 
-type UtilsForShapes<T extends TLUnknownShape> = Record<T['type'], TLShapeUtilConstructor<any>>
-
-type TldrawEditorConfigOptions<T extends TLUnknownShape = TLShape> = {
+/** @public */
+export type TldrawEditorConfigOptions = {
 	tools?: readonly StateNodeConstructor[]
-	shapes?: { [K in T['type']]: CustomShapeInfo<T> }
+	shapes?: Record<
+		string,
+		{
+			util: TLShapeUtilConstructor<any>
+			validator?: { validate: <T>(record: T) => T }
+			migrations?: Migrations
+		}
+	>
 	/** @internal */
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }
 
 /** @public */
 export class TldrawEditorConfig {
-	static readonly default = new TldrawEditorConfig({})
-
-	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
-	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
+	// Custom tools
 	readonly tools: readonly StateNodeConstructor[]
 
 	// Custom shape utils
-	readonly shapeUtils: UtilsForShapes<TLShape>
-	// Validators for shape subtypes
-	readonly shapeValidators: Record<TLShape['type'], T.Validator<any>>
-	// Migrations for shape subtypes
-	readonly shapeMigrations: MigrationsForShapes<TLShape>
+	readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>
 
-	constructor(opts: TldrawEditorConfigOptions) {
-		const { shapes = [], tools = [], derivePresenceState } = opts
+	// The record used for TLShape incorporating any custom shapes
+	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
+
+	// The schema used for the store incorporating any custom shapes
+	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
+
+	constructor(opts = {} as TldrawEditorConfigOptions) {
+		const { shapes = {}, tools = [], derivePresenceState } = opts
 
 		this.tools = tools
 
 		this.shapeUtils = {
-			arrow: TLArrowUtil,
-			bookmark: TLBookmarkUtil,
-			draw: TLDrawUtil,
-			embed: TLEmbedUtil,
-			frame: TLFrameUtil,
-			geo: TLGeoUtil,
-			group: TLGroupUtil,
-			image: TLImageUtil,
-			line: TLLineUtil,
-			note: TLNoteUtil,
-			text: TLTextUtil,
-			video: TLVideoUtil,
+			...DEFAULT_SHAPE_UTILS,
+			...Object.fromEntries(Object.entries(shapes).map(([k, v]) => [k, v.util])),
 		}
 
-		this.shapeMigrations = {
-			arrow: arrowShapeTypeMigrations,
-			bookmark: bookmarkShapeTypeMigrations,
-			draw: drawShapeTypeMigrations,
-			embed: embedShapeTypeMigrations,
-			frame: frameShapeTypeMigrations,
-			geo: geoShapeTypeMigrations,
-			group: groupShapeTypeMigrations,
-			image: imageShapeTypeMigrations,
-			line: lineShapeTypeMigrations,
-			note: noteShapeTypeMigrations,
-			text: textShapeTypeMigrations,
-			video: videoShapeTypeMigrations,
-		}
-
-		this.shapeValidators = {
-			arrow: arrowShapeTypeValidator,
-			bookmark: bookmarkShapeTypeValidator,
-			draw: drawShapeTypeValidator,
-			embed: embedShapeTypeValidator,
-			frame: frameShapeTypeValidator,
-			geo: geoShapeTypeValidator,
-			group: groupShapeTypeValidator,
-			image: imageShapeTypeValidator,
-			line: lineShapeTypeValidator,
-			note: noteShapeTypeValidator,
-			text: textShapeTypeValidator,
-			video: videoShapeTypeValidator,
-		}
-
-		// Add custom shapes
-		for (const [type, shape] of Object.entries(shapes)) {
-			this.shapeUtils[type] = shape.util
-			this.shapeMigrations[type] = shape.migrations ?? defineMigrations({})
-			this.shapeValidators[type] = (shape.validator ?? T.any) as T.Validator<any>
-		}
-
-		const shapeRecord = createRecordType<TLShape>('shape', {
-			migrations: defineMigrations({
-				currentVersion: rootShapeTypeMigrations.currentVersion,
-				firstVersion: rootShapeTypeMigrations.firstVersion,
-				migrators: rootShapeTypeMigrations.migrators,
-				subTypeKey: 'type',
-				subTypeMigrations: this.shapeMigrations,
-			}),
-			validator: T.model('shape', T.union('type', { ...this.shapeValidators })),
-			scope: 'document',
-		}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
-
-		this.storeSchema = StoreSchema.create<TLRecord, TLStoreProps>(
-			{
-				asset: TLAsset,
-				camera: TLCamera,
-				document: TLDocument,
-				instance: TLInstance,
-				instance_page_state: TLInstancePageState,
-				page: TLPage,
-				shape: shapeRecord,
-				user: TLUser,
-				user_document: TLUserDocument,
-				user_presence: TLUserPresence,
-				instance_presence: TLInstancePresence,
-			},
-			{
-				snapshotMigrations: storeMigrations,
-				onValidationFailure,
-				createIntegrityChecker: createIntegrityChecker,
-				derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
-			}
-		)
+		this.storeSchema = createTLSchema({
+			customShapes: shapes,
+			derivePresenceState: derivePresenceState,
+		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<
 			TLShape,

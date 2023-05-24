@@ -44,7 +44,6 @@ import { sortByIndex } from '@tldraw/indices';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
-import { T } from '@tldraw/tlvalidate';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
@@ -87,7 +86,6 @@ import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLShapeProp } from '@tldraw/tlschema';
 import { TLShapeProps } from '@tldraw/tlschema';
-import { TLShapeType } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
@@ -274,7 +272,7 @@ export class App extends EventEmitter<TLEventMap> {
     getPageTransform(shape: TLShape): Matrix2d | undefined;
     getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     // (undocumented)
-    getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShapeType): TLPageId | TLShapeId;
+    getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
     getParentPageId(shape?: TLShape): TLPageId | undefined;
     getParentShape(shape?: TLShape): TLShape | undefined;
     getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLShape>>;
@@ -556,7 +554,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 
 // @public (undocumented)
 export interface AppOptions {
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     getContainer: () => HTMLElement;
     store: TLStore;
 }
@@ -1793,7 +1791,7 @@ export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
 export class TldrawEditorConfig {
-    constructor(opts: TldrawEditorConfigOptions);
+    constructor(opts?: TldrawEditorConfigOptions);
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;
@@ -1801,13 +1799,7 @@ export class TldrawEditorConfig {
         instanceId: TLInstanceId;
     }): TLStore;
     // (undocumented)
-    static readonly default: TldrawEditorConfig;
-    // (undocumented)
-    readonly shapeMigrations: MigrationsForShapes<TLShape>;
-    // (undocumented)
-    readonly shapeUtils: UtilsForShapes<TLShape>;
-    // (undocumented)
-    readonly shapeValidators: Record<TLShape['type'], T.Validator<any>>;
+    readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
@@ -1823,7 +1815,7 @@ export interface TldrawEditorProps {
     // (undocumented)
     children?: any;
     components?: Partial<TLEditorComponents>;
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
     instanceId?: TLInstanceId;
     isDarkMode?: boolean;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
@@ -2044,7 +2036,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (_type: TLShapeType) => boolean;
+    canReceiveNewChildrenOfType: (_type: TLShape['type']) => boolean;
     // (undocumented)
     defaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -2456,7 +2448,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canCrop: TLShapeUtilFlag<T>;
     canDropShapes(shape: T, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<T>;
-    canReceiveNewChildrenOfType(type: TLShapeType): boolean;
+    canReceiveNewChildrenOfType(type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;

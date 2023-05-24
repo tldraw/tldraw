@@ -103,6 +103,12 @@ export function createShapeValidator<Type extends string, Props extends object>(
     props: Props;
 }>;
 
+// @public
+export function createTLSchema<T extends TLUnknownShape>(opts?: {
+    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+}): StoreSchema<TLRecord, TLStoreProps>;
+
 // @public (undocumented)
 export const cursorTypeValidator: T.Validator<string>;
 
@@ -723,6 +729,9 @@ export interface TLDashStyle extends TLBaseStyle {
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 
 // @public
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+
+// @public
 export interface TLDocument extends BaseRecord<'document'> {
     // (undocumented)
     gridSize: number;
@@ -1137,7 +1146,7 @@ export type TLScribble = {
 };
 
 // @public
-export type TLShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLUnknownShape | TLVideoShape;
+export type TLShape = TLDefaultShape | TLUnknownShape;
 
 // @public (undocumented)
 export type TLShapeId = ID<TLBaseShape<any, any>>;
@@ -1154,9 +1163,6 @@ export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>;
-
-// @public (undocumented)
-export type TLShapeType = TLShape['type'];
 
 // @public (undocumented)
 export interface TLSizeStyle extends TLBaseStyle {
@@ -1252,7 +1258,7 @@ export type TLTextShapeProps = {
 // @public (undocumented)
 export type TLUiColorType = SetValue<typeof TL_UI_COLOR_TYPES>;
 
-// @public (undocumented)
+// @public
 export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public

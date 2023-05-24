@@ -21,14 +21,17 @@ afterEach(() => {
 
 describe('<Tldraw />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = TldrawEditorConfig.default.createStore({
+		const config = new TldrawEditorConfig()
+
+		const initialStore = config.createStore({
 			instanceId: TLInstance.createCustomId('test'),
 			userId: TLUser.createCustomId('test'),
 		})
+
 		const onMount = jest.fn()
 
 		const rendered = render(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -40,7 +43,7 @@ describe('<Tldraw />', () => {
 
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -49,12 +52,12 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 
 		// re-render with a new store:
-		const newStore = TldrawEditorConfig.default.createStore({
+		const newStore = config.createStore({
 			instanceId: TLInstance.createCustomId('test'),
 			userId: TLUser.createCustomId('test'),
 		})
 		rendered.rerender(
-			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor config={config} store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
