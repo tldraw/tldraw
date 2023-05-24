@@ -84,13 +84,13 @@ export const noteShapeTypeMigrations = defineMigrations({
 				let newAlign: TLAlignType
 				switch (shape.props.align) {
 					case 'start':
-						newAlign = 'start-legacy'
+						newAlign = 'start-legacy' as TLAlignType
 						break
 					case 'end':
-						newAlign = 'end-legacy'
+						newAlign = 'end-legacy' as TLAlignType
 						break
 					default:
-						newAlign = 'middle-legacy'
+						newAlign = 'middle-legacy' as TLAlignType
 						break
 				}
 				return {

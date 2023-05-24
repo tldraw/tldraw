@@ -179,11 +179,8 @@ export const FONT_FAMILIES: Record<TLFontType, string> = {
 /** @public */
 export const FONT_ALIGNMENT: Record<TLAlignType, string> = {
 	middle: 'center',
-	'middle-legacy': 'center',
 	start: 'left',
-	'start-legacy': 'left',
 	end: 'right',
-	'end-legacy': 'right',
 }
 
 /** @public */

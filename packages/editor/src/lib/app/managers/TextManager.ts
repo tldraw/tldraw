@@ -3,7 +3,7 @@ import { uniqueId } from '../../utils/data'
 import { App } from '../App'
 import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
-const textAlignmentsForLtr: Record<TLAlignType, string> = {
+const textAlignmentsForLtr = {
 	start: 'left',
 	'start-legacy': 'left',
 	middle: 'center',

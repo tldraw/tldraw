@@ -1,8 +1,8 @@
 import { Box2d } from '@tldraw/primitives'
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 
-export function getOffsetX(
-	align: TLAlignType,
+export function getLegacyOffsetX(
+	align: TLAlignType | string,
 	padding: number,
 	spans: { text: string; box: Box2dModel }[],
 	totalWidth: number
@@ -20,6 +20,7 @@ export function getOffsetX(
 	}
 }
 
-export function isLegacyAlign(align: TLAlignType): boolean {
+// sneaky TLAlignType for legacies
+export function isLegacyAlign(align: TLAlignType | string): boolean {
 	return align === 'start-legacy' || align === 'middle-legacy' || align === 'end-legacy'
 }
