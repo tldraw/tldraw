@@ -16,7 +16,7 @@ import { StoreSnapshot } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
 
 // @internal (undocumented)
-export const alignValidator: T.Validator<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+export const alignValidator: T.Validator<"end" | "middle" | "start">;
 
 // @internal (undocumented)
 export const arrowheadValidator: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
@@ -464,7 +464,7 @@ export const textShapeTypeMigrations: Migrations;
 export const textShapeTypeValidator: T.Validator<TLTextShape>;
 
 // @public (undocumented)
-export const TL_ALIGN_TYPES: Set<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
 
 // @public (undocumented)
 export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
