@@ -155,7 +155,12 @@ export class TLLocalSyncClient {
 				// 3. Merge the changes into the REAL STORE
 				this.store.mergeRemoteChanges(() => {
 					// Calling put will validate the records!
-					this.store.put(Object.values(migrationResult.value), 'initialize')
+					this.store.put(
+						Object.values(migrationResult.value).filter(
+							(r) => this.store.schema.types[r.typeName].scope !== 'presence'
+						),
+						'initialize'
+					)
 				})
 			}
 

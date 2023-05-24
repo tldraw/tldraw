@@ -13,6 +13,4 @@ export {
 	TAB_ID,
 	addDbName,
 	getAllIndexDbNames,
-	getUserData,
-	subscribeToUserData,
 } from './lib/persistence-constants'

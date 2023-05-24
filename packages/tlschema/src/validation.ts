@@ -4,7 +4,6 @@ import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'
 import type { TLPageId } from './records/TLPage'
 import type { TLParentId, TLShapeId } from './records/TLShape'
-import type { TLUserId } from './records/TLUser'
 import {
 	TLAlignType,
 	TL_ALIGN_TYPES_WITH_LEGACY_STUFF,
@@ -32,8 +31,6 @@ export function idValidator<Id extends ID<UnknownRecord>>(
 		return id as Id
 	})
 }
-/** @internal */
-export const userIdValidator = idValidator<TLUserId>('user')
 /** @internal */
 export const assetIdValidator = idValidator<TLAssetId>('asset')
 /** @internal */

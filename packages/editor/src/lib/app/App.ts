@@ -40,6 +40,7 @@ import {
 	TLInstanceId,
 	TLInstancePageState,
 	TLNullableShapeProps,
+	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -52,9 +53,7 @@ import {
 	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
-	TLUser,
 	TLUserDocument,
-	TLUserId,
 	TLVideoAsset,
 	Vec2dModel,
 	createCustomShapeId,
@@ -116,6 +115,7 @@ import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
+import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { TLArrowUtil } from './shapeutils/TLArrowUtil/TLArrowUtil'
 import { getCurvedArrowInfo } from './shapeutils/TLArrowUtil/arrow/curved-arrow'
 import {
@@ -184,6 +184,8 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		this.store = store
+
+		this.user = new UserPreferencesManager(this)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
@@ -356,6 +358,11 @@ export class App extends EventEmitter<TLEventMap> {
 	readonly snaps = new SnapManager(this)
 
 	/**
+	 * @internal
+	 */
+	readonly user: UserPreferencesManager
+
+	/**
 	 * Whether the editor is running in Safari.
 	 *
 	 * @public
@@ -423,21 +430,6 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
-
-	/**
-	 * The editor's userId (defined in its store.props).
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * const userId = app.userId
-	 * ```
-	 *
-	 * @public
-	 */
-	get userId(): TLUserId {
-		return this.store.props.userId
-	}
 
 	/**
 	 * The editor's instanceId (defined in its store.props).
@@ -1197,7 +1189,6 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this.updateUserPresence()
 		this.emit('update')
 	}
 
@@ -1500,16 +1491,6 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.documentSettings.gridSize
 	}
 
-	/**
-	 * The user's global settings.
-	 *
-	 * @public
-	 * @readonly
-	 */
-	get userSettings(): TLUser {
-		return this.store.get(this.userId)!
-	}
-
 	get isSnapMode() {
 		return this.userDocumentSettings.isSnapMode
 	}
@@ -1522,12 +1503,12 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	get isDarkMode() {
-		return this.userDocumentSettings.isDarkMode
+		return this.user.isDarkMode
 	}
 
 	setDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
-			this.updateUserDocumentSettings({ isDarkMode }, true)
+			this.user.updateUserPreferences({ isDarkMode })
 		}
 		return this
 	}
@@ -1556,7 +1537,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private get _userDocumentSettings() {
-		return this.store.query.record('user_document', () => ({ userId: { eq: this.userId } }))
+		return this.store.query.record('user_document')
 	}
 
 	get userDocumentSettings(): TLUserDocument {
@@ -1608,15 +1589,6 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	// User / User App State
-
-	/**
-	 * The current user state.
-	 *
-	 * @public
-	 */
-	get user(): TLUser {
-		return this.store.get(this.userId)!
-	}
 
 	/** The current tab state */
 	get instanceState(): TLInstance {
@@ -3467,7 +3439,15 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
-		this.updateUserPresence({ cursor: currentPagePoint.toJson() })
+		this.store.put([
+			{
+				id: TLPOINTER_ID,
+				typeName: 'pointer',
+				x: currentPagePoint.x,
+				y: currentPagePoint.y,
+				lastActivityTimestamp: Date.now(),
+			},
+		])
 	}
 
 	/* --------------------- Events --------------------- */
@@ -5018,6 +4998,27 @@ export class App extends EventEmitter<TLEventMap> {
 	)
 
 	/**
+	 * Get the editor's locale.
+	 * @public
+	 */
+	get locale() {
+		return this.user.locale
+	}
+
+	/**
+	 * Update the editor's locale. This affects which translations are used when rendering UI elements.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * app.setLocale('fr')
+	 * ```
+	 */
+	setLocale(locale: string) {
+		this.user.updateUserPreferences({ locale })
+	}
+
+	/**
 	 * Update a page.
 	 *
 	 * @example
@@ -5259,56 +5260,6 @@ export class App extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * Set user state. Always ephemeral for now.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * app.updateUser({ color: '#923433' })
-	 * ```
-	 *
-	 * @param partial - The partial of the user state object containing the changes.
-	 * @public
-	 */
-	updateUser(partial: Partial<TLUser>) {
-		const next = { ...this.user, ...partial }
-		this.store.put([next])
-	}
-
-	/** @internal */
-	@computed private get _currentUserPresence() {
-		return this.store.query.record('user_presence', () => ({ userId: { eq: this.userId } }))
-	}
-
-	get userPresence() {
-		return this._currentUserPresence.value
-	}
-
-	// when a user performs any action in the app, we update their presence record
-	updateUserPresence = ({
-		cursor,
-		color,
-		viewportPageBounds,
-	}: { cursor?: Vec2dModel; color?: string; viewportPageBounds?: Box2dModel } = {}) => {
-		const presence = this._currentUserPresence.value
-		if (!presence) {
-			console.error('No presence found for current user')
-			return
-		}
-
-		this.store.put([
-			{
-				...presence,
-				cursor: cursor ?? presence.cursor,
-				color: color ?? presence.color,
-				viewportPageBounds: viewportPageBounds ?? presence.viewportPageBounds,
-				lastUsedInstanceId: this.instanceId,
-				lastActivityTimestamp: Date.now(),
-			},
-		])
-	}
 
 	/**
 	 * Select one or more shapes.
@@ -5577,7 +5528,7 @@ export class App extends EventEmitter<TLEventMap> {
 			scale = 1,
 			background = false,
 			padding = SVG_PADDING,
-			darkMode = this.userDocumentSettings.isDarkMode,
+			darkMode = this.isDarkMode,
 			preserveAspectRatio = false,
 		} = opts
 
@@ -7246,17 +7197,11 @@ export class App extends EventEmitter<TLEventMap> {
 
 				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
-				this.updateUserPresence({
-					viewportPageBounds: this.viewportPageBounds.toJson(),
-				})
 				this.updateCullingBounds()
 			},
 			undo: ({ fromId }) => {
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
-				this.updateUserPresence({
-					viewportPageBounds: this.viewportPageBounds.toJson(),
-				})
 				this.updateCullingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
@@ -7890,10 +7835,6 @@ export class App extends EventEmitter<TLEventMap> {
 				isPen: this.isPenMode ?? false,
 			})
 
-			this.updateUserPresence({
-				viewportPageBounds: this.viewportPageBounds.toJson(),
-			})
-
 			this._cameraManager.tick()
 		})
 
@@ -8494,7 +8435,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param userId - The id of the user to follow.
 	 * @public
 	 */
-	startFollowingUser = (userId: TLUserId) => {
+	startFollowingUser = (userId: string) => {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
@@ -8502,8 +8443,14 @@ export class App extends EventEmitter<TLEventMap> {
 			userId: { eq: userId },
 		}))
 
+		const thisUserId = this.user.id
+
+		if (!thisUserId) {
+			console.warn('You should set the userId for the current instance before following a user')
+		}
+
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.value.some((p) => p.followingUserId === this.userId)) {
+		if (leaderPresences.value.some((p) => p.followingUserId === thisUserId)) {
 			return
 		}
 
@@ -8554,7 +8501,7 @@ export class App extends EventEmitter<TLEventMap> {
 			// At this point, let's check if we're following someone who's following us.
 			// If so, we can't try to contain their entire viewport
 			// because that would become a feedback loop where we zoom, they zoom, etc.
-			const isFollowingFollower = leaderPresence.followingUserId === this.userId
+			const isFollowingFollower = leaderPresence.followingUserId === thisUserId
 
 			// Figure out how much to zoom
 			const desiredWidth = width + (leaderWidth - width) * chaseProportion

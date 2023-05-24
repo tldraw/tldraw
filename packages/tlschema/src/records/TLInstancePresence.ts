@@ -2,16 +2,15 @@ import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlst
 import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
 import { cursorTypeValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import { idValidator, userIdValidator } from '../validation'
+import { idValidator } from '../validation'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
-import { TLUserId } from './TLUser'
 
 /** @public */
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
 	instanceId: TLInstanceId
-	userId: TLUserId
+	userId: string
 	userName: string
 	lastActivityTimestamp: number
 	color: string // can be any hex color
@@ -21,7 +20,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	brush: Box2dModel | null
 	scribble: TLScribble | null
 	screenBounds: Box2dModel
-	followingUserId: TLUserId | null
+	followingUserId: string | null
 	cursor: {
 		x: number
 		y: number
@@ -41,10 +40,10 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 		instanceId: idValidator<TLInstanceId>('instance'),
 		typeName: T.literal('instance_presence'),
 		id: idValidator<TLInstancePresenceID>('instance_presence'),
-		userId: userIdValidator,
+		userId: T.string,
 		userName: T.string,
 		lastActivityTimestamp: T.number,
-		followingUserId: userIdValidator.nullable(),
+		followingUserId: T.string.nullable(),
 		cursor: T.object({
 			x: T.number,
 			y: T.number,
@@ -95,4 +94,28 @@ export const TLInstancePresence = createRecordType<TLInstancePresence>('instance
 	migrations: instancePresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,
 	scope: 'presence',
-})
+}).withDefaultProperties(() => ({
+	lastActivityTimestamp: 0,
+	followingUserId: null,
+	color: '#FF0000',
+	camera: {
+		x: 0,
+		y: 0,
+		z: 1,
+	},
+	cursor: {
+		x: 0,
+		y: 0,
+		type: 'default',
+		rotation: 0,
+	},
+	screenBounds: {
+		x: 0,
+		y: 0,
+		w: 1,
+		h: 1,
+	},
+	selectedIds: [],
+	brush: null,
+	scribble: null,
+}))

@@ -9,7 +9,13 @@ type TLListedTranslations = TLListedTranslation[]
 type TLTranslationLocale = TLListedTranslations[number]['locale']
 
 /** @public */
-export function getDefaultTranslationLocale(locales: readonly string[]): TLTranslationLocale {
+export function getDefaultTranslationLocale(): TLTranslationLocale {
+	const locales = typeof window !== 'undefined' ? window.navigator.languages ?? ['en'] : ['en']
+	return _getDefaultTranslationLocale(locales)
+}
+
+/** @internal */
+export function _getDefaultTranslationLocale(locales: readonly string[]): TLTranslationLocale {
 	for (const locale of locales) {
 		const supportedLocale = getSupportedLocale(locale)
 		if (supportedLocale) {

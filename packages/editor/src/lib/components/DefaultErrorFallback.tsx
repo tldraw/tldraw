@@ -30,7 +30,7 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 		() => {
 			try {
 				if (app) {
-					return app.userDocumentSettings.isDarkMode
+					return app.isDarkMode
 				}
 			} catch {
 				// we're in a funky error state so this might not work for spooky

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { TLInstance, TLUser } from '@tldraw/tlschema'
+import { TLInstance } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
 
@@ -25,7 +25,6 @@ describe('<Tldraw />', () => {
 
 		const initialStore = config.createStore({
 			instanceId: TLInstance.createCustomId('test'),
-			userId: TLUser.createCustomId('test'),
 		})
 
 		const onMount = jest.fn()
@@ -54,7 +53,6 @@ describe('<Tldraw />', () => {
 		// re-render with a new store:
 		const newStore = config.createStore({
 			instanceId: TLInstance.createCustomId('test'),
-			userId: TLUser.createCustomId('test'),
 		})
 		rendered.rerender(
 			<TldrawEditor config={config} store={newStore} onMount={onMount} autoFocus>

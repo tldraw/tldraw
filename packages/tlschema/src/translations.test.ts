@@ -1,4 +1,4 @@
-import { getDefaultTranslationLocale } from './translations'
+import { _getDefaultTranslationLocale } from './translations'
 
 type DefaultLanguageTest = {
 	name: string
@@ -37,7 +37,7 @@ describe('Choosing a sensible default translation locale', () => {
 
 	for (const test of tests) {
 		it(test.name, () => {
-			expect(getDefaultTranslationLocale(test.input)).toEqual(test.output)
+			expect(_getDefaultTranslationLocale(test.input)).toEqual(test.output)
 		})
 	}
 })

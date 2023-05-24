@@ -1,10 +1,10 @@
-import { Tldraw, TLInstance, TLInstancePageState, TLUser, TLUserPresence } from '@tldraw/tldraw'
+import { Tldraw, TLInstance, TLInstancePresence } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
 
-const SHOW_MOVING_CURSOR = false
-const CURSOR_SPEED = 0.1
+const SHOW_MOVING_CURSOR = true
+const CURSOR_SPEED = 0.5
 const CIRCLE_RADIUS = 100
 const UPDATE_FPS = 60
 
@@ -15,39 +15,19 @@ export default function UserPresenceExample() {
 			<Tldraw
 				persistenceKey="user-presence-example"
 				onMount={(app) => {
-					// There are several records related to user presence that must be
-					// included for each user. These are created automatically by each
-					// editor or editor instance, so in a "regular" multiplayer sharing
-					// all records will include all of these records. In this example,
-					// we're having to create these ourselves.
+					// For every connected peer you should put a TLInstancePresence record in the
+					// store with their cursor position etc.
 
-					const userId = TLUser.createCustomId('user-1')
-
-					const user = TLUser.create({
-						id: userId,
-						name: 'User 1',
+					const peerPresence = TLInstancePresence.create({
+						id: TLInstancePresence.createCustomId('peer-1-presence'),
+						currentPageId: app.currentPageId,
+						userId: 'peer-1',
+						instanceId: TLInstance.createCustomId('peer-1-editor-instance'),
+						userName: 'Peer 1',
+						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
 					})
 
-					const userPresence = TLUserPresence.create({
-						...app.userPresence,
-						id: TLUserPresence.createCustomId('user-1'),
-						cursor: { x: 0, y: 0 },
-						userId,
-					})
-
-					const instance = TLInstance.create({
-						...app.instanceState,
-						id: TLInstance.createCustomId('user-1'),
-						userId,
-					})
-
-					const instancePageState = TLInstancePageState.create({
-						...app.pageState,
-						id: TLInstancePageState.createCustomId('user-1'),
-						instanceId: TLInstance.createCustomId('instance-1'),
-					})
-
-					app.store.put([user, instance, userPresence, instancePageState])
+					app.store.put([peerPresence])
 
 					// Make the fake user's cursor rotate in a circle
 					if (rTimeout.current) {
@@ -62,24 +42,21 @@ export default function UserPresenceExample() {
 							// rotate in a circle
 							app.store.put([
 								{
-									...userPresence,
+									...peerPresence,
 									cursor: {
-										x: Math.cos(t * Math.PI * 2) * CIRCLE_RADIUS,
-										y: Math.sin(t * Math.PI * 2) * CIRCLE_RADIUS,
+										...peerPresence.cursor,
+										x: 150 + Math.cos(t * Math.PI * 2) * CIRCLE_RADIUS,
+										y: 150 + Math.sin(t * Math.PI * 2) * CIRCLE_RADIUS,
 									},
 									lastActivityTimestamp: now,
 								},
 							])
 						}, 1000 / UPDATE_FPS)
 					} else {
-						app.store.put([
-							{ ...userPresence, cursor: { x: 0, y: 0 }, lastActivityTimestamp: Date.now() },
-						])
+						app.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 
 						rTimeout.current = setInterval(() => {
-							app.store.put([
-								{ ...userPresence, cursor: { x: 0, y: 0 }, lastActivityTimestamp: Date.now() },
-							])
+							app.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 						}, 1000)
 					}
 				}}

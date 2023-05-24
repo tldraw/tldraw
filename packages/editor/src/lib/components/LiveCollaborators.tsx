@@ -1,4 +1,3 @@
-import { TLUserId } from '@tldraw/tlschema'
 import { track } from 'signia-react'
 import { useApp } from '../hooks/useApp'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -16,7 +15,7 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId }) {
+const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const app = useApp()
 	const { viewportPageBounds, zoomLevel } = app
 

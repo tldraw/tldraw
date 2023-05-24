@@ -1,6 +1,5 @@
 export { type TLRecord } from './TLRecord'
 export {
-	USER_COLORS,
 	createIntegrityChecker,
 	onValidationFailure,
 	type TLStore,
@@ -24,8 +23,8 @@ export {
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
+export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
-export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
@@ -54,6 +53,12 @@ export {
 export { TLInstancePresence } from './records/TLInstancePresence'
 export { TLPage, pageTypeValidator, type TLPageId } from './records/TLPage'
 export {
+	TLPOINTER_ID,
+	TLPointer,
+	pointerTypeValidator,
+	type TLPointerId,
+} from './records/TLPointer'
+export {
 	createCustomShapeId,
 	createShapeId,
 	isShape,
@@ -69,19 +74,12 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
-export { TLUser, userTypeValidator, type TLUserId } from './records/TLUser'
 export {
 	TLUserDocument,
 	userDocumentTypeMigrations,
 	userDocumentTypeValidator,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
-export {
-	TLUserPresence,
-	userPresenceTypeMigrations,
-	userPresenceTypeValidator,
-	type TLUserPresenceId,
-} from './records/TLUserPresence'
 export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
@@ -218,6 +216,7 @@ export {
 	type TLStyleType,
 	type TLVerticalAlignType,
 } from './style-types'
+export { getDefaultTranslationLocale } from './translations'
 export {
 	TL_CURSOR_TYPES,
 	TL_HANDLE_TYPES,
@@ -255,5 +254,4 @@ export {
 	shapeIdValidator,
 	sizeValidator,
 	splineValidator,
-	userIdValidator,
 } from './validation'
