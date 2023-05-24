@@ -1,7 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
 import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
-import { Migrations } from './migrate'
 
 export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['create']>
 
@@ -27,7 +26,6 @@ export class RecordType<
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
-	readonly migrations: Migrations
 
 	readonly scope: Scope
 
@@ -41,12 +39,10 @@ export class RecordType<
 		public readonly typeName: R['typeName'],
 		config: {
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
-			readonly migrations: Migrations
 			readonly scope?: Scope
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
-		this.migrations = config.migrations
 		this.scope = config.scope ?? 'document'
 	}
 
@@ -183,7 +179,6 @@ export class RecordType<
 	): RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>> {
 		return new RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>(this.typeName, {
 			createDefaultProperties: createDefaultProperties as any,
-			migrations: this.migrations,
 			scope: this.scope,
 		})
 	}
@@ -204,13 +199,11 @@ export class RecordType<
 export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
-		migrations?: Migrations
 		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({} as any),
-		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
 		scope: config.scope,
 	})
 }

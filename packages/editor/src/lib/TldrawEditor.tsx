@@ -1,4 +1,11 @@
-import { TLAsset, TLInstance, TLInstanceId, TLStore, TLUser, TLUserId } from '@tldraw/tlschema'
+import {
+	InstanceRecordType,
+	TLAsset,
+	TLInstanceId,
+	TLStore,
+	TLUserId,
+	UserRecordType,
+} from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
@@ -147,8 +154,8 @@ function TldrawEditorBeforeLoading({
 		return (
 			store ??
 			config.createStore({
-				userId: userId ?? TLUser.createId(),
-				instanceId: instanceId ?? TLInstance.createId(),
+				userId: userId ?? UserRecordType.createId(),
+				instanceId: instanceId ?? InstanceRecordType.createId(),
 			})
 		)
 	})
@@ -158,8 +165,8 @@ function TldrawEditorBeforeLoading({
 			return (
 				store ??
 				config.createStore({
-					userId: userId ?? TLUser.createId(),
-					instanceId: instanceId ?? TLInstance.createId(),
+					userId: userId ?? UserRecordType.createId(),
+					instanceId: instanceId ?? InstanceRecordType.createId(),
 				})
 			)
 		})

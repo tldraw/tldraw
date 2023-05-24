@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { MAX_PAGES, TLPage, TLPageId, useApp } from '@tldraw/editor'
+import { MAX_PAGES, PageRecordType, TLPageId, useApp } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -26,7 +26,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 
 	const onDuplicate = useCallback(() => {
 		app.mark('creating page')
-		const newId = TLPage.createId()
+		const newId = PageRecordType.createId()
 		app.duplicatePage(item.id as TLPageId, newId)
 	}, [app, item])
 

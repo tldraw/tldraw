@@ -1,15 +1,10 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { Signal } from 'signia'
 import { IdOf, UnknownRecord } from './BaseRecord'
+import { Migrator } from './Migrator'
 import { RecordType } from './RecordType'
 import { Store, StoreSnapshot } from './Store'
-import {
-	MigrationFailureReason,
-	MigrationResult,
-	Migrations,
-	migrate,
-	migrateRecord,
-} from './migrate'
+import { MigrationFailureReason, MigrationResult } from './migrate'
 
 /** @public */
 export interface SerializedSchema {
@@ -38,7 +33,7 @@ export interface SerializedSchema {
 /** @public */
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
-	snapshotMigrations?: Migrations
+	snapshotMigrator?: Migrator
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
@@ -47,6 +42,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
 	}) => R
+	migrators?: { [TypeName in R['typeName']]?: Migrator }
 	validateRecord?: (record: any) => R
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
@@ -57,6 +53,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 /** @public */
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	validateRecord: (record: any) => R
+	migrators: { [TypeName in R['typeName']]: Migrator }
 
 	static create<R extends UnknownRecord, P = unknown>(
 		// HACK: making this param work with RecordType is an enormous pain
@@ -74,11 +71,21 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		},
 		private readonly options: StoreSchemaOptions<R, P>
 	) {
-		this.validateRecord = this.options.validateRecord ?? ((r: R) => r)
+		const { migrators, validateRecord = (r: R) => r } = this.options
+		this.validateRecord = validateRecord
+		this.migrators = migrators
+			? (Object.fromEntries(
+					Object.keys(types).map((t) => [t, migrators[t as R['typeName']] ?? new Migrator({})])
+			  ) as {
+					[TypeName in R['typeName']]: Migrator
+			  })
+			: (Object.fromEntries(Object.keys(types).map((t) => [t, new Migrator({})])) as {
+					[TypeName in R['typeName']]: Migrator
+			  })
 	}
 
 	get currentStoreVersion(): number {
-		return this.options.snapshotMigrations?.currentVersion ?? 0
+		return this.options.snapshotMigrator?.currentVersion ?? 0
 	}
 
 	validateRecordOnCreateOrUpdate(
@@ -114,35 +121,22 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		persistedSchema: SerializedSchema,
 		direction: 'up' | 'down' = 'up'
 	): MigrationResult<R> {
-		const ourType = getOwnProperty(this.types, record.typeName)
+		const ourMigrator = getOwnProperty(this.migrators, record.typeName)
 		const persistedType = persistedSchema.recordVersions[record.typeName]
-		if (!persistedType || !ourType) {
+		if (!persistedType || !ourMigrator) {
 			return { type: 'error', reason: MigrationFailureReason.UnknownType }
 		}
-		const ourVersion = ourType.migrations.currentVersion
+		const ourVersion = ourMigrator.currentVersion
 		const persistedVersion = persistedType.version
 		if (ourVersion !== persistedVersion) {
-			const result =
-				direction === 'up'
-					? migrateRecord<R>({
-							record,
-							migrations: ourType.migrations,
-							fromVersion: persistedVersion,
-							toVersion: ourVersion,
-					  })
-					: migrateRecord<R>({
-							record,
-							migrations: ourType.migrations,
-							fromVersion: ourVersion,
-							toVersion: persistedVersion,
-					  })
+			const result = ourMigrator.migrateRecord(record, direction, persistedVersion)
 			if (result.type === 'error') {
 				return result
 			}
 			record = result.value
 		}
 
-		if (!ourType.migrations.subTypeKey) {
+		if (!ourMigrator.subTypeKey) {
 			return { type: 'success', value: record }
 		}
 
@@ -150,21 +144,19 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		// subtypes are used by shape and asset types to migrate the props shape, which is configurable
 		// by library consumers.
 
-		const ourSubTypeMigrations =
-			ourType.migrations.subTypeMigrations?.[
-				record[ourType.migrations.subTypeKey as keyof R] as string
-			]
+		const ourSubTypeMigrator =
+			ourMigrator.subTypeMigrators?.[record[ourMigrator.subTypeKey as keyof R] as string]
 
 		const persistedSubTypeVersion =
 			'subTypeVersions' in persistedType
-				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
+				? persistedType.subTypeVersions[record[ourMigrator.subTypeKey as keyof R] as string]
 				: undefined
 
-		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
+		// if ourSubTypeMigrator is undefined then we don't have access to the migrations for this subtype
 		// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
 		// It could also be that we are running in a client that is outdated. Either way, we can't migrate this record
 		// and we need to let the consumer know so they can handle it.
-		if (ourSubTypeMigrations === undefined) {
+		if (ourSubTypeMigrator === undefined) {
 			return { type: 'error', reason: MigrationFailureReason.UnrecognizedSubtype }
 		}
 
@@ -175,20 +167,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
 		}
 
-		const result =
-			direction === 'up'
-				? migrateRecord<R>({
-						record,
-						migrations: ourSubTypeMigrations,
-						fromVersion: persistedSubTypeVersion,
-						toVersion: ourSubTypeMigrations.currentVersion,
-				  })
-				: migrateRecord<R>({
-						record,
-						migrations: ourSubTypeMigrations,
-						fromVersion: ourSubTypeMigrations.currentVersion,
-						toVersion: persistedSubTypeVersion,
-				  })
+		const result = ourSubTypeMigrator.migrateRecord<R>(record, direction, persistedSubTypeVersion)
 
 		if (result.type === 'error') {
 			return result
@@ -201,12 +180,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		storeSnapshot: StoreSnapshot<R>,
 		persistedSchema: SerializedSchema
 	): MigrationResult<StoreSnapshot<R>> {
-		const migrations = this.options.snapshotMigrations
-		if (!migrations) {
+		const migrator = this.options.snapshotMigrator
+		if (!migrator) {
 			return { type: 'success', value: storeSnapshot }
 		}
 		// apply store migrations first
-		const ourStoreVersion = migrations.currentVersion
+		const ourStoreVersion = migrator.currentVersion
 		const persistedStoreVersion = persistedSchema.storeVersion ?? 0
 
 		if (ourStoreVersion < persistedStoreVersion) {
@@ -214,12 +193,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (ourStoreVersion > persistedStoreVersion) {
-			const result = migrate<StoreSnapshot<R>>({
-				value: storeSnapshot,
-				migrations,
-				fromVersion: persistedStoreVersion,
-				toVersion: ourStoreVersion,
-			})
+			const result = migrator.migrateSnapshot<StoreSnapshot<R>>(
+				storeSnapshot,
+				'up',
+				persistedStoreVersion
+			)
 
 			if (result.type === 'error') {
 				return result
@@ -258,27 +236,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	serialize(): SerializedSchema {
 		return {
 			schemaVersion: 1,
-			storeVersion: this.options.snapshotMigrations?.currentVersion ?? 0,
+			storeVersion: this.options.snapshotMigrator?.currentVersion ?? 0,
 			recordVersions: Object.fromEntries(
-				objectMapValues(this.types).map((type) => [
-					type.typeName,
-					type.migrations.subTypeKey && type.migrations.subTypeMigrations
-						? {
-								version: type.migrations.currentVersion,
-								subTypeKey: type.migrations.subTypeKey,
-								subTypeVersions: type.migrations.subTypeMigrations
-									? Object.fromEntries(
-											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
-												k,
-												v.currentVersion,
-											])
-									  )
-									: undefined,
-						  }
-						: {
-								version: type.migrations.currentVersion,
-						  },
-				])
+				objectMapValues(this.types).map((type) => {
+					const migrator = getOwnProperty(this.migrators, type.typeName)
+					if (!migrator) {
+						throw Error(`Missing migrator for type ${type.typeName}`)
+					}
+
+					return [type.typeName, migrator.serialize()]
+				})
 			),
 		}
 	}
@@ -286,27 +253,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	serializeEarliestVersion(): SerializedSchema {
 		return {
 			schemaVersion: 1,
-			storeVersion: this.options.snapshotMigrations?.firstVersion ?? 0,
+			storeVersion: this.options.snapshotMigrator?.firstVersion ?? 0,
 			recordVersions: Object.fromEntries(
-				objectMapValues(this.types).map((type) => [
-					type.typeName,
-					type.migrations.subTypeKey && type.migrations.subTypeMigrations
-						? {
-								version: type.migrations.firstVersion,
-								subTypeKey: type.migrations.subTypeKey,
-								subTypeVersions: type.migrations.subTypeMigrations
-									? Object.fromEntries(
-											Object.entries(type.migrations.subTypeMigrations).map(([k, v]) => [
-												k,
-												v.firstVersion,
-											])
-									  )
-									: undefined,
-						  }
-						: {
-								version: type.migrations.firstVersion,
-						  },
-				])
+				objectMapValues(this.types).map((type) => {
+					const migrator = getOwnProperty(this.migrators, type.typeName)
+					if (!migrator) {
+						throw Error(`Missing migrator for type ${type.typeName}`)
+					}
+
+					return [type.typeName, migrator.serializeEarliestVersion()]
+				})
 			),
 		}
 	}

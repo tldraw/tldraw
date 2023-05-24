@@ -1,7 +1,5 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { idValidator, instanceIdValidator, pageIdValidator, shapeIdValidator } from '../validation'
-import { TLCamera, TLCameraId } from './TLCamera'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
+import { TLCamera } from './TLCamera'
 import { TLInstance } from './TLInstance'
 import { TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
@@ -27,31 +25,12 @@ export interface TLInstancePageState
 	focusLayerId: TLShapeId | null
 }
 
-/** @public */
-export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = T.model(
-	'instance_page_state',
-	T.object({
-		typeName: T.literal('instance_page_state'),
-		id: idValidator<TLInstancePageStateId>('instance_page_state'),
-		instanceId: instanceIdValidator,
-		pageId: pageIdValidator,
-		cameraId: idValidator<TLCameraId>('camera'),
-		selectedIds: T.arrayOf(shapeIdValidator),
-		hintingIds: T.arrayOf(shapeIdValidator),
-		erasingIds: T.arrayOf(shapeIdValidator),
-		hoveredId: shapeIdValidator.nullable(),
-		editingId: shapeIdValidator.nullable(),
-		croppingId: shapeIdValidator.nullable(),
-		focusLayerId: shapeIdValidator.nullable(),
-	})
-)
-
 const Versions = {
 	AddCroppingId: 1,
 } as const
 
 /** @public */
-export const instancePageStateMigrations = defineMigrations({
+export const instancePageStateTypeMigrator = new Migrator({
 	currentVersion: Versions.AddCroppingId,
 	migrators: {
 		[Versions.AddCroppingId]: {
@@ -66,10 +45,12 @@ export const instancePageStateMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstancePageState = createRecordType<TLInstancePageState>('instance_page_state', {
-	migrations: instancePageStateMigrations,
-	scope: 'instance',
-}).withDefaultProperties(
+export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
+	'instance_page_state',
+	{
+		scope: 'instance',
+	}
+).withDefaultProperties(
 	(): Omit<
 		TLInstancePageState,
 		'id' | 'typeName' | 'userId' | 'instanceId' | 'cameraId' | 'pageId'

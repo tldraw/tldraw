@@ -1,6 +1,6 @@
 import { Signal, computed } from 'signia'
 import { TLStore } from './TLStore'
-import { TLInstancePresence } from './records/TLInstancePresence'
+import { InstancePresenceRecordType, TLInstancePresence } from './records/TLInstancePresence'
 
 /** @internal */
 export const defaultDerivePresenceState = (store: TLStore): Signal<TLInstancePresence | null> => {
@@ -28,8 +28,8 @@ export const defaultDerivePresenceState = (store: TLStore): Signal<TLInstancePre
 			return null
 		}
 
-		return TLInstancePresence.create({
-			id: TLInstancePresence.createCustomId(store.props.instanceId),
+		return InstancePresenceRecordType.create({
+			id: InstancePresenceRecordType.createCustomId(store.props.instanceId),
 			instanceId: store.props.instanceId,
 			selectedIds: pageState.selectedIds,
 			brush: instance.brush,

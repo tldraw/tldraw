@@ -1,5 +1,6 @@
 import { atom, RESET_VALUE } from 'signia'
 import { BaseRecord, ID } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -70,11 +71,7 @@ beforeEach(() => {
 				book: Book,
 			},
 			{
-				snapshotMigrations: {
-					currentVersion: 0,
-					firstVersion: 0,
-					migrators: {},
-				},
+				snapshotMigrator: new Migrator({}),
 				validateRecord,
 			}
 		),

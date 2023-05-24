@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLShapeId } from '../records/TLShape'
@@ -12,17 +12,8 @@ import {
 	TLSizeType,
 } from '../style-types'
 import { SetValue } from '../util-types'
-import {
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	opacityValidator,
-	shapeIdValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { shapeIdValidator } from '../validation'
+import { TLBaseShape } from './shape-validation'
 
 /** @public */
 export type TLArrowShapeProps = {
@@ -85,32 +76,12 @@ export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal> = T.union(
 	}),
 })
 
-/** @public */
-export const arrowShapeTypeValidator: T.Validator<TLArrowShape> = createShapeValidator(
-	'arrow',
-	T.object({
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		arrowheadStart: arrowheadValidator,
-		arrowheadEnd: arrowheadValidator,
-		font: fontValidator,
-		start: arrowTerminalTypeValidator,
-		end: arrowTerminalTypeValidator,
-		bend: T.number,
-		text: T.string,
-	})
-)
-
 const Versions = {
 	AddLabelColor: 1,
 } as const
 
 /** @public */
-export const arrowShapeTypeMigrations = defineMigrations({
+export const arrowShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddLabelColor,
 	migrators: {
 		[Versions.AddLabelColor]: {

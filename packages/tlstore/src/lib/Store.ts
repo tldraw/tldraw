@@ -67,16 +67,6 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>
 
 /** @public */
-export type StoreValidator<R extends UnknownRecord> = {
-	validate: (record: unknown) => R
-}
-
-/** @public */
-export type StoreValidators<R extends UnknownRecord> = {
-	[K in R['typeName']]: StoreValidator<Extract<R, { typeName: K }>>
-}
-
-/** @public */
 export type StoreError = {
 	error: Error
 	phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
@@ -147,12 +137,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	readonly props: Props
 
 	constructor(config: {
-		/** The store's initial data. */
 		initialData?: StoreSnapshot<R>
-		/**
-		 * A map of validators for each record type. A record's validator will be called when the record
-		 * is created or updated. It should throw an error if the record is invalid.
-		 */
 		schema: StoreSchema<R, Props>
 		props: Props
 	}) {

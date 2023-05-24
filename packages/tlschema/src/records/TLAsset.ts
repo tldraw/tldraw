@@ -1,13 +1,8 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { TLBaseAsset } from '../assets/asset-validation'
-import {
-	bookmarkAssetMigrations,
-	bookmarkAssetTypeValidator,
-	TLBookmarkAsset,
-} from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
+import { TLBookmarkAsset } from '../assets/TLBookmarkAsset'
+import { TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 // --- DEFINITION ---
@@ -15,24 +10,7 @@ import { TLShape } from './TLShape'
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
 /** @public */
-export const assetTypeValidator: T.Validator<TLAsset> = T.model(
-	'asset',
-	T.union('type', {
-		image: imageAssetTypeValidator,
-		video: videoAssetTypeValidator,
-		bookmark: bookmarkAssetTypeValidator,
-	})
-)
-
-/** @public */
-export const assetTypeMigrations = defineMigrations({
-	subTypeKey: 'type',
-	subTypeMigrations: {
-		image: imageAssetMigrations,
-		video: videoAssetMigrations,
-		bookmark: bookmarkAssetMigrations,
-	},
-})
+export const rootAssetTypeMigrator = new Migrator({})
 
 /** @public */
 export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
@@ -44,8 +22,7 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	: never
 
 /** @public */
-export const TLAsset = createRecordType<TLAsset>('asset', {
-	migrations: assetTypeMigrations,
+export const AssetRecordType = createRecordType<TLAsset>('asset', {
 	scope: 'document',
 })
 

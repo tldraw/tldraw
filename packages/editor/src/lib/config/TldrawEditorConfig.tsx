@@ -1,19 +1,20 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
+	InstanceRecordType,
 	TLDOCUMENT_ID,
 	TLDefaultShape,
-	TLInstance,
 	TLInstanceId,
 	TLInstancePresence,
 	TLRecord,
 	TLShape,
 	TLStore,
 	TLStoreProps,
-	TLUser,
 	TLUserId,
+	UserRecordType,
 	createTLSchema,
+	defaultMigrators,
 } from '@tldraw/tlschema'
-import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import { Migrator, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
@@ -53,14 +54,9 @@ const DEFAULT_SHAPE_UTILS: {
 /** @public */
 export type TldrawEditorConfigOptions = {
 	tools?: readonly StateNodeConstructor[]
-	shapes?: Record<
-		string,
-		{
-			util: TLShapeUtilConstructor<any>
-			validator?: { validate: <T>(record: T) => T }
-			migrations?: Migrations
-		}
-	>
+	shapes?: Record<string, TLShapeUtilConstructor<any>>
+	migrators?: Record<string, Migrator>
+	validateRecord?: (record: TLRecord) => TLRecord
 	/** @internal */
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }
@@ -70,8 +66,10 @@ export class TldrawEditorConfig {
 	// Custom tools
 	readonly tools: readonly StateNodeConstructor[]
 
+	readonly migrators: Record<string, Migrator>
+
 	// Custom shape utils
-	readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>
+	readonly shapes: Record<TLShape['type'], TLShapeUtilConstructor<any>>
 
 	// The record used for TLShape incorporating any custom shapes
 	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
@@ -80,18 +78,24 @@ export class TldrawEditorConfig {
 	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const { shapes = {}, tools = [], derivePresenceState } = opts
+		const { validateRecord, shapes = {}, tools = [], migrators = {}, derivePresenceState } = opts
 
 		this.tools = tools
 
-		this.shapeUtils = {
+		this.shapes = {
 			...DEFAULT_SHAPE_UTILS,
-			...Object.fromEntries(Object.entries(shapes).map(([k, v]) => [k, v.util])),
+			...shapes,
+		}
+
+		this.migrators = {
+			...defaultMigrators,
+			...migrators,
 		}
 
 		this.storeSchema = createTLSchema({
-			customShapes: shapes,
 			derivePresenceState: derivePresenceState,
+			validateRecord,
+			migrators,
 		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<
@@ -114,8 +118,8 @@ export class TldrawEditorConfig {
 			schema: this.storeSchema,
 			initialData,
 			props: {
-				userId: config?.userId ?? TLUser.createId(),
-				instanceId: config?.instanceId ?? TLInstance.createId(),
+				userId: config?.userId ?? UserRecordType.createId(),
+				instanceId: config?.instanceId ?? InstanceRecordType.createId(),
 				documentId: TLDOCUMENT_ID,
 			},
 		})

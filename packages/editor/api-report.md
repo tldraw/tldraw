@@ -24,10 +24,11 @@ import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
+import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
-import { Migrations } from '@tldraw/tlstore';
+import { Migrator } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -1798,7 +1799,9 @@ export class TldrawEditorConfig {
         instanceId: TLInstanceId;
     }): TLStore;
     // (undocumented)
-    readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
+    readonly migrators: Record<string, Migrator>;
+    // (undocumented)
+    readonly shapes: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
     // (undocumented)
@@ -2658,7 +2661,7 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
-export function usePeerIds(): TLUserId[];
+export function usePeerIds(): ID<TLUser>[];
 
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;

@@ -1,6 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { idValidator, instanceIdValidator, pageIdValidator, userIdValidator } from '../validation'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { TLInstance } from './TLInstance'
 import { TLPage } from './TLPage'
 import { TLUserId } from './TLUser'
@@ -26,23 +24,6 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 /** @public */
 export type TLUserDocumentId = ID<TLUserDocument>
 
-/** @public */
-export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
-	'user_document',
-	T.object({
-		typeName: T.literal('user_document'),
-		id: idValidator<TLUserDocumentId>('user_document'),
-		userId: userIdValidator,
-		isPenMode: T.boolean,
-		isGridMode: T.boolean,
-		isDarkMode: T.boolean,
-		isMobileMode: T.boolean,
-		isSnapMode: T.boolean,
-		lastUpdatedPageId: pageIdValidator.nullable(),
-		lastUsedTabId: instanceIdValidator.nullable(),
-	})
-)
-
 export const Versions = {
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
@@ -50,7 +31,7 @@ export const Versions = {
 } as const
 
 /** @public */
-export const userDocumentTypeMigrations = defineMigrations({
+export const userdocumentTypeMigrator = new Migrator({
 	currentVersion: Versions.RemoveIsReadOnly,
 	migrators: {
 		[Versions.AddSnapMode]: {
@@ -83,8 +64,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 
 /* STEP 5: Add up + down migrations for your new version */
 /** @public */
-export const TLUserDocument = createRecordType<TLUserDocument>('user_document', {
-	migrations: userDocumentTypeMigrations,
+export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_document', {
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLUserDocument, 'id' | 'typeName' | 'userId'> => ({

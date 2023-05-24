@@ -1,9 +1,9 @@
 import { assert } from '@tldraw/utils'
 import { BaseRecord, ID } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { StoreSnapshot } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../migrate'
 
 const UserVersion = {
 	AddLocale: 1,
@@ -17,7 +17,7 @@ interface User extends BaseRecord<'user', ID<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = defineMigrations({
+const userMigrations = new Migrator({
 	currentVersion: UserVersion.AddPhoneNumber,
 	migrators: {
 		[UserVersion.AddLocale]: {
@@ -46,7 +46,6 @@ const userMigrations = defineMigrations({
 })
 
 const User = createRecordType<User>('user', {
-	migrations: userMigrations,
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	/* STEP 6: Add any new default values for properties here */
@@ -88,7 +87,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeTypeMigrations = defineMigrations({
+const ShapeTypeMigrator = new Migrator({
 	currentVersion: ShapeVersion.AddParent,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
@@ -114,55 +113,52 @@ const shapeTypeMigrations = defineMigrations({
 			},
 		},
 	},
-	subTypeKey: 'type',
-	subTypeMigrations: {
-		rectangle: defineMigrations({
-			currentVersion: RectangleVersion.AddOpacity,
-			migrators: {
-				[RectangleVersion.AddOpacity]: {
-					up: (record) => ({
-						...record,
-						props: {
-							...record.props,
-							opacity: 1,
-						},
-					}),
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					down: ({ props: { opacity, ...others }, ...record }) => ({
-						...record,
-						props: {
-							...others,
-						},
-					}),
-				},
+}).withSubTypeMigrators('type', {
+	rectangle: new Migrator({
+		currentVersion: RectangleVersion.AddOpacity,
+		migrators: {
+			[RectangleVersion.AddOpacity]: {
+				up: (record) => ({
+					...record,
+					props: {
+						...record.props,
+						opacity: 1,
+					},
+				}),
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				down: ({ props: { opacity, ...others }, ...record }) => ({
+					...record,
+					props: {
+						...others,
+					},
+				}),
 			},
-		}),
-		oval: defineMigrations({
-			currentVersion: OvalVersion.AddBorderStyle,
-			migrators: {
-				[OvalVersion.AddBorderStyle]: {
-					up: (record) => ({
-						...record,
-						props: {
-							...record.props,
-							borderStyle: 'solid',
-						},
-					}),
-					// eslint-disable-next-line @typescript-eslint/no-unused-vars
-					down: ({ props: { borderStyle, ...others }, ...record }) => ({
-						...record,
-						props: {
-							...others,
-						},
-					}),
-				},
+		},
+	}),
+	oval: new Migrator({
+		currentVersion: OvalVersion.AddBorderStyle,
+		migrators: {
+			[OvalVersion.AddBorderStyle]: {
+				up: (record) => ({
+					...record,
+					props: {
+						...record.props,
+						borderStyle: 'solid',
+					},
+				}),
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				down: ({ props: { borderStyle, ...others }, ...record }) => ({
+					...record,
+					props: {
+						...others,
+					},
+				}),
 			},
-		}),
-	},
+		},
+	}),
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeTypeMigrations,
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	x: 0,
@@ -175,7 +171,7 @@ const StoreVersions = {
 	RemoveOrg: 1,
 }
 
-const snapshotMigrations = defineMigrations({
+const snapshotMigrator = new Migrator({
 	currentVersion: StoreVersions.RemoveOrg,
 	migrators: {
 		[StoreVersions.RemoveOrg]: {
@@ -189,6 +185,11 @@ const snapshotMigrations = defineMigrations({
 		},
 	},
 })
+
+const migrators: Record<StoreRecord['typeName'], Migrator> = {
+	shape: ShapeTypeMigrator,
+	user: userMigrations,
+}
 
 type StoreRecord = User | Shape<any>
 
@@ -223,7 +224,8 @@ export const testSchemaV1 = StoreSchema.create<StoreRecord>(
 		shape: Shape,
 	},
 	{
-		snapshotMigrations,
+		snapshotMigrator,
 		validateRecord,
+		migrators,
 	}
 )

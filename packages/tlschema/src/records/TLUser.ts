@@ -1,33 +1,20 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { getDefaultTranslationLocale } from '../translations'
-import { userIdValidator } from '../validation'
 
 /**
  * A user of tldraw
  *
  * @public
  */
-export interface TLUser extends BaseRecord<'user', TLUserId> {
+export interface TLUser extends BaseRecord<'user', ID<TLUser>> {
 	name: string
 	locale: string
 }
 /** @public */
-export type TLUserId = ID<TLUser>
+export type TLUserId = TLUser['id']
 
 /** @public */
-export const userTypeValidator: T.Validator<TLUser> = T.model(
-	'user',
-	T.object({
-		typeName: T.literal('user'),
-		id: userIdValidator,
-		name: T.string,
-		locale: T.string,
-	})
-)
-
-/** @public */
-export const TLUser = createRecordType<TLUser>('user', {
+export const UserRecordType = createRecordType<TLUser>('user', {
 	scope: 'instance',
 }).withDefaultProperties((): Omit<TLUser, 'id' | 'typeName'> => {
 	let locale = 'en'
@@ -41,4 +28,4 @@ export const TLUser = createRecordType<TLUser>('user', {
 })
 
 /** @public */
-export const userTypeMigrations = defineMigrations({})
+export const userTypeMigrator = new Migrator({})

@@ -17,9 +17,9 @@ export interface TLBaseShape<Type extends string, Props extends object>
 }
 
 /** @public */
-export function createShapeValidator<Type extends string, Props extends object>(
-	type: Type,
-	props: T.Validator<Props>
+export function createShapeValidator<R extends TLBaseShape<string, object>>(
+	type: R['type'],
+	props: T.Validator<R['props']>
 ) {
 	return T.object({
 		id: shapeIdValidator,

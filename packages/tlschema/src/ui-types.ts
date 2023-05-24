@@ -75,16 +75,6 @@ export type TLScribble = {
 }
 
 /** @public */
-export const scribbleTypeValidator: T.Validator<TLScribble> = T.object({
-	points: T.arrayOf(T.point),
-	size: T.positiveNumber,
-	color: uiColorTypeValidator,
-	opacity: T.number,
-	state: T.setEnum(TL_SCRIBBLE_STATES),
-	delay: T.number,
-})
-
-/** @public */
 export const TL_HANDLE_TYPES = new Set(['vertex', 'virtual', 'create'] as const)
 
 /** @public */

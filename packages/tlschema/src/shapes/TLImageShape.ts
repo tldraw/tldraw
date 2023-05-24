@@ -1,10 +1,8 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { Migrator } from '@tldraw/tlstore'
 import { Vec2dModel } from '../geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
-import { assetIdValidator, opacityValidator } from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape } from './shape-validation'
 
 /** @public */
 export type TLImageCrop = {
@@ -24,27 +22,7 @@ export type TLImageShapeProps = {
 }
 
 /** @public */
-export const cropValidator = T.object({
-	topLeft: T.point,
-	bottomRight: T.point,
-})
-
-/** @public */
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
-
-/** @public */
-export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeValidator(
-	'image',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		playing: T.boolean,
-		url: T.string,
-		assetId: assetIdValidator.nullable(),
-		crop: cropValidator.nullable(),
-	})
-)
 
 const Versions = {
 	AddUrlProp: 1,
@@ -52,7 +30,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const imageShapeTypeMigrations = defineMigrations({
+export const imageShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

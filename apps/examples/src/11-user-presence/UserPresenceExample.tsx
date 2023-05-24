@@ -1,4 +1,10 @@
-import { Tldraw, TLInstance, TLInstancePageState, TLUser, TLUserPresence } from '@tldraw/tldraw'
+import {
+	InstancePageStateRecordType,
+	InstanceRecordType,
+	Tldraw,
+	UserPresenceRecordType,
+	UserRecordType,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
@@ -21,30 +27,30 @@ export default function UserPresenceExample() {
 					// all records will include all of these records. In this example,
 					// we're having to create these ourselves.
 
-					const userId = TLUser.createCustomId('user-1')
+					const userId = UserRecordType.createCustomId('user-1')
 
-					const user = TLUser.create({
+					const user = UserRecordType.create({
 						id: userId,
 						name: 'User 1',
 					})
 
-					const userPresence = TLUserPresence.create({
+					const userPresence = UserPresenceRecordType.create({
 						...app.userPresence,
-						id: TLUserPresence.createCustomId('user-1'),
+						id: UserPresenceRecordType.createCustomId('user-1'),
 						cursor: { x: 0, y: 0 },
 						userId,
 					})
 
-					const instance = TLInstance.create({
+					const instance = InstanceRecordType.create({
 						...app.instanceState,
-						id: TLInstance.createCustomId('user-1'),
+						id: InstanceRecordType.createCustomId('user-1'),
 						userId,
 					})
 
-					const instancePageState = TLInstancePageState.create({
+					const instancePageState = InstancePageStateRecordType.create({
 						...app.pageState,
-						id: TLInstancePageState.createCustomId('user-1'),
-						instanceId: TLInstance.createCustomId('instance-1'),
+						id: InstancePageStateRecordType.createCustomId('user-1'),
+						instanceId: InstanceRecordType.createCustomId('instance-1'),
 					})
 
 					app.store.put([user, instance, userPresence, instancePageState])

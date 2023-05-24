@@ -1,6 +1,5 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { createAssetValidator, TLBaseAsset } from './asset-validation'
+import { Migrator } from '@tldraw/tlstore'
+import { TLBaseAsset } from './asset-validation'
 
 // --- DEFINITION ---
 /** @public */
@@ -16,26 +15,13 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
-export const imageAssetTypeValidator: T.Validator<TLImageAsset> = createAssetValidator(
-	'image',
-	T.object({
-		w: T.number,
-		h: T.number,
-		name: T.string,
-		isAnimated: T.boolean,
-		mimeType: T.string.nullable(),
-		src: T.string.nullable(),
-	})
-)
-
 const Versions = {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 } as const
 
 /** @public */
-export const imageAssetMigrations = defineMigrations({
+export const imageAssetMigrator = new Migrator({
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {
 		[Versions.AddIsAnimated]: {

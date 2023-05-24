@@ -1,4 +1,9 @@
-import { createCustomShapeId, TldrawEditorConfig, TLInstance, TLUser } from '@tldraw/editor'
+import {
+	createCustomShapeId,
+	InstanceRecordType,
+	TldrawEditorConfig,
+	UserRecordType,
+} from '@tldraw/editor'
 import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
 import { assert } from '@tldraw/utils'
 import { parseTldrawJsonFile as _parseTldrawJsonFile, TldrawFile } from '../lib/file'
@@ -7,8 +12,8 @@ const parseTldrawJsonFile = (config: TldrawEditorConfig, json: string) =>
 	_parseTldrawJsonFile({
 		config,
 		json,
-		userId: TLUser.createCustomId('user'),
-		instanceId: TLInstance.createCustomId('instance'),
+		userId: UserRecordType.createCustomId('user'),
+		instanceId: InstanceRecordType.createCustomId('instance'),
 	})
 
 function serialize(file: TldrawFile): string {

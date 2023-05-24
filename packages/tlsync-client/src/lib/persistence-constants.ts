@@ -1,4 +1,4 @@
-import { TLInstance, TLInstanceId, TLUser, uniqueId } from '@tldraw/editor'
+import { InstanceRecordType, TLInstanceId, TLUser, UserRecordType, uniqueId } from '@tldraw/editor'
 import { Store } from '@tldraw/tlstore'
 import { atom, react } from 'signia'
 
@@ -31,7 +31,7 @@ const USER_DATA_KEY = 'TLDRAW_USER_DATA_v2'
 
 const globalUserData = atom<TLUser>(
 	'globalUserData',
-	JSON.parse(window?.localStorage.getItem(USER_DATA_KEY) || 'null') ?? TLUser.create({})
+	JSON.parse(window?.localStorage.getItem(USER_DATA_KEY) || 'null') ?? UserRecordType.create({})
 )
 
 react('set global user data', () => {
@@ -76,7 +76,7 @@ export const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 
 /** @public */
 export const TAB_ID: TLInstanceId =
-	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? TLInstance.createId()
+	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? InstanceRecordType.createId()
 if (window) {
 	window[tabIdKey] = TAB_ID
 	if (iOS()) {

@@ -1,5 +1,6 @@
 export type { BaseRecord, ID, IdOf, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
+export { Migrator, type Migration, type MigratorOptions } from './lib/Migrator'
 export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
 export { Store, reverseRecordsDiff, squashRecordDiffs } from './lib/Store'
 export type {
@@ -10,8 +11,6 @@ export type {
 	StoreError,
 	StoreListener,
 	StoreSnapshot,
-	StoreValidator,
-	StoreValidators,
 } from './lib/Store'
 export { StoreSchema } from './lib/StoreSchema'
 export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
@@ -20,13 +19,8 @@ export { devFreeze } from './lib/devFreeze'
 export {
 	MigrationFailureReason,
 	compareRecordVersions,
-	defineMigrations,
 	getRecordVersion,
-	migrate,
-	migrateRecord,
-	type Migration,
 	type MigrationResult,
-	type Migrations,
 	type RecordVersion,
 } from './lib/migrate'
 export type { AllRecords } from './lib/type-utils'

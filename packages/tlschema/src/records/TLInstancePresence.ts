@@ -1,15 +1,13 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { Box2dModel } from '../geometry-types'
-import { cursorTypeValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import { idValidator, userIdValidator } from '../validation'
+import { TLCursor, TLScribble } from '../ui-types'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 import { TLUserId } from './TLUser'
 
 /** @public */
-export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceId> {
 	instanceId: TLInstanceId
 	userId: TLUserId
 	userName: string
@@ -31,45 +29,14 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 /** @public */
-export type TLInstancePresenceID = ID<TLInstancePresence>
-
-// --- VALIDATION ---
-/** @public */
-export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.model(
-	'instance_presence',
-	T.object({
-		instanceId: idValidator<TLInstanceId>('instance'),
-		typeName: T.literal('instance_presence'),
-		id: idValidator<TLInstancePresenceID>('instance_presence'),
-		userId: userIdValidator,
-		userName: T.string,
-		lastActivityTimestamp: T.number,
-		followingUserId: userIdValidator.nullable(),
-		cursor: T.object({
-			x: T.number,
-			y: T.number,
-			type: cursorTypeValidator,
-			rotation: T.number,
-		}),
-		color: T.string,
-		camera: T.object({
-			x: T.number,
-			y: T.number,
-			z: T.number,
-		}),
-		screenBounds: T.boxModel,
-		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
-		currentPageId: idValidator<TLPageId>('page'),
-		brush: T.boxModel.nullable(),
-		scribble: scribbleTypeValidator.nullable(),
-	})
-)
+export type TLInstancePresenceId = ID<TLInstancePresence>
 
 const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
-export const instancePresenceTypeMigrations = defineMigrations({
+/** @public */
+export const instancePresenceTypeMigrator = new Migrator({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddScribbleDelay]: {
@@ -91,7 +58,9 @@ export const instancePresenceTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
-	migrations: instancePresenceTypeMigrations,
-	scope: 'presence',
-})
+export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
+	'instance_presence',
+	{
+		scope: 'presence',
+	}
+)

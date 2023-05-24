@@ -1,25 +1,7 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { Box2dModel } from '../geometry-types'
 import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import {
-	alignValidator,
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	opacityValidator,
-	pageIdValidator,
-	sizeValidator,
-	splineValidator,
-	userIdValidator,
-	verticalAlignValidator,
-} from '../validation'
+import { TLCursor, TLScribble } from '../ui-types'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 import { TLUserId } from './TLUser'
@@ -53,43 +35,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 /** @public */
 export type TLInstanceId = ID<TLInstance>
 
-/** @public */
-export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
-	'instance',
-	T.object({
-		typeName: T.literal('instance'),
-		id: idValidator<TLInstanceId>('instance'),
-		userId: userIdValidator,
-		currentPageId: pageIdValidator,
-		followingUserId: userIdValidator.nullable(),
-		brush: T.boxModel.nullable(),
-		propsForNextShape: T.object({
-			color: colorValidator,
-			labelColor: colorValidator,
-			dash: dashValidator,
-			fill: fillValidator,
-			size: sizeValidator,
-			opacity: opacityValidator,
-			font: fontValidator,
-			align: alignValidator,
-			verticalAlign: verticalAlignValidator,
-			icon: iconValidator,
-			geo: geoValidator,
-			arrowheadStart: arrowheadValidator,
-			arrowheadEnd: arrowheadValidator,
-			spline: splineValidator,
-		}),
-		cursor: cursorValidator,
-		scribble: scribbleTypeValidator.nullable(),
-		isFocusMode: T.boolean,
-		isDebugMode: T.boolean,
-		isToolLocked: T.boolean,
-		exportBackground: T.boolean,
-		screenBounds: T.boxModel,
-		zoomBrush: T.boxModel.nullable(),
-	})
-)
-
 const Versions = {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
@@ -104,7 +49,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const instanceTypeMigrations = defineMigrations({
+export const instanceTypeMigrator = new Migrator({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -239,8 +184,7 @@ export const instanceTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstance = createRecordType<TLInstance>('instance', {
-	migrations: instanceTypeMigrations,
+export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'userId' | 'currentPageId'> => ({

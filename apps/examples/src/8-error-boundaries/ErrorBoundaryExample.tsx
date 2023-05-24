@@ -57,8 +57,6 @@ class ErrorUtil extends TLBoxUtil<ErrorShape> {
 
 const customConfigWithErrorShape = new TldrawEditorConfig({
 	shapes: {
-		error: {
-			util: ErrorUtil,
-		},
+		error: ErrorUtil,
 	},
 })

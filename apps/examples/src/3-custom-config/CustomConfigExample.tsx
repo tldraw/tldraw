@@ -95,9 +95,7 @@ export class CardTool extends TLBoxTool {
 const customTldrawConfig = new TldrawEditorConfig({
 	tools: [CardTool],
 	shapes: {
-		card: {
-			util: CardUtil,
-		},
+		card: CardUtil,
 	},
 })
 

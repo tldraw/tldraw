@@ -1,4 +1,4 @@
-import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
+import { createRecordType, ID, Migrator, UnknownRecord } from '@tldraw/tlstore'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
@@ -79,7 +79,7 @@ const Versions = {
 } as const
 
 /** @internal */
-export const rootShapeTypeMigrations = defineMigrations({
+export const rootShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddIsLocked,
 	migrators: {
 		[Versions.AddIsLocked]: {
@@ -120,3 +120,8 @@ export function createShapeId(): TLShapeId {
 export function createCustomShapeId(id: string): TLShapeId {
 	return `shape:${id}` as TLShapeId
 }
+
+/** @public */
+export const ShapeRecordType = createRecordType<TLShape>('shape', {
+	scope: 'document',
+}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))

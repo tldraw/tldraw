@@ -1,15 +1,7 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { Migrator } from '@tldraw/tlstore'
 import { TLColorType, TLDashType, TLOpacityType, TLSizeType, TLSplineType } from '../style-types'
-import { TLHandle, handleTypeValidator } from '../ui-types'
-import {
-	colorValidator,
-	dashValidator,
-	opacityValidator,
-	sizeValidator,
-	splineValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLHandle } from '../ui-types'
+import { TLBaseShape } from './shape-validation'
 
 /** @public */
 export type TLLineShapeProps = {
@@ -27,17 +19,4 @@ export type TLLineShapeProps = {
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @public */
-export const lineShapeTypeValidator: T.Validator<TLLineShape> = createShapeValidator(
-	'line',
-	T.object({
-		color: colorValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		spline: splineValidator,
-		handles: T.dict(T.string, handleTypeValidator),
-	})
-)
-
-/** @public */
-export const lineShapeTypeMigrations = defineMigrations({})
+export const lineShapeTypeMigrator = new Migrator({})

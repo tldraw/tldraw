@@ -10,15 +10,10 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 /** @public */
-export function createAssetValidator<Type extends string, Props extends object>(
-	type: Type,
-	props: T.Validator<Props>
-): T.ObjectValidator<{
-	id: TLAssetId
-	typeName: 'asset'
-	type: Type
-	props: Props
-}> {
+export function createAssetValidator<T extends TLBaseAsset<any, any>>(
+	type: T extends TLBaseAsset<infer R, any> ? R : never,
+	props: T extends TLBaseAsset<any, infer K> ? T.Validator<K> : never
+) {
 	return T.object({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),

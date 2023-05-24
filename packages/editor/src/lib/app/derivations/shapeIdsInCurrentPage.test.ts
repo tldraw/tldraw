@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLPage } from '@tldraw/tlschema'
+import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
 import { TestApp } from '../../test/TestApp'
 
 let app: TestApp
@@ -51,7 +51,7 @@ describe('shapeIdsInCurrentPage', () => {
 			{ type: 'geo', id: ids.box2 },
 			{ type: 'geo', id: ids.box3 },
 		])
-		const id = TLPage.createCustomId('page2')
+		const id = PageRecordType.createCustomId('page2')
 		app.createPage('New Page 2', id)
 		app.setCurrentPageId(id)
 		app.createShapes([
