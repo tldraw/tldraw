@@ -44,7 +44,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	}, [app, item])
 
 	return (
-		<M.Root id="page item submenu">
+		<M.Root id={`page item submenu ${index}`}>
 			<M.Trigger>
 				<Button title={msg('page-menu.submenu.title')} icon="dots-vertical" />
 			</M.Trigger>
