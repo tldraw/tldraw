@@ -79,6 +79,7 @@ export {
 	useEvents,
 	type EventsProviderProps,
 	type TLUiEventHandler,
+	type TLUiEventMap,
 	type TLUiEventSource,
 } from './lib/hooks/useEventsProvider'
 export { useExportAs } from './lib/hooks/useExportAs'
