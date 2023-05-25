@@ -479,7 +479,9 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
 const handleNativeOrMenuCopy = (app: App) => {
 	const content = app.getContent()
 	if (!content) {
-		window.navigator.clipboard.writeText('')
+		if (navigator && navigator.clipboard) {
+			navigator.clipboard.writeText('')
+		}
 		return
 	}
 
