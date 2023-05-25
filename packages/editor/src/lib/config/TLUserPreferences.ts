@@ -27,18 +27,16 @@ interface UserDataSnapshot {
 interface UserChangeBroadcastMessage {
 	type: typeof broadcastEventKey
 	origin: string
+	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.model(
-	'user',
-	T.object({
-		id: T.string,
-		name: T.string,
-		locale: T.string,
-		color: T.string,
-		isDarkMode: T.boolean,
-	})
-)
+const userTypeValidator: T.Validator<TLUserPreferences> = T.object({
+	id: T.string,
+	name: T.string,
+	locale: T.string,
+	color: T.string,
+	isDarkMode: T.boolean,
+})
 
 const userTypeMigrations = defineMigrations({})
 
@@ -72,18 +70,12 @@ function getFreshUserPreferences(): TLUserPreferences {
 		isDarkMode: false,
 	}
 }
-
-function loadUserPreferences(): TLUserPreferences {
-	const userData =
-		typeof window === 'undefined'
-			? null
-			: ((JSON.parse(window?.localStorage?.getItem(USER_DATA_KEY) || 'null') ??
-					null) as null | UserDataSnapshot)
-	if (userData === null) {
+function migrateUserPreferences(userData: unknown) {
+	if (userData === null || typeof userData !== 'object') {
 		return getFreshUserPreferences()
 	}
 
-	if (!('version' in userData) || !('user' in userData)) {
+	if (!('version' in userData) || !('user' in userData) || typeof userData.version !== 'number') {
 		return getFreshUserPreferences()
 	}
 
@@ -105,6 +97,16 @@ function loadUserPreferences(): TLUserPreferences {
 	}
 
 	return migrationResult.value
+}
+
+function loadUserPreferences(): TLUserPreferences {
+	const userData =
+		typeof window === 'undefined'
+			? null
+			: ((JSON.parse(window?.localStorage?.getItem(USER_DATA_KEY) || 'null') ??
+					null) as null | UserDataSnapshot)
+
+	return migrateUserPreferences(userData)
 }
 
 const globalUserPreferences = atom<TLUserPreferences>('globalUserData', loadUserPreferences())
@@ -138,7 +140,7 @@ const channel =
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
 	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
-		globalUserPreferences.set(loadUserPreferences())
+		globalUserPreferences.set(migrateUserPreferences(data.data))
 	}
 })
 
@@ -149,6 +151,10 @@ function broadcastUserPreferencesChange() {
 	channel?.postMessage({
 		type: broadcastEventKey,
 		origin: broadcastOrigin,
+		data: {
+			user: globalUserPreferences.value,
+			version: userTypeMigrations.currentVersion,
+		},
 	} satisfies UserChangeBroadcastMessage)
 }
 
