@@ -1,7 +1,7 @@
 import { TLAsset, TLInstanceId, TLStore, TLUserId } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { useCallback, useSyncExternalStore } from 'react'
+import React, { memo, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -138,12 +138,18 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-function TldrawEditorBeforeLoading({ store, userId, instanceId, ...props }: TldrawEditorProps) {
+const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
+	store,
+	userId,
+	instanceId,
+	...props
+}: TldrawEditorProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
 	let loadedStore: TLStore | SyncedStore
+
 	if (!(store instanceof Store)) {
 		if (store.error) {
 			// for error handling, we fall back to the default error boundary.
@@ -181,7 +187,7 @@ function TldrawEditorBeforeLoading({ store, userId, instanceId, ...props }: Tldr
 	}
 
 	return <TldrawEditorAfterLoading {...props} store={loadedStore} />
-}
+})
 
 function TldrawEditorAfterLoading({
 	onMount,
@@ -196,60 +202,64 @@ function TldrawEditorAfterLoading({
 }: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
 	store: TLStore
 }) {
-	const container = useContainer()
-
-	const [app, setApp] = React.useState<App | null>(null)
 	const { ErrorFallback } = useEditorComponents()
+	const container = useContainer()
+	const [app, setApp] = useState<App | null>(null)
 
-	React.useLayoutEffect(() => {
+	useEffect(() => {
 		const app = new App({
 			store,
 			shapes,
 			tools,
 			getContainer: () => container,
 		})
+		;(window as any).app
 		setApp(app)
-
-		if (autoFocus) {
-			app.focus()
-		}
-		;(window as any).app = app
 		return () => {
 			app.dispose()
-			setApp((prevApp) => (prevApp === app ? null : prevApp))
 		}
-	}, [container, shapes, tools, store, autoFocus])
-
-	React.useEffect(() => {
-		if (app) {
-			// Overwrite the default onCreateAssetFromFile handler.
-			if (onCreateAssetFromFile) {
-				app.onCreateAssetFromFile = onCreateAssetFromFile
-			}
-
-			if (onCreateBookmarkFromUrl) {
-				app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
-			}
-		}
-	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+	}, [container, shapes, tools, store])
 
 	const onMountEvent = useEvent((app: App) => {
 		onMount?.(app)
 		app.emit('mount')
+		window.tldrawReady = true
 	})
 
 	React.useEffect(() => {
-		if (app) {
-			// Set the initial theme state.
-			if (isDarkMode !== undefined) {
-				app.updateUserDocumentSettings({ isDarkMode })
-			}
+		if (!app) return
 
-			// Run onMount
-			window.tldrawReady = true
-			onMountEvent(app)
+		// Overwrite the default onCreateAssetFromFile handler.
+		if (onCreateAssetFromFile) {
+			app.onCreateAssetFromFile = onCreateAssetFromFile
 		}
-	}, [app, onMountEvent, isDarkMode])
+
+		if (onCreateBookmarkFromUrl) {
+			app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
+		}
+	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+
+	React.useEffect(() => {
+		if (!app) return
+		// Set the initial theme state.
+		if (isDarkMode !== undefined) {
+			app.updateUserDocumentSettings({ isDarkMode })
+		}
+	}, [app, isDarkMode])
+
+	React.useLayoutEffect(() => {
+		if (!app) return
+
+		if (autoFocus) {
+			app.focus()
+		}
+	}, [app, autoFocus])
+
+	React.useEffect(() => {
+		if (!app) return
+
+		onMountEvent(app)
+	}, [app, onMountEvent])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

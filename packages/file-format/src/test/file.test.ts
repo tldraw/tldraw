@@ -101,7 +101,7 @@ describe('parseTldrawJsonFile', () => {
 	it('returns an error if a record is invalid', () => {
 		const schema = createDefaultTldrawEditorSchema()
 		const result = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema,
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: schema.serialize(),
@@ -118,7 +118,7 @@ describe('parseTldrawJsonFile', () => {
 		assert(!result.ok)
 		assert(result.error.type === 'invalidRecords')
 		expect(result.error.cause).toMatchInlineSnapshot(
-			`[ValidationError: At (typeName = shape).shape(id = shape:shape, type = geo).rotation: Expected number, got undefined]`
+			`[ValidationError: At (typeName = shape).shape(id = shape:shape, type = geo).x: Expected number, got undefined]`
 		)
 	})
 

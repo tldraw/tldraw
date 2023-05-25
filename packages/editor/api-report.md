@@ -27,6 +27,7 @@ import { HistoryEntry } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
+import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrator } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
@@ -34,6 +35,7 @@ import { default as React_3 } from 'react';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
+import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
 import { sortByIndex } from '@tldraw/indices';
@@ -1732,7 +1734,7 @@ export type TLBoxLike = TLBaseShape<string, {
 // @public (undocumented)
 export abstract class TLBoxTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle | typeof Pointing)[];
+    static children: () => (typeof Idle_4 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)

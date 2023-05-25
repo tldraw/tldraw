@@ -31,7 +31,12 @@ describe('<TldrawEditor />', () => {
 		const onMount = jest.fn()
 
 		const rendered = render(
-			<TldrawEditor store={store} shapes={DEFAULT_SHAPE_UTILS} tools={DEFAULT_TOOLS}>
+			<TldrawEditor
+				store={store}
+				shapes={DEFAULT_SHAPE_UTILS}
+				tools={DEFAULT_TOOLS}
+				onMount={onMount}
+			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)

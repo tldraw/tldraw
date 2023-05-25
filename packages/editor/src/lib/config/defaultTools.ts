@@ -8,9 +8,7 @@ import { TLHandTool } from '../app/statechart/TLHandTool/TLHandTool'
 import { TLLaserTool } from '../app/statechart/TLLaserTool/TLLaserTool'
 import { TLLineTool } from '../app/statechart/TLLineTool/TLLineTool'
 import { TLNoteTool } from '../app/statechart/TLNoteTool/TLNoteTool'
-import { TLSelectTool } from '../app/statechart/TLSelectTool/TLSelectTool'
 import { TLTextTool } from '../app/statechart/TLTextTool/TLTextTool'
-import { TLZoomTool } from '../app/statechart/TLZoomTool/TLZoomTool'
 
 /** @public */
 export const DEFAULT_TOOLS: StateNodeConstructor[] = [
@@ -22,8 +20,6 @@ export const DEFAULT_TOOLS: StateNodeConstructor[] = [
 	TLGeoTool,
 	TLNoteTool,
 	TLFrameTool,
-	TLSelectTool,
 	TLHandTool,
 	TLEraserTool,
-	TLZoomTool,
 ]

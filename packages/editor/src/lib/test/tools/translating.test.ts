@@ -5,6 +5,7 @@ import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
 import { TestApp } from '../TestApp'
 
 import { createTldrawEditorStore } from '../../config/createTldrawEditorStore'
+import { DEFAULT_SHAPE_UTILS } from '../../config/defaultShapeUtils'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -771,9 +772,9 @@ describe('custom snapping points', () => {
 	beforeEach(() => {
 		app?.dispose()
 		app = new TestApp({
-			shapes: [__TopLeftSnapOnlyShapeUtil],
+			shapes: [...DEFAULT_SHAPE_UTILS, __TopLeftSnapOnlyShapeUtil],
 			store: createTldrawEditorStore(), // without migrations / validations, would be validate: false
-
+			//
 			// x───────┐
 			// │ T     │
 			// │       │

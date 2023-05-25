@@ -62,8 +62,8 @@ export class TestApp extends App {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
 		super({
-			shapes: shapes ? [...DEFAULT_SHAPE_UTILS, ...shapes] : DEFAULT_SHAPE_UTILS,
-			tools: tools ? [...DEFAULT_TOOLS, ...tools] : DEFAULT_TOOLS,
+			shapes: shapes ?? DEFAULT_SHAPE_UTILS,
+			tools: tools ?? DEFAULT_TOOLS,
 			store:
 				store ??
 				createDefaultTldrawEditorStore({

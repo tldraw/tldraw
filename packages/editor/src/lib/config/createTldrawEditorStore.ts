@@ -6,9 +6,9 @@ import {
 	TLStoreProps,
 	TLUserId,
 	UserRecordType,
-	createTLSchema,
 } from '@tldraw/tlschema'
 import { Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import { createTldrawEditorSchema } from './createTldrawEditorSchema'
 
 /** @public */
 export function createTldrawEditorStore(
@@ -20,7 +20,7 @@ export function createTldrawEditorStore(
 	}
 ) {
 	const {
-		schema = createTLSchema(),
+		schema = createTldrawEditorSchema(),
 		userId = UserRecordType.createId(),
 		instanceId = InstanceRecordType.createId(),
 		initialData,
