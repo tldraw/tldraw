@@ -1,4 +1,4 @@
-import { StoreSchema, StoreValidator, createRecordType, defineMigrations } from '@tldraw/tlstore'
+import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Signal } from 'signia'
 import { TLRecord } from './TLRecord'
@@ -11,87 +11,102 @@ import { TLInstance } from './records/TLInstance'
 import { TLInstancePageState } from './records/TLInstancePageState'
 import { TLInstancePresence } from './records/TLInstancePresence'
 import { TLPage } from './records/TLPage'
-import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
+import { TLShape, TLUnknownShape, rootShapeTypeMigrations } from './records/TLShape'
 import { TLUser } from './records/TLUser'
 import { TLUserDocument } from './records/TLUserDocument'
 import { TLUserPresence } from './records/TLUserPresence'
 import { storeMigrations } from './schema'
-import { arrowShapeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
-import { bookmarkShapeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
-import { drawShapeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
-import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
-import { frameShapeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
-import { geoShapeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
-import { groupShapeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
-import { imageShapeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
-import { lineShapeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
-import { noteShapeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
-import { textShapeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
-import { videoShapeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
+import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
+import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
+import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
+import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
+import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
+import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
+import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
+import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
+import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
+import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
+import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
+import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
 
-const CORE_SHAPE_DEFS: readonly CustomShapeTypeInfo[] = [
-	{ type: 'draw', migrations: drawShapeMigrations, validator: drawShapeTypeValidator },
-	{ type: 'text', migrations: textShapeMigrations, validator: textShapeTypeValidator },
-	{ type: 'line', migrations: lineShapeMigrations, validator: lineShapeTypeValidator },
-	{ type: 'arrow', migrations: arrowShapeMigrations, validator: arrowShapeTypeValidator },
-	{ type: 'image', migrations: imageShapeMigrations, validator: imageShapeTypeValidator },
-	{ type: 'video', migrations: videoShapeMigrations, validator: videoShapeTypeValidator },
-	{ type: 'geo', migrations: geoShapeMigrations, validator: geoShapeTypeValidator },
-	{ type: 'note', migrations: noteShapeMigrations, validator: noteShapeTypeValidator },
-	{ type: 'group', migrations: groupShapeMigrations, validator: groupShapeTypeValidator },
-	{
-		type: 'bookmark',
-		migrations: bookmarkShapeMigrations,
-		validator: bookmarkShapeTypeValidator,
-	},
-	{ type: 'frame', migrations: frameShapeMigrations, validator: frameShapeTypeValidator },
-	{ type: 'embed', migrations: embedShapeMigrations, validator: embedShapeTypeValidator },
-]
-
-/** @public */
-export type CustomShapeTypeInfo = {
-	type: string
-	migrations: ReturnType<typeof defineMigrations>
-	validator?: StoreValidator<TLShape>
+type DefaultShapeInfo<T extends TLShape> = {
+	validator: T.Validator<T>
+	migrations: Migrations
 }
 
-/** @public */
-export function createTLSchema({
-	customShapeDefs,
-	allowUnknownShapes,
-	derivePresenceState,
-}: {
-	customShapeDefs?: readonly CustomShapeTypeInfo[]
-	allowUnknownShapes?: boolean
-	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-}) {
-	const allShapeDefs = [...CORE_SHAPE_DEFS, ...(customShapeDefs ?? [])]
-	const typeSet = new Set<string>()
-	for (const shapeDef of allShapeDefs) {
-		if (typeSet.has(shapeDef.type)) {
-			throw new Error(`Shape type ${shapeDef.type} is already defined`)
-		}
-		typeSet.add(shapeDef.type)
+const DEFAULT_SHAPES: { [K in TLShape['type']]: DefaultShapeInfo<Extract<TLShape, { type: K }>> } =
+	{
+		arrow: { migrations: arrowShapeTypeMigrations, validator: arrowShapeTypeValidator },
+		bookmark: { migrations: bookmarkShapeTypeMigrations, validator: bookmarkShapeTypeValidator },
+		draw: { migrations: drawShapeTypeMigrations, validator: drawShapeTypeValidator },
+		embed: { migrations: embedShapeTypeMigrations, validator: embedShapeTypeValidator },
+		frame: { migrations: frameShapeTypeMigrations, validator: frameShapeTypeValidator },
+		geo: { migrations: geoShapeTypeMigrations, validator: geoShapeTypeValidator },
+		group: { migrations: groupShapeTypeMigrations, validator: groupShapeTypeValidator },
+		image: { migrations: imageShapeTypeMigrations, validator: imageShapeTypeValidator },
+		line: { migrations: lineShapeTypeMigrations, validator: lineShapeTypeValidator },
+		note: { migrations: noteShapeTypeMigrations, validator: noteShapeTypeValidator },
+		text: { migrations: textShapeTypeMigrations, validator: textShapeTypeValidator },
+		video: { migrations: videoShapeTypeMigrations, validator: videoShapeTypeValidator },
 	}
 
-	const shapeTypeMigrations = defineMigrations({
-		currentVersion: rootShapeTypeMigrations.currentVersion,
-		firstVersion: rootShapeTypeMigrations.firstVersion,
-		migrators: rootShapeTypeMigrations.migrators,
-		subTypeKey: 'type',
-		subTypeMigrations: Object.fromEntries(allShapeDefs.map((def) => [def.type, def.migrations])),
-	})
+type CustomShapeInfo<T extends TLUnknownShape> = {
+	validator?: { validate: (record: T) => T }
+	migrations?: Migrations
+}
 
-	let shapeValidator = T.union('type', {
-		...Object.fromEntries(allShapeDefs.map((def) => [def.type, def.validator ?? (T.any as any)])),
-	}) as T.UnionValidator<'type', any, any>
-	if (allowUnknownShapes) {
-		shapeValidator = shapeValidator.validateUnknownVariants((shape) => shape as any)
+/**
+ * Create a store schema for a tldraw store that includes all the default shapes together with any custom shapes.
+ *  @public */
+export function createTLSchema<T extends TLUnknownShape>(
+	opts = {} as {
+		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
+		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}
+) {
+	const { customShapes = {}, derivePresenceState } = opts
+
+	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
+		TLShape['type'],
+		DefaultShapeInfo<TLShape>
+	][]
+
+	const customShapeSubTypeEntries = Object.entries(customShapes) as [
+		T['type'],
+		CustomShapeInfo<T>
+	][]
+
+	// Create a shape record that incorporates the defeault shapes and any custom shapes
+	// into its subtype migrations and validators, so that we can migrate any new custom
+	// subtypes. Note that migrations AND validators for custom shapes are optional. If
+	// not provided, we use an empty migrations set and/or an "any" validator.
+
+	const shapeSubTypeMigrationsWithCustomSubTypeMigrations = {
+		...Object.fromEntries(defaultShapeSubTypeEntries.map(([k, v]) => [k, v.migrations])),
+		...Object.fromEntries(
+			customShapeSubTypeEntries.map(([k, v]) => [k, v.migrations ?? defineMigrations({})])
+		),
+	}
+
+	const validatorWithCustomShapeValidators = T.model(
+		'shape',
+		T.union('type', {
+			...Object.fromEntries(defaultShapeSubTypeEntries.map(([k, v]) => [k, v.validator])),
+			...Object.fromEntries(
+				customShapeSubTypeEntries.map(([k, v]) => [k, (v.validator as T.Validator<any>) ?? T.any])
+			),
+		})
+	)
 
 	const shapeRecord = createRecordType<TLShape>('shape', {
-		migrations: shapeTypeMigrations,
-		validator: T.model('shape', shapeValidator),
+		migrations: defineMigrations({
+			currentVersion: rootShapeTypeMigrations.currentVersion,
+			firstVersion: rootShapeTypeMigrations.firstVersion,
+			migrators: rootShapeTypeMigrations.migrators,
+			subTypeKey: 'type',
+			subTypeMigrations: shapeSubTypeMigrationsWithCustomSubTypeMigrations,
+		}),
+		validator: validatorWithCustomShapeValidators,
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 

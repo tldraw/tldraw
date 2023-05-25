@@ -1,6 +1,7 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
 	TLDOCUMENT_ID,
+	TLDefaultShape,
 	TLInstance,
 	TLInstanceId,
 	TLInstancePresence,
@@ -12,62 +13,85 @@ import {
 	TLUserId,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
-import { TLArrowShapeDef } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { TLBookmarkShapeDef } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TLDrawShapeDef } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
-import { TLEmbedShapeDef } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
-import { TLFrameShapeDef } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
-import { TLGeoShapeDef } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TLGroupShapeDef } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLImageShapeDef } from '../app/shapeutils/TLImageUtil/TLImageUtil'
-import { TLLineShapeDef } from '../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TLNoteShapeDef } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
-import { TLTextShapeDef } from '../app/shapeutils/TLTextUtil/TLTextUtil'
-import { TLVideoShapeDef } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
+import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
+import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
+import { TLDrawUtil } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
+import { TLEmbedUtil } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
+import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
+import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
+import { TLGroupUtil } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
+import { TLImageUtil } from '../app/shapeutils/TLImageUtil/TLImageUtil'
+import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
+import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
+import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
+import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
+import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { StateNodeConstructor } from '../app/statechart/StateNode'
-import { TLShapeDef, TLUnknownShapeDef } from './TLShapeDefinition'
+
+// Secret shape types that don't have a shape util yet
+type ShapeTypesNotImplemented = 'icon'
+
+const DEFAULT_SHAPE_UTILS: {
+	[K in Exclude<TLDefaultShape['type'], ShapeTypesNotImplemented>]: TLShapeUtilConstructor<any>
+} = {
+	arrow: TLArrowUtil,
+	bookmark: TLBookmarkUtil,
+	draw: TLDrawUtil,
+	embed: TLEmbedUtil,
+	frame: TLFrameUtil,
+	geo: TLGeoUtil,
+	group: TLGroupUtil,
+	image: TLImageUtil,
+	line: TLLineUtil,
+	note: TLNoteUtil,
+	text: TLTextUtil,
+	video: TLVideoUtil,
+}
+
+/** @public */
+export type TldrawEditorConfigOptions = {
+	tools?: readonly StateNodeConstructor[]
+	shapes?: Record<
+		string,
+		{
+			util: TLShapeUtilConstructor<any>
+			validator?: { validate: <T>(record: T) => T }
+			migrations?: Migrations
+		}
+	>
+	/** @internal */
+	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+}
 
 /** @public */
 export class TldrawEditorConfig {
-	static readonly default = new TldrawEditorConfig({})
-
-	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
-	readonly shapes: readonly TLUnknownShapeDef[]
-	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
+	// Custom tools
 	readonly tools: readonly StateNodeConstructor[]
 
-	constructor(args: {
-		shapes?: readonly TLShapeDef<any, any>[]
-		tools?: readonly StateNodeConstructor[]
-		allowUnknownShapes?: boolean
-		/** @internal */
-		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-	}) {
-		const { shapes = [], tools = [], allowUnknownShapes = false, derivePresenceState } = args
+	// Custom shape utils
+	readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>
+
+	// The record used for TLShape incorporating any custom shapes
+	readonly TLShape: RecordType<TLShape, 'type' | 'props' | 'index' | 'parentId'>
+
+	// The schema used for the store incorporating any custom shapes
+	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
+
+	constructor(opts = {} as TldrawEditorConfigOptions) {
+		const { shapes = {}, tools = [], derivePresenceState } = opts
+
 		this.tools = tools
 
-		this.shapes = [
-			TLArrowShapeDef,
-			TLBookmarkShapeDef,
-			TLDrawShapeDef,
-			TLEmbedShapeDef,
-			TLFrameShapeDef,
-			TLGeoShapeDef,
-			TLGroupShapeDef,
-			TLImageShapeDef,
-			TLLineShapeDef,
-			TLNoteShapeDef,
-			TLTextShapeDef,
-			TLVideoShapeDef,
-			...shapes,
-		]
+		this.shapeUtils = {
+			...DEFAULT_SHAPE_UTILS,
+			...Object.fromEntries(Object.entries(shapes).map(([k, v]) => [k, v.util])),
+		}
 
 		this.storeSchema = createTLSchema({
-			allowUnknownShapes,
-			customShapeDefs: shapes,
-			derivePresenceState,
+			customShapes: shapes,
+			derivePresenceState: derivePresenceState,
 		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<

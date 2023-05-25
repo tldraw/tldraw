@@ -1,3 +1,4 @@
+import { sortByIndex } from '@tldraw/indices'
 import {
 	Box2d,
 	flipSelectionHandleX,
@@ -15,9 +16,8 @@ import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
-import { sortByIndex } from '../../utils/reordering/reordering'
 import type { App } from '../App'
-import { getSplineForLineShape, TLLineShapeDef } from '../shapeutils/TLLineUtil/TLLineUtil'
+import { getSplineForLineShape, TLLineUtil } from '../shapeutils/TLLineUtil/TLLineUtil'
 
 export type PointsSnapLine = {
 	id: string
@@ -249,7 +249,7 @@ export class SnapManager {
 		const processParent = (parentId: TLParentId) => {
 			const children = this.app.getSortedChildIds(parentId)
 			for (const id of children) {
-				const shape = this.app.getShapeById(id) as TLShape
+				const shape = this.app.getShapeById(id)
 				if (!shape) continue
 				if (shape.type === 'arrow') continue
 				if (selectedIds.includes(id)) continue
@@ -495,7 +495,7 @@ export class SnapManager {
 		// and then pass them to the snap function as 'additionalOutlines'
 
 		// First, let's find which handle we're dragging
-		const util = this.app.getShapeUtilByDef(TLLineShapeDef)
+		const util = this.app.getShapeUtil(TLLineUtil)
 		const handles = util.handles(line).sort(sortByIndex)
 		if (handles.length < 3) return { nudge: new Vec2d(0, 0) }
 

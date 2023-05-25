@@ -4,9 +4,6 @@ name: Publish new version of public packages
 # Package publishing is manually triggered on github actions dashboard
 on: workflow_dispatch
 
-env:
-  YARN_RC_FILENAME: .yarnrc-private.yml
-
 jobs:
   deploy:
     name: 'Publish new version of public packages'

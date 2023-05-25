@@ -5,7 +5,6 @@
 ```ts
 
 import { App } from '@tldraw/editor';
-import { BaseRecord } from '@tldraw/tlstore';
 import { MigrationFailureReason } from '@tldraw/tlstore';
 import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/tlstore';
@@ -15,6 +14,7 @@ import { TLStore } from '@tldraw/editor';
 import { TLTranslationKey } from '@tldraw/ui';
 import { TLUserId } from '@tldraw/editor';
 import { ToastsContextType } from '@tldraw/ui';
+import { UnknownRecord } from '@tldraw/tlstore';
 
 // @public (undocumented)
 export function isV1File(data: any): boolean;
@@ -45,7 +45,7 @@ export const TLDRAW_FILE_MIMETYPE: "application/vnd.tldraw+json";
 // @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
-    records: BaseRecord[];
+    records: UnknownRecord[];
     // (undocumented)
     schema: SerializedSchema;
     // (undocumented)

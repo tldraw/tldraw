@@ -10,12 +10,12 @@ import {
 	TLUserId,
 } from '@tldraw/editor'
 import {
-	BaseRecord,
 	ID,
 	MigrationFailureReason,
 	MigrationResult,
 	SerializedSchema,
 	StoreSnapshot,
+	UnknownRecord,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
@@ -35,7 +35,7 @@ const LATEST_TLDRAW_FILE_FORMAT_VERSION = 1
 export interface TldrawFile {
 	tldrawFileFormatVersion: number
 	schema: SerializedSchema
-	records: BaseRecord[]
+	records: UnknownRecord[]
 }
 
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
@@ -208,7 +208,7 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		config: TldrawEditorConfig.default,
+		config: new TldrawEditorConfig(),
 		json: document,
 		instanceId: app.instanceId,
 		userId: app.userId,

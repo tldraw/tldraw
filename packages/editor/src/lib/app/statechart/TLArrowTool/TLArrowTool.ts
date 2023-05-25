@@ -1,4 +1,4 @@
-import { TLShapeType, TLStyleType } from '@tldraw/tlschema'
+import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
@@ -8,7 +8,7 @@ export class TLArrowTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	shapeType: TLShapeType = 'arrow'
+	shapeType = 'arrow'
 
 	styles = [
 		'color',

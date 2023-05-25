@@ -9,7 +9,7 @@ import {
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
-import { TLDrawShapeDef } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
+import { TLDrawUtil } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
 import { StateNode } from '../../StateNode'
@@ -21,7 +21,7 @@ export class Drawing extends StateNode {
 
 	initialShape?: TLDrawShape
 
-	util = this.app.getShapeUtilByDef(TLDrawShapeDef)
+	util = this.app.getShapeUtil(TLDrawUtil)
 
 	isPen = false
 
@@ -157,7 +157,7 @@ export class Drawing extends StateNode {
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.app.getShapeById(this.initialShape.id) as TLDrawShape
+			const shape = this.app.getShapeById<TLDrawShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots

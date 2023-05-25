@@ -13,7 +13,8 @@ import { TLShapeId } from './TLShape'
  *
  * @public
  */
-export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
+export interface TLInstancePageState
+	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
 	instanceId: ID<TLInstance>
 	pageId: ID<TLPage>
 	cameraId: ID<TLCamera>
@@ -26,7 +27,6 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
 	focusLayerId: TLShapeId | null
 }
 
-// --- VALIDATION ---
 /** @public */
 export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
@@ -46,17 +46,12 @@ export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = 
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddCroppingId: 1,
 } as const
 
 /** @public */
 export const instancePageStateMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
 	currentVersion: Versions.AddCroppingId,
 	migrators: {
 		[Versions.AddCroppingId]: {

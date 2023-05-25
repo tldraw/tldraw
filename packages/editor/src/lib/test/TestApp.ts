@@ -55,11 +55,13 @@ export const TEST_INSTANCE_ID = TLInstance.createCustomId('testInstance1')
 export const TEST_USER_ID = TLUser.createCustomId('testUser1')
 
 export class TestApp extends App {
-	constructor(options = {} as Partial<AppOptions>) {
+	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
+		const config = options.config ?? new TldrawEditorConfig()
 		super({
-			store: (options.config ?? TldrawEditorConfig.default).createStore({
+			config,
+			store: config.createStore({
 				userId: TEST_USER_ID,
 				instanceId: TEST_INSTANCE_ID,
 			}),
@@ -72,17 +74,19 @@ export class TestApp extends App {
 		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
-		this.textMeasure.measureText = (opts: {
-			text: string
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			width: string
-			maxWidth: string
-		}): Box2dModel => {
-			const breaks = opts.text.split('\n')
+		this.textMeasure.measureText = (
+			textToMeasure: string,
+			opts: {
+				fontStyle: string
+				fontWeight: string
+				fontFamily: string
+				fontSize: number
+				lineHeight: number
+				width: string
+				maxWidth: string
+			}
+		): Box2dModel => {
+			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
 			}, '')
@@ -98,6 +102,16 @@ export class TestApp extends App {
 						? Math.ceil(w % +opts.width.replace('px', '')) + breaks.length
 						: breaks.length) * opts.fontSize,
 			}
+		}
+
+		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
+			const box = this.textMeasure.measureText(textToMeasure, {
+				...opts,
+				width: `${opts.width}px`,
+				padding: `${opts.padding}px`,
+				maxWidth: 'auto',
+			})
+			return [{ box, text: textToMeasure }]
 		}
 	}
 

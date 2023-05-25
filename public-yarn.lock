@@ -4577,6 +4577,7 @@ __metadata:
   dependencies:
     "@sitespeed.io/edgedriver": ^112.0.1722-34
     "@tldraw/editor": "workspace:*"
+    "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@types/mocha": ^10.0.1
     "@types/sharp": ^0.31.1
@@ -4610,6 +4611,7 @@ __metadata:
     "@peculiar/webcrypto": ^1.4.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
+    "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
@@ -4655,6 +4657,15 @@ __metadata:
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    lazyrepo: 0.0.0-alpha.26
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/indices@workspace:*, @tldraw/indices@workspace:packages/indices":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/indices@workspace:packages/indices"
+  dependencies:
+    benchmark: ^2.1.4
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft

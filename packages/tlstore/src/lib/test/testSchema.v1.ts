@@ -6,13 +6,12 @@ import { StoreSchema } from '../StoreSchema'
 import { defineMigrations } from '../migrate'
 
 const UserVersion = {
-	Initial: 0,
 	AddLocale: 1,
 	AddPhoneNumber: 2,
 } as const
 
 /** A user of tldraw */
-interface User extends BaseRecord<'user'> {
+interface User extends BaseRecord<'user', ID<User>> {
 	name: string
 	locale: string
 	phoneNumber: string | null
@@ -20,7 +19,6 @@ interface User extends BaseRecord<'user'> {
 
 const userMigrations = defineMigrations({
 	currentVersion: UserVersion.AddPhoneNumber,
-	firstVersion: UserVersion.Initial,
 	migrators: {
 		[UserVersion.AddLocale]: {
 			up: (record) => ({
@@ -69,27 +67,26 @@ const User = createRecordType<User>('user', {
 }))
 
 const ShapeVersion = {
-	Initial: 0,
 	AddRotation: 1,
 	AddParent: 2,
 } as const
 
 const RectangleVersion = {
-	Initial: 0,
 	AddOpacity: 1,
 } as const
 
 const OvalVersion = {
-	Initial: 0,
 	AddBorderStyle: 1,
 } as const
 
-interface Shape<Props> extends BaseRecord<'shape'> {
+type ShapeId = ID<Shape<object>>
+
+interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
 	type: string
 	x: number
 	y: number
 	rotation: number
-	parentId: ID<Shape<Props>> | null
+	parentId: ShapeId | null
 	props: Props
 }
 
@@ -104,9 +101,8 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeMigrations = defineMigrations({
+const shapeTypeMigrations = defineMigrations({
 	currentVersion: ShapeVersion.AddParent,
-	firstVersion: ShapeVersion.Initial,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
 			up: (record) => ({
@@ -135,7 +131,6 @@ const shapeMigrations = defineMigrations({
 	subTypeMigrations: {
 		rectangle: defineMigrations({
 			currentVersion: RectangleVersion.AddOpacity,
-			firstVersion: RectangleVersion.Initial,
 			migrators: {
 				[RectangleVersion.AddOpacity]: {
 					up: (record) => ({
@@ -157,7 +152,6 @@ const shapeMigrations = defineMigrations({
 		}),
 		oval: defineMigrations({
 			currentVersion: OvalVersion.AddBorderStyle,
-			firstVersion: OvalVersion.Initial,
 			migrators: {
 				[OvalVersion.AddBorderStyle]: {
 					up: (record) => ({
@@ -181,7 +175,7 @@ const shapeMigrations = defineMigrations({
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeMigrations,
+	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -202,13 +196,11 @@ const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 }))
 
 const StoreVersions = {
-	Initial: 0,
 	RemoveOrg: 1,
 }
 
 const snapshotMigrations = defineMigrations({
 	currentVersion: StoreVersions.RemoveOrg,
-	firstVersion: StoreVersions.Initial,
 	migrators: {
 		[StoreVersions.RemoveOrg]: {
 			up: (store: StoreSnapshot<any>) => {

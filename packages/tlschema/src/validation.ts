@@ -1,5 +1,4 @@
-import type { ID } from '@tldraw/tlstore'
-import { BaseRecord } from '@tldraw/tlstore'
+import type { ID, UnknownRecord } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'
@@ -7,7 +6,8 @@ import type { TLPageId } from './records/TLPage'
 import type { TLParentId, TLShapeId } from './records/TLShape'
 import type { TLUserId } from './records/TLUser'
 import {
-	TL_ALIGN_TYPES,
+	TLAlignType,
+	TL_ALIGN_TYPES_WITH_LEGACY_STUFF,
 	TL_ARROWHEAD_TYPES,
 	TL_COLOR_TYPES,
 	TL_DASH_TYPES,
@@ -18,10 +18,11 @@ import {
 	TL_OPACITY_TYPES,
 	TL_SIZE_TYPES,
 	TL_SPLINE_TYPES,
+	TL_VERTICAL_ALIGN_TYPES,
 } from './style-types'
 
 /** @internal */
-export function idValidator<Id extends ID<BaseRecord<any>>>(
+export function idValidator<Id extends ID<UnknownRecord>>(
 	prefix: Id['__type__']['typeName']
 ): T.Validator<Id> {
 	return T.string.refine((id) => {
@@ -63,7 +64,11 @@ export const sizeValidator = T.setEnum(TL_SIZE_TYPES)
 /** @internal */
 export const fontValidator = T.setEnum(TL_FONT_TYPES)
 /** @internal */
-export const alignValidator = T.setEnum(TL_ALIGN_TYPES)
+export const alignValidator = T.setEnum<TLAlignType>(
+	TL_ALIGN_TYPES_WITH_LEGACY_STUFF as Set<TLAlignType>
+)
+/** @internal */
+export const verticalAlignValidator = T.setEnum(TL_VERTICAL_ALIGN_TYPES)
 /** @internal */
 export const arrowheadValidator = T.setEnum(TL_ARROWHEAD_TYPES)
 /** @internal */

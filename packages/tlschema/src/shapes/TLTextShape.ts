@@ -26,7 +26,6 @@ export type TLTextShapeProps = {
 /** @public */
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const textShapeTypeValidator: T.Validator<TLTextShape> = createShapeValidator(
 	'text',
@@ -43,18 +42,12 @@ export const textShapeTypeValidator: T.Validator<TLTextShape> = createShapeValid
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	RemoveJustify: 1,
 } as const
 
 /** @public */
-export const textShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	firstVersion: Versions.Initial,
+export const textShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.RemoveJustify]: {

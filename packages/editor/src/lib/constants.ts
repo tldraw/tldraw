@@ -235,6 +235,11 @@ export const STYLES: TLStyleCollections = {
 		{ id: 'middle', type: 'align', icon: 'text-align-center' },
 		{ id: 'end', type: 'align', icon: 'text-align-right' },
 	],
+	verticalAlign: [
+		{ id: 'start', type: 'verticalAlign', icon: 'vertical-align-start' },
+		{ id: 'middle', type: 'verticalAlign', icon: 'vertical-align-center' },
+		{ id: 'end', type: 'verticalAlign', icon: 'vertical-align-end' },
+	],
 	geo: [
 		{ id: 'rectangle', type: 'geo', icon: 'geo-rectangle' },
 		{ id: 'ellipse', type: 'geo', icon: 'geo-ellipse' },

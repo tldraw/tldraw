@@ -24,7 +24,32 @@
 	--layer-canvas: 200;
 	/* Misc */
 	--tl-zoom: 1;
-	--tl-cursor: default;
+
+	/* These cursor values get programmatically overridden */
+	/* They're just here to help your editor autocomplete */
+	--tl-cursor: var(--tl-cursor-default);
+	--tl-cursor-none: none;
+	--tl-cursor-default: default;
+	--tl-cursor-pointer: pointer;
+	--tl-cursor-cross: crosshair;
+	--tl-cursor-move: move;
+	--tl-cursor-grab: grab;
+	--tl-cursor-grabbing: grabbing;
+	--tl-cursor-text: text;
+	--tl-cursor-resize-edge: ew-resize;
+	--tl-cursor-resize-corner: nesw-resize;
+	--tl-cursor-ew-resize: ew-resize;
+	--tl-cursor-ns-resize: ns-resize;
+	--tl-cursor-nesw-resize: nesw-resize;
+	--tl-cursor-nwse-resize: nwse-resize;
+	--tl-cursor-rotate: pointer;
+	--tl-cursor-nwse-rotate: pointer;
+	--tl-cursor-nesw-rotate: pointer;
+	--tl-cursor-senw-rotate: pointer;
+	--tl-cursor-swne-rotate: pointer;
+	--tl-cursor-zoom-in: zoom-in;
+	--tl-cursor-zoom-out: zoom-out;
+
 	--tl-scale: calc(1 / var(--tl-zoom));
 	--tl-font-draw: 'tldraw_draw', sans-serif;
 	--tl-font-sans: 'tldraw_sans', sans-serif;
@@ -73,6 +98,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #000000;
+	--color-laser: #ff0000;
 	--palette-black: #1d1d1d;
 	--palette-blue: #4263eb;
 	--palette-green: #099268;
@@ -154,6 +180,7 @@
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #f8f9fa;
+	--color-laser: #ff0000;
 	--palette-black: #e1e1e1;
 	--palette-blue: #4156be;
 	--palette-green: #3b7b5e;
@@ -407,54 +434,54 @@ input,
 }
 
 .tl-collaborator__brush {
-	z-index: 11;
+	z-index: 20;
 }
 
 .tl-collaborator__shape-indicator {
-	z-index: 12;
-}
-
-.tl-user-handles {
-	z-index: 50;
+	z-index: 30;
 }
 
 .tl-user-scribble {
-	z-index: 52;
+	z-index: 40;
 }
 
 .tl-user-brush {
-	z-index: 51;
+	z-index: 50;
 }
 
 .tl-user-indicator__selected {
-	z-index: 51;
+	z-index: 60;
 }
 
 .tl-user-indicator__hovered {
-	z-index: 52;
+	z-index: 70;
+}
+
+.tl-user-handles {
+	z-index: 80;
 }
 
 .tl-user-snapline {
-	z-index: 53;
+	z-index: 90;
 }
 
 .tl-selection__fg {
 	pointer-events: none;
-	z-index: 54;
+	z-index: 100;
 }
 
 .tl-user-indicator__hint {
-	z-index: 55;
+	z-index: 110;
 	stroke-width: calc(2.5px * var(--tl-scale));
 }
 
 /* behind collaborator cursor */
 .tl-collaborator__cursor-hint {
-	z-index: 56;
+	z-index: 120;
 }
 
 .tl-collaborator__cursor {
-	z-index: 57;
+	z-index: 130;
 }
 
 .tl-cursor {
@@ -521,7 +548,7 @@ input,
 .tl-mobile-rotate__bg {
 	pointer-events: all;
 	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 }
 
 .tl-mobile-rotate__fg {
@@ -546,7 +573,7 @@ input,
 	fill: transparent;
 	stroke: transparent;
 	pointer-events: all;
-	cursor: grab;
+	cursor: var(--tl-cursor-grabbing);
 	r: calc(12px / var(--tl-zoom));
 }
 
@@ -563,7 +590,7 @@ input,
 }
 
 .tl-handle__bg:hover {
-	cursor: grab;
+	cursor: var(--tl-cursor-grab);
 	fill: var(--color-selection-fill);
 }
 
@@ -819,6 +846,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	overflow: hidden;
+	cursor: var(--tl-cursor-text);
 }
 
 .tl-text-input::selection {
@@ -924,12 +952,12 @@ input,
 	pointer-events: all;
 	z-index: 999;
 	overflow: hidden;
-	cursor: pointer;
 	display: block;
 	color: var(--color-text);
 	text-overflow: ellipsis;
 	text-decoration: none;
 	color: var(--color-text-2);
+	cursor: var(--tl-cursor-pointer);
 }
 
 .tl-bookmark__link:hover {
@@ -954,7 +982,7 @@ input,
 	font-weight: 400;
 	color: var(--color-text-1);
 	padding: 13px;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	border: none;
 	outline: none;
 	pointer-events: all;
@@ -1062,15 +1090,18 @@ input,
 	opacity: 0;
 }
 
-.tl-text-label[data-align='start'] {
+.tl-text-label[data-align='start'],
+.tl-text-label[data-align='start-legacy'] {
 	text-align: left;
 }
 
-.tl-text-label[data-align='middle'] {
+.tl-text-label[data-align='middle'],
+.tl-text-label[data-align='middle-legacy'] {
 	text-align: center;
 }
 
-.tl-text-label[data-align='end'] {
+.tl-text-label[data-align='end'],
+.tl-text-label[data-align='end-legacy'] {
 	text-align: right;
 }
 
@@ -1349,6 +1380,7 @@ input,
 	user-select: all;
 	-webkit-user-select: text;
 	white-space: pre;
+	cursor: var(--tl-cursor-text);
 }
 
 /* If mobile use 16px as font size */
@@ -1376,7 +1408,7 @@ input,
 	border-radius: var(--radius-2);
 	box-shadow: var(--shadow-1);
 	pointer-events: all;
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	outline: none;
 	display: flex;
 }
@@ -1524,7 +1556,7 @@ it from receiving any pointer events or affecting the cursor. */
 	font-weight: 500;
 	padding: var(--space-4);
 	border-radius: var(--radius-3);
-	cursor: pointer;
+	cursor: var(--tl-cursor-pointer);
 	color: inherit;
 	background-color: transparent;
 }

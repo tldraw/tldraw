@@ -1,15 +1,9 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import {
-	frameShapeMigrations,
-	frameShapeTypeValidator,
-	TLFrameShape,
-	TLShape,
-	TLShapeId,
-	TLShapeType,
-} from '@tldraw/tlschema'
+import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { defaultEmptyAs } from '../../../utils/string'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { TLExportColors } from '../shared/TLExportColors'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnResizeEndHandler } from '../TLShapeUtil'
@@ -17,7 +11,7 @@ import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
 export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
-	static type = 'frame'
+	static override type = 'frame'
 
 	override canBind = () => true
 
@@ -103,50 +97,35 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			fontSize: 12,
 			fontFamily: 'Inter, sans-serif',
 			textAlign: 'start' as const,
-			width: shape.props.w + 16,
-			height: 30,
-			padding: 8,
+			width: shape.props.w,
+			height: 32,
+			padding: 0,
 			lineHeight: 1,
 			fontStyle: 'normal',
 			fontWeight: 'normal',
+			overflow: 'truncate-ellipsis' as const,
+			verticalTextAlign: 'middle' as const,
 		}
 
-		let textContent = defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203)
+		const spans = this.app.textMeasure.measureTextSpans(
+			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
+			opts
+		)
 
-		const lines = this.app.textMeasure.getTextLines({
-			text: textContent,
-			wrap: true,
+		const firstSpan = spans[0]
+		const lastSpan = last(spans)!
+		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
+		const text = createTextSvgElementFromSpans(this.app, spans, {
+			offsetY: -opts.height - 2,
 			...opts,
 		})
-
-		textContent = lines.length > 1 ? lines[0] + '…' : lines[0]
-
-		const size = this.app.textMeasure.measureText({
-			fontSize: 12,
-			fontFamily: 'Inter, sans-serif',
-			lineHeight: 1,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			text: textContent,
-			width: 'fit-content',
-			maxWidth: 'unset',
-			padding: '0px',
-		})
-
-		const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-		text.setAttribute('x', '0')
-		text.setAttribute('y', -(8 + size.h / 2) + 'px')
-		text.setAttribute('font-family', '"Inter", sans-serif')
-		text.setAttribute('font-size', '12px')
-		text.setAttribute('font-weight', '400')
 		text.style.setProperty('transform', labelTranslate)
-		text.textContent = textContent
 
 		const textBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-		textBg.setAttribute('x', ' -4px')
-		textBg.setAttribute('y', -(16 + size.h) + 'px')
-		textBg.setAttribute('width', size.w + 8 + 'px')
-		textBg.setAttribute('height', size.h + 8 + 'px')
+		textBg.setAttribute('x', '-8px')
+		textBg.setAttribute('y', -opts.height - 4 + 'px')
+		textBg.setAttribute('width', labelTextWidth + 16 + 'px')
+		textBg.setAttribute('height', `${opts.height}px`)
 		textBg.setAttribute('rx', 4 + 'px')
 		textBg.setAttribute('ry', 4 + 'px')
 		textBg.setAttribute('fill', colors.background)
@@ -169,7 +148,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType = (_type: TLShapeType) => {
+	override canReceiveNewChildrenOfType = (_type: TLShape['type']) => {
 		return true
 	}
 
@@ -225,11 +204,3 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		}
 	}
 }
-
-/** @public */
-export const TLFrameShapeDef = defineShape<TLFrameShape, TLFrameUtil>({
-	type: 'frame',
-	getShapeUtil: () => TLFrameUtil,
-	validator: frameShapeTypeValidator,
-	migrations: frameShapeMigrations,
-})

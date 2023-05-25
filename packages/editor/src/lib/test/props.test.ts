@@ -31,6 +31,7 @@ describe('App.props', () => {
 			size: 'm',
 			font: 'draw',
 			geo: 'rectangle',
+			verticalAlign: 'middle',
 			// h: 100,
 			// w: 100,
 			// growY: 0,
@@ -51,6 +52,7 @@ describe('App.props', () => {
 			size: 'm',
 			font: 'draw',
 			geo: 'rectangle',
+			verticalAlign: 'middle',
 			// h: 100, // blacklisted
 			// w: 100, // blacklisted
 			// growY: 0, // blacklist
@@ -81,6 +83,7 @@ describe('App.props', () => {
 			font: 'draw',
 			geo: 'rectangle',
 			opacity: '1',
+			verticalAlign: 'middle',
 			// h: null, // mixed! but also blacklisted
 			// w: null, // mixed! but also blacklisted
 			// growY: 0, // blacklist
@@ -110,6 +113,7 @@ describe('App.props', () => {
 					w: 100,
 					opacity: '0.5',
 					url: 'https://aol.com',
+					verticalAlign: 'start',
 				},
 			},
 		])
@@ -125,6 +129,7 @@ describe('App.props', () => {
 			size: null,
 			font: null,
 			opacity: null,
+			verticalAlign: null,
 			// growY: null, // blacklist
 			// url: null, // blacklist
 		})

@@ -1,29 +1,49 @@
-import { BaseRecord, isRecord } from './BaseRecord'
+import { UnknownRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
 
+type EMPTY_SYMBOL = symbol
+
 /** @public */
-export function defineMigrations<FirstVersion extends number, CurrentVersion extends number>({
-	firstVersion,
-	currentVersion,
-	migrators,
-	subTypeKey,
-	subTypeMigrations,
-}: {
-	firstVersion: FirstVersion
-	currentVersion: CurrentVersion
-	migrators: {
-		[version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration
-	}
+export function defineMigrations<
+	FirstVersion extends number | EMPTY_SYMBOL = EMPTY_SYMBOL,
+	CurrentVersion extends Exclude<number, 0> | EMPTY_SYMBOL = EMPTY_SYMBOL
+>(opts: {
+	firstVersion?: CurrentVersion extends number ? FirstVersion : never
+	currentVersion?: CurrentVersion
+	migrators?: CurrentVersion extends number
+		? FirstVersion extends number
+			? CurrentVersion extends FirstVersion
+				? { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+				: { [version in Exclude<Range<FirstVersion, CurrentVersion>, FirstVersion>]: Migration }
+			: { [version in Exclude<Range<1, CurrentVersion>, 0>]: Migration }
+		: never
 	subTypeKey?: string
 	subTypeMigrations?: Record<string, BaseMigrationsInfo>
 }): Migrations {
-	return { currentVersion, firstVersion, migrators, subTypeKey, subTypeMigrations }
+	const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrations } = opts
+
+	// Some basic guards against impossible version combinations, some of which will be caught by TypeScript
+	if (typeof currentVersion === 'number' && typeof firstVersion === 'number') {
+		if ((currentVersion as number) === (firstVersion as number)) {
+			throw Error(`Current version is equal to initial version.`)
+		} else if (currentVersion < firstVersion) {
+			throw Error(`Current version is lower than initial version.`)
+		}
+	}
+
+	return {
+		firstVersion: (firstVersion as number) ?? 0, // defaults
+		currentVersion: (currentVersion as number) ?? 0, // defaults
+		migrators,
+		subTypeKey,
+		subTypeMigrations,
+	}
 }
 
 /** @public */
-export type Migration<T = any> = {
-	up: (oldState: T) => T
-	down: (newState: T) => T
+export type Migration<Before = any, After = any> = {
+	up: (oldState: Before) => After
+	down: (newState: After) => Before
 }
 
 interface BaseMigrationsInfo {
@@ -57,7 +77,7 @@ export enum MigrationFailureReason {
 export type RecordVersion = { rootVersion: number; subTypeVersion?: number }
 /** @public */
 export function getRecordVersion(
-	record: BaseRecord,
+	record: UnknownRecord,
 	serializedSchema: SerializedSchema
 ): RecordVersion {
 	const persistedType = serializedSchema.recordVersions[record.typeName]
@@ -92,7 +112,7 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 }
 
 /** @public */
-export function migrateRecord<R extends BaseRecord>({
+export function migrateRecord<R extends UnknownRecord>({
 	record,
 	migrations,
 	fromVersion,

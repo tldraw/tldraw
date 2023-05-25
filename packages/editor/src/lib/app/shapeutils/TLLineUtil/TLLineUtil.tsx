@@ -1,29 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+import { getIndexBetween, sortByIndex } from '@tldraw/indices'
 import {
 	CubicSpline2d,
-	getDrawLinePathData,
-	intersectLineSegmentPolyline,
-	pointNearToPolyline,
 	Polyline2d,
 	Vec2d,
 	VecLike,
+	getDrawLinePathData,
+	intersectLineSegmentPolyline,
+	pointNearToPolyline,
 } from '@tldraw/primitives'
-import {
-	lineShapeMigrations,
-	lineShapeTypeValidator,
-	TLHandle,
-	TLLineShape,
-} from '@tldraw/tlschema'
+import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
-import { getIndexBetween, sortByIndex } from '../../../utils/reordering/reordering'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
+import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useForceSolid } from '../shared/useForceSolid'
-import { OnHandleChangeHandler, OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'
 
@@ -32,7 +26,7 @@ const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 
 /** @public */
 export class TLLineUtil extends TLShapeUtil<TLLineShape> {
-	static type = 'line'
+	static override type = 'line'
 
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true
@@ -339,14 +333,6 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 		return getLineSvg(shape, spline, color, this.app.getStrokeWidth(size))
 	}
 }
-
-/** @public */
-export const TLLineShapeDef = defineShape<TLLineShape, TLLineUtil>({
-	type: 'line',
-	getShapeUtil: () => TLLineUtil,
-	validator: lineShapeTypeValidator,
-	migrations: lineShapeMigrations,
-})
 
 /** @public */
 export function getSplineForLineShape(shape: TLLineShape) {

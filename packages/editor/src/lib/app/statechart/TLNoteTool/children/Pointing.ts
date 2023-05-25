@@ -1,5 +1,5 @@
-import { assert } from '@tldraw/utils'
-import { TLNoteShapeDef } from '../../../shapeutils/TLNoteUtil/TLNoteUtil'
+import { TLNoteShape } from '@tldraw/tlschema'
+import { TLNoteUtil } from '../../../shapeutils/TLNoteUtil/TLNoteUtil'
 import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 
@@ -97,9 +97,8 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		const util = this.app.getShapeUtilByDef(TLNoteShapeDef)
-		const shape = this.app.getShapeById(id)!
-		assert(TLNoteShapeDef.is(shape))
+		const util = this.app.getShapeUtil(TLNoteUtil)
+		const shape = this.app.getShapeById<TLNoteShape>(id)!
 		const bounds = util.bounds(shape)
 
 		// Center the text around the created point

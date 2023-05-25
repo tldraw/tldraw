@@ -12,7 +12,7 @@ import { TLUserId } from './TLUser'
  *
  * @public
  */
-export interface TLUserDocument extends BaseRecord<'user_document'> {
+export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
 	userId: TLUserId
 	isPenMode: boolean
 	isGridMode: boolean
@@ -26,7 +26,6 @@ export interface TLUserDocument extends BaseRecord<'user_document'> {
 /** @public */
 export type TLUserDocumentId = ID<TLUserDocument>
 
-// --- VALIDATION ---
 /** @public */
 export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	'user_document',
@@ -44,11 +43,7 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
-export const userDocumentVersions = {
-	Initial: 0,
+export const Versions = {
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
 	RemoveIsReadOnly: 3,
@@ -56,12 +51,9 @@ export const userDocumentVersions = {
 
 /** @public */
 export const userDocumentTypeMigrations = defineMigrations({
-	firstVersion: userDocumentVersions.Initial,
-	// STEP 2: Update the current version to point to your latest version
-	currentVersion: userDocumentVersions.RemoveIsReadOnly,
-	// STEP 3: Add an up+down migration for the new version here
+	currentVersion: Versions.RemoveIsReadOnly,
 	migrators: {
-		[userDocumentVersions.AddSnapMode]: {
+		[Versions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isSnapMode: false }
 			},
@@ -69,7 +61,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return userDocument
 			},
 		},
-		[userDocumentVersions.AddMissingIsMobileMode]: {
+		[Versions.AddMissingIsMobileMode]: {
 			up: (userDocument: TLUserDocument) => {
 				return { ...userDocument, isMobileMode: userDocument.isMobileMode ?? false }
 			},
@@ -77,7 +69,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return userDocument
 			},
 		},
-		[userDocumentVersions.RemoveIsReadOnly]: {
+		[Versions.RemoveIsReadOnly]: {
 			up: ({ isReadOnly: _, ...userDocument }: TLUserDocument & { isReadOnly: boolean }) => {
 				return userDocument
 			},
@@ -107,3 +99,5 @@ export const TLUserDocument = createRecordType<TLUserDocument>('user_document', 
 		lastUsedTabId: null,
 	})
 )
+
+export { Versions as userDocumentVersions }

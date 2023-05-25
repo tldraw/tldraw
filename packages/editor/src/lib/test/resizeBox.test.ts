@@ -22,7 +22,7 @@ beforeEach(() => {
 			},
 		},
 	])
-	shape = app.getShapeById(id) as TLGeoShape
+	shape = app.getShapeById<TLGeoShape>(id)!
 })
 
 describe('Resize box', () => {

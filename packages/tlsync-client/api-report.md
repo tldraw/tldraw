@@ -101,7 +101,7 @@ export function useLocalSyncClient({ universalPersistenceKey, instanceId, userId
     universalPersistenceKey: string;
     instanceId: TLInstanceId;
     userId: TLUserId;
-    config?: TldrawEditorConfig;
+    config: TldrawEditorConfig;
 }): SyncedStore;
 
 // (No @packageDocumentation comment for this package)
