@@ -22,13 +22,13 @@ import { UserPresenceRecordType } from './records/TLUserPresence'
 export function createTLSchema(
 	opts = {} as {
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-		validateRecord?: (record: TLRecord) => TLRecord
+		validator?: { validate: (record: any) => TLRecord } | null
 		migrators?: Record<TLRecord['typeName'], Migrator>
 	}
 ) {
 	const {
-		validateRecord,
 		derivePresenceState,
+		validator = null,
 		migrators = {},
 		// customShapes = {},
 	} = opts
@@ -82,7 +82,7 @@ export function createTLSchema(
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,
 			derivePresenceState: derivePresenceState ?? defaultDerivePresenceState,
-			validateRecord,
+			validator,
 			migrators,
 		}
 	)

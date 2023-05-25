@@ -98,7 +98,9 @@ export function createShapeValidator<R extends TLBaseShape<string, object>>(type
 // @public
 export function createTLSchema(opts?: {
     derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
-    validateRecord?: ((record: TLRecord) => TLRecord) | undefined;
+    validator?: {
+        validate: (record: any) => TLRecord;
+    } | null | undefined;
     migrators?: Record<"asset" | "camera" | "document" | "instance_page_state" | "instance_presence" | "instance" | "page" | "shape" | "user_document" | "user_presence" | "user", Migrator<symbol, symbol>> | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
@@ -121,6 +123,198 @@ export const defaultMigrators: {
 
 // @public (undocumented)
 export const defaultSnapshotMigrator: Migrator<symbol, 2>;
+
+// @public (undocumented)
+export const defaultValidator: T.UnionValidator<"typeName", {
+    asset: T.Validator<{
+        id: TLAssetId;
+        typeName: "asset";
+        type: "bookmark";
+        props: {
+            title: string;
+            description: string;
+            image: string;
+            src: null | string;
+        };
+    } | {
+        id: TLAssetId;
+        typeName: "asset";
+        type: "image";
+        props: {
+            w: number;
+            h: number;
+            name: string;
+            isAnimated: boolean;
+            mimeType: null | string;
+            src: null | string;
+        };
+    } | {
+        id: TLAssetId;
+        typeName: "asset";
+        type: "video";
+        props: {
+            w: number;
+            h: number;
+            name: string;
+            isAnimated: boolean;
+            mimeType: null | string;
+            src: null | string;
+        };
+    }>;
+    camera: T.Validator<TLCamera>;
+    document: T.Validator<TLDocument>;
+    instance: T.Validator<TLInstance>;
+    instance_page_state: T.Validator<TLInstancePageState>;
+    page: T.Validator<TLPage>;
+    shape: T.Validator<{
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "arrow";
+        isLocked: boolean;
+        props: TLArrowShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "bookmark";
+        isLocked: boolean;
+        props: TLBookmarkShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "draw";
+        isLocked: boolean;
+        props: TLDrawShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "embed";
+        isLocked: boolean;
+        props: TLEmbedShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "frame";
+        isLocked: boolean;
+        props: TLFrameShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "geo";
+        isLocked: boolean;
+        props: TLGeoShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "group";
+        isLocked: boolean;
+        props: TLGroupShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "icon";
+        isLocked: boolean;
+        props: TLIconShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "image";
+        isLocked: boolean;
+        props: TLImageShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "line";
+        isLocked: boolean;
+        props: TLLineShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "note";
+        isLocked: boolean;
+        props: TLNoteShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "text";
+        isLocked: boolean;
+        props: TLTextShapeProps;
+    } | {
+        id: TLShapeId;
+        typeName: "shape";
+        x: number;
+        y: number;
+        rotation: number;
+        index: string;
+        parentId: TLParentId;
+        type: "video";
+        isLocked: boolean;
+        props: TLVideoShapeProps;
+    }>;
+    user: T.Validator<TLUser>;
+    user_document: T.Validator<TLUserDocument>;
+    user_presence: T.Validator<TLUserPresence>;
+    instance_presence: T.Validator<TLInstancePresence>;
+}, never>;
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
@@ -422,6 +616,9 @@ export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 
 // @internal (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
+
+// @public (undocumented)
+export const ShapeRecordType: RecordType<TLShape, "index" | "parentId" | "props" | "type">;
 
 // @internal (undocumented)
 export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;

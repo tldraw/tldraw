@@ -94,9 +94,7 @@ export class CardTool extends TLBoxTool {
 // Finally, collect the custom tools and shapes into a config object
 const customTldrawConfig = new TldrawEditorConfig({
 	tools: [CardTool],
-	shapes: {
-		card: CardUtil,
-	},
+	shapes: [CardUtil],
 })
 
 // ... and we can make our custom shape example!

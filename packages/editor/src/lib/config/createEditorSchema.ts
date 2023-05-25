@@ -6,13 +6,13 @@ import {
 	TLInstanceId,
 	TLInstancePresence,
 	TLRecord,
+	TLShape,
 	TLStore,
 	TLStoreProps,
 	TLUserId,
 	UserRecordType,
 	createTLSchema,
 	defaultMigrators,
-	defaultValidator,
 } from '@tldraw/tlschema'
 import { Migrator, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal } from 'signia'
@@ -54,9 +54,9 @@ const DEFAULT_SHAPE_UTILS: {
 /** @public */
 export type TldrawEditorConfigOptions = {
 	tools?: readonly StateNodeConstructor[]
-	shapes?: TLShapeUtilConstructor<any>[]
+	shapes?: Record<string, TLShapeUtilConstructor<any>>
 	migrators?: Record<string, Migrator>
-	validator?: { validate: (record: TLRecord) => TLRecord } | null
+	validator?: { validate: (record: TLRecord) => TLRecord }
 	/** @internal */
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 }
@@ -69,23 +69,20 @@ export class TldrawEditorConfig {
 	readonly migrators: Record<string, Migrator>
 
 	// Custom shape utils
-	readonly shapes: TLShapeUtilConstructor<any>[]
+	readonly shapes: Record<TLShape['type'], TLShapeUtilConstructor<any>>
 
 	// The schema used for the store incorporating any custom shapes
 	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const {
-			validator = defaultValidator,
-			shapes = [],
-			tools = [],
-			migrators = {},
-			derivePresenceState,
-		} = opts
+		const { validator, shapes = {}, tools = [], migrators = {}, derivePresenceState } = opts
 
 		this.tools = tools
 
-		this.shapes = [...Object.values(DEFAULT_SHAPE_UTILS), ...shapes]
+		this.shapes = {
+			...DEFAULT_SHAPE_UTILS,
+			...shapes,
+		}
 
 		this.migrators = {
 			...defaultMigrators,
@@ -124,4 +121,45 @@ export class TldrawEditorConfig {
 			},
 		})
 	}
+}
+
+export function createTldrawEditorSchema(
+	opts = {} as {
+		migrators?: Record<string, Migrator>
+		validator?: { validate: (record: TLRecord) => TLRecord }
+		/** @internal */
+		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
+	}
+) {
+	const { migrators, validator, derivePresenceState } = opts
+
+	return createTLSchema({
+		derivePresenceState,
+		validator,
+		migrators,
+	})
+}
+
+export function createTldrawEditorStore(opts: {
+	schema?: StoreSchema<TLRecord, TLStoreProps>
+	userId?: TLUserId
+	instanceId?: TLInstanceId
+	initialData?: StoreSnapshot<TLRecord>
+}) {
+	const {
+		schema = createTLSchema(),
+		userId = UserRecordType.createId(),
+		instanceId = InstanceRecordType.createId(),
+		initialData,
+	} = opts
+
+	return new Store({
+		schema,
+		initialData,
+		props: {
+			userId,
+			instanceId,
+			documentId: TLDOCUMENT_ID,
+		},
+	})
 }

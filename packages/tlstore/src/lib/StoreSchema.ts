@@ -43,7 +43,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 		recordBefore: R | null
 	}) => R
 	migrators?: { [TypeName in R['typeName']]?: Migrator }
-	validateRecord?: (record: any) => R
+	validator?: { validate: (record: any) => R } | null
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
 	/** @internal */
@@ -52,7 +52,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 
 /** @public */
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
-	validateRecord: (record: any) => R
+	validator: { validate: (record: any) => R }
 	migrators: { [TypeName in R['typeName']]: Migrator }
 
 	static create<R extends UnknownRecord, P = unknown>(
@@ -71,8 +71,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		},
 		private readonly options: StoreSchemaOptions<R, P>
 	) {
-		const { migrators, validateRecord = (r: R) => r } = this.options
-		this.validateRecord = validateRecord
+		const { migrators, validator = null } = this.options
+		this.validator = validator ?? { validate: (r: R) => r }
 		this.migrators = migrators
 			? (Object.fromEntries(
 					Object.keys(types).map((t) => [t, migrators[t as R['typeName']] ?? new Migrator({})])
@@ -99,7 +99,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (!recordType) {
 				throw new Error(`Missing definition for record type ${record.typeName}`)
 			}
-			this.validateRecord(record)
+			this.validator.validate(record)
 			return record
 		} catch (error: unknown) {
 			if (this.options.onValidationFailure) {

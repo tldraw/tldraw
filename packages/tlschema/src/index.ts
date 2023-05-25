@@ -16,6 +16,7 @@ export { createTLSchema } from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { defaultMigrators } from './defaultMigrators'
 export { defaultSnapshotMigrator } from './defaultSnapshotMigrator'
+export { defaultValidator } from './defaultValidator'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
@@ -58,6 +59,7 @@ export {
 } from './records/TLInstancePresence'
 export { PageRecordType, type TLPage, type TLPageId } from './records/TLPage'
 export {
+	ShapeRecordType,
 	createCustomShapeId,
 	createShapeId,
 	isShape,

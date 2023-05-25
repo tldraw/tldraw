@@ -32,7 +32,6 @@ import { Migrator } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
-import { RecordType } from '@tldraw/tlstore';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -1801,11 +1800,9 @@ export class TldrawEditorConfig {
     // (undocumented)
     readonly migrators: Record<string, Migrator>;
     // (undocumented)
-    readonly shapes: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
+    readonly shapes: TLShapeUtilConstructor<any>[];
     // (undocumented)
     readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
-    // (undocumented)
-    readonly TLShape: RecordType<TLShape, 'index' | 'parentId' | 'props' | 'type'>;
     // (undocumented)
     readonly tools: readonly StateNodeConstructor[];
 }
@@ -2515,6 +2512,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>> {
     // (undocumented)
     new (app: App, type: T['type']): ShapeUtil;
+    // (undocumented)
+    type: T['type'];
 }
 
 // @public (undocumented)

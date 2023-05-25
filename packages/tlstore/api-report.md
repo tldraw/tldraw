@@ -317,9 +317,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
         [Record in R as Record['typeName']]: RecordType<R, any>;
     };
     // (undocumented)
-    validateRecord: (record: any) => R;
-    // (undocumented)
     validateRecordOnCreateOrUpdate(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
+    // (undocumented)
+    validator: {
+        validate: (record: any) => R;
+    };
 }
 
 // @public (undocumented)
@@ -335,7 +337,9 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     migrators?: {
         [TypeName in R['typeName']]?: Migrator;
     };
-    validateRecord?: (record: any) => R;
+    validator?: {
+        validate: (record: any) => R;
+    } | null;
     createIntegrityChecker?: (store: Store<R, P>) => void;
     derivePresenceState?: (store: Store<R, P>) => Signal<null | R>;
 };

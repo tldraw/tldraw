@@ -41,9 +41,9 @@ class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
 }
 
 const configWithCustomShape = new TldrawEditorConfig({
-	shapes: {
-		__test_top_left_snap_only: __TopLeftSnapOnlyShapeUtil,
-	},
+	shapes: [__TopLeftSnapOnlyShapeUtil],
+	// Turn off validation so we can test unvalidated shapes
+	validator: null,
 })
 
 let app: TestApp

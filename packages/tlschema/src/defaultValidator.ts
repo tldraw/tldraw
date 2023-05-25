@@ -57,7 +57,7 @@ import {
 } from './validation'
 
 /** @public */
-export const defaultValidateRecord = T.union('typeName', {
+export const defaultValidator = T.union('typeName', {
 	asset: T.model(
 		'asset',
 		T.union('type', {

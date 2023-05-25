@@ -193,29 +193,31 @@ const migrators: Record<StoreRecord['typeName'], Migrator> = {
 
 type StoreRecord = User | Shape<any>
 
-const validateRecord = (record: StoreRecord) => {
-	switch (record.typeName) {
-		case 'shape': {
-			assert(record && typeof record === 'object')
-			assert('id' in record && typeof record.id === 'string')
-			assert('type' in record && typeof record.type === 'string')
-			assert('x' in record && typeof record.x === 'number')
-			assert('y' in record && typeof record.y === 'number')
-			assert('rotation' in record && typeof record.rotation === 'number')
-			return record as Shape<RectangleProps | OvalProps>
+const validator = {
+	validate: (record: StoreRecord) => {
+		switch (record.typeName) {
+			case 'shape': {
+				assert(record && typeof record === 'object')
+				assert('id' in record && typeof record.id === 'string')
+				assert('type' in record && typeof record.type === 'string')
+				assert('x' in record && typeof record.x === 'number')
+				assert('y' in record && typeof record.y === 'number')
+				assert('rotation' in record && typeof record.rotation === 'number')
+				return record as Shape<RectangleProps | OvalProps>
+			}
+			case 'user': {
+				assert(record && typeof record === 'object')
+				assert('id' in record && typeof record.id === 'string')
+				assert('name' in record && typeof record.name === 'string')
+				assert('locale' in record && typeof record.locale === 'string')
+				assert(
+					'phoneNumber' in record &&
+						(record.phoneNumber === null || typeof record.phoneNumber === 'string')
+				)
+				return record as User
+			}
 		}
-		case 'user': {
-			assert(record && typeof record === 'object')
-			assert('id' in record && typeof record.id === 'string')
-			assert('name' in record && typeof record.name === 'string')
-			assert('locale' in record && typeof record.locale === 'string')
-			assert(
-				'phoneNumber' in record &&
-					(record.phoneNumber === null || typeof record.phoneNumber === 'string')
-			)
-			return record as User
-		}
-	}
+	},
 }
 
 export const testSchemaV1 = StoreSchema.create<StoreRecord>(
@@ -225,7 +227,7 @@ export const testSchemaV1 = StoreSchema.create<StoreRecord>(
 	},
 	{
 		snapshotMigrator,
-		validateRecord,
+		validator,
 		migrators,
 	}
 )

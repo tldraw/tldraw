@@ -64,7 +64,7 @@ import {
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
-import { ComputedCache, HistoryEntry, UnknownRecord } from '@tldraw/tlstore'
+import { ComputedCache, HistoryEntry, RecordType, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
 	compact,
@@ -193,7 +193,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Set the shape utils
 		this.shapeUtils = Object.fromEntries(
-			Object.entries(this.config.shapes).map(([type, Util]) => [type, new Util(this, type)])
+			this.config.shapes.map((Util) => [Util.type, new Util(this, Util.type)])
 		)
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -4648,7 +4648,12 @@ export class App extends EventEmitter<TLEventMap> {
 
 					// When we create the shape, take in the partial (the props coming into the
 					// function) and merge it with the default props.
-					let shapeRecordToCreate = this.config.TLShape.create({
+					let shapeRecordToCreate = (
+						this.store.schema.types.shape as RecordType<
+							TLShape,
+							'type' | 'props' | 'index' | 'parentId'
+						>
+					).create({
 						...partial,
 						index,
 						parentId: partial.parentId ?? focusLayerId,

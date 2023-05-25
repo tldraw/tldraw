@@ -53,36 +53,44 @@ const Org = createRecordType<Org>('org', {
 
 type StoreRecord = Org | User | Shape<RectangleProps | OvalProps>
 
-const validateRecord = (record: StoreRecord): StoreRecord => {
-	switch (record.typeName) {
-		case 'org': {
-			assert(
-				record && typeof record === 'object' && 'name' in record && typeof record.name === 'string'
-			)
-			return record
+const validator = {
+	validate: (record: StoreRecord): StoreRecord => {
+		switch (record.typeName) {
+			case 'org': {
+				assert(
+					record &&
+						typeof record === 'object' &&
+						'name' in record &&
+						typeof record.name === 'string'
+				)
+				return record
+			}
+			case 'user': {
+				assert(
+					record &&
+						typeof record === 'object' &&
+						'type' in record &&
+						typeof record.type === 'string' &&
+						'x' in record &&
+						typeof record.x === 'number' &&
+						'y' in record &&
+						typeof record.y === 'number' &&
+						'props' in record &&
+						typeof record.props === 'object'
+				)
+				return record
+			}
+			case 'shape': {
+				assert(
+					record &&
+						typeof record === 'object' &&
+						'name' in record &&
+						typeof record.name === 'string'
+				)
+				return record
+			}
 		}
-		case 'user': {
-			assert(
-				record &&
-					typeof record === 'object' &&
-					'type' in record &&
-					typeof record.type === 'string' &&
-					'x' in record &&
-					typeof record.x === 'number' &&
-					'y' in record &&
-					typeof record.y === 'number' &&
-					'props' in record &&
-					typeof record.props === 'object'
-			)
-			return record
-		}
-		case 'shape': {
-			assert(
-				record && typeof record === 'object' && 'name' in record && typeof record.name === 'string'
-			)
-			return record
-		}
-	}
+	},
 }
 
 export const testSchemaV0 = StoreSchema.create(
@@ -93,7 +101,7 @@ export const testSchemaV0 = StoreSchema.create(
 	},
 	{
 		snapshotMigrator: new Migrator({}),
-		validateRecord,
+		validator,
 		migrators: {
 			org: new Migrator({}),
 			user: new Migrator({}),

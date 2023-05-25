@@ -41,25 +41,27 @@ type StoreRecord = Author | Book
 
 let store: Store<StoreRecord>
 
-const validateRecord = (record: StoreRecord): StoreRecord => {
-	switch (record.typeName) {
-		case 'book': {
-			const book = record
-			if (!book.id.startsWith('book:')) throw Error()
-			if (book.typeName !== 'book') throw Error()
-			if (typeof book.title !== 'string') throw Error()
-			if (!book.authorId.startsWith('author')) throw Error()
-			return book
+const validator = {
+	validate: (record: StoreRecord): StoreRecord => {
+		switch (record.typeName) {
+			case 'book': {
+				const book = record
+				if (!book.id.startsWith('book:')) throw Error()
+				if (book.typeName !== 'book') throw Error()
+				if (typeof book.title !== 'string') throw Error()
+				if (!book.authorId.startsWith('author')) throw Error()
+				return book
+			}
+			case 'author': {
+				const author = record
+				if (author.typeName !== 'author') throw Error()
+				if (!author.id.startsWith('author:')) throw Error()
+				if (!Number.isFinite(author.age)) throw Error()
+				if (author.age < 0) throw Error()
+				return author
+			}
 		}
-		case 'author': {
-			const author = record
-			if (author.typeName !== 'author') throw Error()
-			if (!author.id.startsWith('author:')) throw Error()
-			if (!Number.isFinite(author.age)) throw Error()
-			if (author.age < 0) throw Error()
-			return author
-		}
-	}
+	},
 }
 
 beforeEach(() => {
@@ -72,7 +74,7 @@ beforeEach(() => {
 			},
 			{
 				snapshotMigrator: new Migrator({}),
-				validateRecord,
+				validator,
 			}
 		),
 	})
