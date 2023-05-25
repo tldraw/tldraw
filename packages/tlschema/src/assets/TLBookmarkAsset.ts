@@ -13,4 +13,4 @@ export type TLBookmarkAsset = TLBaseAsset<
 >
 
 /** @public */
-export const bookmarkAssetMigrations = new Migrator({})
+export const bookmarkAssetMigrator = new Migrator({})

@@ -8,7 +8,7 @@ export {
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
-export { bookmarkAssetMigrations, type TLBookmarkAsset } from './assets/TLBookmarkAsset'
+export { bookmarkAssetMigrator, type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { imageAssetMigrator, type TLImageAsset } from './assets/TLImageAsset'
 export { videoAssetMigrator, type TLVideoAsset } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'

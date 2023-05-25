@@ -37,7 +37,7 @@ const allModules = [
 	...assetModules,
 	...shapeModules,
 	...recordModules,
-	['schema.ts', require('./schema')],
+	['defaultSnapshotMigrator.ts', require('./defaultSnapshotMigrator')],
 ]
 
 const allMigrators: Array<{
@@ -48,17 +48,17 @@ const allMigrators: Array<{
 }> = []
 
 for (const [fileName, module] of allModules) {
-	const migrationsKey = Object.keys(module).find((k) => k.endsWith('igrations'))
+	const migratorsKey = Object.keys(module).find((k) => k.endsWith('igrator'))
 
-	if (!migrationsKey) continue
+	if (!migratorsKey) continue
 
-	const migrations = module[migrationsKey]
+	const migrator = module[migratorsKey]
 
-	for (const version of Object.keys(migrations.migrators)) {
-		const originalUp = migrations.migrators[version as any].up
-		const originalDown = migrations.migrators[version as any].down
+	for (const version of Object.keys(migrator.migrators)) {
+		const originalUp = migrator.migrators[version as any].up
+		const originalDown = migrator.migrators[version as any].down
 		const up = jest
-			.spyOn(migrations.migrators[version as any], 'up')
+			.spyOn(migrator.migrators[version as any], 'up')
 			.mockImplementation((initialRecord) => {
 				if (initialRecord instanceof Store) return originalUp(initialRecord)
 
@@ -69,7 +69,7 @@ for (const [fileName, module] of allModules) {
 				return result
 			})
 		const down = jest
-			.spyOn(migrations.migrators[version as any], 'down')
+			.spyOn(migrator.migrators[version as any], 'down')
 			.mockImplementation((initialRecord) => {
 				if (initialRecord instanceof Store) return originalDown(initialRecord)
 
@@ -88,15 +88,15 @@ for (const [fileName, module] of allModules) {
 	}
 }
 
-test('all modules export migrations', () => {
-	const modulesWithoutMigrations = allModules
+test('all modules export migrators', () => {
+	const modulesWithoutMigrator = allModules
 		.filter(([, module]) => {
-			return !Object.keys(module).find((k) => k.endsWith('igrations'))
+			return !Object.keys(module).find((k) => k.endsWith('igrator'))
 		})
 		.map(([fileName]) => fileName)
 
 	// IF THIS LINE IS FAILING YOU NEED TO MAKE SURE THE MIGRATIONS ARE EXPORTED
-	expect(modulesWithoutMigrations).toHaveLength(0)
+	expect(modulesWithoutMigrator).toHaveLength(0)
 })
 
 /* ---  PUT YOUR MIGRATIONS TESTS BELOW HERE --- */
@@ -921,7 +921,7 @@ describe('Adds delay to scribble', () => {
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {
-	test(`[${migrator.fileName} v${migrator.version}] up and down migrations have both been tested`, () => {
+	test(`[${migrator.fileName} v${migrator.version}] up and down migrators have both been tested`, () => {
 		expect(migrator.up).toHaveBeenCalled()
 		expect(migrator.down).toHaveBeenCalled()
 	})

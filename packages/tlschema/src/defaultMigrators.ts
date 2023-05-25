@@ -1,6 +1,6 @@
 import { Migrator } from '@tldraw/tlstore'
 import { TLRecord } from './TLRecord'
-import { bookmarkAssetMigrations } from './assets/TLBookmarkAsset'
+import { bookmarkAssetMigrator } from './assets/TLBookmarkAsset'
 import { imageAssetMigrator } from './assets/TLImageAsset'
 import { videoAssetMigrator } from './assets/TLVideoAsset'
 import { rootAssetTypeMigrator } from './records/TLAsset'
@@ -41,7 +41,7 @@ export const defaultMigrators: { [K in TLRecord['typeName']]: Migrator } = {
 	asset: rootAssetTypeMigrator.withSubTypeMigrators('type', {
 		image: imageAssetMigrator,
 		video: videoAssetMigrator,
-		bookmark: bookmarkAssetMigrations,
+		bookmark: bookmarkAssetMigrator,
 	}),
 	shape: rootShapeTypeMigrator.withSubTypeMigrators('type', {
 		arrow: arrowShapeTypeMigrator,

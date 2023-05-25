@@ -35,7 +35,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public (undocumented)
-export const bookmarkAssetMigrations: Migrator<symbol, symbol>;
+export const bookmarkAssetMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const bookmarkShapeTypeMigrator: Migrator<symbol, 1>;
