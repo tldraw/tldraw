@@ -336,7 +336,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     }) => R;
     migrators?: {
         [TypeName in R['typeName']]?: Migrator;
-    };
+    } | null;
     validator?: {
         validate: (record: any) => R;
     } | null;

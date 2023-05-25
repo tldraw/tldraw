@@ -101,7 +101,7 @@ export function createTLSchema(opts?: {
     validator?: {
         validate: (record: any) => TLRecord;
     } | null | undefined;
-    migrators?: Record<"asset" | "camera" | "document" | "instance_page_state" | "instance_presence" | "instance" | "page" | "shape" | "user_document" | "user_presence" | "user", Migrator<symbol, symbol>> | undefined;
+    migrators?: null | Record<"asset" | "camera" | "document" | "instance_page_state" | "instance_presence" | "instance" | "page" | "shape" | "user_document" | "user_presence" | "user", Migrator<symbol, symbol>> | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)

@@ -23,13 +23,13 @@ export function createTLSchema(
 	opts = {} as {
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 		validator?: { validate: (record: any) => TLRecord } | null
-		migrators?: Record<TLRecord['typeName'], Migrator>
+		migrators?: Record<TLRecord['typeName'], Migrator> | null
 	}
 ) {
 	const {
 		derivePresenceState,
 		validator = null,
-		migrators = {},
+		migrators = null,
 		// customShapes = {},
 	} = opts
 

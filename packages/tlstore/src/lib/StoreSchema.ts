@@ -42,7 +42,7 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
 	}) => R
-	migrators?: { [TypeName in R['typeName']]?: Migrator }
+	migrators?: { [TypeName in R['typeName']]?: Migrator } | null
 	validator?: { validate: (record: any) => R } | null
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
@@ -71,7 +71,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		},
 		private readonly options: StoreSchemaOptions<R, P>
 	) {
-		const { migrators, validator = null } = this.options
+		// By default, a schema has no migrators and no validator
+		const { migrators = null, validator = null } = this.options
+
 		this.validator = validator ?? { validate: (r: R) => r }
 		this.migrators = migrators
 			? (Object.fromEntries(

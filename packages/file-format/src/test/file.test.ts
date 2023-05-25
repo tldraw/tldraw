@@ -112,7 +112,7 @@ describe('parseTldrawJsonFile', () => {
 		assert(!result.ok)
 		assert(result.error.type === 'invalidRecords')
 		expect(result.error.cause).toMatchInlineSnapshot(
-			`[ValidationError: At shape(id = shape:shape, type = geo).rotation: Expected number, got undefined]`
+			`[ValidationError: At (typeName = shape).shape(id = shape:shape, type = geo).rotation: Expected number, got undefined]`
 		)
 	})
 

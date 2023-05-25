@@ -97,11 +97,6 @@ export class TldrawEditorConfig {
 			validator,
 			migrators,
 		})
-
-		// this.TLShape = this.storeSchema.types.shape as RecordType<
-		// 	TLShape,
-		// 	'type' | 'props' | 'index' | 'parentId'
-		// >
 	}
 
 	createStore(config: {
