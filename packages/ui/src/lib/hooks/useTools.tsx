@@ -180,7 +180,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			{
 				id: 'laser',
 				label: 'tool.laser',
-				readonlyOk: true,
+				readonlyOk: false,
 				icon: 'tool-laser',
 				kbd: 'k',
 				onSelect(source) {
