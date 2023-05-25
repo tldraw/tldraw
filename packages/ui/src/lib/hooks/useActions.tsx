@@ -918,7 +918,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'toggle-lock',
 				label: 'action.toggle-lock',
 				readonlyOk: false,
-				kbd: '$l',
+				kbd: '!$l',
 				onSelect(source) {
 					trackEvent('toggle-lock', { source })
 					app.toggleLock()
