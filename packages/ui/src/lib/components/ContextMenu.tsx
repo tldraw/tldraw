@@ -5,7 +5,6 @@ import * as React from 'react'
 import { useValue } from 'signia-react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { useReadonly } from '../hooks/useReadonly'
@@ -61,7 +60,6 @@ function ContextMenuContent() {
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents('context-menu')
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
