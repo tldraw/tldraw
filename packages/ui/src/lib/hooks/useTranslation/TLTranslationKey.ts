@@ -43,6 +43,7 @@ export type TLTranslationKey =
 	| 'action.flip-vertical'
 	| 'action.flip-horizontal.short'
 	| 'action.flip-vertical.short'
+	| 'action.fork-project'
 	| 'action.group'
 	| 'action.insert-embed'
 	| 'action.insert-media'

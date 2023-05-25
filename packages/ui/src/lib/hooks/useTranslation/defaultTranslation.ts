@@ -43,6 +43,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.flip-vertical': 'Flip vertically',
 	'action.flip-horizontal.short': 'Flip H',
 	'action.flip-vertical.short': 'Flip V',
+	'action.fork-project': 'Fork this project',
 	'action.group': 'Group',
 	'action.insert-embed': 'Insert embed',
 	'action.insert-media': 'Upload media',
