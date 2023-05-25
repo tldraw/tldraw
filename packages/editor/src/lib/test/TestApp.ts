@@ -13,7 +13,6 @@ import {
 	TLPage,
 	TLShapeId,
 	TLShapePartial,
-	TLUser,
 	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
@@ -52,7 +51,6 @@ declare global {
 	}
 }
 export const TEST_INSTANCE_ID = TLInstance.createCustomId('testInstance1')
-export const TEST_USER_ID = TLUser.createCustomId('testUser1')
 
 export class TestApp extends App {
 	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
@@ -62,7 +60,6 @@ export class TestApp extends App {
 		super({
 			config,
 			store: config.createStore({
-				userId: TEST_USER_ID,
 				instanceId: TEST_INSTANCE_ID,
 			}),
 			getContainer: () => elm,

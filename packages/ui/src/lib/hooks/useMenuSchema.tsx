@@ -49,7 +49,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => app.userDocumentSettings.isDarkMode, [app])
+	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
 	const isGridMode = useValue('isGridMode', () => app.userDocumentSettings.isGridMode, [app])
 	const isSnapMode = useValue('isSnapMode', () => app.userDocumentSettings.isSnapMode, [app])
 	const isToolLock = useValue('isToolLock', () => app.instanceState.isToolLocked, [app])

@@ -1,5 +1,4 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
-import { Signal } from 'signia'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { Store, StoreSnapshot } from './Store'
@@ -49,8 +48,6 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	}) => R
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
-	/** @internal */
-	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
 }
 
 /** @public */
@@ -242,11 +239,6 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	/** @internal */
 	createIntegrityChecker(store: Store<R, P>): (() => void) | undefined {
 		return this.options.createIntegrityChecker?.(store) ?? undefined
-	}
-
-	/** @internal */
-	derivePresenceState(store: Store<R, P>): Signal<R | null> | undefined {
-		return this.options.derivePresenceState?.(store)
 	}
 
 	serialize(): SerializedSchema {

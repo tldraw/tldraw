@@ -19,8 +19,10 @@ import { TLLineTool } from '../../app/statechart/TLLineTool/TLLineTool'
 import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
 import { TestApp } from '../TestApp'
 
-let i = 0
-jest.mock('nanoid', () => ({ nanoid: () => 'id' + i++ }))
+jest.mock('nanoid', () => {
+	let i = 0
+	return { nanoid: () => 'id' + i++ }
+})
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),

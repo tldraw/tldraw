@@ -131,6 +131,7 @@ export {
 	type ReadySyncedStore,
 	type SyncedStore,
 } from './lib/config/SyncedStore'
+export { USER_COLORS } from './lib/config/TLUserPreferences'
 export { TldrawEditorConfig } from './lib/config/TldrawEditorConfig'
 export {
 	ANIMATION_MEDIUM_MS,
