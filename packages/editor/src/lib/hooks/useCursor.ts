@@ -45,7 +45,7 @@ function getCursorCss(
 
 const CURSORS: Record<TLCursorType, (r: number, f: boolean, color: string) => string> = {
 	none: () => 'none',
-	default: (r, f, c) => getCursorCss(DEFAULT_SVG, r, 0, f, c, 12, 10),
+	default: (r, f, c) => getCursorCss(DEFAULT_SVG, r, 0, f, c, 12, 8),
 	pointer: (r, f, c) => getCursorCss(POINTER_SVG, r, 0, f, c, 14, 10),
 	cross: (r, f, c) => getCursorCss(CROSS_SVG, r, 0, f, c),
 	move: (r, f, c) => getCursorCss(MOVE_SVG, r, 0, f, c),
