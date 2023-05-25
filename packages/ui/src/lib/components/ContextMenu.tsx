@@ -73,42 +73,6 @@ function ContextMenuContent() {
 		switch (item.type) {
 			case 'custom': {
 				switch (item.id) {
-					case 'MENU_PASTE': {
-						return (
-							<_ContextMenu.Item key={item.id}>
-								<Button
-									className="tlui-menu__button"
-									data-wd={`menu-item.${item.id}`}
-									kbd="$v"
-									label="action.paste"
-									disabled={item.disabled}
-									onClick={() => {
-										if (!app.isSafari || (app.isSafari && app.isIos)) {
-											navigator.clipboard.read().then((clipboardItems) => {
-												paste(clipboardItems, app.inputs.currentPagePoint)
-											})
-										}
-									}}
-									onMouseDown={() => {
-										if (app.isSafari && !app.isIos) {
-											// NOTE: This must be a onMouseDown for Safari/desktop, onClick doesn't work at the time of writing... 😒
-											navigator.clipboard.read().then((clipboardItems) => {
-												paste(clipboardItems, app.inputs.currentPagePoint)
-											})
-										}
-									}}
-									// onPointerUp={() => {
-									// 	if (app.isSafari && app.isIos) {
-									// 		// NOTE: This must be a onPointerUp for Safari/mobile, onClick doesn't work at the time of writing... 😒
-									// 		navigator.clipboard.read().then((clipboardItems) => {
-									// 			paste(clipboardItems, app.inputs.currentPagePoint)
-									// 		})
-									// 	}
-									// }}
-								/>
-							</_ContextMenu.Item>
-						)
-					}
 					case 'MOVE_TO_PAGE_MENU': {
 						return <MoveToPageMenu key={item.id} />
 					}
