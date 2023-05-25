@@ -315,8 +315,8 @@ export class Box2d {
 	union(box: Box2dModel) {
 		const minX = Math.min(this.minX, box.x)
 		const minY = Math.min(this.minY, box.y)
-		const maxX = Math.max(this.maxX, box.x + box.w)
-		const maxY = Math.max(this.maxY, box.y + box.h)
+		const maxX = Math.max(this.maxX, this.maxX)
+		const maxY = Math.max(this.maxY, this.maxY)
 
 		this.x = minX
 		this.y = minY

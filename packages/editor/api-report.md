@@ -280,11 +280,11 @@ export class App extends EventEmitter<TLEventMap> {
     getParentTransform(shape: TLShape): Matrix2d;
     getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
-    getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
-    getShapesAndDescendantsInOrder(ids: TLShapeId[]): TLShape[];
+    getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
+    getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
+    getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike): TLShape[];
-    getShapesInPage(pageId: TLPageId): TLShape[];
     getShapeUtil<C extends {
         new (...args: any[]): TLShapeUtil<any>;
         type: string;
@@ -414,6 +414,7 @@ export class App extends EventEmitter<TLEventMap> {
         opacity: number;
         isCulled: boolean;
         isInViewport: boolean;
+        maskedPageBounds: Box2d | undefined;
     }[];
     reorderShapes(operation: 'backward' | 'forward' | 'toBack' | 'toFront', ids: TLShapeId[]): this;
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
@@ -2242,6 +2243,8 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
     // (undocumented)
     renderBackground(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
+    toBackgroundSvg(shape: TLHighlightShape, font: string | undefined, colors: TLExportColors): SVGPathElement;
+    // (undocumented)
     toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
     static type: string;
@@ -2553,6 +2556,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     // @internal
     renderBackground?(shape: T): any;
     snapPoints(shape: T): Vec2d[];
+    toBackgroundSvg?(shape: T, font: string | undefined, colors: TLExportColors): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     transform(shape: T): Matrix2d;
     // (undocumented)

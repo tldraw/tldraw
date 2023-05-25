@@ -346,6 +346,21 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	): SVGElement | Promise<SVGElement>
 
 	/**
+	 * Get the shape's background layer as an SVG object.
+	 *
+	 * @param shape - The shape.
+	 * @param color - The shape's CSS color (actual).
+	 * @param font - The shape's CSS font (actual).
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toBackgroundSvg?(
+		shape: T,
+		font: string | undefined,
+		colors: TLExportColors
+	): SVGElement | Promise<SVGElement> | null
+
+	/**
 	 * Get whether a point intersects the shape.
 	 *
 	 * @param shape - The shape.

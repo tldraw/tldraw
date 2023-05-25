@@ -67,7 +67,6 @@ import {
 import { ComputedCache, HistoryEntry, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
-	assertExists,
 	compact,
 	dedupe,
 	deepCopy,
@@ -1765,9 +1764,9 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/** Get shapes on a page. */
-	getShapesInPage(pageId: TLPageId) {
+	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId> {
 		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
-		return this.getShapesAndDescendantsInOrder(result.map((s) => s.id))
+		return this.getShapeAndDescendantIds(result.map((s) => s.id))
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -2197,14 +2196,22 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.viewportPageBounds.includes(pageBounds)
 	}
 
-	/**
-	 * Get the shapes that should be displayed in the current viewport.
-	 *
-	 * @public
-	 */
-	@computed get renderingShapes() {
+	private computeUnorderedRenderingShapes(
+		ids: TLParentId[],
+		{
+			cullingBounds,
+			cullingBoundsExpanded,
+			erasingIdsSet,
+			editingId,
+		}: {
+			cullingBounds?: Box2d
+			cullingBoundsExpanded?: Box2d
+			erasingIdsSet?: Set<TLShapeId>
+			editingId?: TLShapeId | null
+		} = {}
+	) {
 		// Here we get the shape as well as any of its children, as well as their
-		// opacities. If the shape is beign erased, and none of its ancestors are
+		// opacities. If the shape is being erased, and none of its ancestors are
 		// being erased, then we reduce the opacity of the shape and all of its
 		// ancestors; but we don't apply this effect more than once among a set
 		// of descendants so that it does not compound.
@@ -2212,6 +2219,106 @@ export class App extends EventEmitter<TLEventMap> {
 		// This is designed to keep all the shapes in a single list which
 		// allows the DOM nodes to be reused even when they become children
 		// of other nodes.
+
+		const renderingShapes: {
+			id: TLShapeId
+			index: number
+			backgroundIndex: number
+			opacity: number
+			isCulled: boolean
+			isInViewport: boolean
+			maskedPageBounds: Box2d | undefined
+		}[] = []
+
+		let nextIndex = MAX_SHAPES_PER_PAGE
+		let nextBackgroundIndex = 0
+
+		const addShapeById = (id: TLParentId, parentOpacity: number, isAncestorErasing: boolean) => {
+			if (PageRecordType.isId(id)) {
+				for (const childId of this.getSortedChildIds(id)) {
+					addShapeById(childId, parentOpacity, isAncestorErasing)
+				}
+				return
+			}
+
+			const shape = this.getShapeById(id)
+			if (!shape) return
+
+			// todo: move opacity to a property of shape, rather than a property of props
+			let opacity = (+(shape.props as { opacity: string }).opacity ?? 1) * parentOpacity
+			let isShapeErasing = false
+
+			if (!isAncestorErasing && erasingIdsSet?.has(id)) {
+				isShapeErasing = true
+				opacity *= 0.32
+			}
+
+			// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
+			const maskedPageBounds = this.getMaskedPageBoundsById(id)
+
+			// Whether the shape is on screen. Use the "strict" viewport here.
+			const isInViewport = maskedPageBounds
+				? cullingBounds?.includes(maskedPageBounds) ?? true
+				: false
+
+			// Whether the shape should actually be culled / unmounted.
+			// - Use the "expanded" culling viewport to include shapes that are just off-screen.
+			// - Editing shapes should never be culled.
+			const isCulled = maskedPageBounds
+				? (editingId !== id && !cullingBoundsExpanded?.includes(maskedPageBounds)) ?? true
+				: true
+
+			renderingShapes.push({
+				id,
+				index: nextIndex,
+				backgroundIndex: nextBackgroundIndex,
+				opacity,
+				isCulled,
+				isInViewport,
+				maskedPageBounds,
+			})
+
+			nextIndex += 1
+			nextBackgroundIndex += 1
+
+			const childIds = this.getSortedChildIds(id)
+			if (!childIds.length) return
+
+			let backgroundIndexToRestore = null
+			if (this.getShapeUtil(shape).providesBackgroundForChildren(shape)) {
+				backgroundIndexToRestore = nextBackgroundIndex
+				nextBackgroundIndex = nextIndex
+				nextIndex += MAX_SHAPES_PER_PAGE
+			}
+
+			for (const childId of childIds) {
+				addShapeById(childId, opacity, isAncestorErasing || isShapeErasing)
+			}
+
+			if (backgroundIndexToRestore !== null) {
+				nextBackgroundIndex = backgroundIndexToRestore
+			}
+		}
+
+		for (const id of ids) {
+			addShapeById(id, 1, false)
+		}
+
+		return renderingShapes
+	}
+
+	/**
+	 * Get the shapes that should be displayed in the current viewport.
+	 *
+	 * @public
+	 */
+	@computed get renderingShapes() {
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
+			cullingBounds: this.cullingBounds,
+			cullingBoundsExpanded: this.cullingBoundsExpanded,
+			erasingIdsSet: this.erasingIdsSet,
+			editingId: this.editingId,
+		})
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
 		// that the shape should be displayed at. Steve, this is the past you
@@ -2223,89 +2330,6 @@ export class App extends EventEmitter<TLEventMap> {
 		// drain. By always sorting by 'id' we keep the shapes always in the
 		// same order; but we later use index to set the element's 'z-index'
 		// to change the "rendered" position in z-space.
-
-		const { currentPageId, cullingBounds, cullingBoundsExpanded, erasingIdsSet, editingId } = this
-
-		const renderingShapes: {
-			id: TLShapeId
-			index: number
-			backgroundIndex: number
-			opacity: number
-			isCulled: boolean
-			isInViewport: boolean
-		}[] = []
-
-		let nextIndex = MAX_SHAPES_PER_PAGE
-		let nextBackgroundIndex = 0
-
-		const addShapesFromParent = (
-			parentId: TLParentId,
-			parentOpacity: number,
-			isAncestorErasing: boolean
-		) => {
-			const childIds = this.getSortedChildIds(parentId)
-			if (childIds.length === 0) return
-
-			let backgroundIndexToRestore = null
-			if (isShapeId(parentId)) {
-				const parent = assertExists(this.getShapeById(parentId), 'parent must exist')
-				const parentUtil = this.getShapeUtil(parent)
-				if (parentUtil.providesBackgroundForChildren(parent)) {
-					backgroundIndexToRestore = nextBackgroundIndex
-					nextBackgroundIndex = nextIndex
-					nextIndex += MAX_SHAPES_PER_PAGE
-				}
-			}
-
-			for (const id of childIds) {
-				const shape = this.getShapeById(id)
-
-				if (!shape) continue
-
-				// todo: move opacity to a property of shape, rather than a property of props
-				let opacity = (+(shape.props as { opacity: string }).opacity ?? 1) * parentOpacity
-				let isShapeErasing = false
-
-				if (!isAncestorErasing && erasingIdsSet.has(id)) {
-					isShapeErasing = true
-					opacity *= 0.32
-				}
-
-				// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
-				const bounds = this.getMaskedPageBoundsById(id)
-
-				// Whether the shape is on screen. Use the "strict" viewport here.
-				const isInViewport = bounds ? cullingBounds.includes(bounds) : false
-
-				// Whether the shape should actually be culled / unmounted.
-				// - Use the "expanded" culling viewport to include shapes that are just off-screen.
-				// - Editing shapes should never be culled.
-				const isCulled = bounds ? editingId !== id && !cullingBoundsExpanded.includes(bounds) : true
-
-				renderingShapes.push({
-					id,
-					index: nextIndex,
-					backgroundIndex: nextBackgroundIndex,
-					opacity,
-					isCulled,
-					isInViewport,
-				})
-
-				nextIndex += 1
-				nextBackgroundIndex += 1
-
-				addShapesFromParent(id, opacity, isAncestorErasing || isShapeErasing)
-			}
-
-			if (backgroundIndexToRestore !== null) {
-				nextBackgroundIndex = backgroundIndexToRestore
-			}
-
-			return nextIndex
-		}
-
-		addShapesFromParent(currentPageId, 1, false)
-
 		return renderingShapes.sort(sortById)
 	}
 
@@ -3043,8 +3067,8 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get shapesArray(): TLShape[] {
-		return Array.from(this.shapeIds).map((id) => this.store.get(id)!)
+	@computed get shapesArray() {
+		return Array.from(this.shapeIds, (id) => this.store.get(id)! as TLShape)
 	}
 
 	/**
@@ -5627,29 +5651,28 @@ export class App extends EventEmitter<TLEventMap> {
 		document.body.removeChild(fakeContainerEl)
 
 		// ---Figure out which shapes we need to include
-
-		const shapes = this.getShapesAndDescendantsInOrder(ids)
-
-		// --- Common bounding box of all shapes
-
-		// Get the common bounding box for the selected nodes (with some padding)
-		const bbox = Box2d.FromPoints(
-			shapes
-				.map((shape) => {
-					const pageMask = this.getPageMaskById(shape.id)
-					if (pageMask) {
-						return pageMask
-					}
-					const pageTransform = this.getPageTransform(shape)!
-					const pageOutline = Matrix2d.applyToPoints(pageTransform, this.getOutline(shape))
-					return pageOutline
-				})
-				.flat()
+		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+			({ id }) => shapeIdsToInclude.has(id)
 		)
 
-		const isSingleFrameShape = ids.length === 1 && shapes[0].type === 'frame'
+		// --- Common bounding box of all shapes
+		let bbox = null
+		for (const { maskedPageBounds } of renderingShapes) {
+			if (!maskedPageBounds) continue
+			if (bbox) {
+				bbox.union(maskedPageBounds)
+			} else {
+				bbox = maskedPageBounds.clone()
+			}
+		}
 
-		if (!isSingleFrameShape) {
+		// no unmasked shapes to export
+		if (!bbox) return
+
+		const singleFrameShapeId =
+			ids.length === 1 && this.getShapeById(ids[0])?.type === 'frame' ? ids[0] : null
+		if (!singleFrameShapeId) {
 			// Expand by an extra 32 pixels
 			bbox.expandBy(padding)
 		}
@@ -5676,7 +5699,7 @@ export class App extends EventEmitter<TLEventMap> {
 		// Add current background color, or else background will be transparent
 
 		if (background) {
-			if (isSingleFrameShape) {
+			if (singleFrameShapeId) {
 				svg.style.setProperty('background', colors.solid)
 			} else {
 				svg.style.setProperty('background-color', colors.background)
@@ -5700,83 +5723,112 @@ export class App extends EventEmitter<TLEventMap> {
 
 		svg.append(defs)
 
-		// Must happen in order, not using a promise.all, or else the order of the
-		// elements in the svg will be wrong.
+		const unorderedShapeElements = (
+			await Promise.all(
+				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
+					// Don't render the frame if we're only exporting a single frame
+					if (id === singleFrameShapeId) return []
 
-		let shape: TLShape
-		for (let i = 0, n = shapes.length; i < n; i++) {
-			shape = shapes[i]
+					const shape = this.getShapeById(id)!
+					const util = this.getShapeUtil(shape)
 
-			// Don't render the frame if we're only exporting a single frame
-			if (isSingleFrameShape && i === 0) continue
-
-			let font: string | undefined
-
-			if ('font' in shape.props) {
-				if (shape.props.font) {
-					if (fontsUsedInExport.has(shape.props.font)) {
-						font = fontsUsedInExport.get(shape.props.font)!
-					} else {
-						// For some reason these styles aren't present in the fake element
-						// so we need to get them from the real element
-						font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
-						fontsUsedInExport.set(shape.props.font, font)
+					let font: string | undefined
+					if ('font' in shape.props) {
+						if (shape.props.font) {
+							if (fontsUsedInExport.has(shape.props.font)) {
+								font = fontsUsedInExport.get(shape.props.font)!
+							} else {
+								// For some reason these styles aren't present in the fake element
+								// so we need to get them from the real element
+								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
+								fontsUsedInExport.set(shape.props.font, font)
+							}
+						}
 					}
-				}
-			}
 
-			const util = this.getShapeUtil(shape)
+					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
 
-			let utilSvgElement = await util.toSvg?.(shape, font, colors)
+					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
+					if (shapeSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(shapeSvgElement)
+						shapeSvgElement = outerElement
+					}
+					if (backgroundSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(backgroundSvgElement)
+						backgroundSvgElement = outerElement
+					}
 
-			if (!utilSvgElement) {
-				const bounds = this.getPageBounds(shape)!
-				const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-				elm.setAttribute('width', bounds.width + '')
-				elm.setAttribute('height', bounds.height + '')
-				elm.setAttribute('fill', colors.solid)
-				elm.setAttribute('stroke', colors.pattern.grey)
-				elm.setAttribute('stroke-width', '1')
-				utilSvgElement = elm
-			}
+					if (!shapeSvgElement && !backgroundSvgElement) {
+						const bounds = this.getPageBounds(shape)!
+						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+						elm.setAttribute('width', bounds.width + '')
+						elm.setAttribute('height', bounds.height + '')
+						elm.setAttribute('fill', colors.solid)
+						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('stroke-width', '1')
+						shapeSvgElement = elm
+					}
 
-			// If the node implements toSvg, use that
-			const shapeSvg = utilSvgElement
+					let pageTransform = this.getPageTransform(shape)!.toCssString()
+					if ('scale' in shape.props) {
+						if (shape.props.scale !== 1) {
+							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
+						}
+					}
 
-			let pageTransform = this.getPageTransform(shape)!.toCssString()
+					shapeSvgElement?.setAttribute('transform', pageTransform)
+					backgroundSvgElement?.setAttribute('transform', pageTransform)
+					shapeSvgElement?.setAttribute('opacity', opacity + '')
+					backgroundSvgElement?.setAttribute('opacity', opacity + '')
 
-			if ('scale' in shape.props) {
-				if (shape.props.scale !== 1) {
-					pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-				}
-			}
+					// Create svg mask if shape has a frame as parent
+					const pageMask = this.getPageMaskById(shape.id)
+					if (pageMask) {
+						// Create a clip path and add it to defs
+						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+						defs.appendChild(clipPathEl)
+						const id = nanoid()
+						clipPathEl.id = id
 
-			shapeSvg.setAttribute('transform', pageTransform)
-			if ('opacity' in shape.props) shapeSvg.setAttribute('opacity', shape.props.opacity + '')
+						// Create a polyline mask that does the clipping
+						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
+						clipPathEl.appendChild(mask)
 
-			// Create svg mask if shape has a frame as parent
-			const pageMask = this.getPageMaskById(shape.id)
-			if (shapeSvg && pageMask) {
-				// Create a clip path and add it to defs
-				const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-				defs.appendChild(clipPathEl)
-				const id = nanoid()
-				clipPathEl.id = id
+						// Create group that uses the clip path and wraps the shape elements
+						if (shapeSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(shapeSvgElement)
+							shapeSvgElement = outerElement
+						}
 
-				// Create a polyline mask that does the clipping
-				const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-				mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-				clipPathEl.appendChild(mask)
+						if (backgroundSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(backgroundSvgElement)
+							backgroundSvgElement = outerElement
+						}
+					}
 
-				// Create a group that uses the clip path and wraps the shape
-				const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-				outerElement.setAttribute('clip-path', `url(#${id})`)
+					const elements = []
+					if (shapeSvgElement) {
+						elements.push({ zIndex: index, element: shapeSvgElement })
+					}
+					if (backgroundSvgElement) {
+						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+					}
 
-				outerElement.appendChild(shapeSvg)
-				svg.appendChild(outerElement)
-			} else {
-				svg.appendChild(shapeSvg)
-			}
+					return elements
+				})
+			)
+		).flat()
+
+		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
+			svg.appendChild(element)
 		}
 
 		// Add styles to the defs
@@ -5784,42 +5836,44 @@ export class App extends EventEmitter<TLEventMap> {
 		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
 
 		// Insert fonts into app
-		const fontInstances: any[] = []
+		const fontInstances: FontFace[] = []
 
 		if ('fonts' in document) {
 			document.fonts.forEach((font) => fontInstances.push(font))
 		}
 
-		for (const font of fontInstances) {
-			const fileReader = new FileReader()
+		await Promise.all(
+			fontInstances.map(async (font) => {
+				const fileReader = new FileReader()
 
-			let isUsed = false
+				let isUsed = false
 
-			fontsUsedInExport.forEach((fontName) => {
-				if (fontName.includes(font.family)) {
-					isUsed = true
-				}
-			})
-
-			if (!isUsed) continue
-
-			const url = (font as any).$$_url
-
-			const fontFaceRule = (font as any).$$_fontface
-
-			if (url) {
-				const fontFile = await (await fetch(url)).blob()
-
-				const base64Font = await new Promise<string>((resolve, reject) => {
-					fileReader.onload = () => resolve(fileReader.result as string)
-					fileReader.onerror = () => reject(fileReader.error)
-					fileReader.readAsDataURL(fontFile)
+				fontsUsedInExport.forEach((fontName) => {
+					if (fontName.includes(font.family)) {
+						isUsed = true
+					}
 				})
 
-				const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-				styles += newFontFaceRule
-			}
-		}
+				if (!isUsed) return
+
+				const url = (font as any).$$_url
+
+				const fontFaceRule = (font as any).$$_fontface
+
+				if (url) {
+					const fontFile = await (await fetch(url)).blob()
+
+					const base64Font = await new Promise<string>((resolve, reject) => {
+						fileReader.onload = () => resolve(fileReader.result as string)
+						fileReader.onerror = () => reject(fileReader.error)
+						fileReader.readAsDataURL(fontFile)
+					})
+
+					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
+					styles += newFontFaceRule
+				}
+			})
+		)
 
 		style.textContent = styles
 
@@ -5877,7 +5931,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// If there is no space on pageId, or if the selected shapes
 		// would take the new page above the limit, don't move the shapes
-		if (this.getShapesInPage(pageId).length + content.shapes.length > MAX_SHAPES_PER_PAGE) {
+		if (this.getShapeIdsInPage(pageId).size + content.shapes.length > MAX_SHAPES_PER_PAGE) {
 			alertMaxShapes(this, pageId)
 			return this
 		}
@@ -7154,30 +7208,22 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	getShapesAndDescendantsInOrder(ids: TLShapeId[]) {
-		const idsToInclude: TLShapeId[] = []
-		const visitedIds = new Set<string>()
+	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
+		const idsToInclude = new Set<TLShapeId>()
 
 		const idsToCheck = [...ids]
 
 		while (idsToCheck.length > 0) {
 			const id = idsToCheck.pop()
 			if (!id) break
-			if (visitedIds.has(id)) continue
-			idsToInclude.push(id)
+			if (idsToInclude.has(id)) continue
+			idsToInclude.add(id)
 			this.getSortedChildIds(id).forEach((id) => {
 				idsToCheck.push(id)
 			})
 		}
 
-		// Map the ids into nodes AND their descendants
-		const shapes = idsToInclude.map((s) => this.getShapeById(s)!).filter((s) => s.type !== 'group')
-
-		// Sort by the shape's appearance in the sorted shapes array
-		const { sortedShapesArray } = this
-		shapes.sort((a, b) => sortedShapesArray.indexOf(a) - sortedShapesArray.indexOf(b))
-
-		return shapes
+		return idsToInclude
 	}
 
 	/**
