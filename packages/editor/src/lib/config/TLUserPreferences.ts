@@ -128,8 +128,12 @@ export function setUserPreferences(user: TLUserPreferences) {
 	broadcastUserPreferencesChange()
 }
 
+const isTest = typeof process !== 'undefined' && process.env.NODE_ENV === 'test'
+
 const channel =
-	typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('tldraw-user-sync') : null
+	typeof BroadcastChannel !== 'undefined' && !isTest
+		? new BroadcastChannel('tldraw-user-sync')
+		: null
 
 channel?.addEventListener('message', (e) => {
 	const data = e.data as undefined | UserChangeBroadcastMessage
