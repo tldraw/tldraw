@@ -1479,8 +1479,6 @@
 	display: block;
 	content: '';
 	position: absolute;
-	top: -4px;
-	left: -4px;
 	height: 40px;
 	width: 40px;
 	border-radius: 100%;
