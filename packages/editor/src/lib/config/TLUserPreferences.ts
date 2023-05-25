@@ -4,7 +4,7 @@ import { T } from '@tldraw/tlvalidate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
 
-const USER_DATA_KEY = 'TLDRAW_USER_DATA_v2'
+const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
 
 /**
  * A user of tldraw
@@ -128,28 +128,24 @@ export function setUserPreferences(user: TLUserPreferences) {
 	broadcastUserPreferencesChange()
 }
 
-if (typeof window !== 'undefined') {
-	window.addEventListener('message', (e) => {
-		const data = e.data as undefined | UserChangeBroadcastMessage
-		if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
-			globalUserPreferences.set(loadUserPreferences())
-		}
-	})
-}
+const channel =
+	typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('tldraw-user-sync') : null
+
+channel?.addEventListener('message', (e) => {
+	const data = e.data as undefined | UserChangeBroadcastMessage
+	if (data?.type === broadcastEventKey && data?.origin !== broadcastOrigin) {
+		globalUserPreferences.set(loadUserPreferences())
+	}
+})
 
 const broadcastOrigin = uniqueId()
 const broadcastEventKey = 'tldraw-user-preferences-change' as const
 
 function broadcastUserPreferencesChange() {
-	if (typeof window !== 'undefined' && window.parent) {
-		window.parent.postMessage(
-			{
-				type: broadcastEventKey,
-				origin: broadcastOrigin,
-			} satisfies UserChangeBroadcastMessage,
-			'*'
-		)
-	}
+	channel?.postMessage({
+		type: broadcastEventKey,
+		origin: broadcastOrigin,
+	} satisfies UserChangeBroadcastMessage)
 }
 
 /** @public */
