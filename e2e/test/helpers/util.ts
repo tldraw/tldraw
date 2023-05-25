@@ -81,6 +81,7 @@ export async function sleep(ms: number) {
 
 export async function clearClipboard() {
 	return await browser.execute(async () => {
+		if (!(navigator && navigator.clipboard)) return
 		if (navigator.clipboard.write) {
 			await navigator.clipboard.write([
 				new ClipboardItem({
