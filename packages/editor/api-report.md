@@ -611,18 +611,89 @@ export function dataTransferItemAsString(item: DataTransferItem): Promise<string
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @internal (undocumented)
+export type DebugFlag<Def extends DebugFlagDefBase<any>> = Def & {
+    value: DefValue<Def>;
+    set: (value: DefValue<Def>) => void;
+};
+
+// @internal (undocumented)
+export interface DebugFlagDefBase<T> {
+    // (undocumented)
+    defaults: Defaults<T>;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    shouldStoreForSession: boolean;
+}
+
+// @internal (undocumented)
 export const debugFlags: {
-    preventDefaultLogging: Atom<boolean, unknown>;
-    pointerCaptureLogging: Atom<boolean, unknown>;
-    pointerCaptureTracking: Atom<boolean, unknown>;
-    pointerCaptureTrackingObject: Atom<Map<Element, number>, unknown>;
-    elementRemovalLogging: Atom<boolean, unknown>;
-    debugSvg: Atom<boolean, unknown>;
-    throwToBlob: Atom<boolean, unknown>;
-    peopleMenu: Atom<boolean, unknown>;
-    logMessages: Atom<never[], unknown>;
-    resetConnectionEveryPing: Atom<boolean, unknown>;
-    debugCursors: Atom<boolean, unknown>;
+    peopleMenu: DebugFlag<{
+        isFeatureFlag: true;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: true;
+    }>;
+    preventDefaultLogging: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    pointerCaptureLogging: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    pointerCaptureTracking: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    pointerCaptureTrackingObject: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<Map<Element, number>>;
+        shouldStoreForSession: boolean;
+    }>;
+    elementRemovalLogging: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    debugSvg: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    throwToBlob: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    logMessages: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<never[]>;
+        shouldStoreForSession: boolean;
+    }>;
+    resetConnectionEveryPing: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
+    debugCursors: DebugFlag<{
+        isFeatureFlag: false;
+        name: string;
+        defaults: Defaults<boolean>;
+        shouldStoreForSession: boolean;
+    }>;
 };
 
 // @internal (undocumented)

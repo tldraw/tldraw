@@ -1,4 +1,4 @@
-import { atom, Atom, react } from 'signia'
+import { atom, react } from 'signia'
 
 // --- 1. DEFINE ---
 // Define your debug flags here. Call `createDebugValue` with the name you want
@@ -7,23 +7,44 @@ import { atom, Atom, react } from 'signia'
 
 /** @internal */
 export const debugFlags = {
-	preventDefaultLogging: createDebugValue('tldrawPreventDefaultLogging', false),
-	pointerCaptureLogging: createDebugValue('tldrawPointerCaptureLogging', false),
-	pointerCaptureTracking: createDebugValue('tldrawPointerCaptureTracking', false),
+	// --- FEATURE FLAGS ---
+	peopleMenu: createFeatureFlag('peopleMenu'),
+
+	// --- DEBUG VALUES ---
+	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
+		defaults: { all: false },
+	}),
+	pointerCaptureLogging: createDebugValue('pointerCaptureLogging', {
+		defaults: { all: false },
+	}),
+	pointerCaptureTracking: createDebugValue('pointerCaptureTracking', {
+		defaults: { all: false },
+	}),
 	pointerCaptureTrackingObject: createDebugValue(
-		'tldrawPointerCaptureTrackingObject',
+		'pointerCaptureTrackingObject',
 		// ideally we wouldn't store this mutable value in an atom but it's not
 		// a big deal for debug values
-		new Map<Element, number>(),
-		false
+		{
+			defaults: { all: new Map<Element, number>() },
+			shouldStoreForSession: false,
+		}
 	),
-	elementRemovalLogging: createDebugValue('tldrawElementRemovalLogging', false),
-	debugSvg: createDebugValue('tldrawDebugSvg', false),
-	throwToBlob: createDebugValue('tldrawThrowToBlob', false),
-	peopleMenu: createDebugValue('tldrawPeopleMenu', false),
-	logMessages: createDebugValue('tldrawUiLog', []),
-	resetConnectionEveryPing: createDebugValue('tldrawResetConnectionEveryPing', false),
-	debugCursors: createDebugValue('tldrawDebugCursors', false),
+	elementRemovalLogging: createDebugValue('elementRemovalLogging', {
+		defaults: { all: false },
+	}),
+	debugSvg: createDebugValue('debugSvg', {
+		defaults: { all: false },
+	}),
+	throwToBlob: createDebugValue('throwToBlob', {
+		defaults: { all: false },
+	}),
+	logMessages: createDebugValue('uiLog', { defaults: { all: [] } }),
+	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
+		defaults: { all: false },
+	}),
+	debugCursors: createDebugValue('debugCursors', {
+		defaults: { all: false },
+	}),
 }
 
 declare global {
@@ -31,7 +52,6 @@ declare global {
 		tldrawLog: (message: any) => void
 	}
 }
-debugFlags.logMessages.set([])
 
 if (typeof window !== 'undefined') {
 	window.tldrawLog = (message: any) => {
@@ -40,11 +60,11 @@ if (typeof window !== 'undefined') {
 }
 
 // --- 2. USE ---
-// In normal code, read from debug flags directly by calling .get() on them:
-//    if (debugFlags.preventDefaultLogging.get()) { ... }
+// In normal code, read from debug flags directly by calling .value on them:
+//    if (debugFlags.preventDefaultLogging.value) { ... }
 //
-// In react, wrap your reads in `useDerivedValue` so they react to changes:
-//    const shouldLog = useDerivedValue(() => debugFlags.preventDefaultLogging.get())
+// In react, wrap your reads in `useValue` so they react to changes:
+//    const shouldLog = useValue(debugFlags.preventDefaultLogging)
 
 // --- 3. GET FUNKY ---
 // If you need to do fun stuff like monkey-patching in response to flag changes,
@@ -67,46 +87,137 @@ if (typeof Element !== 'undefined') {
 
 // --- IMPLEMENTATION ---
 // you probably don't need to read this if you're just using the debug values system
-function createDebugValue<T>(name: string, initialValue: T, shouldStore = true): Atom<T> {
-	if (typeof window === 'undefined') {
-		return atom(`debug:${name}`, initialValue)
-	}
+function createDebugValue<T>(
+	name: string,
+	{
+		defaults,
+		shouldStoreForSession = true,
+	}: { defaults: Defaults<T>; shouldStoreForSession?: boolean }
+) {
+	return createDebugValueBase({
+		isFeatureFlag: false,
+		name,
+		defaults,
+		shouldStoreForSession,
+	})
+}
+function createFeatureFlag(
+	name: string,
+	defaults: Defaults<boolean> = { all: true, production: false }
+) {
+	return createDebugValueBase({
+		isFeatureFlag: true,
+		name,
+		defaults,
+		shouldStoreForSession: true,
+	})
+}
 
-	const storedValue = shouldStore ? (getStoredInitialValue(name) as T | null) : null
-	const value = atom(`debug:${name}`, storedValue ?? initialValue)
+function createDebugValueBase<Def extends DebugFlagDef<any> | FeatureFlagDef>(
+	def: Def
+): DebugFlag<Def> {
+	const defaultValue = getDefaultValue(def)
+	const storedValue = def.shouldStoreForSession
+		? (getStoredInitialValue(def.name) as DefValue<Def> | null)
+		: null
+	const value = atom(`debug:${def.name}`, storedValue ?? defaultValue)
 
-	if (shouldStore) {
-		react(`debug:${name}`, () => {
-			const currentValue = value.value
-			try {
-				if (currentValue === initialValue) {
-					window.sessionStorage.removeItem(`debug:${name}`)
-				} else {
-					window.sessionStorage.setItem(`debug:${name}`, JSON.stringify(currentValue))
+	if (typeof window !== 'undefined') {
+		if (def.shouldStoreForSession) {
+			react(`debug:${def.name}`, () => {
+				const currentValue = value.value
+				try {
+					if (currentValue === defaultValue) {
+						window.sessionStorage.removeItem(`tldraw_debug:${def.name}`)
+					} else {
+						window.sessionStorage.setItem(`tldraw_debug:${def.name}`, JSON.stringify(currentValue))
+					}
+				} catch {
+					// not a big deal
 				}
-			} catch {
-				// not a big deal
-			}
+			})
+		}
+
+		Object.defineProperty(window, `tldraw_${def.name}`, {
+			get() {
+				return value.value
+			},
+			set(newValue) {
+				value.set(newValue)
+			},
+			configurable: true,
 		})
 	}
 
-	Object.defineProperty(window, name, {
-		get() {
+	return {
+		...def,
+		get value() {
 			return value.value
 		},
 		set(newValue) {
-			value.set(newValue)
+			return value.set(newValue)
 		},
-		configurable: true,
-	})
-
-	return value
+	}
 }
 
 function getStoredInitialValue(name: string) {
 	try {
-		return JSON.parse(window.sessionStorage.getItem(`debug:${name}`) ?? 'null')
+		return JSON.parse(window?.sessionStorage.getItem(`tldraw_debug:${name}`) ?? 'null')
 	} catch (err) {
 		return null
 	}
+}
+
+function getDefaultValue<Def extends DebugFlagDefBase<any>>(def: Def): DefValue<Def> {
+	const p = typeof process !== 'undefined' ? process : null
+	const env =
+		(import.meta as any)?.env?.TLDRAW_ENV ??
+		p?.env?.TLDRAW_ENV ??
+		p?.env?.VERCEL_PUBLIC_TLDRAW_ENV ??
+		'production'
+
+	switch (env) {
+		case 'production':
+			return def.defaults.production ?? def.defaults.all
+		case 'preview':
+		case 'staging':
+			return def.defaults.staging ?? def.defaults.all
+		default:
+			return def.defaults.development ?? def.defaults.all
+	}
+}
+
+interface Defaults<T> {
+	development?: T
+	staging?: T
+	production?: T
+	all: T
+}
+
+/** @internal */
+export interface DebugFlagDefBase<T> {
+	name: string
+	defaults: Defaults<T>
+	shouldStoreForSession: boolean
+}
+
+/** @internal */
+export interface DebugFlagDef<T> extends DebugFlagDefBase<T> {
+	isFeatureFlag: false
+}
+
+/** @internal */
+export interface FeatureFlagDef extends DebugFlagDefBase<boolean> {
+	isFeatureFlag: true
+}
+
+type DefValue<Def extends DebugFlagDefBase<any>> = Def extends DebugFlagDefBase<infer T>
+	? T
+	: boolean
+
+/** @internal */
+export type DebugFlag<Def extends DebugFlagDefBase<any>> = Def & {
+	value: DefValue<Def>
+	set: (value: DefValue<Def>) => void
+	// def: Def
 }
