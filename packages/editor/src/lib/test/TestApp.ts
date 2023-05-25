@@ -57,17 +57,19 @@ export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1
 export const TEST_USER_ID = UserRecordType.createCustomId('testUser1')
 
 export class TestApp extends App {
-	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
-		const { tools, shapes } = options
+	constructor(options = {} as Partial<AppOptions>) {
+		const { tools, store, shapes } = options
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
 		super({
 			shapes: shapes ? [...DEFAULT_SHAPE_UTILS, ...shapes] : DEFAULT_SHAPE_UTILS,
 			tools: tools ? [...DEFAULT_TOOLS, ...tools] : DEFAULT_TOOLS,
-			store: createDefaultTldrawEditorStore({
-				userId: TEST_USER_ID,
-				instanceId: TEST_INSTANCE_ID,
-			}),
+			store:
+				store ??
+				createDefaultTldrawEditorStore({
+					userId: TEST_USER_ID,
+					instanceId: TEST_INSTANCE_ID,
+				}),
 			getContainer: () => elm,
 			...options,
 		})

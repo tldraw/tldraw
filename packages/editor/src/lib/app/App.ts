@@ -194,6 +194,7 @@ export class App extends EventEmitter<TLEventMap> {
 		this.shapeUtils = Object.fromEntries(
 			shapes.map((Util) => [Util.type, new Util(this, Util.type)])
 		)
+		Object.keys(this.shapeUtils)
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
