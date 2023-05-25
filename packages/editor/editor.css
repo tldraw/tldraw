@@ -307,6 +307,16 @@ input,
 	pointer-events: none;
 }
 
+.tlui-following {
+	display: block;
+	position: absolute;
+	inset: 0px;
+	border-width: 2px;
+	border-style: solid;
+	z-index: 9999999;
+	pointer-events: none;
+}
+
 /* ------------------- Background ------------------- */
 
 .tl-background {
