@@ -3,25 +3,25 @@ import { App, preventDefault, useApp, useContainer } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useValue } from 'signia-react'
-import { MenuChild } from '../hooks/menuHelpers'
-import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
-import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
-import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
-import { useReadonly } from '../hooks/useReadonly'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
-import { MoveToPageMenu } from './MoveToPageMenu'
-import { Button } from './primitives/Button'
-import { Icon } from './primitives/Icon'
-import { Kbd } from './primitives/Kbd'
+import { MoveToPageMenu } from './components/MoveToPageMenu'
+import { Button } from './components/primitives/Button'
+import { Icon } from './components/primitives/Icon'
+import { Kbd } from './components/primitives/Kbd'
+import { MenuChild } from './hooks/menuHelpers'
+import { useBreakpoint } from './hooks/useBreakpoint'
+import { useMenuClipboardEvents } from './hooks/useClipboardEvents'
+import { useContextMenuSchema } from './hooks/useContextMenuSchema'
+import { useMenuIsOpen } from './hooks/useMenuIsOpen'
+import { useReadonly } from './hooks/useReadonly'
+import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
-export interface ContextMenuProps {
+export interface TldrawContextMenuProps {
 	children: any
 }
 
 /** @public */
-export const ContextMenu = function ContextMenu({ children }: { children: any }) {
+export function TldrawContextMenu({ children }: TldrawContextMenuProps) {
 	const app = useApp()
 
 	const contextMenuSchema = useContextMenuSchema()

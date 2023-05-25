@@ -50,7 +50,7 @@ export const allExamples: Example[] = [
 		element: <ExampleApi />,
 	},
 	{
-		path: '/custom',
+		path: '/custom-config',
 		element: <CustomConfigExample />,
 	},
 	{

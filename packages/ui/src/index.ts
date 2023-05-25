@@ -1,13 +1,13 @@
 import * as Dialog from './lib/components/primitives/Dialog'
 import * as DropdownMenu from './lib/components/primitives/DropdownMenu'
 
+export { TldrawContextMenu, type TldrawContextMenuProps } from './lib/TldrawContextMenu'
 export { TldrawUi, TldrawUiContent } from './lib/TldrawUi'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
 } from './lib/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/assetUrls'
-export { ContextMenu, type ContextMenuProps } from './lib/components/ContextMenu'
 export { DebugPanel } from './lib/components/DebugPanel'
 export { HTMLCanvas } from './lib/components/HTMLCanvas'
 export { HelpMenu, type HelpMenuProps } from './lib/components/HelpMenu'

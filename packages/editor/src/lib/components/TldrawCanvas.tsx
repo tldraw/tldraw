@@ -23,7 +23,7 @@ import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
 /** @public */
-export const Canvas = track(function Canvas({
+export const TldrawCanvas = track(function Canvas({
 	onDropOverride,
 }: {
 	onDropOverride?: (

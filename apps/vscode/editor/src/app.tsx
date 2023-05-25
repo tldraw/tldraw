@@ -1,11 +1,11 @@
 import {
 	App,
-	Canvas,
 	createDefaultTldrawEditorStore,
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
 	ErrorBoundary,
 	setRuntimeOverrides,
+	TldrawCanvas,
 	TldrawEditor,
 	TLUserId,
 } from '@tldraw/editor'
@@ -13,7 +13,7 @@ import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
 import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
-import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
+import { MenuSchema, TldrawContextMenu, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 // eslint-disable-next-line import/no-internal-modules
@@ -165,9 +165,9 @@ function TldrawInner({ uri, assetSrc, userId, isDarkMode, fileContents }: TLDraw
 					forceDarkMode={isDarkMode}
 				/>
 				<ChangeResponder syncedStore={syncedStore} userId={userId} instanceId={instanceId} />
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
+				<TldrawContextMenu>
+					<TldrawCanvas />
+				</TldrawContextMenu>
 			</TldrawUi>
 		</TldrawEditor>
 	)

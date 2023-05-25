@@ -116,7 +116,6 @@ export {
 	setDefaultEditorAssetUrls,
 	type EditorAssetUrls,
 } from './lib/assetUrls'
-export { Canvas } from './lib/components/Canvas'
 export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {
 	ErrorBoundary,
@@ -125,6 +124,7 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { TldrawCanvas } from './lib/components/TldrawCanvas'
 export {
 	type ErrorSyncedStore,
 	type InitializingSyncedStore,

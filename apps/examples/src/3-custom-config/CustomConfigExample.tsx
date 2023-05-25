@@ -1,16 +1,18 @@
+import { TldrawCanvas } from '@tldraw/editor/src/lib/components/TldrawCanvas'
 import {
-	createTldrawEditorStore,
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
 	HTMLContainer,
 	MenuGroup,
-	menuItem,
 	TLBaseShape,
 	TLBoxTool,
 	TLBoxUtil,
+	TLOpacityType,
+	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
-	TLOpacityType,
+	createTldrawEditorStore,
+	menuItem,
 	toolbarItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -99,7 +101,7 @@ const shapes = [...DEFAULT_SHAPE_UTILS, CardUtil]
 const store = createTldrawEditorStore()
 
 // ... and we can make our custom shape example!
-export default function Example() {
+export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor autoFocus tools={tools} shapes={shapes} store={store}>
@@ -139,7 +141,11 @@ export default function Example() {
 							return keyboardShortcutsMenu
 						},
 					}}
-				/>
+				>
+					<TldrawContextMenu>
+						<TldrawCanvas />
+					</TldrawContextMenu>
+				</TldrawUi>
 			</TldrawEditor>
 		</div>
 	)

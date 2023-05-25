@@ -572,11 +572,6 @@ export const BOUND_ARROW_OFFSET = 10;
 export function buildFromV1Document(app: App, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
-export const Canvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_2.DragEvent<Element>) => Promise<void>) => (e: React_2.DragEvent<Element>) => Promise<void>) | undefined;
-}) => JSX.Element>;
-
-// @public (undocumented)
 export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
 
 // @public (undocumented)
@@ -1829,6 +1824,11 @@ export type TLCompleteEventInfo = {
 
 // @public (undocumented)
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
+
+// @public (undocumented)
+export const TldrawCanvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
+    onDropOverride?: ((defaultOnDrop: (e: React_2.DragEvent<Element>) => Promise<void>) => (e: React_2.DragEvent<Element>) => Promise<void>) | undefined;
+}) => JSX.Element>;
 
 // @public (undocumented)
 export function TldrawEditor(props: TldrawEditorProps): JSX.Element;

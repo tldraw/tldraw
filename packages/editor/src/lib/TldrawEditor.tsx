@@ -213,7 +213,7 @@ function TldrawEditorAfterLoading({
 			tools,
 			getContainer: () => container,
 		})
-		;(window as any).app
+		;(window as any).app = app
 		setApp(app)
 		return () => {
 			app.dispose()

@@ -1,13 +1,13 @@
 import {
-	Canvas,
-	ContextMenu,
-	createDefaultTldrawEditorStore,
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
-	getUserData,
 	InstanceRecordType,
+	TldrawCanvas,
+	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
+	createDefaultTldrawEditorStore,
+	getUserData,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -38,9 +38,9 @@ export default function Example() {
 				autoFocus
 			>
 				<TldrawUi>
-					<ContextMenu>
-						<Canvas />
-					</ContextMenu>
+					<TldrawContextMenu>
+						<TldrawCanvas />
+					</TldrawContextMenu>
 				</TldrawUi>
 			</TldrawEditor>
 		</div>

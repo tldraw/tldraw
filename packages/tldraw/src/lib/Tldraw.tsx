@@ -1,7 +1,7 @@
 import {
-	Canvas,
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
+	TldrawCanvas,
 	TldrawEditor,
 	TldrawEditorProps,
 	createDefaultTldrawEditorStore,
@@ -12,7 +12,7 @@ import {
 	getUserData,
 	useLocalSyncClient,
 } from '@tldraw/tlsync-client'
-import { ContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
+import { TldrawContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
 import { useMemo } from 'react'
 
 /** @public */
@@ -59,9 +59,9 @@ export function Tldraw(
 			shapes={DEFAULT_SHAPE_UTILS}
 		>
 			<TldrawUi {...rest}>
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
+				<TldrawContextMenu>
+					<TldrawCanvas />
+				</TldrawContextMenu>
 				{children}
 			</TldrawUi>
 		</TldrawEditor>
