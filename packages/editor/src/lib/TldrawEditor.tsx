@@ -1,21 +1,14 @@
-import {
-	InstanceRecordType,
-	TLAsset,
-	TLInstanceId,
-	TLStore,
-	TLUserId,
-	UserRecordType,
-} from '@tldraw/tlschema'
+import { TLAsset, TLInstanceId, TLStore, TLUserId } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 
 import { SyncedStore } from './config/SyncedStore'
-import { TldrawEditorConfig } from './config/TldrawEditorConfig'
 
+import { StateNodeConstructor, TLShapeUtilConstructor } from '..'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -34,15 +27,25 @@ import { useZoomCss } from './hooks/useZoomCss'
 
 /** @public */
 export interface TldrawEditorProps {
-	children?: any
-	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config: TldrawEditorConfig
+	/**
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
+	 * from a server or database.
+	 */
+	store: TLStore | SyncedStore
+	/**
+	 * An array of shape utils to use in the editor.
+	 */
+	shapes: TLShapeUtilConstructor<any>[]
+	/**
+	 * An array of tools to use in the editor.
+	 */
+	tools: StateNodeConstructor[]
 	/** Overrides for the tldraw components */
 	components?: Partial<TLEditorComponents>
 	/** Whether to display the dark mode. */
 	isDarkMode?: boolean
 	/**
-	 * Called when the app has mounted.
+	 * Called when the editor has mounted.
 	 *
 	 * @example
 	 *
@@ -56,7 +59,7 @@ export interface TldrawEditorProps {
 	 */
 	onMount?: (app: App) => void
 	/**
-	 * Called when the app generates a new asset from a file, such as when an image is dropped into
+	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
 	 *
 	 * @example
@@ -89,15 +92,10 @@ export interface TldrawEditorProps {
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
 
-	/**
-	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
-	 * from a server or database.
-	 */
-	store?: TLStore | SyncedStore
 	/** The id of the current user. If not given, one will be generated. */
 	userId?: TLUserId
 	/**
-	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
+	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
 	 * tab). If not given, one will be generated.
 	 */
 	instanceId?: TLInstanceId
@@ -105,6 +103,7 @@ export interface TldrawEditorProps {
 	assetUrls?: EditorAssetUrls
 	/** Whether to automatically focus the editor when it mounts. */
 	autoFocus?: boolean
+	children?: any
 }
 
 declare global {
@@ -139,54 +138,26 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-function TldrawEditorBeforeLoading({
-	config,
-	userId,
-	instanceId,
-	store,
-	...props
-}: TldrawEditorProps) {
+function TldrawEditorBeforeLoading({ store, userId, instanceId, ...props }: TldrawEditorProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
-	const [_store, _setStore] = useState<TLStore | SyncedStore>(() => {
-		return (
-			store ??
-			config.createStore({
-				userId: userId ?? UserRecordType.createId(),
-				instanceId: instanceId ?? InstanceRecordType.createId(),
-			})
-		)
-	})
-
-	useEffect(() => {
-		_setStore(() => {
-			return (
-				store ??
-				config.createStore({
-					userId: userId ?? UserRecordType.createId(),
-					instanceId: instanceId ?? InstanceRecordType.createId(),
-				})
-			)
-		})
-	}, [store, config, userId, instanceId])
-
 	let loadedStore: TLStore | SyncedStore
-	if (!(_store instanceof Store)) {
-		if (_store.error) {
+	if (!(store instanceof Store)) {
+		if (store.error) {
 			// for error handling, we fall back to the default error boundary.
 			// if users want to handle this error differently, they can render
 			// their own error screen before the TldrawEditor component
-			throw _store.error
+			throw store.error
 		}
-		if (!_store.store) {
+		if (!store.store) {
 			return <LoadingScreen>Connecting...</LoadingScreen>
 		}
 
-		loadedStore = _store.store
+		loadedStore = store.store
 	} else {
-		loadedStore = _store
+		loadedStore = store
 	}
 
 	if (instanceId && loadedStore.props.instanceId !== instanceId) {
@@ -209,20 +180,20 @@ function TldrawEditorBeforeLoading({
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorAfterLoading {...props} store={loadedStore} config={config} />
+	return <TldrawEditorAfterLoading {...props} store={loadedStore} />
 }
 
 function TldrawEditorAfterLoading({
 	onMount,
-	config,
 	isDarkMode,
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
 	store,
+	tools,
+	shapes,
 	autoFocus,
 }: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
-	config: TldrawEditorConfig
 	store: TLStore
 }) {
 	const container = useContainer()
@@ -233,7 +204,8 @@ function TldrawEditorAfterLoading({
 	React.useLayoutEffect(() => {
 		const app = new App({
 			store,
-			config,
+			shapes,
+			tools,
 			getContainer: () => container,
 		})
 		setApp(app)
@@ -246,7 +218,7 @@ function TldrawEditorAfterLoading({
 			app.dispose()
 			setApp((prevApp) => (prevApp === app ? null : prevApp))
 		}
-	}, [container, config, store, autoFocus])
+	}, [container, shapes, tools, store, autoFocus])
 
 	React.useEffect(() => {
 		if (app) {

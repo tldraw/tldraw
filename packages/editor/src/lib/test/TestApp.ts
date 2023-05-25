@@ -27,7 +27,9 @@ import {
 	TLWheelEventInfo,
 } from '../app/types/event-types'
 import { RequiredKeys } from '../app/types/misc-types'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { createDefaultTldrawEditorStore } from '../config/createDefaultTldrawEditorStore'
+import { DEFAULT_SHAPE_UTILS } from '../config/defaultShapeUtils'
+import { DEFAULT_TOOLS } from '../config/defaultTools'
 
 jest.useFakeTimers()
 
@@ -56,12 +58,13 @@ export const TEST_USER_ID = UserRecordType.createCustomId('testUser1')
 
 export class TestApp extends App {
 	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
+		const { tools, shapes } = options
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
-		const config = options.config ?? new TldrawEditorConfig()
 		super({
-			config,
-			store: config.createStore({
+			shapes: shapes ? [...DEFAULT_SHAPE_UTILS, ...shapes] : DEFAULT_SHAPE_UTILS,
+			tools: tools ? [...DEFAULT_TOOLS, ...tools] : DEFAULT_TOOLS,
+			store: createDefaultTldrawEditorStore({
 				userId: TEST_USER_ID,
 				instanceId: TEST_INSTANCE_ID,
 			}),

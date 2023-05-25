@@ -131,7 +131,12 @@ export {
 	type ReadySyncedStore,
 	type SyncedStore,
 } from './lib/config/SyncedStore'
-export { TldrawEditorConfig } from './lib/config/TldrawEditorConfig'
+export { createDefaultTldrawEditorSchema } from './lib/config/createDefaultTldrawEditorSchema'
+export { createDefaultTldrawEditorStore } from './lib/config/createDefaultTldrawEditorStore'
+export { createTldrawEditorSchema } from './lib/config/createTldrawEditorSchema'
+export { createTldrawEditorStore } from './lib/config/createTldrawEditorStore'
+export { DEFAULT_SHAPE_UTILS } from './lib/config/defaultShapeUtils'
+export { DEFAULT_TOOLS } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,

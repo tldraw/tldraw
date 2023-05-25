@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import { InstanceRecordType, UserRecordType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { createDefaultTldrawEditorStore } from '../config/createDefaultTldrawEditorStore'
+import { DEFAULT_SHAPE_UTILS } from '../config/defaultShapeUtils'
+import { DEFAULT_TOOLS } from '../config/defaultTools'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -19,11 +21,9 @@ afterEach(() => {
 	window.fetch = originalFetch
 })
 
-describe('<Tldraw />', () => {
+describe('<TldrawEditor />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const config = new TldrawEditorConfig()
-
-		const initialStore = config.createStore({
+		const store = createDefaultTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 			userId: UserRecordType.createCustomId('test'),
 		})
@@ -31,7 +31,7 @@ describe('<Tldraw />', () => {
 		const onMount = jest.fn()
 
 		const rendered = render(
-			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor store={store} shapes={DEFAULT_SHAPE_UTILS} tools={DEFAULT_TOOLS}>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -39,11 +39,17 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 		const initialApp = onMount.mock.lastCall[0]
 		jest.spyOn(initialApp, 'dispose')
-		expect(initialApp.store).toBe(initialStore)
+		expect(initialApp.store).toBe(store)
 
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				store={store}
+				shapes={DEFAULT_SHAPE_UTILS}
+				tools={DEFAULT_TOOLS}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -52,12 +58,19 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 
 		// re-render with a new store:
-		const newStore = config.createStore({
+		const newStore = createDefaultTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 			userId: UserRecordType.createCustomId('test'),
 		})
+
 		rendered.rerender(
-			<TldrawEditor config={config} store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				shapes={DEFAULT_SHAPE_UTILS}
+				tools={DEFAULT_TOOLS}
+				store={newStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)

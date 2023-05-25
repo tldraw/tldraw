@@ -8,9 +8,9 @@ import { App } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/tlstore';
 import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/tlstore';
-import { TldrawEditorConfig } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
+import { TLStoreSchema } from '@tldraw/editor';
 import { TLTranslationKey } from '@tldraw/ui';
 import { TLUserId } from '@tldraw/editor';
 import { ToastsContextType } from '@tldraw/ui';
@@ -23,8 +23,8 @@ export function isV1File(data: any): boolean;
 export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ config, json, userId, instanceId, }: {
-    config: TldrawEditorConfig;
+export function parseTldrawJsonFile({ json, userId, instanceId, schema, }: {
+    schema: TLStoreSchema;
     json: string;
     userId: TLUserId;
     instanceId: TLInstanceId;

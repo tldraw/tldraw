@@ -1,19 +1,31 @@
-import { createShapeId, TLBaseShape, TLBoxUtil, Tldraw, TldrawEditorConfig } from '@tldraw/tldraw'
+import {
+	createDefaultTldrawEditorStore,
+	createShapeId,
+	DEFAULT_SHAPE_UTILS,
+	DEFAULT_TOOLS,
+	TLBaseShape,
+	TLBoxUtil,
+	TldrawEditor,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
+
+const store = createDefaultTldrawEditorStore()
 
 export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
+			<TldrawEditor
+				store={store}
 				components={{
 					// disable app-level error boundaries:
 					ErrorFallback: null,
 					// use a custom error fallback for shapes:
 					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>,
 				}}
+				shapes={[...DEFAULT_SHAPE_UTILS, ErrorUtil]}
+				tools={DEFAULT_TOOLS}
 				// below, we define a custom shape that always throws an error so we can see our new error boundary in action
-				config={customConfigWithErrorShape}
 				onMount={(app) => {
 					// when the app starts, create our error shape so we can see
 					// what it looks like:
@@ -54,7 +66,3 @@ class ErrorUtil extends TLBoxUtil<ErrorShape> {
 		throw new Error(`Error shape indicator!`)
 	}
 }
-
-const customConfigWithErrorShape = new TldrawEditorConfig({
-	shapes: [ErrorUtil],
-})

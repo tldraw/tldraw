@@ -1,8 +1,8 @@
-import { SyncedStore, TldrawEditorConfig, TLInstanceId, TLUserId, uniqueId } from '@tldraw/editor'
+import { SyncedStore, TLInstanceId, TLStore, TLUserId, uniqueId } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
+import { TLLocalSyncClient } from '../TLLocalSyncClient'
 import '../hardReset'
 import { subscribeToUserData } from '../persistence-constants'
-import { TLLocalSyncClient } from '../TLLocalSyncClient'
 
 /**
  * This is a temporary solution that will be replaced with the remote sync client once it has the db
@@ -14,21 +14,23 @@ export function useLocalSyncClient({
 	universalPersistenceKey,
 	instanceId,
 	userId,
-	config,
+	store,
 }: {
 	universalPersistenceKey: string
 	instanceId: TLInstanceId
 	userId: TLUserId
-	config: TldrawEditorConfig
+	store: TLStore
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
 
 	useEffect(() => {
 		const id = uniqueId()
+
 		setState({
 			id,
 			syncedStore: { status: 'loading' },
 		})
+
 		const setSyncedStore = (syncedStore: SyncedStore) => {
 			setState((prev) => {
 				if (prev?.id === id) {
@@ -37,8 +39,6 @@ export function useLocalSyncClient({
 				return prev
 			})
 		}
-
-		const store = config.createStore({ userId, instanceId })
 
 		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey,
@@ -57,7 +57,7 @@ export function useLocalSyncClient({
 			userDataUnsubcribe()
 			client.close()
 		}
-	}, [instanceId, universalPersistenceKey, config, userId])
+	}, [instanceId, universalPersistenceKey, store, userId])
 
 	return state?.syncedStore ?? { status: 'loading' }
 }

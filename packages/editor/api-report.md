@@ -27,7 +27,6 @@ import { HistoryEntry } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
-import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrator } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
@@ -35,10 +34,10 @@ import { default as React_3 } from 'react';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
-import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
 import { sortByIndex } from '@tldraw/indices';
+import { Store } from '@tldraw/tlstore';
 import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
@@ -57,7 +56,6 @@ import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
-import { TLDrawShapeSegment } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
@@ -88,6 +86,7 @@ import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
@@ -127,7 +126,7 @@ export type AnimationOptions = Partial<{
 
 // @public (undocumented)
 export class App extends EventEmitter<TLEventMap> {
-    constructor({ config, store, getContainer }: AppOptions);
+    constructor({ store, tools, shapes, getContainer }: AppOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -167,7 +166,6 @@ export class App extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
-    readonly config: TldrawEditorConfig;
     // @internal (undocumented)
     crash(error: unknown): void;
     // @internal
@@ -553,9 +551,10 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 
 // @public (undocumented)
 export interface AppOptions {
-    config: TldrawEditorConfig;
     getContainer: () => HTMLElement;
+    shapes: TLShapeUtilConstructor<any>[];
     store: TLStore;
+    tools?: StateNodeConstructor[];
 }
 
 // @public (undocumented)
@@ -606,6 +605,23 @@ export function createAssetShapeAtPoint(app: App, svgString: string, point: Vec2
 export function createBookmarkShapeAtPoint(app: App, url: string, point: Vec2dModel): Promise<void>;
 
 // @public (undocumented)
+export function createDefaultTldrawEditorSchema(opts?: {
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+}): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
+export function createDefaultTldrawEditorStore(opts?: {
+    schema?: TLStoreSchema | undefined;
+    userId?: ID<TLUser> | undefined;
+    instanceId?: TLInstanceId | undefined;
+    initialData?: StoreSnapshot<TLRecord> | undefined;
+}): Store<TLRecord, {
+userId: ID<TLUser>;
+instanceId: TLInstanceId;
+documentId: ID<TLDocument>;
+}>;
+
+// @public (undocumented)
 export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel, props: {
     width?: number;
     height?: number;
@@ -614,6 +630,27 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 
 // @public (undocumented)
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
+
+// @public (undocumented)
+export function createTldrawEditorSchema(opts?: {
+    migrators?: null | Record<string, Migrator<symbol, symbol>> | undefined;
+    validator?: {
+        validate: (record: TLRecord) => TLRecord;
+    } | null | undefined;
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+}): StoreSchema<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
+export function createTldrawEditorStore(opts?: {
+    schema?: StoreSchema<TLRecord, TLStoreProps> | undefined;
+    userId?: ID<TLUser> | undefined;
+    instanceId?: TLInstanceId | undefined;
+    initialData?: StoreSnapshot<TLRecord> | undefined;
+}): Store<TLRecord, {
+    userId: ID<TLUser>;
+    instanceId: TLInstanceId;
+    documentId: ID<TLDocument>;
+}>;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -647,6 +684,12 @@ export const DEFAULT_BOOKMARK_HEIGHT = 320;
 
 // @internal (undocumented)
 export const DEFAULT_BOOKMARK_WIDTH = 300;
+
+// @public (undocumented)
+export const DEFAULT_SHAPE_UTILS: TLShapeUtilConstructor<any>[];
+
+// @public (undocumented)
+export const DEFAULT_TOOLS: StateNodeConstructor[];
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: EditorAssetUrls;
@@ -1689,7 +1732,7 @@ export type TLBoxLike = TLBaseShape<string, {
 // @public (undocumented)
 export abstract class TLBoxTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_4 | typeof Pointing_3)[];
+    static children: () => (typeof Idle | typeof Pointing)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1789,32 +1832,12 @@ export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
-export class TldrawEditorConfig {
-    constructor(opts?: TldrawEditorConfigOptions);
-    // (undocumented)
-    createStore(config: {
-        initialData?: StoreSnapshot<TLRecord>;
-        userId: TLUserId;
-        instanceId: TLInstanceId;
-    }): TLStore;
-    // (undocumented)
-    readonly migrators: Record<string, Migrator>;
-    // (undocumented)
-    readonly shapes: TLShapeUtilConstructor<any>[];
-    // (undocumented)
-    readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
-    // (undocumented)
-    readonly tools: readonly StateNodeConstructor[];
-}
-
-// @public (undocumented)
 export interface TldrawEditorProps {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     // (undocumented)
     children?: any;
     components?: Partial<TLEditorComponents>;
-    config: TldrawEditorConfig;
     instanceId?: TLInstanceId;
     isDarkMode?: boolean;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
@@ -1824,7 +1847,9 @@ export interface TldrawEditorProps {
         description: string;
     }>;
     onMount?: (app: App) => void;
-    store?: SyncedStore | TLStore;
+    shapes: TLShapeUtilConstructor<any>[];
+    store: SyncedStore | TLStore;
+    tools: StateNodeConstructor[];
     userId?: TLUserId;
 }
 

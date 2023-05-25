@@ -1,4 +1,11 @@
-import { Canvas, TldrawEditor, TldrawEditorConfig, TldrawEditorProps } from '@tldraw/editor'
+import {
+	Canvas,
+	DEFAULT_SHAPE_UTILS,
+	DEFAULT_TOOLS,
+	TldrawEditor,
+	TldrawEditorProps,
+	createDefaultTldrawEditorStore,
+} from '@tldraw/editor'
 import {
 	DEFAULT_DOCUMENT_NAME,
 	TAB_ID,
@@ -6,42 +13,39 @@ import {
 	useLocalSyncClient,
 } from '@tldraw/tlsync-client'
 import { ContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 
 /** @public */
 export function Tldraw(
-	props: Omit<TldrawEditorProps, 'store' | 'config'> &
+	props: Omit<TldrawEditorProps, 'store' | 'shapes' | 'tools'> &
 		TldrawUiContextProviderProps & {
 			/** The key under which to persist this editor's data to local storage. */
 			persistenceKey?: string
 			/** Whether to hide the user interface and only display the canvas. */
 			hideUi?: boolean
-			/** A custom configuration for this Tldraw editor */
-			config?: TldrawEditorProps['config']
 		}
 ) {
 	const {
-		config,
 		children,
+		userId,
 		persistenceKey = DEFAULT_DOCUMENT_NAME,
 		instanceId = TAB_ID,
 		...rest
 	} = props
 
-	const [_config, _setConfig] = useState(() => config ?? new TldrawEditorConfig())
-
-	useEffect(() => {
-		_setConfig(config ?? new TldrawEditorConfig())
-	}, [config])
-
 	const userData = getUserData()
 
-	const userId = props.userId ?? userData.id
+	const _userId = userId ?? userData.id
+
+	const _store = useMemo(
+		() => createDefaultTldrawEditorStore({ userId: _userId, instanceId }),
+		[instanceId, _userId]
+	)
 
 	const syncedStore = useLocalSyncClient({
 		instanceId,
-		userId,
-		config: _config,
+		userId: _userId,
+		store: _store,
 		universalPersistenceKey: persistenceKey,
 	})
 
@@ -51,7 +55,8 @@ export function Tldraw(
 			instanceId={instanceId}
 			userId={userId}
 			store={syncedStore}
-			config={_config}
+			tools={DEFAULT_TOOLS}
+			shapes={DEFAULT_SHAPE_UTILS}
 		>
 			<TldrawUi {...rest}>
 				<ContextMenu>

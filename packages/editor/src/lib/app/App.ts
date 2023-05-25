@@ -77,7 +77,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -127,11 +126,11 @@ import {
 import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
 import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
+import { TLResizeMode, TLShapeUtil, TLShapeUtilConstructor } from './shapeutils/TLShapeUtil'
 import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
-import { StateNode } from './statechart/StateNode'
+import { StateNode, StateNodeConstructor } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
@@ -160,8 +159,14 @@ export interface AppOptions {
 	 * from a server or database.
 	 */
 	store: TLStore
-	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config: TldrawEditorConfig
+	/**
+	 * An array of shape utils to use in the app. These will be used to create and manage shapes in the app.
+	 */
+	shapes: TLShapeUtilConstructor<any>[]
+	/**
+	 * An array of tools to use in the app. These will be used to handle events and manage user interactions in the app.
+	 */
+	tools?: StateNodeConstructor[]
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -176,14 +181,8 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
-	constructor({ config, store, getContainer }: AppOptions) {
+	constructor({ store, tools = [], shapes = [], getContainer }: AppOptions) {
 		super()
-
-		this.config = config
-
-		if (store.schema !== this.config.storeSchema) {
-			throw new Error('Store schema does not match schema given to App')
-		}
 
 		this.store = store
 
@@ -193,7 +192,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Set the shape utils
 		this.shapeUtils = Object.fromEntries(
-			this.config.shapes.map((Util) => [Util.type, new Util(this, Util.type)])
+			shapes.map((Util) => [Util.type, new Util(this, Util.type)])
 		)
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -211,7 +210,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 		if (this.root.children) {
-			this.config.tools.forEach((Ctor) => {
+			tools.forEach((Ctor) => {
 				this.root.children![Ctor.id] = new Ctor(this)
 			})
 		}
@@ -306,13 +305,6 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
-
-	/**
-	 * The editor's config
-	 *
-	 * @public
-	 */
-	readonly config: TldrawEditorConfig
 
 	/**
 	 * The root state of the statechart.
