@@ -2,13 +2,13 @@ import { Migrator, StoreSnapshot } from '@tldraw/tlstore'
 import { TLRecord } from './TLRecord'
 
 /** @public */
-export const storeVersions = {
+export const defaultSnapshotVersions = {
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
 	RemoveTLUserAndPresenceAndAddPointer: 3,
 } as const
 
-const Versions = storeVersions
+const Versions = defaultSnapshotVersions
 
 /** @public */
 export const defaultSnapshotMigrator = new Migrator({

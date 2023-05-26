@@ -3,7 +3,7 @@ import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { imageAssetTypeMigrator } from './assets/TLImageAsset'
 import { videoAssetTypeMigrator } from './assets/TLVideoAsset'
-import { defaultSnapshotMigrator, storeVersions } from './defaultSnapshotMigrator'
+import { defaultSnapshotMigrator, defaultSnapshotVersions } from './defaultSnapshotMigrator'
 import { instanceTypeMigrator, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateTypeMigrator } from './records/TLInstancePageState'
 import { instancePresenceTypeMigrator } from './records/TLInstancePresence'
@@ -214,7 +214,9 @@ describe('Store removing Icon and Code shapes', () => {
 			].map((shape) => [shape.id, shape])
 		)
 		const fixed =
-			defaultSnapshotMigrator.migrators[storeVersions.RemoveCodeAndIconShapeTypes].up(snapshot)
+			defaultSnapshotMigrator.migrators[defaultSnapshotVersions.RemoveCodeAndIconShapeTypes].up(
+				snapshot
+			)
 		expect(Object.entries(fixed)).toHaveLength(1)
 	})
 
@@ -230,7 +232,9 @@ describe('Store removing Icon and Code shapes', () => {
 			].map((shape) => [shape.id, shape])
 		)
 
-		defaultSnapshotMigrator.migrators[storeVersions.RemoveCodeAndIconShapeTypes].down(snapshot)
+		defaultSnapshotMigrator.migrators[defaultSnapshotVersions.RemoveCodeAndIconShapeTypes].down(
+			snapshot
+		)
 		expect(Object.entries(snapshot)).toHaveLength(1)
 	})
 })
@@ -628,7 +632,8 @@ describe('Add crop=null to image shapes', () => {
 })
 
 describe('Adding instance_presence to the schema', () => {
-	const { up, down } = defaultSnapshotMigrator.migrators[storeVersions.AddInstancePresenceType]
+	const { up, down } =
+		defaultSnapshotMigrator.migrators[defaultSnapshotVersions.AddInstancePresenceType]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({})
@@ -911,7 +916,9 @@ describe('Adds delay to scribble', () => {
 describe('user config refactor', () => {
 	test('removes user and user_presence types from snapshots', () => {
 		const { up, down } =
-			defaultSnapshotMigrator.migrators[storeVersions.RemoveTLUserAndPresenceAndAddPointer]
+			defaultSnapshotMigrator.migrators[
+				defaultSnapshotVersions.RemoveTLUserAndPresenceAndAddPointer
+			]
 
 		const prevSnapshot = {
 			'user:123': {

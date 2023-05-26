@@ -126,6 +126,13 @@ export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 export const defaultSnapshotMigrator: Migrator<symbol, 3>;
 
 // @public (undocumented)
+export const defaultSnapshotVersions: {
+    readonly RemoveCodeAndIconShapeTypes: 1;
+    readonly AddInstancePresenceType: 2;
+    readonly RemoveTLUserAndPresenceAndAddPointer: 3;
+};
+
+// @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;
 
 // @public (undocumented)
@@ -466,13 +473,6 @@ export type SmooshedUnionObject<T> = {
 
 // @internal (undocumented)
 export const splineValidator: T.Validator<"cubic" | "line">;
-
-// @public (undocumented)
-export const storeVersions: {
-    readonly RemoveCodeAndIconShapeTypes: 1;
-    readonly AddInstancePresenceType: 2;
-    readonly RemoveTLUserAndPresenceAndAddPointer: 3;
-};
 
 // @public (undocumented)
 export const textShapeTypeMigrator: Migrator<symbol, 1>;
