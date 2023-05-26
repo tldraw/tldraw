@@ -4,12 +4,11 @@ import { TLCursor, TLScribble } from '../ui-types'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
-import { TLUserId } from './TLUser'
 
 /** @public */
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceId> {
 	instanceId: TLInstanceId
-	userId: TLUserId
+	userId: string
 	userName: string
 	lastActivityTimestamp: number
 	color: string // can be any hex color
@@ -19,7 +18,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	brush: Box2dModel | null
 	scribble: TLScribble | null
 	screenBounds: Box2dModel
-	followingUserId: TLUserId | null
+	followingUserId: string | null
 	cursor: {
 		x: number
 		y: number
@@ -63,4 +62,28 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	{
 		scope: 'presence',
 	}
-)
+).withDefaultProperties(() => ({
+	lastActivityTimestamp: 0,
+	followingUserId: null,
+	color: '#FF0000',
+	camera: {
+		x: 0,
+		y: 0,
+		z: 1,
+	},
+	cursor: {
+		x: 0,
+		y: 0,
+		type: 'default',
+		rotation: 0,
+	},
+	screenBounds: {
+		x: 0,
+		y: 0,
+		w: 1,
+		h: 1,
+	},
+	selectedIds: [],
+	brush: null,
+	scribble: null,
+}))

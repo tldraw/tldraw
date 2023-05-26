@@ -9,25 +9,16 @@ interface ToggleToolLockedButtonProps {
 	activeToolId?: string
 }
 
-export const ToggleToolLockedButton = function ToggleToolLockedButton({
-	activeToolId,
-}: ToggleToolLockedButtonProps) {
+const NOT_LOCKABLE_TOOLS = ['select', 'hand', 'draw', 'eraser', 'text', 'zoom', 'laser']
+
+export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
 	const app = useApp()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
 	const isToolLocked = useValue('is tool locked', () => app.instanceState.isToolLocked, [app])
 
-	const isLockable = !(
-		activeToolId === 'select' ||
-		activeToolId === 'hand' ||
-		activeToolId === 'draw' ||
-		activeToolId === 'eraser' ||
-		activeToolId === 'text' ||
-		activeToolId === 'zoom'
-	)
-
-	if (!isLockable) return null
+	if (!activeToolId || NOT_LOCKABLE_TOOLS.includes(activeToolId)) return null
 
 	return (
 		<Button

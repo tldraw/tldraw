@@ -6,12 +6,7 @@ import {
 	TldrawEditorProps,
 	createDefaultTldrawEditorStore,
 } from '@tldraw/editor'
-import {
-	DEFAULT_DOCUMENT_NAME,
-	TAB_ID,
-	getUserData,
-	useLocalSyncClient,
-} from '@tldraw/tlsync-client'
+import { DEFAULT_DOCUMENT_NAME, TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
 import { TldrawContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
 import { useMemo } from 'react'
 
@@ -33,18 +28,10 @@ export function Tldraw(
 		...rest
 	} = props
 
-	const userData = getUserData()
-
-	const _userId = userId ?? userData.id
-
-	const _store = useMemo(
-		() => createDefaultTldrawEditorStore({ userId: _userId, instanceId }),
-		[instanceId, _userId]
-	)
+	const _store = useMemo(() => createDefaultTldrawEditorStore({ instanceId }), [instanceId])
 
 	const syncedStore = useLocalSyncClient({
 		instanceId,
-		userId: _userId,
 		store: _store,
 		universalPersistenceKey: persistenceKey,
 	})

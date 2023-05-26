@@ -33,7 +33,7 @@ export const Minimap = track(function Minimap({
 
 	const minimap = React.useMemo(() => new MinimapManager(app, app.devicePixelRatio), [app])
 
-	const isDarkMode = app.userDocumentSettings.isDarkMode
+	const isDarkMode = app.isDarkMode
 
 	React.useEffect(() => {
 		// Must check after render

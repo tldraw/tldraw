@@ -6,9 +6,8 @@ import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { InstanceRecordType, TLInstanceId } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLInstancePageState'
 import { PageRecordType } from './records/TLPage'
-import { TLUserId, UserRecordType } from './records/TLUser'
+import { TLPOINTER_ID, TLPointer } from './records/TLPointer'
 import { UserDocumentRecordType } from './records/TLUserDocument'
-import { UserPresenceRecordType } from './records/TLUserPresence'
 
 function sortByIndex<T extends { index: string }>(a: T, b: T) {
 	if (a.index < b.index) {
@@ -18,22 +17,6 @@ function sortByIndex<T extends { index: string }>(a: T, b: T) {
 	}
 	return 0
 }
-
-/** @internal */
-export const USER_COLORS = [
-	'#FF802B',
-	'#EC5E41',
-	'#F2555A',
-	'#F04F88',
-	'#E34BA9',
-	'#BD54C6',
-	'#9D5BD2',
-	'#7B66DC',
-	'#02B1CC',
-	'#11B3A3',
-	'#39B178',
-	'#55B467',
-]
 
 function redactRecordForErrorReporting(record: any) {
 	if (record.typeName === 'asset') {
@@ -55,7 +38,6 @@ export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
 export type TLStoreProps = {
-	userId: TLUserId
 	instanceId: TLInstanceId
 	documentId: typeof TLDOCUMENT_ID
 }
@@ -90,10 +72,6 @@ export const onValidationFailure: StoreSchemaOptions<
 	throw error
 }
 
-function getRandomColor() {
-	return USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
-}
-
 function getDefaultPages() {
 	return [PageRecordType.create({ name: 'Page 1', index: 'a1' })]
 }
@@ -101,24 +79,24 @@ function getDefaultPages() {
 /** @internal */
 export function createIntegrityChecker(store: TLStore): () => void {
 	const $pages = store.query.records('page')
-	const $userDocumentSettings = store.query.record('user_document', () => ({
-		userId: { eq: store.props.userId },
-	}))
+	const $userDocumentSettings = store.query.record('user_document')
 
 	const $instanceState = store.query.record('instance', () => ({
 		id: { eq: store.props.instanceId },
 	}))
 
-	const $user = store.query.record('user', () => ({ id: { eq: store.props.userId } }))
-
-	const $userPresences = store.query.records('user_presence')
 	const $instancePageStates = store.query.records('instance_page_state')
 
 	const ensureStoreIsUsable = (): void => {
-		const { userId, instanceId: tabId } = store.props
+		const { instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
 			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID })])
+			return ensureStoreIsUsable()
+		}
+
+		if (!store.has(TLPOINTER_ID)) {
+			store.put([TLPointer.create({ id: TLPOINTER_ID })])
 			return ensureStoreIsUsable()
 		}
 
@@ -126,7 +104,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const userDocumentSettings = $userDocumentSettings.value
 
 		if (!userDocumentSettings) {
-			store.put([UserDocumentRecordType.create({ userId })])
+			store.put([UserDocumentRecordType.create({})])
 			return ensureStoreIsUsable()
 		}
 
@@ -151,7 +129,6 @@ export function createIntegrityChecker(store: TLStore): () => void {
 			store.put([
 				InstanceRecordType.create({
 					id: tabId,
-					userId,
 					currentPageId,
 					propsForNextShape,
 					exportBackground: true,
@@ -169,22 +146,6 @@ export function createIntegrityChecker(store: TLStore): () => void {
 			return ensureStoreIsUsable()
 		}
 
-		// make sure we have a user state record for the current user
-		if (!$user.value) {
-			store.put([UserRecordType.create({ id: userId })])
-			return ensureStoreIsUsable()
-		}
-
-		const userPresences = $userPresences.value.filter((r) => r.userId === userId)
-		if (userPresences.length === 0) {
-			store.put([UserPresenceRecordType.create({ userId, color: getRandomColor() })])
-			return ensureStoreIsUsable()
-		} else if (userPresences.length > 1) {
-			// make sure we don't duplicate user presences
-			store.remove(userPresences.slice(1).map((r) => r.id))
-		}
-
-		// make sure each page has a instancePageState and camera
 		for (const page of pages) {
 			const instancePageStates = $instancePageStates.value.filter(
 				(tps) => tps.pageId === page.id && tps.instanceId === tabId

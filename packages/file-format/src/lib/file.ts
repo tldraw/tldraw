@@ -9,7 +9,6 @@ import {
 	TLRecord,
 	TLStore,
 	TLStoreSchema,
-	TLUserId,
 } from '@tldraw/editor'
 import {
 	ID,
@@ -85,13 +84,11 @@ export type TldrawFileParseError =
 /** @public */
 export function parseTldrawJsonFile({
 	json,
-	userId,
 	instanceId,
 	schema,
 }: {
 	schema: TLStoreSchema
 	json: string
-	userId: TLUserId
 	instanceId: TLInstanceId
 }): Result<TLStore, TldrawFileParseError> {
 	// first off, we parse .json file and check it matches the general shape of
@@ -142,14 +139,7 @@ export function parseTldrawJsonFile({
 	// we should be able to validate them. if any of the records at this stage
 	// are invalid, we don't open the file
 	try {
-		return Result.ok(
-			createTldrawEditorStore({
-				schema,
-				initialData: migrationResult.value,
-				userId,
-				instanceId,
-			})
-		)
+		return Result.ok(createTldrawEditorStore({ initialData: migrationResult.value, instanceId }))
 	} catch (e) {
 		// junk data in the records (they're not validated yet!) could cause the
 		// migrations to crash. We treat any throw from a migration as an
@@ -220,7 +210,6 @@ export async function parseAndLoadDocument(
 		schema: createDefaultTldrawEditorSchema(),
 		json: document,
 		instanceId: app.instanceId,
-		userId: app.userId,
 	})
 	if (!parseFileResult.ok) {
 		let description

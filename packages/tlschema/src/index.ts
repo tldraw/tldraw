@@ -1,6 +1,5 @@
 export { type TLRecord } from './TLRecord'
 export {
-	USER_COLORS,
 	createIntegrityChecker,
 	onValidationFailure,
 	type TLStore,
@@ -12,6 +11,7 @@ export { bookmarkAssetMigrator, type TLBookmarkAsset } from './assets/TLBookmark
 export { imageAssetMigrator, type TLImageAsset } from './assets/TLImageAsset'
 export { videoAssetMigrator, type TLVideoAsset } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
+export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
 export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { defaultMigrators } from './defaultMigrators'
@@ -58,8 +58,8 @@ export {
 	type TLInstancePresence,
 } from './records/TLInstancePresence'
 export { PageRecordType, type TLPage, type TLPageId } from './records/TLPage'
+export { TLPOINTER_ID, TLPointer, type TLPointerId } from './records/TLPointer'
 export {
-	ShapeRecordType,
 	createCustomShapeId,
 	createShapeId,
 	isShape,
@@ -206,6 +206,7 @@ export {
 	type TLStyleType,
 	type TLVerticalAlignType,
 } from './style-types'
+export { getDefaultTranslationLocale } from './translations'
 export {
 	TL_CURSOR_TYPES,
 	TL_HANDLE_TYPES,
@@ -242,5 +243,4 @@ export {
 	shapeIdValidator,
 	sizeValidator,
 	splineValidator,
-	userIdValidator,
 } from './validation'

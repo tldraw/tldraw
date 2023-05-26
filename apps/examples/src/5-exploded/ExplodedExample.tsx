@@ -7,7 +7,6 @@ import {
 	TldrawEditor,
 	TldrawUi,
 	createDefaultTldrawEditorStore,
-	getUserData,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -18,12 +17,9 @@ const instanceId = InstanceRecordType.createCustomId('example')
 const store = createDefaultTldrawEditorStore()
 
 export default function Example() {
-	const userData = getUserData()
-
 	const syncedStore = useLocalSyncClient({
 		store,
 		instanceId,
-		userId: userData.id,
 		universalPersistenceKey: 'exploded-example',
 	})
 
@@ -31,7 +27,6 @@ export default function Example() {
 		<div className="tldraw__editor">
 			<TldrawEditor
 				instanceId={instanceId}
-				userId={userData.id}
 				store={syncedStore}
 				shapes={DEFAULT_SHAPE_UTILS}
 				tools={DEFAULT_TOOLS}

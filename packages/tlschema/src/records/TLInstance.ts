@@ -4,7 +4,6 @@ import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
 import { TLCursor, TLScribble } from '../ui-types'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
-import { TLUserId } from './TLUser'
 
 /** @public */
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
@@ -17,9 +16,8 @@ export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
  * @public
  */
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
-	userId: TLUserId
 	currentPageId: TLPageId
-	followingUserId: TLUserId | null
+	followingUserId: string | null
 	brush: Box2dModel | null
 	propsForNextShape: TLInstancePropsForNextShape
 	cursor: TLCursor
@@ -46,11 +44,14 @@ const Versions = {
 	AddZoom: 8,
 	AddVerticalAlign: 9,
 	AddScribbleDelay: 10,
+	RemoveUserId: 11,
 } as const
+
+export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceTypeMigrator = new Migrator({
-	currentVersion: Versions.AddScribbleDelay,
+	currentVersion: Versions.RemoveUserId,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -180,6 +181,14 @@ export const instanceTypeMigrator = new Migrator({
 				return { ...instance }
 			},
 		},
+		[Versions.RemoveUserId]: {
+			up: ({ userId: _, ...instance }: any) => {
+				return instance
+			},
+			down: (instance: TLInstance) => {
+				return { ...instance, userId: 'user:none' }
+			},
+		},
 	},
 })
 
@@ -187,7 +196,7 @@ export const instanceTypeMigrator = new Migrator({
 export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 	scope: 'instance',
 }).withDefaultProperties(
-	(): Omit<TLInstance, 'typeName' | 'id' | 'userId' | 'currentPageId'> => ({
+	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
 		propsForNextShape: {
 			opacity: '1',

@@ -11,7 +11,7 @@ import { useApp } from './useApp'
 export function usePeerIds() {
 	const app = useApp()
 	const $presences = useMemo(() => {
-		return app.store.query.records('instance_presence')
+		return app.store.query.records('instance_presence', () => ({ userId: { neq: app.user.id } }))
 	}, [app])
 
 	const $userIds = useComputed(

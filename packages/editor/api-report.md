@@ -94,10 +94,7 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLUser } from '@tldraw/tlschema';
 import { TLUserDocument } from '@tldraw/tlschema';
-import { TLUserId } from '@tldraw/tlschema';
-import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/tlstore';
@@ -128,7 +125,7 @@ export type AnimationOptions = Partial<{
 
 // @public (undocumented)
 export class App extends EventEmitter<TLEventMap> {
-    constructor({ store, tools, shapes, getContainer }: AppOptions);
+    constructor({ store, user, tools, shapes, getContainer }: AppOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -368,6 +365,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
+    get locale(): string;
     // (undocumented)
     lockShapes(_ids?: TLShapeId[]): this;
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
@@ -467,6 +465,7 @@ export class App extends EventEmitter<TLEventMap> {
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
+    setLocale(locale: string): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
@@ -495,7 +494,7 @@ export class App extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: TLUserId) => this | undefined;
+    startFollowingUser: (userId: string) => this | undefined;
     stopCameraAnimation(): this;
     stopFollowingUser: () => this;
     readonly store: TLStore;
@@ -511,22 +510,12 @@ export class App extends EventEmitter<TLEventMap> {
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
-    updateUser(partial: Partial<TLUser>): void;
     updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral?: boolean): this;
-    // (undocumented)
-    updateUserPresence: ({ cursor, color, viewportPageBounds, }?: {
-        cursor?: undefined | Vec2dModel;
-        color?: string | undefined;
-        viewportPageBounds?: Box2dModel | undefined;
-    }) => void;
     updateViewportScreenBounds(center?: boolean): this;
-    get user(): TLUser;
+    // @internal (undocumented)
+    readonly user: UserPreferencesManager;
     // (undocumented)
     get userDocumentSettings(): TLUserDocument;
-    get userId(): TLUserId;
-    // (undocumented)
-    get userPresence(): TLUserPresence | undefined;
-    get userSettings(): TLUser;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
@@ -554,9 +543,10 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 // @public (undocumented)
 export interface AppOptions {
     getContainer: () => HTMLElement;
-    shapes: TLShapeUtilConstructor<any>[];
+    shapes?: TLShapeUtilConstructor<any>[];
     store: TLStore;
     tools?: StateNodeConstructor[];
+    user?: TldrawEditorUser;
 }
 
 // @public (undocumented)
@@ -609,11 +599,9 @@ export function createDefaultTldrawEditorSchema(opts?: {
 // @public (undocumented)
 export function createDefaultTldrawEditorStore(opts?: {
     schema?: TLStoreSchema | undefined;
-    userId?: ID<TLUser> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
 }): Store<TLRecord, {
-userId: ID<TLUser>;
 instanceId: TLInstanceId;
 documentId: ID<TLDocument>;
 }>;
@@ -634,20 +622,24 @@ export function createTldrawEditorSchema(opts?: {
     validator?: {
         validate: (record: TLRecord) => TLRecord;
     } | null | undefined;
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export function createTldrawEditorStore(opts?: {
     schema?: StoreSchema<TLRecord, TLStoreProps> | undefined;
-    userId?: ID<TLUser> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
 }): Store<TLRecord, {
-    userId: ID<TLUser>;
     instanceId: TLInstanceId;
     documentId: ID<TLDocument>;
 }>;
+
+// @public (undocumented)
+export function createTldrawEditorUser(opts?: {
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+}): TldrawEditorUser;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -1841,7 +1833,6 @@ export interface TldrawEditorProps {
     children?: any;
     components?: Partial<TLEditorComponents>;
     instanceId?: TLInstanceId;
-    isDarkMode?: boolean;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
     onCreateBookmarkFromUrl?: (url: string) => Promise<{
         image: string;
@@ -1852,7 +1843,16 @@ export interface TldrawEditorProps {
     shapes: TLShapeUtilConstructor<any>[];
     store: SyncedStore | TLStore;
     tools: StateNodeConstructor[];
-    userId?: TLUserId;
+}
+
+// @public (undocumented)
+export interface TldrawEditorUser {
+    // (undocumented)
+    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public (undocumented)
@@ -2687,16 +2687,19 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
-export function usePeerIds(): ID<TLUser>[];
+export function usePeerIds(): string[];
 
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
 
 // @internal (undocumented)
-export function usePresence(userId: TLUserId): null | TLInstancePresence;
+export function usePresence(userId: string): null | TLInstancePresence;
 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
+
+// @internal (undocumented)
+export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;

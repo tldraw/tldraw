@@ -12,7 +12,6 @@ import { TLInstanceId } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSchema } from '@tldraw/editor';
 import { TLTranslationKey } from '@tldraw/ui';
-import { TLUserId } from '@tldraw/editor';
 import { ToastsContextType } from '@tldraw/ui';
 import { UnknownRecord } from '@tldraw/tlstore';
 
@@ -23,10 +22,9 @@ export function isV1File(data: any): boolean;
 export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ json, userId, instanceId, schema, }: {
+export function parseTldrawJsonFile({ json, instanceId, schema, }: {
     schema: TLStoreSchema;
     json: string;
-    userId: TLUserId;
     instanceId: TLInstanceId;
 }): Result<TLStore, TldrawFileParseError>;
 

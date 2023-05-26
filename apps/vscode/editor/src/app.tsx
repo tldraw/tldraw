@@ -7,7 +7,6 @@ import {
 	setRuntimeOverrides,
 	TldrawCanvas,
 	TldrawEditor,
-	TLUserId,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
@@ -99,7 +98,6 @@ export const TldrawWrapper = () => {
 						assetSrc: message.data.assetSrc,
 						fileContents: message.data.fileContents,
 						uri: message.data.uri,
-						userId: message.data.userId as TLUserId,
 						isDarkMode: message.data.isDarkMode,
 					})
 					// We only want to listen for this message once
@@ -129,17 +127,15 @@ export type TLDrawInnerProps = {
 	assetSrc: string
 	fileContents: string
 	uri: string
-	userId: TLUserId
 	isDarkMode: boolean
 }
 
-function TldrawInner({ uri, assetSrc, userId, isDarkMode, fileContents }: TLDrawInnerProps) {
+function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const instanceId = TAB_ID
 
 	const syncedStore = useLocalSyncClient({
 		universalPersistenceKey: uri,
 		instanceId,
-		userId,
 		store, // created outside of react scope
 	})
 
@@ -151,20 +147,14 @@ function TldrawInner({ uri, assetSrc, userId, isDarkMode, fileContents }: TLDraw
 			instanceId={TAB_ID}
 			shapes={DEFAULT_SHAPE_UTILS}
 			tools={DEFAULT_TOOLS}
-			userId={userId}
 			store={syncedStore}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen
-					instanceId={instanceId}
-					userId={userId}
-					fileContents={fileContents}
-					forceDarkMode={isDarkMode}
-				/>
-				<ChangeResponder syncedStore={syncedStore} userId={userId} instanceId={instanceId} />
+				<FileOpen instanceId={instanceId} fileContents={fileContents} forceDarkMode={isDarkMode} />
+				<ChangeResponder syncedStore={syncedStore} instanceId={instanceId} />
 				<TldrawContextMenu>
 					<TldrawCanvas />
 				</TldrawContextMenu>

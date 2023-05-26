@@ -9,9 +9,7 @@ export function LanguageMenu() {
 	const { languages, currentLanguage } = useLanguages()
 
 	const handleLanguageSelect = useCallback(
-		(locale: TLTranslationLocale) => {
-			app.updateUser({ locale })
-		},
+		(locale: TLTranslationLocale) => app.setLocale(locale),
 		[app]
 	)
 

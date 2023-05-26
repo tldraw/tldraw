@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { InstanceRecordType, UserRecordType } from '@tldraw/tlschema'
+import { InstanceRecordType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { createDefaultTldrawEditorStore } from '../config/createDefaultTldrawEditorStore'
 import { DEFAULT_SHAPE_UTILS } from '../config/defaultShapeUtils'
@@ -25,7 +25,6 @@ describe('<TldrawEditor />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
 		const store = createDefaultTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
-			userId: UserRecordType.createCustomId('test'),
 		})
 
 		const onMount = jest.fn()
@@ -65,7 +64,6 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createDefaultTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
-			userId: UserRecordType.createCustomId('test'),
 		})
 
 		rendered.rerender(

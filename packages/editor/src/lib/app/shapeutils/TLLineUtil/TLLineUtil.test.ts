@@ -2,8 +2,10 @@ import { createCustomShapeId, TLGeoShape, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { TestApp } from '../../../test/TestApp'
 
-let i = 0
-jest.mock('nanoid', () => ({ nanoid: () => 'id' + i++ }))
+jest.mock('nanoid', () => {
+	let i = 0
+	return { nanoid: () => 'id' + i++ }
+})
 
 let app: TestApp
 const id = createCustomShapeId('line1')

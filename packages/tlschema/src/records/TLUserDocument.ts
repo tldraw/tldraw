@@ -1,7 +1,6 @@
 import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { TLInstance } from './TLInstance'
 import { TLPage } from './TLPage'
-import { TLUserId } from './TLUser'
 
 /**
  * TLUserDocument
@@ -11,10 +10,8 @@ import { TLUserId } from './TLUser'
  * @public
  */
 export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
-	userId: TLUserId
 	isPenMode: boolean
 	isGridMode: boolean
-	isDarkMode: boolean
 	isMobileMode: boolean
 	isSnapMode: boolean
 	lastUpdatedPageId: ID<TLPage> | null
@@ -28,11 +25,14 @@ export const Versions = {
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
 	RemoveIsReadOnly: 3,
+	RemoveUserIdAndIsDarkMode: 4,
 } as const
+
+export { Versions as userDocumentVersions }
 
 /** @public */
 export const userdocumentTypeMigrator = new Migrator({
-	currentVersion: Versions.RemoveIsReadOnly,
+	currentVersion: Versions.RemoveUserIdAndIsDarkMode,
 	migrators: {
 		[Versions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
@@ -58,6 +58,18 @@ export const userdocumentTypeMigrator = new Migrator({
 				return { ...userDocument, isReadOnly: false }
 			},
 		},
+		[Versions.RemoveUserIdAndIsDarkMode]: {
+			up: ({
+				userId: _,
+				isDarkMode: __,
+				...userDocument
+			}: TLUserDocument & { userId: string; isDarkMode: boolean }) => {
+				return userDocument
+			},
+			down: (userDocument: TLUserDocument) => {
+				return { ...userDocument, userId: 'user:none', isDarkMode: false }
+			},
+		},
 	},
 })
 /* STEP 4: Add your changes to the record type */
@@ -71,12 +83,9 @@ export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_doc
 		/* STEP 6: Add any new default values for properties here */
 		isPenMode: false,
 		isGridMode: false,
-		isDarkMode: false,
 		isMobileMode: false,
 		isSnapMode: false,
 		lastUpdatedPageId: null,
 		lastUsedTabId: null,
 	})
 )
-
-export { Versions as userDocumentVersions }

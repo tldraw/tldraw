@@ -131,6 +131,7 @@ export {
 	type ReadySyncedStore,
 	type SyncedStore,
 } from './lib/config/SyncedStore'
+export { USER_COLORS } from './lib/config/TLUserPreferences'
 export { createDefaultTldrawEditorSchema } from './lib/config/createDefaultTldrawEditorSchema'
 export { createDefaultTldrawEditorStore } from './lib/config/createDefaultTldrawEditorStore'
 export { createTldrawEditorSchema } from './lib/config/createTldrawEditorSchema'

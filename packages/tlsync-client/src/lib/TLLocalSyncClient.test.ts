@@ -85,7 +85,7 @@ test('the client connects on instantiation, announcing its schema', async () => 
 	expect(msg).toMatchObject({ type: 'announce', schema: { recordVersions: {} } })
 })
 
-test('when a client receives an annouce with a newer schema version it reloads itself', async () => {
+test('when a client receives an announce with a newer schema version it reloads itself', async () => {
 	const { client, channel, onLoadError } = testClient()
 	await tick()
 	jest.advanceTimersByTime(10000)
@@ -103,7 +103,7 @@ test('when a client receives an annouce with a newer schema version it reloads i
 	expect(onLoadError).not.toHaveBeenCalled()
 })
 
-test('when a client receives an annouce with a newer schema version shortly after loading it does not reload but instead reports a loadError', async () => {
+test('when a client receives an announce with a newer schema version shortly after loading it does not reload but instead reports a loadError', async () => {
 	const { client, channel, onLoadError } = testClient()
 	await tick()
 	jest.advanceTimersByTime(1000)

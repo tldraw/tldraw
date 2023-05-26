@@ -3,7 +3,6 @@ import {
 	createDefaultTldrawEditorSchema,
 	InstanceRecordType,
 	TLStoreSchema,
-	UserRecordType,
 } from '@tldraw/editor'
 import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
 import { assert } from '@tldraw/utils'
@@ -13,7 +12,6 @@ const parseTldrawJsonFile = (schema: TLStoreSchema, json: string) =>
 	_parseTldrawJsonFile({
 		schema,
 		json,
-		userId: UserRecordType.createCustomId('user'),
 		instanceId: InstanceRecordType.createCustomId('instance'),
 	})
 
@@ -28,7 +26,7 @@ describe('parseTldrawJsonFile', () => {
 		expect(result.error.type).toBe('notATldrawFile')
 	})
 
-	it('returns an error if the file doesnt look like a tldraw file', () => {
+	it("returns an error if the file doesn't look like a tldraw file", () => {
 		const result = parseTldrawJsonFile(
 			createDefaultTldrawEditorSchema(),
 			JSON.stringify({ not: 'a tldraw file' })

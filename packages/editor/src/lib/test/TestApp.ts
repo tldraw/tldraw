@@ -13,7 +13,6 @@ import {
 	PageRecordType,
 	TLShapeId,
 	TLShapePartial,
-	UserRecordType,
 	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
@@ -54,7 +53,6 @@ declare global {
 	}
 }
 export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
-export const TEST_USER_ID = UserRecordType.createCustomId('testUser1')
 
 export class TestApp extends App {
 	constructor(options = {} as Partial<AppOptions>) {
@@ -67,7 +65,6 @@ export class TestApp extends App {
 			store:
 				store ??
 				createDefaultTldrawEditorStore({
-					userId: TEST_USER_ID,
 					instanceId: TEST_INSTANCE_ID,
 				}),
 			getContainer: () => elm,

@@ -1,4 +1,4 @@
-import { TLAsset, TLInstanceId, TLStore, TLUserId } from '@tldraw/tlschema'
+import { TLAsset, TLInstanceId, TLStore } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
@@ -28,11 +28,6 @@ import { useZoomCss } from './hooks/useZoomCss'
 /** @public */
 export interface TldrawEditorProps {
 	/**
-	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
-	 * from a server or database.
-	 */
-	store: TLStore | SyncedStore
-	/**
 	 * An array of shape utils to use in the editor.
 	 */
 	shapes: TLShapeUtilConstructor<any>[]
@@ -42,8 +37,6 @@ export interface TldrawEditorProps {
 	tools: StateNodeConstructor[]
 	/** Overrides for the tldraw components */
 	components?: Partial<TLEditorComponents>
-	/** Whether to display the dark mode. */
-	isDarkMode?: boolean
 	/**
 	 * Called when the editor has mounted.
 	 *
@@ -92,8 +85,11 @@ export interface TldrawEditorProps {
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
 
-	/** The id of the current user. If not given, one will be generated. */
-	userId?: TLUserId
+	/**
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
+	 * from a server or database.
+	 */
+	store: TLStore | SyncedStore
 	/**
 	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
 	 * tab). If not given, one will be generated.
@@ -140,7 +136,6 @@ export function TldrawEditor(props: TldrawEditorProps) {
 
 const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 	store,
-	userId,
 	instanceId,
 	...props
 }: TldrawEditorProps) {
@@ -172,12 +167,6 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 		)
 	}
 
-	if (userId && loadedStore.props.userId !== userId) {
-		console.error(
-			`The store's userId (${loadedStore.props.userId}) does not match the userId prop (${userId}). This may cause unexpected behavior.`
-		)
-	}
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
@@ -191,7 +180,6 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 
 function TldrawEditorAfterLoading({
 	onMount,
-	isDarkMode,
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
@@ -238,14 +226,6 @@ function TldrawEditorAfterLoading({
 			app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
 		}
 	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
-
-	React.useEffect(() => {
-		if (!app) return
-		// Set the initial theme state.
-		if (isDarkMode !== undefined) {
-			app.updateUserDocumentSettings({ isDarkMode })
-		}
-	}, [app, isDarkMode])
 
 	React.useLayoutEffect(() => {
 		if (!app) return
