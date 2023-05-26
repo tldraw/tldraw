@@ -1,4 +1,4 @@
-import { defineMigrations } from '../migrate'
+import { Migrator } from '../Migrator'
 
 const Versions = {
 	Initial: 0,
@@ -11,7 +11,7 @@ describe('define migrations tests', () => {
 	it('defines migrations', () => {
 		expect(() => {
 			// no versions
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error first version without current version
 				firstVersion: Versions.Initial,
 			})
@@ -19,7 +19,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// no versions
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error first version without current version
 				firstVersion: Versions.February,
 			})
@@ -27,7 +27,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// empty migrators
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error
 				migrators: {},
 			})
@@ -35,7 +35,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// no versions!
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error
 				migrators: {
 					[Versions.February]: {
@@ -48,7 +48,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// wrong current version!
-			defineMigrations({
+			new Migrator({
 				currentVersion: Versions.January,
 				migrators: {
 					// @ts-expect-error
@@ -61,7 +61,7 @@ describe('define migrations tests', () => {
 		}).not.toThrowError()
 
 		expect(() => {
-			defineMigrations({
+			new Migrator({
 				currentVersion: Versions.February,
 				migrators: {
 					// has a default zero version
@@ -80,7 +80,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// can't provide only first version
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error first version without current version
 				firstVersion: Versions.January,
 				// @ts-expect-error migrators without current version
@@ -90,7 +90,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// same version
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.Initial,
 				migrators: {},
@@ -99,7 +99,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// only first version
-			defineMigrations({
+			new Migrator({
 				// @ts-expect-error
 				firstVersion: Versions.January,
 				// @ts-expect-error
@@ -109,7 +109,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing only version
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.January,
 				currentVersion: Versions.January,
 				// @ts-expect-error
@@ -119,7 +119,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// only version, explicit start and current
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.January,
 				currentVersion: Versions.January,
 				migrators: {
@@ -133,7 +133,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing later versions
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.January,
 				currentVersion: Versions.February,
 				// @ts-expect-error
@@ -143,7 +143,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing later versions
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
 				// @ts-expect-error
@@ -158,7 +158,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// missing earlier versions
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
 				// @ts-expect-error
@@ -173,7 +173,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// got em all
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.Initial,
 				currentVersion: Versions.February,
 				migrators: {
@@ -191,7 +191,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// got em all starting later
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.January,
 				currentVersion: Versions.March,
 				migrators: {
@@ -209,7 +209,7 @@ describe('define migrations tests', () => {
 
 		expect(() => {
 			// first migration should be first version + 1
-			defineMigrations({
+			new Migrator({
 				firstVersion: Versions.February,
 				currentVersion: Versions.March,
 				migrators: {

@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLAssetId } from '../records/TLAsset'
@@ -52,7 +52,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const imageShapeTypeMigrations = defineMigrations({
+export const imageShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

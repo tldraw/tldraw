@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
@@ -34,7 +34,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const bookmarkShapeTypeMigrations = defineMigrations({
+export const bookmarkShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.NullAssetId,
 	migrators: {
 		[Versions.NullAssetId]: {

@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLColorType, TLDashType, TLFillType, TLOpacityType, TLSizeType } from '../style-types'
@@ -63,7 +63,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const drawShapeTypeMigrations = defineMigrations({
+export const drawShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddInPen,
 	migrators: {
 		[Versions.AddInPen]: {

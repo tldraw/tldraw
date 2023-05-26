@@ -1,6 +1,5 @@
-import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
+import { ID, Migrator, UnknownRecord } from '@tldraw/tlstore'
 import { nanoid } from 'nanoid'
-import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
@@ -14,6 +13,7 @@ import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
+import { TLBaseShape } from '../shapes/shape-validation'
 import { SmooshedUnionObject } from '../util-types'
 import { TLPageId } from './TLPage'
 
@@ -79,7 +79,7 @@ const Versions = {
 } as const
 
 /** @internal */
-export const rootShapeTypeMigrations = defineMigrations({
+export const rootShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddIsLocked,
 	migrators: {
 		[Versions.AddIsLocked]: {

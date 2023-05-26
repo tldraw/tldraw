@@ -27,7 +27,6 @@ import { HistoryEntry } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
-import { Migrations } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';

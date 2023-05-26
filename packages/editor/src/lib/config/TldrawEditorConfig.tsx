@@ -11,7 +11,7 @@ import {
 	TLStoreProps,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
+import { RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal, computed } from 'signia'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
@@ -57,7 +57,6 @@ export type TldrawEditorConfigOptions = {
 		{
 			util: TLShapeUtilConstructor<any>
 			validator?: { validate: <T>(record: T) => T }
-			migrations?: Migrations
 		}
 	>
 	/** @internal */

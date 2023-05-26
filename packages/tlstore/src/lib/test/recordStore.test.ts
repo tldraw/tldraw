@@ -1,5 +1,6 @@
 import { Computed, react, RESET_VALUE, transact } from 'signia'
 import { BaseRecord, ID } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -38,11 +39,7 @@ describe('Store', () => {
 					author: Author,
 				},
 				{
-					snapshotMigrations: {
-						currentVersion: 0,
-						firstVersion: 0,
-						migrators: {},
-					},
+					snapshotMigrator: new Migrator(),
 				}
 			),
 		})

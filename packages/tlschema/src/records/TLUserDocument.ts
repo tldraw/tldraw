@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { idValidator, instanceIdValidator, pageIdValidator } from '../validation'
 import { TLInstance } from './TLInstance'
@@ -48,7 +48,7 @@ export const Versions = {
 export { Versions as userDocumentVersions }
 
 /** @public */
-export const userDocumentTypeMigrations = defineMigrations({
+export const userDocumentTypeMigrator = new Migrator({
 	currentVersion: Versions.RemoveUserIdAndIsDarkMode,
 	migrators: {
 		[Versions.AddSnapMode]: {
@@ -94,7 +94,6 @@ export const userDocumentTypeMigrations = defineMigrations({
 /* STEP 5: Add up + down migrations for your new version */
 /** @public */
 export const TLUserDocument = createRecordType<TLUserDocument>('user_document', {
-	migrations: userDocumentTypeMigrations,
 	validator: userDocumentTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 
 /**
@@ -35,4 +35,4 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 export const TLDOCUMENT_ID: ID<TLDocument> = TLDocument.createCustomId('document')
 
 /** @public */
-export const documentTypeMigrations = defineMigrations({})
+export const documentTypeMigrator = new Migrator()

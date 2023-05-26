@@ -1,6 +1,7 @@
 import { atom, EffectScheduler, RESET_VALUE } from 'signia'
 import { BaseRecord, ID, IdOf, UnknownRecord } from '../BaseRecord'
 import { executeQuery } from '../executeQuery'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, Store } from '../Store'
 import { RSIndexDiff } from '../StoreQueries'
@@ -334,11 +335,7 @@ function runTest(seed: number) {
 				author: Author,
 			},
 			{
-				snapshotMigrations: {
-					currentVersion: 0,
-					firstVersion: 0,
-					migrators: {},
-				},
+				snapshotMigrator: new Migrator(),
 			}
 		),
 	})

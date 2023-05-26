@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { createAssetValidator, TLBaseAsset } from './asset-validation'
 
@@ -26,4 +26,4 @@ export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAs
 )
 
 /** @public */
-export const bookmarkAssetMigrations = defineMigrations({})
+export const bookmarkAssetTypeMigrator = new Migrator()

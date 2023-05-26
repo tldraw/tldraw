@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
 import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
@@ -103,7 +103,7 @@ const Versions = {
 export { Versions as instanceTypeVersions }
 
 /** @public */
-export const instanceTypeMigrations = defineMigrations({
+export const instanceTypeMigrator = new Migrator({
 	currentVersion: Versions.RemoveUserId,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -247,7 +247,6 @@ export const instanceTypeMigrations = defineMigrations({
 
 /** @public */
 export const TLInstance = createRecordType<TLInstance>('instance', {
-	migrations: instanceTypeMigrations,
 	validator: instanceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

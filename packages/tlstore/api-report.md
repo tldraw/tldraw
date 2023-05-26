@@ -40,25 +40,9 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
-    migrations?: Migrations;
     validator?: StoreValidator<R>;
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
-
-// @public (undocumented)
-export function defineMigrations<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL>(opts: {
-    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
-    currentVersion?: CurrentVersion;
-    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
-    } : {
-        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration;
-    } : {
-        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
-    } : never;
-    subTypeKey?: string;
-    subTypeMigrations?: Record<string, BaseMigrationsInfo>;
-}): Migrations;
 
 // @public
 export function devFreeze<T>(object: T): T;
@@ -96,22 +80,6 @@ export class IncrementalSetConstructor<T> {
 }
 
 // @public (undocumented)
-export function migrate<T>({ value, migrations, fromVersion, toVersion, }: {
-    value: unknown;
-    migrations: Migrations;
-    fromVersion: number;
-    toVersion: number;
-}): MigrationResult<T>;
-
-// @public (undocumented)
-export function migrateRecord<R extends UnknownRecord>({ record, migrations, fromVersion, toVersion, }: {
-    record: unknown;
-    migrations: Migrations;
-    fromVersion: number;
-    toVersion: number;
-}): MigrationResult<R>;
-
-// @public (undocumented)
 export type Migration<Before = any, After = any> = {
     up: (oldState: Before) => After;
     down: (newState: After) => Before;
@@ -143,12 +111,66 @@ export type MigrationResult<T> = {
 };
 
 // @public (undocumented)
-export interface Migrations extends BaseMigrationsInfo {
+export class Migrator<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL> {
+    constructor(opts?: MigratorOptions<FirstVersion, CurrentVersion>);
+    // (undocumented)
+    currentVersion: number;
+    // (undocumented)
+    firstVersion: number;
+    // (undocumented)
+    migrateRecord<R extends BaseRecord<any, any>>(record: R, direction: 'down' | 'up', version: number): MigrationResult<R>;
+    // (undocumented)
+    migrateSnapshot<T>(value: unknown, direction: 'down' | 'up', version: number): MigrationResult<T>;
+    // (undocumented)
+    migrators: {
+        [version: number]: Migration;
+    };
+    // (undocumented)
+    serialize(): {
+        version: number;
+        subTypeKey: string;
+        subTypeVersions: {
+            [k: string]: number;
+        } | undefined;
+    } | {
+        version: number;
+        subTypeKey?: undefined;
+        subTypeVersions?: undefined;
+    };
+    // (undocumented)
+    serializeEarliestVersion(): {
+        version: number;
+        subTypeKey: string;
+        subTypeVersions: {
+            [k: string]: number;
+        } | undefined;
+    } | {
+        version: number;
+        subTypeKey?: undefined;
+        subTypeVersions?: undefined;
+    };
     // (undocumented)
     subTypeKey?: string;
     // (undocumented)
-    subTypeMigrations?: Record<string, BaseMigrationsInfo>;
+    subTypeMigrators?: Record<string, Migrator>;
+    // (undocumented)
+    withSubTypeMigrators(subTypeKey: string, subTypeMigrators: Record<string, Migrator>): this;
 }
+
+// @public (undocumented)
+export type MigratorOptions<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL> = {
+    firstVersion?: CurrentVersion extends number ? FirstVersion : never;
+    currentVersion?: CurrentVersion;
+    migrators?: CurrentVersion extends number ? FirstVersion extends number ? CurrentVersion extends FirstVersion ? {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+    } : {
+        [version in Exclude<Range_2<FirstVersion, CurrentVersion>, FirstVersion>]: Migration;
+    } : {
+        [version in Exclude<Range_2<1, CurrentVersion>, 0>]: Migration;
+    } : never;
+    subTypeKey?: string;
+    subTypeMigrators?: Record<string, Migrator>;
+};
 
 // @public
 export type RecordsDiff<R extends UnknownRecord> = {
@@ -162,7 +184,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     constructor(
     typeName: R['typeName'], config: {
         readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-        readonly migrations: Migrations;
         readonly validator?: {
             validate: (r: unknown) => R;
         } | StoreValidator<R>;
@@ -176,8 +197,6 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     createId(): IdOf<R>;
     isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
-    // (undocumented)
-    readonly migrations: Migrations;
     parseId(id: string): IdOf<R>;
     // (undocumented)
     readonly scope: Scope;
@@ -292,6 +311,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     migrateStoreSnapshot(storeSnapshot: StoreSnapshot<R>, persistedSchema: SerializedSchema): MigrationResult<StoreSnapshot<R>>;
     // (undocumented)
+    migrators: {
+        [TypeName in R['typeName']]: Migrator;
+    };
+    // (undocumented)
     serialize(): SerializedSchema;
     // (undocumented)
     serializeEarliestVersion(): SerializedSchema;
@@ -305,7 +328,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 // @public (undocumented)
 export type StoreSchemaOptions<R extends UnknownRecord, P> = {
-    snapshotMigrations?: Migrations;
+    snapshotMigrator?: Migrator;
     onValidationFailure?: (data: {
         error: unknown;
         store: Store<R>;
@@ -313,6 +336,9 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         recordBefore: null | R;
     }) => R;
+    migrators?: {
+        [TypeName in R['typeName']]?: Migrator;
+    } | null;
     createIntegrityChecker?: (store: Store<R, P>) => void;
 };
 

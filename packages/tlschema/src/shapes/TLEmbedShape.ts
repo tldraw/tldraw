@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLOpacityType } from '../style-types'
 import { opacityValidator } from '../validation'
@@ -609,7 +609,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const embedShapeTypeMigrations = defineMigrations({
+export const embedShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.GenOriginalUrlInEmbed,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {

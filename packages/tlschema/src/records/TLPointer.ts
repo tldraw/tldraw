@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { idValidator } from '../validation'
 
@@ -44,4 +44,4 @@ export const TLPointer = createRecordType<TLPointer>('pointer', {
 export const TLPOINTER_ID = TLPointer.createCustomId('pointer')
 
 /** @public */
-export const pointerTypeMigrations = defineMigrations({})
+export const pointerTypeMigrator = new Migrator()

@@ -1,18 +1,17 @@
 import { assert } from '@tldraw/utils'
 import { BaseRecord, ID } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../migrate'
 
 /** A user of tldraw */
 interface User extends BaseRecord<'user', ID<User>> {
 	name: string
 }
 
-const userMigrations = defineMigrations({})
+const userMigrator = new Migrator()
 
 const User = createRecordType<User>('user', {
-	migrations: userMigrations,
 	validator: {
 		validate: (record) => {
 			assert(
@@ -42,15 +41,14 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeTypeMigrations = defineMigrations({
+const shapeTypeMigrator = new Migrator({
 	subTypeKey: 'type',
-	subTypeMigrations: {
-		rectangle: defineMigrations({}),
+	subTypeMigrators: {
+		rectangle: new Migrator(),
 	},
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(
@@ -77,7 +75,6 @@ interface Org extends BaseRecord<'org', ID<Org>> {
 }
 
 const Org = createRecordType<Org>('org', {
-	migrations: defineMigrations({}),
 	validator: {
 		validate: (record) => {
 			assert(
@@ -96,6 +93,10 @@ export const testSchemaV0 = StoreSchema.create(
 		org: Org,
 	},
 	{
-		snapshotMigrations: defineMigrations({}),
+		snapshotMigrator: new Migrator(),
+		migrators: {
+			shape: shapeTypeMigrator,
+			user: userMigrator,
+		},
 	}
 )

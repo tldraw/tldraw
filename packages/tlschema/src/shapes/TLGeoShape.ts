@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import {
 	TLAlignType,
@@ -78,7 +78,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const geoShapeTypeMigrations = defineMigrations({
+export const geoShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

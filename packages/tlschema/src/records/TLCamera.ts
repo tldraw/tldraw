@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { idValidator } from '../validation'
 
@@ -41,4 +41,4 @@ export const TLCamera = createRecordType<TLCamera>('camera', {
 )
 
 /** @public */
-export const cameraTypeMigrations = defineMigrations({})
+export const cameraTypeMigrator = new Migrator()

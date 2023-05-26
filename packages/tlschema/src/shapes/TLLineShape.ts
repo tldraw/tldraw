@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLColorType, TLDashType, TLOpacityType, TLSizeType, TLSplineType } from '../style-types'
 import { TLHandle, handleTypeValidator } from '../ui-types'
@@ -40,4 +40,4 @@ export const lineShapeTypeValidator: T.Validator<TLLineShape> = createShapeValid
 )
 
 /** @public */
-export const lineShapeTypeMigrations = defineMigrations({})
+export const lineShapeTypeMigrator = new Migrator()

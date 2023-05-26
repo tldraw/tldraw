@@ -1,9 +1,9 @@
 import { assert } from '@tldraw/utils'
 import { BaseRecord, ID } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { StoreSnapshot } from '../Store'
 import { StoreSchema } from '../StoreSchema'
-import { defineMigrations } from '../migrate'
 
 const UserVersion = {
 	AddLocale: 1,
@@ -17,7 +17,7 @@ interface User extends BaseRecord<'user', ID<User>> {
 	phoneNumber: string | null
 }
 
-const userMigrations = defineMigrations({
+const userTypeMigrator = new Migrator({
 	currentVersion: UserVersion.AddPhoneNumber,
 	migrators: {
 		[UserVersion.AddLocale]: {
@@ -46,7 +46,6 @@ const userMigrations = defineMigrations({
 })
 
 const User = createRecordType<User>('user', {
-	migrations: userMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -101,7 +100,7 @@ interface OvalProps {
 	borderStyle: 'solid' | 'dashed'
 }
 
-const shapeTypeMigrations = defineMigrations({
+const shapeTypeMigrator = new Migrator({
 	currentVersion: ShapeVersion.AddParent,
 	migrators: {
 		[ShapeVersion.AddRotation]: {
@@ -128,8 +127,8 @@ const shapeTypeMigrations = defineMigrations({
 		},
 	},
 	subTypeKey: 'type',
-	subTypeMigrations: {
-		rectangle: defineMigrations({
+	subTypeMigrators: {
+		rectangle: new Migrator({
 			currentVersion: RectangleVersion.AddOpacity,
 			migrators: {
 				[RectangleVersion.AddOpacity]: {
@@ -150,7 +149,7 @@ const shapeTypeMigrations = defineMigrations({
 				},
 			},
 		}),
-		oval: defineMigrations({
+		oval: new Migrator({
 			currentVersion: OvalVersion.AddBorderStyle,
 			migrators: {
 				[OvalVersion.AddBorderStyle]: {
@@ -175,7 +174,6 @@ const shapeTypeMigrations = defineMigrations({
 })
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
-	migrations: shapeTypeMigrations,
 	validator: {
 		validate: (record) => {
 			assert(record && typeof record === 'object')
@@ -199,7 +197,7 @@ const StoreVersions = {
 	RemoveOrg: 1,
 }
 
-const snapshotMigrations = defineMigrations({
+const snapshotMigrator = new Migrator({
 	currentVersion: StoreVersions.RemoveOrg,
 	migrators: {
 		[StoreVersions.RemoveOrg]: {
@@ -220,6 +218,10 @@ export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 		shape: Shape,
 	},
 	{
-		snapshotMigrations,
+		snapshotMigrator,
+		migrators: {
+			shape: shapeTypeMigrator,
+			user: userTypeMigrator,
+		},
 	}
 )

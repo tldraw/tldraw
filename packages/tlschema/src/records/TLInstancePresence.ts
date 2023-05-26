@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
 import { cursorTypeValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
@@ -68,7 +68,7 @@ const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
-export const instancePresenceTypeMigrations = defineMigrations({
+export const instancePresenceTypeMigrator = new Migrator({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddScribbleDelay]: {
@@ -91,7 +91,6 @@ export const instancePresenceTypeMigrations = defineMigrations({
 
 /** @public */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
-	migrations: instancePresenceTypeMigrations,
 	validator: instancePresenceTypeValidator,
 	scope: 'presence',
 }).withDefaultProperties(() => ({

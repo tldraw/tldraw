@@ -149,10 +149,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	constructor(config: {
 		/** The store's initial data. */
 		initialData?: StoreSnapshot<R>
-		/**
-		 * A map of validators for each record type. A record's validator will be called when the record
-		 * is created or updated. It should throw an error if the record is invalid.
-		 */
 		schema: StoreSchema<R, Props>
 		props: Props
 	}) {

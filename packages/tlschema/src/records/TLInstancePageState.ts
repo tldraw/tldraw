@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { idValidator, instanceIdValidator, pageIdValidator, shapeIdValidator } from '../validation'
 import { TLCamera, TLCameraId } from './TLCamera'
@@ -51,7 +51,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const instancePageStateMigrations = defineMigrations({
+export const instancePageStateTypeMigrator = new Migrator({
 	currentVersion: Versions.AddCroppingId,
 	migrators: {
 		[Versions.AddCroppingId]: {
@@ -67,7 +67,6 @@ export const instancePageStateMigrations = defineMigrations({
 
 /** @public */
 export const TLInstancePageState = createRecordType<TLInstancePageState>('instance_page_state', {
-	migrations: instancePageStateMigrations,
 	validator: instancePageStateTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

@@ -1,4 +1,5 @@
 import { BaseRecord, ID, IdOf } from '../BaseRecord'
+import { Migrator } from '../Migrator'
 import { createRecordType } from '../RecordType'
 import { Store, StoreSnapshot } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -51,11 +52,7 @@ const schema = StoreSchema.create<Book | Author>(
 		author: Author,
 	},
 	{
-		snapshotMigrations: {
-			currentVersion: 0,
-			firstVersion: 0,
-			migrators: {},
-		},
+		snapshotMigrator: new Migrator(),
 	}
 )
 

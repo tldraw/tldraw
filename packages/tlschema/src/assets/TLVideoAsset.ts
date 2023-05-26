@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { createAssetValidator, TLBaseAsset } from './asset-validation'
 
@@ -36,7 +36,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const videoAssetMigrations = defineMigrations({
+export const videoAssetTypeMigrator = new Migrator({
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {
 		[Versions.AddIsAnimated]: {

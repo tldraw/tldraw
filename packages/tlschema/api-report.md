@@ -6,7 +6,7 @@
 
 import { BaseRecord } from '@tldraw/tlstore';
 import { ID } from '@tldraw/tlstore';
-import { Migrations } from '@tldraw/tlstore';
+import { Migrator } from '@tldraw/tlstore';
 import { RecordType } from '@tldraw/tlstore';
 import { Signal } from 'signia';
 import { Store } from '@tldraw/tlstore';
@@ -23,7 +23,7 @@ export const alignValidator: T.Validator<"end" | "middle" | "start">;
 export const arrowheadValidator: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const arrowShapeTypeMigrations: Migrations;
+export const arrowShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const arrowShapeTypeValidator: T.Validator<TLArrowShape>;
@@ -35,19 +35,16 @@ export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal>;
 export const assetIdValidator: T.Validator<TLAssetId>;
 
 // @public (undocumented)
-export const assetTypeMigrations: Migrations;
-
-// @public (undocumented)
 export const assetTypeValidator: T.Validator<TLAsset>;
 
 // @public (undocumented)
-export const bookmarkAssetMigrations: Migrations;
+export const bookmarkAssetTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset>;
 
 // @public (undocumented)
-export const bookmarkShapeTypeMigrations: Migrations;
+export const bookmarkShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const bookmarkShapeTypeValidator: T.Validator<TLBookmarkShape>;
@@ -126,10 +123,13 @@ export const cursorValidator: T.Validator<TLCursor>;
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
+export const defaultSnapshotMigrator: Migrator<symbol, 3>;
+
+// @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;
 
 // @public (undocumented)
-export const drawShapeTypeMigrations: Migrations;
+export const drawShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const drawShapeTypeValidator: T.Validator<TLDrawShape>;
@@ -322,7 +322,7 @@ export type EmbedDefinition = {
 };
 
 // @public (undocumented)
-export const embedShapeTypeMigrations: Migrations;
+export const embedShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape>;
@@ -340,13 +340,13 @@ export function fixupRecord(oldRecord: TLRecord): {
 export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
-export const frameShapeTypeMigrations: Migrations;
+export const frameShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const frameShapeTypeValidator: T.Validator<TLFrameShape>;
 
 // @public (undocumented)
-export const geoShapeTypeMigrations: Migrations;
+export const geoShapeTypeMigrator: Migrator<symbol, 6>;
 
 // @public (undocumented)
 export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
@@ -358,7 +358,7 @@ export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-righ
 export function getDefaultTranslationLocale(): TLTranslationLocale;
 
 // @public (undocumented)
-export const groupShapeTypeMigrations: Migrations;
+export const groupShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
@@ -367,7 +367,7 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 export const handleTypeValidator: T.Validator<TLHandle>;
 
 // @public (undocumented)
-export const iconShapeTypeMigrations: Migrations;
+export const iconShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const iconShapeTypeValidator: T.Validator<TLIconShape>;
@@ -379,13 +379,13 @@ export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" 
 export function idValidator<Id extends ID<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
-export const imageAssetMigrations: Migrations;
+export const imageAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
 export const imageAssetTypeValidator: T.Validator<TLImageAsset>;
 
 // @public (undocumented)
-export const imageShapeTypeMigrations: Migrations;
+export const imageShapeTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
 export const imageShapeTypeValidator: T.Validator<TLImageShape>;
@@ -394,13 +394,13 @@ export const imageShapeTypeValidator: T.Validator<TLImageShape>;
 export const instanceIdValidator: T.Validator<TLInstanceId>;
 
 // @public (undocumented)
-export const instancePageStateMigrations: Migrations;
+export const instancePageStateTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const instancePageStateTypeValidator: T.Validator<TLInstancePageState>;
 
 // @public (undocumented)
-export const instanceTypeMigrations: Migrations;
+export const instanceTypeMigrator: Migrator<symbol, 11>;
 
 // @public (undocumented)
 export const instanceTypeValidator: T.Validator<TLInstance>;
@@ -412,13 +412,13 @@ export function isShape(record?: UnknownRecord): record is TLShape;
 export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
-export const lineShapeTypeMigrations: Migrations;
+export const lineShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const lineShapeTypeValidator: T.Validator<TLLineShape>;
 
 // @public (undocumented)
-export const noteShapeTypeMigrations: Migrations;
+export const noteShapeTypeMigrator: Migrator<symbol, 3>;
 
 // @public (undocumented)
 export const noteShapeTypeValidator: T.Validator<TLNoteShape>;
@@ -441,8 +441,11 @@ export const parentIdValidator: T.Validator<TLParentId>;
 // @public (undocumented)
 export const pointerTypeValidator: T.Validator<TLPointer>;
 
+// @public (undocumented)
+export const rootAssetTypeMigrator: Migrator<symbol, symbol>;
+
 // @internal (undocumented)
-export const rootShapeTypeMigrations: Migrations;
+export const rootShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const scribbleTypeValidator: T.Validator<TLScribble>;
@@ -465,10 +468,14 @@ export type SmooshedUnionObject<T> = {
 export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @public (undocumented)
-export const storeMigrations: Migrations;
+export const storeVersions: {
+    readonly RemoveCodeAndIconShapeTypes: 1;
+    readonly AddInstancePresenceType: 2;
+    readonly RemoveTLUserAndPresenceAndAddPointer: 3;
+};
 
 // @public (undocumented)
-export const textShapeTypeMigrations: Migrations;
+export const textShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const textShapeTypeValidator: T.Validator<TLTextShape>;
@@ -1340,7 +1347,7 @@ export type TLVideoShapeProps = {
 export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
-export const userDocumentTypeMigrations: Migrations;
+export const userDocumentTypeMigrator: Migrator<symbol, 4>;
 
 // @public (undocumented)
 export const userDocumentTypeValidator: T.Validator<TLUserDocument>;
@@ -1356,13 +1363,13 @@ export interface Vec2dModel {
 }
 
 // @public (undocumented)
-export const videoAssetMigrations: Migrations;
+export const videoAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
 export const videoAssetTypeValidator: T.Validator<TLVideoAsset>;
 
 // @public (undocumented)
-export const videoShapeTypeMigrations: Migrations;
+export const videoShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
 export const videoShapeTypeValidator: T.Validator<TLVideoShape>;

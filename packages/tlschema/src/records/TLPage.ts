@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { pageIdValidator } from '../validation'
 
@@ -33,4 +33,4 @@ export const TLPage = createRecordType<TLPage>('page', {
 })
 
 /** @public */
-export const pageTypeMigrations = defineMigrations({})
+export const pageTypeMigrator = new Migrator()

@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
@@ -38,7 +38,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const videoShapeTypeMigrations = defineMigrations({
+export const videoShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddUrlProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

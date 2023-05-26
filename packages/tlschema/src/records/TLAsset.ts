@@ -1,13 +1,21 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { createRecordType, ID, Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLBaseAsset } from '../assets/asset-validation'
 import {
-	bookmarkAssetMigrations,
+	bookmarkAssetTypeMigrator,
 	bookmarkAssetTypeValidator,
 	TLBookmarkAsset,
 } from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
+import {
+	imageAssetTypeMigrator,
+	imageAssetTypeValidator,
+	TLImageAsset,
+} from '../assets/TLImageAsset'
+import {
+	TLVideoAsset,
+	videoAssetTypeMigrator,
+	videoAssetTypeValidator,
+} from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 // --- DEFINITION ---
@@ -25,12 +33,12 @@ export const assetTypeValidator: T.Validator<TLAsset> = T.model(
 )
 
 /** @public */
-export const assetTypeMigrations = defineMigrations({
+export const rootAssetTypeMigrator = new Migrator({
 	subTypeKey: 'type',
-	subTypeMigrations: {
-		image: imageAssetMigrations,
-		video: videoAssetMigrations,
-		bookmark: bookmarkAssetMigrations,
+	subTypeMigrators: {
+		image: imageAssetTypeMigrator,
+		video: videoAssetTypeMigrator,
+		bookmark: bookmarkAssetTypeMigrator,
 	},
 })
 
@@ -45,7 +53,6 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 
 /** @public */
 export const TLAsset = createRecordType<TLAsset>('asset', {
-	migrations: assetTypeMigrations,
 	validator: assetTypeValidator,
 	scope: 'document',
 })

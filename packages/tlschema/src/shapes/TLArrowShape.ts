@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLShapeId } from '../records/TLShape'
@@ -110,7 +110,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const arrowShapeTypeMigrations = defineMigrations({
+export const arrowShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.AddLabelColor,
 	migrators: {
 		[Versions.AddLabelColor]: {

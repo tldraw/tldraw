@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
 import {
@@ -47,7 +47,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const textShapeTypeMigrations = defineMigrations({
+export const textShapeTypeMigrator = new Migrator({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.RemoveJustify]: {

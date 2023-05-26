@@ -1,5 +1,5 @@
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { defineMigrations, migrate } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
@@ -38,7 +38,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object({
 	isDarkMode: T.boolean,
 })
 
-const userTypeMigrations = defineMigrations({})
+const userTypeMigrator = new Migrator()
 
 /** @internal */
 export const USER_COLORS = [
@@ -79,12 +79,11 @@ function migrateUserPreferences(userData: unknown) {
 		return getFreshUserPreferences()
 	}
 
-	const migrationResult = migrate<TLUserPreferences>({
-		value: userData.user,
-		fromVersion: userData.version,
-		toVersion: userTypeMigrations.currentVersion ?? 0,
-		migrations: userTypeMigrations,
-	})
+	const migrationResult = userTypeMigrator.migrateSnapshot<TLUserPreferences>(
+		userData.user,
+		'up',
+		userData.version
+	)
 
 	if (migrationResult.type === 'error') {
 		return getFreshUserPreferences()
@@ -116,7 +115,7 @@ function storeUserPreferences() {
 		window.localStorage.setItem(
 			USER_DATA_KEY,
 			JSON.stringify({
-				version: userTypeMigrations.currentVersion,
+				version: userTypeMigrator.currentVersion,
 				user: globalUserPreferences.value,
 			})
 		)
@@ -153,7 +152,7 @@ function broadcastUserPreferencesChange() {
 		origin: broadcastOrigin,
 		data: {
 			user: globalUserPreferences.value,
-			version: userTypeMigrations.currentVersion,
+			version: userTypeMigrator.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }

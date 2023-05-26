@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { Migrator } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLColorType, TLDashType, TLIconType, TLOpacityType, TLSizeType } from '../style-types'
 import {
@@ -37,4 +37,4 @@ export const iconShapeTypeValidator: T.Validator<TLIconShape> = createShapeValid
 )
 
 /** @public */
-export const iconShapeTypeMigrations = defineMigrations({})
+export const iconShapeTypeMigrator = new Migrator()
