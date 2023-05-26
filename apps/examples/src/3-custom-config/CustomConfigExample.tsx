@@ -11,7 +11,6 @@ import {
 	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
-	createTldrawEditorStore,
 	menuItem,
 	toolbarItem,
 } from '@tldraw/tldraw'
@@ -98,13 +97,12 @@ export class CardTool extends TLBoxTool {
 
 const tools = [...DEFAULT_TOOLS, CardTool]
 const shapes = [...DEFAULT_SHAPE_UTILS, CardUtil]
-const store = createTldrawEditorStore()
 
 // ... and we can make our custom shape example!
 export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor autoFocus tools={tools} shapes={shapes} store={store}>
+			<TldrawEditor autoFocus tools={tools} shapes={shapes}>
 				<TldrawUi
 					overrides={{
 						tools(app, tools) {

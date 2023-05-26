@@ -1597,7 +1597,7 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
-export type SyncedStore = ErrorSyncedStore | InitializingSyncedStore | ReadySyncedStore;
+export type SyncedStore = ErrorSyncedStore | InitializingSyncedStore | ReadyNotSyncedStore | ReadySyncedStore;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -1841,7 +1841,7 @@ export interface TldrawEditorProps {
     }>;
     onMount?: (app: App) => void;
     shapes: TLShapeUtilConstructor<any>[];
-    store: SyncedStore | TLStore;
+    store?: SyncedStore | TLStore;
     tools: StateNodeConstructor[];
 }
 

@@ -3,7 +3,6 @@ import {
 	DEFAULT_TOOLS,
 	TldrawCanvas,
 	TldrawEditor,
-	createDefaultTldrawEditorStore,
 	useApp,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -11,12 +10,10 @@ import { useEffect } from 'react'
 import { track } from 'signia-react'
 import './custom-ui.css'
 
-const store = createDefaultTldrawEditorStore()
-
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor store={store} shapes={DEFAULT_SHAPE_UTILS} tools={DEFAULT_TOOLS} autoFocus>
+			<TldrawEditor shapes={DEFAULT_SHAPE_UTILS} tools={DEFAULT_TOOLS} autoFocus>
 				<TldrawCanvas />
 				<CustomUi />
 			</TldrawEditor>

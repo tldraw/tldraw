@@ -14,7 +14,7 @@ export function useLocalSyncClient({
 	instanceId,
 	store,
 }: {
-	universalPersistenceKey: string
+	universalPersistenceKey?: string
 	instanceId: TLInstanceId
 	store: TLStore
 }): SyncedStore {
@@ -22,6 +22,14 @@ export function useLocalSyncClient({
 
 	useEffect(() => {
 		const id = uniqueId()
+
+		if (!universalPersistenceKey) {
+			setState({
+				id,
+				syncedStore: { store, status: 'not-synced' },
+			})
+			return
+		}
 
 		setState({
 			id,

@@ -7,19 +7,15 @@ import {
 	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
-	createDefaultTldrawEditorStore,
 	createShapeId,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const store = createDefaultTldrawEditorStore()
-
 export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				store={store}
 				components={{
 					// disable app-level error boundaries:
 					ErrorFallback: null,

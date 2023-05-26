@@ -1,14 +1,14 @@
 import { TLAsset, TLInstanceId, TLStore } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { memo, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 
 import { SyncedStore } from './config/SyncedStore'
 
-import { StateNodeConstructor, TLShapeUtilConstructor } from '..'
+import { StateNodeConstructor, TLShapeUtilConstructor, createTldrawEditorStore } from '..'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -89,7 +89,7 @@ export interface TldrawEditorProps {
 	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
-	store: TLStore | SyncedStore
+	store?: TLStore | SyncedStore
 	/**
 	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
 	 * tab). If not given, one will be generated.
@@ -135,30 +135,32 @@ export function TldrawEditor(props: TldrawEditorProps) {
 }
 
 const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
-	store,
 	instanceId,
+	store,
 	...props
 }: TldrawEditorProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
+	const _store = useMemo(() => store ?? createTldrawEditorStore(), [store])
+
 	let loadedStore: TLStore | SyncedStore
 
-	if (!(store instanceof Store)) {
-		if (store.error) {
+	if (!(_store instanceof Store)) {
+		if (_store.error) {
 			// for error handling, we fall back to the default error boundary.
 			// if users want to handle this error differently, they can render
 			// their own error screen before the TldrawEditor component
-			throw store.error
+			throw _store.error
 		}
-		if (!store.store) {
+		if (!_store.store) {
 			return <LoadingScreen>Connecting...</LoadingScreen>
 		}
 
-		loadedStore = store.store
+		loadedStore = _store.store
 	} else {
-		loadedStore = store
+		loadedStore = _store
 	}
 
 	if (instanceId && loadedStore.props.instanceId !== instanceId) {
@@ -187,7 +189,7 @@ function TldrawEditorAfterLoading({
 	tools,
 	shapes,
 	autoFocus,
-}: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
+}: Omit<TldrawEditorProps, 'instanceId'> & {
 	store: TLStore
 }) {
 	const { ErrorFallback } = useEditorComponents()
@@ -196,7 +198,7 @@ function TldrawEditorAfterLoading({
 
 	useEffect(() => {
 		const app = new App({
-			store,
+			store: store ?? createTldrawEditorStore(),
 			shapes,
 			tools,
 			getContainer: () => container,
