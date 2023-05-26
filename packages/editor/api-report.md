@@ -611,89 +611,20 @@ export function dataTransferItemAsString(item: DataTransferItem): Promise<string
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @internal (undocumented)
-export type DebugFlag<Def extends DebugFlagDefBase<any>> = Def & {
-    value: DefValue<Def>;
-    set: (value: DefValue<Def>) => void;
-};
-
-// @internal (undocumented)
-export interface DebugFlagDefBase<T> {
-    // (undocumented)
-    defaults: Defaults<T>;
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    shouldStoreForSession: boolean;
-}
+export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
 
 // @internal (undocumented)
 export const debugFlags: {
-    peopleMenu: DebugFlag<{
-        isFeatureFlag: true;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: true;
-    }>;
-    preventDefaultLogging: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    pointerCaptureLogging: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    pointerCaptureTracking: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    pointerCaptureTrackingObject: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<Map<Element, number>>;
-        shouldStoreForSession: boolean;
-    }>;
-    elementRemovalLogging: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    debugSvg: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    throwToBlob: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    logMessages: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<never[]>;
-        shouldStoreForSession: boolean;
-    }>;
-    resetConnectionEveryPing: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
-    debugCursors: DebugFlag<{
-        isFeatureFlag: false;
-        name: string;
-        defaults: Defaults<boolean>;
-        shouldStoreForSession: boolean;
-    }>;
+    preventDefaultLogging: DebugFlag<boolean>;
+    pointerCaptureLogging: DebugFlag<boolean>;
+    pointerCaptureTracking: DebugFlag<boolean>;
+    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
+    elementRemovalLogging: DebugFlag<boolean>;
+    debugSvg: DebugFlag<boolean>;
+    throwToBlob: DebugFlag<boolean>;
+    logMessages: DebugFlag<never[]>;
+    resetConnectionEveryPing: DebugFlag<boolean>;
+    debugCursors: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -784,6 +715,11 @@ export interface ErrorSyncedStore {
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @internal (undocumented)
+export const featureFlags: {
+    peopleMenu: DebugFlag<boolean>;
+};
 
 // @public
 export function fileToBase64(file: Blob): Promise<string>;

@@ -1,15 +1,20 @@
-import { atom, react } from 'signia'
+import { Atom, atom, react } from 'signia'
 
 // --- 1. DEFINE ---
-// Define your debug flags here. Call `createDebugValue` with the name you want
-// your value to be available as on `window` and the initial value. If you don't
-// want your value to be stored in session storage, pass `false` as the 3rd arg
+//
+// Define your debug values and feature flags here. Use `createDebugValue` to
+// create an arbitrary value with defaults for production, staging, and
+// development. Use `createFeatureFlag` to create a boolean flag which will be
+// `true` by default in development and staging, and `false` in production.
+/** @internal */
+export const featureFlags = {
+	// todo: remove this. it's not used, but we only have one feature flag and i
+	// wanted an example :(
+	peopleMenu: createFeatureFlag('peopleMenu'),
+} satisfies Record<string, DebugFlag<boolean>>
 
 /** @internal */
 export const debugFlags = {
-	// --- FEATURE FLAGS ---
-	peopleMenu: createFeatureFlag('peopleMenu'),
-
 	// --- DEBUG VALUES ---
 	preventDefaultLogging: createDebugValue('preventDefaultLogging', {
 		defaults: { all: false },
@@ -63,7 +68,8 @@ if (typeof window !== 'undefined') {
 // In normal code, read from debug flags directly by calling .value on them:
 //    if (debugFlags.preventDefaultLogging.value) { ... }
 //
-// In react, wrap your reads in `useValue` so they react to changes:
+// In react, wrap your reads in `useValue` (or your component in `track`)
+// so they react to changes:
 //    const shouldLog = useValue(debugFlags.preventDefaultLogging)
 
 // --- 3. GET FUNKY ---
@@ -95,7 +101,6 @@ function createDebugValue<T>(
 	}: { defaults: Defaults<T>; shouldStoreForSession?: boolean }
 ) {
 	return createDebugValueBase({
-		isFeatureFlag: false,
 		name,
 		defaults,
 		shouldStoreForSession,
@@ -106,26 +111,23 @@ function createFeatureFlag(
 	defaults: Defaults<boolean> = { all: true, production: false }
 ) {
 	return createDebugValueBase({
-		isFeatureFlag: true,
 		name,
 		defaults,
 		shouldStoreForSession: true,
 	})
 }
 
-function createDebugValueBase<Def extends DebugFlagDef<any> | FeatureFlagDef>(
-	def: Def
-): DebugFlag<Def> {
+function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
 	const storedValue = def.shouldStoreForSession
-		? (getStoredInitialValue(def.name) as DefValue<Def> | null)
+		? (getStoredInitialValue(def.name) as T | null)
 		: null
-	const value = atom(`debug:${def.name}`, storedValue ?? defaultValue)
+	const valueAtom = atom(`debug:${def.name}`, storedValue ?? defaultValue)
 
 	if (typeof window !== 'undefined') {
 		if (def.shouldStoreForSession) {
 			react(`debug:${def.name}`, () => {
-				const currentValue = value.value
+				const currentValue = valueAtom.value
 				try {
 					if (currentValue === defaultValue) {
 						window.sessionStorage.removeItem(`tldraw_debug:${def.name}`)
@@ -138,26 +140,18 @@ function createDebugValueBase<Def extends DebugFlagDef<any> | FeatureFlagDef>(
 			})
 		}
 
-		Object.defineProperty(window, `tldraw_${def.name}`, {
+		Object.defineProperty(window, `tldraw${def.name.replace(/^[a-z]/, (l) => l.toUpperCase())}`, {
 			get() {
-				return value.value
+				return valueAtom.value
 			},
 			set(newValue) {
-				value.set(newValue)
+				valueAtom.set(newValue)
 			},
 			configurable: true,
 		})
 	}
 
-	return {
-		...def,
-		get value() {
-			return value.value
-		},
-		set(newValue) {
-			return value.set(newValue)
-		},
-	}
+	return Object.assign(valueAtom, def)
 }
 
 function getStoredInitialValue(name: string) {
@@ -168,7 +162,7 @@ function getStoredInitialValue(name: string) {
 	}
 }
 
-function getDefaultValue<Def extends DebugFlagDefBase<any>>(def: Def): DefValue<Def> {
+function getDefaultValue<T>(def: DebugFlagDef<T>): T {
 	const p = typeof process !== 'undefined' ? process : null
 	const env =
 		(import.meta as any)?.env?.TLDRAW_ENV ??
@@ -195,29 +189,11 @@ interface Defaults<T> {
 }
 
 /** @internal */
-export interface DebugFlagDefBase<T> {
+export interface DebugFlagDef<T> {
 	name: string
 	defaults: Defaults<T>
 	shouldStoreForSession: boolean
 }
 
 /** @internal */
-export interface DebugFlagDef<T> extends DebugFlagDefBase<T> {
-	isFeatureFlag: false
-}
-
-/** @internal */
-export interface FeatureFlagDef extends DebugFlagDefBase<boolean> {
-	isFeatureFlag: true
-}
-
-type DefValue<Def extends DebugFlagDefBase<any>> = Def extends DebugFlagDefBase<infer T>
-	? T
-	: boolean
-
-/** @internal */
-export type DebugFlag<Def extends DebugFlagDefBase<any>> = Def & {
-	value: DefValue<Def>
-	set: (value: DefValue<Def>) => void
-	// def: Def
-}
+export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>

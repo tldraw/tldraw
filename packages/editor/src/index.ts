@@ -209,7 +209,7 @@ export {
 	snapToGrid,
 	uniqueId,
 } from './lib/utils/data'
-export { debugFlags, type DebugFlag, type DebugFlagDefBase } from './lib/utils/debug-flags'
+export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {
 	loopToHtmlElement,
 	preventDefault,

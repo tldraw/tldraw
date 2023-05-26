@@ -1,8 +1,8 @@
 import {
 	App,
 	DebugFlag,
-	DebugFlagDefBase,
 	debugFlags,
+	featureFlags,
 	hardResetApp,
 	TLShapePartial,
 	uniqueId,
@@ -207,11 +207,8 @@ const DebugMenuContent = track(function DebugMenuContent({
 				/>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				{Object.values(debugFlags).map((flag) => {
-					if (flag.isFeatureFlag) {
-						return <DebugFlagToggle key={flag.name} flag={flag} />
-					}
-					return null
+				{Object.values(featureFlags).map((flag) => {
+					return <DebugFlagToggle key={flag.name} flag={flag} />
 				})}
 			</DropdownMenu.Group>
 			{renderDebugMenuItems?.()}
@@ -239,7 +236,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 	flag,
 	onChange,
 }: {
-	flag: DebugFlag<DebugFlagDefBase<boolean>>
+	flag: DebugFlag<boolean>
 	onChange?: (newValue: boolean) => void
 }) {
 	return (
