@@ -97,12 +97,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						'clipboard-actions',
 						menuItem(actions['cut'], { disabled: noneSelected }),
 						menuItem(actions['copy'], { disabled: noneSelected }),
-						{
-							id: 'MENU_PASTE',
-							type: 'custom',
-							disabled: !showMenuPaste,
-							readonlyOk: false,
-						}
+						menuItem(actions['paste'], { disabled: !showMenuPaste })
 					),
 					menuGroup(
 						'conversions',

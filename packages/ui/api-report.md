@@ -1025,10 +1025,10 @@ export function useLanguages(): {
 export function useLocalStorageState<T = any>(key: string, defaultValue: T): readonly [T, (setter: ((value: T) => T) | T) => void];
 
 // @public (undocumented)
-export function useMenuClipboardEvents(source: TLUiEventSource): {
-    copy: () => void;
-    cut: () => void;
-    paste: (data: ClipboardItem[] | DataTransfer, point?: VecLike) => Promise<void>;
+export function useMenuClipboardEvents(): {
+    copy: (source: TLUiEventSource) => void;
+    cut: (source: TLUiEventSource) => void;
+    paste: (data: ClipboardItem[] | DataTransfer, source: TLUiEventSource, point?: VecLike) => Promise<void>;
 };
 
 // @public (undocumented)
