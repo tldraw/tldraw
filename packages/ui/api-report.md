@@ -609,30 +609,30 @@ export interface TLDialog {
 }
 
 // @public (undocumented)
-export function TldrawContextMenu({ children }: TldrawContextMenuProps): JSX.Element;
+export const TldrawEditorUi: React_2.NamedExoticComponent<{
+    shareZone?: ReactNode;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+    children?: ReactNode;
+    hideUi?: boolean | undefined;
+} & TldrawEditorUiContextProviderProps>;
 
 // @public (undocumented)
-export interface TldrawContextMenuProps {
+export const TldrawEditorUiContent: React_2.NamedExoticComponent<TldrawEditorUiContentProps>;
+
+// @public (undocumented)
+export function TldrawEditorUiContextMenu({ children }: TldrawEditorUiContextMenuProps): JSX.Element;
+
+// @public (undocumented)
+export interface TldrawEditorUiContextMenuProps {
     // (undocumented)
     children: any;
 }
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<{
-    shareZone?: ReactNode;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
-    children?: ReactNode;
-    hideUi?: boolean | undefined;
-} & TldrawUiContextProviderProps>;
+export function TldrawEditorUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawEditorUiContextProviderProps): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUiContent: React_2.NamedExoticComponent<TldrawUiContentProps>;
-
-// @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
-
-// @public (undocumented)
-export interface TldrawUiContextProviderProps {
+export interface TldrawEditorUiContextProviderProps {
     // (undocumented)
     assetUrls?: UiAssetUrls;
     // (undocumented)
@@ -640,11 +640,11 @@ export interface TldrawUiContextProviderProps {
     // (undocumented)
     onUiEvent?: TLUiEventHandler;
     // (undocumented)
-    overrides?: TldrawUiOverrides | TldrawUiOverrides[];
+    overrides?: TldrawEditorUiOverrides | TldrawEditorUiOverrides[];
 }
 
 // @public (undocumented)
-export interface TldrawUiOverrides {
+export interface TldrawEditorUiOverrides {
     // (undocumented)
     actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
     // (undocumented)

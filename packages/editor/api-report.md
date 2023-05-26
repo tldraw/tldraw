@@ -1818,12 +1818,12 @@ export type TLCompleteEventInfo = {
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 
 // @public (undocumented)
-export const TldrawCanvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_2.DragEvent<Element>) => Promise<void>) => (e: React_2.DragEvent<Element>) => Promise<void>) | undefined;
-}) => JSX.Element>;
+export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
-export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
+export const TldrawEditorCanvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
+    onDropOverride?: ((defaultOnDrop: (e: React_2.DragEvent<Element>) => Promise<void>) => (e: React_2.DragEvent<Element>) => Promise<void>) | undefined;
+}) => JSX.Element>;
 
 // @public (undocumented)
 export interface TldrawEditorProps {

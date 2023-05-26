@@ -3,10 +3,10 @@ import {
 	DEFAULT_TOOLS,
 	TLBaseShape,
 	TLBoxUtil,
-	TldrawCanvas,
-	TldrawContextMenu,
 	TldrawEditor,
-	TldrawUi,
+	TldrawEditorCanvas,
+	TldrawEditorUi,
+	TldrawEditorUiContextMenu,
 	createDefaultTldrawEditorStore,
 	createShapeId,
 } from '@tldraw/tldraw'
@@ -47,11 +47,11 @@ export default function ErrorBoundaryExample() {
 					app.resetZoom()
 				}}
 			>
-				<TldrawUi>
-					<TldrawContextMenu>
-						<TldrawCanvas />
-					</TldrawContextMenu>
-				</TldrawUi>
+				<TldrawEditorUi>
+					<TldrawEditorUiContextMenu>
+						<TldrawEditorCanvas />
+					</TldrawEditorUiContextMenu>
+				</TldrawEditorUi>
 			</TldrawEditor>
 		</div>
 	)

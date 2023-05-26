@@ -5,10 +5,10 @@
 ```ts
 
 import { TldrawEditorProps } from '@tldraw/editor';
-import { TldrawUiContextProviderProps } from '@tldraw/ui';
+import { TldrawEditorUiContextProviderProps } from '@tldraw/ui';
 
 // @public (undocumented)
-export function Tldraw(props: Omit<TldrawEditorProps, 'shapes' | 'store' | 'tools'> & TldrawUiContextProviderProps & {
+export function Tldraw(props: Omit<TldrawEditorProps, 'shapes' | 'store' | 'tools'> & TldrawEditorUiContextProviderProps & {
     persistenceKey?: string;
     hideUi?: boolean;
 }): JSX.Element;

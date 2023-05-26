@@ -21,7 +21,7 @@ export const debugFlags = {
 	debugSvg: createDebugValue('tldrawDebugSvg', false),
 	throwToBlob: createDebugValue('tldrawThrowToBlob', false),
 	peopleMenu: createDebugValue('tldrawPeopleMenu', false),
-	logMessages: createDebugValue('tldrawUiLog', []),
+	logMessages: createDebugValue('TldrawEditorUiLog', []),
 	resetConnectionEveryPing: createDebugValue('tldrawResetConnectionEveryPing', false),
 	debugCursors: createDebugValue('tldrawDebugCursors', false),
 }

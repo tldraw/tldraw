@@ -13,23 +13,27 @@ import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
 import { TranslationProvider } from './hooks/useTranslation/useTranslation'
-import { TldrawUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
+import {
+	TldrawEditorUiOverrides,
+	useMergedOverrides,
+	useMergedTranslationOverrides,
+} from './overrides'
 
 /** @public */
-export interface TldrawUiContextProviderProps {
+export interface TldrawEditorUiContextProviderProps {
 	assetUrls?: UiAssetUrls
-	overrides?: TldrawUiOverrides | TldrawUiOverrides[]
+	overrides?: TldrawEditorUiOverrides | TldrawEditorUiOverrides[]
 	onUiEvent?: TLUiEventHandler
 	children?: any
 }
 
 /** @public */
-export function TldrawUiContextProvider({
+export function TldrawEditorUiContextProvider({
 	overrides,
 	assetUrls,
 	onUiEvent,
 	children,
-}: TldrawUiContextProviderProps) {
+}: TldrawEditorUiContextProviderProps) {
 	return (
 		<AssetUrlsProvider assetUrls={assetUrls ?? defaultUiAssetUrls}>
 			<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
@@ -49,7 +53,7 @@ export function TldrawUiContextProvider({
 function InternalProviders({
 	overrides,
 	children,
-}: Omit<TldrawUiContextProviderProps, 'assetBaseUrl'>) {
+}: Omit<TldrawEditorUiContextProviderProps, 'assetBaseUrl'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
 	return (
 		<ActionsProvider overrides={mergedOverrides.actions}>

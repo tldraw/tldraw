@@ -1,12 +1,15 @@
 import * as Dialog from './lib/components/primitives/Dialog'
 import * as DropdownMenu from './lib/components/primitives/DropdownMenu'
 
-export { TldrawContextMenu, type TldrawContextMenuProps } from './lib/TldrawContextMenu'
-export { TldrawUi, TldrawUiContent } from './lib/TldrawUi'
+export { TldrawEditorUi, TldrawEditorUiContent } from './lib/TldrawEditorUi'
 export {
-	TldrawUiContextProvider,
-	type TldrawUiContextProviderProps,
-} from './lib/TldrawUiContextProvider'
+	TldrawEditorUiContextMenu,
+	type TldrawEditorUiContextMenuProps,
+} from './lib/TldrawEditorUiContextMenu'
+export {
+	TldrawEditorUiContextProvider,
+	type TldrawEditorUiContextProviderProps,
+} from './lib/TldrawEditorUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/assetUrls'
 export { DebugPanel } from './lib/components/DebugPanel'
 export { HTMLCanvas } from './lib/components/HTMLCanvas'
@@ -154,5 +157,5 @@ export {
 	type TranslationProviderProps,
 } from './lib/hooks/useTranslation/useTranslation'
 export { TLUiIconTypes, type TLUiIconType } from './lib/icon-types'
-export { useDefaultHelpers, type TldrawUiOverrides } from './lib/overrides'
+export { useDefaultHelpers, type TldrawEditorUiOverrides } from './lib/overrides'
 export { Dialog, DropdownMenu }
