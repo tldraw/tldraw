@@ -1,8 +1,8 @@
 import {
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
+	TldrawCanvas,
 	TldrawEditor,
-	TldrawEditorCanvas,
 	createDefaultTldrawEditorStore,
 	useApp,
 } from '@tldraw/tldraw'
@@ -17,7 +17,7 @@ export default function Example() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor store={store} shapes={DEFAULT_SHAPE_UTILS} tools={DEFAULT_TOOLS} autoFocus>
-				<TldrawEditorCanvas />
+				<TldrawCanvas />
 				<CustomUi />
 			</TldrawEditor>
 		</div>

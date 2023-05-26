@@ -49,22 +49,17 @@ export function useDefaultHelpers() {
 
 type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
-export type TldrawEditorUiOverride<Type, Helpers> = (
-	app: App,
-	schema: Type,
-	helpers: Helpers
-) => Type
+export type TldrawUiOverride<Type, Helpers> = (app: App, schema: Type, helpers: Helpers) => Type
 
-type WithDefaultHelpers<T extends TldrawEditorUiOverride<any, any>> =
-	T extends TldrawEditorUiOverride<infer Type, infer Helpers>
-		? TldrawEditorUiOverride<
-				Type,
-				Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers
-		  >
-		: never
+type WithDefaultHelpers<T extends TldrawUiOverride<any, any>> = T extends TldrawUiOverride<
+	infer Type,
+	infer Helpers
+>
+	? TldrawUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
+	: never
 
 /** @public */
-export interface TldrawEditorUiOverrides {
+export interface TldrawUiOverrides {
 	actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
 	contextMenu?: WithDefaultHelpers<NonNullable<ContextMenuSchemaProviderProps['overrides']>>
@@ -78,7 +73,7 @@ export interface TldrawEditorUiOverrides {
 	translations?: TranslationProviderProps['overrides']
 }
 
-export interface TldrawEditorUiOverridesWithoutDefaults {
+export interface TldrawUiOverridesWithoutDefaults {
 	actionsMenu?: ActionsMenuSchemaProviderProps['overrides']
 	actions?: ActionsProviderProps['overrides']
 	contextMenu?: ContextMenuSchemaProviderProps['overrides']
@@ -91,9 +86,9 @@ export interface TldrawEditorUiOverridesWithoutDefaults {
 }
 
 export function mergeOverrides(
-	overrides: TldrawEditorUiOverrides[],
+	overrides: TldrawUiOverrides[],
 	defaultHelpers: DefaultHelpers
-): TldrawEditorUiOverridesWithoutDefaults {
+): TldrawUiOverridesWithoutDefaults {
 	const mergedTranslations: TranslationProviderProps['overrides'] = {}
 	for (const override of overrides) {
 		if (override.translations) {
@@ -181,7 +176,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 }
 
 export function useMergedTranslationOverrides(
-	overrides?: TldrawEditorUiOverrides[] | TldrawEditorUiOverrides
+	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
 ): NonNullable<TranslationProviderProps['overrides']> {
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
@@ -204,8 +199,8 @@ export function useMergedTranslationOverrides(
 }
 
 export function useMergedOverrides(
-	overrides?: TldrawEditorUiOverrides[] | TldrawEditorUiOverrides
-): TldrawEditorUiOverridesWithoutDefaults {
+	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
+): TldrawUiOverridesWithoutDefaults {
 	const defaultHelpers = useDefaultHelpers()
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]

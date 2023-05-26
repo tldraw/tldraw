@@ -1,4 +1,4 @@
-import { menuGroup, menuItem, TldrawEditorUiOverrides } from '@tldraw/ui'
+import { menuGroup, menuItem, TldrawUiOverrides } from '@tldraw/ui'
 import { openUrl } from './openUrl'
 
 export const GITHUB_URL = 'https://github.com/tldraw/tldraw'
@@ -43,7 +43,7 @@ const linksMenuGroup = menuGroup(
 	})
 )!
 
-export const linksUiOverrides: TldrawEditorUiOverrides = {
+export const linksUiOverrides: TldrawUiOverrides = {
 	helpMenu(app, schema) {
 		schema.push(linksMenuGroup)
 		return schema

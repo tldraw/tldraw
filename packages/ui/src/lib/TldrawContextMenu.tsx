@@ -16,12 +16,12 @@ import { useReadonly } from './hooks/useReadonly'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
-export interface TldrawEditorUiContextMenuProps {
+export interface TldrawContextMenuProps {
 	children: any
 }
 
 /** @public */
-export function TldrawEditorUiContextMenu({ children }: TldrawEditorUiContextMenuProps) {
+export function TldrawContextMenu({ children }: TldrawContextMenuProps) {
 	const app = useApp()
 
 	const contextMenuSchema = useContextMenuSchema()

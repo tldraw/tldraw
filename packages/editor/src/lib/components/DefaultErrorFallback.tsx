@@ -6,7 +6,7 @@ import { AppContext } from '../hooks/useApp'
 import { hardResetApp } from '../utils/hard-reset'
 import { refreshPage } from '../utils/refresh-page'
 import { ErrorBoundary } from './ErrorBoundary'
-import { TldrawEditorCanvas } from './TldrawEditorCanvas'
+import { TldrawCanvas } from './TldrawCanvas'
 
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 
@@ -134,7 +134,7 @@ My browser: ${navigator.userAgent}`
 				<ErrorBoundary onError={noop} fallback={() => null}>
 					<AppContext.Provider value={app}>
 						<div className="tl-overlay tl-error-boundary__canvas">
-							<TldrawEditorCanvas />
+							<TldrawCanvas />
 						</div>
 					</AppContext.Provider>
 				</ErrorBoundary>

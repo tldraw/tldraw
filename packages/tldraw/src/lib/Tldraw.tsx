@@ -1,23 +1,19 @@
 import {
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
+	TldrawCanvas,
 	TldrawEditor,
-	TldrawEditorCanvas,
 	TldrawEditorProps,
 	createDefaultTldrawEditorStore,
 } from '@tldraw/editor'
 import { DEFAULT_DOCUMENT_NAME, TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
-import {
-	TldrawEditorUi,
-	TldrawEditorUiContextMenu,
-	TldrawEditorUiContextProviderProps,
-} from '@tldraw/ui'
+import { TldrawContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
 import { useMemo } from 'react'
 
 /** @public */
 export function Tldraw(
 	props: Omit<TldrawEditorProps, 'store' | 'shapes' | 'tools'> &
-		TldrawEditorUiContextProviderProps & {
+		TldrawUiContextProviderProps & {
 			/** The key under which to persist this editor's data to local storage. */
 			persistenceKey?: string
 			/** Whether to hide the user interface and only display the canvas. */
@@ -42,12 +38,12 @@ export function Tldraw(
 			tools={DEFAULT_TOOLS}
 			shapes={DEFAULT_SHAPE_UTILS}
 		>
-			<TldrawEditorUi {...rest}>
-				<TldrawEditorUiContextMenu>
-					<TldrawEditorCanvas />
-				</TldrawEditorUiContextMenu>
+			<TldrawUi {...rest}>
+				<TldrawContextMenu>
+					<TldrawCanvas />
+				</TldrawContextMenu>
 				{children}
-			</TldrawEditorUi>
+			</TldrawUi>
 		</TldrawEditor>
 	)
 }

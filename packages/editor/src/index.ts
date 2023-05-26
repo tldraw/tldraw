@@ -124,7 +124,7 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export { TldrawEditorCanvas } from './lib/components/TldrawEditorCanvas'
+export { TldrawCanvas } from './lib/components/TldrawCanvas'
 export {
 	type ErrorSyncedStore,
 	type InitializingSyncedStore,

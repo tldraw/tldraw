@@ -1,4 +1,4 @@
-import { TldrawEditorCanvas } from '@tldraw/editor/src/lib/components/TldrawEditorCanvas'
+import { TldrawCanvas } from '@tldraw/editor/src/lib/components/TldrawCanvas'
 import {
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
@@ -8,9 +8,9 @@ import {
 	TLBoxTool,
 	TLBoxUtil,
 	TLOpacityType,
+	TldrawContextMenu,
 	TldrawEditor,
-	TldrawEditorUi,
-	TldrawEditorUiContextMenu,
+	TldrawUi,
 	createTldrawEditorStore,
 	menuItem,
 	toolbarItem,
@@ -105,7 +105,7 @@ export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor autoFocus tools={tools} shapes={shapes} store={store}>
-				<TldrawEditorUi
+				<TldrawUi
 					overrides={{
 						tools(app, tools) {
 							// In order for our custom tool to show up in the UI...
@@ -142,10 +142,10 @@ export default function CustomConfigExample() {
 						},
 					}}
 				>
-					<TldrawEditorUiContextMenu>
-						<TldrawEditorCanvas />
-					</TldrawEditorUiContextMenu>
-				</TldrawEditorUi>
+					<TldrawContextMenu>
+						<TldrawCanvas />
+					</TldrawContextMenu>
+				</TldrawUi>
 			</TldrawEditor>
 		</div>
 	)

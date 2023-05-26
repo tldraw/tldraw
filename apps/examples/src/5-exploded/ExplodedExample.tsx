@@ -2,10 +2,10 @@ import {
 	DEFAULT_SHAPE_UTILS,
 	DEFAULT_TOOLS,
 	InstanceRecordType,
+	TldrawCanvas,
+	TldrawContextMenu,
 	TldrawEditor,
-	TldrawEditorCanvas,
-	TldrawEditorUi,
-	TldrawEditorUiContextMenu,
+	TldrawUi,
 	createDefaultTldrawEditorStore,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
@@ -32,11 +32,11 @@ export default function Example() {
 				tools={DEFAULT_TOOLS}
 				autoFocus
 			>
-				<TldrawEditorUi>
-					<TldrawEditorUiContextMenu>
-						<TldrawEditorCanvas />
-					</TldrawEditorUiContextMenu>
-				</TldrawEditorUi>
+				<TldrawUi>
+					<TldrawContextMenu>
+						<TldrawCanvas />
+					</TldrawContextMenu>
+				</TldrawUi>
 			</TldrawEditor>
 		</div>
 	)

@@ -3,10 +3,7 @@ import { useApp } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { useValue } from 'signia-react'
-import {
-	TldrawEditorUiContextProvider,
-	TldrawEditorUiContextProviderProps,
-} from './TldrawEditorUiContextProvider'
+import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
@@ -30,7 +27,7 @@ import { useTranslation } from './hooks/useTranslation/useTranslation'
 /**
  * @public
  */
-export const TldrawEditorUi = React.memo(function TldrawEditorUi({
+export const TldrawUi = React.memo(function TldrawUi({
 	shareZone,
 	renderDebugMenuItems,
 	children,
@@ -42,31 +39,31 @@ export const TldrawEditorUi = React.memo(function TldrawEditorUi({
 	children?: ReactNode
 	/** Whether to hide the interface and only display the canvas. */
 	hideUi?: boolean
-} & TldrawEditorUiContextProviderProps) {
+} & TldrawUiContextProviderProps) {
 	return (
-		<TldrawEditorUiContextProvider {...rest}>
-			<TldrawEditorUiInner
+		<TldrawUiContextProvider {...rest}>
+			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
 				renderDebugMenuItems={renderDebugMenuItems}
 			>
 				{children}
-			</TldrawEditorUiInner>
-		</TldrawEditorUiContextProvider>
+			</TldrawUiInner>
+		</TldrawUiContextProvider>
 	)
 })
 
-type TldrawEditorUiContentProps = {
+type TldrawUiContentProps = {
 	hideUi?: boolean
 	shareZone?: ReactNode
 	renderDebugMenuItems?: () => React.ReactNode
 }
 
-const TldrawEditorUiInner = React.memo(function TldrawEditorUiInner({
+const TldrawUiInner = React.memo(function TldrawUiInner({
 	children,
 	hideUi,
 	...rest
-}: TldrawEditorUiContentProps & { children: ReactNode }) {
+}: TldrawUiContentProps & { children: ReactNode }) {
 	// const isLoaded = usePreloadIcons()
 
 	// if (!isLoaded) {
@@ -80,16 +77,16 @@ const TldrawEditorUiInner = React.memo(function TldrawEditorUiInner({
 	return (
 		<>
 			{children}
-			{hideUi ? null : <TldrawEditorUiContent {...rest} />}
+			{hideUi ? null : <TldrawUiContent {...rest} />}
 		</>
 	)
 })
 
 /** @public */
-export const TldrawEditorUiContent = React.memo(function TldrawEditorUi({
+export const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
 	renderDebugMenuItems,
-}: TldrawEditorUiContentProps) {
+}: TldrawUiContentProps) {
 	const app = useApp()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
