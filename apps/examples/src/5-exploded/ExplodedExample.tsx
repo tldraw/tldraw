@@ -11,9 +11,7 @@ import {
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const store = createTldrawEditorStore({
-	shapes: defaultShapes,
-})
+const store = createTldrawEditorStore()
 
 export default function Example() {
 	const syncedStore = useLocalSyncClient({

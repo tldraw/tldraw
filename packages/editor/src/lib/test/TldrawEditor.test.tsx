@@ -24,7 +24,6 @@ afterEach(() => {
 describe('<Tldraw />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
 		const initialStore = createTldrawEditorStore({
-			shapes: defaultShapes,
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 

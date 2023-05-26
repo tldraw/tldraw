@@ -84,17 +84,24 @@ const defaultShapes = {
 }
 
 /**
- from* Create a store schema with the given migrators and validator.
+ * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.
  *
- *  @public */
-export function createTLSchema({ shapes }: { shapes: Record<string, TLSchemaShapeInfo> }) {
-	for (const key in shapes) {
+ * @param opts - Options
+ *
+ * @public */
+export function createTLSchema(
+	opts = {} as {
+		customShapes: Record<string, TLSchemaShapeInfo>
+	}
+) {
+	const { customShapes } = opts
+	for (const key in customShapes) {
 		if (key in defaultShapes) {
 			throw Error(`Can't override default shape ${key}!`)
 		}
 	}
 
-	const allShapeEntries = Object.entries({ ...shapes, ...defaultShapes })
+	const allShapeEntries = Object.entries({ ...customShapes, ...defaultShapes })
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({

@@ -3,7 +3,6 @@ import {
 	PageRecordType,
 	TLInstanceId,
 	createTldrawEditorStore,
-	defaultShapes,
 } from '@tldraw/editor'
 import { promiseWithResolve } from '@tldraw/utils'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
@@ -33,7 +32,6 @@ function testClient(
 	channel = new BroadcastChannelMock('test')
 ) {
 	const store = createTldrawEditorStore({
-		shapes: defaultShapes,
 		instanceId,
 	})
 	const onLoad = jest.fn(() => {

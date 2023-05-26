@@ -11,9 +11,7 @@ import { useEffect } from 'react'
 import { track } from 'signia-react'
 import './custom-ui.css'
 
-const store = createTldrawEditorStore({
-	shapes: defaultShapes,
-})
+const store = createTldrawEditorStore()
 
 export default function Example() {
 	return (

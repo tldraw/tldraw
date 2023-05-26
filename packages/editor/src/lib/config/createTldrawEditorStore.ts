@@ -15,18 +15,23 @@ export type TldrawEditorShapeInfo = {
 	validator?: { validate: (record: any) => any }
 }
 
-/** @public */
+/**
+ * A helper for creating a TLStore. Custom shapes cannot override default shapes.
+ *
+ * @param opts - Options for creating the store.
+ *
+ * @public */
 export function createTldrawEditorStore(
 	opts = {} as {
-		shapes?: Record<string, TldrawEditorShapeInfo>
+		customShapes?: Record<string, TldrawEditorShapeInfo>
 		instanceId?: TLInstanceId
 		initialData?: StoreSnapshot<TLRecord>
 	}
 ) {
-	const { shapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
+	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
 
 	return new Store({
-		schema: createTLSchema({ shapes }),
+		schema: createTLSchema({ customShapes }),
 		initialData,
 		props: {
 			instanceId,

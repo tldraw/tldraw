@@ -11,7 +11,6 @@ import { SyncedStore } from './config/SyncedStore'
 import { StateNodeConstructor } from './app/statechart/StateNode'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { TldrawEditorShapeInfo, createTldrawEditorStore } from './config/createTldrawEditorStore'
-import { defaultShapes } from './config/defaultShapes'
 import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -189,7 +188,7 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 		return {
 			// We have no store! Create a new store based on whatever props we have
 			store: createTldrawEditorStore({
-				shapes: { ...defaultShapes, ...props.shapes },
+				customShapes: props.shapes,
 				instanceId,
 				initialData,
 			}),

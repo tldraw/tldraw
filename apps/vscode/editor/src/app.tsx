@@ -27,7 +27,6 @@ import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
 const store = createTldrawEditorStore({
-	shapes: defaultShapes,
 	instanceId: TAB_ID,
 })
 

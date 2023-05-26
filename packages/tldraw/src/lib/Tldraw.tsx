@@ -22,14 +22,7 @@ export function Tldraw(
 ) {
 	const { children, persistenceKey, instanceId = TAB_ID, ...rest } = props
 
-	const _store = useMemo(
-		() =>
-			createTldrawEditorStore({
-				shapes: defaultShapes,
-				instanceId,
-			}),
-		[instanceId]
-	)
+	const _store = useMemo(() => createTldrawEditorStore({ instanceId }), [instanceId])
 
 	const syncedStore = useLocalSyncClient({
 		store: _store,

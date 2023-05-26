@@ -2,7 +2,6 @@ import {
 	App,
 	buildFromV1Document,
 	createTldrawEditorStore,
-	defaultShapes,
 	fileToBase64,
 	TLAsset,
 	TLInstanceId,
@@ -140,7 +139,6 @@ export function parseTldrawJsonFile({
 	try {
 		return Result.ok(
 			createTldrawEditorStore({
-				shapes: defaultShapes,
 				initialData: migrationResult.value,
 				instanceId,
 			})

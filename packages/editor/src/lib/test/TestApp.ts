@@ -70,10 +70,7 @@ export class TestApp extends App {
 			},
 			store: createTldrawEditorStore({
 				instanceId: TEST_INSTANCE_ID,
-				shapes: {
-					...defaultShapes,
-					...shapes,
-				},
+				customShapes: shapes,
 			}),
 			getContainer: () => elm,
 			...options,

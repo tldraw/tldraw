@@ -603,9 +603,9 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 // @public (undocumented)
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
-// @public (undocumented)
+// @public
 export function createTldrawEditorStore(opts?: {
-    shapes?: Record<string, TldrawEditorShapeInfo> | undefined;
+    customShapes?: Record<string, TldrawEditorShapeInfo> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
 }): Store<TLRecord, {
