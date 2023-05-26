@@ -23,7 +23,7 @@ export type TldrawEditorValidator = { validate: (record: TLRecord) => TLRecord }
  * Create a store schema with the given migrators and validator.
  *
  *  @public */
-export function createTLSchema(
+export function createTldrawEditorSchema(
 	opts = {} as {
 		migrators?: TldrawEditorMigrators | null
 		validator?: TldrawEditorValidator | null

@@ -184,7 +184,7 @@ export function createShapeValidator<R extends TLBaseShape<string, object>>(type
 }>;
 
 // @public
-export function createTLSchema(opts?: {
+export function createTldrawEditorSchema(opts?: {
     migrators?: null | TldrawEditorMigrators | undefined;
     validator?: null | TldrawEditorValidator | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;

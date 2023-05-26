@@ -4,7 +4,7 @@ import {
 	TldrawEditor,
 	TldrawUi,
 	createDefaultTldrawEditorSchema,
-	createDefaultTldrawEditorStore,
+	createTldrawEditorStore,
 	defaultTldrawEditorMigrators,
 	defaultTldrawEditorShapeUtils,
 	defaultTldrawEditorTools,
@@ -15,7 +15,7 @@ import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
 const schema = createDefaultTldrawEditorSchema()
-const store = createDefaultTldrawEditorStore({ schema })
+const store = createTldrawEditorStore({ schema })
 
 export default function Example() {
 	const syncedStore = useLocalSyncClient({

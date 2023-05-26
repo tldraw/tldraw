@@ -1,21 +1,19 @@
 import {
-	TLInstancePresence,
-	TLStore,
+	createTldrawEditorSchema,
 	defaultTldrawEditorMigrators,
 	defaultTldrawEditorValidator,
 } from '@tldraw/tlschema'
-import { Signal } from 'signia'
-import { createTldrawEditorSchema } from './createTldrawEditorSchema'
 
-/** @public */
-export function createDefaultTldrawEditorSchema(
-	opts = {} as {
-		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-	}
-) {
+/**
+ * Create a TldrawEditor schema with the default validator and migrators.
+ *
+ * ```ts
+ * createDefaultTldrawEditorSchema()
+ * ```
+ * @public */
+export function createDefaultTldrawEditorSchema() {
 	return createTldrawEditorSchema({
 		validator: defaultTldrawEditorValidator,
 		migrators: defaultTldrawEditorMigrators,
-		...opts,
 	})
 }

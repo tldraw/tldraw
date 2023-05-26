@@ -4,9 +4,9 @@ import {
 	TLInstanceId,
 	TLRecord,
 	TLStoreProps,
+	createTldrawEditorSchema,
 } from '@tldraw/tlschema'
 import { Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
-import { createTldrawEditorSchema } from './createTldrawEditorSchema'
 
 /** @public */
 export function createTldrawEditorStore(

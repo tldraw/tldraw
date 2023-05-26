@@ -1,18 +1,28 @@
-import { TLInstanceId, TLRecord, TLStoreSchema } from '@tldraw/tlschema'
+import { TLInstanceId, TLRecord } from '@tldraw/tlschema'
 import { StoreSnapshot } from '@tldraw/tlstore'
 import { createDefaultTldrawEditorSchema } from './createDefaultTldrawEditorSchema'
 import { createTldrawEditorStore } from './createTldrawEditorStore'
 
-/** @public */
+/**
+ * Create a TldrawEditor store with a default schema.
+ *
+ * ```ts
+ * createDefaultTldrawEditorStore()
+ *
+ * createDefaultTldrawEditorStore({
+ *   instanceId: myInstanceId,
+ *   initialData: myInitialData
+ * })
+ * ```
+ * @public */
 export function createDefaultTldrawEditorStore(
 	opts = {} as {
-		schema?: TLStoreSchema
 		instanceId?: TLInstanceId
 		initialData?: StoreSnapshot<TLRecord>
 	}
 ) {
 	return createTldrawEditorStore({
-		schema: opts.schema ?? createDefaultTldrawEditorSchema(),
+		schema: createDefaultTldrawEditorSchema(),
 		...opts,
 	})
 }

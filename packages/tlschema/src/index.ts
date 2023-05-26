@@ -25,10 +25,10 @@ export {
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export {
-	createTLSchema,
+	createTldrawEditorSchema,
 	type TldrawEditorMigrators,
 	type TldrawEditorValidator,
-} from './createTLSchema'
+} from './createTldrawEditorSchema'
 export { defaultSnapshotMigrator } from './defaultSnapshotMigrator'
 export { defaultTldrawEditorMigrators } from './defaultTldrawEditorMigrators'
 export { defaultTldrawEditorValidator } from './defaultTldrawEditorValidator'

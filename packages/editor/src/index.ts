@@ -134,7 +134,6 @@ export {
 export { USER_COLORS } from './lib/config/TLUserPreferences'
 export { createDefaultTldrawEditorSchema } from './lib/config/createDefaultTldrawEditorSchema'
 export { createDefaultTldrawEditorStore } from './lib/config/createDefaultTldrawEditorStore'
-export { createTldrawEditorSchema } from './lib/config/createTldrawEditorSchema'
 export { createTldrawEditorStore } from './lib/config/createTldrawEditorStore'
 export { createTldrawEditorUser, type TldrawEditorUser } from './lib/config/createTldrawEditorUser'
 export { defaultTldrawEditorShapeUtils } from './lib/config/defaultShapeUtils'

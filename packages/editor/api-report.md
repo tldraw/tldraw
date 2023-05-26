@@ -11,6 +11,7 @@ import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/tlstore';
+import { createTldrawEditorStore } from '@tldraw/tlschema/src/createTldrawEditorStore';
 import { CubicSpline2d } from '@tldraw/primitives';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
@@ -89,7 +90,6 @@ import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
-import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
@@ -592,14 +592,11 @@ export function createAssetShapeAtPoint(app: App, svgString: string, point: Vec2
 // @public
 export function createBookmarkShapeAtPoint(app: App, url: string, point: Vec2dModel): Promise<void>;
 
-// @public (undocumented)
-export function createDefaultTldrawEditorSchema(opts?: {
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
-}): StoreSchema<TLRecord, TLStoreProps>;
+// @public
+export function createDefaultTldrawEditorSchema(): StoreSchema<TLRecord, TLStoreProps>;
 
-// @public (undocumented)
+// @public
 export function createDefaultTldrawEditorStore(opts?: {
-    schema?: TLStoreSchema | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
 }): Store<TLRecord, {
@@ -617,21 +614,7 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 // @public (undocumented)
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
-// @public (undocumented)
-export function createTldrawEditorSchema(opts?: {
-    migrators?: null | TldrawEditorMigrators | undefined;
-    validator?: null | TldrawEditorValidator | undefined;
-}): StoreSchema<TLRecord, TLStoreProps>;
-
-// @public (undocumented)
-export function createTldrawEditorStore(opts?: {
-    schema?: StoreSchema<TLRecord, TLStoreProps> | undefined;
-    instanceId?: TLInstanceId | undefined;
-    initialData?: StoreSnapshot<TLRecord> | undefined;
-}): Store<TLRecord, {
-    instanceId: TLInstanceId;
-    documentId: ID<TLDocument>;
-}>;
+export { createTldrawEditorStore }
 
 // @public (undocumented)
 export function createTldrawEditorUser(opts?: {
