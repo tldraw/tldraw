@@ -37,7 +37,7 @@ describe('Store', () => {
 					author: Author,
 				},
 				{
-					snapshotMigrator: new Migrator({}),
+					snapshotMigrator: new Migrator(),
 				}
 			),
 		})

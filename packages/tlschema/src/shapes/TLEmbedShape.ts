@@ -1,6 +1,8 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLOpacityType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import { opacityValidator } from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /**
  * Permissions with note inline from
@@ -647,3 +649,20 @@ export const embedShapeTypeMigrator = new Migrator({
 		},
 	},
 })
+
+/** @public */
+export const embedShapeTypeValidator = createShapeValidator<TLEmbedShape>(
+	'embed',
+	T.object({
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		url: T.string,
+		tmpOldUrl: T.string.optional(),
+		doesResize: T.boolean,
+		overridePermissions: T.dict(
+			T.setEnum(new Set(Object.keys(tlEmbedShapePermissionDefaults))),
+			T.boolean.optional()
+		).optional(),
+	})
+)

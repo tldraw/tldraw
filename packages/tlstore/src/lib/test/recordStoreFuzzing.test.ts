@@ -338,7 +338,7 @@ function runTest(seed: number) {
 				author: Author,
 			},
 			{
-				snapshotMigrator: new Migrator({}),
+				snapshotMigrator: new Migrator(),
 				validator,
 			}
 		),

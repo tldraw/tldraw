@@ -1,8 +1,16 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLColorType, TLDashType, TLFillType, TLOpacityType, TLSizeType } from '../style-types'
 import { SetValue } from '../util-types'
-import { TLBaseShape } from './shape-validation'
+import {
+	colorValidator,
+	dashValidator,
+	fillValidator,
+	opacityValidator,
+	sizeValidator,
+} from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
@@ -83,3 +91,24 @@ export const drawShapeTypeMigrator = new Migrator({
 		},
 	},
 })
+
+/** @public */
+export const drawShapeTypeValidator = createShapeValidator<TLDrawShape>(
+	'draw',
+	T.object({
+		color: colorValidator,
+		fill: fillValidator,
+		dash: dashValidator,
+		size: sizeValidator,
+		opacity: opacityValidator,
+		segments: T.arrayOf(
+			T.object({
+				type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
+				points: T.arrayOf(T.point),
+			})
+		),
+		isComplete: T.boolean,
+		isClosed: T.boolean,
+		isPen: T.boolean,
+	})
+)

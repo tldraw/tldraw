@@ -38,7 +38,7 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object({
 	isDarkMode: T.boolean,
 })
 
-const userTypeMigrator = new Migrator({})
+const userTypeMigrator = new Migrator()
 
 /** @internal */
 export const USER_COLORS = [

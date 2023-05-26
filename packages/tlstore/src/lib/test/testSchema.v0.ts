@@ -34,7 +34,7 @@ interface OvalProps {
 const ShapeTypeMigrator = new Migrator({
 	subTypeKey: 'type',
 	subTypeMigrators: {
-		rectangle: new Migrator({}),
+		rectangle: new Migrator(),
 	},
 })
 
@@ -100,11 +100,11 @@ export const testSchemaV0 = StoreSchema.create(
 		org: Org,
 	},
 	{
-		snapshotMigrator: new Migrator({}),
+		snapshotMigrator: new Migrator(),
 		validator,
 		migrators: {
-			org: new Migrator({}),
-			user: new Migrator({}),
+			org: new Migrator(),
+			user: new Migrator(),
 			shape: ShapeTypeMigrator,
 		},
 	}

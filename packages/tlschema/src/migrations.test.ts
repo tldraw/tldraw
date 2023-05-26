@@ -1,8 +1,8 @@
 import { createRecordType, Store } from '@tldraw/tlstore'
 import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
-import { imageAssetMigrator } from './assets/TLImageAsset'
-import { videoAssetMigrator } from './assets/TLVideoAsset'
+import { imageAssetTypeMigrator } from './assets/TLImageAsset'
+import { videoAssetTypeMigrator } from './assets/TLVideoAsset'
 import { defaultSnapshotMigrator, storeVersions } from './defaultSnapshotMigrator'
 import { instanceTypeMigrator, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateTypeMigrator } from './records/TLInstancePageState'
@@ -126,7 +126,7 @@ describe('TLVideoAsset AddIsAnimated', () => {
 		},
 	}
 
-	const { up, down } = videoAssetMigrator.migrators[1]
+	const { up, down } = videoAssetTypeMigrator.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
@@ -162,7 +162,7 @@ describe('TLImageAsset AddIsAnimated', () => {
 		},
 	}
 
-	const { up, down } = imageAssetMigrator.migrators[1]
+	const { up, down } = imageAssetTypeMigrator.migrators[1]
 
 	test('up works as expected', () => {
 		expect(up(oldAsset)).toEqual(newAsset)
@@ -317,8 +317,8 @@ describe('Bookmark null asset id', () => {
 
 describe('Renaming asset props', () => {
 	for (const [name, { up, down }] of [
-		['image shape', imageAssetMigrator.migrators[2]],
-		['video shape', videoAssetMigrator.migrators[2]],
+		['image shape', imageAssetTypeMigrator.migrators[2]],
+		['video shape', videoAssetTypeMigrator.migrators[2]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
 			const before = { props: { width: 100, height: 100 } }

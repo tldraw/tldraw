@@ -35,7 +35,7 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public (undocumented)
-export const bookmarkAssetMigrator: Migrator<symbol, symbol>;
+export const bookmarkAssetTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
 export const bookmarkShapeTypeMigrator: Migrator<symbol, 1>;
@@ -327,8 +327,8 @@ export const defaultValidator: T.UnionValidator<"typeName", {
         isGridMode: boolean;
         isMobileMode: boolean;
         isSnapMode: boolean;
-        lastUpdatedPageId: null | TLPageId;
-        lastUsedTabId: null | TLInstanceId;
+        lastUpdatedPageId: TLPageId | null;
+        lastUsedTabId: TLInstanceId | null;
     }>;
     instance_presence: T.Validator<TLInstancePresence>;
 }, never>;
@@ -572,7 +572,7 @@ export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" 
 export function idValidator<Id extends ID<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
-export const imageAssetMigrator: Migrator<symbol, 2>;
+export const imageAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
 export const imageShapeTypeMigrator: Migrator<symbol, 2>;
@@ -1510,7 +1510,7 @@ export interface Vec2dModel {
 }
 
 // @public (undocumented)
-export const videoAssetMigrator: Migrator<symbol, 2>;
+export const videoAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
 export const videoShapeTypeMigrator: Migrator<symbol, 1>;

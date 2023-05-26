@@ -1,7 +1,9 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import { assetIdValidator, opacityValidator } from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLVideoShapeProps = {
@@ -16,6 +18,20 @@ export type TLVideoShapeProps = {
 
 /** @public */
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
+
+/** @public */
+export const videoShapeTypeValidator = createShapeValidator<TLVideoShape>(
+	'video',
+	T.object({
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		time: T.number,
+		playing: T.boolean,
+		url: T.string,
+		assetId: assetIdValidator.nullable(),
+	})
+)
 
 const Versions = {
 	AddUrlProp: 1,

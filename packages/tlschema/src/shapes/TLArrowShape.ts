@@ -12,8 +12,17 @@ import {
 	TLSizeType,
 } from '../style-types'
 import { SetValue } from '../util-types'
-import { shapeIdValidator } from '../validation'
-import { TLBaseShape } from './shape-validation'
+import {
+	arrowheadValidator,
+	colorValidator,
+	dashValidator,
+	fillValidator,
+	fontValidator,
+	opacityValidator,
+	shapeIdValidator,
+	sizeValidator,
+} from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLArrowShapeProps = {
@@ -104,3 +113,23 @@ export const arrowShapeTypeMigrator = new Migrator({
 		},
 	},
 })
+
+/** @public */
+export const arrowShapeTypeValidator = createShapeValidator<TLArrowShape>(
+	'arrow',
+	T.object({
+		labelColor: colorValidator,
+		color: colorValidator,
+		fill: fillValidator,
+		dash: dashValidator,
+		size: sizeValidator,
+		opacity: opacityValidator,
+		arrowheadStart: arrowheadValidator,
+		arrowheadEnd: arrowheadValidator,
+		font: fontValidator,
+		start: arrowTerminalTypeValidator,
+		end: arrowTerminalTypeValidator,
+		bend: T.number,
+		text: T.string,
+	})
+)

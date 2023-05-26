@@ -1,6 +1,8 @@
 import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
-import { TLCursor, TLScribble } from '../ui-types'
+import { cursorTypeValidator, TLCursor, TLScribble } from '../ui-types'
+import { idValidator, scribbleTypeValidator } from '../validation'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
@@ -29,6 +31,40 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 
 /** @public */
 export type TLInstancePresenceId = ID<TLInstancePresence>
+
+/** @public */
+export const instancePresenceTypeValidator = T.model<TLInstancePresence>(
+	'instance_presence',
+	T.model(
+		'instance_presence',
+		T.object({
+			instanceId: idValidator<TLInstanceId>('instance'),
+			typeName: T.literal('instance_presence'),
+			id: idValidator<TLInstancePresenceId>('instance_presence'),
+			userId: T.string,
+			userName: T.string,
+			lastActivityTimestamp: T.number,
+			followingUserId: T.string.nullable(),
+			cursor: T.object({
+				x: T.number,
+				y: T.number,
+				type: cursorTypeValidator,
+				rotation: T.number,
+			}),
+			color: T.string,
+			camera: T.object({
+				x: T.number,
+				y: T.number,
+				z: T.number,
+			}),
+			screenBounds: T.boxModel,
+			selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
+			currentPageId: idValidator<TLPageId>('page'),
+			brush: T.boxModel.nullable(),
+			scribble: scribbleTypeValidator.nullable(),
+		})
+	)
+)
 
 const Versions = {
 	AddScribbleDelay: 1,

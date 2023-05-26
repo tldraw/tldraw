@@ -33,7 +33,7 @@ export class Migrator<
 	subTypeKey?: string
 	subTypeMigrators?: Record<string, Migrator>
 
-	constructor(opts: MigratorOptions<FirstVersion, CurrentVersion>) {
+	constructor(opts = {} as MigratorOptions<FirstVersion, CurrentVersion>) {
 		const { currentVersion, firstVersion, migrators = {}, subTypeKey, subTypeMigrators } = opts
 
 		// Some basic guards against impossible version combinations, some of which will be caught by TypeScript

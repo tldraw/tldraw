@@ -1,5 +1,6 @@
 import { Migrator } from '@tldraw/tlstore'
-import { TLBaseAsset } from './asset-validation'
+import { T } from '@tldraw/tlvalidate'
+import { TLBaseAsset, createAssetValidator } from './asset-validation'
 
 // TODO: figure out what is actually being used
 /** @public */
@@ -15,13 +16,26 @@ export type TLVideoAsset = TLBaseAsset<
 	}
 >
 
+/** @public */
+export const videoAssetTypeValidator = createAssetValidator<TLVideoAsset>(
+	'video',
+	T.object({
+		w: T.number,
+		h: T.number,
+		name: T.string,
+		isAnimated: T.boolean,
+		mimeType: T.string.nullable(),
+		src: T.string.nullable(),
+	})
+)
+
 const Versions = {
 	AddIsAnimated: 1,
 	RenameWidthHeight: 2,
 } as const
 
 /** @public */
-export const videoAssetMigrator = new Migrator({
+export const videoAssetTypeMigrator = new Migrator({
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {
 		[Versions.AddIsAnimated]: {

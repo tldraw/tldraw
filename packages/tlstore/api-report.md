@@ -111,7 +111,7 @@ export type MigrationResult<T> = {
 
 // @public (undocumented)
 export class Migrator<FirstVersion extends EMPTY_SYMBOL | number = EMPTY_SYMBOL, CurrentVersion extends EMPTY_SYMBOL | Exclude<number, 0> = EMPTY_SYMBOL> {
-    constructor(opts: MigratorOptions<FirstVersion, CurrentVersion>);
+    constructor(opts?: MigratorOptions<FirstVersion, CurrentVersion>);
     // (undocumented)
     currentVersion: number;
     // (undocumented)

@@ -41,7 +41,7 @@ export function createTLSchema(
 	// const shapeSubTypeMigratorWithCustomSubTypeMigrator = {
 	// 	...Object.fromEntries(defaultShapeSubTypeEntries.map(([k, v]) => [k, v.migrations])),
 	// 	...Object.fromEntries(
-	// 		customShapeSubTypeEntries.map(([k, v]) => [k, v.migrations ?? new Migrator({})])
+	// 		customShapeSubTypeEntries.map(([k, v]) => [k, v.migrations ?? new Migrator()])
 	// 	),
 	// }
 

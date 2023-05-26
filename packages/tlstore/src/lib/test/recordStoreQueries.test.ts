@@ -73,7 +73,7 @@ beforeEach(() => {
 				book: Book,
 			},
 			{
-				snapshotMigrator: new Migrator({}),
+				snapshotMigrator: new Migrator(),
 				validator,
 			}
 		),

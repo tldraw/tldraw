@@ -1,4 +1,5 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import {
 	TLAlignType,
 	TLColorType,
@@ -10,7 +11,18 @@ import {
 	TLSizeType,
 	TLVerticalAlignType,
 } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import {
+	alignValidator,
+	colorValidator,
+	dashValidator,
+	fillValidator,
+	fontValidator,
+	geoValidator,
+	opacityValidator,
+	sizeValidator,
+	verticalAlignValidator,
+} from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLGeoShapeProps = {
@@ -33,6 +45,28 @@ export type TLGeoShapeProps = {
 
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
+
+/** @public */
+export const geoShapeTypeValidator = createShapeValidator<TLGeoShape>(
+	'geo',
+	T.object({
+		geo: geoValidator,
+		labelColor: colorValidator,
+		color: colorValidator,
+		fill: fillValidator,
+		dash: dashValidator,
+		size: sizeValidator,
+		opacity: opacityValidator,
+		font: fontValidator,
+		align: alignValidator,
+		verticalAlign: verticalAlignValidator,
+		url: T.string,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		growY: T.positiveNumber,
+		text: T.string,
+	})
+)
 
 const Versions = {
 	AddUrlProp: 1,

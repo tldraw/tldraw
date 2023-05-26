@@ -1,7 +1,9 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import { assetIdValidator, opacityValidator } from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLBookmarkShapeProps = {
@@ -40,3 +42,15 @@ export const bookmarkShapeTypeMigrator = new Migrator({
 		},
 	},
 })
+
+/** @public */
+export const bookmarkShapeTypeValidator = createShapeValidator<TLBookmarkShape>(
+	'bookmark',
+	T.object({
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		assetId: assetIdValidator.nullable(),
+		url: T.string,
+	})
+)

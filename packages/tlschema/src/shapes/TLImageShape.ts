@@ -1,8 +1,10 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Vec2dModel } from '../geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import { assetIdValidator, opacityValidator } from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLImageCrop = {
@@ -23,6 +25,23 @@ export type TLImageShapeProps = {
 
 /** @public */
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+
+/** @public */
+export const imageShapeTypeValidator = createShapeValidator<TLImageShape>(
+	'image',
+	T.object({
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		playing: T.boolean,
+		url: T.string,
+		assetId: assetIdValidator.nullable(),
+		crop: T.object({
+			topLeft: T.point,
+			bottomRight: T.point,
+		}).nullable(),
+	})
+)
 
 const Versions = {
 	AddUrlProp: 1,

@@ -1,6 +1,14 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import {
+	alignValidator,
+	colorValidator,
+	fontValidator,
+	opacityValidator,
+	sizeValidator,
+} from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLTextShapeProps = {
@@ -17,6 +25,22 @@ export type TLTextShapeProps = {
 
 /** @public */
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
+
+/** @public */
+export const textShapeTypeValidator = createShapeValidator<TLTextShape>(
+	'text',
+	T.object({
+		color: colorValidator,
+		size: sizeValidator,
+		font: fontValidator,
+		align: alignValidator,
+		opacity: opacityValidator,
+		w: T.nonZeroNumber,
+		text: T.string,
+		scale: T.nonZeroNumber,
+		autoSize: T.boolean,
+	})
+)
 
 const Versions = {
 	RemoveJustify: 1,

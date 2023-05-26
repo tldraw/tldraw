@@ -1,4 +1,6 @@
 import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
+import { idValidator } from '../validation'
 
 /**
  * TLCamera
@@ -26,4 +28,16 @@ export const CameraRecordType = createRecordType<TLCamera>('camera', {
 )
 
 /** @public */
-export const cameraTypeMigrator = new Migrator({})
+export const cameraTypeValidator = T.model<TLCamera>(
+	'camera',
+	T.object({
+		typeName: T.literal('camera'),
+		id: idValidator<TLCameraId>('camera'),
+		x: T.number,
+		y: T.number,
+		z: T.number,
+	})
+)
+
+/** @public */
+export const cameraTypeMigrator = new Migrator()

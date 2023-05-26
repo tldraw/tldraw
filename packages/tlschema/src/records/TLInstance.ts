@@ -1,7 +1,25 @@
 import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
 import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { TLCursor, TLScribble } from '../ui-types'
+import { cursorValidator, TLCursor, TLScribble } from '../ui-types'
+import {
+	alignValidator,
+	arrowheadValidator,
+	colorValidator,
+	dashValidator,
+	fillValidator,
+	fontValidator,
+	geoValidator,
+	iconValidator,
+	idValidator,
+	opacityValidator,
+	pageIdValidator,
+	scribbleTypeValidator,
+	sizeValidator,
+	splineValidator,
+	verticalAlignValidator,
+} from '../validation'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 
@@ -227,5 +245,41 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 		isToolLocked: false,
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
+	})
+)
+
+/** @public */
+export const instanceTypeValidator = T.model<TLInstance>(
+	'instance',
+	T.object({
+		typeName: T.literal('instance'),
+		id: idValidator<TLInstanceId>('instance'),
+		currentPageId: pageIdValidator,
+		followingUserId: T.string.nullable(),
+		brush: T.boxModel.nullable(),
+		propsForNextShape: T.object({
+			color: colorValidator,
+			labelColor: colorValidator,
+			dash: dashValidator,
+			fill: fillValidator,
+			size: sizeValidator,
+			opacity: opacityValidator,
+			font: fontValidator,
+			align: alignValidator,
+			verticalAlign: verticalAlignValidator,
+			icon: iconValidator,
+			geo: geoValidator,
+			arrowheadStart: arrowheadValidator,
+			arrowheadEnd: arrowheadValidator,
+			spline: splineValidator,
+		}),
+		cursor: cursorValidator,
+		scribble: scribbleTypeValidator.nullable(),
+		isFocusMode: T.boolean,
+		isDebugMode: T.boolean,
+		isToolLocked: T.boolean,
+		exportBackground: T.boolean,
+		screenBounds: T.boxModel,
+		zoomBrush: T.boxModel.nullable(),
 	})
 )

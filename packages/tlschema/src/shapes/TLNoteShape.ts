@@ -1,6 +1,14 @@
 import { Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
-import { TLBaseShape } from './shape-validation'
+import {
+	alignValidator,
+	colorValidator,
+	fontValidator,
+	opacityValidator,
+	sizeValidator,
+} from '../validation'
+import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLNoteShapeProps = {
@@ -16,6 +24,21 @@ export type TLNoteShapeProps = {
 
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
+
+/** @public */
+export const noteShapeTypeValidator = createShapeValidator<TLNoteShape>(
+	'note',
+	T.object({
+		color: colorValidator,
+		size: sizeValidator,
+		font: fontValidator,
+		align: alignValidator,
+		opacity: opacityValidator,
+		growY: T.positiveNumber,
+		url: T.string,
+		text: T.string,
+	})
+)
 
 const Versions = {
 	AddUrlProp: 1,

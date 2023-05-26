@@ -7,9 +7,9 @@ export {
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
-export { bookmarkAssetMigrator, type TLBookmarkAsset } from './assets/TLBookmarkAsset'
-export { imageAssetMigrator, type TLImageAsset } from './assets/TLImageAsset'
-export { videoAssetMigrator, type TLVideoAsset } from './assets/TLVideoAsset'
+export { bookmarkAssetTypeMigrator, type TLBookmarkAsset } from './assets/TLBookmarkAsset'
+export { imageAssetTypeMigrator, type TLImageAsset } from './assets/TLImageAsset'
+export { videoAssetTypeMigrator, type TLVideoAsset } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'

@@ -1,8 +1,8 @@
 import { Migrator } from '@tldraw/tlstore'
 import { TLRecord } from './TLRecord'
-import { bookmarkAssetMigrator } from './assets/TLBookmarkAsset'
-import { imageAssetMigrator } from './assets/TLImageAsset'
-import { videoAssetMigrator } from './assets/TLVideoAsset'
+import { bookmarkAssetTypeMigrator } from './assets/TLBookmarkAsset'
+import { imageAssetTypeMigrator } from './assets/TLImageAsset'
+import { videoAssetTypeMigrator } from './assets/TLVideoAsset'
 import { rootAssetTypeMigrator } from './records/TLAsset'
 import { cameraTypeMigrator } from './records/TLCamera'
 import { documentTypeMigrator } from './records/TLDocument'
@@ -37,9 +37,9 @@ export const defaultMigrators: { [K in TLRecord['typeName']]: Migrator } = {
 	instance_page_state: instancePageStateTypeMigrator,
 	user_document: userdocumentTypeMigrator,
 	asset: rootAssetTypeMigrator.withSubTypeMigrators('type', {
-		image: imageAssetMigrator,
-		video: videoAssetMigrator,
-		bookmark: bookmarkAssetMigrator,
+		image: imageAssetTypeMigrator,
+		video: videoAssetTypeMigrator,
+		bookmark: bookmarkAssetTypeMigrator,
 	}),
 	shape: rootShapeTypeMigrator.withSubTypeMigrators('type', {
 		arrow: arrowShapeTypeMigrator,

@@ -1,15 +1,13 @@
 import { createRecordType, ID, Migrator } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { TLBaseAsset } from '../assets/asset-validation'
-import { TLBookmarkAsset } from '../assets/TLBookmarkAsset'
-import { TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset } from '../assets/TLVideoAsset'
+import { bookmarkAssetTypeValidator, TLBookmarkAsset } from '../assets/TLBookmarkAsset'
+import { imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset, videoAssetTypeValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
-
-/** @public */
-export const rootAssetTypeMigrator = new Migrator({})
 
 /** @public */
 export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
@@ -21,12 +19,25 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	: never
 
 /** @public */
+export type TLAssetId = ID<TLBaseAsset<any, any>>
+
+/** @public */
+export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>
+
+/** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
 	scope: 'document',
 })
 
 /** @public */
-export type TLAssetId = ID<TLBaseAsset<any, any>>
+export const assetTypeValidator = T.model(
+	'asset',
+	T.union('type', {
+		image: imageAssetTypeValidator,
+		video: videoAssetTypeValidator,
+		bookmark: bookmarkAssetTypeValidator,
+	})
+)
 
 /** @public */
-export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>
+export const rootAssetTypeMigrator = new Migrator()

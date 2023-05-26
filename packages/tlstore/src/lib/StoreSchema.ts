@@ -74,11 +74,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		this.validator = validator ?? { validate: (r: R) => r }
 		this.migrators = migrators
 			? (Object.fromEntries(
-					Object.keys(types).map((t) => [t, migrators[t as R['typeName']] ?? new Migrator({})])
+					Object.keys(types).map((t) => [t, migrators[t as R['typeName']] ?? new Migrator()])
 			  ) as {
 					[TypeName in R['typeName']]: Migrator
 			  })
-			: (Object.fromEntries(Object.keys(types).map((t) => [t, new Migrator({})])) as {
+			: (Object.fromEntries(Object.keys(types).map((t) => [t, new Migrator()])) as {
 					[TypeName in R['typeName']]: Migrator
 			  })
 	}
