@@ -1,4 +1,4 @@
-import { SyncedStore, TLInstanceId, TLStore, uniqueId } from '@tldraw/editor'
+import { SyncedStore, TLStore, uniqueId } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { TLLocalSyncClient } from '../TLLocalSyncClient'
 import '../hardReset'
@@ -11,11 +11,9 @@ import '../hardReset'
  */
 export function useLocalSyncClient({
 	universalPersistenceKey,
-	instanceId,
 	store,
 }: {
 	universalPersistenceKey?: string
-	instanceId: TLInstanceId
 	store: TLStore
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
@@ -59,7 +57,7 @@ export function useLocalSyncClient({
 			setState((prevState) => (prevState?.id === id ? null : prevState))
 			client.close()
 		}
-	}, [instanceId, universalPersistenceKey, store])
+	}, [universalPersistenceKey, store])
 
 	return state?.syncedStore ?? { status: 'loading' }
 }

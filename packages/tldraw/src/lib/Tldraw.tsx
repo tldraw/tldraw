@@ -25,7 +25,6 @@ export function Tldraw(
 	const _store = useMemo(() => createDefaultTldrawEditorStore({ instanceId }), [instanceId])
 
 	const syncedStore = useLocalSyncClient({
-		instanceId,
 		store: _store,
 		universalPersistenceKey: persistenceKey,
 	})

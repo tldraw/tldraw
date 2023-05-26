@@ -26,9 +26,7 @@ import { FullPageMessage } from './FullPageMessage'
 import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
-const store = createDefaultTldrawEditorStore()
-
-// @ts-ignore
+const store = createDefaultTldrawEditorStore({ instanceId: TAB_ID })
 
 setRuntimeOverrides({
 	openWindow: (url, target) => {
@@ -131,11 +129,8 @@ export type TLDrawInnerProps = {
 }
 
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
-	const instanceId = TAB_ID
-
 	const syncedStore = useLocalSyncClient({
 		universalPersistenceKey: uri,
-		instanceId,
 		store, // created outside of react scope
 	})
 
@@ -153,8 +148,8 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen instanceId={instanceId} fileContents={fileContents} forceDarkMode={isDarkMode} />
-				<ChangeResponder syncedStore={syncedStore} instanceId={instanceId} />
+				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
+				<ChangeResponder syncedStore={syncedStore} />
 				<TldrawContextMenu>
 					<TldrawCanvas />
 				</TldrawContextMenu>

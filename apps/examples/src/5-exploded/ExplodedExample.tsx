@@ -1,5 +1,4 @@
 import {
-	InstanceRecordType,
 	TldrawCanvas,
 	TldrawContextMenu,
 	TldrawEditor,
@@ -15,15 +14,12 @@ import {
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const instanceId = InstanceRecordType.createCustomId('example')
-
 const schema = createDefaultTldrawEditorSchema()
-const store = createDefaultTldrawEditorStore({ schema, instanceId })
+const store = createDefaultTldrawEditorStore({ schema })
 
 export default function Example() {
 	const syncedStore = useLocalSyncClient({
 		store,
-		instanceId,
 		universalPersistenceKey: 'exploded-example',
 	})
 

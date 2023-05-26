@@ -87,9 +87,8 @@ export class TLLocalSyncClient {
 }
 
 // @public
-export function useLocalSyncClient({ universalPersistenceKey, instanceId, store, }: {
+export function useLocalSyncClient({ universalPersistenceKey, store, }: {
     universalPersistenceKey?: string;
-    instanceId: TLInstanceId;
     store: TLStore;
 }): SyncedStore;
 

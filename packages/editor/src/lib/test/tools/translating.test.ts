@@ -4,7 +4,7 @@ import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapM
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
 import { TestApp } from '../TestApp'
 
-import { createDefaultTldrawEditorStore } from '../../config/createDefaultTldrawEditorStore'
+import { createTldrawEditorStore } from '../../config/createTldrawEditorStore'
 import { defaultTldrawEditorShapeUtils } from '../../config/defaultShapeUtils'
 import { getSnapLines } from '../testutils/getSnapLines'
 
@@ -752,7 +752,7 @@ it('works with custom shape', () => {
 	app?.dispose()
 	app = new TestApp({
 		shapes: [__TopLeftSnapOnlyShapeUtil],
-		store: createDefaultTldrawEditorStore(), // without migrations / validations, would be validate: false
+		store: createTldrawEditorStore(), // NOT the default! No migrations / validations, would be validate: false
 	})
 	expect(app.getShapeUtil(__TopLeftSnapOnlyShapeUtil)).toBeTruthy()
 	expect(() => {
@@ -773,7 +773,7 @@ describe('custom snapping points', () => {
 		app?.dispose()
 		app = new TestApp({
 			shapes: [...defaultTldrawEditorShapeUtils, __TopLeftSnapOnlyShapeUtil],
-			store: createDefaultTldrawEditorStore(), // without migrations / validations, would be validate: false
+			store: createTldrawEditorStore(), // NOT the default! without migrations / validations, would be validate: false
 			//
 			// x───────┐
 			// │ T     │
