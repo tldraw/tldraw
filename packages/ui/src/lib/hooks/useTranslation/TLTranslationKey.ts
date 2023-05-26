@@ -73,6 +73,7 @@ export type TLTranslationKey =
 	| 'action.stretch-horizontal.short'
 	| 'action.stretch-vertical.short'
 	| 'action.toggle-auto-size'
+	| 'action.toggle-cursor-chat'
 	| 'action.toggle-dark-mode.menu'
 	| 'action.toggle-dark-mode'
 	| 'action.toggle-debug-mode.menu'

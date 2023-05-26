@@ -53,6 +53,7 @@ export const createPresenceStateDerivation =
 				},
 				lastActivityTimestamp: pointer.lastActivityTimestamp,
 				screenBounds: instance.screenBounds,
+				chatMessage: instance.chatMessage,
 			})
 		})
 	}

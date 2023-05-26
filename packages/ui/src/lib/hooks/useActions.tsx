@@ -912,6 +912,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					app.zoomToContent()
 				},
 			},
+			{
+				id: 'toggle-cursor-chat',
+				label: 'action.toggle-cursor-chat',
+				readonlyOk: true,
+				kbd: '/',
+				onSelect(source) {
+					trackEvent('toggle-cursor-chat', { source })
+					console.log('CHAT')
+					// TODO: toggle cursor chat
+				},
+			},
 		])
 
 		if (overrides) {

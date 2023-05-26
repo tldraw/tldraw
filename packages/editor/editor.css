@@ -668,7 +668,6 @@ input,
 	position: absolute;
 }
 
-/* Rounded corners */
 .tl-nametag {
 	position: absolute;
 	top: 16px;
@@ -685,6 +684,23 @@ input,
 	padding: 2px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
+}
+
+.tl-nametag-title {
+	position: absolute;
+	top: 0px;
+	left: 13px;
+	padding: 0px 6px;
+	width: fit-content;
+	height: fit-content;
+	max-width: 120px;
+	white-space: nowrap;
+	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 12px;
+	font-family: var(--font-family);
+	text-shadow: var(--tl-text-outline);
 }
 
 /* -------------------------------------------------- */

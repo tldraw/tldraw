@@ -973,6 +973,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
+    chatMessage: null | string;
+    // (undocumented)
     currentPageId: TLPageId;
     // (undocumented)
     cursor: TLCursor;
@@ -1042,6 +1044,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
         y: number;
         z: number;
     };
+    // (undocumented)
+    chatMessage: null | string;
     // (undocumented)
     color: string;
     // (undocumented)

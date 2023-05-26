@@ -73,6 +73,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.stretch-horizontal.short': 'Stretch H',
 	'action.stretch-vertical.short': 'Stretch V',
 	'action.toggle-auto-size': 'Toggle auto size',
+	'action.toggle-cursor-chat': 'Toggle cursor chat',
 	'action.toggle-dark-mode.menu': 'Dark mode',
 	'action.toggle-dark-mode': 'Toggle dark mode',
 	'action.toggle-debug-mode.menu': 'Debug mode',

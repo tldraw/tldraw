@@ -45,6 +45,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
+	chatMessage: string | null
 }
 
 /** @public */
@@ -83,6 +84,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		exportBackground: T.boolean,
 		screenBounds: T.boxModel,
 		zoomBrush: T.boxModel.nullable(),
+		chatMessage: T.string.nullable(),
 	})
 )
 
@@ -98,13 +100,14 @@ const Versions = {
 	AddVerticalAlign: 9,
 	AddScribbleDelay: 10,
 	RemoveUserId: 11,
+	AddChatMessage: 12,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveUserId,
+	currentVersion: Versions.AddChatMessage,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -242,6 +245,14 @@ export const instanceTypeMigrations = defineMigrations({
 				return { ...instance, userId: 'user:none' }
 			},
 		},
+		[Versions.AddChatMessage]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, chatMessage: null }
+			},
+			down: ({ chatMessage: _, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
 	},
 })
 
@@ -282,5 +293,6 @@ export const TLInstance = createRecordType<TLInstance>('instance', {
 		isToolLocked: false,
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
+		chatMessage: null,
 	})
 )

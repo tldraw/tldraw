@@ -907,6 +907,30 @@ describe('Adds delay to scribble', () => {
 	})
 })
 
+describe('Adds chat message to presence', () => {
+	const { up, down } = instancePresenceTypeMigrations.migrators[2]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: null })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: null })).toEqual({})
+	})
+})
+
+describe('Adds chat message to instance', () => {
+	const { up, down } = instanceTypeMigrations.migrators[12]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: null })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: null })).toEqual({})
+	})
+})
+
 describe('user config refactor', () => {
 	test('removes user and user_presence types from snapshots', () => {
 		const { up, down } =
