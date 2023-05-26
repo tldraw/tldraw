@@ -8,7 +8,7 @@ import { TldrawEditorProps } from '@tldraw/editor';
 import { TldrawUiContextProviderProps } from '@tldraw/ui';
 
 // @public (undocumented)
-export function Tldraw(props: Omit<TldrawEditorProps, 'shapes' | 'store' | 'tools'> & TldrawUiContextProviderProps & {
+export function Tldraw(props: Omit<TldrawEditorProps, 'instanceId' | 'shapes' | 'store' | 'tools'> & TldrawUiContextProviderProps & {
     persistenceKey?: string;
     hideUi?: boolean;
 }): JSX.Element;

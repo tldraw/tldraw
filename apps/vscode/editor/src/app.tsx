@@ -4,8 +4,6 @@ import {
 	ErrorBoundary,
 	TldrawEditor,
 	createTldrawEditorStore,
-	defaultShapes,
-	defaultTools,
 	setRuntimeOverrides,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
@@ -143,8 +141,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
 			syncedStore={syncedStore}
-			shapes={defaultShapes}
-			tools={defaultTools}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>

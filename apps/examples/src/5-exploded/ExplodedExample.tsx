@@ -4,8 +4,6 @@ import {
 	TldrawEditor,
 	TldrawUi,
 	createTldrawEditorStore,
-	defaultShapes,
-	defaultTools,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -21,7 +19,7 @@ export default function Example() {
 
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor syncedStore={syncedStore} shapes={defaultShapes} tools={defaultTools} autoFocus>
+			<TldrawEditor syncedStore={syncedStore} autoFocus>
 				<TldrawUi>
 					<ContextMenu>
 						<Canvas />

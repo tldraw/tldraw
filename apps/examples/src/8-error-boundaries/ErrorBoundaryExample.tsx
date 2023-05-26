@@ -3,7 +3,6 @@ import {
 	ContextMenu,
 	createShapeId,
 	defaultShapes,
-	defaultTools,
 	TLBaseShape,
 	TLBoxUtil,
 	TldrawEditor,
@@ -50,7 +49,6 @@ export default function ErrorBoundaryExample() {
 				}}
 				// below, we define a custom shape that always throws an error so we can see our new error boundary in action
 				shapes={shapes}
-				tools={defaultTools}
 				onMount={(app) => {
 					// when the app starts, create our error shape so we can see
 					// what it looks like:

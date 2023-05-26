@@ -2,8 +2,6 @@ import { render, screen } from '@testing-library/react'
 import { InstanceRecordType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { createTldrawEditorStore } from '../config/createTldrawEditorStore'
-import { defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -30,13 +28,7 @@ describe('<Tldraw />', () => {
 		const onMount = jest.fn()
 
 		const rendered = render(
-			<TldrawEditor
-				shapes={defaultShapes}
-				tools={defaultTools}
-				store={initialStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -48,13 +40,7 @@ describe('<Tldraw />', () => {
 
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor
-				shapes={defaultShapes}
-				tools={defaultTools}
-				store={initialStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -67,13 +53,7 @@ describe('<Tldraw />', () => {
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 		rendered.rerender(
-			<TldrawEditor
-				shapes={defaultShapes}
-				tools={defaultTools}
-				store={newStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)

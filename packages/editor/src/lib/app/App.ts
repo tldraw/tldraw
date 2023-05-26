@@ -79,6 +79,7 @@ import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TldrawEditorShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
 import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -188,7 +189,7 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
-	constructor({ store, user, tools = [], shapes = {}, getContainer }: AppOptions) {
+	constructor({ store, user, tools = defaultTools, shapes = {}, getContainer }: AppOptions) {
 		super()
 
 		this.store = store

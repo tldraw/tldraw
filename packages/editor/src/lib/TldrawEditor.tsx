@@ -26,15 +26,16 @@ import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 
-export type TldrawEditorBaseProps = {
+/** @public */
+export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes: Record<string, TldrawEditorShapeInfo>
+	shapes?: Record<string, TldrawEditorShapeInfo>
 	/**
 	 * An array of tools to use in the editor.
 	 */
-	tools: StateNodeConstructor[]
+	tools?: StateNodeConstructor[]
 	/**
 	 * Overrides for the tldraw components
 	 */
@@ -86,46 +87,31 @@ export type TldrawEditorBaseProps = {
 	onCreateBookmarkFromUrl?: (
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
-	/**
-	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
-	 * tab). If not given, one will be generated.
-	 */
-	instanceId?: TLInstanceId
 	/** Asset URLs */
 	assetUrls?: EditorAssetUrls
 	/** Whether to automatically focus the editor when it mounts. */
 	autoFocus?: boolean
 	children?: any
-}
-
-// In addition to the base TldrawEditor props, a user can either pass in a store that they've defined externally, or else pass in the props to create a store.
-
-type TldrawEditorPropsWithStore = {
 	/**
 	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
 	store?: TLStore
-}
-
-type TldrawEditorPropsWithSyncedStore = {
 	/**
 	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
 	syncedStore?: SyncedStore
-}
-
-type TldrawEditorPropsWithoutStore = {
 	/**
 	 * The editor's initial data.
 	 */
 	initialData?: StoreSnapshot<TLRecord>
+	/**
+	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
+	 * tab). If not given, one will be generated.
+	 */
+	instanceId?: TLInstanceId
 }
-
-/** @public */
-export type TldrawEditorProps = TldrawEditorBaseProps &
-	(TldrawEditorPropsWithStore | TldrawEditorPropsWithSyncedStore | TldrawEditorPropsWithoutStore)
 
 declare global {
 	interface Window {
@@ -159,16 +145,13 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
-	instanceId,
-	...props
-}: TldrawEditorProps) {
-	const { store } = props as TldrawEditorProps & TldrawEditorPropsWithStore
-	const { syncedStore } = props as TldrawEditorProps & TldrawEditorPropsWithSyncedStore
-	const { initialData } = props as TldrawEditorProps & TldrawEditorPropsWithoutStore
+const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
+	props: TldrawEditorProps
+) {
+	const { store, syncedStore, initialData, instanceId, assetUrls, shapes } = props
 
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
-		props.assetUrls ?? defaultEditorAssetUrls
+		assetUrls ?? defaultEditorAssetUrls
 	)
 
 	const syncingStore = useMemo<SyncedStore>(() => {
@@ -188,13 +171,13 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 		return {
 			// We have no store! Create a new store based on whatever props we have
 			store: createTldrawEditorStore({
-				customShapes: props.shapes,
+				customShapes: shapes,
 				instanceId,
 				initialData,
 			}),
 			status: 'not-synced',
 		}
-	}, [store, initialData, instanceId, syncedStore, props.shapes])
+	}, [store, initialData, instanceId, syncedStore, shapes])
 
 	if (syncingStore.error) {
 		// for error handling, we fall back to the default error boundary.

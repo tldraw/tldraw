@@ -1793,7 +1793,25 @@ export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
-export type TldrawEditorProps = TldrawEditorBaseProps & (TldrawEditorPropsWithoutStore | TldrawEditorPropsWithStore | TldrawEditorPropsWithSyncedStore);
+export type TldrawEditorProps = {
+    shapes?: Record<string, TldrawEditorShapeInfo>;
+    tools?: StateNodeConstructor[];
+    components?: Partial<TLEditorComponents>;
+    onMount?: (app: App) => void;
+    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
+    onCreateBookmarkFromUrl?: (url: string) => Promise<{
+        image: string;
+        title: string;
+        description: string;
+    }>;
+    assetUrls?: EditorAssetUrls;
+    autoFocus?: boolean;
+    children?: any;
+    store?: TLStore;
+    syncedStore?: SyncedStore;
+    initialData?: StoreSnapshot<TLRecord>;
+    instanceId?: TLInstanceId;
+};
 
 // @public (undocumented)
 export type TldrawEditorShapeInfo = {
