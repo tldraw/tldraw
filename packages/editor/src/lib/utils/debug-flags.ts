@@ -175,7 +175,6 @@ function readEnv(fn: () => string | undefined) {
 
 function getDefaultValue<T>(def: DebugFlagDef<T>): T {
 	const env =
-		readEnv(() => (import.meta as any).env.TLDRAW_ENV) ??
 		readEnv(() => process.env.TLDRAW_ENV) ??
 		readEnv(() => process.env.VERCEL_PUBLIC_TLDRAW_ENV) ??
 		readEnv(() => process.env.NEXT_PUBLIC_TLDRAW_ENV) ??
