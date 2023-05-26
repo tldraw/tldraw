@@ -162,12 +162,24 @@ function getStoredInitialValue(name: string) {
 	}
 }
 
+// process.env might not be defined, but we can't access it using optional
+// chaining because some bundlers search for `process.env.SOMETHING` as a string
+// and replace it with its value.
+function readEnv(fn: () => string | undefined) {
+	try {
+		return fn()
+	} catch {
+		return null
+	}
+}
+
 function getDefaultValue<T>(def: DebugFlagDef<T>): T {
-	const p = typeof process !== 'undefined' ? process : null
 	const env =
-		(import.meta as any)?.env?.TLDRAW_ENV ??
-		p?.env?.TLDRAW_ENV ??
-		p?.env?.VERCEL_PUBLIC_TLDRAW_ENV ??
+		readEnv(() => (import.meta as any).env.TLDRAW_ENV) ??
+		readEnv(() => process.env.TLDRAW_ENV) ??
+		readEnv(() => process.env.VERCEL_PUBLIC_TLDRAW_ENV) ??
+		readEnv(() => process.env.NEXT_PUBLIC_TLDRAW_ENV) ??
+		// default to production because if we don't have one of these, this is probably a library use
 		'production'
 
 	switch (env) {
