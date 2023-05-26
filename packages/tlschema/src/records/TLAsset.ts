@@ -44,7 +44,7 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 	: never
 
 /** @public */
-export const TLAsset = createRecordType<TLAsset>('asset', {
+export const AssetRecordType = createRecordType<TLAsset>('asset', {
 	migrations: assetTypeMigrations,
 	scope: 'document',
 })

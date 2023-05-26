@@ -1,4 +1,4 @@
-import { TLAsset, TLInstance, TLInstanceId, TLStore } from '@tldraw/tlschema'
+import { InstanceRecordType, TLAsset, TLInstanceId, TLStore } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { useCallback, useMemo, useSyncExternalStore } from 'react'
@@ -139,7 +139,7 @@ function TldrawEditorBeforeLoading({ config, instanceId, store, ...props }: Tldr
 		return (
 			store ??
 			config.createStore({
-				instanceId: instanceId ?? TLInstance.createId(),
+				instanceId: instanceId ?? InstanceRecordType.createId(),
 			})
 		)
 	}, [store, config, instanceId])

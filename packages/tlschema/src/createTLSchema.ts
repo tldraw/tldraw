@@ -2,16 +2,16 @@ import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tl
 import { TLRecord } from './TLRecord'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { defaultTldrawEditorValidator } from './defaultTldrawEditorValidator'
-import { TLAsset } from './records/TLAsset'
-import { TLCamera } from './records/TLCamera'
-import { TLDocument } from './records/TLDocument'
-import { TLInstance } from './records/TLInstance'
-import { TLInstancePageState } from './records/TLInstancePageState'
-import { TLInstancePresence } from './records/TLInstancePresence'
-import { TLPage } from './records/TLPage'
-import { TLPointer } from './records/TLPointer'
+import { AssetRecordType } from './records/TLAsset'
+import { CameraRecordType } from './records/TLCamera'
+import { DocumentRecordType } from './records/TLDocument'
+import { InstanceRecordType } from './records/TLInstance'
+import { InstancePageStateRecordType } from './records/TLInstancePageState'
+import { InstancePresenceRecordType } from './records/TLInstancePresence'
+import { PageRecordType } from './records/TLPage'
+import { PointerRecordType } from './records/TLPointer'
 import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
-import { TLUserDocument } from './records/TLUserDocument'
+import { UserDocumentRecordType } from './records/TLUserDocument'
 import { storeMigrations } from './schema'
 import { arrowShapeTypeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrations } from './shapes/TLBookmarkShape'
@@ -92,16 +92,16 @@ export function createTLSchema(
 
 	return StoreSchema.create<TLRecord, TLStoreProps>(
 		{
-			asset: TLAsset,
-			camera: TLCamera,
-			document: TLDocument,
-			instance: TLInstance,
-			instance_page_state: TLInstancePageState,
-			page: TLPage,
+			asset: AssetRecordType,
+			camera: CameraRecordType,
+			document: DocumentRecordType,
+			instance: InstanceRecordType,
+			instance_page_state: InstancePageStateRecordType,
+			page: PageRecordType,
 			shape: shapeRecord,
-			user_document: TLUserDocument,
-			instance_presence: TLInstancePresence,
-			pointer: TLPointer,
+			user_document: UserDocumentRecordType,
+			instance_presence: InstancePresenceRecordType,
+			pointer: PointerRecordType,
 		},
 		{
 			snapshotMigrations: storeMigrations,

@@ -29,7 +29,7 @@ export const pointerTypeValidator: T.Validator<TLPointer> = T.model(
 )
 
 /** @public */
-export const TLPointer = createRecordType<TLPointer>('pointer', {
+export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
@@ -40,7 +40,7 @@ export const TLPointer = createRecordType<TLPointer>('pointer', {
 )
 
 /** @public */
-export const TLPOINTER_ID = TLPointer.createCustomId('pointer')
+export const TLPOINTER_ID = PointerRecordType.createCustomId('pointer')
 
 /** @public */
 export const pointerTypeMigrations = defineMigrations({})

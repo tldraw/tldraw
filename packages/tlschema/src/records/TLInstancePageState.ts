@@ -66,10 +66,13 @@ export const instancePageStateMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstancePageState = createRecordType<TLInstancePageState>('instance_page_state', {
-	migrations: instancePageStateMigrations,
-	scope: 'instance',
-}).withDefaultProperties(
+export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
+	'instance_page_state',
+	{
+		migrations: instancePageStateMigrations,
+		scope: 'instance',
+	}
+).withDefaultProperties(
 	(): Omit<
 		TLInstancePageState,
 		'id' | 'typeName' | 'userId' | 'instanceId' | 'cameraId' | 'pageId'

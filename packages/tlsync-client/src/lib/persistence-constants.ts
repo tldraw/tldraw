@@ -1,4 +1,4 @@
-import { TLInstance, TLInstanceId, uniqueId } from '@tldraw/editor'
+import { InstanceRecordType, TLInstanceId, uniqueId } from '@tldraw/editor'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 
@@ -38,7 +38,7 @@ export const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 
 /** @public */
 export const TAB_ID: TLInstanceId =
-	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? TLInstance.createId()
+	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? InstanceRecordType.createId()
 if (window) {
 	window[tabIdKey] = TAB_ID
 	if (iOS()) {

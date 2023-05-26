@@ -1,13 +1,13 @@
 import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { TLRecord } from './TLRecord'
-import { TLCamera } from './records/TLCamera'
-import { TLDOCUMENT_ID, TLDocument } from './records/TLDocument'
-import { TLInstance, TLInstanceId } from './records/TLInstance'
-import { TLInstancePageState } from './records/TLInstancePageState'
-import { TLPage } from './records/TLPage'
-import { TLPOINTER_ID, TLPointer } from './records/TLPointer'
-import { TLUserDocument } from './records/TLUserDocument'
+import { CameraRecordType } from './records/TLCamera'
+import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
+import { InstanceRecordType, TLInstanceId } from './records/TLInstance'
+import { InstancePageStateRecordType } from './records/TLInstancePageState'
+import { PageRecordType } from './records/TLPage'
+import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
+import { UserDocumentRecordType } from './records/TLUserDocument'
 
 function sortByIndex<T extends { index: string }>(a: T, b: T) {
 	if (a.index < b.index) {
@@ -73,7 +73,7 @@ export const onValidationFailure: StoreSchemaOptions<
 }
 
 function getDefaultPages() {
-	return [TLPage.create({ name: 'Page 1', index: 'a1' })]
+	return [PageRecordType.create({ name: 'Page 1', index: 'a1' })]
 }
 
 /** @internal */
@@ -91,12 +91,12 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const { instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
-			store.put([TLDocument.create({ id: TLDOCUMENT_ID })])
+			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID })])
 			return ensureStoreIsUsable()
 		}
 
 		if (!store.has(TLPOINTER_ID)) {
-			store.put([TLPointer.create({ id: TLPOINTER_ID })])
+			store.put([PointerRecordType.create({ id: TLPOINTER_ID })])
 			return ensureStoreIsUsable()
 		}
 
@@ -104,7 +104,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const userDocumentSettings = $userDocumentSettings.value
 
 		if (!userDocumentSettings) {
-			store.put([TLUserDocument.create({})])
+			store.put([UserDocumentRecordType.create({})])
 			return ensureStoreIsUsable()
 		}
 
@@ -127,7 +127,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 			const currentPageId = userDocumentSettings?.lastUpdatedPageId ?? pages[0].id!
 
 			store.put([
-				TLInstance.create({
+				InstanceRecordType.create({
 					id: tabId,
 					currentPageId,
 					propsForNextShape,
@@ -154,10 +154,14 @@ export function createIntegrityChecker(store: TLStore): () => void {
 				// make sure we only have one instancePageState per instance per page
 				store.remove(instancePageStates.slice(1).map((ips) => ips.id))
 			} else if (instancePageStates.length === 0) {
-				const camera = TLCamera.create({})
+				const camera = CameraRecordType.create({})
 				store.put([
 					camera,
-					TLInstancePageState.create({ pageId: page.id, instanceId: tabId, cameraId: camera.id }),
+					InstancePageStateRecordType.create({
+						pageId: page.id,
+						instanceId: tabId,
+						cameraId: camera.id,
+					}),
 				])
 				return ensureStoreIsUsable()
 			}
@@ -165,7 +169,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 			// make sure the camera exists
 			const camera = store.get(instancePageStates[0].cameraId)
 			if (!camera) {
-				store.put([TLCamera.create({ id: instancePageStates[0].cameraId })])
+				store.put([CameraRecordType.create({ id: instancePageStates[0].cameraId })])
 				return ensureStoreIsUsable()
 			}
 		}

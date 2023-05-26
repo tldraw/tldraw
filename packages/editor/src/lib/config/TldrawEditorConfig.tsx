@@ -1,8 +1,8 @@
 import {
 	CLIENT_FIXUP_SCRIPT,
+	InstanceRecordType,
 	TLDOCUMENT_ID,
 	TLDefaultShape,
-	TLInstance,
 	TLInstanceId,
 	TLInstancePresence,
 	TLRecord,
@@ -128,7 +128,7 @@ export class TldrawEditorConfig {
 			schema: this.storeSchema,
 			initialData,
 			props: {
-				instanceId: config?.instanceId ?? TLInstance.createId(),
+				instanceId: config?.instanceId ?? InstanceRecordType.createId(),
 				documentId: TLDOCUMENT_ID,
 			},
 		})

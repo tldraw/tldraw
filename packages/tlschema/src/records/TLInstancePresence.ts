@@ -90,10 +90,13 @@ export const instancePresenceTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
-	migrations: instancePresenceTypeMigrations,
-	scope: 'presence',
-}).withDefaultProperties(() => ({
+export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
+	'instance_presence',
+	{
+		migrations: instancePresenceTypeMigrations,
+		scope: 'presence',
+	}
+).withDefaultProperties(() => ({
 	lastActivityTimestamp: 0,
 	followingUserId: null,
 	color: '#FF0000',

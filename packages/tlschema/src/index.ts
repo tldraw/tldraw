@@ -29,34 +29,48 @@ export { defaultTldrawEditorValidator } from './defaultTldrawEditorValidator'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
-	TLAsset,
+	AssetRecordType,
 	assetTypeMigrations,
 	assetTypeValidator,
+	type TLAsset,
 	type TLAssetId,
 	type TLAssetPartial,
 	type TLAssetShape,
 } from './records/TLAsset'
-export { TLCamera, cameraTypeValidator, type TLCameraId } from './records/TLCamera'
-export { TLDOCUMENT_ID, TLDocument, documentTypeValidator } from './records/TLDocument'
 export {
-	TLInstance,
+	CameraRecordType,
+	cameraTypeValidator,
+	type TLCamera,
+	type TLCameraId,
+} from './records/TLCamera'
+export {
+	DocumentRecordType,
+	TLDOCUMENT_ID,
+	documentTypeValidator,
+	type TLDocument,
+} from './records/TLDocument'
+export {
+	InstanceRecordType,
 	instanceTypeMigrations,
 	instanceTypeValidator,
+	type TLInstance,
 	type TLInstanceId,
 	type TLInstancePropsForNextShape,
 } from './records/TLInstance'
 export {
-	TLInstancePageState,
+	InstancePageStateRecordType,
 	instancePageStateMigrations,
 	instancePageStateTypeValidator,
+	type TLInstancePageState,
 	type TLInstancePageStateId,
 } from './records/TLInstancePageState'
-export { TLInstancePresence } from './records/TLInstancePresence'
-export { TLPage, pageTypeValidator, type TLPageId } from './records/TLPage'
+export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
+export { PageRecordType, pageTypeValidator, type TLPage, type TLPageId } from './records/TLPage'
 export {
+	PointerRecordType,
 	TLPOINTER_ID,
-	TLPointer,
 	pointerTypeValidator,
+	type TLPointer,
 	type TLPointerId,
 } from './records/TLPointer'
 export {
@@ -76,9 +90,10 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
-	TLUserDocument,
+	UserDocumentRecordType,
 	userDocumentTypeMigrations,
 	userDocumentTypeValidator,
+	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
 export { storeMigrations } from './schema'
