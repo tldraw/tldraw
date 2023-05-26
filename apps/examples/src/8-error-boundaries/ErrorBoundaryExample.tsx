@@ -11,7 +11,7 @@ import {
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-// do make it easy to see our custom shape error fallback, let's create a new
+// to make it easy to see our custom shape error fallback, let's create a new
 // shape type that always throws an error. See CustomConfigExample for more info
 // on creating custom shapes.
 type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
