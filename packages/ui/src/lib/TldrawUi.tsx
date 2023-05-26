@@ -5,6 +5,7 @@ import React, { ReactNode } from 'react'
 import { useValue } from 'signia-react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
 import { BackToContent } from './components/BackToContent'
+import { CursorChatInput } from './components/CursorChatInput'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
 import { FollowingIndicator } from './components/FollowingIndicator'
@@ -154,6 +155,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 				<Toasts />
 				<Dialogs />
 				<ToastViewport />
+				<CursorChatInput />
 				<FollowingIndicator />
 			</main>
 		</ToastProvider>

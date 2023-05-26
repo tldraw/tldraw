@@ -16,7 +16,6 @@ import { usePattern } from '../hooks/usePattern'
 import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
-import { CursorChatInput } from './CursorChatInput'
 import { LiveCollaborators } from './LiveCollaborators'
 import { SelectionBg } from './SelectionBg'
 import { SelectionFg } from './SelectionFg'
@@ -129,7 +128,6 @@ export const Canvas = track(function Canvas({
 					<SnapLinesWrapper />
 					<SelectionFg />
 					<LiveCollaborators />
-					<CursorChatInput />
 				</div>
 			</div>
 		</div>
