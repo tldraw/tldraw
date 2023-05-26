@@ -314,7 +314,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
         [Record in R as Record['typeName']]: RecordType<R, any>;
     };
     // (undocumented)
-    validateRecordOnCreateOrUpdate(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
+    validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
     // (undocumented)
     validator: {
         validate: (record: any) => R;

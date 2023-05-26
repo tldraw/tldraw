@@ -87,7 +87,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return this.options.snapshotMigrator?.currentVersion ?? 0
 	}
 
-	validateRecordOnCreateOrUpdate(
+	validateRecord(
 		store: Store<R>,
 		record: R,
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests',
