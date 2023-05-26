@@ -73,6 +73,7 @@ export {
 	instancePresenceTypeMigrator,
 	instancePresenceTypeValidator,
 	type TLInstancePresence,
+	type TLInstancePresenceId,
 } from './records/TLInstancePresence'
 export {
 	PageRecordType,

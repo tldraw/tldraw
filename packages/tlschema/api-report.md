@@ -1486,6 +1486,9 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 // @public (undocumented)
+export type TLInstancePresenceId = ID<TLInstancePresence>;
+
+// @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
 
 // @public (undocumented)
