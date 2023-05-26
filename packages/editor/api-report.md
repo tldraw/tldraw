@@ -24,6 +24,7 @@ import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
+import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -31,7 +32,6 @@ import { Migrations } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
-import { RecordType } from '@tldraw/tlstore';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -39,7 +39,7 @@ import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
 import { sortByIndex } from '@tldraw/indices';
-import { StoreSchema } from '@tldraw/tlstore';
+import { Store } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
@@ -57,7 +57,6 @@ import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
-import { TLDrawShapeSegment } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
@@ -87,7 +86,6 @@ import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
-import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
@@ -124,7 +122,7 @@ export type AnimationOptions = Partial<{
 
 // @public (undocumented)
 export class App extends EventEmitter<TLEventMap> {
-    constructor({ config, store, getContainer }: AppOptions);
+    constructor({ store, user, tools, shapes, getContainer }: AppOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -164,7 +162,6 @@ export class App extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
-    readonly config: TldrawEditorConfig;
     // @internal (undocumented)
     crash(error: unknown): void;
     // @internal
@@ -542,9 +539,11 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 
 // @public (undocumented)
 export interface AppOptions {
-    config: TldrawEditorConfig;
     getContainer: () => HTMLElement;
+    shapes?: Record<string, TldrawEditorShapeInfo>;
     store: TLStore;
+    tools?: StateNodeConstructor[];
+    user?: TldrawEditorUser;
 }
 
 // @public (undocumented)
@@ -605,6 +604,16 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public (undocumented)
+export function createTldrawEditorStore(opts?: {
+    shapes?: Record<string, TldrawEditorShapeInfo> | undefined;
+    instanceId?: TLInstanceId | undefined;
+    initialData?: StoreSnapshot<TLRecord> | undefined;
+}): Store<TLRecord, {
+    instanceId: TLInstanceId;
+    documentId: ID<TLDocument>;
+}>;
+
+// @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
 
 // @public (undocumented)
@@ -645,6 +654,12 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallback;
+
+// @public (undocumented)
+export const defaultShapes: Record<string, TldrawEditorShapeInfo>;
+
+// @public (undocumented)
+export const defaultTools: StateNodeConstructor[];
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -1554,7 +1569,7 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
-export type SyncedStore = ErrorSyncedStore | InitializingSyncedStore | ReadySyncedStore;
+export type SyncedStore = ErrorSyncedStore | InitializingSyncedStore | ReadyNotSyncedStore | ReadySyncedStore;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -1678,7 +1693,7 @@ export type TLBoxLike = TLBaseShape<string, {
 // @public (undocumented)
 export abstract class TLBoxTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_4 | typeof Pointing_3)[];
+    static children: () => (typeof Idle_4 | typeof Pointing_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1778,48 +1793,16 @@ export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
-export class TldrawEditorConfig {
-    constructor(opts?: TldrawEditorConfigOptions);
-    // (undocumented)
-    createStore(config: {
-        initialData?: StoreSnapshot<TLRecord>;
-        instanceId: TLInstanceId;
-    }): TLStore;
-    // (undocumented)
-    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
-    // (undocumented)
-    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
-    // (undocumented)
-    readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
-    // (undocumented)
-    readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>;
-    // (undocumented)
-    readonly TLShape: RecordType<TLShape, 'index' | 'parentId' | 'props' | 'type'>;
-    // (undocumented)
-    readonly tools: readonly StateNodeConstructor[];
-    // (undocumented)
-    readonly userPreferences: Signal<TLUserPreferences>;
-}
+export type TldrawEditorProps = TldrawEditorBaseProps & (TldrawEditorPropsWithoutStore | TldrawEditorPropsWithStore | TldrawEditorPropsWithSyncedStore);
 
 // @public (undocumented)
-export interface TldrawEditorProps {
-    assetUrls?: EditorAssetUrls;
-    autoFocus?: boolean;
-    // (undocumented)
-    children?: any;
-    components?: Partial<TLEditorComponents>;
-    config: TldrawEditorConfig;
-    instanceId?: TLInstanceId;
-    isDarkMode?: boolean;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
-    onMount?: (app: App) => void;
-    store?: SyncedStore | TLStore;
-}
+export type TldrawEditorShapeInfo = {
+    util: TLShapeUtilConstructor<any>;
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
 
 // @public (undocumented)
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
@@ -2189,6 +2172,8 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
     static type: string;
+    // (undocumented)
+    type: "group";
 }
 
 // @public (undocumented)
@@ -2505,6 +2490,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>> {
     // (undocumented)
     new (app: App, type: T['type']): ShapeUtil;
+    // (undocumented)
+    type: T['type'];
 }
 
 // @public (undocumented)

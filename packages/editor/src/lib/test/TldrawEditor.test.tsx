@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react'
 import { InstanceRecordType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { createTldrawEditorStore } from '../config/createTldrawEditorStore'
+import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -21,16 +23,21 @@ afterEach(() => {
 
 describe('<Tldraw />', () => {
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const config = new TldrawEditorConfig()
-
-		const initialStore = config.createStore({
+		const initialStore = createTldrawEditorStore({
+			shapes: defaultShapes,
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 
 		const onMount = jest.fn()
 
 		const rendered = render(
-			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				shapes={defaultShapes}
+				tools={defaultTools}
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -42,7 +49,13 @@ describe('<Tldraw />', () => {
 
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor config={config} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				shapes={defaultShapes}
+				tools={defaultTools}
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -51,11 +64,17 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 
 		// re-render with a new store:
-		const newStore = config.createStore({
+		const newStore = createTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 		rendered.rerender(
-			<TldrawEditor config={config} store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				shapes={defaultShapes}
+				tools={defaultTools}
+				store={newStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)

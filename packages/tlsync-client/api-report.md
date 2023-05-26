@@ -8,7 +8,6 @@ import { RecordsDiff } from '@tldraw/tlstore';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { SyncedStore } from '@tldraw/editor';
-import { TldrawEditorConfig } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
@@ -88,10 +87,9 @@ export class TLLocalSyncClient {
 }
 
 // @public
-export function useLocalSyncClient({ universalPersistenceKey, instanceId, config, }: {
-    universalPersistenceKey: string;
-    instanceId: TLInstanceId;
-    config: TldrawEditorConfig;
+export function useLocalSyncClient({ universalPersistenceKey, store, }: {
+    universalPersistenceKey?: string;
+    store: TLStore;
 }): SyncedStore;
 
 // (No @packageDocumentation comment for this package)

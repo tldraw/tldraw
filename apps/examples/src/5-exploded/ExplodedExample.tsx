@@ -1,30 +1,29 @@
 import {
 	Canvas,
 	ContextMenu,
-	InstanceRecordType,
 	TldrawEditor,
-	TldrawEditorConfig,
 	TldrawUi,
+	createTldrawEditorStore,
+	defaultShapes,
+	defaultTools,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const instanceId = InstanceRecordType.createCustomId('example')
-
-// for custom config, see 3-custom-config
-const config = new TldrawEditorConfig()
+const store = createTldrawEditorStore({
+	shapes: defaultShapes,
+})
 
 export default function Example() {
 	const syncedStore = useLocalSyncClient({
-		config,
-		instanceId,
+		store,
 		universalPersistenceKey: 'exploded-example',
 	})
 
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor instanceId={instanceId} store={syncedStore} config={config} autoFocus>
+			<TldrawEditor syncedStore={syncedStore} shapes={defaultShapes} tools={defaultTools} autoFocus>
 				<TldrawUi>
 					<ContextMenu>
 						<Canvas />

@@ -1,12 +1,13 @@
 import {
 	InstanceRecordType,
 	PageRecordType,
-	TldrawEditorConfig,
 	TLInstanceId,
+	createTldrawEditorStore,
+	defaultShapes,
 } from '@tldraw/editor'
 import { promiseWithResolve } from '@tldraw/utils'
-import * as idb from './indexedDb'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
+import * as idb from './indexedDb'
 
 jest.mock('./indexedDb', () => ({
 	...jest.requireActual('./indexedDb'),
@@ -31,7 +32,8 @@ function testClient(
 	instanceId: TLInstanceId = InstanceRecordType.createCustomId('test'),
 	channel = new BroadcastChannelMock('test')
 ) {
-	const store = new TldrawEditorConfig().createStore({
+	const store = createTldrawEditorStore({
+		shapes: defaultShapes,
 		instanceId,
 	})
 	const onLoad = jest.fn(() => {

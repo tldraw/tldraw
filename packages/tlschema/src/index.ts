@@ -24,7 +24,7 @@ export {
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema } from './createTLSchema'
+export { createTLSchema, type TLSchemaShapeInfo } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
@@ -95,7 +95,6 @@ export {
 	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
-export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
 	arrowShapeTypeMigrations,
@@ -188,6 +187,7 @@ export {
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
 export { createShapeValidator, type TLBaseShape } from './shapes/shape-validation'
+export { storeMigrations } from './storeMigrations'
 export {
 	TL_ALIGN_TYPES,
 	TL_ARROWHEAD_TYPES,

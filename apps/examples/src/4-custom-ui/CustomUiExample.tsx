@@ -1,15 +1,24 @@
-import { Canvas, TldrawEditor, TldrawEditorConfig, useApp } from '@tldraw/tldraw'
+import {
+	Canvas,
+	TldrawEditor,
+	createTldrawEditorStore,
+	defaultShapes,
+	defaultTools,
+	useApp,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import { useEffect } from 'react'
 import { track } from 'signia-react'
 import './custom-ui.css'
 
-const config = new TldrawEditorConfig()
+const store = createTldrawEditorStore({
+	shapes: defaultShapes,
+})
 
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor config={config} autoFocus>
+			<TldrawEditor store={store} shapes={defaultShapes} tools={defaultTools} autoFocus>
 				<Canvas />
 				<CustomUi />
 			</TldrawEditor>

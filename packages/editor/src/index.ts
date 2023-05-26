@@ -132,7 +132,12 @@ export {
 	type SyncedStore,
 } from './lib/config/SyncedStore'
 export { USER_COLORS } from './lib/config/TLUserPreferences'
-export { TldrawEditorConfig } from './lib/config/TldrawEditorConfig'
+export {
+	createTldrawEditorStore,
+	type TldrawEditorShapeInfo,
+} from './lib/config/createTldrawEditorStore'
+export { defaultShapes } from './lib/config/defaultShapes'
+export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,

@@ -8,7 +8,6 @@ import { instancePageStateMigrations } from './records/TLInstancePageState'
 import { instancePresenceTypeMigrations } from './records/TLInstancePresence'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
 import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
-import { storeMigrations, storeVersions } from './schema'
 import { arrowShapeTypeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrations } from './shapes/TLDrawShape'
@@ -18,6 +17,7 @@ import { imageShapeTypeMigrations } from './shapes/TLImageShape'
 import { noteShapeTypeMigrations } from './shapes/TLNoteShape'
 import { textShapeTypeMigrations } from './shapes/TLTextShape'
 import { videoShapeTypeMigrations } from './shapes/TLVideoShape'
+import { storeMigrations, storeVersions } from './storeMigrations'
 
 const assetModules = fs
 	.readdirSync('src/assets')

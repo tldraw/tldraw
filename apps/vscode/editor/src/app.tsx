@@ -2,9 +2,11 @@ import {
 	App,
 	Canvas,
 	ErrorBoundary,
-	setRuntimeOverrides,
 	TldrawEditor,
-	TldrawEditorConfig,
+	createTldrawEditorStore,
+	defaultShapes,
+	defaultTools,
+	setRuntimeOverrides,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
@@ -24,9 +26,10 @@ import { FullPageMessage } from './FullPageMessage'
 import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
-const config = new TldrawEditorConfig()
-
-// @ts-ignore
+const store = createTldrawEditorStore({
+	shapes: defaultShapes,
+	instanceId: TAB_ID,
+})
 
 setRuntimeOverrides({
 	openWindow: (url, target) => {
@@ -97,7 +100,6 @@ export const TldrawWrapper = () => {
 						fileContents: message.data.fileContents,
 						uri: message.data.uri,
 						isDarkMode: message.data.isDarkMode,
-						config,
 					})
 					// We only want to listen for this message once
 					window.removeEventListener('message', handleMessage)
@@ -127,32 +129,30 @@ export type TLDrawInnerProps = {
 	fileContents: string
 	uri: string
 	isDarkMode: boolean
-	config: TldrawEditorConfig
 }
 
-function TldrawInner({ uri, config, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
-	const instanceId = TAB_ID
+function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const syncedStore = useLocalSyncClient({
 		universalPersistenceKey: uri,
-		instanceId,
-		config,
+		store,
 	})
 
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	return (
 		<TldrawEditor
-			config={config}
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
-			store={syncedStore}
+			syncedStore={syncedStore}
+			shapes={defaultShapes}
+			tools={defaultTools}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen instanceId={instanceId} fileContents={fileContents} forceDarkMode={isDarkMode} />
-				<ChangeResponder syncedStore={syncedStore} instanceId={instanceId} />
+				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
+				<ChangeResponder syncedStore={syncedStore} />
 				<ContextMenu>
 					<Canvas />
 				</ContextMenu>

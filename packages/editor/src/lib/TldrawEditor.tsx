@@ -1,15 +1,17 @@
-import { InstanceRecordType, TLAsset, TLInstanceId, TLStore } from '@tldraw/tlschema'
-import { Store } from '@tldraw/tlstore'
+import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
+import { StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { useCallback, useMemo, useSyncExternalStore } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 
 import { SyncedStore } from './config/SyncedStore'
-import { TldrawEditorConfig } from './config/TldrawEditorConfig'
 
+import { StateNodeConstructor } from './app/statechart/StateNode'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
+import { TldrawEditorShapeInfo, createTldrawEditorStore } from './config/createTldrawEditorStore'
+import { defaultShapes } from './config/defaultShapes'
 import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
@@ -25,17 +27,21 @@ import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 
-/** @public */
-export interface TldrawEditorProps {
-	children?: any
-	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config: TldrawEditorConfig
-	/** Overrides for the tldraw components */
-	components?: Partial<TLEditorComponents>
-	/** Whether to display the dark mode. */
-	isDarkMode?: boolean
+export type TldrawEditorBaseProps = {
 	/**
-	 * Called when the app has mounted.
+	 * An array of shape utils to use in the editor.
+	 */
+	shapes: Record<string, TldrawEditorShapeInfo>
+	/**
+	 * An array of tools to use in the editor.
+	 */
+	tools: StateNodeConstructor[]
+	/**
+	 * Overrides for the tldraw components
+	 */
+	components?: Partial<TLEditorComponents>
+	/**
+	 * Called when the editor has mounted.
 	 *
 	 * @example
 	 *
@@ -49,7 +55,7 @@ export interface TldrawEditorProps {
 	 */
 	onMount?: (app: App) => void
 	/**
-	 * Called when the app generates a new asset from a file, such as when an image is dropped into
+	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
 	 *
 	 * @example
@@ -81,14 +87,8 @@ export interface TldrawEditorProps {
 	onCreateBookmarkFromUrl?: (
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
-
 	/**
-	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
-	 * from a server or database.
-	 */
-	store?: TLStore | SyncedStore
-	/**
-	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
+	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
 	 * tab). If not given, one will be generated.
 	 */
 	instanceId?: TLInstanceId
@@ -96,7 +96,37 @@ export interface TldrawEditorProps {
 	assetUrls?: EditorAssetUrls
 	/** Whether to automatically focus the editor when it mounts. */
 	autoFocus?: boolean
+	children?: any
 }
+
+// In addition to the base TldrawEditor props, a user can either pass in a store that they've defined externally, or else pass in the props to create a store.
+
+type TldrawEditorPropsWithStore = {
+	/**
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
+	 * from a server or database.
+	 */
+	store?: TLStore
+}
+
+type TldrawEditorPropsWithSyncedStore = {
+	/**
+	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
+	 * from a server or database.
+	 */
+	syncedStore?: SyncedStore
+}
+
+type TldrawEditorPropsWithoutStore = {
+	/**
+	 * The editor's initial data.
+	 */
+	initialData?: StoreSnapshot<TLRecord>
+}
+
+/** @public */
+export type TldrawEditorProps = TldrawEditorBaseProps &
+	(TldrawEditorPropsWithStore | TldrawEditorPropsWithSyncedStore | TldrawEditorPropsWithoutStore)
 
 declare global {
 	interface Window {
@@ -130,41 +160,60 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-function TldrawEditorBeforeLoading({ config, instanceId, store, ...props }: TldrawEditorProps) {
+const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
+	instanceId,
+	...props
+}: TldrawEditorProps) {
+	const { store } = props as TldrawEditorProps & TldrawEditorPropsWithStore
+	const { syncedStore } = props as TldrawEditorProps & TldrawEditorPropsWithSyncedStore
+	const { initialData } = props as TldrawEditorProps & TldrawEditorPropsWithoutStore
+
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
-	const _store = useMemo<TLStore | SyncedStore>(() => {
-		return (
-			store ??
-			config.createStore({
-				instanceId: instanceId ?? InstanceRecordType.createId(),
-			})
-		)
-	}, [store, config, instanceId])
-
-	let loadedStore: TLStore | SyncedStore
-	if (!(_store instanceof Store)) {
-		if (_store.error) {
-			// for error handling, we fall back to the default error boundary.
-			// if users want to handle this error differently, they can render
-			// their own error screen before the TldrawEditor component
-			throw _store.error
-		}
-		if (!_store.store) {
-			return <LoadingScreen>Connecting...</LoadingScreen>
+	const syncingStore = useMemo<SyncedStore>(() => {
+		if (syncedStore) {
+			// Our store is a synced store
+			return syncedStore
 		}
 
-		loadedStore = _store.store
-	} else {
-		loadedStore = _store
+		if (store) {
+			// Our store is a regular store that isn't being synced
+			return {
+				store,
+				status: 'not-synced',
+			}
+		}
+
+		return {
+			// We have no store! Create a new store based on whatever props we have
+			store: createTldrawEditorStore({
+				shapes: { ...defaultShapes, ...props.shapes },
+				instanceId,
+				initialData,
+			}),
+			status: 'not-synced',
+		}
+	}, [store, initialData, instanceId, syncedStore, props.shapes])
+
+	if (syncingStore.error) {
+		// for error handling, we fall back to the default error boundary.
+		// if users want to handle this error differently, they can render
+		// their own error screen before the TldrawEditor component
+		throw syncingStore.error
 	}
 
-	if (instanceId && loadedStore.props.instanceId !== instanceId) {
-		console.error(
-			`The store's instanceId (${loadedStore.props.instanceId}) does not match the instanceId prop (${instanceId}). This may cause unexpected behavior.`
-		)
+	if (syncingStore.store) {
+		const storeInstanceId = syncingStore.store.props.instanceId
+		// If we have a store and an instanceId, make sure they match
+		if (instanceId && storeInstanceId !== instanceId) {
+			console.error(
+				`The store's instanceId (${storeInstanceId}) does not match the instanceId prop (${instanceId}). This may cause unexpected behavior.`
+			)
+		}
+	} else {
+		return <LoadingScreen>Connecting...</LoadingScreen>
 	}
 
 	if (preloadingError) {
@@ -175,56 +224,38 @@ function TldrawEditorBeforeLoading({ config, instanceId, store, ...props }: Tldr
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorAfterLoading {...props} store={loadedStore} config={config} />
-}
+	return <TldrawEditorAfterLoading {...props} store={syncingStore.store} />
+})
 
 function TldrawEditorAfterLoading({
 	onMount,
-	config,
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
 	store,
+	tools,
+	shapes,
 	autoFocus,
-}: Omit<TldrawEditorProps, 'store' | 'config' | 'instanceId' | 'userId'> & {
-	config: TldrawEditorConfig
+}: Omit<TldrawEditorProps, 'instanceId'> & {
 	store: TLStore
 }) {
-	const container = useContainer()
-
-	const [app, setApp] = React.useState<App | null>(null)
 	const { ErrorFallback } = useEditorComponents()
+	const container = useContainer()
+	const [app, setApp] = useState<App | null>(null)
 
-	React.useLayoutEffect(() => {
+	useEffect(() => {
 		const app = new App({
 			store,
-			config,
+			shapes,
+			tools,
 			getContainer: () => container,
 		})
-		setApp(app)
-
-		if (autoFocus) {
-			app.focus()
-		}
 		;(window as any).app = app
+		setApp(app)
 		return () => {
 			app.dispose()
-			setApp((prevApp) => (prevApp === app ? null : prevApp))
 		}
-	}, [container, config, store, autoFocus])
-
-	React.useEffect(() => {
-		if (app) {
-			// Overwrite the default onCreateAssetFromFile handler.
-			if (onCreateAssetFromFile) {
-				app.onCreateAssetFromFile = onCreateAssetFromFile
-			}
-
-			if (onCreateBookmarkFromUrl) {
-				app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
-			}
-		}
-	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+	}, [container, shapes, tools, store])
 
 	const onMountEvent = useEvent((app: App) => {
 		onMount?.(app)
@@ -233,10 +264,30 @@ function TldrawEditorAfterLoading({
 	})
 
 	React.useEffect(() => {
-		if (app) {
-			// Run onMount
-			onMountEvent(app)
+		if (!app) return
+
+		// Overwrite the default onCreateAssetFromFile handler.
+		if (onCreateAssetFromFile) {
+			app.onCreateAssetFromFile = onCreateAssetFromFile
 		}
+
+		if (onCreateBookmarkFromUrl) {
+			app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
+		}
+	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+
+	React.useLayoutEffect(() => {
+		if (!app) return
+
+		if (autoFocus) {
+			app.focus()
+		}
+	}, [app, autoFocus])
+
+	React.useEffect(() => {
+		if (!app) return
+
+		onMountEvent(app)
 	}, [app, onMountEvent])
 
 	const crashingError = useSyncExternalStore(

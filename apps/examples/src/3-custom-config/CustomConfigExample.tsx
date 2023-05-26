@@ -1,13 +1,15 @@
 import {
+	Canvas,
+	ContextMenu,
 	HTMLContainer,
 	MenuGroup,
-	menuItem,
 	TLBaseShape,
 	TLBoxTool,
 	TLBoxUtil,
-	Tldraw,
-	TldrawEditorConfig,
 	TLOpacityType,
+	TldrawEditor,
+	TldrawUi,
+	menuItem,
 	toolbarItem,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -91,60 +93,56 @@ export class CardTool extends TLBoxTool {
 	override shapeType = 'card'
 }
 
-// Finally, collect the custom tools and shapes into a config object
-const customTldrawConfig = new TldrawEditorConfig({
-	tools: [CardTool],
-	shapes: {
-		card: {
-			util: CardUtil,
-		},
-	},
-})
+const tools = [CardTool]
+const shapes = { card: { util: CardUtil } }
 
 // ... and we can make our custom shape example!
-export default function Example() {
+export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw
-				persistenceKey="custom-config"
-				config={customTldrawConfig}
-				autoFocus
-				overrides={{
-					tools(app, tools) {
-						// In order for our custom tool to show up in the UI...
-						// We need to add it to the tools list. This "toolItem"
-						// has information about its icon, label, keyboard shortcut,
-						// and what to do when it's selected.
-						tools.card = {
-							id: 'card',
-							icon: 'color',
-							label: 'Card' as any,
-							kbd: 'c',
-							readonlyOk: false,
-							onSelect: () => {
-								app.setSelectedTool('card')
-							},
-						}
-						return tools
-					},
-					toolbar(app, toolbar, { tools }) {
-						// The toolbar is an array of items. We can add it to the
-						// end of the array or splice it in, then return the array.
-						toolbar.splice(4, 0, toolbarItem(tools.card))
-						return toolbar
-					},
-					keyboardShortcutsMenu(app, keyboardShortcutsMenu, { tools }) {
-						// Same for the keyboard shortcuts menu, but this menu contains
-						// both items and groups. We want to find the "Tools" group and
-						// add it to that before returning the array.
-						const toolsGroup = keyboardShortcutsMenu.find(
-							(group) => group.id === 'shortcuts-dialog.tools'
-						) as MenuGroup
-						toolsGroup.children.push(menuItem(tools.card))
-						return keyboardShortcutsMenu
-					},
-				}}
-			/>
+			<TldrawEditor autoFocus tools={tools} shapes={shapes}>
+				<TldrawUi
+					overrides={{
+						tools(app, tools) {
+							// In order for our custom tool to show up in the UI...
+							// We need to add it to the tools list. This "toolItem"
+							// has information about its icon, label, keyboard shortcut,
+							// and what to do when it's selected.
+							tools.card = {
+								id: 'card',
+								icon: 'color',
+								label: 'Card' as any,
+								kbd: 'c',
+								readonlyOk: false,
+								onSelect: () => {
+									app.setSelectedTool('card')
+								},
+							}
+							return tools
+						},
+						toolbar(app, toolbar, { tools }) {
+							// The toolbar is an array of items. We can add it to the
+							// end of the array or splice it in, then return the array.
+							toolbar.splice(4, 0, toolbarItem(tools.card))
+							return toolbar
+						},
+						keyboardShortcutsMenu(app, keyboardShortcutsMenu, { tools }) {
+							// Same for the keyboard shortcuts menu, but this menu contains
+							// both items and groups. We want to find the "Tools" group and
+							// add it to that before returning the array.
+							const toolsGroup = keyboardShortcutsMenu.find(
+								(group) => group.id === 'shortcuts-dialog.tools'
+							) as MenuGroup
+							toolsGroup.children.push(menuItem(tools.card))
+							return keyboardShortcutsMenu
+						},
+					}}
+				>
+					<ContextMenu>
+						<Canvas />
+					</ContextMenu>
+				</TldrawUi>
+			</TldrawEditor>
 		</div>
 	)
 }

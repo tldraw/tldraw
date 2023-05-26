@@ -2,7 +2,6 @@ import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createCustomShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
-import { TldrawEditorConfig } from '../../config/TldrawEditorConfig'
 import { TestApp } from '../TestApp'
 
 import { getSnapLines } from '../testutils/getSnapLines'
@@ -39,14 +38,6 @@ class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
 		return [Vec2d.From({ x: shape.x, y: shape.y })]
 	}
 }
-
-const configWithCustomShape = new TldrawEditorConfig({
-	shapes: {
-		__test_top_left_snap_only: {
-			util: __TopLeftSnapOnlyShapeUtil,
-		},
-	},
-})
 
 let app: TestApp
 
@@ -759,8 +750,11 @@ describe('custom snapping points', () => {
 	beforeEach(() => {
 		app?.dispose()
 		app = new TestApp({
-			config: configWithCustomShape,
-
+			shapes: {
+				__test_top_left_snap_only: {
+					util: __TopLeftSnapOnlyShapeUtil,
+				},
+			},
 			// x───────┐
 			// │ T     │
 			// │       │

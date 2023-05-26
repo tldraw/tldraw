@@ -118,8 +118,8 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public
-export function createTLSchema<T extends TLUnknownShape>(opts?: {
-    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+export function createTLSchema({ shapes }: {
+    shapes: Record<string, TLSchemaShapeInfo>;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -1161,6 +1161,14 @@ export type TLPointerId = ID<TLPointer>;
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUserDocument;
+
+// @public (undocumented)
+export type TLSchemaShapeInfo = {
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
 
 // @public (undocumented)
 export type TLScribble = {

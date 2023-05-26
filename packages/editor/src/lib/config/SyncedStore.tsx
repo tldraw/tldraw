@@ -8,6 +8,13 @@ export interface ReadySyncedStore {
 }
 
 /** @public */
+export interface ReadyNotSyncedStore {
+	readonly status: 'not-synced'
+	readonly store: TLStore
+	readonly error?: undefined
+}
+
+/** @public */
 export interface ErrorSyncedStore {
 	readonly status: 'error'
 	readonly store?: undefined
@@ -22,4 +29,8 @@ export interface InitializingSyncedStore {
 }
 
 /** @public */
-export type SyncedStore = ReadySyncedStore | ErrorSyncedStore | InitializingSyncedStore
+export type SyncedStore =
+	| ReadySyncedStore
+	| ReadyNotSyncedStore
+	| ErrorSyncedStore
+	| InitializingSyncedStore
