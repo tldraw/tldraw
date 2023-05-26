@@ -64,17 +64,12 @@ function makeActions(actions: ActionItem[]) {
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const app = useApp()
 
-	// const saveFile = useSaveFile()
-	// const saveFileAs = useSaveFileAs()
-	// const newFile = useNewFile()
-	// const openFile = useOpenFile()
-
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts } = useToasts()
 
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
-	const { cut, copy } = useMenuClipboardEvents('unknown')
+	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
 
@@ -631,9 +626,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$x',
 				readonlyOk: false,
 				onSelect(source) {
-					trackEvent('cut', { source })
 					app.mark('cut')
-					cut()
+					cut(source)
 				},
 			},
 			{
@@ -642,8 +636,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$c',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('copy', { source })
-					copy()
+					copy(source)
 				},
 			},
 			{
@@ -651,9 +644,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: '$v',
 				readonlyOk: false,
-				onSelect() {
-					// must be inlined with a custom menu item
-					// the kbd listed here should have no effect
+				onSelect(source) {
+					navigator.clipboard?.read().then((clipboardItems) => {
+						paste(
+							clipboardItems,
+							source,
+							source === 'context-menu' ? app.inputs.currentPagePoint : undefined
+						)
+					})
 				},
 			},
 			{
@@ -931,6 +929,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		copyAs,
 		cut,
 		copy,
+		paste,
 		clearDialogs,
 		clearToasts,
 		printSelectionOrPages,
