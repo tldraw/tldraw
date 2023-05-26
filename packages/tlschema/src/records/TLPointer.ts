@@ -30,7 +30,6 @@ export const pointerTypeValidator: T.Validator<TLPointer> = T.model(
 
 /** @public */
 export const TLPointer = createRecordType<TLPointer>('pointer', {
-	validator: pointerTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({

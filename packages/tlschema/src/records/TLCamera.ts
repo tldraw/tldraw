@@ -30,7 +30,6 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 
 /** @public */
 export const TLCamera = createRecordType<TLCamera>('camera', {
-	validator: cameraTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLCamera, 'id' | 'typeName'> => ({

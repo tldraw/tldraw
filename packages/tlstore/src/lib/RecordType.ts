@@ -218,14 +218,12 @@ export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
 		migrations?: Migrations
-		validator?: StoreValidator<R>
 		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
 		createDefaultProperties: () => ({} as any),
 		migrations: config.migrations ?? { currentVersion: 0, firstVersion: 0, migrators: {} },
-		validator: config.validator,
 		scope: config.scope,
 	})
 }

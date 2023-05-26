@@ -92,7 +92,6 @@ export const instancePresenceTypeMigrations = defineMigrations({
 /** @public */
 export const TLInstancePresence = createRecordType<TLInstancePresence>('instance_presence', {
 	migrations: instancePresenceTypeMigrations,
-	validator: instancePresenceTypeValidator,
 	scope: 'presence',
 }).withDefaultProperties(() => ({
 	lastActivityTimestamp: 0,

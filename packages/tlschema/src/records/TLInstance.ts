@@ -248,7 +248,6 @@ export const instanceTypeMigrations = defineMigrations({
 /** @public */
 export const TLInstance = createRecordType<TLInstance>('instance', {
 	migrations: instanceTypeMigrations,
-	validator: instanceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({

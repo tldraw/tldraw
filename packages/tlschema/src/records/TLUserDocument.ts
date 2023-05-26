@@ -95,7 +95,6 @@ export const userDocumentTypeMigrations = defineMigrations({
 /** @public */
 export const TLUserDocument = createRecordType<TLUserDocument>('user_document', {
 	migrations: userDocumentTypeMigrations,
-	validator: userDocumentTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLUserDocument, 'id' | 'typeName' | 'userId'> => ({

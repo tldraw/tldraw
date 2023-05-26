@@ -46,6 +46,7 @@ const configWithCustomShape = new TldrawEditorConfig({
 			util: __TopLeftSnapOnlyShapeUtil,
 		},
 	},
+	validator: { validate: (r) => r }, // basically turn of all validation
 })
 
 let app: TestApp

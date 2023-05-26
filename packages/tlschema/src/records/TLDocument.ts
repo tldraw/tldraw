@@ -22,7 +22,6 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 
 /** @public */
 export const TLDocument = createRecordType<TLDocument>('document', {
-	validator: documentTypeValidator,
 	scope: 'document',
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({

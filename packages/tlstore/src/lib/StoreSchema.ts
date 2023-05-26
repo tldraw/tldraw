@@ -46,12 +46,15 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
 	}) => R
+	validator?: { validate: (record: any) => R }
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
 }
 
 /** @public */
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
+	validator: { validate: (record: any) => R }
+
 	static create<R extends UnknownRecord, P = unknown>(
 		// HACK: making this param work with RecordType is an enormous pain
 		// let's just settle for making sure each typeName has a corresponding RecordType
@@ -67,7 +70,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			[Record in R as Record['typeName']]: RecordType<R, any>
 		},
 		private readonly options: StoreSchemaOptions<R, P>
-	) {}
+	) {
+		const { validator = null } = this.options
+
+		this.validator = validator ?? { validate: (r: R) => r }
+	}
 
 	get currentStoreVersion(): number {
 		return this.options.snapshotMigrations?.currentVersion ?? 0
@@ -84,7 +91,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (!recordType) {
 				throw new Error(`Missing definition for record type ${record.typeName}`)
 			}
-			return recordType.validate(record)
+			this.validator.validate(record)
+			return record
 		} catch (error: unknown) {
 			if (this.options.onValidationFailure) {
 				return this.options.onValidationFailure({

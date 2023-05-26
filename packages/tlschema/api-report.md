@@ -112,8 +112,13 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public
-export function createTLSchema<T extends TLUnknownShape>(opts?: {
-    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+export function createTLSchema(opts?: {
+    customShapes?: {
+        [key: string]: CustomShapeInfo;
+    } | undefined;
+    validator?: {
+        validate: (r: any) => any;
+    } | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -124,6 +129,20 @@ export const cursorValidator: T.Validator<TLCursor>;
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const defaultTldrawEditorValidator: T.UnionValidator<"typeName", {
+    pointer: T.Validator<TLPointer>;
+    asset: T.Validator<TLAsset>;
+    camera: T.Validator<TLCamera>;
+    document: T.Validator<TLDocument>;
+    instance: T.Validator<TLInstance>;
+    instance_page_state: T.Validator<TLInstancePageState>;
+    page: T.Validator<TLPage>;
+    shape: T.Validator<TLShape>;
+    user_document: T.Validator<TLUserDocument>;
+    instance_presence: T.Validator<TLInstancePresence>;
+}, never>;
 
 // @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;

@@ -47,19 +47,6 @@ const userMigrations = defineMigrations({
 
 const User = createRecordType<User>('user', {
 	migrations: userMigrations,
-	validator: {
-		validate: (record) => {
-			assert(record && typeof record === 'object')
-			assert('id' in record && typeof record.id === 'string')
-			assert('name' in record && typeof record.name === 'string')
-			assert('locale' in record && typeof record.locale === 'string')
-			assert(
-				'phoneNumber' in record &&
-					(record.phoneNumber === null || typeof record.phoneNumber === 'string')
-			)
-			return record as User
-		},
-	},
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	/* STEP 6: Add any new default values for properties here */
@@ -176,17 +163,6 @@ const shapeTypeMigrations = defineMigrations({
 
 const Shape = createRecordType<Shape<RectangleProps | OvalProps>>('shape', {
 	migrations: shapeTypeMigrations,
-	validator: {
-		validate: (record) => {
-			assert(record && typeof record === 'object')
-			assert('id' in record && typeof record.id === 'string')
-			assert('type' in record && typeof record.type === 'string')
-			assert('x' in record && typeof record.x === 'number')
-			assert('y' in record && typeof record.y === 'number')
-			assert('rotation' in record && typeof record.rotation === 'number')
-			return record as Shape<RectangleProps | OvalProps>
-		},
-	},
 	scope: 'document',
 }).withDefaultProperties(() => ({
 	x: 0,
@@ -214,6 +190,35 @@ const snapshotMigrations = defineMigrations({
 	},
 })
 
+type StoreRecord = User | Shape<any>
+
+const validator = {
+	validate: (record: StoreRecord) => {
+		switch (record.typeName) {
+			case 'shape': {
+				assert(record && typeof record === 'object')
+				assert('id' in record && typeof record.id === 'string')
+				assert('type' in record && typeof record.type === 'string')
+				assert('x' in record && typeof record.x === 'number')
+				assert('y' in record && typeof record.y === 'number')
+				assert('rotation' in record && typeof record.rotation === 'number')
+				return record as Shape<RectangleProps | OvalProps>
+			}
+			case 'user': {
+				assert(record && typeof record === 'object')
+				assert('id' in record && typeof record.id === 'string')
+				assert('name' in record && typeof record.name === 'string')
+				assert('locale' in record && typeof record.locale === 'string')
+				assert(
+					'phoneNumber' in record &&
+						(record.phoneNumber === null || typeof record.phoneNumber === 'string')
+				)
+				return record as User
+			}
+		}
+	},
+}
+
 export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 	{
 		user: User,
@@ -221,5 +226,6 @@ export const testSchemaV1 = StoreSchema.create<User | Shape<any>>(
 	},
 	{
 		snapshotMigrations,
+		validator,
 	}
 )

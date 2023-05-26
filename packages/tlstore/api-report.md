@@ -41,7 +41,6 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 // @public
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
-    validator?: StoreValidator<R>;
     scope: Scope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
@@ -301,6 +300,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     };
     // (undocumented)
     validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
+    // (undocumented)
+    validator: {
+        validate: (record: any) => R;
+    };
 }
 
 // @public (undocumented)
@@ -313,6 +316,9 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         recordBefore: null | R;
     }) => R;
+    validator?: {
+        validate: (record: any) => R;
+    };
     createIntegrityChecker?: (store: Store<R, P>) => void;
 };
 

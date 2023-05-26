@@ -1,19 +1,20 @@
 import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
+import { T } from '@tldraw/tlvalidate'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/shape-validation'
-import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
-import { TLDrawShape } from '../shapes/TLDrawShape'
-import { TLEmbedShape } from '../shapes/TLEmbedShape'
-import { TLFrameShape } from '../shapes/TLFrameShape'
-import { TLGeoShape } from '../shapes/TLGeoShape'
-import { TLGroupShape } from '../shapes/TLGroupShape'
-import { TLIconShape } from '../shapes/TLIconShape'
-import { TLImageShape } from '../shapes/TLImageShape'
-import { TLLineShape } from '../shapes/TLLineShape'
-import { TLNoteShape } from '../shapes/TLNoteShape'
-import { TLTextShape } from '../shapes/TLTextShape'
-import { TLVideoShape } from '../shapes/TLVideoShape'
+import { arrowShapeTypeValidator, TLArrowShape } from '../shapes/TLArrowShape'
+import { bookmarkShapeTypeValidator, TLBookmarkShape } from '../shapes/TLBookmarkShape'
+import { drawShapeTypeValidator, TLDrawShape } from '../shapes/TLDrawShape'
+import { embedShapeTypeValidator, TLEmbedShape } from '../shapes/TLEmbedShape'
+import { frameShapeTypeValidator, TLFrameShape } from '../shapes/TLFrameShape'
+import { geoShapeTypeValidator, TLGeoShape } from '../shapes/TLGeoShape'
+import { groupShapeTypeValidator, TLGroupShape } from '../shapes/TLGroupShape'
+import { iconShapeTypeValidator, TLIconShape } from '../shapes/TLIconShape'
+import { imageShapeTypeValidator, TLImageShape } from '../shapes/TLImageShape'
+import { lineShapeTypeValidator, TLLineShape } from '../shapes/TLLineShape'
+import { noteShapeTypeValidator, TLNoteShape } from '../shapes/TLNoteShape'
+import { textShapeTypeValidator, TLTextShape } from '../shapes/TLTextShape'
+import { TLVideoShape, videoShapeTypeValidator } from '../shapes/TLVideoShape'
 import { SmooshedUnionObject } from '../util-types'
 import { TLPageId } from './TLPage'
 
@@ -120,3 +121,23 @@ export function createShapeId(): TLShapeId {
 export function createCustomShapeId(id: string): TLShapeId {
 	return `shape:${id}` as TLShapeId
 }
+
+/** @public */
+export const shapeTypeValidator: T.Validator<TLShape> = T.model(
+	'shape',
+	T.union('type', {
+		arrow: arrowShapeTypeValidator,
+		bookmark: bookmarkShapeTypeValidator,
+		draw: drawShapeTypeValidator,
+		embed: embedShapeTypeValidator,
+		frame: frameShapeTypeValidator,
+		geo: geoShapeTypeValidator,
+		group: groupShapeTypeValidator,
+		image: imageShapeTypeValidator,
+		line: lineShapeTypeValidator,
+		note: noteShapeTypeValidator,
+		text: textShapeTypeValidator,
+		video: videoShapeTypeValidator,
+		icon: iconShapeTypeValidator,
+	})
+)

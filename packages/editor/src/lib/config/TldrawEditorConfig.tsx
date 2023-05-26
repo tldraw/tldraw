@@ -10,6 +10,7 @@ import {
 	TLStore,
 	TLStoreProps,
 	createTLSchema,
+	defaultTldrawEditorValidator,
 } from '@tldraw/tlschema'
 import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { Signal, computed } from 'signia'
@@ -56,7 +57,6 @@ export type TldrawEditorConfigOptions = {
 		string,
 		{
 			util: TLShapeUtilConstructor<any>
-			validator?: { validate: <T>(record: T) => T }
 			migrations?: Migrations
 		}
 	>
@@ -64,6 +64,7 @@ export type TldrawEditorConfigOptions = {
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	userPreferences?: Signal<TLUserPreferences>
 	setUserPreferences?: (userPreferences: TLUserPreferences) => void
+	validator?: { validate: (r: any) => any }
 }
 
 /** @public */
@@ -84,7 +85,12 @@ export class TldrawEditorConfig {
 	readonly setUserPreferences: (userPreferences: TLUserPreferences) => void
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const { shapes = {}, tools = [], derivePresenceState } = opts
+		const {
+			validator = defaultTldrawEditorValidator,
+			shapes = {},
+			tools = [],
+			derivePresenceState,
+		} = opts
 
 		this.tools = tools
 		this.derivePresenceState = derivePresenceState ?? (() => computed('presence', () => null))
@@ -99,6 +105,7 @@ export class TldrawEditorConfig {
 
 		this.storeSchema = createTLSchema({
 			customShapes: shapes,
+			validator,
 		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<

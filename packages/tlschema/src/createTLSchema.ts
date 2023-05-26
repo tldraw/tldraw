@@ -1,7 +1,7 @@
 import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
 import { TLRecord } from './TLRecord'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
+import { defaultTldrawEditorValidator } from './defaultTldrawEditorValidator'
 import { TLAsset } from './records/TLAsset'
 import { TLCamera } from './records/TLCamera'
 import { TLDocument } from './records/TLDocument'
@@ -10,67 +10,62 @@ import { TLInstancePageState } from './records/TLInstancePageState'
 import { TLInstancePresence } from './records/TLInstancePresence'
 import { TLPage } from './records/TLPage'
 import { TLPointer } from './records/TLPointer'
-import { TLShape, TLUnknownShape, rootShapeTypeMigrations } from './records/TLShape'
+import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
 import { TLUserDocument } from './records/TLUserDocument'
 import { storeMigrations } from './schema'
-import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
-import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
-import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
-import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
-import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
-import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
-import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
-import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
-import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
-import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
-import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
-import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
+import { arrowShapeTypeMigrations } from './shapes/TLArrowShape'
+import { bookmarkShapeTypeMigrations } from './shapes/TLBookmarkShape'
+import { drawShapeTypeMigrations } from './shapes/TLDrawShape'
+import { embedShapeTypeMigrations } from './shapes/TLEmbedShape'
+import { frameShapeTypeMigrations } from './shapes/TLFrameShape'
+import { geoShapeTypeMigrations } from './shapes/TLGeoShape'
+import { groupShapeTypeMigrations } from './shapes/TLGroupShape'
+import { imageShapeTypeMigrations } from './shapes/TLImageShape'
+import { lineShapeTypeMigrations } from './shapes/TLLineShape'
+import { noteShapeTypeMigrations } from './shapes/TLNoteShape'
+import { textShapeTypeMigrations } from './shapes/TLTextShape'
+import { videoShapeTypeMigrations } from './shapes/TLVideoShape'
 
-type DefaultShapeInfo<T extends TLShape> = {
-	validator: T.Validator<T>
+type DefaultShapeInfo = {
 	migrations: Migrations
 }
 
-const DEFAULT_SHAPES: { [K in TLShape['type']]: DefaultShapeInfo<Extract<TLShape, { type: K }>> } =
-	{
-		arrow: { migrations: arrowShapeTypeMigrations, validator: arrowShapeTypeValidator },
-		bookmark: { migrations: bookmarkShapeTypeMigrations, validator: bookmarkShapeTypeValidator },
-		draw: { migrations: drawShapeTypeMigrations, validator: drawShapeTypeValidator },
-		embed: { migrations: embedShapeTypeMigrations, validator: embedShapeTypeValidator },
-		frame: { migrations: frameShapeTypeMigrations, validator: frameShapeTypeValidator },
-		geo: { migrations: geoShapeTypeMigrations, validator: geoShapeTypeValidator },
-		group: { migrations: groupShapeTypeMigrations, validator: groupShapeTypeValidator },
-		image: { migrations: imageShapeTypeMigrations, validator: imageShapeTypeValidator },
-		line: { migrations: lineShapeTypeMigrations, validator: lineShapeTypeValidator },
-		note: { migrations: noteShapeTypeMigrations, validator: noteShapeTypeValidator },
-		text: { migrations: textShapeTypeMigrations, validator: textShapeTypeValidator },
-		video: { migrations: videoShapeTypeMigrations, validator: videoShapeTypeValidator },
-	}
+const DEFAULT_SHAPES: { [K in TLShape['type']]: DefaultShapeInfo } = {
+	arrow: { migrations: arrowShapeTypeMigrations },
+	bookmark: { migrations: bookmarkShapeTypeMigrations },
+	draw: { migrations: drawShapeTypeMigrations },
+	embed: { migrations: embedShapeTypeMigrations },
+	frame: { migrations: frameShapeTypeMigrations },
+	geo: { migrations: geoShapeTypeMigrations },
+	group: { migrations: groupShapeTypeMigrations },
+	image: { migrations: imageShapeTypeMigrations },
+	line: { migrations: lineShapeTypeMigrations },
+	note: { migrations: noteShapeTypeMigrations },
+	text: { migrations: textShapeTypeMigrations },
+	video: { migrations: videoShapeTypeMigrations },
+}
 
-type CustomShapeInfo<T extends TLUnknownShape> = {
-	validator?: { validate: (record: T) => T }
+type CustomShapeInfo = {
 	migrations?: Migrations
 }
 
 /**
  * Create a store schema for a tldraw store that includes all the default shapes together with any custom shapes.
  *  @public */
-export function createTLSchema<T extends TLUnknownShape>(
+export function createTLSchema(
 	opts = {} as {
-		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
+		customShapes?: { [key: string]: CustomShapeInfo }
+		validator?: { validate: (r: any) => any }
 	}
 ) {
-	const { customShapes = {} } = opts
+	const { validator, customShapes = {} } = opts
 
 	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
 		TLShape['type'],
-		DefaultShapeInfo<TLShape>
+		DefaultShapeInfo
 	][]
 
-	const customShapeSubTypeEntries = Object.entries(customShapes) as [
-		T['type'],
-		CustomShapeInfo<T>
-	][]
+	const customShapeSubTypeEntries = Object.entries(customShapes) as [string, CustomShapeInfo][]
 
 	// Create a shape record that incorporates the default shapes and any custom shapes
 	// into its subtype migrations and validators, so that we can migrate any new custom
@@ -84,16 +79,6 @@ export function createTLSchema<T extends TLUnknownShape>(
 		),
 	}
 
-	const validatorWithCustomShapeValidators = T.model(
-		'shape',
-		T.union('type', {
-			...Object.fromEntries(defaultShapeSubTypeEntries.map(([k, v]) => [k, v.validator])),
-			...Object.fromEntries(
-				customShapeSubTypeEntries.map(([k, v]) => [k, (v.validator as T.Validator<any>) ?? T.any])
-			),
-		})
-	)
-
 	const shapeRecord = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
 			currentVersion: rootShapeTypeMigrations.currentVersion,
@@ -102,7 +87,6 @@ export function createTLSchema<T extends TLUnknownShape>(
 			subTypeKey: 'type',
 			subTypeMigrations: shapeSubTypeMigrationsWithCustomSubTypeMigrations,
 		}),
-		validator: validatorWithCustomShapeValidators,
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
@@ -123,6 +107,7 @@ export function createTLSchema<T extends TLUnknownShape>(
 			snapshotMigrations: storeMigrations,
 			onValidationFailure,
 			createIntegrityChecker: createIntegrityChecker,
+			validator: validator ?? defaultTldrawEditorValidator,
 		}
 	)
 }
