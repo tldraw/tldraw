@@ -1,5 +1,5 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLAsset, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
+import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import {
@@ -126,7 +126,7 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 
 	protected updateBookmarkAsset = debounce((shape: TLBookmarkShape) => {
 		const { url } = shape.props
-		const assetId: TLAssetId = TLAsset.createCustomId(getHashForString(url))
+		const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
 		const existing = this.app.getAssetById(assetId)
 
 		if (existing) {

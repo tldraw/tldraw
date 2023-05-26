@@ -1,4 +1,4 @@
-import { Tldraw, TLInstance, TLInstancePresence } from '@tldraw/tldraw'
+import { InstancePresenceRecordType, InstanceRecordType, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
@@ -18,11 +18,11 @@ export default function UserPresenceExample() {
 					// For every connected peer you should put a TLInstancePresence record in the
 					// store with their cursor position etc.
 
-					const peerPresence = TLInstancePresence.create({
-						id: TLInstancePresence.createCustomId('peer-1-presence'),
+					const peerPresence = InstancePresenceRecordType.create({
+						id: InstancePresenceRecordType.createCustomId('peer-1-presence'),
 						currentPageId: app.currentPageId,
 						userId: 'peer-1',
-						instanceId: TLInstance.createCustomId('peer-1-editor-instance'),
+						instanceId: InstanceRecordType.createCustomId('peer-1-editor-instance'),
 						userName: 'Peer 1',
 						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
 					})

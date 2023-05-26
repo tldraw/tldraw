@@ -21,7 +21,7 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 )
 
 /** @public */
-export const TLDocument = createRecordType<TLDocument>('document', {
+export const DocumentRecordType = createRecordType<TLDocument>('document', {
 	validator: documentTypeValidator,
 	scope: 'document',
 }).withDefaultProperties(
@@ -32,7 +32,7 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: ID<TLDocument> = TLDocument.createCustomId('document')
+export const TLDOCUMENT_ID: ID<TLDocument> = DocumentRecordType.createCustomId('document')
 
 /** @public */
 export const documentTypeMigrations = defineMigrations({})
