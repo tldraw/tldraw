@@ -20,13 +20,7 @@ export function Tldraw(
 			hideUi?: boolean
 		}
 ) {
-	const {
-		children,
-		userId,
-		persistenceKey = DEFAULT_DOCUMENT_NAME,
-		instanceId = TAB_ID,
-		...rest
-	} = props
+	const { children, persistenceKey = DEFAULT_DOCUMENT_NAME, instanceId = TAB_ID, ...rest } = props
 
 	const _store = useMemo(() => createDefaultTldrawEditorStore({ instanceId }), [instanceId])
 
@@ -40,7 +34,6 @@ export function Tldraw(
 		<TldrawEditor
 			{...rest}
 			instanceId={instanceId}
-			userId={userId}
 			store={syncedStore}
 			tools={DEFAULT_TOOLS}
 			shapes={DEFAULT_SHAPE_UTILS}

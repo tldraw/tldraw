@@ -10,10 +10,9 @@ import { instanceTypeMigrator } from './records/TLInstance'
 import { instancePageStateTypeMigrator } from './records/TLInstancePageState'
 import { instancePresenceTypeMigrator } from './records/TLInstancePresence'
 import { pageTypeMigrator } from './records/TLPage'
+import { pointerTypeMigrator } from './records/TLPointer'
 import { rootShapeTypeMigrator } from './records/TLShape'
-import { userTypeMigrator } from './records/TLUser'
 import { userdocumentTypeMigrator } from './records/TLUserDocument'
-import { userPresenceTypeMigrator } from './records/TLUserPresence'
 import { arrowShapeTypeMigrator } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrator } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrator } from './shapes/TLDrawShape'
@@ -29,7 +28,7 @@ import { videoShapeTypeMigrator } from './shapes/TLVideoShape'
 
 /** @public */
 export const defaultMigrators: { [K in TLRecord['typeName']]: Migrator } = {
-	user: userTypeMigrator,
+	pointer: pointerTypeMigrator,
 	document: documentTypeMigrator,
 	page: pageTypeMigrator,
 	camera: cameraTypeMigrator,
@@ -37,7 +36,6 @@ export const defaultMigrators: { [K in TLRecord['typeName']]: Migrator } = {
 	instance_presence: instancePresenceTypeMigrator,
 	instance_page_state: instancePageStateTypeMigrator,
 	user_document: userdocumentTypeMigrator,
-	user_presence: userPresenceTypeMigrator,
 	asset: rootAssetTypeMigrator.withSubTypeMigrators('type', {
 		image: imageAssetMigrator,
 		video: videoAssetMigrator,

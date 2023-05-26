@@ -13,7 +13,6 @@ export { videoAssetMigrator, type TLVideoAsset } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
-export { defaultDerivePresenceState } from './defaultDerivePresenceState'
 export { defaultMigrators } from './defaultMigrators'
 export { defaultSnapshotMigrator } from './defaultSnapshotMigrator'
 export { defaultValidator } from './defaultValidator'
@@ -75,19 +74,12 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
-export { UserRecordType, userTypeMigrator, type TLUser, type TLUserId } from './records/TLUser'
 export {
 	UserDocumentRecordType,
 	userdocumentTypeMigrator,
 	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
-export {
-	UserPresenceRecordType,
-	userPresenceTypeMigrator,
-	type TLUserPresence,
-	type TLUserPresenceId,
-} from './records/TLUserPresence'
 export {
 	TL_ARROW_TERMINAL_TYPE,
 	arrowShapeTypeMigrator,

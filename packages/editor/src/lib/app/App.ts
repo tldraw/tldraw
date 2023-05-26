@@ -76,6 +76,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
+import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -162,11 +163,15 @@ export interface AppOptions {
 	/**
 	 * An array of shape utils to use in the app. These will be used to create and manage shapes in the app.
 	 */
-	shapes: TLShapeUtilConstructor<any>[]
+	shapes?: TLShapeUtilConstructor<any>[]
 	/**
 	 * An array of tools to use in the app. These will be used to handle events and manage user interactions in the app.
 	 */
 	tools?: StateNodeConstructor[]
+	/**
+	 * A user defined externally to replace the default user.
+	 */
+	user?: TldrawEditorUser
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -181,12 +186,12 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
-	constructor({ store, tools = [], shapes = [], getContainer }: AppOptions) {
+	constructor({ store, user, tools = [], shapes = [], getContainer }: AppOptions) {
 		super()
 
 		this.store = store
 
-		this.user = new UserPreferencesManager(this)
+		this.user = new UserPreferencesManager(user ?? createTldrawEditorUser())
 
 		this.getContainer = getContainer ?? (() => document.body)
 

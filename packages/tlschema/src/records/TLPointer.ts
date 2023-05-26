@@ -1,6 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { idValidator } from '../validation'
+import { BaseRecord, createRecordType, ID, Migrator } from '@tldraw/tlstore'
 
 /**
  * TLPointer
@@ -17,20 +15,7 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 export type TLPointerId = ID<TLPointer>
 
 /** @public */
-export const pointerTypeValidator: T.Validator<TLPointer> = T.model(
-	'pointer',
-	T.object({
-		typeName: T.literal('pointer'),
-		id: idValidator<TLPointerId>('pointer'),
-		x: T.number,
-		y: T.number,
-		lastActivityTimestamp: T.number,
-	})
-)
-
-/** @public */
 export const TLPointer = createRecordType<TLPointer>('pointer', {
-	validator: pointerTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
@@ -44,4 +29,4 @@ export const TLPointer = createRecordType<TLPointer>('pointer', {
 export const TLPOINTER_ID = TLPointer.createCustomId('pointer')
 
 /** @public */
-export const pointerTypeMigrations = defineMigrations({})
+export const pointerTypeMigrator = new Migrator({})

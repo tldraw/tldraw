@@ -2,8 +2,6 @@ import {
 	InstanceRecordType,
 	PageRecordType,
 	TLInstanceId,
-	TLUserId,
-	UserRecordType,
 	createDefaultTldrawEditorStore,
 } from '@tldraw/editor'
 import { promiseWithResolve } from '@tldraw/utils'
@@ -31,11 +29,9 @@ class BroadcastChannelMock {
 
 function testClient(
 	instanceId: TLInstanceId = InstanceRecordType.createCustomId('test'),
-	userId: TLUserId = UserRecordType.createCustomId('test'),
 	channel = new BroadcastChannelMock('test')
 ) {
 	const store = createDefaultTldrawEditorStore({
-		userId,
 		instanceId,
 	})
 	const onLoad = jest.fn(() => {

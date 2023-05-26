@@ -136,6 +136,7 @@ export { createDefaultTldrawEditorSchema } from './lib/config/createDefaultTldra
 export { createDefaultTldrawEditorStore } from './lib/config/createDefaultTldrawEditorStore'
 export { createTldrawEditorSchema } from './lib/config/createTldrawEditorSchema'
 export { createTldrawEditorStore } from './lib/config/createTldrawEditorStore'
+export { createTldrawEditorUser, type TldrawEditorUser } from './lib/config/createTldrawEditorUser'
 export { DEFAULT_SHAPE_UTILS } from './lib/config/defaultShapeUtils'
 export { DEFAULT_TOOLS } from './lib/config/defaultTools'
 export {

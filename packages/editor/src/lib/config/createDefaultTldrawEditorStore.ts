@@ -1,4 +1,4 @@
-import { TLInstanceId, TLRecord, TLStoreSchema, TLUserId } from '@tldraw/tlschema'
+import { TLInstanceId, TLRecord, TLStoreSchema } from '@tldraw/tlschema'
 import { StoreSnapshot } from '@tldraw/tlstore'
 import { createDefaultTldrawEditorSchema } from './createDefaultTldrawEditorSchema'
 import { createTldrawEditorStore } from './createTldrawEditorStore'
@@ -7,7 +7,6 @@ import { createTldrawEditorStore } from './createTldrawEditorStore'
 export function createDefaultTldrawEditorStore(
 	opts = {} as {
 		schema?: TLStoreSchema
-		userId?: TLUserId
 		instanceId?: TLInstanceId
 		initialData?: StoreSnapshot<TLRecord>
 	}

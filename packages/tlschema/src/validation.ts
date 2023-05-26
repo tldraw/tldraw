@@ -19,6 +19,7 @@ import {
 	TL_SPLINE_TYPES,
 	TL_VERTICAL_ALIGN_TYPES,
 } from './style-types'
+import { TLScribble, TL_SCRIBBLE_STATES, uiColorTypeValidator } from './ui-types'
 
 /** @internal */
 export function idValidator<Id extends ID<UnknownRecord>>(
@@ -74,3 +75,13 @@ export const opacityValidator = T.setEnum(TL_OPACITY_TYPES)
 export const iconValidator = T.setEnum(TL_ICON_TYPES)
 /** @internal */
 export const splineValidator = T.setEnum(TL_SPLINE_TYPES)
+
+/** @internal */
+export const scribbleTypeValidator: T.Validator<TLScribble> = T.object({
+	points: T.arrayOf(T.point),
+	size: T.positiveNumber,
+	color: uiColorTypeValidator,
+	opacity: T.number,
+	state: T.setEnum(TL_SCRIBBLE_STATES),
+	delay: T.number,
+})

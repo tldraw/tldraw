@@ -9,10 +9,9 @@ import { TLInstance, TLInstanceId } from './records/TLInstance'
 import { TLInstancePageState, TLInstancePageStateId } from './records/TLInstancePageState'
 import { TLInstancePresence, TLInstancePresenceId } from './records/TLInstancePresence'
 import { TLPage, TLPageId } from './records/TLPage'
+import { TLPointerId } from './records/TLPointer'
 import { TLShapeId } from './records/TLShape'
-import { TLUser } from './records/TLUser'
-import { TLUserDocument, TLUserDocumentId } from './records/TLUserDocument'
-import { TLUserPresence, TLUserPresenceId } from './records/TLUserPresence'
+import { TLUserDocumentId } from './records/TLUserDocument'
 import { TLArrowShape, arrowTerminalTypeValidator } from './shapes/TLArrowShape'
 import { TLBookmarkShape } from './shapes/TLBookmarkShape'
 import { TLDrawShape, TL_DRAW_SHAPE_SEGMENT_TYPE } from './shapes/TLDrawShape'
@@ -27,14 +26,7 @@ import { TLNoteShape } from './shapes/TLNoteShape'
 import { TLTextShape } from './shapes/TLTextShape'
 import { TLVideoShape } from './shapes/TLVideoShape'
 import { createShapeValidator } from './shapes/shape-validation'
-import {
-	TLScribble,
-	TL_SCRIBBLE_STATES,
-	cursorTypeValidator,
-	cursorValidator,
-	handleTypeValidator,
-	uiColorTypeValidator,
-} from './ui-types'
+import { cursorTypeValidator, cursorValidator, handleTypeValidator } from './ui-types'
 import {
 	alignValidator,
 	arrowheadValidator,
@@ -49,15 +41,25 @@ import {
 	instanceIdValidator,
 	opacityValidator,
 	pageIdValidator,
+	scribbleTypeValidator,
 	shapeIdValidator,
 	sizeValidator,
 	splineValidator,
-	userIdValidator,
 	verticalAlignValidator,
 } from './validation'
 
 /** @public */
 export const defaultValidator = T.union('typeName', {
+	pointer: T.model(
+		'pointer',
+		T.object({
+			typeName: T.literal('pointer'),
+			id: idValidator<TLPointerId>('pointer'),
+			x: T.number,
+			y: T.number,
+			lastActivityTimestamp: T.number,
+		})
+	),
 	asset: T.model(
 		'asset',
 		T.union('type', {
@@ -117,9 +119,8 @@ export const defaultValidator = T.union('typeName', {
 		T.object({
 			typeName: T.literal('instance'),
 			id: idValidator<TLInstanceId>('instance'),
-			userId: userIdValidator,
 			currentPageId: pageIdValidator,
-			followingUserId: userIdValidator.nullable(),
+			followingUserId: T.string.nullable(),
 			brush: T.boxModel.nullable(),
 			propsForNextShape: T.object({
 				color: colorValidator,
@@ -138,14 +139,7 @@ export const defaultValidator = T.union('typeName', {
 				spline: splineValidator,
 			}),
 			cursor: cursorValidator,
-			scribble: T.object({
-				points: T.arrayOf(T.point),
-				size: T.positiveNumber,
-				color: uiColorTypeValidator,
-				opacity: T.number,
-				state: T.setEnum(TL_SCRIBBLE_STATES),
-				delay: T.number,
-			}).nullable(),
+			scribble: scribbleTypeValidator.nullable(),
 			isFocusMode: T.boolean,
 			isDebugMode: T.boolean,
 			isToolLocked: T.boolean,
@@ -358,82 +352,49 @@ export const defaultValidator = T.union('typeName', {
 			),
 		})
 	),
-	user: T.model<TLUser>(
-		'user',
-		T.object({
-			typeName: T.literal('user'),
-			id: userIdValidator,
-			name: T.string,
-			locale: T.string,
-		})
-	),
-	user_document: T.model<TLUserDocument>(
+	user_document: T.model(
 		'user_document',
 		T.object({
 			typeName: T.literal('user_document'),
 			id: idValidator<TLUserDocumentId>('user_document'),
-			userId: userIdValidator,
 			isPenMode: T.boolean,
 			isGridMode: T.boolean,
-			isDarkMode: T.boolean,
 			isMobileMode: T.boolean,
 			isSnapMode: T.boolean,
 			lastUpdatedPageId: pageIdValidator.nullable(),
 			lastUsedTabId: instanceIdValidator.nullable(),
 		})
 	),
-	user_presence: T.model<TLUserPresence>(
-		'user_presence',
-		T.object({
-			typeName: T.literal('user_presence'),
-			id: idValidator<TLUserPresenceId>('user_presence'),
-			userId: userIdValidator,
-			lastUsedInstanceId: instanceIdValidator.nullable(),
-			lastActivityTimestamp: T.number,
-			cursor: T.point,
-			viewportPageBounds: T.boxModel,
-			color: T.string,
-		})
-	),
 	instance_presence: T.model<TLInstancePresence>(
 		'instance_presence',
-		T.object({
-			instanceId: idValidator<TLInstanceId>('instance'),
-			typeName: T.literal('instance_presence'),
-			id: idValidator<TLInstancePresenceId>('instance_presence'),
-			userId: userIdValidator,
-			userName: T.string,
-			lastActivityTimestamp: T.number,
-			followingUserId: userIdValidator.nullable(),
-			cursor: T.object({
-				x: T.number,
-				y: T.number,
-				type: cursorTypeValidator,
-				rotation: T.number,
-			}),
-			color: T.string,
-			camera: T.model<TLCamera>(
-				'camera',
-				T.object({
-					typeName: T.literal('camera'),
-					id: idValidator<TLCameraId>('camera'),
+		T.model(
+			'instance_presence',
+			T.object({
+				instanceId: idValidator<TLInstanceId>('instance'),
+				typeName: T.literal('instance_presence'),
+				id: idValidator<TLInstancePresenceId>('instance_presence'),
+				userId: T.string,
+				userName: T.string,
+				lastActivityTimestamp: T.number,
+				followingUserId: T.string.nullable(),
+				cursor: T.object({
+					x: T.number,
+					y: T.number,
+					type: cursorTypeValidator,
+					rotation: T.number,
+				}),
+				color: T.string,
+				camera: T.object({
 					x: T.number,
 					y: T.number,
 					z: T.number,
-				})
-			),
-			screenBounds: T.boxModel,
-			selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
-			currentPageId: idValidator<TLPageId>('page'),
-			brush: T.boxModel.nullable(),
-			scribble: T.object<TLScribble>({
-				points: T.arrayOf(T.point),
-				size: T.positiveNumber,
-				color: uiColorTypeValidator,
-				opacity: T.number,
-				state: T.setEnum(TL_SCRIBBLE_STATES),
-				delay: T.number,
-			}).nullable(),
-		})
+				}),
+				screenBounds: T.boxModel,
+				selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
+				currentPageId: idValidator<TLPageId>('page'),
+				brush: T.boxModel.nullable(),
+				scribble: scribbleTypeValidator.nullable(),
+			})
+		)
 	),
 })
