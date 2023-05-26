@@ -27,8 +27,8 @@ import {
 } from '../app/types/event-types'
 import { RequiredKeys } from '../app/types/misc-types'
 import { createDefaultTldrawEditorStore } from '../config/createDefaultTldrawEditorStore'
-import { DEFAULT_SHAPE_UTILS } from '../config/defaultShapeUtils'
-import { DEFAULT_TOOLS } from '../config/defaultTools'
+import { defaultTldrawEditorShapeUtils } from '../config/defaultShapeUtils'
+import { defaultTldrawEditorTools } from '../config/defaultTools'
 
 jest.useFakeTimers()
 
@@ -60,8 +60,8 @@ export class TestApp extends App {
 		const elm = document.createElement('div')
 		elm.tabIndex = 0
 		super({
-			shapes: shapes ?? DEFAULT_SHAPE_UTILS,
-			tools: tools ?? DEFAULT_TOOLS,
+			shapes: shapes ?? defaultTldrawEditorShapeUtils,
+			tools: tools ?? defaultTldrawEditorTools,
 			store:
 				store ??
 				createDefaultTldrawEditorStore({

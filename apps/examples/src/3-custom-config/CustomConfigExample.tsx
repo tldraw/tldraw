@@ -1,7 +1,5 @@
 import { TldrawCanvas } from '@tldraw/editor/src/lib/components/TldrawCanvas'
 import {
-	DEFAULT_SHAPE_UTILS,
-	DEFAULT_TOOLS,
 	HTMLContainer,
 	MenuGroup,
 	TLBaseShape,
@@ -11,6 +9,8 @@ import {
 	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
+	defaultTldrawEditorShapeUtils,
+	defaultTldrawEditorTools,
 	menuItem,
 	toolbarItem,
 } from '@tldraw/tldraw'
@@ -95,8 +95,8 @@ export class CardTool extends TLBoxTool {
 	override shapeType = 'card'
 }
 
-const tools = [...DEFAULT_TOOLS, CardTool]
-const shapes = [...DEFAULT_SHAPE_UTILS, CardUtil]
+const tools = [...defaultTldrawEditorTools, CardTool]
+const shapes = [...defaultTldrawEditorShapeUtils, CardUtil]
 
 // ... and we can make our custom shape example!
 export default function CustomConfigExample() {

@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { InstanceRecordType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { createDefaultTldrawEditorStore } from '../config/createDefaultTldrawEditorStore'
-import { DEFAULT_SHAPE_UTILS } from '../config/defaultShapeUtils'
-import { DEFAULT_TOOLS } from '../config/defaultTools'
+import { defaultTldrawEditorShapeUtils } from '../config/defaultShapeUtils'
+import { defaultTldrawEditorTools } from '../config/defaultTools'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -32,8 +32,8 @@ describe('<TldrawEditor />', () => {
 		const rendered = render(
 			<TldrawEditor
 				store={store}
-				shapes={DEFAULT_SHAPE_UTILS}
-				tools={DEFAULT_TOOLS}
+				shapes={defaultTldrawEditorShapeUtils}
+				tools={defaultTldrawEditorTools}
 				onMount={onMount}
 			>
 				<div data-testid="canvas-1" />
@@ -49,8 +49,8 @@ describe('<TldrawEditor />', () => {
 		rendered.rerender(
 			<TldrawEditor
 				store={store}
-				shapes={DEFAULT_SHAPE_UTILS}
-				tools={DEFAULT_TOOLS}
+				shapes={defaultTldrawEditorShapeUtils}
+				tools={defaultTldrawEditorTools}
 				onMount={onMount}
 				autoFocus
 			>
@@ -68,8 +68,8 @@ describe('<TldrawEditor />', () => {
 
 		rendered.rerender(
 			<TldrawEditor
-				shapes={DEFAULT_SHAPE_UTILS}
-				tools={DEFAULT_TOOLS}
+				shapes={defaultTldrawEditorShapeUtils}
+				tools={defaultTldrawEditorTools}
 				store={newStore}
 				onMount={onMount}
 				autoFocus

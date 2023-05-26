@@ -11,7 +11,7 @@ import { shapeTypeValidator } from './records/TLShape'
 import { userdocumentTypeValidator } from './records/TLUserDocument'
 
 /** @public */
-export const defaultValidator = T.union('typeName', {
+export const defaultTldrawEditorValidator = T.union('typeName', {
 	pointer: pointerTypeValidator,
 	asset: assetTypeValidator,
 	camera: cameraTypeValidator,

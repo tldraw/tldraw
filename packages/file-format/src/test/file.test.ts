@@ -38,7 +38,7 @@ describe('parseTldrawJsonFile', () => {
 	it('returns an error if the file version is too old', () => {
 		const schema = createDefaultTldrawEditorSchema()
 		const result = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema,
 			serialize({
 				tldrawFileFormatVersion: 0,
 				schema: schema.serialize(),
@@ -52,7 +52,7 @@ describe('parseTldrawJsonFile', () => {
 	it('returns an error if the file version is too new', () => {
 		const schema = createDefaultTldrawEditorSchema()
 		const result = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema,
 			serialize({
 				tldrawFileFormatVersion: 100,
 				schema: schema.serialize(),
@@ -68,7 +68,7 @@ describe('parseTldrawJsonFile', () => {
 		const serializedSchema = schema.serialize()
 		serializedSchema.storeVersion = 100
 		const result = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema,
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: serializedSchema,
@@ -83,7 +83,7 @@ describe('parseTldrawJsonFile', () => {
 		const serializedSchema2 = schema2.serialize()
 		serializedSchema2.recordVersions.shape.version = 100
 		const result2 = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema2,
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: serializedSchema2,
@@ -113,6 +113,7 @@ describe('parseTldrawJsonFile', () => {
 				],
 			})
 		)
+
 		assert(!result.ok)
 		assert(result.error.type === 'invalidRecords')
 		expect(result.error.cause).toMatchInlineSnapshot(
@@ -123,7 +124,7 @@ describe('parseTldrawJsonFile', () => {
 	it('returns a store if the file is valid', () => {
 		const schema = createDefaultTldrawEditorSchema()
 		const result = parseTldrawJsonFile(
-			createDefaultTldrawEditorSchema(),
+			schema,
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: schema.serialize(),

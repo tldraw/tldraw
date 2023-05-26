@@ -27,7 +27,7 @@ import { textShapeTypeMigrator } from './shapes/TLTextShape'
 import { videoShapeTypeMigrator } from './shapes/TLVideoShape'
 
 /** @public */
-export const defaultMigrators: { [K in TLRecord['typeName']]: Migrator } = {
+export const defaultTldrawEditorMigrators: { [K in TLRecord['typeName']]: Migrator } = {
 	pointer: pointerTypeMigrator,
 	document: documentTypeMigrator,
 	page: pageTypeMigrator,

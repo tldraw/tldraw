@@ -13,7 +13,7 @@ import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 
 /** @public */
-export const DEFAULT_SHAPE_UTILS: TLShapeUtilConstructor<any>[] = [
+export const defaultTldrawEditorShapeUtils: TLShapeUtilConstructor<any>[] = [
 	TLArrowUtil,
 	TLBookmarkUtil,
 	TLDrawUtil,

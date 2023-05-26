@@ -24,10 +24,14 @@ export {
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema } from './createTLSchema'
-export { defaultMigrators } from './defaultMigrators'
+export {
+	createTLSchema,
+	type TldrawEditorMigrators,
+	type TldrawEditorValidator,
+} from './createTLSchema'
 export { defaultSnapshotMigrator } from './defaultSnapshotMigrator'
-export { defaultValidator } from './defaultValidator'
+export { defaultTldrawEditorMigrators } from './defaultTldrawEditorMigrators'
+export { defaultTldrawEditorValidator } from './defaultTldrawEditorValidator'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {

@@ -1,4 +1,9 @@
-import { TLInstancePresence, TLStore, defaultMigrators, defaultValidator } from '@tldraw/tlschema'
+import {
+	TLInstancePresence,
+	TLStore,
+	defaultTldrawEditorMigrators,
+	defaultTldrawEditorValidator,
+} from '@tldraw/tlschema'
 import { Signal } from 'signia'
 import { createTldrawEditorSchema } from './createTldrawEditorSchema'
 
@@ -9,8 +14,8 @@ export function createDefaultTldrawEditorSchema(
 	}
 ) {
 	return createTldrawEditorSchema({
-		validator: defaultValidator,
-		migrators: defaultMigrators,
+		validator: defaultTldrawEditorValidator,
+		migrators: defaultTldrawEditorMigrators,
 		...opts,
 	})
 }

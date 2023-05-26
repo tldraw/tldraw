@@ -2,7 +2,7 @@ import {
 	App,
 	buildFromV1Document,
 	createDefaultTldrawEditorSchema,
-	createTldrawEditorStore,
+	createDefaultTldrawEditorStore,
 	fileToBase64,
 	TLAsset,
 	TLInstanceId,
@@ -139,7 +139,9 @@ export function parseTldrawJsonFile({
 	// we should be able to validate them. if any of the records at this stage
 	// are invalid, we don't open the file
 	try {
-		return Result.ok(createTldrawEditorStore({ initialData: migrationResult.value, instanceId }))
+		return Result.ok(
+			createDefaultTldrawEditorStore({ initialData: migrationResult.value, instanceId })
+		)
 	} catch (e) {
 		// junk data in the records (they're not validated yet!) could cause the
 		// migrations to crash. We treat any throw from a migration as an

@@ -1,12 +1,12 @@
 import {
 	App,
-	createDefaultTldrawEditorStore,
-	DEFAULT_SHAPE_UTILS,
-	DEFAULT_TOOLS,
 	ErrorBoundary,
-	setRuntimeOverrides,
 	TldrawCanvas,
 	TldrawEditor,
+	createDefaultTldrawEditorStore,
+	defaultTldrawEditorShapeUtils,
+	defaultTldrawEditorTools,
+	setRuntimeOverrides,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
@@ -145,9 +145,9 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		<TldrawEditor
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
-			shapes={DEFAULT_SHAPE_UTILS}
-			tools={DEFAULT_TOOLS}
-			store={syncedStore}
+			shapes={defaultTldrawEditorShapeUtils}
+			tools={defaultTldrawEditorTools}
+			syncedStore={syncedStore}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>

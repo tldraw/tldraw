@@ -137,8 +137,8 @@ export { createDefaultTldrawEditorStore } from './lib/config/createDefaultTldraw
 export { createTldrawEditorSchema } from './lib/config/createTldrawEditorSchema'
 export { createTldrawEditorStore } from './lib/config/createTldrawEditorStore'
 export { createTldrawEditorUser, type TldrawEditorUser } from './lib/config/createTldrawEditorUser'
-export { DEFAULT_SHAPE_UTILS } from './lib/config/defaultShapeUtils'
-export { DEFAULT_TOOLS } from './lib/config/defaultTools'
+export { defaultTldrawEditorShapeUtils } from './lib/config/defaultShapeUtils'
+export { defaultTldrawEditorTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,

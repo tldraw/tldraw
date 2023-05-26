@@ -1,10 +1,10 @@
 import {
-	DEFAULT_SHAPE_UTILS,
-	DEFAULT_TOOLS,
 	TldrawCanvas,
 	TldrawEditor,
 	TldrawEditorProps,
 	createDefaultTldrawEditorStore,
+	defaultTldrawEditorShapeUtils,
+	defaultTldrawEditorTools,
 } from '@tldraw/editor'
 import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
 import { TldrawContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
@@ -34,9 +34,9 @@ export function Tldraw(
 		<TldrawEditor
 			{...rest}
 			instanceId={instanceId}
-			store={syncedStore}
-			tools={DEFAULT_TOOLS}
-			shapes={DEFAULT_SHAPE_UTILS}
+			syncedStore={syncedStore}
+			tools={defaultTldrawEditorTools}
+			shapes={defaultTldrawEditorShapeUtils}
 		>
 			<TldrawUi {...rest}>
 				<TldrawContextMenu>

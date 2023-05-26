@@ -1,12 +1,15 @@
 import {
-	DEFAULT_SHAPE_UTILS,
-	DEFAULT_TOOLS,
 	InstanceRecordType,
 	TldrawCanvas,
 	TldrawContextMenu,
 	TldrawEditor,
 	TldrawUi,
+	createDefaultTldrawEditorSchema,
 	createDefaultTldrawEditorStore,
+	defaultTldrawEditorMigrators,
+	defaultTldrawEditorShapeUtils,
+	defaultTldrawEditorTools,
+	defaultTldrawEditorValidator,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -14,7 +17,8 @@ import '@tldraw/tldraw/ui.css'
 
 const instanceId = InstanceRecordType.createCustomId('example')
 
-const store = createDefaultTldrawEditorStore()
+const schema = createDefaultTldrawEditorSchema()
+const store = createDefaultTldrawEditorStore({ schema, instanceId })
 
 export default function Example() {
 	const syncedStore = useLocalSyncClient({
@@ -26,10 +30,11 @@ export default function Example() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				instanceId={instanceId}
-				store={syncedStore}
-				shapes={DEFAULT_SHAPE_UTILS}
-				tools={DEFAULT_TOOLS}
+				syncedStore={syncedStore}
+				shapes={defaultTldrawEditorShapeUtils}
+				tools={defaultTldrawEditorTools}
+				validator={defaultTldrawEditorValidator}
+				migrators={defaultTldrawEditorMigrators}
 				autoFocus
 			>
 				<TldrawUi>

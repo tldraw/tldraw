@@ -11,7 +11,7 @@ import { TLNoteTool } from '../app/statechart/TLNoteTool/TLNoteTool'
 import { TLTextTool } from '../app/statechart/TLTextTool/TLTextTool'
 
 /** @public */
-export const DEFAULT_TOOLS: StateNodeConstructor[] = [
+export const defaultTldrawEditorTools: StateNodeConstructor[] = [
 	TLLaserTool,
 	TLDrawTool,
 	TLTextTool,

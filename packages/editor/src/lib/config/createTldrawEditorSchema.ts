@@ -1,11 +1,10 @@
-import { TLRecord, createTLSchema } from '@tldraw/tlschema'
-import { Migrator } from '@tldraw/tlstore'
+import { TldrawEditorMigrators, TldrawEditorValidator, createTLSchema } from '@tldraw/tlschema'
 
 /** @public */
 export function createTldrawEditorSchema(
 	opts = {} as {
-		migrators?: Record<string, Migrator> | null
-		validator?: { validate: (record: TLRecord) => TLRecord } | null
+		migrators?: TldrawEditorMigrators | null
+		validator?: TldrawEditorValidator | null
 	}
 ) {
 	const { migrators = null, validator = null } = opts

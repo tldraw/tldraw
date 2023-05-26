@@ -185,10 +185,8 @@ export function createShapeValidator<R extends TLBaseShape<string, object>>(type
 
 // @public
 export function createTLSchema(opts?: {
-    validator?: {
-        validate: (record: any) => TLRecord;
-    } | null | undefined;
-    migrators?: null | Record<"asset" | "camera" | "document" | "instance_page_state" | "instance_presence" | "instance" | "page" | "pointer" | "shape" | "user_document", Migrator<symbol, symbol>> | undefined;
+    migrators?: null | TldrawEditorMigrators | undefined;
+    validator?: null | TldrawEditorValidator | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -198,15 +196,15 @@ export const cursorValidator: T.Validator<TLCursor>;
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
-export const defaultMigrators: {
+export const defaultSnapshotMigrator: Migrator<symbol, 3>;
+
+// @public (undocumented)
+export const defaultTldrawEditorMigrators: {
     [K in TLRecord['typeName']]: Migrator;
 };
 
 // @public (undocumented)
-export const defaultSnapshotMigrator: Migrator<symbol, 3>;
-
-// @public (undocumented)
-export const defaultValidator: T.UnionValidator<"typeName", {
+export const defaultTldrawEditorValidator: T.UnionValidator<"typeName", {
     pointer: T.Validator<{
         typeName: "pointer";
         id: TLPointerId;
@@ -1172,6 +1170,14 @@ export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
 
 // @public (undocumented)
 export const TLDOCUMENT_ID: ID<TLDocument>;
+
+// @public (undocumented)
+export type TldrawEditorMigrators = Record<string, Migrator>;
+
+// @public (undocumented)
+export type TldrawEditorValidator = {
+    validate: (record: TLRecord) => TLRecord;
+};
 
 // @public (undocumented)
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;

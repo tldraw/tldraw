@@ -28,7 +28,6 @@ import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
-import { Migrator } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
@@ -57,6 +56,8 @@ import { TLColorStyle } from '@tldraw/tlschema';
 import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
+import { TldrawEditorMigrators } from '@tldraw/tlschema';
+import { TldrawEditorValidator } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
@@ -618,10 +619,8 @@ export function createShapesFromFiles(app: App, files: File[], position: VecLike
 
 // @public (undocumented)
 export function createTldrawEditorSchema(opts?: {
-    migrators?: null | Record<string, Migrator<symbol, symbol>> | undefined;
-    validator?: {
-        validate: (record: TLRecord) => TLRecord;
-    } | null | undefined;
+    migrators?: null | TldrawEditorMigrators | undefined;
+    validator?: null | TldrawEditorValidator | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -675,12 +674,6 @@ export const DEFAULT_BOOKMARK_HEIGHT = 320;
 export const DEFAULT_BOOKMARK_WIDTH = 300;
 
 // @public (undocumented)
-export const DEFAULT_SHAPE_UTILS: TLShapeUtilConstructor<any>[];
-
-// @public (undocumented)
-export const DEFAULT_TOOLS: StateNodeConstructor[];
-
-// @public (undocumented)
 export let defaultEditorAssetUrls: EditorAssetUrls;
 
 // @public (undocumented)
@@ -688,6 +681,12 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallback;
+
+// @public (undocumented)
+export const defaultTldrawEditorShapeUtils: TLShapeUtilConstructor<any>[];
+
+// @public (undocumented)
+export const defaultTldrawEditorTools: StateNodeConstructor[];
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -1826,24 +1825,7 @@ export const TldrawCanvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
 export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
 
 // @public (undocumented)
-export interface TldrawEditorProps {
-    assetUrls?: EditorAssetUrls;
-    autoFocus?: boolean;
-    // (undocumented)
-    children?: any;
-    components?: Partial<TLEditorComponents>;
-    instanceId?: TLInstanceId;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
-    onMount?: (app: App) => void;
-    shapes: TLShapeUtilConstructor<any>[];
-    store?: SyncedStore | TLStore;
-    tools: StateNodeConstructor[];
-}
+export type TldrawEditorProps = TldrawEditorBaseProps & (TldrawEditorPropsWithoutStore | TldrawEditorPropsWithStore | TldrawEditorPropsWithSyncedStore);
 
 // @public (undocumented)
 export interface TldrawEditorUser {
