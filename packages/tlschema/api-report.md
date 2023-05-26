@@ -26,6 +26,20 @@ export const arrowheadValidator: T.Validator<"arrow" | "bar" | "diamond" | "dot"
 export const arrowShapeTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
+export const arrowShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "arrow";
+    isLocked: boolean;
+    props: TLArrowShapeProps;
+}>;
+
+// @public (undocumented)
 export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal>;
 
 // @internal (undocumented)
@@ -35,10 +49,74 @@ export const assetIdValidator: T.Validator<TLAssetId>;
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public (undocumented)
+export const assetTypeValidator: T.Validator<{
+    id: TLAssetId;
+    typeName: "asset";
+    type: "bookmark";
+    props: {
+        title: string;
+        description: string;
+        image: string;
+        src: null | string;
+    };
+} | {
+    id: TLAssetId;
+    typeName: "asset";
+    type: "image";
+    props: {
+        w: number;
+        h: number;
+        name: string;
+        isAnimated: boolean;
+        mimeType: null | string;
+        src: null | string;
+    };
+} | {
+    id: TLAssetId;
+    typeName: "asset";
+    type: "video";
+    props: {
+        w: number;
+        h: number;
+        name: string;
+        isAnimated: boolean;
+        mimeType: null | string;
+        src: null | string;
+    };
+}>;
+
+// @public (undocumented)
 export const bookmarkAssetTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
+export const bookmarkAssetTypeValidator: T.ObjectValidator<{
+    id: TLAssetId;
+    typeName: "asset";
+    type: "bookmark";
+    props: {
+        title: string;
+        description: string;
+        image: string;
+        src: null | string;
+    };
+}>;
+
+// @public (undocumented)
 export const bookmarkShapeTypeMigrator: Migrator<symbol, 1>;
+
+// @public (undocumented)
+export const bookmarkShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "bookmark";
+    isLocked: boolean;
+    props: TLBookmarkShapeProps;
+}>;
 
 // @public (undocumented)
 export interface Box2dModel {
@@ -57,6 +135,9 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public (undocumented)
 export const cameraTypeMigrator: Migrator<symbol, symbol>;
+
+// @public (undocumented)
+export const cameraTypeValidator: T.Validator<TLCamera>;
 
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
@@ -109,9 +190,6 @@ export function createTLSchema(opts?: {
     } | null | undefined;
     migrators?: null | Record<"asset" | "camera" | "document" | "instance_page_state" | "instance_presence" | "instance" | "page" | "pointer" | "shape" | "user_document", Migrator<symbol, symbol>> | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
-
-// @public (undocumented)
-export const cursorTypeValidator: T.Validator<string>;
 
 // @public (undocumented)
 export const cursorValidator: T.Validator<TLCursor>;
@@ -340,7 +418,24 @@ export const DocumentRecordType: RecordType<TLDocument, never>;
 export const documentTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
+export const documentTypeValidator: T.Validator<TLDocument>;
+
+// @public (undocumented)
 export const drawShapeTypeMigrator: Migrator<symbol, 1>;
+
+// @public (undocumented)
+export const drawShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "draw";
+    isLocked: boolean;
+    props: TLDrawShapeProps;
+}>;
 
 // @public (undocumented)
 export const EMBED_DEFINITIONS: readonly [{
@@ -532,6 +627,20 @@ export type EmbedDefinition = {
 // @public (undocumented)
 export const embedShapeTypeMigrator: Migrator<symbol, 1>;
 
+// @public (undocumented)
+export const embedShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "embed";
+    isLocked: boolean;
+    props: TLEmbedShapeProps;
+}>;
+
 // @internal (undocumented)
 export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;
 
@@ -548,7 +657,35 @@ export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 export const frameShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
+export const frameShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "frame";
+    isLocked: boolean;
+    props: TLFrameShapeProps;
+}>;
+
+// @public (undocumented)
 export const geoShapeTypeMigrator: Migrator<symbol, 6>;
+
+// @public (undocumented)
+export const geoShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "geo";
+    isLocked: boolean;
+    props: TLGeoShapeProps;
+}>;
 
 // @internal (undocumented)
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
@@ -560,10 +697,38 @@ export function getDefaultTranslationLocale(): TLTranslationLocale;
 export const groupShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
+export const groupShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "group";
+    isLocked: boolean;
+    props: TLGroupShapeProps;
+}>;
+
+// @public (undocumented)
 export const handleTypeValidator: T.Validator<TLHandle>;
 
 // @public (undocumented)
 export const iconShapeTypeMigrator: Migrator<symbol, symbol>;
+
+// @public (undocumented)
+export const iconShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "icon";
+    isLocked: boolean;
+    props: TLIconShapeProps;
+}>;
 
 // @internal (undocumented)
 export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
@@ -575,7 +740,36 @@ export function idValidator<Id extends ID<UnknownRecord>>(prefix: Id['__type__']
 export const imageAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
+export const imageAssetTypeValidator: T.ObjectValidator<{
+    id: TLAssetId;
+    typeName: "asset";
+    type: "image";
+    props: {
+        w: number;
+        h: number;
+        name: string;
+        isAnimated: boolean;
+        mimeType: null | string;
+        src: null | string;
+    };
+}>;
+
+// @public (undocumented)
 export const imageShapeTypeMigrator: Migrator<symbol, 2>;
+
+// @public (undocumented)
+export const imageShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "image";
+    isLocked: boolean;
+    props: TLImageShapeProps;
+}>;
 
 // @internal (undocumented)
 export const instanceIdValidator: T.Validator<TLInstanceId>;
@@ -587,16 +781,25 @@ export const InstancePageStateRecordType: RecordType<TLInstancePageState, "camer
 export const instancePageStateTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
+export const instancePageStateTypeValidator: T.Validator<TLInstancePageState>;
+
+// @public (undocumented)
 export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
 
 // @public (undocumented)
 export const instancePresenceTypeMigrator: Migrator<symbol, 1>;
 
 // @public (undocumented)
+export const instancePresenceTypeValidator: T.Validator<TLInstancePresence>;
+
+// @public (undocumented)
 export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
 // @public (undocumented)
 export const instanceTypeMigrator: Migrator<symbol, 11>;
+
+// @public (undocumented)
+export const instanceTypeValidator: T.Validator<TLInstance>;
 
 // @public (undocumented)
 export function isShape(record?: UnknownRecord): record is TLShape;
@@ -608,7 +811,35 @@ export function isShapeId(id?: string): id is TLShapeId;
 export const lineShapeTypeMigrator: Migrator<symbol, symbol>;
 
 // @public (undocumented)
+export const lineShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "line";
+    isLocked: boolean;
+    props: TLLineShapeProps;
+}>;
+
+// @public (undocumented)
 export const noteShapeTypeMigrator: Migrator<symbol, 3>;
+
+// @public (undocumented)
+export const noteShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "note";
+    isLocked: boolean;
+    props: TLNoteShapeProps;
+}>;
 
 // @public (undocumented)
 export const onValidationFailure: StoreSchemaOptions<TLRecord, TLStoreProps>['onValidationFailure'];
@@ -621,6 +852,12 @@ export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public (undocumented)
+export const pageTypeMigrator: Migrator<symbol, symbol>;
+
+// @public (undocumented)
+export const pageTypeValidator: T.Validator<TLPage>;
 
 // @internal (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
@@ -650,6 +887,20 @@ export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @public (undocumented)
 export const textShapeTypeMigrator: Migrator<symbol, 1>;
+
+// @public (undocumented)
+export const textShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "text";
+    isLocked: boolean;
+    props: TLTextShapeProps;
+}>;
 
 // @public (undocumented)
 export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
@@ -1500,6 +1751,18 @@ export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 export const userdocumentTypeMigrator: Migrator<symbol, 4>;
 
 // @public (undocumented)
+export const userdocumentTypeValidator: T.Validator<{
+    typeName: "user_document";
+    id: TLUserDocumentId;
+    isPenMode: boolean;
+    isGridMode: boolean;
+    isMobileMode: boolean;
+    isSnapMode: boolean;
+    lastUpdatedPageId: TLPageId | null;
+    lastUsedTabId: TLInstanceId | null;
+}>;
+
+// @public (undocumented)
 export interface Vec2dModel {
     // (undocumented)
     x: number;
@@ -1513,7 +1776,36 @@ export interface Vec2dModel {
 export const videoAssetTypeMigrator: Migrator<symbol, 2>;
 
 // @public (undocumented)
+export const videoAssetTypeValidator: T.ObjectValidator<{
+    id: TLAssetId;
+    typeName: "asset";
+    type: "video";
+    props: {
+        w: number;
+        h: number;
+        name: string;
+        isAnimated: boolean;
+        mimeType: null | string;
+        src: null | string;
+    };
+}>;
+
+// @public (undocumented)
 export const videoShapeTypeMigrator: Migrator<symbol, 1>;
+
+// @public (undocumented)
+export const videoShapeTypeValidator: T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: "video";
+    isLocked: boolean;
+    props: TLVideoShapeProps;
+}>;
 
 // (No @packageDocumentation comment for this package)
 
