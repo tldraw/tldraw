@@ -35,6 +35,9 @@ export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal>;
 export const assetIdValidator: T.Validator<TLAssetId>;
 
 // @public (undocumented)
+export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
+
+// @public (undocumented)
 export const assetTypeMigrations: Migrations;
 
 // @public (undocumented)
@@ -63,6 +66,9 @@ export interface Box2dModel {
     // (undocumented)
     y: number;
 }
+
+// @public (undocumented)
+export const CameraRecordType: RecordType<TLCamera, never>;
 
 // @public (undocumented)
 export const cameraTypeValidator: T.Validator<TLCamera>;
@@ -124,6 +130,9 @@ export const cursorValidator: T.Validator<TLCursor>;
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;
@@ -397,7 +406,16 @@ export const instanceIdValidator: T.Validator<TLInstanceId>;
 export const instancePageStateMigrations: Migrations;
 
 // @public (undocumented)
+export const InstancePageStateRecordType: RecordType<TLInstancePageState, "cameraId" | "instanceId" | "pageId">;
+
+// @public (undocumented)
 export const instancePageStateTypeValidator: T.Validator<TLInstancePageState>;
+
+// @public (undocumented)
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
+
+// @public (undocumented)
+export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
 // @public (undocumented)
 export const instanceTypeMigrations: Migrations;
@@ -433,10 +451,16 @@ export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1"
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
+export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public (undocumented)
 export const pageTypeValidator: T.Validator<TLPage>;
 
 // @internal (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
+
+// @public (undocumented)
+export const PointerRecordType: RecordType<TLPointer, never>;
 
 // @public (undocumented)
 export const pointerTypeValidator: T.Validator<TLPointer>;
@@ -612,9 +636,6 @@ export type TLArrowTerminalType = SetValue<typeof TL_ARROW_TERMINAL_TYPE>;
 export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
-export const TLAsset: RecordType<TLAsset, "props" | "type">;
-
-// @public (undocumented)
 export type TLAssetId = ID<TLBaseAsset<any, any>>;
 
 // @public (undocumented)
@@ -698,9 +719,6 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 }
 
 // @public (undocumented)
-export const TLCamera: RecordType<TLCamera, never>;
-
-// @public (undocumented)
 export type TLCameraId = ID<TLCamera>;
 
 // @public (undocumented)
@@ -746,9 +764,6 @@ export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
 }
-
-// @public (undocumented)
-export const TLDocument: RecordType<TLDocument, never>;
 
 // @public (undocumented)
 export const TLDOCUMENT_ID: ID<TLDocument>;
@@ -997,9 +1012,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 }
 
 // @public (undocumented)
-export const TLInstance: RecordType<TLInstance, "currentPageId">;
-
-// @public (undocumented)
 export type TLInstanceId = ID<TLInstance>;
 
 // @public
@@ -1025,9 +1037,6 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
     // (undocumented)
     selectedIds: TLShapeId[];
 }
-
-// @public (undocumented)
-export const TLInstancePageState: RecordType<TLInstancePageState, "cameraId" | "instanceId" | "pageId">;
 
 // @public (undocumented)
 export type TLInstancePageStateId = ID<TLInstancePageState>;
@@ -1070,9 +1079,6 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     userName: string;
 }
-
-// @public (undocumented)
-export const TLInstancePresence: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
 
 // @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
@@ -1132,9 +1138,6 @@ export interface TLPage extends BaseRecord<'page', TLPageId> {
 }
 
 // @public (undocumented)
-export const TLPage: RecordType<TLPage, "index" | "name">;
-
-// @public (undocumented)
 export type TLPageId = ID<TLPage>;
 
 // @public (undocumented)
@@ -1149,9 +1152,6 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     y: number;
 }
-
-// @public (undocumented)
-export const TLPointer: RecordType<TLPointer, never>;
 
 // @public (undocumented)
 export const TLPOINTER_ID: TLPointerId;
@@ -1304,9 +1304,6 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 }
 
 // @public (undocumented)
-export const TLUserDocument: RecordType<TLUserDocument, never>;
-
-// @public (undocumented)
 export type TLUserDocumentId = ID<TLUserDocument>;
 
 // @public (undocumented)
@@ -1338,6 +1335,9 @@ export type TLVideoShapeProps = {
 
 // @public (undocumented)
 export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 
 // @public (undocumented)
 export const userDocumentTypeMigrations: Migrations;

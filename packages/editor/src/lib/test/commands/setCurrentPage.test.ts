@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLPage, TLPageId } from '@tldraw/tlschema'
+import { createCustomShapeId, PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -10,7 +10,7 @@ beforeEach(() => {
 describe('setCurrentPage', () => {
 	it('sets the current page', () => {
 		const page1Id = app.pages[0].id
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 
 		app.createPage('New Page 2', page2Id)
 		expect(app.currentPageId).toEqual(page2Id)
@@ -20,7 +20,7 @@ describe('setCurrentPage', () => {
 
 		expect(app.currentPage).toEqual(app.pages[0])
 
-		const page3Id = TLPage.createCustomId('page3')
+		const page3Id = PageRecordType.createCustomId('page3')
 		app.createPage('New Page 3', page3Id)
 
 		expect(app.currentPageId).toEqual(page3Id)
@@ -36,7 +36,7 @@ describe('setCurrentPage', () => {
 		app.setCamera(1, 2, 4)
 		expect(app.camera).toMatchObject({ x: 1, y: 2, z: 4 })
 
-		const page = TLPage.create({ name: 'test', index: 'a4' })
+		const page = PageRecordType.create({ name: 'test', index: 'a4' })
 		app.store.put([page])
 
 		expect(app.getPageStateByPageId(page.id)).toBeUndefined()
@@ -49,7 +49,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('squashes', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.createPage('New Page 2', page2Id)
 
 		app.history.clear()
@@ -61,7 +61,7 @@ describe('setCurrentPage', () => {
 
 	it('preserves the undo stack', () => {
 		const boxId = createCustomShapeId('geo')
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.createPage('New Page 2', page2Id)
 
 		app.history.clear()
@@ -77,7 +77,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('logs an error when trying to navigate to a page that does not exist', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.createPage('New Page 2', page2Id)
 		console.error = jest.fn()
 

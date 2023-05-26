@@ -1,5 +1,5 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { TLPage, TLPageId, useApp, useContainer } from '@tldraw/editor'
+import { PageRecordType, TLPageId, useApp, useContainer } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -79,7 +79,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 							key="new-page"
 							onSelect={() => {
 								app.mark('move_shapes_to_page')
-								const newPageId = TLPage.createId()
+								const newPageId = PageRecordType.createId()
 								const ids = app.selectedIds
 								const oldPageId = app.currentPageId
 								app.batch(() => {
