@@ -8,7 +8,7 @@ import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /** @public */
-export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceId> {
 	instanceId: TLInstanceId
 	userId: string
 	userName: string
@@ -30,7 +30,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 /** @public */
-export type TLInstancePresenceID = ID<TLInstancePresence>
+export type TLInstancePresenceId = ID<TLInstancePresence>
 
 // --- VALIDATION ---
 /** @public */
@@ -39,7 +39,7 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 	T.object({
 		instanceId: idValidator<TLInstanceId>('instance'),
 		typeName: T.literal('instance_presence'),
-		id: idValidator<TLInstancePresenceID>('instance_presence'),
+		id: idValidator<TLInstancePresenceId>('instance_presence'),
 		userId: T.string,
 		userName: T.string,
 		lastActivityTimestamp: T.number,
@@ -68,6 +68,7 @@ const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
+/** @public */
 export const instancePresenceTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {

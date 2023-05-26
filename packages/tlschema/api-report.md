@@ -434,6 +434,12 @@ export const instancePageStateTypeValidator: T.Validator<TLInstancePageState>;
 export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
 
 // @public (undocumented)
+export const instancePresenceTypeMigrations: Migrations;
+
+// @public (undocumented)
+export const instancePresenceTypeValidator: T.Validator<TLInstancePresence>;
+
+// @public (undocumented)
 export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
 // @public (undocumented)
@@ -471,6 +477,9 @@ export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public (undocumented)
+export const pageTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const pageTypeValidator: T.Validator<TLPage>;
@@ -1061,7 +1070,7 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 export type TLInstancePageStateId = ID<TLInstancePageState>;
 
 // @public (undocumented)
-export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
@@ -1098,6 +1107,9 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     userName: string;
 }
+
+// @public (undocumented)
+export type TLInstancePresenceId = ID<TLInstancePresence>;
 
 // @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
