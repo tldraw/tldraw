@@ -163,7 +163,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 				'clipboard-group',
 				oneSelected && menuItem(actions['cut']),
 				oneSelected && menuItem(actions['copy']),
-				showMenuPaste && menuCustom('MENU_PASTE', { readonlyOk: false })
+				showMenuPaste && menuItem(actions['paste'])
 			),
 			atLeastOneShapeOnPage &&
 				menuGroup(

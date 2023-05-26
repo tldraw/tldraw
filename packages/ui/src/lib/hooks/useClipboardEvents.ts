@@ -539,33 +539,37 @@ const handleNativeOrMenuCopy = (app: App) => {
 }
 
 /** @public */
-export function useMenuClipboardEvents(source: TLUiEventSource) {
+export function useMenuClipboardEvents() {
 	const app = useApp()
 	const trackEvent = useEvents()
 
 	const copy = useCallback(
-		function onCopy() {
+		function onCopy(source: TLUiEventSource) {
 			if (app.selectedIds.length === 0) return
 
 			handleNativeOrMenuCopy(app)
 			trackEvent('copy', { source })
 		},
-		[app, trackEvent, source]
+		[app, trackEvent]
 	)
 
 	const cut = useCallback(
-		function onCut() {
+		function onCut(source: TLUiEventSource) {
 			if (app.selectedIds.length === 0) return
 
 			handleNativeOrMenuCopy(app)
 			app.deleteShapes()
 			trackEvent('cut', { source })
 		},
-		[app, trackEvent, source]
+		[app, trackEvent]
 	)
 
 	const paste = useCallback(
-		async function onPaste(data: DataTransfer | ClipboardItem[], point?: VecLike) {
+		async function onPaste(
+			data: DataTransfer | ClipboardItem[],
+			source: TLUiEventSource,
+			point?: VecLike
+		) {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
@@ -577,7 +581,7 @@ export function useMenuClipboardEvents(source: TLUiEventSource) {
 			} else {
 				// Read it first and then recurse, kind of weird
 				navigator.clipboard.read().then((clipboardItems) => {
-					paste(clipboardItems, app.inputs.currentPagePoint)
+					paste(clipboardItems, source, point)
 				})
 			}
 		},
