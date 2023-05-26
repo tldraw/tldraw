@@ -78,6 +78,7 @@ import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TldrawEditorShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
+import { defaultShapes } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -128,7 +129,7 @@ import {
 import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
 import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLResizeMode, TLShapeUtil, TLShapeUtilConstructor } from './shapeutils/TLShapeUtil'
+import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
 import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
@@ -198,16 +199,31 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.textMeasure = new TextManager(this)
 
+		for (const key in shapes) {
+			if (key in defaultShapes) {
+				throw Error(`Can't override default shape ${key}!`)
+			}
+		}
+
 		this.shapeUtils = Object.fromEntries(
 			Object.entries({
 				// we definitely need a group shape, god help you if you override it
-				group: { util: TLGroupUtil as TLShapeUtilConstructor<any> },
+				...defaultShapes,
 				...shapes,
 			}).map(([type, { util: Util }]) => {
 				if (type !== Util.type) throw Error()
 				return [Util.type, new Util(this, Util.type)]
 			})
 		)
+
+		this.root = new RootState(this)
+		tools.forEach((Ctor) => {
+			if (['select', 'zoom'].includes(Ctor.id)) {
+				throw Error(`Can't override default tool ${Ctor.id}!`)
+			}
+
+			this.root.children![Ctor.id] = new Ctor(this)
+		})
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
@@ -221,13 +237,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Set styles
 		this.colors = new Map(App.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
-
-		this.root = new RootState(this)
-		if (this.root.children) {
-			tools.forEach((Ctor) => {
-				this.root.children![Ctor.id] = new Ctor(this)
-			})
-		}
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
