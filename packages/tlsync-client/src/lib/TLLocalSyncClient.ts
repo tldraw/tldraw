@@ -1,5 +1,5 @@
-import { SyncedStore, TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
-import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/tlstore'
+import { TldrawEditorStore, TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
+import { compareSchemas, RecordsDiff, SerializedSchema, squashRecordDiffs } from '@tldraw/tlstore'
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
@@ -70,10 +70,11 @@ export class TLLocalSyncClient {
 			console.debug(...args)
 		}
 	}
+
 	store: TLStore
 
 	constructor(
-		store: SyncedStore & { status: 'not-synced' },
+		store: TldrawEditorStore & { status: 'not-synced' },
 		{
 			universalPersistenceKey,
 			onLoad,

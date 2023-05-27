@@ -9,8 +9,8 @@ import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { StateNodeConstructor } from './app/statechart/StateNode'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import {
-	SyncedStore,
 	TldrawEditorShapeInfo,
+	TldrawEditorStore,
 	createTldrawEditorStore,
 } from './config/createTldrawEditorStore'
 import { AppContext } from './hooks/useApp'
@@ -98,7 +98,7 @@ export type TldrawEditorProps = {
 	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
-	store?: SyncedStore
+	store?: TldrawEditorStore
 	/**
 	 * The editor's initial data.
 	 */
@@ -151,7 +151,7 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 		assetUrls ?? defaultEditorAssetUrls
 	)
 
-	const readyStore = useMemo<SyncedStore>(
+	const syncingStore = useMemo<TldrawEditorStore>(
 		() =>
 			store ??
 			createTldrawEditorStore({
@@ -162,12 +162,12 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 		[store, initialData, instanceId, shapes]
 	)
 
-	switch (readyStore.status) {
+	switch (syncingStore.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
 			// if users want to handle this error differently, they can render
 			// their own error screen before the TldrawEditor component
-			throw readyStore.error
+			throw syncingStore.error
 		}
 		case 'loading': {
 			return <LoadingScreen>Connecting...</LoadingScreen>
@@ -180,8 +180,8 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 		}
 	}
 
-	const storeInstanceId = readyStore.store.props.instanceId
-	// If we have a store and an instanceId, make sure they match
+	// If we have a store and an instanceId prop, make sure they match
+	const storeInstanceId = syncingStore.store.props.instanceId
 	if (instanceId && storeInstanceId !== instanceId) {
 		console.error(
 			`The store's instanceId (${storeInstanceId}) does not match the instanceId prop (${instanceId}). This may cause unexpected behavior.`
@@ -196,7 +196,7 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorAfterLoading {...props} store={readyStore.store} />
+	return <TldrawEditorAfterLoading {...props} store={syncingStore.store} />
 })
 
 function TldrawEditorAfterLoading({

@@ -128,8 +128,8 @@ export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContai
 export { USER_COLORS } from './lib/config/TLUserPreferences'
 export {
 	createTldrawEditorStore,
-	type SyncedStore,
 	type TldrawEditorShapeInfo,
+	type TldrawEditorStore,
 } from './lib/config/createTldrawEditorStore'
 export { defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'

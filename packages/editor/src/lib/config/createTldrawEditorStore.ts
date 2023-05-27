@@ -3,15 +3,14 @@ import {
 	TLDOCUMENT_ID,
 	TLInstanceId,
 	TLRecord,
+	TLStore,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { Migrations, Store, StoreSnapshot } from '@tldraw/tlstore'
 import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
 
-import { TLStore } from '@tldraw/tlschema'
-
 /** @public */
-export type SyncedStore =
+export type TldrawEditorStore =
 	| {
 			readonly status: 'not-synced'
 			readonly store: TLStore
@@ -52,7 +51,7 @@ export function createTldrawEditorStore(
 		instanceId?: TLInstanceId
 		initialData?: StoreSnapshot<TLRecord>
 	}
-): SyncedStore & { status: 'not-synced' } {
+): TldrawEditorStore & { status: 'not-synced' } {
 	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
 
 	return {

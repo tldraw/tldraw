@@ -1,4 +1,4 @@
-import { SyncedStore, useApp } from '@tldraw/editor'
+import { TldrawEditorStore, useApp } from '@tldraw/editor'
 import { parseAndLoadDocument, serializeTldrawJson } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import { debounce } from '@tldraw/utils'
@@ -9,7 +9,7 @@ import { vscode } from './utils/vscode'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 
-export const ChangeResponder = ({ syncedStore }: { syncedStore: SyncedStore }) => {
+export const ChangeResponder = ({ syncedStore }: { syncedStore: TldrawEditorStore }) => {
 	const app = useApp()
 	const { addToast, clearToasts, msg } = useDefaultHelpers()
 

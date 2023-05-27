@@ -7,7 +7,7 @@
 import { RecordsDiff } from '@tldraw/tlstore';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
-import { SyncedStore } from '@tldraw/editor';
+import { TldrawEditorStore } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
@@ -67,7 +67,7 @@ export const TAB_ID: TLInstanceId;
 
 // @public (undocumented)
 export class TLLocalSyncClient {
-    constructor(store: SyncedStore & {
+    constructor(store: TldrawEditorStore & {
         status: 'not-synced';
     }, { universalPersistenceKey, onLoad, onLoadError, }: {
         universalPersistenceKey: string;
@@ -91,10 +91,10 @@ export class TLLocalSyncClient {
 // @public
 export function useLocalSyncClient({ universalPersistenceKey, store, }: {
     universalPersistenceKey?: string;
-    store: SyncedStore & {
+    store: TldrawEditorStore & {
         status: 'not-synced';
     };
-}): SyncedStore;
+}): TldrawEditorStore;
 
 // (No @packageDocumentation comment for this package)
 

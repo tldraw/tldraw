@@ -606,7 +606,7 @@ export function createTldrawEditorStore(opts?: {
     customShapes?: Record<string, TldrawEditorShapeInfo> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
-}): SyncedStore & {
+}): TldrawEditorStore & {
     status: 'not-synced';
 };
 
@@ -1536,25 +1536,6 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
-export type SyncedStore = {
-    readonly status: 'error';
-    readonly store?: undefined;
-    readonly error: Error;
-} | {
-    readonly status: 'loading';
-    readonly store?: undefined;
-    readonly error?: undefined;
-} | {
-    readonly status: 'not-synced';
-    readonly store: TLStore;
-    readonly error?: undefined;
-} | {
-    readonly status: 'synced';
-    readonly store: TLStore;
-    readonly error?: undefined;
-};
-
-// @public (undocumented)
 export const TEXT_PROPS: {
     lineHeight: number;
     fontWeight: string;
@@ -1790,7 +1771,7 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     children?: any;
-    store?: SyncedStore;
+    store?: TldrawEditorStore;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
 };
@@ -1802,6 +1783,25 @@ export type TldrawEditorShapeInfo = {
     validator?: {
         validate: (record: any) => any;
     };
+};
+
+// @public (undocumented)
+export type TldrawEditorStore = {
+    readonly status: 'error';
+    readonly store?: undefined;
+    readonly error: Error;
+} | {
+    readonly status: 'loading';
+    readonly store?: undefined;
+    readonly error?: undefined;
+} | {
+    readonly status: 'not-synced';
+    readonly store: TLStore;
+    readonly error?: undefined;
+} | {
+    readonly status: 'synced';
+    readonly store: TLStore;
+    readonly error?: undefined;
 };
 
 // @public (undocumented)
