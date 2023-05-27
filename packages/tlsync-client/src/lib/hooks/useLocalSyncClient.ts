@@ -17,6 +17,7 @@ export function useLocalSyncClient({
 	store: SyncedStore & { status: 'not-synced' }
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
+
 	useEffect(() => {
 		const id = uniqueId()
 

@@ -10,35 +10,28 @@ import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
 
 import { TLStore } from '@tldraw/tlschema'
 
-export interface ReadyNotSyncedStore {
-	readonly status: 'not-synced'
-	readonly store: TLStore
-	readonly error?: undefined
-}
-
-export interface ErrorSyncedStore {
-	readonly status: 'error'
-	readonly store?: undefined
-	readonly error: Error
-}
-
-export interface InitializingSyncedStore {
-	readonly status: 'loading'
-	readonly store?: undefined
-	readonly error?: undefined
-}
-
-export interface ReadySyncedStore {
-	readonly status: 'synced'
-	readonly store: TLStore
-	readonly error?: undefined
-}
 /** @public */
 export type SyncedStore =
-	| ReadySyncedStore
-	| ReadyNotSyncedStore
-	| ErrorSyncedStore
-	| InitializingSyncedStore
+	| {
+			readonly status: 'not-synced'
+			readonly store: TLStore
+			readonly error?: undefined
+	  }
+	| {
+			readonly status: 'error'
+			readonly store?: undefined
+			readonly error: Error
+	  }
+	| {
+			readonly status: 'loading'
+			readonly store?: undefined
+			readonly error?: undefined
+	  }
+	| {
+			readonly status: 'synced'
+			readonly store: TLStore
+			readonly error?: undefined
+	  }
 
 /** @public */
 export type TldrawEditorShapeInfo = {
@@ -59,7 +52,7 @@ export function createTldrawEditorStore(
 		instanceId?: TLInstanceId
 		initialData?: StoreSnapshot<TLRecord>
 	}
-): ReadyNotSyncedStore {
+): SyncedStore & { status: 'not-synced' } {
 	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
 
 	return {

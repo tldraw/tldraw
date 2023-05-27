@@ -606,7 +606,9 @@ export function createTldrawEditorStore(opts?: {
     customShapes?: Record<string, TldrawEditorShapeInfo> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
-}): ReadyNotSyncedStore;
+}): SyncedStore & {
+    status: 'not-synced';
+};
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -1534,7 +1536,23 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
-export type SyncedStore = ErrorSyncedStore | InitializingSyncedStore | ReadyNotSyncedStore | ReadySyncedStore;
+export type SyncedStore = {
+    readonly status: 'error';
+    readonly store?: undefined;
+    readonly error: Error;
+} | {
+    readonly status: 'loading';
+    readonly store?: undefined;
+    readonly error?: undefined;
+} | {
+    readonly status: 'not-synced';
+    readonly store: TLStore;
+    readonly error?: undefined;
+} | {
+    readonly status: 'synced';
+    readonly store: TLStore;
+    readonly error?: undefined;
+};
 
 // @public (undocumented)
 export const TEXT_PROPS: {
