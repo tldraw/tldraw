@@ -95,6 +95,7 @@ export {
 	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
+export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
 	arrowShapeTypeMigrations,
@@ -187,7 +188,6 @@ export {
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
 export { createShapeValidator, type TLBaseShape } from './shapes/shape-validation'
-export { storeMigrations } from './storeMigrations'
 export {
 	TL_ALIGN_TYPES,
 	TL_ARROWHEAD_TYPES,

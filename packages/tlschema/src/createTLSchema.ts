@@ -12,6 +12,7 @@ import { PageRecordType } from './records/TLPage'
 import { PointerRecordType } from './records/TLPointer'
 import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
 import { UserDocumentRecordType } from './records/TLUserDocument'
+import { storeMigrations } from './schema'
 import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
@@ -24,7 +25,6 @@ import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLine
 import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
 import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
 import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
-import { storeMigrations } from './storeMigrations'
 
 /** @public */
 export type TLSchemaShapeInfo = {
