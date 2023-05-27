@@ -17,7 +17,7 @@ import { TLStoreSchema } from '@tldraw/editor';
 // @internal (undocumented)
 export function addDbName(name: string): void;
 
-// @public (undocumented)
+// @internal (undocumented)
 export class BroadcastChannelMock {
     constructor(_name: string);
     // (undocumented)
@@ -66,7 +66,7 @@ export function storeSnapshotInIndexedDb(universalPersistenceKey: string, schema
 // @public (undocumented)
 export const TAB_ID: TLInstanceId;
 
-// @public (undocumented)
+// @internal (undocumented)
 export class TLLocalSyncClient {
     constructor(store: TLStore, { universalPersistenceKey, onLoad, onLoadError, }: {
         universalPersistenceKey: string;
