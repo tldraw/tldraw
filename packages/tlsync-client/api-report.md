@@ -4,88 +4,23 @@
 
 ```ts
 
-import { RecordsDiff } from '@tldraw/tlstore';
-import { SerializedSchema } from '@tldraw/tlstore';
-import { StoreSnapshot } from '@tldraw/tlstore';
 import { SyncedStore } from '@tldraw/editor';
 import { TldrawEditorConfig } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
-import { TLRecord } from '@tldraw/editor';
-import { TLStore } from '@tldraw/editor';
-import { TLStoreSchema } from '@tldraw/editor';
-
-// @internal (undocumented)
-export function addDbName(name: string): void;
-
-// @internal (undocumented)
-export class BroadcastChannelMock {
-    constructor(_name: string);
-    // (undocumented)
-    close(): void;
-    // (undocumented)
-    onmessage?: (e: MessageEvent) => void;
-    // (undocumented)
-    postMessage(_msg: Message): void;
-}
-
-// @internal (undocumented)
-export function clearDb(universalPersistenceKey: string): void;
 
 // @public (undocumented)
 export const DEFAULT_DOCUMENT_NAME: any;
-
-// @internal (undocumented)
-export function getAllIndexDbNames(): string[];
 
 // @public
 export function hardReset({ shouldReload }?: {
     shouldReload?: boolean | undefined;
 }): Promise<void>;
 
-// @internal (undocumented)
-export function loadDataFromStore(universalPersistenceKey: string, opts?: {
-    didCancel?: () => boolean;
-}): Promise<{
-    records: TLRecord[];
-    schema?: SerializedSchema;
-} | undefined>;
-
 // @public (undocumented)
 export const STORE_PREFIX = "TLDRAW_DOCUMENT_v2";
 
-// @internal (undocumented)
-export function storeChangesInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, changes: RecordsDiff<any>, opts?: {
-    didCancel?: () => boolean;
-}): Promise<void>;
-
-// @internal (undocumented)
-export function storeSnapshotInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, snapshot: StoreSnapshot<any>, opts?: {
-    didCancel?: () => boolean;
-}): Promise<void>;
-
 // @public (undocumented)
 export const TAB_ID: TLInstanceId;
-
-// @internal (undocumented)
-export class TLLocalSyncClient {
-    constructor(store: TLStore, { universalPersistenceKey, onLoad, onLoadError, }: {
-        universalPersistenceKey: string;
-        onLoad: (self: TLLocalSyncClient) => void;
-        onLoadError: (error: Error) => void;
-    }, channel?: BroadcastChannel | BroadcastChannelMock);
-    // (undocumented)
-    readonly channel: BroadcastChannel | BroadcastChannelMock;
-    // (undocumented)
-    close(): void;
-    // (undocumented)
-    initTime: number;
-    // (undocumented)
-    readonly serializedSchema: SerializedSchema;
-    // (undocumented)
-    readonly store: TLStore;
-    // (undocumented)
-    readonly universalPersistenceKey: string;
-}
 
 // @public
 export function useLocalSyncClient({ universalPersistenceKey, instanceId, config, }: {
