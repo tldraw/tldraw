@@ -4,8 +4,8 @@ export { useLocalSyncClient } from './lib/hooks/useLocalSyncClient'
 export {
 	clearDb,
 	loadDataFromStore,
-	persistChangesToIndexedDb,
-	persistStoreToIndexedDb,
+	storeChangesInIndexedDb,
+	storeSnapshotInIndexedDb,
 } from './lib/indexedDb'
 export {
 	DEFAULT_DOCUMENT_NAME,

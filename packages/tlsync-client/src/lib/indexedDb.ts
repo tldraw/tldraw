@@ -42,7 +42,7 @@ export async function loadDataFromStore(
 }
 
 /** @public */
-export async function persistChangesToIndexedDb(
+export async function storeChangesInIndexedDb(
 	universalPersistenceKey: string,
 	schema: TLStoreSchema,
 	changes: RecordsDiff<any>,
@@ -77,7 +77,7 @@ export async function persistChangesToIndexedDb(
 }
 
 /** @public */
-export async function persistStoreToIndexedDb(
+export async function storeSnapshotInIndexedDb(
 	universalPersistenceKey: string,
 	store: Store<any, any>,
 	opts?: {

@@ -51,17 +51,17 @@ export function loadDataFromStore(universalPersistenceKey: string, opts?: {
 } | undefined>;
 
 // @public (undocumented)
-export function persistChangesToIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, changes: RecordsDiff<any>, opts?: {
-    didCancel?: () => boolean;
-}): Promise<void>;
-
-// @public (undocumented)
-export function persistStoreToIndexedDb(universalPersistenceKey: string, store: Store<any, any>, opts?: {
-    didCancel?: () => boolean;
-}): Promise<void>;
-
-// @public (undocumented)
 export const STORE_PREFIX = "TLDRAW_DOCUMENT_v2";
+
+// @public (undocumented)
+export function storeChangesInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, changes: RecordsDiff<any>, opts?: {
+    didCancel?: () => boolean;
+}): Promise<void>;
+
+// @public (undocumented)
+export function storeSnapshotInIndexedDb(universalPersistenceKey: string, store: Store<any, any>, opts?: {
+    didCancel?: () => boolean;
+}): Promise<void>;
 
 // @public (undocumented)
 export const TAB_ID: TLInstanceId;
