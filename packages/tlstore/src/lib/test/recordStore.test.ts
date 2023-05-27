@@ -563,4 +563,38 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(3)
 		expect(listener.mock.calls[2][0].source).toBe('user')
 	})
+
+	it('creates a snapshot', () => {
+		const serializedStore1 = store.serialize()
+		const serializedSchema1 = store.schema.serialize()
+
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		store2.loadSnapshot(snapshot1)
+
+		const serializedStore2 = store2.serialize()
+		const serializedSchema2 = store2.schema.serialize()
+		const snapshot2 = store2.getSnapshot()
+
+		expect(serializedStore1).toEqual(serializedStore2)
+		expect(serializedSchema1).toEqual(serializedSchema2)
+		expect(snapshot1).toEqual(snapshot2)
+	})
 })
