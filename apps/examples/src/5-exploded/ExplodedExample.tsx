@@ -19,7 +19,7 @@ export default function Example() {
 
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor syncedStore={syncedStore} autoFocus>
+			<TldrawEditor store={syncedStore} autoFocus>
 				<TldrawUi>
 					<ContextMenu>
 						<Canvas />
