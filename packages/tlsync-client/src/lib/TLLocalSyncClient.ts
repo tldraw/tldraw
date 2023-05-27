@@ -317,9 +317,14 @@ export class TLLocalSyncClient {
 		try {
 			if (this.shouldDoFullDBWrite) {
 				this.shouldDoFullDBWrite = false
-				await storeSnapshotInIndexedDb(this.universalPersistenceKey, this.store, {
-					didCancel: () => this.didDispose,
-				})
+				await storeSnapshotInIndexedDb(
+					this.universalPersistenceKey,
+					this.store.schema,
+					this.store.serialize(),
+					{
+						didCancel: () => this.didDispose,
+					}
+				)
 			} else {
 				const diffs = squashRecordDiffs(diffQueue)
 				await storeChangesInIndexedDb(this.universalPersistenceKey, this.store.schema, diffs)

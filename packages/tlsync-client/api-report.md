@@ -6,7 +6,7 @@
 
 import { RecordsDiff } from '@tldraw/tlstore';
 import { SerializedSchema } from '@tldraw/tlstore';
-import { Store } from '@tldraw/tlstore';
+import { StoreSnapshot } from '@tldraw/tlstore';
 import { SyncedStore } from '@tldraw/editor';
 import { TldrawEditorConfig } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
@@ -59,7 +59,7 @@ export function storeChangesInIndexedDb(universalPersistenceKey: string, schema:
 }): Promise<void>;
 
 // @public (undocumented)
-export function storeSnapshotInIndexedDb(universalPersistenceKey: string, store: Store<any, any>, opts?: {
+export function storeSnapshotInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, snapshot: StoreSnapshot<any>, opts?: {
     didCancel?: () => boolean;
 }): Promise<void>;
 
