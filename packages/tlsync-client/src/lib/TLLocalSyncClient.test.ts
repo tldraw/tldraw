@@ -10,8 +10,8 @@ import { TLLocalSyncClient } from './TLLocalSyncClient'
 
 jest.mock('./indexedDb', () => ({
 	...jest.requireActual('./indexedDb'),
-	storeSnapshotInIndexedDb: jest.fn(() => Promise.resolve()),
-	storeChangesInIndexedDb: jest.fn(() => Promise.resolve()),
+	persistStoreToIndexedDb: jest.fn(() => Promise.resolve()),
+	persistChangesToIndexedDb: jest.fn(() => Promise.resolve()),
 }))
 
 class BroadcastChannelMock {
@@ -122,13 +122,13 @@ test('the first db write after a client connects is a full db overwrite', async 
 	await tick()
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a0' })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).not.toHaveBeenCalled()
+	expect(idb.persistStoreToIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistChangesToIndexedDb).not.toHaveBeenCalled()
 
 	client.store.put([PageRecordType.create({ name: 'test2', index: 'a1' })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistStoreToIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistChangesToIndexedDb).toHaveBeenCalledTimes(1)
 })
 
 test('it clears the diff queue after every write', async () => {
@@ -147,7 +147,7 @@ test('it clears the diff queue after every write', async () => {
 
 test('writes that come in during a persist operation will get persisted afterward', async () => {
 	const idbOperationResult = promiseWithResolve<void>()
-	;(idb.storeSnapshotInIndexedDb as jest.Mock).mockImplementationOnce(() => idbOperationResult)
+	;(idb.persistStoreToIndexedDb as jest.Mock).mockImplementationOnce(() => idbOperationResult)
 
 	const { client } = testClient()
 	await tick()
@@ -155,18 +155,18 @@ test('writes that come in during a persist operation will get persisted afterwar
 	await tick()
 
 	// we should have called into idb but not resolved the promise yet
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)
+	expect(idb.persistStoreToIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistChangesToIndexedDb).toHaveBeenCalledTimes(0)
 
 	// if another change comes in, loads of time can pass, but nothing else should get called
 	client.store.put([PageRecordType.create({ name: 'test', index: 'a2' })])
 	await tick()
-	expect(idb.storeSnapshotInIndexedDb).toHaveBeenCalledTimes(1)
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(0)
+	expect(idb.persistStoreToIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistChangesToIndexedDb).toHaveBeenCalledTimes(0)
 
 	// if we resolve the idb operation, the next change should get persisted
 	idbOperationResult.resolve()
 	await tick()
 	await tick()
-	expect(idb.storeChangesInIndexedDb).toHaveBeenCalledTimes(1)
+	expect(idb.persistChangesToIndexedDb).toHaveBeenCalledTimes(1)
 })

@@ -3,7 +3,7 @@ import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
-import { loadDataFromStore, storeChangesInIndexedDb, storeSnapshotInIndexedDb } from './indexedDb'
+import { loadDataFromStore, persistChangesToIndexedDb, persistStoreToIndexedDb } from './indexedDb'
 
 /** How should we debounce persists? */
 const PERSIST_THROTTLE_MS = 350
@@ -317,17 +317,12 @@ export class TLLocalSyncClient {
 		try {
 			if (this.shouldDoFullDBWrite) {
 				this.shouldDoFullDBWrite = false
-				await storeSnapshotInIndexedDb(
-					this.universalPersistenceKey,
-					this.store.schema,
-					this.store.serialize(),
-					{
-						didCancel: () => this.didDispose,
-					}
-				)
+				await persistStoreToIndexedDb(this.universalPersistenceKey, this.store, {
+					didCancel: () => this.didDispose,
+				})
 			} else {
 				const diffs = squashRecordDiffs(diffQueue)
-				await storeChangesInIndexedDb(this.universalPersistenceKey, this.store.schema, diffs)
+				await persistChangesToIndexedDb(this.universalPersistenceKey, this.store.schema, diffs)
 			}
 			this.didLastWriteError = false
 		} catch (e) {

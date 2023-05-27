@@ -1,5 +1,5 @@
 import { TLRecord, TLStoreSchema } from '@tldraw/editor'
-import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/tlstore'
+import { RecordsDiff, SerializedSchema, Store } from '@tldraw/tlstore'
 import { IDBPDatabase, openDB } from 'idb'
 import { STORE_PREFIX, addDbName, getAllIndexDbNames } from './persistence-constants'
 
@@ -42,7 +42,7 @@ export async function loadDataFromStore(
 }
 
 /** @public */
-export async function storeChangesInIndexedDb(
+export async function persistChangesToIndexedDb(
 	universalPersistenceKey: string,
 	schema: TLStoreSchema,
 	changes: RecordsDiff<any>,
@@ -77,10 +77,9 @@ export async function storeChangesInIndexedDb(
 }
 
 /** @public */
-export async function storeSnapshotInIndexedDb(
+export async function persistStoreToIndexedDb(
 	universalPersistenceKey: string,
-	schema: TLStoreSchema,
-	snapshot: StoreSnapshot<any>,
+	store: Store<any, any>,
 	opts?: {
 		didCancel?: () => boolean
 	}
@@ -93,11 +92,11 @@ export async function storeSnapshotInIndexedDb(
 
 		await recordsStore.clear()
 
-		for (const [id, record] of Object.entries(snapshot)) {
+		for (const [id, record] of Object.entries(store.serialize())) {
 			await recordsStore.put(record, id)
 		}
 
-		schemaStore.put(schema.serialize(), 'schema')
+		schemaStore.put(store.schema.serialize(), 'schema')
 
 		if (opts?.didCancel?.()) return tx.abort()
 
