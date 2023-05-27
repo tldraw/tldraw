@@ -564,7 +564,7 @@ describe('Store', () => {
 		expect(listener.mock.calls[2][0].source).toBe('user')
 	})
 
-	it('creates a snapshot', () => {
+	it('creates and loads a snapshot', () => {
 		const serializedStore1 = store.serialize()
 		const serializedSchema1 = store.schema.serialize()
 
