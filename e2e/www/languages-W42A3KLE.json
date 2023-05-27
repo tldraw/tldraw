@@ -1,0 +1,134 @@
+[
+	{
+		"locale": "ar",
+		"label": "عربي"
+	},
+	{
+		"locale": "ca",
+		"label": "Català"
+	},
+	{
+		"locale": "da",
+		"label": "Danish"
+	},
+	{
+		"locale": "de",
+		"label": "Deutsch"
+	},
+	{
+		"locale": "en",
+		"label": "English"
+	},
+	{
+		"locale": "es",
+		"label": "Español"
+	},
+	{
+		"locale": "fa",
+		"label": "فارسی"
+	},
+	{
+		"locale": "fi",
+		"label": "Suomi"
+	},
+	{
+		"locale": "fr",
+		"label": "Français"
+	},
+	{
+		"locale": "gl",
+		"label": "Galego"
+	},
+	{
+		"locale": "he",
+		"label": "עברית"
+	},
+	{
+		"locale": "it",
+		"label": "Italiano"
+	},
+	{
+		"locale": "ja",
+		"label": "日本語"
+	},
+	{
+		"locale": "ko-kr",
+		"label": "한국어"
+	},
+	{
+		"locale": "ku",
+		"label": "کوردی"
+	},
+	{
+		"locale": "hi-in",
+		"label": "हिन्दी"
+	},
+	{
+		"locale": "hu",
+		"label": "Magyar"
+	},
+	{
+		"locale": "my",
+		"label": "မြန်မာစာ"
+	},
+	{
+		"locale": "ne",
+		"label": "नेपाली"
+	},
+	{
+		"locale": "no",
+		"label": "Norwegian"
+	},
+	{
+		"locale": "pl",
+		"label": "Polski"
+	},
+	{
+		"locale": "pt-br",
+		"label": "Português - Brasil"
+	},
+	{
+		"locale": "pt-pt",
+		"label": "Português - Europeu"
+	},
+	{
+		"locale": "ro",
+		"label": "Română"
+	},
+	{
+		"locale": "ru",
+		"label": "Russian"
+	},
+	{
+		"locale": "sv",
+		"label": "Svenska"
+	},
+	{
+		"locale": "te",
+		"label": "తెలుగు"
+	},
+	{
+		"locale": "th",
+		"label": "ภาษาไทย"
+	},
+	{
+		"locale": "tr",
+		"label": "Türkçe"
+	},
+	{
+		"locale": "uk",
+		"label": "Ukrainian"
+	},
+	{
+		"locale": "vi",
+		"label": "Tiếng Việt"
+	},
+	{
+		"locale": "zh-cn",
+		"label": "Chinese - Simplified"
+	},
+	{
+		"locale": "zh-tw",
+		"label": "繁體中文 (台灣)"
+	}
+]

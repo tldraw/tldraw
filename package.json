@@ -89,6 +89,7 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.34.1",
+		"@playwright/test": "^1.34.3",
 		"@swc/core": "^1.3.55",
 		"@swc/jest": "^0.2.26",
 		"@types/glob": "^8.1.0",
