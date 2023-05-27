@@ -14,7 +14,7 @@ import { TLRecord } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreSchema } from '@tldraw/editor';
 
-// @public (undocumented)
+// @internal (undocumented)
 export function addDbName(name: string): void;
 
 // @public (undocumented)
@@ -28,13 +28,13 @@ export class BroadcastChannelMock {
     postMessage(_msg: Message): void;
 }
 
-// @public (undocumented)
+// @internal (undocumented)
 export function clearDb(universalPersistenceKey: string): void;
 
 // @public (undocumented)
 export const DEFAULT_DOCUMENT_NAME: any;
 
-// @public (undocumented)
+// @internal (undocumented)
 export function getAllIndexDbNames(): string[];
 
 // @public (undocumented)
@@ -42,7 +42,7 @@ export function hardReset({ shouldReload }?: {
     shouldReload?: boolean | undefined;
 }): Promise<void>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export function loadDataFromStore(universalPersistenceKey: string, opts?: {
     didCancel?: () => boolean;
 }): Promise<{
@@ -53,12 +53,12 @@ export function loadDataFromStore(universalPersistenceKey: string, opts?: {
 // @public (undocumented)
 export const STORE_PREFIX = "TLDRAW_DOCUMENT_v2";
 
-// @public (undocumented)
+// @internal (undocumented)
 export function storeChangesInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, changes: RecordsDiff<any>, opts?: {
     didCancel?: () => boolean;
 }): Promise<void>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export function storeSnapshotInIndexedDb(universalPersistenceKey: string, schema: TLStoreSchema, snapshot: StoreSnapshot<any>, opts?: {
     didCancel?: () => boolean;
 }): Promise<void>;
