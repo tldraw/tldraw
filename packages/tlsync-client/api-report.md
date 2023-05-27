@@ -37,7 +37,7 @@ export const DEFAULT_DOCUMENT_NAME: any;
 // @internal (undocumented)
 export function getAllIndexDbNames(): string[];
 
-// @public (undocumented)
+// @public
 export function hardReset({ shouldReload }?: {
     shouldReload?: boolean | undefined;
 }): Promise<void>;
