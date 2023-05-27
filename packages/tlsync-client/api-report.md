@@ -67,7 +67,9 @@ export const TAB_ID: TLInstanceId;
 
 // @public (undocumented)
 export class TLLocalSyncClient {
-    constructor(store: TLStore, { universalPersistenceKey, onLoad, onLoadError, }: {
+    constructor(store: SyncedStore & {
+        status: 'not-synced';
+    }, { universalPersistenceKey, onLoad, onLoadError, }: {
         universalPersistenceKey: string;
         onLoad: (self: TLLocalSyncClient) => void;
         onLoadError: (error: Error) => void;
@@ -81,7 +83,7 @@ export class TLLocalSyncClient {
     // (undocumented)
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
-    readonly store: TLStore;
+    store: TLStore;
     // (undocumented)
     readonly universalPersistenceKey: string;
 }
@@ -89,7 +91,9 @@ export class TLLocalSyncClient {
 // @public
 export function useLocalSyncClient({ universalPersistenceKey, store, }: {
     universalPersistenceKey?: string;
-    store: TLStore;
+    store: SyncedStore & {
+        status: 'not-synced';
+    };
 }): SyncedStore;
 
 // (No @packageDocumentation comment for this package)

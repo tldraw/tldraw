@@ -1,4 +1,4 @@
-import { TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
+import { SyncedStore, TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
 import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/tlstore'
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'
@@ -70,8 +70,10 @@ export class TLLocalSyncClient {
 			console.debug(...args)
 		}
 	}
+	store: TLStore
+
 	constructor(
-		public readonly store: TLStore,
+		store: SyncedStore & { status: 'not-synced' },
 		{
 			universalPersistenceKey,
 			onLoad,
@@ -83,6 +85,8 @@ export class TLLocalSyncClient {
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${universalPersistenceKey}`)
 	) {
+		this.store = store.store
+
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this
 		}
@@ -95,7 +99,7 @@ export class TLLocalSyncClient {
 			// the store changes (and if the change was made by the user)
 			// then immediately send the diff to other tabs via postMessage
 			// and schedule a persist.
-			store.listen(({ changes, source }) => {
+			this.store.listen(({ changes, source }) => {
 				this.debug('changes', changes, source)
 				if (source === 'user') {
 					this.diffQueue.push(changes)

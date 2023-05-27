@@ -24,9 +24,7 @@ describe('<Tldraw />', () => {
 		const initialStore = createTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
-
 		const onMount = jest.fn()
-
 		const rendered = render(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
@@ -36,8 +34,7 @@ describe('<Tldraw />', () => {
 		expect(onMount).toHaveBeenCalledTimes(1)
 		const initialApp = onMount.mock.lastCall[0]
 		jest.spyOn(initialApp, 'dispose')
-		expect(initialApp.store).toBe(initialStore)
-
+		expect(initialApp.store).toBe(initialStore.store)
 		// re-render with the same store:
 		rendered.rerender(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -47,7 +44,6 @@ describe('<Tldraw />', () => {
 		await screen.findByTestId('canvas-2')
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
-
 		// re-render with a new store:
 		const newStore = createTldrawEditorStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
@@ -60,6 +56,6 @@ describe('<Tldraw />', () => {
 		await screen.findByTestId('canvas-3')
 		expect(initialApp.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
-		expect(onMount.mock.lastCall[0].store).toBe(newStore)
+		expect(onMount.mock.lastCall[0].store).toBe(newStore.store)
 	})
 })

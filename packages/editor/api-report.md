@@ -24,7 +24,6 @@ import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
-import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -39,7 +38,6 @@ import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/tlstore';
 import { Signal } from 'signia';
 import { sortByIndex } from '@tldraw/indices';
-import { Store } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
@@ -608,10 +606,7 @@ export function createTldrawEditorStore(opts?: {
     customShapes?: Record<string, TldrawEditorShapeInfo> | undefined;
     instanceId?: TLInstanceId | undefined;
     initialData?: StoreSnapshot<TLRecord> | undefined;
-}): Store<TLRecord, {
-    instanceId: TLInstanceId;
-    documentId: ID<TLDocument>;
-}>;
+}): ReadyNotSyncedStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -715,16 +710,6 @@ export interface ErrorBoundaryProps {
 export function ErrorScreen({ children }: {
     children: any;
 }): JSX.Element;
-
-// @public (undocumented)
-export interface ErrorSyncedStore {
-    // (undocumented)
-    readonly error: Error;
-    // (undocumented)
-    readonly status: 'error';
-    // (undocumented)
-    readonly store?: undefined;
-}
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
@@ -878,16 +863,6 @@ export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
 export const INDENT = "  ";
-
-// @public (undocumented)
-export interface InitializingSyncedStore {
-    // (undocumented)
-    readonly error?: undefined;
-    // (undocumented)
-    readonly status: 'loading';
-    // (undocumented)
-    readonly store?: undefined;
-}
 
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
@@ -1396,16 +1371,6 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<Err
 export function preventDefault(event: Event | React_3.BaseSyntheticEvent): void;
 
 // @public (undocumented)
-export interface ReadySyncedStore {
-    // (undocumented)
-    readonly error?: undefined;
-    // (undocumented)
-    readonly status: 'synced';
-    // (undocumented)
-    readonly store: TLStore;
-}
-
-// @public (undocumented)
 export function refreshPage(): void;
 
 // @public (undocumented)
@@ -1807,7 +1772,7 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     children?: any;
-    store?: SyncedStore | TLStore;
+    store?: SyncedStore;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
 };

@@ -125,15 +125,10 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export {
-	type ErrorSyncedStore,
-	type InitializingSyncedStore,
-	type ReadySyncedStore,
-	type SyncedStore,
-} from './lib/config/SyncedStore'
 export { USER_COLORS } from './lib/config/TLUserPreferences'
 export {
 	createTldrawEditorStore,
+	type SyncedStore,
 	type TldrawEditorShapeInfo,
 } from './lib/config/createTldrawEditorStore'
 export { defaultShapes } from './lib/config/defaultShapes'

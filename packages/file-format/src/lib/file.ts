@@ -141,7 +141,7 @@ export function parseTldrawJsonFile({
 			createTldrawEditorStore({
 				initialData: migrationResult.value,
 				instanceId,
-			})
+			}).store
 		)
 	} catch (e) {
 		// junk data in the records (they're not validated yet!) could cause the
@@ -210,7 +210,7 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		store: createTldrawEditorStore(),
+		store: createTldrawEditorStore().store,
 		json: document,
 		instanceId: app.instanceId,
 	})
