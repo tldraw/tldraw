@@ -27,12 +27,12 @@ import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLText
 import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
 
 /** @public */
-export type TLSchemaShapeInfo = {
+export type SchemaShapeInfo = {
 	migrations?: Migrations
 	validator?: { validate: (record: any) => any }
 }
 
-const defaultShapes = {
+const defaultShapes: Record<string, SchemaShapeInfo> = {
 	arrow: {
 		migrations: arrowShapeTypeMigrations,
 		validator: arrowShapeTypeValidator,
@@ -89,9 +89,9 @@ const defaultShapes = {
  * @param opts - Options
  *
  * @public */
-export function createTLSchema(
+export function createTldrawEditorSchema(
 	opts = {} as {
-		customShapes: Record<string, TLSchemaShapeInfo>
+		customShapes: Record<string, SchemaShapeInfo>
 	}
 ) {
 	const { customShapes } = opts

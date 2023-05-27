@@ -118,8 +118,8 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public
-export function createTLSchema(opts?: {
-    customShapes: Record<string, TLSchemaShapeInfo>;
+export function createTldrawEditorSchema(opts?: {
+    customShapes: Record<string, SchemaShapeInfo>;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -467,6 +467,14 @@ export const pointerTypeValidator: T.Validator<TLPointer>;
 
 // @internal (undocumented)
 export const rootShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
+export type SchemaShapeInfo = {
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
 
 // @public (undocumented)
 export const scribbleTypeValidator: T.Validator<TLScribble>;
@@ -1161,14 +1169,6 @@ export type TLPointerId = ID<TLPointer>;
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUserDocument;
-
-// @public (undocumented)
-export type TLSchemaShapeInfo = {
-    migrations?: Migrations;
-    validator?: {
-        validate: (record: any) => any;
-    };
-};
 
 // @public (undocumented)
 export type TLScribble = {
