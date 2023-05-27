@@ -1807,8 +1807,7 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     children?: any;
-    store?: TLStore;
-    syncedStore?: SyncedStore;
+    store?: SyncedStore | TLStore;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
 };

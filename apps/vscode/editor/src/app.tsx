@@ -140,7 +140,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		<TldrawEditor
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
-			syncedStore={syncedStore}
+			store={syncedStore}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>

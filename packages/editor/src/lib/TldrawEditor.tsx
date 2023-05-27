@@ -1,5 +1,5 @@
 import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
-import { StoreSnapshot } from '@tldraw/tlstore'
+import { Store, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
@@ -96,12 +96,7 @@ export type TldrawEditorProps = {
 	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
 	 */
-	store?: TLStore
-	/**
-	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
-	 * from a server or database.
-	 */
-	syncedStore?: SyncedStore
+	store?: TLStore | SyncedStore
 	/**
 	 * The editor's initial data.
 	 */
@@ -148,19 +143,26 @@ export function TldrawEditor(props: TldrawEditorProps) {
 const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 	props: TldrawEditorProps
 ) {
-	const { store, syncedStore, initialData, instanceId, assetUrls, shapes } = props
+	const { store, initialData, instanceId, assetUrls, shapes } = props
 
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)
 
 	const syncingStore = useMemo<SyncedStore>(() => {
-		if (syncedStore) {
-			// Our store is a synced store
-			return syncedStore
+		if (store === undefined) {
+			// We have no store! Create a new store based on whatever props we have
+			return {
+				store: createTldrawEditorStore({
+					customShapes: shapes,
+					instanceId,
+					initialData,
+				}),
+				status: 'not-synced',
+			}
 		}
 
-		if (store) {
+		if (store instanceof Store) {
 			// Our store is a regular store that isn't being synced
 			return {
 				store,
@@ -168,16 +170,9 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading(
 			}
 		}
 
-		return {
-			// We have no store! Create a new store based on whatever props we have
-			store: createTldrawEditorStore({
-				customShapes: shapes,
-				instanceId,
-				initialData,
-			}),
-			status: 'not-synced',
-		}
-	}, [store, initialData, instanceId, syncedStore, shapes])
+		// Our store is a synced store, which will be updated again
+		return store
+	}, [store, initialData, instanceId, shapes])
 
 	if (syncingStore.error) {
 		// for error handling, we fall back to the default error boundary.
