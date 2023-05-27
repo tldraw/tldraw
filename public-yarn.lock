@@ -4632,7 +4632,7 @@ __metadata:
     fake-indexeddb: ^4.0.0
     gzip-size: ^7.0.0
     is-plain-object: ^5.0.0
-    jest-canvas-mock: ^2.4.0
+    jest-canvas-mock: ^2.5.1
     jest-environment-jsdom: ^29.4.3
     lazyrepo: 0.0.0-alpha.26
     lodash.throttle: ^4.1.1
@@ -13890,6 +13890,16 @@ __metadata:
     cssfontparser: ^1.2.1
     moo-color: ^1.0.2
   checksum: 093bc15577e8576e96170107f2b0a0c6a9193a3dd66f2dc5151b68d4c9af8ff8aacaa47c2d20bdf4a902b2f0f91884f54978d448257d0d9cf8cd36c695a023cd
+  languageName: node
+  linkType: hard
+
+"jest-canvas-mock@npm:^2.5.1":
+  version: 2.5.1
+  resolution: "jest-canvas-mock@npm:2.5.1"
+  dependencies:
+    cssfontparser: ^1.2.1
+    moo-color: ^1.0.2
+  checksum: b8ff56c1b7b7feb6d33b7914dbfac21f19a5a33db0bc092f0426e500e80e67df1286bf817eb780e378b648c9130d7b8ca20cd46e45520657996273a948a7c198
   languageName: node
   linkType: hard
 
