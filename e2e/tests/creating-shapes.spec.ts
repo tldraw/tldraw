@@ -19,27 +19,23 @@ test.describe('TLDraw', () => {
 
 		await page.keyboard.press('r') // select rectangle
 
-		expect(await page.evaluate(() => Promise.resolve(app.root.path.value))).toBe('root.geo.idle')
+		expect(await page.evaluate(() => app.root.path.value)).toBe('root.geo.idle')
 
 		await page.mouse.move(200, 200)
 		await page.mouse.down()
 
-		expect(await page.evaluate(() => Promise.resolve(app.root.path.value))).toBe(
-			'root.geo.pointing'
-		)
+		expect(await page.evaluate(() => app.root.path.value)).toBe('root.geo.pointing')
 
 		await page.mouse.move(300, 300)
 
-		expect(await page.evaluate(() => Promise.resolve(app.root.path.value))).toBe(
-			'root.select.resizing'
-		)
+		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.resizing')
 
 		await page.mouse.up()
 		await sleep(100)
 
-		expect(await page.evaluate(() => Promise.resolve(app.root.path.value))).toBe('root.select.idle')
+		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.idle')
 
-		expect(await page.evaluate(() => Promise.resolve(app.shapesArray.length))).toBe(1)
+		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
 
 		// await expect(page).toHaveScreenshot({
 		// 	fullPage: true,
