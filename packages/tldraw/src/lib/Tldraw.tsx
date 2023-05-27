@@ -23,7 +23,7 @@ export function Tldraw(
 	})
 
 	return (
-		<TldrawEditor {...rest} syncedStore={syncedStore}>
+		<TldrawEditor {...rest} instanceId={TAB_ID} syncedStore={syncedStore}>
 			<TldrawUi {...rest}>
 				<ContextMenu>
 					<Canvas />
