@@ -255,15 +255,47 @@ test.describe('keyboard shortcuts', () => {
 		// todo
 	})
 
-	test.skip('select-all — ⌘A', async () => {
-		// todo
+	test('select-all — ⌘A', async ({ page }) => {
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 55)
+
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 255)
+
+		await page.mouse.click(0, 0)
+
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(0)
+
+		await page.keyboard.press('Control+a')
+
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(2)
 	})
 
-	test.skip('delete — ⌫', async () => {
-		// todo
+	test('delete — ⌫', async ({ page }) => {
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 55)
+		await page.mouse.click(55, 255)
+
+		expect(await page.evaluate(() => app.shapesArray.length)).toBe(2)
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
+
+		await page.keyboard.press('Delete')
+
+		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(0)
 	})
 
-	test.skip('duplicate — ⌘D', async () => {
-		// todo
+	test('duplicate — ⌘D', async ({ page }) => {
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 55)
+		await page.mouse.click(55, 255)
+
+		expect(await page.evaluate(() => app.shapesArray.length)).toBe(2)
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
+
+		await page.keyboard.press('Control+d')
+
+		expect(await page.evaluate(() => app.shapesArray.length)).toBe(3)
+		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
 	})
 })
