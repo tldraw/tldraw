@@ -7876,6 +7876,8 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	enableAnimations = true
+
 	/**
 	 * Animate the camera.
 	 *
@@ -7907,6 +7909,10 @@ export class App extends EventEmitter<TLEventMap> {
 		const h = height / z
 
 		const targetViewport = new Box2d(-x, -y, w, h)
+
+		if (!this.enableAnimations) {
+			return this.setCamera(x, y, this.viewportScreenBounds.width / w)
+		}
 
 		return this._animateToViewport(targetViewport, opts)
 	}

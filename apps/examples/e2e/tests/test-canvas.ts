@@ -8,10 +8,9 @@ export function sleep(ms: number) {
 declare const app: App
 
 test.describe('smoke tests', () => {
-	test.beforeEach(async ({ page, context }) => {
+	test.beforeEach(async ({ page }) => {
 		await page.goto('http://localhost:5420/')
 		await page.waitForSelector('.tl-canvas')
-		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 	})
 
 	test('create a shape on the canvas', async ({ page }) => {
