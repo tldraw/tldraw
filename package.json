@@ -51,7 +51,7 @@
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
 		"test": "lazy test",
-		"e2e": "lazy e2e --filter='{,bublic/}e2e'"
+		"e2e": "lazy e2e --filter='{,bublic/}apps/examples'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"

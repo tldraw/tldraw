@@ -16,8 +16,8 @@ defaults:
 
 jobs:
   build:
-    name: 'Build and run checks'
-    timeout-minutes: 15
+    name: 'End to end tests'
+    timeout-minutes: 60
     runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
 
     steps:
@@ -37,28 +37,20 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Typecheck
-        run: yarn build-types
-
-      - name: Check scripts
-        run: yarn check-scripts
-
-      - name: Lint
-        run: yarn lint
-
-      - name: Check API declarations and docs work as intended
-        run: yarn api-check
-
       - name: Build all projects
         # the sed pipe makes sure that github annotations come through without
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
 
-      - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
 
-      - name: Test
-        run: yarn test
-
-      - name: End to end test
+      - name: Run Playwright tests
         run: yarn e2e
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
