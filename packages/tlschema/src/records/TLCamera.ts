@@ -7,7 +7,7 @@ import { idValidator } from '../validation'
  *
  * @public
  */
-export interface TLCamera extends BaseRecord<'camera'> {
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 	x: number
 	y: number
 	z: number
@@ -29,7 +29,7 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 )
 
 /** @public */
-export const TLCamera = createRecordType<TLCamera>('camera', {
+export const CameraRecordType = createRecordType<TLCamera>('camera', {
 	validator: cameraTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

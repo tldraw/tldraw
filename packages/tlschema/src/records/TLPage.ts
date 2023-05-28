@@ -7,7 +7,7 @@ import { pageIdValidator } from '../validation'
  *
  * @public
  */
-export interface TLPage extends BaseRecord<'page'> {
+export interface TLPage extends BaseRecord<'page', TLPageId> {
 	name: string
 	index: string
 }
@@ -27,10 +27,15 @@ export const pageTypeValidator: T.Validator<TLPage> = T.model(
 )
 
 /** @public */
-export const TLPage = createRecordType<TLPage>('page', {
+export const PageRecordType = createRecordType<TLPage>('page', {
 	validator: pageTypeValidator,
 	scope: 'document',
 })
 
 /** @public */
 export const pageTypeMigrations = defineMigrations({})
+
+/** @public */
+export function isPageId(id: string): id is TLPageId {
+	return PageRecordType.isId(id)
+}

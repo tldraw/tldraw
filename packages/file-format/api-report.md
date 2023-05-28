@@ -5,7 +5,6 @@
 ```ts
 
 import { App } from '@tldraw/editor';
-import { BaseRecord } from '@tldraw/tlstore';
 import { MigrationFailureReason } from '@tldraw/tlstore';
 import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/tlstore';
@@ -13,8 +12,8 @@ import { TldrawEditorConfig } from '@tldraw/editor';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLTranslationKey } from '@tldraw/ui';
-import { TLUserId } from '@tldraw/editor';
 import { ToastsContextType } from '@tldraw/ui';
+import { UnknownRecord } from '@tldraw/tlstore';
 
 // @public (undocumented)
 export function isV1File(data: any): boolean;
@@ -23,10 +22,9 @@ export function isV1File(data: any): boolean;
 export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ config, json, userId, instanceId, }: {
+export function parseTldrawJsonFile({ config, json, instanceId, }: {
     config: TldrawEditorConfig;
     json: string;
-    userId: TLUserId;
     instanceId: TLInstanceId;
 }): Result<TLStore, TldrawFileParseError>;
 
@@ -45,7 +43,7 @@ export const TLDRAW_FILE_MIMETYPE: "application/vnd.tldraw+json";
 // @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
-    records: BaseRecord[];
+    records: UnknownRecord[];
     // (undocumented)
     schema: SerializedSchema;
     // (undocumented)

@@ -1,8 +1,8 @@
 import {
 	App,
+	AssetRecordType,
 	TLAlignType,
 	TLArrowheadType,
-	TLAsset,
 	TLAssetId,
 	TLClipboardModel,
 	TLColorType,
@@ -288,7 +288,7 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 				const file = files[element.fileId]
 				if (!file) break
 
-				const assetId: TLAssetId = TLAsset.createId()
+				const assetId: TLAssetId = AssetRecordType.createId()
 				tldrawContent.assets.push({
 					id: assetId,
 					typeName: 'asset',

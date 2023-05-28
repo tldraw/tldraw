@@ -5,7 +5,6 @@ import {
 	setRuntimeOverrides,
 	TldrawEditor,
 	TldrawEditorConfig,
-	TLUserId,
 } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
@@ -97,7 +96,6 @@ export const TldrawWrapper = () => {
 						assetSrc: message.data.assetSrc,
 						fileContents: message.data.fileContents,
 						uri: message.data.uri,
-						userId: message.data.userId as TLUserId,
 						isDarkMode: message.data.isDarkMode,
 						config,
 					})
@@ -128,24 +126,15 @@ export type TLDrawInnerProps = {
 	assetSrc: string
 	fileContents: string
 	uri: string
-	userId: TLUserId
 	isDarkMode: boolean
 	config: TldrawEditorConfig
 }
 
-function TldrawInner({
-	uri,
-	config,
-	assetSrc,
-	userId,
-	isDarkMode,
-	fileContents,
-}: TLDrawInnerProps) {
+function TldrawInner({ uri, config, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const instanceId = TAB_ID
 	const syncedStore = useLocalSyncClient({
 		universalPersistenceKey: uri,
 		instanceId,
-		userId,
 		config,
 	})
 
@@ -156,20 +145,14 @@ function TldrawInner({
 			config={config}
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
-			userId={userId}
 			store={syncedStore}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen
-					instanceId={instanceId}
-					userId={userId}
-					fileContents={fileContents}
-					forceDarkMode={isDarkMode}
-				/>
-				<ChangeResponder syncedStore={syncedStore} userId={userId} instanceId={instanceId} />
+				<FileOpen instanceId={instanceId} fileContents={fileContents} forceDarkMode={isDarkMode} />
+				<ChangeResponder syncedStore={syncedStore} instanceId={instanceId} />
 				<ContextMenu>
 					<Canvas />
 				</ContextMenu>

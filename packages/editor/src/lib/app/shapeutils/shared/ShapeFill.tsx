@@ -33,7 +33,7 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 	const app = useApp()
 	const zoomLevel = useValue('zoomLevel', () => app.zoomLevel, [app])
-	const isDarkMode = useValue('isDarkMode', () => app.userDocumentSettings.isDarkMode, [app])
+	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
 
 	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = app.zoomLevel <= 0.18

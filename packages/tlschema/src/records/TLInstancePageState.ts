@@ -13,7 +13,8 @@ import { TLShapeId } from './TLShape'
  *
  * @public
  */
-export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
+export interface TLInstancePageState
+	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
 	instanceId: ID<TLInstance>
 	pageId: ID<TLPage>
 	cameraId: ID<TLCamera>
@@ -65,11 +66,14 @@ export const instancePageStateMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstancePageState = createRecordType<TLInstancePageState>('instance_page_state', {
-	migrations: instancePageStateMigrations,
-	validator: instancePageStateTypeValidator,
-	scope: 'instance',
-}).withDefaultProperties(
+export const InstancePageStateRecordType = createRecordType<TLInstancePageState>(
+	'instance_page_state',
+	{
+		migrations: instancePageStateMigrations,
+		validator: instancePageStateTypeValidator,
+		scope: 'instance',
+	}
+).withDefaultProperties(
 	(): Omit<
 		TLInstancePageState,
 		'id' | 'typeName' | 'userId' | 'instanceId' | 'cameraId' | 'pageId'

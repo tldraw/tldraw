@@ -20,6 +20,7 @@ export {
 	getOwnProperty,
 	hasOwnProperty,
 	objectMapEntries,
+	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
 } from './lib/object'

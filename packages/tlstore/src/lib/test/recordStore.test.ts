@@ -4,7 +4,7 @@ import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Book extends BaseRecord<'book'> {
+interface Book extends BaseRecord<'book', ID<Book>> {
 	title: string
 	author: ID<Author>
 	numPages: number
@@ -15,7 +15,7 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document',
 })
 
-interface Author extends BaseRecord<'author'> {
+interface Author extends BaseRecord<'author', ID<Author>> {
 	name: string
 	isPseudonym: boolean
 }

@@ -1,4 +1,4 @@
-import { BaseRecord, ID } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { intersectSets } from './setUtils'
 import { StoreQueries } from './StoreQueries'
 
@@ -24,11 +24,11 @@ export function objectMatchesQuery<T extends object>(query: QueryExpression<T>, 
 	return true
 }
 
-export function executeQuery<R extends BaseRecord, TypeName extends R['typeName']>(
+export function executeQuery<R extends UnknownRecord, TypeName extends R['typeName']>(
 	store: StoreQueries<R>,
 	typeName: TypeName,
 	query: QueryExpression<Extract<R, { typeName: TypeName }>>
-): Set<ID<Extract<R, { typeName: TypeName }>>> {
+): Set<IdOf<Extract<R, { typeName: TypeName }>>> {
 	const matchIds = Object.fromEntries(Object.keys(query).map((key) => [key, new Set()]))
 
 	for (const [k, matcher] of Object.entries(query)) {
@@ -61,5 +61,5 @@ export function executeQuery<R extends BaseRecord, TypeName extends R['typeName'
 		}
 	}
 
-	return intersectSets(Object.values(matchIds)) as Set<ID<Extract<R, { typeName: TypeName }>>>
+	return intersectSets(Object.values(matchIds)) as Set<IdOf<Extract<R, { typeName: TypeName }>>>
 }

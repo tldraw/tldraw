@@ -125,6 +125,14 @@ export interface TLFontStyle extends TLBaseStyle {
 /** @public */
 export const TL_ALIGN_TYPES = new Set(['start', 'middle', 'end'] as const)
 
+/** @internal */
+export const TL_ALIGN_TYPES_WITH_LEGACY_STUFF = new Set([
+	...TL_ALIGN_TYPES,
+	'start-legacy',
+	'end-legacy',
+	'middle-legacy',
+] as const)
+
 /** @public */
 export type TLAlignType = SetValue<typeof TL_ALIGN_TYPES>
 
@@ -142,7 +150,7 @@ export interface TLAlignStyle extends TLBaseStyle {
 
 // Geo Text Vertical Align
 /** @public */
-export const TL_VERTICAL_ALIGN_TYPES = TL_ALIGN_TYPES
+export const TL_VERTICAL_ALIGN_TYPES = new Set(['start', 'middle', 'end'] as const)
 
 /** @public */
 export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>

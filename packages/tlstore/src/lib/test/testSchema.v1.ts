@@ -11,7 +11,7 @@ const UserVersion = {
 } as const
 
 /** A user of tldraw */
-interface User extends BaseRecord<'user'> {
+interface User extends BaseRecord<'user', ID<User>> {
 	name: string
 	locale: string
 	phoneNumber: string | null
@@ -79,12 +79,14 @@ const OvalVersion = {
 	AddBorderStyle: 1,
 } as const
 
-interface Shape<Props> extends BaseRecord<'shape'> {
+type ShapeId = ID<Shape<object>>
+
+interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
 	type: string
 	x: number
 	y: number
 	rotation: number
-	parentId: ID<Shape<Props>> | null
+	parentId: ShapeId | null
 	props: Props
 }
 

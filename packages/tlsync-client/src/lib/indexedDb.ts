@@ -20,7 +20,7 @@ async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<unknown>) => Pro
 	}
 }
 
-/** @public */
+/** @internal */
 export async function loadDataFromStore(
 	universalPersistenceKey: string,
 	opts?: {
@@ -41,7 +41,7 @@ export async function loadDataFromStore(
 	})
 }
 
-/** @public */
+/** @internal */
 export async function storeChangesInIndexedDb(
 	universalPersistenceKey: string,
 	schema: TLStoreSchema,
@@ -76,7 +76,7 @@ export async function storeChangesInIndexedDb(
 	})
 }
 
-/** @public */
+/** @internal */
 export async function storeSnapshotInIndexedDb(
 	universalPersistenceKey: string,
 	schema: TLStoreSchema,
@@ -105,7 +105,7 @@ export async function storeSnapshotInIndexedDb(
 	})
 }
 
-/** @public */
+/** @internal */
 export function clearDb(universalPersistenceKey: string) {
 	const dbId = STORE_PREFIX + universalPersistenceKey
 	indexedDB.deleteDatabase(dbId)

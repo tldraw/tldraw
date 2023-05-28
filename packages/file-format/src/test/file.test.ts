@@ -1,5 +1,5 @@
-import { createCustomShapeId, TldrawEditorConfig, TLInstance, TLUser } from '@tldraw/editor'
-import { BaseRecord, MigrationFailureReason } from '@tldraw/tlstore'
+import { createCustomShapeId, InstanceRecordType, TldrawEditorConfig } from '@tldraw/editor'
+import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
 import { assert } from '@tldraw/utils'
 import { parseTldrawJsonFile as _parseTldrawJsonFile, TldrawFile } from '../lib/file'
 
@@ -7,8 +7,7 @@ const parseTldrawJsonFile = (config: TldrawEditorConfig, json: string) =>
 	_parseTldrawJsonFile({
 		config,
 		json,
-		userId: TLUser.createCustomId('user'),
-		instanceId: TLInstance.createCustomId('instance'),
+		instanceId: InstanceRecordType.createCustomId('instance'),
 	})
 
 function serialize(file: TldrawFile): string {
@@ -22,7 +21,7 @@ describe('parseTldrawJsonFile', () => {
 		expect(result.error.type).toBe('notATldrawFile')
 	})
 
-	it('returns an error if the file doesnt look like a tldraw file', () => {
+	it("returns an error if the file doesn't look like a tldraw file", () => {
 		const result = parseTldrawJsonFile(
 			new TldrawEditorConfig(),
 			JSON.stringify({ not: 'a tldraw file' })
@@ -100,7 +99,7 @@ describe('parseTldrawJsonFile', () => {
 						id: createCustomShapeId('shape'),
 						type: 'geo',
 						props: {},
-					} as BaseRecord,
+					} as UnknownRecord,
 				],
 			})
 		)

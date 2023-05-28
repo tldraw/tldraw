@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLPage } from '@tldraw/tlschema'
+import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { TestApp } from './TestApp'
 
@@ -11,7 +11,7 @@ const ids = {
 	frame1: createCustomShapeId('frame1'),
 	group1: createCustomShapeId('group1'),
 
-	page2: TLPage.createCustomId('page2'),
+	page2: PageRecordType.createCustomId('page2'),
 }
 
 beforeEach(() => {

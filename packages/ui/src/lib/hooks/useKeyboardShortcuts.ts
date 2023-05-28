@@ -66,7 +66,7 @@ export function useKeyboardShortcuts() {
 		// todo: move these into the actions themselves and make the UI only display the first one
 
 		hot('g', () => {
-			if (areShortcutsDisabled()) return
+			if (areShortcutsDisabled() || app.isReadOnly) return
 			app.setSelectedTool('geo')
 		})
 

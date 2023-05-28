@@ -9,6 +9,7 @@ import {
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
+import { isLegacyAlign } from '../../../utils/legacy'
 import { TextHelpers } from '../TLTextUtil/TextHelpers'
 import { useEditableText } from './useEditableText'
 
@@ -50,6 +51,7 @@ export const TextLabel = React.memo(function TextLabel<
 	const isInteractive = isEditing || isEditableFromHover
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
+	const legacyAlign = isLegacyAlign(align)
 
 	return (
 		<div
@@ -62,7 +64,7 @@ export const TextLabel = React.memo(function TextLabel<
 			style={
 				hasText || isInteractive
 					? {
-							justifyContent: align === 'middle' ? 'center' : align,
+							justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 							alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
 					  }
 					: undefined

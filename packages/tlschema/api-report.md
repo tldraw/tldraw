@@ -14,6 +14,7 @@ import { StoreSchema } from '@tldraw/tlstore';
 import { StoreSchemaOptions } from '@tldraw/tlstore';
 import { StoreSnapshot } from '@tldraw/tlstore';
 import { T } from '@tldraw/tlvalidate';
+import { UnknownRecord } from '@tldraw/tlstore';
 
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;
@@ -32,6 +33,9 @@ export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal>;
 
 // @internal (undocumented)
 export const assetIdValidator: T.Validator<TLAssetId>;
+
+// @public (undocumented)
+export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @public (undocumented)
 export const assetTypeMigrations: Migrations;
@@ -64,6 +68,9 @@ export interface Box2dModel {
 }
 
 // @public (undocumented)
+export const CameraRecordType: RecordType<TLCamera, never>;
+
+// @public (undocumented)
 export const cameraTypeValidator: T.Validator<TLCamera>;
 
 // @internal (undocumented)
@@ -86,6 +93,13 @@ export function createCustomShapeId(id: string): TLShapeId;
 // @internal (undocumented)
 export function createIntegrityChecker(store: TLStore): () => void;
 
+// @internal (undocumented)
+export const createPresenceStateDerivation: ($user: Signal<{
+    id: string;
+    color: string;
+    name: string;
+}>) => (store: TLStore) => Signal<null | TLInstancePresence>;
+
 // @public (undocumented)
 export function createShapeId(): TLShapeId;
 
@@ -106,7 +120,6 @@ export function createShapeValidator<Type extends string, Props extends object>(
 // @public
 export function createTLSchema<T extends TLUnknownShape>(opts?: {
     customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -118,8 +131,8 @@ export const cursorValidator: T.Validator<TLCursor>;
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
-// @internal (undocumented)
-export const defaultDerivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
+// @public (undocumented)
+export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @public (undocumented)
 export const documentTypeValidator: T.Validator<TLDocument>;
@@ -351,6 +364,9 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
+export function getDefaultTranslationLocale(): TLTranslationLocale;
+
+// @public (undocumented)
 export const groupShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
@@ -369,7 +385,7 @@ export const iconShapeTypeValidator: T.Validator<TLIconShape>;
 export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
 
 // @internal (undocumented)
-export function idValidator<Id extends ID<BaseRecord<any>>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+export function idValidator<Id extends ID<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
 export const imageAssetMigrations: Migrations;
@@ -390,7 +406,16 @@ export const instanceIdValidator: T.Validator<TLInstanceId>;
 export const instancePageStateMigrations: Migrations;
 
 // @public (undocumented)
+export const InstancePageStateRecordType: RecordType<TLInstancePageState, "cameraId" | "instanceId" | "pageId">;
+
+// @public (undocumented)
 export const instancePageStateTypeValidator: T.Validator<TLInstancePageState>;
+
+// @public (undocumented)
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
+
+// @public (undocumented)
+export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
 // @public (undocumented)
 export const instanceTypeMigrations: Migrations;
@@ -399,7 +424,10 @@ export const instanceTypeMigrations: Migrations;
 export const instanceTypeValidator: T.Validator<TLInstance>;
 
 // @public (undocumented)
-export function isShape(record?: BaseRecord<string>): record is TLShape;
+export function isPageId(id: string): id is TLPageId;
+
+// @public (undocumented)
+export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public (undocumented)
 export function isShapeId(id?: string): id is TLShapeId;
@@ -426,10 +454,19 @@ export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1"
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
+export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public (undocumented)
 export const pageTypeValidator: T.Validator<TLPage>;
 
 // @internal (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
+
+// @public (undocumented)
+export const PointerRecordType: RecordType<TLPointer, never>;
+
+// @public (undocumented)
+export const pointerTypeValidator: T.Validator<TLPointer>;
 
 // @internal (undocumented)
 export const rootShapeTypeMigrations: Migrations;
@@ -602,9 +639,6 @@ export type TLArrowTerminalType = SetValue<typeof TL_ARROW_TERMINAL_TYPE>;
 export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
 
 // @public (undocumented)
-export const TLAsset: RecordType<TLAsset, "props" | "type">;
-
-// @public (undocumented)
 export type TLAssetId = ID<TLBaseAsset<any, any>>;
 
 // @public (undocumented)
@@ -622,7 +656,7 @@ export type TLAssetShape = Extract<TLShape, {
 }>;
 
 // @public (undocumented)
-export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset'> {
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
     // (undocumented)
     props: Props;
     // (undocumented)
@@ -630,7 +664,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public (undocumented)
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape'> {
+export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
     index: string;
     // (undocumented)
@@ -678,7 +712,7 @@ export type TLBookmarkShapeProps = {
 };
 
 // @public
-export interface TLCamera extends BaseRecord<'camera'> {
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
     // (undocumented)
     x: number;
     // (undocumented)
@@ -686,9 +720,6 @@ export interface TLCamera extends BaseRecord<'camera'> {
     // (undocumented)
     z: number;
 }
-
-// @public (undocumented)
-export const TLCamera: RecordType<TLCamera, never>;
 
 // @public (undocumented)
 export type TLCameraId = ID<TLCamera>;
@@ -748,13 +779,10 @@ export type TLDefaultShapeStyles = {
 };
 
 // @public
-export interface TLDocument extends BaseRecord<'document'> {
+export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
 }
-
-// @public (undocumented)
-export const TLDocument: RecordType<TLDocument, never>;
 
 // @public (undocumented)
 export const TLDOCUMENT_ID: ID<TLDocument>;
@@ -975,7 +1003,7 @@ export type TLImageShapeProps = {
 };
 
 // @public
-export interface TLInstance extends BaseRecord<'instance'> {
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
@@ -985,7 +1013,7 @@ export interface TLInstance extends BaseRecord<'instance'> {
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
-    followingUserId: null | TLUserId;
+    followingUserId: null | string;
     // (undocumented)
     isDebugMode: boolean;
     // (undocumented)
@@ -999,19 +1027,14 @@ export interface TLInstance extends BaseRecord<'instance'> {
     // (undocumented)
     scribble: null | TLScribble;
     // (undocumented)
-    userId: TLUserId;
-    // (undocumented)
     zoomBrush: Box2dModel | null;
 }
-
-// @public (undocumented)
-export const TLInstance: RecordType<TLInstance, "currentPageId" | "userId">;
 
 // @public (undocumented)
 export type TLInstanceId = ID<TLInstance>;
 
 // @public
-export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
+export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
     // (undocumented)
     cameraId: ID<TLCamera>;
     // (undocumented)
@@ -1035,13 +1058,10 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state'> {
 }
 
 // @public (undocumented)
-export const TLInstancePageState: RecordType<TLInstancePageState, "cameraId" | "instanceId" | "pageId">;
-
-// @public (undocumented)
 export type TLInstancePageStateId = ID<TLInstancePageState>;
 
 // @public (undocumented)
-export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
@@ -1062,7 +1082,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
         rotation: number;
     };
     // (undocumented)
-    followingUserId: null | TLUserId;
+    followingUserId: null | string;
     // (undocumented)
     instanceId: TLInstanceId;
     // (undocumented)
@@ -1074,13 +1094,10 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence'> {
     // (undocumented)
     selectedIds: TLShapeId[];
     // (undocumented)
-    userId: TLUserId;
+    userId: string;
     // (undocumented)
     userName: string;
 }
-
-// @public (undocumented)
-export const TLInstancePresence: RecordType<TLInstancePresence, "brush" | "camera" | "color" | "currentPageId" | "cursor" | "followingUserId" | "instanceId" | "lastActivityTimestamp" | "screenBounds" | "scribble" | "selectedIds" | "userId" | "userName">;
 
 // @public (undocumented)
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
@@ -1132,7 +1149,7 @@ export interface TLOpacityStyle extends TLBaseStyle {
 export type TLOpacityType = SetValue<typeof TL_OPACITY_TYPES>;
 
 // @public
-export interface TLPage extends BaseRecord<'page'> {
+export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
     index: string;
     // (undocumented)
@@ -1140,16 +1157,29 @@ export interface TLPage extends BaseRecord<'page'> {
 }
 
 // @public (undocumented)
-export const TLPage: RecordType<TLPage, "index" | "name">;
-
-// @public (undocumented)
 export type TLPageId = ID<TLPage>;
 
 // @public (undocumented)
 export type TLParentId = TLPageId | TLShapeId;
 
+// @public
+export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
+    // (undocumented)
+    lastActivityTimestamp: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
 // @public (undocumented)
-export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLShape | TLUser | TLUserDocument | TLUserPresence;
+export const TLPOINTER_ID: TLPointerId;
+
+// @public (undocumented)
+export type TLPointerId = ID<TLPointer>;
+
+// @public (undocumented)
+export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUserDocument;
 
 // @public (undocumented)
 export type TLScribble = {
@@ -1165,7 +1195,7 @@ export type TLScribble = {
 export type TLShape = TLDefaultShape | TLUnknownShape;
 
 // @public (undocumented)
-export type TLShapeId = ID<TLBaseShape<any, any>>;
+export type TLShapeId = ID<TLUnknownShape>;
 
 // @public (undocumented)
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
@@ -1207,7 +1237,6 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreProps = {
-    userId: TLUserId;
     instanceId: TLInstanceId;
     documentId: typeof TLDOCUMENT_ID;
 };
@@ -1247,20 +1276,7 @@ export type TLUiColorType = SetValue<typeof TL_UI_COLOR_TYPES>;
 export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
-export interface TLUser extends BaseRecord<'user'> {
-    // (undocumented)
-    locale: string;
-    // (undocumented)
-    name: string;
-}
-
-// @public (undocumented)
-export const TLUser: RecordType<TLUser, never>;
-
-// @public
-export interface TLUserDocument extends BaseRecord<'user_document'> {
-    // (undocumented)
-    isDarkMode: boolean;
+export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
     // (undocumented)
     isGridMode: boolean;
     // (undocumented)
@@ -1273,40 +1289,10 @@ export interface TLUserDocument extends BaseRecord<'user_document'> {
     lastUpdatedPageId: ID<TLPage> | null;
     // (undocumented)
     lastUsedTabId: ID<TLInstance> | null;
-    // (undocumented)
-    userId: TLUserId;
 }
-
-// @public (undocumented)
-export const TLUserDocument: RecordType<TLUserDocument, "userId">;
 
 // @public (undocumented)
 export type TLUserDocumentId = ID<TLUserDocument>;
-
-// @public (undocumented)
-export type TLUserId = ID<TLUser>;
-
-// @public (undocumented)
-export interface TLUserPresence extends BaseRecord<'user_presence'> {
-    // (undocumented)
-    color: string;
-    // (undocumented)
-    cursor: Vec2dModel;
-    // (undocumented)
-    lastActivityTimestamp: number;
-    // (undocumented)
-    lastUsedInstanceId: null | TLInstanceId;
-    // (undocumented)
-    userId: TLUserId;
-    // (undocumented)
-    viewportPageBounds: Box2dModel;
-}
-
-// @public (undocumented)
-export const TLUserPresence: RecordType<TLUserPresence, "userId">;
-
-// @public (undocumented)
-export type TLUserPresenceId = ID<TLUserPresence>;
 
 // @public (undocumented)
 export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
@@ -1338,26 +1324,14 @@ export type TLVideoShapeProps = {
 // @public (undocumented)
 export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
-// @internal (undocumented)
-export const USER_COLORS: string[];
+// @public (undocumented)
+export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 
 // @public (undocumented)
 export const userDocumentTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const userDocumentTypeValidator: T.Validator<TLUserDocument>;
-
-// @internal (undocumented)
-export const userIdValidator: T.Validator<TLUserId>;
-
-// @public (undocumented)
-export const userPresenceTypeMigrations: Migrations;
-
-// @public (undocumented)
-export const userPresenceTypeValidator: T.Validator<TLUserPresence>;
-
-// @public (undocumented)
-export const userTypeValidator: T.Validator<TLUser>;
 
 // @public (undocumented)
 export interface Vec2dModel {

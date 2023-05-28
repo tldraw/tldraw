@@ -1,4 +1,4 @@
-import { BaseRecord, defineMigrations, ID } from '@tldraw/tlstore'
+import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
@@ -60,7 +60,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
-export type TLShapeId = ID<TLBaseShape<any, any>>
+export type TLShapeId = ID<TLUnknownShape>
 
 /** @public */
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>
@@ -100,7 +100,7 @@ export const rootShapeTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export function isShape(record?: BaseRecord<string>): record is TLShape {
+export function isShape(record?: UnknownRecord): record is TLShape {
 	if (!record) return false
 	return record.typeName === 'shape'
 }

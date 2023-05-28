@@ -307,6 +307,16 @@ input,
 	pointer-events: none;
 }
 
+.tlui-following {
+	display: block;
+	position: absolute;
+	inset: 0px;
+	border-width: 2px;
+	border-style: solid;
+	z-index: 9999999;
+	pointer-events: none;
+}
+
 /* ------------------- Background ------------------- */
 
 .tl-background {
@@ -1090,15 +1100,18 @@ input,
 	opacity: 0;
 }
 
-.tl-text-label[data-align='start'] {
+.tl-text-label[data-align='start'],
+.tl-text-label[data-align='start-legacy'] {
 	text-align: left;
 }
 
-.tl-text-label[data-align='middle'] {
+.tl-text-label[data-align='middle'],
+.tl-text-label[data-align='middle-legacy'] {
 	text-align: center;
 }
 
-.tl-text-label[data-align='end'] {
+.tl-text-label[data-align='end'],
+.tl-text-label[data-align='end-legacy'] {
 	text-align: right;
 }
 

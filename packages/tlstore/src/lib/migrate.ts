@@ -1,4 +1,4 @@
-import { BaseRecord, isRecord } from './BaseRecord'
+import { UnknownRecord, isRecord } from './BaseRecord'
 import { SerializedSchema } from './StoreSchema'
 
 type EMPTY_SYMBOL = symbol
@@ -77,7 +77,7 @@ export enum MigrationFailureReason {
 export type RecordVersion = { rootVersion: number; subTypeVersion?: number }
 /** @public */
 export function getRecordVersion(
-	record: BaseRecord,
+	record: UnknownRecord,
 	serializedSchema: SerializedSchema
 ): RecordVersion {
 	const persistedType = serializedSchema.recordVersions[record.typeName]
@@ -112,7 +112,7 @@ export function compareRecordVersions(a: RecordVersion, b: RecordVersion) {
 }
 
 /** @public */
-export function migrateRecord<R extends BaseRecord>({
+export function migrateRecord<R extends UnknownRecord>({
 	record,
 	migrations,
 	fromVersion,

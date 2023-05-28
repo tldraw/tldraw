@@ -3,13 +3,12 @@ import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
-import { instanceTypeMigrations } from './records/TLInstance'
+import { instanceTypeMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations } from './records/TLInstancePageState'
 import { instancePresenceTypeMigrations } from './records/TLInstancePresence'
 import { rootShapeTypeMigrations, TLShape } from './records/TLShape'
 import { userDocumentTypeMigrations, userDocumentVersions } from './records/TLUserDocument'
-import { userPresenceTypeMigrations } from './records/TLUserPresence'
-import { storeMigrations } from './schema'
+import { storeMigrations, storeVersions } from './schema'
 import { arrowShapeTypeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeTypeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeTypeMigrations } from './shapes/TLDrawShape'
@@ -214,7 +213,7 @@ describe('Store removing Icon and Code shapes', () => {
 				} as any),
 			].map((shape) => [shape.id, shape])
 		)
-		const fixed = storeMigrations.migrators[1].up(snapshot)
+		const fixed = storeMigrations.migrators[storeVersions.RemoveCodeAndIconShapeTypes].up(snapshot)
 		expect(Object.entries(fixed)).toHaveLength(1)
 	})
 
@@ -230,7 +229,7 @@ describe('Store removing Icon and Code shapes', () => {
 			].map((shape) => [shape.id, shape])
 		)
 
-		storeMigrations.migrators[1].down(snapshot)
+		storeMigrations.migrators[storeVersions.RemoveCodeAndIconShapeTypes].down(snapshot)
 		expect(Object.entries(snapshot)).toHaveLength(1)
 	})
 })
@@ -560,17 +559,6 @@ describe('Adding followingUserId prop to instance', () => {
 	})
 })
 
-describe('Adding viewportPageBounds prop to user presence', () => {
-	const { up, down } = userPresenceTypeMigrations.migrators[1]
-	test('up works as expected', () => {
-		expect(up({})).toEqual({ viewportPageBounds: { x: 0, y: 0, w: 1, h: 1 } })
-	})
-
-	test('down works as expected', () => {
-		expect(down({ viewportPageBounds: { x: 1, y: 2, w: 3, h: 4 } })).toEqual({})
-	})
-})
-
 describe('Removing align=justify from propsForNextShape', () => {
 	const { up, down } = instanceTypeMigrations.migrators[7]
 	test('up works as expected', () => {
@@ -639,7 +627,7 @@ describe('Add crop=null to image shapes', () => {
 })
 
 describe('Adding instance_presence to the schema', () => {
-	const { up, down } = storeMigrations.migrators[2]
+	const { up, down } = storeMigrations.migrators[storeVersions.AddInstancePresenceType]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({})
@@ -700,6 +688,60 @@ describe('Add verticalAlign to props for next shape', () => {
 			propsForNextShape: {
 				color: 'red',
 			},
+		})
+	})
+})
+
+describe('Migrate GeoShape legacy horizontal alignment', () => {
+	const { up, down } = geoShapeTypeMigrations.migrators[6]
+
+	test('up works as expected', () => {
+		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
+			props: { align: 'start-legacy', type: 'ellipse' },
+		})
+		expect(up({ props: { align: 'middle', type: 'ellipse' } })).toEqual({
+			props: { align: 'middle-legacy', type: 'ellipse' },
+		})
+		expect(up({ props: { align: 'end', type: 'ellipse' } })).toEqual({
+			props: { align: 'end-legacy', type: 'ellipse' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'start', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'middle-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'middle', type: 'ellipse' },
+		})
+		expect(down({ props: { align: 'end-legacy', type: 'ellipse' } })).toEqual({
+			props: { align: 'end', type: 'ellipse' },
+		})
+	})
+})
+
+describe('Migrate NoteShape legacy horizontal alignment', () => {
+	const { up, down } = noteShapeTypeMigrations.migrators[3]
+
+	test('up works as expected', () => {
+		expect(up({ props: { align: 'start', color: 'red' } })).toEqual({
+			props: { align: 'start-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'middle', color: 'red' } })).toEqual({
+			props: { align: 'middle-legacy', color: 'red' },
+		})
+		expect(up({ props: { align: 'end', color: 'red' } })).toEqual({
+			props: { align: 'end-legacy', color: 'red' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { align: 'start-legacy', color: 'red' } })).toEqual({
+			props: { align: 'start', color: 'red' },
+		})
+		expect(down({ props: { align: 'middle-legacy', color: 'red' } })).toEqual({
+			props: { align: 'middle', color: 'red' },
+		})
+		expect(down({ props: { align: 'end-legacy', color: 'red' } })).toEqual({
+			props: { align: 'end', color: 'red' },
 		})
 	})
 })
@@ -862,6 +904,103 @@ describe('Adds delay to scribble', () => {
 				state: 'starting',
 			},
 		})
+	})
+})
+
+describe('user config refactor', () => {
+	test('removes user and user_presence types from snapshots', () => {
+		const { up, down } =
+			storeMigrations.migrators[storeVersions.RemoveTLUserAndPresenceAndAddPointer]
+
+		const prevSnapshot = {
+			'user:123': {
+				id: 'user:123',
+				typeName: 'user',
+			},
+			'user_presence:123': {
+				id: 'user_presence:123',
+				typeName: 'user_presence',
+			},
+			'instance:123': {
+				id: 'instance:123',
+				typeName: 'instance',
+			},
+		}
+
+		const nextSnapshot = {
+			'instance:123': {
+				id: 'instance:123',
+				typeName: 'instance',
+			},
+		}
+
+		// up removes the user and user_presence types
+		expect(up(prevSnapshot)).toEqual(nextSnapshot)
+		// down cannot add them back so it should be a no-op
+		expect(
+			down({
+				...nextSnapshot,
+				'pointer:134': {
+					id: 'pointer:134',
+					typeName: 'pointer',
+				},
+			})
+		).toEqual(nextSnapshot)
+	})
+
+	test('removes userId from the instance state', () => {
+		const { up, down } = instanceTypeMigrations.migrators[instanceTypeVersions.RemoveUserId]
+
+		const prev = {
+			id: 'instance:123',
+			typeName: 'instance',
+			userId: 'user:123',
+		}
+
+		const next = {
+			id: 'instance:123',
+			typeName: 'instance',
+		}
+
+		expect(up(prev)).toEqual(next)
+		// it cannot be added back so it should add some meaningless id in there
+		// in practice, because we bumped the store version, this down migrator will never be used
+		expect(down(next)).toMatchInlineSnapshot(`
+		Object {
+		  "id": "instance:123",
+		  "typeName": "instance",
+		  "userId": "user:none",
+		}
+	`)
+	})
+
+	test('removes userId and isDarkMode from TLUserDocument', () => {
+		const { up, down } =
+			userDocumentTypeMigrations.migrators[userDocumentVersions.RemoveUserIdAndIsDarkMode]
+
+		const prev = {
+			id: 'user_document:123',
+			typeName: 'user_document',
+			userId: 'user:123',
+			isDarkMode: false,
+			isGridMode: false,
+		}
+		const next = {
+			id: 'user_document:123',
+			typeName: 'user_document',
+			isGridMode: false,
+		}
+
+		expect(up(prev)).toEqual(next)
+		expect(down(next)).toMatchInlineSnapshot(`
+		Object {
+		  "id": "user_document:123",
+		  "isDarkMode": false,
+		  "isGridMode": false,
+		  "typeName": "user_document",
+		  "userId": "user:none",
+		}
+	`)
 	})
 })
 

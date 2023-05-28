@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLPage, TLShape } from '@tldraw/tlschema'
+import { createCustomShapeId, PageRecordType, TLShape } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -8,8 +8,8 @@ const ids = {
 	box2: createCustomShapeId('box2'),
 	ellipse1: createCustomShapeId('ellipse1'),
 	ellipse2: createCustomShapeId('ellipse2'),
-	page1: TLPage.createCustomId('page1'),
-	page2: TLPage.createCustomId('page2'),
+	page1: PageRecordType.createCustomId('page1'),
+	page2: PageRecordType.createCustomId('page2'),
 }
 
 beforeEach(() => {
@@ -68,7 +68,7 @@ describe('App.moveShapesToPage', () => {
 
 	it('Does nothing if the new page is not found or is deleted', () => {
 		app.history.clear()
-		app.moveShapesToPage([ids.box1], TLPage.createCustomId('missing'))
+		app.moveShapesToPage([ids.box1], PageRecordType.createCustomId('missing'))
 		expect(app.history.numUndos).toBe(0)
 	})
 
@@ -101,7 +101,7 @@ describe('App.moveShapesToPage', () => {
 
 	it('Sets the correct indices', () => {
 		app = new TestApp()
-		const page2Id = TLPage.createCustomId('newPage2')
+		const page2Id = PageRecordType.createCustomId('newPage2')
 
 		app.createPage('New Page 2', page2Id)
 		expect(app.currentPageId).toBe(page2Id)
@@ -112,7 +112,7 @@ describe('App.moveShapesToPage', () => {
 			index: 'a1',
 		})
 
-		const page3Id = TLPage.createCustomId('newPage3')
+		const page3Id = PageRecordType.createCustomId('newPage3')
 		app.createPage('New Page 3', page3Id)
 		expect(app.currentPageId).toBe(page3Id)
 		app.createShapes([{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])

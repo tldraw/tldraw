@@ -7,7 +7,6 @@
 /// <reference types="react" />
 
 import { Atom } from 'signia';
-import { BaseRecord } from '@tldraw/tlstore';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
@@ -25,7 +24,6 @@ import { getIndicesAbove } from '@tldraw/indices';
 import { getIndicesBelow } from '@tldraw/indices';
 import { getIndicesBetween } from '@tldraw/indices';
 import { HistoryEntry } from '@tldraw/tlstore';
-import { ID } from '@tldraw/tlstore';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -90,12 +88,10 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLUser } from '@tldraw/tlschema';
 import { TLUserDocument } from '@tldraw/tlschema';
-import { TLUserId } from '@tldraw/tlschema';
-import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { UnknownRecord } from '@tldraw/tlstore';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -362,6 +358,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
+    get locale(): string;
     // (undocumented)
     lockShapes(_ids?: TLShapeId[]): this;
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
@@ -461,6 +458,7 @@ export class App extends EventEmitter<TLEventMap> {
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
+    setLocale(locale: string): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     setProp(key: string, value: any, ephemeral?: boolean, squashing?: boolean): this;
@@ -489,7 +487,7 @@ export class App extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: TLUserId) => this | undefined;
+    startFollowingUser: (userId: string) => this | undefined;
     stopCameraAnimation(): this;
     stopFollowingUser: () => this;
     readonly store: TLStore;
@@ -504,22 +502,12 @@ export class App extends EventEmitter<TLEventMap> {
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
-    updateUser(partial: Partial<TLUser>): void;
     updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral?: boolean): this;
-    // (undocumented)
-    updateUserPresence: ({ cursor, color, viewportPageBounds, }?: {
-        cursor?: undefined | Vec2dModel;
-        color?: string | undefined;
-        viewportPageBounds?: Box2dModel | undefined;
-    }) => void;
     updateViewportScreenBounds(center?: boolean): this;
-    get user(): TLUser;
+    // @internal (undocumented)
+    readonly user: UserPreferencesManager;
     // (undocumented)
     get userDocumentSettings(): TLUserDocument;
-    get userId(): TLUserId;
-    // (undocumented)
-    get userPresence(): TLUserPresence | undefined;
-    get userSettings(): TLUser;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
@@ -1710,7 +1698,7 @@ export type TLCancelEventInfo = {
 };
 
 // @public (undocumented)
-export type TLChange<T extends BaseRecord<any> = any> = HistoryEntry<T>;
+export type TLChange<T extends UnknownRecord = any> = HistoryEntry<T>;
 
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
@@ -1778,9 +1766,12 @@ export class TldrawEditorConfig {
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;
-        userId: TLUserId;
         instanceId: TLInstanceId;
     }): TLStore;
+    // (undocumented)
+    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
     readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
@@ -1789,6 +1780,8 @@ export class TldrawEditorConfig {
     readonly TLShape: RecordType<TLShape, 'index' | 'parentId' | 'props' | 'type'>;
     // (undocumented)
     readonly tools: readonly StateNodeConstructor[];
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public (undocumented)
@@ -1809,7 +1802,6 @@ export interface TldrawEditorProps {
     }>;
     onMount?: (app: App) => void;
     store?: SyncedStore | TLStore;
-    userId?: TLUserId;
 }
 
 // @public (undocumented)
@@ -2084,7 +2076,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2113,7 +2105,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2128,7 +2120,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | {
         props: {
@@ -2141,7 +2133,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLGeoShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2319,7 +2311,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLNoteShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2341,7 +2333,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLNoteShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2532,7 +2524,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         props: TLTextShapeProps;
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
@@ -2555,19 +2547,19 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         typeName: "shape";
     } | undefined;
     // (undocumented)
     onDoubleClickEdge: (shape: TLTextShape) => {
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         type: "text";
         props: {
             autoSize: boolean;
             scale?: undefined;
         };
     } | {
-        id: ID<TLTextShape>;
+        id: TLShapeId;
         type: "text";
         props: {
             scale: number;
@@ -2642,16 +2634,19 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
-export function usePeerIds(): TLUserId[];
+export function usePeerIds(): string[];
 
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
 
 // @internal (undocumented)
-export function usePresence(userId: TLUserId): null | TLInstancePresence;
+export function usePresence(userId: string): null | TLInstancePresence;
 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
+
+// @internal (undocumented)
+export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;

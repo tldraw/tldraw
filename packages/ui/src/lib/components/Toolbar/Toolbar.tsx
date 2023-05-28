@@ -28,6 +28,7 @@ export const Toolbar = function Toolbar() {
 
 	const isReadOnly = useReadonly()
 	const toolbarItems = useToolbarSchema()
+	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 
 	const activeToolId = useValue('current tool id', () => app.currentToolId, [app])
 
@@ -142,6 +143,14 @@ export const Toolbar = function Toolbar() {
 								/>
 							)
 						})}
+						{isReadOnly && laserTool && (
+							<ToolbarButton
+								key={laserTool.toolItem.id}
+								item={laserTool.toolItem}
+								title={getTitle(laserTool.toolItem)}
+								isSelected={isActiveToolItem(laserTool.toolItem, activeToolId, geoState)}
+							/>
+						)}
 						{showEditingTools && (
 							<>
 								{/* Draw / Eraser */}

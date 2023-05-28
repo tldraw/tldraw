@@ -95,6 +95,11 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }): Array<[Key, Value]>;
 
 // @internal
+export function objectMapFromEntries<Key extends string, Value>(entries: ReadonlyArray<readonly [Key, Value]>): {
+    [K in Key]: Value;
+};
+
+// @internal
 export function objectMapKeys<Key extends string>(object: {
     readonly [K in Key]: unknown;
 }): Array<Key>;

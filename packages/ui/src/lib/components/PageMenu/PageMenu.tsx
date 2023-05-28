@@ -1,5 +1,5 @@
 import { MAX_PAGES, useApp } from '@tldraw/editor'
-import { TLPage, TLPageId } from '@tldraw/tlschema'
+import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
@@ -230,7 +230,7 @@ export const PageMenu = function PageMenu() {
 		if (isReadonlyMode) return
 
 		app.mark('creating page')
-		const newPageId = TLPage.createId()
+		const newPageId = PageRecordType.createId()
 		app.createPage(msg('page-menu.new-page-initial-name'), newPageId)
 		setIsEditing(true)
 	}, [app, msg, isReadonlyMode])

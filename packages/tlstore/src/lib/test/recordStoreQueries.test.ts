@@ -4,7 +4,7 @@ import { createRecordType } from '../RecordType'
 import { Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Author extends BaseRecord<'author'> {
+interface Author extends BaseRecord<'author', ID<Author>> {
 	name: string
 	age: number
 }
@@ -22,7 +22,7 @@ const Author = createRecordType<Author>('author', {
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
-interface Book extends BaseRecord<'book'> {
+interface Book extends BaseRecord<'book', ID<Book>> {
 	title: string
 	authorId: ID<Author>
 }
