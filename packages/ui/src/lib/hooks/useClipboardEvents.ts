@@ -493,7 +493,9 @@ const handleNativeOrMenuCopy = (app: App) => {
 		})
 	)
 
-	if (typeof window?.navigator !== 'undefined') {
+	if (typeof navigator === 'undefined') {
+		return
+	} else {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
@@ -579,6 +581,7 @@ export function useMenuClipboardEvents() {
 				handlePasteFromClipboardApi(app, data, point)
 				trackEvent('paste', { source: 'menu' })
 			} else {
+				throw Error('hello')
 				// Read it first and then recurse, kind of weird
 				navigator.clipboard.read().then((clipboardItems) => {
 					paste(clipboardItems, source, point)
