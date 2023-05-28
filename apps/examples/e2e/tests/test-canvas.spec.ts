@@ -1,4 +1,4 @@
-import test, { expect } from '@playwright/test'
+import test, { Page, expect } from '@playwright/test'
 import { App, TLGeoShape } from '@tldraw/tldraw'
 
 export function sleep(ms: number) {
@@ -7,13 +7,22 @@ export function sleep(ms: number) {
 
 declare const app: App
 
+let page: Page
+
 test.describe('smoke tests', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeAll(async ({ browser }) => {
+		page = await browser.newPage()
 		await page.goto('http://localhost:5420/')
 		await page.waitForSelector('.tl-canvas')
+		await page.evaluate(() => (app.enableAnimations = false))
 	})
 
-	test('create a shape on the canvas', async ({ page }) => {
+	test.afterEach(async () => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+	})
+
+	test('create a shape on the canvas', async () => {
 		await page.mouse.move(10, 50)
 
 		// start on an empty canvas
@@ -59,7 +68,7 @@ test.describe('smoke tests', () => {
 		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
 	})
 
-	test('undo and redo', async ({ page }) => {
+	test('undo and redo', async () => {
 		// buttons should be disabled when there is no history
 		expect(await page.evaluate(() => app.shapesArray.length)).toBe(0)
 		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(0)
@@ -93,7 +102,7 @@ test.describe('smoke tests', () => {
 		expect(page.getByTestId('main.redo')).toBeDisabled()
 	})
 
-	test('style panel + undo and redo squashing', async ({ page }) => {
+	test('style panel + undo and redo squashing', async () => {
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()

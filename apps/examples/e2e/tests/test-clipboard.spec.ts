@@ -1,4 +1,4 @@
-import test, { expect } from '@playwright/test'
+import test, { BrowserContext, Page, expect } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
 
 export function sleep(ms: number) {
@@ -7,17 +7,28 @@ export function sleep(ms: number) {
 
 declare const app: App
 
+let page: Page
+let context: BrowserContext
+
 /**
  * These tests are skipped. They are here to show how to use the clipboard
  * in tests. The clipboard is not really supported in playwright, so until
  * we figure out a way to do it (or until it is supported propertly), we've
  * had to skip these tests.
  */
-test.describe.skip('smoke tests', () => {
-	test.beforeEach(async ({ page, context }) => {
+test.describe.skip('clipboard tests', () => {
+	test.beforeAll(async ({ browser }) => {
+		page = await browser.newPage()
+		context = await browser.newContext()
 		await page.goto('http://localhost:5420/')
 		await page.waitForSelector('.tl-canvas')
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+		await page.evaluate(() => (app.enableAnimations = false))
+	})
+
+	test.afterEach(async () => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Delete')
 	})
 
 	test('copy and paste from keyboard shortcut', async ({ page }) => {
