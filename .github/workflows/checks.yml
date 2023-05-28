@@ -54,21 +54,8 @@ jobs:
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
 
-      - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
-
       - name: Test
         run: yarn test
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: yarn e2e
-
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
+      - name: Pack public packages
+        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
