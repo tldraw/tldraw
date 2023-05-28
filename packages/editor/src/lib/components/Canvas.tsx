@@ -98,7 +98,7 @@ export const Canvas = track(function Canvas({
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-wd="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />

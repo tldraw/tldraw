@@ -21,13 +21,13 @@ interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]
 	valueA: T['id'] | null | undefined
 	valueB: T['id'] | null | undefined
 	onValueChange: (value: TLStyleItem, squashing: boolean) => void
-	'data-wd'?: string
+	'data-testid'?: string
 }
 
 export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 	T extends AllStyles[keyof AllStyles][number]
 >({
-	'data-wd': dataWd,
+	'data-testid': dataWd,
 	label,
 	labelA,
 	labelB,
@@ -63,7 +63,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 			<DropdownMenu.Root id={`style panel ${styleTypeA}`}>
 				<Trigger asChild>
 					<Button
-						data-wd={startWdPrefix}
+						data-testid={startWdPrefix}
 						title={
 							msg(labelA) +
 							' — ' +
@@ -90,7 +90,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									title={
 										msg(labelA) + ' — ' + msg(`${styleTypeA}-style.${item.id}` as TLTranslationKey)
 									}
-									data-wd={`${startWdPrefix}.${item.id}`}
+									data-testid={`${startWdPrefix}.${item.id}`}
 									key={item.id}
 									icon={item.icon as TLUiIconType}
 									onClick={() => onValueChange(item as TLStyleItem, false)}
@@ -104,7 +104,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 			<DropdownMenu.Root id={`style panel ${styleTypeB}`}>
 				<Trigger asChild>
 					<Button
-						data-wd={endWdPrefix}
+						data-testid={endWdPrefix}
 						title={
 							msg(labelB) +
 							' — ' +
@@ -130,7 +130,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									title={
 										msg(labelB) + ' — ' + msg(`${styleTypeB}-style.${item.id}` as TLTranslationKey)
 									}
-									data-wd={`${endWdPrefix}.${item.id}`}
+									data-testid={`${endWdPrefix}.${item.id}`}
 									key={item.id}
 									icon={item.icon as TLUiIconType}
 									onClick={() => onValueChange(item as TLStyleItem, false)}

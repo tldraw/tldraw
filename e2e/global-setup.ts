@@ -1,4 +1,5 @@
 import { FullConfig } from '@playwright/test'
+import { App } from '@tldraw/editor'
 
 async function globalSetup(config: FullConfig) {
 	// noop
@@ -6,3 +7,5 @@ async function globalSetup(config: FullConfig) {
 }
 
 export default globalSetup
+
+declare const app: App

@@ -25,9 +25,15 @@ export function Root({
 }
 
 /** @public */
-export function Trigger({ children, 'data-wd': dataWd }: { children: any; 'data-wd'?: string }) {
+export function Trigger({
+	children,
+	'data-testid': dataWd,
+}: {
+	children: any
+	'data-testid'?: string
+}) {
 	return (
-		<DropdownMenu.Trigger dir="ltr" data-wd={dataWd} asChild>
+		<DropdownMenu.Trigger dir="ltr" data-testid={dataWd} asChild>
 			{children}
 		</DropdownMenu.Trigger>
 	)
@@ -79,15 +85,15 @@ export function Sub({ id, children }: { id: string; children: any }) {
 /** @public */
 export function SubTrigger({
 	label,
-	'data-wd': dataWd,
+	'data-testid': dataWd,
 	'data-direction': dataDirection,
 }: {
 	label: TLTranslationKey
-	'data-wd'?: string
+	'data-testid'?: string
 	'data-direction'?: 'left' | 'right'
 }) {
 	return (
-		<DropdownMenu.SubTrigger dir="ltr" data-direction={dataDirection} data-wd={dataWd} asChild>
+		<DropdownMenu.SubTrigger dir="ltr" data-direction={dataDirection} data-testid={dataWd} asChild>
 			<Button
 				className="tlui-menu__button tlui-menu__submenu__trigger"
 				label={label}

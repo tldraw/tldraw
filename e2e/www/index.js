@@ -75809,7 +75809,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 						${toDomPrecision(0 - offset)},${toDomPrecision(0 - offset)} 
 						${toDomPrecision(size)},${toDomPrecision(0 - offset)}`,
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.top_left',
+				'data-testid': 'selection.crop.top_left',
 				'aria-label': 'top_left handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('line', {
@@ -75821,7 +75821,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 				x2: toDomPrecision(width / 2 + size),
 				y2: toDomPrecision(0 - offset),
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.top',
+				'data-testid': 'selection.crop.top',
 				'aria-label': 'top handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('polyline', {
@@ -75833,7 +75833,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 						${toDomPrecision(width + offset)},${toDomPrecision(0 - offset)} 
 						${toDomPrecision(width + offset)},${toDomPrecision(size)}`,
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.top_right',
+				'data-testid': 'selection.crop.top_right',
 				'aria-label': 'top_right handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('line', {
@@ -75845,7 +75845,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 				x2: toDomPrecision(width + offset),
 				y2: toDomPrecision(height / 2 + size),
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.right',
+				'data-testid': 'selection.crop.right',
 				'aria-label': 'right handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('polyline', {
@@ -75855,7 +75855,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 						${toDomPrecision(width + offset)},${toDomPrecision(height + offset)}
 						${toDomPrecision(width - size)},${toDomPrecision(height + offset)}`,
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.bottom_right',
+				'data-testid': 'selection.crop.bottom_right',
 				'aria-label': 'bottom_right handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('line', {
@@ -75867,7 +75867,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 				x2: toDomPrecision(width / 2 + size),
 				y2: toDomPrecision(height + offset),
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.bottom',
+				'data-testid': 'selection.crop.bottom',
 				'aria-label': 'bottom handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('polyline', {
@@ -75879,7 +75879,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 						${toDomPrecision(0 - offset)},${toDomPrecision(height + offset)}
 						${toDomPrecision(0 - offset)},${toDomPrecision(height - size)}`,
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.bottom_left',
+				'data-testid': 'selection.crop.bottom_left',
 				'aria-label': 'bottom_left handle',
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime36.jsx)('line', {
@@ -75891,7 +75891,7 @@ function CropHandles({ size, width, height, hideAlternateHandles }) {
 				x2: toDomPrecision(0 - offset),
 				y2: toDomPrecision(height / 2 + size),
 				strokeWidth: cropStrokeWidth,
-				'data-wd': 'selection.crop.left',
+				'data-testid': 'selection.crop.left',
 				'aria-label': 'left handle',
 			}),
 		],
@@ -76034,7 +76034,7 @@ var SelectionFg = track(function SelectionFg2() {
 	return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)('svg', {
 		ref: rSvg,
 		className: 'tl-overlays__item tl-selection__fg',
-		'data-wd': 'selection-foreground',
+		'data-testid': 'selection-foreground',
 		children: [
 			shouldDisplayBox &&
 				/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
@@ -76043,7 +76043,7 @@ var SelectionFg = track(function SelectionFg2() {
 					height: toDomPrecision(height),
 				}),
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(RotateCornerHandle, {
-				'data-wd': 'selection.rotate.top-left',
+				'data-testid': 'selection.rotate.top-left',
 				cx: 0,
 				cy: 0,
 				targetSize,
@@ -76052,7 +76052,7 @@ var SelectionFg = track(function SelectionFg2() {
 				isHidden: hideRotateCornerHandles,
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(RotateCornerHandle, {
-				'data-wd': 'selection.rotate.top-right',
+				'data-testid': 'selection.rotate.top-right',
 				cx: width + targetSize * 3,
 				cy: 0,
 				targetSize,
@@ -76061,7 +76061,7 @@ var SelectionFg = track(function SelectionFg2() {
 				isHidden: hideRotateCornerHandles,
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(RotateCornerHandle, {
-				'data-wd': 'selection.rotate.bottom-left',
+				'data-testid': 'selection.rotate.bottom-left',
 				cx: 0,
 				cy: height + targetSize * 3,
 				targetSize,
@@ -76070,7 +76070,7 @@ var SelectionFg = track(function SelectionFg2() {
 				isHidden: hideRotateCornerHandles,
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(RotateCornerHandle, {
-				'data-wd': 'selection.rotate.bottom-right',
+				'data-testid': 'selection.rotate.bottom-right',
 				cx: width + targetSize * 3,
 				cy: height + targetSize * 3,
 				targetSize,
@@ -76080,7 +76080,7 @@ var SelectionFg = track(function SelectionFg2() {
 			}),
 			' ',
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)(MobileRotateHandle, {
-				'data-wd': 'selection.rotate.mobile',
+				'data-testid': 'selection.rotate.mobile',
 				cx: isSmallX ? -targetSize * 1.5 : width / 2,
 				cy: isSmallX ? height / 2 : -targetSize * 1.5,
 				size,
@@ -76090,7 +76090,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				}),
-				'data-wd': 'selection.resize.top',
+				'data-testid': 'selection.resize.top',
 				'aria-label': 'top target',
 				pointerEvents: 'all',
 				x: 0,
@@ -76104,7 +76104,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				}),
-				'data-wd': 'selection.resize.right',
+				'data-testid': 'selection.resize.right',
 				'aria-label': 'right target',
 				pointerEvents: 'all',
 				x: toDomPrecision(width - (isSmallX ? 0 : targetSizeX)),
@@ -76118,7 +76118,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				}),
-				'data-wd': 'selection.resize.bottom',
+				'data-testid': 'selection.resize.bottom',
 				'aria-label': 'bottom target',
 				pointerEvents: 'all',
 				x: 0,
@@ -76132,7 +76132,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				}),
-				'data-wd': 'selection.resize.left',
+				'data-testid': 'selection.resize.left',
 				'aria-label': 'left target',
 				pointerEvents: 'all',
 				x: toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX)),
@@ -76146,7 +76146,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideTopLeftCorner,
 				}),
-				'data-wd': 'selection.target.top-left',
+				'data-testid': 'selection.target.top-left',
 				'aria-label': 'top-left target',
 				pointerEvents: 'all',
 				x: toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX * 1.5)),
@@ -76160,7 +76160,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideTopRightCorner,
 				}),
-				'data-wd': 'selection.target.top-right',
+				'data-testid': 'selection.target.top-right',
 				'aria-label': 'top-right target',
 				pointerEvents: 'all',
 				x: toDomPrecision(width - (isSmallX ? 0 : targetSizeX * 1.5)),
@@ -76174,7 +76174,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideBottomRightCorner,
 				}),
-				'data-wd': 'selection.target.bottom-right',
+				'data-testid': 'selection.target.bottom-right',
 				'aria-label': 'bottom-right target',
 				pointerEvents: 'all',
 				x: toDomPrecision(width - (isSmallX ? targetSizeX : targetSizeX * 1.5)),
@@ -76188,7 +76188,7 @@ var SelectionFg = track(function SelectionFg2() {
 				className: (0, import_classnames9.default)('tl-transparent', {
 					'tl-hidden': hideBottomLeftCorner,
 				}),
-				'data-wd': 'selection.target.bottom-left',
+				'data-testid': 'selection.target.bottom-left',
 				'aria-label': 'bottom-left target',
 				pointerEvents: 'all',
 				x: toDomPrecision(0 - (isSmallX ? targetSizeX * 3 : targetSizeX * 1.5)),
@@ -76202,7 +76202,7 @@ var SelectionFg = track(function SelectionFg2() {
 				/* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(import_jsx_runtime37.Fragment, {
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.resize.top-left',
+							'data-testid': 'selection.resize.top-left',
 							className: (0, import_classnames9.default)('tl-corner-handle', {
 								'tl-hidden': hideTopLeftCorner,
 							}),
@@ -76213,7 +76213,7 @@ var SelectionFg = track(function SelectionFg2() {
 							height: toDomPrecision(size),
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.resize.top-right',
+							'data-testid': 'selection.resize.top-right',
 							className: (0, import_classnames9.default)('tl-corner-handle', {
 								'tl-hidden': hideTopRightCorner,
 							}),
@@ -76224,7 +76224,7 @@ var SelectionFg = track(function SelectionFg2() {
 							height: toDomPrecision(size),
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.resize.bottom-right',
+							'data-testid': 'selection.resize.bottom-right',
 							className: (0, import_classnames9.default)('tl-corner-handle', {
 								'tl-hidden': hideBottomRightCorner,
 							}),
@@ -76235,7 +76235,7 @@ var SelectionFg = track(function SelectionFg2() {
 							height: toDomPrecision(size),
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.resize.bottom-left',
+							'data-testid': 'selection.resize.bottom-left',
 							className: (0, import_classnames9.default)('tl-corner-handle', {
 								'tl-hidden': hideBottomLeftCorner,
 							}),
@@ -76251,7 +76251,7 @@ var SelectionFg = track(function SelectionFg2() {
 				/* @__PURE__ */ (0, import_jsx_runtime37.jsxs)(import_jsx_runtime37.Fragment, {
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.text-resize.left.handle',
+							'data-testid': 'selection.text-resize.left.handle',
 							className: 'tl-text-handle',
 							'aria-label': 'bottom_left handle',
 							x: toDomPrecision(0 - size / 4),
@@ -76261,7 +76261,7 @@ var SelectionFg = track(function SelectionFg2() {
 							height: toDomPrecision(textHandleHeight),
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
-							'data-wd': 'selection.text-resize.right.handle',
+							'data-testid': 'selection.text-resize.right.handle',
 							className: 'tl-text-handle',
 							'aria-label': 'bottom_left handle',
 							rx: size / 4,
@@ -76291,14 +76291,14 @@ var RotateCornerHandle = function RotateCornerHandle2({
 	corner,
 	cursor,
 	isHidden,
-	'data-wd': dataWd,
+	'data-testid': dataWd,
 }) {
 	const events = useSelectionEvents(corner)
 	return /* @__PURE__ */ (0, import_jsx_runtime37.jsx)('rect', {
 		className: (0, import_classnames9.default)('tl-transparent', 'tl-rotate-corner', {
 			'tl-hidden': isHidden,
 		}),
-		'data-wd': dataWd,
+		'data-testid': dataWd,
 		'aria-label': `${corner} target`,
 		pointerEvents: 'all',
 		x: toDomPrecision(cx - targetSize * 3),
@@ -76310,12 +76310,12 @@ var RotateCornerHandle = function RotateCornerHandle2({
 	})
 }
 var SQUARE_ROOT_PI = Math.sqrt(Math.PI)
-var MobileRotateHandle = function RotateHandle({ cx, cy, size, isHidden, 'data-wd': dataWd }) {
+var MobileRotateHandle = function RotateHandle({ cx, cy, size, isHidden, 'data-testid': dataWd }) {
 	const events = useSelectionEvents('mobile_rotate')
 	return /* @__PURE__ */ (0, import_jsx_runtime37.jsxs)('g', {
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime37.jsx)('circle', {
-				'data-wd': dataWd,
+				'data-testid': dataWd,
 				pointerEvents: 'all',
 				className: (0, import_classnames9.default)('tl-transparent', 'tl-mobile-rotate__bg', {
 					'tl-hidden': isHidden,
@@ -76564,7 +76564,7 @@ var Canvas = track(function Canvas2({ onDropOverride }) {
 		rCanvas.current?.focus()
 	}, [])
 	return /* @__PURE__ */ (0,
-	import_jsx_runtime39.jsxs)('div', { ref: rCanvas, draggable: false, className: 'tl-canvas', 'data-wd': 'canvas', ...events, children: [Background && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(Background, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(GridWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(UiLogger, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('div', { ref: rHtmlLayer, className: 'tl-html-layer', draggable: false, children: [/* @__PURE__ */ (0, import_jsx_runtime39.jsx)('svg', { className: 'tl-svg-context', children: /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('defs', { children: [patternContext, Cursor && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(Cursor, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(CollaboratorHint, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ArrowheadDot, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ArrowheadCross, {}), SvgDefs && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SvgDefs, {})] }) }), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectionBg, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)('div', { className: 'tl-shapes', children: /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ShapesToDisplay, {}) }), /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('div', { className: 'tl-overlays', children: [/* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HandlesWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(BrushWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ScribbleWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ZoomBrushWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectedIdIndicators, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HoveredShapeIndicator, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HintedShapeIndicator, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SnapLinesWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectionFg, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(LiveCollaborators, {})] })] })] })
+	import_jsx_runtime39.jsxs)('div', { ref: rCanvas, draggable: false, className: 'tl-canvas', 'data-testid': 'canvas', ...events, children: [Background && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(Background, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(GridWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(UiLogger, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('div', { ref: rHtmlLayer, className: 'tl-html-layer', draggable: false, children: [/* @__PURE__ */ (0, import_jsx_runtime39.jsx)('svg', { className: 'tl-svg-context', children: /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('defs', { children: [patternContext, Cursor && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(Cursor, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(CollaboratorHint, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ArrowheadDot, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ArrowheadCross, {}), SvgDefs && /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SvgDefs, {})] }) }), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectionBg, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)('div', { className: 'tl-shapes', children: /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ShapesToDisplay, {}) }), /* @__PURE__ */ (0, import_jsx_runtime39.jsxs)('div', { className: 'tl-overlays', children: [/* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HandlesWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(BrushWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ScribbleWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(ZoomBrushWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectedIdIndicators, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HoveredShapeIndicator, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(HintedShapeIndicator, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SnapLinesWrapper, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(SelectionFg, {}), /* @__PURE__ */ (0, import_jsx_runtime39.jsx)(LiveCollaborators, {})] })] })] })
 })
 var GridWrapper = track(function GridWrapper2() {
 	const app = useApp()
@@ -83633,7 +83633,7 @@ function CloseButton() {
 		children: /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(
 			$5d3850c4d0b4e6c7$export$fba2fb7cd781b7ac,
 			{
-				'data-wd': 'dialog.close',
+				'data-testid': 'dialog.close',
 				dir: 'ltr',
 				asChild: true,
 				children: /* @__PURE__ */ (0, import_jsx_runtime60.jsx)(Button, {
@@ -86986,10 +86986,10 @@ function Root({ id, children, modal = false }) {
 		children,
 	})
 }
-function Trigger({ children, 'data-wd': dataWd }) {
+function Trigger({ children, 'data-testid': dataWd }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime62.jsx)($d08ef79370b62062$export$41fb9f06171c75f4, {
 		dir: 'ltr',
-		'data-wd': dataWd,
+		'data-testid': dataWd,
 		asChild: true,
 		children,
 	})
@@ -87021,11 +87021,11 @@ function Sub({ id, children }) {
 		children,
 	})
 }
-function SubTrigger({ label, 'data-wd': dataWd, 'data-direction': dataDirection }) {
+function SubTrigger({ label, 'data-testid': dataWd, 'data-direction': dataDirection }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime62.jsx)($d08ef79370b62062$export$2ea8a7a591ac5eac, {
 		dir: 'ltr',
 		'data-direction': dataDirection,
-		'data-wd': dataWd,
+		'data-testid': dataWd,
 		asChild: true,
 		children: /* @__PURE__ */ (0, import_jsx_runtime62.jsx)(Button, {
 			className: 'tlui-menu__button tlui-menu__submenu__trigger',
@@ -93663,9 +93663,9 @@ var Popover = ({ id, children, onOpenChange }) => {
 		}),
 	})
 }
-var PopoverTrigger = ({ children, disabled, 'data-wd': dataWd }) => {
+var PopoverTrigger = ({ children, disabled, 'data-testid': dataWd }) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime85.jsx)($cb5cc270b50c6fcd$export$41fb9f06171c75f4, {
-		'data-wd': dataWd,
+		'data-testid': dataWd,
 		disabled,
 		asChild: true,
 		dir: 'ltr',
@@ -93708,7 +93708,7 @@ var ActionsMenu = (0, import_react93.memo)(function ActionsMenu2() {
 					Button,
 					{
 						className: 'tlui-button-grid__button',
-						'data-wd': `menu-item.${item.id}`,
+						'data-testid': `menu-item.${item.id}`,
 						icon,
 						title: label
 							? kbd2
@@ -93731,7 +93731,7 @@ var ActionsMenu = (0, import_react93.memo)(function ActionsMenu2() {
 			/* @__PURE__ */ (0, import_jsx_runtime86.jsx)(PopoverTrigger, {
 				children: /* @__PURE__ */ (0, import_jsx_runtime86.jsx)(Button, {
 					className: 'tlui-menu__trigger',
-					'data-wd': 'main.action-menu',
+					'data-testid': 'main.action-menu',
 					icon: 'dots-vertical',
 					title: msg2('actions-menu.title'),
 					smallIcon: true,
@@ -93788,7 +93788,7 @@ var Menu = React57.memo(function Menu2() {
 			/* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Trigger, {
 				children: /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(Button, {
 					className: 'tlui-menu__trigger',
-					'data-wd': 'main.menu',
+					'data-testid': 'main.menu',
 					title: msg2('menu.title'),
 					icon: 'menu',
 				}),
@@ -93841,7 +93841,7 @@ function MenuContent() {
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SubTrigger, {
 								label: item.label,
-								'data-wd': `menu-item.${item.id}`,
+								'data-testid': `menu-item.${item.id}`,
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime88.jsx)(SubContent, {
 								sideOffset: -4,
@@ -93878,7 +93878,7 @@ function MenuContent() {
 				return /* @__PURE__ */ (0, import_jsx_runtime88.jsx)(
 					Item,
 					{
-						'data-wd': `menu-item.${item.id}`,
+						'data-testid': `menu-item.${item.id}`,
 						kbd: kbd2,
 						label: labelToUse,
 						onClick: () => onSelect('menu'),
@@ -94113,7 +94113,7 @@ var PageMenu = function PageMenu2() {
 	;(0, import_react96.useEffect)(() => {
 		if (!isOpen) return
 		requestAnimationFrame(() => {
-			const elm = document.querySelector(`[data-wd="page-menu-item-${currentPage.id}"]`)
+			const elm = document.querySelector(`[data-testid="page-menu-item-${currentPage.id}"]`)
 			if (elm) {
 				const container = rSortableContainer.current
 				if (!container) return
@@ -94250,7 +94250,7 @@ var PageMenu = function PageMenu2() {
 			/* @__PURE__ */ (0, import_jsx_runtime91.jsx)(PopoverTrigger, {
 				children: /* @__PURE__ */ (0, import_jsx_runtime91.jsx)(Button, {
 					className: 'tlui-page-menu__trigger tlui-menu__trigger',
-					'data-wd': 'main.page-menu',
+					'data-testid': 'main.page-menu',
 					icon: 'chevron-down',
 					title: currentPage.name,
 					children: /* @__PURE__ */ (0, import_jsx_runtime91.jsx)('div', {
@@ -94277,13 +94277,13 @@ var PageMenu = function PageMenu2() {
 									/* @__PURE__ */ (0, import_jsx_runtime91.jsxs)(import_jsx_runtime91.Fragment, {
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime91.jsx)(Button, {
-												'data-wd': 'page-menu.edit',
+												'data-testid': 'page-menu.edit',
 												title: msg2(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start'),
 												icon: isEditing ? 'check' : 'edit',
 												onClick: toggleEditing,
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime91.jsx)(Button, {
-												'data-wd': 'page-menu.create',
+												'data-testid': 'page-menu.create',
 												icon: 'plus',
 												title: msg2(
 													maxPageCountReached
@@ -94310,7 +94310,7 @@ var PageMenu = function PageMenu2() {
 									? /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)(
 											'div',
 											{
-												'data-wd': `page-menu-item-${page.id}`,
+												'data-testid': `page-menu-item-${page.id}`,
 												className: 'tlui-page_menu__item__sortable',
 												style: {
 													zIndex: page.id === currentPage.id ? 888 : index2,
@@ -94349,7 +94349,7 @@ var PageMenu = function PageMenu2() {
 														  })
 														: /* @__PURE__ */ (0, import_jsx_runtime91.jsx)('div', {
 																id: `page-menu-item-${page.id}`,
-																'data-wd': `page-menu-item-${page.id}`,
+																'data-testid': `page-menu-item-${page.id}`,
 																className: 'tlui-page_menu__item__sortable__title',
 																style: { height: ITEM_HEIGHT },
 																children: /* @__PURE__ */ (0, import_jsx_runtime91.jsx)(
@@ -94377,7 +94377,7 @@ var PageMenu = function PageMenu2() {
 									: /* @__PURE__ */ (0, import_jsx_runtime91.jsxs)(
 											'div',
 											{
-												'data-wd': `page-menu-item-${page.id}`,
+												'data-testid': `page-menu-item-${page.id}`,
 												className: 'tlui-page-menu__item',
 												children: [
 													/* @__PURE__ */ (0, import_jsx_runtime91.jsxs)(Button, {
@@ -94447,7 +94447,7 @@ var RedoButton = (0, import_react97.memo)(function RedoButton2() {
 	const actions = useActions()
 	const redo = actions['redo']
 	return /* @__PURE__ */ (0, import_jsx_runtime92.jsx)(Button, {
-		'data-wd': 'main.redo',
+		'data-testid': 'main.redo',
 		icon: redo.icon,
 		title: `${msg2(redo.label)} ${kbdStr(redo.kbd)}`,
 		disabled: !canRedo,
@@ -94486,7 +94486,7 @@ var UndoButton = (0, import_react98.memo)(function UndoButton2() {
 	const actions = useActions()
 	const undo = actions['undo']
 	return /* @__PURE__ */ (0, import_jsx_runtime94.jsx)(Button, {
-		'data-wd': 'main.undo',
+		'data-testid': 'main.undo',
 		icon: undo.icon,
 		title: `${msg2(undo.label)} ${kbdStr(undo.kbd)}`,
 		disabled: !canUndo,
@@ -95034,7 +95034,7 @@ var ZoomMenu = track(function ZoomMenu2() {
 			/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(Trigger, {
 				children: /* @__PURE__ */ (0, import_jsx_runtime97.jsx)(Button, {
 					title: `${msg2('navigation-zone.zoom')}`,
-					'data-wd': 'minimap.zoom-menu',
+					'data-testid': 'minimap.zoom-menu',
 					className: breakpoint < 5 ? 'tlui-zoom-menu__button' : 'tlui-zoom-menu__button__pct',
 					onDoubleClick: handleDoubleClick,
 					icon: breakpoint < 4 ? 'zoom-in' : void 0,
@@ -95055,30 +95055,30 @@ var ZoomMenu = track(function ZoomMenu2() {
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(ZoomMenuItem, {
 							action: 'zoom-in',
-							'data-wd': 'minimap.zoom-menu.zoom-in',
+							'data-testid': 'minimap.zoom-menu.zoom-in',
 							noClose: true,
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(ZoomMenuItem, {
 							action: 'zoom-out',
-							'data-wd': 'minimap.zoom-menu.zoom-out',
+							'data-testid': 'minimap.zoom-menu.zoom-out',
 							noClose: true,
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(ZoomMenuItem, {
 							action: 'zoom-to-100',
-							'data-wd': 'minimap.zoom-menu.zoom-to-100',
+							'data-testid': 'minimap.zoom-menu.zoom-to-100',
 							noClose: true,
 							disabled: isZoomedTo100,
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(ZoomMenuItem, {
 							action: 'zoom-to-fit',
 							disabled: !hasShapes,
-							'data-wd': 'minimap.zoom-menu.zoom-to-fit',
+							'data-testid': 'minimap.zoom-menu.zoom-to-fit',
 							noClose: true,
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime97.jsx)(ZoomMenuItem, {
 							action: 'zoom-to-selection',
 							disabled: !hasSelected,
-							'data-wd': 'minimap.zoom-menu.zoom-to-selection',
+							'data-testid': 'minimap.zoom-menu.zoom-to-selection',
 							noClose: true,
 						}),
 					],
@@ -95093,7 +95093,7 @@ function ZoomMenuItem(props) {
 	return /* @__PURE__ */ (0, import_jsx_runtime97.jsx)(Item, {
 		label: actions[action].label,
 		kbd: actions[action].kbd,
-		'data-wd': props['data-wd'],
+		'data-testid': props['data-testid'],
 		onClick: () => actions[action].onSelect('zoom-menu'),
 		noClose,
 		disabled,
@@ -95128,7 +95128,7 @@ var NavigationZone = (0, import_react100.memo)(function NavigationZone2() {
 									/* @__PURE__ */ (0, import_jsx_runtime98.jsx)(Button, {
 										title: msg2('navigation-zone.toggle-minimap'),
 										className: 'tlui-navigation-zone__toggle',
-										'data-wd': 'minimap.toggle',
+										'data-testid': 'minimap.toggle',
 										onClick: toggleMinimap,
 										icon: collapsed ? 'chevrons-ne' : 'chevrons-sw',
 									}),
@@ -95138,14 +95138,14 @@ var NavigationZone = (0, import_react100.memo)(function NavigationZone2() {
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime98.jsx)(Button, {
 										icon: 'minus',
-										'data-wd': 'minimap.zoom-out',
+										'data-testid': 'minimap.zoom-out',
 										title: `${msg2(actions['zoom-out'].label)} ${kbdStr(actions['zoom-out'].kbd)}`,
 										onClick: () => actions['zoom-out'].onSelect('navigation-zone'),
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime98.jsx)(ZoomMenu, {}),
 									/* @__PURE__ */ (0, import_jsx_runtime98.jsx)(Button, {
 										icon: 'plus',
-										'data-wd': 'minimap.zoom-in',
+										'data-testid': 'minimap.zoom-in',
 										title: `${msg2(actions['zoom-in'].label)} ${kbdStr(actions['zoom-in'].kbd)}`,
 										onClick: () => actions['zoom-in'].onSelect('navigation-zone'),
 									}),
@@ -95286,7 +95286,7 @@ function _ButtonPicker(props) {
 				Button,
 				{
 					'data-id': item.id,
-					'data-wd': `${props['data-wd']}.${item.id}`,
+					'data-testid': `${props['data-testid']}.${item.id}`,
 					'aria-label': item.id,
 					'data-state': value === item.id ? 'hinted' : void 0,
 					title: title + ' \u2014 ' + msg2(`${styleType}-style.${item.id}`),
@@ -96025,7 +96025,7 @@ function Slider(props) {
 		children: /* @__PURE__ */ (0, import_jsx_runtime102.jsxs)(
 			$faa2e61a3361514f$export$be92b6f5f03c0fe9,
 			{
-				'data-wd': props['data-wd'],
+				'data-testid': props['data-testid'],
 				className: 'tlui-slider',
 				'area-label': 'Opacity',
 				dir: 'ltr',
@@ -96068,7 +96068,7 @@ var import_classnames16 = __toESM(require_classnames())
 var React62 = __toESM(require_react())
 var import_jsx_runtime103 = __toESM(require_jsx_runtime())
 var DoubleDropdownPicker = React62.memo(function DoubleDropdownPicker2({
-	'data-wd': dataWd,
+	'data-testid': dataWd,
 	label,
 	labelA,
 	labelB,
@@ -96108,7 +96108,7 @@ var DoubleDropdownPicker = React62.memo(function DoubleDropdownPicker2({
 						{
 							asChild: true,
 							children: /* @__PURE__ */ (0, import_jsx_runtime103.jsx)(Button, {
-								'data-wd': startWdPrefix,
+								'data-testid': startWdPrefix,
 								title:
 									msg2(labelA) +
 									' \u2014 ' +
@@ -96137,7 +96137,7 @@ var DoubleDropdownPicker = React62.memo(function DoubleDropdownPicker2({
 									{
 										className: 'tlui-button-grid__button',
 										title: msg2(labelA) + ' \u2014 ' + msg2(`${styleTypeA}-style.${item.id}`),
-										'data-wd': `${startWdPrefix}.${item.id}`,
+										'data-testid': `${startWdPrefix}.${item.id}`,
 										icon: item.icon,
 										onClick: () => onValueChange(item, false),
 										invertIcon: true,
@@ -96157,7 +96157,7 @@ var DoubleDropdownPicker = React62.memo(function DoubleDropdownPicker2({
 						{
 							asChild: true,
 							children: /* @__PURE__ */ (0, import_jsx_runtime103.jsx)(Button, {
-								'data-wd': endWdPrefix,
+								'data-testid': endWdPrefix,
 								title:
 									msg2(labelB) +
 									' \u2014 ' +
@@ -96185,7 +96185,7 @@ var DoubleDropdownPicker = React62.memo(function DoubleDropdownPicker2({
 									{
 										className: 'tlui-button-grid__button',
 										title: msg2(labelB) + ' \u2014 ' + msg2(`${styleTypeB}-style.${item.id}`),
-										'data-wd': `${endWdPrefix}.${item.id}`,
+										'data-testid': `${endWdPrefix}.${item.id}`,
 										icon: item.icon,
 										onClick: () => onValueChange(item, false),
 									},
@@ -96212,7 +96212,7 @@ var DropdownPicker = React63.memo(function DropdownPicker2({
 	label,
 	value,
 	onValueChange,
-	'data-wd': dataWd,
+	'data-testid': dataWd,
 }) {
 	const msg2 = useTranslation()
 	const icon = React63.useMemo(() => items.find((item) => item.id === value)?.icon, [items, value])
@@ -96222,7 +96222,7 @@ var DropdownPicker = React63.memo(function DropdownPicker2({
 			/* @__PURE__ */ (0, import_jsx_runtime104.jsx)($d08ef79370b62062$export$41fb9f06171c75f4, {
 				asChild: true,
 				children: /* @__PURE__ */ (0, import_jsx_runtime104.jsx)(Button, {
-					'data-wd': dataWd,
+					'data-testid': dataWd,
 					title: value === null ? msg2('style-panel.mixed') : msg2(`${styleType}-style.${value}`),
 					label,
 					icon: icon ?? 'mixed',
@@ -96243,7 +96243,7 @@ var DropdownPicker = React63.memo(function DropdownPicker2({
 							Item,
 							{
 								className: 'tlui-button-grid__button',
-								'data-wd': `${dataWd}.${item.id}`,
+								'data-testid': `${dataWd}.${item.id}`,
 								title: msg2(`${styleType}-style.${item.id}`),
 								icon: item.icon,
 								onClick: () => onValueChange(item, false),
@@ -96341,7 +96341,7 @@ function CommonStylePickerSet({ props }) {
 						: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 								title: msg2('style-panel.color'),
 								styleType: 'color',
-								'data-wd': 'style.color',
+								'data-testid': 'style.color',
 								items: styles.color,
 								value: color,
 								onValueChange: handleValueChange,
@@ -96349,7 +96349,7 @@ function CommonStylePickerSet({ props }) {
 					opacity === void 0
 						? null
 						: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(Slider, {
-								'data-wd': 'style.opacity',
+								'data-testid': 'style.opacity',
 								value: opacityIndex >= 0 ? opacityIndex : styles.opacity.length - 1,
 								label: opacity ? `opacity-style.${opacity}` : 'style-panel.mixed',
 								onValueChange: handleOpacityValueChange,
@@ -96368,7 +96368,7 @@ function CommonStylePickerSet({ props }) {
 							: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 									title: msg2('style-panel.fill'),
 									styleType: 'fill',
-									'data-wd': 'style.fill',
+									'data-testid': 'style.fill',
 									items: styles.fill,
 									value: fill,
 									onValueChange: handleValueChange,
@@ -96378,7 +96378,7 @@ function CommonStylePickerSet({ props }) {
 							: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 									title: msg2('style-panel.dash'),
 									styleType: 'dash',
-									'data-wd': 'style.dash',
+									'data-testid': 'style.dash',
 									items: styles.dash,
 									value: dash,
 									onValueChange: handleValueChange,
@@ -96388,7 +96388,7 @@ function CommonStylePickerSet({ props }) {
 							: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 									title: msg2('style-panel.size'),
 									styleType: 'size',
-									'data-wd': 'style.size',
+									'data-testid': 'style.size',
 									items: styles.size,
 									value: size,
 									onValueChange: handleValueChange,
@@ -96414,7 +96414,7 @@ function TextStylePickerSet({ props }) {
 				: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 						title: msg2('style-panel.font'),
 						styleType: 'font',
-						'data-wd': 'font',
+						'data-testid': 'font',
 						items: styles.font,
 						value: font,
 						onValueChange: handleValueChange,
@@ -96427,7 +96427,7 @@ function TextStylePickerSet({ props }) {
 							/* @__PURE__ */ (0, import_jsx_runtime105.jsx)(ButtonPicker, {
 								title: msg2('style-panel.align'),
 								styleType: 'align',
-								'data-wd': 'align',
+								'data-testid': 'align',
 								items: styles.align,
 								value: align,
 								onValueChange: handleValueChange,
@@ -96435,14 +96435,14 @@ function TextStylePickerSet({ props }) {
 							verticalAlign === void 0
 								? /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(Button, {
 										title: msg2('style-panel.vertical-align'),
-										'data-wd': 'vertical-align',
+										'data-testid': 'vertical-align',
 										icon: 'vertical-align-center',
 										disabled: true,
 								  })
 								: /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(DropdownPicker, {
 										id: 'geo-vertical-alignment',
 										styleType: 'verticalAlign',
-										'data-wd': 'style-panel.geo-vertical-align',
+										'data-testid': 'style-panel.geo-vertical-align',
 										items: styles.verticalAlign,
 										value: verticalAlign,
 										onValueChange: handleValueChange,
@@ -96462,7 +96462,7 @@ function GeoStylePickerSet({ props }) {
 		id: 'geo',
 		label: 'style-panel.geo',
 		styleType: 'geo',
-		'data-wd': 'style-panel.geo',
+		'data-testid': 'style-panel.geo',
 		items: styles.geo,
 		value: geo,
 		onValueChange: handleValueChange,
@@ -96478,7 +96478,7 @@ function SplineStylePickerSet({ props }) {
 		id: 'spline',
 		label: 'style-panel.spline',
 		styleType: 'spline',
-		'data-wd': 'style.spline',
+		'data-testid': 'style.spline',
 		items: styles.spline,
 		value: spline,
 		onValueChange: handleValueChange,
@@ -96493,7 +96493,7 @@ function ArrowheadStylePickerSet({ props }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime105.jsx)(DoubleDropdownPicker, {
 		label: 'style-panel.arrowheads',
 		styleTypeA: 'arrowheadStart',
-		'data-wd': 'style.arrowheads',
+		'data-testid': 'style.arrowheads',
 		itemsA: styles.arrowheadStart,
 		valueA: arrowheadStart,
 		styleTypeB: 'arrowheadEnd',
@@ -96672,9 +96672,8 @@ function MobileStylePanel() {
 			/* @__PURE__ */ (0, import_jsx_runtime107.jsx)(PopoverTrigger, {
 				disabled: disableStylePanel,
 				children: /* @__PURE__ */ (0, import_jsx_runtime107.jsx)(Button, {
-					className:
-						'tlui-toolbar__tools__button tlui-toolbar__styles__button tlui-popover__trigger',
-					'data-wd': 'mobile.styles',
+					className: 'tlui-toolbar__tools__button tlui-toolbar__styles__button',
+					'data-testid': 'mobile.styles',
 					style: { color: currentColor ?? 'var(--color-text)' },
 					title: msg2('style-panel.title'),
 					children: /* @__PURE__ */ (0, import_jsx_runtime107.jsx)(Icon, {
@@ -96888,7 +96887,7 @@ var Toolbar = function Toolbar2() {
 																					className:
 																						'tlui-toolbar__tools__button tlui-toolbar__overflow',
 																					icon: 'chevron-up',
-																					'data-wd': 'tools.more',
+																					'data-testid': 'tools.more',
 																					title: msg2('tool-panel.more'),
 																				}
 																			),
@@ -96932,7 +96931,7 @@ var OverflowToolsContent = track(function OverflowToolsContent2({ toolbarItems }
 				Item,
 				{
 					className: 'tlui-button-grid__button',
-					'data-wd': `tools.${id}`,
+					'data-testid': `tools.${id}`,
 					'data-tool': id,
 					'data-geo': meta?.geo ?? '',
 					'aria-label': label,
@@ -96948,7 +96947,7 @@ var OverflowToolsContent = track(function OverflowToolsContent2({ toolbarItems }
 function ToolbarButton({ item, title, isSelected }) {
 	return /* @__PURE__ */ (0, import_jsx_runtime109.jsx)(Button, {
 		className: 'tlui-toolbar__tools__button',
-		'data-wd': `tools.${item.id}`,
+		'data-testid': `tools.${item.id}`,
 		'data-tool': item.id,
 		'data-geo': item.meta?.geo ?? '',
 		'aria-label': item.label,
@@ -98033,7 +98032,7 @@ var MoveToPageMenu = track(function MoveToPageMenu2() {
 				children: /* @__PURE__ */ (0, import_jsx_runtime111.jsx)(Button, {
 					className: 'tlui-menu__button',
 					label: 'context-menu.move-to-page',
-					'data-wd': 'menu-item.move-to-page',
+					'data-testid': 'menu-item.move-to-page',
 					icon: 'chevron-right',
 				}),
 			}),
@@ -98052,7 +98051,7 @@ var MoveToPageMenu = track(function MoveToPageMenu2() {
 								{
 									dir: 'ltr',
 									className: 'tlui-menu__group',
-									'data-wd': `menu-item.pages`,
+									'data-testid': `menu-item.pages`,
 									children: pages.map((page) =>
 										/* @__PURE__ */ (0, import_jsx_runtime111.jsx)(
 											$1b0217ee4a91d156$export$6d08773d2e66f8f2,
@@ -98099,7 +98098,7 @@ var MoveToPageMenu = track(function MoveToPageMenu2() {
 								{
 									dir: 'ltr',
 									className: 'tlui-menu__group',
-									'data-wd': `menu-item.new-page`,
+									'data-testid': `menu-item.new-page`,
 									children: /* @__PURE__ */ (0, import_jsx_runtime111.jsx)(
 										$1b0217ee4a91d156$export$6d08773d2e66f8f2,
 										{
@@ -98193,7 +98192,7 @@ function ContextMenuContent() {
 						className: (0, import_classnames21.default)('tlui-menu__group', {
 							'tlui-menu__group__small': parent?.type === 'submenu',
 						}),
-						'data-wd': `menu-item.${item.id}`,
+						'data-testid': `menu-item.${item.id}`,
 						children: item.children.map((child) =>
 							getContextMenuItem(app2, child, item, depth + 1)
 						),
@@ -98216,7 +98215,7 @@ function ContextMenuContent() {
 									children: /* @__PURE__ */ (0, import_jsx_runtime112.jsx)(Button, {
 										className: 'tlui-menu__button',
 										label: item.label,
-										'data-wd': `menu-item.${item.id}`,
+										'data-testid': `menu-item.${item.id}`,
 										icon: 'chevron-right',
 									}),
 								}
@@ -98290,7 +98289,7 @@ function ContextMenuContent() {
 						asChild: true,
 						children: /* @__PURE__ */ (0, import_jsx_runtime112.jsx)(Button, {
 							className: 'tlui-menu__button',
-							'data-wd': `menu-item.${id}`,
+							'data-testid': `menu-item.${id}`,
 							kbd: kbd2,
 							label: labelToUse,
 							disabled: item.disabled,
