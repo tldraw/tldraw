@@ -1,4 +1,4 @@
-import test, { Browser, Page, expect } from '@playwright/test'
+import test, { expect } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
 
 export function sleep(ms: number) {
@@ -7,35 +7,44 @@ export function sleep(ms: number) {
 
 declare const app: App
 declare const __tldraw_event: { name: string }
-let page: Page
 
-async function setup({ browser }: { browser: Browser }) {
-	page = await browser.newPage()
-	await page.goto('http://localhost:5420/')
-	await page.waitForSelector('.tl-canvas')
-	await page.evaluate(() => (app.enableAnimations = false))
-}
+// let page: Page
 
-async function selectAllAndDelete() {
-	await page.keyboard.press('Control+a')
-	await page.keyboard.press('Backspace')
-}
+// async function setup({ browser }: { browser: Browser }) {
+// 	page = await browser.newPage()
+// 	await page.goto('http://localhost:5420/')
+// 	await page.waitForSelector('.tl-canvas')
+// 	await page.evaluate(() => (app.enableAnimations = false))
+// }
 
-async function createBasicShapes() {
-	await page.keyboard.press('r')
-	await page.mouse.click(55, 55)
-	await page.keyboard.press('r')
-	await page.mouse.click(65, 205)
-	await page.keyboard.press('r')
-	await page.mouse.click(75, 355)
-	await page.evaluate(async () => app.selectNone())
-}
+// async function selectAllAndDelete() {
+// 	await page.keyboard.press('Control+a')
+// 	await page.keyboard.press('Backspace')
+// }
+
+// async function createBasicShapes() {
+// 	await page.keyboard.press('r')
+// 	await page.mouse.click(55, 55)
+// 	await page.keyboard.press('r')
+// 	await page.mouse.click(55, 205)
+// 	await page.keyboard.press('r')
+// 	await page.mouse.click(75, 355)
+// 	await page.evaluate(async () => app.selectNone())
+// }
 
 test.describe('keyboard shortcuts', () => {
-	test.beforeAll(setup)
-	test.afterEach(selectAllAndDelete)
+	test.beforeEach(async ({ page }) => {
+		await page.goto('http://localhost:5420/')
+		await page.waitForSelector('.tl-canvas')
+		await page.evaluate(() => (app.enableAnimations = false))
+	})
 
-	test('tools', async () => {
+	test.afterEach(async ({ page }) => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+	})
+
+	test('tools', async ({ page }) => {
 		const geoToolKds = [
 			['r', 'rectangle'],
 			['o', 'ellipse'],
@@ -79,7 +88,7 @@ test.describe('keyboard shortcuts', () => {
 		}
 	})
 
-	test('camera', async () => {
+	test('camera', async ({ page }) => {
 		// when on a mobile device...
 		const hasMobileMenu = await page.isVisible('.tlui-toolbar__styles__button')
 
@@ -162,7 +171,7 @@ test.describe('keyboard shortcuts', () => {
 		}
 	})
 
-	test('grid mode', async () => {
+	test('grid mode', async ({ page }) => {
 		expect(await page.evaluate(() => app.isGridMode)).toBe(false)
 		await page.keyboard.press("Control+'")
 		expect(await page.evaluate(() => app.isGridMode)).toBe(true)
@@ -170,7 +179,7 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.isGridMode)).toBe(false)
 	})
 
-	test('dark mode', async () => {
+	test('dark mode', async ({ page }) => {
 		expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
 		await page.keyboard.press('Control+/')
 		expect(await page.evaluate(() => app.isDarkMode)).toBe(true)
@@ -178,7 +187,7 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
 	})
 
-	test.fixme('focus mode', async () => {
+	test.fixme('focus mode', async ({ page }) => {
 		expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
 		await page.keyboard.press('Control+.')
 		expect(await page.evaluate(() => app.isFocusMode)).toBe(true)
@@ -186,7 +195,7 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
 	})
 
-	test('tool lock', async () => {
+	test('tool lock', async ({ page }) => {
 		expect(await page.evaluate(() => app.isToolLocked)).toBe(false)
 		await page.keyboard.press('q')
 		expect(await page.evaluate(() => app.isToolLocked)).toBe(true)
@@ -210,48 +219,48 @@ test.describe('keyboard shortcuts', () => {
 	})
 
 	// File
-	test.skip('new-project — ⌘N', async () => {
+	test.skip('new-project — Cmd+N', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('open — ⌘O', async () => {
+	test.skip('open — Cmd+O', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('save — ⌘S', async () => {
+	test.skip('save — Cmd+S', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('save-as — ⌘⇧S', async () => {
+	test.skip('save-as — Cmd+Shift+S', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('upload-media — ⌘I', async () => {
+	test.skip('upload-media — Cmd+I', async ({ page }) => {
 		// todo
 	})
 
 	// Edit
-	test.skip('undo — ⌘Z', async () => {
+	test.skip('undo — Cmd+Z', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('redo — ⌘⇧Z', async () => {
+	test.skip('redo — Cmd+Shift+Z', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('cut — ⌘X', async () => {
+	test.skip('cut — Cmd+X', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('copy — ⌘C', async () => {
+	test.skip('copy — Cmd+C', async ({ page }) => {
 		// todo
 	})
 
-	test.skip('paste — ⌘V', async () => {
+	test.skip('paste — Cmd+V', async ({ page }) => {
 		// todo
 	})
 
-	test('select-all — ⌘A', async () => {
+	test('select-all — Cmd+A', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.click(55, 55)
 
@@ -267,7 +276,7 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.selectedIds.length)).toBe(2)
 	})
 
-	test('delete — ⌫', async () => {
+	test('delete — ⌫', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.click(55, 55)
 		await page.keyboard.press('r')
@@ -289,7 +298,7 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
 	})
 
-	test('duplicate — ⌘D', async () => {
+	test('duplicate — Cmd+D', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.click(55, 55)
 		await page.keyboard.press('r')
@@ -306,12 +315,26 @@ test.describe('keyboard shortcuts', () => {
 })
 
 test.describe('Operations on Shapes', () => {
-	test.beforeAll(setup)
-	test.beforeEach(createBasicShapes)
-	test.afterEach(selectAllAndDelete)
+	test.beforeEach(async ({ page }) => {
+		await page.goto('http://localhost:5420/')
+		await page.waitForSelector('.tl-canvas')
+		await page.evaluate(() => (app.enableAnimations = false))
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 55)
+		await page.keyboard.press('r')
+		await page.mouse.click(55, 205)
+		await page.keyboard.press('r')
+		await page.mouse.click(75, 355)
+		await page.evaluate(async () => app.selectNone())
+	})
+
+	test.afterEach(async ({ page }) => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+	})
 
 	test.describe('Alignment', () => {
-		test('align left — ⌥A', async () => {
+		test('align left — Alt+A', async ({ page }) => {
 			page.keyboard.press('Control+a')
 			await page.keyboard.press('Alt+a')
 
@@ -322,7 +345,7 @@ test.describe('Operations on Shapes', () => {
 			).toMatchObject([55, 55, 55])
 		})
 
-		test('align right — ⌥D', async () => {
+		test('align right — Alt+D', async ({ page }) => {
 			page.keyboard.press('Control+a')
 			await page.keyboard.press('Alt+d')
 
@@ -333,7 +356,7 @@ test.describe('Operations on Shapes', () => {
 			).toMatchObject([75, 75, 75])
 		})
 
-		test('align top — ⌥W', async () => {
+		test('align top — Alt+W', async ({ page }) => {
 			page.keyboard.press('Control+a')
 			await page.keyboard.press('Alt+w')
 
@@ -344,7 +367,7 @@ test.describe('Operations on Shapes', () => {
 			).toMatchObject([55, 55, 55])
 		})
 
-		test('align bottom — ⌥W', async () => {
+		test('align bottom — Alt+W', async ({ page }) => {
 			page.keyboard.press('Control+a')
 			await page.keyboard.press('Alt+w')
 
@@ -356,9 +379,47 @@ test.describe('Operations on Shapes', () => {
 		})
 	})
 
+	test.describe('Distribution', () => {
+		test('distribute horizontal', async ({ page }) => {
+			await page.keyboard.press('Control+a')
+			await page.mouse.click(10, 60, { button: 'right' })
+			await page.getByTestId('menu-item.arrange').click()
+			await page.getByTestId('menu-item.distribute-horizontal').click()
+
+			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+				name: 'distribute-shapes',
+				data: { operation: 'horizontal', source: 'context-menu' },
+			})
+
+			expect(
+				await page.evaluate(() => {
+					return app.shapesArray.map((s) => s.x + 100)
+				})
+			).toMatchObject([55, 65, 75])
+		})
+
+		test('distribute vertical — Shift+Alt+V', async ({ page }) => {
+			await page.keyboard.press('Control+a')
+			await page.mouse.click(10, 60, { button: 'right' })
+			await page.getByTestId('menu-item.arrange').click()
+			await page.getByTestId('menu-item.distribute-vertical').click()
+
+			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+				name: 'distribute-shapes',
+				data: { operation: 'vertical', source: 'context-menu' },
+			})
+
+			expect(
+				await page.evaluate(() => {
+					return app.shapesArray.map((s) => s.y + 100)
+				})
+			).toMatchObject([55, 205, 355])
+		})
+	})
+
 	test.describe('Reordering', () => {
 		// Transform
-		test('flip-h — ⇧H', async () => {
+		test('flip-h — Shift+H', async ({ page }) => {
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Shift+h')
 
@@ -368,7 +429,7 @@ test.describe('Operations on Shapes', () => {
 			})
 		})
 
-		test('flip-v — ⇧V', async () => {
+		test('flip-v — Shift+V', async ({ page }) => {
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Shift+v')
 
@@ -378,7 +439,7 @@ test.describe('Operations on Shapes', () => {
 			})
 		})
 
-		test('move-to-front — ]', async () => {
+		test('move-to-front — ]', async ({ page }) => {
 			await page.mouse.click(50, 50) // bottom
 
 			expect(await page.evaluate(() => app.onlySelectedShape)).toMatchObject({
@@ -397,7 +458,7 @@ test.describe('Operations on Shapes', () => {
 			})
 		})
 
-		test('move-forward — ⌥]', async () => {
+		test('move-forward — Alt+]', async ({ page }) => {
 			await page.mouse.click(50, 50) // bottom
 
 			expect(await page.evaluate(() => app.onlySelectedShape)).toMatchObject({
@@ -416,7 +477,7 @@ test.describe('Operations on Shapes', () => {
 			})
 		})
 
-		test.fixme('move-to-back — [', async () => {
+		test.fixme('move-to-back — [', async ({ page }) => {
 			await page.mouse.click(75, 355) // top
 
 			expect(await page.evaluate(() => app.onlySelectedShape)).toMatchObject({
@@ -435,7 +496,7 @@ test.describe('Operations on Shapes', () => {
 			})
 		})
 
-		test('move-backward — ⌥[', async () => {
+		test('move-backward — Alt+[', async ({ page }) => {
 			await page.mouse.click(55, 355) // top
 
 			expect(await page.evaluate(() => app.onlySelectedShape)).toMatchObject({
@@ -456,7 +517,7 @@ test.describe('Operations on Shapes', () => {
 	})
 
 	test.describe('Group', () => {
-		test('group — ⌘G', async () => {
+		test('group — Cmd+G', async ({ page }) => {
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Control+g')
 			expect(await page.evaluate(() => app.shapesArray.length)).toBe(4)
@@ -468,7 +529,7 @@ test.describe('Operations on Shapes', () => {
 			])
 		})
 
-		test('ungroup — ⌘⇧G', async () => {
+		test('ungroup — Cmd+Shift+G', async ({ page }) => {
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Control+g')
 			expect(await page.evaluate(() => app.shapesArray.length)).toBe(4)
@@ -483,7 +544,7 @@ test.describe('Operations on Shapes', () => {
 	})
 
 	test.describe('Preferences', () => {
-		test('grid mode', async () => {
+		test('grid mode', async ({ page }) => {
 			expect(await page.evaluate(() => app.isGridMode)).toBe(false)
 			await page.keyboard.press("Control+'")
 			expect(await page.evaluate(() => app.isGridMode)).toBe(true)
@@ -491,7 +552,7 @@ test.describe('Operations on Shapes', () => {
 			expect(await page.evaluate(() => app.isGridMode)).toBe(false)
 		})
 
-		test('dark mode', async () => {
+		test('dark mode', async ({ page }) => {
 			expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
 			await page.keyboard.press('Control+/')
 			expect(await page.evaluate(() => app.isDarkMode)).toBe(true)
@@ -499,7 +560,7 @@ test.describe('Operations on Shapes', () => {
 			expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
 		})
 
-		test.fixme('focus mode', async () => {
+		test.fixme('focus mode', async ({ page }) => {
 			expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
 			await page.keyboard.press('Control+.')
 			expect(await page.evaluate(() => app.isFocusMode)).toBe(true)
@@ -507,7 +568,7 @@ test.describe('Operations on Shapes', () => {
 			expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
 		})
 
-		test('tool lock', async () => {
+		test('tool lock', async ({ page }) => {
 			expect(await page.evaluate(() => app.isToolLocked)).toBe(false)
 			await page.keyboard.press('q')
 			expect(await page.evaluate(() => app.isToolLocked)).toBe(true)
