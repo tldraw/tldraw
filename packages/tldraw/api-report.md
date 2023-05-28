@@ -12,7 +12,6 @@ export function Tldraw(props: Omit<TldrawEditorProps, 'config' | 'store'> & Tldr
     persistenceKey?: string;
     hideUi?: boolean;
     config?: TldrawEditorProps['config'];
-    validate?: boolean;
 }): JSX.Element;
 
 

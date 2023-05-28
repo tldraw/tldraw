@@ -105,7 +105,6 @@ export class CardTool extends TLBoxTool {
 
 // Finally, collect the custom tools and shapes into a config object
 const customTldrawConfig = new TldrawEditorConfig({
-	validate: false, // this is important, since we haven't written any custom validators
 	tools: [CardTool],
 	shapes: {
 		card: {

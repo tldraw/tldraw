@@ -81,7 +81,7 @@ export class TldrawEditorConfig {
 	readonly storeSchema: StoreSchema<TLRecord, TLStoreProps>
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const { validate = true, shapes = {}, tools = [], derivePresenceState } = opts
+		const { shapes = {}, tools = [], derivePresenceState } = opts
 
 		this.tools = tools
 
@@ -91,7 +91,6 @@ export class TldrawEditorConfig {
 		}
 
 		this.storeSchema = createTLSchema({
-			validate,
 			customShapes: shapes,
 			derivePresenceState: derivePresenceState,
 		})

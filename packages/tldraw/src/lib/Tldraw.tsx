@@ -18,27 +18,17 @@ export function Tldraw(
 			hideUi?: boolean
 			/** A custom configuration for this Tldraw editor */
 			config?: TldrawEditorProps['config']
-			/** Whether to validate the schema */
-			validate?: boolean
 		}
 ) {
 	const {
 		config,
 		children,
-		validate = true,
 		persistenceKey = DEFAULT_DOCUMENT_NAME,
 		instanceId = TAB_ID,
 		...rest
 	} = props
 
-	const _config = useMemo(
-		() =>
-			config ??
-			new TldrawEditorConfig({
-				validate,
-			}),
-		[config, validate]
-	)
+	const _config = useMemo(() => config ?? new TldrawEditorConfig({}), [config])
 
 	const userData = getUserData()
 

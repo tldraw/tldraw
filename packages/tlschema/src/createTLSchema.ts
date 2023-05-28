@@ -60,12 +60,11 @@ type CustomShapeInfo<T extends TLUnknownShape> = {
  *  @public */
 export function createTLSchema<T extends TLUnknownShape>(
 	opts = {} as {
-		validate: boolean
 		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	}
 ) {
-	const { validate = false, customShapes = {}, derivePresenceState } = opts
+	const { customShapes = {}, derivePresenceState } = opts
 
 	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
 		TLShape['type'],
@@ -111,7 +110,7 @@ export function createTLSchema<T extends TLUnknownShape>(
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
-	let recordTypes = {
+	const recordTypes = {
 		asset: TLAsset,
 		camera: TLCamera,
 		document: TLDocument,
@@ -123,16 +122,6 @@ export function createTLSchema<T extends TLUnknownShape>(
 		user_document: TLUserDocument,
 		user_presence: TLUserPresence,
 		instance_presence: TLInstancePresence,
-	}
-
-	// Turn off all the validations if we're not validating
-	if (!validate) {
-		recordTypes = Object.fromEntries(
-			Object.entries(recordTypes).map(([k, v]) => {
-				v.validate = (r) => r as any
-				return [k, v]
-			})
-		) as typeof recordTypes
 	}
 
 	return StoreSchema.create<TLRecord, TLStoreProps>(recordTypes, {

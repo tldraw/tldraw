@@ -13,7 +13,6 @@ export default function Example() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				validate={false}
 				autoFocus
 				overrides={{
 					styles(app, styles) {

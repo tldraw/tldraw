@@ -17,14 +17,14 @@ function serialize(file: TldrawFile): string {
 
 describe('parseTldrawJsonFile', () => {
 	it('returns an error if the file is not json', () => {
-		const result = parseTldrawJsonFile(new TldrawEditorConfig({ validate: true }), 'not json')
+		const result = parseTldrawJsonFile(new TldrawEditorConfig(), 'not json')
 		assert(!result.ok)
 		expect(result.error.type).toBe('notATldrawFile')
 	})
 
 	it('returns an error if the file doesnt look like a tldraw file', () => {
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			JSON.stringify({ not: 'a tldraw file' })
 		)
 		assert(!result.ok)
@@ -33,7 +33,7 @@ describe('parseTldrawJsonFile', () => {
 
 	it('returns an error if the file version is too old', () => {
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 0,
 				schema: new TldrawEditorConfig().storeSchema.serialize(),
@@ -46,7 +46,7 @@ describe('parseTldrawJsonFile', () => {
 
 	it('returns an error if the file version is too new', () => {
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 100,
 				schema: new TldrawEditorConfig().storeSchema.serialize(),
@@ -61,7 +61,7 @@ describe('parseTldrawJsonFile', () => {
 		const serializedSchema = new TldrawEditorConfig().storeSchema.serialize()
 		serializedSchema.storeVersion = 100
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: serializedSchema,
@@ -75,7 +75,7 @@ describe('parseTldrawJsonFile', () => {
 		const serializedSchema2 = new TldrawEditorConfig().storeSchema.serialize()
 		serializedSchema2.recordVersions.shape.version = 100
 		const result2 = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: serializedSchema2,
@@ -90,7 +90,7 @@ describe('parseTldrawJsonFile', () => {
 
 	it('returns an error if a record is invalid', () => {
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: new TldrawEditorConfig().storeSchema.serialize(),
@@ -113,7 +113,7 @@ describe('parseTldrawJsonFile', () => {
 
 	it('returns a store if the file is valid', () => {
 		const result = parseTldrawJsonFile(
-			new TldrawEditorConfig({ validate: true }),
+			new TldrawEditorConfig(),
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: new TldrawEditorConfig().storeSchema.serialize(),
