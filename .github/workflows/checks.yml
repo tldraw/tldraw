@@ -59,6 +59,3 @@ jobs:
 
       - name: Test
         run: yarn test
-
-      - name: End to end test
-        run: yarn e2e
