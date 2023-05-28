@@ -1,14 +1,12 @@
-import test, { BrowserContext, Page, expect } from '@playwright/test'
+import test, { expect } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
+import { setup } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 declare const app: App
-
-let page: Page
-let context: BrowserContext
 
 /**
  * These tests are skipped. They are here to show how to use the clipboard
@@ -17,19 +15,7 @@ let context: BrowserContext
  * had to skip these tests.
  */
 test.describe.skip('clipboard tests', () => {
-	test.beforeAll(async ({ browser }) => {
-		page = await browser.newPage()
-		context = await browser.newContext()
-		await page.goto('http://localhost:5420/')
-		await page.waitForSelector('.tl-canvas')
-		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
-		await page.evaluate(() => (app.enableAnimations = false))
-	})
-
-	test.afterEach(async () => {
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Delete')
-	})
+	test.beforeEach(setup)
 
 	test('copy and paste from keyboard shortcut', async ({ page }) => {
 		await page.keyboard.press('r')

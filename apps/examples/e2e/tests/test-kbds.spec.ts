@@ -1,5 +1,6 @@
 import test, { expect } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
+import { setup, setupWithShapes } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -8,41 +9,8 @@ export function sleep(ms: number) {
 declare const app: App
 declare const __tldraw_event: { name: string }
 
-// let page: Page
-
-// async function setup({ browser }: { browser: Browser }) {
-// 	page = await browser.newPage()
-// 	await page.goto('http://localhost:5420/')
-// 	await page.waitForSelector('.tl-canvas')
-// 	await page.evaluate(() => (app.enableAnimations = false))
-// }
-
-// async function selectAllAndDelete() {
-// 	await page.keyboard.press('Control+a')
-// 	await page.keyboard.press('Backspace')
-// }
-
-// async function createBasicShapes() {
-// 	await page.keyboard.press('r')
-// 	await page.mouse.click(55, 55)
-// 	await page.keyboard.press('r')
-// 	await page.mouse.click(55, 205)
-// 	await page.keyboard.press('r')
-// 	await page.mouse.click(75, 355)
-// 	await page.evaluate(async () => app.selectNone())
-// }
-
 test.describe('keyboard shortcuts', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.goto('http://localhost:5420/')
-		await page.waitForSelector('.tl-canvas')
-		await page.evaluate(() => (app.enableAnimations = false))
-	})
-
-	test.afterEach(async ({ page }) => {
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
-	})
+	test.beforeEach(setup)
 
 	test('tools', async ({ page }) => {
 		const geoToolKds = [
@@ -218,48 +186,6 @@ test.describe('keyboard shortcuts', () => {
 		expect(await page.evaluate(() => app.currentToolId)).toBe('select')
 	})
 
-	// File
-	test.skip('new-project — Cmd+N', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('open — Cmd+O', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('save — Cmd+S', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('save-as — Cmd+Shift+S', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('upload-media — Cmd+I', async ({ page }) => {
-		// todo
-	})
-
-	// Edit
-	test.skip('undo — Cmd+Z', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('redo — Cmd+Shift+Z', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('cut — Cmd+X', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('copy — Cmd+C', async ({ page }) => {
-		// todo
-	})
-
-	test.skip('paste — Cmd+V', async ({ page }) => {
-		// todo
-	})
-
 	test('select-all — Cmd+A', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.click(55, 55)
@@ -315,23 +241,7 @@ test.describe('keyboard shortcuts', () => {
 })
 
 test.describe('Operations on Shapes', () => {
-	test.beforeEach(async ({ page }) => {
-		await page.goto('http://localhost:5420/')
-		await page.waitForSelector('.tl-canvas')
-		await page.evaluate(() => (app.enableAnimations = false))
-		await page.keyboard.press('r')
-		await page.mouse.click(55, 55)
-		await page.keyboard.press('r')
-		await page.mouse.click(55, 205)
-		await page.keyboard.press('r')
-		await page.mouse.click(75, 355)
-		await page.evaluate(async () => app.selectNone())
-	})
-
-	test.afterEach(async ({ page }) => {
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
-	})
+	test.beforeEach(setupWithShapes)
 
 	test.describe('Alignment', () => {
 		test('align left — Alt+A', async ({ page }) => {
@@ -591,4 +501,20 @@ test.describe('Operations on Shapes', () => {
 			expect(await page.evaluate(() => app.currentToolId)).toBe('select')
 		})
 	})
+
+	// File
+	test.skip('new-project — Cmd+N', async () => void null)
+	test.skip('open — Cmd+O', async () => void null)
+	test.skip('save — Cmd+S', async () => void null)
+	test.skip('save-as — Cmd+Shift+S', async () => void null)
+	test.skip('upload-media — Cmd+I', async () => void null)
+
+	// History
+	test.skip('undo — Cmd+Z', async () => void null)
+	test.skip('redo — Cmd+Shift+Z', async () => void null)
+
+	// Clipboard
+	test.skip('cut — Cmd+X', async () => void null)
+	test.skip('copy — Cmd+C', async () => void null)
+	test.skip('paste — Cmd+V', async () => void null)
 })

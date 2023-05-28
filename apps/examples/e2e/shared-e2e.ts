@@ -1,3 +1,6 @@
+import { PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
+import { App } from '@tldraw/tldraw'
+
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
@@ -13,3 +16,31 @@ export function sleep(ms: number) {
 // export async function expectToHaveNSelectedShapes(page: Page, numberOfSelectedShapes: number) {
 // 	expect(await page.evaluate(() => app.selectedIds.length)).toBe(numberOfSelectedShapes)
 // }
+
+declare const app: App
+
+export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+	await page.goto('http://localhost:5420/')
+	await page.waitForSelector('.tl-canvas')
+	await page.evaluate(() => (app.enableAnimations = false))
+	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+}
+
+export async function setupWithShapes({
+	page,
+	context,
+}: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+	await setup({ page, context } as any)
+	await page.keyboard.press('r')
+	await page.mouse.click(55, 55)
+	await page.keyboard.press('r')
+	await page.mouse.click(55, 205)
+	await page.keyboard.press('r')
+	await page.mouse.click(75, 355)
+	await page.evaluate(async () => app.selectNone())
+}
+
+export async function cleanup({ page }: PlaywrightTestArgs) {
+	await page.keyboard.press('Control+a')
+	await page.keyboard.press('Delete')
+}
