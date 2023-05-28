@@ -3,23 +3,7 @@ import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
 import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
 import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import {
-	alignValidator,
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	opacityValidator,
-	pageIdValidator,
-	sizeValidator,
-	splineValidator,
-	userIdValidator,
-	verticalAlignValidator,
-} from '../validation'
+import { idValidator, pageIdValidator, userIdValidator } from '../validation'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 import { TLUserId } from './TLUser'
@@ -63,22 +47,23 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		currentPageId: pageIdValidator,
 		followingUserId: userIdValidator.nullable(),
 		brush: T.boxModel.nullable(),
-		propsForNextShape: T.object({
-			color: colorValidator,
-			labelColor: colorValidator,
-			dash: dashValidator,
-			fill: fillValidator,
-			size: sizeValidator,
-			opacity: opacityValidator,
-			font: fontValidator,
-			align: alignValidator,
-			verticalAlign: verticalAlignValidator,
-			icon: iconValidator,
-			geo: geoValidator,
-			arrowheadStart: arrowheadValidator,
-			arrowheadEnd: arrowheadValidator,
-			spline: splineValidator,
-		}),
+		propsForNextShape: T.any,
+		// propsForNextShape: ({
+		// 	color: colorValidator,
+		// 	labelColor: colorValidator,
+		// 	dash: dashValidator,
+		// 	fill: fillValidator,
+		// 	size: sizeValidator,
+		// 	opacity: opacityValidator,
+		// 	font: fontValidator,
+		// 	align: alignValidator,
+		// 	verticalAlign: verticalAlignValidator,
+		// 	icon: iconValidator,
+		// 	geo: geoValidator,
+		// 	arrowheadStart: arrowheadValidator,
+		// 	arrowheadEnd: arrowheadValidator,
+		// 	spline: splineValidator,
+		// }),
 		cursor: cursorValidator,
 		scribble: scribbleTypeValidator.nullable(),
 		isFocusMode: T.boolean,
