@@ -34,3 +34,8 @@ export const PageRecordType = createRecordType<TLPage>('page', {
 
 /** @public */
 export const pageTypeMigrations = defineMigrations({})
+
+/** @public */
+export function isPageId(id: string): id is TLPageId {
+	return PageRecordType.isId(id)
+}

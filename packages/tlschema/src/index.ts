@@ -64,7 +64,13 @@ export {
 	type TLInstancePageStateId,
 } from './records/TLInstancePageState'
 export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
-export { PageRecordType, pageTypeValidator, type TLPage, type TLPageId } from './records/TLPage'
+export {
+	PageRecordType,
+	isPageId,
+	pageTypeValidator,
+	type TLPage,
+	type TLPageId,
+} from './records/TLPage'
 export {
 	PointerRecordType,
 	TLPOINTER_ID,
