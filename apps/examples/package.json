@@ -46,5 +46,8 @@
 		"signia": "0.1.4",
 		"signia-react": "0.1.4",
 		"vite": "^4.3.4"
+	},
+	"devDependencies": {
+		"dotenv": "^16.0.3"
 	}
 }
