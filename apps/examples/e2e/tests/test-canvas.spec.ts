@@ -1,4 +1,4 @@
-import test, { Page, expect } from '@playwright/test'
+import test, { expect } from '@playwright/test'
 import { App, TLGeoShape } from '@tldraw/tldraw'
 import { setup } from '../shared-e2e'
 
@@ -8,12 +8,10 @@ export function sleep(ms: number) {
 
 declare const app: App
 
-let page: Page
-
 test.describe('smoke tests', () => {
 	test.beforeEach(setup)
 
-	test('create a shape on the canvas', async () => {
+	test('create a shape on the canvas', async ({ page }) => {
 		await page.mouse.move(10, 50)
 
 		// start on an empty canvas
@@ -59,7 +57,7 @@ test.describe('smoke tests', () => {
 		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
 	})
 
-	test('undo and redo', async () => {
+	test('undo and redo', async ({ page }) => {
 		// buttons should be disabled when there is no history
 		expect(await page.evaluate(() => app.shapesArray.length)).toBe(0)
 		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(0)
@@ -89,11 +87,17 @@ test.describe('smoke tests', () => {
 		await page.getByTestId('main.redo').click()
 		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
 		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(1)
-		expect(page.getByTestId('main.undo')).not.toBeDisabled()
-		expect(page.getByTestId('main.redo')).toBeDisabled()
+		expect(await page.getByTestId('main.undo').isVisible()).toBe(true)
+		expect(await page.getByTestId('main.redo').isVisible()).toBe(true)
+
+		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
+		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
 	})
 
-	test('style panel + undo and redo squashing', async () => {
+	test('style panel + undo and redo squashing', async ({ page }) => {
+		expect(await page.getByTestId('main.undo').isVisible()).toBe(true)
+		expect(await page.getByTestId('main.redo').isVisible()).toBe(true)
+
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
@@ -143,20 +147,23 @@ test.describe('smoke tests', () => {
 		await page.mouse.up()
 
 		// Now undo and redo
+		const undo = page.getByTestId('main.undo')
+		const redo = page.getByTestId('main.redo')
 
-		await page.getByTestId('main.undo').click() // orange -> light blue
+		await undo.click() // orange -> light blue
 		expect(await getSelectedShapeColor()).toBe('light-blue') // skipping squashed colors!
 
-		await page.getByTestId('main.redo').click() // light blue -> orange
+		await redo.click() // light blue -> orange
 		expect(await getSelectedShapeColor()).toBe('orange') // skipping squashed colors!
 
-		await page.getByTestId('main.undo').click() // orange -> light blue
-		await page.getByTestId('main.undo').click() // light blue -> black
+		await undo.click() // orange -> light blue
+		await undo.click() // light blue -> black
 		expect(await getSelectedShapeColor()).toBe('black')
 
-		await page.getByTestId('main.redo').click() // black -> light blue
-		await page.getByTestId('main.redo').click() // light-blue -> orange
+		await redo.click() // black -> light blue
+		await redo.click() // light-blue -> orange
 
-		expect(page.getByTestId('main.redo')).toBeDisabled()
+		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
+		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
 	})
 })

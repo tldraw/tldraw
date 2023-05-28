@@ -1,4 +1,4 @@
-import test, { Page, expect } from '@playwright/test'
+import test, { expect } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
 import { setup } from '../shared-e2e'
 
@@ -8,12 +8,10 @@ export function sleep(ms: number) {
 
 declare const app: App
 
-let page: Page
-
 test.describe('smoke tests', () => {
 	test.beforeEach(setup)
 
-	test('draw tool', async () => {
+	test('draw tool', async ({ page }) => {
 		await page.keyboard.press('d')
 		await page.mouse.move(64, 64)
 		await page.mouse.down()
@@ -48,7 +46,7 @@ test.describe('smoke tests', () => {
 		})
 	})
 
-	test('geo tool', async () => {
+	test('geo tool', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.move(64, 64)
 		await page.mouse.down()
@@ -74,7 +72,7 @@ test.describe('smoke tests', () => {
 		})
 	})
 
-	test('arrow tool', async () => {
+	test('arrow tool', async ({ page }) => {
 		await page.keyboard.press('a')
 		await page.mouse.move(64, 64)
 		await page.mouse.down()
