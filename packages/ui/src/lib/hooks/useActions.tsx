@@ -796,6 +796,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-reduce-motion',
+				label: 'action.toggle-reduce-motion',
+				menuLabel: 'action.toggle-reduce-motion.menu',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-reduce-motion', { source })
+					app.setReduceMotion(!app.reduceMotion)
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-transparent',
 				label: 'action.toggle-transparent',
 				menuLabel: 'action.toggle-transparent.menu',

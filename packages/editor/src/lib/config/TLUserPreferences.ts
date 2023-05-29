@@ -17,6 +17,7 @@ export interface TLUserPreferences {
 	locale: string
 	color: string
 	isDarkMode: boolean
+	reduceMotion?: boolean
 }
 
 interface UserDataSnapshot {
@@ -30,15 +31,35 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object({
+const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
 	name: T.string,
 	locale: T.string,
 	color: T.string,
 	isDarkMode: T.boolean,
+	reduceMotion: T.boolean,
 })
 
-const userTypeMigrations = defineMigrations({})
+const Versions = {
+	AddsReduceMotion: 1,
+} as const
+
+const userTypeMigrations = defineMigrations({
+	currentVersion: 1,
+	migrators: {
+		[Versions.AddsReduceMotion]: {
+			up: (user) => {
+				return {
+					...user,
+					reduceMotion: false,
+				}
+			},
+			down: ({ reduceMotion: _, ...user }) => {
+				return user
+			},
+		},
+	},
+})
 
 /** @internal */
 export const USER_COLORS = [
@@ -70,6 +91,7 @@ function getFreshUserPreferences(): TLUserPreferences {
 		isDarkMode: false,
 	}
 }
+
 function migrateUserPreferences(userData: unknown) {
 	if (userData === null || typeof userData !== 'object') {
 		return getFreshUserPreferences()

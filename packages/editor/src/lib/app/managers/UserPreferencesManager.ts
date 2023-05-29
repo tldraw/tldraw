@@ -30,4 +30,8 @@ export class UserPreferencesManager {
 	get color() {
 		return this.editor.config.userPreferences.value.color
 	}
+
+	get reduceMotion() {
+		return this.editor.config.userPreferences.value.reduceMotion
+	}
 }

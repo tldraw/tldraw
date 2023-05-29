@@ -401,6 +401,8 @@ export class App extends EventEmitter<TLEventMap> {
         preserveIds?: boolean;
     }): this;
     redo(): this;
+    // (undocumented)
+    get reduceMotion(): boolean | undefined;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
         id: TLShapeId;
@@ -471,6 +473,8 @@ export class App extends EventEmitter<TLEventMap> {
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
+    // (undocumented)
+    setReduceMotion(reduceMotion: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;

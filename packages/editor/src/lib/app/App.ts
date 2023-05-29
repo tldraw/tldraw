@@ -1510,8 +1510,20 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setDarkMode(isDarkMode: boolean) {
+		console.log('ok')
 		if (isDarkMode !== this.isDarkMode) {
 			this.user.updateUserPreferences({ isDarkMode })
+		}
+		return this
+	}
+
+	get reduceMotion() {
+		return this.user.reduceMotion
+	}
+
+	setReduceMotion(reduceMotion: boolean) {
+		if (reduceMotion !== this.isDarkMode) {
+			this.user.updateUserPreferences({ reduceMotion })
 		}
 		return this
 	}
@@ -7909,6 +7921,10 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const targetViewport = new Box2d(-x, -y, w, h)
 
+		if (this.reduceMotion) {
+			return this._setCamera(x, y, z)
+		}
+
 		return this._animateToViewport(targetViewport, opts)
 	}
 
@@ -8374,9 +8390,18 @@ export class App extends EventEmitter<TLEventMap> {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
 		const startViewport = this.viewportPageBounds.clone()
 
+		console.log('hi')
 		this.stopCameraAnimation()
 		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
+		}
+
+		if (this.reduceMotion) {
+			return this._setCamera(
+				targetViewportPage.x,
+				targetViewportPage.y,
+				this.viewportScreenBounds.width / targetViewportPage.width
+			)
 		}
 
 		this._viewportAnimation = {
