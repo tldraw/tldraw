@@ -97,7 +97,7 @@ export class Erasing extends StateNode {
 			// Skip groups
 			if (shape.type === 'group') continue
 			// Skip locked shapes
-			if (shape.isLocked) continue
+			if (this.app.isShapeOrParentLocked(shape)) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
 			const pageMask = this.app.getPageMaskById(shape.id)

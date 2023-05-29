@@ -27,8 +27,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const contextMenuSchema = useContextMenuSchema()
 	const cb = (isOpen: boolean) => {
 		if (isOpen) return
-		const { onlySelectedShape } = app
-		if (onlySelectedShape && onlySelectedShape.isLocked) {
+		if (shouldDeselect(app)) {
 			app.setSelectedIds([])
 		}
 	}
@@ -60,6 +59,12 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			<ContextMenuContent />
 		</_ContextMenu.Root>
 	)
+}
+
+function shouldDeselect(app: App) {
+	const { onlySelectedShape } = app
+	if (!onlySelectedShape) return false
+	return app.isShapeOrParentLocked(onlySelectedShape)
 }
 
 function ContextMenuContent() {

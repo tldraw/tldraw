@@ -363,6 +363,7 @@ export class App extends EventEmitter<TLEventMap> {
         new (...args: any): TLShapeUtil<T>;
         type: string;
     }): shape is T;
+    isShapeOrParentLocked(shape: TLShape): boolean;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)
@@ -2031,11 +2032,11 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    canDropShapes: (_shape: TLFrameShape, _shapes: TLShape[]) => boolean;
+    canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (_type: TLShape['type']) => boolean;
+    canReceiveNewChildrenOfType: (_type: TLShape['type'], shape: TLShape) => boolean;
     // (undocumented)
     defaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -2447,7 +2448,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canCrop: TLShapeUtilFlag<T>;
     canDropShapes(shape: T, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<T>;
-    canReceiveNewChildrenOfType(type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(type: TLShape['type'], shape: T): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;

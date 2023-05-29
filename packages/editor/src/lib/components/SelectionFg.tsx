@@ -33,7 +33,7 @@ export const SelectionFg = track(function SelectionFg() {
 	let bounds = app.selectionBounds
 	const shapes = app.selectedShapes
 	const onlyShape = shapes.length === 1 ? shapes[0] : null
-	const isLockedShape = onlyShape && onlyShape.isLocked
+	const isLockedShape = onlyShape && app.isShapeOrParentLocked(onlyShape)
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
 	const expandOutlineBy = onlyShape

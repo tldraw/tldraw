@@ -307,7 +307,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(type: TLShape['type']) {
+	canReceiveNewChildrenOfType(type: TLShape['type'], shape: T) {
 		return false
 	}
 

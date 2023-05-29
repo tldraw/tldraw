@@ -2211,6 +2211,18 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Check whether a shape or its parent is locked.
+	 *
+	 * @param id - The id of the shape to check.
+	 * @public
+	 */
+	isShapeOrParentLocked(shape: TLShape): boolean {
+		if (shape.isLocked) return true
+		const ancestors = this.getAncestorsById(shape.id)
+		return ancestors.some((ancestor) => ancestor.isLocked)
+	}
+
+	/**
 	 * Get the shapes that should be displayed in the current viewport.
 	 *
 	 * @public
@@ -2870,7 +2882,7 @@ export class App extends EventEmitter<TLEventMap> {
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
 			const util = this.getShapeUtil(shape)
-			if (!util.canReceiveNewChildrenOfType(shapeType)) continue
+			if (!util.canReceiveNewChildrenOfType(shapeType, shape)) continue
 			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
 			if (
 				maskedPageBounds &&
@@ -4824,7 +4836,8 @@ export class App extends EventEmitter<TLEventMap> {
 			if (!shape) return false
 
 			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
-			return !shape.isLocked || Object.hasOwn(p, 'isLocked')
+			if (this.isShapeOrParentLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
+			return true
 		})
 
 		this._updateShapes(compactedPartials, squashing)
