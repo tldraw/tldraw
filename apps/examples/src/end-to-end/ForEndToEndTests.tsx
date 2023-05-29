@@ -8,7 +8,12 @@ export default function ForEndToEndTests() {
 			<Tldraw
 				autoFocus
 				onUiEvent={(name, data) => {
-					;(window as any).__tldraw_event = { name, data }
+					;(window as any).__tldraw_ui_event = { name, data }
+				}}
+				onMount={(app) => {
+					app.on('event', (info) => {
+						;(window as any).__tldraw_editor_event = info
+					})
 				}}
 			/>
 		</div>

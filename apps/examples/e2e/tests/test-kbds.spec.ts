@@ -1,7 +1,7 @@
 import test, { Page, expect } from '@playwright/test'
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
 
-declare const __tldraw_event: { name: string }
+declare const __tldraw_ui_event: { name: string }
 
 // We're just testing the events, not the actual results.
 
@@ -22,7 +22,7 @@ test.describe('Keyboard Shortcuts', () => {
 		for (const [key, geo] of geoToolKds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
 				data: { id: `geo-${geo}`, source: 'kbd' },
 			})
@@ -36,7 +36,7 @@ test.describe('Keyboard Shortcuts', () => {
 		for (const [key, tool] of simpleToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
 				data: { id: tool, source: 'kbd' },
 			})
@@ -58,7 +58,7 @@ test.describe('Keyboard Shortcuts', () => {
 		for (const [key, tool] of shapeToolKbds) {
 			await page.keyboard.press('v') // set back to select
 			await page.keyboard.press(key)
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-tool',
 				data: { id: tool, source: 'kbd' },
 			})
@@ -68,7 +68,7 @@ test.describe('Keyboard Shortcuts', () => {
 	test.describe('actions', () => {
 		test('Zoom in', async () => {
 			await page.keyboard.press('Control+=')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'zoom-in',
 				data: { source: 'kbd' },
 			})
@@ -76,7 +76,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Zoom out', async () => {
 			await page.keyboard.press('Control+-')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'zoom-out',
 				data: { source: 'kbd' },
 			})
@@ -84,7 +84,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Zoom to fit', async () => {
 			await page.keyboard.press('Shift+1')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'zoom-to-fit',
 				data: { source: 'kbd' },
 			})
@@ -92,7 +92,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Zoom to selection', async () => {
 			await page.keyboard.press('Shift+2')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'zoom-to-selection',
 				data: { source: 'kbd' },
 			})
@@ -100,7 +100,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Zoom to 100', async () => {
 			await page.keyboard.press('Shift+0')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'reset-zoom',
 				data: { source: 'kbd' },
 			})
@@ -117,19 +117,19 @@ test.describe('Keyboard Shortcuts', () => {
 		/* -------------------- Clipboard ------------------- */
 
 		// await page.keyboard.press('Control+c')
-		// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 		// 	name: 'copy',
 		// 	data: { source: 'kbd' },
 		// })
 
 		// await page.keyboard.press('Control+v')
-		// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 		// 	name: 'paste',
 		// 	data: { source: 'kbd' },
 		// })
 
 		// await page.keyboard.press('Control+x')
-		// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+		// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 		// 	name: 'cut',
 		// 	data: { source: 'kbd' },
 		// })
@@ -138,7 +138,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Toggle grid mode', async () => {
 			await page.keyboard.press("Control+'")
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'toggle-grid-mode',
 				data: { source: 'kbd' },
 			})
@@ -146,7 +146,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Toggle dark mode', async () => {
 			await page.keyboard.press('Control+/')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'toggle-dark-mode',
 				data: { source: 'kbd' },
 			})
@@ -154,7 +154,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 		test('Toggle tool lock', async () => {
 			await page.keyboard.press('q')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'toggle-tool-lock',
 				data: { source: 'kbd' },
 			})
@@ -167,7 +167,7 @@ test.describe('Keyboard Shortcuts', () => {
 
 			// select-all — Cmd+A
 			await page.keyboard.press('Control+a')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'select-all-shapes',
 				data: { source: 'kbd' },
 			})
@@ -177,7 +177,7 @@ test.describe('Keyboard Shortcuts', () => {
 			await page.mouse.click(200, 200, { button: 'right' })
 			await page.getByTestId('menu-item.arrange').click()
 			await page.getByTestId('menu-item.distribute-horizontal').click()
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'distribute-shapes',
 				data: { operation: 'horizontal', source: 'context-menu' },
 			})
@@ -187,112 +187,112 @@ test.describe('Keyboard Shortcuts', () => {
 			await page.mouse.click(200, 200, { button: 'right' })
 			await page.getByTestId('menu-item.arrange').click()
 			await page.getByTestId('menu-item.distribute-vertical').click()
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'distribute-shapes',
 				data: { operation: 'vertical', source: 'context-menu' },
 			})
 
 			// flip-h — Shift+H
 			await page.keyboard.press('Shift+h')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'flip-shapes',
 				data: { operation: 'horizontal', source: 'kbd' },
 			})
 
 			// flip-v — Shift+V
 			await page.keyboard.press('Shift+v')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'flip-shapes',
 				data: { operation: 'vertical', source: 'kbd' },
 			})
 
 			// move-to-front — ]
 			await page.keyboard.press(']')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'reorder-shapes',
 				data: { operation: 'toFront', source: 'kbd' },
 			})
 
 			// move-forward — Alt+]
 			await page.keyboard.press('Alt+]')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'reorder-shapes',
 				data: { operation: 'forward', source: 'kbd' },
 			})
 
 			// move-to-back — [
 			await page.keyboard.press('[')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'reorder-shapes',
 				data: { operation: 'toBack', source: 'kbd' },
 			})
 
 			// move-backward — Alt+[
 			await page.keyboard.press('Alt+[')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'reorder-shapes',
 				data: { operation: 'backward', source: 'kbd' },
 			})
 
 			// group — Cmd+G
 			await page.keyboard.press('Control+g')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'group-shapes',
 				data: { source: 'kbd' },
 			})
 
 			// ungroup — Cmd+Shift+G
 			await page.keyboard.press('Control+Shift+g')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'ungroup-shapes',
 				data: { source: 'kbd' },
 			})
 
 			// duplicate — Cmd+D
 			await page.keyboard.press('Control+d')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'duplicate-shapes',
 				data: { source: 'kbd' },
 			})
 
 			// delete — backspace
 			await page.keyboard.press('Backspace')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'delete-shapes',
 				data: { source: 'kbd' },
 			})
 
 			// delete — ⌫
 			await page.keyboard.press('Delete')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'delete-shapes',
 				data: { source: 'kbd' },
 			})
 
 			// align left — Alt+A
 			await page.keyboard.press('Alt+a')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'align-shapes',
 				data: { operation: 'left', source: 'kbd' },
 			})
 
 			// align right — Alt+D
 			await page.keyboard.press('Alt+d')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'align-shapes',
 				data: { operation: 'right', source: 'kbd' },
 			})
 
 			// align top — Alt+W
 			await page.keyboard.press('Alt+w')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'align-shapes',
 				data: { operation: 'top', source: 'kbd' },
 			})
 
 			// align bottom — Alt+W'
 			await page.keyboard.press('Alt+s')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'align-shapes',
 				data: { operation: 'bottom', source: 'kbd' },
 			})
@@ -300,13 +300,13 @@ test.describe('Keyboard Shortcuts', () => {
 			/* ---------------------- Misc ---------------------- */
 
 			// await page.keyboard.press('Control+i')
-			// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			// 	name: 'open-menu',
 			// 	data: { source: 'dialog' },
 			// })
 
 			// await page.keyboard.press('Control+u')
-			// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			// 	name: 'open-menu',
 			// 	data: { source: 'dialog' },
 			// })
@@ -314,7 +314,7 @@ test.describe('Keyboard Shortcuts', () => {
 			/* --------------------- Export --------------------- */
 
 			await page.keyboard.press('Control+Shift+c')
-			expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 				name: 'copy-as',
 				data: { format: 'svg', source: 'kbd' },
 			})
