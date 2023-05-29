@@ -1510,7 +1510,6 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setDarkMode(isDarkMode: boolean) {
-		console.log('ok')
 		if (isDarkMode !== this.isDarkMode) {
 			this.user.updateUserPreferences({ isDarkMode })
 		}
@@ -1522,7 +1521,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	setReduceMotion(reduceMotion: boolean) {
-		if (reduceMotion !== this.isDarkMode) {
+		if (reduceMotion !== this.reduceMotion) {
 			this.user.updateUserPreferences({ reduceMotion })
 		}
 		return this
