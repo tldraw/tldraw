@@ -1,100 +1,137 @@
 import test, { expect } from '@playwright/test'
-import { App } from '@tldraw/tldraw'
-import { setup } from '../shared-e2e'
+import { getAllShapeTypes, setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-declare const app: App
+const clickableShapeCreators = [
+	{ tool: 'draw', shape: 'draw' },
+	{ tool: 'frame', shape: 'frame' },
+	{ tool: 'note', shape: 'note' },
+	{ tool: 'text', shape: 'text' },
+	{ tool: 'rectangle', shape: 'geo' },
+	{ tool: 'ellipse', shape: 'geo' },
+	{ tool: 'triangle', shape: 'geo' },
+	{ tool: 'diamond', shape: 'geo' },
+	{ tool: 'pentagon', shape: 'geo' },
+	{ tool: 'hexagon', shape: 'geo' },
+	{ tool: 'octagon', shape: 'geo' },
+	{ tool: 'star', shape: 'geo' },
+	{ tool: 'rhombus', shape: 'geo' },
+	{ tool: 'oval', shape: 'geo' },
+	{ tool: 'trapezoid', shape: 'geo' },
+	{ tool: 'arrow-right', shape: 'geo' },
+	{ tool: 'arrow-left', shape: 'geo' },
+	{ tool: 'arrow-up', shape: 'geo' },
+	{ tool: 'arrow-down', shape: 'geo' },
+	{ tool: 'x-box', shape: 'geo' },
+	{ tool: 'check-box', shape: 'geo' },
+]
 
-test.describe('creates shapes with tools', () => {
-	test.beforeEach(setup)
+const draggableShapeCreators = [
+	{ tool: 'draw', shape: 'draw' },
+	{ tool: 'arrow', shape: 'arrow' },
+	{ tool: 'frame', shape: 'frame' },
+	{ tool: 'note', shape: 'note' },
+	{ tool: 'text', shape: 'text' },
+	{ tool: 'line', shape: 'line' },
+	{ tool: 'rectangle', shape: 'geo' },
+	{ tool: 'ellipse', shape: 'geo' },
+	{ tool: 'triangle', shape: 'geo' },
+	{ tool: 'diamond', shape: 'geo' },
+	{ tool: 'pentagon', shape: 'geo' },
+	{ tool: 'hexagon', shape: 'geo' },
+	{ tool: 'octagon', shape: 'geo' },
+	{ tool: 'star', shape: 'geo' },
+	{ tool: 'rhombus', shape: 'geo' },
+	{ tool: 'oval', shape: 'geo' },
+	{ tool: 'trapezoid', shape: 'geo' },
+	{ tool: 'arrow-right', shape: 'geo' },
+	{ tool: 'arrow-left', shape: 'geo' },
+	{ tool: 'arrow-up', shape: 'geo' },
+	{ tool: 'arrow-down', shape: 'geo' },
+	{ tool: 'x-box', shape: 'geo' },
+	{ tool: 'check-box', shape: 'geo' },
+]
 
-	test('draw tool', async ({ page }) => {
-		await page.keyboard.press('d')
-		await page.mouse.move(64, 64)
+const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }]
+
+test('creates shapes with tools', async ({ page }) => {
+	await setupPage(page)
+
+	for (const { tool } of otherTools) {
+		// Find and click the button
+		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+			await page.getByTestId('tools.more').click()
+		}
+		await page.getByTestId(`tools.${tool}`).click()
+
+		// Button should be selected
+		expect(
+			await page
+				.getByTestId(`tools.${tool}`)
+				.elementHandle()
+				.then((d) => d?.getAttribute('data-state'))
+		).toBe('selected')
+	}
+
+	for (const { tool, shape } of clickableShapeCreators) {
+		// Find and click the button
+		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+			await page.getByTestId('tools.more').click()
+		}
+		await page.getByTestId(`tools.${tool}`).click()
+
+		// Button should be selected
+		expect(
+			await page
+				.getByTestId(`tools.${tool}`)
+				.elementHandle()
+				.then((d) => d?.getAttribute('data-state'))
+		).toBe('selected')
+
+		// Click on the page
+		await page.mouse.click(200, 200)
+
+		// We should have a corresponding shape in the page
+		expect(await getAllShapeTypes(page)).toEqual([shape])
+
+		// Reset for next time
+		await page.mouse.click(0, 0) // to ensure we're not focused
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+	}
+
+	expect(await getAllShapeTypes(page)).toEqual([])
+
+	for (const { tool, shape } of draggableShapeCreators) {
+		// Find and click the button
+		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+			await page.getByTestId('tools.more').click()
+		}
+		await page.getByTestId(`tools.${tool}`).click()
+
+		// Button should be selected
+		expect(
+			await page
+				.getByTestId(`tools.${tool}`)
+				.elementHandle()
+				.then((d) => d?.getAttribute('data-state'))
+		).toBe('selected')
+
+		// Click and drag
+		await page.mouse.move(200, 200)
 		await page.mouse.down()
-		await page.mouse.move(264, 264)
+		await page.mouse.move(250, 250)
 		await page.mouse.up()
 
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-		expect(await page.evaluate(() => app.shapesArray[0])).toMatchObject({
-			type: 'draw',
-			x: 64,
-			y: 64,
-			index: 'a1',
-			props: {
-				color: 'black',
-				dash: 'draw',
-				opacity: '1',
-				isComplete: true,
-				fill: 'none',
-				size: 'm',
-				isClosed: false,
-				isPen: false,
-				segments: [
-					{
-						type: 'free',
-						points: [
-							{ x: 0, y: 0 },
-							{ x: 200, y: 200 },
-						],
-					},
-				],
-			},
-		})
-	})
+		// We should have a corresponding shape in the page
+		expect(await getAllShapeTypes(page)).toEqual([shape])
 
-	test('geo tool', async ({ page }) => {
-		await page.keyboard.press('r')
-		await page.mouse.move(64, 64)
-		await page.mouse.down()
-		await page.mouse.move(264, 264)
-		await page.mouse.up()
-
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-		expect(await page.evaluate(() => app.shapesArray[0])).toMatchObject({
-			type: 'geo',
-			x: 64,
-			y: 64,
-			index: 'a1',
-			props: {
-				geo: 'rectangle',
-				color: 'black',
-				dash: 'draw',
-				opacity: '1',
-				fill: 'none',
-				size: 'm',
-				w: 200,
-				h: 200,
-			},
-		})
-	})
-
-	test('arrow tool', async ({ page }) => {
-		await page.keyboard.press('a')
-		await page.mouse.move(64, 64)
-		await page.mouse.down()
-		await page.mouse.move(264, 264)
-		await page.mouse.up()
-
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-		expect(await page.evaluate(() => app.shapesArray[0])).toMatchObject({
-			type: 'arrow',
-			x: 64,
-			y: 64,
-			index: 'a1',
-			props: {
-				color: 'black',
-				dash: 'draw',
-				opacity: '1',
-				fill: 'none',
-				size: 'm',
-				bend: 0,
-				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 200, y: 200 },
-			},
-		})
-	})
+		// Reset for next time
+		await page.mouse.click(0, 0) // to ensure we're not focused
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+	}
 })
