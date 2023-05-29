@@ -64,7 +64,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 function shouldDeselect(app: App) {
 	const { onlySelectedShape } = app
 	if (!onlySelectedShape) return false
-	return app.isShapeOrParentLocked(onlySelectedShape)
+	return app.isShapeOrAncestorLocked(onlySelectedShape)
 }
 
 function ContextMenuContent() {

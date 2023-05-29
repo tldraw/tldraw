@@ -2216,7 +2216,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param id - The id of the shape to check.
 	 * @public
 	 */
-	isShapeOrParentLocked(shape: TLShape): boolean {
+	isShapeOrAncestorLocked(shape: TLShape): boolean {
 		if (shape.isLocked) return true
 		const ancestors = this.getAncestorsById(shape.id)
 		return ancestors.some((ancestor) => ancestor.isLocked)
@@ -4836,7 +4836,7 @@ export class App extends EventEmitter<TLEventMap> {
 			if (!shape) return false
 
 			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
-			if (this.isShapeOrParentLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
+			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
 			return true
 		})
 

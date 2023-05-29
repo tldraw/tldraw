@@ -90,7 +90,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
 	const { onlySelectedShape } = app
-	const isShapeLocked = onlySelectedShape && app.isShapeOrParentLocked(onlySelectedShape)
+	const isShapeLocked = onlySelectedShape && app.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextMenuSchema = useMemo<MenuSchema>(() => {
 		let contextMenuSchema: ContextMenuSchemaContextType = compactMenuItems([

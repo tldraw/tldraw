@@ -69,7 +69,7 @@ export class EditingShape extends StateNode {
 						if (
 							shape.type === editingShape.type &&
 							util.canEdit?.(shape) &&
-							!this.app.isShapeOrParentLocked(shape)
+							!this.app.isShapeOrAncestorLocked(shape)
 						) {
 							this.app.setEditingId(shape.id)
 							this.app.setHoveredId(shape.id)

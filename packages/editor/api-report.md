@@ -363,7 +363,7 @@ export class App extends EventEmitter<TLEventMap> {
         new (...args: any): TLShapeUtil<T>;
         type: string;
     }): shape is T;
-    isShapeOrParentLocked(shape: TLShape): boolean;
+    isShapeOrAncestorLocked(shape: TLShape): boolean;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)

@@ -108,7 +108,7 @@ export class ScribbleBrushing extends StateNode {
 				this.newlySelectedIds.has(shape.id) ||
 				(shape.type === 'frame' &&
 					util.hitTestPoint(shape, this.app.getPointInShapeSpace(shape, originPagePoint))) ||
-				this.app.isShapeOrParentLocked(shape)
+				this.app.isShapeOrAncestorLocked(shape)
 			) {
 				continue
 			}
