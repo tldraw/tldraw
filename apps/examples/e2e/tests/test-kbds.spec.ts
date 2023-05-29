@@ -94,6 +94,34 @@ test('Actions', async ({ page }) => {
 		data: { source: 'kbd' },
 	})
 
+	/* ---------------------- Files --------------------- */
+
+	// new-project — Cmd+N
+	// open — Cmd+O
+	// save — Cmd+S
+	// save-as — Cmd+Shift+S
+	// upload-media — Cmd+I
+
+	/* -------------------- Clipboard ------------------- */
+
+	// await page.keyboard.press('Control+c')
+	// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+	// 	name: 'copy',
+	// 	data: { source: 'kbd' },
+	// })
+
+	// await page.keyboard.press('Control+v')
+	// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+	// 	name: 'paste',
+	// 	data: { source: 'kbd' },
+	// })
+
+	// await page.keyboard.press('Control+x')
+	// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+	// 	name: 'cut',
+	// 	data: { source: 'kbd' },
+	// })
+
 	/* ------------------- Preferences ------------------ */
 
 	await page.keyboard.press("Control+'")
@@ -249,21 +277,26 @@ test('Actions', async ({ page }) => {
 		name: 'align-shapes',
 		data: { operation: 'bottom', source: 'kbd' },
 	})
+
+	/* ---------------------- Misc ---------------------- */
+
+	// await page.keyboard.press('Control+i')
+	// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+	// 	name: 'open-menu',
+	// 	data: { source: 'dialog' },
+	// })
+
+	// await page.keyboard.press('Control+u')
+	// expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+	// 	name: 'open-menu',
+	// 	data: { source: 'dialog' },
+	// })
+
+	/* --------------------- Export --------------------- */
+
+	await page.keyboard.press('Control+Shift+c')
+	expect(await page.evaluate(() => __tldraw_event)).toMatchObject({
+		name: 'copy-as',
+		data: { format: 'svg', source: 'kbd' },
+	})
 })
-
-// File
-test.skip('new-project — Cmd+N', async () => void null)
-test.skip('open — Cmd+O', async () => void null)
-test.skip('save — Cmd+S', async () => void null)
-test.skip('save-as — Cmd+Shift+S', async () => void null)
-test.skip('upload-media — Cmd+I', async () => void null)
-
-// History
-test.skip('undo — Cmd+Z', async () => void null)
-test.skip('redo — Cmd+Shift+Z', async () => void null)
-
-// Clipboard
-test.skip('cut — Cmd+X', async () => void null)
-test.skip('copy — Cmd+C', async () => void null)
-test.skip('paste — Cmd+V', async () => void null)
-// })
