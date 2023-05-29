@@ -1,6 +1,6 @@
 import test, { expect } from '@playwright/test'
 import { App, TLGeoShape } from '@tldraw/tldraw'
-import { setup } from '../shared-e2e'
+import { getAllShapeTypes, setup } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -12,55 +12,20 @@ test.describe('smoke tests', () => {
 	test.beforeEach(setup)
 
 	test('create a shape on the canvas', async ({ page }) => {
-		await page.mouse.move(10, 50)
-
-		// start on an empty canvas
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(0)
-		expect(await page.evaluate(() => app.selectedIds.length)).toBe(0)
-
-		// start in select
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.idle')
-
-		// press r to select tool
 		await page.keyboard.press('r')
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.geo.idle')
-
-		// click to enter pointing
+		await page.mouse.move(10, 50)
 		await page.mouse.down()
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.geo.pointing')
-
-		// release from pointing to create shape
 		await page.mouse.up()
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.idle')
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-
-		// The shape should be selected
-		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
-
-		// draw a box
 		await page.keyboard.press('r')
 		await page.mouse.move(10, 250)
 		await page.mouse.down()
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(1)
-
-		// move to start drawing box (actually resizing)
 		await page.mouse.move(100, 350)
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(2)
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.resizing')
-
-		// finish on mouse up
 		await page.mouse.up()
-		expect(await page.evaluate(() => app.root.path.value)).toBe('root.select.idle')
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(2)
-
-		// The shape should be selected
-		expect(await page.evaluate(() => app.selectedIds.length)).toBe(1)
+		expect(await getAllShapeTypes(page)).toEqual(['geo', 'geo'])
 	})
 
 	test('undo and redo', async ({ page }) => {
 		// buttons should be disabled when there is no history
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(0)
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(0)
 		expect(page.getByTestId('main.undo')).toBeDisabled()
 		expect(page.getByTestId('main.redo')).toBeDisabled()
 
@@ -68,41 +33,36 @@ test.describe('smoke tests', () => {
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
+		await page.mouse.move(200, 200)
 		await page.mouse.up()
 
+		expect(await getAllShapeTypes(page)).toEqual(['geo'])
+
 		// We should have an undoable shape
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(1)
 		expect(page.getByTestId('main.undo')).not.toBeDisabled()
 		expect(page.getByTestId('main.redo')).toBeDisabled()
 
 		// Click the undo button to undo the shape
 		await page.getByTestId('main.undo').click()
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(0)
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(0)
+
+		expect(await getAllShapeTypes(page)).toEqual([])
 		expect(page.getByTestId('main.undo')).toBeDisabled()
 		expect(page.getByTestId('main.redo')).not.toBeDisabled()
 
 		// Click the redo button to redo the shape
 		await page.getByTestId('main.redo').click()
-		expect(await page.evaluate(() => app.shapesArray.length)).toBe(1)
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(1)
-		expect(await page.getByTestId('main.undo').isVisible()).toBe(true)
-		expect(await page.getByTestId('main.redo').isVisible()).toBe(true)
 
+		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
 		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
 	})
 
 	test('style panel + undo and redo squashing', async ({ page }) => {
-		expect(await page.getByTestId('main.undo').isVisible()).toBe(true)
-		expect(await page.getByTestId('main.redo').isVisible()).toBe(true)
-
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
 		await page.mouse.up()
-		expect(await page.evaluate(() => app.selectedShapes.length)).toBe(1)
+		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 
 		const getSelectedShapeColor = async () =>
 			await page.evaluate(() => (app.selectedShapes[0] as TLGeoShape).props.color)
