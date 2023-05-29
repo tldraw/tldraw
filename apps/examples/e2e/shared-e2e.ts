@@ -30,16 +30,40 @@ export async function setupWithShapes({
 	context,
 }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await setup({ page, context } as any)
+
 	await page.keyboard.press('r')
-	await page.mouse.click(55, 55)
+	await page.mouse.click(200, 200)
 	await page.keyboard.press('r')
-	await page.mouse.click(55, 205)
+	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
-	await page.mouse.click(75, 355)
-	await page.evaluate(async () => app.selectNone())
+	await page.mouse.click(250, 300)
+	await page.evaluate(() => app.selectNone())
 }
 
 export async function cleanup({ page }: PlaywrightTestArgs) {
 	await page.keyboard.press('Control+a')
 	await page.keyboard.press('Delete')
+}
+
+export async function getAllShapeLabels(page: PlaywrightTestArgs['page']) {
+	return await page
+		.locator('.tl-shapes')
+		.first()
+		.evaluate((e) => {
+			const labels: { index: string; label: string }[] = []
+			for (const child of e.children) {
+				const index = (child as HTMLDivElement).style.zIndex
+				const label = child.querySelector('.tl-text-content') as HTMLDivElement
+				labels.push({ index, label: label.innerText })
+			}
+			labels.sort((a, b) => (a.index > b.index ? 1 : -1))
+			return labels.map((l) => l.label)
+		})
+}
+
+export async function getAllShapeTypes(page: PlaywrightTestArgs['page']) {
+	return await page
+		.locator('.tl-shape')
+		.elementHandles()
+		.then((handles) => Promise.all(handles.map((h) => h.getAttribute('data-shape-type'))))
 }
