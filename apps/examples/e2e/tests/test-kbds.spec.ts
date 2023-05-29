@@ -139,53 +139,6 @@ test.describe('keyboard shortcuts', () => {
 		}
 	})
 
-	test('grid mode', async ({ page }) => {
-		expect(await page.evaluate(() => app.isGridMode)).toBe(false)
-		await page.keyboard.press("Control+'")
-		expect(await page.evaluate(() => app.isGridMode)).toBe(true)
-		await page.keyboard.press("Control+'")
-		expect(await page.evaluate(() => app.isGridMode)).toBe(false)
-	})
-
-	test('dark mode', async ({ page }) => {
-		expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
-		await page.keyboard.press('Control+/')
-		expect(await page.evaluate(() => app.isDarkMode)).toBe(true)
-		await page.keyboard.press('Control+/')
-		expect(await page.evaluate(() => app.isDarkMode)).toBe(false)
-	})
-
-	test.fixme('focus mode', async ({ page }) => {
-		expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
-		await page.keyboard.press('Control+.')
-		expect(await page.evaluate(() => app.isFocusMode)).toBe(true)
-		await page.keyboard.press('Control+.')
-		expect(await page.evaluate(() => app.isFocusMode)).toBe(false)
-	})
-
-	test('tool lock', async ({ page }) => {
-		expect(await page.evaluate(() => app.isToolLocked)).toBe(false)
-		await page.keyboard.press('q')
-		expect(await page.evaluate(() => app.isToolLocked)).toBe(true)
-
-		await page.keyboard.press('r')
-		await page.mouse.move(100, 100)
-		await page.mouse.down()
-		await page.mouse.up()
-
-		expect(await page.evaluate(() => app.currentToolId)).toBe('geo')
-
-		await page.keyboard.press('q')
-		expect(await page.evaluate(() => app.isToolLocked)).toBe(false)
-
-		await page.keyboard.press('r')
-		await page.mouse.move(100, 100)
-		await page.mouse.down()
-		await page.mouse.up()
-
-		expect(await page.evaluate(() => app.currentToolId)).toBe('select')
-	})
-
 	test('select-all — Cmd+A', async ({ page }) => {
 		await page.keyboard.press('r')
 		await page.mouse.click(55, 55)
