@@ -20,17 +20,25 @@ export function sleep(ms: number) {
 declare const app: App
 
 export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
-	await page.goto('http://localhost:5420/')
+	await setupPage(page)
+}
+
+export async function setupWithShapes({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+	await setupPage(page)
+	await setupPageWithShapes(page)
+}
+
+export async function cleanup({ page }: PlaywrightTestArgs) {
+	await cleanupPage(page)
+}
+
+export async function setupPage(page: PlaywrightTestArgs['page']) {
+	await page.goto('http://localhost:5420/e2e')
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => (app.enableAnimations = false))
 }
 
-export async function setupWithShapes({
-	page,
-	context,
-}: PlaywrightTestArgs & PlaywrightWorkerArgs) {
-	await setup({ page, context } as any)
-
+export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
 	await page.keyboard.press('r')
 	await page.mouse.click(200, 200)
 	await page.keyboard.press('r')
@@ -40,7 +48,7 @@ export async function setupWithShapes({
 	await page.evaluate(() => app.selectNone())
 }
 
-export async function cleanup({ page }: PlaywrightTestArgs) {
+export async function cleanupPage(page: PlaywrightTestArgs['page']) {
 	await page.keyboard.press('Control+a')
 	await page.keyboard.press('Delete')
 }

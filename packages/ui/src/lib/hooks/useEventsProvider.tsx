@@ -92,9 +92,7 @@ export type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> 
 ) => void
 
 /** @internal */
-const defaultEventHandler: TLUiEventHandler = (name, data) => {
-	;(window as any).__tldraw_event = { name, data }
-}
+const defaultEventHandler: TLUiEventHandler = () => void null
 
 /** @internal */
 export const EventsContext = React.createContext({} as TLUiEventHandler)
@@ -108,17 +106,7 @@ export type EventsProviderProps = {
 /** @public */
 export function EventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
-		<EventsContext.Provider
-			value={
-				onEvent
-					? (name, data) => {
-							// stick it on the window, too
-							;(window as any).__tldraw_event = { name, data }
-							onEvent(name, data)
-					  }
-					: defaultEventHandler
-			}
-		>
+		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
 			{children}
 		</EventsContext.Provider>
 	)
