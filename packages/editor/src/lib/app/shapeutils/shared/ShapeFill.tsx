@@ -1,9 +1,10 @@
-import { TLColorType, TLFillType } from '@tldraw/tlschema'
+import { ColorStyle, TLColorType, TLFillType } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
 import { useApp } from '../../../hooks/useApp'
-import { getColorForSvgExport } from './getContainerColor'
+import { App } from '../../App'
+import { useTheme } from './useTheme'
 
 export interface ShapeFillProps {
 	d: string
@@ -12,40 +13,69 @@ export interface ShapeFillProps {
 }
 
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
+	const app = useApp()
+	const theme = useTheme()
+
 	switch (fill) {
 		case 'none': {
 			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
 		}
 		case 'solid': {
-			return (
-				<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-semi)`} d={d} />
-			)
+			const fillColor = app.getStyle<ColorStyle>({
+				type: 'color',
+				id: color,
+				theme,
+				variant: 'semi',
+			})
+			return <path className={'tl-hitarea-fill-solid'} fill={fillColor.value} d={d} />
 		}
 		case 'semi': {
-			return <path className={'tl-hitarea-fill-solid'} fill={`var(--palette-solid)`} d={d} />
+			const fillColor = app.getStyle<ColorStyle>({
+				type: 'color',
+				id: 'solid',
+				theme,
+				variant: 'default',
+			})
+			return <path className={'tl-hitarea-fill-solid'} fill={fillColor.value} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill color={color} fill={fill} d={d} />
+			return <PatternFill color={color} fill={fill} d={d} theme={theme} />
 		}
 	}
 })
 
-const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
+const PatternFill = function PatternFill({
+	d,
+	color,
+	theme,
+}: ShapeFillProps & { theme: 'dark' | 'default' }) {
 	const app = useApp()
 	const zoomLevel = useValue('zoomLevel', () => app.zoomLevel, [app])
-	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
-
 	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = app.zoomLevel <= 0.18
 
+	const patternColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme,
+		variant: 'pattern',
+	}).value
+
 	return (
 		<>
-			<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-pattern)`} d={d} />
+			<path className="tl-hitarea-fill-solid" fill={patternColor} d={d} />
 			<path
 				fill={
 					teenyTiny
-						? `var(--palette-${color}-semi)`
-						: `url(#${HASH_PATERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
+						? app.getStyle<ColorStyle>({
+								type: 'color',
+								id: color,
+								theme,
+								variant: 'pattern',
+						  }).value
+						: `url(#${
+								HASH_PATERN_ZOOM_NAMES[`${intZoom}_${theme === 'default' ? 'light' : 'dark'}`]
+						  })`
 				}
 				d={d}
 			/>
@@ -53,12 +83,7 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 	)
 }
 
-export function getShapeFillSvg({
-	d,
-	color,
-	fill,
-	isDarkMode,
-}: ShapeFillProps & { isDarkMode: boolean }) {
+export function getShapeFillSvg({ d, color, fill, app }: ShapeFillProps & { app: App }) {
 	if (fill === 'none') {
 		return
 	}
@@ -67,7 +92,15 @@ export function getShapeFillSvg({
 		const gEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const path1El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path1El.setAttribute('d', d)
-		path1El.setAttribute('fill', getColorForSvgExport({ type: 'pattern', color, isDarkMode }))
+		path1El.setAttribute(
+			'fill',
+			app.getStyle<ColorStyle>({
+				type: 'color',
+				id: color,
+				theme: app.isDarkMode ? 'dark' : 'default',
+				variant: 'pattern',
+			}).value
+		)
 
 		const path2El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path2El.setAttribute('d', d)
@@ -83,12 +116,27 @@ export function getShapeFillSvg({
 
 	switch (fill) {
 		case 'semi': {
-			path.setAttribute('fill', getColorForSvgExport({ type: 'solid', isDarkMode }))
+			path.setAttribute(
+				'fill',
+				app.getStyle<ColorStyle>({
+					type: 'color',
+					id: 'solid',
+					theme: app.isDarkMode ? 'dark' : 'default',
+				}).value
+			)
 			break
 		}
 		case 'solid': {
 			{
-				path.setAttribute('fill', getColorForSvgExport({ type: 'semi', color, isDarkMode }))
+				path.setAttribute(
+					'fill',
+					app.getStyle<ColorStyle>({
+						type: 'color',
+						id: color,
+						theme: app.isDarkMode ? 'dark' : 'default',
+						variant: 'semi',
+					}).value
+				)
 			}
 			break
 		}

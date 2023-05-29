@@ -1,16 +1,18 @@
 import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
+import { defaultStyles } from '.'
 import { TLRecord } from './TLRecord'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType } from './records/TLAsset'
 import { CameraRecordType } from './records/TLCamera'
-import { DocumentRecordType } from './records/TLDocument'
+import { TLDocument, documentTypeValidator } from './records/TLDocument'
 import { InstanceRecordType } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLInstancePageState'
 import { InstancePresenceRecordType } from './records/TLInstancePresence'
 import { PageRecordType } from './records/TLPage'
 import { PointerRecordType } from './records/TLPointer'
 import { TLShape, TLUnknownShape, rootShapeTypeMigrations } from './records/TLShape'
+import { TLStyle } from './records/TLStyle'
 import { UserDocumentRecordType } from './records/TLUserDocument'
 import { storeMigrations } from './schema'
 import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
@@ -58,9 +60,10 @@ type CustomShapeInfo<T extends TLUnknownShape> = {
 export function createTLSchema<T extends TLUnknownShape>(
 	opts = {} as {
 		customShapes?: { [K in T['type']]: CustomShapeInfo<T> }
+		customStyles?: TLStyle[]
 	}
 ) {
-	const { customShapes = {} } = opts
+	const { customStyles = [], customShapes = {} } = opts
 
 	const defaultShapeSubTypeEntries = Object.entries(DEFAULT_SHAPES) as [
 		TLShape['type'],
@@ -106,11 +109,21 @@ export function createTLSchema<T extends TLUnknownShape>(
 		scope: 'document',
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
 
+	const documentRecordTypeWithStyles = createRecordType<TLDocument>('document', {
+		validator: documentTypeValidator,
+		scope: 'document',
+	}).withDefaultProperties(
+		(): Omit<TLDocument, 'id' | 'typeName'> => ({
+			gridSize: 10,
+			styles: [...defaultStyles, ...customStyles],
+		})
+	)
+
 	return StoreSchema.create<TLRecord, TLStoreProps>(
 		{
 			asset: AssetRecordType,
 			camera: CameraRecordType,
-			document: DocumentRecordType,
+			document: documentRecordTypeWithStyles,
 			instance: InstanceRecordType,
 			instance_page_state: InstancePageStateRecordType,
 			page: PageRecordType,

@@ -2,11 +2,11 @@ import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/t
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { TLRecord } from './TLRecord'
 import { CameraRecordType } from './records/TLCamera'
-import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
+import { TLDOCUMENT_ID } from './records/TLDocument'
 import { InstanceRecordType, TLInstanceId } from './records/TLInstance'
 import { InstancePageStateRecordType } from './records/TLInstancePageState'
 import { PageRecordType } from './records/TLPage'
-import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
+import { TLPOINTER_ID } from './records/TLPointer'
 import { UserDocumentRecordType } from './records/TLUserDocument'
 
 function sortByIndex<T extends { index: string }>(a: T, b: T) {
@@ -91,12 +91,12 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const { instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
-			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID })])
+			store.put([store.schema.types.document.create({ id: TLDOCUMENT_ID })])
 			return ensureStoreIsUsable()
 		}
 
 		if (!store.has(TLPOINTER_ID)) {
-			store.put([PointerRecordType.create({ id: TLPOINTER_ID })])
+			store.put([store.schema.types.pointer.create({ id: TLPOINTER_ID })])
 			return ensureStoreIsUsable()
 		}
 

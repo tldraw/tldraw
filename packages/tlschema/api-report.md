@@ -120,6 +120,7 @@ export function createShapeValidator<Type extends string, Props extends object>(
 // @public
 export function createTLSchema<T extends TLUnknownShape>(opts?: {
     customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+    customStyles?: TLStyle[] | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -130,6 +131,9 @@ export const cursorValidator: T.Validator<TLCursor>;
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const defaultStyles: TLStyle[];
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
@@ -495,6 +499,9 @@ export const splineValidator: T.Validator<"cubic" | "line">;
 export const storeMigrations: Migrations;
 
 // @public (undocumented)
+export const styleValidator: T.Validator<TLStyle>;
+
+// @public (undocumented)
 export const textShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
@@ -782,6 +789,8 @@ export type TLDefaultShapeStyles = {
 export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    styles: TLStyle[];
 }
 
 // @public (undocumented)
@@ -1246,6 +1255,20 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
+
+// @public (undocumented)
+export interface TLStyle {
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    theme?: string;
+    // (undocumented)
+    type: string;
+    // (undocumented)
+    value?: number | string;
+    // (undocumented)
+    variant?: string;
+}
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;

@@ -16,6 +16,7 @@ yarn.lock
 apps/example/www/index.css
 **/dist/*
 *.cjs
+*.snap
 
 bublic/packages/tldraw/ui.css
 bublic/packages/tldraw/editor.css

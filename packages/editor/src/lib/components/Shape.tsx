@@ -8,7 +8,7 @@ import {
 } from 'signia-react'
 import { useApp } from '../..'
 import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
-import { getCssColor } from '../app/shapeutils/shared/getCssColor'
+import { getCssFillColor } from '../app/shapeutils/shared/getCssColor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'
@@ -72,7 +72,7 @@ export const Shape = track(function Shape({
 			const clipPath = app.getClipPathById(id)
 			elm.style.setProperty('clip-path', clipPath ?? 'none')
 			if ('color' in shape.props) {
-				elm.style.setProperty('color', getCssColor(shape.props.color))
+				elm.style.setProperty('color', getCssFillColor(shape.props.color))
 			}
 		},
 		[app]

@@ -1,7 +1,7 @@
-import { TLGeoShape } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
+import { App } from '../../../App'
+import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
 
 export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	w,
@@ -25,17 +25,9 @@ export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	)
 })
 
-export function SolidStyleEllipseSvg({
-	w,
-	h,
-	strokeWidth: sw,
-	fill,
-	color,
-	isDarkMode,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
-	strokeWidth: number
-	isDarkMode: boolean
-}) {
+export function SolidStyleEllipseSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { w, h, color, size, fill } = shape.props
+
 	const cx = w / 2
 	const cy = h / 2
 	const rx = Math.max(0, cx)
@@ -43,11 +35,22 @@ export function SolidStyleEllipseSvg({
 
 	const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
-	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const strokeWidth = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
-	strokeElement.setAttribute('stroke-width', sw.toString())
+	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
@@ -58,7 +61,7 @@ export function SolidStyleEllipseSvg({
 		d,
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

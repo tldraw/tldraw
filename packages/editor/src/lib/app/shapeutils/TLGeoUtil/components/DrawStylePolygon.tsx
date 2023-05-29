@@ -1,8 +1,9 @@
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints, VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
+import { App } from '../../../App'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
+import { getLines } from '../helpers'
 
 export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	id,
@@ -37,22 +38,27 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	)
 })
 
-export function DrawStylePolygonSvg({
-	id,
-	outline,
-	lines,
-	fill,
-	color,
-	isDarkMode,
-	strokeWidth,
-}: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
-	id: TLGeoShape['id']
-	outline: VecLike[]
-	lines?: VecLike[][]
-	strokeWidth: number
-	isDarkMode: boolean
-}) {
-	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
+export function DrawStylePolygonSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { id } = shape
+	const { color, size, fill } = shape.props
+
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const sw = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
+
+	const lines = getLines(shape.props, sw)
+	const outline = app.getShapeUtil(shape).outline(shape)
+
+	const polygonPoints = getRoundedPolygonPoints(id, outline, sw / 3, sw * 2, 2)
 
 	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
@@ -62,23 +68,21 @@ export function DrawStylePolygonSvg({
 		}
 	}
 
-	const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
+	const innerPolygonPoints = getRoundedPolygonPoints(id, outline, 0, sw * 2, 1)
 	const innerPathData = getRoundedInkyPolygonPath(innerPolygonPoints)
-
-	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('fill', 'none')
 	strokeElement.setAttribute('stroke', fillColor)
-	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
+	strokeElement.setAttribute('stroke-width', sw.toString())
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({
 		d: innerPathData,
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

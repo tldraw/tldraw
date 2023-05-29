@@ -337,7 +337,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: T, font: string | undefined, isDarkMode: boolean): SVGElement | Promise<SVGElement>
+	toSvg?(shape: T, font: string | undefined): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get whether a point intersects the shape.

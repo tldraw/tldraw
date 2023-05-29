@@ -28,7 +28,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { getColorForSvgExport } from '../shared/getContainerColor'
-import { getCssColor } from '../shared/getCssColor'
+import { getCssFillColor } from '../shared/getCssColor'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
@@ -734,7 +734,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={info.middle}
 					width={labelSize?.w ?? 0}
-					labelColor={getCssColor(shape.props.labelColor)}
+					labelColor={getCssFillColor(shape.props.labelColor)}
 				/>
 			</>
 		)

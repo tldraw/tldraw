@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLTextShape } from '@tldraw/tlschema'
+import { FontStyle, SizeStyle, TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { App } from '../../App'
@@ -29,12 +29,12 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 			opacity: '1',
 			color: 'black',
 			size: 'm',
-			w: 8,
-			text: '',
 			font: 'draw',
 			align: 'middle',
 			autoSize: true,
 			scale: 1,
+			w: 8,
+			text: '',
 		}
 	}
 
@@ -374,7 +374,8 @@ function getTextSize(app: App, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props
 
 	const minWidth = 16
-	const fontSize = FONT_SIZES[size]
+	const fontFamily = app.getStyle<FontStyle>({ type: 'font', id: font })!.value
+	const fontSize = app.getStyle<SizeStyle>({ type: 'size', id: size, variant: 'fontSize' })!.value
 
 	const cw = autoSize
 		? 'fit-content'
@@ -383,8 +384,8 @@ function getTextSize(app: App, props: TLTextShape['props']) {
 
 	const result = app.textMeasure.measureText(text, {
 		...TEXT_PROPS,
-		fontFamily: FONT_FAMILIES[font],
-		fontSize: fontSize,
+		fontFamily,
+		fontSize,
 		width: cw,
 	})
 

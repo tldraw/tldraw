@@ -1,9 +1,10 @@
 import { Vec2d, VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { App } from '../../../App'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
+import { getLines } from '../helpers'
 
 export const DashStylePolygon = React.memo(function DashStylePolygon({
 	dash,
@@ -84,31 +85,35 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 	)
 })
 
-export function DashStylePolygonSvg({
-	dash,
-	fill,
-	color,
-	isDarkMode,
-	strokeWidth,
-	outline,
-	lines,
-}: Pick<TLGeoShape['props'], 'dash' | 'fill' | 'color'> & {
-	outline: VecLike[]
-	strokeWidth: number
-	isDarkMode: boolean
-	lines?: VecLike[][]
-}) {
+export function DashStylePolygonSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { color, size, dash, fill } = shape.props
+
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const sw = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
+
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', getColorForSvgExport({ type: 'fill', color, isDarkMode }))
+	strokeElement.setAttribute('stroke-width', sw.toString())
+	strokeElement.setAttribute('stroke', fillColor)
 	strokeElement.setAttribute('fill', 'none')
+
+	const outline = app.getShapeUtil(shape).outline(shape)
 
 	Array.from(Array(outline.length)).forEach((_, i) => {
 		const A = outline[i]
 		const B = outline[(i + 1) % outline.length]
 
 		const dist = Vec2d.Dist(A, B)
-		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
+		const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, sw, {
 			style: dash,
 		})
 
@@ -123,10 +128,12 @@ export function DashStylePolygonSvg({
 		strokeElement.appendChild(line)
 	})
 
+	const lines = getLines(shape.props, sw)
+
 	if (lines) {
 		for (const [A, B] of lines) {
 			const dist = Vec2d.Dist(A, B)
-			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, strokeWidth, {
+			const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(dist, sw, {
 				style: dash,
 				start: 'skip',
 				end: 'skip',
@@ -150,7 +157,7 @@ export function DashStylePolygonSvg({
 		d: 'M' + outline[0] + 'L' + outline.slice(1) + 'Z',
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

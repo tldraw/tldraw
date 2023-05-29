@@ -84,7 +84,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 							align={align}
 							verticalAlign="middle"
 							text={text}
-							labelColor="inherit"
+							color="black"
 							wrap
 						/>
 					</div>

@@ -12,14 +12,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape, TLGeoShapeProps } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { App } from '../../App'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { getColorForSvgExport } from '../shared/getContainerColor'
-import { getCssColor } from '../shared/getCssColor'
 import { getStrokeWidth } from '../shared/getStrokeWidth'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
@@ -38,6 +36,7 @@ import {
 	SolidStyleOvalSvg,
 } from './components/SolidStyleOval'
 import { SolidStylePolygon, SolidStylePolygonSvg } from './components/SolidStylePolygon'
+import { getLines } from './helpers'
 
 const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
@@ -338,10 +337,15 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const { id, type, props } = shape
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = getStrokeWidth(props.size)
 
 		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
 			props
+
+		const strokeWidth = this.app.getStyle<SizeStyle>({
+			type: 'size',
+			id: size,
+			variant: 'strokeWidth',
+		}).value
 
 		const getShape = () => {
 			const h = props.h + growY
@@ -442,13 +446,13 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				<TextLabel
 					id={id}
 					type={type}
-					font={font}
 					fill={fill}
+					font={font}
 					size={size}
 					align={align}
 					verticalAlign={verticalAlign}
 					text={text}
-					labelColor={getCssColor(labelColor)}
+					color={labelColor}
 					wrap
 				/>
 				{'url' in shape.props && shape.props.url && (
@@ -501,9 +505,9 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		}
 	}
 
-	toSvg(shape: TLGeoShape, font: string, isDarkMode: boolean) {
-		const { id, props } = shape
-		const strokeWidth = getStrokeWidth(props.size)
+	toSvg(shape: TLGeoShape, font: string) {
+		const { app } = this
+		const { props } = shape
 
 		let svgElm: SVGElement
 
@@ -511,39 +515,15 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			case 'ellipse': {
 				switch (props.dash) {
 					case 'draw':
-						svgElm = DrawStyleEllipseSvg({
-							id,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							strokeWidth,
-							isDarkMode,
-						})
+						svgElm = DrawStyleEllipseSvg({ shape, app })
 						break
 
 					case 'solid':
-						svgElm = SolidStyleEllipseSvg({
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							isDarkMode,
-						})
+						svgElm = SolidStyleEllipseSvg({ shape, app })
 						break
 
 					default:
-						svgElm = DashStyleEllipseSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							isDarkMode,
-						})
+						svgElm = DashStyleEllipseSvg({ shape, app })
 						break
 				}
 				break
@@ -552,81 +532,29 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 			case 'oval': {
 				switch (props.dash) {
 					case 'draw':
-						svgElm = DashStyleOvalSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							isDarkMode,
-						})
+						svgElm = DashStyleOvalSvg({ shape, app })
 						break
-
 					case 'solid':
-						svgElm = SolidStyleOvalSvg({
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							color: props.color,
-							fill: props.fill,
-							isDarkMode,
-						})
+						svgElm = SolidStyleOvalSvg({ shape, app })
 						break
 
 					default:
-						svgElm = DashStyleOvalSvg({
-							id,
-							strokeWidth,
-							w: props.w,
-							h: props.h,
-							dash: props.dash,
-							color: props.color,
-							fill: props.fill,
-							isDarkMode,
-						})
+						svgElm = DashStyleOvalSvg({ shape, app })
 				}
 				break
 			}
 			default: {
-				const outline = this.outline(shape)
-				const lines = getLines(shape.props, strokeWidth)
-
 				switch (props.dash) {
 					case 'draw':
-						svgElm = DrawStylePolygonSvg({
-							id,
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							isDarkMode,
-						})
+						svgElm = DrawStylePolygonSvg({ shape, app })
 						break
 
 					case 'solid':
-						svgElm = SolidStylePolygonSvg({
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							isDarkMode,
-						})
+						svgElm = SolidStylePolygonSvg({ shape, app })
 						break
 
 					default:
-						svgElm = DashStylePolygonSvg({
-							dash: props.dash,
-							fill: props.fill,
-							color: props.color,
-							strokeWidth,
-							outline,
-							lines,
-							isDarkMode,
-						})
+						svgElm = DashStylePolygonSvg({ shape, app })
 						break
 				}
 				break
@@ -660,7 +588,11 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-			const backgroundColor = getColorForSvgExport({ type: 'background', isDarkMode })
+			const backgroundColor = this.app.getStyle<ColorStyle>({
+				type: 'color',
+				id: 'background',
+				theme: app.isDarkMode ? 'dark' : 'default',
+			}).value
 
 			const textBgEl = createTextSvgElementFromSpans(this.app, spans, {
 				...opts,
@@ -671,10 +603,14 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const textElm = textBgEl.cloneNode(true) as SVGTextElement
 
-			textElm.setAttribute(
-				'fill',
-				getColorForSvgExport({ type: 'fill', color: shape.props.labelColor, isDarkMode })
-			)
+			const textColor = this.app.getStyle<ColorStyle>({
+				type: 'color',
+				id: shape.props.color,
+				theme: app.isDarkMode ? 'dark' : 'default',
+				variant: 'default',
+			}).value
+
+			textElm.setAttribute('fill', textColor)
 			textElm.setAttribute('stroke', 'none')
 
 			groupEl.append(textBgEl)
@@ -966,46 +902,4 @@ function getLabelSize(app: App, shape: TLGeoShape) {
 		w: size.w + LABEL_PADDING * 2,
 		h: size.h + LABEL_PADDING * 2,
 	}
-}
-
-function getLines(props: TLGeoShapeProps, sw: number) {
-	switch (props.geo) {
-		case 'x-box': {
-			return getXBoxLines(props.w, props.h, sw, props.dash)
-		}
-		case 'check-box': {
-			return getCheckBoxLines(props.w, props.h)
-		}
-		default: {
-			return undefined
-		}
-	}
-}
-
-function getXBoxLines(w: number, h: number, sw: number, dash: TLDashType) {
-	const inset = dash === 'draw' ? 0.62 : 0
-
-	if (dash === 'dashed') {
-		return [
-			[new Vec2d(0, 0), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(0, h), new Vec2d(w / 2, h / 2)],
-			[new Vec2d(w, 0), new Vec2d(w / 2, h / 2)],
-		]
-	}
-
-	return [
-		[new Vec2d(sw * inset, sw * inset), new Vec2d(w - sw * inset, h - sw * inset)],
-		[new Vec2d(sw * inset, h - sw * inset), new Vec2d(w - sw * inset, sw * inset)],
-	]
-}
-
-function getCheckBoxLines(w: number, h: number) {
-	const size = Math.min(w, h) * 0.82
-	const ox = (w - size) / 2
-	const oy = (h - size) / 2
-	return [
-		[new Vec2d(ox + size * 0.25, oy + size * 0.52), new Vec2d(ox + size * 0.45, oy + size * 0.82)],
-		[new Vec2d(ox + size * 0.45, oy + size * 0.82), new Vec2d(ox + size * 0.82, oy + size * 0.22)],
-	]
 }

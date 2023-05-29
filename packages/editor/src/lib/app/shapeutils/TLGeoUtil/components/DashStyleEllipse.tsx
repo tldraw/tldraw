@@ -1,8 +1,8 @@
 import { perimeterOfEllipse, toDomPrecision } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLColorType, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { App } from '../../../App'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export const DashStyleEllipse = React.memo(function DashStyleEllipse({
@@ -12,8 +12,9 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 	dash,
 	color,
 	fill,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'color' | 'fill'> & {
+}: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'fill'> & {
 	strokeWidth: number
+	color: TLColorType
 	id: TLShapeId
 }) {
 	const cx = w / 2
@@ -53,19 +54,22 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 	)
 })
 
-export function DashStyleEllipseSvg({
-	w,
-	h,
-	strokeWidth: sw,
-	dash,
-	color,
-	isDarkMode,
-	fill,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'color' | 'fill'> & {
-	strokeWidth: number
-	id: TLShapeId
-	isDarkMode: boolean
-}) {
+export function DashStyleEllipseSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { w, h, color, size, dash, fill } = shape.props
+
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const sw = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
+
 	const cx = w / 2
 	const cy = h / 2
 	const rx = Math.max(0, cx - sw / 2)
@@ -85,8 +89,6 @@ export function DashStyleEllipseSvg({
 
 	const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
-	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
-
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
 	strokeElement.setAttribute('stroke-width', sw.toString())
@@ -102,7 +104,7 @@ export function DashStyleEllipseSvg({
 		d,
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

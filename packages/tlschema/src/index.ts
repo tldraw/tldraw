@@ -94,6 +94,7 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
+export { styleValidator, type TLStyle } from './records/TLStyle'
 export {
 	UserDocumentRecordType,
 	userDocumentTypeMigrations,
@@ -236,6 +237,15 @@ export {
 	type TLStyleType,
 	type TLVerticalAlignType,
 } from './style-types'
+// export { type AlignStyle } from './styles/align'
+// export { type ArrowheadStyle } from './styles/arrowhead'
+export { type ColorStyle } from './styles/color'
+// export { type DashStyle } from './styles/dash'
+// export { type FillStyle } from './styles/fill'
+export { type FontStyle } from './styles/font'
+// export { type GeoStyle } from './styles/geo'
+// export { type OpacityStyle } from './styles/opacity'
+export { type SizeStyle } from './styles/size'
 export { getDefaultTranslationLocale } from './translations'
 export {
 	TL_CURSOR_TYPES,
@@ -275,3 +285,33 @@ export {
 	sizeValidator,
 	splineValidator,
 } from './validation'
+
+import { TLStyle } from './records/TLStyle'
+import { align } from './styles/align'
+import { arrowhead } from './styles/arrowhead'
+import { color } from './styles/color'
+import { dash } from './styles/dash'
+import { fill } from './styles/fill'
+import { font } from './styles/font'
+import { geo } from './styles/geo'
+import { opacity } from './styles/opacity'
+import { size } from './styles/size'
+import { spline } from './styles/spline'
+import { verticalAlign } from './styles/verticalAlign'
+
+export const defaultStyles: TLStyle[] = [
+	...align,
+	...arrowhead,
+	...color,
+	...dash,
+	...fill,
+	...font,
+	...geo,
+	...opacity,
+	...size,
+	...spline,
+	...verticalAlign,
+]
+
+// export { type SplineStyle } from './styles/spline'
+// export { type VerticalAlignStyle } from './styles/verticalAlign'

@@ -8,11 +8,11 @@ import {
 	TAU,
 	Vec2d,
 } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 import * as React from 'react'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
+import { App } from '../../../App'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
@@ -37,20 +37,22 @@ export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	)
 })
 
-export function DrawStyleEllipseSvg({
-	id,
-	w,
-	h,
-	strokeWidth: sw,
-	fill,
-	color,
-	isDarkMode,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
-	strokeWidth: number
-	id: TLShapeId
-	isDarkMode: boolean
-}) {
-	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
+export function DrawStyleEllipseSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { id } = shape
+	const { w, h, color, size, fill } = shape.props
+
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const sw = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', getEllipsePath(id, w, h, sw))
@@ -61,7 +63,7 @@ export function DrawStyleEllipseSvg({
 		d: getEllipseIndicatorPath(id, w, h, sw),
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

@@ -9,6 +9,7 @@ import {
 	TLShape,
 	TLStore,
 	TLStoreProps,
+	TLStyle,
 	createTLSchema,
 } from '@tldraw/tlschema'
 import { Migrations, RecordType, Store, StoreSchema, StoreSnapshot } from '@tldraw/tlstore'
@@ -61,6 +62,7 @@ export type TldrawEditorConfigOptions = {
 			migrations?: Migrations
 		}
 	>
+	styles?: TLStyle[]
 	/** @internal */
 	derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 	userPreferences?: Signal<TLUserPreferences>
@@ -71,6 +73,8 @@ export type TldrawEditorConfigOptions = {
 export class TldrawEditorConfig {
 	// Custom tools
 	readonly tools: readonly StateNodeConstructor[]
+
+	// readonly styles: Record<string, Record<string, Record<string, TLStyle>>> = {}
 
 	// Custom shape utils
 	readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>
@@ -85,7 +89,7 @@ export class TldrawEditorConfig {
 	readonly setUserPreferences: (userPreferences: TLUserPreferences) => void
 
 	constructor(opts = {} as TldrawEditorConfigOptions) {
-		const { shapes = {}, tools = [], derivePresenceState } = opts
+		const { styles = [], shapes = {}, tools = [], derivePresenceState } = opts
 
 		this.tools = tools
 		this.derivePresenceState = derivePresenceState ?? (() => computed('presence', () => null))
@@ -100,6 +104,7 @@ export class TldrawEditorConfig {
 
 		this.storeSchema = createTLSchema({
 			customShapes: shapes,
+			customStyles: styles,
 		})
 
 		this.TLShape = this.storeSchema.types.shape as RecordType<

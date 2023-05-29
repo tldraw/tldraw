@@ -84,6 +84,7 @@ import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
+import { TLStyle } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
@@ -281,6 +282,8 @@ export class App extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
+    // (undocumented)
+    getStyle<T extends TLStyle = TLStyle>(partial: Pick<TLStyle, 'id' | 'type'> & Partial<Omit<TLStyle, 'id' | 'type'>>): T | undefined;
     // (undocumented)
     getSvg(ids?: TLShapeId[], opts?: Partial<{
         scale: number;
@@ -492,6 +495,16 @@ export class App extends EventEmitter<TLEventMap> {
     stopFollowingUser: () => this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    // (undocumented)
+    get styles(): {
+        [type: string]: {
+            [id: string]: {
+                [theme: string]: {
+                    [variant: string]: TLStyle;
+                };
+            };
+        };
+    };
     textMeasure: TextManager;
     undo(): HistoryManager<this>;
     // (undocumented)

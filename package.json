@@ -82,7 +82,6 @@
 		"inquirer": "^9.1.4",
 		"jest": "^28.1.1",
 		"lint-staged": ">=10",
-		"open": "^8.4.0",
 		"prettier": "^2.8.6",
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"typescript": "^5.0.2"

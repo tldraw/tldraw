@@ -1,8 +1,8 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { ColorStyle, SizeStyle, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { App } from '../../../App'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { getColorForSvgExport } from '../../shared/getContainerColor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getOvalPerimeter, getOvalSolidPath } from '../helpers'
 
@@ -50,19 +50,22 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 	)
 })
 
-export function DashStyleOvalSvg({
-	w,
-	h,
-	strokeWidth: sw,
-	dash,
-	color,
-	isDarkMode,
-	fill,
-}: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'color' | 'fill'> & {
-	strokeWidth: number
-	id: TLShapeId
-	isDarkMode: boolean
-}) {
+export function DashStyleOvalSvg({ shape, app }: { shape: TLGeoShape; app: App }) {
+	const { w, h, color, size, dash, fill } = shape.props
+
+	const fillColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme: app.isDarkMode ? 'dark' : 'default',
+		variant: 'default',
+	}).value
+
+	const sw = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'strokeWidth',
+	}).value
+
 	const d = getOvalSolidPath(w, h)
 	const perimeter = getOvalPerimeter(w, h)
 
@@ -75,7 +78,6 @@ export function DashStyleOvalSvg({
 			closed: true,
 		}
 	)
-	const fillColor = getColorForSvgExport({ type: 'fill', color, isDarkMode })
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
@@ -92,7 +94,7 @@ export function DashStyleOvalSvg({
 		d,
 		fill,
 		color,
-		isDarkMode,
+		app,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

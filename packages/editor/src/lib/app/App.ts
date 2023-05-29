@@ -50,6 +50,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLStore,
+	TLStyle,
 	TLUnknownShape,
 	TLUserDocument,
 	TLVideoAsset,
@@ -125,6 +126,7 @@ import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
 import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
+import { getCssPatternColor, getCssSolidColor } from './shapeutils/shared/getCssColor'
 import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
@@ -606,6 +608,55 @@ export class App extends EventEmitter<TLEventMap> {
 
 	set isCoarsePointer(v) {
 		this._isCoarsePointer.set(v)
+	}
+
+	@computed get styles() {
+		const { styles } = this.documentSettings
+
+		const map: {
+			[type: string]: {
+				[id: string]: {
+					[theme: string]: {
+						[variant: string]: TLStyle
+					}
+				}
+			}
+		} = {}
+
+		for (const style of styles) {
+			const { id, type, theme = 'default', variant = 'default' } = style
+
+			if (map[type] === undefined) map[type] = {}
+			if (map[type][id] === undefined) map[type][id] = {}
+			if (map[type][id][theme] === undefined) map[type][id][theme] = {}
+
+			map[type][id][theme][variant] = style
+		}
+
+		return map
+	}
+
+	/**
+	 * Get a style from the app.
+	 *
+	 * @param partial - The a partial of the style to get.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * app.getStyle({ type: "color", id: "blue" })
+	 * app.getStyle({ type: "color", id: "blue", theme: "dark", variant: "semi" })
+	 * ```
+	 *
+	 * @public
+	 */
+	getStyle<T extends TLStyle = TLStyle>(
+		partial: Pick<T, 'id' | 'type'> & Partial<Omit<T, 'id' | 'type' | 'value'>>
+	): T {
+		const { type, id, theme = 'default', variant = 'default' } = partial
+		const style = this.styles[type]?.[id]?.[theme]?.[variant] as T
+		if (!style) throw Error(`Style not found: ${JSON.stringify(partial)}`)
+		return style
 	}
 
 	/** @internal */
@@ -5473,62 +5524,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const fontsUsedInExport = new Map<string, string>()
 
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here becasue we don't want export
-		// const fakeContainerEl = document.createElement('div')
-		// fakeContainerEl.className = `tl-container tl-theme__${darkMode ? 'dark' : 'light'}`
-		// document.body.appendChild(fakeContainerEl)
-
-		// const containerStyle = getComputedStyle(fakeContainerEl)
-
-		// const colors = {
-		// 	fill: new Map<TLColorType, string>(),
-		// 	// containerStyle.getPropertyValue(`--palette-${color.id}`)
-		// 	pattern: new Map<TLColorType, string>(),
-		// 	// containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
-		// 	semi: new Map<TLColorType, string>(),
-		// 	// containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
-		// 	text: containerStyle.getPropertyValue(`--color-text`),
-		// 	background: containerStyle.getPropertyValue(`--color-background`),
-		// 	solid: containerStyle.getPropertyValue(`--palette-solid`),
-		// }
-
-		// function getColor(
-		// 	opts:
-		// 		| { type: 'text' | 'background' | 'solid' }
-		// 		| { type: 'fill' | 'pattern' | 'semi'; color: TLColorType }
-		// ): string {
-		// 	switch (opts.type) {
-		// 		case 'fill': {
-		// 			const { color } = opts
-		// 			if (!colors.fill.has(color)) {
-		// 				colors.fill.set(color, containerStyle.getPropertyValue(`--palette-${color}`))
-		// 			}
-		// 			return colors.fill.get(color)!
-		// 		}
-		// 		case 'pattern': {
-		// 			const { color } = opts
-		// 			if (!colors.pattern.has(color)) {
-		// 				colors.pattern.set(color, containerStyle.getPropertyValue(`--palette-${color}-pattern`))
-		// 			}
-		// 			return colors.pattern.get(color)!
-		// 		}
-		// 		case 'semi': {
-		// 			const { color } = opts
-		// 			if (!colors.semi.has(color)) {
-		// 				colors.semi.set(color, containerStyle.getPropertyValue(`--palette-${color}-pattern`))
-		// 			}
-		// 			return colors.semi.get(color)!
-		// 		}
-		// 		default: {
-		// 			return colors[opts.type]
-		// 		}
-		// 	}
-		// }
-
-		// Remove containerEl from DOM (temp DOM node)
-		// document.body.removeChild(fakeContainerEl)
-
 		// ---Figure out which shapes we need to include
 
 		const shapes = this.getShapesAndDescendantsInOrder(ids)
@@ -5580,7 +5575,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (background) {
 			if (isSingleFrameShape) {
-				svg.style.setProperty('background', `var(--palette-solid)`)
+				svg.style.setProperty('background', getCssSolidColor())
 			} else {
 				svg.style.setProperty('background-color', `var(--color-background)`)
 			}
@@ -5591,7 +5586,7 @@ export class App extends EventEmitter<TLEventMap> {
 		// Add the defs to the svg
 		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 
-		for (const element of Array.from(exportPatternSvgDefs(`var(--palette-solid)`))) {
+		for (const element of Array.from(exportPatternSvgDefs(getCssSolidColor()))) {
 			defs.appendChild(element)
 		}
 
@@ -5632,15 +5627,15 @@ export class App extends EventEmitter<TLEventMap> {
 
 			const util = this.getShapeUtil(shape)
 
-			let utilSvgElement = await util.toSvg?.(shape, font, isDarkMode)
+			let utilSvgElement = await util.toSvg?.(shape, font)
 
 			if (!utilSvgElement) {
 				const bounds = this.getPageBounds(shape)!
 				const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 				elm.setAttribute('width', bounds.width + '')
 				elm.setAttribute('height', bounds.height + '')
-				elm.setAttribute('fill', `var(--palette-solid)`)
-				elm.setAttribute('stroke', `var(--palette-grey-pattern)`)
+				elm.setAttribute('fill', getCssSolidColor())
+				elm.setAttribute('stroke', getCssPatternColor('grey'))
 				elm.setAttribute('stroke-width', '1')
 				utilSvgElement = elm
 			}

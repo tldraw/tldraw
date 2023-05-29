@@ -1,5 +1,9 @@
 import {
+	ColorStyle,
+	FontStyle,
+	SizeStyle,
 	TLAlignType,
+	TLColorType,
 	TLFillType,
 	TLFontType,
 	TLShape,
@@ -7,11 +11,13 @@ import {
 	TLVerticalAlignType,
 } from '@tldraw/tlschema'
 import React from 'react'
-import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TEXT_PROPS } from '../../../constants'
+import { useApp } from '../../../hooks/useApp'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
 import { TextHelpers } from '../TLTextUtil/TextHelpers'
 import { useEditableText } from './useEditableText'
+import { useTheme } from './useTheme'
 
 export const TextLabel = React.memo(function TextLabel<
 	T extends Extract<TLShape, { props: { text: string } }>
@@ -19,23 +25,23 @@ export const TextLabel = React.memo(function TextLabel<
 	id,
 	type,
 	text,
-	size,
-	labelColor,
 	font,
+	color,
+	size,
 	align,
 	verticalAlign,
 	wrap,
 }: {
 	id: T['id']
 	type: T['type']
-	size: TLSizeType
 	font: TLFontType
+	size: TLSizeType
+	color: TLColorType
 	fill?: TLFillType
 	align: TLAlignType
 	verticalAlign: TLVerticalAlignType
 	wrap?: boolean
 	text: string
-	labelColor: string
 }) {
 	const {
 		rInput,
@@ -48,6 +54,25 @@ export const TextLabel = React.memo(function TextLabel<
 		handleBlur,
 	} = useEditableText(id, type, text)
 
+	const app = useApp()
+
+	const theme = useTheme()
+
+	const labelColor = app.getStyle<ColorStyle>({
+		type: 'color',
+		id: color,
+		theme,
+		variant: 'default',
+	}).value
+
+	const fontFamily = app.getStyle<FontStyle>({ type: 'font', id: font }).value
+
+	const fontSize = app.getStyle<SizeStyle>({
+		type: 'size',
+		id: size,
+		variant: 'fontSize',
+	}).value
+
 	const isInteractive = isEditing || isEditableFromHover
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
@@ -56,7 +81,6 @@ export const TextLabel = React.memo(function TextLabel<
 	return (
 		<div
 			className="tl-text-label"
-			data-font={font}
 			data-align={align}
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
@@ -73,9 +97,10 @@ export const TextLabel = React.memo(function TextLabel<
 			<div
 				className="tl-text-label__inner"
 				style={{
-					fontSize: LABEL_FONT_SIZES[size],
-					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
+					fontSize,
+					fontFamily,
+					lineHeight: fontSize * TEXT_PROPS.lineHeight + 'px',
+					minHeight: isEmpty ? fontSize * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
 					color: labelColor,
 				}}
