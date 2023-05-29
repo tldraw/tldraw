@@ -27,7 +27,7 @@ interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]
 export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 	T extends AllStyles[keyof AllStyles][number]
 >({
-	'data-testid': dataWd,
+	'data-testid': testId,
 	label,
 	labelA,
 	labelB,
@@ -52,8 +52,8 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 
 	if (valueA === undefined && valueB === undefined) return null
 
-	const startWdPrefix = `${dataWd}.start`
-	const endWdPrefix = `${dataWd}.end`
+	const startWdPrefix = `${testId}.start`
+	const endWdPrefix = `${testId}.end`
 
 	return (
 		<div className="tlui-style-panel__double-select-picker">

@@ -437,7 +437,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	corner,
 	cursor,
 	isHidden,
-	'data-testid': dataWd,
+	'data-testid': testId,
 }: {
 	cx: number
 	cy: number
@@ -451,7 +451,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	return (
 		<rect
 			className={classNames('tl-transparent', 'tl-rotate-corner', { 'tl-hidden': isHidden })}
-			data-testid={dataWd}
+			data-testid={testId}
 			aria-label={`${corner} target`}
 			pointerEvents="all"
 			x={toDomPrecision(cx - targetSize * 3)}
@@ -471,7 +471,7 @@ export const MobileRotateHandle = function RotateHandle({
 	cy,
 	size,
 	isHidden,
-	'data-testid': dataWd,
+	'data-testid': testId,
 }: {
 	cx: number
 	cy: number
@@ -484,7 +484,7 @@ export const MobileRotateHandle = function RotateHandle({
 	return (
 		<g>
 			<circle
-				data-testid={dataWd}
+				data-testid={testId}
 				pointerEvents="all"
 				className={classNames('tl-transparent', 'tl-mobile-rotate__bg', { 'tl-hidden': isHidden })}
 				cx={cx}

@@ -597,7 +597,7 @@ export type SubMenu = {
 };
 
 // @public (undocumented)
-function SubTrigger({ label, 'data-testid': dataWd, 'data-direction': dataDirection, }: {
+function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
     label: TLTranslationKey;
     'data-testid'?: string;
     'data-direction'?: 'left' | 'right';
@@ -840,7 +840,7 @@ export interface TranslationProviderProps {
 }
 
 // @public (undocumented)
-function Trigger({ children, 'data-testid': dataWd, }: {
+function Trigger({ children, 'data-testid': testId, }: {
     children: any;
     'data-testid'?: string;
 }): JSX.Element;

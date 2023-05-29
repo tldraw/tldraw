@@ -29,7 +29,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 	label,
 	value,
 	onValueChange,
-	'data-testid': dataWd,
+	'data-testid': testId,
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
 
@@ -39,7 +39,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 		<DropdownMenu.Root id={`style panel ${id}`}>
 			<Trigger asChild>
 				<Button
-					data-testid={dataWd}
+					data-testid={testId}
 					title={
 						value === null
 							? msg('style-panel.mixed')
@@ -61,7 +61,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 						return (
 							<DropdownMenu.Item
 								className="tlui-button-grid__button"
-								data-testid={`${dataWd}.${item.id}`}
+								data-testid={`${testId}.${item.id}`}
 								title={msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
 								key={item.id}
 								icon={item.icon as TLUiIconType}

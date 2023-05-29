@@ -25,9 +25,9 @@ export const PopoverTrigger: FC<{
 	disabled?: boolean
 	className?: string
 	'data-testid'?: string
-}> = ({ children, disabled, 'data-testid': dataWd }) => {
+}> = ({ children, disabled, 'data-testid': testId }) => {
 	return (
-		<PopoverPrimitive.Trigger data-testid={dataWd} disabled={disabled} asChild dir="ltr">
+		<PopoverPrimitive.Trigger data-testid={testId} disabled={disabled} asChild dir="ltr">
 			{children}
 		</PopoverPrimitive.Trigger>
 	)
