@@ -7920,10 +7920,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		const targetViewport = new Box2d(-x, -y, w, h)
 
-		if (this.reduceMotion) {
-			return this._setCamera(x, y, z)
-		}
-
 		return this._animateToViewport(targetViewport, opts)
 	}
 
@@ -8389,7 +8385,6 @@ export class App extends EventEmitter<TLEventMap> {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
 		const startViewport = this.viewportPageBounds.clone()
 
-		console.log('hi')
 		this.stopCameraAnimation()
 		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
