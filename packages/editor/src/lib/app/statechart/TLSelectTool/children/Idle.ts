@@ -166,7 +166,7 @@ export class Idle extends StateNode {
 					}
 
 					if (
-						util.canCrop(onlySelectedShape) &&
+						util.canEdit(onlySelectedShape) &&
 						!this.app.isShapeOrAncestorLocked(onlySelectedShape)
 					) {
 						this.startEditingShape(onlySelectedShape, info)
