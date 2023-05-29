@@ -19,11 +19,10 @@ export function sleep(ms: number) {
 
 declare const app: App
 
-export async function setup({ page, context }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
+export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await page.goto('http://localhost:5420/')
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => (app.enableAnimations = false))
-	await context.grantPermissions(['clipboard-read', 'clipboard-write'])
 }
 
 export async function setupWithShapes({

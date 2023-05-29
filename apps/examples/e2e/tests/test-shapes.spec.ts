@@ -8,7 +8,7 @@ export function sleep(ms: number) {
 
 declare const app: App
 
-test.describe('smoke tests', () => {
+test.describe('creates shapes with tools', () => {
 	test.beforeEach(setup)
 
 	test('draw tool', async ({ page }) => {
