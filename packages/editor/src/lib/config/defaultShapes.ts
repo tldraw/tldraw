@@ -40,40 +40,41 @@ import { ShapeInfo } from './createTldrawEditorStore'
 
 /** @public */
 export const coreShapes: Record<string, ShapeInfo> = {
+	// created by grouping interactions, probably the corest core shape that we have
 	group: {
 		util: TLGroupUtil,
 		validator: groupShapeTypeValidator,
 		migrations: groupShapeTypeMigrations,
 	},
+	// created by embed menu / url drop
 	embed: {
 		util: TLEmbedUtil,
 		validator: embedShapeTypeValidator,
 		migrations: embedShapeTypeMigrations,
 	},
-	arrow: {
-		util: TLArrowUtil,
-		validator: arrowShapeTypeValidator,
-		migrations: arrowShapeTypeMigrations,
-	},
+	// created by copy and paste / url drop
 	bookmark: {
 		util: TLBookmarkUtil,
 		validator: bookmarkShapeTypeValidator,
 		migrations: bookmarkShapeTypeMigrations,
 	},
+	// created by copy and paste / file drop
 	image: {
 		util: TLImageUtil,
 		validator: imageShapeTypeValidator,
 		migrations: imageShapeTypeMigrations,
 	},
-	text: {
-		util: TLTextUtil,
-		validator: textShapeTypeValidator,
-		migrations: textShapeTypeMigrations,
-	},
+	// created by copy and paste / file drop
 	video: {
 		util: TLVideoUtil,
 		validator: videoShapeTypeValidator,
 		migrations: videoShapeTypeMigrations,
+	},
+	// created by copy and paste
+	text: {
+		util: TLTextUtil,
+		validator: textShapeTypeValidator,
+		migrations: textShapeTypeMigrations,
 	},
 }
 
@@ -103,5 +104,10 @@ export const defaultShapes: Record<string, ShapeInfo> = {
 		util: TLFrameUtil,
 		validator: frameShapeTypeValidator,
 		migrations: frameShapeTypeMigrations,
+	},
+	arrow: {
+		util: TLArrowUtil,
+		validator: arrowShapeTypeValidator,
+		migrations: arrowShapeTypeMigrations,
 	},
 }
