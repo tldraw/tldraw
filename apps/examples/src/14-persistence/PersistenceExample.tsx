@@ -64,7 +64,7 @@ export default function PersistenceExample() {
 
 	if (state.name === 'loading') {
 		return (
-			<div>
+			<div className="tldraw__editor">
 				<h2>Loading...</h2>
 			</div>
 		)
@@ -72,7 +72,7 @@ export default function PersistenceExample() {
 
 	if (state.name === 'error') {
 		return (
-			<div>
+			<div className="tldraw__editor">
 				<h2>Error!</h2>
 				<p>{state.error}</p>
 			</div>
