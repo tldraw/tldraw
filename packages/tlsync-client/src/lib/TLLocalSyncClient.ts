@@ -36,7 +36,7 @@ type Message = SyncMessage | AnnounceMessage
 
 const msg = (msg: Message) => msg
 
-/** @public */
+/** @internal */
 export class BroadcastChannelMock {
 	onmessage?: (e: MessageEvent) => void
 	constructor(_name: string) {
@@ -52,7 +52,7 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
-/** @public */
+/** @internal */
 export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: RecordsDiff<any>[] = []

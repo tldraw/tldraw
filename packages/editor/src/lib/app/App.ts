@@ -60,6 +60,7 @@ import {
 	Vec2dModel,
 	createCustomShapeId,
 	createShapeId,
+	isPageId,
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
@@ -651,7 +652,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	@computed private get _pageTransformCache(): ComputedCache<Matrix2d, TLShape> {
 		return this.store.createComputedCache<Matrix2d, TLShape>('pageTransformCache', (shape) => {
-			if (PageRecordType.isId(shape.parentId)) {
+			if (isPageId(shape.parentId)) {
 				return this.getTransform(shape)
 			}
 			// some weird circular type thing here that I had to work wround with (as any)
@@ -687,7 +688,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	@computed private get _pageMaskCache(): ComputedCache<VecLike[], TLShape> {
 		return this.store.createComputedCache<VecLike[], TLShape>('pageMaskCache', (shape) => {
-			if (PageRecordType.isId(shape.parentId)) {
+			if (isPageId(shape.parentId)) {
 				return undefined
 			}
 
@@ -1415,7 +1416,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// if this shape moved to a new page, clean up any previous page's instance state
-		if (prev.parentId !== next.parentId && PageRecordType.isId(next.parentId)) {
+		if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
 			const allMovingIds = new Set([prev.id])
 			this.visitDescendants(prev.id, (id) => {
 				allMovingIds.add(id)
@@ -1792,7 +1793,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getParentTransform(shape: TLShape) {
-		if (PageRecordType.isId(shape.parentId)) {
+		if (isPageId(shape.parentId)) {
 			return Matrix2d.Identity()
 		}
 		return this._pageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
@@ -2070,7 +2071,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	getAncestors(shape: TLShape, acc: TLShape[] = []): TLShape[] {
 		const parentId = shape.parentId
-		if (PageRecordType.isId(parentId)) {
+		if (isPageId(parentId)) {
 			acc.reverse()
 			return acc
 		}
@@ -2112,7 +2113,7 @@ export class App extends EventEmitter<TLEventMap> {
 	findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined {
 		const parentId = shape.parentId
 
-		if (PageRecordType.isId(parentId)) {
+		if (isPageId(parentId)) {
 			return undefined
 		}
 
@@ -2150,7 +2151,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 		if (shapes.length === 1) {
 			const parentId = shapes[0].parentId
-			if (PageRecordType.isId(parentId)) {
+			if (isPageId(parentId)) {
 				return
 			}
 			return predicate ? this.findAncestor(shapes[0], predicate)?.id : parentId
@@ -2400,7 +2401,7 @@ export class App extends EventEmitter<TLEventMap> {
 		if (!shape) {
 			return new Vec2d(0, 0)
 		}
-		if (PageRecordType.isId(shape.parentId)) return Vec2d.From(point)
+		if (isPageId(shape.parentId)) return Vec2d.From(point)
 
 		const parentTransform = this.getPageTransformById(shape.parentId)
 		if (!parentTransform) return Vec2d.From(point)
@@ -2441,7 +2442,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d {
-		if (PageRecordType.isId(shape.parentId)) return Vec2d.From(delta)
+		if (isPageId(shape.parentId)) return Vec2d.From(delta)
 
 		const parent = this.getShapeById(shape.parentId)
 		if (!parent) return Vec2d.From(delta)
@@ -3157,7 +3158,7 @@ export class App extends EventEmitter<TLEventMap> {
 	/** Get the id of the containing page for a given shape. */
 	getParentPageId(shape?: TLShape): TLPageId | undefined {
 		if (shape === undefined) return undefined
-		if (PageRecordType.isId(shape.parentId)) {
+		if (isPageId(shape.parentId)) {
 			return shape.parentId
 		} else {
 			return this.getParentPageId(this.getShapeById(shape.parentId))
@@ -4220,7 +4221,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		let isDuplicating = false
 
-		if (!PageRecordType.isId(pasteParentId)) {
+		if (!isPageId(pasteParentId)) {
 			const parent = this.getShapeById(pasteParentId)
 			if (parent) {
 				if (!this.viewportPageBounds.includes(this.getPageBounds(parent)!)) {
@@ -4416,7 +4417,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const bounds = Box2d.Common(newCreatedShapes.map((s) => this.getPageBounds(s)!))
 
 			if (point === undefined) {
-				if (!PageRecordType.isId(pasteParentId)) {
+				if (!isPageId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShapeById(pasteParentId)!
 					const util = this.getShapeUtil(shape)
@@ -6974,7 +6975,7 @@ export class App extends EventEmitter<TLEventMap> {
 	reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string) {
 		const changes: TLShapePartial[] = []
 
-		const parentTransform = PageRecordType.isId(parentId)
+		const parentTransform = isPageId(parentId)
 			? Matrix2d.Identity()
 			: this.getPageTransformById(parentId)!
 
@@ -7876,6 +7877,8 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	enableAnimations = true
+
 	/**
 	 * Animate the camera.
 	 *
@@ -7907,6 +7910,10 @@ export class App extends EventEmitter<TLEventMap> {
 		const h = height / z
 
 		const targetViewport = new Box2d(-x, -y, w, h)
+
+		if (!this.enableAnimations) {
+			return this.setCamera(x, y, this.viewportScreenBounds.width / w)
+		}
 
 		return this._animateToViewport(targetViewport, opts)
 	}
