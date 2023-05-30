@@ -9502,6 +9502,7 @@ __metadata:
     "@playwright/test": ^1.34.3
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
+    "@tldraw/utils": "workspace:*"
     "@vercel/analytics": ^1.0.1
     dotenv: ^16.0.3
     lazyrepo: 0.0.0-alpha.26
