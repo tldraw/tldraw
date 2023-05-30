@@ -473,7 +473,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	getSnapshot() {
 		return {
-			store: this.serialize(),
+			store: this.serializeDocumentState(),
 			schema: this.schema.serialize(),
 		}
 	}
