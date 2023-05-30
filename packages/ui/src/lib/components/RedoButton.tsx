@@ -14,7 +14,7 @@ export const RedoButton = memo(function RedoButton() {
 
 	return (
 		<Button
-			data-wd="main.redo"
+			data-testid="main.redo"
 			icon={redo.icon}
 			title={`${msg(redo.label!)} ${kbdStr(redo.kbd!)}`}
 			disabled={!canRedo}

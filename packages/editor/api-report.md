@@ -216,6 +216,8 @@ export class App extends EventEmitter<TLEventMap> {
     get editingId(): null | TLShapeId;
     // (undocumented)
     get editingShape(): null | TLUnknownShape;
+    // (undocumented)
+    enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;

@@ -75,7 +75,7 @@ export const PageMenu = function PageMenu() {
 		if (!isOpen) return
 		requestAnimationFrame(() => {
 			const elm = document.querySelector(
-				`[data-wd="page-menu-item-${currentPage.id}"]`
+				`[data-testid="page-menu-item-${currentPage.id}"]`
 			) as HTMLDivElement
 
 			if (elm) {
@@ -240,7 +240,7 @@ export const PageMenu = function PageMenu() {
 			<PopoverTrigger>
 				<Button
 					className="tlui-page-menu__trigger tlui-menu__trigger"
-					data-wd="main.page-menu"
+					data-testid="main.page-menu"
 					icon="chevron-down"
 					title={currentPage.name}
 				>
@@ -254,13 +254,13 @@ export const PageMenu = function PageMenu() {
 						{!isReadonlyMode && (
 							<>
 								<Button
-									data-wd="page-menu.edit"
+									data-testid="page-menu.edit"
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									icon={isEditing ? 'check' : 'edit'}
 									onClick={toggleEditing}
 								/>
 								<Button
-									data-wd="page-menu.create"
+									data-testid="page-menu.create"
 									icon="plus"
 									title={msg(
 										maxPageCountReached
@@ -287,7 +287,7 @@ export const PageMenu = function PageMenu() {
 							return isEditing ? (
 								<div
 									key={page.id + '_editing'}
-									data-wd={`page-menu-item-${page.id}`}
+									data-testid={`page-menu-item-${page.id}`}
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: page.id === currentPage.id ? 888 : index,
@@ -326,7 +326,7 @@ export const PageMenu = function PageMenu() {
 									) : (
 										<div
 											id={`page-menu-item-${page.id}`}
-											data-wd={`page-menu-item-${page.id}`}
+											data-testid={`page-menu-item-${page.id}`}
 											className="tlui-page_menu__item__sortable__title"
 											style={{ height: ITEM_HEIGHT }}
 										>
@@ -346,7 +346,7 @@ export const PageMenu = function PageMenu() {
 							) : (
 								<div
 									key={page.id}
-									data-wd={`page-menu-item-${page.id}`}
+									data-testid={`page-menu-item-${page.id}`}
 									className="tlui-page-menu__item"
 								>
 									<Button

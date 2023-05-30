@@ -193,7 +193,7 @@ export const Toolbar = function Toolbar() {
 												<Button
 													className="tlui-toolbar__tools__button tlui-toolbar__overflow"
 													icon="chevron-up"
-													data-wd="tools.more"
+													data-testid="tools.more"
 													title={msg('tool-panel.more')}
 												/>
 											</M.Trigger>
@@ -231,7 +231,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 					<M.Item
 						key={id}
 						className="tlui-button-grid__button"
-						data-wd={`tools.${id}`}
+						data-testid={`tools.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
@@ -257,7 +257,7 @@ function ToolbarButton({
 	return (
 		<Button
 			className="tlui-toolbar__tools__button"
-			data-wd={`tools.${item.id}`}
+			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}
 			aria-label={item.label}

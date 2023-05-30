@@ -14,7 +14,7 @@ export const UndoButton = memo(function UndoButton() {
 
 	return (
 		<Button
-			data-wd="main.undo"
+			data-testid="main.undo"
 			icon={undo.icon}
 			title={`${msg(undo.label!)} ${kbdStr(undo.kbd!)}`}
 			disabled={!canUndo}
