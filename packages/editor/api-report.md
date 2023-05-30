@@ -135,6 +135,8 @@ export class App extends EventEmitter<TLEventMap> {
     }): this;
     // (undocumented)
     animateToShape(shapeId: TLShapeId, opts?: AnimationOptions): this;
+    // (undocumented)
+    get animationSpeed(): number;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         origin: string;
@@ -401,8 +403,6 @@ export class App extends EventEmitter<TLEventMap> {
         preserveIds?: boolean;
     }): this;
     redo(): this;
-    // (undocumented)
-    get reduceMotion(): boolean | undefined;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
         id: TLShapeId;
@@ -449,6 +449,8 @@ export class App extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(ids?: TLShapeId[]): this;
     sendToBack(ids?: TLShapeId[]): this;
+    // (undocumented)
+    setAnimationSpeed(animationSpeed: number): this;
     setBrush(brush?: Box2dModel | null): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: ViewportOptions): this;
     // (undocumented)
@@ -473,8 +475,6 @@ export class App extends EventEmitter<TLEventMap> {
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
-    // (undocumented)
-    setReduceMotion(reduceMotion: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setSelectedTool(id: string, info?: {}): this;
@@ -494,7 +494,7 @@ export class App extends EventEmitter<TLEventMap> {
         direction: Vec2d;
         friction: number;
         speedThreshold?: number | undefined;
-    }): this;
+    }): this | undefined;
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;

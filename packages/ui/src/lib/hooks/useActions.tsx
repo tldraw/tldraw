@@ -802,7 +802,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
-					app.setReduceMotion(!app.reduceMotion)
+					app.setAnimationSpeed(app.animationSpeed === 0 ? 1 : 0)
 				},
 				checkbox: true,
 			},

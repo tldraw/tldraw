@@ -50,7 +50,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const isMobile = breakpoint < 5
 
 	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
-	const reduceMotion = useValue('reduceMotion', () => app.reduceMotion, [app])
+	const animationSpeed = useValue('animationSpeed', () => app.animationSpeed, [app])
 	const isGridMode = useValue('isGridMode', () => app.userDocumentSettings.isGridMode, [app])
 	const isSnapMode = useValue('isSnapMode', () => app.userDocumentSettings.isSnapMode, [app])
 	const isToolLock = useValue('isToolLock', () => app.instanceState.isToolLocked, [app])
@@ -172,7 +172,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						menuItem(actions['toggle-grid'], { checked: isGridMode }),
 						menuItem(actions['toggle-dark-mode'], { checked: isDarkMode }),
 						menuItem(actions['toggle-focus-mode'], { checked: isFocusMode }),
-						menuItem(actions['toggle-reduce-motion'], { checked: reduceMotion }),
+						menuItem(actions['toggle-reduce-motion'], { checked: animationSpeed === 0 }),
 						menuItem(actions['toggle-debug-mode'], { checked: isDebugMode })
 					)
 				),
@@ -208,7 +208,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		noneSelected,
 		canUndo,
 		canRedo,
-		reduceMotion,
+		animationSpeed,
 		isDarkMode,
 		isGridMode,
 		isSnapMode,

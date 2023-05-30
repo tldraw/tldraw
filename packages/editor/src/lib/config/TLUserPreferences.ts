@@ -17,7 +17,7 @@ export interface TLUserPreferences {
 	locale: string
 	color: string
 	isDarkMode: boolean
-	reduceMotion?: boolean
+	animationSpeed: number
 }
 
 interface UserDataSnapshot {
@@ -37,24 +37,24 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	locale: T.string,
 	color: T.string,
 	isDarkMode: T.boolean,
-	reduceMotion: T.boolean,
+	animationSpeed: T.number,
 })
 
 const Versions = {
-	AddsReduceMotion: 1,
+	AddAnimationSpeed: 1,
 } as const
 
 const userTypeMigrations = defineMigrations({
 	currentVersion: 1,
 	migrators: {
-		[Versions.AddsReduceMotion]: {
+		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
 				return {
 					...user,
-					reduceMotion: false,
+					animationSpeed: 1,
 				}
 			},
-			down: ({ reduceMotion: _, ...user }) => {
+			down: ({ animationSpeed: _, ...user }) => {
 				return user
 			},
 		},
@@ -89,6 +89,7 @@ function getFreshUserPreferences(): TLUserPreferences {
 		color: getRandomColor(),
 		// TODO: detect dark mode
 		isDarkMode: false,
+		animationSpeed: 1,
 	}
 }
 

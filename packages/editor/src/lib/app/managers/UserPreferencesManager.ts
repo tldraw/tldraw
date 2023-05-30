@@ -15,6 +15,10 @@ export class UserPreferencesManager {
 		return this.editor.config.userPreferences.value.isDarkMode
 	}
 
+	get animationSpeed() {
+		return this.editor.config.userPreferences.value.animationSpeed
+	}
+
 	get id() {
 		return this.editor.config.userPreferences.value.id
 	}
@@ -29,9 +33,5 @@ export class UserPreferencesManager {
 
 	get color() {
 		return this.editor.config.userPreferences.value.color
-	}
-
-	get reduceMotion() {
-		return this.editor.config.userPreferences.value.reduceMotion
 	}
 }

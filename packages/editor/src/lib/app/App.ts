@@ -1516,13 +1516,13 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	get reduceMotion() {
-		return this.user.reduceMotion
+	get animationSpeed() {
+		return this.user.animationSpeed
 	}
 
-	setReduceMotion(reduceMotion: boolean) {
-		if (reduceMotion !== this.reduceMotion) {
-			this.user.updateUserPreferences({ reduceMotion })
+	setAnimationSpeed(animationSpeed: number) {
+		if (animationSpeed !== this.animationSpeed) {
+			this.user.updateUserPreferences({ animationSpeed })
 		}
 		return this
 	}
@@ -8383,29 +8383,33 @@ export class App extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _animateToViewport(targetViewportPage: Box2d, opts = {} as AnimationOptions) {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
-		const startViewport = this.viewportPageBounds.clone()
+		const { animationSpeed, viewportPageBounds } = this
 
+		// If we have an existing animation, then stop it; also stop following any user
 		this.stopCameraAnimation()
 		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
 		}
 
-		if (this.reduceMotion) {
+		if (duration === 0 || animationSpeed === 0) {
+			// If we have no animation, then skip the animation and just set the camera
 			return this._setCamera(
-				targetViewportPage.x,
-				targetViewportPage.y,
+				-targetViewportPage.x,
+				-targetViewportPage.y,
 				this.viewportScreenBounds.width / targetViewportPage.width
 			)
 		}
 
+		// Set our viewport animation
 		this._viewportAnimation = {
 			elapsed: 0,
-			duration,
+			duration: duration / animationSpeed,
 			easing,
-			start: startViewport,
+			start: viewportPageBounds.clone(),
 			end: targetViewportPage,
 		}
 
+		// On each tick, animate the viewport
 		this.addListener('tick', this._animateViewport)
 
 		return this
@@ -8421,10 +8425,14 @@ export class App extends EventEmitter<TLEventMap> {
 	) {
 		if (!this.canMoveCamera) return this
 
-		const { speed, direction, friction, speedThreshold = 0.01 } = opts
-		let currentSpeed = speed
-
 		this.stopCameraAnimation()
+
+		const { animationSpeed } = this
+
+		if (animationSpeed === 0) return
+
+		const { speed, friction, direction, speedThreshold = 0.01 } = opts
+		let currentSpeed = Math.min(speed, 1)
 
 		const cancel = () => {
 			this.removeListener('tick', moveCamera)
