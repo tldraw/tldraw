@@ -1,67 +1,21 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
+import { TL } from '../jsx'
 
 let app: TestApp
-
-export const ids = {
-	A: createCustomShapeId('A'),
-	B: createCustomShapeId('B'),
-	C: createCustomShapeId('C'),
-	D: createCustomShapeId('D'),
-}
+let ids: Record<string, TLShapeId>
 
 beforeEach(() => {
 	app = new TestApp()
-
-	app.createShapes([
-		{
-			id: ids.A,
-			type: 'geo',
-			x: 100,
-			y: 100,
-			props: {
-				w: 100,
-				h: 100,
-			},
-		},
-		{
-			id: ids.B,
-			type: 'frame',
-			x: 200,
-			y: 200,
-			props: {
-				w: 300,
-				h: 300,
-			},
-		},
-		// This shape is a child of the frame.
-		{
-			id: ids.C,
-			type: 'geo',
-			parentId: ids.B,
-			x: 200,
-			y: 200,
-			props: {
-				w: 50,
-				h: 50,
-			},
-		},
-		// this shape is also a child of the frame,
-		// but is outside of its clipping bounds; so it
-		// should never be rendered unless its canUnmount
-		// flag is set to false
-		{
-			id: ids.D,
-			type: 'geo',
-			parentId: ids.B,
-			x: 1000,
-			y: 1000,
-			props: {
-				w: 50,
-				h: 50,
-			},
-		},
+	ids = app.createShapesFromJsx([
+		<TL.geo ref="A" x={100} y={100} w={100} h={100} />,
+		<TL.frame ref="B" x={200} y={200} w={300} h={300}>
+			<TL.geo ref="C" x={200} y={200} w={50} h={50} />
+			{/* this is outside of the frames clipping bounds, so it should never be rendered */}
+			<TL.geo ref="D" x={1000} y={1000} w={50} h={50} />
+		</TL.frame>,
 	])
+
 	app.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
 })
 
