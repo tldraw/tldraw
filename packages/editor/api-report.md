@@ -1696,7 +1696,7 @@ export type TLBoxLike = TLBaseShape<string, {
 // @public (undocumented)
 export abstract class TLBoxTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_3 | typeof Pointing_3)[];
+    static children: () => (typeof Idle_4 | typeof Pointing_3)[];
     // (undocumented)
     static id: string;
     // (undocumented)

@@ -16,7 +16,7 @@ import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils
 import { ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
-import { getFreehandOptions, getPointsFromSegments } from '../TLDrawUtil/getPath'
+import { getHighlightFreehandSettings, getPointsFromSegments } from '../TLDrawUtil/getPath'
 import { OnResizeHandler, TLShapeUtil } from '../TLShapeUtil'
 
 const OVERLAY_OPACITY = 0.4
@@ -130,19 +130,17 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 		}
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getFreehandOptions(
-			{ dash: 'draw', isComplete: shape.props.isComplete, isPen: shape.props.isPen },
-			sw,
-			showAsComplete,
-			true
-		)
+		const options = getHighlightFreehandSettings(strokeWidth, showAsComplete)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
-		const solidStrokePath =
-			strokePoints.length > 1
-				? getSvgPathFromStrokePoints(strokePoints, false)
-				: getDot(allPointsFromSegments[0], sw)
 
-		return <path d={solidStrokePath} />
+		let strokePath
+		if (strokePoints.length < 2) {
+			strokePath = getDot(allPointsFromSegments[0], sw)
+		} else {
+			strokePath = getSvgPathFromStrokePoints(strokePoints, false)
+		}
+
+		return <path d={strokePath} />
 	}
 
 	toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors) {
@@ -213,12 +211,7 @@ function HighlightRenderer({
 		sw += rng(shape.id)() * (strokeWidth / 6)
 	}
 
-	const options = getFreehandOptions(
-		{ isComplete: shape.props.isComplete, isPen: shape.props.isPen, dash: 'draw' },
-		sw,
-		showAsComplete,
-		forceSolid
-	)
+	const options = getHighlightFreehandSettings(sw, showAsComplete)
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 	const solidStrokePath =
@@ -274,12 +267,7 @@ function highlighterToSvg(
 		sw += rng(shape.id)() * (strokeWidth / 6)
 	}
 
-	const options = getFreehandOptions(
-		{ dash: 'draw', isComplete: shape.props.isComplete, isPen: shape.props.isPen },
-		sw,
-		showAsComplete,
-		false
-	)
+	const options = getHighlightFreehandSettings(sw, showAsComplete)
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 	setStrokePointRadii(strokePoints, options)
