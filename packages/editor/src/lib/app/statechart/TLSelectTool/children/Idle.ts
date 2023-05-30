@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createShapeId, TLGeoShapeProps, TLShape } from '@tldraw/tlschema'
+import { TLGeoShapeProps, TLShape } from '@tldraw/tlschema'
 import { debugFlags } from '../../../../utils/debug-flags'
 import {
 	TLClickEventInfo,
@@ -358,42 +358,9 @@ export class Idle extends StateNode {
 	}
 
 	private createTextShapeAtPoint(info: TLClickEventInfo) {
-		this.app.mark('creating text shape')
-
-		const id = createShapeId()
-
-		const { x, y } = this.app.inputs.currentPagePoint
-
-		this.app.createShapes([
-			{
-				id,
-				type: 'text',
-				x,
-				y,
-				props: {
-					text: '',
-					autoSize: true,
-				},
-			},
-		])
-
-		const shape = this.app.getShapeById(id)
-		if (!shape) return
-
-		const bounds = this.app.getBounds(shape)
-
-		this.app.updateShapes([
-			{
-				id,
-				type: 'text',
-				x: shape.x - bounds.width / 2,
-				y: shape.y - bounds.height / 2,
-			},
-		])
-
-		this.app.setEditingId(id)
-		this.app.select(id)
-		this.parent.transition('editing_shape', info)
+		if (this.app.onDoubleClickCanvas) {
+			this.app.onDoubleClickCanvas(info)
+		}
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {

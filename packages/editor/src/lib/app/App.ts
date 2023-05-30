@@ -135,7 +135,12 @@ import { RootState } from './statechart/RootState'
 import { StateNode } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
-import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import {
+	TLClickEventInfo,
+	TLEventInfo,
+	TLPinchEventInfo,
+	TLPointerEventInfo,
+} from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -8736,9 +8741,61 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param file - The file to upload.
 	 * @public
 	 */
-
 	async onCreateAssetFromFile(file: File): Promise<TLAsset> {
 		return await getMediaAssetFromFile(file)
+	}
+
+	/**
+	 * A callback fired when a user double clicks on the canvas. By default, this creates a text shape.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * app.onDoubleClickCanvas(myHandler)
+	 * ```
+	 *
+	 * @public
+	 */
+	onDoubleClickCanvas(info: TLClickEventInfo): void {
+		this.mark('creating text shape')
+		this.batch(() => {
+			const id = createShapeId()
+
+			const { x, y } = this.inputs.currentPagePoint
+
+			this.createShapes(
+				[
+					{
+						id,
+						type: 'text',
+						x,
+						y,
+						props: {
+							text: '',
+							autoSize: true,
+						},
+					},
+				],
+				true
+			)
+
+			const shape = this.getShapeById(id)
+			if (!shape) return
+
+			const bounds = this.getBounds(shape)
+
+			this.updateShapes([
+				{
+					id,
+					type: 'text',
+					x: shape.x - bounds.width / 2,
+					y: shape.y - bounds.height / 2,
+				},
+			])
+
+			this.setEditingId(id)
+			this.root.transition('select.editing_shape', info)
+		})
 	}
 
 	/**

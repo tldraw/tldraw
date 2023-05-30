@@ -381,6 +381,7 @@ export class App extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
+    onDoubleClickCanvas(info: TLClickEventInfo): void;
     get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
