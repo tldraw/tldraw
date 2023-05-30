@@ -4351,7 +4351,6 @@ __metadata:
     escape-string-regexp: ^5.0.0
     eventemitter3: ^4.0.7
     fake-indexeddb: ^4.0.0
-    gzip-size: ^7.0.0
     is-plain-object: ^5.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^29.4.3
@@ -4386,7 +4385,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/indices@workspace:packages/indices"
   dependencies:
-    benchmark: ^2.1.4
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
@@ -4442,7 +4440,6 @@ __metadata:
   resolution: "@tldraw/primitives@workspace:packages/primitives"
   dependencies:
     "@tldraw/tlschema": "workspace:*"
-    benchmark: ^2.1.4
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
@@ -4482,9 +4479,7 @@ __metadata:
     "@tldraw/polyfills": "workspace:*"
     "@tldraw/tlsync-client": "workspace:*"
     "@tldraw/ui": "workspace:*"
-    "@types/lz-string": ^1.3.34
     chokidar-cli: ^3.0.0
-    gzip-size: ^7.0.0
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
     lazyrepo: 0.0.0-alpha.26
@@ -4580,7 +4575,6 @@ __metadata:
     "@types/lz-string": ^1.3.34
     browser-fs-access: ^0.31.0
     classnames: ^2.3.2
-    gzip-size: ^7.0.0
     hotkeys-js: ^3.9.4
     idb: ^7.1.1
     jest-canvas-mock: ^2.4.0
@@ -7857,13 +7851,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"duplexer@npm:^0.1.2":
-  version: 0.1.2
-  resolution: "duplexer@npm:0.1.2"
-  checksum: 62ba61a830c56801db28ff6305c7d289b6dc9f859054e8c982abd8ee0b0a14d2e9a8e7d086ffee12e868d43e2bbe8a964be55ddbd8c8957714c87373c7a4f9b0
-  languageName: node
-  linkType: hard
-
 "duplexify@npm:^3.5.0, duplexify@npm:^3.6.0":
   version: 3.7.1
   resolution: "duplexify@npm:3.7.1"
@@ -10271,15 +10258,6 @@ __metadata:
   bin:
     gunzip-maybe: bin.js
   checksum: bc4d4977c24a2860238df271de75d53dd72a359d19f1248d1c613807dc221d3b8ae09624e3085c8106663e3e1b59db62a85b261d1138c2cc24efad9df577d4e1
-  languageName: node
-  linkType: hard
-
-"gzip-size@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "gzip-size@npm:7.0.0"
-  dependencies:
-    duplexer: ^0.1.2
-  checksum: 52d0bf586307082428b99f7b04d56d756d640e1f84d4a56debf9fb8c972d9db679143b067dd4024ebef42e9f6787e9dc8b9dcad344372b9dc87e55d942276f49
   languageName: node
   linkType: hard
 
@@ -18379,9 +18357,9 @@ __metadata:
   linkType: hard
 
 "which-module@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "which-module@npm:2.0.0"
-  checksum: 809f7fd3dfcb2cdbe0180b60d68100c88785084f8f9492b0998c051d7a8efe56784492609d3f09ac161635b78ea29219eb1418a98c15ce87d085bce905705c9c
+  version: 2.0.1
+  resolution: "which-module@npm:2.0.1"
+  checksum: 1967b7ce17a2485544a4fdd9063599f0f773959cca24176dbe8f405e55472d748b7c549cd7920ff6abb8f1ab7db0b0f1b36de1a21c57a8ff741f4f1e792c52be
   languageName: node
   linkType: hard
 
