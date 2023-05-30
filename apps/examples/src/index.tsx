@@ -12,7 +12,7 @@ import ExampleBasic from './1-basic/BasicExample'
 import CustomComponentsExample from './10-custom-components/CustomComponentsExample'
 import UserPresenceExample from './11-user-presence/UserPresenceExample'
 import UiEventsExample from './12-ui-events/UiEventsExample'
-import StoreEventsExample from './13-store/StoreEventsExample'
+import StoreEventsExample from './13-store-events/StoreEventsExample'
 import PersistenceExample from './14-persistence/PersistenceExample'
 import ExampleApi from './2-api/APIExample'
 import CustomConfigExample from './3-custom-config/CustomConfigExample'
@@ -20,7 +20,7 @@ import CustomUiExample from './4-custom-ui/CustomUiExample'
 import ExplodedExample from './5-exploded/ExplodedExample'
 import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
-import ErrorBoundaryExample from './8-error-boundaries/ErrorBoundaryExample'
+import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
 import ForEndToEndTests from './end-to-end/ForEndToEndTests'
 
@@ -52,7 +52,7 @@ export const allExamples: Example[] = [
 		element: <ExampleApi />,
 	},
 	{
-		path: '/custom',
+		path: '/custom-config',
 		element: <CustomConfigExample />,
 	},
 	{
