@@ -120,7 +120,7 @@ export type AnimationOptions = Partial<{
 
 // @public (undocumented)
 export class App extends EventEmitter<TLEventMap> {
-    constructor({ store, user, tools, shapes, getContainer }: AppOptions);
+    constructor({ store, user, tools, shapes, getContainer, }: AppOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -131,6 +131,8 @@ export class App extends EventEmitter<TLEventMap> {
     }): this;
     // (undocumented)
     animateToShape(shapeId: TLShapeId, opts?: AnimationOptions): this;
+    // (undocumented)
+    get animationSpeed(): number;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         origin: string;
@@ -444,6 +446,8 @@ export class App extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(ids?: TLShapeId[]): this;
     sendToBack(ids?: TLShapeId[]): this;
+    // (undocumented)
+    setAnimationSpeed(animationSpeed: number): this;
     setBrush(brush?: Box2dModel | null): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: ViewportOptions): this;
     // (undocumented)
@@ -487,7 +491,7 @@ export class App extends EventEmitter<TLEventMap> {
         direction: Vec2d;
         friction: number;
         speedThreshold?: number | undefined;
-    }): this;
+    }): this | undefined;
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;

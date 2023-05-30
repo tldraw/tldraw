@@ -236,11 +236,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    getSnapshot(): {
+        store: StoreSnapshot<R>;
+        schema: SerializedSchema;
+    };
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen: (listener: StoreListener<R>) => () => void;
+    loadSnapshot(snapshot: {
+        store: StoreSnapshot<R>;
+        schema: SerializedSchema;
+    }): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
