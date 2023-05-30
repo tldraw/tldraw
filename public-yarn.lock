@@ -4410,6 +4410,7 @@ __metadata:
     eventemitter3: ^4.0.7
     fake-indexeddb: ^4.0.0
     gzip-size: ^7.0.0
+    idb: ^7.1.1
     is-plain-object: ^5.0.0
     jest-canvas-mock: ^2.5.1
     jest-environment-jsdom: ^29.4.3
