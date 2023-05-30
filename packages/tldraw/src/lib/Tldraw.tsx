@@ -1,7 +1,5 @@
-import { Canvas, TldrawEditor, TldrawEditorProps, createTldrawEditorStore } from '@tldraw/editor'
-import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
+import { Canvas, TldrawEditor, TldrawEditorProps } from '@tldraw/editor'
 import { ContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
-import { useMemo } from 'react'
 
 /** @public */
 export function Tldraw(
@@ -13,17 +11,10 @@ export function Tldraw(
 			hideUi?: boolean
 		}
 ) {
-	const { children, persistenceKey, ...rest } = props
-
-	const store = useMemo(() => createTldrawEditorStore({ instanceId: TAB_ID }), [])
-
-	const syncedStore = useLocalSyncClient({
-		store,
-		universalPersistenceKey: persistenceKey,
-	})
+	const { children, ...rest } = props
 
 	return (
-		<TldrawEditor {...rest} instanceId={TAB_ID} store={syncedStore}>
+		<TldrawEditor {...rest}>
 			<TldrawUi {...rest}>
 				<ContextMenu>
 					<Canvas />

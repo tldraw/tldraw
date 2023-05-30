@@ -1,10 +1,6 @@
-import {
-	InstanceRecordType,
-	PageRecordType,
-	TLInstanceId,
-	createTldrawEditorStore,
-} from '@tldraw/editor'
+import { InstanceRecordType, PageRecordType, TLInstanceId } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
+import { createTldrawEditorStore } from '../../config/createTldrawEditorStore'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 import * as idb from './indexedDb'
 

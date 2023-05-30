@@ -15,7 +15,6 @@ export function Tldraw(props: Omit<TldrawEditorProps, 'instanceId' | 'shapes' | 
 
 
 export * from "@tldraw/editor";
-export * from "@tldraw/tlsync-client";
 export * from "@tldraw/ui";
 
 // (No @packageDocumentation comment for this package)

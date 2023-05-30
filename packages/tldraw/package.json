@@ -47,7 +47,6 @@
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/polyfills": "workspace:*",
-		"@tldraw/tlsync-client": "workspace:*",
 		"@tldraw/ui": "workspace:*"
 	},
 	"peerDependencies": {

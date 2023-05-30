@@ -1,20 +1,12 @@
-import {
-	App,
-	Canvas,
-	ErrorBoundary,
-	TldrawEditor,
-	createTldrawEditorStore,
-	setRuntimeOverrides,
-} from '@tldraw/editor'
+import { App, Canvas, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
-import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
 import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 // eslint-disable-next-line import/no-internal-modules
-import '@tldraw/ui/ui.css'
+import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
 import { useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
@@ -23,10 +15,6 @@ import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
 import { onCreateBookmarkFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
-
-const store = createTldrawEditorStore({
-	instanceId: TAB_ID,
-})
 
 setRuntimeOverrides({
 	openWindow: (url, target) => {
@@ -129,25 +117,20 @@ export type TLDrawInnerProps = {
 }
 
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
-	const syncedStore = useLocalSyncClient({
-		universalPersistenceKey: uri,
-		store,
-	})
-
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	return (
 		<TldrawEditor
 			assetUrls={assetUrls}
 			instanceId={TAB_ID}
-			store={syncedStore}
+			persistenceKey={uri}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
 				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
-				<ChangeResponder syncedStore={syncedStore} />
+				<ChangeResponder />
 				<ContextMenu>
 					<Canvas />
 				</ContextMenu>

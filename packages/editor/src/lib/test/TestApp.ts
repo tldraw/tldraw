@@ -64,7 +64,7 @@ export class TestApp extends App {
 			store: createTldrawEditorStore({
 				instanceId: TEST_INSTANCE_ID,
 				customShapes: shapes,
-			}).store,
+			}),
 			getContainer: () => elm,
 			...options,
 		})

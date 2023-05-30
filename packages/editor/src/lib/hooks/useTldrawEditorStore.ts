@@ -1,30 +1,29 @@
-import { TldrawEditorStore, uniqueId } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
-import { TLLocalSyncClient } from '../TLLocalSyncClient'
+import {
+	TldrawEditorStore,
+	TldrawEditorStoreOptions,
+	createTldrawEditorStore,
+} from '../config/createTldrawEditorStore'
 import '../hardReset'
+import { uniqueId } from '../utils/data'
+import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 
-/**
- * This is a temporary solution that will be replaced with the remote sync client once it has the db
- * integrated
- *
- * @public
- */
-export function useLocalSyncClient({
-	universalPersistenceKey,
-	store,
-}: {
-	universalPersistenceKey?: string
-	store: TldrawEditorStore & { status: 'not-synced' }
-}): TldrawEditorStore {
+/** @public */
+export function useTldrawEditorStore(
+	opts = {} as { persistenceKey?: string } & TldrawEditorStoreOptions
+): TldrawEditorStore {
+	const { persistenceKey, ...rest } = opts
+
 	const [state, setState] = useState<{ id: string; syncedStore: TldrawEditorStore } | null>(null)
+	const [store] = useState(() => createTldrawEditorStore(rest))
 
 	useEffect(() => {
 		const id = uniqueId()
 
-		if (!universalPersistenceKey) {
+		if (!persistenceKey) {
 			setState({
 				id,
-				syncedStore: store,
+				syncedStore: { status: 'not-synced', store },
 			})
 			return
 		}
@@ -44,11 +43,11 @@ export function useLocalSyncClient({
 		}
 
 		const client = new TLLocalSyncClient(store, {
-			universalPersistenceKey,
+			universalPersistenceKey: persistenceKey,
 			onLoad() {
-				setSyncedStore({ ...store, status: 'synced' })
+				setSyncedStore({ store, status: 'synced' })
 			},
-			onLoadError(err) {
+			onLoadError(err: any) {
 				setSyncedStore({ status: 'error', error: err })
 			},
 		})
@@ -57,7 +56,7 @@ export function useLocalSyncClient({
 			setState((prevState) => (prevState?.id === id ? null : prevState))
 			client.close()
 		}
-	}, [universalPersistenceKey, store])
+	}, [persistenceKey, store])
 
 	return state?.syncedStore ?? { status: 'loading' }
 }

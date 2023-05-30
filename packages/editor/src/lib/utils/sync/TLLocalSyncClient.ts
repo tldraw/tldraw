@@ -1,5 +1,5 @@
-import { TldrawEditorStore, TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
-import { compareSchemas, RecordsDiff, SerializedSchema, squashRecordDiffs } from '@tldraw/tlstore'
+import { TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
+import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/tlstore'
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
@@ -74,7 +74,7 @@ export class TLLocalSyncClient {
 	store: TLStore
 
 	constructor(
-		store: TldrawEditorStore & { status: 'not-synced' },
+		store: TLStore,
 		{
 			universalPersistenceKey,
 			onLoad,
@@ -86,7 +86,7 @@ export class TLLocalSyncClient {
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${universalPersistenceKey}`)
 	) {
-		this.store = store.store
+		this.store = store
 
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this

@@ -52,7 +52,7 @@ describe('<TldrawEditor />', () => {
 				<TldrawEditor
 					store={store}
 					onMount={(app) => {
-						expect(app.store).toBe(store.store)
+						expect(app.store).toBe(store)
 					}}
 					autoFocus
 				>
@@ -76,7 +76,7 @@ describe('<TldrawEditor />', () => {
 		await screen.findByTestId('canvas-1')
 		const initialApp = onMount.mock.lastCall[0]
 		jest.spyOn(initialApp, 'dispose')
-		expect(initialApp.store).toBe(initialStore.store)
+		expect(initialApp.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -98,7 +98,7 @@ describe('<TldrawEditor />', () => {
 		await screen.findByTestId('canvas-3')
 		expect(initialApp.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
-		expect(onMount.mock.lastCall[0].store).toBe(newStore.store)
+		expect(onMount.mock.lastCall[0].store).toBe(newStore)
 	})
 
 	it('Renders the canvas and shapes', async () => {

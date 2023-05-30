@@ -29,8 +29,8 @@ import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/tlstore';
 import { Polyline2d } from '@tldraw/primitives';
-import * as React_2 from 'react';
-import { default as React_3 } from 'react';
+import { default as React_2 } from 'react';
+import * as React_3 from 'react';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -557,8 +557,8 @@ export const BOUND_ARROW_OFFSET = 10;
 export function buildFromV1Document(app: App, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
-export const Canvas: React_2.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_2.DragEvent<Element>) => Promise<void>) => (e: React_2.DragEvent<Element>) => Promise<void>) | undefined;
+export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
+    onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
 }) => JSX.Element>;
 
 // @public (undocumented)
@@ -602,13 +602,7 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
-export function createTldrawEditorStore(opts?: {
-    customShapes?: Record<string, TldrawEditorShapeInfo> | undefined;
-    instanceId?: TLInstanceId | undefined;
-    initialData?: StoreSnapshot<TLRecord> | undefined;
-}): TldrawEditorStore & {
-    status: 'not-synced';
-};
+export function createTldrawEditorStore(opts?: TldrawEditorStoreOptions): TLStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -685,7 +679,7 @@ export type EmbedResult = {
 } | undefined;
 
 // @public (undocumented)
-export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_2.PropsWithChildren<ErrorBoundaryProps>>, ErrorBoundaryState> {
+export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<ErrorBoundaryProps>>, ErrorBoundaryState> {
     // (undocumented)
     componentDidCatch(error: unknown): void;
     // (undocumented)
@@ -693,7 +687,7 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): React_2.ReactNode;
+    render(): React_3.ReactNode;
     // (undocumented)
     state: ErrorBoundaryState;
 }
@@ -701,9 +695,9 @@ export class ErrorBoundary extends React_2.Component<React_2.PropsWithRef<React_
 // @public (undocumented)
 export interface ErrorBoundaryProps {
     // (undocumented)
-    children: React_2.ReactNode;
+    children: React_3.ReactNode;
     // (undocumented)
-    fallback: (error: unknown) => React_2.ReactNode;
+    fallback: (error: unknown) => React_3.ReactNode;
     // (undocumented)
     onError?: ((error: unknown) => void) | null;
 }
@@ -849,6 +843,11 @@ export const GRID_STEPS: {
 export const HAND_TOOL_FRICTION = 0.09;
 
 // @public (undocumented)
+export function hardReset({ shouldReload }?: {
+    shouldReload?: boolean | undefined;
+}): Promise<void>;
+
+// @public (undocumented)
 export function hardResetApp(): void;
 
 // @internal (undocumented)
@@ -858,7 +857,7 @@ export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX.Element;
 
 // @public (undocumented)
-export type HTMLContainerProps = React_2.HTMLAttributes<HTMLDivElement>;
+export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const ICON_SIZES: Record<TLSizeType, number>;
@@ -1366,17 +1365,17 @@ export function openWindow(url: string, target?: string): void;
 
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<ErrorBoundaryProps, 'fallback'> & {
-    fallback: ((error: unknown) => React_2.ReactNode) | null;
+    fallback: ((error: unknown) => React_3.ReactNode) | null;
 }): JSX.Element;
 
 // @public
-export function preventDefault(event: Event | React_3.BaseSyntheticEvent): void;
+export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
 // @public (undocumented)
 export function refreshPage(): void;
 
 // @public (undocumented)
-export function releasePointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @internal (undocumented)
 export const REMOVE_SYMBOL: unique symbol;
@@ -1419,7 +1418,7 @@ export const runtime: {
 export function setDefaultEditorAssetUrls(assetUrls: EditorAssetUrls): void;
 
 // @public (undocumented)
-export function setPointerCapture(element: Element, event: PointerEvent | React_3.PointerEvent<Element>): void;
+export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
 export function setPropsForNextShape(previousProps: TLInstancePropsForNextShape, newProps: Partial<TLShapeProps>): TLInstancePropsForNextShape;
@@ -1533,7 +1532,7 @@ export const SVG_PADDING = 32;
 export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX.Element;
 
 // @public (undocumented)
-export type SVGContainerProps = React_2.HTMLAttributes<SVGElement>;
+export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -1754,7 +1753,7 @@ export type TLCompleteEventInfo = {
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 
 // @public (undocumented)
-export function TldrawEditor(props: TldrawEditorProps): JSX.Element;
+export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public (undocumented)
 export type TldrawEditorProps = {
@@ -1771,9 +1770,10 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     children?: any;
-    store?: TldrawEditorStore;
+    store?: TLStore;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
+    persistenceKey?: string;
 };
 
 // @public (undocumented)
@@ -2654,6 +2654,11 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
+
+// @public (undocumented)
+export function useTldrawEditorStore(opts?: {
+    persistenceKey?: string | undefined;
+} & TldrawEditorStoreOptions): TldrawEditorStore;
 
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;

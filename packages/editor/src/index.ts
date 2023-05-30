@@ -179,6 +179,7 @@ export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
+export { useTldrawEditorStore } from './lib/hooks/useTldrawEditorStore'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -255,4 +256,5 @@ export {
 	defaultEmptyAs,
 } from './lib/utils/string'
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
+export { hardReset } from './lib/utils/sync/hardReset'
 export { openWindow } from './lib/utils/window-open'
