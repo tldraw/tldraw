@@ -15,7 +15,7 @@ export interface ButtonPickerProps<T extends TLStyleItem> {
 	styleType: TLStyleType
 	value?: string | number | null
 	columns?: 2 | 3 | 4
-	'data-wd'?: string
+	'data-testid'?: string
 	onValueChange: (item: T, squashing: boolean) => void
 }
 
@@ -94,7 +94,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 				<Button
 					key={item.id}
 					data-id={item.id}
-					data-wd={`${props['data-wd']}.${item.id}`}
+					data-testid={`${props['data-testid']}.${item.id}`}
 					aria-label={item.id}
 					data-state={value === item.id ? 'hinted' : undefined}
 					title={title + ' — ' + msg(`${styleType}-style.${item.id}` as TLTranslationKey)}

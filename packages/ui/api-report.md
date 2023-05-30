@@ -113,7 +113,7 @@ export const ButtonPicker: React_3.MemoExoticComponent<typeof _ButtonPicker>;
 // @public (undocumented)
 export interface ButtonPickerProps<T extends TLStyleItem> {
     // (undocumented)
-    'data-wd'?: string;
+    'data-testid'?: string;
     // (undocumented)
     columns?: 2 | 3 | 4;
     // (undocumented)
@@ -557,7 +557,7 @@ export function Slider(props: SliderProps): JSX.Element;
 // @public (undocumented)
 export interface SliderProps {
     // (undocumented)
-    'data-wd'?: string;
+    'data-testid'?: string;
     // (undocumented)
     label: string;
     // (undocumented)
@@ -597,9 +597,9 @@ export type SubMenu = {
 };
 
 // @public (undocumented)
-function SubTrigger({ label, 'data-wd': dataWd, 'data-direction': dataDirection, }: {
+function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
     label: TLTranslationKey;
-    'data-wd'?: string;
+    'data-testid'?: string;
     'data-direction'?: 'left' | 'right';
 }): JSX.Element;
 
@@ -840,9 +840,9 @@ export interface TranslationProviderProps {
 }
 
 // @public (undocumented)
-function Trigger({ children, 'data-wd': dataWd }: {
+function Trigger({ children, 'data-testid': testId, }: {
     children: any;
-    'data-wd'?: string;
+    'data-testid'?: string;
 }): JSX.Element;
 
 // @public (undocumented)

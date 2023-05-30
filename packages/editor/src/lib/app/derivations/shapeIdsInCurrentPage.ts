@@ -1,4 +1,12 @@
-import { isShape, isShapeId, TLPage, TLPageId, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import {
+	isPageId,
+	isShape,
+	isShapeId,
+	TLPageId,
+	TLShape,
+	TLShapeId,
+	TLStore,
+} from '@tldraw/tlschema'
 import { IncrementalSetConstructor } from '@tldraw/tlstore'
 import { computed, isUninitialized, RESET_VALUE, withDiff } from 'signia'
 
@@ -10,7 +18,7 @@ import { computed, isUninitialized, RESET_VALUE, withDiff } from 'signia'
  * @param shape - The the shape to check.
  */
 const isShapeInPage = (store: TLStore, pageId: TLPageId, shape: TLShape): boolean => {
-	while (!TLPage.isId(shape.parentId)) {
+	while (!isPageId(shape.parentId)) {
 		const parent = store.get(shape.parentId)
 		if (!parent) return false
 		shape = parent

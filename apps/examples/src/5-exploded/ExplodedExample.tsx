@@ -1,16 +1,16 @@
 import {
 	Canvas,
 	ContextMenu,
+	InstanceRecordType,
 	TldrawEditor,
 	TldrawEditorConfig,
 	TldrawUi,
-	TLInstance,
 	useLocalSyncClient,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const instanceId = TLInstance.createCustomId('example')
+const instanceId = InstanceRecordType.createCustomId('example')
 
 // for custom config, see 3-custom-config
 const config = new TldrawEditorConfig()

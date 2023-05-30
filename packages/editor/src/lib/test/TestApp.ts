@@ -9,8 +9,8 @@ import {
 } from '@tldraw/primitives'
 import {
 	Box2dModel,
-	TLInstance,
-	TLPage,
+	InstanceRecordType,
+	PageRecordType,
 	TLShapeId,
 	TLShapePartial,
 	createCustomShapeId,
@@ -27,6 +27,7 @@ import {
 } from '../app/types/event-types'
 import { RequiredKeys } from '../app/types/misc-types'
 import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()
 
@@ -50,7 +51,7 @@ declare global {
 		}
 	}
 }
-export const TEST_INSTANCE_ID = TLInstance.createCustomId('testInstance1')
+export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
 
 export class TestApp extends App {
 	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
@@ -186,7 +187,7 @@ export class TestApp extends App {
 		return createCustomShapeId(id)
 	}
 	testPageID(id: string) {
-		return TLPage.createCustomId(id)
+		return PageRecordType.createCustomId(id)
 	}
 
 	expectToBeIn = (path: string) => {
@@ -574,6 +575,12 @@ export class TestApp extends App {
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
 		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
 		return this
+	}
+
+	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
+		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		this.createShapes(shapes)
+		return ids
 	}
 
 	static CreateShapeId(id?: string) {

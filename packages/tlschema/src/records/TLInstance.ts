@@ -259,7 +259,7 @@ export const instanceTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLInstance = createRecordType<TLInstance>('instance', {
+export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 	migrations: instanceTypeMigrations,
 	validator: instanceTypeValidator,
 	scope: 'instance',

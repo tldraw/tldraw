@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLInstance, TLPage } from '@tldraw/tlschema'
+import { InstanceRecordType, PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
 import { TEST_INSTANCE_ID, TestApp } from '../TestApp'
 
 let app: TestApp
@@ -20,13 +20,13 @@ describe('running any commands', () => {
 		app.store.put([
 			{
 				...app.userDocumentSettings,
-				lastUsedTabId: TLInstance.createCustomId('nope'),
-				lastUpdatedPageId: TLPage.createCustomId('nope'),
+				lastUsedTabId: InstanceRecordType.createCustomId('nope'),
+				lastUpdatedPageId: PageRecordType.createCustomId('nope'),
 			},
 		])
 
-		expect(app.userDocumentSettings.lastUsedTabId).toBe(TLInstance.createCustomId('nope'))
-		expect(app.userDocumentSettings.lastUpdatedPageId).toBe(TLPage.createCustomId('nope'))
+		expect(app.userDocumentSettings.lastUsedTabId).toBe(InstanceRecordType.createCustomId('nope'))
+		expect(app.userDocumentSettings.lastUpdatedPageId).toBe(PageRecordType.createCustomId('nope'))
 
 		app.createShapes([{ type: 'geo', id: createCustomShapeId('geo'), parentId: app.currentPageId }])
 

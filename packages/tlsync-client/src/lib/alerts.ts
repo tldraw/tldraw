@@ -1,4 +1,4 @@
-/** @public */
+/** @internal */
 export function showCantWriteToIndexDbAlert() {
 	window.alert(
 		`Oops! We could not save changes to your browser's storage. We now need to reload the page and try again.
@@ -9,7 +9,7 @@ Keep seeing this message?
 	)
 }
 
-/** @public */
+/** @internal */
 export function showCantReadFromIndexDbAlert() {
 	window.alert(
 		`Oops! We could not access to your browser's storage—and the app won't work correctly without that. We now need to reload the page and try again.

@@ -22,7 +22,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 						${toDomPrecision(0 - offset)},${toDomPrecision(0 - offset)} 
 						${toDomPrecision(size)},${toDomPrecision(0 - offset)}`}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.top_left"
+				data-testid="selection.crop.top_left"
 				aria-label="top_left handle"
 			/>
 			{/* Top */}
@@ -35,7 +35,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 				x2={toDomPrecision(width / 2 + size)}
 				y2={toDomPrecision(0 - offset)}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.top"
+				data-testid="selection.crop.top"
 				aria-label="top handle"
 			/>
 			{/* Top right */}
@@ -48,7 +48,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 						${toDomPrecision(width + offset)},${toDomPrecision(0 - offset)} 
 						${toDomPrecision(width + offset)},${toDomPrecision(size)}`}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.top_right"
+				data-testid="selection.crop.top_right"
 				aria-label="top_right handle"
 			/>
 			{/* Right */}
@@ -61,7 +61,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 				x2={toDomPrecision(width + offset)}
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.right"
+				data-testid="selection.crop.right"
 				aria-label="right handle"
 			/>
 			{/* Bottom right */}
@@ -72,7 +72,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 						${toDomPrecision(width + offset)},${toDomPrecision(height + offset)}
 						${toDomPrecision(width - size)},${toDomPrecision(height + offset)}`}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.bottom_right"
+				data-testid="selection.crop.bottom_right"
 				aria-label="bottom_right handle"
 			/>
 			{/* Bottom */}
@@ -85,7 +85,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 				x2={toDomPrecision(width / 2 + size)}
 				y2={toDomPrecision(height + offset)}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.bottom"
+				data-testid="selection.crop.bottom"
 				aria-label="bottom handle"
 			/>
 			{/* Bottom left */}
@@ -98,7 +98,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 						${toDomPrecision(0 - offset)},${toDomPrecision(height + offset)}
 						${toDomPrecision(0 - offset)},${toDomPrecision(height - size)}`}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.bottom_left"
+				data-testid="selection.crop.bottom_left"
 				aria-label="bottom_left handle"
 			/>
 			{/* Left */}
@@ -111,7 +111,7 @@ export function CropHandles({ size, width, height, hideAlternateHandles }: CropH
 				x2={toDomPrecision(0 - offset)}
 				y2={toDomPrecision(height / 2 + size)}
 				strokeWidth={cropStrokeWidth}
-				data-wd="selection.crop.left"
+				data-testid="selection.crop.left"
 				aria-label="left handle"
 			/>
 		</svg>

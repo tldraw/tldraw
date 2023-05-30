@@ -93,7 +93,7 @@ export const userDocumentTypeMigrations = defineMigrations({
 
 /* STEP 5: Add up + down migrations for your new version */
 /** @public */
-export const TLUserDocument = createRecordType<TLUserDocument>('user_document', {
+export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_document', {
 	migrations: userDocumentTypeMigrations,
 	validator: userDocumentTypeValidator,
 	scope: 'instance',

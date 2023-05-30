@@ -103,7 +103,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 					<ButtonPicker
 						title={msg('style-panel.color')}
 						styleType="color"
-						data-wd="style.color"
+						data-testid="style.color"
 						items={styles.color}
 						value={color}
 						onValueChange={handleValueChange}
@@ -111,7 +111,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 				)}
 				{opacity === undefined ? null : (
 					<Slider
-						data-wd="style.opacity"
+						data-testid="style.opacity"
 						value={opacityIndex >= 0 ? opacityIndex : styles.opacity.length - 1}
 						label={opacity ? `opacity-style.${opacity}` : 'style-panel.mixed'}
 						onValueChange={handleOpacityValueChange}
@@ -126,7 +126,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 						<ButtonPicker
 							title={msg('style-panel.fill')}
 							styleType="fill"
-							data-wd="style.fill"
+							data-testid="style.fill"
 							items={styles.fill}
 							value={fill}
 							onValueChange={handleValueChange}
@@ -136,7 +136,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 						<ButtonPicker
 							title={msg('style-panel.dash')}
 							styleType="dash"
-							data-wd="style.dash"
+							data-testid="style.dash"
 							items={styles.dash}
 							value={dash}
 							onValueChange={handleValueChange}
@@ -146,7 +146,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 						<ButtonPicker
 							title={msg('style-panel.size')}
 							styleType="size"
-							data-wd="style.size"
+							data-testid="style.size"
 							items={styles.size}
 							value={size}
 							onValueChange={handleValueChange}
@@ -173,7 +173,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 				<ButtonPicker
 					title={msg('style-panel.font')}
 					styleType="font"
-					data-wd="font"
+					data-testid="font"
 					items={styles.font}
 					value={font}
 					onValueChange={handleValueChange}
@@ -185,7 +185,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 					<ButtonPicker
 						title={msg('style-panel.align')}
 						styleType="align"
-						data-wd="align"
+						data-testid="align"
 						items={styles.align}
 						value={align}
 						onValueChange={handleValueChange}
@@ -193,7 +193,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 					{verticalAlign === undefined ? (
 						<Button
 							title={msg('style-panel.vertical-align')}
-							data-wd="vertical-align"
+							data-testid="vertical-align"
 							icon="vertical-align-center"
 							disabled
 						/>
@@ -201,7 +201,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 						<DropdownPicker
 							id="geo-vertical-alignment"
 							styleType="verticalAlign"
-							data-wd="style-panel.geo-vertical-align"
+							data-testid="style-panel.geo-vertical-align"
 							items={styles.verticalAlign}
 							value={verticalAlign}
 							onValueChange={handleValueChange}
@@ -226,7 +226,7 @@ function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 			id="geo"
 			label={'style-panel.geo'}
 			styleType="geo"
-			data-wd="style-panel.geo"
+			data-testid="style-panel.geo"
 			items={styles.geo}
 			value={geo}
 			onValueChange={handleValueChange}
@@ -247,7 +247,7 @@ function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 			id="spline"
 			label={'style-panel.spline'}
 			styleType="spline"
-			data-wd="style.spline"
+			data-testid="style.spline"
 			items={styles.spline}
 			value={spline}
 			onValueChange={handleValueChange}
@@ -267,7 +267,7 @@ function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		<DoubleDropdownPicker
 			label={'style-panel.arrowheads'}
 			styleTypeA="arrowheadStart"
-			data-wd="style.arrowheads"
+			data-testid="style.arrowheads"
 			itemsA={styles.arrowheadStart}
 			valueA={arrowheadStart}
 			styleTypeB="arrowheadEnd"

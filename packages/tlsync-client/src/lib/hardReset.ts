@@ -1,7 +1,10 @@
 import { deleteDB } from 'idb'
 import { getAllIndexDbNames } from './persistence-constants'
 
-/** @public */
+/**
+ * Clear the database of all data associated with tldraw.
+ *
+ * @public */
 export async function hardReset({ shouldReload = true } = {}) {
 	sessionStorage.clear()
 

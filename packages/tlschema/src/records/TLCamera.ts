@@ -29,7 +29,7 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 )
 
 /** @public */
-export const TLCamera = createRecordType<TLCamera>('camera', {
+export const CameraRecordType = createRecordType<TLCamera>('camera', {
 	validator: cameraTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

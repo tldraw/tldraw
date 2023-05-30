@@ -1,5 +1,5 @@
 import { Box2d, Matrix2d, Matrix2dModel, Vec2d } from '@tldraw/primitives'
-import { TLPage, TLShape, TLShapePartial } from '@tldraw/tlschema'
+import { PageRecordType, TLShape, TLShapePartial, isPageId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
 import type { App } from '../../../App'
 import { DragAndDropManager } from '../../../managers/DragAndDropManager'
@@ -257,7 +257,7 @@ export class Translating extends StateNode {
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const parentTransform = TLPage.isId(shape.parentId)
+			const parentTransform = isPageId(shape.parentId)
 				? null
 				: Matrix2d.Inverse(app.getPageTransformById(shape.parentId)!)
 
@@ -280,7 +280,7 @@ function getTranslatingSnapshot(app: App) {
 			if (!pagePoint) return null
 			pagePoints.push(pagePoint)
 
-			const parentTransform = TLPage.isId(shape.parentId)
+			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
 				: Matrix2d.Inverse(app.getPageTransformById(shape.parentId)!)
 

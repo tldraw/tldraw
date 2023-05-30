@@ -4,8 +4,7 @@ import '../hardReset'
 import { TLLocalSyncClient } from '../TLLocalSyncClient'
 
 /**
- * This is a temporary solution that will be replaced with the remote sync client once it has the db
- * integrated
+ * Use a client that persists to indexedDB and syncs to other stores with the same instance id, e.g. other tabs running the same instance of tldraw.
  *
  * @public
  */
