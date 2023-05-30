@@ -165,10 +165,7 @@ export class Idle extends StateNode {
 						return
 					}
 
-					if (
-						util.canEdit(onlySelectedShape) &&
-						!this.app.isShapeOrAncestorLocked(onlySelectedShape)
-					) {
+					if (this.shouldStartEditingShape(onlySelectedShape)) {
 						this.startEditingShape(onlySelectedShape, info)
 					}
 				}
@@ -196,7 +193,7 @@ export class Idle extends StateNode {
 					}
 				}
 				// If the shape can edit, then begin editing
-				if (util.canEdit(shape) && !this.app.isShapeOrAncestorLocked(shape)) {
+				if (this.shouldStartEditingShape(shape)) {
 					this.startEditingShape(shape, info)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -218,7 +215,7 @@ export class Idle extends StateNode {
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
-					if (util.canEdit(shape)) {
+					if (this.shouldStartEditingShape(shape)) {
 						this.startEditingShape(shape, info)
 					}
 				}
@@ -333,13 +330,12 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private shouldStartEditingShape(): boolean {
-		const { onlySelectedShape } = this.app
-		if (!onlySelectedShape) return false
-		if (this.app.isShapeOrAncestorLocked(onlySelectedShape)) return false
+	private shouldStartEditingShape(shape: TLShape | null = this.app.onlySelectedShape): boolean {
+		if (!shape) return false
+		if (this.app.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
 
-		const util = this.app.getShapeUtil(onlySelectedShape)
-		return util.canEdit(onlySelectedShape)
+		const util = this.app.getShapeUtil(shape)
+		return util.canEdit(shape)
 	}
 
 	private shouldEnterCropMode(
@@ -360,7 +356,7 @@ export class Idle extends StateNode {
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
-		if (this.app.isShapeOrAncestorLocked(shape)) return
+		if (this.app.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.app.mark('editing shape')
 		this.app.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)
