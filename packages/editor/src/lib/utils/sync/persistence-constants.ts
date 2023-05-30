@@ -28,6 +28,7 @@ function iOS() {
 // the id of the document that will be loaded if the URL doesn't contain a document id
 // again, stored in localStorage
 const defaultDocumentKey = 'TLDRAW_DEFAULT_DOCUMENT_NAME_v2'
+
 /** @public */
 export const DEFAULT_DOCUMENT_NAME =
 	(window?.localStorage.getItem(defaultDocumentKey) as any) ?? uniqueId()
@@ -60,7 +61,7 @@ window?.addEventListener('beforeunload', () => {
 
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
-/** @public */
+/** @internal */
 export function getAllIndexDbNames(): string[] {
 	const result = JSON.parse(window?.localStorage.getItem(dbNameIndexKey) || '[]') ?? []
 	if (!Array.isArray(result)) {
@@ -69,7 +70,7 @@ export function getAllIndexDbNames(): string[] {
 	return result
 }
 
-/** @public */
+/** @internal */
 export function addDbName(name: string) {
 	const all = new Set(getAllIndexDbNames())
 	all.add(name)

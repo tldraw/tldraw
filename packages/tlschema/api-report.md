@@ -424,6 +424,9 @@ export const instanceTypeMigrations: Migrations;
 export const instanceTypeValidator: T.Validator<TLInstance>;
 
 // @public (undocumented)
+export function isPageId(id: string): id is TLPageId;
+
+// @public (undocumented)
 export function isShape(record?: UnknownRecord): record is TLShape;
 
 // @public (undocumented)

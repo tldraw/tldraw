@@ -1,7 +1,7 @@
 import {
+	isPageId,
 	isShape,
 	isShapeId,
-	PageRecordType,
 	TLPageId,
 	TLShape,
 	TLShapeId,
@@ -18,7 +18,7 @@ import { computed, isUninitialized, RESET_VALUE, withDiff } from 'signia'
  * @param shape - The the shape to check.
  */
 const isShapeInPage = (store: TLStore, pageId: TLPageId, shape: TLShape): boolean => {
-	while (!PageRecordType.isId(shape.parentId)) {
+	while (!isPageId(shape.parentId)) {
 		const parent = store.get(shape.parentId)
 		if (!parent) return false
 		shape = parent

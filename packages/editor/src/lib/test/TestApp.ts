@@ -28,6 +28,7 @@ import {
 import { RequiredKeys } from '../app/types/misc-types'
 import { createTldrawEditorStore } from '../config/createTldrawEditorStore'
 import { defaultTools } from '../config/defaultTools'
+import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()
 
@@ -577,6 +578,12 @@ export class TestApp extends App {
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
 		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
 		return this
+	}
+
+	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
+		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		this.createShapes(shapes)
+		return ids
 	}
 
 	static CreateShapeId(id?: string) {

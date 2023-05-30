@@ -26,7 +26,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					<Button
 						key={id}
 						className="tlui-button-grid__button"
-						data-wd={`menu-item.${item.id}`}
+						data-testid={`menu-item.${item.id}`}
 						icon={icon}
 						title={
 							label
@@ -50,7 +50,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 			<PopoverTrigger>
 				<Button
 					className="tlui-menu__trigger"
-					data-wd="main.action-menu"
+					data-testid="main.action-menu"
 					icon="dots-vertical"
 					title={msg('actions-menu.title')}
 					smallIcon
