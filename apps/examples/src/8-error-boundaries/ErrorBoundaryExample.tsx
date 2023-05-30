@@ -17,6 +17,7 @@ import '@tldraw/tldraw/ui.css'
 type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
 
 class ErrorUtil extends TLBoxUtil<ErrorShape> {
+	static override type = 'error'
 	override type = 'error' as const
 
 	defaultProps() {

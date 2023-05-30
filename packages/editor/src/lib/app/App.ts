@@ -79,7 +79,7 @@ import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { ShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
-import { defaultShapes } from '../config/defaultShapes'
+import { coreShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
@@ -202,18 +202,19 @@ export class App extends EventEmitter<TLEventMap> {
 		this.textMeasure = new TextManager(this)
 
 		for (const key in shapes) {
-			if (key in defaultShapes) {
-				throw Error(`Can't override default shape ${key}!`)
+			if (key in coreShapes) {
+				throw Error(`Can't override core shape ${key}!`)
 			}
 		}
 
 		this.shapeUtils = Object.fromEntries(
 			Object.entries({
 				// we definitely need a group shape, god help you if you override it
-				...defaultShapes,
+				...coreShapes,
 				...shapes,
 			}).map(([type, { util: Util }]) => {
-				if (type !== Util.type) throw Error()
+				if (type !== Util.type)
+					throw Error(`Shape util with type ${Util.type} does not match type ${type}.`)
 				return [Util.type, new Util(this, Util.type)]
 			})
 		)
@@ -221,7 +222,7 @@ export class App extends EventEmitter<TLEventMap> {
 		this.root = new RootState(this)
 		tools.forEach((Ctor) => {
 			if (['select', 'zoom'].includes(Ctor.id)) {
-				throw Error(`Can't override default tool ${Ctor.id}!`)
+				throw Error(`Can't override core tool ${Ctor.id}!`)
 			}
 
 			this.root.children![Ctor.id] = new Ctor(this)

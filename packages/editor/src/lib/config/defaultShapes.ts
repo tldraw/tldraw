@@ -39,7 +39,17 @@ import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
 import { ShapeInfo } from './createTldrawEditorStore'
 
 /** @public */
-export const defaultShapes: Record<string, ShapeInfo> = {
+export const coreShapes: Record<string, ShapeInfo> = {
+	group: {
+		util: TLGroupUtil,
+		validator: groupShapeTypeValidator,
+		migrations: groupShapeTypeMigrations,
+	},
+	embed: {
+		util: TLEmbedUtil,
+		validator: embedShapeTypeValidator,
+		migrations: embedShapeTypeMigrations,
+	},
 	arrow: {
 		util: TLArrowUtil,
 		validator: arrowShapeTypeValidator,
@@ -50,35 +60,34 @@ export const defaultShapes: Record<string, ShapeInfo> = {
 		validator: bookmarkShapeTypeValidator,
 		migrations: bookmarkShapeTypeMigrations,
 	},
+	image: {
+		util: TLImageUtil,
+		validator: imageShapeTypeValidator,
+		migrations: imageShapeTypeMigrations,
+	},
+	text: {
+		util: TLTextUtil,
+		validator: textShapeTypeValidator,
+		migrations: textShapeTypeMigrations,
+	},
+	video: {
+		util: TLVideoUtil,
+		validator: videoShapeTypeValidator,
+		migrations: videoShapeTypeMigrations,
+	},
+}
+
+/** @public */
+export const defaultShapes: Record<string, ShapeInfo> = {
 	draw: {
 		util: TLDrawUtil,
 		validator: drawShapeTypeValidator,
 		migrations: drawShapeTypeMigrations,
 	},
-	embed: {
-		util: TLEmbedUtil,
-		validator: embedShapeTypeValidator,
-		migrations: embedShapeTypeMigrations,
-	},
-	frame: {
-		util: TLFrameUtil,
-		validator: frameShapeTypeValidator,
-		migrations: frameShapeTypeMigrations,
-	},
 	geo: {
 		util: TLGeoUtil,
 		validator: geoShapeTypeValidator,
 		migrations: geoShapeTypeMigrations,
-	},
-	group: {
-		util: TLGroupUtil,
-		validator: groupShapeTypeValidator,
-		migrations: groupShapeTypeMigrations,
-	},
-	image: {
-		util: TLImageUtil,
-		validator: imageShapeTypeValidator,
-		migrations: imageShapeTypeMigrations,
 	},
 	line: {
 		util: TLLineUtil,
@@ -90,14 +99,9 @@ export const defaultShapes: Record<string, ShapeInfo> = {
 		validator: noteShapeTypeValidator,
 		migrations: noteShapeTypeMigrations,
 	},
-	text: {
-		util: TLTextUtil,
-		validator: textShapeTypeValidator,
-		migrations: textShapeTypeMigrations,
-	},
-	video: {
-		util: TLVideoUtil,
-		validator: videoShapeTypeValidator,
-		migrations: videoShapeTypeMigrations,
+	frame: {
+		util: TLFrameUtil,
+		validator: frameShapeTypeValidator,
+		migrations: frameShapeTypeMigrations,
 	},
 }

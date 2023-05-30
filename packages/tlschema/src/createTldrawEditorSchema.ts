@@ -32,22 +32,41 @@ export type SchemaShapeInfo = {
 	validator?: { validate: (record: any) => any }
 }
 
-const defaultShapes: Record<string, SchemaShapeInfo> = {
-	arrow: {
-		migrations: arrowShapeTypeMigrations,
-		validator: arrowShapeTypeValidator,
+const coreShapes: Record<string, SchemaShapeInfo> = {
+	group: {
+		migrations: groupShapeTypeMigrations,
+		validator: groupShapeTypeValidator,
 	},
 	bookmark: {
 		migrations: bookmarkShapeTypeMigrations,
 		validator: bookmarkShapeTypeValidator,
 	},
-	draw: {
-		migrations: drawShapeTypeMigrations,
-		validator: drawShapeTypeValidator,
-	},
 	embed: {
 		migrations: embedShapeTypeMigrations,
 		validator: embedShapeTypeValidator,
+	},
+	image: {
+		migrations: imageShapeTypeMigrations,
+		validator: imageShapeTypeValidator,
+	},
+	text: {
+		migrations: textShapeTypeMigrations,
+		validator: textShapeTypeValidator,
+	},
+	video: {
+		migrations: videoShapeTypeMigrations,
+		validator: videoShapeTypeValidator,
+	},
+}
+
+const defaultShapes: Record<string, SchemaShapeInfo> = {
+	arrow: {
+		migrations: arrowShapeTypeMigrations,
+		validator: arrowShapeTypeValidator,
+	},
+	draw: {
+		migrations: drawShapeTypeMigrations,
+		validator: drawShapeTypeValidator,
 	},
 	frame: {
 		migrations: frameShapeTypeMigrations,
@@ -57,14 +76,6 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
 		migrations: geoShapeTypeMigrations,
 		validator: geoShapeTypeValidator,
 	},
-	group: {
-		migrations: groupShapeTypeMigrations,
-		validator: groupShapeTypeValidator,
-	},
-	image: {
-		migrations: imageShapeTypeMigrations,
-		validator: imageShapeTypeValidator,
-	},
 	line: {
 		migrations: lineShapeTypeMigrations,
 		validator: lineShapeTypeValidator,
@@ -72,14 +83,6 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
 	note: {
 		migrations: noteShapeTypeMigrations,
 		validator: noteShapeTypeValidator,
-	},
-	text: {
-		migrations: textShapeTypeMigrations,
-		validator: textShapeTypeValidator,
-	},
-	video: {
-		migrations: videoShapeTypeMigrations,
-		validator: videoShapeTypeValidator,
 	},
 }
 
@@ -96,12 +99,12 @@ export function createTldrawEditorSchema(
 ) {
 	const { customShapes } = opts
 	for (const key in customShapes) {
-		if (key in defaultShapes) {
+		if (key in coreShapes) {
 			throw Error(`Can't override default shape ${key}!`)
 		}
 	}
 
-	const allShapeEntries = Object.entries({ ...customShapes, ...defaultShapes })
+	const allShapeEntries = Object.entries({ ...coreShapes, ...defaultShapes, ...customShapes })
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
