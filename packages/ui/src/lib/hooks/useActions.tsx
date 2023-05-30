@@ -913,14 +913,15 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
-				id: 'toggle-cursor-chat',
-				label: 'action.toggle-cursor-chat',
+				id: 'open-cursor-chat',
+				label: 'action.open-cursor-chat',
 				readonlyOk: true,
 				kbd: '/',
 				onSelect(source) {
-					trackEvent('toggle-cursor-chat', { source })
-					console.log('CHAT')
-					// TODO: toggle cursor chat
+					trackEvent('open-cursor-chat', { source })
+					app.updateInstanceState({
+						isChatting: true,
+					})
 				},
 			},
 		])
