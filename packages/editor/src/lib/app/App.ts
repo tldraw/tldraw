@@ -76,7 +76,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TldrawEditorShapeInfo } from '../config/createTldrawEditorStore'
+import { ShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
 import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
@@ -166,7 +166,7 @@ export interface AppOptions {
 	/**
 	 * An array of shapes to use in the app. These will be used to create and manage shapes in the app.
 	 */
-	shapes?: Record<string, TldrawEditorShapeInfo>
+	shapes?: Record<string, ShapeInfo>
 	/**
 	 * An array of tools to use in the app. These will be used to handle events and manage user interactions in the app.
 	 */

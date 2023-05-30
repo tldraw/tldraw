@@ -10,38 +10,15 @@ import { Migrations, Store, StoreSnapshot } from '@tldraw/tlstore'
 import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
 
 /** @public */
-export type TldrawEditorStore =
-	| {
-			readonly status: 'not-synced'
-			readonly store: TLStore
-			readonly error?: undefined
-	  }
-	| {
-			readonly status: 'error'
-			readonly store?: undefined
-			readonly error: Error
-	  }
-	| {
-			readonly status: 'loading'
-			readonly store?: undefined
-			readonly error?: undefined
-	  }
-	| {
-			readonly status: 'synced'
-			readonly store: TLStore
-			readonly error?: undefined
-	  }
-
-/** @public */
-export type TldrawEditorShapeInfo = {
+export type ShapeInfo = {
 	util: TLShapeUtilConstructor<any>
 	migrations?: Migrations
 	validator?: { validate: (record: any) => any }
 }
 
 /** @public */
-export type TldrawEditorStoreOptions = {
-	customShapes?: Record<string, TldrawEditorShapeInfo>
+export type StoreOptions = {
+	customShapes?: Record<string, ShapeInfo>
 	instanceId?: TLInstanceId
 	initialData?: StoreSnapshot<TLRecord>
 }
@@ -52,7 +29,7 @@ export type TldrawEditorStoreOptions = {
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTldrawEditorStore(opts = {} as TldrawEditorStoreOptions): TLStore {
+export function createTldrawEditorStore(opts = {} as StoreOptions): TLStore {
 	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
 
 	return new Store({

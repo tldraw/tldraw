@@ -538,7 +538,7 @@ export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: 
 // @public (undocumented)
 export interface AppOptions {
     getContainer: () => HTMLElement;
-    shapes?: Record<string, TldrawEditorShapeInfo>;
+    shapes?: Record<string, ShapeInfo>;
     store: TLStore;
     tools?: StateNodeConstructor[];
     user?: TldrawEditorUser;
@@ -602,7 +602,7 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
-export function createTldrawEditorStore(opts?: TldrawEditorStoreOptions): TLStore;
+export function createTldrawEditorStore(opts?: StoreOptions): TLStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -647,7 +647,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallback;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TldrawEditorShapeInfo>;
+export const defaultShapes: Record<string, ShapeInfo>;
 
 // @public (undocumented)
 export const defaultTools: StateNodeConstructor[];
@@ -1535,6 +1535,30 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
+export type SyncedStore = {
+    readonly status: 'error';
+    readonly store?: undefined;
+    readonly error: Error;
+} | {
+    readonly status: 'loading';
+    readonly store?: undefined;
+    readonly error?: undefined;
+} | {
+    readonly status: 'not-synced';
+    readonly store: TLStore;
+    readonly error?: undefined;
+} | {
+    readonly status: 'synced-local';
+    readonly store: TLStore;
+    readonly error?: undefined;
+} | {
+    readonly status: 'synced-remote';
+    readonly connectionStatus: 'offline' | 'online';
+    readonly store: TLStore;
+    readonly error?: undefined;
+};
+
+// @public (undocumented)
 export const TEXT_PROPS: {
     lineHeight: number;
     fontWeight: string;
@@ -1757,7 +1781,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public (undocumented)
 export type TldrawEditorProps = {
-    shapes?: Record<string, TldrawEditorShapeInfo>;
+    shapes?: Record<string, ShapeInfo>;
     tools?: StateNodeConstructor[];
     components?: Partial<TLEditorComponents>;
     onMount?: (app: App) => void;
@@ -1770,38 +1794,10 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     children?: any;
-    store?: TLStore;
+    store?: SyncedStore | TLStore;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
     persistenceKey?: string;
-};
-
-// @public (undocumented)
-export type TldrawEditorShapeInfo = {
-    util: TLShapeUtilConstructor<any>;
-    migrations?: Migrations;
-    validator?: {
-        validate: (record: any) => any;
-    };
-};
-
-// @public (undocumented)
-export type TldrawEditorStore = {
-    readonly status: 'error';
-    readonly store?: undefined;
-    readonly error: Error;
-} | {
-    readonly status: 'loading';
-    readonly store?: undefined;
-    readonly error?: undefined;
-} | {
-    readonly status: 'not-synced';
-    readonly store: TLStore;
-    readonly error?: undefined;
-} | {
-    readonly status: 'synced';
-    readonly store: TLStore;
-    readonly error?: undefined;
 };
 
 // @public (undocumented)
@@ -2637,6 +2633,11 @@ export const useApp: () => App;
 // @public (undocumented)
 export function useContainer(): HTMLDivElement;
 
+// @public (undocumented)
+export function useLocalSyncedStore(opts?: {
+    persistenceKey?: string | undefined;
+} & StoreOptions): SyncedStore;
+
 // @internal (undocumented)
 export function usePeerIds(): string[];
 
@@ -2654,11 +2655,6 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
-
-// @public (undocumented)
-export function useTldrawEditorStore(opts?: {
-    persistenceKey?: string | undefined;
-} & TldrawEditorStoreOptions): TldrawEditorStore;
 
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;

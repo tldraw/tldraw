@@ -36,10 +36,10 @@ import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
 import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
-import { TldrawEditorShapeInfo } from './createTldrawEditorStore'
+import { ShapeInfo } from './createTldrawEditorStore'
 
 /** @public */
-export const defaultShapes: Record<string, TldrawEditorShapeInfo> = {
+export const defaultShapes: Record<string, ShapeInfo> = {
 	arrow: {
 		util: TLArrowUtil,
 		validator: arrowShapeTypeValidator,

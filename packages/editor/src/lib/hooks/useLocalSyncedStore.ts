@@ -1,20 +1,18 @@
 import { useEffect, useState } from 'react'
-import {
-	TldrawEditorStore,
-	TldrawEditorStoreOptions,
-	createTldrawEditorStore,
-} from '../config/createTldrawEditorStore'
+import { createTldrawEditorStore } from '../..'
+import { StoreOptions } from '../config/createTldrawEditorStore'
 import '../hardReset'
 import { uniqueId } from '../utils/data'
+import { SyncedStore } from '../utils/sync/SyncedStore'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 
 /** @public */
-export function useTldrawEditorStore(
-	opts = {} as { persistenceKey?: string } & TldrawEditorStoreOptions
-): TldrawEditorStore {
+export function useLocalSyncedStore(
+	opts = {} as { persistenceKey?: string } & StoreOptions
+): SyncedStore {
 	const { persistenceKey, ...rest } = opts
 
-	const [state, setState] = useState<{ id: string; syncedStore: TldrawEditorStore } | null>(null)
+	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
 	const [store] = useState(() => createTldrawEditorStore(rest))
 
 	useEffect(() => {
@@ -33,7 +31,7 @@ export function useTldrawEditorStore(
 			syncedStore: { status: 'loading' },
 		})
 
-		const setSyncedStore = (syncedStore: TldrawEditorStore) => {
+		const setSyncedStore = (syncedStore: SyncedStore) => {
 			setState((prev) => {
 				if (prev?.id === id) {
 					return { id, syncedStore }
@@ -45,7 +43,7 @@ export function useTldrawEditorStore(
 		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey: persistenceKey,
 			onLoad() {
-				setSyncedStore({ store, status: 'synced' })
+				setSyncedStore({ store, status: 'synced-local' })
 			},
 			onLoadError(err: any) {
 				setSyncedStore({ status: 'error', error: err })
