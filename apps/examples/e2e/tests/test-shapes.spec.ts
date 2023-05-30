@@ -65,7 +65,11 @@ test.describe('Shape Tools', () => {
 		await setupPage(page)
 	})
 
-	test('creates shapes with tools', async () => {
+	test('creates shapes with other tools', async () => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+		expect(await getAllShapeTypes(page)).toEqual([])
+
 		for (const { tool } of otherTools) {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
@@ -90,6 +94,12 @@ test.describe('Shape Tools', () => {
 					.then((d) => d?.getAttribute('data-state'))
 			).toBe('selected')
 		}
+	})
+
+	test('creates shapes clickable tools', async () => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
+		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool, shape } of clickableShapeCreators) {
 			// Find and click the button
@@ -118,6 +128,12 @@ test.describe('Shape Tools', () => {
 			await page.keyboard.press('Backspace')
 		}
 
+		expect(await getAllShapeTypes(page)).toEqual([])
+	})
+
+	test('creates shapes with draggable tools', async () => {
+		await page.keyboard.press('Control+a')
+		await page.keyboard.press('Backspace')
 		expect(await getAllShapeTypes(page)).toEqual([])
 
 		for (const { tool, shape } of draggableShapeCreators) {
