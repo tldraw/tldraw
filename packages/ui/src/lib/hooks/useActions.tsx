@@ -470,6 +470,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-horizontal',
 				contextMenuLabel: 'action.distribute-horizontal.short',
 				icon: 'distribute-horizontal',
+				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
@@ -482,6 +483,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-vertical',
 				contextMenuLabel: 'action.distribute-vertical.short',
 				icon: 'distribute-vertical',
+				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })

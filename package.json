@@ -51,7 +51,7 @@
 		"check-scripts": "tsx scripts/check-scripts.ts",
 		"api-check": "lazy api-check",
 		"test": "lazy test",
-		"e2e": "tsx scripts/e2e/index.ts"
+		"e2e": "lazy e2e --filter='{,bublic/}apps/examples'"
 	},
 	"engines": {
 		"npm": ">=7.0.0"
@@ -89,6 +89,7 @@
 	},
 	"devDependencies": {
 		"@microsoft/api-extractor": "^7.34.1",
+		"@playwright/test": "^1.34.3",
 		"@swc/core": "^1.3.55",
 		"@swc/jest": "^0.2.26",
 		"@types/glob": "^8.1.0",

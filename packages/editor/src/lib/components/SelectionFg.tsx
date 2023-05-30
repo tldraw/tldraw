@@ -173,7 +173,11 @@ export const SelectionFg = track(function SelectionFg() {
 		textHandleHeight * zoom >= 4
 
 	return (
-		<svg ref={rSvg} className="tl-overlays__item tl-selection__fg" data-wd="selection-foreground">
+		<svg
+			ref={rSvg}
+			className="tl-overlays__item tl-selection__fg"
+			data-testid="selection-foreground"
+		>
 			{shouldDisplayBox && (
 				<rect
 					className={classNames('tl-selection__fg__outline')}
@@ -182,7 +186,7 @@ export const SelectionFg = track(function SelectionFg() {
 				/>
 			)}
 			<RotateCornerHandle
-				data-wd="selection.rotate.top-left"
+				data-testid="selection.rotate.top-left"
 				cx={0}
 				cy={0}
 				targetSize={targetSize}
@@ -191,7 +195,7 @@ export const SelectionFg = track(function SelectionFg() {
 				isHidden={hideRotateCornerHandles}
 			/>
 			<RotateCornerHandle
-				data-wd="selection.rotate.top-right"
+				data-testid="selection.rotate.top-right"
 				cx={width + targetSize * 3}
 				cy={0}
 				targetSize={targetSize}
@@ -200,7 +204,7 @@ export const SelectionFg = track(function SelectionFg() {
 				isHidden={hideRotateCornerHandles}
 			/>
 			<RotateCornerHandle
-				data-wd="selection.rotate.bottom-left"
+				data-testid="selection.rotate.bottom-left"
 				cx={0}
 				cy={height + targetSize * 3}
 				targetSize={targetSize}
@@ -209,7 +213,7 @@ export const SelectionFg = track(function SelectionFg() {
 				isHidden={hideRotateCornerHandles}
 			/>
 			<RotateCornerHandle
-				data-wd="selection.rotate.bottom-right"
+				data-testid="selection.rotate.bottom-right"
 				cx={width + targetSize * 3}
 				cy={height + targetSize * 3}
 				targetSize={targetSize}
@@ -218,7 +222,7 @@ export const SelectionFg = track(function SelectionFg() {
 				isHidden={hideRotateCornerHandles}
 			/>{' '}
 			<MobileRotateHandle
-				data-wd="selection.rotate.mobile"
+				data-testid="selection.rotate.mobile"
 				cx={isSmallX ? -targetSize * 1.5 : width / 2}
 				cy={isSmallX ? height / 2 : -targetSize * 1.5}
 				size={size}
@@ -229,7 +233,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				})}
-				data-wd="selection.resize.top"
+				data-testid="selection.resize.top"
 				aria-label="top target"
 				pointerEvents="all"
 				x={0}
@@ -243,7 +247,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				})}
-				data-wd="selection.resize.right"
+				data-testid="selection.resize.right"
 				aria-label="right target"
 				pointerEvents="all"
 				x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX))}
@@ -257,7 +261,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				})}
-				data-wd="selection.resize.bottom"
+				data-testid="selection.resize.bottom"
 				aria-label="bottom target"
 				pointerEvents="all"
 				x={0}
@@ -271,7 +275,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideEdgeTargets,
 				})}
-				data-wd="selection.resize.left"
+				data-testid="selection.resize.left"
 				aria-label="left target"
 				pointerEvents="all"
 				x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX))}
@@ -286,7 +290,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideTopLeftCorner,
 				})}
-				data-wd="selection.target.top-left"
+				data-testid="selection.target.top-left"
 				aria-label="top-left target"
 				pointerEvents="all"
 				x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX * 1.5))}
@@ -300,7 +304,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideTopRightCorner,
 				})}
-				data-wd="selection.target.top-right"
+				data-testid="selection.target.top-right"
 				aria-label="top-right target"
 				pointerEvents="all"
 				x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX * 1.5))}
@@ -314,7 +318,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideBottomRightCorner,
 				})}
-				data-wd="selection.target.bottom-right"
+				data-testid="selection.target.bottom-right"
 				aria-label="bottom-right target"
 				pointerEvents="all"
 				x={toDomPrecision(width - (isSmallX ? targetSizeX : targetSizeX * 1.5))}
@@ -328,7 +332,7 @@ export const SelectionFg = track(function SelectionFg() {
 				className={classNames('tl-transparent', {
 					'tl-hidden': hideBottomLeftCorner,
 				})}
-				data-wd="selection.target.bottom-left"
+				data-testid="selection.target.bottom-left"
 				aria-label="bottom-left target"
 				pointerEvents="all"
 				x={toDomPrecision(0 - (isSmallX ? targetSizeX * 3 : targetSizeX * 1.5))}
@@ -342,7 +346,7 @@ export const SelectionFg = track(function SelectionFg() {
 			{showResizeHandles && (
 				<>
 					<rect
-						data-wd="selection.resize.top-left"
+						data-testid="selection.resize.top-left"
 						className={classNames('tl-corner-handle', {
 							'tl-hidden': hideTopLeftCorner,
 						})}
@@ -353,7 +357,7 @@ export const SelectionFg = track(function SelectionFg() {
 						height={toDomPrecision(size)}
 					/>
 					<rect
-						data-wd="selection.resize.top-right"
+						data-testid="selection.resize.top-right"
 						className={classNames('tl-corner-handle', {
 							'tl-hidden': hideTopRightCorner,
 						})}
@@ -364,7 +368,7 @@ export const SelectionFg = track(function SelectionFg() {
 						height={toDomPrecision(size)}
 					/>
 					<rect
-						data-wd="selection.resize.bottom-right"
+						data-testid="selection.resize.bottom-right"
 						className={classNames('tl-corner-handle', {
 							'tl-hidden': hideBottomRightCorner,
 						})}
@@ -375,7 +379,7 @@ export const SelectionFg = track(function SelectionFg() {
 						height={toDomPrecision(size)}
 					/>
 					<rect
-						data-wd="selection.resize.bottom-left"
+						data-testid="selection.resize.bottom-left"
 						className={classNames('tl-corner-handle', {
 							'tl-hidden': hideBottomLeftCorner,
 						})}
@@ -390,7 +394,7 @@ export const SelectionFg = track(function SelectionFg() {
 			{showTextResizeHandles && (
 				<>
 					<rect
-						data-wd="selection.text-resize.left.handle"
+						data-testid="selection.text-resize.left.handle"
 						className="tl-text-handle"
 						aria-label="bottom_left handle"
 						x={toDomPrecision(0 - size / 4)}
@@ -400,7 +404,7 @@ export const SelectionFg = track(function SelectionFg() {
 						height={toDomPrecision(textHandleHeight)}
 					/>
 					<rect
-						data-wd="selection.text-resize.right.handle"
+						data-testid="selection.text-resize.right.handle"
 						className="tl-text-handle"
 						aria-label="bottom_left handle"
 						rx={size / 4}
@@ -433,7 +437,7 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	corner,
 	cursor,
 	isHidden,
-	'data-wd': dataWd,
+	'data-testid': testId,
 }: {
 	cx: number
 	cy: number
@@ -441,13 +445,13 @@ export const RotateCornerHandle = function RotateCornerHandle({
 	corner: RotateCorner
 	cursor?: string
 	isHidden: boolean
-	'data-wd'?: string
+	'data-testid'?: string
 }) {
 	const events = useSelectionEvents(corner)
 	return (
 		<rect
 			className={classNames('tl-transparent', 'tl-rotate-corner', { 'tl-hidden': isHidden })}
-			data-wd={dataWd}
+			data-testid={testId}
 			aria-label={`${corner} target`}
 			pointerEvents="all"
 			x={toDomPrecision(cx - targetSize * 3)}
@@ -467,20 +471,20 @@ export const MobileRotateHandle = function RotateHandle({
 	cy,
 	size,
 	isHidden,
-	'data-wd': dataWd,
+	'data-testid': testId,
 }: {
 	cx: number
 	cy: number
 	size: number
 	isHidden: boolean
-	'data-wd'?: string
+	'data-testid'?: string
 }) {
 	const events = useSelectionEvents('mobile_rotate')
 
 	return (
 		<g>
 			<circle
-				data-wd={dataWd}
+				data-testid={testId}
 				pointerEvents="all"
 				className={classNames('tl-transparent', 'tl-mobile-rotate__bg', { 'tl-hidden': isHidden })}
 				cx={cx}

@@ -11,7 +11,7 @@ export interface SliderProps {
 	label: string
 	title: string
 	onValueChange: (value: number, emphemeral: boolean) => void
-	'data-wd'?: string
+	'data-testid'?: string
 }
 
 /** @public */
@@ -39,7 +39,7 @@ export function Slider(props: SliderProps) {
 	return (
 		<div className="tlui-slider__container">
 			<Root
-				data-wd={props['data-wd']}
+				data-testid={props['data-testid']}
 				className="tlui-slider"
 				area-label="Opacity"
 				dir="ltr"

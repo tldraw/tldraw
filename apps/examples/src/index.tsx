@@ -21,6 +21,7 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundaries/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
+import ForEndToEndTests from './end-to-end/ForEndToEndTests'
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
@@ -84,6 +85,10 @@ export const allExamples: Example[] = [
 	{
 		path: '/user-presence',
 		element: <UserPresenceExample />,
+	},
+	{
+		path: '/e2e',
+		element: <ForEndToEndTests />,
 	},
 ]
 

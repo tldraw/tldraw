@@ -493,7 +493,9 @@ const handleNativeOrMenuCopy = (app: App) => {
 		})
 	)
 
-	if (typeof window?.navigator !== 'undefined') {
+	if (typeof navigator === 'undefined') {
+		return
+	} else {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {

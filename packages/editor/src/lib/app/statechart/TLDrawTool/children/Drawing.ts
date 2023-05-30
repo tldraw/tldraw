@@ -134,6 +134,7 @@ export class Drawing extends StateNode {
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
 
 		return (
+			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 &&
 			Vec2d.Dist(firstPoint, lastPoint) < strokeWidth * 2
 		)
@@ -378,7 +379,8 @@ export class Drawing extends StateNode {
 						],
 					}
 
-					this.currentLineLength = this.getLineLength(segments)
+					const finalSegments = [...newSegments, newFreeSegment]
+					this.currentLineLength = this.getLineLength(finalSegments)
 
 					this.app.updateShapes(
 						[
@@ -386,8 +388,8 @@ export class Drawing extends StateNode {
 								id,
 								type: 'draw',
 								props: {
-									segments: [...newSegments, newFreeSegment],
-									isClosed: this.getIsClosed(segments, size),
+									segments: finalSegments,
+									isClosed: this.getIsClosed(finalSegments, size),
 								},
 							},
 						],
@@ -558,6 +560,8 @@ export class Drawing extends StateNode {
 					...newSegment,
 					points: newPoints,
 				}
+
+				this.currentLineLength = this.getLineLength(newSegments)
 
 				this.app.updateShapes(
 					[

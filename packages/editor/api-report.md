@@ -218,6 +218,8 @@ export class App extends EventEmitter<TLEventMap> {
     get editingId(): null | TLShapeId;
     // (undocumented)
     get editingShape(): null | TLUnknownShape;
+    // (undocumented)
+    enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
@@ -615,18 +617,20 @@ export function dataTransferItemAsString(item: DataTransferItem): Promise<string
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @internal (undocumented)
+export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
+
+// @internal (undocumented)
 export const debugFlags: {
-    preventDefaultLogging: Atom<boolean, unknown>;
-    pointerCaptureLogging: Atom<boolean, unknown>;
-    pointerCaptureTracking: Atom<boolean, unknown>;
-    pointerCaptureTrackingObject: Atom<Map<Element, number>, unknown>;
-    elementRemovalLogging: Atom<boolean, unknown>;
-    debugSvg: Atom<boolean, unknown>;
-    throwToBlob: Atom<boolean, unknown>;
-    peopleMenu: Atom<boolean, unknown>;
-    logMessages: Atom<never[], unknown>;
-    resetConnectionEveryPing: Atom<boolean, unknown>;
-    debugCursors: Atom<boolean, unknown>;
+    preventDefaultLogging: DebugFlag<boolean>;
+    pointerCaptureLogging: DebugFlag<boolean>;
+    pointerCaptureTracking: DebugFlag<boolean>;
+    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
+    elementRemovalLogging: DebugFlag<boolean>;
+    debugSvg: DebugFlag<boolean>;
+    throwToBlob: DebugFlag<boolean>;
+    logMessages: DebugFlag<never[]>;
+    resetConnectionEveryPing: DebugFlag<boolean>;
+    debugCursors: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -717,6 +721,11 @@ export interface ErrorSyncedStore {
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @internal (undocumented)
+export const featureFlags: {
+    peopleMenu: DebugFlag<boolean>;
+};
 
 // @public
 export function fileToBase64(file: Blob): Promise<string>;
