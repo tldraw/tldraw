@@ -1,68 +1,25 @@
 import { PI } from '@tldraw/primitives'
-import { createCustomShapeId, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
+import { TL } from '../jsx'
 
 let app: TestApp
+let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
 
-const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-	videoA: createCustomShapeId('videoA'),
-}
-
-function createVideoShape(id: TLShapeId) {
-	app.createShapes([
-		{
-			id: id,
-			type: 'video',
-			x: 0,
-			y: 0,
-			props: {
-				w: 160,
-				h: 90,
-			},
-		},
-	])
+function createVideoShape() {
+	return app.createShapesFromJsx(<TL.video ref="video1" x={0} y={0} w={160} h={90} />).video1
 }
 
 beforeEach(() => {
 	app = new TestApp()
 	app.selectAll()
 	app.deleteShapes()
-	app.createShapes([
-		{
-			id: ids.boxA,
-			type: 'geo',
-			x: 0,
-			y: 0,
-			props: {
-				w: 100,
-				h: 100,
-			},
-		},
-		{
-			id: ids.boxB,
-			type: 'geo',
-			x: 100,
-			y: 100,
-			props: {
-				w: 50,
-				h: 50,
-			},
-		},
-		{
-			id: ids.boxC,
-			type: 'geo',
-			x: 400,
-			y: 400,
-			props: {
-				w: 100,
-				h: 100,
-			},
-		},
+	ids = app.createShapesFromJsx([
+		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
+		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
+		<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
 	])
 	app.selectAll()
 })
@@ -92,7 +49,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('stretches horizontally and preserves aspect ratio', () => {
-		createVideoShape(ids.videoA)
+		const videoA = createVideoShape()
 		app.selectAll()
 		expect(app.selectedShapes.length).toBe(4)
 		app.stretchShapes('horizontal')
@@ -102,7 +59,7 @@ describe('when multiple shapes are selected', () => {
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
 			{ id: ids.boxB, x: 0, y: 100, props: { w: 500 } },
 			{ id: ids.boxC, x: 0, y: 400, props: { w: 500 } },
-			{ id: ids.videoA, x: 0, y: -95.625, props: { w: 500, h: newHeight } }
+			{ id: videoA, x: 0, y: -95.625, props: { w: 500, h: newHeight } }
 		)
 	})
 
@@ -118,7 +75,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('stretches vertically and preserves aspect ratio', () => {
-		createVideoShape(ids.videoA)
+		const videoA = createVideoShape()
 		app.selectAll()
 		expect(app.selectedShapes.length).toBe(4)
 		app.stretchShapes('vertical')
@@ -128,7 +85,7 @@ describe('when multiple shapes are selected', () => {
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
 			{ id: ids.boxB, x: 100, y: 0, props: { h: 500 } },
 			{ id: ids.boxC, x: 400, y: 0, props: { h: 500 } },
-			{ id: ids.videoA, x: -364.44444444444446, y: 0, props: { w: newWidth, h: 500 } }
+			{ id: videoA, x: -364.44444444444446, y: 0, props: { w: newWidth, h: 500 } }
 		)
 	})
 
@@ -174,39 +131,11 @@ describe('When shapes are the child of a rotated shape.', () => {
 		app = new TestApp()
 		app.selectAll()
 		app.deleteShapes()
-		app.createShapes([
-			{
-				id: ids.boxA,
-				type: 'geo',
-				x: 0,
-				y: 0,
-				props: {
-					w: 100,
-					h: 100,
-				},
-				rotation: PI,
-			},
-			{
-				id: ids.boxB,
-				type: 'geo',
-				parentId: ids.boxA,
-				x: 100,
-				y: 100,
-				props: {
-					w: 50,
-					h: 50,
-				},
-			},
-			{
-				id: ids.boxC,
-				type: 'geo',
-				x: 200,
-				y: 200,
-				props: {
-					w: 100,
-					h: 100,
-				},
-			},
+		ids = app.createShapesFromJsx([
+			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI}>
+				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
+			</TL.geo>,
+			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
 		])
 		app.selectAll()
 	})

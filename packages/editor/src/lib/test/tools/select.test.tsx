@@ -1,5 +1,6 @@
 import { TLSelectTool } from '../../app/statechart/TLSelectTool/TLSelectTool'
 import { TestApp } from '../TestApp'
+import { TL } from '../jsx'
 
 let app: TestApp
 
@@ -68,95 +69,74 @@ describe(TLSelectTool, () => {
 
 describe('When pointing a shape behind the current selection', () => {
 	it('Does not select on pointer down, but does select on pointer up', () => {
-		const idA = app.createShapeId('a')
-		const idB = app.createShapeId('b')
-		const idC = app.createShapeId('c')
 		app.selectNone()
-		app.createShapes([
-			{ id: idA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
-			{ id: idB, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } },
-			{ id: idC, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		const ids = app.createShapesFromJsx([
+			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
+			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
+			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(idA, idC)
+		app.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, idB)
-		expect(app.selectedIds).toMatchObject([idA, idC])
-		app.pointerUp(100, 100, idB)
-		expect(app.selectedIds).toMatchObject([idB])
+		app.pointerDown(100, 100, ids.B)
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
+		app.pointerUp(100, 100, ids.B)
+		expect(app.selectedIds).toMatchObject([ids.B])
 	})
 
 	it('Selects on shift+pointer up', () => {
-		const idA = app.createShapeId('a')
-		const idB = app.createShapeId('b')
-		const idC = app.createShapeId('c')
 		app.selectNone()
-		app.createShapes([
-			{ id: idA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
-			{ id: idB, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } },
-			{ id: idC, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		const ids = app.createShapesFromJsx([
+			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
+			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
+			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(idA, idC)
+		app.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, idB, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([idA, idC])
-		app.pointerUp(100, 100, idB, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([idA, idC, idB])
+		app.pointerDown(100, 100, ids.B, { shiftKey: true })
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
+		app.pointerUp(100, 100, ids.B, { shiftKey: true })
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
 
 		// and deselect
-		app.pointerDown(100, 100, idB, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([idA, idC, idB])
-		app.pointerUp(100, 100, idB, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([idA, idC])
+		app.pointerDown(100, 100, ids.B, { shiftKey: true })
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
+		app.pointerUp(100, 100, ids.B, { shiftKey: true })
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
 	})
 
 	it('Moves on pointer move, does not select on pointer up', () => {
-		const idA = app.createShapeId('a')
-		const idB = app.createShapeId('b')
-		const idC = app.createShapeId('c')
 		app.selectNone()
-		app.createShapes([
-			{ id: idA, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
-			{ id: idB, type: 'geo', x: 50, y: 50, props: { w: 100, h: 100 } },
-			{ id: idC, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
+		const ids = app.createShapesFromJsx([
+			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
+			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
+			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(idA, idC) // don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, idB)
+		app.select(ids.A, ids.C) // don't select it yet! It's behind the current selection
+		app.pointerDown(100, 100, ids.B)
 		app.pointerMove(150, 150)
 		app.pointerMove(151, 151)
 		app.pointerMove(100, 100)
-		expect(app.selectedIds).toMatchObject([idA, idC])
-		app.pointerUp(100, 100, idB)
-		expect(app.selectedIds).toMatchObject([idA, idC]) // no change! we've moved
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
+		app.pointerUp(100, 100, ids.B)
+		expect(app.selectedIds).toMatchObject([ids.A, ids.C]) // no change! we've moved
 	})
 })
 
 describe('When brushing arrows', () => {
 	it('Brushes a straight arrow', () => {
-		const ids = { arrow1: app.createShapeId('arrow1') }
-		app
+		const ids = app
 			.selectAll()
 			.deleteShapes()
 			.setCamera(0, 0, 1)
-			.createShapes([
-				{
-					id: ids.arrow1,
-					type: 'arrow',
-					x: 0,
-					y: 0,
-					props: {
-						start: {
-							type: 'point',
-							x: 0,
-							y: 0,
-						},
-						bend: 0,
-						end: {
-							type: 'point',
-							x: 100,
-							y: 100,
-						},
-					},
-				},
+			.createShapesFromJsx([
+				<TL.arrow
+					ref="arrow1"
+					x={0}
+					y={0}
+					start={{ type: 'point', x: 0, y: 0 }}
+					end={{ type: 'point', x: 100, y: 100 }}
+					bend={0}
+				/>,
 			])
 		app.setSelectedTool('select')
 		app.pointerDown(55, 45)
@@ -166,31 +146,19 @@ describe('When brushing arrows', () => {
 	})
 
 	it('Brushes within the curve of a curved arrow without selecting the arrow', () => {
-		const ids = { arrow1: app.createShapeId('arrow1') }
 		app
 			.selectAll()
 			.deleteShapes()
 			.setCamera(0, 0, 1)
-			.createShapes([
-				{
-					id: ids.arrow1,
-					type: 'arrow',
-					x: 0,
-					y: 0,
-					props: {
-						start: {
-							type: 'point',
-							x: 0,
-							y: 0,
-						},
-						bend: 40,
-						end: {
-							type: 'point',
-							x: 100,
-							y: 100,
-						},
-					},
-				},
+			.createShapesFromJsx([
+				<TL.arrow
+					ref="arrow1"
+					x={0}
+					y={0}
+					start={{ type: 'point', x: 0, y: 0 }}
+					end={{ type: 'point', x: 100, y: 100 }}
+					bend={40}
+				/>,
 			])
 		app.setSelectedTool('select')
 		app.pointerDown(55, 45)
