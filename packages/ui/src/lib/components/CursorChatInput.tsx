@@ -41,7 +41,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 	return (
 		<div
 			ref={ref}
-			className="tl-nametag"
+			className="tl-cursor-chat"
 			style={{
 				visibility: isChatting ? 'visible' : 'hidden',
 				position: 'absolute',
@@ -55,6 +55,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			suppressContentEditableWarning
 			onBlur={handleBlur}
 			onInput={handleInput}
+			spellCheck={false}
 		></div>
 	)
 })
