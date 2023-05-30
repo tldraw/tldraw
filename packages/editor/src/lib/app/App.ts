@@ -5658,14 +5658,19 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// --- Common bounding box of all shapes
 		let bbox = null
+		console.group('getSvg')
+		console.log('renderingShapes', renderingShapes)
 		for (const { maskedPageBounds } of renderingShapes) {
 			if (!maskedPageBounds) continue
+			console.log('maskedPageBounds', maskedPageBounds)
 			if (bbox) {
 				bbox.union(maskedPageBounds)
 			} else {
 				bbox = maskedPageBounds.clone()
 			}
 		}
+		console.log('bbox', bbox)
+		console.groupEnd()
 
 		// no unmasked shapes to export
 		if (!bbox) return
