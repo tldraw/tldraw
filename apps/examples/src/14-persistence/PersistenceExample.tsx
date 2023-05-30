@@ -1,37 +1,28 @@
+import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
 import {
 	Canvas,
 	ContextMenu,
-	TAB_ID,
 	TldrawEditor,
-	TldrawEditorConfig,
 	TldrawUi,
+	createTldrawEditorStore,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'
-import { useEffect, useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 
 const PERSISTENCE_KEY = 'example-3'
-const config = new TldrawEditorConfig()
-const instanceId = TAB_ID
-const store = config.createStore({ instanceId })
 
 export default function PersistenceExample() {
-	const [state, setState] = useState<
-		| {
-				name: 'loading'
-		  }
-		| {
-				name: 'ready'
-		  }
-		| {
-				name: 'error'
-				error: string
-		  }
-	>({ name: 'loading', error: undefined })
+	const [store] = useState(() => createTldrawEditorStore({ instanceId: TAB_ID }))
+	const [syncedStore, setSyncedStore] = useState<
+		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
+	>({
+		status: 'loading',
+	})
 
-	useEffect(() => {
-		setState({ name: 'loading' })
+	useLayoutEffect(() => {
+		setSyncedStore({ status: 'loading' })
 
 		// Get persisted data from local storage
 		const persistedSnapshot = localStorage.getItem(PERSISTENCE_KEY)
@@ -40,29 +31,28 @@ export default function PersistenceExample() {
 			try {
 				const snapshot = JSON.parse(persistedSnapshot)
 				store.loadSnapshot(snapshot)
-				setState({ name: 'ready' })
-			} catch (e: any) {
-				setState({ name: 'error', error: e.message }) // Something went wrong
+				setSyncedStore({ status: 'ready' })
+			} catch (error: any) {
+				setSyncedStore({ status: 'error', error: error.message }) // Something went wrong
 			}
 		} else {
-			setState({ name: 'ready' }) // Nothing persisted, continue with the empty store
+			setSyncedStore({ status: 'ready' }) // Nothing persisted, continue with the empty store
 		}
 
-		const persist = throttle(() => {
-			// Each time the store changes, persist the store snapshot
-			const snapshot = store.getSnapshot()
-			localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(snapshot))
-		}, 1000)
-
 		// Each time the store changes, run the (debounced) persist function
-		const cleanupFn = store.listen(persist)
+		const cleanupFn = store.listen(
+			throttle(() => {
+				const snapshot = store.getSnapshot()
+				localStorage.setItem(PERSISTENCE_KEY, JSON.stringify(snapshot))
+			}, 500)
+		)
 
 		return () => {
 			cleanupFn()
 		}
-	}, [])
+	}, [store])
 
-	if (state.name === 'loading') {
+	if (syncedStore.status === 'loading') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Loading...</h2>
@@ -70,18 +60,18 @@ export default function PersistenceExample() {
 		)
 	}
 
-	if (state.name === 'error') {
+	if (syncedStore.status === 'error') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Error!</h2>
-				<p>{state.error}</p>
+				<p>{syncedStore.error}</p>
 			</div>
 		)
 	}
 
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor instanceId={instanceId} store={store} config={config} autoFocus>
+			<TldrawEditor store={store} autoFocus>
 				<TldrawUi>
 					<ContextMenu>
 						<Canvas />

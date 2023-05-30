@@ -16,7 +16,7 @@ export class UserPreferencesManager {
 	}
 
 	get animationSpeed() {
-		return this.editor.config.userPreferences.value.animationSpeed
+		return this.user.userPreferences.value.animationSpeed
 	}
 
 	get id() {

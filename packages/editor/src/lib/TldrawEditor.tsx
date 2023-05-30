@@ -125,9 +125,21 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	if (props.store) {
+	if (props.store instanceof Store) {
 		if (props.initialData) {
-			throw Error(`Cannot use both store and initialData props.`)
+			throw Error(`Cannot use both a TLStore for the store prop and an initialData props.`)
+		}
+
+		if (props.instanceId) {
+			throw Error(`Cannot use both a TLStore for the store prop and an instanceId props.`)
+		}
+
+		if (props.persistenceKey) {
+			throw Error(`Cannot use both a TLStore for the store prop and a persistenceKey prop.`)
+		}
+
+		if (props.persistenceKey) {
+			throw Error(`Cannot use both a TLStore for the store prop and a persistenceKey prop.`)
 		}
 	}
 
