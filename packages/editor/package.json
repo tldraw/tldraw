@@ -79,7 +79,6 @@
 		"@types/wicg-file-system-access": "^2020.9.5",
 		"benchmark": "^2.1.4",
 		"fake-indexeddb": "^4.0.0",
-		"gzip-size": "^7.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.26",
