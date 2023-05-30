@@ -177,7 +177,7 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 	}
 
 	getStrokeWidth(shape: TLHighlightShape) {
-		return FONT_SIZES[shape.props.size]
+		return FONT_SIZES[shape.props.size] * 0.75
 	}
 
 	expandSelectionOutlinePx(shape: TLHighlightShape): number {
@@ -275,7 +275,7 @@ function highlighterToSvg(
 
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
-	path.setAttribute('fill', colors.fill[color])
+	path.setAttribute('fill', colors.highlight[color])
 	path.setAttribute('stroke-linecap', 'round')
 	path.setAttribute('opacity', opacity.toString())
 
