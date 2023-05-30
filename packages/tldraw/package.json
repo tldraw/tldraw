@@ -58,6 +58,7 @@
 		"@peculiar/webcrypto": "^1.4.0",
 		"@testing-library/jest-dom": "^5.14.1",
 		"@testing-library/react": "^14.0.0",
+		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",
 		"lazyrepo": "0.0.0-alpha.26",
