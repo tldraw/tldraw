@@ -1,51 +1,21 @@
 import { Box2d, PI } from '@tldraw/primitives'
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
+import { TL } from '../jsx'
 
 let app: TestApp
+let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
 
-const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-}
-
 beforeEach(() => {
 	app = new TestApp()
-	app.createShapes([
-		{
-			id: ids.boxA,
-			type: 'geo',
-			x: 0,
-			y: 0,
-			props: {
-				w: 100,
-				h: 100,
-			},
-		},
-		{
-			id: ids.boxB,
-			type: 'geo',
-			x: 100,
-			y: 100,
-			props: {
-				w: 50,
-				h: 50,
-			},
-		},
-		{
-			id: ids.boxC,
-			type: 'geo',
-			x: 400,
-			y: 400,
-			props: {
-				w: 100,
-				h: 100,
-			},
-		},
+	ids = app.createShapesFromJsx([
+		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
+		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
+		<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
 	])
+
 	app.selectAll()
 })
 
@@ -255,40 +225,13 @@ describe('When shapes are parented to other shapes...', () => {
 		app = new TestApp()
 		app.selectAll()
 		app.deleteShapes()
-		app.createShapes([
-			{
-				id: ids.boxA,
-				type: 'geo',
-				x: 100,
-				y: 100,
-				props: {
-					w: 100,
-					h: 100,
-				},
-			},
-			{
-				id: ids.boxB,
-				type: 'geo',
-				parentId: ids.boxA,
-				x: 100,
-				y: 100,
-				props: {
-					geo: 'ellipse',
-					w: 50,
-					h: 50,
-				},
-			},
-			{
-				id: ids.boxC,
-				type: 'geo',
-				x: 400,
-				y: 400,
-				props: {
-					w: 100,
-					h: 100,
-				},
-			},
+		ids = app.createShapesFromJsx([
+			<TL.geo ref="boxA" x={0} y={0} w={100} h={100}>
+				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
+			</TL.geo>,
+			<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
 		])
+
 		app.selectAll()
 	})
 
