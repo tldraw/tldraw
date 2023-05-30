@@ -1,4 +1,4 @@
-import test, { expect } from '@playwright/test'
+import test, { Page, expect } from '@playwright/test'
 import { getAllShapeTypes, setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
@@ -57,81 +57,97 @@ const draggableShapeCreators = [
 
 const otherTools = [{ tool: 'select' }, { tool: 'eraser' }, { tool: 'laser' }]
 
-test('creates shapes with tools', async ({ page }) => {
-	await setupPage(page)
+let page: Page
 
-	for (const { tool } of otherTools) {
-		// Find and click the button
-		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-			await page.getByTestId('tools.more').click()
+test.describe('Shape Tools', () => {
+	test.beforeAll(async ({ browser }) => {
+		page = await browser.newPage()
+		await setupPage(page)
+	})
+
+	test('creates shapes with tools', async () => {
+		for (const { tool } of otherTools) {
+			// Find and click the button
+			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+				if (!(await page.getByTestId(`tools.more`).isVisible())) {
+					throw Error(`Tool more is not visible`)
+				}
+
+				await page.getByTestId('tools.more').click()
+			}
+
+			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+				throw Error(`Tool ${tool} is not visible`)
+			}
+
+			await page.getByTestId(`tools.${tool}`).click()
+
+			// Button should be selected
+			expect(
+				await page
+					.getByTestId(`tools.${tool}`)
+					.elementHandle()
+					.then((d) => d?.getAttribute('data-state'))
+			).toBe('selected')
 		}
-		await page.getByTestId(`tools.${tool}`).click()
 
-		// Button should be selected
-		expect(
-			await page
-				.getByTestId(`tools.${tool}`)
-				.elementHandle()
-				.then((d) => d?.getAttribute('data-state'))
-		).toBe('selected')
-	}
+		for (const { tool, shape } of clickableShapeCreators) {
+			// Find and click the button
+			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+				await page.getByTestId('tools.more').click()
+			}
+			await page.getByTestId(`tools.${tool}`).click()
 
-	for (const { tool, shape } of clickableShapeCreators) {
-		// Find and click the button
-		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-			await page.getByTestId('tools.more').click()
+			// Button should be selected
+			expect(
+				await page
+					.getByTestId(`tools.${tool}`)
+					.elementHandle()
+					.then((d) => d?.getAttribute('data-state'))
+			).toBe('selected')
+
+			// Click on the page
+			await page.mouse.click(200, 200)
+
+			// We should have a corresponding shape in the page
+			expect(await getAllShapeTypes(page)).toEqual([shape])
+
+			// Reset for next time
+			await page.mouse.click(0, 0) // to ensure we're not focused
+			await page.keyboard.press('Control+a')
+			await page.keyboard.press('Backspace')
 		}
-		await page.getByTestId(`tools.${tool}`).click()
 
-		// Button should be selected
-		expect(
-			await page
-				.getByTestId(`tools.${tool}`)
-				.elementHandle()
-				.then((d) => d?.getAttribute('data-state'))
-		).toBe('selected')
+		expect(await getAllShapeTypes(page)).toEqual([])
 
-		// Click on the page
-		await page.mouse.click(200, 200)
+		for (const { tool, shape } of draggableShapeCreators) {
+			// Find and click the button
+			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
+				await page.getByTestId('tools.more').click()
+			}
+			await page.getByTestId(`tools.${tool}`).click()
 
-		// We should have a corresponding shape in the page
-		expect(await getAllShapeTypes(page)).toEqual([shape])
+			// Button should be selected
+			expect(
+				await page
+					.getByTestId(`tools.${tool}`)
+					.elementHandle()
+					.then((d) => d?.getAttribute('data-state'))
+			).toBe('selected')
 
-		// Reset for next time
-		await page.mouse.click(0, 0) // to ensure we're not focused
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
-	}
+			// Click and drag
+			await page.mouse.move(200, 200)
+			await page.mouse.down()
+			await page.mouse.move(250, 250)
+			await page.mouse.up()
 
-	expect(await getAllShapeTypes(page)).toEqual([])
+			// We should have a corresponding shape in the page
+			expect(await getAllShapeTypes(page)).toEqual([shape])
 
-	for (const { tool, shape } of draggableShapeCreators) {
-		// Find and click the button
-		if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
-			await page.getByTestId('tools.more').click()
+			// Reset for next time
+			await page.mouse.click(0, 0) // to ensure we're not focused
+			await page.keyboard.press('Control+a')
+			await page.keyboard.press('Backspace')
 		}
-		await page.getByTestId(`tools.${tool}`).click()
-
-		// Button should be selected
-		expect(
-			await page
-				.getByTestId(`tools.${tool}`)
-				.elementHandle()
-				.then((d) => d?.getAttribute('data-state'))
-		).toBe('selected')
-
-		// Click and drag
-		await page.mouse.move(200, 200)
-		await page.mouse.down()
-		await page.mouse.move(250, 250)
-		await page.mouse.up()
-
-		// We should have a corresponding shape in the page
-		expect(await getAllShapeTypes(page)).toEqual([shape])
-
-		// Reset for next time
-		await page.mouse.click(0, 0) // to ensure we're not focused
-		await page.keyboard.press('Control+a')
-		await page.keyboard.press('Backspace')
-	}
+	})
 })

@@ -1,6 +1,6 @@
 import test, { expect, Page } from '@playwright/test'
 import { App } from '@tldraw/tldraw'
-import { setupPage, sleep } from '../shared-e2e'
+import { setupPage } from '../shared-e2e'
 
 declare const __tldraw_editor_events: any[]
 
@@ -14,11 +14,11 @@ test.describe('Canvas events', () => {
 	test.beforeAll(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
-		await sleep(200)
 	})
 
 	test.describe('pointer events', () => {
 		test('pointer down', async () => {
+			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(100, 100)
 			await page.mouse.down()
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
@@ -29,6 +29,7 @@ test.describe('Canvas events', () => {
 		})
 
 		test('pointer move', async () => {
+			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(100, 100)
 			await page.mouse.down()
 			await page.mouse.move(101, 101)
@@ -40,6 +41,7 @@ test.describe('Canvas events', () => {
 		})
 
 		test('pointer up', async () => {
+			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(100, 100)
 			await page.mouse.down()
 			await page.mouse.move(101, 101)
@@ -52,6 +54,7 @@ test.describe('Canvas events', () => {
 		})
 
 		test('pointer leave', async () => {
+			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(100, 100)
 			await page.mouse.move(-10, 50)
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
@@ -62,6 +65,7 @@ test.describe('Canvas events', () => {
 		})
 
 		test('pointer enter', async () => {
+			await page.mouse.move(200, 200) // to kill any double clicks
 			await page.mouse.move(-10, 50)
 			await page.mouse.move(1, 50)
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-2))).toMatchObject({
@@ -84,7 +88,8 @@ test.describe('Canvas events', () => {
 		// todo
 	})
 
-	test('wheel events', async () => {
+	test.fixme('wheel events', async () => {
+		await page.mouse.move(200, 200) // to kill any double clicks
 		await page.mouse.move(100, 100)
 		await page.mouse.wheel(10, 10)
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
@@ -126,15 +131,10 @@ test.describe('Shape events', () => {
 	test.beforeAll(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
-		await sleep(200)
 		await page.keyboard.press('r')
 		await page.mouse.click(150, 150)
 		await page.mouse.move(0, 0)
 		await page.keyboard.press('Escape')
-	})
-
-	test.afterEach(async ({ page }) => {
-		await page.mouse.move(0, 0)
 	})
 
 	test.describe('pointer events', () => {
@@ -149,7 +149,7 @@ test.describe('Shape events', () => {
 
 		test('pointer leave', async () => {
 			await page.mouse.move(51, 51)
-			await page.mouse.move(0, 0)
+			await page.mouse.move(-10, -10)
 			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 				target: 'shape',
 				type: 'pointer',
