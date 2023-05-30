@@ -75,6 +75,8 @@ export type TLTranslationKey =
 	| 'action.toggle-auto-size'
 	| 'action.toggle-dark-mode.menu'
 	| 'action.toggle-dark-mode'
+	| 'action.toggle-reduce-motion.menu'
+	| 'action.toggle-reduce-motion'
 	| 'action.toggle-debug-mode.menu'
 	| 'action.toggle-debug-mode'
 	| 'action.toggle-focus-mode.menu'
