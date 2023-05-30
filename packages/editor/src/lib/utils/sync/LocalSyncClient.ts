@@ -53,7 +53,7 @@ export class BroadcastChannelMock {
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
 /** @public */
-export class TLLocalSyncClient {
+export class LocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: RecordsDiff<any>[] = []
 	private didDispose = false
@@ -81,7 +81,7 @@ export class TLLocalSyncClient {
 			onLoadError,
 		}: {
 			universalPersistenceKey: string
-			onLoad: (self: TLLocalSyncClient) => void
+			onLoad: (self: LocalSyncClient) => void
 			onLoadError: (error: Error) => void
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${universalPersistenceKey}`)

@@ -1,7 +1,7 @@
 import { InstanceRecordType, PageRecordType, TLInstanceId } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { createTldrawEditorStore } from '../../config/createTldrawEditorStore'
-import { TLLocalSyncClient } from './TLLocalSyncClient'
+import { LocalSyncClient } from './LocalSyncClient'
 import * as idb from './indexedDb'
 
 jest.mock('./indexedDb', () => ({
@@ -36,7 +36,7 @@ function testClient(
 	const onLoadError = jest.fn(() => {
 		return
 	})
-	const client = new TLLocalSyncClient(
+	const client = new LocalSyncClient(
 		store,
 		{
 			onLoad,
