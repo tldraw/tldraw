@@ -4445,7 +4445,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/indices@workspace:packages/indices"
   dependencies:
-    benchmark: ^2.1.4
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
@@ -4508,7 +4507,6 @@ __metadata:
   resolution: "@tldraw/primitives@workspace:packages/primitives"
   dependencies:
     "@tldraw/tlschema": "workspace:*"
-    benchmark: ^2.1.4
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
