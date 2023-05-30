@@ -1,7 +1,7 @@
 import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
 import { Store, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { memo, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { StateNodeConstructor } from './app/statechart/StateNode'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
@@ -125,6 +125,12 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
+	if (props.store) {
+		if (props.initialData) {
+			throw Error(`Cannot use both store and initialData props.`)
+		}
+	}
+
 	return (
 		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
 			<OptionalErrorBoundary
@@ -229,7 +235,7 @@ function TldrawEditorAfterLoading({
 	const container = useContainer()
 	const [app, setApp] = useState<App | null>(null)
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const app = new App({
 			store,
 			shapes,
