@@ -4623,7 +4623,7 @@ __metadata:
     "@types/lodash.uniq": ^4.5.7
     "@types/react-test-renderer": ^18.0.0
     "@types/wicg-file-system-access": ^2020.9.5
-    "@use-gesture/react": ^10.2.24
+    "@use-gesture/react": ^10.2.27
     benchmark: ^2.1.4
     classnames: ^2.3.2
     crc: ^4.3.2
@@ -5861,21 +5861,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@use-gesture/core@npm:10.2.26":
-  version: 10.2.26
-  resolution: "@use-gesture/core@npm:10.2.26"
-  checksum: 8a000d715034f8e3e767042f8290c446f4544d94b57c94cf3027fd55f842cd8842a946a48d816b7dafcfd6bdec40219e2c9d8577785b8a0a5ed1fd5970b9de4b
+"@use-gesture/core@npm:10.2.27":
+  version: 10.2.27
+  resolution: "@use-gesture/core@npm:10.2.27"
+  checksum: 3cc29b93e23597257483e2bb14fa53d322fca9c1e41a50a0d2af78557f4565404e2029c1409cfb49c2fd75096044fe9219914b4ce908f8eb3846ec8404f23b0a
   languageName: node
   linkType: hard
 
-"@use-gesture/react@npm:^10.2.24":
-  version: 10.2.26
-  resolution: "@use-gesture/react@npm:10.2.26"
+"@use-gesture/react@npm:^10.2.27":
+  version: 10.2.27
+  resolution: "@use-gesture/react@npm:10.2.27"
   dependencies:
-    "@use-gesture/core": 10.2.26
+    "@use-gesture/core": 10.2.27
   peerDependencies:
     react: ">= 16.8.0"
-  checksum: e9f74ab42fe817a098772abf94d313a870f240a91c85a7dc18ddc8e155ca9e2eddbdf059dce5efe4922a3b4852266d5c43efde8d72a27c07b8932a90596a8c94
+  checksum: 745c835483138eb033953dee285ddece04f236ac82a6897dcf03dd38daeb5335f91e664436ff55e3b449dccb1eadd809fcd7e7d1440c6f82c4e87663bfaadd5f
   languageName: node
   linkType: hard
 

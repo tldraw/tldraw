@@ -1,7 +1,7 @@
-import { TLAsset, TLInstance, TLInstanceId, TLStore, TLUser, TLUserId } from '@tldraw/tlschema'
+import { InstanceRecordType, TLAsset, TLInstanceId, TLStore } from '@tldraw/tlschema'
 import { Store } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
-import React, { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
+import React, { useCallback, useMemo, useSyncExternalStore } from 'react'
 import { App } from './app/App'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -87,8 +87,6 @@ export interface TldrawEditorProps {
 	 * from a server or database.
 	 */
 	store?: TLStore | SyncedStore
-	/** The id of the current user. If not given, one will be generated. */
-	userId?: TLUserId
 	/**
 	 * The id of the app instance (e.g. a browser tab if the app will have only one tldraw app per
 	 * tab). If not given, one will be generated.
@@ -132,38 +130,19 @@ export function TldrawEditor(props: TldrawEditorProps) {
 	)
 }
 
-function TldrawEditorBeforeLoading({
-	config,
-	userId,
-	instanceId,
-	store,
-	...props
-}: TldrawEditorProps) {
+function TldrawEditorBeforeLoading({ config, instanceId, store, ...props }: TldrawEditorProps) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		props.assetUrls ?? defaultEditorAssetUrls
 	)
 
-	const [_store, _setStore] = useState<TLStore | SyncedStore>(() => {
+	const _store = useMemo<TLStore | SyncedStore>(() => {
 		return (
 			store ??
 			config.createStore({
-				userId: userId ?? TLUser.createId(),
-				instanceId: instanceId ?? TLInstance.createId(),
+				instanceId: instanceId ?? InstanceRecordType.createId(),
 			})
 		)
-	})
-
-	useEffect(() => {
-		_setStore(() => {
-			return (
-				store ??
-				config.createStore({
-					userId: userId ?? TLUser.createId(),
-					instanceId: instanceId ?? TLInstance.createId(),
-				})
-			)
-		})
-	}, [store, config, userId, instanceId])
+	}, [store, config, instanceId])
 
 	let loadedStore: TLStore | SyncedStore
 	if (!(_store instanceof Store)) {
@@ -188,12 +167,6 @@ function TldrawEditorBeforeLoading({
 		)
 	}
 
-	if (userId && loadedStore.props.userId !== userId) {
-		console.error(
-			`The store's userId (${loadedStore.props.userId}) does not match the userId prop (${userId}). This may cause unexpected behavior.`
-		)
-	}
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
@@ -208,7 +181,6 @@ function TldrawEditorBeforeLoading({
 function TldrawEditorAfterLoading({
 	onMount,
 	config,
-	isDarkMode,
 	children,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
@@ -257,20 +229,15 @@ function TldrawEditorAfterLoading({
 	const onMountEvent = useEvent((app: App) => {
 		onMount?.(app)
 		app.emit('mount')
+		window.tldrawReady = true
 	})
 
 	React.useEffect(() => {
 		if (app) {
-			// Set the initial theme state.
-			if (isDarkMode !== undefined) {
-				app.updateUserDocumentSettings({ isDarkMode })
-			}
-
 			// Run onMount
-			window.tldrawReady = true
 			onMountEvent(app)
 		}
-	}, [app, onMountEvent, isDarkMode])
+	}, [app, onMountEvent])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

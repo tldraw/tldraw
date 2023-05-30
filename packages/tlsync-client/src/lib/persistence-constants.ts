@@ -1,6 +1,4 @@
-import { TLInstance, TLInstanceId, TLUser, uniqueId } from '@tldraw/editor'
-import { Store } from '@tldraw/tlstore'
-import { atom, react } from 'signia'
+import { InstanceRecordType, TLInstanceId, uniqueId } from '@tldraw/editor'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 
@@ -26,45 +24,10 @@ function iOS() {
 	)
 }
 
-// the id of the user, stored in localStorage so that it persists across sessions
-const USER_DATA_KEY = 'TLDRAW_USER_DATA_v2'
-
-const globalUserData = atom<TLUser>(
-	'globalUserData',
-	JSON.parse(window?.localStorage.getItem(USER_DATA_KEY) || 'null') ?? TLUser.create({})
-)
-
-react('set global user data', () => {
-	if (window) {
-		window.localStorage.setItem(USER_DATA_KEY, JSON.stringify(globalUserData.value))
-	}
-})
-
-/** @public */
-export function getUserData() {
-	return globalUserData.value
-}
-
-/** @public */
-export function subscribeToUserData(store: Store<any>) {
-	const userId = globalUserData.value.id
-	return store.listen(({ changes }) => {
-		for (const record of Object.values(changes.added)) {
-			if (record.typeName === 'user' && userId === record.id) {
-				globalUserData.set(record)
-			}
-		}
-		for (const [_, record] of Object.values(changes.updated)) {
-			if (record.typeName === 'user' && userId === record.id) {
-				globalUserData.set(record)
-			}
-		}
-	})
-}
-
 // the id of the document that will be loaded if the URL doesn't contain a document id
 // again, stored in localStorage
 const defaultDocumentKey = 'TLDRAW_DEFAULT_DOCUMENT_NAME_v2'
+
 /** @public */
 export const DEFAULT_DOCUMENT_NAME =
 	(window?.localStorage.getItem(defaultDocumentKey) as any) ?? uniqueId()
@@ -76,7 +39,7 @@ export const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
 
 /** @public */
 export const TAB_ID: TLInstanceId =
-	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? TLInstance.createId()
+	window?.[tabIdKey] ?? window?.sessionStorage[tabIdKey] ?? InstanceRecordType.createId()
 if (window) {
 	window[tabIdKey] = TAB_ID
 	if (iOS()) {
@@ -97,7 +60,7 @@ window?.addEventListener('beforeunload', () => {
 
 const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
 
-/** @public */
+/** @internal */
 export function getAllIndexDbNames(): string[] {
 	const result = JSON.parse(window?.localStorage.getItem(dbNameIndexKey) || '[]') ?? []
 	if (!Array.isArray(result)) {
@@ -106,7 +69,7 @@ export function getAllIndexDbNames(): string[] {
 	return result
 }
 
-/** @public */
+/** @internal */
 export function addDbName(name: string) {
 	const all = new Set(getAllIndexDbNames())
 	all.add(name)

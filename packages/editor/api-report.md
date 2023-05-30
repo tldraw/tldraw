@@ -93,10 +93,7 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLUser } from '@tldraw/tlschema';
 import { TLUserDocument } from '@tldraw/tlschema';
-import { TLUserId } from '@tldraw/tlschema';
-import { TLUserPresence } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/tlstore';
@@ -369,6 +366,7 @@ export class App extends EventEmitter<TLEventMap> {
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
+    get locale(): string;
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
@@ -466,6 +464,7 @@ export class App extends EventEmitter<TLEventMap> {
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
+    setLocale(locale: string): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
@@ -494,7 +493,7 @@ export class App extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: TLUserId) => this | undefined;
+    startFollowingUser: (userId: string) => this | undefined;
     stopCameraAnimation(): this;
     stopFollowingUser: () => this;
     readonly store: TLStore;
@@ -512,22 +511,12 @@ export class App extends EventEmitter<TLEventMap> {
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
-    updateUser(partial: Partial<TLUser>): void;
     updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral?: boolean): this;
-    // (undocumented)
-    updateUserPresence: ({ cursor, color, viewportPageBounds, }?: {
-        cursor?: undefined | Vec2dModel;
-        color?: string | undefined;
-        viewportPageBounds?: Box2dModel | undefined;
-    }) => void;
     updateViewportScreenBounds(center?: boolean): this;
-    get user(): TLUser;
+    // @internal (undocumented)
+    readonly user: UserPreferencesManager;
     // (undocumented)
     get userDocumentSettings(): TLUserDocument;
-    get userId(): TLUserId;
-    // (undocumented)
-    get userPresence(): TLUserPresence | undefined;
-    get userSettings(): TLUser;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
@@ -1795,9 +1784,12 @@ export class TldrawEditorConfig {
     // (undocumented)
     createStore(config: {
         initialData?: StoreSnapshot<TLRecord>;
-        userId: TLUserId;
         instanceId: TLInstanceId;
     }): TLStore;
+    // (undocumented)
+    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
     // (undocumented)
     readonly shapeUtils: Record<TLShape['type'], TLShapeUtilConstructor<any>>;
     // (undocumented)
@@ -1806,6 +1798,8 @@ export class TldrawEditorConfig {
     readonly TLShape: RecordType<TLShape, 'index' | 'parentId' | 'props' | 'type'>;
     // (undocumented)
     readonly tools: readonly StateNodeConstructor[];
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
 }
 
 // @public (undocumented)
@@ -1826,7 +1820,6 @@ export interface TldrawEditorProps {
     }>;
     onMount?: (app: App) => void;
     store?: SyncedStore | TLStore;
-    userId?: TLUserId;
 }
 
 // @public (undocumented)
@@ -2659,16 +2652,19 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
-export function usePeerIds(): TLUserId[];
+export function usePeerIds(): string[];
 
 // @public (undocumented)
 export function usePrefersReducedMotion(): boolean;
 
 // @internal (undocumented)
-export function usePresence(userId: TLUserId): null | TLInstancePresence;
+export function usePresence(userId: string): null | TLInstancePresence;
 
 // @public (undocumented)
 export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
+
+// @internal (undocumented)
+export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", "#E34BA9", "#BD54C6", "#9D5BD2", "#7B66DC", "#02B1CC", "#11B3A3", "#39B178", "#55B467"];
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;

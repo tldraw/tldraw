@@ -7,6 +7,7 @@ import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawU
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
+import { FollowingIndicator } from './components/FollowingIndicator'
 import { HelpMenu } from './components/HelpMenu'
 import { MenuZone } from './components/MenuZone'
 import { NavigationZone } from './components/NavigationZone/NavigationZone'
@@ -89,9 +90,9 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 	const app = useApp()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [])
-	const isFocusMode = useValue('isFocusMode', () => app.instanceState.isFocusMode, [])
-	const isDebugMode = useValue('isDebugMode', () => app.instanceState.isDebugMode, [])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])
+	const isFocusMode = useValue('focus', () => app.instanceState.isFocusMode, [app])
+	const isDebugMode = useValue('debug', () => app.instanceState.isDebugMode, [app])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -153,6 +154,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 				<Toasts />
 				<Dialogs />
 				<ToastViewport />
+				<FollowingIndicator />
 			</main>
 		</ToastProvider>
 	)

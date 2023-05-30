@@ -6,7 +6,7 @@ import { useContainer } from './useContainer'
 export function useDarkMode() {
 	const app = useApp()
 	const container = useContainer()
-	const isDarkMode = useValue('isDarkMode', () => app.userDocumentSettings.isDarkMode, [app])
+	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
 
 	React.useEffect(() => {
 		if (isDarkMode) {

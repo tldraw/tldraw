@@ -1,24 +1,20 @@
-import { SyncedStore, TldrawEditorConfig, TLInstanceId, TLUserId, uniqueId } from '@tldraw/editor'
+import { SyncedStore, TldrawEditorConfig, TLInstanceId, uniqueId } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import '../hardReset'
-import { subscribeToUserData } from '../persistence-constants'
 import { TLLocalSyncClient } from '../TLLocalSyncClient'
 
 /**
- * This is a temporary solution that will be replaced with the remote sync client once it has the db
- * integrated
+ * Use a client that persists to indexedDB and syncs to other stores with the same instance id, e.g. other tabs running the same instance of tldraw.
  *
  * @public
  */
 export function useLocalSyncClient({
 	universalPersistenceKey,
 	instanceId,
-	userId,
 	config,
 }: {
 	universalPersistenceKey: string
 	instanceId: TLInstanceId
-	userId: TLUserId
 	config: TldrawEditorConfig
 }): SyncedStore {
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
@@ -38,7 +34,7 @@ export function useLocalSyncClient({
 			})
 		}
 
-		const store = config.createStore({ userId, instanceId })
+		const store = config.createStore({ instanceId })
 
 		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey,
@@ -50,14 +46,11 @@ export function useLocalSyncClient({
 			},
 		})
 
-		const userDataUnsubcribe = subscribeToUserData(store)
-
 		return () => {
 			setState((prevState) => (prevState?.id === id ? null : prevState))
-			userDataUnsubcribe()
 			client.close()
 		}
-	}, [instanceId, universalPersistenceKey, config, userId])
+	}, [instanceId, universalPersistenceKey, config])
 
 	return state?.syncedStore ?? { status: 'loading' }
 }

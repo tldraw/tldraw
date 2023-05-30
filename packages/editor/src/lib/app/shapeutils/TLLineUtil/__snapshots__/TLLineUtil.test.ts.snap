@@ -5,7 +5,7 @@ Object {
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
-  "parentId": "page:id51",
+  "parentId": "page:id50",
   "props": Object {
     "color": "black",
     "dash": "draw",

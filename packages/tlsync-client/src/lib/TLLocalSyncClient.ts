@@ -36,7 +36,7 @@ type Message = SyncMessage | AnnounceMessage
 
 const msg = (msg: Message) => msg
 
-/** @public */
+/** @internal */
 export class BroadcastChannelMock {
 	onmessage?: (e: MessageEvent) => void
 	constructor(_name: string) {
@@ -52,7 +52,7 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
-/** @public */
+/** @internal */
 export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: RecordsDiff<any>[] = []
@@ -155,7 +155,12 @@ export class TLLocalSyncClient {
 				// 3. Merge the changes into the REAL STORE
 				this.store.mergeRemoteChanges(() => {
 					// Calling put will validate the records!
-					this.store.put(Object.values(migrationResult.value), 'initialize')
+					this.store.put(
+						Object.values(migrationResult.value).filter(
+							(r) => this.store.schema.types[r.typeName].scope !== 'presence'
+						),
+						'initialize'
+					)
 				})
 			}
 

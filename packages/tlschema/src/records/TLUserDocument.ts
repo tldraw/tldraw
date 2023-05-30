@@ -1,9 +1,8 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { idValidator, instanceIdValidator, pageIdValidator, userIdValidator } from '../validation'
+import { idValidator, instanceIdValidator, pageIdValidator } from '../validation'
 import { TLInstance } from './TLInstance'
 import { TLPage } from './TLPage'
-import { TLUserId } from './TLUser'
 
 /**
  * TLUserDocument
@@ -13,10 +12,8 @@ import { TLUserId } from './TLUser'
  * @public
  */
 export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
-	userId: TLUserId
 	isPenMode: boolean
 	isGridMode: boolean
-	isDarkMode: boolean
 	isMobileMode: boolean
 	isSnapMode: boolean
 	lastUpdatedPageId: ID<TLPage> | null
@@ -32,10 +29,8 @@ export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
 	T.object({
 		typeName: T.literal('user_document'),
 		id: idValidator<TLUserDocumentId>('user_document'),
-		userId: userIdValidator,
 		isPenMode: T.boolean,
 		isGridMode: T.boolean,
-		isDarkMode: T.boolean,
 		isMobileMode: T.boolean,
 		isSnapMode: T.boolean,
 		lastUpdatedPageId: pageIdValidator.nullable(),
@@ -47,11 +42,14 @@ export const Versions = {
 	AddSnapMode: 1,
 	AddMissingIsMobileMode: 2,
 	RemoveIsReadOnly: 3,
+	RemoveUserIdAndIsDarkMode: 4,
 } as const
+
+export { Versions as userDocumentVersions }
 
 /** @public */
 export const userDocumentTypeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveIsReadOnly,
+	currentVersion: Versions.RemoveUserIdAndIsDarkMode,
 	migrators: {
 		[Versions.AddSnapMode]: {
 			up: (userDocument: TLUserDocument) => {
@@ -77,13 +75,25 @@ export const userDocumentTypeMigrations = defineMigrations({
 				return { ...userDocument, isReadOnly: false }
 			},
 		},
+		[Versions.RemoveUserIdAndIsDarkMode]: {
+			up: ({
+				userId: _,
+				isDarkMode: __,
+				...userDocument
+			}: TLUserDocument & { userId: string; isDarkMode: boolean }) => {
+				return userDocument
+			},
+			down: (userDocument: TLUserDocument) => {
+				return { ...userDocument, userId: 'user:none', isDarkMode: false }
+			},
+		},
 	},
 })
 /* STEP 4: Add your changes to the record type */
 
 /* STEP 5: Add up + down migrations for your new version */
 /** @public */
-export const TLUserDocument = createRecordType<TLUserDocument>('user_document', {
+export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_document', {
 	migrations: userDocumentTypeMigrations,
 	validator: userDocumentTypeValidator,
 	scope: 'instance',
@@ -92,12 +102,9 @@ export const TLUserDocument = createRecordType<TLUserDocument>('user_document', 
 		/* STEP 6: Add any new default values for properties here */
 		isPenMode: false,
 		isGridMode: false,
-		isDarkMode: false,
 		isMobileMode: false,
 		isSnapMode: false,
 		lastUpdatedPageId: null,
 		lastUsedTabId: null,
 	})
 )
-
-export { Versions as userDocumentVersions }

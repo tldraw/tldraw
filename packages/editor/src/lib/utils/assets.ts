@@ -1,5 +1,6 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import {
+	AssetRecordType,
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
@@ -165,7 +166,7 @@ export async function getMediaAssetFromFile(file: File): Promise<TLAsset> {
 				dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
 			}
 
-			const assetId: TLAssetId = TLAsset.createCustomId(getHashForString(dataUrl))
+			const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(dataUrl))
 
 			const metadata = await getFileMetaData(file)
 
@@ -419,7 +420,7 @@ export function createEmbedShapeAtPoint(
  * @public
  */
 export async function createBookmarkShapeAtPoint(app: App, url: string, point: Vec2dModel) {
-	const assetId: TLAssetId = TLAsset.createCustomId(getHashForString(url))
+	const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
 	const existing = app.getAssetById(assetId) as TLBookmarkAsset
 
 	if (existing) {

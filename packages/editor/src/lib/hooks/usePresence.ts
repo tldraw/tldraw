@@ -1,4 +1,4 @@
-import { TLInstancePresence, TLUserId } from '@tldraw/tlschema'
+import { TLInstancePresence } from '@tldraw/tlschema'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
 import { useApp } from './useApp'
@@ -8,7 +8,7 @@ import { useApp } from './useApp'
  * @returns The list of peer UserIDs
  * @internal
  */
-export function usePresence(userId: TLUserId): TLInstancePresence | null {
+export function usePresence(userId: string): TLInstancePresence | null {
 	const app = useApp()
 
 	const $presences = useMemo(() => {

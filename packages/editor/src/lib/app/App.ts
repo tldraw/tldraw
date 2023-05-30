@@ -23,11 +23,13 @@ import {
 } from '@tldraw/primitives'
 import {
 	Box2dModel,
+	CameraRecordType,
+	InstancePageStateRecordType,
+	PageRecordType,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
-	TLCamera,
 	TLColorStyle,
 	TLColorType,
 	TLCursor,
@@ -40,6 +42,7 @@ import {
 	TLInstanceId,
 	TLInstancePageState,
 	TLNullableShapeProps,
+	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
 	TLParentId,
@@ -52,13 +55,12 @@ import {
 	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
-	TLUser,
 	TLUserDocument,
-	TLUserId,
 	TLVideoAsset,
 	Vec2dModel,
 	createCustomShapeId,
 	createShapeId,
+	isPageId,
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
@@ -116,6 +118,7 @@ import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
+import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { TLArrowUtil } from './shapeutils/TLArrowUtil/TLArrowUtil'
 import { getCurvedArrowInfo } from './shapeutils/TLArrowUtil/arrow/curved-arrow'
 import {
@@ -184,6 +187,8 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		this.store = store
+
+		this.user = new UserPreferencesManager(this)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
@@ -356,6 +361,11 @@ export class App extends EventEmitter<TLEventMap> {
 	readonly snaps = new SnapManager(this)
 
 	/**
+	 * @internal
+	 */
+	readonly user: UserPreferencesManager
+
+	/**
 	 * Whether the editor is running in Safari.
 	 *
 	 * @public
@@ -423,21 +433,6 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
-
-	/**
-	 * The editor's userId (defined in its store.props).
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * const userId = app.userId
-	 * ```
-	 *
-	 * @public
-	 */
-	get userId(): TLUserId {
-		return this.store.props.userId
-	}
 
 	/**
 	 * The editor's instanceId (defined in its store.props).
@@ -657,7 +652,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	@computed private get _pageTransformCache(): ComputedCache<Matrix2d, TLShape> {
 		return this.store.createComputedCache<Matrix2d, TLShape>('pageTransformCache', (shape) => {
-			if (TLPage.isId(shape.parentId)) {
+			if (isPageId(shape.parentId)) {
 				return this.getTransform(shape)
 			}
 			// some weird circular type thing here that I had to work wround with (as any)
@@ -693,7 +688,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	@computed private get _pageMaskCache(): ComputedCache<VecLike[], TLShape> {
 		return this.store.createComputedCache<VecLike[], TLShape>('pageMaskCache', (shape) => {
-			if (TLPage.isId(shape.parentId)) {
+			if (isPageId(shape.parentId)) {
 				return undefined
 			}
 
@@ -1197,7 +1192,6 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this.updateUserPresence()
 		this.emit('update')
 	}
 
@@ -1422,7 +1416,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// if this shape moved to a new page, clean up any previous page's instance state
-		if (prev.parentId !== next.parentId && TLPage.isId(next.parentId)) {
+		if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
 			const allMovingIds = new Set([prev.id])
 			this.visitDescendants(prev.id, (id) => {
 				allMovingIds.add(id)
@@ -1500,16 +1494,6 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.documentSettings.gridSize
 	}
 
-	/**
-	 * The user's global settings.
-	 *
-	 * @public
-	 * @readonly
-	 */
-	get userSettings(): TLUser {
-		return this.store.get(this.userId)!
-	}
-
 	get isSnapMode() {
 		return this.userDocumentSettings.isSnapMode
 	}
@@ -1522,12 +1506,12 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	get isDarkMode() {
-		return this.userDocumentSettings.isDarkMode
+		return this.user.isDarkMode
 	}
 
 	setDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
-			this.updateUserDocumentSettings({ isDarkMode }, true)
+			this.user.updateUserPreferences({ isDarkMode })
 		}
 		return this
 	}
@@ -1556,7 +1540,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private get _userDocumentSettings() {
-		return this.store.query.record('user_document', () => ({ userId: { eq: this.userId } }))
+		return this.store.query.record('user_document')
 	}
 
 	get userDocumentSettings(): TLUserDocument {
@@ -1608,15 +1592,6 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 
 	// User / User App State
-
-	/**
-	 * The current user state.
-	 *
-	 * @public
-	 */
-	get user(): TLUser {
-		return this.store.get(this.userId)!
-	}
 
 	/** The current tab state */
 	get instanceState(): TLInstance {
@@ -1818,7 +1793,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getParentTransform(shape: TLShape) {
-		if (TLPage.isId(shape.parentId)) {
+		if (isPageId(shape.parentId)) {
 			return Matrix2d.Identity()
 		}
 		return this._pageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
@@ -2096,7 +2071,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 */
 	getAncestors(shape: TLShape, acc: TLShape[] = []): TLShape[] {
 		const parentId = shape.parentId
-		if (TLPage.isId(parentId)) {
+		if (isPageId(parentId)) {
 			acc.reverse()
 			return acc
 		}
@@ -2138,7 +2113,7 @@ export class App extends EventEmitter<TLEventMap> {
 	findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined {
 		const parentId = shape.parentId
 
-		if (TLPage.isId(parentId)) {
+		if (isPageId(parentId)) {
 			return undefined
 		}
 
@@ -2176,7 +2151,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 		if (shapes.length === 1) {
 			const parentId = shapes[0].parentId
-			if (TLPage.isId(parentId)) {
+			if (isPageId(parentId)) {
 				return
 			}
 			return predicate ? this.findAncestor(shapes[0], predicate)?.id : parentId
@@ -2438,7 +2413,7 @@ export class App extends EventEmitter<TLEventMap> {
 		if (!shape) {
 			return new Vec2d(0, 0)
 		}
-		if (TLPage.isId(shape.parentId)) return Vec2d.From(point)
+		if (isPageId(shape.parentId)) return Vec2d.From(point)
 
 		const parentTransform = this.getPageTransformById(shape.parentId)
 		if (!parentTransform) return Vec2d.From(point)
@@ -2479,7 +2454,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d {
-		if (TLPage.isId(shape.parentId)) return Vec2d.From(delta)
+		if (isPageId(shape.parentId)) return Vec2d.From(delta)
 
 		const parent = this.getShapeById(shape.parentId)
 		if (!parent) return Vec2d.From(delta)
@@ -3195,7 +3170,7 @@ export class App extends EventEmitter<TLEventMap> {
 	/** Get the id of the containing page for a given shape. */
 	getParentPageId(shape?: TLShape): TLPageId | undefined {
 		if (shape === undefined) return undefined
-		if (TLPage.isId(shape.parentId)) {
+		if (isPageId(shape.parentId)) {
 			return shape.parentId
 		} else {
 			return this.getParentPageId(this.getShapeById(shape.parentId))
@@ -3479,7 +3454,15 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
-		this.updateUserPresence({ cursor: currentPagePoint.toJson() })
+		this.store.put([
+			{
+				id: TLPOINTER_ID,
+				typeName: 'pointer',
+				x: currentPagePoint.x,
+				y: currentPagePoint.y,
+				lastActivityTimestamp: Date.now(),
+			},
+		])
 	}
 
 	/* --------------------- Events --------------------- */
@@ -4250,7 +4233,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		let isDuplicating = false
 
-		if (!TLPage.isId(pasteParentId)) {
+		if (!isPageId(pasteParentId)) {
 			const parent = this.getShapeById(pasteParentId)
 			if (parent) {
 				if (!this.viewportPageBounds.includes(this.getPageBounds(parent)!)) {
@@ -4446,7 +4429,7 @@ export class App extends EventEmitter<TLEventMap> {
 			const bounds = Box2d.Common(newCreatedShapes.map((s) => this.getPageBounds(s)!))
 
 			if (point === undefined) {
-				if (!TLPage.isId(pasteParentId)) {
+				if (!isPageId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShapeById(pasteParentId)!
 					const util = this.getShapeUtil(shape)
@@ -5039,6 +5022,27 @@ export class App extends EventEmitter<TLEventMap> {
 	)
 
 	/**
+	 * Get the editor's locale.
+	 * @public
+	 */
+	get locale() {
+		return this.user.locale
+	}
+
+	/**
+	 * Update the editor's locale. This affects which translations are used when rendering UI elements.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * app.setLocale('fr')
+	 * ```
+	 */
+	setLocale(locale: string) {
+		this.user.updateUserPreferences({ locale })
+	}
+
+	/**
 	 * Update a page.
 	 *
 	 * @example
@@ -5097,7 +5101,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param title - The new page's title.
 	 * @public
 	 */
-	createPage(title: string, id: TLPageId = TLPage.createId(), belowPageIndex?: string) {
+	createPage(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) {
 		this._createPage(title, id, belowPageIndex)
 		return this
 	}
@@ -5105,7 +5109,7 @@ export class App extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _createPage = this.history.createCommand(
 		'createPage',
-		(title: string, id: TLPageId = TLPage.createId(), belowPageIndex?: string) => {
+		(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) => {
 			if (this.isReadOnly) return null
 			if (this.pages.length >= MAX_PAGES) return null
 			const pageInfo = this.pages
@@ -5120,7 +5124,7 @@ export class App extends EventEmitter<TLEventMap> {
 				pageInfo.map((p) => p.name)
 			)
 
-			const newPage = TLPage.create({
+			const newPage = PageRecordType.create({
 				id,
 				name: title,
 				index:
@@ -5129,9 +5133,9 @@ export class App extends EventEmitter<TLEventMap> {
 						: getIndexAbove(topIndex),
 			})
 
-			const newCamera = TLCamera.create({})
+			const newCamera = CameraRecordType.create({})
 
-			const newTabPageState = TLInstancePageState.create({
+			const newTabPageState = InstancePageStateRecordType.create({
 				pageId: newPage.id,
 				instanceId: this.instanceId,
 				cameraId: newCamera.id,
@@ -5166,7 +5170,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 	)
 
-	duplicatePage(id: TLPageId = this.currentPageId, createId: TLPageId = TLPage.createId()) {
+	duplicatePage(id: TLPageId = this.currentPageId, createId: TLPageId = PageRecordType.createId()) {
 		if (this.pages.length >= MAX_PAGES) return
 		const page = this.getPageById(id)
 		if (!page) return
@@ -5280,56 +5284,6 @@ export class App extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * Set user state. Always ephemeral for now.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * app.updateUser({ color: '#923433' })
-	 * ```
-	 *
-	 * @param partial - The partial of the user state object containing the changes.
-	 * @public
-	 */
-	updateUser(partial: Partial<TLUser>) {
-		const next = { ...this.user, ...partial }
-		this.store.put([next])
-	}
-
-	/** @internal */
-	@computed private get _currentUserPresence() {
-		return this.store.query.record('user_presence', () => ({ userId: { eq: this.userId } }))
-	}
-
-	get userPresence() {
-		return this._currentUserPresence.value
-	}
-
-	// when a user performs any action in the app, we update their presence record
-	updateUserPresence = ({
-		cursor,
-		color,
-		viewportPageBounds,
-	}: { cursor?: Vec2dModel; color?: string; viewportPageBounds?: Box2dModel } = {}) => {
-		const presence = this._currentUserPresence.value
-		if (!presence) {
-			console.error('No presence found for current user')
-			return
-		}
-
-		this.store.put([
-			{
-				...presence,
-				cursor: cursor ?? presence.cursor,
-				color: color ?? presence.color,
-				viewportPageBounds: viewportPageBounds ?? presence.viewportPageBounds,
-				lastUsedInstanceId: this.instanceId,
-				lastActivityTimestamp: Date.now(),
-			},
-		])
-	}
 
 	/**
 	 * Select one or more shapes.
@@ -5598,7 +5552,7 @@ export class App extends EventEmitter<TLEventMap> {
 			scale = 1,
 			background = false,
 			padding = SVG_PADDING,
-			darkMode = this.userDocumentSettings.isDarkMode,
+			darkMode = this.isDarkMode,
 			preserveAspectRatio = false,
 		} = opts
 
@@ -7067,7 +7021,7 @@ export class App extends EventEmitter<TLEventMap> {
 	reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string) {
 		const changes: TLShapePartial[] = []
 
-		const parentTransform = TLPage.isId(parentId)
+		const parentTransform = isPageId(parentId)
 			? Matrix2d.Identity()
 			: this.getPageTransformById(parentId)!
 
@@ -7279,10 +7233,10 @@ export class App extends EventEmitter<TLEventMap> {
 		{
 			do: ({ toId }) => {
 				if (!this.getPageStateByPageId(toId)) {
-					const camera = TLCamera.create({})
+					const camera = CameraRecordType.create({})
 					this.store.put([
 						camera,
-						TLInstancePageState.create({
+						InstancePageStateRecordType.create({
 							pageId: toId,
 							instanceId: this.instanceId,
 							cameraId: camera.id,
@@ -7292,17 +7246,11 @@ export class App extends EventEmitter<TLEventMap> {
 
 				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
-				this.updateUserPresence({
-					viewportPageBounds: this.viewportPageBounds.toJson(),
-				})
 				this.updateCullingBounds()
 			},
 			undo: ({ fromId }) => {
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
-				this.updateUserPresence({
-					viewportPageBounds: this.viewportPageBounds.toJson(),
-				})
 				this.updateCullingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
@@ -7936,10 +7884,6 @@ export class App extends EventEmitter<TLEventMap> {
 				isPen: this.isPenMode ?? false,
 			})
 
-			this.updateUserPresence({
-				viewportPageBounds: this.viewportPageBounds.toJson(),
-			})
-
 			this._cameraManager.tick()
 		})
 
@@ -8540,7 +8484,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param userId - The id of the user to follow.
 	 * @public
 	 */
-	startFollowingUser = (userId: TLUserId) => {
+	startFollowingUser = (userId: string) => {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
@@ -8548,8 +8492,14 @@ export class App extends EventEmitter<TLEventMap> {
 			userId: { eq: userId },
 		}))
 
+		const thisUserId = this.user.id
+
+		if (!thisUserId) {
+			console.warn('You should set the userId for the current instance before following a user')
+		}
+
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.value.some((p) => p.followingUserId === this.userId)) {
+		if (leaderPresences.value.some((p) => p.followingUserId === thisUserId)) {
 			return
 		}
 
@@ -8600,7 +8550,7 @@ export class App extends EventEmitter<TLEventMap> {
 			// At this point, let's check if we're following someone who's following us.
 			// If so, we can't try to contain their entire viewport
 			// because that would become a feedback loop where we zoom, they zoom, etc.
-			const isFollowingFollower = leaderPresence.followingUserId === this.userId
+			const isFollowingFollower = leaderPresence.followingUserId === thisUserId
 
 			// Figure out how much to zoom
 			const desiredWidth = width + (leaderWidth - width) * chaseProportion

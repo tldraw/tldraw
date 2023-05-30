@@ -35,7 +35,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	children,
 }: TranslationProviderProps) {
 	const app = useApp()
-	const locale = app.userSettings.locale
+	const locale = app.locale
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {

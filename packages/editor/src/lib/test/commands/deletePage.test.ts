@@ -1,4 +1,4 @@
-import { TLPage } from '@tldraw/tlschema'
+import { PageRecordType } from '@tldraw/tlschema'
 import { TestApp } from '../TestApp'
 
 let app: TestApp
@@ -9,7 +9,7 @@ beforeEach(() => {
 
 describe('deletePage', () => {
 	it('deletes the page', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.createPage('New Page 2', page2Id)
 
 		const pages = app.pages
@@ -19,7 +19,7 @@ describe('deletePage', () => {
 		expect(app.pages[0]).toEqual(pages[1])
 	})
 	it('is undoable and redoable', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.mark()
 		app.createPage('New Page 2', page2Id)
 
@@ -38,7 +38,7 @@ describe('deletePage', () => {
 		expect(app.pages[0]).toEqual(pages[1])
 	})
 	it('does not allow deleting all pages', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.mark()
 		app.createPage('New Page 2', page2Id)
 
@@ -52,7 +52,7 @@ describe('deletePage', () => {
 		expect(app.pages.length).toBe(1)
 	})
 	it('switches the page if you are deleting the current page', () => {
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.mark()
 		app.createPage('New Page 2', page2Id)
 
@@ -64,7 +64,7 @@ describe('deletePage', () => {
 	})
 	it('switches the page if another user or tab deletes the current page', () => {
 		const currentPageId = app.currentPageId
-		const page2Id = TLPage.createCustomId('page2')
+		const page2Id = PageRecordType.createCustomId('page2')
 		app.mark()
 		app.createPage('New Page 2', page2Id)
 

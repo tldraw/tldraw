@@ -1,8 +1,7 @@
-import { App, preventDefault, useApp } from '@tldraw/editor'
+import { App, useApp } from '@tldraw/editor'
 import * as React from 'react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useMenuSchema } from '../hooks/useMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -37,7 +36,6 @@ function MenuContent() {
 	const menuSchema = useMenuSchema()
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents('menu')
 
 	function getMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
 		switch (item.type) {
@@ -48,35 +46,6 @@ function MenuContent() {
 					return <LanguageMenu key="item" />
 				}
 
-				if (item.id === 'MENU_PASTE') {
-					return (
-						<M.Item
-							key={item.id}
-							data-wd={`menu-item.${item.id}`}
-							kbd="$v"
-							label="action.paste"
-							disabled={item.disabled}
-							onMouseDown={() => {
-								if (app.isSafari && navigator.clipboard?.read) {
-									// NOTE: This must be a onMouseDown for Safari/desktop, onClick doesn't work at the time of writing...
-									navigator.clipboard.read().then((clipboardItems) => {
-										paste(clipboardItems)
-									})
-								}
-							}}
-							onClick={() => {
-								if (app.isSafari) {
-									// noop
-								} else if (navigator.clipboard?.read) {
-									navigator.clipboard.read().then((clipboardItems) => {
-										paste(clipboardItems)
-									})
-								}
-							}}
-							onPointerUp={preventDefault}
-						/>
-					)
-				}
 				return null
 			}
 			case 'group': {
