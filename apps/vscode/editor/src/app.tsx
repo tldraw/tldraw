@@ -14,7 +14,6 @@ import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
 import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-// eslint-disable-next-line import/no-internal-modules
 import { useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
