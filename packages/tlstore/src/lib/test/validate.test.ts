@@ -67,10 +67,10 @@ describe('Store with validation', () => {
 	})
 
 	it('Accepts valid records and rejects invalid records', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 
 		expect(store.query.records('author').value).toEqual([
-			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
+			{ id: 'author:tolkien', typeName: 'author', name: 'J.R.R Tolkien', isPseudonym: false },
 		])
 
 		expect(() => {
@@ -80,7 +80,7 @@ describe('Store with validation', () => {
 					typeName: 'book',
 					title: 'The Hobbit',
 					numPages: -1, // <---- Invalid!
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 				},
 			])
 		}).toThrow()
@@ -93,8 +93,8 @@ describe('Validating initial data', () => {
 	let snapshot: StoreSnapshot<Book | Author>
 
 	beforeEach(() => {
-		const authorId = Author.createCustomId('tolkein')
-		const authorRecord = Author.create({ name: 'J.R.R Tolkein', id: authorId })
+		const authorId = Author.createCustomId('tolkien')
+		const authorRecord = Author.create({ name: 'J.R.R Tolkien', id: authorId })
 		const bookId = Book.createCustomId('the-hobbit')
 		const bookRecord = Book.create({
 			title: 'The Hobbit',
@@ -124,9 +124,9 @@ describe('Validating initial data', () => {
 })
 
 describe('Create & update validations', () => {
-	const authorId = Author.createCustomId('tolkein')
+	const authorId = Author.createCustomId('tolkien')
 	const bookId = Book.createCustomId('the-hobbit')
-	const initialAuthor = Author.create({ name: 'J.R.R Tolkein', id: authorId })
+	const initialAuthor = Author.create({ name: 'J.R.R Tolkien', id: authorId })
 	const invalidBook = Book.create({
 		// @ts-expect-error - deliberately invalid data
 		title: 4,

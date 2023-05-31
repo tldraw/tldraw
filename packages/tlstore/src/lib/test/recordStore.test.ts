@@ -49,9 +49,9 @@ describe('Store', () => {
 	})
 
 	it('allows records to be added', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 		expect(store.query.records('author').value).toEqual([
-			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
+			{ id: 'author:tolkien', typeName: 'author', name: 'J.R.R Tolkien', isPseudonym: false },
 		])
 
 		store.put([
@@ -60,7 +60,7 @@ describe('Store', () => {
 				typeName: 'book',
 				title: 'The Hobbit',
 				numPages: 423,
-				author: Author.createCustomId('tolkein'),
+				author: Author.createCustomId('tolkien'),
 			},
 		])
 
@@ -70,7 +70,7 @@ describe('Store', () => {
 				typeName: 'book',
 				title: 'The Hobbit',
 				numPages: 423,
-				author: 'author:tolkein',
+				author: 'author:tolkien',
 			},
 		])
 	})
@@ -88,16 +88,16 @@ describe('Store', () => {
 		})
 
 		it('allows listening to the change history', () => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
 			          Object {
 			            "added": Object {
-			              "author:tolkein": Object {
-			                "id": "author:tolkein",
+			              "author:tolkien": Object {
+			                "id": "author:tolkien",
 			                "isPseudonym": false,
-			                "name": "J.R.R Tolkein",
+			                "name": "J.R.R Tolkien",
 			                "typeName": "author",
 			              },
 			            },
@@ -107,7 +107,7 @@ describe('Store', () => {
 			        ]
 		      `)
 
-			store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
+			store.update(Author.createCustomId('tolkien'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
@@ -115,15 +115,15 @@ describe('Store', () => {
 			            "added": Object {},
 			            "removed": Object {},
 			            "updated": Object {
-			              "author:tolkein": Array [
+			              "author:tolkien": Array [
 			                Object {
-			                  "id": "author:tolkein",
+			                  "id": "author:tolkien",
 			                  "isPseudonym": false,
-			                  "name": "J.R.R Tolkein",
+			                  "name": "J.R.R Tolkien",
 			                  "typeName": "author",
 			                },
 			                Object {
-			                  "id": "author:tolkein",
+			                  "id": "author:tolkien",
 			                  "isPseudonym": false,
 			                  "name": "Jimmy Tolks",
 			                  "typeName": "author",
@@ -134,15 +134,15 @@ describe('Store', () => {
 			        ]
 		      `)
 
-			store.remove([Author.createCustomId('tolkein')])
+			store.remove([Author.createCustomId('tolkien')])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
 			          Object {
 			            "added": Object {},
 			            "removed": Object {
-			              "author:tolkein": Object {
-			                "id": "author:tolkein",
+			              "author:tolkien": Object {
+			                "id": "author:tolkien",
 			                "isPseudonym": false,
 			                "name": "Jimmy Tolks",
 			                "typeName": "author",
@@ -155,12 +155,12 @@ describe('Store', () => {
 
 			transact(() => {
 				store.put([
-					Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
+					Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') }),
 					Author.create({ name: 'David Foster Wallace', id: Author.createCustomId('dfw') }),
 					Author.create({ name: 'Cynan Jones', id: Author.createCustomId('cj') }),
 				])
 
-				store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
+				store.update(Author.createCustomId('tolkien'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
 				store.update(Author.createCustomId('cj'), (r) => ({ ...r, name: 'Carter, Jimmy' }))
 			})
 
@@ -180,8 +180,8 @@ describe('Store', () => {
 			        "name": "David Foster Wallace",
 			        "typeName": "author",
 			      },
-			      "author:tolkein": Object {
-			        "id": "author:tolkein",
+			      "author:tolkien": Object {
+			        "id": "author:tolkien",
 			        "isPseudonym": false,
 			        "name": "Jimmy Tolks",
 			        "typeName": "author",
@@ -199,25 +199,25 @@ describe('Store', () => {
 		/* ADDING */
 		store.onAfterCreate = jest.fn((current) => {
 			expect(current).toEqual(
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })
 			)
-			expect([...store.query.ids('author').value]).toEqual([Author.createCustomId('tolkein')])
+			expect([...store.query.ids('author').value]).toEqual([Author.createCustomId('tolkien')])
 		})
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 
 		expect(store.onAfterCreate).toHaveBeenCalledTimes(1)
 
 		/* UPDATING */
 		store.onAfterChange = jest.fn((prev, current) => {
 			if (prev.typeName === 'author' && current.typeName === 'author') {
-				expect(prev.name).toBe('J.R.R Tolkein')
+				expect(prev.name).toBe('J.R.R Tolkien')
 				expect(current.name).toBe('Butch Cassidy')
 
-				expect(store.get(Author.createCustomId('tolkein'))!.name).toBe('Butch Cassidy')
+				expect(store.get(Author.createCustomId('tolkien'))!.name).toBe('Butch Cassidy')
 			}
 		})
 
-		store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Butch Cassidy' }))
+		store.update(Author.createCustomId('tolkien'), (r) => ({ ...r, name: 'Butch Cassidy' }))
 
 		expect(store.onAfterChange).toHaveBeenCalledTimes(1)
 
@@ -228,21 +228,21 @@ describe('Store', () => {
 			}
 		})
 
-		store.remove([Author.createCustomId('tolkein')])
+		store.remove([Author.createCustomId('tolkien')])
 
 		expect(store.onAfterDelete).toHaveBeenCalledTimes(1)
 	})
 
 	it('allows finding and filtering records with a predicate', () => {
 		store.put([
-			Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
+			Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') }),
 			Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
 			Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
 			Author.create({ name: 'Cynan Jones', id: Author.createCustomId('cj') }),
 			Author.create({ name: 'David Foster Wallace', id: Author.createCustomId('dfw') }),
 		])
 		const Js = store.query.records('author').value.filter((r) => r.name.startsWith('J'))
-		expect(Js.map((j) => j.name).sort()).toEqual(['J.R.R Tolkein', 'James McAvoy'])
+		expect(Js.map((j) => j.name).sort()).toEqual(['J.R.R Tolkien', 'James McAvoy'])
 
 		const david = store.query.records('author').value.find((r) => r.name.startsWith('David'))
 		expect(david?.name).toBe('David Foster Wallace')
@@ -259,13 +259,13 @@ describe('Store', () => {
 
 		expect(lastIdDiff).toBe(RESET_VALUE)
 
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
 		      Array [
 		        Object {
 		          "added": Set {
-		            "author:tolkein",
+		            "author:tolkien",
 		          },
 		        },
 		      ]
@@ -274,7 +274,7 @@ describe('Store', () => {
 		transact(() => {
 			store.put([Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') })])
 			store.put([Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') })])
-			store.remove([Author.createCustomId('tolkein')])
+			store.remove([Author.createCustomId('tolkien')])
 		})
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
@@ -285,7 +285,7 @@ describe('Store', () => {
 		            "author:cassidy",
 		          },
 		          "removed": Set {
-		            "author:tolkein",
+		            "author:tolkien",
 		          },
 		        },
 		      ]
@@ -298,13 +298,13 @@ describe('Store', () => {
 
 		transact(() => {
 			store.put([
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') }),
 				Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
 				Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
 				Book.create({
 					title: 'The Hobbit',
 					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 					numPages: 300,
 				}),
 			])
@@ -312,7 +312,7 @@ describe('Store', () => {
 				Book.create({
 					title: 'The Lord of the Rings',
 					id: Book.createCustomId('lotr'),
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 					numPages: 1000,
 				}),
 			])
@@ -336,21 +336,21 @@ describe('Store', () => {
 		        "name": "James McAvoy",
 		        "typeName": "author",
 		      },
-		      "author:tolkein": Object {
-		        "id": "author:tolkein",
+		      "author:tolkien": Object {
+		        "id": "author:tolkien",
 		        "isPseudonym": false,
-		        "name": "J.R.R Tolkein",
+		        "name": "J.R.R Tolkien",
 		        "typeName": "author",
 		      },
 		      "book:hobbit": Object {
-		        "author": "author:tolkein",
+		        "author": "author:tolkien",
 		        "id": "book:hobbit",
 		        "numPages": 300,
 		        "title": "The Hobbit",
 		        "typeName": "book",
 		      },
 		      "book:lotr": Object {
-		        "author": "author:tolkein",
+		        "author": "author:tolkien",
 		        "id": "book:lotr",
 		        "numPages": 1000,
 		        "title": "The Lord of the Rings",
@@ -365,7 +365,7 @@ describe('Store', () => {
 	`)
 
 		transact(() => {
-			store.update(Author.createCustomId('tolkein'), (author) => ({
+			store.update(Author.createCustomId('tolkien'), (author) => ({
 				...author,
 				name: 'Jimmy Tolks',
 			}))
@@ -381,15 +381,15 @@ describe('Store', () => {
 		    "added": Object {},
 		    "removed": Object {},
 		    "updated": Object {
-		      "author:tolkein": Array [
+		      "author:tolkien": Array [
 		        Object {
-		          "id": "author:tolkein",
+		          "id": "author:tolkien",
 		          "isPseudonym": false,
-		          "name": "J.R.R Tolkein",
+		          "name": "J.R.R Tolkien",
 		          "typeName": "author",
 		        },
 		        Object {
-		          "id": "author:tolkein",
+		          "id": "author:tolkien",
 		          "isPseudonym": false,
 		          "name": "Jimmy Tolks",
 		          "typeName": "author",
@@ -397,14 +397,14 @@ describe('Store', () => {
 		      ],
 		      "book:lotr": Array [
 		        Object {
-		          "author": "author:tolkein",
+		          "author": "author:tolkien",
 		          "id": "book:lotr",
 		          "numPages": 1000,
 		          "title": "The Lord of the Rings",
 		          "typeName": "book",
 		        },
 		        Object {
-		          "author": "author:tolkein",
+		          "author": "author:tolkien",
 		          "id": "book:lotr",
 		          "numPages": 42,
 		          "title": "The Lord of the Rings",
@@ -434,7 +434,7 @@ describe('Store', () => {
 		    "added": Object {},
 		    "removed": Object {
 		      "book:lotr": Object {
-		        "author": "author:tolkein",
+		        "author": "author:tolkien",
 		        "id": "book:lotr",
 		        "numPages": 42,
 		        "title": "The Lord of the Rings",
@@ -464,7 +464,7 @@ describe('Store', () => {
 	})
 
 	it('does not keep global history if no listeners are attached', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 		expect((store as any).historyAccumulator._history).toHaveLength(0)
 	})
 
@@ -472,7 +472,7 @@ describe('Store', () => {
 		try {
 			// @ts-expect-error
 			globalThis.__FORCE_RAF_IN_TESTS__ = true
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 			const firstListener = jest.fn()
 			store.listen(firstListener)
 			expect(firstListener).toHaveBeenCalledTimes(0)
@@ -499,8 +499,8 @@ describe('Store', () => {
 	})
 
 	it('does not overwrite default properties with undefined', () => {
-		const tolkein = Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })
-		expect(tolkein.isPseudonym).toBe(false)
+		const tolkien = Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })
+		expect(tolkien.isPseudonym).toBe(false)
 
 		const harkaway = Author.create({
 			name: 'Nick Harkaway',
@@ -519,8 +519,8 @@ describe('Store', () => {
 	})
 
 	it('allows changed to be merged without triggering listeners', () => {
-		const id = Author.createCustomId('tolkein')
-		store.put([Author.create({ name: 'J.R.R Tolkein', id })])
+		const id = Author.createCustomId('tolkien')
+		store.put([Author.create({ name: 'J.R.R Tolkien', id })])
 
 		const listener = jest.fn()
 		store.listen(listener)
@@ -542,12 +542,12 @@ describe('Store', () => {
 		expect(listener.mock.calls[0][0].source).toBe('user')
 
 		store.mergeRemoteChanges(() => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') })])
 			store.put([
 				Book.create({
 					title: 'The Hobbit',
 					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 					numPages: 300,
 				}),
 			])
@@ -588,13 +588,13 @@ describe('snapshots', () => {
 
 		transact(() => {
 			store.put([
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createCustomId('tolkien') }),
 				Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
 				Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
 				Book.create({
 					title: 'The Hobbit',
 					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 					numPages: 300,
 				}),
 			])
@@ -602,7 +602,7 @@ describe('snapshots', () => {
 				Book.create({
 					title: 'The Lord of the Rings',
 					id: Book.createCustomId('lotr'),
-					author: Author.createCustomId('tolkein'),
+					author: Author.createCustomId('tolkien'),
 					numPages: 1000,
 				}),
 			])

@@ -44,22 +44,22 @@ const store = new RecordStore<Book | Author>()
 Then you can create records, add them to the store, update, and remove them.
 
 ```ts
-const tolkeinId = Author.createCustomId('tolkein')
+const tolkienId = Author.createCustomId('tolkien')
 
 store.put([
 	Author.create({
-		id: jrrTolkeinId,
-		name: 'J.R.R Tolkein',
+		id: jrrTolkienId,
+		name: 'J.R.R Tolkien',
 	}),
 ])
 
-store.update(tolkeinId, (author) => ({
+store.update(tolkienId, (author) => ({
 	...author,
 	name: 'DJJ Tolkz',
 	isPseudonym: true,
 }))
 
-store.remove(tolkeinId)
+store.remove(tolkienId)
 ```
 
 ---
@@ -80,8 +80,8 @@ Add some records to the store. It's an error if they already exist.
 
 ```ts
 const record = Author.create({
-	name: 'J.R.R Tolkein',
-	id: Author.createCustomId('tolkein'),
+	name: 'J.R.R Tolkien',
+	id: Author.createCustomId('tolkien'),
 })
 
 store.put([record])
@@ -92,7 +92,7 @@ store.put([record])
 Update a record. To update multiple records at once, use the `update` method of the `TypedRecordStore` class.
 
 ```ts
-const id = Author.createCustomId('tolkein')
+const id = Author.createCustomId('tolkien')
 
 store.update(id, (r) => ({ ...r, name: 'Jimmy Tolks' }))
 ```
@@ -102,7 +102,7 @@ store.update(id, (r) => ({ ...r, name: 'Jimmy Tolks' }))
 Remove some records from the store via their ids.
 
 ```ts
-const id = Author.createCustomId('tolkein')
+const id = Author.createCustomId('tolkien')
 
 store.remove([id])
 ```
@@ -112,7 +112,7 @@ store.remove([id])
 Get the value of a store record by its id.
 
 ```ts
-const id = Author.createCustomId('tolkein')
+const id = Author.createCustomId('tolkien')
 
 const result = store.get(id)
 ```
@@ -138,7 +138,7 @@ store.clear()
 Get whether the record store has an record stored under the given id.
 
 ```ts
-const id = Author.createCustomId('tolkein')
+const id = Author.createCustomId('tolkien')
 
 const result = store.has(id)
 ```
@@ -152,7 +152,7 @@ const serialized = store.serialize()
 ```
 
 ```ts
-const serialized = store.serialize((record) => record.name === 'J.R.R Tolkein')
+const serialized = store.serialize((record) => record.name === 'J.R.R Tolkien')
 ```
 
 ### `deserialize(snapshot: RecordStoreSnapshot<R>): void`
@@ -210,7 +210,7 @@ const recordType = new RecordType('author', () => ({ living: true }))
 Create a new record of this type.
 
 ```ts
-const record = recordType.create({ name: 'J.R.R Tolkein' })
+const record = recordType.create({ name: 'J.R.R Tolkien' })
 ```
 
 ### `clone(record: R): R`
@@ -218,7 +218,7 @@ const record = recordType.create({ name: 'J.R.R Tolkein' })
 Clone a record of this type.
 
 ```ts
-const record = recordType.create({ name: 'J.R.R Tolkein' })
+const record = recordType.create({ name: 'J.R.R Tolkien' })
 
 const clone = recordType.clone(record)
 ```
@@ -236,7 +236,7 @@ const id = recordType.createId()
 Create a custom Id for a record of this type.
 
 ```ts
-const id = recordType.createCustomId('tolkein')
+const id = recordType.createCustomId('tolkien')
 ```
 
 ### `isInstance`
@@ -244,7 +244,7 @@ const id = recordType.createCustomId('tolkein')
 Check if a value is an instance of this record type.
 
 ```ts
-const record = recordType.create({ name: 'J.R.R Tolkein' })
+const record = recordType.create({ name: 'J.R.R Tolkien' })
 
 const result1 = recordType.isInstance(record) // true
 const result2 = recordType.isInstance(someOtherRecord) // false
@@ -255,7 +255,7 @@ const result2 = recordType.isInstance(someOtherRecord) // false
 Check if a value is an id for a record of this type.
 
 ```ts
-const id = recordType.createCustomId('tolkein')
+const id = recordType.createCustomId('tolkien')
 
 const result1 = recordType.isId(id) // true
 const result2 = recordType.isId(someOtherId) // false
@@ -304,7 +304,7 @@ const recordType = createRecordType('author'))
 A helper used to assert that a value is an id for a record of a given type.
 
 ```ts
-const id = recordType.createCustomId('tolkein')
+const id = recordType.createCustomId('tolkien')
 
 assertIdType(id, recordType)
 ```
@@ -318,7 +318,7 @@ assertIdType(id, recordType)
 A type used to represent a record's id.
 
 ```ts
-const id: ID<Author> = Author.createCustomId('tolkein')
+const id: ID<Author> = Author.createCustomId('tolkien')
 ```
 
 ### `BaseRecord`
