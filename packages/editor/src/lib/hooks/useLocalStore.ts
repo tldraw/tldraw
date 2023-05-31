@@ -30,7 +30,7 @@ export function useLocalStore(
 			storeWithStatus: { status: 'loading' },
 		})
 
-		const setSyncedStore = (storeWithStatus: StoreWithStatus) => {
+		const setStoreWithStatus = (storeWithStatus: StoreWithStatus) => {
 			setState((prev) => {
 				if (prev?.id === id) {
 					return { id, storeWithStatus }
@@ -42,10 +42,10 @@ export function useLocalStore(
 		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey: persistenceKey,
 			onLoad() {
-				setSyncedStore({ store, status: 'synced-local' })
+				setStoreWithStatus({ store, status: 'synced-local' })
 			},
 			onLoadError(err: any) {
-				setSyncedStore({ status: 'error', error: err })
+				setStoreWithStatus({ status: 'error', error: err })
 			},
 		})
 
