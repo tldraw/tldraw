@@ -8,14 +8,14 @@ const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
 	const [store] = useState(() => createTLStore({ instanceId: TAB_ID }))
-	const [syncedStore, setSyncedStore] = useState<
+	const [loadingStore, setLoadingStore] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
 	>({
 		status: 'loading',
 	})
 
 	useLayoutEffect(() => {
-		setSyncedStore({ status: 'loading' })
+		setLoadingStore({ status: 'loading' })
 
 		// Get persisted data from local storage
 		const persistedSnapshot = localStorage.getItem(PERSISTENCE_KEY)
@@ -24,12 +24,12 @@ export default function PersistenceExample() {
 			try {
 				const snapshot = JSON.parse(persistedSnapshot)
 				store.loadSnapshot(snapshot)
-				setSyncedStore({ status: 'ready' })
+				setLoadingStore({ status: 'ready' })
 			} catch (error: any) {
-				setSyncedStore({ status: 'error', error: error.message }) // Something went wrong
+				setLoadingStore({ status: 'error', error: error.message }) // Something went wrong
 			}
 		} else {
-			setSyncedStore({ status: 'ready' }) // Nothing persisted, continue with the empty store
+			setLoadingStore({ status: 'ready' }) // Nothing persisted, continue with the empty store
 		}
 
 		// Each time the store changes, run the (debounced) persist function
@@ -45,7 +45,7 @@ export default function PersistenceExample() {
 		}
 	}, [store])
 
-	if (syncedStore.status === 'loading') {
+	if (loadingStore.status === 'loading') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Loading...</h2>
@@ -53,11 +53,11 @@ export default function PersistenceExample() {
 		)
 	}
 
-	if (syncedStore.status === 'error') {
+	if (loadingStore.status === 'error') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Error!</h2>
-				<p>{syncedStore.error}</p>
+				<p>{loadingStore.error}</p>
 			</div>
 		)
 	}

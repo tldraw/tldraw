@@ -1542,19 +1542,7 @@ export interface StateNodeConstructor {
 }
 
 // @public (undocumented)
-export const STYLES: TLStyleCollections;
-
-// @internal (undocumented)
-export const SVG_PADDING = 32;
-
-// @public (undocumented)
-export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX.Element;
-
-// @public (undocumented)
-export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
-
-// @public (undocumented)
-export type SyncedStore = {
+export type StoreWithStatus = {
     readonly status: 'error';
     readonly store?: undefined;
     readonly error: Error;
@@ -1576,6 +1564,18 @@ export type SyncedStore = {
     readonly store: TLStore;
     readonly error?: undefined;
 };
+
+// @public (undocumented)
+export const STYLES: TLStyleCollections;
+
+// @internal (undocumented)
+export const SVG_PADDING = 32;
+
+// @public (undocumented)
+export function SVGContainer({ children, className, ...rest }: SVGContainerProps): JSX.Element;
+
+// @public (undocumented)
+export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public (undocumented)
 export const TAB_ID: TLInstanceId;
@@ -1817,7 +1817,7 @@ export type TldrawEditorProps = {
         description: string;
     }>;
 } & ({
-    store: SyncedStore | TLStore;
+    store: StoreWithStatus | TLStore;
 } | {
     store?: undefined;
     initialData?: StoreSnapshot<TLRecord>;
@@ -2675,9 +2675,9 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
-export function useLocalSyncedStore(opts?: {
+export function useLocalStore(opts?: {
     persistenceKey?: string | undefined;
-} & StoreOptions): SyncedStore;
+} & StoreOptions): StoreWithStatus;
 
 // @internal (undocumented)
 export function usePeerIds(): string[];

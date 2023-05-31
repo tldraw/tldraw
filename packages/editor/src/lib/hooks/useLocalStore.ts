@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { StoreOptions } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
-import { SyncedStore } from '../utils/sync/SyncedStore'
+import { StoreWithStatus } from '../utils/sync/StoreWithStatus'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { useTLStore } from './useTLStore'
 
 /** @internal */
-export function useLocalSyncedStore(
+export function useLocalStore(
 	opts = {} as { persistenceKey?: string } & StoreOptions
-): SyncedStore {
+): StoreWithStatus {
 	const { persistenceKey, ...rest } = opts
 
-	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
+	const [state, setState] = useState<{ id: string; storeWithStatus: StoreWithStatus } | null>(null)
 	const store = useTLStore(rest)
 
 	useEffect(() => {
@@ -20,20 +20,20 @@ export function useLocalSyncedStore(
 		if (!persistenceKey) {
 			setState({
 				id,
-				syncedStore: { status: 'not-synced', store },
+				storeWithStatus: { status: 'not-synced', store },
 			})
 			return
 		}
 
 		setState({
 			id,
-			syncedStore: { status: 'loading' },
+			storeWithStatus: { status: 'loading' },
 		})
 
-		const setSyncedStore = (syncedStore: SyncedStore) => {
+		const setSyncedStore = (storeWithStatus: StoreWithStatus) => {
 			setState((prev) => {
 				if (prev?.id === id) {
-					return { id, syncedStore }
+					return { id, storeWithStatus }
 				}
 				return prev
 			})
@@ -55,5 +55,5 @@ export function useLocalSyncedStore(
 		}
 	}, [persistenceKey, store])
 
-	return state?.syncedStore ?? { status: 'loading' }
+	return state?.storeWithStatus ?? { status: 'loading' }
 }

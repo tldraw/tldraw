@@ -19,11 +19,11 @@ import {
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useLocalSyncedStore } from './hooks/useLocalSyncedStore'
+import { useLocalStore } from './hooks/useLocalStore'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
-import { SyncedStore } from './utils/sync/SyncedStore'
+import { StoreWithStatus } from './utils/sync/StoreWithStatus'
 import { TAB_ID } from './utils/sync/persistence-constants'
 
 /** @public */
@@ -102,7 +102,7 @@ export type TldrawEditorProps = {
 			 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 			 * from a server or database.
 			 */
-			store: TLStore | SyncedStore
+			store: TLStore | StoreWithStatus
 	  }
 	| {
 			store?: undefined
@@ -154,7 +154,7 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 									<TldrawEditorWithReadyStore {...rest} store={store} />
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithSyncedStore {...rest} store={store} />
+									<TldrawEditorWithLoadingStore {...rest} store={store} />
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
@@ -171,21 +171,21 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
 	const { initialData, instanceId = TAB_ID, shapes, persistenceKey } = props
 
-	const syncedStore = useLocalSyncedStore({
+	const syncedStore = useLocalStore({
 		customShapes: shapes,
 		instanceId,
 		initialData,
 		persistenceKey,
 	})
 
-	return <TldrawEditorWithSyncedStore {...props} store={syncedStore} />
+	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} />
 }
 
-const TldrawEditorWithSyncedStore = memo(function TldrawEditorBeforeLoading({
+const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	assetUrls,
 	...rest
-}: TldrawEditorProps & { store: SyncedStore }) {
+}: TldrawEditorProps & { store: StoreWithStatus }) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)
