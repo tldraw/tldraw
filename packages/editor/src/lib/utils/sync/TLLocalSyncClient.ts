@@ -52,7 +52,7 @@ export class BroadcastChannelMock {
 
 const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : BroadcastChannel
 
-/** @public */
+/** @internal */
 export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
 	private diffQueue: RecordsDiff<any>[] = []
@@ -70,11 +70,8 @@ export class TLLocalSyncClient {
 			console.debug(...args)
 		}
 	}
-
-	store: TLStore
-
 	constructor(
-		store: TLStore,
+		public readonly store: TLStore,
 		{
 			universalPersistenceKey,
 			onLoad,
@@ -86,8 +83,6 @@ export class TLLocalSyncClient {
 		},
 		public readonly channel = new BC(`tldraw-tab-sync-${universalPersistenceKey}`)
 	) {
-		this.store = store
-
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this
 		}
@@ -100,7 +95,7 @@ export class TLLocalSyncClient {
 			// the store changes (and if the change was made by the user)
 			// then immediately send the diff to other tabs via postMessage
 			// and schedule a persist.
-			this.store.listen(({ changes, source }) => {
+			store.listen(({ changes, source }) => {
 				this.debug('changes', changes, source)
 				if (source === 'user') {
 					this.diffQueue.push(changes)

@@ -251,12 +251,6 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [container, shapes, tools, store])
 
-	const onMountEvent = useEvent((app: App) => {
-		onMount?.(app)
-		app.emit('mount')
-		window.tldrawReady = true
-	})
-
 	React.useEffect(() => {
 		if (!app) return
 
@@ -271,17 +265,17 @@ function TldrawEditorWithReadyStore({
 	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
 
 	React.useLayoutEffect(() => {
-		if (!app) return
-
-		if (autoFocus) {
-			app.focus()
-		}
+		if (app && autoFocus) app.focus()
 	}, [app, autoFocus])
 
-	React.useEffect(() => {
-		if (!app) return
+	const onMountEvent = useEvent((app: App) => {
+		onMount?.(app)
+		app.emit('mount')
+		window.tldrawReady = true
+	})
 
-		onMountEvent(app)
+	React.useEffect(() => {
+		if (app) onMountEvent(app)
 	}, [app, onMountEvent])
 
 	const crashingError = useSyncExternalStore(

@@ -69,12 +69,6 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	hideUi,
 	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
-	// const isLoaded = usePreloadIcons()
-
-	// if (!isLoaded) {
-	// 	return <LoadingScreen>Loading assets...</LoadingScreen>
-	// }
-
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.
