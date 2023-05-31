@@ -24,6 +24,17 @@ import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
+/** @public */
+export type TldrawUiProps = {
+	children?: ReactNode
+	/** Whether to hide the interface and only display the canvas. */
+	hideUi?: boolean
+	/** A component to use for the share zone (will be deprecated) */
+	shareZone?: ReactNode
+	/** Additional items to add to the debug menu  (will be deprecated)*/
+	renderDebugMenuItems?: () => React.ReactNode
+} & TldrawUiContextProviderProps
+
 /**
  * @public
  */
@@ -33,13 +44,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 	children,
 	hideUi,
 	...rest
-}: {
-	shareZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
-	children?: ReactNode
-	/** Whether to hide the interface and only display the canvas. */
-	hideUi?: boolean
-} & TldrawUiContextProviderProps) {
+}: TldrawUiProps) {
 	return (
 		<TldrawUiContextProvider {...rest}>
 			<TldrawUiInner

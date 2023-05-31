@@ -621,10 +621,10 @@ export interface TLDialog {
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{
-    shareZone?: ReactNode;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
     children?: ReactNode;
     hideUi?: boolean | undefined;
+    shareZone?: ReactNode;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
 } & TldrawUiContextProviderProps>;
 
 // @public (undocumented)
@@ -666,6 +666,14 @@ export interface TldrawUiOverrides {
     // (undocumented)
     translations?: TranslationProviderProps['overrides'];
 }
+
+// @public (undocumented)
+export type TldrawUiProps = {
+    children?: ReactNode;
+    hideUi?: boolean;
+    shareZone?: ReactNode;
+    renderDebugMenuItems?: () => React_2.ReactNode;
+} & TldrawUiContextProviderProps;
 
 // @public (undocumented)
 export type TLListedTranslation = {

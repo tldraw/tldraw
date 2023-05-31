@@ -22,7 +22,9 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
-import ForEndToEndTests from './end-to-end/ForEndToEndTests'
+import { E2E } from './e2e'
+
+// This example is only used for end to end tests
 
 // we use secret internal `setDefaultAssetUrls` functions to set these at the
 // top-level so assets don't need to be passed down in every single example.
@@ -34,6 +36,7 @@ type Example = {
 	path: string
 	element: JSX.Element
 }
+
 export const allExamples: Example[] = [
 	{
 		path: '/',
@@ -93,7 +96,7 @@ export const allExamples: Example[] = [
 	},
 	{
 		path: '/e2e',
-		element: <ForEndToEndTests />,
+		element: <E2E />,
 	},
 ]
 

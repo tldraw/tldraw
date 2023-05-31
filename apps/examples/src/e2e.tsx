@@ -1,8 +1,6 @@
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
 
-export default function ForEndToEndTests() {
+export function E2E() {
 	;(window as any).__tldraw_editor_events = []
 
 	return (
