@@ -153,10 +153,11 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 					<ContainerProvider container={container}>
 						<EditorComponentsProvider overrides={components}>
 							{store ? (
-								<TldrawEditorBeforeLoading
-									{...rest}
-									syncedStore={store instanceof Store ? { status: 'not-synced', store } : store}
-								/>
+								store instanceof Store ? (
+									<TldrawEditorWithReadyStore {...props} store={store} />
+								) : (
+									<TldrawEditorWithSyncedStore {...rest} syncedStore={store} />
+								)
 							) : (
 								<TldrawEditorWithOwnStore {...rest} />
 							)}
@@ -178,10 +179,10 @@ function TldrawEditorWithOwnStore(props: TldrawEditorProps) {
 		persistenceKey,
 	})
 
-	return <TldrawEditorBeforeLoading {...props} syncedStore={syncedStore} />
+	return <TldrawEditorWithSyncedStore {...props} syncedStore={syncedStore} />
 }
 
-const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
+const TldrawEditorWithSyncedStore = memo(function TldrawEditorBeforeLoading({
 	instanceId,
 	syncedStore,
 	assetUrls,
@@ -228,10 +229,10 @@ const TldrawEditorBeforeLoading = memo(function TldrawEditorBeforeLoading({
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorAfterLoading {...rest} store={syncedStore.store} />
+	return <TldrawEditorWithReadyStore {...rest} store={syncedStore.store} />
 })
 
-function TldrawEditorAfterLoading({
+function TldrawEditorWithReadyStore({
 	onMount,
 	children,
 	onCreateAssetFromFile,
