@@ -4,6 +4,8 @@ import { linksUiOverrides } from './utils/links'
 import '@tldraw/editor/editor.css'
 import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
+import '@tldraw/ui/ui.css'
+// eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 // eslint-disable-next-line import/no-internal-modules
 import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
