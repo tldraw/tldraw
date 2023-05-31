@@ -80,7 +80,7 @@ import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { ShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
-import { coreTools, defaultTools } from '../config/defaultTools'
+import { defaultTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -217,10 +217,10 @@ export class App extends EventEmitter<TLEventMap> {
 
 		for (const [type, { util: Util }] of Object.entries(shapes)) {
 			if (shapeUtils[type]) {
-				throw Error(`May not overwrite core shape of type: ${type}.`)
+				throw Error(`May not overwrite core shape of type "${type}".`)
 			}
 			if (type !== Util.type) {
-				throw Error(`Shape util with type ${Util.type} does not match type ${type}.`)
+				throw Error(`Shape util's type "${Util.type}" does not match provided type "${type}".`)
 			}
 			shapeUtils[type] = new Util(this, Util.type)
 		}
@@ -229,11 +229,11 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
-		// "baked in" tools, select and zoom; but which may overwrite other "core" tools, hand and eraser.
-		const uniqueTools = Object.fromEntries([...coreTools, ...tools].map((Ctor) => [Ctor.id, Ctor]))
+		// "baked in" tools, select and zoom.
+		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
 		for (const [id, Ctor] of Object.entries(uniqueTools)) {
 			if (this.root.children?.[id]) {
-				throw Error(`Can't override tool with id: ${id}`)
+				throw Error(`Can't override tool with id "${id}"`)
 			}
 
 			this.root.children![id] = new Ctor(this)

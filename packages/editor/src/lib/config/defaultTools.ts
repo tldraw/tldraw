@@ -11,10 +11,9 @@ import { TLNoteTool } from '../app/statechart/TLNoteTool/TLNoteTool'
 import { TLTextTool } from '../app/statechart/TLTextTool/TLTextTool'
 
 /** @public */
-export const coreTools: StateNodeConstructor[] = [TLHandTool, TLEraserTool]
-
-/** @public */
 export const defaultTools: StateNodeConstructor[] = [
+	TLHandTool,
+	TLEraserTool,
 	TLLaserTool,
 	TLDrawTool,
 	TLTextTool,
