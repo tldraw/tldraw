@@ -834,6 +834,9 @@ export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boole
 export function getTextBoundingBox(text: SVGTextElement): DOMRect;
 
 // @public (undocumented)
+export function getUserPreferences(): TLUserPreferences;
+
+// @public (undocumented)
 export const getValidHttpURLList: (url: string) => string[] | undefined;
 
 // @public
@@ -1440,6 +1443,9 @@ export function setPropsForNextShape(previousProps: TLInstancePropsForNextShape,
 export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
+export function setUserPreferences(user: TLUserPreferences): void;
+
+// @public (undocumented)
 export function snapToGrid(n: number, gridSize: number): number;
 
 export { sortByIndex }
@@ -1570,6 +1576,9 @@ export type SyncedStore = {
     readonly store: TLStore;
     readonly error?: undefined;
 };
+
+// @public (undocumented)
+export const TAB_ID: TLInstanceId;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -2597,6 +2606,22 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
 
+// @public
+export interface TLUserPreferences {
+    // (undocumented)
+    animationSpeed: number;
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    isDarkMode: boolean;
+    // (undocumented)
+    locale: string;
+    // (undocumented)
+    name: string;
+}
+
 // @public (undocumented)
 export class TLVideoUtil extends TLBoxUtil<TLVideoShape> {
     // (undocumented)
@@ -2650,6 +2675,11 @@ export const useApp: () => App;
 export function useContainer(): HTMLDivElement;
 
 // @internal (undocumented)
+export function useLocalSyncedStore(opts?: {
+    persistenceKey?: string | undefined;
+} & StoreOptions): SyncedStore;
+
+// @internal (undocumented)
 export function usePeerIds(): string[];
 
 // @public (undocumented)
@@ -2666,6 +2696,9 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 
 // @public (undocumented)
 export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
+
+// @public (undocumented)
+export function useTLStore(opts: StoreOptions): TLStore;
 
 // @internal (undocumented)
 export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;

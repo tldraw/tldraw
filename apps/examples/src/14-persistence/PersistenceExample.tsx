@@ -1,5 +1,4 @@
-import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
-import { Canvas, ContextMenu, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
+import { Canvas, ContextMenu, TAB_ID, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'

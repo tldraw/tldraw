@@ -1,4 +1,11 @@
-import { App, Canvas, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
+import {
+	App,
+	Canvas,
+	ErrorBoundary,
+	TAB_ID,
+	TldrawEditor,
+	setRuntimeOverrides,
+} from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
@@ -8,7 +15,6 @@ import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
 // eslint-disable-next-line import/no-internal-modules
-import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
 import { useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { StoreOptions, createTLStore } from '../config/createTLStore'
+import { StoreOptions } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
 import { SyncedStore } from '../utils/sync/SyncedStore'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
+import { useTLStore } from './useTLStore'
 
 /** @internal */
 export function useLocalSyncedStore(
@@ -11,7 +12,7 @@ export function useLocalSyncedStore(
 	const { persistenceKey, ...rest } = opts
 
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
-	const [store] = useState(() => createTLStore(rest))
+	const store = useTLStore(rest)
 
 	useEffect(() => {
 		const id = uniqueId()

@@ -125,7 +125,12 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export { USER_COLORS } from './lib/config/TLUserPreferences'
+export {
+	USER_COLORS,
+	getUserPreferences,
+	setUserPreferences,
+	type TLUserPreferences,
+} from './lib/config/TLUserPreferences'
 export { createTLStore } from './lib/config/createTLStore'
 export { defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
@@ -171,10 +176,12 @@ export { normalizeWheel } from './lib/hooks/shared'
 export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useLocalSyncedStore } from './lib/hooks/useLocalSyncedStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
+export { useTLStore } from './lib/hooks/useTLStore'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -253,4 +260,5 @@ export {
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
 export { type SyncedStore } from './lib/utils/sync/SyncedStore'
 export { hardReset } from './lib/utils/sync/hardReset'
+export { TAB_ID } from './lib/utils/sync/persistence-constants'
 export { openWindow } from './lib/utils/window-open'
