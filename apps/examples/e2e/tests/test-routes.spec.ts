@@ -2,7 +2,7 @@ import test from '@playwright/test'
 
 test.describe('Routes', () => {
 	test('end-to-end', async ({ page }) => {
-		await page.goto('http://localhost:5420/e2e')
+		await page.goto('http://localhost:5420/end-to-end')
 		await page.waitForSelector('.tl-canvas')
 	})
 
