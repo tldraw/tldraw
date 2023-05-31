@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { StoreOptions, createTldrawEditorStore } from '../config/createTldrawEditorStore'
 import { uniqueId } from '../utils/data'
-import { LocalSyncClient } from '../utils/sync/LocalSyncClient'
 import { SyncedStore } from '../utils/sync/SyncedStore'
+import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 
 /** @public */
 export function useLocalSyncedStore(
@@ -38,7 +38,7 @@ export function useLocalSyncedStore(
 			})
 		}
 
-		const client = new LocalSyncClient(store, {
+		const client = new TLLocalSyncClient(store, {
 			universalPersistenceKey: persistenceKey,
 			onLoad() {
 				setSyncedStore({ store, status: 'synced-local' })
