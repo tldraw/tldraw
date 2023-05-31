@@ -4,6 +4,7 @@ import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapM
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
 import { TestApp } from '../TestApp'
 
+import { defaultShapes } from '../../config/defaultShapes'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -751,6 +752,7 @@ describe('custom snapping points', () => {
 		app?.dispose()
 		app = new TestApp({
 			shapes: {
+				...defaultShapes,
 				__test_top_left_snap_only: {
 					util: __TopLeftSnapOnlyShapeUtil,
 				},
