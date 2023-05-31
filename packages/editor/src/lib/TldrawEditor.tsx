@@ -24,6 +24,7 @@ import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { SyncedStore } from './utils/sync/SyncedStore'
+import { TAB_ID } from './utils/sync/persistence-constants'
 
 /** @public */
 export type TldrawEditorProps = {
@@ -168,7 +169,7 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 })
 
 function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
-	const { initialData, instanceId, shapes, persistenceKey } = props
+	const { initialData, instanceId = TAB_ID, shapes, persistenceKey } = props
 
 	const syncedStore = useLocalSyncedStore({
 		customShapes: shapes,
