@@ -46,8 +46,8 @@ test.describe('Routes', () => {
 		await page.waitForSelector('.tl-canvas')
 	})
 
-	test('error-boundaries', async ({ page }) => {
-		await page.goto('http://localhost:5420/error-boundaries')
+	test('error-boundary', async ({ page }) => {
+		await page.goto('http://localhost:5420/error-boundary')
 		await page.waitForSelector('.tl-canvas')
 	})
 
