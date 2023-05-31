@@ -4,7 +4,7 @@ import { uniqueId } from '../utils/data'
 import { SyncedStore } from '../utils/sync/SyncedStore'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 
-/** @public */
+/** @internal */
 export function useLocalSyncedStore(
 	opts = {} as { persistenceKey?: string } & StoreOptions
 ): SyncedStore {

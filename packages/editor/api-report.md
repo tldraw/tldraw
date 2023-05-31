@@ -2649,11 +2649,6 @@ export const useApp: () => App;
 // @public (undocumented)
 export function useContainer(): HTMLDivElement;
 
-// @public (undocumented)
-export function useLocalSyncedStore(opts?: {
-    persistenceKey?: string | undefined;
-} & StoreOptions): SyncedStore;
-
 // @internal (undocumented)
 export function usePeerIds(): string[];
 
