@@ -1,8 +1,8 @@
 import { TLUserPreferences } from '../../config/TLUserPreferences'
-import { TldrawEditorUser } from '../../config/createTldrawEditorUser'
+import { TLUser } from '../../config/createTLUser'
 
 export class UserPreferencesManager {
-	constructor(private readonly user: TldrawEditorUser) {}
+	constructor(private readonly user: TLUser) {}
 
 	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
 		this.user.setUserPreferences({

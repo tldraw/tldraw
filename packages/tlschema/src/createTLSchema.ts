@@ -92,7 +92,7 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
  * @param opts - Options
  *
  * @public */
-export function createTldrawEditorSchema(
+export function createTLSchema(
 	opts = {} as {
 		customShapes: Record<string, SchemaShapeInfo>
 	}

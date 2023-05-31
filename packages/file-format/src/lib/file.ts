@@ -1,7 +1,7 @@
 import {
 	App,
 	buildFromV1Document,
-	createTldrawEditorStore,
+	createTLStore,
 	fileToBase64,
 	TLAsset,
 	TLInstanceId,
@@ -138,7 +138,7 @@ export function parseTldrawJsonFile({
 	// are invalid, we don't open the file
 	try {
 		return Result.ok(
-			createTldrawEditorStore({
+			createTLStore({
 				initialData: migrationResult.value,
 				instanceId,
 			})
@@ -210,7 +210,7 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		store: createTldrawEditorStore(),
+		store: createTLStore(),
 		json: document,
 		instanceId: app.instanceId,
 	})

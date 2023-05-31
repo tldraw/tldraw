@@ -36,7 +36,7 @@ import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
 import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
 import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
-import { ShapeInfo } from './createTldrawEditorStore'
+import { ShapeInfo } from './createTLStore'
 
 /** @public */
 export const coreShapes: Record<string, ShapeInfo> = {

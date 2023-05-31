@@ -6,7 +6,7 @@ import { TLBoxUtil } from '../app/shapeutils/TLBoxUtil'
 import { TLBoxTool } from '../app/statechart/TLBoxTool/TLBoxTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
-import { createTldrawEditorStore } from '../config/createTldrawEditorStore'
+import { createTLStore } from '../config/createTLStore'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -46,7 +46,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders with an external store', async () => {
-		const store = createTldrawEditorStore()
+		const store = createTLStore()
 		render(
 			await act(async () => (
 				<TldrawEditor
@@ -64,7 +64,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTldrawEditorStore({
+		const initialStore = createTLStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 		const onMount = jest.fn()
@@ -87,7 +87,7 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTldrawEditorStore({
+		const newStore = createTLStore({
 			instanceId: InstanceRecordType.createCustomId('test'),
 		})
 		rendered.rerender(

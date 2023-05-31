@@ -1,11 +1,5 @@
 import { TAB_ID } from '@tldraw/editor/src/lib/utils/sync/persistence-constants'
-import {
-	Canvas,
-	ContextMenu,
-	TldrawEditor,
-	TldrawUi,
-	createTldrawEditorStore,
-} from '@tldraw/tldraw'
+import { Canvas, ContextMenu, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'
@@ -14,7 +8,7 @@ import { useLayoutEffect, useState } from 'react'
 const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
-	const [store] = useState(() => createTldrawEditorStore({ instanceId: TAB_ID }))
+	const [store] = useState(() => createTLStore({ instanceId: TAB_ID }))
 	const [syncedStore, setSyncedStore] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
 	>({

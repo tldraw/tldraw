@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { StoreOptions, createTldrawEditorStore } from '../config/createTldrawEditorStore'
+import { StoreOptions, createTLStore } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
 import { SyncedStore } from '../utils/sync/SyncedStore'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
@@ -11,7 +11,7 @@ export function useLocalSyncedStore(
 	const { persistenceKey, ...rest } = opts
 
 	const [state, setState] = useState<{ id: string; syncedStore: SyncedStore } | null>(null)
-	const [store] = useState(() => createTldrawEditorStore(rest))
+	const [store] = useState(() => createTLStore(rest))
 
 	useEffect(() => {
 		const id = uniqueId()

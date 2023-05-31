@@ -547,7 +547,7 @@ export interface AppOptions {
     shapes?: Record<string, ShapeInfo>;
     store: TLStore;
     tools?: StateNodeConstructor[];
-    user?: TldrawEditorUser;
+    user?: TLUser;
 }
 
 // @public (undocumented)
@@ -608,7 +608,7 @@ export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel
 export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
-export function createTldrawEditorStore(opts?: StoreOptions): TLStore;
+export function createTLStore(opts?: StoreOptions): TLStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;

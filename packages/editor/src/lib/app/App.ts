@@ -77,8 +77,8 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { ShapeInfo } from '../config/createTldrawEditorStore'
-import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
+import { ShapeInfo } from '../config/createTLStore'
+import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import {
@@ -175,7 +175,7 @@ export interface AppOptions {
 	/**
 	 * A user defined externally to replace the default user.
 	 */
-	user?: TldrawEditorUser
+	user?: TLUser
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -201,7 +201,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.store = store
 
-		this.user = new UserPreferencesManager(user ?? createTldrawEditorUser())
+		this.user = new UserPreferencesManager(user ?? createTLUser())
 
 		this.getContainer = getContainer ?? (() => document.body)
 

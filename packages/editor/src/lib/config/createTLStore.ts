@@ -4,7 +4,7 @@ import {
 	TLInstanceId,
 	TLRecord,
 	TLStore,
-	createTldrawEditorSchema,
+	createTLSchema,
 } from '@tldraw/tlschema'
 import { Migrations, Store, StoreSnapshot } from '@tldraw/tlstore'
 import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
@@ -29,11 +29,11 @@ export type StoreOptions = {
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTldrawEditorStore(opts = {} as StoreOptions): TLStore {
+export function createTLStore(opts = {} as StoreOptions): TLStore {
 	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
 
 	return new Store({
-		schema: createTldrawEditorSchema({ customShapes }),
+		schema: createTLSchema({ customShapes }),
 		initialData,
 		props: {
 			instanceId,

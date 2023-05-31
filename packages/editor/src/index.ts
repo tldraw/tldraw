@@ -126,7 +126,7 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { USER_COLORS } from './lib/config/TLUserPreferences'
-export { createTldrawEditorStore } from './lib/config/createTldrawEditorStore'
+export { createTLStore } from './lib/config/createTLStore'
 export { defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export {

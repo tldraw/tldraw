@@ -3,21 +3,21 @@ import { Signal, computed } from 'signia'
 import { TLUserPreferences, getUserPreferences, setUserPreferences } from './TLUserPreferences'
 
 /** @public */
-export interface TldrawEditorUser {
+export interface TLUser {
 	readonly derivePresenceState: (store: TLStore) => Signal<TLInstancePresence | null>
 	readonly userPreferences: Signal<TLUserPreferences>
 	readonly setUserPreferences: (userPreferences: TLUserPreferences) => void
 }
 
 /** @public */
-export function createTldrawEditorUser(
+export function createTLUser(
 	opts = {} as {
 		/** @internal */
 		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
 		userPreferences?: Signal<TLUserPreferences>
 		setUserPreferences?: (userPreferences: TLUserPreferences) => void
 	}
-): TldrawEditorUser {
+): TLUser {
 	return {
 		derivePresenceState: opts.derivePresenceState ?? (() => computed('presence', () => null)),
 		userPreferences:

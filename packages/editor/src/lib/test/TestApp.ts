@@ -26,7 +26,7 @@ import {
 	TLWheelEventInfo,
 } from '../app/types/event-types'
 import { RequiredKeys } from '../app/types/misc-types'
-import { createTldrawEditorStore } from '../config/createTldrawEditorStore'
+import { createTLStore } from '../config/createTLStore'
 import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import { shapesFromJsx } from './jsx'
@@ -63,7 +63,7 @@ export class TestApp extends App {
 		super({
 			shapes: { ...defaultShapes, ...shapes },
 			tools: [...defaultTools, ...tools],
-			store: createTldrawEditorStore({
+			store: createTLStore({
 				instanceId: TEST_INSTANCE_ID,
 				customShapes: shapes,
 			}),
