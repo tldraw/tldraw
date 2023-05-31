@@ -43,14 +43,12 @@ export const ChangeResponder = () => {
 	React.useEffect(() => {
 		// When the history changes, send the new file contents to VSCode
 		const handleChange = debounce(async () => {
-			if (app.store) {
-				vscode.postMessage({
-					type: 'vscode:editor-updated',
-					data: {
-						fileContents: await serializeTldrawJson(app.store),
-					},
-				})
-			}
+			vscode.postMessage({
+				type: 'vscode:editor-updated',
+				data: {
+					fileContents: await serializeTldrawJson(app.store),
+				},
+			})
 		}, 250)
 
 		vscode.postMessage({

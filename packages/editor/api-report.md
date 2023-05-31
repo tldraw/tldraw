@@ -589,9 +589,6 @@ export type ClipboardPayload = {
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: Record<string, ShapeInfo>;
-
-// @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
 // @public (undocumented)

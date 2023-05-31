@@ -80,7 +80,7 @@ import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { ShapeInfo } from '../config/createTldrawEditorStore'
 import { TldrawEditorUser, createTldrawEditorUser } from '../config/createTldrawEditorUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+import { coreTools, defaultTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -207,32 +207,37 @@ export class App extends EventEmitter<TLEventMap> {
 
 		this.textMeasure = new TextManager(this)
 
-		for (const key in shapes) {
-			if (key in coreShapes) {
-				throw Error(`Can't override core shape ${key}!`)
-			}
-		}
+		this.root = new RootState(this)
 
-		this.shapeUtils = Object.fromEntries(
-			Object.entries({
-				// we definitely need a group shape, god help you if you override it
-				...coreShapes,
-				...shapes,
-			}).map(([type, { util: Util }]) => {
-				if (type !== Util.type)
-					throw Error(`Shape util with type ${Util.type} does not match type ${type}.`)
-				return [Util.type, new Util(this, Util.type)]
-			})
+		// Shapes.
+		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
+		const shapeUtils = Object.fromEntries(
+			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
 		)
 
-		this.root = new RootState(this)
-		tools.forEach((Ctor) => {
-			if (['select', 'zoom'].includes(Ctor.id)) {
-				throw Error(`Can't override core tool ${Ctor.id}!`)
+		for (const [type, { util: Util }] of Object.entries(shapes)) {
+			if (shapeUtils[type]) {
+				throw Error(`May not overwrite core shape of type: ${type}.`)
+			}
+			if (type !== Util.type) {
+				throw Error(`Shape util with type ${Util.type} does not match type ${type}.`)
+			}
+			shapeUtils[type] = new Util(this, Util.type)
+		}
+
+		this.shapeUtils = shapeUtils
+
+		// Tools.
+		// Accept tools from constructor parameters which may not conflict with the root note's default or
+		// "baked in" tools, select and zoom; but which may overwrite other "core" tools, hand and eraser.
+		const uniqueTools = Object.fromEntries([...coreTools, ...tools].map((Ctor) => [Ctor.id, Ctor]))
+		for (const [id, Ctor] of Object.entries(uniqueTools)) {
+			if (this.root.children?.[id]) {
+				throw Error(`Can't override tool with id: ${id}`)
 			}
 
-			this.root.children![Ctor.id] = new Ctor(this)
-		})
+			this.root.children![id] = new Ctor(this)
+		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
