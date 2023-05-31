@@ -3,7 +3,7 @@ import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { ErrorUtil } from './ErrorUtil'
 
-export default function ErrorBoundaryExample() {
+export default function ErrorBoundariesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw

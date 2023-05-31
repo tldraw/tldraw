@@ -20,7 +20,7 @@ import CustomUiExample from './4-custom-ui/CustomUiExample'
 import ExplodedExample from './5-exploded/ExplodedExample'
 import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
-import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
+import ErrorBoundariesExample from './8-error-boundaries/ErrorBoundariesExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
 import { E2E } from './e2e'
 
@@ -71,8 +71,8 @@ export const allExamples: Example[] = [
 		element: <HideUiExample />,
 	},
 	{
-		path: '/error-boundary',
-		element: <ErrorBoundaryExample />,
+		path: '/error-boundaries',
+		element: <ErrorBoundariesExample />,
 	},
 	{
 		path: '/custom-components',
