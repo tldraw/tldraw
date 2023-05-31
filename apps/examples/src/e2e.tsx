@@ -1,6 +1,6 @@
 import { Tldraw } from '@tldraw/tldraw'
 
-export function E2E() {
+export function EndToEndTestPage() {
 	;(window as any).__tldraw_editor_events = []
 
 	return (

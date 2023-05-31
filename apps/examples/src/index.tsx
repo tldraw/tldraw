@@ -22,7 +22,7 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
-import { E2E } from './e2e'
+import { EndToEndTestPage } from './e2e'
 
 // This example is only used for end to end tests
 
@@ -96,7 +96,7 @@ export const allExamples: Example[] = [
 	},
 	{
 		path: '/e2e',
-		element: <E2E />,
+		element: <EndToEndTestPage />,
 	},
 ]
 
