@@ -1797,8 +1797,11 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public (undocumented)
 export type TldrawEditorProps = {
+    children?: any;
     shapes?: Record<string, ShapeInfo>;
     tools?: StateNodeConstructor[];
+    assetUrls?: EditorAssetUrls;
+    autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (app: App) => void;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
@@ -1807,14 +1810,14 @@ export type TldrawEditorProps = {
         title: string;
         description: string;
     }>;
-    assetUrls?: EditorAssetUrls;
-    autoFocus?: boolean;
-    children?: any;
-    store?: SyncedStore | TLStore;
+} & ({
+    store: SyncedStore | TLStore;
+} | {
+    store?: undefined;
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
     persistenceKey?: string;
-};
+});
 
 // @public (undocumented)
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {

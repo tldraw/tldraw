@@ -27,6 +27,7 @@ import { SyncedStore } from './utils/sync/SyncedStore'
 
 /** @public */
 export type TldrawEditorProps = {
+	children?: any
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
@@ -36,7 +37,15 @@ export type TldrawEditorProps = {
 	 */
 	tools?: StateNodeConstructor[]
 	/**
-	 * Overrides for the tldraw components
+	 * Urls for where to find fonts and other assets.
+	 */
+	assetUrls?: EditorAssetUrls
+	/**
+	 * Whether to automatically focus the editor when it mounts.
+	 */
+	autoFocus?: boolean
+	/**
+	 * Overrides for the tldraw user interface components.
 	 */
 	components?: Partial<TLEditorComponents>
 	/**
@@ -86,30 +95,31 @@ export type TldrawEditorProps = {
 	onCreateBookmarkFromUrl?: (
 		url: string
 	) => Promise<{ image: string; title: string; description: string }>
-	/** Asset URLs */
-	assetUrls?: EditorAssetUrls
-	/** Whether to automatically focus the editor when it mounts. */
-	autoFocus?: boolean
-	children?: any
-	/**
-	 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
-	 * from a server or database.
-	 */
-	store?: TLStore | SyncedStore
-	/**
-	 * The editor's initial data.
-	 */
-	initialData?: StoreSnapshot<TLRecord>
-	/**
-	 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
-	 * tab). If not given, one will be generated.
-	 */
-	instanceId?: TLInstanceId
-	/**
-	 * The id under which to sync and persist the editor's data.
-	 */
-	persistenceKey?: string
-}
+} & (
+	| {
+			/**
+			 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
+			 * from a server or database.
+			 */
+			store: TLStore | SyncedStore
+	  }
+	| {
+			store?: undefined
+			/**
+			 * The editor's initial data.
+			 */
+			initialData?: StoreSnapshot<TLRecord>
+			/**
+			 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
+			 * tab). If not given, one will be generated.
+			 */
+			instanceId?: TLInstanceId
+			/**
+			 * The id under which to sync and persist the editor's data.
+			 */
+			persistenceKey?: string
+	  }
+)
 
 declare global {
 	interface Window {
@@ -120,28 +130,13 @@ declare global {
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
-	const { components, store, ...rest } = props
 
 	const ErrorFallback =
-		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
+		props.components?.ErrorFallback === undefined
+			? DefaultErrorFallback
+			: props.components?.ErrorFallback
 
-	if (props.store instanceof Store) {
-		if (props.initialData) {
-			throw Error(`Cannot use both a TLStore for the store prop and an initialData props.`)
-		}
-
-		if (props.instanceId) {
-			throw Error(`Cannot use both a TLStore for the store prop and an instanceId props.`)
-		}
-
-		if (props.persistenceKey) {
-			throw Error(`Cannot use both a TLStore for the store prop and a persistenceKey prop.`)
-		}
-
-		if (props.persistenceKey) {
-			throw Error(`Cannot use both a TLStore for the store prop and a persistenceKey prop.`)
-		}
-	}
+	const { store, ...rest } = props
 
 	return (
 		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
@@ -151,15 +146,18 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 			>
 				{container && (
 					<ContainerProvider container={container}>
-						<EditorComponentsProvider overrides={components}>
+						<EditorComponentsProvider overrides={props.components}>
 							{store ? (
 								store instanceof Store ? (
-									<TldrawEditorWithReadyStore {...props} store={store} />
+									// Store is ready to go, whether externally synced or not
+									<TldrawEditorWithReadyStore {...rest} store={store} />
 								) : (
-									<TldrawEditorWithSyncedStore {...rest} syncedStore={store} />
+									// Store is a synced store, so handle syncing stages internally
+									<TldrawEditorWithSyncedStore {...rest} store={store} />
 								)
 							) : (
-								<TldrawEditorWithOwnStore {...rest} />
+								// We have no store (it's undefined) so create one and possibly sync it
+								<TldrawEditorWithOwnStore {...rest} store={store} />
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -169,7 +167,7 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 	)
 })
 
-function TldrawEditorWithOwnStore(props: TldrawEditorProps) {
+function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
 	const { initialData, instanceId, shapes, persistenceKey } = props
 
 	const syncedStore = useLocalSyncedStore({
@@ -179,25 +177,24 @@ function TldrawEditorWithOwnStore(props: TldrawEditorProps) {
 		persistenceKey,
 	})
 
-	return <TldrawEditorWithSyncedStore {...props} syncedStore={syncedStore} />
+	return <TldrawEditorWithSyncedStore {...props} store={syncedStore} />
 }
 
 const TldrawEditorWithSyncedStore = memo(function TldrawEditorBeforeLoading({
-	instanceId,
-	syncedStore,
+	store,
 	assetUrls,
 	...rest
-}: Omit<TldrawEditorProps, 'store'> & { syncedStore: SyncedStore }) {
+}: TldrawEditorProps & { store: SyncedStore }) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)
 
-	switch (syncedStore.status) {
+	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
 			// if users want to handle this error differently, they can render
 			// their own error screen before the TldrawEditor component
-			throw syncedStore.error
+			throw store.error
 		}
 		case 'loading': {
 			return <LoadingScreen>Connecting...</LoadingScreen>
@@ -213,14 +210,6 @@ const TldrawEditorWithSyncedStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}
 
-	// If we have a store and an instanceId prop, make sure they match
-	const storeInstanceId = syncedStore.store.props.instanceId
-	if (instanceId && storeInstanceId !== instanceId) {
-		console.error(
-			`The store's instanceId (${storeInstanceId}) does not match the instanceId prop (${instanceId}). This may cause unexpected behavior.`
-		)
-	}
-
 	if (preloadingError) {
 		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
 	}
@@ -229,7 +218,7 @@ const TldrawEditorWithSyncedStore = memo(function TldrawEditorBeforeLoading({
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorWithReadyStore {...rest} store={syncedStore.store} />
+	return <TldrawEditorWithReadyStore {...rest} store={store.store} />
 })
 
 function TldrawEditorWithReadyStore({
@@ -241,7 +230,7 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
-}: Omit<TldrawEditorProps, 'store' | 'instanceId'> & {
+}: TldrawEditorProps & {
 	store: TLStore
 }) {
 	const { ErrorFallback } = useEditorComponents()
