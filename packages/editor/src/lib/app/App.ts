@@ -2221,6 +2221,18 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.viewportPageBounds.includes(pageBounds)
 	}
 
+	/**
+	 * Check whether a shape or its parent is locked.
+	 *
+	 * @param id - The id of the shape to check.
+	 * @public
+	 */
+	isShapeOrAncestorLocked(shape?: TLShape): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this.isShapeOrAncestorLocked(this.getParentShape(shape))
+	}
+
 	private computeUnorderedRenderingShapes(
 		ids: TLParentId[],
 		{
@@ -2940,7 +2952,7 @@ export class App extends EventEmitter<TLEventMap> {
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
 			const util = this.getShapeUtil(shape)
-			if (!util.canReceiveNewChildrenOfType(shapeType)) continue
+			if (!util.canReceiveNewChildrenOfType(shape, shapeType)) continue
 			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
 			if (
 				maskedPageBounds &&
@@ -4897,17 +4909,21 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateShapes(partials: (TLShapePartial | null | undefined)[], squashing = false) {
+		let compactedPartials = compact(partials)
 		if (this.animatingShapes.size > 0) {
-			let partial: TLShapePartial | null | undefined
-			for (let i = 0; i < partials.length; i++) {
-				partial = partials[i]
-				if (partial) {
-					this.animatingShapes.delete(partial.id)
-				}
-			}
+			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
 		}
 
-		this._updateShapes(partials, squashing)
+		compactedPartials = compactedPartials.filter((p) => {
+			const shape = this.getShapeById(p.id)
+			if (!shape) return false
+
+			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
+			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
+			return true
+		})
+
+		this._updateShapes(compactedPartials, squashing)
 		return this
 	}
 
@@ -5001,6 +5017,11 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 	)
 
+	/** @internal */
+	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
+		return ids.filter((id) => !this.getShapeById(id)?.isLocked)
+	}
+
 	/**
 	 * Delete shapes.
 	 *
@@ -5015,7 +5036,7 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteShapes(ids: TLShapeId[] = this.selectedIds) {
-		this._deleteShapes(ids)
+		this._deleteShapes(this._getUnlockedShapeIds(ids))
 		return this
 	}
 
@@ -6003,9 +6024,34 @@ export class App extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	lockShapes(_ids: TLShapeId[] = this.pageState.selectedIds): this {
-		if (this.isReadOnly) return this
-		// todo
+	toggleLock(ids: TLShapeId[] = this.selectedIds): this {
+		if (this.isReadOnly || ids.length === 0) return this
+
+		let allLocked = true,
+			allUnlocked = true
+		const shapes: TLShape[] = []
+		for (const id of ids) {
+			const shape = this.getShapeById(id)
+			if (shape) {
+				shapes.push(shape)
+				if (shape.isLocked) {
+					allUnlocked = false
+				} else {
+					allLocked = false
+				}
+			}
+		}
+		if (allUnlocked) {
+			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
+			this.setSelectedIds([])
+		} else if (allLocked) {
+			this.updateShapes(
+				shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
+			)
+		} else {
+			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
+		}
+
 		return this
 	}
 
@@ -7241,7 +7287,7 @@ export class App extends EventEmitter<TLEventMap> {
 		const ids = this.getSortedChildIds(this.currentPageId)
 		// page might have no shapes
 		if (ids.length <= 0) return this
-		this.setSelectedIds(ids)
+		this.setSelectedIds(this._getUnlockedShapeIds(ids))
 
 		return this
 	}
@@ -8915,7 +8961,7 @@ export class App extends EventEmitter<TLEventMap> {
 
 		if (ids.length <= 1) return this
 
-		const shapes = compact(ids.map((id) => this.getShapeById(id)))
+		const shapes = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShapeById(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)
 		const pageBounds = Box2d.Common(compact(shapes.map((id) => this.getPageBounds(id))))
 

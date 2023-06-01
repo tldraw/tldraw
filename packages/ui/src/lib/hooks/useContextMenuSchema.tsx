@@ -89,19 +89,22 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const allowUngroup = useAllowUngroup()
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
+	const { onlySelectedShape } = app
+	const isShapeLocked = onlySelectedShape && app.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextMenuSchema = useMemo<MenuSchema>(() => {
 		let contextMenuSchema: ContextMenuSchemaContextType = compactMenuItems([
 			menuGroup(
 				'selection',
 				oneEmbedSelected && menuItem(actions['open-embed-link']),
-				oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
+				oneEmbedSelected && !isShapeLocked && menuItem(actions['convert-to-bookmark']),
 				oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed']),
 				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
-				showEditLink && menuItem(actions['edit-link']),
-				oneSelected && menuItem(actions['duplicate']),
-				allowGroup && menuItem(actions['group']),
-				allowUngroup && menuItem(actions['ungroup'])
+				showEditLink && !isShapeLocked && menuItem(actions['edit-link']),
+				oneSelected && !isShapeLocked && menuItem(actions['duplicate']),
+				allowGroup && !isShapeLocked && menuItem(actions['group']),
+				allowUngroup && !isShapeLocked && menuItem(actions['ungroup']),
+				oneSelected && menuItem(actions['toggle-lock'])
 			),
 			menuGroup(
 				'modify',
@@ -132,6 +135,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 								menuItem(actions['stretch-vertical'])
 							),
 						onlyFlippableShapeSelected &&
+							!isShapeLocked &&
 							menuGroup(
 								'flip',
 								menuItem(actions['flip-horizontal']),
@@ -146,6 +150,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 							)
 					),
 				oneSelected &&
+					!isShapeLocked &&
 					menuSubmenu(
 						'reorder',
 						'context-menu.reorder',
@@ -157,11 +162,11 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 							menuItem(actions['send-to-back'])
 						)
 					),
-				oneSelected && menuCustom('MOVE_TO_PAGE_MENU', { readonlyOk: false })
+				oneSelected && !isShapeLocked && menuCustom('MOVE_TO_PAGE_MENU', { readonlyOk: false })
 			),
 			menuGroup(
 				'clipboard-group',
-				oneSelected && menuItem(actions['cut']),
+				oneSelected && !isShapeLocked && menuItem(actions['cut']),
 				oneSelected && menuItem(actions['copy']),
 				showMenuPaste && menuItem(actions['paste'])
 			),
@@ -203,7 +208,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 					menuItem(actions['select-all']),
 					oneSelected && menuItem(actions['select-none'])
 				),
-			oneSelected && menuGroup('delete-group', menuItem(actions['delete'])),
+			oneSelected && !isShapeLocked && menuGroup('delete-group', menuItem(actions['delete'])),
 		])
 
 		if (overrides) {
@@ -237,6 +242,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 		oneEmbedSelected,
 		oneEmbeddableBookmarkSelected,
 		isTransparentBg,
+		isShapeLocked,
 	])
 
 	return (

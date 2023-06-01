@@ -360,14 +360,13 @@ export class App extends EventEmitter<TLEventMap> {
         new (...args: any): TLShapeUtil<T>;
         type: string;
     }): shape is T;
+    isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     get isSnapMode(): boolean;
     // (undocumented)
     get isToolLocked(): boolean;
     isWithinSelection(id: TLShapeId): boolean;
     get locale(): string;
-    // (undocumented)
-    lockShapes(_ids?: TLShapeId[]): this;
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
@@ -505,6 +504,8 @@ export class App extends EventEmitter<TLEventMap> {
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     static styles: TLStyleCollections;
     textMeasure: TextManager;
+    // (undocumented)
+    toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
     // (undocumented)
     ungroupShapes(ids?: TLShapeId[]): this;
@@ -2033,11 +2034,11 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    canDropShapes: (_shape: TLFrameShape, _shapes: TLShape[]) => boolean;
+    canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (_type: TLShape['type']) => boolean;
+    canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)
     defaultProps(): TLFrameShape['props'];
     // (undocumented)
@@ -2493,7 +2494,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canCrop: TLShapeUtilFlag<T>;
     canDropShapes(shape: T, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<T>;
-    canReceiveNewChildrenOfType(type: TLShape['type']): boolean;
+    canReceiveNewChildrenOfType(shape: T, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;
