@@ -155,7 +155,7 @@ describe('Locked shapes', () => {
 		const frame = app.getShapeById(ids.lockedFrame)!
 		const frameUtil = app.getShapeUtil(frame)
 
-		expect(frameUtil.canReceiveNewChildrenOfType('box', frame)).toBe(false)
+		expect(frameUtil.canReceiveNewChildrenOfType(frame, 'box')).toBe(false)
 		const shape = app.getShapeById(ids.lockedShapeA)!
 		expect(frameUtil.canDropShapes(frame, [shape])).toBe(false)
 	})
