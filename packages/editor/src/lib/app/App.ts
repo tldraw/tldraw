@@ -2227,10 +2227,10 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @param id - The id of the shape to check.
 	 * @public
 	 */
-	isShapeOrAncestorLocked(shape: TLShape): boolean {
+	isShapeOrAncestorLocked(shape?: TLShape): boolean {
+		if (shape === undefined) return false
 		if (shape.isLocked) return true
-		const ancestors = this.getAncestorsById(shape.id)
-		return ancestors.some((ancestor) => ancestor.isLocked)
+		return this.isShapeOrAncestorLocked(this.getParentShape(shape))
 	}
 
 	private computeUnorderedRenderingShapes(
