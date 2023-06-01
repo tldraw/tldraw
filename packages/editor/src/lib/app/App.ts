@@ -224,7 +224,6 @@ export class App extends EventEmitter<TLEventMap> {
 			}
 			shapeUtils[type] = new Util(this, Util.type)
 		}
-
 		this.shapeUtils = shapeUtils
 
 		// Tools.

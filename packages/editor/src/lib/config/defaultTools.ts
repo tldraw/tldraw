@@ -1,6 +1,7 @@
 import { StateNodeConstructor } from '../app/statechart/StateNode'
 import { TLArrowTool } from '../app/statechart/TLArrowTool/TLArrowTool'
 import { TLDrawTool } from '../app/statechart/TLDrawTool/TLDrawTool'
+import { TLHighlightTool } from '../app/statechart/TLDrawTool/TLHighlightTool'
 import { TLEraserTool } from '../app/statechart/TLEraserTool/TLEraserTool'
 import { TLFrameTool } from '../app/statechart/TLFrameTool/TLFrameTool'
 import { TLGeoTool } from '../app/statechart/TLGeoTool/TLGeoTool'
@@ -22,4 +23,5 @@ export const defaultTools: StateNodeConstructor[] = [
 	TLGeoTool,
 	TLNoteTool,
 	TLFrameTool,
+	TLHighlightTool,
 ]

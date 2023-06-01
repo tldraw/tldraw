@@ -61,11 +61,6 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 		migrations: videoShapeTypeMigrations,
 		validator: videoShapeTypeValidator,
 	},
-
-	highlight: {
-		migrations: highlightShapeTypeMigrations,
-		validator: highlightShapeTypeValidator,
-	},
 }
 
 const defaultShapes: Record<string, SchemaShapeInfo> = {
@@ -93,6 +88,10 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
 		migrations: noteShapeTypeMigrations,
 		validator: noteShapeTypeValidator,
 	},
+	highlight: {
+		migrations: highlightShapeTypeMigrations,
+		validator: highlightShapeTypeValidator,
+	},
 }
 
 /**
@@ -107,6 +106,7 @@ export function createTLSchema(
 	}
 ) {
 	const { customShapes } = opts
+
 	for (const key in customShapes) {
 		if (key in coreShapes) {
 			throw Error(`Can't override default shape ${key}!`)
