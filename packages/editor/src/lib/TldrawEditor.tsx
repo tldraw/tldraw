@@ -119,6 +119,10 @@ export type TldrawEditorProps = {
 			 * The id under which to sync and persist the editor's data.
 			 */
 			persistenceKey?: string
+			/**
+			 * The initial document name to use for the new store.
+			 */
+			defaultName?: string
 	  }
 )
 
@@ -169,13 +173,14 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 })
 
 function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
-	const { initialData, instanceId = TAB_ID, shapes, persistenceKey } = props
+	const { defaultName, initialData, instanceId = TAB_ID, shapes, persistenceKey } = props
 
 	const syncedStore = useLocalStore({
 		customShapes: shapes,
 		instanceId,
 		initialData,
 		persistenceKey,
+		defaultName,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} />

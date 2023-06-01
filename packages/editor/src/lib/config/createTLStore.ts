@@ -21,6 +21,7 @@ export type StoreOptions = {
 	customShapes?: Record<string, ShapeInfo>
 	instanceId?: TLInstanceId
 	initialData?: StoreSnapshot<TLRecord>
+	defaultName?: string
 }
 
 /**
@@ -30,7 +31,12 @@ export type StoreOptions = {
  *
  * @public */
 export function createTLStore(opts = {} as StoreOptions): TLStore {
-	const { customShapes = {}, instanceId = InstanceRecordType.createId(), initialData } = opts
+	const {
+		customShapes = {},
+		instanceId = InstanceRecordType.createId(),
+		initialData,
+		defaultName = '',
+	} = opts
 
 	return new Store({
 		schema: createTLSchema({ customShapes }),
@@ -38,6 +44,7 @@ export function createTLStore(opts = {} as StoreOptions): TLStore {
 		props: {
 			instanceId,
 			documentId: TLDOCUMENT_ID,
+			defaultName,
 		},
 	})
 }

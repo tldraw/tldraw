@@ -19,6 +19,7 @@ export interface InputProps {
 	onComplete?: (value: string) => void
 	onValueChange?: (value: string) => void
 	onCancel?: (value: string) => void
+	onBlur?: (value: string) => void
 	className?: string
 	/**
 	 * Usually on iOS when you focus an input, the browser will adjust the viewport to bring the input
@@ -46,6 +47,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		onComplete,
 		onValueChange,
 		onCancel,
+		onBlur,
 		shouldManuallyMaintainScrollPositionWhenFocused = false,
 		children,
 		value,
@@ -106,7 +108,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		[onComplete, onCancel]
 	)
 
-	const handleBlur = React.useCallback(() => setIsFocused(false), [])
+	const handleBlur = React.useCallback(
+		(e: React.FocusEvent<HTMLInputElement>) => {
+			setIsFocused(false)
+			const value = e.currentTarget.value
+			onBlur?.(value)
+		},
+		[onBlur]
+	)
 
 	React.useEffect(() => {
 		const visualViewport = window.visualViewport

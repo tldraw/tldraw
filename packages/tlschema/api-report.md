@@ -780,6 +780,8 @@ export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEm
 export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    name: string;
 }
 
 // @public (undocumented)
@@ -1250,6 +1252,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export type TLStoreProps = {
     instanceId: TLInstanceId;
     documentId: typeof TLDOCUMENT_ID;
+    defaultName: string;
 };
 
 // @public (undocumented)

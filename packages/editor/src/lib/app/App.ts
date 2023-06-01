@@ -35,6 +35,7 @@ import {
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
+	TLDocument,
 	TLFrameShape,
 	TLGroupShape,
 	TLImageAsset,
@@ -1515,8 +1516,23 @@ export class App extends EventEmitter<TLEventMap> {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
+	/** @internal */
+	updateDocumentSettings(settings: Partial<TLDocument>) {
+		this.store.put([{ ...this.documentSettings, ...settings }])
+	}
+
 	get gridSize() {
 		return this.documentSettings.gridSize
+	}
+
+	/** @internal */
+	get projectName() {
+		return this.documentSettings.name
+	}
+
+	/** @internal */
+	setProjectName(name: string) {
+		this.updateDocumentSettings({ name })
 	}
 
 	get isSnapMode() {

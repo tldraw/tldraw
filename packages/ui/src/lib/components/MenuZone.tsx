@@ -24,7 +24,7 @@ export const MenuZone = track(function MenuZone() {
 				<Menu />
 				<div className="tlui-menu-zone__divider" />
 				<PageMenu />
-				{breakpoint >= 5 && showQuickActions && (
+				{breakpoint >= 6 && showQuickActions && (
 					<>
 						<div className="tlui-menu-zone__divider" />
 						<UndoButton />

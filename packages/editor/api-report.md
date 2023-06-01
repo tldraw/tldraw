@@ -390,6 +390,8 @@ export class App extends EventEmitter<TLEventMap> {
     panZoomIntoView(ids: TLShapeId[], opts?: AnimationOptions): this;
     // (undocumented)
     popFocusLayer(): this;
+    // @internal (undocumented)
+    get projectName(): string;
     // @internal
     get props(): null | TLNullableShapeProps;
     // (undocumented)
@@ -471,6 +473,8 @@ export class App extends EventEmitter<TLEventMap> {
     setLocale(locale: string): void;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
+    // @internal (undocumented)
+    setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
@@ -512,6 +516,8 @@ export class App extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     // @internal
     updateCullingBounds(): this;
+    // @internal (undocumented)
+    updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
@@ -1829,6 +1835,7 @@ export type TldrawEditorProps = {
     initialData?: StoreSnapshot<TLRecord>;
     instanceId?: TLInstanceId;
     persistenceKey?: string;
+    defaultName?: string;
 });
 
 // @public (undocumented)
