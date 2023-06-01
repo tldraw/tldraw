@@ -159,7 +159,7 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 		font: string | undefined,
 		colors: TLExportColors
 	) {
-		return highlighterToSvg(getStrokeWidth(shape), shape, 1, colors)
+		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, colors)
 	}
 
 	override onResize: OnResizeHandler<TLHighlightShape> = (shape, info) => {
