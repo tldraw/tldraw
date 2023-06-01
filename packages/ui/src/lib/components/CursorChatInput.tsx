@@ -38,14 +38,30 @@ export const CursorChatInput = track(function CursorChatInput() {
 	const handleKeyDown = useCallback(
 		(e) => {
 			if (!isChatting) return
-			if (e.key === 'Enter') {
-				e.preventDefault()
-				container.style.setProperty('--tl-cursor-chat-placeholder', `'${chatMessage}'`)
-				if (!ref.current) return
-				ref.current.textContent = ''
+			switch (e.key) {
+				case 'Enter': {
+					e.preventDefault()
+					if (!ref.current) return
+					container.style.setProperty('--tl-cursor-chat-placeholder', `'${chatMessage}'`)
+					ref.current.textContent = ''
+					break
+				}
+				case 'Escape': {
+					e.preventDefault()
+					if (!ref.current) return
+
+					// If the user has typed something, cancel it!
+					if (ref.current.textContent !== '') {
+						container.style.setProperty('--tl-cursor-chat-placeholder', `'Type to chat...'`)
+						app.updateInstanceState({ chatMessage: '' })
+					}
+
+					ref.current.textContent = ''
+					break
+				}
 			}
 		},
-		[isChatting, chatMessage, container]
+		[app, isChatting, chatMessage, container]
 	)
 
 	useEffect(() => {
