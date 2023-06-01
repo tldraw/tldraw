@@ -734,6 +734,12 @@ input,
 	font-family: var(--font-family);
 }
 
+.tl-cursor-chat::selection {
+	background: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+}
+
 .tl-cursor-chat:empty::before {
 	content: var(--tl-cursor-chat-placeholder);
 	color: rgba(255, 255, 255, 0.7);
