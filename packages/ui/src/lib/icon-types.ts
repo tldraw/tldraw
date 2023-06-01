@@ -142,7 +142,6 @@ export type TLUiIconType =
 	| 'tool-frame'
 	| 'tool-hand'
 	| 'tool-highlight'
-	| 'tool-highlighter'
 	| 'tool-laser'
 	| 'tool-line'
 	| 'tool-media'
@@ -307,7 +306,6 @@ export const TLUiIconTypes = [
 	'tool-frame',
 	'tool-hand',
 	'tool-highlight',
-	'tool-highlighter',
 	'tool-laser',
 	'tool-line',
 	'tool-media',

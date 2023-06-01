@@ -1,4 +1,5 @@
 import { App, featureFlags, useApp } from '@tldraw/editor'
+import { compact } from '@tldraw/utils'
 import React from 'react'
 import { useValue } from 'signia-react'
 import { ToolItem, ToolsContextType, useTools } from './useTools'
@@ -45,7 +46,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
 	const toolbarSchema = React.useMemo<ToolbarSchemaContextType>(() => {
-		const schema: ToolbarSchemaContextType = [
+		const schema: ToolbarSchemaContextType = compact([
 			toolbarItem(tools.select),
 			toolbarItem(tools.hand),
 			toolbarItem(tools.draw),
@@ -62,23 +63,20 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 			toolbarItem(tools['rhombus']),
 			toolbarItem(tools['pentagon']),
 			toolbarItem(tools['hexagon']),
-			toolbarItem(tools['octagon']),
+			// toolbarItem(tools['octagon']),
 			toolbarItem(tools['star']),
 			toolbarItem(tools['oval']),
-			toolbarItem(tools.line),
-			toolbarItem(tools['arrow-right']),
+			toolbarItem(tools['x-box']),
+			toolbarItem(tools['check-box']),
 			toolbarItem(tools['arrow-left']),
 			toolbarItem(tools['arrow-up']),
 			toolbarItem(tools['arrow-down']),
-			toolbarItem(tools['x-box']),
-			toolbarItem(tools['check-box']),
+			toolbarItem(tools['arrow-right']),
 			toolbarItem(tools.frame),
+			toolbarItem(tools.line),
+			highlighterEnabled ? toolbarItem(tools.highlight) : null,
 			toolbarItem(tools.laser),
-		]
-
-		if (highlighterEnabled) {
-			schema.push(toolbarItem(tools.highlight))
-		}
+		])
 
 		if (overrides) {
 			return overrides(app, schema, { tools })

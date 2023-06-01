@@ -151,7 +151,6 @@ export function getAssetUrlsByImport(opts?: AssetUrlOptions): {
 		'tool-frame': string
 		'tool-hand': string
 		'tool-highlight': string
-		'tool-highlighter': string
 		'tool-laser': string
 		'tool-line': string
 		'tool-media': string

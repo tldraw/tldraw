@@ -149,7 +149,7 @@ https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22
 
 	/* for highlighter pen */
 	--palette-black-highlight: #fddd00;
-	--palette-grey-highlight: #00f4ff;
+	--palette-grey-highlight: #cbe7f1;
 	--palette-green-highlight: #00ffc8;
 	--palette-light-green-highlight: #65f641;
 	--palette-blue-highlight: #10acff;
@@ -247,7 +247,7 @@ https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22
 
 	/* for highlighter pen */
 	--palette-black-highlight: #d2b700;
-	--palette-grey-highlight: #00bdc8;
+	--palette-grey-highlight: #9cb4cb;
 	--palette-green-highlight: #009774;
 	--palette-light-green-highlight: #00a000;
 	--palette-blue-highlight: #0079d2;
@@ -272,7 +272,7 @@ https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22
 	.tl-theme__light:not(.tl-theme__force-sRGB) {
 		/* for highlighter pen */
 		--palette-black-highlight: color(display-p3 0.972 0.8705 0.05);
-		--palette-grey-highlight: color(display-p3 0.1512 0.9414 0.9996);
+		--palette-grey-highlight: color(display-p3 0.8163 0.9023 0.9416);
 		--palette-green-highlight: color(display-p3 0.2536 0.984 0.7981);
 		--palette-light-green-highlight: color(display-p3 0.563 0.9495 0.3857);
 		--palette-blue-highlight: color(display-p3 0.308 0.6632 0.9996);
@@ -288,7 +288,7 @@ https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22
 	.tl-theme__dark:not(.tl-theme__force-sRGB) {
 		/* for highlighter pen */
 		--palette-black-highlight: color(display-p3 0.8078 0.7225 0.0312);
-		--palette-grey-highlight: color(display-p3 0.0023 0.7259 0.7735);
+		--palette-grey-highlight: color(display-p3 0.6299 0.7012 0.7856);
 		--palette-green-highlight: color(display-p3 0.0085 0.582 0.4604);
 		--palette-light-green-highlight: color(display-p3 0.2711 0.6172 0.0195);
 		--palette-blue-highlight: color(display-p3 0.0032 0.4655 0.7991);

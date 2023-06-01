@@ -1,8 +1,9 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
 
-import { Drawing } from './children/Drawing'
-import { Idle } from './children/Idle'
+// shared custody
+import { Drawing } from '../TLDrawTool/children/Drawing'
+import { Idle } from '../TLDrawTool/children/Idle'
 
 export class TLHighlightTool extends StateNode {
 	static override id = 'highlight'

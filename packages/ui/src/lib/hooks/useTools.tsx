@@ -210,7 +210,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				readonlyOk: true,
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
-				kbd: 'i',
+				kbd: '!d',
 				onSelect(source) {
 					app.setSelectedTool('highlight')
 					trackEvent('select-tool', { source, id: 'highlight' })

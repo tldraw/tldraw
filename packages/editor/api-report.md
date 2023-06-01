@@ -2224,8 +2224,6 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
     // (undocumented)
     getOutline(shape: TLHighlightShape): Vec2d[];
     // (undocumented)
-    getStrokeWidth(shape: TLHighlightShape): number;
-    // (undocumented)
     hideResizeHandles: (shape: TLHighlightShape) => boolean;
     // (undocumented)
     hideRotateHandle: (shape: TLHighlightShape) => boolean;

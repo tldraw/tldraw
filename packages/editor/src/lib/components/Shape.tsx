@@ -116,9 +116,7 @@ export const Shape = track(function Shape({
 					data-shape-type={shape.type}
 					draggable={false}
 				>
-					{isCulled ? (
-						<CulledShape shape={shape} util={util} />
-					) : (
+					{!isCulled && (
 						<OptionalErrorBoundary
 							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
 							onError={(error) =>
