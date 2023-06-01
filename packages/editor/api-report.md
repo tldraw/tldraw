@@ -634,6 +634,7 @@ export const debugFlags: {
     logMessages: DebugFlag<never[]>;
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
+    forceSrgb: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
