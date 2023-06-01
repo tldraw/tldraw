@@ -36,6 +36,21 @@ const solidSettings = (strokeWidth: number): StrokeOptions => {
 	}
 }
 
+export function getHighlightFreehandSettings(
+	strokeWidth: number,
+	showAsComplete: boolean
+): StrokeOptions {
+	return {
+		size: 1 + strokeWidth,
+		thinning: 0.1,
+		streamline: 0.1, // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+		smoothing: 0.5,
+		simulatePressure: true,
+		easing: EASINGS.easeOutSine,
+		last: showAsComplete,
+	}
+}
+
 export function getFreehandOptions(
 	shapeProps: { dash: TLDashType; isPen: boolean; isComplete: boolean },
 	strokeWidth: number,
