@@ -66,7 +66,11 @@ export class EditingShape extends StateNode {
 
 						// If the user has clicked onto a different shape of the same type
 						// which is available to edit, select it and begin editing it.
-						if (shape.type === editingShape.type && util.canEdit?.(shape)) {
+						if (
+							shape.type === editingShape.type &&
+							util.canEdit?.(shape) &&
+							!this.app.isShapeOrAncestorLocked(shape)
+						) {
 							this.app.setEditingId(shape.id)
 							this.app.setHoveredId(shape.id)
 							this.app.setSelectedIds([shape.id])
