@@ -16,7 +16,7 @@ const clickableShapeCreators = [
 	{ tool: 'diamond', shape: 'geo' },
 	{ tool: 'pentagon', shape: 'geo' },
 	{ tool: 'hexagon', shape: 'geo' },
-	{ tool: 'octagon', shape: 'geo' },
+	// { tool: 'octagon', shape: 'geo' },
 	{ tool: 'star', shape: 'geo' },
 	{ tool: 'rhombus', shape: 'geo' },
 	{ tool: 'oval', shape: 'geo' },
