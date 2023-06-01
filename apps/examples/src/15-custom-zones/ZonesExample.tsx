@@ -1,17 +1,11 @@
-import { Canvas, ContextMenu, TldrawEditor, TldrawUi } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor>
-				<TldrawUi shareZone={<CustomShareZone />} topZone={<CustomTopZone />}>
-					<ContextMenu>
-						<Canvas />
-					</ContextMenu>
-				</TldrawUi>
-			</TldrawEditor>
+			<Tldraw shareZone={<CustomShareZone />} topZone={<CustomTopZone />} />
 		</div>
 	)
 }

@@ -5,11 +5,10 @@ import { usePrevious } from './usePrevious'
 /** @public */
 export function useTLStore(opts: StoreOptions) {
 	const [store, setStore] = useState(() => createTLStore(opts))
-	const previousOpts = usePrevious(opts)
+	const prev = usePrevious(opts)
 	if (
-		previousOpts.customShapes !== opts.customShapes ||
-		previousOpts.initialData !== opts.initialData ||
-		previousOpts.instanceId !== opts.instanceId
+		// shallow equality check
+		(Object.keys(prev) as (keyof StoreOptions)[]).some((key) => prev[key] !== opts[key])
 	) {
 		const newStore = createTLStore(opts)
 		setStore(newStore)
