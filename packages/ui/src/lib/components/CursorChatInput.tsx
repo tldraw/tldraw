@@ -1,11 +1,13 @@
 import { useApp, useContainer, useQuickReactor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { track } from 'signia-react'
+import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
 export const CursorChatInput = track(function CursorChatInput() {
 	const app = useApp()
 	const container = useContainer()
 	const ref = useRef<HTMLDivElement>(null)
+	const msg = useTranslation()
 
 	const { isChatting, chatMessage } = app.instanceState
 
@@ -16,6 +18,15 @@ export const CursorChatInput = track(function CursorChatInput() {
 		},
 		[isChatting]
 	)
+
+	useEffect(() => {
+		const defaultPlaceholder = msg('cursor-chat.type-to-chat')
+		const placeholder = chatMessage || defaultPlaceholder
+		container.style.setProperty('--tl-cursor-chat-placeholder', `'${placeholder}'`)
+		return () => {
+			container.style.setProperty('--tl-cursor-chat-placeholder', `'${defaultPlaceholder}'`)
+		}
+	}, [chatMessage, container, msg])
 
 	const handlePointerMove = useCallback((e: PointerEvent) => {
 		ref.current?.style.setProperty('left', e.clientX + 'px')
@@ -42,7 +53,10 @@ export const CursorChatInput = track(function CursorChatInput() {
 				case 'Enter': {
 					e.preventDefault()
 					if (!ref.current) return
-					container.style.setProperty('--tl-cursor-chat-placeholder', `'${chatMessage}'`)
+					if (ref.current.textContent === '') {
+						// TODO: close chat
+						return
+					}
 					ref.current.textContent = ''
 					break
 				}
@@ -52,7 +66,6 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 					// If the user has typed something, cancel it!
 					if (ref.current.textContent !== '') {
-						container.style.setProperty('--tl-cursor-chat-placeholder', `'Type to chat...'`)
 						app.updateInstanceState({ chatMessage: '' })
 					}
 
@@ -61,7 +74,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 				}
 			}
 		},
-		[app, isChatting, chatMessage, container]
+		[app, isChatting]
 	)
 
 	useEffect(() => {

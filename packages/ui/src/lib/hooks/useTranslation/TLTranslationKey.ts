@@ -334,3 +334,4 @@ export type TLTranslationKey =
 	| 'vscode.file-open.backup-saved'
 	| 'vscode.file-open.backup-failed'
 	| 'vscode.file-open.dont-show-again'
+	| 'cursor-chat.type-to-chat'
