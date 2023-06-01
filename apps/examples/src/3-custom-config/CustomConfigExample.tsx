@@ -4,13 +4,16 @@ import '@tldraw/tldraw/ui.css'
 import { CardTool } from './CardTool'
 import { CardUtil } from './CardUtil'
 
+const shapes = { card: { util: CardUtil } }
+const tools = [CardTool]
+
 export default function CustomConfigExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
 				autoFocus
-				tools={[CardTool]}
-				shapes={{ card: { util: CardUtil } }}
+				tools={tools}
+				shapes={shapes}
 				overrides={{
 					// In order for our custom tool to show up in the UI...
 					// We need to add it to the tools list. This "toolItem"

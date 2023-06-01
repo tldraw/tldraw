@@ -3,15 +3,17 @@ import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { ErrorUtil } from './ErrorUtil'
 
+const shapes = {
+	error: {
+		util: ErrorUtil, // a custom shape that will always error
+	},
+}
+
 export default function ErrorBoundaryExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				shapes={{
-					error: {
-						util: ErrorUtil, // a custom shape that will always error
-					},
-				}}
+				shapes={shapes}
 				components={{
 					ErrorFallback: null, // disable app-level error boundaries
 					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>, // use a custom error fallback for shapes
