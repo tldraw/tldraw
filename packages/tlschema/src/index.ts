@@ -157,6 +157,12 @@ export {
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
+	highlightShapeMigrations,
+	highlightShapeTypeValidator,
+	type TLHighlightShape,
+	type TLHighlightShapeProps,
+} from './shapes/TLHighlightShape'
+export {
 	iconShapeTypeMigrations,
 	iconShapeTypeValidator,
 	type TLIconShape,
