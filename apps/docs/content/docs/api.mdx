@@ -58,7 +58,7 @@ You can subscribe to changes using `app.store.listen`. Each time a transaction c
 
 ```ts
 app.store.listen(entry => {
-  console.log(entry) // { changes, source }
+  entry // { changes, source }
 })
 ```
 
