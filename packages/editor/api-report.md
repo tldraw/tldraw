@@ -64,6 +64,7 @@ import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGeoShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
+import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
@@ -725,6 +726,7 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 // @internal (undocumented)
 export const featureFlags: {
     peopleMenu: DebugFlag<boolean>;
+    highlighterTool: DebugFlag<boolean>;
 };
 
 // @public
@@ -2200,6 +2202,42 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
     onChildrenChange: OnChildrenChangeHandler<TLGroupShape>;
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
+    // (undocumented)
+    static type: string;
+}
+
+// @public (undocumented)
+export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
+    // (undocumented)
+    defaultProps(): TLHighlightShape['props'];
+    // (undocumented)
+    expandSelectionOutlinePx(shape: TLHighlightShape): number;
+    // (undocumented)
+    getBounds(shape: TLHighlightShape): Box2d;
+    // (undocumented)
+    getCenter(shape: TLHighlightShape): Vec2d;
+    // (undocumented)
+    getOutline(shape: TLHighlightShape): Vec2d[];
+    // (undocumented)
+    hideResizeHandles: (shape: TLHighlightShape) => boolean;
+    // (undocumented)
+    hideRotateHandle: (shape: TLHighlightShape) => boolean;
+    // (undocumented)
+    hideSelectionBoundsBg: (shape: TLHighlightShape) => boolean;
+    // (undocumented)
+    hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean;
+    // (undocumented)
+    hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean;
+    // (undocumented)
+    hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean;
+    // (undocumented)
+    indicator(shape: TLHighlightShape): JSX.Element;
+    // (undocumented)
+    onResize: OnResizeHandler<TLHighlightShape>;
+    // (undocumented)
+    render(shape: TLHighlightShape): JSX.Element;
+    // (undocumented)
+    toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
     static type: string;
 }

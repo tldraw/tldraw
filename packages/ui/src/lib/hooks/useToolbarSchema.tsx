@@ -1,5 +1,6 @@
-import { App, useApp } from '@tldraw/editor'
+import { App, featureFlags, useApp } from '@tldraw/editor'
 import React from 'react'
+import { useValue } from 'signia-react'
 import { ToolItem, ToolsContextType, useTools } from './useTools'
 
 /** @public */
@@ -41,6 +42,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 	const app = useApp()
 
 	const tools = useTools()
+	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
 	const toolbarSchema = React.useMemo<ToolbarSchemaContextType>(() => {
 		const schema: ToolbarSchemaContextType = [
@@ -74,12 +76,16 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 			toolbarItem(tools.laser),
 		]
 
+		if (highlighterEnabled) {
+			schema.push(toolbarItem(tools.highlight))
+		}
+
 		if (overrides) {
 			return overrides(app, schema, { tools })
 		}
 
 		return schema
-	}, [app, overrides, tools])
+	}, [app, highlighterEnabled, overrides, tools])
 
 	return (
 		<ToolbarSchemaContext.Provider value={toolbarSchema}>{children}</ToolbarSchemaContext.Provider>

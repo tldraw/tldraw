@@ -20,6 +20,7 @@ import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEm
 import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
 import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
 import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
+import { highlightShapeMigrations, highlightShapeTypeValidator } from './shapes/TLHighlightShape'
 import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
 import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
 import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
@@ -45,6 +46,7 @@ const DEFAULT_SHAPES: { [K in TLShape['type']]: DefaultShapeInfo<Extract<TLShape
 		note: { migrations: noteShapeTypeMigrations, validator: noteShapeTypeValidator },
 		text: { migrations: textShapeTypeMigrations, validator: textShapeTypeValidator },
 		video: { migrations: videoShapeTypeMigrations, validator: videoShapeTypeValidator },
+		highlight: { migrations: highlightShapeMigrations, validator: highlightShapeTypeValidator },
 	}
 
 type CustomShapeInfo<T extends TLUnknownShape> = {

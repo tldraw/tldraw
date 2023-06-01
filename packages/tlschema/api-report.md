@@ -376,6 +376,12 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 export const handleTypeValidator: T.Validator<TLHandle>;
 
 // @public (undocumented)
+export const highlightShapeMigrations: Migrations;
+
+// @public (undocumented)
+export const highlightShapeTypeValidator: T.Validator<TLHighlightShape>;
+
+// @public (undocumented)
 export const iconShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
@@ -760,7 +766,7 @@ export interface TLDashStyle extends TLBaseStyle {
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
@@ -931,6 +937,19 @@ export interface TLHandlePartial {
 
 // @public (undocumented)
 export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
+
+// @public (undocumented)
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+
+// @public (undocumented)
+export type TLHighlightShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    opacity: TLOpacityType;
+    segments: TLDrawShapeSegment[];
+    isComplete: boolean;
+    isPen: boolean;
+};
 
 // @public (undocumented)
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;

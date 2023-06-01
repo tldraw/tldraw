@@ -184,6 +184,7 @@ export type TLTranslationKey =
 	| 'tool.diamond'
 	| 'tool.ellipse'
 	| 'tool.hexagon'
+	| 'tool.highlight'
 	| 'tool.line'
 	| 'tool.octagon'
 	| 'tool.oval'

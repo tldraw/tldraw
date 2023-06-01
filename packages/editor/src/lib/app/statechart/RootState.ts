@@ -2,6 +2,7 @@ import { TLEventHandlers } from '../types/event-types'
 import { StateNode } from './StateNode'
 import { TLArrowTool } from './TLArrowTool/TLArrowTool'
 import { TLDrawTool } from './TLDrawTool/TLDrawTool'
+import { TLHighlightTool } from './TLDrawTool/TLHighlightTool'
 import { TLEraserTool } from './TLEraserTool/TLEraserTool'
 import { TLFrameTool } from './TLFrameTool/TLFrameTool'
 import { TLGeoTool } from './TLGeoTool/TLGeoTool'
@@ -21,6 +22,7 @@ export class RootState extends StateNode {
 		TLHandTool,
 		TLEraserTool,
 		TLDrawTool,
+		TLHighlightTool,
 		TLTextTool,
 		TLLineTool,
 		TLArrowTool,
