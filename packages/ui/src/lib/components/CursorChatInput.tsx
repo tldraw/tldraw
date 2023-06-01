@@ -1,18 +1,18 @@
-import { useApp, useQuickReactor } from '@tldraw/editor'
+import { useApp, useContainer, useQuickReactor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { track } from 'signia-react'
 
 export const CursorChatInput = track(function CursorChatInput() {
 	const app = useApp()
-
+	const container = useContainer()
 	const ref = useRef<HTMLDivElement>(null)
 
-	const isChatting = app.instanceState.isChatting
+	const { isChatting, chatMessage } = app.instanceState
 
 	useQuickReactor(
 		'focus cursor chat input',
 		() => {
-			ref.current?.focus()
+			if (isChatting) ref.current?.focus()
 		},
 		[isChatting]
 	)
@@ -24,13 +24,28 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	const handleBlur = useCallback(() => {
 		app.updateInstanceState({ isChatting: false })
+		if (!ref.current) return
+		ref.current.textContent = ''
 	}, [app])
 
 	const handleInput = useCallback(
 		(e) => {
-			app.updateInstanceState({ chatMessage: e.currentTarget.innerText })
+			app.updateInstanceState({ chatMessage: e.currentTarget.textContent })
 		},
 		[app]
+	)
+
+	const handleKeyDown = useCallback(
+		(e) => {
+			if (!isChatting) return
+			if (e.key === 'Enter') {
+				e.preventDefault()
+				container.style.setProperty('--tl-cursor-chat-placeholder', `'${chatMessage}'`)
+				if (!ref.current) return
+				ref.current.textContent = ''
+			}
+		},
+		[isChatting, chatMessage, container]
 	)
 
 	useEffect(() => {
@@ -55,6 +70,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			suppressContentEditableWarning
 			onBlur={handleBlur}
 			onInput={handleInput}
+			onKeyDown={handleKeyDown}
 			spellCheck={false}
 		></div>
 	)

@@ -918,7 +918,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'open-cursor-chat',
 				label: 'action.open-cursor-chat',
 				readonlyOk: true,
-				kbd: '/',
+				kbd: '/,Enter',
 				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
 					app.updateInstanceState({
