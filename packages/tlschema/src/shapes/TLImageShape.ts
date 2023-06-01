@@ -32,7 +32,6 @@ export const cropValidator = T.object({
 /** @public */
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
-// --- VALIDATION ---
 /** @public */
 export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
@@ -47,22 +46,15 @@ export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeVal
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddUrlProp: 1,
 	AddCropProp: 2,
 } as const
 
 /** @public */
-export const imageShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	firstVersion: Versions.Initial,
+export const imageShapeTypeMigrations = defineMigrations({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
 				return { ...shape, props: { ...shape.props, url: '' } }

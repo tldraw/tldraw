@@ -1,4 +1,4 @@
-import { TLPage } from '@tldraw/tlschema'
+import { PageRecordType } from '@tldraw/tlschema'
 import { MAX_PAGES } from '../../constants'
 import { TestApp } from '../TestApp'
 
@@ -36,17 +36,17 @@ it('[regression] does not die if every page has the same index', () => {
 	app.store.put([
 		{
 			...page,
-			id: TLPage.createCustomId('2'),
+			id: PageRecordType.createCustomId('2'),
 			name: 'a',
 		},
 		{
 			...page,
-			id: TLPage.createCustomId('3'),
+			id: PageRecordType.createCustomId('3'),
 			name: 'b',
 		},
 		{
 			...page,
-			id: TLPage.createCustomId('4'),
+			id: PageRecordType.createCustomId('4'),
 			name: 'c',
 		},
 	])

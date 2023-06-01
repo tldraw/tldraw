@@ -1,21 +1,20 @@
 import {
 	App,
 	buildFromV1Document,
+	createTLStore,
 	fileToBase64,
 	TLAsset,
-	TldrawEditorConfig,
 	TLInstanceId,
 	TLRecord,
 	TLStore,
-	TLUserId,
 } from '@tldraw/editor'
 import {
-	BaseRecord,
 	ID,
 	MigrationFailureReason,
 	MigrationResult,
 	SerializedSchema,
 	StoreSnapshot,
+	UnknownRecord,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
@@ -35,7 +34,7 @@ const LATEST_TLDRAW_FILE_FORMAT_VERSION = 1
 export interface TldrawFile {
 	tldrawFileFormatVersion: number
 	schema: SerializedSchema
-	records: BaseRecord[]
+	records: UnknownRecord[]
 }
 
 const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
@@ -82,14 +81,12 @@ export type TldrawFileParseError =
 
 /** @public */
 export function parseTldrawJsonFile({
-	config,
 	json,
-	userId,
 	instanceId,
+	store,
 }: {
-	config: TldrawEditorConfig
+	store: TLStore
 	json: string
-	userId: TLUserId
 	instanceId: TLInstanceId
 }): Result<TLStore, TldrawFileParseError> {
 	// first off, we parse .json file and check it matches the general shape of
@@ -126,7 +123,7 @@ export function parseTldrawJsonFile({
 	let migrationResult: MigrationResult<StoreSnapshot<TLRecord>>
 	try {
 		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
-		migrationResult = config.storeSchema.migrateStoreSnapshot(storeSnapshot, data.schema)
+		migrationResult = store.schema.migrateStoreSnapshot(storeSnapshot, data.schema)
 	} catch (e) {
 		// junk data in the migration
 		return Result.err({ type: 'invalidRecords', cause: e })
@@ -140,7 +137,12 @@ export function parseTldrawJsonFile({
 	// we should be able to validate them. if any of the records at this stage
 	// are invalid, we don't open the file
 	try {
-		return Result.ok(config.createStore({ initialData: migrationResult.value, userId, instanceId }))
+		return Result.ok(
+			createTLStore({
+				initialData: migrationResult.value,
+				instanceId,
+			})
+		)
 	} catch (e) {
 		// junk data in the records (they're not validated yet!) could cause the
 		// migrations to crash. We treat any throw from a migration as an
@@ -208,10 +210,9 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		config: TldrawEditorConfig.default,
+		store: createTLStore(),
 		json: document,
 		instanceId: app.instanceId,
-		userId: app.userId,
 	})
 	if (!parseFileResult.ok) {
 		let description

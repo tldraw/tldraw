@@ -5,7 +5,6 @@ import * as React from 'react'
 import { useValue } from 'signia-react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useMenuClipboardEvents } from '../hooks/useClipboardEvents'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { useReadonly } from '../hooks/useReadonly'
@@ -61,7 +60,6 @@ function ContextMenuContent() {
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
 
 	const isReadonly = useReadonly()
-	const { paste } = useMenuClipboardEvents('context-menu')
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
@@ -73,42 +71,6 @@ function ContextMenuContent() {
 		switch (item.type) {
 			case 'custom': {
 				switch (item.id) {
-					case 'MENU_PASTE': {
-						return (
-							<_ContextMenu.Item key={item.id}>
-								<Button
-									className="tlui-menu__button"
-									data-wd={`menu-item.${item.id}`}
-									kbd="$v"
-									label="action.paste"
-									disabled={item.disabled}
-									onClick={() => {
-										if (!app.isSafari || (app.isSafari && app.isIos)) {
-											navigator.clipboard.read().then((clipboardItems) => {
-												paste(clipboardItems, app.inputs.currentPagePoint)
-											})
-										}
-									}}
-									onMouseDown={() => {
-										if (app.isSafari && !app.isIos) {
-											// NOTE: This must be a onMouseDown for Safari/desktop, onClick doesn't work at the time of writing... 😒
-											navigator.clipboard.read().then((clipboardItems) => {
-												paste(clipboardItems, app.inputs.currentPagePoint)
-											})
-										}
-									}}
-									// onPointerUp={() => {
-									// 	if (app.isSafari && app.isIos) {
-									// 		// NOTE: This must be a onPointerUp for Safari/mobile, onClick doesn't work at the time of writing... 😒
-									// 		navigator.clipboard.read().then((clipboardItems) => {
-									// 			paste(clipboardItems, app.inputs.currentPagePoint)
-									// 		})
-									// 	}
-									// }}
-								/>
-							</_ContextMenu.Item>
-						)
-					}
 					case 'MOVE_TO_PAGE_MENU': {
 						return <MoveToPageMenu key={item.id} />
 					}
@@ -122,7 +84,7 @@ function ContextMenuContent() {
 						className={classNames('tlui-menu__group', {
 							'tlui-menu__group__small': parent?.type === 'submenu',
 						})}
-						data-wd={`menu-item.${item.id}`}
+						data-testid={`menu-item.${item.id}`}
 						key={item.id}
 					>
 						{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
@@ -136,7 +98,7 @@ function ContextMenuContent() {
 							<Button
 								className="tlui-menu__button"
 								label={item.label}
-								data-wd={`menu-item.${item.id}`}
+								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
 							/>
 						</_ContextMenu.SubTrigger>
@@ -190,7 +152,7 @@ function ContextMenuContent() {
 					<_ContextMenu.Item key={id} dir="ltr" asChild>
 						<Button
 							className="tlui-menu__button"
-							data-wd={`menu-item.${id}`}
+							data-testid={`menu-item.${id}`}
 							kbd={kbd}
 							label={labelToUse}
 							disabled={item.disabled}

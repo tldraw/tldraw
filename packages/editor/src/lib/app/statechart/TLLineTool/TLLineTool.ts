@@ -1,4 +1,4 @@
-import { TLShapeType, TLStyleType } from '@tldraw/tlschema'
+import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
 
 import { Idle } from './children/Idle'
@@ -9,7 +9,7 @@ export class TLLineTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	shapeType: TLShapeType = 'line'
+	shapeType = 'line'
 
 	styles = ['color', 'opacity', 'dash', 'size', 'spline'] as TLStyleType[]
 }

@@ -9,15 +9,9 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import {
-	drawShapeMigrations,
-	drawShapeTypeValidator,
-	TLDrawShape,
-	TLDrawShapeSegment,
-} from '@tldraw/tlschema'
+import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { defineShape } from '../../../config/TLShapeDefinition'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -27,12 +21,12 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 
 /** @public */
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
-	static type = 'draw'
+	static override type = 'draw'
 
-	hideResizeHandles = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideRotateHandle = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideSelectionBoundsBg = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideSelectionBoundsFg = (shape: TLDrawShape) => this.getIsDot(shape)
+	hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
+	hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
+	hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
+	hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
 	override defaultProps(): TLDrawShape['props'] {
 		return {
@@ -49,10 +43,6 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	}
 
 	isClosed = (shape: TLDrawShape) => shape.props.isClosed
-
-	private getIsDot(shape: TLDrawShape) {
-		return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
-	}
 
 	getBounds(shape: TLDrawShape) {
 		return Box2d.FromPoints(this.outline(shape))
@@ -143,7 +133,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			sw += rng(shape.id)() * (strokeWidth / 6)
 		}
 
-		const options = getFreehandOptions(shape, sw, showAsComplete, forceSolid)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 		const solidStrokePath =
@@ -207,7 +197,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		}
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getFreehandOptions(shape, sw, showAsComplete, true)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
 			strokePoints.length > 1
@@ -230,7 +220,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			sw += rng(shape.id)() * (strokeWidth / 6)
 		}
 
-		const options = getFreehandOptions(shape, sw, showAsComplete, false)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, false)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
 			strokePoints.length > 1
@@ -310,17 +300,13 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	}
 }
 
-/** @public */
-export const TLDrawShapeDef = defineShape<TLDrawShape, TLDrawUtil>({
-	type: 'draw',
-	getShapeUtil: () => TLDrawUtil,
-	migrations: drawShapeMigrations,
-	validator: drawShapeTypeValidator,
-})
-
 function getDot(point: VecLike, sw: number) {
 	const r = (sw + 1) * 0.5
 	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
 		r * 2
 	},0`
+}
+
+function getIsDot(shape: TLDrawShape) {
+	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }

@@ -1,11 +1,11 @@
 import { BaseRecord } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { TLParentId } from '../records/TLShape'
+import { TLParentId, TLShapeId } from '../records/TLShape'
 import { parentIdValidator, shapeIdValidator } from '../validation'
 
 /** @public */
 export interface TLBaseShape<Type extends string, Props extends object>
-	extends BaseRecord<'shape'> {
+	extends BaseRecord<'shape', TLShapeId> {
 	type: Type
 	x: number
 	y: number

@@ -1,15 +1,13 @@
+import { getIndexAbove, sortByIndex } from '@tldraw/indices'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLHandle, TLLineShape, TLShapeId, TLShapeType, createShapeId } from '@tldraw/tlschema'
+import { TLHandle, TLLineShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
-import { getIndexAbove, sortByIndex } from '../../../../utils/reordering/reordering'
 import { TLEventHandlers, TLInterruptEvent } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { TLLineTool } from '../TLLineTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
-
-	shapeType = '' as TLShapeType
 
 	shape = {} as TLLineShape
 
@@ -19,7 +17,6 @@ export class Pointing extends StateNode {
 		const { inputs } = this.app
 		const { currentPagePoint } = inputs
 
-		this.shapeType = (this.parent as TLLineTool).shapeType
 		this.markPointId = this.app.mark('creating')
 
 		let shapeExists = false
@@ -85,7 +82,7 @@ export class Pointing extends StateNode {
 			this.app.createShapes([
 				{
 					id,
-					type: this.shapeType,
+					type: (this.parent as TLLineTool).shapeType,
 					x: currentPagePoint.x,
 					y: currentPagePoint.y,
 				},

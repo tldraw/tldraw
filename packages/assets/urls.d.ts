@@ -150,7 +150,8 @@ export function getAssetUrlsByMetaUrl(opts?: AssetUrlOptions): {
 		'tool-eraser': string
 		'tool-frame': string
 		'tool-hand': string
-		'tool-highlighter': string
+		'tool-highlight': string
+		'tool-laser': string
 		'tool-line': string
 		'tool-media': string
 		'tool-note': string

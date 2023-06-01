@@ -1,5 +1,6 @@
-import { App, TL_GEO_TYPES, useApp } from '@tldraw/editor'
+import { App, TL_GEO_TYPES, featureFlags, useApp } from '@tldraw/editor'
 import * as React from 'react'
+import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
@@ -45,8 +46,10 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()
 
+	const highlighterEnabled = useValue(featureFlags.highlighterTool)
+
 	const tools = React.useMemo<ToolsContextType>(() => {
-		const tools = makeTools([
+		const toolsArray: ToolItem[] = [
 			{
 				id: 'select',
 				label: 'tool.select',
@@ -178,6 +181,17 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				},
 			},
 			{
+				id: 'laser',
+				label: 'tool.laser',
+				readonlyOk: true,
+				icon: 'tool-laser',
+				kbd: 'k',
+				onSelect(source) {
+					app.setSelectedTool('laser')
+					trackEvent('select-tool', { source, id: 'laser' })
+				},
+			},
+			{
 				id: 'embed',
 				label: 'tool.embed',
 				readonlyOk: false,
@@ -187,14 +201,31 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'embed' })
 				},
 			},
-		])
+		]
+
+		if (highlighterEnabled) {
+			toolsArray.push({
+				id: 'highlight',
+				label: 'tool.highlight',
+				readonlyOk: true,
+				icon: 'tool-highlight',
+				// TODO: pick a better shortcut
+				kbd: '!d',
+				onSelect(source) {
+					app.setSelectedTool('highlight')
+					trackEvent('select-tool', { source, id: 'highlight' })
+				},
+			})
+		}
+
+		const tools = makeTools(toolsArray)
 
 		if (overrides) {
 			return overrides(app, tools, { insertMedia })
 		}
 
 		return tools
-	}, [app, trackEvent, overrides, insertMedia, addDialog])
+	}, [highlighterEnabled, overrides, app, trackEvent, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

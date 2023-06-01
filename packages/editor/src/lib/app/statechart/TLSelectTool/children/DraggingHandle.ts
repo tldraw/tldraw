@@ -1,3 +1,4 @@
+import { sortByIndex } from '@tldraw/indices'
 import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
 import {
 	TLArrowShape,
@@ -7,7 +8,6 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
-import { sortByIndex } from '../../../../utils/reordering/reordering'
 import {
 	TLCancelEvent,
 	TLEventHandlers,

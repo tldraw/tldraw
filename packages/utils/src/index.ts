@@ -20,8 +20,10 @@ export {
 	getOwnProperty,
 	hasOwnProperty,
 	objectMapEntries,
+	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
 } from './lib/object'
 export { rafThrottle, throttledRaf } from './lib/raf'
+export { sortById } from './lib/sort'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

@@ -98,7 +98,7 @@ export const Canvas = track(function Canvas({
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-wd="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
@@ -429,8 +429,8 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	)
 })
 
-const UiLogger = () => {
-	const logMessages = useValue(debugFlags.logMessages)
+const UiLogger = track(() => {
+	const logMessages = debugFlags.logMessages.value
 
 	return (
 		<div className="debug__ui-logger">
@@ -445,4 +445,4 @@ const UiLogger = () => {
 			})}
 		</div>
 	)
-}
+})

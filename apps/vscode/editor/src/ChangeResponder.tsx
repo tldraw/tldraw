@@ -1,4 +1,4 @@
-import { SyncedStore, TLInstanceId, TLUserId, useApp } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { parseAndLoadDocument, serializeTldrawJson } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import { debounce } from '@tldraw/utils'
@@ -9,15 +9,7 @@ import { vscode } from './utils/vscode'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
 
-export const ChangeResponder = ({
-	syncedStore,
-	userId,
-	instanceId,
-}: {
-	syncedStore: SyncedStore
-	userId: TLUserId
-	instanceId: TLInstanceId
-}) => {
+export const ChangeResponder = () => {
 	const app = useApp()
 	const { addToast, clearToasts, msg } = useDefaultHelpers()
 
@@ -46,19 +38,17 @@ export const ChangeResponder = ({
 			clearToasts()
 			window.removeEventListener('message', handleMessage)
 		}
-	}, [app, userId, instanceId, msg, addToast, clearToasts])
+	}, [app, msg, addToast, clearToasts])
 
 	React.useEffect(() => {
 		// When the history changes, send the new file contents to VSCode
 		const handleChange = debounce(async () => {
-			if (syncedStore.store) {
-				vscode.postMessage({
-					type: 'vscode:editor-updated',
-					data: {
-						fileContents: await serializeTldrawJson(syncedStore.store),
-					},
-				})
-			}
+			vscode.postMessage({
+				type: 'vscode:editor-updated',
+				data: {
+					fileContents: await serializeTldrawJson(app.store),
+				},
+			})
 		}, 250)
 
 		vscode.postMessage({
@@ -71,7 +61,7 @@ export const ChangeResponder = ({
 			handleChange()
 			app.off('change-history', handleChange)
 		}
-	}, [app, syncedStore, userId, instanceId])
+	}, [app])
 
 	return null
 }

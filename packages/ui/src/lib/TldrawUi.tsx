@@ -7,6 +7,7 @@ import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawU
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
+import { FollowingIndicator } from './components/FollowingIndicator'
 import { HelpMenu } from './components/HelpMenu'
 import { MenuZone } from './components/MenuZone'
 import { NavigationZone } from './components/NavigationZone/NavigationZone'
@@ -23,6 +24,18 @@ import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
+/** @public */
+export type TldrawUiProps = {
+	children?: ReactNode
+	/** Whether to hide the interface and only display the canvas. */
+	hideUi?: boolean
+	/** A component to use for the share zone (will be deprecated) */
+	shareZone?: ReactNode
+	topZone?: ReactNode
+	/** Additional items to add to the debug menu  (will be deprecated)*/
+	renderDebugMenuItems?: () => React.ReactNode
+} & TldrawUiContextProviderProps
+
 /**
  * @public
  */
@@ -33,14 +46,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 	children,
 	hideUi,
 	...rest
-}: {
-	shareZone?: ReactNode
-	topZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
-	children?: ReactNode
-	/** Whether to hide the interface and only display the canvas. */
-	hideUi?: boolean
-} & TldrawUiContextProviderProps) {
+}: TldrawUiProps) {
 	return (
 		<TldrawUiContextProvider {...rest}>
 			<TldrawUiInner
@@ -67,12 +73,6 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	hideUi,
 	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
-	// const isLoaded = usePreloadIcons()
-
-	// if (!isLoaded) {
-	// 	return <LoadingScreen>Loading assets...</LoadingScreen>
-	// }
-
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.
@@ -94,9 +94,9 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 	const app = useApp()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [])
-	const isFocusMode = useValue('isFocusMode', () => app.instanceState.isFocusMode, [])
-	const isDebugMode = useValue('isDebugMode', () => app.instanceState.isDebugMode, [])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])
+	const isFocusMode = useValue('focus', () => app.instanceState.isFocusMode, [app])
+	const isDebugMode = useValue('debug', () => app.instanceState.isDebugMode, [app])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
@@ -155,6 +155,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 				<Toasts />
 				<Dialogs />
 				<ToastViewport />
+				<FollowingIndicator />
 			</main>
 		</ToastProvider>
 	)

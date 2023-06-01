@@ -144,5 +144,6 @@ async function getExportedImageBlob(app: App, ids: TLShapeId[], format: 'png' | 
 }
 
 async function fallbackWriteTextAsync(getText: () => Promise<string>) {
+	if (!(navigator && navigator.clipboard)) return
 	navigator.clipboard.writeText(await getText())
 }

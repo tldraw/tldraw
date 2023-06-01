@@ -95,6 +95,11 @@ export function objectMapEntries<Key extends string, Value>(object: {
 }): Array<[Key, Value]>;
 
 // @internal
+export function objectMapFromEntries<Key extends string, Value>(entries: ReadonlyArray<readonly [Key, Value]>): {
+    [K in Key]: Value;
+};
+
+// @internal
 export function objectMapKeys<Key extends string>(object: {
     readonly [K in Key]: unknown;
 }): Array<Key>;
@@ -139,6 +144,11 @@ export function rng(seed?: string): () => number;
 
 // @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
+
+// @public (undocumented)
+export function sortById<T extends {
+    id: any;
+}>(a: T, b: T): -1 | 1;
 
 // @public (undocumented)
 const structuredClone_2: <T>(i: T) => T;

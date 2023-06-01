@@ -14,7 +14,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		canvasEl.height = size
 
 		const ctx = canvasEl.getContext('2d')
-		if (!ctx) throw new Error('No canvas')
+		if (!ctx) return
 
 		ctx.fillStyle = darkMode ? '#212529' : '#f8f9fa'
 		ctx.fillRect(0, 0, size, size)
@@ -53,7 +53,9 @@ const canvasBlob = (size: [number, number], fn: (ctx: CanvasRenderingContext2D) 
 	const canvas = document.createElement('canvas')
 	canvas.width = size[0]
 	canvas.height = size[1]
-	fn(canvas.getContext('2d')!)
+	const ctx = canvas.getContext('2d')
+	if (!ctx) return ''
+	fn(ctx)
 	return canvas.toDataURL()
 }
 type PatternDef = { zoom: number; url: string; darkMode: boolean }

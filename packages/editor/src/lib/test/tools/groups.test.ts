@@ -1,3 +1,4 @@
+import { sortByIndex } from '@tldraw/indices'
 import { approximately, Box2d, VecLike } from '@tldraw/primitives'
 import {
 	createCustomShapeId,
@@ -9,18 +10,19 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { TLArrowShapeDef } from '../../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { TLGroupShapeDef, TLGroupUtil } from '../../app/shapeutils/TLGroupUtil/TLGroupUtil'
+import { TLArrowUtil } from '../../app/shapeutils/TLArrowUtil/TLArrowUtil'
+import { TLGroupUtil } from '../../app/shapeutils/TLGroupUtil/TLGroupUtil'
 import { TLArrowTool } from '../../app/statechart/TLArrowTool/TLArrowTool'
 import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
 import { TLEraserTool } from '../../app/statechart/TLEraserTool/TLEraserTool'
 import { TLLineTool } from '../../app/statechart/TLLineTool/TLLineTool'
 import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
-import { sortByIndex } from '../../utils/reordering/reordering'
 import { TestApp } from '../TestApp'
 
-let i = 0
-jest.mock('nanoid', () => ({ nanoid: () => 'id' + i++ }))
+jest.mock('nanoid', () => {
+	let i = 0
+	return { nanoid: () => 'id' + i++ }
+})
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -1671,7 +1673,7 @@ describe('moving handles within a group', () => {
 			target: 'handle',
 			shape: arrow,
 			handle: app
-				.getShapeUtilByDef(TLArrowShapeDef)
+				.getShapeUtil(TLArrowUtil)
 				.handles(arrow)
 				.find((h) => h.id === 'end'),
 		})
@@ -1890,7 +1892,7 @@ describe('Group opacity', () => {
 		app.setProp('opacity', '0.5')
 		app.groupShapes()
 		const group = app.getShapeById(onlySelectedId())!
-		assert(TLGroupShapeDef.is(group))
+		assert(app.isShapeOfType(group, TLGroupUtil))
 		expect(group.props.opacity).toBe('1')
 	})
 })

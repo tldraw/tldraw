@@ -1,4 +1,3 @@
-import { TLUserId } from '@tldraw/tlschema'
 import { track } from 'signia-react'
 import { useApp } from '../hooks/useApp'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -16,7 +15,7 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId }) {
+const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const app = useApp()
 	const { viewportPageBounds, zoomLevel } = app
 
@@ -82,7 +81,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId 
 					scribble={scribble}
 					color={color}
 					zoom={zoomLevel}
-					opacity={0.1}
+					opacity={scribble.color === 'laser' ? 0.5 : 0.1}
 				/>
 			) : null}
 			{CollaboratorShapeIndicator &&

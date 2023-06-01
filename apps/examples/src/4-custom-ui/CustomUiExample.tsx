@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { track } from 'signia-react'
 import './custom-ui.css'
 
-export default function Example() {
+export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor autoFocus>

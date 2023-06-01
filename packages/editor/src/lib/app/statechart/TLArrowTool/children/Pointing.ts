@@ -1,13 +1,11 @@
-import { createShapeId, TLArrowShape, TLShapeType } from '@tldraw/tlschema'
-import { TLArrowShapeDef } from '../../../shapeutils/TLArrowUtil/TLArrowUtil'
+import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
+import { TLArrowUtil } from '../../../shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { TLArrowTool } from '../TLArrowTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
-
-	shapeType = '' as TLShapeType
 
 	shape?: TLArrowShape
 
@@ -33,7 +31,7 @@ export class Pointing extends StateNode {
 
 		this.didTimeout = false
 
-		this.shapeType = (this.parent as TLArrowTool).shapeType
+		const shapeType = (this.parent as TLArrowTool).shapeType
 
 		this.app.mark('creating')
 
@@ -42,14 +40,14 @@ export class Pointing extends StateNode {
 		this.app.createShapes([
 			{
 				id,
-				type: this.shapeType,
+				type: shapeType,
 				x: currentPagePoint.x,
 				y: currentPagePoint.y,
 			},
 		])
 
-		const util = this.app.getShapeUtilByDef(TLArrowShapeDef)
-		const shape = this.app.getShapeById(id) as TLArrowShape
+		const util = this.app.getShapeUtil(TLArrowUtil)
+		const shape = this.app.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
 		const handles = util.handles?.(shape)
@@ -96,7 +94,7 @@ export class Pointing extends StateNode {
 			}
 
 			if (!this.didTimeout) {
-				const util = this.app.getShapeUtilByDef(TLArrowShapeDef)
+				const util = this.app.getShapeUtil(TLArrowUtil)
 				const shape = this.app.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return

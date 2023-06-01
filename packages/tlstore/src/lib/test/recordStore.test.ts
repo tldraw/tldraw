@@ -4,7 +4,7 @@ import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Book extends BaseRecord<'book'> {
+interface Book extends BaseRecord<'book', ID<Book>> {
 	title: string
 	author: ID<Author>
 	numPages: number
@@ -15,7 +15,7 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document',
 })
 
-interface Author extends BaseRecord<'author'> {
+interface Author extends BaseRecord<'author', ID<Author>> {
 	name: string
 	isPseudonym: boolean
 }
@@ -562,5 +562,165 @@ describe('Store', () => {
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(3)
 		expect(listener.mock.calls[2][0].source).toBe('user')
+	})
+})
+
+describe('snapshots', () => {
+	let store: Store<Book | Author>
+
+	beforeEach(() => {
+		store = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		transact(() => {
+			store.put([
+				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
+				Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
+				Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
+				Book.create({
+					title: 'The Hobbit',
+					id: Book.createCustomId('hobbit'),
+					author: Author.createCustomId('tolkein'),
+					numPages: 300,
+				}),
+			])
+			store.put([
+				Book.create({
+					title: 'The Lord of the Rings',
+					id: Book.createCustomId('lotr'),
+					author: Author.createCustomId('tolkein'),
+					numPages: 1000,
+				}),
+			])
+		})
+	})
+
+	it('creates and loads a snapshot', () => {
+		const serializedStore1 = store.serialize()
+		const serializedSchema1 = store.schema.serialize()
+
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		store2.loadSnapshot(snapshot1)
+
+		const serializedStore2 = store2.serialize()
+		const serializedSchema2 = store2.schema.serialize()
+		const snapshot2 = store2.getSnapshot()
+
+		expect(serializedStore1).toEqual(serializedStore2)
+		expect(serializedSchema1).toEqual(serializedSchema2)
+		expect(snapshot1).toEqual(snapshot2)
+	})
+
+	it('throws errors when loading a snapshot with a different schema', () => {
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book>(
+				{
+					book: Book,
+					// no author
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 0,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		expect(() => {
+			// @ts-expect-error
+			store2.loadSnapshot(snapshot1)
+		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: unknown-type"`)
+	})
+
+	it('throws errors when loading a snapshot with a different schema', () => {
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: -1,
+						firstVersion: 0,
+						migrators: {},
+					},
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadSnapshot(snapshot1)
+		}).toThrowErrorMatchingInlineSnapshot(`"Failed to migrate snapshot: target-version-too-old"`)
+	})
+
+	it('migrates the snapshot', () => {
+		const snapshot1 = store.getSnapshot()
+
+		const store2 = new Store({
+			props: {},
+			schema: StoreSchema.create<Book | Author>(
+				{
+					book: Book,
+					author: Author,
+				},
+				{
+					snapshotMigrations: {
+						currentVersion: 1,
+						firstVersion: 0,
+						migrators: {
+							1: {
+								up: (r) => r,
+								down: (r) => r,
+							},
+						},
+					},
+				}
+			),
+		})
+
+		expect(() => {
+			store2.loadSnapshot(snapshot1)
+		}).not.toThrowError()
 	})
 })

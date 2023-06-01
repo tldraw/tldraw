@@ -1,6 +1,5 @@
 export { type TLRecord } from './TLRecord'
 export {
-	USER_COLORS,
 	createIntegrityChecker,
 	onValidationFailure,
 	type TLStore,
@@ -24,52 +23,68 @@ export {
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
-export { createTLSchema } from './createTLSchema'
-export type { CustomShapeTypeInfo } from './createTLSchema'
-export { defaultDerivePresenceState } from './defaultDerivePresenceState'
+export { createPresenceStateDerivation } from './createPresenceStateDerivation'
+export { createTLSchema, type SchemaShapeInfo } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
-	TLAsset,
+	AssetRecordType,
 	assetTypeMigrations,
 	assetTypeValidator,
+	type TLAsset,
 	type TLAssetId,
 	type TLAssetPartial,
 	type TLAssetShape,
 } from './records/TLAsset'
 export {
-	TLCamera,
-	cameraTypeMigrations,
+	CameraRecordType,
 	cameraTypeValidator,
+	type TLCamera,
 	type TLCameraId,
 } from './records/TLCamera'
 export {
+	DocumentRecordType,
 	TLDOCUMENT_ID,
-	TLDocument,
-	documentTypeMigrations,
 	documentTypeValidator,
+	type TLDocument,
 } from './records/TLDocument'
 export {
-	TLInstance,
+	InstanceRecordType,
 	instanceTypeMigrations,
 	instanceTypeValidator,
+	type TLInstance,
 	type TLInstanceId,
 	type TLInstancePropsForNextShape,
 } from './records/TLInstance'
 export {
-	TLInstancePageState,
+	InstancePageStateRecordType,
 	instancePageStateMigrations,
 	instancePageStateTypeValidator,
+	type TLInstancePageState,
 	type TLInstancePageStateId,
 } from './records/TLInstancePageState'
-export { TLInstancePresence } from './records/TLInstancePresence'
-export { TLPage, pageTypeMigrations, pageTypeValidator, type TLPageId } from './records/TLPage'
+export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
+export {
+	PageRecordType,
+	isPageId,
+	pageTypeValidator,
+	type TLPage,
+	type TLPageId,
+} from './records/TLPage'
+export {
+	PointerRecordType,
+	TLPOINTER_ID,
+	pointerTypeValidator,
+	type TLPointer,
+	type TLPointerId,
+} from './records/TLPointer'
 export {
 	createCustomShapeId,
 	createShapeId,
 	isShape,
 	isShapeId,
 	rootShapeTypeMigrations,
+	type TLDefaultShape,
 	type TLNullableShapeProps,
 	type TLParentId,
 	type TLShape,
@@ -77,26 +92,19 @@ export {
 	type TLShapePartial,
 	type TLShapeProp,
 	type TLShapeProps,
-	type TLShapeType,
 	type TLUnknownShape,
 } from './records/TLShape'
-export { TLUser, userTypeMigrations, userTypeValidator, type TLUserId } from './records/TLUser'
 export {
-	TLUserDocument,
+	UserDocumentRecordType,
 	userDocumentTypeMigrations,
 	userDocumentTypeValidator,
+	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
-export {
-	TLUserPresence,
-	userPresenceTypeMigrations,
-	userPresenceTypeValidator,
-	type TLUserPresenceId,
-} from './records/TLUserPresence'
 export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
-	arrowShapeMigrations,
+	arrowShapeTypeMigrations,
 	arrowShapeTypeValidator,
 	arrowTerminalTypeValidator,
 	type TLArrowHeadModel,
@@ -106,14 +114,14 @@ export {
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
 export {
-	bookmarkShapeMigrations,
+	bookmarkShapeTypeMigrations,
 	bookmarkShapeTypeValidator,
 	type TLBookmarkShape,
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
 	TL_DRAW_SHAPE_SEGMENT_TYPE,
-	drawShapeMigrations,
+	drawShapeTypeMigrations,
 	drawShapeTypeValidator,
 	type TLDrawShape,
 	type TLDrawShapeProps,
@@ -121,7 +129,7 @@ export {
 } from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
-	embedShapeMigrations,
+	embedShapeTypeMigrations,
 	embedShapeTypeValidator,
 	tlEmbedShapePermissionDefaults,
 	type EmbedDefinition,
@@ -131,56 +139,62 @@ export {
 	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
 export {
-	frameShapeMigrations,
+	frameShapeTypeMigrations,
 	frameShapeTypeValidator,
 	type TLFrameShape,
 	type TLFrameShapeProps,
 } from './shapes/TLFrameShape'
 export {
-	geoShapeMigrations,
+	geoShapeTypeMigrations,
 	geoShapeTypeValidator,
 	type TLGeoShape,
 	type TLGeoShapeProps,
 } from './shapes/TLGeoShape'
 export {
-	groupShapeMigrations,
+	groupShapeTypeMigrations,
 	groupShapeTypeValidator,
 	type TLGroupShape,
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
-	iconShapeMigrations,
+	highlightShapeTypeMigrations,
+	highlightShapeTypeValidator,
+	type TLHighlightShape,
+	type TLHighlightShapeProps,
+} from './shapes/TLHighlightShape'
+export {
+	iconShapeTypeMigrations,
 	iconShapeTypeValidator,
 	type TLIconShape,
 	type TLIconShapeProps,
 } from './shapes/TLIconShape'
 export {
-	imageShapeMigrations,
+	imageShapeTypeMigrations,
 	imageShapeTypeValidator,
 	type TLImageCrop,
 	type TLImageShape,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
 export {
-	lineShapeMigrations,
+	lineShapeTypeMigrations,
 	lineShapeTypeValidator,
 	type TLLineShape,
 	type TLLineShapeProps,
 } from './shapes/TLLineShape'
 export {
-	noteShapeMigrations,
+	noteShapeTypeMigrations,
 	noteShapeTypeValidator,
 	type TLNoteShape,
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
 export {
-	textShapeMigrations,
+	textShapeTypeMigrations,
 	textShapeTypeValidator,
 	type TLTextShape,
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export {
-	videoShapeMigrations,
+	videoShapeTypeMigrations,
 	videoShapeTypeValidator,
 	type TLVideoShape,
 	type TLVideoShapeProps,
@@ -229,6 +243,7 @@ export {
 	type TLStyleType,
 	type TLVerticalAlignType,
 } from './style-types'
+export { getDefaultTranslationLocale } from './translations'
 export {
 	TL_CURSOR_TYPES,
 	TL_HANDLE_TYPES,
@@ -266,5 +281,4 @@ export {
 	shapeIdValidator,
 	sizeValidator,
 	splineValidator,
-	userIdValidator,
 } from './validation'

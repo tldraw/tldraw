@@ -1,4 +1,13 @@
-import { App, debugFlags, hardResetApp, TLShapePartial, uniqueId, useApp } from '@tldraw/editor'
+import {
+	App,
+	DebugFlag,
+	debugFlags,
+	featureFlags,
+	hardResetApp,
+	TLShapePartial,
+	uniqueId,
+	useApp,
+} from '@tldraw/editor'
 import * as React from 'react'
 import { track, useValue } from 'signia-react'
 import { useDialogs } from '../hooks/useDialogsProvider'
@@ -64,7 +73,7 @@ const ShapeCount = function ShapeCount() {
 	return <div>{count} Shapes</div>
 }
 
-function DebugMenuContent({
+const DebugMenuContent = track(function DebugMenuContent({
 	renderDebugMenuItems,
 }: {
 	renderDebugMenuItems: (() => React.ReactNode) | null
@@ -170,27 +179,104 @@ function DebugMenuContent({
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				<DropdownMenu.Item
-					onClick={() => {
-						debugFlags.peopleMenu.set(!debugFlags.peopleMenu.value)
-						window.location.reload()
+				<Toggle label="Read-only" value={app.isReadOnly} onChange={(r) => app.setReadOnly(r)} />
+				<DebugFlagToggle flag={debugFlags.debugSvg} />
+				<DebugFlagToggle flag={debugFlags.forceSrgb} />
+				<DebugFlagToggle
+					flag={debugFlags.debugCursors}
+					onChange={(enabled) => {
+						if (enabled) {
+							const MAX_COLUMNS = 5
+							const partials = CURSOR_NAMES.map((name, i) => {
+								return {
+									id: app.createShapeId(),
+									type: 'geo',
+									x: (i % MAX_COLUMNS) * 175,
+									y: Math.floor(i / MAX_COLUMNS) * 175,
+									props: {
+										text: name,
+										w: 150,
+										h: 150,
+										fill: 'semi',
+									},
+								}
+							})
+
+							app.createShapes(partials)
+						}
 					}}
-				>
-					<span>Toggle people menu</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onClick={() => {
-						// We need to do this manually because `updateUserDocumentSettings` does not allow toggling `isReadOnly`)
-						app.setReadOnly(!app.isReadOnly)
-					}}
-				>
-					<span>Toggle read-only</span>
-				</DropdownMenu.Item>
+				/>
+			</DropdownMenu.Group>
+			<DropdownMenu.Group>
+				{Object.values(featureFlags).map((flag) => {
+					return <DebugFlagToggle key={flag.name} flag={flag} />
+				})}
 			</DropdownMenu.Group>
 			{renderDebugMenuItems?.()}
 		</>
 	)
+})
+
+function Toggle({
+	label,
+	value,
+	onChange,
+}: {
+	label: string
+	value: boolean
+	onChange: (newValue: boolean) => void
+}) {
+	return (
+		<DropdownMenu.CheckboxItem title={label} checked={value} onSelect={() => onChange(!value)}>
+			{label}
+		</DropdownMenu.CheckboxItem>
+	)
 }
+
+const DebugFlagToggle = track(function DebugFlagToggle({
+	flag,
+	onChange,
+}: {
+	flag: DebugFlag<boolean>
+	onChange?: (newValue: boolean) => void
+}) {
+	return (
+		<Toggle
+			label={flag.name
+				.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+				.replace(/^[a-z]/, (m) => m.toUpperCase())}
+			value={flag.value}
+			onChange={(newValue) => {
+				flag.set(newValue)
+				onChange?.(newValue)
+			}}
+		/>
+	)
+})
+
+const CURSOR_NAMES = [
+	'none',
+	'default',
+	'pointer',
+	'cross',
+	'move',
+	'grab',
+	'grabbing',
+	'text',
+	'resize-edge',
+	'resize-corner',
+	'ew-resize',
+	'ns-resize',
+	'nesw-resize',
+	'nwse-resize',
+	'rotate',
+	'nwse-rotate',
+	'nesw-rotate',
+	'senw-rotate',
+	'swne-rotate',
+	'zoom-in',
+	'zoom-out',
+]
 
 function ExampleDialog({
 	title = 'title',

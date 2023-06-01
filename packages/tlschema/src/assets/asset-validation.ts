@@ -4,7 +4,7 @@ import { TLAssetId } from '../records/TLAsset'
 import { assetIdValidator } from '../validation'
 
 /** @public */
-export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset'> {
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
 	type: Type
 	props: Props
 }

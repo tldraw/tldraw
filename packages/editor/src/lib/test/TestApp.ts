@@ -9,11 +9,10 @@ import {
 } from '@tldraw/primitives'
 import {
 	Box2dModel,
-	TLInstance,
-	TLPage,
+	InstanceRecordType,
+	PageRecordType,
 	TLShapeId,
 	TLShapePartial,
-	TLUser,
 	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
@@ -27,7 +26,10 @@ import {
 	TLWheelEventInfo,
 } from '../app/types/event-types'
 import { RequiredKeys } from '../app/types/misc-types'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { createTLStore } from '../config/createTLStore'
+import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
+import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()
 
@@ -51,17 +53,19 @@ declare global {
 		}
 	}
 }
-export const TEST_INSTANCE_ID = TLInstance.createCustomId('testInstance1')
-export const TEST_USER_ID = TLUser.createCustomId('testUser1')
+export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
 
 export class TestApp extends App {
-	constructor(options = {} as Partial<AppOptions>) {
+	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
 		const elm = document.createElement('div')
+		const { shapes = {}, tools = [] } = options
 		elm.tabIndex = 0
 		super({
-			store: (options.config ?? TldrawEditorConfig.default).createStore({
-				userId: TEST_USER_ID,
+			shapes: { ...defaultShapes, ...shapes },
+			tools: [...defaultTools, ...tools],
+			store: createTLStore({
 				instanceId: TEST_INSTANCE_ID,
+				customShapes: shapes,
 			}),
 			getContainer: () => elm,
 			...options,
@@ -72,17 +76,19 @@ export class TestApp extends App {
 		this.elm.getBoundingClientRect = () => this.bounds as DOMRect
 		document.body.appendChild(this.elm)
 
-		this.textMeasure.measureText = (opts: {
-			text: string
-			fontStyle: string
-			fontWeight: string
-			fontFamily: string
-			fontSize: number
-			lineHeight: number
-			width: string
-			maxWidth: string
-		}): Box2dModel => {
-			const breaks = opts.text.split('\n')
+		this.textMeasure.measureText = (
+			textToMeasure: string,
+			opts: {
+				fontStyle: string
+				fontWeight: string
+				fontFamily: string
+				fontSize: number
+				lineHeight: number
+				width: string
+				maxWidth: string
+			}
+		): Box2dModel => {
+			const breaks = textToMeasure.split('\n')
 			const longest = breaks.reduce((acc, curr) => {
 				return curr.length > acc.length ? curr : acc
 			}, '')
@@ -98,6 +104,16 @@ export class TestApp extends App {
 						? Math.ceil(w % +opts.width.replace('px', '')) + breaks.length
 						: breaks.length) * opts.fontSize,
 			}
+		}
+
+		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
+			const box = this.textMeasure.measureText(textToMeasure, {
+				...opts,
+				width: `${opts.width}px`,
+				padding: `${opts.padding}px`,
+				maxWidth: 'auto',
+			})
+			return [{ box, text: textToMeasure }]
 		}
 	}
 
@@ -175,7 +191,7 @@ export class TestApp extends App {
 		return createCustomShapeId(id)
 	}
 	testPageID(id: string) {
-		return TLPage.createCustomId(id)
+		return PageRecordType.createCustomId(id)
 	}
 
 	expectToBeIn = (path: string) => {
@@ -563,6 +579,12 @@ export class TestApp extends App {
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
 		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
 		return this
+	}
+
+	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
+		const { shapes, ids } = shapesFromJsx(shapesJsx)
+		this.createShapes(shapes)
+		return ids
 	}
 
 	static CreateShapeId(id?: string) {

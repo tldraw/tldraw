@@ -49,7 +49,8 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => app.userDocumentSettings.isDarkMode, [app])
+	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
+	const animationSpeed = useValue('animationSpeed', () => app.animationSpeed, [app])
 	const isGridMode = useValue('isGridMode', () => app.userDocumentSettings.isGridMode, [app])
 	const isSnapMode = useValue('isSnapMode', () => app.userDocumentSettings.isSnapMode, [app])
 	const isToolLock = useValue('isToolLock', () => app.instanceState.isToolLocked, [app])
@@ -97,12 +98,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						'clipboard-actions',
 						menuItem(actions['cut'], { disabled: noneSelected }),
 						menuItem(actions['copy'], { disabled: noneSelected }),
-						{
-							id: 'MENU_PASTE',
-							type: 'custom',
-							disabled: !showMenuPaste,
-							readonlyOk: false,
-						}
+						menuItem(actions['paste'], { disabled: !showMenuPaste })
 					),
 					menuGroup(
 						'conversions',
@@ -176,6 +172,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						menuItem(actions['toggle-grid'], { checked: isGridMode }),
 						menuItem(actions['toggle-dark-mode'], { checked: isDarkMode }),
 						menuItem(actions['toggle-focus-mode'], { checked: isFocusMode }),
+						menuItem(actions['toggle-reduce-motion'], { checked: animationSpeed === 0 }),
 						menuItem(actions['toggle-debug-mode'], { checked: isDebugMode })
 					)
 				),
@@ -211,6 +208,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		noneSelected,
 		canUndo,
 		canRedo,
+		animationSpeed,
 		isDarkMode,
 		isGridMode,
 		isSnapMode,

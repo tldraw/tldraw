@@ -2,6 +2,7 @@ import { watch } from 'fs'
 import path from 'path'
 import * as vscode from 'vscode'
 import { TldrawEditorProvider } from './TldrawEditorProvider'
+import { nicelog } from './utils'
 
 export function activate(context: vscode.ExtensionContext) {
 	try {
@@ -10,8 +11,7 @@ export function activate(context: vscode.ExtensionContext) {
 				__dirname + '/extension.js',
 				{ persistent: false },
 				(eventType, filename) => {
-					// eslint-disable-next-line no-console
-					console.log('reloading[%s]', eventType, filename)
+					nicelog('reloading[%s]', eventType, filename)
 					extensionWatcher.close()
 					vscode.commands.executeCommand('workbench.action.reloadWindow')
 				}
@@ -22,8 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
 				editorpath + '/editor/index.js',
 				{ persistent: false },
 				(eventType, filename) => {
-					// eslint-disable-next-line no-console
-					console.log('reloading[%s]', eventType, filename)
+					nicelog('reloading[%s]', eventType, filename)
 					editorWatcher.close()
 					vscode.commands.executeCommand('workbench.action.reloadWindow')
 				}

@@ -1,11 +1,15 @@
 import { TLArrowShape, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { Computed, RESET_VALUE, computed, isUninitialized } from 'signia'
-import { TLArrowShapeDef } from '../shapeutils/TLArrowUtil/TLArrowUtil'
 
 export type TLArrowBindingsIndex = Record<
 	TLShapeId,
 	undefined | { arrowId: TLShapeId; handleId: 'start' | 'end' }[]
 >
+
+function isArrowType(shape: any): shape is TLArrowShape {
+	return shape.type === 'arrow'
+}
+
 export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsIndex> => {
 	const shapeHistory = store.query.filterHistory('shape')
 	const arrowQuery = store.query.records('shape', () => ({ type: { eq: 'arrow' as const } }))
@@ -79,7 +83,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 
 		for (const changes of diff) {
 			for (const newShape of Object.values(changes.added)) {
-				if (TLArrowShapeDef.is(newShape)) {
+				if (isArrowType(newShape)) {
 					const { start, end } = newShape.props
 					if (start.type === 'binding') {
 						addBinding(start.boundShapeId, newShape.id, 'start')
@@ -91,7 +95,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 			}
 
 			for (const [prev, next] of Object.values(changes.updated) as [TLShape, TLShape][]) {
-				if (!TLArrowShapeDef.is(prev) || !TLArrowShapeDef.is(next)) continue
+				if (!isArrowType(prev) || !isArrowType(next)) continue
 
 				for (const handle of ['start', 'end'] as const) {
 					const prevTerminal = prev.props[handle]
@@ -116,7 +120,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 			}
 
 			for (const prev of Object.values(changes.removed)) {
-				if (TLArrowShapeDef.is(prev)) {
+				if (isArrowType(prev)) {
 					const { start, end } = prev.props
 					if (start.type === 'binding') {
 						removingBinding(start.boundShapeId, prev.id, 'start')

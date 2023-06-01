@@ -3,12 +3,12 @@ import {
 	getValidHttpURLList,
 	isSvgText,
 	isValidHttpURL,
-	TLArrowShapeDef,
-	TLBookmarkShapeDef,
+	TLArrowUtil,
+	TLBookmarkUtil,
 	TLClipboardModel,
-	TLEmbedShapeDef,
-	TLGeoShapeDef,
-	TLTextShapeDef,
+	TLEmbedUtil,
+	TLGeoUtil,
+	TLTextUtil,
 	useApp,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
@@ -479,7 +479,9 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
 const handleNativeOrMenuCopy = (app: App) => {
 	const content = app.getContent()
 	if (!content) {
-		window.navigator.clipboard.writeText('')
+		if (navigator && navigator.clipboard) {
+			navigator.clipboard.writeText('')
+		}
 		return
 	}
 
@@ -491,14 +493,20 @@ const handleNativeOrMenuCopy = (app: App) => {
 		})
 	)
 
-	if (typeof window?.navigator !== 'undefined') {
+	if (typeof navigator === 'undefined') {
+		return
+	} else {
 		// Extract the text from the clipboard
 		const textItems = content.shapes
 			.map((shape) => {
-				if (TLTextShapeDef.is(shape) || TLGeoShapeDef.is(shape) || TLArrowShapeDef.is(shape)) {
+				if (
+					app.isShapeOfType(shape, TLTextUtil) ||
+					app.isShapeOfType(shape, TLGeoUtil) ||
+					app.isShapeOfType(shape, TLArrowUtil)
+				) {
 					return shape.props.text
 				}
-				if (TLBookmarkShapeDef.is(shape) || TLEmbedShapeDef.is(shape)) {
+				if (app.isShapeOfType(shape, TLBookmarkUtil) || app.isShapeOfType(shape, TLEmbedUtil)) {
 					return shape.props.url
 				}
 				return null
@@ -533,33 +541,37 @@ const handleNativeOrMenuCopy = (app: App) => {
 }
 
 /** @public */
-export function useMenuClipboardEvents(source: TLUiEventSource) {
+export function useMenuClipboardEvents() {
 	const app = useApp()
 	const trackEvent = useEvents()
 
 	const copy = useCallback(
-		function onCopy() {
+		function onCopy(source: TLUiEventSource) {
 			if (app.selectedIds.length === 0) return
 
 			handleNativeOrMenuCopy(app)
 			trackEvent('copy', { source })
 		},
-		[app, trackEvent, source]
+		[app, trackEvent]
 	)
 
 	const cut = useCallback(
-		function onCut() {
+		function onCut(source: TLUiEventSource) {
 			if (app.selectedIds.length === 0) return
 
 			handleNativeOrMenuCopy(app)
 			app.deleteShapes()
 			trackEvent('cut', { source })
 		},
-		[app, trackEvent, source]
+		[app, trackEvent]
 	)
 
 	const paste = useCallback(
-		async function onPaste(data: DataTransfer | ClipboardItem[], point?: VecLike) {
+		async function onPaste(
+			data: DataTransfer | ClipboardItem[],
+			source: TLUiEventSource,
+			point?: VecLike
+		) {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
@@ -571,7 +583,7 @@ export function useMenuClipboardEvents(source: TLUiEventSource) {
 			} else {
 				// Read it first and then recurse, kind of weird
 				navigator.clipboard.read().then((clipboardItems) => {
-					paste(clipboardItems, app.inputs.currentPagePoint)
+					paste(clipboardItems, source, point)
 				})
 			}
 		},

@@ -1,6 +1,5 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
-import { Signal } from 'signia'
-import { BaseRecord } from './BaseRecord'
+import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
 import { Store, StoreSnapshot } from './Store'
 import {
@@ -36,7 +35,7 @@ export interface SerializedSchema {
 }
 
 /** @public */
-export type StoreSchemaOptions<R extends BaseRecord, P> = {
+export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
 	snapshotMigrations?: Migrations
 	/** @public */
@@ -49,13 +48,11 @@ export type StoreSchemaOptions<R extends BaseRecord, P> = {
 	}) => R
 	/** @internal */
 	createIntegrityChecker?: (store: Store<R, P>) => void
-	/** @internal */
-	derivePresenceState?: (store: Store<R, P>) => Signal<R | null>
 }
 
 /** @public */
-export class StoreSchema<R extends BaseRecord, P = unknown> {
-	static create<R extends BaseRecord, P = unknown>(
+export class StoreSchema<R extends UnknownRecord, P = unknown> {
+	static create<R extends UnknownRecord, P = unknown>(
 		// HACK: making this param work with RecordType is an enormous pain
 		// let's just settle for making sure each typeName has a corresponding RecordType
 		// and accept that this function won't be able to infer the record type from it's arguments
@@ -152,7 +149,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		const persistedSubTypeVersion =
 			'subTypeVersions' in persistedType
 				? persistedType.subTypeVersions[record[ourType.migrations.subTypeKey as keyof R] as string]
-				: null
+				: undefined
 
 		// if ourSubTypeMigrations is undefined then we don't have access to the migrations for this subtype
 		// that is almost certainly because we are running on the server and this type was supplied by a 3rd party.
@@ -165,7 +162,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		// if the persistedSubTypeVersion is undefined then the record was either created after the schema
 		// was persisted, or it was created in a different place to where the schema was persisted.
 		// either way we don't know what to do with it safely, so let's return failure.
-		if (persistedSubTypeVersion == null) {
+		if (persistedSubTypeVersion === undefined) {
 			return { type: 'error', reason: MigrationFailureReason.IncompatibleSubtype }
 		}
 
@@ -222,7 +219,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		}
 
 		const updated: R[] = []
-		for (const r of Object.values(storeSnapshot)) {
+		for (const r of objectMapValues(storeSnapshot)) {
 			const result = this.migratePersistedRecord(r, persistedSchema)
 			if (result.type === 'error') {
 				return result
@@ -233,7 +230,7 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 		if (updated.length) {
 			storeSnapshot = { ...storeSnapshot }
 			for (const r of updated) {
-				storeSnapshot[r.id] = r
+				storeSnapshot[r.id as IdOf<R>] = r
 			}
 		}
 		return { type: 'success', value: storeSnapshot }
@@ -242,11 +239,6 @@ export class StoreSchema<R extends BaseRecord, P = unknown> {
 	/** @internal */
 	createIntegrityChecker(store: Store<R, P>): (() => void) | undefined {
 		return this.options.createIntegrityChecker?.(store) ?? undefined
-	}
-
-	/** @internal */
-	derivePresenceState(store: Store<R, P>): Signal<R | null> | undefined {
-		return this.options.derivePresenceState?.(store)
 	}
 
 	serialize(): SerializedSchema {

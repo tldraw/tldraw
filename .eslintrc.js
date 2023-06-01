@@ -5,7 +5,7 @@ module.exports = {
 		'plugin:@typescript-eslint/recommended',
 		'plugin:@next/next/core-web-vitals',
 	],
-	ignorePatterns: ['e2e/wdio.*.js'],
+	ignorePatterns: [],
 	plugins: ['@typescript-eslint', 'no-only-tests', 'import', 'local', '@next/next', 'react-hooks'],
 	settings: {
 		next: {
@@ -56,12 +56,6 @@ module.exports = {
 			rules: {
 				'@typescript-eslint/explicit-module-boundary-types': [0],
 				'no-console': ['error', { allow: ['warn', 'error'] }],
-			},
-		},
-		{
-			files: ['apps/fixup/**/*', 'scripts/**/*'],
-			rules: {
-				'no-console': 'off',
 			},
 		},
 		{

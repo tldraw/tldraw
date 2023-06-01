@@ -1,6 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { BaseRecord, ID, OmitMeta } from './BaseRecord'
+import { IdOf, OmitMeta, UnknownRecord } from './BaseRecord'
 import { StoreValidator } from './Store'
 import { Migrations } from './migrate'
 
@@ -24,7 +24,7 @@ export type Scope = 'instance' | 'document' | 'presence'
  * @public
  */
 export class RecordType<
-	R extends BaseRecord,
+	R extends UnknownRecord,
 	RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
 > {
 	readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
@@ -97,8 +97,8 @@ export class RecordType<
 	 * @returns The new ID.
 	 * @public
 	 */
-	createId(): ID<R> {
-		return (this.typeName + ':' + nanoid()) as ID<R>
+	createId(): IdOf<R> {
+		return (this.typeName + ':' + nanoid()) as IdOf<R>
 	}
 
 	/**
@@ -113,8 +113,8 @@ export class RecordType<
 	 * @param id - The ID to base the new ID on.
 	 * @returns The new ID.
 	 */
-	createCustomId(id: string): ID<R> {
-		return (this.typeName + ':' + id) as ID<R>
+	createCustomId(id: string): IdOf<R> {
+		return (this.typeName + ':' + id) as IdOf<R>
 	}
 
 	/**
@@ -123,12 +123,12 @@ export class RecordType<
 	 * @param id - The id
 	 * @returns
 	 */
-	parseId(id: string): ID<R> {
+	parseId(id: string): IdOf<R> {
 		if (!this.isId(id)) {
 			throw new Error(`ID "${id}" is not a valid ID for type "${this.typeName}"`)
 		}
 
-		return id.slice(this.typeName.length + 1) as ID<R>
+		return id.slice(this.typeName.length + 1) as IdOf<R>
 	}
 
 	/**
@@ -143,7 +143,7 @@ export class RecordType<
 	 * @param record - The record to check.
 	 * @returns Whether the record is an instance of this record type.
 	 */
-	isInstance = (record?: BaseRecord): record is R => {
+	isInstance = (record?: UnknownRecord): record is R => {
 		return record?.typeName === this.typeName
 	}
 
@@ -159,7 +159,7 @@ export class RecordType<
 	 * @param id - The id to check.
 	 * @returns Whether the id is an id of this type.
 	 */
-	isId(id?: string): id is ID<R> {
+	isId(id?: string): id is IdOf<R> {
 		if (!id) return false
 		for (let i = 0; i < this.typeName.length; i++) {
 			if (id[i] !== this.typeName[i]) return false
@@ -214,12 +214,11 @@ export class RecordType<
  * @param typeName - The name of the type to create.
  * @public
  */
-export function createRecordType<R extends BaseRecord>(
+export function createRecordType<R extends UnknownRecord>(
 	typeName: R['typeName'],
 	config: {
 		migrations?: Migrations
-		// todo: optional validations
-		validator: StoreValidator<R>
+		validator?: StoreValidator<R>
 		scope: Scope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
@@ -244,10 +243,10 @@ export function createRecordType<R extends BaseRecord>(
  * @param type - The type of the record.
  * @public
  */
-export function assertIdType<R extends BaseRecord>(
+export function assertIdType<R extends UnknownRecord>(
 	id: string | undefined,
 	type: RecordType<R, any>
-): asserts id is ID<R> {
+): asserts id is IdOf<R> {
 	if (!id || !type.isId(id)) {
 		throw new Error(`string ${JSON.stringify(id)} is not a valid ${type.typeName} id`)
 	}

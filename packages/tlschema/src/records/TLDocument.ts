@@ -6,12 +6,11 @@ import { T } from '@tldraw/tlvalidate'
  *
  * @public
  */
-export interface TLDocument extends BaseRecord<'document'> {
+export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
 	gridSize: number
 	name: string
 }
 
-// --- VALIDATION ---
 /** @public */
 export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 	'document',
@@ -50,7 +49,7 @@ export const documentTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export const TLDocument = createRecordType<TLDocument>('document', {
+export const DocumentRecordType = createRecordType<TLDocument>('document', {
 	migrations: documentTypeMigrations,
 	validator: documentTypeValidator,
 	scope: 'document',
@@ -63,4 +62,4 @@ export const TLDocument = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: ID<TLDocument> = TLDocument.createCustomId('document')
+export const TLDOCUMENT_ID: ID<TLDocument> = DocumentRecordType.createCustomId('document')

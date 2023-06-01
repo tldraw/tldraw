@@ -1,4 +1,4 @@
-import { BaseRecord, defineMigrations, ID } from '@tldraw/tlstore'
+import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
@@ -8,6 +8,7 @@ import { TLEmbedShape } from '../shapes/TLEmbedShape'
 import { TLFrameShape } from '../shapes/TLFrameShape'
 import { TLGeoShape } from '../shapes/TLGeoShape'
 import { TLGroupShape } from '../shapes/TLGroupShape'
+import { TLHighlightShape } from '../shapes/TLHighlightShape'
 import { TLIconShape } from '../shapes/TLIconShape'
 import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
@@ -17,15 +18,11 @@ import { TLVideoShape } from '../shapes/TLVideoShape'
 import { SmooshedUnionObject } from '../util-types'
 import { TLPageId } from './TLPage'
 
-/** @public */
-export type TLUnknownShape = TLBaseShape<string, object>
-
 /**
- * TLShape
+ * The default set of shapes that are available in the editor.
  *
- * @public
- */
-export type TLShape =
+ * @public */
+export type TLDefaultShape =
 	| TLArrowShape
 	| TLBookmarkShape
 	| TLDrawShape
@@ -33,16 +30,27 @@ export type TLShape =
 	| TLFrameShape
 	| TLGeoShape
 	| TLGroupShape
-	| TLIconShape
 	| TLImageShape
 	| TLLineShape
 	| TLNoteShape
 	| TLTextShape
 	| TLVideoShape
-	| TLUnknownShape
+	| TLIconShape
+	| TLHighlightShape
 
-/** @public */
-export type TLShapeType = TLShape['type']
+/**
+ * A type for a shape that is available in the editor but whose type is
+ * unknown—either one of the editor's default shapes or else a custom shape.
+ *
+ * @public */
+export type TLUnknownShape = TLBaseShape<string, object>
+
+/**
+ * The set of all shapes that are available in the editor, including unknown shapes.
+ *
+ * @public
+ */
+export type TLShape = TLDefaultShape | TLUnknownShape
 
 /** @public */
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T
@@ -54,7 +62,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
-export type TLShapeId = ID<TLBaseShape<any, any>>
+export type TLShapeId = ID<TLUnknownShape>
 
 /** @public */
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>
@@ -68,21 +76,14 @@ export type TLParentId = TLPageId | TLShapeId
 /** @public */
 export type TLNullableShapeProps = { [K in TLShapeProp]?: TLShapeProps[K] | null }
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddIsLocked: 1,
 } as const
 
 /** @internal */
 export const rootShapeTypeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.AddIsLocked,
-	firstVersion: Versions.Initial,
 	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
 		[Versions.AddIsLocked]: {
 			up: (record) => {
 				return {
@@ -101,7 +102,7 @@ export const rootShapeTypeMigrations = defineMigrations({
 })
 
 /** @public */
-export function isShape(record?: BaseRecord<string>): record is TLShape {
+export function isShape(record?: UnknownRecord): record is TLShape {
 	if (!record) return false
 	return record.typeName === 'shape'
 }

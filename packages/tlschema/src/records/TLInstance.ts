@@ -17,12 +17,10 @@ import {
 	pageIdValidator,
 	sizeValidator,
 	splineValidator,
-	userIdValidator,
 	verticalAlignValidator,
 } from '../validation'
 import { TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
-import { TLUserId } from './TLUser'
 
 /** @public */
 export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
@@ -34,10 +32,9 @@ export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
  *
  * @public
  */
-export interface TLInstance extends BaseRecord<'instance'> {
-	userId: TLUserId
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
-	followingUserId: TLUserId | null
+	followingUserId: string | null
 	brush: Box2dModel | null
 	propsForNextShape: TLInstancePropsForNextShape
 	cursor: TLCursor
@@ -53,16 +50,14 @@ export interface TLInstance extends BaseRecord<'instance'> {
 /** @public */
 export type TLInstanceId = ID<TLInstance>
 
-// --- VALIDATION ---
 /** @public */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
 	T.object({
 		typeName: T.literal('instance'),
 		id: idValidator<TLInstanceId>('instance'),
-		userId: userIdValidator,
 		currentPageId: pageIdValidator,
-		followingUserId: userIdValidator.nullable(),
+		followingUserId: T.string.nullable(),
 		brush: T.boxModel.nullable(),
 		propsForNextShape: T.object({
 			color: colorValidator,
@@ -91,11 +86,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
-	Initial: 0,
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -105,14 +96,15 @@ const Versions = {
 	RemoveAlignJustify: 7,
 	AddZoom: 8,
 	AddVerticalAlign: 9,
+	AddScribbleDelay: 10,
+	RemoveUserId: 11,
 } as const
+
+export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceTypeMigrations = defineMigrations({
-	firstVersion: Versions.Initial,
-	// STEP 2: Update the current version to point to your latest version
-	currentVersion: Versions.AddVerticalAlign,
-	// STEP 3: Add an up+down migration for the new version here
+	currentVersion: Versions.RemoveUserId,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -227,16 +219,39 @@ export const instanceTypeMigrations = defineMigrations({
 				}
 			},
 		},
+		[Versions.AddScribbleDelay]: {
+			up: (instance) => {
+				if (instance.scribble !== null) {
+					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
+				}
+				return { ...instance }
+			},
+			down: (instance) => {
+				if (instance.scribble !== null) {
+					const { delay: _delay, ...rest } = instance.scribble
+					return { ...instance, scribble: rest }
+				}
+				return { ...instance }
+			},
+		},
+		[Versions.RemoveUserId]: {
+			up: ({ userId: _, ...instance }: any) => {
+				return instance
+			},
+			down: (instance: TLInstance) => {
+				return { ...instance, userId: 'user:none' }
+			},
+		},
 	},
 })
 
 /** @public */
-export const TLInstance = createRecordType<TLInstance>('instance', {
+export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 	migrations: instanceTypeMigrations,
 	validator: instanceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(
-	(): Omit<TLInstance, 'typeName' | 'id' | 'userId' | 'currentPageId'> => ({
+	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
 		propsForNextShape: {
 			opacity: '1',

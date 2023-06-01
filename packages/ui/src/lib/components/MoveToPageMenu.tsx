@@ -1,5 +1,5 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { TLPage, TLPageId, useApp, useContainer } from '@tldraw/editor'
+import { PageRecordType, TLPageId, useApp, useContainer } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -19,7 +19,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 				<Button
 					className="tlui-menu__button"
 					label="context-menu.move-to-page"
-					data-wd="menu-item.move-to-page"
+					data-testid="menu-item.move-to-page"
 					icon="chevron-right"
 				/>
 			</_ContextMenu.SubTrigger>
@@ -28,7 +28,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 					<_ContextMenu.Group
 						dir="ltr"
 						className={'tlui-menu__group'}
-						data-wd={`menu-item.pages`}
+						data-testid={`menu-item.pages`}
 						key="pages"
 					>
 						{pages.map((page) => (
@@ -72,14 +72,14 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 					<_ContextMenu.Group
 						dir="ltr"
 						className={'tlui-menu__group'}
-						data-wd={`menu-item.new-page`}
+						data-testid={`menu-item.new-page`}
 						key="new-page"
 					>
 						<_ContextMenu.Item
 							key="new-page"
 							onSelect={() => {
 								app.mark('move_shapes_to_page')
-								const newPageId = TLPage.createId()
+								const newPageId = PageRecordType.createId()
 								const ids = app.selectedIds
 								const oldPageId = app.currentPageId
 								app.batch(() => {

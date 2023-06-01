@@ -1,5 +1,7 @@
 import { clamp, Vec2d } from '@tldraw/primitives'
 import {
+	AssetRecordType,
+	PageRecordType,
 	TLAlignType,
 	TLArrowheadType,
 	TLArrowShape,
@@ -13,7 +15,6 @@ import {
 	TLGeoShape,
 	TLImageShape,
 	TLNoteShape,
-	TLPage,
 	TLPageId,
 	TLShapeId,
 	TLShapePartial,
@@ -24,6 +25,7 @@ import {
 } from '@tldraw/tlschema'
 import { transact } from 'signia'
 import { App } from '../app/App'
+import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { MAX_SHAPES_PER_PAGE } from '../constants'
 
 const TLDRAW_V1_VERSION = 15.5
@@ -55,7 +57,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 		Object.values(document.assets ?? {}).forEach((v1Asset) => {
 			switch (v1Asset.type) {
 				case TDAssetType.Image: {
-					const assetId: TLAssetId = TLAsset.createId()
+					const assetId: TLAssetId = AssetRecordType.createId()
 					v1AssetIdsToV2AssetIds.set(v1Asset.id, assetId)
 					const placeholderAsset: TLAsset = {
 						id: assetId,
@@ -76,7 +78,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 				}
 				case TDAssetType.Video:
 					{
-						const assetId: TLAssetId = TLAsset.createId()
+						const assetId: TLAssetId = AssetRecordType.createId()
 						v1AssetIdsToV2AssetIds.set(v1Asset.id, assetId)
 						app.createAssets([
 							{
@@ -108,7 +110,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 				if (i === 0) {
 					v1PageIdsToV2PageIds.set(v1Page.id, app.currentPageId)
 				} else {
-					const pageId = TLPage.createId()
+					const pageId = PageRecordType.createId()
 					v1PageIdsToV2PageIds.set(v1Page.id, pageId)
 					app.createPage(v1Page.name ?? 'Page', pageId)
 				}
@@ -515,8 +517,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const v2ShapeStale = app.getShapeById<TLArrowShape>(v2ShapeId)!
-					const util = app.getShapeUtil(v2ShapeStale)
+					const util = app.getShapeUtil(TLArrowUtil)
 
 					// dumb but necessary
 					app.inputs.ctrlKey = false
@@ -1075,19 +1076,6 @@ export interface LegacyTldrawDocument {
 }
 
 /* ------------------ Translations ------------------ */
-
-// const v1ShapeTypesToV2ShapeTypes: Record<TDShapeType, TLShapeType> = {
-// 	[TDShapeType.Rectangle]: 'geo',
-// 	[TDShapeType.Ellipse]: 'geo',
-// 	[TDShapeType.Text]: 'text',
-// 	[TDShapeType.Image]: 'image',
-// 	[TDShapeType.Video]: 'video',
-// 	[TDShapeType.Group]: 'group',
-// 	[TDShapeType.Arrow]: 'arrow',
-// 	[TDShapeType.Sticky]: 'note',
-// 	[TDShapeType.Draw]: 'draw',
-// 	[TDShapeType.Triangle]: 'geo',
-// }
 
 const v1ColorsToV2Colors: Record<ColorStyle, TLColorType> = {
 	[ColorStyle.White]: 'black',

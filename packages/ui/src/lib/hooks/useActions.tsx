@@ -5,11 +5,12 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	getEmbedInfo,
 	openWindow,
-	TLBookmarkShapeDef,
-	TLEmbedShapeDef,
+	TLBookmarkUtil,
+	TLEmbedUtil,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	TLTextUtil,
 	useApp,
 } from '@tldraw/editor'
 import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
@@ -63,17 +64,12 @@ function makeActions(actions: ActionItem[]) {
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const app = useApp()
 
-	// const saveFile = useSaveFile()
-	// const saveFileAs = useSaveFileAs()
-	// const newFile = useNewFile()
-	// const openFile = useOpenFile()
-
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts } = useToasts()
 
 	const insertMedia = useInsertMedia()
 	const printSelectionOrPages = usePrint()
-	const { cut, copy } = useMenuClipboardEvents('unknown')
+	const { cut, copy, paste } = useMenuClipboardEvents()
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
 
@@ -211,8 +207,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					app.mark()
 					app.updateShapes(
 						app.selectedShapes
-							.filter((shape) => shape && shape.type === 'text' && shape.props.autoSize === false)
-							.map((shape: TLTextShape) => {
+							.filter(
+								(shape): shape is TLTextShape =>
+									app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+							)
+							.map((shape) => {
 								return {
 									id: shape.id,
 									type: shape.type,
@@ -221,7 +220,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 										w: 8,
 										autoSize: true,
 									},
-								} as TLTextShape
+								}
 							})
 					)
 				},
@@ -239,7 +238,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = app.getShapeById(ids[0])
-					if (!shape || !TLEmbedShapeDef.is(shape)) {
+					if (!shape || !app.isShapeOfType(shape, TLEmbedUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -259,7 +258,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !TLEmbedShapeDef.is(shape) || !shape.props.url) continue
+						if (!shape || !app.isShapeOfType(shape, TLEmbedUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -302,7 +301,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!TLBookmarkShapeDef.is(shape)) continue
+						if (!app.isShapeOfType(shape, TLBookmarkUtil)) continue
 
 						const { url } = shape.props
 
@@ -471,6 +470,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-horizontal',
 				contextMenuLabel: 'action.distribute-horizontal.short',
 				icon: 'distribute-horizontal',
+				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
@@ -483,6 +483,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-vertical',
 				contextMenuLabel: 'action.distribute-vertical.short',
 				icon: 'distribute-vertical',
+				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
@@ -627,9 +628,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$x',
 				readonlyOk: false,
 				onSelect(source) {
-					trackEvent('cut', { source })
 					app.mark('cut')
-					cut()
+					cut(source)
 				},
 			},
 			{
@@ -638,8 +638,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$c',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('copy', { source })
-					copy()
+					copy(source)
 				},
 			},
 			{
@@ -647,9 +646,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.paste',
 				kbd: '$v',
 				readonlyOk: false,
-				onSelect() {
-					// must be inlined with a custom menu item
-					// the kbd listed here should have no effect
+				onSelect(source) {
+					navigator.clipboard?.read().then((clipboardItems) => {
+						paste(
+							clipboardItems,
+							source,
+							source === 'context-menu' ? app.inputs.currentPagePoint : undefined
+						)
+					})
 				},
 			},
 			{
@@ -794,6 +798,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'toggle-reduce-motion',
+				label: 'action.toggle-reduce-motion',
+				menuLabel: 'action.toggle-reduce-motion.menu',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-reduce-motion', { source })
+					app.setAnimationSpeed(app.animationSpeed === 0 ? 1 : 0)
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-transparent',
 				label: 'action.toggle-transparent',
 				menuLabel: 'action.toggle-transparent.menu',
@@ -927,6 +942,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		copyAs,
 		cut,
 		copy,
+		paste,
 		clearDialogs,
 		clearToasts,
 		printSelectionOrPages,

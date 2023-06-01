@@ -48,7 +48,8 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 				menuItem(tools['line']),
 				menuItem(tools['text']),
 				menuItem(tools['frame']),
-				menuItem(tools['note'])
+				menuItem(tools['note']),
+				menuItem(tools['laser'])
 			),
 			menuGroup(
 				'shortcuts-dialog.file',

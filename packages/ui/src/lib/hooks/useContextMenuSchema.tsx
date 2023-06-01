@@ -1,12 +1,12 @@
-import { App, getEmbedInfo, TLBookmarkShapeDef, TLEmbedShapeDef, useApp } from '@tldraw/editor'
+import { App, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useApp } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
+	MenuSchema,
 	compactMenuItems,
 	menuCustom,
 	menuGroup,
 	menuItem,
-	MenuSchema,
 	menuSubmenu,
 	showMenuPaste,
 	useAllowGroup,
@@ -63,7 +63,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && TLEmbedShapeDef.is(shape) && shape.props.url
+				return shape && app.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
 			})
 		},
 		[]
@@ -74,7 +74,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			if (app.selectedIds.length !== 1) return false
 			return app.selectedIds.some((selectedId) => {
 				const shape = app.getShapeById(selectedId)
-				return shape && TLBookmarkShapeDef.is(shape) && getEmbedInfo(shape.props.url)
+				return shape && app.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
 			})
 		},
 		[]
@@ -163,7 +163,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 				'clipboard-group',
 				oneSelected && menuItem(actions['cut']),
 				oneSelected && menuItem(actions['copy']),
-				showMenuPaste && menuCustom('MENU_PASTE', { readonlyOk: false })
+				showMenuPaste && menuItem(actions['paste'])
 			),
 			atLeastOneShapeOnPage &&
 				menuGroup(
