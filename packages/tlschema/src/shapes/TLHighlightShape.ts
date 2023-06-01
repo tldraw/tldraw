@@ -33,18 +33,5 @@ export const highlightShapeTypeValidator: T.Validator<TLHighlightShape> = create
 )
 
 // --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
-const Versions = {
-	Initial: 0,
-} as const
-
 /** @public */
-export const highlightShapeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
-	firstVersion: Versions.Initial,
-	currentVersion: Versions.Initial,
-	migrators: {
-		// STEP 3: Add an up+down migration for the new version here
-	},
-})
+export const highlightShapeMigrations = defineMigrations({})
