@@ -148,6 +148,10 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		)
 	}
 
+	providesBackgroundForChildren(): boolean {
+		return true
+	}
+
 	override canReceiveNewChildrenOfType = (_type: TLShape['type']) => {
 		return true
 	}
