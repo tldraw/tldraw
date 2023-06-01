@@ -376,7 +376,7 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 export const handleTypeValidator: T.Validator<TLHandle>;
 
 // @public (undocumented)
-export const highlightShapeMigrations: Migrations;
+export const highlightShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
 export const highlightShapeTypeValidator: T.Validator<TLHighlightShape>;

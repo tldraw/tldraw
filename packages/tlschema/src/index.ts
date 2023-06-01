@@ -157,7 +157,7 @@ export {
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
-	highlightShapeMigrations,
+	highlightShapeTypeMigrations,
 	highlightShapeTypeValidator,
 	type TLHighlightShape,
 	type TLHighlightShapeProps,

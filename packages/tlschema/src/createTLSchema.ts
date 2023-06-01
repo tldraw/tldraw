@@ -20,7 +20,10 @@ import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEm
 import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
 import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
 import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
-import { highlightShapeMigrations, highlightShapeTypeValidator } from './shapes/TLHighlightShape'
+import {
+	highlightShapeTypeMigrations,
+	highlightShapeTypeValidator,
+} from './shapes/TLHighlightShape'
 import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
 import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
 import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
@@ -60,7 +63,7 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 	},
 
 	highlight: {
-		migrations: highlightShapeMigrations,
+		migrations: highlightShapeTypeMigrations,
 		validator: highlightShapeTypeValidator,
 	},
 }

@@ -13,6 +13,8 @@ import {
 	geoShapeTypeValidator,
 	groupShapeTypeMigrations,
 	groupShapeTypeValidator,
+	highlightShapeTypeMigrations,
+	highlightShapeTypeValidator,
 	imageShapeTypeMigrations,
 	imageShapeTypeValidator,
 	lineShapeTypeMigrations,
@@ -31,6 +33,7 @@ import { TLEmbedUtil } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
 import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
 import { TLGroupUtil } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
+import { TLHighlightUtil } from '../app/shapeutils/TLHighlightUtil/TLHighlightUtil'
 import { TLImageUtil } from '../app/shapeutils/TLImageUtil/TLImageUtil'
 import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
@@ -109,5 +112,10 @@ export const defaultShapes: Record<string, ShapeInfo> = {
 		util: TLArrowUtil,
 		validator: arrowShapeTypeValidator,
 		migrations: arrowShapeTypeMigrations,
+	},
+	highlight: {
+		util: TLHighlightUtil,
+		validator: highlightShapeTypeValidator,
+		migrations: highlightShapeTypeMigrations,
 	},
 }
