@@ -21,8 +21,9 @@ export class Erasing extends StateNode {
 			this.app.shapesArray
 				.filter(
 					(shape) =>
-						(shape.type === 'frame' || shape.type === 'group') &&
-						this.app.isPointInShape(originPagePoint, shape)
+						this.app.isShapeOrAncestorLocked(shape) ||
+						((shape.type === 'group' || shape.type === 'frame') &&
+							this.app.isPointInShape(originPagePoint, shape))
 				)
 				.map((shape) => shape.id)
 		)
@@ -94,10 +95,7 @@ export class Erasing extends StateNode {
 		const erasing = new Set<TLShapeId>(erasingIdsSet)
 
 		for (const shape of shapesArray) {
-			// Skip groups
 			if (shape.type === 'group') continue
-			// Skip locked shapes
-			if (this.app.isShapeOrAncestorLocked(shape)) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
 			const pageMask = this.app.getPageMaskById(shape.id)

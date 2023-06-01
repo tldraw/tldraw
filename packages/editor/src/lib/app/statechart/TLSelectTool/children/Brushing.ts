@@ -24,6 +24,7 @@ export class Brushing extends StateNode {
 
 	brush = new Box2d()
 	initialSelectedIds: TLShapeId[] = []
+	excludedShapeIds = new Set<TLShapeId>()
 
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
@@ -35,6 +36,12 @@ export class Brushing extends StateNode {
 			this.parent.transition('scribble_brushing', info)
 			return
 		}
+
+		this.excludedShapeIds = new Set(
+			this.app.shapesArray
+				.filter((shape) => shape.type === 'group' || this.app.isShapeOrAncestorLocked(shape))
+				.map((shape) => shape.id)
+		)
 
 		this.info = info
 		this.initialSelectedIds = this.app.selectedIds.slice()
@@ -104,15 +111,12 @@ export class Brushing extends StateNode {
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
 
+		const { excludedShapeIds } = this
+
 		testAllShapes: for (let i = 0, n = shapesArray.length; i < n; i++) {
 			shape = shapesArray[i]
-
-			// don't select groups directly, only via their children
-			if (shape.type === 'group') continue testAllShapes
-
+			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
-
-			if (this.app.isShapeOrAncestorLocked(shape)) continue testAllShapes
 
 			pageBounds = this.app.getPageBounds(shape)
 			if (!pageBounds) continue testAllShapes
