@@ -187,12 +187,10 @@ export class WebViewMessageHandler {
 		for (const oldRecord of oldRecords) {
 			const newRecord = newRecords.find((r: any) => r.id === oldRecord.id)
 			if (!newRecord) {
-				// eslint-disable-next-line no-console
 				nicelog('record missing in new doc', oldRecord)
 				continue
 			} else {
 				if (!isEqual(oldRecord, newRecord)) {
-					// eslint-disable-next-line no-console
 					nicelog('record different', oldRecord, newRecord)
 					continue
 				}
@@ -201,12 +199,10 @@ export class WebViewMessageHandler {
 		for (const newRecord of newRecords) {
 			const oldRecord = oldRecords.find((r: any) => r.id === newRecord.id)
 			if (!oldRecord) {
-				// eslint-disable-next-line no-console
 				nicelog('record missing in oldDoc doc', newRecord)
 				continue
 			} else {
 				if (!isEqual(newRecord, oldRecord)) {
-					// eslint-disable-next-line no-console
 					nicelog('record different', newRecord, oldRecord)
 					continue
 				}
