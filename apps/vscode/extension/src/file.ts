@@ -1,6 +1,7 @@
 import { createTLSchema } from '@tldraw/editor'
 import { TldrawFile } from '@tldraw/file-format'
 import * as vscode from 'vscode'
+import { nicelog } from './utils'
 
 export const defaultFileContents: TldrawFile = {
 	tldrawFileFormatVersion: 1,
@@ -29,8 +30,7 @@ export async function fileExists(destination: vscode.Uri) {
 		return true
 	} catch (e: any) {
 		if (e.code !== 'FileNotFound') {
-			// eslint-disable-next-line no-console
-			console.log(e)
+			nicelog(e)
 		}
 		return false
 	}

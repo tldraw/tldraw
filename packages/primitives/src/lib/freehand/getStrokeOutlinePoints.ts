@@ -104,8 +104,6 @@ export function getStrokeOutlinePoints(
 			// Considering saving these and drawing them later? So that we can avoid
 			// crossing future points.
 
-			// console.log(nextDpr)
-
 			if (nextDpr > -0.62 && totalLength - strokePoint.runningLength > strokePoint.radius) {
 				// Draw a "soft" corner
 				const offset = prevVector.clone().mul(strokePoint.radius)
