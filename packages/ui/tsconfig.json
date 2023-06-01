@@ -8,10 +8,5 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [
-		{ "path": "../editor" },
-		{ "path": "../primitives" },
-		{ "path": "../tlsync-client" },
-		{ "path": "../utils" }
-	]
+	"references": [{ "path": "../editor" }, { "path": "../primitives" }, { "path": "../utils" }]
 }

@@ -15,4 +15,7 @@ export default defineConfig({
 	optimizeDeps: {
 		exclude: ['@tldraw/assets'],
 	},
+	define: {
+		'process.env.TLDRAW_ENV': JSON.stringify(process.env.VERCEL_ENV ?? 'development'),
+	},
 })

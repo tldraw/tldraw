@@ -97,7 +97,7 @@ function ContextMenuContent() {
 						className={classNames('tlui-menu__group', {
 							'tlui-menu__group__small': parent?.type === 'submenu',
 						})}
-						data-wd={`menu-item.${item.id}`}
+						data-testid={`menu-item.${item.id}`}
 						key={item.id}
 					>
 						{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
@@ -111,7 +111,7 @@ function ContextMenuContent() {
 							<Button
 								className="tlui-menu__button"
 								label={item.label}
-								data-wd={`menu-item.${item.id}`}
+								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
 							/>
 						</_ContextMenu.SubTrigger>
@@ -165,7 +165,7 @@ function ContextMenuContent() {
 					<_ContextMenu.Item key={id} dir="ltr" asChild>
 						<Button
 							className="tlui-menu__button"
-							data-wd={`menu-item.${id}`}
+							data-testid={`menu-item.${id}`}
 							kbd={kbd}
 							label={labelToUse}
 							disabled={item.disabled}

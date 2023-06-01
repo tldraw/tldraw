@@ -148,8 +148,12 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		)
 	}
 
-	override canReceiveNewChildrenOfType = (_type: TLShape['type'], shape: TLShape) => {
+	override canReceiveNewChildrenOfType = (shape: TLShape, _type: TLShape['type']) => {
 		return !shape.isLocked
+	}
+
+	override providesBackgroundForChildren(): boolean {
+		return true
 	}
 
 	override canDropShapes = (shape: TLFrameShape, _shapes: TLShape[]): boolean => {

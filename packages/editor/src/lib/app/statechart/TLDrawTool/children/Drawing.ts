@@ -3,6 +3,7 @@ import {
 	createShapeId,
 	TLDrawShape,
 	TLDrawShapeSegment,
+	TLHighlightShape,
 	TLSizeType,
 	Vec2dModel,
 } from '@tldraw/tlschema'
@@ -12,16 +13,24 @@ import { uniqueId } from '../../../../utils/data'
 import { TLDrawUtil } from '../../../shapeutils/TLDrawUtil/TLDrawUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
+import { TLHighlightUtil } from '../../../shapeutils/TLHighlightUtil/TLHighlightUtil'
 import { StateNode } from '../../StateNode'
+
+type DrawableShape = TLDrawShape | TLHighlightShape
 
 export class Drawing extends StateNode {
 	static override id = 'drawing'
 
 	info = {} as TLPointerEventInfo
 
-	initialShape?: TLDrawShape
+	initialShape?: DrawableShape
 
-	util = this.app.getShapeUtil(TLDrawUtil)
+	shapeType: 'draw' | 'highlight' = this.parent.id === 'highlight' ? 'highlight' : 'draw'
+
+	util =
+		this.shapeType === 'highlight'
+			? this.app.getShapeUtil(TLHighlightUtil)
+			: this.app.getShapeUtil(TLDrawUtil)
 
 	isPen = false
 
@@ -127,13 +136,20 @@ export class Drawing extends StateNode {
 		this.pagePointWhereCurrentSegmentChanged = this.app.inputs.currentPagePoint.clone()
 	}
 
+	canClose() {
+		return this.shapeType !== 'highlight'
+	}
+
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLSizeType) {
+		if (!this.canClose()) return false
+
 		const strokeWidth = this.app.getStrokeWidth(size)
 		const firstPoint = segments[0].points[0]
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
 
 		return (
+			firstPoint !== lastPoint &&
 			this.currentLineLength > strokeWidth * 4 &&
 			Vec2d.Dist(firstPoint, lastPoint) < strokeWidth * 2
 		)
@@ -157,7 +173,7 @@ export class Drawing extends StateNode {
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.app.getShapeById<TLDrawShape>(this.initialShape.id)
+			const shape = this.app.getShapeById<DrawableShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots
@@ -203,10 +219,10 @@ export class Drawing extends StateNode {
 				this.app.updateShapes([
 					{
 						id: shape.id,
-						type: 'draw',
+						type: this.shapeType,
 						props: {
 							segments,
-							isClosed: this.getIsClosed(segments, shape.props.size),
+							isClosed: this.canClose() ? this.getIsClosed(segments, shape.props.size) : undefined,
 						},
 					},
 				])
@@ -222,7 +238,7 @@ export class Drawing extends StateNode {
 		this.app.createShapes([
 			{
 				id,
-				type: 'draw',
+				type: this.shapeType,
 				x: originPagePoint.x,
 				y: originPagePoint.y,
 				props: {
@@ -244,7 +260,7 @@ export class Drawing extends StateNode {
 		])
 
 		this.currentLineLength = 0
-		this.initialShape = this.app.getShapeById<TLDrawShape>(id)
+		this.initialShape = this.app.getShapeById<DrawableShape>(id)
 	}
 
 	private updateShapes() {
@@ -258,7 +274,7 @@ export class Drawing extends StateNode {
 			props: { size },
 		} = initialShape
 
-		const shape = this.app.getShapeById<TLDrawShape>(id)!
+		const shape = this.app.getShapeById<DrawableShape>(id)!
 
 		if (!shape) return
 
@@ -328,10 +344,10 @@ export class Drawing extends StateNode {
 						[
 							{
 								id,
-								type: 'draw',
+								type: this.shapeType,
 								props: {
 									segments: [...segments, newSegment],
-									isClosed: this.getIsClosed(segments, size),
+									isClosed: this.canClose() ? this.getIsClosed(segments, size) : undefined,
 								},
 							},
 						],
@@ -378,16 +394,17 @@ export class Drawing extends StateNode {
 						],
 					}
 
-					this.currentLineLength = this.getLineLength(segments)
+					const finalSegments = [...newSegments, newFreeSegment]
+					this.currentLineLength = this.getLineLength(finalSegments)
 
 					this.app.updateShapes(
 						[
 							{
 								id,
-								type: 'draw',
+								type: this.shapeType,
 								props: {
-									segments: [...newSegments, newFreeSegment],
-									isClosed: this.getIsClosed(segments, size),
+									segments: finalSegments,
+									isClosed: this.canClose() ? this.getIsClosed(finalSegments, size) : undefined,
 								},
 							},
 						],
@@ -523,10 +540,10 @@ export class Drawing extends StateNode {
 					[
 						{
 							id,
-							type: 'draw',
+							type: this.shapeType,
 							props: {
 								segments: newSegments,
-								isClosed: this.getIsClosed(segments, size),
+								isClosed: this.canClose() ? this.getIsClosed(segments, size) : undefined,
 							},
 						},
 					],
@@ -559,14 +576,16 @@ export class Drawing extends StateNode {
 					points: newPoints,
 				}
 
+				this.currentLineLength = this.getLineLength(newSegments)
+
 				this.app.updateShapes(
 					[
 						{
 							id,
-							type: 'draw',
+							type: this.shapeType,
 							props: {
 								segments: newSegments,
-								isClosed: this.getIsClosed(segments, size),
+								isClosed: this.canClose() ? this.getIsClosed(segments, size) : undefined,
 							},
 						},
 					],
@@ -575,7 +594,7 @@ export class Drawing extends StateNode {
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					this.app.updateShapes([{ id, type: 'draw', props: { isComplete: true } }])
+					this.app.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const { currentPagePoint } = this.app.inputs
 
@@ -584,7 +603,7 @@ export class Drawing extends StateNode {
 					this.app.createShapes([
 						{
 							id: newShapeId,
-							type: 'draw',
+							type: this.shapeType,
 							x: currentPagePoint.x,
 							y: currentPagePoint.y,
 							props: {
@@ -599,7 +618,7 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.app.getShapeById<TLDrawShape>(newShapeId)!)
+					this.initialShape = structuredClone(this.app.getShapeById<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = this.app.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

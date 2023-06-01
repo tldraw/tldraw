@@ -470,6 +470,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-horizontal',
 				contextMenuLabel: 'action.distribute-horizontal.short',
 				icon: 'distribute-horizontal',
+				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
@@ -482,6 +483,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-vertical',
 				contextMenuLabel: 'action.distribute-vertical.short',
 				icon: 'distribute-vertical',
+				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
@@ -792,6 +794,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
 					app.setDarkMode(!app.isDarkMode)
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-reduce-motion',
+				label: 'action.toggle-reduce-motion',
+				menuLabel: 'action.toggle-reduce-motion.menu',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-reduce-motion', { source })
+					app.setAnimationSpeed(app.animationSpeed === 0 ? 1 : 0)
 				},
 				checkbox: true,
 			},

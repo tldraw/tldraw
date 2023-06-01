@@ -1,5 +1,5 @@
 import { EASINGS, PI, SIN, StrokeOptions, Vec2d } from '@tldraw/primitives'
-import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
+import { TLDashType, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 
@@ -36,8 +36,23 @@ const solidSettings = (strokeWidth: number): StrokeOptions => {
 	}
 }
 
+export function getHighlightFreehandSettings(
+	strokeWidth: number,
+	showAsComplete: boolean
+): StrokeOptions {
+	return {
+		size: 1 + strokeWidth,
+		thinning: 0.1,
+		streamline: 0.1, // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+		smoothing: 0.5,
+		simulatePressure: true,
+		easing: EASINGS.easeOutSine,
+		last: showAsComplete,
+	}
+}
+
 export function getFreehandOptions(
-	shape: TLDrawShape,
+	shapeProps: { dash: TLDashType; isPen: boolean; isComplete: boolean },
 	strokeWidth: number,
 	forceComplete: boolean,
 	forceSolid: boolean
@@ -45,12 +60,12 @@ export function getFreehandOptions(
 	return {
 		...(forceSolid
 			? solidSettings(strokeWidth)
-			: shape.props.dash === 'draw'
-			? shape.props.isPen
+			: shapeProps.dash === 'draw'
+			? shapeProps.isPen
 				? realPressureSettings(strokeWidth)
 				: simulatePressureSettings(strokeWidth)
 			: solidSettings(strokeWidth)),
-		last: shape.props.isComplete || forceComplete,
+		last: shapeProps.isComplete || forceComplete,
 	}
 }
 

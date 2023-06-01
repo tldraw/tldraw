@@ -1,16 +1,16 @@
-import { TldrawEditorConfig } from '@tldraw/editor'
+import { createTLSchema } from '@tldraw/editor'
 import { TldrawFile } from '@tldraw/file-format'
 import * as vscode from 'vscode'
 
 export const defaultFileContents: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: new TldrawEditorConfig().storeSchema.serialize(),
+	schema: createTLSchema().serialize(),
 	records: [],
 }
 
 export const fileContentWithErrors: TldrawFile = {
 	tldrawFileFormatVersion: 1,
-	schema: new TldrawEditorConfig().storeSchema.serialize(),
+	schema: createTLSchema().serialize(),
 	records: [{ typeName: 'shape', id: null } as any],
 }
 

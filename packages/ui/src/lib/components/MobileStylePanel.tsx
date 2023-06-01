@@ -39,8 +39,8 @@ export function MobileStylePanel() {
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
 			<PopoverTrigger disabled={disableStylePanel}>
 				<Button
-					className="tlui-toolbar__tools__button tlui-toolbar__styles__button tlui-popover__trigger"
-					data-wd="mobile.styles"
+					className="tlui-toolbar__tools__button tlui-toolbar__styles__button"
+					data-testid="mobile.styles"
 					style={{ color: currentColor ?? 'var(--color-text)' }}
 					title={msg('style-panel.title')}
 				>
