@@ -1,4 +1,4 @@
-import { TLInstanceId, TLRecord, TLStore } from '@tldraw/editor'
+import { TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/tlstore'
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'

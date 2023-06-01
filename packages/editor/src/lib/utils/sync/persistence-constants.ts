@@ -1,4 +1,5 @@
-import { InstanceRecordType, TLInstanceId, uniqueId } from '@tldraw/editor'
+import { InstanceRecordType, TLInstanceId } from '@tldraw/tlschema'
+import { uniqueId } from '../data'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 

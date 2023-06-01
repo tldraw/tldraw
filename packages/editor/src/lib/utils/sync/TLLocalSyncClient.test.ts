@@ -1,12 +1,8 @@
-import {
-	InstanceRecordType,
-	PageRecordType,
-	TldrawEditorConfig,
-	TLInstanceId,
-} from '@tldraw/editor'
+import { InstanceRecordType, PageRecordType, TLInstanceId } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
-import * as idb from './indexedDb'
+import { createTLStore } from '../../config/createTLStore'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
+import * as idb from './indexedDb'
 
 jest.mock('./indexedDb', () => ({
 	...jest.requireActual('./indexedDb'),
@@ -31,7 +27,7 @@ function testClient(
 	instanceId: TLInstanceId = InstanceRecordType.createCustomId('test'),
 	channel = new BroadcastChannelMock('test')
 ) {
-	const store = new TldrawEditorConfig().createStore({
+	const store = createTLStore({
 		instanceId,
 	})
 	const onLoad = jest.fn(() => {

@@ -64,7 +64,7 @@ import {
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
-import { ComputedCache, HistoryEntry, UnknownRecord } from '@tldraw/tlstore'
+import { ComputedCache, HistoryEntry, RecordType, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
 	compact,
@@ -77,7 +77,10 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TldrawEditorConfig } from '../config/TldrawEditorConfig'
+import { ShapeInfo } from '../config/createTLStore'
+import { TLUser, createTLUser } from '../config/createTLUser'
+import { coreShapes, defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -132,7 +135,7 @@ import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
 import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
-import { StateNode } from './statechart/StateNode'
+import { StateNode, StateNodeConstructor } from './statechart/StateNode'
 import { TLClipboardModel } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
@@ -161,8 +164,18 @@ export interface AppOptions {
 	 * from a server or database.
 	 */
 	store: TLStore
-	/** A configuration defining major customizations to the app, such as custom shapes and new tools */
-	config: TldrawEditorConfig
+	/**
+	 * An array of shapes to use in the app. These will be used to create and manage shapes in the app.
+	 */
+	shapes?: Record<string, ShapeInfo>
+	/**
+	 * An array of tools to use in the app. These will be used to handle events and manage user interactions in the app.
+	 */
+	tools?: StateNodeConstructor[]
+	/**
+	 * A user defined externally to replace the default user.
+	 */
+	user?: TLUser
 	/**
 	 * Should return a containing html element which has all the styles applied to the app. If not
 	 * given, the body element will be used.
@@ -177,27 +190,53 @@ export function isShapeWithHandles(shape: TLShape) {
 
 /** @public */
 export class App extends EventEmitter<TLEventMap> {
-	constructor({ config, store, getContainer }: AppOptions) {
+	constructor({
+		store,
+		user,
+		tools = defaultTools,
+		shapes = defaultShapes,
+		getContainer,
+	}: AppOptions) {
 		super()
-
-		this.config = config
-
-		if (store.schema !== this.config.storeSchema) {
-			throw new Error('Store schema does not match schema given to App')
-		}
 
 		this.store = store
 
-		this.user = new UserPreferencesManager(this)
+		this.user = new UserPreferencesManager(user ?? createTLUser())
 
 		this.getContainer = getContainer ?? (() => document.body)
 
 		this.textMeasure = new TextManager(this)
 
-		// Set the shape utils
-		this.shapeUtils = Object.fromEntries(
-			Object.entries(this.config.shapeUtils).map(([type, Util]) => [type, new Util(this, type)])
+		this.root = new RootState(this)
+
+		// Shapes.
+		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
+		const shapeUtils = Object.fromEntries(
+			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
 		)
+
+		for (const [type, { util: Util }] of Object.entries(shapes)) {
+			if (shapeUtils[type]) {
+				throw Error(`May not overwrite core shape of type "${type}".`)
+			}
+			if (type !== Util.type) {
+				throw Error(`Shape util's type "${Util.type}" does not match provided type "${type}".`)
+			}
+			shapeUtils[type] = new Util(this, Util.type)
+		}
+		this.shapeUtils = shapeUtils
+
+		// Tools.
+		// Accept tools from constructor parameters which may not conflict with the root note's default or
+		// "baked in" tools, select and zoom.
+		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
+		for (const [id, Ctor] of Object.entries(uniqueTools)) {
+			if (this.root.children?.[id]) {
+				throw Error(`Can't override tool with id "${id}"`)
+			}
+
+			this.root.children![id] = new Ctor(this)
+		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
@@ -211,13 +250,6 @@ export class App extends EventEmitter<TLEventMap> {
 
 		// Set styles
 		this.colors = new Map(App.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
-
-		this.root = new RootState(this)
-		if (this.root.children) {
-			this.config.tools.forEach((Ctor) => {
-				this.root.children![Ctor.id] = new Ctor(this)
-			})
-		}
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
@@ -309,13 +341,6 @@ export class App extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
-
-	/**
-	 * The editor's config
-	 *
-	 * @public
-	 */
-	readonly config: TldrawEditorConfig
 
 	/**
 	 * The root state of the statechart.
@@ -4699,7 +4724,12 @@ export class App extends EventEmitter<TLEventMap> {
 
 					// When we create the shape, take in the partial (the props coming into the
 					// function) and merge it with the default props.
-					let shapeRecordToCreate = this.config.TLShape.create({
+					let shapeRecordToCreate = (
+						this.store.schema.types.shape as RecordType<
+							TLShape,
+							'type' | 'props' | 'index' | 'parentId'
+						>
+					).create({
 						...partial,
 						index,
 						parentId: partial.parentId ?? focusLayerId,

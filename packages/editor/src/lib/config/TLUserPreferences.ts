@@ -146,6 +146,7 @@ function storeUserPreferences() {
 	}
 }
 
+/** @public */
 export function setUserPreferences(user: TLUserPreferences) {
 	userTypeValidator.validate(user)
 	globalUserPreferences.set(user)

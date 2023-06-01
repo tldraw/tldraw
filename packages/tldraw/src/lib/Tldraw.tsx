@@ -1,38 +1,12 @@
-import { Canvas, TldrawEditor, TldrawEditorConfig, TldrawEditorProps } from '@tldraw/editor'
-import { DEFAULT_DOCUMENT_NAME, TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
-import { ContextMenu, TldrawUi, TldrawUiContextProviderProps } from '@tldraw/ui'
-import { useMemo } from 'react'
+import { Canvas, TldrawEditor, TldrawEditorProps } from '@tldraw/editor'
+import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
 
 /** @public */
-export function Tldraw(
-	props: Omit<TldrawEditorProps, 'store' | 'config'> &
-		TldrawUiContextProviderProps & {
-			/** The key under which to persist this editor's data to local storage. */
-			persistenceKey?: string
-			/** Whether to hide the user interface and only display the canvas. */
-			hideUi?: boolean
-			/** A custom configuration for this Tldraw editor */
-			config?: TldrawEditorProps['config']
-		}
-) {
-	const {
-		config,
-		children,
-		persistenceKey = DEFAULT_DOCUMENT_NAME,
-		instanceId = TAB_ID,
-		...rest
-	} = props
-
-	const _config = useMemo(() => config ?? new TldrawEditorConfig(), [config])
-
-	const syncedStore = useLocalSyncClient({
-		instanceId,
-		config: _config,
-		universalPersistenceKey: persistenceKey,
-	})
+export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
+	const { children, ...rest } = props
 
 	return (
-		<TldrawEditor {...rest} instanceId={instanceId} store={syncedStore} config={_config}>
+		<TldrawEditor {...rest}>
 			<TldrawUi {...rest}>
 				<ContextMenu>
 					<Canvas />

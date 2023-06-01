@@ -29,7 +29,6 @@
 		{ "path": "../../../packages/file-format" },
 		{ "path": "../../../packages/ui" },
 		{ "path": "../../../packages/editor" },
-		{ "path": "../../../packages/tlsync-client" },
 		{ "path": "../../../packages/utils" }
 	]
 }

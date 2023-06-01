@@ -64,7 +64,6 @@
 		"@tldraw/tldraw": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/tlstore": "workspace:*",
-		"@tldraw/tlsync-client": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/ui": "workspace:*",
 		"lazyrepo": "0.0.0-alpha.26",

@@ -24,7 +24,7 @@ export {
 } from './assets/TLVideoAsset'
 export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema } from './createTLSchema'
+export { createTLSchema, type SchemaShapeInfo } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export { type Box2dModel, type Vec2dModel } from './geometry-types'
 export {
@@ -157,7 +157,7 @@ export {
 	type TLGroupShapeProps,
 } from './shapes/TLGroupShape'
 export {
-	highlightShapeMigrations,
+	highlightShapeTypeMigrations,
 	highlightShapeTypeValidator,
 	type TLHighlightShape,
 	type TLHighlightShapeProps,

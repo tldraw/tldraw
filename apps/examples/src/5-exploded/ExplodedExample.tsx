@@ -1,30 +1,11 @@
-import {
-	Canvas,
-	ContextMenu,
-	InstanceRecordType,
-	TldrawEditor,
-	TldrawEditorConfig,
-	TldrawUi,
-	useLocalSyncClient,
-} from '@tldraw/tldraw'
+import { Canvas, ContextMenu, TldrawEditor, TldrawUi } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-const instanceId = InstanceRecordType.createCustomId('example')
-
-// for custom config, see 3-custom-config
-const config = new TldrawEditorConfig()
-
-export default function Example() {
-	const syncedStore = useLocalSyncClient({
-		config,
-		instanceId,
-		universalPersistenceKey: 'exploded-example',
-	})
-
+export default function ExplodedExample() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor instanceId={instanceId} store={syncedStore} config={config} autoFocus>
+			<TldrawEditor autoFocus persistenceKey="exploded-example">
 				<TldrawUi>
 					<ContextMenu>
 						<Canvas />

@@ -24,6 +24,7 @@ export interface TLShapeUtilConstructor<
 	ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>
 > {
 	new (app: App, type: T['type']): ShapeUtil
+	type: T['type']
 }
 
 /** @public */
