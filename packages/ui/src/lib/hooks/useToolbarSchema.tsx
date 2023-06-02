@@ -31,7 +31,7 @@ export const ToolbarSchemaContext = React.createContext([] as ToolbarSchemaConte
 /** @public */
 export type ToolbarSchemaProviderProps = {
 	overrides?: (
-		app: Editor,
+		editor: Editor,
 		schema: ToolbarSchemaContextType,
 		more: { tools: ToolsContextType }
 	) => ToolbarSchemaContextType
@@ -40,7 +40,7 @@ export type ToolbarSchemaProviderProps = {
 
 /** @public */
 export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProviderProps) {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const tools = useTools()
 	const highlighterEnabled = useValue(featureFlags.highlighterTool)
@@ -79,11 +79,11 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 		])
 
 		if (overrides) {
-			return overrides(app, schema, { tools })
+			return overrides(editor, schema, { tools })
 		}
 
 		return schema
-	}, [app, highlighterEnabled, overrides, tools])
+	}, [editor, highlighterEnabled, overrides, tools])
 
 	return (
 		<ToolbarSchemaContext.Provider value={toolbarSchema}>{children}</ToolbarSchemaContext.Provider>

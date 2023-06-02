@@ -1,13 +1,13 @@
 import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 describe(TLDrawTool, () => {
@@ -16,37 +16,37 @@ describe(TLDrawTool, () => {
 
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
-		app.setSelectedTool('draw')
-		app.expectPathToBe('root.draw.idle')
-		app.cancel()
-		app.expectPathToBe('root.select.idle')
+		editor.setSelectedTool('draw')
+		editor.expectPathToBe('root.draw.idle')
+		editor.cancel()
+		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('Enters the drawing state on pointer down', () => {
-		app.setSelectedTool('draw')
-		app.pointerDown(50, 50)
-		app.expectPathToBe('root.draw.drawing')
+		editor.setSelectedTool('draw')
+		editor.pointerDown(50, 50)
+		editor.expectPathToBe('root.draw.drawing')
 	})
 })
 
 describe('When in the drawing state', () => {
 	it('Returns to idle on cancel', () => {
-		app.setSelectedTool('draw')
-		app.pointerDown(50, 50)
-		app.cancel()
-		app.expectPathToBe('root.draw.idle')
+		editor.setSelectedTool('draw')
+		editor.pointerDown(50, 50)
+		editor.cancel()
+		editor.expectPathToBe('root.draw.idle')
 	})
 
 	it('Returns to idle on complete', () => {
-		app.setSelectedTool('draw')
-		app.pointerDown(50, 50)
-		app.pointerUp(50, 50)
-		app.expectPathToBe('root.draw.idle')
+		editor.setSelectedTool('draw')
+		editor.pointerDown(50, 50)
+		editor.pointerUp(50, 50)
+		editor.expectPathToBe('root.draw.idle')
 
-		app.pointerDown(50, 50)
-		app.pointerMove(55, 55)
-		app.pointerMove(60, 60)
-		app.pointerUp(60, 60)
-		app.expectPathToBe('root.draw.idle')
+		editor.pointerDown(50, 50)
+		editor.pointerMove(55, 55)
+		editor.pointerMove(60, 60)
+		editor.pointerUp(60, 60)
+		editor.expectPathToBe('root.draw.idle')
 	})
 })

@@ -2,38 +2,38 @@ import { PageRecordType } from '@tldraw/tlschema'
 import { MAX_PAGES } from '../../constants'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 it('Creates a page', () => {
-	const oldPageId = app.currentPageId
-	const n = app.pages.length
-	app.createPage('Page 1')
-	expect(app.pages.length).toBe(n + 1)
-	const newPageId = app.pages[n].id
-	expect(app.currentPageId).toBe(newPageId)
-	app.undo()
-	expect(app.pages.length).toBe(n)
-	expect(app.currentPageId).toBe(oldPageId)
-	app.redo()
-	expect(app.pages.length).toBe(n + 1)
-	expect(app.currentPageId).toBe(newPageId)
+	const oldPageId = editor.currentPageId
+	const n = editor.pages.length
+	editor.createPage('Page 1')
+	expect(editor.pages.length).toBe(n + 1)
+	const newPageId = editor.pages[n].id
+	expect(editor.currentPageId).toBe(newPageId)
+	editor.undo()
+	expect(editor.pages.length).toBe(n)
+	expect(editor.currentPageId).toBe(oldPageId)
+	editor.redo()
+	expect(editor.pages.length).toBe(n + 1)
+	expect(editor.currentPageId).toBe(newPageId)
 })
 
 it("Doesn't create a page if max pages is reached", () => {
 	for (let i = 0; i < MAX_PAGES + 1; i++) {
-		app.createPage(`Test Page ${i}`)
+		editor.createPage(`Test Page ${i}`)
 	}
-	expect(app.pages.length).toBe(MAX_PAGES)
+	expect(editor.pages.length).toBe(MAX_PAGES)
 })
 
 it('[regression] does not die if every page has the same index', () => {
-	expect(app.pages.length).toBe(1)
-	const page = app.pages[0]
-	app.store.put([
+	expect(editor.pages.length).toBe(1)
+	const page = editor.pages[0]
+	editor.store.put([
 		{
 			...page,
 			id: PageRecordType.createCustomId('2'),
@@ -51,8 +51,8 @@ it('[regression] does not die if every page has the same index', () => {
 		},
 	])
 
-	expect(app.pages.every((p) => p.index === page.index)).toBe(true)
+	expect(editor.pages.every((p) => p.index === page.index)).toBe(true)
 
-	app.createPage('My Special Test Page')
-	expect(app.pages.some((p) => p.name === 'My Special Test Page')).toBe(true)
+	editor.createPage('My Special Test Page')
+	expect(editor.pages.some((p) => p.name === 'My Special Test Page')).toBe(true)
 })

@@ -16,8 +16,8 @@ export const LiveCollaborators = track(function Collaborators() {
 })
 
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
-	const app = useEditor()
-	const { viewportPageBounds, zoomLevel } = app
+	const editor = useEditor()
+	const { viewportPageBounds, zoomLevel } = editor
 
 	const {
 		CollaboratorBrush,
@@ -31,7 +31,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	if (!latestPresence) return null
 
 	// if the collaborator is on another page, ignore them
-	if (latestPresence.currentPageId !== app.currentPageId) return null
+	if (latestPresence.currentPageId !== editor.currentPageId) return null
 
 	const { brush, scribble, selectedIds, userName, cursor, color } = latestPresence
 

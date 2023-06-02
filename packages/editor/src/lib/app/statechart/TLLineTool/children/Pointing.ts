@@ -14,14 +14,14 @@ export class Pointing extends StateNode {
 	markPointId = ''
 
 	onEnter = (info: { shapeId?: TLShapeId }) => {
-		const { inputs } = this.app
+		const { inputs } = this.editor
 		const { currentPagePoint } = inputs
 
-		this.markPointId = this.app.mark('creating')
+		this.markPointId = this.editor.mark('creating')
 
 		let shapeExists = false
 		if (info.shapeId) {
-			const shape = this.app.getShapeById<TLLineShape>(info.shapeId)
+			const shape = this.editor.getShapeById<TLLineShape>(info.shapeId)
 			if (shape) {
 				shapeExists = true
 				this.shape = shape
@@ -30,13 +30,13 @@ export class Pointing extends StateNode {
 
 		// if user is holding shift then we are adding points to an existing line
 		if (inputs.shiftKey && shapeExists) {
-			const handles = this.app.getShapeUtil(this.shape).handles(this.shape)
+			const handles = this.editor.getShapeUtil(this.shape).handles(this.shape)
 
 			const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
 			const endHandle = vertexHandles[vertexHandles.length - 1]
 
 			const shapePagePoint = Matrix2d.applyToPoint(
-				this.app.getParentTransform(this.shape)!,
+				this.editor.getParentTransform(this.shape)!,
 				new Vec2d(this.shape.x, this.shape.y)
 			)
 
@@ -67,7 +67,7 @@ export class Pointing extends StateNode {
 
 			nextHandles[nextEndHandle.id] = nextEndHandle
 
-			this.app.updateShapes([
+			this.editor.updateShapes([
 				{
 					id: this.shape.id,
 					type: this.shape.type,
@@ -79,7 +79,7 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			this.app.createShapes([
+			this.editor.createShapes([
 				{
 					id,
 					type: (this.parent as TLLineTool).shapeType,
@@ -88,23 +88,23 @@ export class Pointing extends StateNode {
 				},
 			])
 
-			this.app.select(id)
-			this.shape = this.app.getShapeById(id)!
+			this.editor.select(id)
+			this.shape = this.editor.getShapeById(id)!
 		}
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (!this.shape) return
 
-		if (this.app.inputs.isDragging) {
-			const util = this.app.getShapeUtil(this.shape)
+		if (this.editor.inputs.isDragging) {
+			const util = this.editor.getShapeUtil(this.shape)
 			const handles = util.handles?.(this.shape)
 			if (!handles) {
-				this.app.bailToMark('creating')
+				this.editor.bailToMark('creating')
 				throw Error('No handles found')
 			}
 
-			this.app.setSelectedTool('select.dragging_handle', {
+			this.editor.setSelectedTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
 				handle: last(handles)!,
@@ -127,18 +127,18 @@ export class Pointing extends StateNode {
 
 	override onInterrupt: TLInterruptEvent = () => {
 		this.parent.transition('idle', {})
-		this.app.bailToMark('creating')
-		this.app.snaps.clear()
+		this.editor.bailToMark('creating')
+		this.editor.snaps.clear()
 	}
 
 	complete() {
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 	}
 
 	cancel() {
-		this.app.bailToMark(this.markPointId)
+		this.editor.bailToMark(this.markPointId)
 		this.parent.transition('idle', { shapeId: this.shape.id })
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 	}
 }

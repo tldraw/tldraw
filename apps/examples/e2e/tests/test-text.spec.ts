@@ -53,7 +53,7 @@ function formatLines(spans: { box: Box2dModel; text: string }[]) {
 	return lines
 }
 
-declare const app: Editor
+declare const editor: Editor
 let page: Page
 
 test.describe('text measurement', () => {
@@ -64,7 +64,7 @@ test.describe('text measurement', () => {
 
 	test('measures text', async () => {
 		const { w, h } = await page.evaluate<{ w: number; h: number }, typeof measureTextOptions>(
-			async (options) => app.textMeasure.measureText('testing', options),
+			async (options) => editor.textMeasure.measureText('testing', options),
 			measureTextOptions
 		)
 
@@ -89,7 +89,7 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('testing', options),
+			async (options) => editor.textMeasure.measureTextSpans('testing', options),
 			measureTextSpansOptions
 		)
 
@@ -101,7 +101,7 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('testing', { ...options, width: 50 }),
+			async (options) => editor.textMeasure.measureTextSpans('testing', { ...options, width: 50 }),
 			measureTextSpansOptions
 		)
 
@@ -113,7 +113,7 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('testing   testing', options),
+			async (options) => editor.textMeasure.measureTextSpans('testing   testing', options),
 			measureTextSpansOptions
 		)
 
@@ -125,7 +125,7 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('testing testing   ', options),
+			async (options) => editor.textMeasure.measureTextSpans('testing testing   ', options),
 			measureTextSpansOptions
 		)
 
@@ -141,7 +141,7 @@ test.describe('text measurement', () => {
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
-				app.textMeasure.measureTextSpans('testing testing   ', { ...options, width: 200 }),
+				editor.textMeasure.measureTextSpans('testing testing   ', { ...options, width: 200 }),
 			measureTextSpansOptions
 		)
 
@@ -154,7 +154,7 @@ test.describe('text measurement', () => {
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
-				app.textMeasure.measureTextSpans('  testing testing', { ...options, width: 200 }),
+				editor.textMeasure.measureTextSpans('  testing testing', { ...options, width: 200 }),
 			measureTextSpansOptions
 		)
 
@@ -166,7 +166,7 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('  testing testing', options),
+			async (options) => editor.textMeasure.measureTextSpans('  testing testing', options),
 			measureTextSpansOptions
 		)
 
@@ -178,7 +178,8 @@ test.describe('text measurement', () => {
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
 		>(
-			async (options) => app.textMeasure.measureTextSpans('   test\ning testing   \n  t', options),
+			async (options) =>
+				editor.textMeasure.measureTextSpans('   test\ning testing   \n  t', options),
 			measureTextSpansOptions
 		)
 
@@ -196,7 +197,7 @@ test.describe('text measurement', () => {
 			typeof measureTextSpansOptions
 		>(
 			async (options) =>
-				app.textMeasure.measureTextSpans('testingtestingtestingtestingtestingtesting', options),
+				editor.textMeasure.measureTextSpans('testingtestingtestingtestingtestingtesting', options),
 			measureTextSpansOptions
 		)
 
@@ -214,7 +215,7 @@ test.describe('text measurement', () => {
 		const spans = await page.evaluate<
 			{ text: string; box: Box2dModel }[],
 			typeof measureTextSpansOptions
-		>(async (options) => app.textMeasure.measureTextSpans('', options), measureTextSpansOptions)
+		>(async (options) => editor.textMeasure.measureTextSpans('', options), measureTextSpansOptions)
 
 		expect(formatLines(spans)).toEqual([])
 	})

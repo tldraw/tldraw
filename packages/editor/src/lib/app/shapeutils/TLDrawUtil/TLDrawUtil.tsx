@@ -58,8 +58,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
-		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const zoomLevel = this.editor.zoomLevel
+		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
@@ -87,8 +87,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		const outline = this.outline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			const zoomLevel = this.app.zoomLevel
-			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			const zoomLevel = this.editor.zoomLevel
+			const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 
 			if (
 				shape.props.segments[0].points.some(
@@ -118,7 +118,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	render(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -183,7 +183,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	indicator(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = strokeWidth
@@ -210,7 +210,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors) {
 		const { color } = shape.props
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -296,7 +296,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (this.app.getStrokeWidth(shape.props.size) * multiplier) / 2
+		return (this.editor.getStrokeWidth(shape.props.size) * multiplier) / 2
 	}
 }
 

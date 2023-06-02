@@ -3,7 +3,7 @@ import { TestEditor } from '../TestEditor'
 
 jest.useFakeTimers()
 
-let app: TestEditor
+let editor: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -13,14 +13,14 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 describe('distributeShapes command', () => {
 	beforeEach(() => {
-		app.selectAll()
-		app.deleteShapes()
-		app.createShapes([
+		editor.selectAll()
+		editor.deleteShapes()
+		editor.createShapes([
 			{
 				id: ids.boxA,
 				type: 'geo',
@@ -50,10 +50,10 @@ describe('distributeShapes command', () => {
 
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
-			app.setSelectedIds([ids.boxA, ids.boxB])
+			editor.setSelectedIds([ids.boxA, ids.boxB])
 			const fn = jest.fn()
-			app.on('change-history', fn)
-			app.stackShapes('horizontal')
+			editor.on('change-history', fn)
+			editor.stackShapes('horizontal')
 			jest.advanceTimersByTime(1000)
 			expect(fn).not.toHaveBeenCalled()
 		})
@@ -61,26 +61,26 @@ describe('distributeShapes command', () => {
 
 	describe('when stacking horizontally', () => {
 		it('stacks the shapes based on a given value', () => {
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('horizontal', app.selectedIds, 10)
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('horizontal', editor.selectedIds, 10)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 110,
 				y: 100,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 220,
 				y: 400,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 330,
 				y: 700,
@@ -88,26 +88,26 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the most common gap', () => {
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('horizontal')
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('horizontal')
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 300,
 				y: 100,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 600,
 				y: 400,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 900,
 				y: 700,
@@ -115,26 +115,26 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the average', () => {
-			app.updateShapes([{ id: ids.boxD, type: 'geo', x: 540, y: 700 }])
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('horizontal')
+			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 540, y: 700 }])
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('horizontal')
 			jest.advanceTimersByTime(1000)
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 180,
 				y: 100,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 360,
 				y: 400,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 540,
 				y: 700,
@@ -144,26 +144,26 @@ describe('distributeShapes command', () => {
 
 	describe('when stacking vertically', () => {
 		it('stacks the shapes based on a given value', () => {
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('vertical', app.selectedIds, 10)
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('vertical', editor.selectedIds, 10)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 100,
 				y: 110,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 400,
 				y: 220,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 700,
 				y: 330,
@@ -171,26 +171,26 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the most common gap', () => {
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('vertical')
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('vertical')
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 100,
 				y: 300,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 400,
 				y: 600,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 700,
 				y: 900,
@@ -198,26 +198,26 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the average', () => {
-			app.updateShapes([{ id: ids.boxD, type: 'geo', x: 700, y: 540 }])
-			app.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
-			app.stackShapes('vertical')
+			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 700, y: 540 }])
+			editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.stackShapes('vertical')
 			jest.advanceTimersByTime(1000)
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxA,
 				x: 0,
 				y: 0,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxB,
 				x: 100,
 				y: 180,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxC,
 				x: 400,
 				y: 360,
 			})
-			app.expectShapeToMatch({
+			editor.expectShapeToMatch({
 				id: ids.boxD,
 				x: 700,
 				y: 540,

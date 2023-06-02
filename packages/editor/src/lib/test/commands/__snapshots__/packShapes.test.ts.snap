@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`app.packShapes packs rotated shapes: packed shapes 1`] = `
+exports[`editor.packShapes packs rotated shapes: packed shapes 1`] = `
 Array [
   Object {
     "id": "shape:boxA",
@@ -89,7 +89,7 @@ Array [
 ]
 `;
 
-exports[`app.packShapes packs shapes: packed shapes 1`] = `
+exports[`editor.packShapes packs shapes: packed shapes 1`] = `
 Array [
   Object {
     "id": "shape:boxA",

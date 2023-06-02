@@ -11,7 +11,7 @@ import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const assetUrls = useAssetUrls()
 
@@ -105,7 +105,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) 
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
-								createEmbedShapeAtPoint(app, url, app.viewportPageCenter, {
+								createEmbedShapeAtPoint(editor, url, editor.viewportPageCenter, {
 									width: embedInfoForUrl.definition.width,
 									height: embedInfoForUrl.definition.height,
 									doesResize: embedInfoForUrl.definition.doesResize,

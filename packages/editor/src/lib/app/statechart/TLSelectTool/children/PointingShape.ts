@@ -12,41 +12,41 @@ export class PointingShape extends StateNode {
 
 	onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
 		this.eventTargetShape = info.shape
-		this.selectingShape = this.app.getOutermostSelectableShape(info.shape)
+		this.selectingShape = this.editor.getOutermostSelectableShape(info.shape)
 
-		const util = this.app.getShapeUtil(info.shape)
+		const util = this.editor.getShapeUtil(info.shape)
 
-		if (util.onClick || this.selectingShape.id === this.app.focusLayerId) {
+		if (util.onClick || this.selectingShape.id === this.editor.focusLayerId) {
 			this.didSelectOnEnter = false
 			return
 		}
 
-		const isSelected = this.app.isWithinSelection(this.selectingShape.id)
+		const isSelected = this.editor.isWithinSelection(this.selectingShape.id)
 
 		const isBehindSelectionBounds =
-			this.app.selectedIds.length > 1 && // only on 2+ selected shapes!
-			this.app.selectionBounds?.containsPoint(this.app.inputs.currentPagePoint)
+			this.editor.selectedIds.length > 1 && // only on 2+ selected shapes!
+			this.editor.selectionBounds?.containsPoint(this.editor.inputs.currentPagePoint)
 
 		this.didSelectOnEnter =
-			!isSelected && this.selectingShape.id !== this.app.focusLayerId && !isBehindSelectionBounds
+			!isSelected && this.selectingShape.id !== this.editor.focusLayerId && !isBehindSelectionBounds
 
 		if (this.didSelectOnEnter) {
-			const { inputs, selectedIds } = this.app
+			const { inputs, selectedIds } = this.editor
 
-			const parent = this.app.getParentShape(info.shape)
+			const parent = this.editor.getParentShape(info.shape)
 
 			if (parent && parent.type === 'group') {
-				this.app.cancelDoubleClick()
+				this.editor.cancelDoubleClick()
 			}
 
 			if (inputs.shiftKey && !inputs.altKey) {
 				if (!selectedIds.includes(this.selectingShape.id)) {
-					this.app.mark('shift selecting shape')
-					this.app.setSelectedIds([...selectedIds, this.selectingShape.id])
+					this.editor.mark('shift selecting shape')
+					this.editor.setSelectedIds([...selectedIds, this.selectingShape.id])
 				}
 			} else {
-				this.app.mark('selecting shape')
-				this.app.setSelectedIds([this.selectingShape.id])
+				this.editor.mark('selecting shape')
+				this.editor.setSelectedIds([this.selectingShape.id])
 			}
 		}
 	}
@@ -55,55 +55,55 @@ export class PointingShape extends StateNode {
 		const { shape } = info
 
 		if (shape) {
-			const util = this.app.getShapeUtil(shape)
+			const util = this.editor.getShapeUtil(shape)
 			if (util.onClick) {
 				const change = util.onClick?.(shape)
 				if (change) {
-					this.app.updateShapes([change])
+					this.editor.updateShapes([change])
 					this.parent.transition('idle', info)
 					return
 				}
 			}
 		}
 
-		if (!this.didSelectOnEnter && this.selectingShape.id !== this.app.focusLayerId) {
-			this.app.mark('selecting shape (pointer up)')
+		if (!this.didSelectOnEnter && this.selectingShape.id !== this.editor.focusLayerId) {
+			this.editor.mark('selecting shape (pointer up)')
 			// if the shape has an ancestor which is a focusable layer and it is not focused but it is selected
 			// then we should focus the layer and select the shape
 
-			const targetShape = this.app.getOutermostSelectableShape(
+			const targetShape = this.editor.getOutermostSelectableShape(
 				this.eventTargetShape,
 				// if a group is selected, we want to stop before reaching that group
 				// so we can drill down into the group
-				(parent) => !this.app.isSelected(parent.id)
+				(parent) => !this.editor.isSelected(parent.id)
 			)
 
-			if (this.app.selectedIds.includes(targetShape.id)) {
+			if (this.editor.selectedIds.includes(targetShape.id)) {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
-				this.app.setSelectedIds(
-					this.app.inputs.shiftKey
-						? this.app.selectedIds.filter((id) => id !== this.selectingShape.id)
+				this.editor.setSelectedIds(
+					this.editor.inputs.shiftKey
+						? this.editor.selectedIds.filter((id) => id !== this.selectingShape.id)
 						: [this.selectingShape.id]
 				)
-			} else if (this.app.inputs.shiftKey) {
+			} else if (this.editor.inputs.shiftKey) {
 				// Different shape, so we are drilling down into a group with shift key held.
 				// Deselect any ancestors and add the target shape to the selection
-				const ancestors = this.app.getAncestors(targetShape)
+				const ancestors = this.editor.getAncestors(targetShape)
 
-				this.app.setSelectedIds([
-					...this.app.selectedIds.filter((id) => !ancestors.find((a) => a.id === id)),
+				this.editor.setSelectedIds([
+					...this.editor.selectedIds.filter((id) => !ancestors.find((a) => a.id === id)),
 					targetShape.id,
 				])
 			} else {
 				// different shape and we are drilling down, but no shift held so just select it straight up
-				this.app.setSelectedIds([targetShape.id])
+				this.editor.setSelectedIds([targetShape.id])
 			}
-		} else if (this.selectingShape.id === this.app.focusLayerId) {
+		} else if (this.selectingShape.id === this.editor.focusLayerId) {
 			// clicking the 'background' of a focused group should deselect. equivalent to a click on the canvas
-			if (this.app.selectedIds.length > 0) {
-				this.app.setSelectedIds([])
+			if (this.editor.selectedIds.length > 0) {
+				this.editor.setSelectedIds([])
 			} else {
-				this.app.popFocusLayer()
+				this.editor.popFocusLayer()
 			}
 		}
 
@@ -111,8 +111,8 @@ export class PointingShape extends StateNode {
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
-			if (this.app.isReadOnly) return
+		if (this.editor.inputs.isDragging) {
+			if (this.editor.isReadOnly) return
 			this.parent.transition('translating', info)
 		}
 	}

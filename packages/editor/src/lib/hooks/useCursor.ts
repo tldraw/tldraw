@@ -72,16 +72,16 @@ export function getCursor(cursor: TLCursorType, rotation = 0, color = 'black') {
 }
 
 export function useCursor() {
-	const app = useEditor()
+	const editor = useEditor()
 	const container = useContainer()
 
 	useQuickReactor(
 		'useCursor',
 		() => {
-			const { type, rotation, color } = app.cursor
+			const { type, rotation, color } = editor.cursor
 			container.style.setProperty('--tl-cursor', getCursor(type, rotation, color))
 		},
-		[app, container]
+		[editor, container]
 	)
 
 	useQuickReactor(
@@ -91,6 +91,6 @@ export function useCursor() {
 				container.style.setProperty(`--tl-cursor-${key}`, getCursor(key))
 			}
 		},
-		[app, container]
+		[editor, container]
 	)
 }

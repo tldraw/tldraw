@@ -9,13 +9,13 @@ import { useEditor } from './useEditor'
  * @internal
  */
 export function usePresence(userId: string): TLInstancePresence | null {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const $presences = useMemo(() => {
-		return app.store.query.records('instance_presence', () => ({
+		return editor.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
-	}, [app, userId])
+	}, [editor, userId])
 
 	const latestPresence = useValue(
 		`latestPresence:${userId}`,

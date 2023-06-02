@@ -4,9 +4,9 @@ import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export const ExitPenMode = track(function ExitPenMode() {
-	const app = useEditor()
+	const editor = useEditor()
 
-	const isPenMode = app.isPenMode
+	const isPenMode = editor.isPenMode
 
 	const actions = useActions()
 

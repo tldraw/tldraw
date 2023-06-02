@@ -45,8 +45,8 @@ export class TLSelectTool extends StateNode {
 	styles = ['color', 'opacity', 'dash', 'fill', 'size'] as TLStyleType[]
 
 	onExit = () => {
-		if (this.app.pageState.editingId) {
-			this.app.setEditingId(null)
+		if (this.editor.pageState.editingId) {
+			this.editor.setEditingId(null)
 		}
 	}
 }

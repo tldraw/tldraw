@@ -27,7 +27,7 @@ export const ContextMenuSchemaContext = React.createContext({} as ContextMenuSch
 /** @public */
 export type ContextMenuSchemaProviderProps = {
 	overrides?: (
-		app: Editor,
+		editor: Editor,
 		schema: ContextMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
@@ -47,23 +47,23 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	overrides,
 	children,
 }: ContextMenuSchemaProviderProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const actions = useActions()
 
 	const showAutoSizeToggle = useShowAutoSizeToggle()
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',
 		() => {
-			if (app.selectedIds.length !== 1) return false
-			return app.selectedIds.some((selectedId) => {
-				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
+			if (editor.selectedIds.length !== 1) return false
+			return editor.selectedIds.some((selectedId) => {
+				const shape = editor.getShapeById(selectedId)
+				return shape && editor.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
 			})
 		},
 		[]
@@ -71,10 +71,10 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
 		() => {
-			if (app.selectedIds.length !== 1) return false
-			return app.selectedIds.some((selectedId) => {
-				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
+			if (editor.selectedIds.length !== 1) return false
+			return editor.selectedIds.some((selectedId) => {
+				const shape = editor.getShapeById(selectedId)
+				return shape && editor.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
 			})
 		},
 		[]
@@ -83,14 +83,22 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const twoSelected = selectedCount > 1
 	const threeSelected = selectedCount > 2
 	const threeStackableItems = useThreeStackableItems()
-	const atLeastOneShapeOnPage = useValue('atLeastOneShapeOnPage', () => app.shapeIds.size > 0, [])
-	const isTransparentBg = useValue('isTransparentBg', () => app.instanceState.exportBackground, [])
+	const atLeastOneShapeOnPage = useValue(
+		'atLeastOneShapeOnPage',
+		() => editor.shapeIds.size > 0,
+		[]
+	)
+	const isTransparentBg = useValue(
+		'isTransparentBg',
+		() => editor.instanceState.exportBackground,
+		[]
+	)
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
-	const { onlySelectedShape } = app
-	const isShapeLocked = onlySelectedShape && app.isShapeOrAncestorLocked(onlySelectedShape)
+	const { onlySelectedShape } = editor
+	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextMenuSchema = useMemo<MenuSchema>(() => {
 		let contextMenuSchema: ContextMenuSchemaContextType = compactMenuItems([
@@ -212,7 +220,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 		])
 
 		if (overrides) {
-			contextMenuSchema = overrides(app, contextMenuSchema, {
+			contextMenuSchema = overrides(editor, contextMenuSchema, {
 				actions,
 				oneSelected,
 				twoSelected,
@@ -225,7 +233,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 
 		return contextMenuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		actions,
 		oneSelected,

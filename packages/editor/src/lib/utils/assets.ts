@@ -253,7 +253,7 @@ export function containBoxSize(
 
 /** @public */
 export async function createShapesFromFiles(
-	app: Editor,
+	editor: Editor,
 	files: File[],
 	position: VecLike,
 	_ignoreParent = false
@@ -276,7 +276,7 @@ export async function createShapesFromFiles(
 			}
 
 			try {
-				const asset = await app.onCreateAssetFromFile(file)
+				const asset = await editor.onCreateAssetFromFile(file)
 
 				if (asset.type === 'bookmark') return
 
@@ -334,7 +334,7 @@ export async function createShapesFromFiles(
 			if (!asset) return
 
 			// Does the asset collection already have a model with this id
-			let existing: TLAsset | undefined = app.getAssetById(asset.id)
+			let existing: TLAsset | undefined = editor.getAssetById(asset.id)
 
 			if (existing) {
 				newAssetsForFiles.delete(file)
@@ -346,7 +346,7 @@ export async function createShapesFromFiles(
 				return shape
 			}
 
-			existing = app.getAssetBySrc(asset.props!.src!)
+			existing = editor.getAssetBySrc(asset.props!.src!)
 
 			if (existing) {
 				if (shape.props) {
@@ -367,22 +367,22 @@ export async function createShapesFromFiles(
 
 	const filteredUpdates = compact(shapeUpdates)
 
-	app.createAssets(compact([...newAssetsForFiles.values()]))
-	app.createShapes(filteredUpdates)
-	app.setSelectedIds(filteredUpdates.map((s) => s.id))
+	editor.createAssets(compact([...newAssetsForFiles.values()]))
+	editor.createShapes(filteredUpdates)
+	editor.setSelectedIds(filteredUpdates.map((s) => s.id))
 
-	const { selectedIds, viewportPageBounds } = app
+	const { selectedIds, viewportPageBounds } = editor
 
-	const pageBounds = Box2d.Common(compact(selectedIds.map((id) => app.getPageBoundsById(id))))
+	const pageBounds = Box2d.Common(compact(selectedIds.map((id) => editor.getPageBoundsById(id))))
 
 	if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
-		app.zoomToSelection()
+		editor.zoomToSelection()
 	}
 }
 
 /** @public */
 export function createEmbedShapeAtPoint(
-	app: Editor,
+	editor: Editor,
 	url: string,
 	point: Vec2dModel,
 	props: {
@@ -391,7 +391,7 @@ export function createEmbedShapeAtPoint(
 		doesResize?: boolean
 	}
 ) {
-	app.createShapes(
+	editor.createShapes(
 		[
 			{
 				id: createShapeId(),
@@ -414,19 +414,19 @@ export function createEmbedShapeAtPoint(
 /**
  * Create a bookmark shape at a given point.
  *
- * @param app - The app to create the bookmark shape in.
+ * @param editor - The editor to create the bookmark shape in.
  * @param url - The bookmark's url.
  * @param point - The point to insert the bookmark shape.
  * @public
  */
-export async function createBookmarkShapeAtPoint(app: Editor, url: string, point: Vec2dModel) {
+export async function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel) {
 	const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
-	const existing = app.getAssetById(assetId) as TLBookmarkAsset
+	const existing = editor.getAssetById(assetId) as TLBookmarkAsset
 
 	if (existing) {
-		app.createShapes([
+		editor.createShapes([
 			{
-				id: app.createShapeId(),
+				id: editor.createShapeId(),
 				type: 'bookmark',
 				x: point.x - 150,
 				y: point.y - 160,
@@ -440,10 +440,10 @@ export async function createBookmarkShapeAtPoint(app: Editor, url: string, point
 		return
 	}
 
-	app.batch(async () => {
+	editor.batch(async () => {
 		const shapeId = createShapeId()
 
-		app.createShapes(
+		editor.createShapes(
 			[
 				{
 					id: shapeId,
@@ -459,10 +459,10 @@ export async function createBookmarkShapeAtPoint(app: Editor, url: string, point
 			true
 		)
 
-		const meta = await app.onCreateBookmarkFromUrl(url)
+		const meta = await editor.onCreateBookmarkFromUrl(url)
 
 		if (meta) {
-			app.createAssets([
+			editor.createAssets([
 				{
 					id: assetId,
 					typeName: 'asset',
@@ -476,7 +476,7 @@ export async function createBookmarkShapeAtPoint(app: Editor, url: string, point
 				},
 			])
 
-			app.updateShapes([
+			editor.updateShapes([
 				{
 					id: shapeId,
 					type: 'bookmark',
@@ -491,7 +491,11 @@ export async function createBookmarkShapeAtPoint(app: Editor, url: string, point
 }
 
 /** @public */
-export async function createAssetShapeAtPoint(app: Editor, svgString: string, point: Vec2dModel) {
+export async function createAssetShapeAtPoint(
+	editor: Editor,
+	svgString: string,
+	point: Vec2dModel
+) {
 	const svg = new DOMParser().parseFromString(svgString, 'image/svg+xml').querySelector('svg')
 	if (!svg) {
 		throw new Error('No <svg/> element present')
@@ -509,7 +513,7 @@ export async function createAssetShapeAtPoint(app: Editor, svgString: string, po
 		height = box.height
 	}
 
-	const asset = await app.onCreateAssetFromFile(
+	const asset = await editor.onCreateAssetFromFile(
 		new File([svgString], 'asset.svg', { type: 'image/svg+xml' })
 	)
 	if (asset.type !== 'bookmark') {
@@ -517,10 +521,10 @@ export async function createAssetShapeAtPoint(app: Editor, svgString: string, po
 		asset.props.h = height
 	}
 
-	app.batch(() => {
-		app.createAssets([asset])
+	editor.batch(() => {
+		editor.createAssets([asset])
 
-		app.createShapes(
+		editor.createShapes(
 			[
 				{
 					id: createShapeId(),

@@ -56,7 +56,7 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 
 	hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
-		const zoomLevel = this.app.zoomLevel
+		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = getStrokeWidth(shape) / zoomLevel
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
@@ -81,7 +81,7 @@ export class TLHighlightUtil extends TLShapeUtil<TLHighlightShape> {
 		const outline = this.outline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			const zoomLevel = this.app.zoomLevel
+			const zoomLevel = this.editor.zoomLevel
 			const offsetDist = getStrokeWidth(shape) / zoomLevel
 
 			if (

@@ -1,7 +1,7 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -13,10 +13,10 @@ const ids = {
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestEditor()
-	app.selectAll()
-	app.deleteShapes()
-	app.createShapes([
+	editor = new TestEditor()
+	editor.selectAll()
+	editor.deleteShapes()
+	editor.createShapes([
 		{
 			id: ids.boxA,
 			type: 'geo',
@@ -38,24 +38,24 @@ beforeEach(() => {
 	])
 })
 
-describe('app.packShapes', () => {
+describe('editor.packShapes', () => {
 	it('packs shapes', () => {
-		app.selectAll()
-		const centerBefore = app.selectionBounds!.center.clone()
-		app.packShapes()
+		editor.selectAll()
+		const centerBefore = editor.selectionBounds!.center.clone()
+		editor.packShapes()
 		jest.advanceTimersByTime(1000)
-		expect(app.shapesArray.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
+		expect(editor.shapesArray.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
 			'packed shapes'
 		)
-		const centerAfter = app.selectionBounds!.center.clone()
+		const centerAfter = editor.selectionBounds!.center.clone()
 		expect(centerBefore).toMatchObject(centerAfter)
 	})
 
 	it('packs rotated shapes', () => {
-		app.updateShapes([{ id: ids.boxA, type: 'geo', rotation: Math.PI }])
-		app.selectAll().packShapes()
+		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: Math.PI }])
+		editor.selectAll().packShapes()
 		jest.advanceTimersByTime(1000)
-		expect(app.shapesArray.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
+		expect(editor.shapesArray.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
 			'packed shapes'
 		)
 	})

@@ -9,10 +9,12 @@ import { useEditor } from './useEditor'
  * @internal
  */
 export function usePeerIds() {
-	const app = useEditor()
+	const editor = useEditor()
 	const $presences = useMemo(() => {
-		return app.store.query.records('instance_presence', () => ({ userId: { neq: app.user.id } }))
-	}, [app])
+		return editor.store.query.records('instance_presence', () => ({
+			userId: { neq: editor.user.id },
+		}))
+	}, [editor])
 
 	const $userIds = useComputed(
 		'userIds',

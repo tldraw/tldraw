@@ -26,7 +26,7 @@ const TranslationsContext = React.createContext<TLTranslation>({} as TLTranslati
 const useCurrentTranslation = () => React.useContext(TranslationsContext)
 
 /**
- * Provides a translation context to the app.
+ * Provides a translation context to the editor.
  *
  * @public
  */
@@ -34,8 +34,8 @@ export const TranslationProvider = track(function TranslationProvider({
 	overrides,
 	children,
 }: TranslationProviderProps) {
-	const app = useEditor()
-	const locale = app.locale
+	const editor = useEditor()
+	const locale = editor.locale
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {

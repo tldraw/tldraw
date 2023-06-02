@@ -91,12 +91,12 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])
-	const isFocusMode = useValue('focus', () => app.instanceState.isFocusMode, [app])
-	const isDebugMode = useValue('debug', () => app.instanceState.isDebugMode, [app])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.isReadOnly, [editor])
+	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
+	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()

@@ -11,14 +11,14 @@ import { useEffect } from 'react'
 // send events, observe changes, and perform actions.
 
 export default function APIExample() {
-	const handleMount = (app: Editor) => {
+	const handleMount = (editor: Editor) => {
 		// Create a shape id
-		const id = app.createShapeId('hello')
+		const id = editor.createShapeId('hello')
 
-		app.focus()
+		editor.focus()
 
 		// Create a shape
-		app.createShapes([
+		editor.createShapes([
 			{
 				id,
 				type: 'geo',
@@ -36,10 +36,10 @@ export default function APIExample() {
 		])
 
 		// Get the created shape
-		const shape = app.getShapeById<TLGeoShape>(id)!
+		const shape = editor.getShapeById<TLGeoShape>(id)!
 
 		// Update the shape
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				id,
 				type: 'geo',
@@ -51,16 +51,16 @@ export default function APIExample() {
 		])
 
 		// Select the shape
-		app.select(id)
+		editor.select(id)
 
 		// Rotate the shape around its center
-		app.rotateShapesBy([id], Math.PI / 8)
+		editor.rotateShapesBy([id], Math.PI / 8)
 
 		// Clear the selection
-		app.selectNone()
+		editor.selectNone()
 
 		// Zoom the camera to fit both shapes
-		app.zoomToFit()
+		editor.zoomToFit()
 	}
 
 	return (
@@ -77,23 +77,23 @@ export default function APIExample() {
 // the component and access the app through the useEditor hook.
 
 const InsideOfEditorContext = () => {
-	const app = useEditor()
+	const editor = useEditor()
 
 	useEffect(() => {
 		let i = 0
 
 		const interval = setInterval(() => {
-			const selection = [...app.selectedIds]
-			app.selectAll()
-			app.setProp('color', i % 2 ? 'blue' : 'light-blue')
-			app.setSelectedIds(selection)
+			const selection = [...editor.selectedIds]
+			editor.selectAll()
+			editor.setProp('color', i % 2 ? 'blue' : 'light-blue')
+			editor.setSelectedIds(selection)
 			i++
 		}, 1000)
 
 		return () => {
 			clearInterval(interval)
 		}
-	}, [app])
+	}, [editor])
 
 	return null
 }

@@ -20,7 +20,7 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
 export const Toolbar = function Toolbar() {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -30,10 +30,10 @@ export const Toolbar = function Toolbar() {
 	const toolbarItems = useToolbarSchema()
 	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 
-	const activeToolId = useValue('current tool id', () => app.currentToolId, [app])
+	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
 	const isHandTool = activeToolId === 'hand'
-	const geoState = useValue('geo', () => (app.props ? app.props.geo : undefined), [app])
+	const geoState = useValue('geo', () => (editor.props ? editor.props.geo : undefined), [editor])
 
 	const showEditingTools = !isReadOnly
 	const showExtraActions = !(isReadOnly || isHandTool)

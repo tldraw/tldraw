@@ -57,14 +57,15 @@ function stripTrailingWhitespace(text: string): string {
 /**
  * When the clipboard has plain text, create a text shape and insert it into the scene
  *
- * @param app - The app instance.
+ * @param editor - The editor instance.
  * @param text - The text to paste.
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export async function pastePlainText(app: Editor, text: string, point?: VecLike) {
-	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
-	const defaultProps = app.getShapeUtil(TLTextUtil).defaultProps()
+export async function pastePlainText(editor: Editor, text: string, point?: VecLike) {
+	const p =
+		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+	const defaultProps = editor.getShapeUtil(TLTextUtil).defaultProps()
 
 	const textToPaste = stripTrailingWhitespace(
 		stripCommonMinimumIndentation(replaceTabsWithSpaces(text))
@@ -85,7 +86,7 @@ export async function pastePlainText(app: Editor, text: string, point?: VecLike)
 		align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
 	}
 
-	const rawSize = app.textMeasure.measureText(textToPaste, {
+	const rawSize = editor.textMeasure.measureText(textToPaste, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[defaultProps.font],
 		fontSize: FONT_SIZES[defaultProps.size],
@@ -93,12 +94,12 @@ export async function pastePlainText(app: Editor, text: string, point?: VecLike)
 	})
 
 	const minWidth = Math.min(
-		isMultiLine ? app.viewportPageBounds.width * 0.9 : 920,
-		Math.max(200, app.viewportPageBounds.width * 0.9)
+		isMultiLine ? editor.viewportPageBounds.width * 0.9 : 920,
+		Math.max(200, editor.viewportPageBounds.width * 0.9)
 	)
 
 	if (rawSize.w > minWidth) {
-		const shrunkSize = app.textMeasure.measureText(textToPaste, {
+		const shrunkSize = editor.textMeasure.measureText(textToPaste, {
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
 			fontSize: FONT_SIZES[defaultProps.size],
@@ -115,12 +116,12 @@ export async function pastePlainText(app: Editor, text: string, point?: VecLike)
 		autoSize = true
 	}
 
-	if (p.y - h / 2 < app.viewportPageBounds.minY + 40) {
-		p.y = app.viewportPageBounds.minY + 40 + h / 2
+	if (p.y - h / 2 < editor.viewportPageBounds.minY + 40) {
+		p.y = editor.viewportPageBounds.minY + 40 + h / 2
 	}
 
-	app.mark('paste')
-	app.createShapes([
+	editor.mark('paste')
+	editor.createShapes([
 		{
 			id: createShapeId(),
 			type: 'text',

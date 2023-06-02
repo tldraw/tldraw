@@ -12,7 +12,7 @@ import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export function useCopyAs() {
-	const app = useEditor()
+	const editor = useEditor()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
 
@@ -24,9 +24,9 @@ export function useCopyAs() {
 		//
 		// this is fine for navigator.clipboard.write, but for fallbacks it's a
 		// little awkward.
-		function copyAs(ids: TLShapeId[] = app.selectedIds, format: TLCopyType = 'svg') {
+		function copyAs(ids: TLShapeId[] = editor.selectedIds, format: TLCopyType = 'svg') {
 			if (ids.length === 0) {
-				ids = [...app.shapeIds]
+				ids = [...editor.shapeIds]
 			}
 
 			if (ids.length === 0) {
@@ -39,12 +39,12 @@ export function useCopyAs() {
 						if (window.navigator.clipboard.write) {
 							window.navigator.clipboard.write([
 								new ClipboardItem({
-									'text/plain': getExportedSvgBlob(app, ids),
+									'text/plain': getExportedSvgBlob(editor, ids),
 								}),
 							])
 						} else {
 							fallbackWriteTextAsync(async () =>
-								getSvgAsString(await getExportSvgElement(app, ids))
+								getSvgAsString(await getExportSvgElement(editor, ids))
 							)
 						}
 					}
@@ -54,7 +54,7 @@ export function useCopyAs() {
 				case 'jpeg':
 				case 'png': {
 					const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
-					const blobPromise = getExportedImageBlob(app, ids, format).then((blob) => {
+					const blobPromise = getExportedImageBlob(editor, ids, format).then((blob) => {
 						if (blob) {
 							if (window.navigator.clipboard) {
 								return blob
@@ -99,7 +99,7 @@ export function useCopyAs() {
 				}
 
 				case 'json': {
-					const data = app.getContent(ids)
+					const data = editor.getContent(ids)
 
 					if (window.navigator.clipboard) {
 						const jsonStr = JSON.stringify(data)
@@ -121,14 +121,14 @@ export function useCopyAs() {
 					throw new Error(`Copy type ${format} not supported.`)
 			}
 		},
-		[app, addToast, msg]
+		[editor, addToast, msg]
 	)
 }
 
-async function getExportSvgElement(app: Editor, ids: TLShapeId[]) {
-	const svg = await app.getSvg(ids, {
+async function getExportSvgElement(editor: Editor, ids: TLShapeId[]) {
+	const svg = await editor.getSvg(ids, {
 		scale: 1,
-		background: app.instanceState.exportBackground,
+		background: editor.instanceState.exportBackground,
 	})
 
 	if (!svg) throw new Error('Could not construct SVG.')
@@ -136,14 +136,14 @@ async function getExportSvgElement(app: Editor, ids: TLShapeId[]) {
 	return svg
 }
 
-async function getExportedSvgBlob(app: Editor, ids: TLShapeId[]) {
-	return new Blob([getSvgAsString(await getExportSvgElement(app, ids))], {
+async function getExportedSvgBlob(editor: Editor, ids: TLShapeId[]) {
+	return new Blob([getSvgAsString(await getExportSvgElement(editor, ids))], {
 		type: 'text/plain',
 	})
 }
 
-async function getExportedImageBlob(app: Editor, ids: TLShapeId[], format: 'png' | 'jpeg') {
-	return await getSvgAsImage(await getExportSvgElement(app, ids), {
+async function getExportedImageBlob(editor: Editor, ids: TLShapeId[], format: 'png' | 'jpeg') {
+	return await getSvgAsImage(await getExportSvgElement(editor, ids), {
 		type: format,
 		quality: 1,
 		scale: 2,

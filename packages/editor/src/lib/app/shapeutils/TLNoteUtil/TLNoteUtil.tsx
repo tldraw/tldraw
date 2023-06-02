@@ -90,7 +90,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 					</div>
 				</div>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.app.zoomLevel} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
 				)}
 			</>
 		)
@@ -147,7 +147,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			offsetX: 0,
 		}
 
-		const spans = this.app.textMeasure.measureTextSpans(shape.props.text, opts)
+		const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
 
 		opts.width = bounds.width
 		const offsetX = getLegacyOffsetX(shape.props.align, PADDING, spans, bounds.width)
@@ -157,7 +157,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 
 		opts.padding = PADDING
 
-		const textElm = createTextSvgElementFromSpans(this.app, spans, opts)
+		const textElm = createTextSvgElementFromSpans(this.editor, spans, opts)
 		textElm.setAttribute('fill', colors.text)
 		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
 		g.appendChild(textElm)
@@ -166,7 +166,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 	}
 
 	onBeforeCreate = (next: TLNoteShape) => {
-		return getGrowY(this.app, next, next.props.growY)
+		return getGrowY(this.editor, next, next.props.growY)
 	}
 
 	onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
@@ -178,7 +178,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 			return
 		}
 
-		return getGrowY(this.app, next, prev.props.growY)
+		return getGrowY(this.editor, next, prev.props.growY)
 	}
 
 	onEditEnd: OnEditEndHandler<TLNoteShape> = (shape) => {
@@ -189,7 +189,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 		} = shape
 
 		if (text.trimEnd() !== shape.props.text) {
-			this.app.updateShapes([
+			this.editor.updateShapes([
 				{
 					id,
 					type,
@@ -202,10 +202,10 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 	}
 }
 
-function getGrowY(app: Editor, shape: TLNoteShape, prevGrowY = 0) {
+function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
-	const nextTextSize = app.textMeasure.measureText(shape.props.text, {
+	const nextTextSize = editor.textMeasure.measureText(shape.props.text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],

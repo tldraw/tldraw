@@ -23,7 +23,7 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>
 > {
-	new (app: Editor, type: T['type']): ShapeUtil
+	new (editor: Editor, type: T['type']): ShapeUtil
 	type: T['type']
 }
 
@@ -32,7 +32,7 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
 export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-	constructor(public app: Editor, public readonly type: T['type']) {}
+	constructor(public editor: Editor, public readonly type: T['type']) {}
 
 	static type: string
 
@@ -190,7 +190,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get handlesCache(): ComputedCache<TLHandle[], TLShape> {
-		return this.app.store.createComputedCache('handles:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('handles:' + this.type, (shape) => {
 			return this.getHandles!(shape as any)
 		})
 	}
@@ -216,7 +216,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get boundsCache(): ComputedCache<Box2d, TLShape> {
-		return this.app.store.createComputedCache('bounds:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('bounds:' + this.type, (shape) => {
 			return this.getBounds(shape as any)
 		})
 	}
@@ -267,7 +267,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get outlineCache(): ComputedCache<Vec2dModel[], TLShape> {
-		return this.app.store.createComputedCache('outline:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
 			return this.getOutline(shape as any)
 		})
 	}

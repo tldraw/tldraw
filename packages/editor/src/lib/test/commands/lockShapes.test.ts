@@ -1,6 +1,6 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
-let app: TestEditor
+let editor: TestEditor
 
 const ids = {
 	lockedShapeA: createCustomShapeId('boxA'),
@@ -14,10 +14,10 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestEditor()
-	app.selectAll()
-	app.deleteShapes()
-	app.createShapes([
+	editor = new TestEditor()
+	editor.selectAll()
+	editor.deleteShapes()
+	editor.createShapes([
 		{
 			id: ids.lockedShapeA,
 			type: 'geo',
@@ -81,95 +81,97 @@ beforeEach(() => {
 
 describe('Locking', () => {
 	it('Can lock shapes', () => {
-		app.setSelectedIds([ids.unlockedShapeA])
-		app.toggleLock()
-		expect(app.getShapeById(ids.unlockedShapeA)!.isLocked).toBe(true)
+		editor.setSelectedIds([ids.unlockedShapeA])
+		editor.toggleLock()
+		expect(editor.getShapeById(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
-		expect(app.selectedIds).toEqual([])
+		expect(editor.selectedIds).toEqual([])
 	})
 })
 
 describe('Locked shapes', () => {
 	it('Cannot be deleted', () => {
-		const numberOfShapesBefore = app.shapesArray.length
-		app.deleteShapes([ids.lockedShapeA])
-		expect(app.shapesArray.length).toBe(numberOfShapesBefore)
+		const numberOfShapesBefore = editor.shapesArray.length
+		editor.deleteShapes([ids.lockedShapeA])
+		expect(editor.shapesArray.length).toBe(numberOfShapesBefore)
 	})
 
 	it('Cannot be changed', () => {
-		const xBefore = app.getShapeById(ids.lockedShapeA)!.x
-		app.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
-		expect(app.getShapeById(ids.lockedShapeA)!.x).toBe(xBefore)
+		const xBefore = editor.getShapeById(ids.lockedShapeA)!.x
+		editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
+		expect(editor.getShapeById(ids.lockedShapeA)!.x).toBe(xBefore)
 	})
 
 	it('Cannot be moved', () => {
-		const shape = app.getShapeById(ids.lockedShapeA)
-		app.pointerDown(150, 150, { target: 'shape', shape })
-		app.expectToBeIn('select.idle')
+		const shape = editor.getShapeById(ids.lockedShapeA)
+		editor.pointerDown(150, 150, { target: 'shape', shape })
+		editor.expectToBeIn('select.idle')
 
-		app.pointerMove(10, 10)
-		app.expectToBeIn('select.idle')
+		editor.pointerMove(10, 10)
+		editor.expectToBeIn('select.idle')
 
-		app.pointerUp()
-		app.expectToBeIn('select.idle')
+		editor.pointerUp()
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('Cannot be selected with select all', () => {
-		app.selectAll()
-		expect(app.selectedIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		editor.selectAll()
+		expect(editor.selectedIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
 	})
 
 	it('Cannot be selected by clicking', () => {
-		const shape = app.getShapeById(ids.lockedShapeA)!
+		const shape = editor.getShapeById(ids.lockedShapeA)!
 
-		app
+		editor
 			.pointerDown(10, 10, { target: 'shape', shape })
 			.expectToBeIn('select.idle')
 			.pointerUp()
 			.expectToBeIn('select.idle')
-		expect(app.selectedIds).not.toContain(shape.id)
+		expect(editor.selectedIds).not.toContain(shape.id)
 	})
 
 	it('Cannot be edited', () => {
-		const shape = app.getShapeById(ids.lockedShapeA)!
-		const shapeCount = app.shapesArray.length
+		const shape = editor.getShapeById(ids.lockedShapeA)!
+		const shapeCount = editor.shapesArray.length
 
 		// We create a new shape and we edit that one
-		app.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
-		expect(app.shapesArray.length).toBe(shapeCount + 1)
-		expect(app.selectedIds).not.toContain(shape.id)
+		editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
+		expect(editor.shapesArray.length).toBe(shapeCount + 1)
+		expect(editor.selectedIds).not.toContain(shape.id)
 	})
 
 	it('Cannot be grouped', () => {
-		const shapeCount = app.shapesArray.length
-		const parentBefore = app.getShapeById(ids.lockedShapeA)!.parentId
+		const shapeCount = editor.shapesArray.length
+		const parentBefore = editor.getShapeById(ids.lockedShapeA)!.parentId
 
-		app.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
-		expect(app.shapesArray.length).toBe(shapeCount + 1)
+		editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.shapesArray.length).toBe(shapeCount + 1)
 
-		const parentAfter = app.getShapeById(ids.lockedShapeA)!.parentId
+		const parentAfter = editor.getShapeById(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)
 	})
 
 	it('Locked frames do not accept new shapes', () => {
-		const frame = app.getShapeById(ids.lockedFrame)!
-		const frameUtil = app.getShapeUtil(frame)
+		const frame = editor.getShapeById(ids.lockedFrame)!
+		const frameUtil = editor.getShapeUtil(frame)
 
 		expect(frameUtil.canReceiveNewChildrenOfType(frame, 'box')).toBe(false)
-		const shape = app.getShapeById(ids.lockedShapeA)!
+		const shape = editor.getShapeById(ids.lockedShapeA)!
 		expect(frameUtil.canDropShapes(frame, [shape])).toBe(false)
 	})
 })
 
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
-		app.setSelectedIds([ids.lockedShapeA, ids.lockedShapeB])
+		editor.setSelectedIds([ids.lockedShapeA, ids.lockedShapeB])
 		let lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
-			(id) => app.getShapeById(id)!.isLocked
+			(id) => editor.getShapeById(id)!.isLocked
 		)
 		expect(lockedStatus).toStrictEqual([true, true])
-		app.toggleLock()
-		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map((id) => app.getShapeById(id)!.isLocked)
+		editor.toggleLock()
+		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
+			(id) => editor.getShapeById(id)!.isLocked
+		)
 		expect(lockedStatus).toStrictEqual([false, false])
 	})
 })

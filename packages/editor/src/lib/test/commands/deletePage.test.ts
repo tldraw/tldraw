@@ -1,79 +1,79 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 describe('deletePage', () => {
 	it('deletes the page', () => {
 		const page2Id = PageRecordType.createCustomId('page2')
-		app.createPage('New Page 2', page2Id)
+		editor.createPage('New Page 2', page2Id)
 
-		const pages = app.pages
+		const pages = editor.pages
 		expect(pages.length).toBe(2)
-		app.deletePage(pages[0].id)
-		expect(app.pages.length).toBe(1)
-		expect(app.pages[0]).toEqual(pages[1])
+		editor.deletePage(pages[0].id)
+		expect(editor.pages.length).toBe(1)
+		expect(editor.pages[0]).toEqual(pages[1])
 	})
 	it('is undoable and redoable', () => {
 		const page2Id = PageRecordType.createCustomId('page2')
-		app.mark()
-		app.createPage('New Page 2', page2Id)
+		editor.mark()
+		editor.createPage('New Page 2', page2Id)
 
-		const pages = app.pages
+		const pages = editor.pages
 		expect(pages.length).toBe(2)
 
-		app.mark()
-		app.deletePage(pages[0].id)
-		expect(app.pages.length).toBe(1)
+		editor.mark()
+		editor.deletePage(pages[0].id)
+		expect(editor.pages.length).toBe(1)
 
-		app.undo()
-		expect(app.pages.length).toBe(2)
-		expect(app.pages).toEqual(pages)
-		app.redo()
-		expect(app.pages.length).toBe(1)
-		expect(app.pages[0]).toEqual(pages[1])
+		editor.undo()
+		expect(editor.pages.length).toBe(2)
+		expect(editor.pages).toEqual(pages)
+		editor.redo()
+		expect(editor.pages.length).toBe(1)
+		expect(editor.pages[0]).toEqual(pages[1])
 	})
 	it('does not allow deleting all pages', () => {
 		const page2Id = PageRecordType.createCustomId('page2')
-		app.mark()
-		app.createPage('New Page 2', page2Id)
+		editor.mark()
+		editor.createPage('New Page 2', page2Id)
 
-		const pages = app.pages
-		app.deletePage(pages[1].id)
-		app.deletePage(pages[0].id)
+		const pages = editor.pages
+		editor.deletePage(pages[1].id)
+		editor.deletePage(pages[0].id)
 
-		expect(app.pages.length).toBe(1)
+		expect(editor.pages.length).toBe(1)
 
-		app.deletePage(app.pages[0].id)
-		expect(app.pages.length).toBe(1)
+		editor.deletePage(editor.pages[0].id)
+		expect(editor.pages.length).toBe(1)
 	})
 	it('switches the page if you are deleting the current page', () => {
 		const page2Id = PageRecordType.createCustomId('page2')
-		app.mark()
-		app.createPage('New Page 2', page2Id)
+		editor.mark()
+		editor.createPage('New Page 2', page2Id)
 
-		const currentPageId = app.currentPageId
-		app.deletePage(currentPageId)
-		expect(app.pages.length).toBe(1)
-		expect(app.currentPageId).not.toBe(currentPageId)
-		expect(app.currentPageId).toBe(app.pages[0].id)
+		const currentPageId = editor.currentPageId
+		editor.deletePage(currentPageId)
+		expect(editor.pages.length).toBe(1)
+		expect(editor.currentPageId).not.toBe(currentPageId)
+		expect(editor.currentPageId).toBe(editor.pages[0].id)
 	})
 	it('switches the page if another user or tab deletes the current page', () => {
-		const currentPageId = app.currentPageId
+		const currentPageId = editor.currentPageId
 		const page2Id = PageRecordType.createCustomId('page2')
-		app.mark()
-		app.createPage('New Page 2', page2Id)
+		editor.mark()
+		editor.createPage('New Page 2', page2Id)
 
-		app.store.mergeRemoteChanges(() => {
-			app.store.remove([currentPageId])
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.remove([currentPageId])
 		})
 
-		expect(app.pages.length).toBe(1)
-		expect(app.currentPageId).not.toBe(currentPageId)
-		expect(app.currentPageId).toBe(app.pages[0].id)
+		expect(editor.pages.length).toBe(1)
+		expect(editor.currentPageId).not.toBe(currentPageId)
+		expect(editor.currentPageId).toBe(editor.pages[0].id)
 	})
 })

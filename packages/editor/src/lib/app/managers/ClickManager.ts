@@ -20,7 +20,7 @@ type TLClickState =
 const MAX_CLICK_DISTANCE = 40
 
 export class ClickManager {
-	constructor(public app: Editor) {}
+	constructor(public editor: Editor) {}
 
 	private _clickId = ''
 
@@ -38,7 +38,7 @@ export class ClickManager {
 				if (this._clickState === state && this._clickId === id) {
 					switch (this._clickState) {
 						case 'pendingTriple': {
-							this.app.dispatch({
+							this.editor.dispatch({
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'double_click',
@@ -47,7 +47,7 @@ export class ClickManager {
 							break
 						}
 						case 'pendingQuadruple': {
-							this.app.dispatch({
+							this.editor.dispatch({
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'triple_click',
@@ -56,7 +56,7 @@ export class ClickManager {
 							break
 						}
 						case 'pendingOverflow': {
-							this.app.dispatch({
+							this.editor.dispatch({
 								...this.lastPointerInfo,
 								type: 'click',
 								name: 'quadruple_click',
@@ -226,8 +226,8 @@ export class ClickManager {
 		if (
 			this._clickState !== 'idle' &&
 			this._clickScreenPoint &&
-			this._clickScreenPoint.dist(this.app.inputs.currentScreenPoint) >
-				(this.app.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+			this._clickScreenPoint.dist(this.editor.inputs.currentScreenPoint) >
+				(this.editor.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
 		) {
 			this.cancelDoubleClickTimeout()
 		}

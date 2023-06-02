@@ -18,7 +18,7 @@ export const HelpMenuSchemaContext = React.createContext({} as HelpMenuSchemaPro
 /** @public */
 export type HelpMenuSchemaProviderProps = {
 	overrides?: (
-		app: Editor,
+		editor: Editor,
 		schema: HelpMenuSchemaProviderType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
@@ -37,10 +37,10 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	overrides,
 	children,
 }: HelpMenuSchemaProviderProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -66,7 +66,7 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 		])
 
 		if (overrides) {
-			return overrides(app, helpMenuSchema, {
+			return overrides(editor, helpMenuSchema, {
 				actions,
 				currentLanguage,
 				languages,
@@ -78,7 +78,7 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 
 		return helpMenuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		languages,
 		actions,

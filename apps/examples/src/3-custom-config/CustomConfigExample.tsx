@@ -19,7 +19,7 @@ export default function CustomConfigExample() {
 					// We need to add it to the tools list. This "toolItem"
 					// has information about its icon, label, keyboard shortcut,
 					// and what to do when it's selected.
-					tools(app, tools) {
+					tools(editor, tools) {
 						tools.card = {
 							id: 'card',
 							icon: 'color',
@@ -27,7 +27,7 @@ export default function CustomConfigExample() {
 							kbd: 'c',
 							readonlyOk: false,
 							onSelect: () => {
-								app.setSelectedTool('card')
+								editor.setSelectedTool('card')
 							},
 						}
 						return tools

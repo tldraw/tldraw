@@ -6,8 +6,8 @@
 
 /// <reference types="react" />
 
-import { App } from '@tldraw/editor';
 import { Context } from 'react';
+import { Editor } from '@tldraw/editor';
 import { EditorAssetUrls } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { MemoExoticComponent } from 'react';
@@ -65,7 +65,7 @@ export const ActionsMenuSchemaProvider: MemoExoticComponent<({ overrides, childr
 
 // @public (undocumented)
 export type ActionsMenuSchemaProviderProps = {
-    overrides?: (app: App, schema: ActionsMenuSchemaContextType, helpers: {
+    overrides?: (editor: Editor, schema: ActionsMenuSchemaContextType, helpers: {
         actions: ReturnType<typeof useActions>;
         oneSelected: boolean;
         twoSelected: boolean;
@@ -79,7 +79,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps): 
 
 // @public (undocumented)
 export type ActionsProviderProps = {
-    overrides?: (app: App, actions: ActionsContextType, helpers: undefined) => ActionsContextType;
+    overrides?: (editor: Editor, actions: ActionsContextType, helpers: undefined) => ActionsContextType;
     children: any;
 };
 
@@ -194,7 +194,7 @@ export const ContextMenuSchemaProvider: MemoExoticComponent<({ overrides, childr
 
 // @public (undocumented)
 export type ContextMenuSchemaProviderProps = {
-    overrides?: (app: App, schema: ContextMenuSchemaContextType, helpers: {
+    overrides?: (editor: Editor, schema: ContextMenuSchemaContextType, helpers: {
         actions: ReturnType<typeof useActions>;
         oneSelected: boolean;
         twoSelected: boolean;
@@ -255,7 +255,7 @@ export function DialogsProvider({ children }: DialogsProviderProps): JSX.Element
 
 // @public (undocumented)
 export type DialogsProviderProps = {
-    overrides?: (app: App) => DialogsContextType;
+    overrides?: (editor: Editor) => DialogsContextType;
     children: any;
 };
 
@@ -354,7 +354,7 @@ export const HelpMenuSchemaProvider: MemoExoticComponent<({ overrides, children,
 
 // @public (undocumented)
 export type HelpMenuSchemaProviderProps = {
-    overrides?: (app: App, schema: HelpMenuSchemaProviderType, helpers: {
+    overrides?: (editor: Editor, schema: HelpMenuSchemaProviderType, helpers: {
         actions: ReturnType<typeof useActions>;
         languages: TLListedTranslations;
         currentLanguage: string;
@@ -460,7 +460,7 @@ export const KeyboardShortcutsSchemaProvider: MemoExoticComponent<({ overrides, 
 
 // @public (undocumented)
 export type KeyboardShortcutsSchemaProviderProps = {
-    overrides?: (app: App, schema: KeyboardShortcutsSchemaContextType, more: {
+    overrides?: (editor: Editor, schema: KeyboardShortcutsSchemaContextType, more: {
         tools: ToolsContextType;
         actions: ActionsContextType;
     }) => KeyboardShortcutsSchemaContextType;
@@ -524,7 +524,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 
 // @public (undocumented)
 export type MenuSchemaProviderProps = {
-    overrides?: (app: App, schema: MenuSchemaContextType, helpers: {
+    overrides?: (editor: Editor, schema: MenuSchemaContextType, helpers: {
         actions: ReturnType<typeof useActions>;
         noneSelected: boolean;
         oneSelected: boolean;
@@ -767,7 +767,7 @@ export function ToastsProvider({ children }: ToastsProviderProps): JSX.Element;
 
 // @public (undocumented)
 export type ToastsProviderProps = {
-    overrides?: (app: App) => ToastsContextType;
+    overrides?: (editor: Editor) => ToastsContextType;
     children: any;
 };
 
@@ -793,7 +793,7 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 
 // @public (undocumented)
 export type ToolbarSchemaProviderProps = {
-    overrides?: (app: App, schema: ToolbarSchemaContextType, more: {
+    overrides?: (editor: Editor, schema: ToolbarSchemaContextType, more: {
         tools: ToolsContextType;
     }) => ToolbarSchemaContextType;
     children: any;
@@ -832,7 +832,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps): JSX.
 
 // @public (undocumented)
 export type ToolsProviderProps = {
-    overrides?: (app: App, tools: ToolsContextType, helpers: {
+    overrides?: (editor: Editor, tools: ToolsContextType, helpers: {
         insertMedia: () => void;
     }) => ToolsContextType;
     children: any;
@@ -868,9 +868,6 @@ export const useAllowGroup: () => boolean;
 
 // @public (undocumented)
 export const useAllowUngroup: () => boolean;
-
-// @public (undocumented)
-export function useAppEvents(): void;
 
 // @public (undocumented)
 export function useAssetUrls(): UiAssetUrls;
@@ -909,6 +906,9 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): DialogsContextType;
+
+// @public (undocumented)
+export function useEditorEvents(): void;
 
 // @public (undocumented)
 export function useEvents(): TLUiEventHandler<keyof TLUiEventMap>;

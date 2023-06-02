@@ -5,7 +5,7 @@ import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const events = useMemo(
 		function canvasEvents() {
@@ -18,11 +18,11 @@ export function useCanvasEvents() {
 
 				setPointerCapture(e.currentTarget, e)
 
-				app.dispatch({
+				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
@@ -33,11 +33,11 @@ export function useCanvasEvents() {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				app.dispatch({
+				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
@@ -49,33 +49,33 @@ export function useCanvasEvents() {
 
 				releasePointerCapture(e.currentTarget, e)
 
-				app.dispatch({
+				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
-				app.dispatch({
+				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_enter',
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 
-				app.dispatch({
+				editor.dispatch({
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_leave',
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
@@ -107,7 +107,7 @@ export function useCanvasEvents() {
 					(file) => !file.name.endsWith('.tldr')
 				)
 
-				await createShapesFromFiles(app, files, app.screenToPage(e.clientX, e.clientY), false)
+				await createShapesFromFiles(editor, files, editor.screenToPage(e.clientX, e.clientY), false)
 			}
 
 			return {
@@ -122,7 +122,7 @@ export function useCanvasEvents() {
 				onTouchEnd,
 			}
 		},
-		[app]
+		[editor]
 	)
 
 	return events

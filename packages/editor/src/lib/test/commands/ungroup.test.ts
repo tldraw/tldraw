@@ -1,9 +1,9 @@
 // import { TestEditor } from '../TestEditor'
 
-// let app: TestEditor
+// let editor: TestEditor
 
 // beforeEach(() => {
-// 	app = new TestEditor()
+// 	editor =new TestEditor()
 // })
 
 it.todo('Ungroups any selected groups.')

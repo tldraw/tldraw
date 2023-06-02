@@ -36,7 +36,7 @@ export class Cropping extends StateNode {
 		}
 	) => {
 		this.info = info
-		this.markId = this.app.mark('cropping')
+		this.markId = this.editor.mark('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}
@@ -58,11 +58,11 @@ export class Cropping extends StateNode {
 	}
 
 	private updateCursor() {
-		const selectedShape = this.app.selectedShapes[0]
+		const selectedShape = this.editor.selectedShapes[0]
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.app.setCursor({
+		this.editor.setCursor({
 			type: cursorType,
 			rotation: selectedShape.rotation,
 		})
@@ -77,13 +77,13 @@ export class Cropping extends StateNode {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
-		const util = this.app.getShapeUtil(TLImageUtil)
+		const util = this.editor.getShapeUtil(TLImageUtil)
 		if (!util) return
 
 		const props = shape.props as TLImageShapeProps
 
-		const currentPagePoint = this.app.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
-		const originPagePoint = this.app.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
 		const change = currentPagePoint.clone().sub(originPagePoint).rot(-shape.rotation)
 
@@ -196,25 +196,25 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.app.updateShapes([partial], true)
+		this.editor.updateShapes([partial], true)
 		this.updateCursor()
 	}
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.app.setCroppingId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
 
 	private cancel() {
-		this.app.bailToMark(this.markId)
+		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.app.setCroppingId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -223,11 +223,11 @@ export class Cropping extends StateNode {
 		const {
 			selectionRotation,
 			inputs: { originPagePoint },
-		} = this.app
+		} = this.editor
 
-		const shape = this.app.onlySelectedShape as TLShape
+		const shape = this.editor.onlySelectedShape as TLShape
 
-		const selectionBounds = this.app.selectionBounds!
+		const selectionBounds = this.editor.selectionBounds!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

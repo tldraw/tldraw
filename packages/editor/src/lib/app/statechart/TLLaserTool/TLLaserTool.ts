@@ -10,6 +10,6 @@ export class TLLaserTool extends StateNode {
 	static children = () => [Idle, Lasering]
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 }

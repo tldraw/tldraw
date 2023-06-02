@@ -5,22 +5,22 @@ import { useEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
-	const app = useEditor()
+	const editor = useEditor()
 	const rIsOpen = useRef(false)
 	const trackEvent = useEvents()
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
 			rIsOpen.current = isOpen
-			app.batch(() => {
+			editor.batch(() => {
 				if (isOpen) {
-					app.complete()
-					app.addOpenMenu(id)
+					editor.complete()
+					editor.addOpenMenu(id)
 				} else {
-					app.deleteOpenMenu(id)
-					app.openMenus.forEach((menuId) => {
+					editor.deleteOpenMenu(id)
+					editor.openMenus.forEach((menuId) => {
 						if (menuId.startsWith(id)) {
-							app.deleteOpenMenu(menuId)
+							editor.deleteOpenMenu(menuId)
 						}
 					})
 				}
@@ -28,7 +28,7 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 				cb?.(isOpen)
 			})
 		},
-		[app, id, cb]
+		[editor, id, cb]
 	)
 
 	useEffect(() => {
@@ -42,28 +42,28 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		// this effect runs twice or re-runs.
 		if (rIsOpen.current) {
 			trackEvent('open-menu', { source: 'unknown', id })
-			app.addOpenMenu(id)
+			editor.addOpenMenu(id)
 		}
 
 		return () => {
 			if (rIsOpen.current) {
 				// Close menu on unmount
-				app.deleteOpenMenu(id)
+				editor.deleteOpenMenu(id)
 
 				// Close menu and all submenus when the parent is closed
-				app.openMenus.forEach((menuId) => {
+				editor.openMenus.forEach((menuId) => {
 					if (menuId.startsWith(id)) {
 						trackEvent('close-menu', { source: 'unknown', id })
-						app.deleteOpenMenu(menuId)
+						editor.deleteOpenMenu(menuId)
 					}
 				})
 
 				rIsOpen.current = false
 			}
 		}
-	}, [app, id, trackEvent])
+	}, [editor, id, trackEvent])
 
-	const isOpen = useValue('is menu open', () => app.openMenus.includes(id), [app, id])
+	const isOpen = useValue('is menu open', () => editor.openMenus.includes(id), [editor, id])
 
 	return [isOpen, onOpenChange] as const
 }

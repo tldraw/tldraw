@@ -5,7 +5,7 @@ import { Editor } from '../../Editor'
 
 /** Get an SVG element for a text shape. */
 export function createTextSvgElementFromSpans(
-	app: Editor,
+	editor: Editor,
 	spans: { text: string; box: Box2dModel }[],
 	opts: {
 		fontSize: number

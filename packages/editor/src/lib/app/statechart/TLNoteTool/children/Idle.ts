@@ -9,10 +9,10 @@ export class Idle extends StateNode {
 	}
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 
 	onCancel = () => {
-		this.app.setSelectedTool('select')
+		this.editor.setSelectedTool('select')
 	}
 }

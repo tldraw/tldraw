@@ -1,36 +1,36 @@
 import { TestEditor } from './TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 jest.useFakeTimers()
 
 it('Shift Key', () => {
-	app.pointerDown(0, 0)
-	app.pointerMove(100, 100, { shiftKey: true })
-	app.pointerMove(100, 100, { shiftKey: false })
-	expect(app.inputs.shiftKey).toBe(true)
+	editor.pointerDown(0, 0)
+	editor.pointerMove(100, 100, { shiftKey: true })
+	editor.pointerMove(100, 100, { shiftKey: false })
+	expect(editor.inputs.shiftKey).toBe(true)
 	jest.advanceTimersByTime(200)
-	expect(app.inputs.shiftKey).toBe(false)
+	expect(editor.inputs.shiftKey).toBe(false)
 })
 
 it('Alt Key', () => {
-	app.pointerDown(0, 0)
-	app.pointerMove(100, 100, { altKey: true })
-	app.pointerMove(100, 100, { altKey: false })
-	expect(app.inputs.altKey).toBe(true)
+	editor.pointerDown(0, 0)
+	editor.pointerMove(100, 100, { altKey: true })
+	editor.pointerMove(100, 100, { altKey: false })
+	expect(editor.inputs.altKey).toBe(true)
 	jest.advanceTimersByTime(200)
-	expect(app.inputs.altKey).toBe(false)
+	expect(editor.inputs.altKey).toBe(false)
 })
 
 it('Ctrl Key', () => {
-	app.pointerDown(0, 0)
-	app.pointerMove(100, 100, { ctrlKey: true })
-	app.pointerMove(100, 100, { ctrlKey: false })
-	expect(app.inputs.ctrlKey).toBe(true)
+	editor.pointerDown(0, 0)
+	editor.pointerMove(100, 100, { ctrlKey: true })
+	editor.pointerMove(100, 100, { ctrlKey: false })
+	expect(editor.inputs.ctrlKey).toBe(true)
 	jest.advanceTimersByTime(200)
-	expect(app.inputs.ctrlKey).toBe(false)
+	expect(editor.inputs.ctrlKey).toBe(false)
 })

@@ -29,14 +29,14 @@ type MeasureTextSpanOpts = {
 const spaceCharacterRegex = /\s/
 
 export class TextManager {
-	constructor(public app: Editor) {}
+	constructor(public editor: Editor) {}
 
 	getTextElement() {
 		const oldElm = document.querySelector('.tl-text-measure')
 		oldElm?.remove()
 
 		const elm = document.createElement('div')
-		this.app.getContainer().appendChild(elm)
+		this.editor.getContainer().appendChild(elm)
 
 		elm.id = `__textMeasure_${uniqueId()}`
 		elm.classList.add('tl-text')

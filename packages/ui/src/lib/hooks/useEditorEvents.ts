@@ -4,7 +4,7 @@ import { useToasts } from './useToastsProvider'
 
 /** @public */
 export function useEditorEvents() {
-	const app = useEditor()
+	const editor = useEditor()
 	const { addToast } = useToasts()
 
 	useEffect(() => {
@@ -15,9 +15,9 @@ export function useEditorEvents() {
 			})
 		}
 
-		app.addListener('max-shapes', handleMaxShapes)
+		editor.addListener('max-shapes', handleMaxShapes)
 		return () => {
-			app.removeListener('max-shapes', handleMaxShapes)
+			editor.removeListener('max-shapes', handleMaxShapes)
 		}
-	}, [app, addToast])
+	}, [editor, addToast])
 }

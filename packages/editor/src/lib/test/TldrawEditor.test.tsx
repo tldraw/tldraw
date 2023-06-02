@@ -36,7 +36,7 @@ describe('<TldrawEditor />', () => {
 		let store: any
 		render(
 			await act(async () => (
-				<TldrawEditor onMount={(app) => (store = app.store)} autoFocus>
+				<TldrawEditor onMount={(editor) => (store = editor.store)} autoFocus>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			))
@@ -51,8 +51,8 @@ describe('<TldrawEditor />', () => {
 			await act(async () => (
 				<TldrawEditor
 					store={store}
-					onMount={(app) => {
-						expect(app.store).toBe(store)
+					onMount={(editor) => {
+						expect(editor.store).toBe(store)
 					}}
 					autoFocus
 				>
@@ -102,13 +102,13 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders the canvas and shapes', async () => {
-		let app = {} as Editor
+		let editor = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
 					autoFocus
 					onMount={(editorApp) => {
-						app = editorApp
+						editor = editorApp
 					}}
 				>
 					<Canvas />
@@ -118,15 +118,15 @@ describe('<TldrawEditor />', () => {
 		)
 		await screen.findByTestId('canvas-1')
 
-		expect(app).toBeTruthy()
+		expect(editor).toBeTruthy()
 		await act(async () => {
-			app.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
 		})
 
-		const id = app.createShapeId()
+		const id = editor.createShapeId()
 
 		await act(async () => {
-			app.createShapes([
+			editor.createShapes([
 				{
 					id,
 					type: 'geo',
@@ -136,7 +136,7 @@ describe('<TldrawEditor />', () => {
 		})
 
 		// Does the shape exist?
-		expect(app.getShapeById(id)).toMatchObject({
+		expect(editor.getShapeById(id)).toMatchObject({
 			id,
 			type: 'geo',
 			x: 0,
@@ -150,16 +150,16 @@ describe('<TldrawEditor />', () => {
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(0)
 
 		// Select the shape
-		await act(async () => app.select(id))
+		await act(async () => editor.select(id))
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the eraser tool...
-		await act(async () => app.setSelectedTool('eraser'))
+		await act(async () => editor.setSelectedTool('eraser'))
 
 		// Is the editor's current tool correct?
-		expect(app.currentToolId).toBe('eraser')
+		expect(editor.currentToolId).toBe('eraser')
 	})
 })
 
@@ -223,7 +223,7 @@ describe('Custom shapes', () => {
 	const shapes = { card: { util: CardUtil } }
 
 	it('Uses custom shapes', async () => {
-		let app = {} as Editor
+		let editor = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
@@ -231,7 +231,7 @@ describe('Custom shapes', () => {
 					tools={tools}
 					autoFocus
 					onMount={(editorApp) => {
-						app = editorApp
+						editor = editorApp
 					}}
 				>
 					<Canvas />
@@ -241,17 +241,17 @@ describe('Custom shapes', () => {
 		)
 		await screen.findByTestId('canvas-1')
 
-		expect(app).toBeTruthy()
+		expect(editor).toBeTruthy()
 		await act(async () => {
-			app.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
 		})
 
-		expect(app.shapeUtils.card).toBeTruthy()
+		expect(editor.shapeUtils.card).toBeTruthy()
 
-		const id = app.createShapeId()
+		const id = editor.createShapeId()
 
 		await act(async () => {
-			app.createShapes([
+			editor.createShapes([
 				{
 					id,
 					type: 'card',
@@ -261,7 +261,7 @@ describe('Custom shapes', () => {
 		})
 
 		// Does the shape exist?
-		expect(app.getShapeById(id)).toMatchObject({
+		expect(editor.getShapeById(id)).toMatchObject({
 			id,
 			type: 'card',
 			x: 0,
@@ -273,15 +273,15 @@ describe('Custom shapes', () => {
 		expect(await screen.findByTestId('card-shape')).toBeTruthy()
 
 		// Select the shape
-		await act(async () => app.select(id))
+		await act(async () => editor.select(id))
 
 		// Is the shape's component rendering?
 		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
 
 		// Select the tool...
-		await act(async () => app.setSelectedTool('card'))
+		await act(async () => editor.setSelectedTool('card'))
 
 		// Is the editor's current tool correct?
-		expect(app.currentToolId).toBe('card')
+		expect(editor.currentToolId).toBe('card')
 	})
 })

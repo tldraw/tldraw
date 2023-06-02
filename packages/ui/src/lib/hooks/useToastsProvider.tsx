@@ -32,7 +32,7 @@ export const ToastsContext = createContext({} as ToastsContextType)
 
 /** @public */
 export type ToastsProviderProps = {
-	overrides?: (app: Editor) => ToastsContextType
+	overrides?: (editor: Editor) => ToastsContextType
 	children: any
 }
 

@@ -2,6 +2,6 @@ import { useValue } from 'signia-react'
 import { useEditor } from '../../../hooks/useEditor'
 
 export function useForceSolid() {
-	const app = useEditor()
-	return useValue('zoom', () => app.zoomLevel < 0.35, [app])
+	const editor = useEditor()
+	return useValue('zoom', () => editor.zoomLevel < 0.35, [editor])
 }

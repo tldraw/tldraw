@@ -17,16 +17,16 @@ export class TLZoomTool extends StateNode {
 	}
 
 	updateCursor() {
-		if (this.app.inputs.altKey) {
-			this.app.setCursor({ type: 'zoom-out' })
+		if (this.editor.inputs.altKey) {
+			this.editor.setCursor({ type: 'zoom-out' })
 		} else {
-			this.app.setCursor({ type: 'zoom-in' })
+			this.editor.setCursor({ type: 'zoom-in' })
 		}
 	}
 
 	onExit = () => {
-		this.app.setZoomBrush(null)
-		this.app.setCursor({ type: 'default' })
+		this.editor.setZoomBrush(null)
+		this.editor.setCursor({ type: 'default' })
 	}
 
 	onKeyDown: TLKeyboardEvent | undefined = () => {
@@ -48,7 +48,7 @@ export class TLZoomTool extends StateNode {
 	private complete() {
 		// Go back to the previous tool. If we are already in select we want to transition to idle
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('select', {})
 		}

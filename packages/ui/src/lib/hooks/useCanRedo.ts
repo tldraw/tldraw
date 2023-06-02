@@ -3,6 +3,6 @@ import { useValue } from 'signia-react'
 
 /** @public */
 export function useCanRedo() {
-	const app = useEditor()
-	return useValue('useCanRedo', () => app.canRedo, [app])
+	const editor = useEditor()
+	return useValue('useCanRedo', () => editor.canRedo, [editor])
 }

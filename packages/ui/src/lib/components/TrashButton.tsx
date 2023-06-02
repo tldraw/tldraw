@@ -7,7 +7,7 @@ import { Button } from './primitives/Button'
 import { kbdStr } from './primitives/shared'
 
 export const TrashButton = track(function TrashButton() {
-	const app = useEditor()
+	const editor = useEditor()
 	const actions = useActions()
 	const msg = useTranslation()
 	const action = actions['delete']
@@ -16,7 +16,7 @@ export const TrashButton = track(function TrashButton() {
 
 	if (isReadonly) return null
 
-	const noSelected = app.selectedIds.length <= 0
+	const noSelected = editor.selectedIds.length <= 0
 
 	return (
 		<Button

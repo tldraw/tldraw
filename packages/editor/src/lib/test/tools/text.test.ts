@@ -1,18 +1,18 @@
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 describe('When editing text', () => {
 	it('preserves the top center when center aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -25,8 +25,8 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -35,7 +35,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).toEqual(boundsB!.midX)
@@ -45,8 +45,8 @@ describe('When editing text', () => {
 	})
 
 	it('preserved the right center when center aligned and rotated 90deg', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -61,9 +61,9 @@ describe('When editing text', () => {
 			},
 		])
 
-		const boundsA = app.getPageBoundsById(id)!
-		app.updateShapes([{ id, type: 'text', props: { text: 'Hello, world!' } }])
-		const boundsB = app.getPageBoundsById(id)!
+		const boundsA = editor.getPageBoundsById(id)!
+		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello, world!' } }])
+		const boundsB = editor.getPageBoundsById(id)!
 		expect(boundsA.x).toBeCloseTo(boundsB.x)
 		expect(boundsA.y).not.toBeCloseTo(boundsB.y)
 		expect(boundsA.midX).toBeCloseTo(boundsB.midX)
@@ -71,8 +71,8 @@ describe('When editing text', () => {
 	})
 
 	it('preserves the top left corner when start aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -85,8 +85,8 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -95,7 +95,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -105,8 +105,8 @@ describe('When editing text', () => {
 	})
 
 	it('preserves the top right edge when end aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -119,8 +119,8 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -129,7 +129,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -141,8 +141,8 @@ describe('When editing text', () => {
 
 describe('When changing text size', () => {
 	it('preserves the center when center aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -156,8 +156,8 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -166,7 +166,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).toEqual(boundsB!.midX)
@@ -176,8 +176,8 @@ describe('When changing text size', () => {
 	})
 
 	it('preserves the center left point when start aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -191,8 +191,8 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -201,7 +201,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -211,8 +211,8 @@ describe('When changing text size', () => {
 	})
 
 	it('preserves the top right edge when end aligned', () => {
-		const id = app.createShapeId()
-		app.createShapes([
+		const id = editor.createShapeId()
+		editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -226,8 +226,8 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = app.getPageBoundsById(id)
-		app.updateShapes([
+		const boundsA = editor.getPageBoundsById(id)
+		editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -236,7 +236,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = app.getPageBoundsById(id)
+		const boundsB = editor.getPageBoundsById(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -249,8 +249,8 @@ describe('When changing text size', () => {
 it('preserves the top left when the text has text', () => {
 	const x = 0
 	const y = 0
-	const id = app.createShapeId()
-	app.createShapes([
+	const id = editor.createShapeId()
+	editor.createShapes([
 		{
 			id,
 			type: 'text',
@@ -261,7 +261,7 @@ it('preserves the top left when the text has text', () => {
 			},
 		},
 	])
-	expect(app.getShapeById(id)).toMatchObject({
+	expect(editor.getShapeById(id)).toMatchObject({
 		x,
 		y,
 	})

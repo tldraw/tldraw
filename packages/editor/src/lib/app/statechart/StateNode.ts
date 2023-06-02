@@ -14,7 +14,7 @@ type StateNodeType = 'branch' | 'leaf' | 'root'
 
 /** @public */
 export interface StateNodeConstructor {
-	new (app: Editor, parent?: StateNode): StateNode
+	new (editor: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
 	children?: () => StateNodeConstructor[]
@@ -23,7 +23,7 @@ export interface StateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
-	constructor(public app: Editor, parent?: StateNode) {
+	constructor(public editor: Editor, parent?: StateNode) {
 		const { id, children, initial } = this.constructor as StateNodeConstructor
 
 		this.id = id
@@ -41,7 +41,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this.type = 'branch'
 				this.initial = initial
 				this.children = Object.fromEntries(
-					children().map((Ctor) => [Ctor.id, new Ctor(this.app, this)])
+					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
 				this.current.set(this.children[this.initial])
 			} else {
@@ -53,7 +53,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 			if (children && initial) {
 				this.initial = initial
 				this.children = Object.fromEntries(
-					children().map((Ctor) => [Ctor.id, new Ctor(this.app, this)])
+					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
 				this.current.set(this.children[this.initial])
 			}

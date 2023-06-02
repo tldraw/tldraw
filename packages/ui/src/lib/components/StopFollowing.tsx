@@ -4,10 +4,10 @@ import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export const StopFollowing = track(function ExitPenMode() {
-	const app = useEditor()
+	const editor = useEditor()
 	const actions = useActions()
 
-	if (!app.instanceState.followingUserId) {
+	if (!editor.instanceState.followingUserId) {
 		return null
 	}
 

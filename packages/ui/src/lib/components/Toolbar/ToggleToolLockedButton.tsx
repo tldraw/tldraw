@@ -12,11 +12,11 @@ interface ToggleToolLockedButtonProps {
 const NOT_LOCKABLE_TOOLS = ['select', 'hand', 'draw', 'eraser', 'text', 'zoom', 'laser']
 
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 
-	const isToolLocked = useValue('is tool locked', () => app.instanceState.isToolLocked, [app])
+	const isToolLocked = useValue('is tool locked', () => editor.instanceState.isToolLocked, [editor])
 
 	if (!activeToolId || NOT_LOCKABLE_TOOLS.includes(activeToolId)) return null
 
@@ -27,7 +27,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 				'tlui-toolbar__lock-button__mobile': breakpoint < 5,
 			})}
 			icon={isToolLocked ? 'lock' : 'unlock'}
-			onClick={() => app.updateInstanceState({ isToolLocked: !isToolLocked })}
+			onClick={() => editor.updateInstanceState({ isToolLocked: !isToolLocked })}
 			smallIcon
 		/>
 	)

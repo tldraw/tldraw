@@ -28,7 +28,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		onValueChange,
 		columns = clamp(items.length, 2, 4),
 	} = props
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
@@ -48,14 +48,14 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			const { id } = e.currentTarget.dataset
 			if (value === id) return
 
-			app.mark('point picker item')
+			editor.mark('point picker item')
 			onValueChange(items.find((i) => i.id === id)!, false)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			app.mark('point picker item')
+			editor.mark('point picker item')
 			onValueChange(items.find((i) => i.id === id)!, true)
 
 			rPointing.current = true
@@ -80,7 +80,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [app, value, onValueChange, items])
+	}, [editor, value, onValueChange, items])
 
 	return (
 		<div

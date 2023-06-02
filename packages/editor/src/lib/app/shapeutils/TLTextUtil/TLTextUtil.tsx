@@ -40,7 +40,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 
 	// @computed
 	// private get minDimensionsCache() {
-	// 	return this.app.store.createSelectedComputedCache<
+	// 	return this.editor.store.createSelectedComputedCache<
 	// 		TLTextShape['props'],
 	// 		{ width: number; height: number },
 	// 		TLTextShape
@@ -49,12 +49,12 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 	// 		(shape) => {
 	// 			return shape.props
 	// 		},
-	// 		(props) => getTextSize(this.app, props)
+	// 		(props) => getTextSize(this.editor, props)
 	// 	)
 	// }
 
 	getMinDimensions(shape: TLTextShape) {
-		return sizeCache.get(shape.props, (props) => getTextSize(this.app, props))
+		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
 	getBounds(shape: TLTextShape) {
@@ -180,8 +180,8 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = createTextSvgElementFromSpans(
-			this.app,
-			this.app.textMeasure.measureTextSpans(text, opts),
+			this.editor,
+			this.editor.textMeasure.measureTextSpans(text, opts),
 			{
 				...opts,
 				stroke: colors.background,
@@ -266,10 +266,10 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		const trimmedText = shape.props.text.trimEnd()
 
 		if (trimmedText.length === 0) {
-			this.app.deleteShapes([shape.id])
+			this.editor.deleteShapes([shape.id])
 		} else {
 			if (trimmedText !== shape.props.text) {
-				this.app.updateShapes([
+				this.editor.updateShapes([
 					{
 						id,
 						type,
@@ -300,7 +300,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 		const boundsA = this.getMinDimensions(prev)
 
 		// Will always be a fresh call to getTextSize
-		const boundsB = getTextSize(this.app, next.props)
+		const boundsB = getTextSize(this.editor, next.props)
 
 		const wA = boundsA.width * prev.props.scale
 		const hA = boundsA.height * prev.props.scale
@@ -368,7 +368,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 	}
 }
 
-function getTextSize(app: Editor, props: TLTextShape['props']) {
+function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props
 
 	const minWidth = 16
@@ -379,7 +379,7 @@ function getTextSize(app: Editor, props: TLTextShape['props']) {
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
 		  Math.floor(Math.max(minWidth, w)) + 'px'
 
-	const result = app.textMeasure.measureText(text, {
+	const result = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,

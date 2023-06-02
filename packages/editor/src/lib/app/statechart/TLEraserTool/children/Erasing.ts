@@ -13,17 +13,17 @@ export class Erasing extends StateNode {
 	private excludedShapeIds = new Set<TLShapeId>()
 
 	override onEnter = (info: TLPointerEventInfo) => {
-		this.markId = this.app.mark('erase scribble begin')
+		this.markId = this.editor.mark('erase scribble begin')
 		this.info = info
 
-		const { originPagePoint } = this.app.inputs
+		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
-			this.app.shapesArray
+			this.editor.shapesArray
 				.filter(
 					(shape) =>
-						this.app.isShapeOrAncestorLocked(shape) ||
+						this.editor.isShapeOrAncestorLocked(shape) ||
 						((shape.type === 'group' || shape.type === 'frame') &&
-							this.app.isPointInShape(originPagePoint, shape))
+							this.editor.isPointInShape(originPagePoint, shape))
 				)
 				.map((shape) => shape.id)
 		)
@@ -34,7 +34,7 @@ export class Erasing extends StateNode {
 
 	private startScribble = () => {
 		if (this.scribble.tick) {
-			this.app.off('tick', this.scribble?.tick)
+			this.editor.off('tick', this.scribble?.tick)
 		}
 
 		this.scribble = new ScribbleManager({
@@ -44,21 +44,21 @@ export class Erasing extends StateNode {
 			size: 12,
 		})
 
-		this.app.on('tick', this.scribble.tick)
+		this.editor.on('tick', this.scribble.tick)
 	}
 
 	private pushPointToScribble = () => {
-		const { x, y } = this.app.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint
 		this.scribble.addPoint(x, y)
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.app.setScribble(scribble)
+		this.editor.setScribble(scribble)
 	}
 
 	private onScribbleComplete = () => {
-		this.app.off('tick', this.scribble.tick)
-		this.app.setScribble(null)
+		this.editor.off('tick', this.scribble.tick)
+		this.editor.setScribble(null)
 	}
 
 	override onExit = () => {
@@ -86,7 +86,7 @@ export class Erasing extends StateNode {
 			shapesArray,
 			erasingIdsSet,
 			inputs: { currentPagePoint, previousPagePoint },
-		} = this.app
+		} = this.editor
 
 		const { excludedShapeIds } = this
 
@@ -98,37 +98,37 @@ export class Erasing extends StateNode {
 			if (shape.type === 'group') continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
-			const pageMask = this.app.getPageMaskById(shape.id)
+			const pageMask = this.editor.getPageMaskById(shape.id)
 			if (pageMask && !pointInPolygon(currentPagePoint, pageMask)) {
 				continue
 			}
 
 			// Hit test the shape using a line segment
-			const util = this.app.getShapeUtil(shape)
-			const A = this.app.getPointInShapeSpace(shape, previousPagePoint)
-			const B = this.app.getPointInShapeSpace(shape, currentPagePoint)
+			const util = this.editor.getShapeUtil(shape)
+			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
+			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
 			// If it's a hit, erase the outermost selectable shape
 			if (util.hitTestLineSegment(shape, A, B)) {
-				erasing.add(this.app.getOutermostSelectableShape(shape).id)
+				erasing.add(this.editor.getOutermostSelectableShape(shape).id)
 			}
 		}
 
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.app.setErasingIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
-		this.app.deleteShapes(this.app.pageState.erasingIds)
-		this.app.setErasingIds([])
+		this.editor.deleteShapes(this.editor.pageState.erasingIds)
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.app.setErasingIds([])
-		this.app.bailToMark(this.markId)
+		this.editor.setErasingIds([])
+		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}
 }

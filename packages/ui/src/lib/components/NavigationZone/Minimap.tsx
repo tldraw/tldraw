@@ -23,7 +23,7 @@ export const Minimap = track(function Minimap({
 	selectFill,
 	viewportFill,
 }: MinimapProps) {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 
@@ -31,9 +31,9 @@ export const Minimap = track(function Minimap({
 
 	const rPointing = React.useRef(false)
 
-	const minimap = React.useMemo(() => new MinimapManager(app, app.devicePixelRatio), [app])
+	const minimap = React.useMemo(() => new MinimapManager(editor, editor.devicePixelRatio), [editor])
 
-	const isDarkMode = app.isDarkMode
+	const isDarkMode = editor.isDarkMode
 
 	React.useEffect(() => {
 		// Must check after render
@@ -55,24 +55,24 @@ export const Minimap = track(function Minimap({
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!app.shapeIds.size) return
+			if (!editor.shapeIds.size) return
 
 			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			minimap.originPagePoint.setTo(clampedPoint)
-			minimap.originPageCenter.setTo(app.viewportPageBounds.center)
+			minimap.originPageCenter.setTo(editor.viewportPageBounds.center)
 
-			app.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
+			editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
 		},
-		[app, minimap]
+		[editor, minimap]
 	)
 
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			e.currentTarget.setPointerCapture(e.pointerId)
-			if (!app.shapeIds.size) return
+			if (!editor.shapeIds.size) return
 
 			rPointing.current = true
 
@@ -82,7 +82,7 @@ export const Minimap = track(function Minimap({
 
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
-			const _vpPageBounds = app.viewportPageBounds
+			const _vpPageBounds = editor.viewportPageBounds
 
 			minimap.originPagePoint.setTo(clampedPoint)
 			minimap.originPageCenter.setTo(_vpPageBounds.center)
@@ -90,10 +90,10 @@ export const Minimap = track(function Minimap({
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
 			if (!minimap.isInViewport) {
-				app.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
+				editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
 			}
 		},
-		[app, minimap]
+		[editor, minimap]
 	)
 
 	const onPointerMove = React.useCallback(
@@ -109,16 +109,16 @@ export const Minimap = track(function Minimap({
 				if (minimap.isInViewport) {
 					const delta = Vec2d.Sub({ x, y }, minimap.originPagePoint)
 					const center = Vec2d.Add(minimap.originPageCenter, delta)
-					app.centerOnPoint(center.x, center.y)
+					editor.centerOnPoint(center.x, center.y)
 					return
 				}
 
-				app.centerOnPoint(x, y)
+				editor.centerOnPoint(x, y)
 			}
 
 			const pagePoint = minimap.getPagePoint(e.clientX, e.clientY)
 
-			const screenPoint = app.pageToScreen(pagePoint.x, pagePoint.y)
+			const screenPoint = editor.pageToScreen(pagePoint.x, pagePoint.y)
 
 			const info: TLPointerEventInfo = {
 				type: 'pointer',
@@ -126,12 +126,12 @@ export const Minimap = track(function Minimap({
 				name: 'pointer_move',
 				...getPointerInfo(e),
 				point: screenPoint,
-				isPen: app.isPenMode,
+				isPen: editor.isPenMode,
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		},
-		[app, minimap]
+		[editor, minimap]
 	)
 
 	const onPointerUp = React.useCallback((_e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -142,7 +142,7 @@ export const Minimap = track(function Minimap({
 		(e: React.WheelEvent<HTMLCanvasElement>) => {
 			const offset = normalizeWheel(e)
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'wheel',
 				name: 'wheel',
 				delta: offset,
@@ -151,14 +151,14 @@ export const Minimap = track(function Minimap({
 				ctrlKey: e.metaKey || e.ctrlKey,
 			})
 		},
-		[app]
+		[editor]
 	)
 
 	// Update the minimap's dpr when the dpr changes
 	useQuickReactor(
 		'update dpr',
 		() => {
-			const { devicePixelRatio } = app
+			const { devicePixelRatio } = editor
 			minimap.setDpr(devicePixelRatio)
 
 			const canvas = rCanvas.current as HTMLCanvasElement
@@ -173,17 +173,17 @@ export const Minimap = track(function Minimap({
 
 			minimap.cvs = rCanvas.current
 		},
-		[app, minimap]
+		[editor, minimap]
 	)
 
 	const presences = React.useMemo(() => {
-		return app.store.query.records('instance_presence')
-	}, [app])
+		return editor.store.query.records('instance_presence')
+	}, [editor])
 
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const { devicePixelRatio, viewportPageBounds, allShapesCommonBounds } = app
+			const { devicePixelRatio, viewportPageBounds, allShapesCommonBounds } = editor
 
 			devicePixelRatio // dereference dpr so that it renders then, too
 
@@ -197,10 +197,10 @@ export const Minimap = track(function Minimap({
 
 			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
 
-			app.shapeIds.forEach((id) => {
-				let pageBounds = app.getPageBoundsById(id)! as Box2d & { id: TLShapeId }
+			editor.shapeIds.forEach((id) => {
+				let pageBounds = editor.getPageBoundsById(id)! as Box2d & { id: TLShapeId }
 
-				const pageMask = app.getPageMaskById(id)
+				const pageMask = editor.getPageMaskById(id)
 
 				if (pageMask) {
 					const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
@@ -224,7 +224,7 @@ export const Minimap = track(function Minimap({
 
 			minimap.render()
 		},
-		[app, minimap]
+		[editor, minimap]
 	)
 
 	return (

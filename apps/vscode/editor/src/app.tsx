@@ -64,7 +64,7 @@ export function WrappedTldrawEditor() {
 }
 
 const menuOverrides = {
-	menu: (_app: Editor, schema: MenuSchema, _helpers: any) => {
+	menu: (_editor: Editor, schema: MenuSchema, _helpers: any) => {
 		schema.forEach((item) => {
 			if (item.id === 'menu' && item.type === 'group') {
 				item.children = item.children.filter((menuItem) => {

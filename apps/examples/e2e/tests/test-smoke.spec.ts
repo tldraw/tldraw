@@ -6,7 +6,7 @@ export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-declare const app: Editor
+declare const editor: Editor
 
 test.describe('smoke tests', () => {
 	test.beforeEach(setup)
@@ -65,7 +65,7 @@ test.describe('smoke tests', () => {
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 
 		const getSelectedShapeColor = async () =>
-			await page.evaluate(() => (app.selectedShapes[0] as TLGeoShape).props.color)
+			await page.evaluate(() => (editor.selectedShapes[0] as TLGeoShape).props.color)
 
 		// change style
 		expect(await getSelectedShapeColor()).toBe('black')

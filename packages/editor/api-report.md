@@ -119,8 +119,142 @@ export type AnimationOptions = Partial<{
     easing: typeof EASINGS.easeInOutCubic;
 }>;
 
+// @internal (undocumented)
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+    delta: number;
+    snapshot: RotationSnapshot;
+    editor: Editor;
+    stage: 'end' | 'one-off' | 'start' | 'update';
+}): void;
+
 // @public (undocumented)
-export class App extends EventEmitter<TLEventMap> {
+export interface AppOptions {
+    getContainer: () => HTMLElement;
+    shapes?: Record<string, ShapeInfo>;
+    store: TLStore;
+    tools?: StateNodeConstructor[];
+    user?: TLUser;
+}
+
+// @public (undocumented)
+export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export function blobAsString(blob: Blob): Promise<string>;
+
+// @internal (undocumented)
+export const BOUND_ARROW_OFFSET = 10;
+
+// @public (undocumented)
+export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
+    onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
+}) => JSX.Element>;
+
+// @public (undocumented)
+export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
+
+// @public (undocumented)
+export type ClipboardPayload = {
+    data: string;
+    kind: 'file';
+    type: 'application/tldraw';
+} | {
+    data: string;
+    kind: 'text';
+    type: 'application/tldraw';
+} | {
+    data: TLClipboardModel;
+    kind: 'content';
+    type: 'application/tldraw';
+};
+
+// @public
+export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
+
+// @public (undocumented)
+export function correctSpacesToNbsp(input: string): string;
+
+// @public (undocumented)
+export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
+
+// @public
+export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
+
+// @public (undocumented)
+export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2dModel, props: {
+    width?: number;
+    height?: number;
+    doesResize?: boolean;
+}): void;
+
+// @public (undocumented)
+export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
+
+// @public
+export function createTLStore(opts?: StoreOptions): TLStore;
+
+// @public (undocumented)
+export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
+
+// @public (undocumented)
+export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
+
+// @internal (undocumented)
+export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
+
+// @internal (undocumented)
+export const debugFlags: {
+    preventDefaultLogging: DebugFlag<boolean>;
+    pointerCaptureLogging: DebugFlag<boolean>;
+    pointerCaptureTracking: DebugFlag<boolean>;
+    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
+    elementRemovalLogging: DebugFlag<boolean>;
+    debugSvg: DebugFlag<boolean>;
+    throwToBlob: DebugFlag<boolean>;
+    logMessages: DebugFlag<never[]>;
+    resetConnectionEveryPing: DebugFlag<boolean>;
+    debugCursors: DebugFlag<boolean>;
+    forceSrgb: DebugFlag<boolean>;
+};
+
+// @internal (undocumented)
+export const DEFAULT_ANIMATION_OPTIONS: {
+    duration: number;
+    easing: (t: number) => number;
+};
+
+// @internal (undocumented)
+export const DEFAULT_BOOKMARK_HEIGHT = 320;
+
+// @internal (undocumented)
+export const DEFAULT_BOOKMARK_WIDTH = 300;
+
+// @public (undocumented)
+export let defaultEditorAssetUrls: EditorAssetUrls;
+
+// @public (undocumented)
+export function defaultEmptyAs(str: string, dflt: string): string;
+
+// @internal (undocumented)
+export const DefaultErrorFallback: TLErrorFallback;
+
+// @public (undocumented)
+export const defaultShapes: Record<string, ShapeInfo>;
+
+// @public (undocumented)
+export const defaultTools: StateNodeConstructor[];
+
+// @internal (undocumented)
+export const DOUBLE_CLICK_DURATION = 450;
+
+// @public (undocumented)
+export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
+
+// @internal (undocumented)
+export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, tools, shapes, getContainer, }: AppOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
@@ -543,140 +677,6 @@ export class App extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: AnimationOptions): this;
 }
 
-// @internal (undocumented)
-export function applyRotationToSnapshotShapes({ delta, app, snapshot, stage, }: {
-    delta: number;
-    snapshot: RotationSnapshot;
-    app: App;
-    stage: 'end' | 'one-off' | 'start' | 'update';
-}): void;
-
-// @public (undocumented)
-export interface AppOptions {
-    getContainer: () => HTMLElement;
-    shapes?: Record<string, ShapeInfo>;
-    store: TLStore;
-    tools?: StateNodeConstructor[];
-    user?: TLUser;
-}
-
-// @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
-
-// @public (undocumented)
-export function blobAsString(blob: Blob): Promise<string>;
-
-// @internal (undocumented)
-export const BOUND_ARROW_OFFSET = 10;
-
-// @public (undocumented)
-export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
-}) => JSX.Element>;
-
-// @public (undocumented)
-export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
-
-// @public (undocumented)
-export type ClipboardPayload = {
-    data: string;
-    kind: 'file';
-    type: 'application/tldraw';
-} | {
-    data: string;
-    kind: 'text';
-    type: 'application/tldraw';
-} | {
-    data: TLClipboardModel;
-    kind: 'content';
-    type: 'application/tldraw';
-};
-
-// @public
-export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
-
-// @public (undocumented)
-export function correctSpacesToNbsp(input: string): string;
-
-// @public (undocumented)
-export function createAssetShapeAtPoint(app: App, svgString: string, point: Vec2dModel): Promise<void>;
-
-// @public
-export function createBookmarkShapeAtPoint(app: App, url: string, point: Vec2dModel): Promise<void>;
-
-// @public (undocumented)
-export function createEmbedShapeAtPoint(app: App, url: string, point: Vec2dModel, props: {
-    width?: number;
-    height?: number;
-    doesResize?: boolean;
-}): void;
-
-// @public (undocumented)
-export function createShapesFromFiles(app: App, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
-
-// @public
-export function createTLStore(opts?: StoreOptions): TLStore;
-
-// @public (undocumented)
-export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
-
-// @public (undocumented)
-export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
-
-// @internal (undocumented)
-export type DebugFlag<T> = DebugFlagDef<T> & Atom<T>;
-
-// @internal (undocumented)
-export const debugFlags: {
-    preventDefaultLogging: DebugFlag<boolean>;
-    pointerCaptureLogging: DebugFlag<boolean>;
-    pointerCaptureTracking: DebugFlag<boolean>;
-    pointerCaptureTrackingObject: DebugFlag<Map<Element, number>>;
-    elementRemovalLogging: DebugFlag<boolean>;
-    debugSvg: DebugFlag<boolean>;
-    throwToBlob: DebugFlag<boolean>;
-    logMessages: DebugFlag<never[]>;
-    resetConnectionEveryPing: DebugFlag<boolean>;
-    debugCursors: DebugFlag<boolean>;
-    forceSrgb: DebugFlag<boolean>;
-};
-
-// @internal (undocumented)
-export const DEFAULT_ANIMATION_OPTIONS: {
-    duration: number;
-    easing: (t: number) => number;
-};
-
-// @internal (undocumented)
-export const DEFAULT_BOOKMARK_HEIGHT = 320;
-
-// @internal (undocumented)
-export const DEFAULT_BOOKMARK_WIDTH = 300;
-
-// @public (undocumented)
-export let defaultEditorAssetUrls: EditorAssetUrls;
-
-// @public (undocumented)
-export function defaultEmptyAs(str: string, dflt: string): string;
-
-// @internal (undocumented)
-export const DefaultErrorFallback: TLErrorFallback;
-
-// @public (undocumented)
-export const defaultShapes: Record<string, ShapeInfo>;
-
-// @public (undocumented)
-export const defaultTools: StateNodeConstructor[];
-
-// @internal (undocumented)
-export const DOUBLE_CLICK_DURATION = 450;
-
-// @public (undocumented)
-export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
-
-// @internal (undocumented)
-export const DRAG_DISTANCE = 4;
-
 // @public (undocumented)
 export type EditorAssetUrls = {
     fonts: {
@@ -802,8 +802,8 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
 export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
 
 // @internal (undocumented)
-export function getRotationSnapshot({ app }: {
-    app: App;
+export function getRotationSnapshot({ editor }: {
+    editor: Editor;
 }): {
     selectionPageCenter: Vec2d;
     initialCursorAngle: number;
@@ -873,7 +873,7 @@ export function hardReset({ shouldReload }?: {
 }): Promise<void>;
 
 // @public (undocumented)
-export function hardResetApp(): void;
+export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
@@ -1445,15 +1445,15 @@ export { sortByIndex }
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
-    constructor(app: App, parent?: StateNode);
-    // (undocumented)
-    app: App;
+    constructor(editor: Editor, parent?: StateNode);
     // (undocumented)
     static children?: () => StateNodeConstructor[];
     // (undocumented)
     children?: Record<string, StateNode>;
     // (undocumented)
     current: Atom<StateNode | undefined>;
+    // (undocumented)
+    editor: Editor;
     // (undocumented)
     enter(info: any, from: string): void;
     // (undocumented)
@@ -1523,7 +1523,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 // @public (undocumented)
 export interface StateNodeConstructor {
     // (undocumented)
-    new (app: App, parent?: StateNode): StateNode;
+    new (editor: Editor, parent?: StateNode): StateNode;
     // (undocumented)
     children?: () => StateNodeConstructor[];
     // (undocumented)
@@ -1802,7 +1802,7 @@ export type TldrawEditorProps = {
     assetUrls?: EditorAssetUrls;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
-    onMount?: (app: App) => void;
+    onMount?: (editor: Editor) => void;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
     onCreateBookmarkFromUrl?: (url: string) => Promise<{
         image: string;
@@ -2474,9 +2474,7 @@ export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
 // @public (undocumented)
 export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-    constructor(app: App, type: T['type']);
-    // (undocumented)
-    app: App;
+    constructor(editor: Editor, type: T['type']);
     bounds(shape: T): Box2d;
     canBind: <K>(_shape: T, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<T>;
@@ -2488,6 +2486,8 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canUnmount: TLShapeUtilFlag<T>;
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];
+    // (undocumented)
+    editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: T): number;
     protected abstract getBounds(shape: T): Box2d;
@@ -2551,7 +2551,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>> {
     // (undocumented)
-    new (app: App, type: T['type']): ShapeUtil;
+    new (editor: Editor, type: T['type']): ShapeUtil;
     // (undocumented)
     type: T['type'];
 }
@@ -2710,10 +2710,10 @@ export type UiExitHandler = (info: any, to: string) => void;
 export function uniqueId(): string;
 
 // @public (undocumented)
-export const useApp: () => App;
+export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
-export function useContainer(): HTMLDivElement;
+export const useEditor: () => Editor;
 
 // @internal (undocumented)
 export function useLocalStore(opts?: {

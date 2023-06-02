@@ -3,6 +3,6 @@ import { useValue } from 'signia-react'
 import { useEditor } from './useEditor'
 
 export function useIsCropping(shapeId: TLShapeId) {
-	const app = useEditor()
-	return useValue('isCropping', () => app.croppingId === shapeId, [app, shapeId])
+	const editor = useEditor()
+	return useValue('isCropping', () => editor.croppingId === shapeId, [editor, shapeId])
 }

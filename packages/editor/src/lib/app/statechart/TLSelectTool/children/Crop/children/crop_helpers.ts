@@ -6,7 +6,7 @@ import { Editor } from '../../../../../Editor'
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>
 
 export function getTranslateCroppedImageChange(
-	app: Editor,
+	editor: Editor,
 	shape: TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>,
 	delta: Vec2d
 ) {
@@ -20,7 +20,7 @@ export function getTranslateCroppedImageChange(
 		return
 	}
 
-	const flatten: 'x' | 'y' | null = app.inputs.shiftKey
+	const flatten: 'x' | 'y' | null = editor.inputs.shiftKey
 		? Math.abs(delta.x) < Math.abs(delta.y)
 			? 'x'
 			: 'y'

@@ -4,13 +4,13 @@ import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
 export function useScreenBounds() {
-	const app = useEditor()
+	const editor = useEditor()
 	const container = useContainer()
 
 	useLayoutEffect(() => {
 		const updateBounds = throttle(
 			() => {
-				app.updateViewportScreenBounds()
+				editor.updateViewportScreenBounds()
 			},
 			200,
 			{ trailing: true }
@@ -31,5 +31,5 @@ export function useScreenBounds() {
 		return () => {
 			resizeObserver.disconnect()
 		}
-	}, [app, container])
+	}, [editor, container])
 }

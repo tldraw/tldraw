@@ -88,8 +88,8 @@ const getDefaultPatterns = () => {
 }
 
 export const usePattern = () => {
-	const app = useEditor()
-	const dpr = app.devicePixelRatio
+	const editor = useEditor()
+	const dpr = editor.devicePixelRatio
 	const [isReady, setIsReady] = useState(false)
 	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)

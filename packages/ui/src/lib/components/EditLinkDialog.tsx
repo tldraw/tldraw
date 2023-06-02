@@ -22,9 +22,9 @@ function validateUrl(url: string) {
 type ShapeWithUrl = TLBaseShape<string, { url: string }>
 
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: DialogProps) {
-	const app = useEditor()
+	const editor = useEditor()
 
-	const selectedShape = app.onlySelectedShape
+	const selectedShape = editor.onlySelectedShape
 
 	if (
 		!(selectedShape && 'url' in selectedShape.props && typeof selectedShape.props.url === 'string')
@@ -39,7 +39,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	onClose,
 	selectedShape,
 }: DialogProps & { selectedShape: ShapeWithUrl }) {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const [validState, setValid] = useState(validateUrl(selectedShape.props.url))
@@ -70,16 +70,16 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	}, [])
 
 	const handleClear = useCallback(() => {
-		app.setProp('url', '', false)
+		editor.setProp('url', '', false)
 		onClose()
-	}, [app, onClose])
+	}, [editor, onClose])
 
 	const handleComplete = useCallback(
 		(value: string) => {
 			value = value.trim()
 			const validState = validateUrl(value)
 
-			const shape = app.selectedShapes[0]
+			const shape = editor.selectedShapes[0]
 
 			if (shape && 'url' in shape.props) {
 				const current = shape.props.url
@@ -87,17 +87,17 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					? validState === 'needs protocol'
 						? 'https://' + value
 						: value
-					: app.isShapeOfType(shape, TLBookmarkUtil)
+					: editor.isShapeOfType(shape, TLBookmarkUtil)
 					? rInitialValue.current
 					: ''
 
 				if (current !== undefined && current !== next) {
-					app.setProp('url', next, false)
+					editor.setProp('url', next, false)
 				}
 			}
 			onClose()
 		},
-		[app, onClose]
+		[editor, onClose]
 	)
 
 	const handleCancel = useCallback(() => {

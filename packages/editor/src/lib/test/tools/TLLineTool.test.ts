@@ -2,65 +2,65 @@ import { assert } from '@tldraw/utils'
 import { TLLineUtil } from '../../app/shapeutils/TLLineUtil/TLLineUtil'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 it('enters the line state', () => {
-	app.setSelectedTool('line')
-	expect(app.currentToolId).toBe('line')
-	app.expectPathToBe('root.line.idle')
+	editor.setSelectedTool('line')
+	expect(editor.currentToolId).toBe('line')
+	editor.expectPathToBe('root.line.idle')
 })
 
 describe('When in the idle state', () => {
 	it('enters the pointing state and creates a shape on pointer down', () => {
-		const shapesBefore = app.shapesArray.length
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' })
-		const shapesAfter = app.shapesArray.length
+		const shapesBefore = editor.shapesArray.length
+		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' })
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		app.expectPathToBe('root.line.pointing')
+		editor.expectPathToBe('root.line.pointing')
 	})
 
 	it('returns to select on cancel', () => {
-		app.setSelectedTool('line')
-		app.cancel()
-		app.expectToBeIn('select.idle')
+		editor.setSelectedTool('line')
+		editor.cancel()
+		editor.expectToBeIn('select.idle')
 	})
 })
 
 describe('When in the pointing state', () => {
 	it('createes on pointer up', () => {
-		const shapesBefore = app.shapesArray.length
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
-		const shapesAfter = app.shapesArray.length
+		const shapesBefore = editor.shapesArray.length
+		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(app.hintingIds.length).toBe(0)
-		app.expectPathToBe('root.line.idle')
+		expect(editor.hintingIds.length).toBe(0)
+		editor.expectPathToBe('root.line.idle')
 	})
 
 	it('bails on cancel', () => {
-		const shapesBefore = app.shapesArray.length
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
-		const shapesAfter = app.shapesArray.length
+		const shapesBefore = editor.shapesArray.length
+		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(app.hintingIds.length).toBe(0)
-		app.expectPathToBe('root.line.idle')
+		expect(editor.hintingIds.length).toBe(0)
+		editor.expectPathToBe('root.line.idle')
 	})
 
 	it('enters the dragging state on pointer move', () => {
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
-		app.expectPathToBe('root.select.dragging_handle')
+		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		editor.expectPathToBe('root.select.dragging_handle')
 	})
 })
 
 // This could be moved to dragging_handle
 describe('When dragging the line', () => {
 	it('updates the line on pointer move', () => {
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		app.expectShapeToMatch(line, {
+		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		editor.expectShapeToMatch(line, {
 			id: line.id,
 			type: 'line',
 			x: 0,
@@ -72,49 +72,53 @@ describe('When dragging the line', () => {
 				},
 			},
 		})
-		app.expectPathToBe('root.select.dragging_handle')
+		editor.expectPathToBe('root.select.dragging_handle')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
-		const shapesBefore = app.shapesArray.length
-		app
+		const shapesBefore = editor.shapesArray.length
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
-		const shapesAfter = app.shapesArray.length
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(app.hintingIds.length).toBe(0)
-		app.expectPathToBe('root.select.idle')
+		expect(editor.hintingIds.length).toBe(0)
+		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
-		app.setToolLocked(true)
-		const shapesBefore = app.shapesArray.length
-		app
+		editor.setToolLocked(true)
+		const shapesBefore = editor.shapesArray.length
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
-		const shapesAfter = app.shapesArray.length
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(app.hintingIds.length).toBe(0)
-		app.expectPathToBe('root.line.idle')
+		expect(editor.hintingIds.length).toBe(0)
+		editor.expectPathToBe('root.line.idle')
 	})
 
 	it('bails on cancel', () => {
-		const shapesBefore = app.shapesArray.length
-		app.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10).cancel()
-		const shapesAfter = app.shapesArray.length
+		const shapesBefore = editor.shapesArray.length
+		editor
+			.setSelectedTool('line')
+			.pointerDown(0, 0, { target: 'canvas' })
+			.pointerMove(10, 10)
+			.cancel()
+		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
-		app.expectPathToBe('root.line.idle')
+		editor.expectPathToBe('root.line.idle')
 	})
 })
 
 describe('When extending the line with the shift-key in tool-lock mode', () => {
 	it('extends a line by joining-the-dots', () => {
-		app.setToolLocked(true)
-		app
+		editor.setToolLocked(true)
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
@@ -123,15 +127,15 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerDown(20, 10, { target: 'canvas' })
 			.pointerUp(20, 10)
 
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType(line, TLLineUtil))
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		assert(editor.isShapeOfType(line, TLLineUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
 
 	it('extends a line after a click by shift-click dragging', () => {
-		app.setToolLocked(true)
-		app
+		editor.setToolLocked(true)
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerUp(0, 0)
@@ -140,15 +144,15 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType(line, TLLineUtil))
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		assert(editor.isShapeOfType(line, TLLineUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
 
 	it('extends a line by shift-click dragging', () => {
-		app.setToolLocked(true)
-		app
+		editor.setToolLocked(true)
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
@@ -158,15 +162,15 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType(line, TLLineUtil))
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		assert(editor.isShapeOfType(line, TLLineUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointerdown', () => {
-		app.setToolLocked(true)
-		app
+		editor.setToolLocked(true)
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
@@ -178,15 +182,15 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType(line, TLLineUtil))
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		assert(editor.isShapeOfType(line, TLLineUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointermove', () => {
-		app.setToolLocked(true)
-		app
+		editor.setToolLocked(true)
+		editor
 			.setSelectedTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
@@ -200,8 +204,8 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(40, 10)
 			.pointerUp(40, 10)
 
-		const line = app.shapesArray[app.shapesArray.length - 1]
-		assert(app.isShapeOfType(line, TLLineUtil))
+		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		assert(editor.isShapeOfType(line, TLLineUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})

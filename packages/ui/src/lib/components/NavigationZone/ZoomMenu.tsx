@@ -8,18 +8,18 @@ import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'
 
 export const ZoomMenu = track(function ZoomMenu() {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const zoom = app.zoomLevel
-	const hasShapes = app.shapeIds.size > 0
-	const hasSelected = app.selectedIds.length > 0
-	const isZoomedTo100 = app.zoomLevel === 1
+	const zoom = editor.zoomLevel
+	const hasShapes = editor.shapeIds.size > 0
+	const hasSelected = editor.selectedIds.length > 0
+	const isZoomedTo100 = editor.zoomLevel === 1
 
 	const handleDoubleClick = React.useCallback(() => {
-		app.resetZoom(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
-	}, [app])
+		editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+	}, [editor])
 
 	return (
 		<M.Root id="zoom">

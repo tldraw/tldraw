@@ -17,7 +17,7 @@ export interface SliderProps {
 /** @public */
 export function Slider(props: SliderProps) {
 	const { title, steps, value, label, onValueChange } = props
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useCallback(
@@ -28,8 +28,8 @@ export function Slider(props: SliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		app.mark('click slider')
-	}, [app])
+		editor.mark('click slider')
+	}, [editor])
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return

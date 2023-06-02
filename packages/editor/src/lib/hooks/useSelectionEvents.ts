@@ -5,7 +5,7 @@ import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'
 
 export function useSelectionEvents(handle: TLSelectionHandle) {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const events = useMemo(
 		function selectionEvents() {
@@ -28,12 +28,12 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 				setPointerCapture(elm, e)
 				elm.addEventListener('pointerup', releaseCapture)
 
-				app.dispatch({
+				editor.dispatch({
 					name: 'pointer_down',
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 				e.stopPropagation()
 			}
@@ -48,12 +48,12 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 				lastX = e.clientX
 				lastY = e.clientY
 
-				app.dispatch({
+				editor.dispatch({
 					name: 'pointer_move',
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
@@ -61,12 +61,12 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 				if ((e as any).isKilled) return
 				if (e.button !== 0) return
 
-				app.dispatch({
+				editor.dispatch({
 					name: 'pointer_up',
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, app.getContainer()),
+					...getPointerInfo(e, editor.getContainer()),
 				})
 			}
 
@@ -76,7 +76,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 				onPointerUp,
 			}
 		},
-		[app, handle]
+		[editor, handle]
 	)
 
 	return events

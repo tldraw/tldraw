@@ -128,18 +128,18 @@ export function menuItem(
 	}
 }
 
-function shapesWithUnboundArrows(app: Editor) {
-	const { selectedIds } = app
+function shapesWithUnboundArrows(editor: Editor) {
+	const { selectedIds } = editor
 	const selectedShapes = selectedIds.map((id) => {
-		return app.getShapeById(id)
+		return editor.getShapeById(id)
 	})
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.start.type === 'binding') {
+		if (editor.isShapeOfType(shape, TLArrowUtil) && shape.props.start.type === 'binding') {
 			return false
 		}
-		if (app.isShapeOfType(shape, TLArrowUtil) && shape.props.end.type === 'binding') {
+		if (editor.isShapeOfType(shape, TLArrowUtil) && shape.props.end.type === 'binding') {
 			return false
 		}
 		return true
@@ -148,22 +148,22 @@ function shapesWithUnboundArrows(app: Editor) {
 
 /** @public */
 export const useThreeStackableItems = () => {
-	const app = useEditor()
-	return useValue('threeStackableItems', () => shapesWithUnboundArrows(app).length > 2, [app])
+	const editor = useEditor()
+	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
 }
 
 /** @public */
 export const useAllowGroup = () => {
-	const app = useEditor()
-	return useValue('allowGroup', () => shapesWithUnboundArrows(app).length > 1, [app])
+	const editor = useEditor()
+	return useValue('allowGroup', () => shapesWithUnboundArrows(editor).length > 1, [editor])
 }
 
 /** @public */
 export const useAllowUngroup = () => {
-	const app = useEditor()
+	const editor = useEditor()
 	return useValue(
 		'allowUngroup',
-		() => app.selectedIds.some((id) => app.getShapeById(id)?.type === 'group'),
+		() => editor.selectedIds.some((id) => editor.getShapeById(id)?.type === 'group'),
 		[]
 	)
 }

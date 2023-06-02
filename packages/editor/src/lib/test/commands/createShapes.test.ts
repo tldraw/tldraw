@@ -1,7 +1,7 @@
 import { createCustomShapeId, TLGeoShape } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -13,62 +13,62 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 it('Parents shapes to the current page if the parent is not found', () => {
-	app.createShapes([{ id: ids.box1, parentId: ids.missing, type: 'geo' }])
-	expect(app.getShapeById(ids.box1)!.parentId).toEqual(app.currentPageId)
+	editor.createShapes([{ id: ids.box1, parentId: ids.missing, type: 'geo' }])
+	expect(editor.getShapeById(ids.box1)!.parentId).toEqual(editor.currentPageId)
 })
 
 it('Creates shapes with the current style', () => {
-	expect(app.instanceState.propsForNextShape!.color).toBe('black')
-	app.createShapes([{ id: ids.box1, type: 'geo' }])
-	expect(app.getShapeById<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
+	expect(editor.instanceState.propsForNextShape!.color).toBe('black')
+	editor.createShapes([{ id: ids.box1, type: 'geo' }])
+	expect(editor.getShapeById<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
-	app.setProp('color', 'red')
-	expect(app.instanceState.propsForNextShape!.color).toBe('red')
-	app.createShapes([{ id: ids.box2, type: 'geo' }])
-	expect(app.getShapeById<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
+	editor.setProp('color', 'red')
+	expect(editor.instanceState.propsForNextShape!.color).toBe('red')
+	editor.createShapes([{ id: ids.box2, type: 'geo' }])
+	expect(editor.getShapeById<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })
 
 it('Creates shapes with the current opacity', () => {
-	app.setProp('opacity', '0.5')
-	app.createShapes([{ id: ids.box3, type: 'geo' }])
-	expect(app.getShapeById<TLGeoShape>(ids.box3)!.props.opacity).toEqual('0.5')
+	editor.setProp('opacity', '0.5')
+	editor.createShapes([{ id: ids.box3, type: 'geo' }])
+	expect(editor.getShapeById<TLGeoShape>(ids.box3)!.props.opacity).toEqual('0.5')
 })
 
 it('Creates shapes at the correct index', () => {
-	app.createShapes([
+	editor.createShapes([
 		{ id: ids.box3, type: 'geo' },
 		{ id: ids.box4, type: 'geo' },
 	])
-	expect(app.getShapeById(ids.box3)!.index).toEqual('a1')
-	expect(app.getShapeById(ids.box4)!.index).toEqual('a2')
+	expect(editor.getShapeById(ids.box3)!.index).toEqual('a1')
+	expect(editor.getShapeById(ids.box4)!.index).toEqual('a2')
 
-	app.createShapes([{ id: ids.box5, type: 'geo' }])
-	expect(app.getShapeById(ids.box5)!.index).toEqual('a3')
+	editor.createShapes([{ id: ids.box5, type: 'geo' }])
+	expect(editor.getShapeById(ids.box5)!.index).toEqual('a3')
 })
 
 it('Throws out all shapes if any shape is invalid', () => {
-	const n = app.shapeIds.size
+	const n = editor.shapeIds.size
 
 	expect(() => {
-		app.createShapes([{ id: ids.box1, type: 'geo' }])
+		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	}).not.toThrow()
 
-	expect(app.shapeIds.size).toBe(n + 1)
+	expect(editor.shapeIds.size).toBe(n + 1)
 
 	console.error = jest.fn()
 
 	// But these will need to be thrown out
 	expect(() => {
-		app.createShapes([
+		editor.createShapes([
 			{ id: ids.box3, type: 'geo', x: 3 },
 			// @ts-expect-error
 			{ id: ids.box4, type: 'geo', x: 'three' }, // invalid x
 		])
 	}).toThrow()
 
-	expect(app.shapeIds.size).toBe(n + 1)
+	expect(editor.shapeIds.size).toBe(n + 1)
 })

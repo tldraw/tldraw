@@ -44,11 +44,11 @@ const linksMenuGroup = menuGroup(
 )!
 
 export const linksUiOverrides: TldrawUiOverrides = {
-	helpMenu(app, schema) {
+	helpMenu(editor, schema) {
 		schema.push(linksMenuGroup)
 		return schema
 	},
-	menu(app, schema, { isMobile }) {
+	menu(editor, schema, { isMobile }) {
 		if (isMobile) {
 			schema.push(linksMenuGroup)
 		}

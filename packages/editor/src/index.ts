@@ -241,7 +241,7 @@ export {
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
-export { hardResetApp } from './lib/utils/hard-reset'
+export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'

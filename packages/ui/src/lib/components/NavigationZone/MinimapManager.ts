@@ -2,7 +2,7 @@ import { Editor, TLInstancePresence, TLShapeId, uniqueId } from '@tldraw/editor'
 import { Box2d, PI2, Vec2d, clamp } from '@tldraw/primitives'
 
 export class MinimapManager {
-	constructor(public app: Editor, private dpr: number) {}
+	constructor(public editor: Editor, private dpr: number) {}
 
 	colors = {
 		shapeFill: 'rgba(144, 144, 144, .1)',
@@ -107,13 +107,13 @@ export class MinimapManager {
 		shiftKey = false,
 		clampToBounds = false
 	) => {
-		const { app } = this
-		const { viewportPageBounds } = app
+		const { editor } = this
+		const { viewportPageBounds } = editor
 
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.app.allShapesCommonBounds
+			const shapesPageBounds = this.editor.allShapesCommonBounds
 			const vpPageBounds = viewportPageBounds
 
 			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
@@ -165,10 +165,10 @@ export class MinimapManager {
 		const { cvs, pageBounds } = this
 		this.updateCanvasPageBounds()
 
-		const { app, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
+		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
-		const { viewportPageBounds, selectedIds } = app
+		const { viewportPageBounds, selectedIds } = editor
 
 		if (!cvs || !pageBounds) {
 			return
@@ -245,7 +245,7 @@ export class MinimapManager {
 
 		// Brush
 		{
-			const { brush } = app
+			const { brush } = editor
 			if (brush) {
 				const { x, y, w, h } = brush
 				ctx.beginPath()
@@ -289,7 +289,7 @@ export class MinimapManager {
 		const px = 2.5 / sx
 		const py = 2.5 / sy
 
-		const { currentPageId } = app
+		const { currentPageId } = editor
 
 		let collaborator: TLInstancePresence
 		for (let i = 0; i < this.collaborators.length; i++) {

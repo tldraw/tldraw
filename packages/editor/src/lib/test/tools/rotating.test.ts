@@ -2,10 +2,10 @@ import { Vec2d } from '@tldraw/primitives'
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 const ids = {
@@ -14,9 +14,9 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id: ids.box1,
 			type: 'geo',
@@ -42,7 +42,7 @@ beforeEach(() => {
 
 describe('When pointing a rotate handle...', () => {
 	it('enters and exits the pointing_rotate_handle state when pointing a rotate handle', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(60, 10, {
 				target: 'selection',
@@ -54,7 +54,7 @@ describe('When pointing a rotate handle...', () => {
 	})
 
 	it('enters the pointing_rotate_handle state when pointing a rotate corner', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(60, 10, {
 				target: 'selection',
@@ -66,7 +66,7 @@ describe('When pointing a rotate handle...', () => {
 	})
 
 	it('exits the pointing_rotate_handle state on pointer up', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(60, 10, {
 				target: 'selection',
@@ -77,7 +77,7 @@ describe('When pointing a rotate handle...', () => {
 	})
 
 	it('exits the pointing_rotate_handle state on Escape', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(60, 10, {
 				target: 'selection',
@@ -91,7 +91,7 @@ describe('When pointing a rotate handle...', () => {
 
 describe('When rotating...', () => {
 	it('enters and exits the rotating state', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(50, 0, {
 				target: 'selection',
@@ -105,7 +105,7 @@ describe('When rotating...', () => {
 	})
 
 	it('exits the rotating state when cancelled and restores initial points / rotation', () => {
-		app
+		editor
 			.select(ids.box1)
 			.pointerDown(50, 0, {
 				target: 'selection',
@@ -117,15 +117,15 @@ describe('When rotating...', () => {
 	})
 
 	it('rotates a single shape', () => {
-		app.select(ids.box1)
+		editor.select(ids.box1)
 
-		const shapeA = app.getShapeById(ids.box1)!
-		const box = app.selectedPageBounds!
+		const shapeA = editor.getShapeById(ids.box1)!
+		const box = editor.selectedPageBounds!
 		const center = box.center.clone().toFixed()
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(center)
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
 
-		app
+		editor
 			.pointerDown(box.midX, box.minY, {
 				target: 'selection',
 				handle: 'top_right_rotate',
@@ -133,81 +133,81 @@ describe('When rotating...', () => {
 			.pointerMove(box.maxX, box.midY)
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 0.5 })
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(center)
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
 
-		app
+		editor
 			.pointerMove(box.midY, box.maxY)
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 1.0 })
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(center)
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
 
-		app
+		editor
 			.pointerMove(box.minX, box.midY)
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 1.5 })
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(center)
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
 
 		// Preserves the selection bounds same center
 		expect(center).toMatchObject(box.center)
 	})
 
 	it('rotates multiple shapes', () => {
-		const shapeA = app.getShapeById(ids.box1)!
-		const centerA = app.getPageCenter(shapeA)!.clone()
+		const shapeA = editor.getShapeById(ids.box1)!
+		const centerA = editor.getPageCenter(shapeA)!.clone()
 
-		const shapeB = app.getShapeById(ids.box2)!
-		const centerB = app.getPageCenter(shapeB)!.clone()
+		const shapeB = editor.getShapeById(ids.box2)!
+		const centerB = editor.getPageCenter(shapeB)!.clone()
 
-		app.select(ids.box1, ids.box2)
+		editor.select(ids.box1, ids.box2)
 
-		const box = app.selectedPageBounds!
+		const box = editor.selectedPageBounds!
 		const center = box.center.clone()
 
-		app.pointerDown(box.midX, box.minY, {
+		editor.pointerDown(box.midX, box.minY, {
 			target: 'selection',
 			handle: 'top_left_rotate',
 		})
 
 		const next = Vec2d.RotWith(new Vec2d(box.midX, box.minY), center, Math.PI * 0.5)
 
-		app
+		editor
 			.pointerMove(next.x, next.y)
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI * 0.5 })
 			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI * 0.5 })
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(
 			Vec2d.RotWith(centerA, center, Math.PI * 0.5).toFixed()
 		)
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeB)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeB)!)).toMatchObject(
 			Vec2d.RotWith(centerB, center, Math.PI * 0.5).toFixed()
 		)
 
-		app
+		editor
 			.pointerMove(box.midY, box.maxY)
 			.expectShapeToMatch(
 				{ id: ids.box1, rotation: Math.PI * 1.0 },
 				{ id: ids.box2, rotation: Math.PI * 1.0 }
 			)
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(
 			Vec2d.RotWith(centerA, center, Math.PI).toFixed()
 		)
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeB)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeB)!)).toMatchObject(
 			Vec2d.RotWith(centerB, center, Math.PI).toFixed()
 		)
 
-		app
+		editor
 			.pointerMove(box.minX, box.midY)
 			.expectShapeToMatch(
 				{ id: ids.box1, rotation: Math.PI * 1.5 },
 				{ id: ids.box2, rotation: Math.PI * 1.5 }
 			)
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(
 			Vec2d.RotWith(centerA, center, Math.PI * 1.5).toFixed()
 		)
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeB)!)).toMatchObject(
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeB)!)).toMatchObject(
 			Vec2d.RotWith(centerB, center, Math.PI * 1.5).toFixed()
 		)
 
@@ -218,15 +218,15 @@ describe('When rotating...', () => {
 	it.todo('rotates a shape with handles')
 
 	it('restores initial points / rotation when cancelled', () => {
-		app.select(ids.box1, ids.box2)
+		editor.select(ids.box1, ids.box2)
 
-		const box = app.selectedPageBounds!
+		const box = editor.selectedPageBounds!
 		const center = box.center.clone()
 
-		const shapeA = app.getShapeById(ids.box1)!
-		const centerA = app.getPageCenter(shapeA)!
+		const shapeA = editor.getShapeById(ids.box1)!
+		const centerA = editor.getPageCenter(shapeA)!
 
-		app
+		editor
 			.pointerDown(box.midX, box.minY, {
 				target: 'selection',
 				handle: 'top_left_rotate',
@@ -238,18 +238,18 @@ describe('When rotating...', () => {
 				{ id: ids.box2, x: 200, y: 200, rotation: 0 }
 			)
 
-		expect(Vec2d.ToFixed(app.getPageCenter(shapeA)!)).toMatchObject(centerA.toFixed())
+		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(centerA.toFixed())
 
 		// Preserves the selection bounds same center
 		expect(center).toMatchObject(box.center)
 	})
 
 	it('uses the same selection box center when rotating multiple times', () => {
-		app.select(ids.box1, ids.box2)
+		editor.select(ids.box1, ids.box2)
 
-		const centerBefore = app.selectedPageBounds!.center.clone()
+		const centerBefore = editor.selectedPageBounds!.center.clone()
 
-		app
+		editor
 			.pointerDown(0, 0, {
 				target: 'selection',
 				handle: 'top_left_rotate',
@@ -257,11 +257,11 @@ describe('When rotating...', () => {
 			.pointerMove(50, 100)
 			.pointerUp()
 
-		const centerBetween = app.selectedPageBounds!.center.clone()
+		const centerBetween = editor.selectedPageBounds!.center.clone()
 
 		expect(centerBefore.toFixed().toJson()).toMatchObject(centerBetween.toFixed().toJson())
 
-		app
+		editor
 			.pointerDown(50, 100, {
 				target: 'selection',
 				handle: 'top_left_rotate',
@@ -269,7 +269,7 @@ describe('When rotating...', () => {
 			.pointerMove(0, 0)
 			.pointerUp()
 
-		const centerAfter = app.selectedPageBounds!.center.clone()
+		const centerAfter = editor.selectedPageBounds!.center.clone()
 
 		expect(centerBefore.toFixed().toJson()).toMatchObject(centerAfter.toFixed().toJson())
 	})

@@ -3,6 +3,6 @@ import { LANGUAGES } from './languages'
 
 /** @public */
 export function useLanguages() {
-	const app = useEditor()
-	return { languages: LANGUAGES, currentLanguage: app.locale }
+	const editor = useEditor()
+	return { languages: LANGUAGES, currentLanguage: editor.locale }
 }

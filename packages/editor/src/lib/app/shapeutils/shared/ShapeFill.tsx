@@ -31,12 +31,12 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 })
 
 const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
-	const app = useEditor()
-	const zoomLevel = useValue('zoomLevel', () => app.zoomLevel, [app])
-	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
+	const editor = useEditor()
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
 
 	const intZoom = Math.ceil(zoomLevel)
-	const teenyTiny = app.zoomLevel <= 0.18
+	const teenyTiny = editor.zoomLevel <= 0.18
 
 	return (
 		<>

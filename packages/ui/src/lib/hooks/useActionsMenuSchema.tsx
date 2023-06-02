@@ -21,7 +21,7 @@ export const ActionsMenuSchemaContext = React.createContext({} as ActionsMenuSch
 /** @public */
 export type ActionsMenuSchemaProviderProps = {
 	overrides?: (
-		app: Editor,
+		editor: Editor,
 		schema: ActionsMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
@@ -38,10 +38,10 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	overrides,
 	children,
 }: ActionsMenuSchemaProviderProps) {
-	const app = useEditor()
+	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -51,7 +51,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const allowUngroup = useAllowUngroup()
 	const showEditLink = useHasLinkShapeSelected()
 	const breakpoint = useBreakpoint()
-	const isZoomedTo100 = app.zoomLevel === 1
+	const isZoomedTo100 = editor.zoomLevel === 1
 
 	const actionMenuSchema = useMemo<MenuSchema>(() => {
 		const results = [
@@ -84,12 +84,12 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 		]
 
 		if (overrides) {
-			return overrides(app, results, { actions, oneSelected, twoSelected, threeSelected })
+			return overrides(editor, results, { actions, oneSelected, twoSelected, threeSelected })
 		}
 
 		return results
 	}, [
-		app,
+		editor,
 		isZoomedTo100,
 		allowGroup,
 		overrides,

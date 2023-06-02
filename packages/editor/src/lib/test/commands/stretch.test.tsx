@@ -3,33 +3,33 @@ import { TLShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestEditor
+let editor: TestEditor
 let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
 
 function createVideoShape() {
-	return app.createShapesFromJsx(<TL.video ref="video1" x={0} y={0} w={160} h={90} />).video1
+	return editor.createShapesFromJsx(<TL.video ref="video1" x={0} y={0} w={160} h={90} />).video1
 }
 
 beforeEach(() => {
-	app = new TestEditor()
-	app.selectAll()
-	app.deleteShapes()
-	ids = app.createShapesFromJsx([
+	editor = new TestEditor()
+	editor.selectAll()
+	editor.deleteShapes()
+	ids = editor.createShapesFromJsx([
 		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
 		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
 		<TL.geo ref="boxC" x={400} y={400} w={100} h={100} />,
 	])
-	app.selectAll()
+	editor.selectAll()
 })
 
 describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
-		app.setSelectedIds([ids.boxB])
+		editor.setSelectedIds([ids.boxB])
 		const fn = jest.fn()
-		app.on('change-history', fn)
-		app.stretchShapes('horizontal')
+		editor.on('change-history', fn)
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
 
 		expect(fn).not.toHaveBeenCalled()
@@ -38,10 +38,10 @@ describe('when less than two shapes are selected', () => {
 
 describe('when multiple shapes are selected', () => {
 	it('stretches horizontally', () => {
-		app.selectAll()
-		app.stretchShapes('horizontal')
+		editor.selectAll()
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
 			{ id: ids.boxB, x: 0, y: 100, props: { w: 500 } },
 			{ id: ids.boxC, x: 0, y: 400, props: { w: 500 } }
@@ -50,12 +50,12 @@ describe('when multiple shapes are selected', () => {
 
 	it('stretches horizontally and preserves aspect ratio', () => {
 		const videoA = createVideoShape()
-		app.selectAll()
-		expect(app.selectedShapes.length).toBe(4)
-		app.stretchShapes('horizontal')
+		editor.selectAll()
+		expect(editor.selectedShapes.length).toBe(4)
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
 		const newHeight = (500 * 9) / 16
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
 			{ id: ids.boxB, x: 0, y: 100, props: { w: 500 } },
 			{ id: ids.boxC, x: 0, y: 400, props: { w: 500 } },
@@ -64,10 +64,10 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('stretches vertically', () => {
-		app.selectAll()
-		app.stretchShapes('vertical')
+		editor.selectAll()
+		editor.stretchShapes('vertical')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
 			{ id: ids.boxB, x: 100, y: 0, props: { h: 500 } },
 			{ id: ids.boxC, x: 400, y: 0, props: { h: 500 } }
@@ -76,12 +76,12 @@ describe('when multiple shapes are selected', () => {
 
 	it('stretches vertically and preserves aspect ratio', () => {
 		const videoA = createVideoShape()
-		app.selectAll()
-		expect(app.selectedShapes.length).toBe(4)
-		app.stretchShapes('vertical')
+		editor.selectAll()
+		expect(editor.selectedShapes.length).toBe(4)
+		editor.stretchShapes('vertical')
 		jest.advanceTimersByTime(1000)
 		const newWidth = (500 * 16) / 9
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
 			{ id: ids.boxB, x: 100, y: 0, props: { h: 500 } },
 			{ id: ids.boxC, x: 400, y: 0, props: { h: 500 } },
@@ -90,36 +90,36 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('does, undoes and redoes command', () => {
-		app.mark('stretch')
-		app.stretchShapes('horizontal')
+		editor.mark('stretch')
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
 
-		app.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
-		app.undo()
-		app.expectShapeToMatch({ id: ids.boxB, x: 100, props: { w: 50 } })
-		app.redo()
-		app.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
+		editor.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
+		editor.undo()
+		editor.expectShapeToMatch({ id: ids.boxB, x: 100, props: { w: 50 } })
+		editor.redo()
+		editor.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
 	})
 })
 
 describe('When shapes are the child of another shape.', () => {
 	it('stretches horizontally', () => {
-		app.reparentShapesById([ids.boxB], ids.boxA)
-		app.select(ids.boxB, ids.boxC)
-		app.stretchShapes('horizontal')
+		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.select(ids.boxB, ids.boxC)
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100, y: 100, props: { w: 400 } },
 			{ id: ids.boxC, x: 100, y: 400, props: { w: 400 } }
 		)
 	})
 
 	it('stretches vertically', () => {
-		app.reparentShapesById([ids.boxB], ids.boxA)
-		app.select(ids.boxB, ids.boxC)
-		app.stretchShapes('vertical')
+		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.select(ids.boxB, ids.boxC)
+		editor.stretchShapes('vertical')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{ id: ids.boxB, x: 100, y: 100, props: { h: 400 } },
 			{ id: ids.boxC, x: 400, y: 100, props: { h: 400 } }
 		)
@@ -128,23 +128,23 @@ describe('When shapes are the child of another shape.', () => {
 
 describe('When shapes are the child of a rotated shape.', () => {
 	beforeEach(() => {
-		app = new TestEditor()
-		app.selectAll()
-		app.deleteShapes()
-		ids = app.createShapesFromJsx([
+		editor = new TestEditor()
+		editor.selectAll()
+		editor.deleteShapes()
+		ids = editor.createShapesFromJsx([
 			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI}>
 				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
 			</TL.geo>,
 			<TL.geo ref="boxC" x={200} y={200} w={100} h={100} />,
 		])
-		app.selectAll()
+		editor.selectAll()
 	})
 
 	it('does not stretches rotated shapes', () => {
-		app.select(ids.boxB, ids.boxC)
-		app.stretchShapes('horizontal')
+		editor.select(ids.boxB, ids.boxC)
+		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{
 				id: ids.boxB,
 				x: 100,
@@ -167,10 +167,10 @@ describe('When shapes are the child of a rotated shape.', () => {
 	})
 
 	it('does not stretches rotated shapes', () => {
-		app.select(ids.boxB, ids.boxC)
-		app.stretchShapes('vertical')
+		editor.select(ids.boxB, ids.boxC)
+		editor.stretchShapes('vertical')
 		jest.advanceTimersByTime(1000)
-		app.expectShapeToMatch(
+		editor.expectShapeToMatch(
 			{
 				id: ids.boxB,
 				x: 100,
@@ -195,10 +195,10 @@ describe('When shapes are the child of a rotated shape.', () => {
 
 describe('When shapes have 0-width or 0-height', () => {
 	it('Does not error with 0-width', () => {
-		app.selectAll()
-		app.deleteShapes()
+		editor.selectAll()
+		editor.deleteShapes()
 
-		app
+		editor
 			.setSelectedTool('arrow')
 			.keyDown('shift')
 			.pointerDown(50, 0)
@@ -211,18 +211,18 @@ describe('When shapes have 0-width or 0-height', () => {
 			.pointerMove(100, 100)
 			.pointerUp(100, 100)
 
-		app.selectAll()
+		editor.selectAll()
 
 		// make sure we don't get any errors:
-		app.stretchShapes('horizontal')
-		app.stretchShapes('vertical')
+		editor.stretchShapes('horizontal')
+		editor.stretchShapes('vertical')
 	})
 
 	it('Does not error with 0-height', () => {
-		app.selectAll()
-		app.deleteShapes()
+		editor.selectAll()
+		editor.deleteShapes()
 
-		app
+		editor
 			// draw a perfectly horiztonal arrow:
 			.setSelectedTool('arrow')
 			.keyDown('shift')
@@ -237,10 +237,10 @@ describe('When shapes have 0-width or 0-height', () => {
 			.pointerMove(100, 100)
 			.pointerUp(100, 100)
 
-		app.selectAll()
+		editor.selectAll()
 
 		// make sure we don't get any errors:
-		app.stretchShapes('horizontal')
-		app.stretchShapes('vertical')
+		editor.stretchShapes('horizontal')
+		editor.stretchShapes('vertical')
 	})
 })

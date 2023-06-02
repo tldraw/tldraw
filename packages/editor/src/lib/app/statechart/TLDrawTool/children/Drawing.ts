@@ -29,8 +29,8 @@ export class Drawing extends StateNode {
 
 	util =
 		this.shapeType === 'highlight'
-			? this.app.getShapeUtil(TLHighlightUtil)
-			: this.app.getShapeUtil(TLDrawUtil)
+			? this.editor.getShapeUtil(TLHighlightUtil)
+			: this.editor.getShapeUtil(TLDrawUtil)
 
 	isPen = false
 
@@ -50,8 +50,8 @@ export class Drawing extends StateNode {
 
 	onEnter = (info: TLPointerEventInfo) => {
 		this.info = info
-		this.canDraw = !this.app.isMenuOpen
-		this.lastRecordedPoint = this.app.inputs.currentPagePoint.clone()
+		this.canDraw = !this.editor.isMenuOpen
+		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 		if (this.canDraw) {
 			this.startShape()
 		}
@@ -59,7 +59,7 @@ export class Drawing extends StateNode {
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const {
-			app: { inputs },
+			editor: { inputs },
 		} = this
 
 		if (this.isPen !== inputs.isPen) {
@@ -78,7 +78,10 @@ export class Drawing extends StateNode {
 		if (this.canDraw) {
 			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
 			if (inputs.isPen) {
-				if (Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >= 1 / this.app.zoomLevel) {
+				if (
+					Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
+					1 / this.editor.zoomLevel
+				) {
 					this.lastRecordedPoint = inputs.currentPagePoint.clone()
 					this.mergeNextPoint = false
 				} else {
@@ -98,7 +101,7 @@ export class Drawing extends StateNode {
 				case 'free': {
 					// We've just entered straight mode, go to straight mode
 					this.segmentMode = 'starting_straight'
-					this.pagePointWhereNextSegmentChanged = this.app.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 					break
 				}
 				case 'starting_free': {
@@ -111,13 +114,13 @@ export class Drawing extends StateNode {
 
 	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Shift') {
-			this.app.snaps.clear()
+			this.editor.snaps.clear()
 
 			switch (this.segmentMode) {
 				case 'straight': {
 					// We've just exited straight mode, go back to free mode
 					this.segmentMode = 'starting_free'
-					this.pagePointWhereNextSegmentChanged = this.app.inputs.currentPagePoint.clone()
+					this.pagePointWhereNextSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 					break
 				}
 				case 'starting_straight': {
@@ -132,8 +135,8 @@ export class Drawing extends StateNode {
 	}
 
 	onExit? = () => {
-		this.app.snaps.clear()
-		this.pagePointWhereCurrentSegmentChanged = this.app.inputs.currentPagePoint.clone()
+		this.editor.snaps.clear()
+		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
 
 	canClose() {
@@ -143,7 +146,7 @@ export class Drawing extends StateNode {
 	getIsClosed(segments: TLDrawShapeSegment[], size: TLSizeType) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = this.app.getStrokeWidth(size)
+		const strokeWidth = this.editor.getStrokeWidth(size)
 		const firstPoint = segments[0].points[0]
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
@@ -158,22 +161,22 @@ export class Drawing extends StateNode {
 	private startShape() {
 		const {
 			inputs: { originPagePoint, isPen },
-		} = this.app
+		} = this.editor
 
-		this.app.mark('draw create start')
+		this.editor.mark('draw create start')
 
 		this.isPen = isPen
 
 		const pressure = this.isPen ? this.info.point.z! * 1.25 : 0.5
 
-		this.segmentMode = this.app.inputs.shiftKey ? 'straight' : 'free'
+		this.segmentMode = this.editor.inputs.shiftKey ? 'straight' : 'free'
 
 		this.didJustShiftClickToExtendPreviousShapeLine = false
 
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.app.getShapeById<DrawableShape>(this.initialShape.id)
+			const shape = this.editor.getShapeById<DrawableShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots
@@ -185,7 +188,7 @@ export class Drawing extends StateNode {
 				const prevPoint = last(prevSegment.points)
 				if (!prevPoint) throw Error('Expected a previous point!')
 
-				const { x, y } = this.app.getPointInShapeSpace(shape, originPagePoint).toFixed()
+				const { x, y } = this.editor.getPointInShapeSpace(shape, originPagePoint).toFixed()
 
 				const pressure = this.isPen ? this.info.point.z! * 1.25 : 0.5
 
@@ -207,7 +210,7 @@ export class Drawing extends StateNode {
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Matrix2d.applyToPoint(
-					this.app.getPageTransformById(shape.id)!,
+					this.editor.getPageTransformById(shape.id)!,
 					prevPoint
 				)
 				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace
@@ -216,7 +219,7 @@ export class Drawing extends StateNode {
 
 				this.currentLineLength = this.getLineLength(segments)
 
-				this.app.updateShapes([
+				this.editor.updateShapes([
 					{
 						id: shape.id,
 						type: this.shapeType,
@@ -235,7 +238,7 @@ export class Drawing extends StateNode {
 
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
-		this.app.createShapes([
+		this.editor.createShapes([
 			{
 				id,
 				type: this.shapeType,
@@ -260,11 +263,11 @@ export class Drawing extends StateNode {
 		])
 
 		this.currentLineLength = 0
-		this.initialShape = this.app.getShapeById<DrawableShape>(id)
+		this.initialShape = this.editor.getShapeById<DrawableShape>(id)
 	}
 
 	private updateShapes() {
-		const { inputs } = this.app
+		const { inputs } = this.editor
 		const { initialShape } = this
 
 		if (!initialShape) return
@@ -274,13 +277,13 @@ export class Drawing extends StateNode {
 			props: { size },
 		} = initialShape
 
-		const shape = this.app.getShapeById<DrawableShape>(id)!
+		const shape = this.editor.getShapeById<DrawableShape>(id)!
 
 		if (!shape) return
 
 		const { segments } = shape.props
 
-		const { x, y, z } = this.app.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
+		const { x, y, z } = this.editor.getPointInShapeSpace(shape, inputs.currentPagePoint).toFixed()
 
 		const newPoint = { x, y, z: this.isPen ? +(z! * 1.25).toFixed(2) : 0.5 }
 
@@ -314,7 +317,7 @@ export class Drawing extends StateNode {
 
 					let newSegment: TLDrawShapeSegment
 
-					const newLastPoint = this.app
+					const newLastPoint = this.editor
 						.getPointInShapeSpace(shape, this.pagePointWhereCurrentSegmentChanged)
 						.toFixed()
 						.toJson()
@@ -327,7 +330,7 @@ export class Drawing extends StateNode {
 							points: [{ ...prevLastPoint }, newLastPoint],
 						}
 
-						const transform = this.app.getPageTransform(shape)!
+						const transform = this.editor.getPageTransform(shape)!
 
 						this.pagePointWhereCurrentSegmentChanged = Matrix2d.applyToPoint(
 							transform,
@@ -340,7 +343,7 @@ export class Drawing extends StateNode {
 						}
 					}
 
-					this.app.updateShapes(
+					this.editor.updateShapes(
 						[
 							{
 								id,
@@ -397,7 +400,7 @@ export class Drawing extends StateNode {
 					const finalSegments = [...newSegments, newFreeSegment]
 					this.currentLineLength = this.getLineLength(finalSegments)
 
-					this.app.updateShapes(
+					this.editor.updateShapes(
 						[
 							{
 								id,
@@ -419,7 +422,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 
 				const { pagePointWhereCurrentSegmentChanged } = this
-				const { currentPagePoint, ctrlKey } = this.app.inputs
+				const { currentPagePoint, ctrlKey } = this.editor.inputs
 
 				if (!pagePointWhereCurrentSegmentChanged)
 					throw Error('We should have a point where the segment changed')
@@ -428,7 +431,7 @@ export class Drawing extends StateNode {
 				let shouldSnapToAngle = false
 
 				if (this.didJustShiftClickToExtendPreviousShapeLine) {
-					if (this.app.inputs.isDragging) {
+					if (this.editor.inputs.isDragging) {
 						// If we've just shift clicked to extend a line, only snap once we've started dragging
 						shouldSnapToAngle = !ctrlKey
 						this.didJustShiftClickToExtendPreviousShapeLine = false
@@ -440,16 +443,16 @@ export class Drawing extends StateNode {
 					shouldSnapToAngle = !ctrlKey // don't snap angle while snapping line
 				}
 
-				let newPoint = this.app.getPointInShapeSpace(shape, currentPagePoint).toFixed().toJson()
+				let newPoint = this.editor.getPointInShapeSpace(shape, currentPagePoint).toFixed().toJson()
 				let didSnap = false
 				let snapSegment: TLDrawShapeSegment | undefined = undefined
 
-				const shouldSnap = this.app.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+				const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
 
 				if (shouldSnap) {
 					if (newSegments.length > 2) {
 						let nearestPoint: Vec2dModel | undefined = undefined
-						let minDistance = 8 / this.app.zoomLevel
+						let minDistance = 8 / this.editor.zoomLevel
 
 						// Don't try to snap to the last two segments
 						for (let i = 0, n = segments.length - 2; i < n; i++) {
@@ -485,7 +488,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (didSnap && snapSegment) {
-					const transform = this.app.getPageTransform(shape)!
+					const transform = this.editor.getPageTransform(shape)!
 					const first = snapSegment.points[0]
 					const lastPoint = last(snapSegment.points)
 					if (!lastPoint) throw Error('Expected a last point!')
@@ -496,7 +499,7 @@ export class Drawing extends StateNode {
 
 					const snappedPoint = Matrix2d.applyToPoint(transform, newPoint)
 
-					this.app.snaps.setLines([
+					this.editor.snaps.setLines([
 						{
 							id: uniqueId(),
 							type: 'points',
@@ -504,7 +507,7 @@ export class Drawing extends StateNode {
 						},
 					])
 				} else {
-					this.app.snaps.clear()
+					this.editor.snaps.clear()
 
 					if (shouldSnapToAngle) {
 						// Snap line angle to nearest 15 degrees
@@ -521,7 +524,7 @@ export class Drawing extends StateNode {
 						pagePoint = currentPagePoint
 					}
 
-					newPoint = this.app.getPointInShapeSpace(shape, pagePoint).toFixed().toJson()
+					newPoint = this.editor.getPointInShapeSpace(shape, pagePoint).toFixed().toJson()
 				}
 
 				// If the previous segment is a one point free shape and is the first segment of the line,
@@ -536,7 +539,7 @@ export class Drawing extends StateNode {
 					points: [newSegment.points[0], newPoint],
 				}
 
-				this.app.updateShapes(
+				this.editor.updateShapes(
 					[
 						{
 							id,
@@ -578,7 +581,7 @@ export class Drawing extends StateNode {
 
 				this.currentLineLength = this.getLineLength(newSegments)
 
-				this.app.updateShapes(
+				this.editor.updateShapes(
 					[
 						{
 							id,
@@ -594,13 +597,13 @@ export class Drawing extends StateNode {
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					this.app.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
+					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
-					const { currentPagePoint } = this.app.inputs
+					const { currentPagePoint } = this.editor.inputs
 
-					const newShapeId = this.app.createShapeId()
+					const newShapeId = this.editor.createShapeId()
 
-					this.app.createShapes([
+					this.editor.createShapes([
 						{
 							id: newShapeId,
 							type: this.shapeType,
@@ -618,9 +621,9 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.app.getShapeById<DrawableShape>(newShapeId)!)
+					this.initialShape = structuredClone(this.editor.getShapeById<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
-					this.lastRecordedPoint = this.app.inputs.currentPagePoint.clone()
+					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
 
@@ -656,11 +659,11 @@ export class Drawing extends StateNode {
 	}
 
 	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			return
 		}
 
-		this.app.bail()
+		this.editor.bail()
 		this.cancel()
 	}
 
@@ -676,7 +679,7 @@ export class Drawing extends StateNode {
 
 		const { initialShape } = this
 		if (!initialShape) return
-		this.app.updateShapes([
+		this.editor.updateShapes([
 			{ id: initialShape.id, type: initialShape.type, props: { isComplete: true } },
 		])
 

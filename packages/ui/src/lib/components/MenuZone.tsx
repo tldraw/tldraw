@@ -11,12 +11,12 @@ import { TrashButton } from './TrashButton'
 import { UndoButton } from './UndoButton'
 
 export const MenuZone = track(function MenuZone() {
-	const app = useEditor()
+	const editor = useEditor()
 
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	const showQuickActions = !isReadonly && !app.isInAny('hand', 'zoom', 'eraser')
+	const showQuickActions = !isReadonly && !editor.isInAny('hand', 'zoom', 'eraser')
 
 	return (
 		<div className="tlui-menu-zone">

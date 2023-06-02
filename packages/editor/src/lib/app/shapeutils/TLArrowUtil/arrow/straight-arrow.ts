@@ -17,10 +17,10 @@ import {
 	getBoundShapeInfoForTerminal,
 } from './shared'
 
-export function getStraightArrowInfo(app: Editor, shape: TLArrowShape): ArrowInfo {
+export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): ArrowInfo {
 	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
 
-	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(app, shape)
+	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
 	const a = terminalsInArrowSpace.start.clone()
 	const b = terminalsInArrowSpace.end.clone()
@@ -29,10 +29,10 @@ export function getStraightArrowInfo(app: Editor, shape: TLArrowShape): ArrowInf
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(app, start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(app, end)
+	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
+	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
 
-	const arrowPageTransform = app.getPageTransform(shape)!
+	const arrowPageTransform = editor.getPageTransform(shape)!
 
 	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
@@ -87,9 +87,9 @@ export function getStraightArrowInfo(app: Editor, shape: TLArrowShape): ArrowInf
 		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				app.getStrokeWidth(shape.props.size) / 2 +
+				editor.getStrokeWidth(shape.props.size) / 2 +
 				('size' in startShapeInfo.shape.props
-					? app.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+					? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
 					: 0)
 
 			minDist -= offset
@@ -101,9 +101,9 @@ export function getStraightArrowInfo(app: Editor, shape: TLArrowShape): ArrowInf
 		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				app.getStrokeWidth(shape.props.size) / 2 +
+				editor.getStrokeWidth(shape.props.size) / 2 +
 				('size' in endShapeInfo.shape.props
-					? app.getStrokeWidth(endShapeInfo.shape.props.size) / 2
+					? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
 					: 0)
 
 			minDist -= offset

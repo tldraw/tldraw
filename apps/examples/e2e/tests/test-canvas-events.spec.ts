@@ -8,7 +8,7 @@ declare const __tldraw_editor_events: any[]
 
 let page: Page
 
-declare const app: Editor
+declare const editor: Editor
 
 test.describe('Canvas events', () => {
 	test.beforeAll(async ({ browser }) => {
@@ -103,7 +103,7 @@ test.describe('Canvas events', () => {
 	})
 
 	test.fixme('complete', async () => {
-		await page.evaluate(async () => app.complete())
+		await page.evaluate(async () => editor.complete())
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			type: 'misc',
 			name: 'complete',
@@ -111,7 +111,7 @@ test.describe('Canvas events', () => {
 	})
 
 	test.fixme('cancel', async () => {
-		await page.evaluate(async () => app.cancel())
+		await page.evaluate(async () => editor.cancel())
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			type: 'misc',
 			name: 'complete',
@@ -119,7 +119,7 @@ test.describe('Canvas events', () => {
 	})
 
 	test.fixme('interrupt', async () => {
-		await page.evaluate(async () => app.interrupt())
+		await page.evaluate(async () => editor.interrupt())
 		expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
 			type: 'misc',
 			name: 'interrupt',

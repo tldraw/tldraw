@@ -8,20 +8,20 @@ export class Pointing extends StateNode {
 	shape?: TLTextShape
 
 	onExit = () => {
-		this.app.setHintingIds([])
+		this.editor.setHintingIds([])
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			const {
 				inputs: { originPagePoint },
-			} = this.app
+			} = this.editor
 
 			const id = createShapeId()
 
-			this.app.mark('creating')
+			this.editor.mark('creating')
 
-			this.app.createShapes([
+			this.editor.createShapes([
 				{
 					id,
 					type: 'text',
@@ -35,12 +35,12 @@ export class Pointing extends StateNode {
 				},
 			])
 
-			this.app.select(id)
+			this.editor.select(id)
 
-			this.shape = this.app.getShapeById(id)
+			this.shape = this.editor.getShapeById(id)
 			if (!this.shape) return
 
-			this.app.setSelectedTool('select.resizing', {
+			this.editor.setSelectedTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
@@ -68,10 +68,10 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		this.app.mark('creating text shape')
+		this.editor.mark('creating text shape')
 		const id = createShapeId()
-		const { x, y } = this.app.inputs.currentPagePoint
-		this.app.createShapes(
+		const { x, y } = this.editor.inputs.currentPagePoint
+		this.editor.createShapes(
 			[
 				{
 					id,
@@ -87,13 +87,13 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		this.app.setEditingId(id)
-		this.app.setSelectedTool('select')
-		this.app.root.current.value?.transition('editing_shape', {})
+		this.editor.setEditingId(id)
+		this.editor.setSelectedTool('select')
+		this.editor.root.current.value?.transition('editing_shape', {})
 	}
 
 	cancel() {
 		this.parent.transition('idle', {})
-		this.app.bailToMark('creating')
+		this.editor.bailToMark('creating')
 	}
 }

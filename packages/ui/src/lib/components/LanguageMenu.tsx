@@ -5,12 +5,12 @@ import { useLanguages } from '../hooks/useTranslation/useLanguages'
 import * as D from './primitives/DropdownMenu'
 
 export function LanguageMenu() {
-	const app = useEditor()
+	const editor = useEditor()
 	const { languages, currentLanguage } = useLanguages()
 
 	const handleLanguageSelect = useCallback(
-		(locale: TLTranslationLocale) => app.setLocale(locale),
-		[app]
+		(locale: TLTranslationLocale) => editor.setLocale(locale),
+		[editor]
 	)
 
 	return (

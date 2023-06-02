@@ -18,16 +18,16 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 }
 
 export function getBoundShapeInfoForTerminal(
-	app: Editor,
+	editor: Editor,
 	terminal: TLArrowTerminal
 ): BoundShapeInfo | undefined {
 	if (terminal.type === 'point') {
 		return
 	}
 
-	const shape = app.getShapeById(terminal.boundShapeId)!
-	const util = app.getShapeUtil(shape)
-	const transform = app.getPageTransform(shape)!
+	const shape = editor.getShapeById(terminal.boundShapeId)!
+	const util = editor.getShapeUtil(shape)
+	const transform = editor.getPageTransform(shape)!
 
 	return {
 		shape,
@@ -39,7 +39,7 @@ export function getBoundShapeInfoForTerminal(
 }
 
 export function getArrowTerminalInArrowSpace(
-	app: Editor,
+	editor: Editor,
 	arrowPageTransform: Matrix2d,
 	terminal: TLArrowTerminal
 ) {
@@ -47,7 +47,7 @@ export function getArrowTerminalInArrowSpace(
 		return Vec2d.From(terminal)
 	}
 
-	const boundShape = app.getShapeById(terminal.boundShapeId)
+	const boundShape = editor.getShapeById(terminal.boundShapeId)
 
 	if (!boundShape) {
 		console.error('Expected a bound shape!')
@@ -56,19 +56,19 @@ export function getArrowTerminalInArrowSpace(
 		// Find the actual local point of the normalized terminal on
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
-		const { point, size } = app.getBounds(boundShape)
+		const { point, size } = editor.getBounds(boundShape)
 		const shapePoint = Vec2d.Add(point, Vec2d.MulV(terminal.normalizedAnchor, size))
-		const pagePoint = Matrix2d.applyToPoint(app.getPageTransform(boundShape)!, shapePoint)
+		const pagePoint = Matrix2d.applyToPoint(editor.getPageTransform(boundShape)!, shapePoint)
 		const arrowPoint = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
 	}
 }
 
-export function getArrowTerminalsInArrowSpace(app: Editor, shape: TLArrowShape) {
-	const arrowPageTransform = app.getPageTransform(shape)!
+export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape) {
+	const arrowPageTransform = editor.getPageTransform(shape)!
 
-	const start = getArrowTerminalInArrowSpace(app, arrowPageTransform, shape.props.start)
-	const end = getArrowTerminalInArrowSpace(app, arrowPageTransform, shape.props.end)
+	const start = getArrowTerminalInArrowSpace(editor, arrowPageTransform, shape.props.start)
+	const end = getArrowTerminalInArrowSpace(editor, arrowPageTransform, shape.props.end)
 
 	return { start, end }
 }

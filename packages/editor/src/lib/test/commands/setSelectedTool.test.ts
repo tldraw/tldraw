@@ -1,23 +1,23 @@
 import { TestEditor } from '../TestEditor'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 describe('Set selected tool', () => {
 	it('Selects a tool by its name', () => {
-		app.setSelectedTool('hand')
-		app.expectPathToBe('root.hand.idle')
+		editor.setSelectedTool('hand')
+		editor.expectPathToBe('root.hand.idle')
 	})
 
 	it('Selects a tool by its deep path', () => {
-		app.setSelectedTool('hand.pointing')
-		app.expectPathToBe('root.hand.pointing')
+		editor.setSelectedTool('hand.pointing')
+		editor.expectPathToBe('root.hand.pointing')
 	})
 })

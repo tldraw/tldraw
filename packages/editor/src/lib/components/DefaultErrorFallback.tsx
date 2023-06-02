@@ -3,7 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
 import { Editor } from '../app/Editor'
 import { EditorContext } from '../hooks/useEditor'
-import { hardResetApp } from '../utils/hard-reset'
+import { hardResetEditor } from '../utils/hard-reset'
 import { refreshPage } from '../utils/refresh-page'
 import { Canvas } from './Canvas'
 import { ErrorBoundary } from './ErrorBoundary'
@@ -13,10 +13,10 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
-export type TLErrorFallback = (props: { error: unknown; app?: Editor }) => any | null
+export type TLErrorFallback = (props: { error: unknown; editor?: Editor }) => any | null
 
 /** @internal */
-export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
+export const DefaultErrorFallback: TLErrorFallback = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
 	const [didCopy, setDidCopy] = useState(false)
@@ -29,8 +29,8 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 		'isDarkMode',
 		() => {
 			try {
-				if (app) {
-					return app.isDarkMode
+				if (editor) {
+					return editor.isDarkMode
 				}
 			} catch {
 				// we're in a funky error state so this might not work for spooky
@@ -38,7 +38,7 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 			}
 			return null
 		},
-		[app]
+		[editor]
 	)
 	const [isDarkMode, setIsDarkMode] = useState<null | boolean>(null)
 	useLayoutEffect(() => {
@@ -95,7 +95,7 @@ export const DefaultErrorFallback: TLErrorFallback = ({ error, app }) => {
 	}
 
 	const resetLocalState = async () => {
-		hardResetApp()
+		hardResetEditor()
 	}
 
 	const url = new URL(BASE_ERROR_URL)
@@ -124,7 +124,7 @@ My browser: ${navigator.userAgent}`
 			)}
 		>
 			<div className="tl-error-boundary__overlay" />
-			{app && (
+			{editor && (
 				// opportunistically attempt to render the canvas to reassure
 				// the user that their document is still there. there's a good
 				// chance this won't work (ie the error that we're currently
@@ -132,7 +132,7 @@ My browser: ${navigator.userAgent}`
 				// not a big deal if it doesn't work - in that case we just have
 				// a plain grey background.
 				<ErrorBoundary onError={noop} fallback={() => null}>
-					<EditorContext.Provider value={app}>
+					<EditorContext.Provider value={editor}>
 						<div className="tl-overlay tl-error-boundary__canvas">
 							<Canvas />
 						</div>

@@ -3,6 +3,6 @@ import { useValue } from 'signia-react'
 
 /** @public */
 export function useReadonly() {
-	const app = useEditor()
-	return useValue('isReadOnlyMode', () => app.isReadOnly, [app])
+	const editor = useEditor()
+	return useValue('isReadOnlyMode', () => editor.isReadOnly, [editor])
 }

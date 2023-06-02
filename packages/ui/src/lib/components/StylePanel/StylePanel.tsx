@@ -15,15 +15,15 @@ interface StylePanelProps {
 
 /** @public */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
-	const app = useEditor()
+	const editor = useEditor()
 
-	const props = useValue('props', () => app.props, [app])
+	const props = useValue('props', () => editor.props, [editor])
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			app.isChangingStyle = false
+			editor.isChangingStyle = false
 		}
-	}, [app, isMobile])
+	}, [editor, isMobile])
 
 	if (!props) return null
 
@@ -52,21 +52,21 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 const { styles } = Editor
 
 function useStyleChangeCallback() {
-	const app = useEditor()
+	const editor = useEditor()
 
 	return React.useCallback(
 		(item: TLStyleItem, squashing: boolean) => {
-			app.batch(() => {
-				app.setProp(item.type, item.id, false, squashing)
-				app.isChangingStyle = true
+			editor.batch(() => {
+				editor.setProp(item.type, item.id, false, squashing)
+				editor.isChangingStyle = true
 			})
 		},
-		[app]
+		[editor]
 	)
 }
 
 function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
-	const app = useEditor()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
@@ -74,10 +74,10 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = styles.opacity[value]
-			app.setProp(item.type, item.id, ephemeral)
-			app.isChangingStyle = true
+			editor.setProp(item.type, item.id, ephemeral)
+			editor.isChangingStyle = true
 		},
-		[app]
+		[editor]
 	)
 
 	const { color, fill, dash, size, opacity } = props

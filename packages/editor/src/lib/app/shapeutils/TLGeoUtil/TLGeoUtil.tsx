@@ -91,8 +91,8 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const outline = this.outline(shape)
 
 		if (shape.props.fill === 'none') {
-			const zoomLevel = this.app.zoomLevel
-			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			const zoomLevel = this.editor.zoomLevel
+			const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 			// Check the outline
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
@@ -320,7 +320,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		} = shape
 
 		if (text.trimEnd() !== shape.props.text) {
-			this.app.updateShapes([
+			this.editor.updateShapes([
 				{
 					id,
 					type,
@@ -336,7 +336,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const { id, type, props } = shape
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(props.size)
+		const strokeWidth = this.editor.getStrokeWidth(props.size)
 
 		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
 			props
@@ -446,11 +446,11 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 					align={align}
 					verticalAlign={verticalAlign}
 					text={text}
-					labelColor={this.app.getCssColor(labelColor)}
+					labelColor={this.editor.getCssColor(labelColor)}
 					wrap
 				/>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.app.zoomLevel} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
 				)}
 			</>
 		)
@@ -461,7 +461,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		const { w, h, growY, size } = props
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(size)
+		const strokeWidth = this.editor.getStrokeWidth(size)
 
 		switch (props.geo) {
 			case 'ellipse': {
@@ -501,7 +501,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 	toSvg(shape: TLGeoShape, font: string, colors: TLExportColors) {
 		const { id, props } = shape
-		const strokeWidth = this.app.getStrokeWidth(props.size)
+		const strokeWidth = this.editor.getStrokeWidth(props.size)
 
 		let svgElm: SVGElement
 
@@ -650,7 +650,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				offsetX: 0,
 			}
 
-			const spans = this.app.textMeasure.measureTextSpans(props.text, opts)
+			const spans = this.editor.textMeasure.measureTextSpans(props.text, opts)
 			const offsetX = getLegacyOffsetX(shape.props.align, padding, spans, bounds.width)
 			if (offsetX) {
 				opts.offsetX = offsetX
@@ -658,7 +658,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
-			const textBgEl = createTextSvgElementFromSpans(this.app, spans, {
+			const textBgEl = createTextSvgElementFromSpans(this.editor, spans, {
 				...opts,
 				strokeWidth: 2,
 				stroke: colors.background,
@@ -707,7 +707,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 				newH = MIN_SIZE_WITH_LABEL
 			}
 
-			const labelSize = getLabelSize(this.app, {
+			const labelSize = getLabelSize(this.editor, {
 				...shape,
 				props: {
 					...shape.props,
@@ -778,7 +778,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 		}
 
 		const prevHeight = shape.props.h
-		const nextHeight = getLabelSize(this.app, shape).h
+		const nextHeight = getLabelSize(this.editor, shape).h
 
 		let growY: number | null = null
 
@@ -825,7 +825,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 
 		const prevWidth = prev.props.w
 		const prevHeight = prev.props.h
-		const nextSize = getLabelSize(this.app, next)
+		const nextSize = getLabelSize(this.editor, next)
 		const nextWidth = nextSize.w
 		const nextHeight = nextSize.h
 
@@ -889,7 +889,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 	onDoubleClick = (shape: TLGeoShape) => {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
-		if (this.app.inputs.altKey) {
+		if (this.editor.inputs.altKey) {
 			switch (shape.props.geo) {
 				case 'rectangle': {
 					return {
@@ -914,14 +914,14 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 	}
 }
 
-function getLabelSize(app: Editor, shape: TLGeoShape) {
+function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	const text = shape.props.text.trimEnd()
 
 	if (!text) {
 		return { w: 0, h: 0 }
 	}
 
-	const minSize = app.textMeasure.measureText('w', {
+	const minSize = editor.textMeasure.measureText('w', {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
@@ -937,7 +937,7 @@ function getLabelSize(app: Editor, shape: TLGeoShape) {
 		xl: 10,
 	}
 
-	const size = app.textMeasure.measureText(text, {
+	const size = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],

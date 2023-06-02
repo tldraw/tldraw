@@ -11,20 +11,21 @@ import { pasteFiles } from './pasteFiles'
  * When the clipboard has plain text that is a valid URL, create a bookmark shape and insert it into
  * the scene
  *
- * @param app - The app instance.
+ * @param editor - The editor instance.
  * @param url - The URL to paste.
  * @param point - (optional) The point at which to paste the file.
  * @internal
  */
-export async function pasteUrl(app: Editor, url: string, point?: VecLike) {
-	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
+export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
+	const p =
+		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
 	// Lets see if its an image and we have CORs
 	try {
 		const resp = await fetch(url)
 		if (resp.headers.get('content-type')?.match(/^image\//)) {
-			app.mark('paste')
-			pasteFiles(app, [url])
+			editor.mark('paste')
+			pasteFiles(editor, [url])
 			return
 		}
 	} catch (err: any) {
@@ -33,15 +34,15 @@ export async function pasteUrl(app: Editor, url: string, point?: VecLike) {
 		}
 	}
 
-	app.mark('paste')
+	editor.mark('paste')
 
 	// try to paste as an embed first
 	const embedInfo = getEmbedInfo(url)
 
 	if (embedInfo) {
-		return await createEmbedShapeAtPoint(app, embedInfo.url, p, embedInfo.definition)
+		return await createEmbedShapeAtPoint(editor, embedInfo.url, p, embedInfo.definition)
 	}
 
 	// otherwise, try to paste as a bookmark
-	return await createBookmarkShapeAtPoint(app, url, p)
+	return await createBookmarkShapeAtPoint(editor, url, p)
 }

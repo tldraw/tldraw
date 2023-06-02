@@ -19,7 +19,7 @@ export class PointingCropHandle extends StateNode {
 
 	private updateCursor(shape: TLShape) {
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.app.setCursor({
+		this.editor.setCursor({
 			type: cursorType,
 			rotation: shape.rotation,
 		})
@@ -27,15 +27,15 @@ export class PointingCropHandle extends StateNode {
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
-		const selectedShape = this.app.selectedShapes[0]
+		const selectedShape = this.editor.selectedShapes[0]
 		if (!selectedShape) return
 
 		this.updateCursor(selectedShape)
-		this.app.setCroppingId(selectedShape.id)
+		this.editor.setCroppingId(selectedShape.id)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const isDragging = this.app.inputs.isDragging
+		const isDragging = this.editor.inputs.isDragging
 
 		if (isDragging) {
 			this.parent.transition('cropping', {
@@ -47,9 +47,9 @@ export class PointingCropHandle extends StateNode {
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.app.setCroppingId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -68,9 +68,9 @@ export class PointingCropHandle extends StateNode {
 
 	private cancel() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.app.setCroppingId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
