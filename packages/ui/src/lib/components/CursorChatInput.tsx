@@ -13,29 +13,6 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	const { isChatting, chatMessage } = app.instanceState
 
-	// Auto-focus the chat input
-	// We need to do this manually because we're using a contentEditable
-	useLayoutEffect(() => {
-		if (isChatting) {
-			// If the context menu is closing, then we need to wait a bit before focusing
-			// TODO: Do this in a better way
-			requestAnimationFrame(() => {
-				requestAnimationFrame(() => ref.current?.focus())
-			})
-		}
-	}, [isChatting])
-
-	// Set the placeholder text for the chat input
-	// We need to do this manually because we're using a contentEditable
-	useLayoutEffect(() => {
-		const defaultPlaceholder = msg('cursor-chat.type-to-chat')
-		const placeholder = chatMessage || defaultPlaceholder
-		container.style.setProperty('--tl-cursor-chat-placeholder', `'${placeholder}'`)
-		return () => {
-			container.style.setProperty('--tl-cursor-chat-placeholder', `'${defaultPlaceholder}'`)
-		}
-	}, [chatMessage, container, msg])
-
 	// --- Managing the timeout for chat messages ---------------
 	const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
 	const stopTimeout = useCallback(() => {
@@ -44,6 +21,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 		}
 		clearTimeout(timeoutId)
 		setTimeoutId(null)
+		ref.current?.classList.remove('tl-cursor-chat-fade')
 	}, [timeoutId])
 
 	const startTimeout = useCallback(() => {
@@ -54,7 +32,30 @@ export const CursorChatInput = track(function CursorChatInput() {
 			app.updateInstanceState({ chatMessage: '' })
 		}, CHAT_MESSAGE_TIMEOUT)
 		setTimeoutId(id)
+		ref.current?.classList.add('tl-cursor-chat-fade')
 	}, [app, timeoutId, stopTimeout])
+
+	// --- Auto-focus the chat input ----------------------------
+	useLayoutEffect(() => {
+		if (isChatting) {
+			// If the context menu is closing, then we need to wait a bit before focusing
+			// TODO: Do this in a better way
+			requestAnimationFrame(() => {
+				requestAnimationFrame(() => ref.current?.focus())
+			})
+			stopTimeout()
+		}
+	}, [isChatting, stopTimeout])
+
+	// --- Setting the placeholder text --------------------------
+	useLayoutEffect(() => {
+		const defaultPlaceholder = msg('cursor-chat.type-to-chat')
+		const placeholder = chatMessage || defaultPlaceholder
+		container.style.setProperty('--tl-cursor-chat-placeholder', `'${placeholder}'`)
+		return () => {
+			container.style.setProperty('--tl-cursor-chat-placeholder', `'${defaultPlaceholder}'`)
+		}
+	}, [chatMessage, container, msg])
 
 	// --- Positioning the chat input ----------------------------
 	const handlePointerMove = useCallback((e: PointerEvent) => {
@@ -67,7 +68,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 		return () => window.removeEventListener('pointermove', handlePointerMove)
 	}, [handlePointerMove])
 
-	// --- Handling user interactions ----------------------------
+	// --- Handling user interactions below this line ------------------------
 
 	// Stop chatting when the user clicks away
 	const handleBlur = useCallback(() => {
@@ -81,9 +82,9 @@ export const CursorChatInput = track(function CursorChatInput() {
 	const handleInput = useCallback(
 		(e) => {
 			app.updateInstanceState({ chatMessage: e.currentTarget.textContent })
-			startTimeout()
+			stopTimeout()
 		},
-		[app, startTimeout]
+		[app, stopTimeout]
 	)
 
 	// Handle some keyboard shortcuts
@@ -99,11 +100,11 @@ export const CursorChatInput = track(function CursorChatInput() {
 					// If the user hasn't typed anything, stop chatting
 					if (ref.current.textContent === '') {
 						app.updateInstanceState({ isChatting: false })
+						startTimeout()
 						container.focus()
 						return
 					}
 
-					startTimeout()
 					ref.current.textContent = ''
 					break
 				}

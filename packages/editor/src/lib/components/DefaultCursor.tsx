@@ -1,6 +1,6 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { memo, useRef } from 'react'
+import { memo, useLayoutEffect, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
 
 /** @public */
@@ -14,13 +14,27 @@ export type TLCursorComponent = (props: {
 }) => any | null
 
 const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatMessage }) => {
-	const rDiv = useRef<HTMLDivElement>(null)
-	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
+	const rCursor = useRef<HTMLDivElement>(null)
+	const rChat = useRef<HTMLDivElement>(null)
+	useTransform(rCursor, point?.x, point?.y, 1 / zoom)
+
+	useLayoutEffect(() => {
+		const chatBubble = rChat.current
+		if (!chatBubble) return
+		chatBubble.classList.remove('tl-cursor-chat-fade')
+		requestAnimationFrame(() => {
+			chatBubble.classList.add('tl-cursor-chat-fade')
+		})
+
+		return () => {
+			chatBubble.classList.remove('tl-cursor-chat-fade')
+		}
+	}, [chatMessage, rChat])
 
 	if (!point) return null
 
 	return (
-		<div ref={rDiv} className={classNames('tl-overlays__item', className)}>
+		<div ref={rCursor} className={classNames('tl-overlays__item', className)}>
 			<svg className="tl-cursor">
 				<use href="#cursor" color={color} />
 			</svg>
@@ -31,7 +45,7 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 							{name}
 						</div>
 					)}
-					<div className="tl-nametag-chat" style={{ backgroundColor: color }}>
+					<div className="tl-nametag-chat" ref={rChat} style={{ backgroundColor: color }}>
 						{chatMessage}
 					</div>
 				</>

@@ -717,6 +717,7 @@ input,
 	padding: 2px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
+	opacity: 1;
 }
 
 .tl-cursor-chat {
@@ -734,6 +735,7 @@ input,
 	z-index: var(--layer-cursor);
 	margin-top: 16px;
 	margin-left: 13px;
+	opacity: 1;
 }
 
 .tl-cursor-chat::selection {
@@ -742,9 +744,19 @@ input,
 	text-shadow: none;
 }
 
+.tl-cursor-chat-fade {
+	opacity: 0;
+	transition: opacity 5s ease-in-out;
+}
+
 .tl-cursor-chat:empty::before {
 	content: var(--tl-cursor-chat-placeholder);
 	color: rgba(255, 255, 255, 0.7);
+}
+
+.tl-cursor-chat-placeholder-fade:empty::before {
+	opacity: 0;
+	transition: opacity 5s ease-in-out;
 }
 
 /* -------------------------------------------------- */
