@@ -42,6 +42,7 @@
 	},
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
+		"@tldraw/primitives": "workspace:*",
 		"@tldraw/tlstore": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/ui": "workspace:*",

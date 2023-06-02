@@ -569,9 +569,6 @@ export function blobAsString(blob: Blob): Promise<string>;
 // @internal (undocumented)
 export const BOUND_ARROW_OFFSET = 10;
 
-// @internal (undocumented)
-export function buildFromV1Document(app: App, document: LegacyTldrawDocument): void;
-
 // @public (undocumented)
 export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
     onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
@@ -922,22 +919,6 @@ export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
-
-// @internal (undocumented)
-export interface LegacyTldrawDocument {
-    // (undocumented)
-    assets: TDAssets;
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    name: string;
-    // (undocumented)
-    pages: Record<string, TDPage>;
-    // (undocumented)
-    pageStates: Record<string, TLV1PageState>;
-    // (undocumented)
-    version: number;
-}
 
 // @public (undocumented)
 export function LoadingScreen({ children }: {

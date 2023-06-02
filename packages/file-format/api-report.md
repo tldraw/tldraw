@@ -14,8 +14,27 @@ import { TLTranslationKey } from '@tldraw/ui';
 import { ToastsContextType } from '@tldraw/ui';
 import { UnknownRecord } from '@tldraw/tlstore';
 
+// @internal (undocumented)
+export function buildFromV1Document(app: App, document: LegacyTldrawDocument): void;
+
 // @public (undocumented)
 export function isV1File(data: any): boolean;
+
+// @internal (undocumented)
+export interface LegacyTldrawDocument {
+    // (undocumented)
+    assets: TDAssets;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    pages: Record<string, TDPage>;
+    // (undocumented)
+    pageStates: Record<string, TLV1PageState>;
+    // (undocumented)
+    version: number;
+}
 
 // @internal (undocumented)
 export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;

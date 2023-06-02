@@ -10,6 +10,7 @@
 		{ "path": "../editor" },
 		{ "path": "../tlstore" },
 		{ "path": "../tlvalidate" },
+		{ "path": "../primitives" },
 		{ "path": "../utils" },
 		{ "path": "../ui" }
 	]

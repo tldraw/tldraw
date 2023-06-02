@@ -4373,6 +4373,7 @@ __metadata:
   resolution: "@tldraw/file-format@workspace:packages/file-format"
   dependencies:
     "@tldraw/editor": "workspace:*"
+    "@tldraw/primitives": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"

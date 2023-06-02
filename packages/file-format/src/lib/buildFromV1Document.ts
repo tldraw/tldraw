@@ -1,11 +1,13 @@
-import { clamp, Vec2d } from '@tldraw/primitives'
 import {
+	App,
 	AssetRecordType,
+	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLAlignType,
-	TLArrowheadType,
 	TLArrowShape,
 	TLArrowTerminal,
+	TLArrowUtil,
+	TLArrowheadType,
 	TLAsset,
 	TLAssetId,
 	TLColorType,
@@ -22,17 +24,14 @@ import {
 	TLTextShape,
 	TLVideoShape,
 	Vec2dModel,
-} from '@tldraw/tlschema'
-import { transact } from 'signia'
-import { App } from '../app/App'
-import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { MAX_SHAPES_PER_PAGE } from '../constants'
+} from '@tldraw/editor'
+import { Vec2d, clamp } from '@tldraw/primitives'
 
 const TLDRAW_V1_VERSION = 15.5
 
 /** @internal */
 export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
-	transact(() => {
+	app.batch(() => {
 		document = migrate(document, TLDRAW_V1_VERSION)
 		// Cancel any interactions / states
 		app.cancel().cancel().cancel().cancel()

@@ -1,6 +1,5 @@
 import {
 	App,
-	buildFromV1Document,
 	createTLStore,
 	fileToBase64,
 	TLAsset,
@@ -19,6 +18,7 @@ import {
 import { T } from '@tldraw/tlvalidate'
 import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
+import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */
 export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
