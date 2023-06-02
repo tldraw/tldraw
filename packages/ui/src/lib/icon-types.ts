@@ -166,7 +166,7 @@ export type TLUiIconType =
 	| 'zoom-out'
 
 /** @public */
-export const TLUiIconTypes = [
+export const iconTypes = [
 	'align-bottom-center',
 	'align-bottom-left',
 	'align-bottom-right',

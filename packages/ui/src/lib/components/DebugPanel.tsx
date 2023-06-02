@@ -38,7 +38,7 @@ function createNShapes(editor: Editor, n: number) {
 	})
 }
 
-/** @public */
+/** @internal */
 export const DebugPanel = React.memo(function DebugPanel({
 	renderDebugMenuItems,
 }: {
@@ -96,7 +96,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							// icon?: string
 							// title?: string
 							// description?: string
-							// actions?: TLToastAction[]
+							// actions?: TLUiToastAction[]
 						})
 					}}
 				>

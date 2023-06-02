@@ -4,11 +4,11 @@ import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
-import { ContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
+import { ContextTLUiMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
 import { useDialogs } from './hooks/useDialogsProvider'
 import { HelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
-import { MenuSchemaProviderProps } from './hooks/useMenuSchema'
+import { TLUiMenuSchemaProviderProps } from './hooks/useMenuSchema'
 import { useToasts } from './hooks/useToastsProvider'
 import { ToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
 import { ToolsProviderProps } from './hooks/useTools'
@@ -49,26 +49,22 @@ export function useDefaultHelpers() {
 
 type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
-export type TldrawUiOverride<Type, Helpers> = (
-	editor: Editor,
-	schema: Type,
-	helpers: Helpers
-) => Type
+export type TLUiOverride<Type, Helpers> = (editor: Editor, schema: Type, helpers: Helpers) => Type
 
-type WithDefaultHelpers<T extends TldrawUiOverride<any, any>> = T extends TldrawUiOverride<
+type WithDefaultHelpers<T extends TLUiOverride<any, any>> = T extends TLUiOverride<
 	infer Type,
 	infer Helpers
 >
-	? TldrawUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
+	? TLUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
 	: never
 
 /** @public */
-export interface TldrawUiOverrides {
+export interface TLUiOverrides {
 	actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	contextMenu?: WithDefaultHelpers<NonNullable<ContextMenuSchemaProviderProps['overrides']>>
+	contextMenu?: WithDefaultHelpers<NonNullable<ContextTLUiMenuSchemaProviderProps['overrides']>>
 	helpMenu?: WithDefaultHelpers<NonNullable<HelpMenuSchemaProviderProps['overrides']>>
-	menu?: WithDefaultHelpers<NonNullable<MenuSchemaProviderProps['overrides']>>
+	menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
 	toolbar?: WithDefaultHelpers<NonNullable<ToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu?: WithDefaultHelpers<
 		NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>
@@ -77,12 +73,12 @@ export interface TldrawUiOverrides {
 	translations?: TranslationProviderProps['overrides']
 }
 
-export interface TldrawUiOverridesWithoutDefaults {
+export interface TLUiOverridesWithoutDefaults {
 	actionsMenu?: ActionsMenuSchemaProviderProps['overrides']
 	actions?: ActionsProviderProps['overrides']
-	contextMenu?: ContextMenuSchemaProviderProps['overrides']
+	contextMenu?: ContextTLUiMenuSchemaProviderProps['overrides']
 	helpMenu?: HelpMenuSchemaProviderProps['overrides']
-	menu?: MenuSchemaProviderProps['overrides']
+	menu?: TLUiMenuSchemaProviderProps['overrides']
 	toolbar?: ToolbarSchemaProviderProps['overrides']
 	keyboardShortcutsMenu?: KeyboardShortcutsSchemaProviderProps['overrides']
 	tools?: ToolsProviderProps['overrides']
@@ -90,9 +86,9 @@ export interface TldrawUiOverridesWithoutDefaults {
 }
 
 export function mergeOverrides(
-	overrides: TldrawUiOverrides[],
+	overrides: TLUiOverrides[],
 	defaultHelpers: DefaultHelpers
-): TldrawUiOverridesWithoutDefaults {
+): TLUiOverridesWithoutDefaults {
 	const mergedTranslations: TranslationProviderProps['overrides'] = {}
 	for (const override of overrides) {
 		if (override.translations) {
@@ -180,7 +176,7 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 }
 
 export function useMergedTranslationOverrides(
-	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
+	overrides?: TLUiOverrides[] | TLUiOverrides
 ): NonNullable<TranslationProviderProps['overrides']> {
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
@@ -203,8 +199,8 @@ export function useMergedTranslationOverrides(
 }
 
 export function useMergedOverrides(
-	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
-): TldrawUiOverridesWithoutDefaults {
+	overrides?: TLUiOverrides[] | TLUiOverrides
+): TLUiOverridesWithoutDefaults {
 	const defaultHelpers = useDefaultHelpers()
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]

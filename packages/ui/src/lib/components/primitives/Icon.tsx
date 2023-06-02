@@ -3,7 +3,7 @@ import { memo, useLayoutEffect, useRef } from 'react'
 import { useAssetUrls } from '../../hooks/useAssetUrls'
 import { TLUiIconType } from '../../icon-types'
 
-/** @public */
+/** @internal */
 export interface IconProps extends React.HTMLProps<HTMLDivElement> {
 	icon: TLUiIconType
 	small?: boolean
@@ -13,7 +13,7 @@ export interface IconProps extends React.HTMLProps<HTMLDivElement> {
 	crossOrigin?: 'anonymous' | 'use-credentials'
 }
 
-/** @public */
+/** @internal */
 export const Icon = memo(function Icon({
 	small,
 	invertIcon,

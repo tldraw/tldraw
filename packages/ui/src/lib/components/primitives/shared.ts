@@ -1,4 +1,4 @@
-/** @public */
+/** @internal */
 export function toStartCase(str: string) {
 	return str
 		.split(' ')
@@ -13,7 +13,7 @@ const isDarwin =
 const cmdKey = isDarwin ? '⌘' : 'Ctrl'
 const altKey = isDarwin ? '⌥' : 'Alt'
 
-/** @public */
+/** @internal */
 export function kbd(str: string) {
 	return str
 		.split(',')[0]
@@ -24,7 +24,7 @@ export function kbd(str: string) {
 		})
 }
 
-/** @public */
+/** @internal */
 export function kbdStr(str: string) {
 	return (
 		'— ' +
@@ -39,7 +39,7 @@ export function kbdStr(str: string) {
 	)
 }
 
-/** @public */
+/** @internal */
 export const getBaseUrl = () => {
 	if (typeof process === 'undefined') {
 		return 'http://localhost:5420'
@@ -60,5 +60,5 @@ export const getBaseUrl = () => {
 	return 'http://localhost:3000'
 }
 
-/** @public */
+/** @internal */
 export const BASE_URL = getBaseUrl()

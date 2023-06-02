@@ -1,17 +1,17 @@
 import classnames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Spinner } from '../Spinner'
 import { Icon } from './Icon'
 import { Kbd } from './Kbd'
 
-/** @public */
+/** @internal */
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	loading?: boolean // TODO: loading spinner
 	disabled?: boolean
-	label?: TLTranslationKey
+	label?: TLUiTranslationKey
 	icon?: TLUiIconType
 	spinner?: boolean
 	iconLeft?: TLUiIconType
@@ -22,7 +22,7 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	type?: 'primary' | 'danger' | 'normal'
 }
 
-/** @public */
+/** @internal */
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
 	{
 		label,

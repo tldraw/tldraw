@@ -2,7 +2,7 @@ import { Editor, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	menuItem,
 	useAllowGroup,
 	useAllowUngroup,
@@ -13,27 +13,27 @@ import { useBreakpoint } from './useBreakpoint'
 import { useHasLinkShapeSelected } from './useHasLinkShapeSelected'
 
 /** @public */
-export type ActionsMenuSchemaContextType = MenuSchema
+export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema
 
-/** @public */
-export const ActionsMenuSchemaContext = React.createContext({} as ActionsMenuSchemaContextType)
+/** @internal */
+export const ActionsMenuSchemaContext = React.createContext({} as TLUiActionsMenuSchemaContextType)
 
-/** @public */
+/** @internal */
 export type ActionsMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
-		schema: ActionsMenuSchemaContextType,
+		schema: TLUiActionsMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			oneSelected: boolean
 			twoSelected: boolean
 			threeSelected: boolean
 		}
-	) => ActionsMenuSchemaContextType
+	) => TLUiActionsMenuSchemaContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvider({
 	overrides,
 	children,
@@ -53,7 +53,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const breakpoint = useBreakpoint()
 	const isZoomedTo100 = editor.zoomLevel === 1
 
-	const actionMenuSchema = useMemo<MenuSchema>(() => {
+	const actionTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
 		const results = [
 			menuItem(actions['align-left'], { disabled: !twoSelected }),
 			menuItem(actions['align-center-horizontal'], { disabled: !twoSelected }),
@@ -104,14 +104,14 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	])
 
 	return (
-		<ActionsMenuSchemaContext.Provider value={actionMenuSchema}>
+		<ActionsMenuSchemaContext.Provider value={actionTLUiMenuSchema}>
 			{children}
 		</ActionsMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
-export function useActionsMenuSchema(): MenuSchema {
+export function useActionsMenuSchema(): TLUiMenuSchema {
 	const ctx = React.useContext(ActionsMenuSchemaContext)
 
 	if (!ctx) {

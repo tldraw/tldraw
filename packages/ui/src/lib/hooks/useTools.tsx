@@ -6,13 +6,13 @@ import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
 import { useInsertMedia } from './useInsertMedia'
-import { TLTranslationKey } from './useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface ToolItem {
+export interface TLUiToolItem {
 	id: string
-	label: TLTranslationKey
-	shortcutsLabel?: TLTranslationKey
+	label: TLUiTranslationKey
+	shortcutsLabel?: TLUiTranslationKey
 	icon: TLUiIconType
 	onSelect: (source: TLUiEventSource) => void
 	kbd?: string
@@ -23,22 +23,22 @@ export interface ToolItem {
 }
 
 /** @public */
-export type ToolsContextType = Record<string, ToolItem>
+export type TLUiToolsContextType = Record<string, TLUiToolItem>
 
-/** @public */
-export const ToolsContext = React.createContext({} as ToolsContextType)
+/** @internal */
+export const ToolsContext = React.createContext({} as TLUiToolsContextType)
 
-/** @public */
+/** @internal */
 export type ToolsProviderProps = {
 	overrides?: (
 		editor: Editor,
-		tools: ToolsContextType,
+		tools: TLUiToolsContextType,
 		helpers: { insertMedia: () => void }
-	) => ToolsContextType
+	) => TLUiToolsContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	const editor = useEditor()
 	const trackEvent = useEvents()
@@ -48,8 +48,8 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 
 	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
-	const tools = React.useMemo<ToolsContextType>(() => {
-		const toolsArray: ToolItem[] = [
+	const tools = React.useMemo<TLUiToolsContextType>(() => {
+		const toolsArray: TLUiToolItem[] = [
 			{
 				id: 'select',
 				label: 'tool.select',
@@ -96,7 +96,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
 				id,
-				label: `tool.${id}` as TLTranslationKey,
+				label: `tool.${id}` as TLUiTranslationKey,
 				readonlyOk: false,
 				meta: {
 					geo: id,
@@ -230,7 +230,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }
 
-function makeTools(tools: ToolItem[]) {
+function makeTools(tools: TLUiToolItem[]) {
 	return Object.fromEntries(tools.map((t) => [t.id, t]))
 }
 

@@ -1,14 +1,14 @@
 import classNames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Icon } from './Icon'
 
-/** @public */
+/** @internal */
 export interface InputProps {
 	disabled?: boolean
-	label?: TLTranslationKey
+	label?: TLUiTranslationKey
 	icon?: TLUiIconType
 	iconLeft?: TLUiIconType
 	autofocus?: boolean
@@ -33,7 +33,7 @@ export interface InputProps {
 	value?: string
 }
 
-/** @public */
+/** @internal */
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
 	{
 		className,

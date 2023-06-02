@@ -1,24 +1,24 @@
-import { defaultUiAssetUrls, UiAssetUrls } from './assetUrls'
+import { defaultUiAssetUrls, TLUiAssetUrls } from './assetUrls'
 import { ActionsProvider } from './hooks/useActions'
 import { ActionsMenuSchemaProvider } from './hooks/useActionsMenuSchema'
 import { AssetUrlsProvider } from './hooks/useAssetUrls'
 import { BreakPointProvider } from './hooks/useBreakpoint'
-import { ContextMenuSchemaProvider } from './hooks/useContextMenuSchema'
+import { ContextTLUiMenuSchemaProvider } from './hooks/useContextMenuSchema'
 import { DialogsProvider } from './hooks/useDialogsProvider'
 import { EventsProvider, TLUiEventHandler } from './hooks/useEventsProvider'
 import { HelpMenuSchemaProvider } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProvider } from './hooks/useKeyboardShortcutsSchema'
-import { MenuSchemaProvider } from './hooks/useMenuSchema'
+import { TLUiMenuSchemaProvider } from './hooks/useMenuSchema'
 import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
 import { TranslationProvider } from './hooks/useTranslation/useTranslation'
-import { TldrawUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
+import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
 
 /** @public */
 export interface TldrawUiContextProviderProps {
-	assetUrls?: UiAssetUrls
-	overrides?: TldrawUiOverrides | TldrawUiOverrides[]
+	assetUrls?: TLUiAssetUrls
+	overrides?: TLUiOverrides | TLUiOverrides[]
 	onUiEvent?: TLUiEventHandler
 	children?: any
 }
@@ -57,13 +57,13 @@ function InternalProviders({
 				<ToolbarSchemaProvider overrides={mergedOverrides.toolbar}>
 					<ActionsMenuSchemaProvider overrides={mergedOverrides.actionsMenu}>
 						<KeyboardShortcutsSchemaProvider overrides={mergedOverrides.keyboardShortcutsMenu}>
-							<ContextMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
+							<ContextTLUiMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
 								<HelpMenuSchemaProvider overrides={mergedOverrides.helpMenu}>
-									<MenuSchemaProvider overrides={mergedOverrides.menu}>
+									<TLUiMenuSchemaProvider overrides={mergedOverrides.menu}>
 										{children}
-									</MenuSchemaProvider>
+									</TLUiMenuSchemaProvider>
 								</HelpMenuSchemaProvider>
-							</ContextMenuSchemaProvider>
+							</ContextTLUiMenuSchemaProvider>
 						</KeyboardShortcutsSchemaProvider>
 					</ActionsMenuSchemaProvider>
 				</ToolbarSchemaProvider>

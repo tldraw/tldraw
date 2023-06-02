@@ -9,7 +9,7 @@ import {
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
-import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
+import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
@@ -64,7 +64,7 @@ export function WrappedTldrawEditor() {
 }
 
 const menuOverrides = {
-	menu: (_editor: Editor, schema: MenuSchema, _helpers: any) => {
+	menu: (_editor: Editor, schema: TLUiMenuSchema, _helpers: any) => {
 		schema.forEach((item) => {
 			if (item.id === 'menu' && item.type === 'group') {
 				item.children = item.children.filter((menuItem) => {

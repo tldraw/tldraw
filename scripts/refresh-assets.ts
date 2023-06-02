@@ -85,7 +85,7 @@ async function copyIcons() {
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
 
 		/** @public */
-		export const TLUiIconTypes = [
+		export const iconTypes = [
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
 		] as const`
 
@@ -239,10 +239,10 @@ async function copyTranslations() {
 	// translationKeys.ts
 
 	const translationKeys = Object.keys(defaultTranslation).map((key) => `'${key}'`)
-	const translationKeysFilePath = join(uiPath, 'TLTranslationKey.ts')
+	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
 		/** @public */
-		export type TLTranslationKey = ${translationKeys.join(' | ')}
+		export type TLUiTranslationKey = ${translationKeys.join(' | ')}
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',

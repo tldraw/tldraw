@@ -13,7 +13,7 @@ interface StylePanelProps {
 	isMobile?: boolean
 }
 
-/** @public */
+/** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 

@@ -2,7 +2,7 @@ import { Editor, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useEditor } from '@t
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	compactMenuItems,
 	menuCustom,
 	menuGroup,
@@ -19,16 +19,18 @@ import { useOnlyFlippableShape } from './useOnlyFlippableShape'
 import { useShowAutoSizeToggle } from './useShowAutoSizeToggle'
 
 /** @public */
-export type ContextMenuSchemaContextType = MenuSchema
+export type TLUiContextTTLUiMenuSchemaContextType = TLUiMenuSchema
 
-/** @public */
-export const ContextMenuSchemaContext = React.createContext({} as ContextMenuSchemaContextType)
+/** @internal */
+export const ContextTLUiMenuSchemaContext = React.createContext(
+	{} as TLUiContextTTLUiMenuSchemaContextType
+)
 
-/** @public */
-export type ContextMenuSchemaProviderProps = {
+/** @internal */
+export type ContextTLUiMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
-		schema: ContextMenuSchemaContextType,
+		schema: TLUiContextTTLUiMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			oneSelected: boolean
@@ -38,15 +40,15 @@ export type ContextMenuSchemaProviderProps = {
 			showUngroup: boolean
 			onlyFlippableShapeSelected: boolean
 		}
-	) => ContextMenuSchemaContextType
+	) => TLUiContextTTLUiMenuSchemaContextType
 	children: any
 }
 
-/** @public */
-export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvider({
+/** @internal */
+export const ContextTLUiMenuSchemaProvider = track(function ContextTLUiMenuSchemaProvider({
 	overrides,
 	children,
-}: ContextMenuSchemaProviderProps) {
+}: ContextTLUiMenuSchemaProviderProps) {
 	const editor = useEditor()
 	const actions = useActions()
 
@@ -100,8 +102,8 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const { onlySelectedShape } = editor
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
-	const contextMenuSchema = useMemo<MenuSchema>(() => {
-		let contextMenuSchema: ContextMenuSchemaContextType = compactMenuItems([
+	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
+		let contextTLUiMenuSchema: TLUiContextTTLUiMenuSchemaContextType = compactMenuItems([
 			menuGroup(
 				'selection',
 				oneEmbedSelected && menuItem(actions['open-embed-link']),
@@ -220,7 +222,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 		])
 
 		if (overrides) {
-			contextMenuSchema = overrides(editor, contextMenuSchema, {
+			contextTLUiMenuSchema = overrides(editor, contextTLUiMenuSchema, {
 				actions,
 				oneSelected,
 				twoSelected,
@@ -231,7 +233,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			})
 		}
 
-		return contextMenuSchema
+		return contextTLUiMenuSchema
 	}, [
 		editor,
 		overrides,
@@ -254,18 +256,18 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	])
 
 	return (
-		<ContextMenuSchemaContext.Provider value={contextMenuSchema}>
+		<ContextTLUiMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
 			{children}
-		</ContextMenuSchemaContext.Provider>
+		</ContextTLUiMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
-export function useContextMenuSchema(): MenuSchema {
-	const ctx = React.useContext(ContextMenuSchemaContext)
+export function useContextMenuSchema(): TLUiMenuSchema {
+	const ctx = React.useContext(ContextTLUiMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useContextMenuSchema must be used inside of a ContextMenuSchemaProvider.')
+		throw new Error('useContextMenuSchema must be used inside of a ContextTLUiMenuSchemaProvider.')
 	}
 
 	return ctx
