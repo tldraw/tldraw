@@ -21,7 +21,7 @@ import { pastePlainText } from './clipboard/pastePlainText'
 import { pasteSvgText } from './clipboard/pasteSvgText'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
-import { useAppIsFocused } from './useAppIsFocused'
+import { useAppIsFocused } from './useEditorIsFocused'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 const INPUTS = ['input', 'select', 'textarea']

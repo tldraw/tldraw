@@ -2,7 +2,7 @@ import { preventDefault, useApp } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
-import { useAppIsFocused } from './useAppIsFocused'
+import { useAppIsFocused } from './useEditorIsFocused'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
