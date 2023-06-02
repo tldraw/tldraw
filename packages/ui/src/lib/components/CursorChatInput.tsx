@@ -1,4 +1,4 @@
-import { useApp, useContainer, useQuickReactor } from '@tldraw/editor'
+import { preventDefault, useApp, useContainer, useQuickReactor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -51,17 +51,17 @@ export const CursorChatInput = track(function CursorChatInput() {
 			if (!isChatting) return
 			switch (e.key) {
 				case 'Enter': {
-					e.preventDefault()
+					preventDefault(e)
 					if (!ref.current) return
 					if (ref.current.textContent === '') {
-						// TODO: close chat
+						app.updateInstanceState({ isChatting: false })
 						return
 					}
 					ref.current.textContent = ''
 					break
 				}
 				case 'Escape': {
-					e.preventDefault()
+					preventDefault(e)
 					if (!ref.current) return
 
 					// If the user has typed something, cancel it!
@@ -87,7 +87,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			ref={ref}
 			className="tl-cursor-chat"
 			style={{
-				visibility: isChatting ? 'visible' : 'hidden',
+				visibility: isChatting || chatMessage ? 'visible' : 'hidden',
 				position: 'absolute',
 				pointerEvents: 'all',
 				backgroundColor: app.user.color,
@@ -95,7 +95,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 				marginTop: 16,
 				marginLeft: 13,
 			}}
-			contentEditable
+			contentEditable={isChatting}
 			suppressContentEditableWarning
 			onBlur={handleBlur}
 			onInput={handleInput}
