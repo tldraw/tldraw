@@ -26,17 +26,21 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 			</svg>
 			{chatMessage ? (
 				<>
-					<div className="tl-nametag-title" style={{ color }}>
-						{name}
-					</div>
+					{name && (
+						<div className="tl-nametag-title" style={{ color }}>
+							{name}
+						</div>
+					)}
 					<div className="tl-nametag-chat" style={{ backgroundColor: color }}>
 						{chatMessage}
 					</div>
 				</>
 			) : (
-				<div className="tl-nametag" style={{ backgroundColor: color }}>
-					{name}
-				</div>
+				name && (
+					<div className="tl-nametag" style={{ backgroundColor: color }}>
+						{name}
+					</div>
+				)
 			)}
 		</div>
 	)
