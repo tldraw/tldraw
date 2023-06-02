@@ -1,4 +1,4 @@
-import { ANIMATION_MEDIUM_MS, useApp } from '@tldraw/editor'
+import { ANIMATION_MEDIUM_MS, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { useActions } from '../../hooks/useActions'
@@ -8,7 +8,7 @@ import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'
 
 export const ZoomMenu = track(function ZoomMenu() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

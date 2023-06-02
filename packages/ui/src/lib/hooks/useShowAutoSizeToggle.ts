@@ -1,8 +1,8 @@
-import { TLTextUtil, useApp } from '@tldraw/editor'
+import { TLTextUtil, useEditor } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function useShowAutoSizeToggle() {
-	const app = useApp()
+	const app = useEditor()
 	return useValue(
 		'showAutoSizeToggle',
 		() => {

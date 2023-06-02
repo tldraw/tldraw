@@ -1,4 +1,4 @@
-import { createEmbedShapeAtPoint, EmbedResult, getEmbedInfo, useApp } from '@tldraw/editor'
+import { createEmbedShapeAtPoint, EmbedResult, getEmbedInfo, useEditor } from '@tldraw/editor'
 import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
@@ -11,7 +11,7 @@ import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
 
 export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const assetUrls = useAssetUrls()
 

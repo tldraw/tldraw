@@ -1,13 +1,13 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	normalizeWheel,
 	TLPointerEventInfo,
 	TLShapeId,
-	useApp,
+	normalizeWheel,
 	useContainer,
+	useEditor,
 	useQuickReactor,
 } from '@tldraw/editor'
-import { Box2d, intersectPolygonPolygon, Vec2d } from '@tldraw/primitives'
+import { Box2d, Vec2d, intersectPolygonPolygon } from '@tldraw/primitives'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { MinimapManager } from './MinimapManager'
@@ -23,7 +23,7 @@ export const Minimap = track(function Minimap({
 	selectFill,
 	viewportFill,
 }: MinimapProps) {
-	const app = useApp()
+	const app = useEditor()
 
 	const rCanvas = React.useRef<HTMLCanvasElement>(null!)
 

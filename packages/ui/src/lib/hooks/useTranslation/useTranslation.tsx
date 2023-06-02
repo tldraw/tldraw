@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../useAssetUrls'
@@ -34,7 +34,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	overrides,
 	children,
 }: TranslationProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const locale = app.locale
 	const getAssetUrl = useAssetUrls()
 

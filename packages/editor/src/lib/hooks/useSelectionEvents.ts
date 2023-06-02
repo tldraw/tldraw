@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 import { TLSelectionHandle } from '../app/types/selection-types'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 export function useSelectionEvents(handle: TLSelectionHandle) {
-	const app = useApp()
+	const app = useEditor()
 
 	const events = useMemo(
 		function selectionEvents() {

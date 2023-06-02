@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export const ExitPenMode = track(function ExitPenMode() {
-	const app = useApp()
+	const app = useEditor()
 
 	const isPenMode = app.isPenMode
 

@@ -7,7 +7,7 @@ import { track, useValue } from 'signia-react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
-import { useApp } from '../hooks/useEditor'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../hooks/useGestureEvents'
@@ -30,7 +30,7 @@ export const Canvas = track(function Canvas({
 		defaultOnDrop: (e: React.DragEvent<Element>) => Promise<void>
 	) => (e: React.DragEvent<Element>) => Promise<void>
 }) {
-	const app = useApp()
+	const app = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
 
@@ -135,7 +135,7 @@ export const Canvas = track(function Canvas({
 })
 
 const GridWrapper = track(function GridWrapper() {
-	const app = useApp()
+	const app = useEditor()
 	const { Grid } = useEditorComponents()
 
 	// get grid from context
@@ -149,7 +149,7 @@ const GridWrapper = track(function GridWrapper() {
 })
 
 const ScribbleWrapper = track(function ScribbleWrapper() {
-	const app = useApp()
+	const app = useEditor()
 	const scribble = app.scribble
 	const zoom = app.zoomLevel
 
@@ -161,7 +161,7 @@ const ScribbleWrapper = track(function ScribbleWrapper() {
 })
 
 const BrushWrapper = track(function BrushWrapper() {
-	const app = useApp()
+	const app = useEditor()
 	const { brush } = app
 	const { Brush } = useEditorComponents()
 
@@ -171,7 +171,7 @@ const BrushWrapper = track(function BrushWrapper() {
 })
 
 export const ZoomBrushWrapper = track(function Zoom() {
-	const app = useApp()
+	const app = useEditor()
 	const { zoomBrush } = app
 	const { ZoomBrush } = useEditorComponents()
 
@@ -181,7 +181,7 @@ export const ZoomBrushWrapper = track(function Zoom() {
 })
 
 export const SnapLinesWrapper = track(function SnapLines() {
-	const app = useApp()
+	const app = useEditor()
 	const {
 		snaps: { lines },
 		zoomLevel,
@@ -202,7 +202,7 @@ export const SnapLinesWrapper = track(function SnapLines() {
 const MIN_HANDLE_DISTANCE = 48
 
 const HandlesWrapper = track(function HandlesWrapper() {
-	const app = useApp()
+	const app = useEditor()
 
 	const zoom = app.zoomLevel
 	const isChangingStyle = app.isChangingStyle
@@ -267,7 +267,7 @@ const HandleWrapper = ({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHand
 }
 
 const ShapesToDisplay = track(function ShapesToDisplay() {
-	const app = useApp()
+	const app = useEditor()
 
 	const { renderingShapes } = app
 
@@ -295,7 +295,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 })
 
 const SelectedIdIndicators = track(function SelectedIdIndicators() {
-	const app = useApp()
+	const app = useEditor()
 
 	const shouldDisplay =
 		app.isInAny(
@@ -319,7 +319,7 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 })
 
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
-	const app = useApp()
+	const app = useEditor()
 
 	const displayingHoveredId = useValue(
 		'hovered id and should display',
@@ -333,7 +333,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
-	const app = useApp()
+	const app = useEditor()
 
 	const ids = dedupe(app.hintingIds)
 
@@ -389,7 +389,7 @@ function ArrowheadCross() {
 }
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
-	const app = useApp()
+	const app = useEditor()
 	const shape = app.getShapeById(id)
 
 	const [html, setHtml] = React.useState('')

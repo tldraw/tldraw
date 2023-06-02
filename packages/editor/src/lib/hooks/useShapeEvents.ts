@@ -4,7 +4,7 @@ import { App } from '../app/App'
 import { TLPointerEventName } from '../app/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 const pointerEventHandler = (app: App, shapeId: TLShapeId, name: TLPointerEventName) => {
 	return (e: React.PointerEvent) => {
@@ -41,7 +41,7 @@ const pointerEventHandler = (app: App, shapeId: TLShapeId, name: TLPointerEventN
 }
 
 export function useShapeEvents(id: TLShapeId) {
-	const app = useApp()
+	const app = useEditor()
 
 	return React.useMemo(() => {
 		function onTouchStart(e: React.TouchEvent) {

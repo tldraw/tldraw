@@ -1,4 +1,4 @@
-import { App, TLNullableShapeProps, TLStyleItem, useApp } from '@tldraw/editor'
+import { App, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 
 import { useValue } from 'signia-react'
@@ -15,7 +15,7 @@ interface StylePanelProps {
 
 /** @public */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
-	const app = useApp()
+	const app = useEditor()
 
 	const props = useValue('props', () => app.props, [app])
 
@@ -52,7 +52,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 const { styles } = App
 
 function useStyleChangeCallback() {
-	const app = useApp()
+	const app = useEditor()
 
 	return React.useCallback(
 		(item: TLStyleItem, squashing: boolean) => {
@@ -66,7 +66,7 @@ function useStyleChangeCallback() {
 }
 
 function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()

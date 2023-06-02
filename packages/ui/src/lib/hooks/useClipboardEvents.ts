@@ -9,7 +9,7 @@ import {
 	TLEmbedUtil,
 	TLGeoUtil,
 	TLTextUtil,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 import { isNonNull } from '@tldraw/utils'
@@ -542,7 +542,7 @@ const handleNativeOrMenuCopy = (app: App) => {
 
 /** @public */
 export function useMenuClipboardEvents() {
-	const app = useApp()
+	const app = useEditor()
 	const trackEvent = useEvents()
 
 	const copy = useCallback(
@@ -599,7 +599,7 @@ export function useMenuClipboardEvents() {
 
 /** @public */
 export function useNativeClipboardEvents() {
-	const app = useApp()
+	const app = useEditor()
 	const trackEvent = useEvents()
 
 	const appIsFocused = useEditorIsFocused()

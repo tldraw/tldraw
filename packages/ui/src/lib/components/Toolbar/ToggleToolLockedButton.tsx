@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
@@ -12,7 +12,7 @@ interface ToggleToolLockedButtonProps {
 const NOT_LOCKABLE_TOOLS = ['select', 'hand', 'draw', 'eraser', 'text', 'zoom', 'laser']
 
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
-	const app = useApp()
+	const app = useEditor()
 	const breakpoint = useBreakpoint()
 	const msg = useTranslation()
 

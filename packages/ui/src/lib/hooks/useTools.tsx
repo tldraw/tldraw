@@ -1,4 +1,4 @@
-import { App, TL_GEO_TYPES, featureFlags, useApp } from '@tldraw/editor'
+import { App, TL_GEO_TYPES, featureFlags, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -40,7 +40,7 @@ export type ToolsProviderProps = {
 
 /** @public */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const trackEvent = useEvents()
 
 	const { addDialog } = useDialogs()

@@ -6,7 +6,7 @@ import {
 	// @ts-expect-error 'private' export
 	useStateTracking,
 } from 'signia-react'
-import { useApp } from '../..'
+import { useEditor } from '../..'
 import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
@@ -37,7 +37,7 @@ export const Shape = track(function Shape({
 	opacity: number
 	isCulled: boolean
 }) {
-	const app = useApp()
+	const app = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
 

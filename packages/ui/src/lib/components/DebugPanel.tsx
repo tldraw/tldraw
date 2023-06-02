@@ -6,7 +6,7 @@ import {
 	hardResetApp,
 	TLShapePartial,
 	uniqueId,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { track, useValue } from 'signia-react'
@@ -62,12 +62,12 @@ export const DebugPanel = React.memo(function DebugPanel({
 })
 
 const CurrentState = track(function CurrentState() {
-	const app = useApp()
+	const app = useEditor()
 	return <div className="tlui-debug-panel__current-state">{app.root.path.value}</div>
 })
 
 const ShapeCount = function ShapeCount() {
-	const app = useApp()
+	const app = useEditor()
 	const count = useValue('rendering shapes count', () => app.renderingShapes.length, [app])
 
 	return <div>{count} Shapes</div>
@@ -78,7 +78,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 }: {
 	renderDebugMenuItems: (() => React.ReactNode) | null
 }) {
-	const app = useApp()
+	const app = useEditor()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 

@@ -3,10 +3,10 @@ import { useValue } from 'signia-react'
 import { TLKeyboardEventInfo, TLPointerEventInfo } from '../app/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 export function useDocumentEvents() {
-	const app = useApp()
+	const app = useEditor()
 	const container = useContainer()
 
 	const isAppFocused = useValue('isFocused', () => app.isFocused, [app])

@@ -1,4 +1,4 @@
-import { TLStyleItem, TLStyleType, useApp } from '@tldraw/editor'
+import { TLStyleItem, TLStyleType, useEditor } from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
@@ -28,7 +28,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		onValueChange,
 		columns = clamp(items.length, 2, 4),
 	} = props
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)

@@ -1,4 +1,4 @@
-import { App, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useApp } from '@tldraw/editor'
+import { App, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
@@ -47,7 +47,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	overrides,
 	children,
 }: ContextMenuSchemaProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const actions = useActions()
 
 	const showAutoSizeToggle = useShowAutoSizeToggle()

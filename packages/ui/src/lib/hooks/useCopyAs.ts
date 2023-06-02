@@ -1,11 +1,18 @@
-import { App, getSvgAsImage, getSvgAsString, TLCopyType, TLShapeId, useApp } from '@tldraw/editor'
+import {
+	App,
+	getSvgAsImage,
+	getSvgAsString,
+	TLCopyType,
+	TLShapeId,
+	useEditor,
+} from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useToasts } from './useToastsProvider'
 import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export function useCopyAs() {
-	const app = useApp()
+	const app = useEditor()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
 

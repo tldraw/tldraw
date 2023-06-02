@@ -1,8 +1,8 @@
-import { ACCEPTED_ASSET_TYPE, createShapesFromFiles, useApp } from '@tldraw/editor'
+import { ACCEPTED_ASSET_TYPE, createShapesFromFiles, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 
 export function useInsertMedia() {
-	const app = useApp()
+	const app = useEditor()
 	const inputRef = useRef<HTMLInputElement>()
 
 	useEffect(() => {

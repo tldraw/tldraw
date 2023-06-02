@@ -1,5 +1,5 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { App, preventDefault, useApp, useContainer } from '@tldraw/editor'
+import { App, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useValue } from 'signia-react'
@@ -21,7 +21,7 @@ export interface ContextMenuProps {
 
 /** @public */
 export const ContextMenu = function ContextMenu({ children }: { children: any }) {
-	const app = useApp()
+	const app = useEditor()
 
 	const contextMenuSchema = useContextMenuSchema()
 	const cb = (isOpen: boolean) => {
@@ -67,7 +67,7 @@ function shouldDeselect(app: App) {
 }
 
 function ContextMenuContent() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')

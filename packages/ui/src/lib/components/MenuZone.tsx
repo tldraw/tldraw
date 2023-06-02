@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
@@ -11,7 +11,7 @@ import { TrashButton } from './TrashButton'
 import { UndoButton } from './UndoButton'
 
 export const MenuZone = track(function MenuZone() {
-	const app = useApp()
+	const app = useEditor()
 
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()

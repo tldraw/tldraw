@@ -1,7 +1,7 @@
 import uniq from 'lodash.uniq'
 import { useMemo } from 'react'
 import { useComputed, useValue } from 'signia-react'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 // TODO: maybe move this to a computed property on the App class?
 /**
@@ -9,7 +9,7 @@ import { useApp } from './useEditor'
  * @internal
  */
 export function usePeerIds() {
-	const app = useApp()
+	const app = useEditor()
 	const $presences = useMemo(() => {
 		return app.store.query.records('instance_presence', () => ({ userId: { neq: app.user.id } }))
 	}, [app])

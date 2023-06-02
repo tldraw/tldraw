@@ -1,4 +1,4 @@
-import { App, Tldraw, TLGeoShape, useApp } from '@tldraw/tldraw'
+import { App, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useEffect } from 'react'
@@ -74,10 +74,10 @@ export default function APIExample() {
 
 // Another (sneakier) way to access the current app is through React context.
 // The Tldraw component provides the context, so you can add children to
-// the component and access the app through the useApp hook.
+// the component and access the app through the useEditor hook.
 
 const InsideOfAppContext = () => {
-	const app = useApp()
+	const app = useEditor()
 
 	useEffect(() => {
 		let i = 0

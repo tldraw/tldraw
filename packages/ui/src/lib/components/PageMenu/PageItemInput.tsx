@@ -1,4 +1,4 @@
-import { TLPageId, useApp } from '@tldraw/editor'
+import { TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 import { Input } from '../primitives/Input'
 
@@ -11,7 +11,7 @@ export const PageItemInput = function PageItemInput({
 	id: TLPageId
 	isCurrentPage: boolean
 }) {
-	const app = useApp()
+	const app = useEditor()
 
 	const rInput = useRef<HTMLInputElement | null>(null)
 

@@ -1,4 +1,4 @@
-import { App, useApp } from '@tldraw/editor'
+import { App, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
@@ -37,7 +37,7 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	overrides,
 	children,
 }: HelpMenuSchemaProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const actions = useActions()
 
 	const selectedCount = app.selectedIds.length

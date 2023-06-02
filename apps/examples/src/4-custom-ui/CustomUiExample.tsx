@@ -1,4 +1,4 @@
-import { Canvas, TldrawEditor, useApp } from '@tldraw/tldraw'
+import { Canvas, TldrawEditor, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import { useEffect } from 'react'
 import { track } from 'signia-react'
@@ -16,7 +16,7 @@ export default function CustomUiExample() {
 }
 
 const CustomUi = track(() => {
-	const app = useApp()
+	const app = useEditor()
 
 	useEffect(() => {
 		const handleKeyUp = (e: KeyboardEvent) => {

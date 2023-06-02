@@ -2,10 +2,10 @@ import React from 'react'
 import { useValue } from 'signia-react'
 import { debugFlags } from '../utils/debug-flags'
 import { useContainer } from './useContainer'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 export function useDarkMode() {
-	const app = useApp()
+	const app = useEditor()
 	const container = useContainer()
 	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
 	const forceSrgb = useValue(debugFlags.forceSrgb)

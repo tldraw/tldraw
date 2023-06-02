@@ -1,4 +1,4 @@
-import { preventDefault, useApp } from '@tldraw/editor'
+import { preventDefault, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { track, useValue } from 'signia-react'
@@ -20,7 +20,7 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
 export const Toolbar = function Toolbar() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

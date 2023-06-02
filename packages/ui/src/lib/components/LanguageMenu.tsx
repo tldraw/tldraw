@@ -1,11 +1,11 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { TLTranslationLocale } from '../hooks/useTranslation/translations'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
 import * as D from './primitives/DropdownMenu'
 
 export function LanguageMenu() {
-	const app = useApp()
+	const app = useEditor()
 	const { languages, currentLanguage } = useLanguages()
 
 	const handleLanguageSelect = useCallback(

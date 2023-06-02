@@ -3,7 +3,7 @@ import classNames from 'classnames'
 import { useRef } from 'react'
 import { track } from 'signia-react'
 import { getCursor } from '../hooks/useCursor'
-import { useApp } from '../hooks/useEditor'
+import { useEditor } from '../hooks/useEditor'
 import { useSelectionEvents } from '../hooks/useSelectionEvents'
 import { useTransform } from '../hooks/useTransform'
 import { CropHandles } from './CropHandles'
@@ -14,7 +14,7 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const SelectionFg = track(function SelectionFg() {
-	const app = useApp()
+	const app = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 
 	const isReadonlyMode = app.isReadOnly

@@ -1,4 +1,4 @@
-import { App, featureFlags, useApp } from '@tldraw/editor'
+import { App, featureFlags, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React from 'react'
 import { useValue } from 'signia-react'
@@ -40,7 +40,7 @@ export type ToolbarSchemaProviderProps = {
 
 /** @public */
 export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 
 	const tools = useTools()
 	const highlighterEnabled = useValue(featureFlags.highlighterTool)

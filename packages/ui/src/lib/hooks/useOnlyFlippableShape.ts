@@ -1,8 +1,8 @@
-import { isShapeWithHandles, useApp } from '@tldraw/editor'
+import { isShapeWithHandles, useEditor } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function useOnlyFlippableShape() {
-	const app = useApp()
+	const app = useEditor()
 	return useValue(
 		'onlyFlippableShape',
 		() => {

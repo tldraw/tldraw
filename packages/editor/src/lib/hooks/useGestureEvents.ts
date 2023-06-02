@@ -6,7 +6,7 @@ import * as React from 'react'
 import { TLWheelEventInfo } from '../app/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from './shared'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]
 	? EventTypes[Key]
@@ -42,7 +42,7 @@ const isWheelEndEvent = (time: number) => {
 }
 
 export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
-	const app = useApp()
+	const app = useEditor()
 
 	const events = React.useMemo(() => {
 		let pinchState = null as null | 'zooming' | 'panning'

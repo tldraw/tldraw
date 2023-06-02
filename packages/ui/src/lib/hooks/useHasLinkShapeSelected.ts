@@ -1,8 +1,8 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function useHasLinkShapeSelected() {
-	const app = useApp()
+	const app = useEditor()
 	return useValue(
 		'hasLinkShapeSelected',
 		() => {

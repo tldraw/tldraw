@@ -1,4 +1,4 @@
-import { App, uniqueId, useApp } from '@tldraw/editor'
+import { App, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 import { useEvents } from './useEventsProvider'
 
@@ -34,7 +34,7 @@ export type DialogsProviderProps = {
 
 /** @public */
 export function DialogsProvider({ children }: DialogsProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const trackEvent = useEvents()
 
 	const [dialogs, setDialogs] = useState<TLDialog[]>([])

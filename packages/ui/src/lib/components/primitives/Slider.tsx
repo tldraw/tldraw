@@ -1,5 +1,5 @@
 import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -17,7 +17,7 @@ export interface SliderProps {
 /** @public */
 export function Slider(props: SliderProps) {
 	const { title, steps, value, label, onValueChange } = props
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useCallback(

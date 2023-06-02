@@ -1,4 +1,4 @@
-import { App, useApp } from '@tldraw/editor'
+import { App, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
@@ -31,7 +31,7 @@ export const Menu = React.memo(function Menu() {
 })
 
 function MenuContent() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useMenuSchema()
 	const breakpoint = useBreakpoint()

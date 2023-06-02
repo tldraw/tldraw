@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export function BackToContent() {
-	const app = useApp()
+	const app = useEditor()
 
 	const actions = useActions()
 	const action = actions['back-to-content']

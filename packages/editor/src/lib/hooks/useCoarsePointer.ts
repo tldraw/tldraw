@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 export function useCoarsePointer() {
-	const app = useApp()
+	const app = useEditor()
 	useEffect(() => {
 		if (window.matchMedia) {
 			const mql = window.matchMedia('(pointer: coarse)')

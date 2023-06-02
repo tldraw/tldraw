@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 let isMobileSafari = false
 
@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
 }
 
 export function useSafariFocusOutFix(): void {
-	const app = useApp()
+	const app = useEditor()
 
 	React.useEffect(() => {
 		if (!isMobileSafari) return

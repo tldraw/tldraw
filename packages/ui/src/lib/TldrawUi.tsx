@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { useValue } from 'signia-react'
@@ -91,7 +91,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])

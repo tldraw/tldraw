@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { parseAndLoadDocument } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import React from 'react'
@@ -11,7 +11,7 @@ export function FileOpen({
 	fileContents: string
 	forceDarkMode: boolean
 }) {
-	const app = useApp()
+	const app = useEditor()
 	const { msg, addToast, clearToasts } = useDefaultHelpers()
 	const [isFileLoaded, setIsFileLoaded] = React.useState(false)
 

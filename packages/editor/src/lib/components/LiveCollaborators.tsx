@@ -1,5 +1,5 @@
 import { track } from 'signia-react'
-import { useApp } from '../hooks/useEditor'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
 import { usePresence } from '../hooks/usePresence'
@@ -16,7 +16,7 @@ export const LiveCollaborators = track(function Collaborators() {
 })
 
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
-	const app = useApp()
+	const app = useEditor()
 	const { viewportPageBounds, zoomLevel } = app
 
 	const {

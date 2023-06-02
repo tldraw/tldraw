@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useValue } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -8,7 +8,7 @@ import { Icon } from './primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
 
 export function MobileStylePanel() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 
 	const currentColor = useValue(

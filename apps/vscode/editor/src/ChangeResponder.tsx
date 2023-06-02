@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { parseAndLoadDocument, serializeTldrawJson } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import { debounce } from '@tldraw/utils'
@@ -10,7 +10,7 @@ import { vscode } from './utils/vscode'
 import type { VscodeMessage } from '../../messages'
 
 export const ChangeResponder = () => {
-	const app = useApp()
+	const app = useEditor()
 	const { addToast, clearToasts, msg } = useDefaultHelpers()
 
 	React.useEffect(() => {

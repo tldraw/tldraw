@@ -6,7 +6,7 @@ import {
 	useStateTracking,
 	useValue,
 } from 'signia-react'
-import { useApp } from '../..'
+import { useEditor } from '../..'
 import type { App } from '../app/App'
 import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -58,7 +58,7 @@ export type TLShapeIndicatorComponent = (props: {
 }) => JSX.Element | null
 
 const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
-	const app = useApp()
+	const app = useEditor()
 
 	const transform = useValue(
 		'transform',

@@ -2,12 +2,12 @@ import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { TLPointerEventInfo } from '../app/types/event-types'
-import { useApp } from '../hooks/useEditor'
+import { useEditor } from '../hooks/useEditor'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 
 export const SelectionBg = track(function SelectionBg() {
-	const app = useApp()
+	const app = useEditor()
 
 	const events = React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {

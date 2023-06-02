@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { preventDefault } from '../utils/dom'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 const IGNORED_TAGS = ['textarea', 'input']
 
@@ -10,7 +10,7 @@ const IGNORED_TAGS = ['textarea', 'input']
  * app.
  */
 export function useFixSafariDoubleTapZoomPencilEvents(ref: React.RefObject<HTMLElement>) {
-	const app = useApp()
+	const app = useEditor()
 
 	useEffect(() => {
 		const elm = ref.current

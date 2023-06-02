@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 
 /** @public */
 export const HTMLCanvas = track(function HTMLCanvas() {
-	const app = useApp()
+	const app = useEditor()
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
 	const camera = app.camera

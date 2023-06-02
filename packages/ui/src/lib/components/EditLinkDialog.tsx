@@ -1,4 +1,4 @@
-import { TLBaseShape, TLBookmarkUtil, useApp } from '@tldraw/editor'
+import { TLBaseShape, TLBookmarkUtil, useEditor } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { DialogProps } from '../hooks/useDialogsProvider'
@@ -22,7 +22,7 @@ function validateUrl(url: string) {
 type ShapeWithUrl = TLBaseShape<string, { url: string }>
 
 export const EditLinkDialog = track(function EditLinkDialog({ onClose }: DialogProps) {
-	const app = useApp()
+	const app = useEditor()
 
 	const selectedShape = app.onlySelectedShape
 
@@ -39,7 +39,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	onClose,
 	selectedShape,
 }: DialogProps & { selectedShape: ShapeWithUrl }) {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 
 	const [validState, setValid] = useState(validateUrl(selectedShape.props.url))

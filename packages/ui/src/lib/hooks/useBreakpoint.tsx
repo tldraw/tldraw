@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import React, { useContext } from 'react'
 import { useValue } from 'signia-react'
 import { PORTRAIT_BREAKPOINTS } from '../constants'
@@ -7,7 +7,7 @@ const BreakpointContext = React.createContext(0)
 
 /** @public */
 export function BreakPointProvider({ children }: { children: any }) {
-	const app = useApp()
+	const app = useEditor()
 
 	const breakpoint = useValue(
 		'breakpoint',

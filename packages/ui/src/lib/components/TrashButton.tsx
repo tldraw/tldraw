@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useActions } from '../hooks/useActions'
 import { useReadonly } from '../hooks/useReadonly'
@@ -7,7 +7,7 @@ import { Button } from './primitives/Button'
 import { kbdStr } from './primitives/shared'
 
 export const TrashButton = track(function TrashButton() {
-	const app = useApp()
+	const app = useEditor()
 	const actions = useActions()
 	const msg = useTranslation()
 	const action = actions['delete']

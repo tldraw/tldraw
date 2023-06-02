@@ -1,4 +1,4 @@
-import { App, TLArrowUtil, useApp } from '@tldraw/editor'
+import { App, TLArrowUtil, useEditor } from '@tldraw/editor'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { useValue } from 'signia-react'
 import { ActionItem } from './useActions'
@@ -148,19 +148,19 @@ function shapesWithUnboundArrows(app: App) {
 
 /** @public */
 export const useThreeStackableItems = () => {
-	const app = useApp()
+	const app = useEditor()
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(app).length > 2, [app])
 }
 
 /** @public */
 export const useAllowGroup = () => {
-	const app = useApp()
+	const app = useEditor()
 	return useValue('allowGroup', () => shapesWithUnboundArrows(app).length > 1, [app])
 }
 
 /** @public */
 export const useAllowUngroup = () => {
-	const app = useApp()
+	const app = useEditor()
 	return useValue(
 		'allowUngroup',
 		() => app.selectedIds.some((id) => app.getShapeById(id)?.type === 'group'),

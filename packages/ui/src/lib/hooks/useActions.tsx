@@ -11,7 +11,7 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	TLTextUtil,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
 import { compact } from '@tldraw/utils'
@@ -62,7 +62,7 @@ function makeActions(actions: ActionItem[]) {
 
 /** @public */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts } = useToasts()

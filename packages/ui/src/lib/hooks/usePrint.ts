@@ -1,9 +1,9 @@
-import { uniqueId, useApp } from '@tldraw/editor'
+import { uniqueId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 
 /** @public */
 export function usePrint() {
-	const app = useApp()
+	const app = useEditor()
 	const prevPrintEl = useRef<HTMLDivElement | null>(null)
 	const prevStyleEl = useRef<HTMLStyleElement | null>(null)
 

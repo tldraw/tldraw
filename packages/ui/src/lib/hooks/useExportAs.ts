@@ -5,7 +5,7 @@ import {
 	TLExportType,
 	TLFrameUtil,
 	TLShapeId,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useToasts } from './useToastsProvider'
@@ -13,7 +13,7 @@ import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export function useExportAs() {
-	const app = useApp()
+	const app = useEditor()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
 

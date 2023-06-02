@@ -3,7 +3,7 @@ import * as React from 'react'
 import { App } from '../app/App'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 function getHandle(app: App, id: TLShapeId, handleId: string) {
 	const shape = app.getShapeById<TLArrowShape | TLLineShape>(id)!
@@ -13,7 +13,7 @@ function getHandle(app: App, id: TLShapeId, handleId: string) {
 }
 
 export function useHandleEvents(id: TLShapeId, handleId: string) {
-	const app = useApp()
+	const app = useEditor()
 
 	return React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {

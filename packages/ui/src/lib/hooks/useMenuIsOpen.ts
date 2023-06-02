@@ -1,11 +1,11 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
 import { useEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
-	const app = useApp()
+	const app = useEditor()
 	const rIsOpen = useRef(false)
 	const trackEvent = useEvents()
 

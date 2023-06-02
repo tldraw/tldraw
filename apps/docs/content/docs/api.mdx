@@ -29,10 +29,10 @@ You can use these properties directly or you can use them in [signia](https://gi
 
 ```tsx
 import { track } from "@tldraw/signia"
-import { useApp } from "@tldraw/tldraw"
+import { useEditor } from "@tldraw/tldraw"
 
 export const SelectedIdsCount = track(() => {
-  const app = useApp()
+  const app = useEditor()
   
   return (
     <div>{app.selectedIds.length}</div>
@@ -151,10 +151,10 @@ Note that the paths you pass to `isIn` or `isInAny` can be the full path or a pa
 
 ```tsx
 import { track } from "@tldraw/signia"
-import { useApp } from "@tldraw/tldraw"
+import { useEditor } from "@tldraw/tldraw"
 
 export const CreatingBubbleToolUi = track(() => {
-  const app = useApp()
+  const app = useEditor()
 
   const isSelected = app.isIn('root.bubble.creating')
 

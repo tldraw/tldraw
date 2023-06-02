@@ -2,10 +2,10 @@ import { debounce } from '@tldraw/utils'
 import * as React from 'react'
 import { EffectScheduler } from 'signia'
 import { useContainer } from './useContainer'
-import { useApp } from './useEditor'
+import { useEditor } from './useEditor'
 
 export function useZoomCss() {
-	const app = useApp()
+	const app = useEditor()
 	const container = useContainer()
 
 	React.useEffect(() => {

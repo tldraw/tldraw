@@ -1,12 +1,12 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { PageRecordType, TLPageId, useApp, useContainer } from '@tldraw/editor'
+import { PageRecordType, TLPageId, useContainer, useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 
 export const MoveToPageMenu = track(function MoveToPageMenu() {
-	const app = useApp()
+	const app = useEditor()
 	const container = useContainer()
 	const pages = app.pages
 	const currentPageId = app.currentPageId

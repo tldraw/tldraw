@@ -1,4 +1,4 @@
-import { App, useApp } from '@tldraw/editor'
+import { App, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { useValue } from 'signia-react'
@@ -43,7 +43,7 @@ export type MenuSchemaProviderProps = {
 
 /** @public */
 export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderProps) {
-	const app = useApp()
+	const app = useEditor()
 	const actions = useActions()
 
 	const breakpoint = useBreakpoint()

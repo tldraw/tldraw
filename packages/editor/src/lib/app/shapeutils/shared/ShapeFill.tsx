@@ -2,7 +2,7 @@ import { TLColorType, TLFillType } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
-import { useApp } from '../../../hooks/useEditor'
+import { useEditor } from '../../../hooks/useEditor'
 import { TLExportColors } from './TLExportColors'
 
 export interface ShapeFillProps {
@@ -31,7 +31,7 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 })
 
 const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
-	const app = useApp()
+	const app = useEditor()
 	const zoomLevel = useValue('zoomLevel', () => app.zoomLevel, [app])
 	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
 

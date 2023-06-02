@@ -1,13 +1,13 @@
 import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { forwardRef, useCallback } from 'react'
-import { useApp } from '../../../../hooks/useEditor'
+import { useEditor } from '../../../../hooks/useEditor'
 import { defaultEmptyAs } from '../../../../utils/string'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
 	{ id: TLShapeId; name: string; isEditing: boolean }
 >(({ id, name, isEditing }, ref) => {
-	const app = useApp()
+	const app = useEditor()
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {

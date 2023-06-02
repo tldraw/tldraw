@@ -1,4 +1,4 @@
-import { MAX_PAGES, useApp } from '@tldraw/editor'
+import { MAX_PAGES, useEditor } from '@tldraw/editor'
 import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
@@ -13,7 +13,7 @@ import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
 
 export const PageMenu = function PageMenu() {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 

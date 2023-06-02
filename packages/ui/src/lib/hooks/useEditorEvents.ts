@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useToasts } from './useToastsProvider'
 
 /** @public */
 export function useEditorEvents() {
-	const app = useApp()
+	const app = useEditor()
 	const { addToast } = useToasts()
 
 	useEffect(() => {

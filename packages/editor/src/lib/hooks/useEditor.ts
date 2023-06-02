@@ -4,6 +4,6 @@ import { App } from '../app/App'
 export const AppContext = React.createContext({} as App)
 
 /** @public */
-export const useApp = (): App => {
+export const useEditor = (): App => {
 	return React.useContext(AppContext)
 }

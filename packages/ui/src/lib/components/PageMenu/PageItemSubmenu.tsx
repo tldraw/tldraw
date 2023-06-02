@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { MAX_PAGES, PageRecordType, TLPageId, useApp } from '@tldraw/editor'
+import { MAX_PAGES, PageRecordType, TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -20,7 +20,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	item,
 	onRename,
 }: PageItemSubmenuProps) {
-	const app = useApp()
+	const app = useEditor()
 	const msg = useTranslation()
 	const pages = app.pages
 
