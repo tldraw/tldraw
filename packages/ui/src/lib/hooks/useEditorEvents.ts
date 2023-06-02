@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useToasts } from './useToastsProvider'
 
 /** @public */
-export function useAppEvents() {
+export function useEditorEvents() {
 	const app = useApp()
 	const { addToast } = useToasts()
 

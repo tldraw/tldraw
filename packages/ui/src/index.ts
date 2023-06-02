@@ -74,7 +74,7 @@ export {
 	type DialogsProviderProps,
 	type TLDialog,
 } from './lib/hooks/useDialogsProvider'
-export { useAppEvents } from './lib/hooks/useEditorEvents'
+export { useEditorEvents } from './lib/hooks/useEditorEvents'
 export {
 	useEvents,
 	type EventsProviderProps,

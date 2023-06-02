@@ -20,7 +20,7 @@ import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
-import { useAppEvents } from './hooks/useEditorEvents'
+import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -100,7 +100,7 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
-	useAppEvents()
+	useEditorEvents()
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
