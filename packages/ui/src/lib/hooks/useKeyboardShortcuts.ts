@@ -2,7 +2,7 @@ import { preventDefault, useApp } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
-import { useAppIsFocused } from './useEditorIsFocused'
+import { useEditorIsFocused } from './useEditorIsFocused'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -20,7 +20,7 @@ const SKIP_KBDS = [
 export function useKeyboardShortcuts() {
 	const app = useApp()
 
-	const appIsFocused = useAppIsFocused()
+	const appIsFocused = useEditorIsFocused()
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()

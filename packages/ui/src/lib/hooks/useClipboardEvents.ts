@@ -21,7 +21,7 @@ import { pastePlainText } from './clipboard/pastePlainText'
 import { pasteSvgText } from './clipboard/pasteSvgText'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
-import { useAppIsFocused } from './useEditorIsFocused'
+import { useEditorIsFocused } from './useEditorIsFocused'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 const INPUTS = ['input', 'select', 'textarea']
@@ -602,7 +602,7 @@ export function useNativeClipboardEvents() {
 	const app = useApp()
 	const trackEvent = useEvents()
 
-	const appIsFocused = useAppIsFocused()
+	const appIsFocused = useEditorIsFocused()
 
 	useEffect(() => {
 		if (!appIsFocused) return
