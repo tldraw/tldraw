@@ -126,7 +126,7 @@
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "vsce publish",
-		"lint": "yarn run -T eslint --report-unused-disable-directives --ignore-path ../../../.eslintignore",
+		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
 		"clean": "rm -rf .turbo && rm -rf node_modules && rm -rf dist && rm -rf editor && rm -rf temp & yarn"
 	},
 	"devDependencies": {

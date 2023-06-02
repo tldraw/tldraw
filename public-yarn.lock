@@ -4373,6 +4373,7 @@ __metadata:
   resolution: "@tldraw/file-format@workspace:packages/file-format"
   dependencies:
     "@tldraw/editor": "workspace:*"
+    "@tldraw/primitives": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
     "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
@@ -4456,6 +4457,7 @@ __metadata:
     cross-fetch: ^3.1.5
     esbuild: ^0.16.7
     glob: ^8.0.3
+    ignore: ^5.2.4
     is-ci: ^3.0.1
     kleur: ^4.1.5
     lazyrepo: 0.0.0-alpha.26
@@ -10577,7 +10579,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.1.1, ignore@npm:^5.2.0":
+"ignore@npm:^5.1.1, ignore@npm:^5.2.0, ignore@npm:^5.2.4":
   version: 5.2.4
   resolution: "ignore@npm:5.2.4"
   checksum: 3d4c309c6006e2621659311783eaea7ebcd41fe4ca1d78c91c473157ad6666a57a2df790fe0d07a12300d9aac2888204d7be8d59f9aaf665b1c7fcdb432517ef
