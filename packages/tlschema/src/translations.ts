@@ -1,11 +1,11 @@
 import { LANGUAGES } from './languages'
 
-type TLUiListedTranslation = {
+type TLUiLanguage = {
 	readonly locale: string
 	readonly label: string
 }
 
-type TLUiTranslationLocale = TLUiListedTranslation['locale']
+type TLUiTranslationLocale = TLUiLanguage['locale']
 
 /** @public */
 export function getDefaultTranslationLocale(): TLUiTranslationLocale {

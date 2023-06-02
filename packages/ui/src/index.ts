@@ -1,7 +1,10 @@
+import * as Dialog from './lib/components/primitives/Dialog'
+import * as DropdownMenu from './lib/components/primitives/DropdownMenu'
+
 export { TldrawUi, type TldrawUiProps } from './lib/TldrawUi'
 export {
-	TldrawUiContextProvider as TldrawUiContextProvider,
-	type TldrawUiContextProviderProps as TldrawUiContextProviderProps,
+	TldrawUiContextProvider,
+	type TldrawUiContextProviderProps,
 } from './lib/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/components/ContextMenu'
@@ -66,7 +69,6 @@ export {
 export { useLocalStorageState } from './lib/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/hooks/useMenuIsOpen'
 export { useMenuSchema, type TLUiMenuSchemaContextType } from './lib/hooks/useMenuSchema'
-export { usePrint } from './lib/hooks/usePrint'
 export { useReadonly } from './lib/hooks/useReadonly'
 export {
 	useToasts,
@@ -82,16 +84,11 @@ export {
 } from './lib/hooks/useToolbarSchema'
 export { useTools, type TLUiToolItem, type TLUiToolsContextType } from './lib/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/hooks/useTranslation/TLUiTranslationKey'
+export { type TLUiLanguage, type TLUiTranslation } from './lib/hooks/useTranslation/translations'
 export {
-	type TLUiListedTranslation,
-	type TLUiTranslation,
-} from './lib/hooks/useTranslation/translations'
-export {
-	useTranslation,
+	useTranslation as useTranslation,
 	type TLUiTranslationContextType,
 } from './lib/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/overrides'
 export { Dialog, DropdownMenu }
-import * as Dialog from './lib/components/primitives/Dialog'
-import * as DropdownMenu from './lib/components/primitives/DropdownMenu'

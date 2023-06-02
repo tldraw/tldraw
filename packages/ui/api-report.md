@@ -414,7 +414,7 @@ export interface TLUiInputProps {
 export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema;
 
 // @internal (undocumented)
-export type TLUiListedTranslation = {
+export type TLUiLanguage = {
     readonly locale: string;
     readonly label: string;
 };
@@ -653,9 +653,6 @@ export function useMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
 export function useNativeClipboardEvents(): void;
-
-// @public (undocumented)
-export function usePrint(): () => Promise<void>;
 
 // @public (undocumented)
 export function useReadonly(): boolean;

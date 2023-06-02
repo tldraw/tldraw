@@ -218,7 +218,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 			})
 		}
 
-		const tools = makeTools(toolsArray)
+		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
 		if (overrides) {
 			return overrides(editor, tools, { insertMedia })
@@ -228,10 +228,6 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 	}, [highlighterEnabled, overrides, editor, trackEvent, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
-}
-
-function makeTools(tools: TLUiToolItem[]) {
-	return Object.fromEntries(tools.map((t) => [t.id, t]))
 }
 
 /** @public */

@@ -2,7 +2,7 @@ import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
-import { TLUiListedTranslation } from '../..'
+import { TLUiLanguage } from '../..'
 import { KeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog'
 import { TLUiMenuSchema, menuCustom, menuGroup, menuItem } from './menuHelpers'
 import { useActions } from './useActions'
@@ -22,7 +22,7 @@ export type HelpMenuSchemaProviderProps = {
 		schema: TLUiHelpMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
-			languages: readonly TLUiListedTranslation[]
+			languages: readonly TLUiLanguage[]
 			currentLanguage: string
 			oneSelected: boolean
 			twoSelected: boolean
