@@ -824,11 +824,6 @@ input,
 	color: rgba(255, 255, 255, 0.7);
 }
 
-.tl-cursor-chat-placeholder-fade:empty::before {
-	opacity: 0.2;
-	transition: opacity 5s;
-}
-
 /* -------------------------------------------------- */
 /*                       Spinner                      */
 /* -------------------------------------------------- */
