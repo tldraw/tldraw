@@ -250,6 +250,7 @@ function TldrawEditorWithReadyStore({
 			tools,
 			getContainer: () => container,
 		})
+		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
 		return () => {
