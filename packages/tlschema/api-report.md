@@ -118,8 +118,8 @@ export function createShapeValidator<Type extends string, Props extends object>(
 }>;
 
 // @public
-export function createTLSchema<T extends TLUnknownShape>(opts?: {
-    customShapes?: { [K in T["type"]]: CustomShapeInfo<T>; } | undefined;
+export function createTLSchema(opts?: {
+    customShapes: Record<string, SchemaShapeInfo>;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -376,6 +376,12 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape>;
 export const handleTypeValidator: T.Validator<TLHandle>;
 
 // @public (undocumented)
+export const highlightShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
+export const highlightShapeTypeValidator: T.Validator<TLHighlightShape>;
+
+// @public (undocumented)
 export const iconShapeTypeMigrations: Migrations;
 
 // @public (undocumented)
@@ -470,6 +476,14 @@ export const pointerTypeValidator: T.Validator<TLPointer>;
 
 // @internal (undocumented)
 export const rootShapeTypeMigrations: Migrations;
+
+// @public (undocumented)
+export type SchemaShapeInfo = {
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
 
 // @public (undocumented)
 export const scribbleTypeValidator: T.Validator<TLScribble>;
@@ -760,12 +774,14 @@ export interface TLDashStyle extends TLBaseStyle {
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    name: string;
 }
 
 // @public (undocumented)
@@ -931,6 +947,19 @@ export interface TLHandlePartial {
 
 // @public (undocumented)
 export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
+
+// @public (undocumented)
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+
+// @public (undocumented)
+export type TLHighlightShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    opacity: TLOpacityType;
+    segments: TLDrawShapeSegment[];
+    isComplete: boolean;
+    isPen: boolean;
+};
 
 // @public (undocumented)
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;
@@ -1229,6 +1258,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export type TLStoreProps = {
     instanceId: TLInstanceId;
     documentId: typeof TLDOCUMENT_ID;
+    defaultName: string;
 };
 
 // @public (undocumented)

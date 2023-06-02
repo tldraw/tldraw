@@ -1,23 +1,23 @@
 import { PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
-import { App } from '@tldraw/tldraw'
+import { Editor } from '@tldraw/tldraw'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 // export async function expectPathToBe(page: Page, path: string) {
-// 	expect(await page.evaluate(() => app.root.path.value)).toBe(path)
+// 	expect(await page.evaluate(() => editor.root.path.value)).toBe(path)
 // }
 
 // export async function expectToHaveNShapes(page: Page, numberOfShapes: number) {
-// 	expect(await page.evaluate(() => app.shapesArray.length)).toBe(numberOfShapes)
+// 	expect(await page.evaluate(() => editor.shapesArray.length)).toBe(numberOfShapes)
 // }
 
 // export async function expectToHaveNSelectedShapes(page: Page, numberOfSelectedShapes: number) {
-// 	expect(await page.evaluate(() => app.selectedIds.length)).toBe(numberOfSelectedShapes)
+// 	expect(await page.evaluate(() => editor.selectedIds.length)).toBe(numberOfSelectedShapes)
 // }
 
-declare const app: App
+declare const editor: Editor
 
 export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await setupPage(page)
@@ -33,9 +33,9 @@ export async function cleanup({ page }: PlaywrightTestArgs) {
 }
 
 export async function setupPage(page: PlaywrightTestArgs['page']) {
-	await page.goto('http://localhost:5420/e2e')
+	await page.goto('http://localhost:5420/end-to-end')
 	await page.waitForSelector('.tl-canvas')
-	await page.evaluate(() => (app.enableAnimations = false))
+	await page.evaluate(() => (editor.enableAnimations = false))
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
@@ -45,7 +45,7 @@ export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
 	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
 	await page.mouse.click(250, 300)
-	await page.evaluate(() => app.selectNone())
+	await page.evaluate(() => editor.selectNone())
 }
 
 export async function cleanupPage(page: PlaywrightTestArgs['page']) {

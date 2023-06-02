@@ -1,19 +1,19 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 it("When changing the style of a geo shape, if the text label is empty, don't measure it", () => {
-	const id = app.createShapeId()
+	const id = editor.createShapeId()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id,
 			type: 'geo',
@@ -26,9 +26,9 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 		},
 	])
 
-	const boundsBefore = app.getBoundsById(id)!
+	const boundsBefore = editor.getBoundsById(id)!
 
-	app.updateShapes([
+	editor.updateShapes([
 		{
 			id,
 			type: 'geo',
@@ -36,13 +36,13 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 		},
 	])
 
-	expect(app.getBoundsById(id)).toMatchObject(boundsBefore)
+	expect(editor.getBoundsById(id)).toMatchObject(boundsBefore)
 })
 
 it('When changing the style of a geo shape, if the text label has text, measure it and possibly update the size', () => {
-	const id = app.createShapeId()
+	const id = editor.createShapeId()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id,
 			type: 'geo',
@@ -55,9 +55,9 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 		},
 	])
 
-	const boundsBefore = app.getBoundsById(id)!
+	const boundsBefore = editor.getBoundsById(id)!
 
-	app.updateShapes([
+	editor.updateShapes([
 		{
 			id,
 			type: 'geo',
@@ -65,5 +65,5 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 		},
 	])
 
-	expect(app.getBoundsById(id)).not.toMatchObject(boundsBefore)
+	expect(editor.getBoundsById(id)).not.toMatchObject(boundsBefore)
 })

@@ -8,7 +8,7 @@
 		// TODO: enable these two options
 		"noImplicitOverride": false,
 		"noImplicitReturns": false,
-		"types": ["node", "@types/jest", "@types/benchmark"]
+		"types": ["node", "@types/jest"]
 	},
 	"references": [
 		{ "path": "../primitives" },

@@ -1,12 +1,12 @@
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
-import type { App } from '../App'
+import type { Editor } from '../Editor'
 
 const LAG_DURATION = 100
 
 export class DragAndDropManager {
-	constructor(public app: App) {
-		app.disposables.add(this.dispose)
+	constructor(public editor: Editor) {
+		editor.disposables.add(this.dispose)
 	}
 
 	prevDroppingShapeId: TLShapeId | null = null
@@ -16,11 +16,11 @@ export class DragAndDropManager {
 
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.droppingNodeTimer === null) {
-			const { currentPagePoint } = this.app.inputs
+			const { currentPagePoint } = this.editor.inputs
 			this.currDroppingShapeId =
-				this.app.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
+				this.editor.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
 			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
-		} else if (this.app.inputs.pointerVelocity.len() > 0.5) {
+		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
 			this.setDragTimer(movingShapes, LAG_DURATION, cb)
 		}
@@ -28,7 +28,7 @@ export class DragAndDropManager {
 
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = setTimeout(() => {
-			this.app.batch(() => {
+			this.editor.batch(() => {
 				this.handleDrag(movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
@@ -36,12 +36,12 @@ export class DragAndDropManager {
 	}
 
 	private handleDrag(movingShapes: TLShape[], cb?: () => void) {
-		const { currentPagePoint } = this.app.inputs
+		const { currentPagePoint } = this.editor.inputs
 
-		movingShapes = compact(movingShapes.map((shape) => this.app.getShapeById(shape.id)))
+		movingShapes = compact(movingShapes.map((shape) => this.editor.getShapeById(shape.id)))
 
 		const currDroppingShapeId =
-			this.app.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
+			this.editor.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
 
 		if (currDroppingShapeId !== this.currDroppingShapeId) {
 			this.prevDroppingShapeId = this.currDroppingShapeId
@@ -55,8 +55,8 @@ export class DragAndDropManager {
 			return
 		}
 
-		const prevDroppingShape = prevDroppingShapeId && this.app.getShapeById(prevDroppingShapeId)
-		const nextDroppingShape = currDroppingShapeId && this.app.getShapeById(currDroppingShapeId)
+		const prevDroppingShape = prevDroppingShapeId && this.editor.getShapeById(prevDroppingShapeId)
+		const nextDroppingShape = currDroppingShapeId && this.editor.getShapeById(currDroppingShapeId)
 
 		// Even if we don't have a next dropping shape id (i.e. if we're dropping
 		// onto the page) set the prev to the current, to avoid repeat calls to
@@ -64,20 +64,20 @@ export class DragAndDropManager {
 		this.prevDroppingShapeId = this.currDroppingShapeId
 
 		if (prevDroppingShape) {
-			this.app.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
+			this.editor.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
 		}
 
 		if (nextDroppingShape) {
-			const res = this.app
+			const res = this.editor
 				.getShapeUtil(nextDroppingShape)
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
 
 			if (res && res.shouldHint) {
-				this.app.setHintingIds([nextDroppingShape.id])
+				this.editor.setHintingIds([nextDroppingShape.id])
 			}
 		} else {
 			// If we're dropping onto the page, then clear hinting ids
-			this.app.setHintingIds([])
+			this.editor.setHintingIds([])
 		}
 
 		cb?.()
@@ -89,9 +89,9 @@ export class DragAndDropManager {
 		this.handleDrag(shapes)
 
 		if (currDroppingShapeId) {
-			const shape = this.app.getShapeById(currDroppingShapeId)
+			const shape = this.editor.getShapeById(currDroppingShapeId)
 			if (!shape) return
-			this.app.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
+			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
 		}
 	}
 
@@ -104,7 +104,7 @@ export class DragAndDropManager {
 		}
 
 		this.droppingNodeTimer = null
-		this.app.setHintingIds([])
+		this.editor.setHintingIds([])
 	}
 
 	dispose = () => {

@@ -2,6 +2,7 @@ import { writeFileSync } from 'fs'
 import { join, resolve } from 'path'
 import { exec } from './lib/exec'
 import { readFileIfExists } from './lib/file'
+import { nicelog } from './lib/nicelog'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 const packagesOurTypesCanDependOn = [
@@ -28,13 +29,13 @@ async function main() {
 	}
 
 	const tempDir = (await exec('mktemp', ['-d'])).trim()
-	console.log(`Working in ${tempDir}`)
+	nicelog(`Working in ${tempDir}`)
 
 	const packages = (await getAllWorkspacePackages()).filter(
 		({ packageJson }) => !packageJson.private
 	)
 
-	console.log(
+	nicelog(
 		'Checking packages:',
 		packages.map(({ packageJson }) => packageJson.name)
 	)
@@ -43,7 +44,7 @@ async function main() {
 		const unprefixedName = name.replace('@tldraw/', '')
 		const dtsFile = await readFileIfExists(join(relativePath, 'api', 'public.d.ts'))
 		if (!dtsFile) {
-			console.log(`No public.d.ts for ${name}, skipping`)
+			nicelog(`No public.d.ts for ${name}, skipping`)
 			continue
 		}
 
@@ -52,7 +53,7 @@ async function main() {
 		tsconfig.files.push(`./${unprefixedName}.d.ts`)
 	}
 
-	console.log('Checking with tsconfig:', tsconfig)
+	nicelog('Checking with tsconfig:', tsconfig)
 	writeFileSync(`${tempDir}/tsconfig.json`, JSON.stringify(tsconfig, null, '\t'), 'utf8')
 	writeFileSync(`${tempDir}/package.json`, JSON.stringify({ dependencies: {} }, null, '\t'), 'utf8')
 

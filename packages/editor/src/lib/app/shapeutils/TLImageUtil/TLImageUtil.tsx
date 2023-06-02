@@ -73,7 +73,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
 		const { w, h } = shape.props
-		const asset = shape.props.assetId ? this.app.getAssetById(shape.props.assetId) : undefined
+		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -81,14 +81,14 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 
 		const isSelected = useValue(
 			'onlySelectedShape',
-			() => shape.id === this.app.onlySelectedShape?.id,
-			[this.app]
+			() => shape.id === this.editor.onlySelectedShape?.id,
+			[this.editor]
 		)
 
 		const showCropPreview =
 			isSelected &&
 			isCropping &&
-			this.app.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
+			this.editor.isInAny('select.crop', 'select.cropping', 'select.pointing_crop_handle')
 
 		// We only want to reduce motion for mimeTypes that have motion
 		const reduceMotion =
@@ -152,7 +152,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 					</div>
 				</HTMLContainer>
 				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.app.zoomLevel} />
+					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
 				)}
 			</>
 		)
@@ -168,7 +168,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 
 	async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		const asset = shape.props.assetId ? this.app.getAssetById(shape.props.assetId) : null
+		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
 
 		let src = asset?.props.src || ''
 		if (src && src.startsWith('http')) {
@@ -205,7 +205,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 	}
 
 	onDoubleClick = (shape: TLImageShape) => {
-		const asset = shape.props.assetId ? this.app.getAssetById(shape.props.assetId) : undefined
+		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
 
 		if (!asset) return
 
@@ -214,7 +214,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 
 		if (!canPlay) return
 
-		this.app.updateShapes([
+		this.editor.updateShapes([
 			{
 				type: 'image',
 				id: shape.id,
@@ -229,7 +229,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 		const props = shape.props
 		if (!props) return
 
-		if (this.app.croppingId !== shape.id) {
+		if (this.editor.croppingId !== shape.id) {
 			return
 		}
 
@@ -259,7 +259,7 @@ export class TLImageUtil extends TLBoxUtil<TLImageShape> {
 			},
 		}
 
-		this.app.updateShapes([partial])
+		this.editor.updateShapes([partial])
 	}
 }
 

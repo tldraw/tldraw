@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export function BackToContent() {
-	const app = useApp()
+	const editor = useEditor()
 
 	const actions = useActions()
 	const action = actions['back-to-content']
@@ -15,14 +15,14 @@ export function BackToContent() {
 		let showBackToContentPrev = false
 
 		const interval = setInterval(() => {
-			const { renderingShapes } = app
+			const { renderingShapes } = editor
 
 			// renderingShapes will also include shapes that have the canUnmount flag
 			// set to true. These shapes will be on the canvas but may not be in the
 			// viewport... so we also need to narrow down the list to only shapes that
 			// are ALSO in the viewport.
 			const visibleShapes = renderingShapes.filter((s) => s.isInViewport)
-			const showBackToContentNow = visibleShapes.length === 0 && app.shapesArray.length > 0
+			const showBackToContentNow = visibleShapes.length === 0 && editor.shapesArray.length > 0
 
 			if (showBackToContentPrev !== showBackToContentNow) {
 				setShowBackToContent(showBackToContentNow)
@@ -33,7 +33,7 @@ export function BackToContent() {
 		return () => {
 			clearInterval(interval)
 		}
-	}, [app])
+	}, [editor])
 
 	if (!showBackToContent) return null
 

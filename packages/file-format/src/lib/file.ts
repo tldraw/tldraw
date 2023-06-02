@@ -1,9 +1,8 @@
 import {
-	App,
-	buildFromV1Document,
+	createTLStore,
+	Editor,
 	fileToBase64,
 	TLAsset,
-	TldrawEditorConfig,
 	TLInstanceId,
 	TLRecord,
 	TLStore,
@@ -19,6 +18,7 @@ import {
 import { T } from '@tldraw/tlvalidate'
 import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
+import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */
 export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const
@@ -81,11 +81,11 @@ export type TldrawFileParseError =
 
 /** @public */
 export function parseTldrawJsonFile({
-	config,
 	json,
 	instanceId,
+	store,
 }: {
-	config: TldrawEditorConfig
+	store: TLStore
 	json: string
 	instanceId: TLInstanceId
 }): Result<TLStore, TldrawFileParseError> {
@@ -123,7 +123,7 @@ export function parseTldrawJsonFile({
 	let migrationResult: MigrationResult<StoreSnapshot<TLRecord>>
 	try {
 		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
-		migrationResult = config.storeSchema.migrateStoreSnapshot(storeSnapshot, data.schema)
+		migrationResult = store.schema.migrateStoreSnapshot(storeSnapshot, data.schema)
 	} catch (e) {
 		// junk data in the migration
 		return Result.err({ type: 'invalidRecords', cause: e })
@@ -137,7 +137,12 @@ export function parseTldrawJsonFile({
 	// we should be able to validate them. if any of the records at this stage
 	// are invalid, we don't open the file
 	try {
-		return Result.ok(config.createStore({ initialData: migrationResult.value, instanceId }))
+		return Result.ok(
+			createTLStore({
+				initialData: migrationResult.value,
+				instanceId,
+			})
+		)
 	} catch (e) {
 		// junk data in the records (they're not validated yet!) could cause the
 		// migrations to crash. We treat any throw from a migration as an
@@ -197,7 +202,7 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 
 /** @internal */
 export async function parseAndLoadDocument(
-	app: App,
+	editor: Editor,
 	document: string,
 	msg: (id: TLTranslationKey) => string,
 	addToast: ToastsContextType['addToast'],
@@ -205,15 +210,15 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		config: new TldrawEditorConfig(),
+		store: createTLStore(),
 		json: document,
-		instanceId: app.instanceId,
+		instanceId: editor.instanceId,
 	})
 	if (!parseFileResult.ok) {
 		let description
 		switch (parseFileResult.error.type) {
 			case 'notATldrawFile':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -232,7 +237,7 @@ export async function parseAndLoadDocument(
 				}
 				break
 			case 'invalidRecords':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -241,7 +246,7 @@ export async function parseAndLoadDocument(
 				description = msg('file-system.file-open-error.generic-corrupted-file')
 				break
 			case 'v1File': {
-				buildFromV1Document(app, parseFileResult.error.data.document)
+				buildFromV1Document(editor, parseFileResult.error.data.document)
 				onV1FileLoad?.()
 				return
 			}
@@ -262,7 +267,7 @@ export async function parseAndLoadDocument(
 	// just restore everything, so if the user has opened
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
-	app.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
+	editor.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
 
-	if (forceDarkMode) app.setDarkMode(true)
+	if (forceDarkMode) editor.setDarkMode(true)
 }

@@ -84,10 +84,10 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
 			() => {
-				const { editingId, hoveredId } = this.app.pageState
+				const { editingId, hoveredId } = this.editor.pageState
 
 				if (editingId && hoveredId !== editingId) {
-					const editingShape = this.app.getShapeById(editingId)
+					const editingShape = this.editor.getShapeById(editingId)
 					if (editingShape && editingShape.type === 'embed') {
 						return true
 					}
@@ -97,7 +97,7 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 			[]
 		)
 
-		const pageRotation = this.app.getPageRotation(shape)
+		const pageRotation = this.editor.getPageRotation(shape)
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 

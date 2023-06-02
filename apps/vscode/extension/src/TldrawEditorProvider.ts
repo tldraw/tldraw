@@ -1,7 +1,7 @@
 import * as vscode from 'vscode'
 import { DocumentChangeEventArgs, TLDrawDocument } from './TldrawDocument'
 import { TldrawWebviewManager } from './TldrawWebviewManager'
-import { log } from './utils'
+import { nicelog } from './utils'
 
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'
@@ -63,12 +63,12 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawD
 		openContext: { backupId?: string },
 		_token: vscode.CancellationToken
 	): Promise<TLDrawDocument> {
-		log('openCustomDocument')
+		nicelog('openCustomDocument')
 
 		const document: TLDrawDocument = await TLDrawDocument.create(uri, openContext.backupId)
 		this.disposables.push(
 			document.onDidChange((e) => {
-				log('onDidChange')
+				nicelog('onDidChange')
 
 				// Tell VS Code that the document has been edited by the use.
 				this._onDidChangeCustomDocument.fire({
@@ -80,7 +80,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawD
 
 		this.disposables.push(
 			document.onDidChangeContent((e: DocumentChangeEventArgs) => {
-				log('onDidChange')
+				nicelog('onDidChange')
 
 				this.webviewPanels.forEach((w: vscode.WebviewPanel) => {
 					if (w.active) {
@@ -102,7 +102,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawD
 		)
 
 		document.onDidDispose(() => {
-			log('onDidDispose document in provider')
+			nicelog('onDidDispose document in provider')
 			this.disposables.forEach((d) => d.dispose())
 		})
 
@@ -114,7 +114,7 @@ export class TldrawEditorProvider implements vscode.CustomEditorProvider<TLDrawD
 		webviewPanel: vscode.WebviewPanel,
 		_token: vscode.CancellationToken
 	): Promise<void> {
-		log('resolveCustomEditor')
+		nicelog('resolveCustomEditor')
 		this.webviewPanels.push(webviewPanel)
 		webviewPanel.onDidDispose(() => {
 			this.webviewPanels = this.webviewPanels.filter((w) => w !== webviewPanel)

@@ -5,5 +5,9 @@
 	"compilerOptions": {
 		"outDir": "./.tsbuild"
 	},
-	"references": [{ "path": "../../packages/tldraw" }, { "path": "../../packages/assets" }]
+	"references": [
+		{ "path": "../../packages/tldraw" },
+		{ "path": "../../packages/utils" },
+		{ "path": "../../packages/assets" }
+	]
 }

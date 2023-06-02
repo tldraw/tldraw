@@ -8,6 +8,8 @@ import { DashedOutlineBox } from '../shared/DashedOutlineBox'
 export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 	static override type = 'group'
 
+	type = 'group' as const
+
 	hideSelectionBoundsBg = () => false
 	hideSelectionBoundsFg = () => true
 
@@ -18,16 +20,16 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 	}
 
 	getBounds(shape: TLGroupShape): Box2d {
-		const children = this.app.getSortedChildIds(shape.id)
+		const children = this.editor.getSortedChildIds(shape.id)
 		if (children.length === 0) {
 			return new Box2d()
 		}
 
 		const allChildPoints = children.flatMap((childId) => {
-			const shape = this.app.getShapeById(childId)!
-			return this.app
+			const shape = this.editor.getShapeById(childId)!
+			return this.editor
 				.getOutlineById(childId)
-				.map((point) => Matrix2d.applyToPoint(this.app.getTransform(shape), point))
+				.map((point) => Matrix2d.applyToPoint(this.editor.getTransform(shape), point))
 		})
 
 		return Box2d.FromPoints(allChildPoints)
@@ -47,13 +49,13 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 			erasingIdsSet,
 			pageState: { hintingIds, focusLayerId },
 			zoomLevel,
-		} = this.app
+		} = this.editor
 
 		const isErasing = erasingIdsSet.has(shape.id)
 
 		const isHintingOtherGroup =
 			hintingIds.length > 0 &&
-			hintingIds.some((id) => id !== shape.id && this.app.getShapeById(id)?.type === 'group')
+			hintingIds.some((id) => id !== shape.id && this.editor.getShapeById(id)?.type === 'group')
 
 		if (
 			// always show the outline while we're erasing the group
@@ -78,7 +80,7 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 		// Not a class component, but eslint can't tell that :(
 		const {
 			camera: { z: zoomLevel },
-		} = this.app
+		} = this.editor
 
 		const bounds = this.bounds(shape)
 
@@ -86,19 +88,19 @@ export class TLGroupUtil extends TLShapeUtil<TLGroupShape> {
 	}
 
 	onChildrenChange: OnChildrenChangeHandler<TLGroupShape> = (group) => {
-		const children = this.app.getSortedChildIds(group.id)
+		const children = this.editor.getSortedChildIds(group.id)
 		if (children.length === 0) {
-			if (this.app.pageState.focusLayerId === group.id) {
-				this.app.popFocusLayer()
+			if (this.editor.pageState.focusLayerId === group.id) {
+				this.editor.popFocusLayer()
 			}
-			this.app.deleteShapes([group.id])
+			this.editor.deleteShapes([group.id])
 			return
 		} else if (children.length === 1) {
-			if (this.app.pageState.focusLayerId === group.id) {
-				this.app.popFocusLayer()
+			if (this.editor.pageState.focusLayerId === group.id) {
+				this.editor.popFocusLayer()
 			}
-			this.app.reparentShapesById(children, group.parentId)
-			this.app.deleteShapes([group.id])
+			this.editor.reparentShapesById(children, group.parentId)
+			this.editor.deleteShapes([group.id])
 			return
 		}
 	}

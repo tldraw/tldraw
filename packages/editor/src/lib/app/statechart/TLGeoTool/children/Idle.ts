@@ -9,17 +9,17 @@ export class Idle extends StateNode {
 	}
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 
 	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Enter') {
-			const shape = this.app.onlySelectedShape
+			const shape = this.editor.onlySelectedShape
 			if (shape && shape.type === 'geo') {
 				// todo: ensure that this only works with the most recently created shape, not just any geo shape that happens to be selected at the time
-				this.app.mark('editing shape')
-				this.app.setEditingId(shape.id)
-				this.app.setSelectedTool('select.editing_shape', {
+				this.editor.mark('editing shape')
+				this.editor.setEditingId(shape.id)
+				this.editor.setSelectedTool('select.editing_shape', {
 					...info,
 					target: 'shape',
 					shape,
@@ -29,6 +29,6 @@ export class Idle extends StateNode {
 	}
 
 	onCancel = () => {
-		this.app.setSelectedTool('select')
+		this.editor.setSelectedTool('select')
 	}
 }

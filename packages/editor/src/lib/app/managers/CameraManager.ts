@@ -1,10 +1,10 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { Editor } from '../Editor'
 
 const CAMERA_SETTLE_TIMEOUT = 12
 
 export class CameraManager {
-	constructor(public app: App) {}
+	constructor(public editor: Editor) {}
 
 	state = atom('camera state', 'idle' as 'idle' | 'moving')
 
@@ -14,8 +14,8 @@ export class CameraManager {
 		this.timeoutRemaining -= elapsed
 		if (this.timeoutRemaining <= 0) {
 			this.state.set('idle')
-			this.app.off('tick', this.decay)
-			this.app.updateCullingBounds()
+			this.editor.off('tick', this.decay)
+			this.editor.updateCullingBounds()
 		}
 	}
 
@@ -26,7 +26,7 @@ export class CameraManager {
 		// If the state is idle, then start the tick
 		if (this.state.__unsafe__getWithoutCapture() === 'idle') {
 			this.state.set('moving')
-			this.app.on('tick', this.decay)
+			this.editor.on('tick', this.decay)
 		}
 	}
 }

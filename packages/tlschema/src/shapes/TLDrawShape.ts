@@ -21,6 +21,11 @@ export type TLDrawShapeSegment = {
 	points: Vec2dModel[]
 }
 
+export const drawShapeSegmentValidator: T.Validator<TLDrawShapeSegment> = T.object({
+	type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
+	points: T.arrayOf(T.point),
+})
+
 /** @public */
 export type TLDrawShapeProps = {
 	color: TLColorType
@@ -46,12 +51,7 @@ export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValid
 		dash: dashValidator,
 		size: sizeValidator,
 		opacity: opacityValidator,
-		segments: T.arrayOf(
-			T.object({
-				type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
-				points: T.arrayOf(T.point),
-			})
-		),
+		segments: T.arrayOf(drawShapeSegmentValidator),
 		isComplete: T.boolean,
 		isClosed: T.boolean,
 		isPen: T.boolean,

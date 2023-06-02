@@ -13,8 +13,8 @@ export class PointingRotateHandle extends StateNode {
 	private info = {} as PointingRotateHandleInfo
 
 	private updateCursor() {
-		const { selectionRotation } = this.app
-		this.app.setCursor({
+		const { selectionRotation } = this.editor
+		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: selectionRotation,
 		})
@@ -26,7 +26,7 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onPointerMove = () => {
-		const { isDragging } = this.app.inputs
+		const { isDragging } = this.editor.inputs
 
 		if (isDragging) {
 			this.parent.transition('rotating', this.info)
@@ -51,7 +51,7 @@ export class PointingRotateHandle extends StateNode {
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -59,7 +59,7 @@ export class PointingRotateHandle extends StateNode {
 
 	private cancel() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}

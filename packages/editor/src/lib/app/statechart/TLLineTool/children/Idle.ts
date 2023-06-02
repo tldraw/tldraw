@@ -9,7 +9,7 @@ export class Idle extends StateNode {
 
 	onEnter = (info: { shapeId: TLShapeId }) => {
 		this.shapeId = info.shapeId
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = () => {
@@ -17,6 +17,6 @@ export class Idle extends StateNode {
 	}
 
 	onCancel = () => {
-		this.app.setSelectedTool('select')
+		this.editor.setSelectedTool('select')
 	}
 }

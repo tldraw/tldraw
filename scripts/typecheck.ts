@@ -1,6 +1,7 @@
 import { execFileSync } from 'child_process'
 import path, { join } from 'path'
 import { REPO_ROOT, readJsonIfExists } from './lib/file'
+import { nicelog } from './lib/nicelog'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 async function main() {
@@ -12,7 +13,7 @@ async function main() {
 		if (tsconfigExists) tsconfigFiles.push(tsconfigFile)
 	}
 
-	console.log('Typechecking files:', tsconfigFiles)
+	nicelog('Typechecking files:', tsconfigFiles)
 
 	const args = ['--build']
 	if (process.argv.includes('--force')) args.push('--force')

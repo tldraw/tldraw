@@ -1,5 +1,5 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { Editor } from '../Editor'
 
 type Offsets = {
 	top: number
@@ -14,8 +14,8 @@ const DEFAULT_OFFSETS = {
 	right: 10,
 }
 
-export function getActiveAreaScreenSpace(app: App) {
-	const containerEl = app.getContainer()
+export function getActiveAreaScreenSpace(editor: Editor) {
+	const containerEl = editor.getContainer()
 	const el = containerEl.querySelector('*[data-tldraw-area="active-drawing"]')
 	const out = {
 		...DEFAULT_OFFSETS,
@@ -31,14 +31,14 @@ export function getActiveAreaScreenSpace(app: App) {
 		out.right = cBbbox.width - bbox.right
 	}
 
-	out.width = app.viewportScreenBounds.width - out.left - out.right
-	out.height = app.viewportScreenBounds.height - out.top - out.bottom
+	out.width = editor.viewportScreenBounds.width - out.left - out.right
+	out.height = editor.viewportScreenBounds.height - out.top - out.bottom
 	return out
 }
 
-export function getActiveAreaPageSpace(app: App) {
-	const out = getActiveAreaScreenSpace(app)
-	const z = app.zoomLevel
+export function getActiveAreaPageSpace(editor: Editor) {
+	const out = getActiveAreaScreenSpace(editor)
+	const z = editor.zoomLevel
 	out.left /= z
 	out.right /= z
 	out.top /= z
@@ -49,15 +49,15 @@ export function getActiveAreaPageSpace(app: App) {
 }
 
 export class ActiveAreaManager {
-	constructor(public app: App) {
+	constructor(public editor: Editor) {
 		window.addEventListener('resize', this.updateOffsets)
-		this.app.disposables.add(this.dispose)
+		this.editor.disposables.add(this.dispose)
 	}
 
 	offsets = atom<Offsets>('activeAreaOffsets', DEFAULT_OFFSETS)
 
 	updateOffsets = () => {
-		const offsets = getActiveAreaPageSpace(this.app)
+		const offsets = getActiveAreaPageSpace(this.editor)
 		this.offsets.set(offsets)
 	}
 

@@ -1,14 +1,14 @@
 import { TLBookmarkShape } from '@tldraw/tlschema'
 import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 describe(TLBookmarkUtil, () => {
@@ -18,15 +18,15 @@ describe(TLBookmarkUtil, () => {
 describe('The URL formatter', () => {
 	it('Formats URLs as human-readable', () => {
 		const ids = {
-			a: app.createShapeId(),
-			b: app.createShapeId(),
-			c: app.createShapeId(),
-			d: app.createShapeId(),
-			e: app.createShapeId(),
-			f: app.createShapeId(),
+			a: editor.createShapeId(),
+			b: editor.createShapeId(),
+			c: editor.createShapeId(),
+			d: editor.createShapeId(),
+			e: editor.createShapeId(),
+			f: editor.createShapeId(),
 		}
 
-		app.createShapes([
+		editor.createShapes([
 			{
 				id: ids.a,
 				type: 'bookmark',
@@ -71,14 +71,14 @@ describe('The URL formatter', () => {
 			},
 		])
 
-		const a = app.getShapeById<TLBookmarkShape>(ids.a)!
-		const b = app.getShapeById<TLBookmarkShape>(ids.b)!
-		const c = app.getShapeById<TLBookmarkShape>(ids.c)!
-		const d = app.getShapeById<TLBookmarkShape>(ids.d)!
-		const e = app.getShapeById<TLBookmarkShape>(ids.e)!
-		const f = app.getShapeById<TLBookmarkShape>(ids.f)!
+		const a = editor.getShapeById<TLBookmarkShape>(ids.a)!
+		const b = editor.getShapeById<TLBookmarkShape>(ids.b)!
+		const c = editor.getShapeById<TLBookmarkShape>(ids.c)!
+		const d = editor.getShapeById<TLBookmarkShape>(ids.d)!
+		const e = editor.getShapeById<TLBookmarkShape>(ids.e)!
+		const f = editor.getShapeById<TLBookmarkShape>(ids.f)!
 
-		const util = app.getShapeUtil(TLBookmarkUtil)
+		const util = editor.getShapeUtil(TLBookmarkUtil)
 		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')
@@ -89,12 +89,12 @@ describe('The URL formatter', () => {
 
 	it("Doesn't resize bookmarks", () => {
 		const ids = {
-			bookmark: app.createShapeId(),
-			boxA: app.createShapeId(),
-			boxB: app.createShapeId(),
+			bookmark: editor.createShapeId(),
+			boxA: editor.createShapeId(),
+			boxB: editor.createShapeId(),
 		}
 
-		app.createShapes([
+		editor.createShapes([
 			{
 				id: ids.bookmark,
 				type: 'bookmark',
@@ -124,15 +124,15 @@ describe('The URL formatter', () => {
 			},
 		])
 
-		const oldBookmark = app.getShapeById(ids.bookmark) as TLBookmarkShape
+		const oldBookmark = editor.getShapeById(ids.bookmark) as TLBookmarkShape
 		expect(oldBookmark.props.w).toBe(300)
 		expect(oldBookmark.props.h).toBe(320)
 
-		app.select(ids.bookmark, ids.boxA, ids.boxB)
-		app.pointerDown(20, 20, { target: 'selection', handle: 'bottom_right' })
-		app.pointerMove(30, 30)
+		editor.select(ids.bookmark, ids.boxA, ids.boxB)
+		editor.pointerDown(20, 20, { target: 'selection', handle: 'bottom_right' })
+		editor.pointerMove(30, 30)
 
-		const newBookmark = app.getShapeById(ids.bookmark) as TLBookmarkShape
+		const newBookmark = editor.getShapeById(ids.bookmark) as TLBookmarkShape
 		expect(newBookmark.props.w).toBe(300)
 		expect(newBookmark.props.h).toBe(320)
 	})

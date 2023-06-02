@@ -15,15 +15,15 @@ export class TLHandTool extends StateNode {
 
 	onDoubleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
-			const { currentScreenPoint } = this.app.inputs
-			this.app.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
+			const { currentScreenPoint } = this.editor.inputs
+			this.editor.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
 		}
 	}
 
 	onTripleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
-			const { currentScreenPoint } = this.app.inputs
-			this.app.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
+			const { currentScreenPoint } = this.editor.inputs
+			this.editor.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
 		}
 	}
 
@@ -32,12 +32,12 @@ export class TLHandTool extends StateNode {
 			const {
 				zoomLevel,
 				inputs: { currentScreenPoint },
-			} = this.app
+			} = this.editor
 
 			if (zoomLevel === 1) {
-				this.app.zoomToFit({ duration: 400, easing: EASINGS.easeOutQuint })
+				this.editor.zoomToFit({ duration: 400, easing: EASINGS.easeOutQuint })
 			} else {
-				this.app.resetZoom(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
+				this.editor.resetZoom(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
 			}
 		}
 	}

@@ -1,15 +1,15 @@
 import { Box2d } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import { resizeBox } from '../app/shapeutils/shared/resizeBox'
-import { TestApp } from './TestApp'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 let shape: TLGeoShape
 
 beforeEach(() => {
-	app = new TestApp()
-	const id = app.createShapeId() as TLGeoShape['id']
-	app.createShapes([
+	editor = new TestEditor()
+	const id = editor.createShapeId() as TLGeoShape['id']
+	editor.createShapes([
 		{
 			id,
 			type: 'geo',
@@ -22,7 +22,7 @@ beforeEach(() => {
 			},
 		},
 	])
-	shape = app.getShapeById<TLGeoShape>(id)!
+	shape = editor.getShapeById<TLGeoShape>(id)!
 })
 
 describe('Resize box', () => {

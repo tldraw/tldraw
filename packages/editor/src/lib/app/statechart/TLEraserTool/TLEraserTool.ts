@@ -10,6 +10,6 @@ export class TLEraserTool extends StateNode {
 	static children = () => [Idle, Pointing, Erasing]
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 }

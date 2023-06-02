@@ -1,7 +1,7 @@
 import * as Dialog from './lib/components/primitives/Dialog'
 import * as DropdownMenu from './lib/components/primitives/DropdownMenu'
 
-export { TldrawUi, TldrawUiContent } from './lib/TldrawUi'
+export { TldrawUi, TldrawUiContent, type TldrawUiProps } from './lib/TldrawUi'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
@@ -52,7 +52,6 @@ export {
 	type ActionsMenuSchemaContextType,
 	type ActionsMenuSchemaProviderProps,
 } from './lib/hooks/useActionsMenuSchema'
-export { useAppEvents } from './lib/hooks/useAppEvents'
 export { AssetUrlsProvider, useAssetUrls } from './lib/hooks/useAssetUrls'
 export { BreakPointProvider, useBreakpoint } from './lib/hooks/useBreakpoint'
 export { useCanRedo } from './lib/hooks/useCanRedo'
@@ -75,6 +74,7 @@ export {
 	type DialogsProviderProps,
 	type TLDialog,
 } from './lib/hooks/useDialogsProvider'
+export { useEditorEvents } from './lib/hooks/useEditorEvents'
 export {
 	useEvents,
 	type EventsProviderProps,

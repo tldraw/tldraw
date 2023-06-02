@@ -6,18 +6,18 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	onEnter = () => {
-		const { inputs } = this.app
+		const { inputs } = this.editor
 
 		const erasing = new Set<TLShapeId>()
 
 		const initialSize = erasing.size
 
-		for (const shape of [...this.app.sortedShapesArray].reverse()) {
-			if (this.app.isPointInShape(inputs.currentPagePoint, shape)) {
+		for (const shape of [...this.editor.sortedShapesArray].reverse()) {
+			if (this.editor.isPointInShape(inputs.currentPagePoint, shape)) {
 				// Skip groups
 				if (shape.type === 'group') continue
 
-				const hitShape = this.app.getOutermostSelectableShape(shape)
+				const hitShape = this.editor.getOutermostSelectableShape(shape)
 
 				// If we've hit a frame after hitting any other shape, stop here
 				if (hitShape.type === 'frame' && erasing.size > initialSize) break
@@ -26,11 +26,11 @@ export class Pointing extends StateNode {
 			}
 		}
 
-		this.app.setErasingIds([...erasing])
+		this.editor.setErasingIds([...erasing])
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			this.parent.transition('erasing', info)
 		}
 	}
@@ -52,19 +52,19 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { erasingIds } = this.app
+		const { erasingIds } = this.editor
 
 		if (erasingIds.length) {
-			this.app.mark('erase end')
-			this.app.deleteShapes(erasingIds)
+			this.editor.mark('erase end')
+			this.editor.deleteShapes(erasingIds)
 		}
 
-		this.app.setErasingIds([])
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.app.setErasingIds([])
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 }

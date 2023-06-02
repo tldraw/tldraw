@@ -5,7 +5,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'grab' })
+		this.editor.setCursor({ type: 'grab' })
 	}
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -13,6 +13,6 @@ export class Idle extends StateNode {
 	}
 
 	onCancel = () => {
-		this.app.setSelectedTool('select')
+		this.editor.setSelectedTool('select')
 	}
 }

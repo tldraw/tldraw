@@ -1,17 +1,17 @@
-import { createDefaultShapes, defaultShapesIds, TestApp } from './TestApp'
+import { createDefaultShapes, defaultShapesIds, TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
-	app.createShapes(createDefaultShapes())
-	app.reparentShapesById([defaultShapesIds.ellipse1], app.currentPageId)
+	editor = new TestEditor()
+	editor.createShapes(createDefaultShapes())
+	editor.reparentShapesById([defaultShapesIds.ellipse1], editor.currentPageId)
 })
 
-describe('App.props', () => {
+describe('Editor.props', () => {
 	it('should return props', () => {
-		app.selectNone()
-		expect(app.props).toEqual({
+		editor.selectNone()
+		expect(editor.props).toEqual({
 			color: 'black',
 			dash: 'draw',
 			fill: 'none',
@@ -21,8 +21,8 @@ describe('App.props', () => {
 	})
 
 	it('should return props for a single shape', () => {
-		app.select(defaultShapesIds.box1)
-		expect(app.props).toEqual({
+		editor.select(defaultShapesIds.box1)
+		expect(editor.props).toEqual({
 			align: 'middle',
 			labelColor: 'black',
 			color: 'black',
@@ -42,8 +42,8 @@ describe('App.props', () => {
 	})
 
 	it('should return props for two matching shapes', () => {
-		app.select(defaultShapesIds.box1, defaultShapesIds.box2)
-		expect(app.props).toEqual({
+		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
+		expect(editor.props).toEqual({
 			align: 'middle',
 			color: 'black',
 			labelColor: 'black',
@@ -63,7 +63,7 @@ describe('App.props', () => {
 	})
 
 	it('should return mixed props for shapes that have mixed values', () => {
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				id: defaultShapesIds.box1,
 				type: 'geo',
@@ -71,9 +71,9 @@ describe('App.props', () => {
 			},
 		])
 
-		app.select(defaultShapesIds.box1, defaultShapesIds.box2)
+		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
 
-		expect(app.props).toEqual({
+		expect(editor.props).toEqual({
 			align: 'middle',
 			labelColor: 'black',
 			color: null, // mixed!
@@ -93,7 +93,7 @@ describe('App.props', () => {
 	})
 
 	it('should return null for all mixed props', () => {
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				id: defaultShapesIds.box1,
 				type: 'geo',
@@ -118,8 +118,8 @@ describe('App.props', () => {
 			},
 		])
 
-		app.selectAll()
-		expect(app.props).toEqual({
+		editor.selectAll()
+		expect(editor.props).toEqual({
 			align: null,
 			labelColor: 'black',
 			color: null,

@@ -4,6 +4,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
 import { BUBLIC_ROOT } from './file'
+import { nicelog } from './nicelog'
 
 export type PackageDetails = {
 	name: string
@@ -110,7 +111,7 @@ export async function publish() {
 
 	for (const packageDetails of publishOrder) {
 		const prereleaseTag = parse(packageDetails.version)?.prerelease[0] ?? 'latest'
-		console.log(
+		nicelog(
 			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${prereleaseTag}`
 		)
 
@@ -127,7 +128,7 @@ export async function publish() {
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
 
 				const url = `https://registry.npmjs.org/@tldraw/${unscopedName}/-/${unscopedName}-${newVersion}.tgz`
-				console.log('looking for package at url: ', url)
+				nicelog('looking for package at url: ', url)
 				const res = await fetch(url, {
 					method: 'HEAD',
 				})
@@ -136,7 +137,7 @@ export async function publish() {
 				}
 				break loop
 			} catch (e) {
-				console.log('Waiting for package to be published... attemptsRemaining', waitAttempts)
+				nicelog('Waiting for package to be published... attemptsRemaining', waitAttempts)
 				waitAttempts--
 				await new Promise((resolve) => setTimeout(resolve, 3000))
 			}

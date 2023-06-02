@@ -10,7 +10,7 @@ import { ID, IdOf, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordType } from './RecordType'
 import { StoreQueries } from './StoreQueries'
-import { StoreSchema } from './StoreSchema'
+import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
 
 type RecFromId<K extends ID<UnknownRecord>> = K extends ID<infer R> ? R : never
@@ -459,6 +459,45 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			this.clear()
 			this.put(Object.values(snapshot))
 		})
+	}
+
+	/**
+	 * Get a serialized snapshot of the store and its schema.
+	 *
+	 * ```ts
+	 * const snapshot = store.getSnapshot()
+	 * store.loadSnapshot(snapshot)
+	 * ```
+	 *
+	 * @public
+	 */
+	getSnapshot() {
+		return {
+			store: this.serializeDocumentState(),
+			schema: this.schema.serialize(),
+		}
+	}
+
+	/**
+	 * Load a serialized snapshot.
+	 *
+	 * ```ts
+	 * const snapshot = store.getSnapshot()
+	 * store.loadSnapshot(snapshot)
+	 * ```
+	 *
+	 * @param snapshot - The snapshot to load.
+	 *
+	 * @public
+	 */
+	loadSnapshot(snapshot: { store: StoreSnapshot<R>; schema: SerializedSchema }): void {
+		const migrationResult = this.schema.migrateStoreSnapshot(snapshot.store, snapshot.schema)
+
+		if (migrationResult.type === 'error') {
+			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
+		}
+
+		this.deserialize(migrationResult.value)
 	}
 
 	/**

@@ -1,12 +1,12 @@
 import {
-	App,
 	DebugFlag,
 	debugFlags,
+	Editor,
 	featureFlags,
-	hardResetApp,
+	hardResetEditor,
 	TLShapePartial,
 	uniqueId,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { track, useValue } from 'signia-react'
@@ -19,22 +19,22 @@ import * as DropdownMenu from './primitives/DropdownMenu'
 
 let t = 0
 
-function createNShapes(app: App, n: number) {
+function createNShapes(editor: Editor, n: number) {
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 
 	for (let i = 0; i < n; i++) {
 		t++
 		shapesToCreate[i] = {
-			id: app.createShapeId('box' + t),
+			id: editor.createShapeId('box' + t),
 			type: 'geo',
 			x: (i % cols) * 132,
 			y: Math.floor(i / cols) * 132,
 		}
 	}
 
-	app.batch(() => {
-		app.createShapes(shapesToCreate).setSelectedIds(shapesToCreate.map((s) => s.id))
+	editor.batch(() => {
+		editor.createShapes(shapesToCreate).setSelectedIds(shapesToCreate.map((s) => s.id))
 	})
 }
 
@@ -62,13 +62,13 @@ export const DebugPanel = React.memo(function DebugPanel({
 })
 
 const CurrentState = track(function CurrentState() {
-	const app = useApp()
-	return <div className="tlui-debug-panel__current-state">{app.root.path.value}</div>
+	const editor = useEditor()
+	return <div className="tlui-debug-panel__current-state">{editor.root.path.value}</div>
 })
 
 const ShapeCount = function ShapeCount() {
-	const app = useApp()
-	const count = useValue('rendering shapes count', () => app.renderingShapes.length, [app])
+	const editor = useEditor()
+	const count = useValue('rendering shapes count', () => editor.renderingShapes.length, [editor])
 
 	return <div>{count} Shapes</div>
 }
@@ -78,7 +78,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 }: {
 	renderDebugMenuItems: (() => React.ReactNode) | null
 }) {
-	const app = useApp()
+	const editor = useEditor()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 
@@ -125,7 +125,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 				>
 					<span>Show dialog</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item onClick={() => createNShapes(app, 100)}>
+				<DropdownMenu.Item onClick={() => createNShapes(editor, 100)}>
 					<span>Create 100 shapes</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
@@ -140,9 +140,9 @@ const DebugMenuContent = track(function DebugMenuContent({
 							return count
 						}
 
-						const { selectedShapes } = app
+						const { selectedShapes } = editor
 
-						const shapes = selectedShapes.length === 0 ? app.renderingShapes : selectedShapes
+						const shapes = selectedShapes.length === 0 ? editor.renderingShapes : selectedShapes
 
 						const elms = shapes.map(
 							(shape) => (document.getElementById(shape.id) as HTMLElement)!.parentElement!
@@ -172,15 +172,20 @@ const DebugMenuContent = track(function DebugMenuContent({
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={() => {
-						hardResetApp()
+						hardResetEditor()
 					}}
 				>
 					<span>Hard reset</span>
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				<Toggle label="Read-only" value={app.isReadOnly} onChange={(r) => app.setReadOnly(r)} />
+				<Toggle
+					label="Read-only"
+					value={editor.isReadOnly}
+					onChange={(r) => editor.setReadOnly(r)}
+				/>
 				<DebugFlagToggle flag={debugFlags.debugSvg} />
+				<DebugFlagToggle flag={debugFlags.forceSrgb} />
 				<DebugFlagToggle
 					flag={debugFlags.debugCursors}
 					onChange={(enabled) => {
@@ -188,7 +193,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							const MAX_COLUMNS = 5
 							const partials = CURSOR_NAMES.map((name, i) => {
 								return {
-									id: app.createShapeId(),
+									id: editor.createShapeId(),
 									type: 'geo',
 									x: (i % MAX_COLUMNS) * 175,
 									y: Math.floor(i / MAX_COLUMNS) * 175,
@@ -201,7 +206,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 								}
 							})
 
-							app.createShapes(partials)
+							editor.createShapes(partials)
 						}
 					}}
 				/>

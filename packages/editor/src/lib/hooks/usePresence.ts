@@ -1,7 +1,7 @@
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 // TODO: maybe move this to a computed property on the App class?
 /**
@@ -9,13 +9,13 @@ import { useApp } from './useApp'
  * @internal
  */
 export function usePresence(userId: string): TLInstancePresence | null {
-	const app = useApp()
+	const editor = useEditor()
 
 	const $presences = useMemo(() => {
-		return app.store.query.records('instance_presence', () => ({
+		return editor.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
-	}, [app, userId])
+	}, [editor, userId])
 
 	const latestPresence = useValue(
 		`latestPresence:${userId}`,

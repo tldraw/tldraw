@@ -21,12 +21,12 @@ export {
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {
-	App,
+	Editor,
 	isShapeWithHandles,
 	type AnimationOptions,
 	type AppOptions,
 	type TLChange,
-} from './lib/app/App'
+} from './lib/app/Editor'
 export { TLArrowUtil } from './lib/app/shapeutils/TLArrowUtil/TLArrowUtil'
 export { TLBookmarkUtil } from './lib/app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 export { TLBoxUtil } from './lib/app/shapeutils/TLBoxUtil'
@@ -35,6 +35,7 @@ export { TLEmbedUtil } from './lib/app/shapeutils/TLEmbedUtil/TLEmbedUtil'
 export { TLFrameUtil } from './lib/app/shapeutils/TLFrameUtil/TLFrameUtil'
 export { TLGeoUtil } from './lib/app/shapeutils/TLGeoUtil/TLGeoUtil'
 export { TLGroupUtil } from './lib/app/shapeutils/TLGroupUtil/TLGroupUtil'
+export { TLHighlightUtil } from './lib/app/shapeutils/TLHighlightUtil/TLHighlightUtil'
 export { TLImageUtil } from './lib/app/shapeutils/TLImageUtil/TLImageUtil'
 export { TLLineUtil, getSplineForLineShape } from './lib/app/shapeutils/TLLineUtil/TLLineUtil'
 export { TLNoteUtil } from './lib/app/shapeutils/TLNoteUtil/TLNoteUtil'
@@ -126,13 +127,14 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
-	type ErrorSyncedStore,
-	type InitializingSyncedStore,
-	type ReadySyncedStore,
-	type SyncedStore,
-} from './lib/config/SyncedStore'
-export { USER_COLORS } from './lib/config/TLUserPreferences'
-export { TldrawEditorConfig } from './lib/config/TldrawEditorConfig'
+	USER_COLORS,
+	getUserPreferences,
+	setUserPreferences,
+	type TLUserPreferences,
+} from './lib/config/TLUserPreferences'
+export { createTLStore } from './lib/config/createTLStore'
+export { defaultShapes } from './lib/config/defaultShapes'
+export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
@@ -172,13 +174,15 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { normalizeWheel } from './lib/hooks/shared'
-export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
+export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
+export { useTLStore } from './lib/hooks/useTLStore'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -200,7 +204,6 @@ export {
 	isSvgText,
 	isValidHttpURL,
 } from './lib/utils/assets'
-export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export {
 	checkFlag,
 	fileToBase64,
@@ -238,7 +241,7 @@ export {
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
-export { hardResetApp } from './lib/utils/hard-reset'
+export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
@@ -255,4 +258,7 @@ export {
 	defaultEmptyAs,
 } from './lib/utils/string'
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
+export { type StoreWithStatus } from './lib/utils/sync/StoreWithStatus'
+export { hardReset } from './lib/utils/sync/hardReset'
+export { TAB_ID } from './lib/utils/sync/persistence-constants'
 export { openWindow } from './lib/utils/window-open'

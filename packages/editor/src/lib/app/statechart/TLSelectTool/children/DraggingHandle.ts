@@ -50,14 +50,14 @@ export class DraggingHandle extends StateNode {
 		const { shape, isCreating, handle } = info
 		this.info = info
 		this.shapeId = shape.id
-		this.markId = isCreating ? 'creating' : this.app.mark('dragging handle')
+		this.markId = isCreating ? 'creating' : this.editor.mark('dragging handle')
 		this.initialHandle = deepCopy(handle)
-		this.initialPageTransform = this.app.getPageTransform(shape)!
-		this.initialPageRotation = this.app.getPageRotation(shape)!
+		this.initialPageTransform = this.editor.getPageTransform(shape)!
+		this.initialPageRotation = this.editor.getPageRotation(shape)!
 
-		this.app.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
+		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
-		const handles = this.app.getShapeUtil(shape).handles(shape).sort(sortByIndex)
+		const handles = this.editor.getShapeUtil(shape).handles(shape).sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
 		this.initialAdjacentHandle = null
@@ -87,7 +87,7 @@ export class DraggingHandle extends StateNode {
 		this.isPrecise = false
 
 		if (initialTerminal?.type === 'binding') {
-			this.app.setHintingIds([initialTerminal.boundShapeId])
+			this.editor.setHintingIds([initialTerminal.boundShapeId])
 
 			this.isPrecise = !Vec2d.Equals(initialTerminal.normalizedAnchor, { x: 0.5, y: 0.5 })
 			if (this.isPrecise) {
@@ -149,19 +149,19 @@ export class DraggingHandle extends StateNode {
 	}
 
 	onExit = () => {
-		this.app.setHintingIds([])
-		this.app.snaps.clear()
-		this.app.setCursor({ type: 'default' })
+		this.editor.setHintingIds([])
+		this.editor.snaps.clear()
+		this.editor.setCursor({ type: 'default' })
 	}
 
 	private complete() {
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 
 		const { onInteractionEnd } = this.info
-		if (this.app.instanceState.isToolLocked && onInteractionEnd) {
+		if (this.editor.instanceState.isToolLocked && onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// but only if tool lock is turned on!
-			this.app.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
+			this.editor.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
 			return
 		}
 
@@ -169,14 +169,14 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private cancel() {
-		this.app.bailToMark(this.markId)
-		this.app.snaps.clear()
+		this.editor.bailToMark(this.markId)
+		this.editor.snaps.clear()
 
 		const { onInteractionEnd } = this.info
 		if (onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// whether tool lock is turned on or not!
-			this.app.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
+			this.editor.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
 			return
 		}
 
@@ -184,8 +184,8 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private update() {
-		const { currentPagePoint, originPagePoint, shiftKey } = this.app.inputs
-		const shape = this.app.getShapeById(this.shapeId)
+		const { currentPagePoint, originPagePoint, shiftKey } = this.editor.inputs
+		const shape = this.editor.getShapeById(this.shapeId)
 
 		if (!shape) return
 
@@ -205,14 +205,14 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 
-		const { ctrlKey } = this.app.inputs
-		const shouldSnap = this.app.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+		const { ctrlKey } = this.editor.inputs
+		const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && shape.type === 'line') {
-			const pagePoint = Matrix2d.applyToPoint(this.app.getPageTransformById(shape.id)!, point)
-			const snapData = this.app.snaps.snapLineHandleTranslate({
+			const pagePoint = Matrix2d.applyToPoint(this.editor.getPageTransformById(shape.id)!, point)
+			const snapData = this.editor.snaps.snapLineHandleTranslate({
 				lineId: shape.id,
 				handleId: this.initialHandle.id,
 				handlePoint: pagePoint,
@@ -220,12 +220,12 @@ export class DraggingHandle extends StateNode {
 
 			const { nudge } = snapData
 			if (nudge.x || nudge.y) {
-				const shapeSpaceNudge = this.app.getDeltaInShapeSpace(shape, nudge)
+				const shapeSpaceNudge = this.editor.getDeltaInShapeSpace(shape, nudge)
 				point = Vec2d.Add(point, shapeSpaceNudge)
 			}
 		}
 
-		const util = this.app.getShapeUtil(shape)
+		const util = this.editor.getShapeUtil(shape)
 
 		const changes = util.onHandleChange?.(shape, {
 			handle: {
@@ -233,7 +233,7 @@ export class DraggingHandle extends StateNode {
 				x: point.x,
 				y: point.y,
 			},
-			isPrecise: this.isPrecise || this.app.inputs.altKey,
+			isPrecise: this.isPrecise || this.editor.inputs.altKey,
 		})
 
 		const next: TLShapePartial<any> = { ...shape, ...changes }
@@ -242,16 +242,17 @@ export class DraggingHandle extends StateNode {
 			const bindingAfter = (next.props as any)[this.initialHandle.id] as TLArrowTerminal | undefined
 
 			if (bindingAfter?.type === 'binding') {
-				if (this.app.hintingIds[0] !== bindingAfter.boundShapeId) {
-					this.app.setHintingIds([bindingAfter.boundShapeId])
+				if (this.editor.hintingIds[0] !== bindingAfter.boundShapeId) {
+					this.editor.setHintingIds([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
-					this.isPrecise = this.app.inputs.pointerVelocity.len() < 0.5 || this.app.inputs.altKey
+					this.isPrecise =
+						this.editor.inputs.pointerVelocity.len() < 0.5 || this.editor.inputs.altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
 					this.resetExactTimeout()
 				}
 			} else {
-				if (this.app.hintingIds.length > 0) {
-					this.app.setHintingIds([])
+				if (this.editor.hintingIds.length > 0) {
+					this.editor.setHintingIds([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null
@@ -261,7 +262,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			this.app.updateShapes([next], true)
+			this.editor.updateShapes([next], true)
 		}
 	}
 }

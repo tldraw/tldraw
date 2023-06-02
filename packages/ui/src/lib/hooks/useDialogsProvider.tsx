@@ -1,4 +1,4 @@
-import { App, uniqueId, useApp } from '@tldraw/editor'
+import { Editor, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 import { useEvents } from './useEventsProvider'
 
@@ -28,13 +28,13 @@ export const DialogsContext = createContext({} as DialogsContextType)
 
 /** @public */
 export type DialogsProviderProps = {
-	overrides?: (app: App) => DialogsContextType
+	overrides?: (editor: Editor) => DialogsContextType
 	children: any
 }
 
 /** @public */
 export function DialogsProvider({ children }: DialogsProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const trackEvent = useEvents()
 
 	const [dialogs, setDialogs] = useState<TLDialog[]>([])
@@ -47,11 +47,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			})
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			app.addOpenMenu(id)
+			editor.addOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const updateDialog = useCallback(
@@ -69,11 +69,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			app.addOpenMenu(id)
+			editor.addOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const removeDialog = useCallback(
@@ -89,11 +89,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('close-menu', { source: 'dialog', id })
-			app.deleteOpenMenu(id)
+			editor.deleteOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const clearDialogs = useCallback(() => {
@@ -101,11 +101,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			d.forEach((m) => {
 				m.onClose?.()
 				trackEvent('close-menu', { source: 'dialog', id: m.id })
-				app.deleteOpenMenu(m.id)
+				editor.deleteOpenMenu(m.id)
 			})
 			return []
 		})
-	}, [app, trackEvent])
+	}, [editor, trackEvent])
 
 	return (
 		<DialogsContext.Provider

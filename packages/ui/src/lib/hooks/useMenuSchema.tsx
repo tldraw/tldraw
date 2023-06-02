@@ -1,4 +1,4 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { useValue } from 'signia-react'
@@ -28,7 +28,7 @@ export const MenuSchemaContext = React.createContext({} as MenuSchemaContextType
 /** @public */
 export type MenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		editor: Editor,
 		schema: MenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
@@ -43,25 +43,28 @@ export type MenuSchemaProviderProps = {
 
 /** @public */
 export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const actions = useActions()
 
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
-	const isGridMode = useValue('isGridMode', () => app.userDocumentSettings.isGridMode, [app])
-	const isSnapMode = useValue('isSnapMode', () => app.userDocumentSettings.isSnapMode, [app])
-	const isToolLock = useValue('isToolLock', () => app.instanceState.isToolLocked, [app])
-	const isFocusMode = useValue('isFocusMode', () => app.instanceState.isFocusMode, [app])
-	const isDebugMode = useValue('isDebugMode', () => app.instanceState.isDebugMode, [app])
-	const exportBackground = useValue('exportBackground', () => app.instanceState.exportBackground, [
-		app,
-	])
+	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
+	const animationSpeed = useValue('animationSpeed', () => editor.animationSpeed, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.userDocumentSettings.isGridMode, [editor])
+	const isSnapMode = useValue('isSnapMode', () => editor.userDocumentSettings.isSnapMode, [editor])
+	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.isDebugMode, [editor])
+	const exportBackground = useValue(
+		'exportBackground',
+		() => editor.instanceState.exportBackground,
+		[editor]
+	)
 
-	const emptyPage = useValue('emptyPage', () => app.shapeIds.size === 0, [app])
+	const emptyPage = useValue('emptyPage', () => editor.shapeIds.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => app.selectedIds.length, [app])
+	const selectedCount = useValue('selectedCount', () => editor.selectedIds.length, [editor])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -74,7 +77,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const allowUngroup = useAllowUngroup()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
-	const isZoomedTo100 = useValue('isZoomedTo100', () => app.zoomLevel === 1, [app])
+	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
 
 	const menuSchema = useMemo<MenuSchema>(() => {
 		const menuSchema = compact([
@@ -171,6 +174,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 						menuItem(actions['toggle-grid'], { checked: isGridMode }),
 						menuItem(actions['toggle-dark-mode'], { checked: isDarkMode }),
 						menuItem(actions['toggle-focus-mode'], { checked: isFocusMode }),
+						menuItem(actions['toggle-reduce-motion'], { checked: animationSpeed === 0 }),
 						menuItem(actions['toggle-debug-mode'], { checked: isDebugMode })
 					)
 				),
@@ -179,7 +183,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		])
 
 		if (overrides) {
-			return overrides(app, menuSchema, {
+			return overrides(editor, menuSchema, {
 				actions,
 				noneSelected,
 				oneSelected,
@@ -190,7 +194,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 
 		return menuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		actions,
 		oneSelected,
@@ -206,6 +210,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		noneSelected,
 		canUndo,
 		canRedo,
+		animationSpeed,
 		isDarkMode,
 		isGridMode,
 		isSnapMode,

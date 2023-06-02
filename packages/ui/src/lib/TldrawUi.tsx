@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { useValue } from 'signia-react'
@@ -19,33 +19,41 @@ import { ToastViewport, Toasts } from './components/Toasts'
 import { Toolbar } from './components/Toolbar/Toolbar'
 import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
-import { useAppEvents } from './hooks/useAppEvents'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
+import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
+
+/** @public */
+export type TldrawUiProps = {
+	children?: ReactNode
+	/** Whether to hide the interface and only display the canvas. */
+	hideUi?: boolean
+	/** A component to use for the share zone (will be deprecated) */
+	shareZone?: ReactNode
+	topZone?: ReactNode
+	/** Additional items to add to the debug menu  (will be deprecated)*/
+	renderDebugMenuItems?: () => React.ReactNode
+} & TldrawUiContextProviderProps
 
 /**
  * @public
  */
 export const TldrawUi = React.memo(function TldrawUi({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 	children,
 	hideUi,
 	...rest
-}: {
-	shareZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
-	children?: ReactNode
-	/** Whether to hide the interface and only display the canvas. */
-	hideUi?: boolean
-} & TldrawUiContextProviderProps) {
+}: TldrawUiProps) {
 	return (
 		<TldrawUiContextProvider {...rest}>
 			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
+				topZone={topZone}
 				renderDebugMenuItems={renderDebugMenuItems}
 			>
 				{children}
@@ -57,6 +65,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 type TldrawUiContentProps = {
 	hideUi?: boolean
 	shareZone?: ReactNode
+	topZone?: ReactNode
 	renderDebugMenuItems?: () => React.ReactNode
 }
 
@@ -65,12 +74,6 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	hideUi,
 	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
-	// const isLoaded = usePreloadIcons()
-
-	// if (!isLoaded) {
-	// 	return <LoadingScreen>Loading assets...</LoadingScreen>
-	// }
-
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.
@@ -86,18 +89,19 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 /** @public */
 export const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])
-	const isFocusMode = useValue('focus', () => app.instanceState.isFocusMode, [app])
-	const isDebugMode = useValue('debug', () => app.instanceState.isDebugMode, [app])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.isReadOnly, [editor])
+	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
+	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
-	useAppEvents()
+	useEditorEvents()
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
@@ -129,12 +133,9 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 									<StopFollowing />
 								</div>
 							</div>
+							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
-								{shareZone && (
-									<div className="tlui-share-zone" draggable={false}>
-										{shareZone}
-									</div>
-								)}
+								{shareZone}
 								{breakpoint >= 5 && !isReadonlyMode && (
 									<div className="tlui-style-panel__wrapper">
 										<StylePanel />

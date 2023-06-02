@@ -5,12 +5,12 @@ export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	onEnter = () => {
-		this.app.stopCameraAnimation()
-		this.app.setCursor({ type: 'grabbing' })
+		this.editor.stopCameraAnimation()
+		this.editor.setCursor({ type: 'grabbing' })
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging', info)
 		}
 	}

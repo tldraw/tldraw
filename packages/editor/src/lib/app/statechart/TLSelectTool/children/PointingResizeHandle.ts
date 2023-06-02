@@ -29,9 +29,9 @@ export class PointingResizeHandle extends StateNode {
 	private info = {} as PointingResizeHandleInfo
 
 	private updateCursor() {
-		const selected = this.app.selectedShapes
+		const selected = this.editor.selectedShapes
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.app.setCursor({
+		this.editor.setCursor({
 			type: cursorType,
 			rotation: selected.length === 1 ? selected[0].rotation : 0,
 		})
@@ -43,7 +43,7 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const isDragging = this.app.inputs.isDragging
+		const isDragging = this.editor.inputs.isDragging
 
 		if (isDragging) {
 			this.parent.transition('resizing', this.info)
@@ -72,7 +72,7 @@ export class PointingResizeHandle extends StateNode {
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -80,7 +80,7 @@ export class PointingResizeHandle extends StateNode {
 
 	private cancel() {
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}

@@ -201,12 +201,12 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 	@computed
 	private get infoCache() {
-		return this.app.store.createComputedCache<ArrowInfo, TLArrowShape>(
+		return this.editor.store.createComputedCache<ArrowInfo, TLArrowShape>(
 			'arrow infoCache',
 			(shape) => {
 				return getIsArrowStraight(shape)
-					? getStraightArrowInfo(this.app, shape)
-					: getCurvedArrowInfo(this.app, shape)
+					? getStraightArrowInfo(this.editor, shape)
+					: getCurvedArrowInfo(this.editor, shape)
 			}
 		)
 	}
@@ -251,10 +251,10 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		switch (handle.id) {
 			case 'start':
 			case 'end': {
-				const pageTransform = this.app.getPageTransformById(next.id)!
+				const pageTransform = this.editor.getPageTransformById(next.id)!
 				const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, handle)
 
-				if (this.app.inputs.ctrlKey) {
+				if (this.editor.inputs.ctrlKey) {
 					next.props[handle.id] = {
 						type: 'point',
 						x: handle.x,
@@ -262,25 +262,28 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					}
 				} else {
 					const target = last(
-						this.app.sortedShapesArray.filter((hitShape) => {
+						this.editor.sortedShapesArray.filter((hitShape) => {
 							if (hitShape.id === shape.id) {
 								// We're testing against the arrow
 								return
 							}
 
-							const util = this.app.getShapeUtil(hitShape)
+							const util = this.editor.getShapeUtil(hitShape)
 							if (!util.canBind(hitShape)) {
 								// The shape can't be bound to
 								return
 							}
 
 							// Check the page mask
-							const pageMask = this.app.getPageMaskById(hitShape.id)
+							const pageMask = this.editor.getPageMaskById(hitShape.id)
 							if (pageMask) {
 								if (!pointInPolygon(pointInPageSpace, pageMask)) return
 							}
 
-							const pointInTargetSpace = this.app.getPointInShapeSpace(hitShape, pointInPageSpace)
+							const pointInTargetSpace = this.editor.getPointInShapeSpace(
+								hitShape,
+								pointInPageSpace
+							)
 
 							if (util.isClosed(hitShape)) {
 								// Test the polygon
@@ -293,8 +296,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					)
 
 					if (target) {
-						const targetBounds = this.app.getBounds(target)
-						const pointInTargetSpace = this.app.getPointInShapeSpace(target, pointInPageSpace)
+						const targetBounds = this.editor.getBounds(target)
+						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 						const prevHandle = next.props[handle.id]
 
@@ -308,14 +311,14 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 							// If the other handle is bound to the same shape, then precise
 							((startBindingId || endBindingId) && startBindingId === endBindingId) ||
 							// If the other shape is not closed, then precise
-							!this.app.getShapeUtil(target).isClosed(next)
+							!this.editor.getShapeUtil(target).isClosed(next)
 
 						if (
 							// If we're switching to a new bound shape, then precise only if moving slowly
 							prevHandle.type === 'point' ||
 							(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
 						) {
-							precise = this.app.inputs.pointerVelocity.len() < 0.5
+							precise = this.editor.inputs.pointerVelocity.len() < 0.5
 						}
 
 						if (precise) {
@@ -327,7 +330,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 									4,
 									Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)
 								) /
-									this.app.zoomLevel
+									this.editor.zoomLevel
 						}
 
 						next.props[handle.id] = {
@@ -339,7 +342,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 										y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
 								  }
 								: { x: 0.5, y: 0.5 },
-							isExact: this.app.inputs.altKey,
+							isExact: this.editor.inputs.altKey,
 						}
 					} else {
 						next.props[handle.id] = {
@@ -353,7 +356,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			}
 
 			case 'middle': {
-				const { start, end } = getArrowTerminalsInArrowSpace(this.app, next)
+				const { start, end } = getArrowTerminalsInArrowSpace(this.editor, next)
 
 				const delta = Vec2d.Sub(end, start)
 				const v = Vec2d.Per(delta)
@@ -383,8 +386,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		// If no bound shapes are in the selection, unbind any bound shapes
 
 		if (
-			(startBinding && this.app.isWithinSelection(startBinding)) ||
-			(endBinding && this.app.isWithinSelection(endBinding))
+			(startBinding && this.editor.isWithinSelection(startBinding)) ||
+			(endBinding && this.editor.isWithinSelection(endBinding))
 		) {
 			return
 		}
@@ -392,7 +395,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		startBinding = null
 		endBinding = null
 
-		const { start, end } = getArrowTerminalsInArrowSpace(this.app, shape)
+		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		return {
 			id: shape.id,
@@ -416,7 +419,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 	onResize: OnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
-		const terminals = getArrowTerminalsInArrowSpace(this.app, shape)
+		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const { start, end } = deepCopy<TLArrowShape['props']>(shape.props)
 		let { bend } = shape.props
@@ -526,8 +529,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
-		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const zoomLevel = this.editor.zoomLevel
+		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
@@ -553,14 +556,14 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 	render(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
-		const onlySelectedShape = this.app.onlySelectedShape
+		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
-			this.app.isInAny(
+			this.editor.isInAny(
 				'select.idle',
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.app.isReadOnly
+			) && !this.editor.isReadOnly
 
 		const info = this.getArrowInfo(shape)
 		const bounds = this.bounds(shape)
@@ -568,13 +571,13 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
-			return this.app.isSafari ? (globalRenderIndex += 1) : 0
+			return this.editor.isSafari ? (globalRenderIndex += 1) : 0
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [shape])
 
 		if (!info?.isValid) return null
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -732,14 +735,14 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={info.middle}
 					width={labelSize?.w ?? 0}
-					labelColor={this.app.getCssColor(shape.props.labelColor)}
+					labelColor={this.editor.getCssColor(shape.props.labelColor)}
 				/>
 			</>
 		)
 	}
 
 	indicator(shape: TLArrowShape) {
-		const { start, end } = getArrowTerminalsInArrowSpace(this.app, shape)
+		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.getArrowInfo(shape)
 		const bounds = this.bounds(shape)
@@ -748,7 +751,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -834,7 +837,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 	}
 
 	@computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
-		return this.app.store.createComputedCache('labelBoundsCache', (shape) => {
+		return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
 			const info = this.getArrowInfo(shape)
 			const bounds = this.bounds(shape)
 			const { text, font, size } = shape.props
@@ -842,7 +845,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (!info) return null
 			if (!text.trim()) return null
 
-			const { w, h } = this.app.textMeasure.measureText(text, {
+			const { w, h } = this.editor.textMeasure.measureText(text, {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[font],
 				fontSize: ARROW_LABEL_FONT_SIZES[size],
@@ -855,7 +858,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (bounds.width > bounds.height) {
 				width = Math.max(Math.min(w, 64), Math.min(bounds.width - 64, w))
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
@@ -869,7 +872,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			if (width > 16 * ARROW_LABEL_FONT_SIZES[size]) {
 				width = 16 * ARROW_LABEL_FONT_SIZES[size]
 
-				const { w: squishedWidth, h: squishedHeight } = this.app.textMeasure.measureText(text, {
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
 					...TEXT_PROPS,
 					fontFamily: FONT_FAMILIES[font],
 					fontSize: ARROW_LABEL_FONT_SIZES[size],
@@ -905,7 +908,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 		} = shape
 
 		if (text.trimEnd() !== shape.props.text) {
-			this.app.updateShapes([
+			this.editor.updateShapes([
 				{
 					id,
 					type,
@@ -922,7 +925,7 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 
 		const info = this.getArrowInfo(shape)
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 
 		// Group for arrow
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
@@ -1056,8 +1059,8 @@ export class TLArrowUtil extends TLShapeUtil<TLArrowShape> {
 			}
 
 			const textElm = createTextSvgElementFromSpans(
-				this.app,
-				this.app.textMeasure.measureTextSpans(shape.props.text, opts),
+				this.editor,
+				this.editor.textMeasure.measureTextSpans(shape.props.text, opts),
 				opts
 			)
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])

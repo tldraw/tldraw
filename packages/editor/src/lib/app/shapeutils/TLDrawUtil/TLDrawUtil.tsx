@@ -23,10 +23,10 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	static override type = 'draw'
 
-	hideResizeHandles = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideRotateHandle = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideSelectionBoundsBg = (shape: TLDrawShape) => this.getIsDot(shape)
-	hideSelectionBoundsFg = (shape: TLDrawShape) => this.getIsDot(shape)
+	hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
+	hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
+	hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
+	hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
 	override defaultProps(): TLDrawShape['props'] {
 		return {
@@ -44,10 +44,6 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	isClosed = (shape: TLDrawShape) => shape.props.isClosed
 
-	private getIsDot(shape: TLDrawShape) {
-		return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
-	}
-
 	getBounds(shape: TLDrawShape) {
 		return Box2d.FromPoints(this.outline(shape))
 	}
@@ -62,8 +58,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
-		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const zoomLevel = this.editor.zoomLevel
+		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
@@ -91,8 +87,8 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		const outline = this.outline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			const zoomLevel = this.app.zoomLevel
-			const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+			const zoomLevel = this.editor.zoomLevel
+			const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 
 			if (
 				shape.props.segments[0].points.some(
@@ -122,7 +118,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	render(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -137,7 +133,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			sw += rng(shape.id)() * (strokeWidth / 6)
 		}
 
-		const options = getFreehandOptions(shape, sw, showAsComplete, forceSolid)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, forceSolid)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 		const solidStrokePath =
@@ -187,7 +183,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	indicator(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = strokeWidth
@@ -201,7 +197,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 		}
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getFreehandOptions(shape, sw, showAsComplete, true)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, true)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
 			strokePoints.length > 1
@@ -214,7 +210,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 	toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors) {
 		const { color } = shape.props
 
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -224,7 +220,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 			sw += rng(shape.id)() * (strokeWidth / 6)
 		}
 
-		const options = getFreehandOptions(shape, sw, showAsComplete, false)
+		const options = getFreehandOptions(shape.props, sw, showAsComplete, false)
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 		const solidStrokePath =
 			strokePoints.length > 1
@@ -300,7 +296,7 @@ export class TLDrawUtil extends TLShapeUtil<TLDrawShape> {
 
 	expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (this.app.getStrokeWidth(shape.props.size) * multiplier) / 2
+		return (this.editor.getStrokeWidth(shape.props.size) * multiplier) / 2
 	}
 }
 
@@ -309,4 +305,8 @@ function getDot(point: VecLike, sw: number) {
 	return `M ${point.x} ${point.y} m -${r}, 0 a ${r},${r} 0 1,0 ${r * 2},0 a ${r},${r} 0 1,0 -${
 		r * 2
 	},0`
+}
+
+function getIsDot(shape: TLDrawShape) {
+	return shape.props.segments.length === 1 && shape.props.segments[0].points.length < 2
 }

@@ -2,7 +2,7 @@
 import { TLShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
-import { useApp } from '../../../hooks/useApp'
+import { useEditor } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
 import { INDENT, TextHelpers } from '../TLTextUtil/TextHelpers'
 
@@ -11,11 +11,11 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	type: T['type'],
 	text: string
 ) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 
-	const isEditing = useValue('isEditing', () => app.pageState.editingId === id, [app, id])
+	const isEditing = useValue('isEditing', () => editor.pageState.editingId === id, [editor, id])
 
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
@@ -23,20 +23,20 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const isEditableFromHover = useValue(
 		'is editable hovering',
 		() => {
-			if (type === 'text' && app.isIn('text') && app.hoveredId === id) {
+			if (type === 'text' && editor.isIn('text') && editor.hoveredId === id) {
 				return true
 			}
 
-			if (app.isIn('select.editing_shape')) {
-				const { editingShape } = app
+			if (editor.isIn('select.editing_shape')) {
+				const { editingShape } = editor
 				if (!editingShape) return false
 				return (
 					// The shape must be hovered
-					app.hoveredId === id &&
+					editor.hoveredId === id &&
 					// the editing shape must be the same type as this shape
 					editingShape.type === type &&
 					// and this shape must be capable of being editing in its current form
-					app.getShapeUtil(editingShape).canEdit(editingShape)
+					editor.getShapeUtil(editingShape).canEdit(editingShape)
 				)
 			}
 
@@ -55,7 +55,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			if (!elm) return
 
-			const shape = app.getShapeById<TLShape & { props: { text: string } }>(id)
+			const shape = editor.getShapeById<TLShape & { props: { text: string } }>(id)
 			if (shape) {
 				elm.value = shape.props.text
 				if (elm.value.length && !rSkipSelectOnFocus.current) {
@@ -65,7 +65,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				rSkipSelectOnFocus.current = false
 			}
 		})
-	}, [app, id, isEditableFromHover])
+	}, [editor, id, isEditableFromHover])
 
 	// When the label blurs, deselect all of the text and complete.
 	// This makes it so that the canvas does not have to be focused
@@ -75,7 +75,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 		requestAnimationFrame(() => {
 			const elm = rInput.current
-			if (app.isIn('select.editing_shape') && elm) {
+			if (editor.isIn('select.editing_shape') && elm) {
 				if (ranges) {
 					if (!ranges.length) {
 						// If we don't have any ranges, restore selection
@@ -96,10 +96,10 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				}
 			} else {
 				window.getSelection()?.removeAllRanges()
-				app.complete()
+				editor.complete()
 			}
 		})
-	}, [app])
+	}, [editor])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	// When the user presses tab, indent or unindent the text.
@@ -110,7 +110,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 			switch (e.key) {
 				case 'Enter': {
 					if (e.ctrlKey || e.metaKey) {
-						app.complete()
+						editor.complete()
 					}
 					break
 				}
@@ -125,7 +125,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				}
 			}
 		},
-		[app]
+		[editor]
 	)
 
 	// When the text changes, update the text value.
@@ -145,9 +145,9 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 			}
 			// ----------------------------
 
-			app.updateShapes([{ id, type, props: { text } }])
+			editor.updateShapes([{ id, type, props: { text } }])
 		},
-		[app, id, type]
+		[editor, id, type]
 	)
 
 	const isEmpty = text.trim().length === 0

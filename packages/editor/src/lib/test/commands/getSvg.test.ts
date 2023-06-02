@@ -1,8 +1,8 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -11,9 +11,9 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
-	app.setProp('dash', 'solid')
-	app.createShapes([
+	editor = new TestEditor()
+	editor.setProp('dash', 'solid')
+	editor.createShapes([
 		{
 			id: ids.boxA,
 			type: 'geo',
@@ -46,24 +46,24 @@ beforeEach(() => {
 			},
 		},
 	])
-	app.selectAll()
+	editor.selectAll()
 })
 
 it('gets an SVG', async () => {
-	const svg = await app.getSvg(app.selectedIds)
+	const svg = await editor.getSvg(editor.selectedIds)
 
 	expect(svg).toBeTruthy()
 })
 
 it('Does not get an SVG when no ids are provided', async () => {
-	const svg = await app.getSvg([])
+	const svg = await editor.getSvg([])
 
 	expect(svg).toBeFalsy()
 })
 
 it('Gets the bounding box at the correct size', async () => {
-	const svg = await app.getSvg(app.selectedIds)
-	const bbox = app.selectionBounds!
+	const svg = await editor.getSvg(editor.selectedIds)
+	const bbox = editor.selectionBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')
@@ -71,8 +71,8 @@ it('Gets the bounding box at the correct size', async () => {
 })
 
 it('Gets the bounding box at the correct size', async () => {
-	const svg = (await app.getSvg(app.selectedIds))!
-	const bbox = app.selectionBounds!
+	const svg = (await editor.getSvg(editor.selectedIds))!
+	const bbox = editor.selectionBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')
@@ -80,30 +80,30 @@ it('Gets the bounding box at the correct size', async () => {
 })
 
 it('Matches a snapshot', async () => {
-	const svg = (await app.getSvg(app.selectedIds))!
+	const svg = (await editor.getSvg(editor.selectedIds))!
 
 	const elm = document.createElement('wrapper')
 	elm.appendChild(svg)
 
-	expect(elm.innerHTML).toMatchSnapshot('Basic SVG')
+	expect(elm).toMatchSnapshot('Basic SVG')
 })
 
 it('Accepts a scale option', async () => {
-	const svg1 = (await app.getSvg(app.selectedIds, { scale: 1 }))!
+	const svg1 = (await editor.getSvg(editor.selectedIds, { scale: 1 }))!
 
 	expect(svg1.getAttribute('width')).toBe('564')
 
-	const svg2 = (await app.getSvg(app.selectedIds, { scale: 2 }))!
+	const svg2 = (await editor.getSvg(editor.selectedIds, { scale: 2 }))!
 
 	expect(svg2.getAttribute('width')).toBe('1128')
 })
 
 it('Accepts a background option', async () => {
-	const svg1 = (await app.getSvg(app.selectedIds, { background: true }))!
+	const svg1 = (await editor.getSvg(editor.selectedIds, { background: true }))!
 
 	expect(svg1.style.backgroundColor).not.toBe('transparent')
 
-	const svg2 = (await app.getSvg(app.selectedIds, { background: false }))!
+	const svg2 = (await editor.getSvg(editor.selectedIds, { background: false }))!
 
 	expect(svg2.style.backgroundColor).toBe('transparent')
 })

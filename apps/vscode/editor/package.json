@@ -37,7 +37,6 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
-		"@tldraw/tlsync-client": "workspace:*",
 		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@types/fs-extra": "^11.0.1",

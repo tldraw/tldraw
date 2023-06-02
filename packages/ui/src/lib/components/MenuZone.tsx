@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
@@ -11,12 +11,12 @@ import { TrashButton } from './TrashButton'
 import { UndoButton } from './UndoButton'
 
 export const MenuZone = track(function MenuZone() {
-	const app = useApp()
+	const editor = useEditor()
 
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	const showQuickActions = !isReadonly && !app.isInAny('hand', 'zoom', 'eraser')
+	const showQuickActions = !isReadonly && !editor.isInAny('hand', 'zoom', 'eraser')
 
 	return (
 		<div className="tlui-menu-zone">
@@ -24,7 +24,7 @@ export const MenuZone = track(function MenuZone() {
 				<Menu />
 				<div className="tlui-menu-zone__divider" />
 				<PageMenu />
-				{breakpoint >= 5 && showQuickActions && (
+				{breakpoint >= 6 && showQuickActions && (
 					<>
 						<div className="tlui-menu-zone__divider" />
 						<UndoButton />

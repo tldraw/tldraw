@@ -3,6 +3,7 @@ import json5 from 'json5'
 import { basename, dirname, join, relative } from 'path'
 import prettier from 'prettier'
 import { fileURLToPath } from 'url'
+import { nicelog } from './nicelog'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -61,16 +62,16 @@ export async function writeFile(filePath: string, contents: Buffer) {
 			// Ignore
 		}
 		if (existingContents && !existingContents.equals(contents)) {
-			console.log(
+			nicelog(
 				`Asset file ${relative(
 					REPO_ROOT,
 					filePath
 				)} has changed. Please run this script again and commit the changes.`
 			)
-			console.log('Contents before:')
-			console.log(existingContents.toString('utf-8'))
-			console.log('\nContents after:')
-			console.log(contents.toString('utf-8'))
+			nicelog('Contents before:')
+			nicelog(existingContents.toString('utf-8'))
+			nicelog('\nContents after:')
+			nicelog(contents.toString('utf-8'))
 
 			process.exit(1)
 		}

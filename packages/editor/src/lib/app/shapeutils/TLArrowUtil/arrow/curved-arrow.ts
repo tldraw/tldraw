@@ -18,27 +18,27 @@ import {
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 } from '../../../../constants'
-import type { App } from '../../../App'
+import type { Editor } from '../../../Editor'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
-export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0): ArrowInfo {
+export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBend = 0): ArrowInfo {
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend + extraBend
 
 	if (Math.abs(bend) > Math.abs(shape.props.bend * WAY_TOO_BIG_ARROW_BEND_FACTOR)) {
-		return getStraightArrowInfo(app, shape)
+		return getStraightArrowInfo(editor, shape)
 	}
 
-	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(app, shape)
+	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
 
 	const med = Vec2d.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end) // point between start and end
 	const u = Vec2d.Sub(terminalsInArrowSpace.end, terminalsInArrowSpace.start).uni() // unit vector between start and end
 	const middle = Vec2d.Add(med, u.per().mul(-bend)) // middle handle
 
-	const startShapeInfo = getBoundShapeInfoForTerminal(app, shape.props.start)
-	const endShapeInfo = getBoundShapeInfoForTerminal(app, shape.props.end)
+	const startShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.start)
+	const endShapeInfo = getBoundShapeInfoForTerminal(editor, shape.props.end)
 
 	// The positions of the body of the arrow, which may be different
 	// than the arrow's start / end points if the arrow is bound to shapes
@@ -48,7 +48,7 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 
 	const handleArc = getArcInfo(a, b, c)
 
-	const arrowPageTransform = app.getPageTransform(shape)!
+	const arrowPageTransform = editor.getPageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		// Points in page space
@@ -97,7 +97,7 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 
 		if (point) {
 			a.setTo(
-				app.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
+				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
 			)
 
 			startShapeInfo.didIntersect = true
@@ -105,9 +105,9 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 			if (arrowheadStart !== 'none') {
 				const offset =
 					BOUND_ARROW_OFFSET +
-					app.getStrokeWidth(shape.props.size) / 2 +
+					editor.getStrokeWidth(shape.props.size) / 2 +
 					('size' in startShapeInfo.shape.props
-						? app.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+						? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
 						: 0)
 
 				a.setTo(
@@ -173,16 +173,18 @@ export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0)
 
 		if (point) {
 			// Set b to target local point -> page point -> shape local point
-			b.setTo(app.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point)))
+			b.setTo(
+				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point))
+			)
 
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
 				let offset =
 					BOUND_ARROW_OFFSET +
-					app.getStrokeWidth(shape.props.size) / 2 +
+					editor.getStrokeWidth(shape.props.size) / 2 +
 					('size' in endShapeInfo.shape.props
-						? app.getStrokeWidth(endShapeInfo.shape.props.size) / 2
+						? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
 						: 0)
 
 				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {

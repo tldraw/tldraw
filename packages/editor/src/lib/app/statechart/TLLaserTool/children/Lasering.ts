@@ -14,7 +14,7 @@ export class Lasering extends StateNode {
 	}
 
 	override onExit = () => {
-		this.app.setErasingIds([])
+		this.editor.setErasingIds([])
 		this.scribble.stop()
 	}
 
@@ -28,7 +28,7 @@ export class Lasering extends StateNode {
 
 	private startScribble = () => {
 		if (this.scribble.tick) {
-			this.app.off('tick', this.scribble?.tick)
+			this.editor.off('tick', this.scribble?.tick)
 		}
 
 		this.scribble = new ScribbleManager({
@@ -40,21 +40,21 @@ export class Lasering extends StateNode {
 			delay: 1200,
 		})
 
-		this.app.on('tick', this.scribble.tick)
+		this.editor.on('tick', this.scribble.tick)
 	}
 
 	private pushPointToScribble = () => {
-		const { x, y } = this.app.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint
 		this.scribble.addPoint(x, y)
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.app.setScribble(scribble)
+		this.editor.setScribble(scribble)
 	}
 
 	private onScribbleComplete = () => {
-		this.app.off('tick', this.scribble.tick)
-		this.app.setScribble(null)
+		this.editor.off('tick', this.scribble.tick)
+		this.editor.setScribble(null)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

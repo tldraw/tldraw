@@ -16,7 +16,7 @@ import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
-import type { App } from '../App'
+import type { Editor } from '../Editor'
 import { getSplineForLineShape, TLLineUtil } from '../shapeutils/TLLineUtil/TLLineUtil'
 
 export type PointsSnapLine = {
@@ -221,13 +221,13 @@ export class SnapManager {
 		this._snapLines.set(lines)
 	}
 
-	constructor(public readonly app: App) {}
+	constructor(public readonly editor: Editor) {}
 
 	@computed get snapPointsCache() {
-		return this.app.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = this.app.getPageTransformById(shape.id)
+		return this.editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
+			const pageTransfrorm = this.editor.getPageTransformById(shape.id)
 			if (!pageTransfrorm) return undefined
-			const util = this.app.getShapeUtil(shape)
+			const util = this.editor.getShapeUtil(shape)
 			const snapPoints = util.snapPoints(shape)
 			return snapPoints.map((point, i) => {
 				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
@@ -237,23 +237,23 @@ export class SnapManager {
 	}
 
 	get snapThreshold() {
-		return 8 / this.app.zoomLevel
+		return 8 / this.editor.zoomLevel
 	}
 
 	// TODO: make this an incremental derivation
 	@computed get visibleShapesNotInSelection() {
-		const selectedIds = this.app.selectedIds
+		const selectedIds = this.editor.selectedIds
 
 		const result: Set<{ id: TLShapeId; pageBounds: Box2d }> = new Set()
 
 		const processParent = (parentId: TLParentId) => {
-			const children = this.app.getSortedChildIds(parentId)
+			const children = this.editor.getSortedChildIds(parentId)
 			for (const id of children) {
-				const shape = this.app.getShapeById(id)
+				const shape = this.editor.getShapeById(id)
 				if (!shape) continue
 				if (shape.type === 'arrow') continue
 				if (selectedIds.includes(id)) continue
-				if (!this.app.isShapeInViewport(shape.id)) continue
+				if (!this.editor.isShapeInViewport(shape.id)) continue
 
 				if (shape.type === 'group') {
 					// snap to children of group but not group itself
@@ -261,7 +261,7 @@ export class SnapManager {
 					continue
 				}
 
-				result.add({ id: shape.id, pageBounds: this.app.getPageBoundsById(shape.id)! })
+				result.add({ id: shape.id, pageBounds: this.editor.getPageBoundsById(shape.id)! })
 
 				// don't snap to children of frame
 				if (shape.type !== 'frame') {
@@ -270,12 +270,12 @@ export class SnapManager {
 			}
 		}
 
-		const commonFrameAncestor = this.app.findCommonAncestor(
-			compact(selectedIds.map((id) => this.app.getShapeById(id))),
+		const commonFrameAncestor = this.editor.findCommonAncestor(
+			compact(selectedIds.map((id) => this.editor.getShapeById(id))),
 			(parent) => parent.type === 'frame'
 		)
 
-		processParent(commonFrameAncestor ?? this.app.currentPageId)
+		processParent(commonFrameAncestor ?? this.editor.currentPageId)
 
 		return result
 	}
@@ -484,7 +484,7 @@ export class SnapManager {
 		handleId: string
 		handlePoint: Vec2d
 	}): SnapData {
-		const line = this.app.getShapeById<TLLineShape>(lineId)
+		const line = this.editor.getShapeById<TLLineShape>(lineId)
 		if (!line) {
 			return { nudge: new Vec2d(0, 0) }
 		}
@@ -495,7 +495,7 @@ export class SnapManager {
 		// and then pass them to the snap function as 'additionalOutlines'
 
 		// First, let's find which handle we're dragging
-		const util = this.app.getShapeUtil(TLLineUtil)
+		const util = this.editor.getShapeUtil(TLLineUtil)
 		const handles = util.handles(line).sort(sortByIndex)
 		if (handles.length < 3) return { nudge: new Vec2d(0, 0) }
 
@@ -529,7 +529,7 @@ export class SnapManager {
 		// (and by the way - we want to get the splines in page space, not shape space)
 		const spline = getSplineForLineShape(line)
 		const ignoreCount = 1
-		const pageTransform = this.app.getPageTransform(line)!
+		const pageTransform = this.editor.getPageTransform(line)!
 
 		const pageHeadSegments = spline.segments
 			.slice(0, Math.max(0, segmentNumber - ignoreCount))
@@ -560,21 +560,23 @@ export class SnapManager {
 		const visibleShapesNotInSelection = this.visibleShapesNotInSelection
 		const pageOutlines = []
 		for (const visibleShape of visibleShapesNotInSelection) {
-			const shape = this.app.getShapeById(visibleShape.id)!
+			const shape = this.editor.getShapeById(visibleShape.id)!
 
 			if (shape.type === 'text' || shape.type === 'icon') {
 				continue
 			}
 
-			const outline = deepCopy(this.app.getOutlineById(visibleShape.id))
+			const outline = deepCopy(this.editor.getOutlineById(visibleShape.id))
 
-			const isClosed = this.app.getShapeUtil(shape).isClosed?.(shape)
+			const isClosed = this.editor.getShapeUtil(shape).isClosed?.(shape)
 
 			if (isClosed) {
 				outline.push(outline[0])
 			}
 
-			pageOutlines.push(Matrix2d.applyToPoints(this.app.getPageTransformById(shape.id)!, outline))
+			pageOutlines.push(
+				Matrix2d.applyToPoints(this.editor.getPageTransformById(shape.id)!, outline)
+			)
 		}
 
 		// Find the nearest point that is within the snap threshold

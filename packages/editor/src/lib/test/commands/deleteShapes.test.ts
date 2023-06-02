@@ -1,7 +1,7 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -14,8 +14,8 @@ const ids = {
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestApp()
-	app
+	editor = new TestEditor()
+	editor
 		.selectAll()
 		.deleteShapes()
 		.createShapes([
@@ -46,66 +46,66 @@ beforeEach(() => {
 		])
 })
 
-describe('App.deleteShapes', () => {
+describe('Editor.deleteShapes', () => {
 	it('Deletes a shape', () => {
-		app.select(ids.box3, ids.box4)
-		app.mark()
-		app.deleteShapes() // delete the selected shapes
-		expect(app.getShapeById(ids.box3)).toBeUndefined()
-		expect(app.getShapeById(ids.box4)).toBeUndefined()
-		expect(app.selectedIds).toMatchObject([])
-		app.undo()
-		expect(app.getShapeById(ids.box3)).not.toBeUndefined()
-		expect(app.getShapeById(ids.box4)).not.toBeUndefined()
-		expect(app.selectedIds).toMatchObject([ids.box3, ids.box4])
-		app.redo()
-		expect(app.getShapeById(ids.box3)).toBeUndefined()
-		expect(app.getShapeById(ids.box4)).toBeUndefined()
-		expect(app.selectedIds).toMatchObject([])
+		editor.select(ids.box3, ids.box4)
+		editor.mark()
+		editor.deleteShapes() // delete the selected shapes
+		expect(editor.getShapeById(ids.box3)).toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).toBeUndefined()
+		expect(editor.selectedIds).toMatchObject([])
+		editor.undo()
+		expect(editor.getShapeById(ids.box3)).not.toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).not.toBeUndefined()
+		expect(editor.selectedIds).toMatchObject([ids.box3, ids.box4])
+		editor.redo()
+		expect(editor.getShapeById(ids.box3)).toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).toBeUndefined()
+		expect(editor.selectedIds).toMatchObject([])
 	})
 
 	it('Does nothing on an empty ids array', () => {
-		app.selectNone()
-		const before = app.store.serialize()
-		app.deleteShapes() // should be a noop, nothing to delete
-		expect(app.store.serialize()).toStrictEqual(before)
+		editor.selectNone()
+		const before = editor.store.serialize()
+		editor.deleteShapes() // should be a noop, nothing to delete
+		expect(editor.store.serialize()).toStrictEqual(before)
 	})
 
 	it('Deletes descendants', () => {
-		app.reparentShapesById([ids.box4], ids.box3)
-		app.select(ids.box3)
-		app.mark()
-		app.deleteShapes() // should be a noop, nothing to delete
-		expect(app.getShapeById(ids.box3)).toBeUndefined()
-		expect(app.getShapeById(ids.box4)).toBeUndefined()
-		app.undo()
-		expect(app.getShapeById(ids.box3)).not.toBeUndefined()
-		expect(app.getShapeById(ids.box4)).not.toBeUndefined()
-		app.redo()
-		expect(app.getShapeById(ids.box3)).toBeUndefined()
-		expect(app.getShapeById(ids.box4)).toBeUndefined()
+		editor.reparentShapesById([ids.box4], ids.box3)
+		editor.select(ids.box3)
+		editor.mark()
+		editor.deleteShapes() // should be a noop, nothing to delete
+		expect(editor.getShapeById(ids.box3)).toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).toBeUndefined()
+		editor.undo()
+		expect(editor.getShapeById(ids.box3)).not.toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).not.toBeUndefined()
+		editor.redo()
+		expect(editor.getShapeById(ids.box3)).toBeUndefined()
+		expect(editor.getShapeById(ids.box4)).toBeUndefined()
 	})
 })
 
 describe('When deleting arrows', () => {
 	it('Restores any bindings on undo', () => {
-		app.select(ids.arrow1)
-		app.mark()
+		editor.select(ids.arrow1)
+		editor.mark()
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
 
-		app.deleteShapes() // delete the selected shapes
+		editor.deleteShapes() // delete the selected shapes
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box1]).toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box1]).toBeUndefined()
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box2]).toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box2]).toBeUndefined()
 
-		app.undo()
+		editor.undo()
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
 		// @ts-expect-error
-		expect(app._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
 	})
 })

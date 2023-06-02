@@ -11,7 +11,7 @@ import {
 import { ComputedCache } from '@tldraw/tlstore'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
-import type { App } from '../App'
+import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
 
@@ -23,7 +23,8 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>
 > {
-	new (app: App, type: T['type']): ShapeUtil
+	new (editor: Editor, type: T['type']): ShapeUtil
+	type: T['type']
 }
 
 /** @public */
@@ -31,7 +32,7 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
 export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-	constructor(public app: App, public readonly type: T['type']) {}
+	constructor(public editor: Editor, public readonly type: T['type']) {}
 
 	static type: string
 
@@ -166,6 +167,14 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	abstract indicator(shape: T): any
 
 	/**
+	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
+	 *
+	 * @param shape - The shape.
+	 * @internal
+	 */
+	renderBackground?(shape: T): any
+
+	/**
 	 * Get an array of handle models for the shape. This is an optional method.
 	 *
 	 * @example
@@ -181,7 +190,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get handlesCache(): ComputedCache<TLHandle[], TLShape> {
-		return this.app.store.createComputedCache('handles:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('handles:' + this.type, (shape) => {
 			return this.getHandles!(shape as any)
 		})
 	}
@@ -207,7 +216,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get boundsCache(): ComputedCache<Box2d, TLShape> {
-		return this.app.store.createComputedCache('bounds:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('bounds:' + this.type, (shape) => {
 			return this.getBounds(shape as any)
 		})
 	}
@@ -258,7 +267,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 
 	@computed
 	private get outlineCache(): ComputedCache<Vec2dModel[], TLShape> {
-		return this.app.store.createComputedCache('outline:' + this.type, (shape) => {
+		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
 			return this.getOutline(shape as any)
 		})
 	}
@@ -307,7 +316,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: T, type: TLShape['type']) {
 		return false
 	}
 
@@ -336,6 +345,21 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 		font: string | undefined,
 		colors: TLExportColors
 	): SVGElement | Promise<SVGElement>
+
+	/**
+	 * Get the shape's background layer as an SVG object.
+	 *
+	 * @param shape - The shape.
+	 * @param color - The shape's CSS color (actual).
+	 * @param font - The shape's CSS font (actual).
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toBackgroundSvg?(
+		shape: T,
+		font: string | undefined,
+		colors: TLExportColors
+	): SVGElement | Promise<SVGElement> | null
 
 	/**
 	 * Get whether a point intersects the shape.
@@ -373,6 +397,19 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	/** @internal */
 	expandSelectionOutlinePx(shape: T): number {
 		return 0
+	}
+
+	/**
+	 * Does this shape provide a background for its children? If this is true,
+	 * then any children with a `renderBackground` method will have their
+	 * backgrounds rendered _above_ this shape. Otherwise, the children's
+	 * backgrounds will be rendered above either the next ancestor that provides
+	 * a background, or the canvas background.
+	 *
+	 * @internal
+	 */
+	providesBackgroundForChildren(shape: T): boolean {
+		return false
 	}
 
 	//  Events

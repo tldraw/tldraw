@@ -24,27 +24,34 @@ export class Brushing extends StateNode {
 
 	brush = new Box2d()
 	initialSelectedIds: TLShapeId[] = []
+	excludedShapeIds = new Set<TLShapeId>()
 
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
 	onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
-		const { altKey, currentPagePoint } = this.app.inputs
+		const { altKey, currentPagePoint } = this.editor.inputs
 
 		if (altKey) {
 			this.parent.transition('scribble_brushing', info)
 			return
 		}
 
+		this.excludedShapeIds = new Set(
+			this.editor.shapesArray
+				.filter((shape) => shape.type === 'group' || this.editor.isShapeOrAncestorLocked(shape))
+				.map((shape) => shape.id)
+		)
+
 		this.info = info
-		this.initialSelectedIds = this.app.selectedIds.slice()
-		this.initialStartShape = this.app.getShapesAtPoint(currentPagePoint)[0]
+		this.initialSelectedIds = this.editor.selectedIds.slice()
+		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
 		this.onPointerMove()
 	}
 
 	onExit = () => {
 		this.initialSelectedIds = []
-		this.app.setBrush(null)
+		this.editor.setBrush(null)
 	}
 
 	onPointerMove = () => {
@@ -60,12 +67,12 @@ export class Brushing extends StateNode {
 	}
 
 	onCancel?: TLCancelEvent | undefined = (info) => {
-		this.app.setSelectedIds(this.initialSelectedIds, true)
+		this.editor.setSelectedIds(this.initialSelectedIds, true)
 		this.parent.transition('idle', info)
 	}
 
 	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
-		if (this.app.inputs.altKey) {
+		if (this.editor.inputs.altKey) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
 			this.hitTestShapes()
@@ -85,7 +92,7 @@ export class Brushing extends StateNode {
 			currentPageId,
 			shapesArray,
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
-		} = this.app
+		} = this.editor
 
 		// Set the brush to contain the current and origin points
 		this.brush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
@@ -104,15 +111,14 @@ export class Brushing extends StateNode {
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
 
+		const { excludedShapeIds } = this
+
 		testAllShapes: for (let i = 0, n = shapesArray.length; i < n; i++) {
 			shape = shapesArray[i]
-
-			// don't select groups directly, only via their children
-			if (shape.type === 'group') continue testAllShapes
-
+			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 
-			pageBounds = this.app.getPageBounds(shape)
+			pageBounds = this.editor.getPageBounds(shape)
 			if (!pageBounds) continue testAllShapes
 
 			// If the brush fully wraps a shape, it's almost certainly a hit
@@ -133,9 +139,9 @@ export class Brushing extends StateNode {
 			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
-				util = this.app.getShapeUtil(shape)
+				util = this.editor.getShapeUtil(shape)
 
-				pageTransform = this.app.getPageTransform(shape)
+				pageTransform = this.editor.getPageTransform(shape)
 
 				if (!pageTransform) {
 					continue testAllShapes
@@ -156,12 +162,12 @@ export class Brushing extends StateNode {
 			}
 		}
 
-		this.app.setBrush({ ...this.brush.toJson() })
-		this.app.setSelectedIds(Array.from(results), true)
+		this.editor.setBrush({ ...this.brush.toJson() })
+		this.editor.setSelectedIds(Array.from(results), true)
 	}
 
 	onInterrupt: TLInterruptEvent = () => {
-		this.app.setBrush(null)
+		this.editor.setBrush(null)
 	}
 
 	private handleHit(
@@ -178,8 +184,8 @@ export class Brushing extends StateNode {
 
 		// Find the outermost selectable shape, check to see if it has a
 		// page mask; and if so, check to see if the brush intersects it
-		const selectedShape = this.app.getOutermostSelectableShape(shape)
-		const pageMask = this.app.getPageMaskById(selectedShape.id)
+		const selectedShape = this.editor.getOutermostSelectableShape(shape)
+		const pageMask = this.editor.getPageMaskById(selectedShape.id)
 
 		if (
 			pageMask &&

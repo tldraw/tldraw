@@ -1,4 +1,4 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
@@ -17,7 +17,7 @@ export const KeyboardShortcutsSchemaContext = React.createContext(
 /** @public */
 export type KeyboardShortcutsSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		editor: Editor,
 		schema: KeyboardShortcutsSchemaContextType,
 		more: { tools: ToolsContextType; actions: ActionsContextType }
 	) => KeyboardShortcutsSchemaContextType
@@ -29,7 +29,7 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 	overrides,
 	children,
 }: KeyboardShortcutsSchemaProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const tools = useTools()
 	const actions = useActions()
 
@@ -104,11 +104,11 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 		])
 
 		if (overrides) {
-			return overrides(app, keyboardShortcutsSchema, { tools, actions })
+			return overrides(editor, keyboardShortcutsSchema, { tools, actions })
 		}
 
 		return keyboardShortcutsSchema
-	}, [app, overrides, actions, tools])
+	}, [editor, overrides, actions, tools])
 
 	return (
 		<KeyboardShortcutsSchemaContext.Provider value={keyboardShortcutsSchema}>

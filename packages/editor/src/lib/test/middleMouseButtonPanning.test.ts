@@ -1,21 +1,21 @@
-import { TestApp } from './TestApp'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 it('When clicking the middle mouse button and dragging, it pans the camera', () => {
-	app.pointerDown(0, 0, { button: 1 })
-	app.pointerMove(100, 100)
-	app.expectCameraToBe(100, 100, 1)
+	editor.pointerDown(0, 0, { button: 1 })
+	editor.pointerMove(100, 100)
+	editor.expectCameraToBe(100, 100, 1)
 })
 
 it('When clicking the middle mouse button and dragging on a shape, it pans the camera', () => {
-	app.createShapes([
+	editor.createShapes([
 		{
-			id: app.createShapeId(),
+			id: editor.createShapeId(),
 			type: 'geo',
 			props: {
 				geo: 'rectangle',
@@ -24,7 +24,7 @@ it('When clicking the middle mouse button and dragging on a shape, it pans the c
 			},
 		},
 	])
-	app.pointerDown(0, 0, { button: 1 })
-	app.pointerMove(100, 100)
-	app.expectCameraToBe(100, 100, 1)
+	editor.pointerDown(0, 0, { button: 1 })
+	editor.pointerMove(100, 100)
+	editor.expectCameraToBe(100, 100, 1)
 })

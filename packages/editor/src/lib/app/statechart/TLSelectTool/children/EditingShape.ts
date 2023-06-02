@@ -7,13 +7,13 @@ export class EditingShape extends StateNode {
 	onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				const { selectedIds, focusLayerId } = this.app
-				const hoveringShape = this.app.getOutermostSelectableShape(
+				const { selectedIds, focusLayerId } = this.editor
+				const hoveringShape = this.editor.getOutermostSelectableShape(
 					info.shape,
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
-					this.app.setHoveredId(hoveringShape.id)
+					this.editor.setHoveredId(hoveringShape.id)
 				}
 				break
 			}
@@ -23,22 +23,22 @@ export class EditingShape extends StateNode {
 	onPointerLeave: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.app.setHoveredId(null)
+				this.editor.setHoveredId(null)
 				break
 			}
 		}
 	}
 
 	onExit = () => {
-		if (!this.app.pageState.editingId) return
-		const { editingId } = this.app.pageState
+		if (!this.editor.pageState.editingId) return
+		const { editingId } = this.editor.pageState
 		if (!editingId) return
 
 		// Clear the editing shape
-		this.app.setEditingId(null)
+		this.editor.setEditingId(null)
 
-		const shape = this.app.getShapeById(editingId)!
-		const util = this.app.getShapeUtil(shape)
+		const shape = this.editor.getShapeById(editingId)!
+		const util = this.editor.getShapeUtil(shape)
 
 		// Check for changes on editing end
 		util.onEditEnd?.(shape)
@@ -49,27 +49,31 @@ export class EditingShape extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				const { editingId } = this.app.pageState
+				const { editingId } = this.editor.pageState
 
 				if (editingId) {
 					if (shape.id === editingId) {
 						return
 					}
 
-					const editingShape = this.app.getShapeById(editingId)
+					const editingShape = this.editor.getShapeById(editingId)
 
 					if (editingShape) {
-						const editingShapeUtil = this.app.getShapeUtil(editingShape)
+						const editingShapeUtil = this.editor.getShapeUtil(editingShape)
 						editingShapeUtil.onEditEnd?.(editingShape)
 
-						const util = this.app.getShapeUtil(shape)
+						const util = this.editor.getShapeUtil(shape)
 
 						// If the user has clicked onto a different shape of the same type
 						// which is available to edit, select it and begin editing it.
-						if (shape.type === editingShape.type && util.canEdit?.(shape)) {
-							this.app.setEditingId(shape.id)
-							this.app.setHoveredId(shape.id)
-							this.app.setSelectedIds([shape.id])
+						if (
+							shape.type === editingShape.type &&
+							util.canEdit?.(shape) &&
+							!this.editor.isShapeOrAncestorLocked(shape)
+						) {
+							this.editor.setEditingId(shape.id)
+							this.editor.setHoveredId(shape.id)
+							this.editor.setSelectedIds([shape.id])
 							return
 						}
 					}

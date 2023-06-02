@@ -19,7 +19,7 @@ export class ScribbleBrushing extends StateNode {
 
 	override onEnter = () => {
 		this.initialSelectedIds = new Set<TLShapeId>(
-			this.app.inputs.shiftKey ? this.app.selectedIds : []
+			this.editor.inputs.shiftKey ? this.editor.selectedIds : []
 		)
 		this.newlySelectedIds = new Set<TLShapeId>()
 		this.size = 0
@@ -29,12 +29,12 @@ export class ScribbleBrushing extends StateNode {
 
 		this.updateBrushSelection()
 		requestAnimationFrame(() => {
-			this.app.setBrush(null)
+			this.editor.setBrush(null)
 		})
 	}
 
 	override onExit = () => {
-		this.app.setErasingIds([])
+		this.editor.setErasingIds([])
 		this.scribble.stop()
 	}
 
@@ -51,7 +51,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onKeyUp = () => {
-		if (!this.app.inputs.altKey) {
+		if (!this.editor.inputs.altKey) {
 			this.parent.transition('brushing', {})
 		} else {
 			this.updateBrushSelection()
@@ -60,7 +60,7 @@ export class ScribbleBrushing extends StateNode {
 
 	private startScribble = () => {
 		if (this.scribble.tick) {
-			this.app.off('tick', this.scribble?.tick)
+			this.editor.off('tick', this.scribble?.tick)
 		}
 
 		this.scribble = new ScribbleManager({
@@ -71,28 +71,28 @@ export class ScribbleBrushing extends StateNode {
 			size: 12,
 		})
 
-		this.app.on('tick', this.scribble.tick)
+		this.editor.on('tick', this.scribble.tick)
 	}
 
 	private pushPointToScribble = () => {
-		const { x, y } = this.app.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint
 		this.scribble.addPoint(x, y)
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.app.setScribble(scribble)
+		this.editor.setScribble(scribble)
 	}
 
 	private onScribbleComplete = () => {
-		this.app.off('tick', this.scribble.tick)
-		this.app.setScribble(null)
+		this.editor.off('tick', this.scribble.tick)
+		this.editor.setScribble(null)
 	}
 
 	private updateBrushSelection() {
 		const {
 			shapesArray,
 			inputs: { originPagePoint, previousPagePoint, currentPagePoint },
-		} = this.app
+		} = this.editor
 
 		this.pushPointToScribble()
 
@@ -101,13 +101,14 @@ export class ScribbleBrushing extends StateNode {
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
-			util = this.app.getShapeUtil(shape)
+			util = this.editor.getShapeUtil(shape)
 
 			if (
 				shape.type === 'group' ||
 				this.newlySelectedIds.has(shape.id) ||
 				(shape.type === 'frame' &&
-					util.hitTestPoint(shape, this.app.getPointInShapeSpace(shape, originPagePoint)))
+					util.hitTestPoint(shape, this.editor.getPointInShapeSpace(shape, originPagePoint))) ||
+				this.editor.isShapeOrAncestorLocked(shape)
 			) {
 				continue
 			}
@@ -115,13 +116,13 @@ export class ScribbleBrushing extends StateNode {
 			if (
 				util.hitTestLineSegment(
 					shape,
-					this.app.getPointInShapeSpace(shape, previousPagePoint),
-					this.app.getPointInShapeSpace(shape, currentPagePoint)
+					this.editor.getPointInShapeSpace(shape, previousPagePoint),
+					this.editor.getPointInShapeSpace(shape, currentPagePoint)
 				)
 			) {
-				const outermostShape = this.app.getOutermostSelectableShape(shape)
+				const outermostShape = this.editor.getOutermostSelectableShape(shape)
 
-				const pageMask = this.app.getPageMaskById(outermostShape.id)
+				const pageMask = this.editor.getPageMaskById(outermostShape.id)
 
 				if (pageMask) {
 					const intersection = intersectLineSegmentPolyline(
@@ -140,7 +141,7 @@ export class ScribbleBrushing extends StateNode {
 			}
 		}
 
-		this.app.setSelectedIds(
+		this.editor.setSelectedIds(
 			[...new Set<TLShapeId>([...this.newlySelectedIds, ...this.initialSelectedIds])],
 			true
 		)
@@ -159,7 +160,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.app.setSelectedIds([...this.initialSelectedIds], true)
+		this.editor.setSelectedIds([...this.initialSelectedIds], true)
 		this.parent.transition('idle', {})
 	}
 }

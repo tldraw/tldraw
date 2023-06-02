@@ -1,9 +1,9 @@
-import { uniqueId, useApp } from '@tldraw/editor'
+import { uniqueId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 
 /** @public */
 export function usePrint() {
-	const app = useApp()
+	const editor = useEditor()
 	const prevPrintEl = useRef<HTMLDivElement | null>(null)
 	const prevStyleEl = useRef<HTMLStyleElement | null>(null)
 
@@ -129,7 +129,7 @@ export function usePrint() {
 			}
 
 			const afterPrintHandler = () => {
-				app.once('change-history', () => {
+				editor.once('change-history', () => {
 					clearElements(el, style)
 				})
 			}
@@ -156,10 +156,10 @@ export function usePrint() {
 			}
 
 			function triggerPrint() {
-				if (app.isChromeForIos) {
+				if (editor.isChromeForIos) {
 					beforePrintHandler()
 					window.print()
-				} else if (app.isSafari) {
+				} else if (editor.isSafari) {
 					beforePrintHandler()
 					document.execCommand('print', false)
 				} else {
@@ -167,7 +167,7 @@ export function usePrint() {
 				}
 			}
 
-			const { pages, currentPageId, selectedIds } = app
+			const { pages, currentPageId, selectedIds } = editor
 
 			const preserveAspectRatio = 'xMidYMid meet'
 
@@ -178,9 +178,9 @@ export function usePrint() {
 				preserveAspectRatio,
 			}
 
-			if (app.selectedIds.length > 0) {
+			if (editor.selectedIds.length > 0) {
 				// Print the selected ids from the current page
-				const svg = await app.getSvg(selectedIds, svgOpts)
+				const svg = await editor.getSvg(selectedIds, svgOpts)
 
 				if (svg) {
 					const page = pages.find((p) => p.id === currentPageId)
@@ -192,15 +192,15 @@ export function usePrint() {
 					// Print all pages
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
-						const svg = await app.getSvg(app.getSortedChildIds(page.id), svgOpts)
+						const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
 						if (svg) {
 							addPageToPrint(`tldraw — ${page.name}`, `${i}/${pages.length}`, svg)
 						}
 					}
 					triggerPrint()
 				} else {
-					const page = app.currentPage
-					const svg = await app.getSvg(app.getSortedChildIds(page.id), svgOpts)
+					const page = editor.currentPage
+					const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)
 						triggerPrint()
@@ -211,6 +211,6 @@ export function usePrint() {
 			window.removeEventListener('beforeprint', beforePrintHandler)
 			window.removeEventListener('afterprint', afterPrintHandler)
 		},
-		[app]
+		[editor]
 	)
 }

@@ -1,19 +1,19 @@
 import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { App } from '../app/App'
+import { Editor } from '../app/Editor'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
-function getHandle(app: App, id: TLShapeId, handleId: string) {
-	const shape = app.getShapeById<TLArrowShape | TLLineShape>(id)!
-	const util = app.getShapeUtil(shape)
+function getHandle(editor: Editor, id: TLShapeId, handleId: string) {
+	const shape = editor.getShapeById<TLArrowShape | TLLineShape>(id)!
+	const util = editor.getShapeUtil(shape)
 	const handles = util.handles(shape)
 	return { shape, handle: handles.find((h) => h.id === handleId) }
 }
 
 export function useHandleEvents(id: TLShapeId, handleId: string) {
-	const app = useApp()
+	const editor = useEditor()
 
 	return React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {
@@ -23,17 +23,17 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 			const target = loopToHtmlElement(e.currentTarget)
 			setPointerCapture(target, e)
 
-			const { shape, handle } = getHandle(app, id, handleId)
+			const { shape, handle } = getHandle(editor, id, handleId)
 
 			if (!handle) return
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pointer',
 				target: 'handle',
 				handle,
 				shape,
 				name: 'pointer_down',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			})
 		}
 
@@ -46,17 +46,17 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 			lastX = e.clientX
 			lastY = e.clientY
 
-			const { shape, handle } = getHandle(app, id, handleId)
+			const { shape, handle } = getHandle(editor, id, handleId)
 
 			if (!handle) return
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pointer',
 				target: 'handle',
 				handle,
 				shape,
 				name: 'pointer_move',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			})
 		}
 
@@ -66,51 +66,51 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 			const target = loopToHtmlElement(e.currentTarget)
 			releasePointerCapture(target, e)
 
-			const { shape, handle } = getHandle(app, id, handleId)
+			const { shape, handle } = getHandle(editor, id, handleId)
 
 			if (!handle) return
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pointer',
 				target: 'handle',
 				handle,
 				shape,
 				name: 'pointer_up',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			})
 		}
 
 		const onPointerEnter = (e: React.PointerEvent) => {
 			if ((e as any).isKilled) return
 
-			const { shape, handle } = getHandle(app, id, handleId)
+			const { shape, handle } = getHandle(editor, id, handleId)
 
 			if (!handle) return
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pointer',
 				target: 'handle',
 				handle,
 				shape,
 				name: 'pointer_enter',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			})
 		}
 
 		const onPointerLeave = (e: React.PointerEvent) => {
 			if ((e as any).isKilled) return
 
-			const { shape, handle } = getHandle(app, id, handleId)
+			const { shape, handle } = getHandle(editor, id, handleId)
 
 			if (!handle) return
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pointer',
 				target: 'handle',
 				handle,
 				shape,
 				name: 'pointer_leave',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			})
 		}
 
@@ -121,5 +121,5 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 			onPointerEnter,
 			onPointerLeave,
 		}
-	}, [app, id, handleId])
+	}, [editor, id, handleId])
 }

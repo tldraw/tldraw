@@ -13,15 +13,15 @@ export class PointingHandle extends StateNode {
 		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
 
 		if (initialTerminal?.type === 'binding') {
-			this.app.setHintingIds([initialTerminal.boundShapeId])
+			this.editor.setHintingIds([initialTerminal.boundShapeId])
 		}
 
-		this.app.setCursor({ type: 'grabbing' })
+		this.editor.setCursor({ type: 'grabbing' })
 	}
 
 	onExit = () => {
-		this.app.setHintingIds([])
-		this.app.setCursor({ type: 'default' })
+		this.editor.setHintingIds([])
+		this.editor.setCursor({ type: 'default' })
 	}
 
 	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -29,7 +29,7 @@ export class PointingHandle extends StateNode {
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging_handle', this.info)
 		}
 	}

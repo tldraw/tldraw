@@ -286,7 +286,7 @@ export const STYLES: TLStyleCollections = {
 	],
 }
 
-// These props should not cause App.props to update
+// These props should not cause Editor.props to update
 export const BLACKLISTED_PROPS = new Set([
 	'bend',
 	'w',

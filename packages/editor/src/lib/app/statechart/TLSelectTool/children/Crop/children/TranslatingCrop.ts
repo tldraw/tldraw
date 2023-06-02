@@ -27,13 +27,13 @@ export class TranslatingCrop extends StateNode {
 		this.info = info
 		this.snapshot = this.createSnapshot()
 
-		this.app.mark(this.markId)
-		this.app.setCursor({ type: 'move' })
+		this.editor.mark(this.markId)
+		this.editor.setCursor({ type: 'move' })
 		this.updateShapes()
 	}
 
 	onExit = () => {
-		this.app.setCursor({ type: 'default' })
+		this.editor.setCursor({ type: 'default' })
 	}
 
 	onPointerMove = () => {
@@ -77,16 +77,16 @@ export class TranslatingCrop extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
-		this.app.setSelectedTool('select.crop.idle', this.info)
+		this.editor.setSelectedTool('select.crop.idle', this.info)
 	}
 
 	private cancel() {
-		this.app.bailToMark(this.markId)
-		this.app.setSelectedTool('select.crop.idle', this.info)
+		this.editor.bailToMark(this.markId)
+		this.editor.setSelectedTool('select.crop.idle', this.info)
 	}
 
 	private createSnapshot() {
-		const shape = this.app.onlySelectedShape as ShapeWithCrop
+		const shape = this.editor.onlySelectedShape as ShapeWithCrop
 		return { shape }
 	}
 
@@ -95,12 +95,12 @@ export class TranslatingCrop extends StateNode {
 
 		if (!shape) return
 
-		const { originPagePoint, currentPagePoint } = this.app.inputs
+		const { originPagePoint, currentPagePoint } = this.editor.inputs
 		const delta = currentPagePoint.clone().sub(originPagePoint)
-		const partial = getTranslateCroppedImageChange(this.app, shape, delta)
+		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
 		if (partial) {
-			this.app.updateShapes([partial], true)
+			this.editor.updateShapes([partial], true)
 		}
 	}
 }

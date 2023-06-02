@@ -19,13 +19,13 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedIds, focusLayerId } = this.app
-				const hoveringShape = this.app.getOutermostSelectableShape(
+				const { selectedIds, focusLayerId } = this.editor
+				const hoveringShape = this.editor.getOutermostSelectableShape(
 					info.shape,
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
-					this.app.setHoveredId(hoveringShape.id)
+					this.editor.setHoveredId(hoveringShape.id)
 				}
 
 				// Custom cursor debugging!
@@ -34,10 +34,10 @@ export class Idle extends StateNode {
 					if (hoveringShape.type !== 'geo') break
 					const cursorType = (hoveringShape.props as TLGeoShapeProps).text
 					try {
-						this.app.setCursor({ type: cursorType })
+						this.editor.setCursor({ type: cursorType })
 					} catch (e) {
 						console.error(`Cursor type not recognized: '${cursorType}'`)
-						this.app.setCursor({ type: 'default' })
+						this.editor.setCursor({ type: 'default' })
 					}
 				}
 
@@ -49,14 +49,14 @@ export class Idle extends StateNode {
 	onPointerLeave: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.app.setHoveredId(null)
+				this.editor.setHoveredId(null)
 				break
 			}
 		}
 	}
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.app.isMenuOpen) return
+		if (this.editor.isMenuOpen) return
 
 		const shouldEnterCropMode = this.shouldEnterCropMode(info, true)
 
@@ -64,19 +64,19 @@ export class Idle extends StateNode {
 			this.parent.transition('brushing', info)
 			return
 		}
-
 		switch (info.target) {
 			case 'canvas': {
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
 			case 'shape': {
+				if (this.editor.isShapeOrAncestorLocked(info.shape)) break
 				this.parent.transition('pointing_shape', info)
 				break
 			}
 			case 'handle': {
-				if (this.app.isReadOnly) break
-				if (this.app.inputs.altKey) {
+				if (this.editor.isReadOnly) break
+				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
 					this.parent.transition('pointing_handle', info)
@@ -130,16 +130,16 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				// Create text shape and transition to editing_shape
-				if (this.app.isReadOnly) break
+				if (this.editor.isReadOnly) break
 				this.createTextShapeAtPoint(info)
 				break
 			}
 			case 'selection': {
-				if (this.app.isReadOnly) break
+				if (this.editor.isReadOnly) break
 
-				const { onlySelectedShape } = this.app
+				const { onlySelectedShape } = this.editor
 				if (onlySelectedShape) {
-					const util = this.app.getShapeUtil(onlySelectedShape)
+					const util = this.editor.getShapeUtil(onlySelectedShape)
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -150,19 +150,22 @@ export class Idle extends StateNode {
 					) {
 						const change = util.onDoubleClickEdge?.(onlySelectedShape)
 						if (change) {
-							this.app.mark('double click edge')
-							this.app.updateShapes([change])
+							this.editor.mark('double click edge')
+							this.editor.updateShapes([change])
 							return
 						}
 					}
 
 					// For corners OR edges
-					if (util.canCrop(onlySelectedShape)) {
+					if (
+						util.canCrop(onlySelectedShape) &&
+						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
+					) {
 						this.parent.transition('crop', info)
 						return
 					}
 
-					if (util.canEdit(onlySelectedShape)) {
+					if (this.shouldStartEditingShape(onlySelectedShape)) {
 						this.startEditingShape(onlySelectedShape, info)
 					}
 				}
@@ -170,27 +173,27 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-				const util = this.app.getShapeUtil(shape)
+				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.app.isReadOnly) break
+				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.isReadOnly) break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
 					const change = util.onDoubleClick?.(shape)
 					if (change) {
-						this.app.updateShapes([change])
+						this.editor.updateShapes([change])
 						return
-					} else if (util.canCrop(shape)) {
+					} else if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
 						// crop on double click
-						this.app.mark('select and crop')
-						this.app.select(info.shape?.id)
+						this.editor.mark('select and crop')
+						this.editor.select(info.shape?.id)
 						this.parent.transition('crop', info)
 						return
 					}
 				}
 				// If the shape can edit, then begin editing
-				if (util.canEdit(shape)) {
+				if (this.shouldStartEditingShape(shape)) {
 					this.startEditingShape(shape, info)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -201,18 +204,18 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.app.isReadOnly) break
+				if (this.editor.isReadOnly) break
 				const { shape, handle } = info
 
-				const util = this.app.getShapeUtil(shape)
+				const util = this.editor.getShapeUtil(shape)
 				const changes = util.onDoubleClickHandle?.(shape, handle)
 
 				if (changes) {
-					this.app.updateShapes([changes])
+					this.editor.updateShapes([changes])
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
-					if (util.canEdit(shape)) {
+					if (this.shouldStartEditingShape(shape)) {
 						this.startEditingShape(shape, info)
 					}
 				}
@@ -223,21 +226,21 @@ export class Idle extends StateNode {
 	onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
-				this.app.selectNone()
+				this.editor.selectNone()
 				break
 			}
 			case 'shape': {
-				const { selectedIds } = this.app.pageState
+				const { selectedIds } = this.editor.pageState
 				const { shape } = info
 
-				const targetShape = this.app.getOutermostSelectableShape(
+				const targetShape = this.editor.getOutermostSelectableShape(
 					shape,
-					(parent) => !this.app.isSelected(parent.id)
+					(parent) => !this.editor.isSelected(parent.id)
 				)
 
 				if (!selectedIds.includes(targetShape.id)) {
-					this.app.mark('selecting shape')
-					this.app.setSelectedIds([targetShape.id])
+					this.editor.mark('selecting shape')
+					this.editor.setSelectedIds([targetShape.id])
 				}
 				break
 			}
@@ -245,16 +248,19 @@ export class Idle extends StateNode {
 	}
 
 	onEnter = () => {
-		this.app.setHoveredId(null)
-		this.app.setCursor({ type: 'default' })
+		this.editor.setHoveredId(null)
+		this.editor.setCursor({ type: 'default' })
 	}
 
 	onCancel: TLEventHandlers['onCancel'] = () => {
-		if (this.app.focusLayerId !== this.app.currentPageId && this.app.selectedIds.length > 0) {
-			this.app.popFocusLayer()
+		if (
+			this.editor.focusLayerId !== this.editor.currentPageId &&
+			this.editor.selectedIds.length > 0
+		) {
+			this.editor.popFocusLayer()
 		} else {
-			this.app.mark('clearing selection')
-			this.app.selectNone()
+			this.editor.mark('clearing selection')
+			this.editor.selectNone()
 		}
 	}
 
@@ -283,14 +289,14 @@ export class Idle extends StateNode {
 	}
 
 	onKeyUp = (info: TLKeyboardEventInfo) => {
-		if (this.app.isReadOnly) {
+		if (this.editor.isReadOnly) {
 			switch (info.code) {
 				case 'Enter': {
-					if (this.shouldStartEditingShape() && this.app.onlySelectedShape) {
-						this.startEditingShape(this.app.onlySelectedShape, {
+					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {
+						this.startEditingShape(this.editor.onlySelectedShape, {
 							...info,
 							target: 'shape',
-							shape: this.app.onlySelectedShape,
+							shape: this.editor.onlySelectedShape,
 						})
 						return
 					}
@@ -300,20 +306,20 @@ export class Idle extends StateNode {
 		} else {
 			switch (info.code) {
 				case 'Enter': {
-					const { selectedShapes } = this.app
+					const { selectedShapes } = this.editor
 
 					if (selectedShapes.every((shape) => shape.type === 'group')) {
-						this.app.setSelectedIds(
-							selectedShapes.flatMap((shape) => this.app.getSortedChildIds(shape.id))
+						this.editor.setSelectedIds(
+							selectedShapes.flatMap((shape) => this.editor.getSortedChildIds(shape.id))
 						)
 						return
 					}
 
-					if (this.shouldStartEditingShape() && this.app.onlySelectedShape) {
-						this.startEditingShape(this.app.onlySelectedShape, {
+					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {
+						this.startEditingShape(this.editor.onlySelectedShape, {
 							...info,
 							target: 'shape',
-							shape: this.app.onlySelectedShape,
+							shape: this.editor.onlySelectedShape,
 						})
 						return
 					}
@@ -327,22 +333,23 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private shouldStartEditingShape(): boolean {
-		const { onlySelectedShape } = this.app
-		if (!onlySelectedShape) return false
+	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
+		if (!shape) return false
+		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
 
-		const util = this.app.getShapeUtil(onlySelectedShape)
-		return util.canEdit(onlySelectedShape)
+		const util = this.editor.getShapeUtil(shape)
+		return util.canEdit(shape)
 	}
 
 	private shouldEnterCropMode(
 		info: TLPointerEventInfo | TLKeyboardEventInfo,
 		withCtrlKey: boolean
 	): boolean {
-		const singleShape = this.app.onlySelectedShape
+		const singleShape = this.editor.onlySelectedShape
 		if (!singleShape) return false
+		if (this.editor.isShapeOrAncestorLocked(singleShape)) return false
 
-		const shapeUtil = this.app.getShapeUtil(singleShape)
+		const shapeUtil = this.editor.getShapeUtil(singleShape)
 		// Should the Ctrl key be pressed to enter crop mode
 		if (withCtrlKey) {
 			return shapeUtil.canCrop(singleShape) && info.ctrlKey
@@ -352,19 +359,20 @@ export class Idle extends StateNode {
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
-		this.app.mark('editing shape')
-		this.app.setEditingId(shape.id)
+		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
+		this.editor.mark('editing shape')
+		this.editor.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
 
 	private createTextShapeAtPoint(info: TLClickEventInfo) {
-		this.app.mark('creating text shape')
+		this.editor.mark('creating text shape')
 
 		const id = createShapeId()
 
-		const { x, y } = this.app.inputs.currentPagePoint
+		const { x, y } = this.editor.inputs.currentPagePoint
 
-		this.app.createShapes([
+		this.editor.createShapes([
 			{
 				id,
 				type: 'text',
@@ -377,12 +385,12 @@ export class Idle extends StateNode {
 			},
 		])
 
-		const shape = this.app.getShapeById(id)
+		const shape = this.editor.getShapeById(id)
 		if (!shape) return
 
-		const bounds = this.app.getBounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
-		this.app.updateShapes([
+		this.editor.updateShapes([
 			{
 				id,
 				type: 'text',
@@ -391,20 +399,20 @@ export class Idle extends StateNode {
 			},
 		])
 
-		this.app.setEditingId(id)
-		this.app.select(id)
+		this.editor.setEditingId(id)
+		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}
 
 	private nudgeSelectedShapes(ephemeral = false) {
 		const {
-			app: {
+			editor: {
 				inputs: { keys },
 			},
 		} = this
 
 		// We want to use the "actual" shift key state,
-		// not the one that's in the app.inputs.shiftKey,
+		// not the one that's in the editor.inputs.shiftKey,
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('Shift')
 
@@ -417,8 +425,8 @@ export class Idle extends StateNode {
 
 		if (delta.equals(new Vec2d(0, 0))) return
 
-		if (!ephemeral) this.app.mark('nudge shapes')
+		if (!ephemeral) this.editor.mark('nudge shapes')
 
-		this.app.nudgeShapes(this.app.selectedIds, delta, shiftKey)
+		this.editor.nudgeShapes(this.editor.selectedIds, delta, shiftKey)
 	}
 }

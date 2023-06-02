@@ -27,17 +27,17 @@ export class Pointing extends StateNode {
 	onEnter = () => {
 		const {
 			inputs: { currentPagePoint },
-		} = this.app
+		} = this.editor
 
 		this.didTimeout = false
 
 		const shapeType = (this.parent as TLArrowTool).shapeType
 
-		this.app.mark('creating')
+		this.editor.mark('creating')
 
 		const id = createShapeId()
 
-		this.app.createShapes([
+		this.editor.createShapes([
 			{
 				id,
 				type: shapeType,
@@ -46,15 +46,15 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const util = this.app.getShapeUtil(TLArrowUtil)
-		const shape = this.app.getShapeById<TLArrowShape>(id)
+		const util = this.editor.getShapeUtil(TLArrowUtil)
+		const shape = this.editor.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
 		const handles = util.handles?.(shape)
 
 		if (handles) {
 			// start precise
-			const point = this.app.getPointInShapeSpace(shape, currentPagePoint)
+			const point = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
 			const change = util.onHandleChange?.(shape, {
 				handle: { ...handles[0], x: point.x, y: point.y },
@@ -64,15 +64,15 @@ export class Pointing extends StateNode {
 			if (change) {
 				const startTerminal = change.props?.start
 				if (startTerminal?.type === 'binding') {
-					this.app.setHintingIds([startTerminal.boundShapeId])
+					this.editor.setHintingIds([startTerminal.boundShapeId])
 				}
-				this.app.updateShapes([change], true)
+				this.editor.updateShapes([change], true)
 			}
 		}
 
-		this.app.select(id)
+		this.editor.select(id)
 
-		this.shape = this.app.getShapeById(id)
+		this.shape = this.editor.getShapeById(id)
 
 		this.startPreciseTimeout()
 	}
@@ -84,25 +84,28 @@ export class Pointing extends StateNode {
 	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (!this.shape) return
 
-		if (this.app.inputs.isDragging) {
-			const util = this.app.getShapeUtil(this.shape)
+		if (this.editor.inputs.isDragging) {
+			const util = this.editor.getShapeUtil(this.shape)
 			const handles = util.handles?.(this.shape)
 
 			if (!handles) {
-				this.app.bailToMark('creating')
+				this.editor.bailToMark('creating')
 				throw Error('No handles found')
 			}
 
 			if (!this.didTimeout) {
-				const util = this.app.getShapeUtil(TLArrowUtil)
-				const shape = this.app.getShapeById<TLArrowShape>(this.shape.id)
+				const util = this.editor.getShapeUtil(TLArrowUtil)
+				const shape = this.editor.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return
 
 				const handles = util.handles(shape)
 
 				if (handles) {
-					const { x, y } = this.app.getPointInShapeSpace(shape, this.app.inputs.originPagePoint)
+					const { x, y } = this.editor.getPointInShapeSpace(
+						shape,
+						this.editor.inputs.originPagePoint
+					)
 					const change = util.onHandleChange?.(shape, {
 						handle: {
 							...handles[0],
@@ -113,12 +116,12 @@ export class Pointing extends StateNode {
 					})
 
 					if (change) {
-						this.app.updateShapes([change], true)
+						this.editor.updateShapes([change], true)
 					}
 				}
 			}
 
-			this.app.setSelectedTool('select.dragging_handle', {
+			this.editor.setSelectedTool('select.dragging_handle', {
 				shape: this.shape,
 				handle: handles.find((h) => h.id === 'end')! /* end */,
 				isCreating: true,
@@ -144,8 +147,8 @@ export class Pointing extends StateNode {
 	}
 
 	cancel() {
-		this.app.bailToMark('creating')
-		this.app.setHintingIds([])
+		this.editor.bailToMark('creating')
+		this.editor.setHintingIds([])
 		this.parent.transition('idle', {})
 	}
 }
