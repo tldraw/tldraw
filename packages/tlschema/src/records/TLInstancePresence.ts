@@ -28,7 +28,6 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 		rotation: number
 	}
 	chatMessage: string
-	chatMessageTimestamp: number | null
 }
 
 /** @public */
@@ -64,7 +63,6 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 		brush: T.boxModel.nullable(),
 		scribble: scribbleTypeValidator.nullable(),
 		chatMessage: T.string,
-		chatMessageTimestamp: T.number.nullable(),
 	})
 )
 
@@ -93,9 +91,9 @@ export const instancePresenceTypeMigrations = defineMigrations({
 		},
 		[Versions.AddChatMessage]: {
 			up: (instance) => {
-				return { ...instance, chatMessage: '', chatMessageTimestamp: null }
+				return { ...instance, chatMessage: '' }
 			},
-			down: ({ chatMessage: _, chatMessageTimestamp: __, ...instance }) => {
+			down: ({ chatMessage: _, ...instance }) => {
 				return instance
 			},
 		},
@@ -135,5 +133,4 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	brush: null,
 	scribble: null,
 	chatMessage: '',
-	chatMessageTimestamp: null,
 }))

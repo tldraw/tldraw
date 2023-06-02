@@ -1,9 +1,9 @@
 import { preventDefault, useApp, useContainer } from '@tldraw/editor'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
-const CHAT_MESSAGE_TIMEOUT = 5000
+const CHAT_MESSAGE_TIMEOUT = 1000
 
 export const CursorChatInput = track(function CursorChatInput() {
 	const app = useApp()
@@ -14,36 +14,39 @@ export const CursorChatInput = track(function CursorChatInput() {
 	const { isChatting, chatMessage } = app.instanceState
 
 	// --- Fading the chat bubble ---------------
-	const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
+	const timeout = useRef<NodeJS.Timeout | null>(null)
 	const stopFade = useCallback(() => {
-		if (timeoutId === null) {
-			return
+		if (timeout.current) {
+			clearTimeout(timeout.current)
+			timeout.current = null
 		}
-		clearTimeout(timeoutId)
-		setTimeoutId(null)
 		ref.current?.classList.remove('tl-cursor-chat-fade')
-	}, [timeoutId])
+	}, [])
 
 	const startFade = useCallback(() => {
-		if (timeoutId !== null) {
-			stopFade()
-		}
-		const id = setTimeout(() => {
+		stopFade()
+
+		timeout.current = setTimeout(() => {
 			app.updateInstanceState({ chatMessage: '' })
 		}, CHAT_MESSAGE_TIMEOUT)
-		setTimeoutId(id)
-		ref.current?.classList.add('tl-cursor-chat-fade')
-	}, [app, timeoutId, stopFade])
+
+		if (!ref.current?.classList.contains('tl-cursor-chat-fade')) {
+			ref.current?.classList.add('tl-cursor-chat-fade')
+		}
+	}, [stopFade, app])
 
 	// --- Auto-focussing the chat input ----------------------------
 	useLayoutEffect(() => {
 		if (isChatting) {
+			stopFade()
+
 			// If the context menu is closing, then we need to wait a bit before focusing
 			// TODO: Do this in a better way
 			requestAnimationFrame(() => {
-				requestAnimationFrame(() => ref.current?.focus())
+				requestAnimationFrame(() => {
+					ref.current?.focus()
+				})
 			})
-			stopFade()
 		}
 	}, [isChatting, stopFade])
 
@@ -70,14 +73,14 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	// --- Helpers for handling the chat message -------------------
 	const stopChatting = useCallback(() => {
-		app.updateInstanceState({ isChatting: false, chatMessageTimestamp: Date.now() })
+		app.updateInstanceState({ isChatting: false })
 		startFade()
 		container.focus()
 	}, [app, startFade, container])
 
 	const updateChatMessage = useCallback(
 		(chatMessage: string) => {
-			app.updateInstanceState({ chatMessage, chatMessageTimestamp: null })
+			app.updateInstanceState({ chatMessage })
 			stopFade()
 		},
 		[app, stopFade]
