@@ -413,7 +413,16 @@ export interface TLUiInputProps {
 // @public (undocumented)
 export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema;
 
-// @internal (undocumented)
+// @public (undocumented)
+export type TLUiKeyboardShortcutsSchemaProviderProps = {
+    overrides?: (editor: Editor, schema: TLUiKeyboardShortcutsSchemaContextType, more: {
+        tools: TLUiToolsContextType;
+        actions: TLUiActionsContextType;
+    }) => TLUiKeyboardShortcutsSchemaContextType;
+    children: any;
+};
+
+// @public (undocumented)
 export type TLUiLanguage = {
     readonly locale: string;
     readonly label: string;
@@ -449,6 +458,18 @@ export type TLUiMenuSchema = (TLUiCustomMenuItem | TLUiMenuGroup | TLUiMenuItem)
 export type TLUiMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
+export type TLUiMenuSchemaProviderProps = {
+    overrides?: (editor: Editor, schema: TLUiMenuSchemaContextType, helpers: {
+        actions: ReturnType<typeof useActions>;
+        noneSelected: boolean;
+        oneSelected: boolean;
+        twoSelected: boolean;
+        threeSelected: boolean;
+    }) => TLUiMenuSchemaContextType;
+    children: any;
+};
+
+// @public (undocumented)
 export interface TLUiOverrides {
     // (undocumented)
     actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>;
@@ -459,7 +480,7 @@ export interface TLUiOverrides {
     // (undocumented)
     helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
-    keyboardShortcutsMenu?: WithDefaultHelpers<NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>>;
+    keyboardShortcutsMenu?: WithDefaultHelpers<NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>>;
     // (undocumented)
     menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
@@ -553,6 +574,14 @@ export interface TLUiToolItem {
 
 // @public (undocumented)
 export type TLUiToolsContextType = Record<string, TLUiToolItem>;
+
+// @public (undocumented)
+export type TLUiToolsProviderProps = {
+    overrides?: (editor: Editor, tools: TLUiToolsContextType, helpers: {
+        insertMedia: () => void;
+    }) => TLUiToolsContextType;
+    children: any;
+};
 
 // @public (undocumented)
 export type TLUiTranslation = {

@@ -1,6 +1,7 @@
 import { LANGUAGES } from './languages'
 
-type TLUiLanguage = {
+/** @public */
+export type TLUiLanguage = {
 	readonly locale: string
 	readonly label: string
 }

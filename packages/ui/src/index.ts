@@ -65,10 +65,15 @@ export { useKeyboardShortcuts } from './lib/hooks/useKeyboardShortcuts'
 export {
 	useKeyboardShortcutsSchema,
 	type TLUiKeyboardShortcutsSchemaContextType,
+	type TLUiKeyboardShortcutsSchemaProviderProps,
 } from './lib/hooks/useKeyboardShortcutsSchema'
 export { useLocalStorageState } from './lib/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/hooks/useMenuIsOpen'
-export { useMenuSchema, type TLUiMenuSchemaContextType } from './lib/hooks/useMenuSchema'
+export {
+	useMenuSchema,
+	type TLUiMenuSchemaContextType,
+	type TLUiMenuSchemaProviderProps,
+} from './lib/hooks/useMenuSchema'
 export { useReadonly } from './lib/hooks/useReadonly'
 export {
 	useToasts,
@@ -82,7 +87,12 @@ export {
 	type TLUiToolbarItem,
 	type TLUiToolbarSchemaContextType,
 } from './lib/hooks/useToolbarSchema'
-export { useTools, type TLUiToolItem, type TLUiToolsContextType } from './lib/hooks/useTools'
+export {
+	useTools,
+	type TLUiToolItem,
+	type TLUiToolsContextType,
+	type TLUiToolsProviderProps,
+} from './lib/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/hooks/useTranslation/TLUiTranslationKey'
 export { type TLUiLanguage, type TLUiTranslation } from './lib/hooks/useTranslation/translations'
 export {

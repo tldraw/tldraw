@@ -7,7 +7,7 @@ import { useBreakpoint } from './hooks/useBreakpoint'
 import { TLUiContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
 import { useDialogs } from './hooks/useDialogsProvider'
 import { TLUiHelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
-import { KeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
+import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
 import { TLUiMenuSchemaProviderProps } from './hooks/useMenuSchema'
 import { useToasts } from './hooks/useToastsProvider'
 import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
@@ -67,7 +67,7 @@ export interface TLUiOverrides {
 	menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
 	toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu?: WithDefaultHelpers<
-		NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>
+		NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>
 	>
 	tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
 	translations?: TLUiTranslationProviderProps['overrides']
@@ -80,7 +80,7 @@ export interface TLUiOverridesWithoutDefaults {
 	helpMenu?: TLUiHelpMenuSchemaProviderProps['overrides']
 	menu?: TLUiMenuSchemaProviderProps['overrides']
 	toolbar?: TLUiToolbarSchemaProviderProps['overrides']
-	keyboardShortcutsMenu?: KeyboardShortcutsSchemaProviderProps['overrides']
+	keyboardShortcutsMenu?: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
 	tools?: TLUiToolsProviderProps['overrides']
 	translations?: TLUiTranslationProviderProps['overrides']
 }

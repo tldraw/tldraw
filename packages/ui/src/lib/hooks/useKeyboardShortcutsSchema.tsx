@@ -14,8 +14,8 @@ export const KeyboardShortcutsSchemaContext = React.createContext(
 	{} as TLUiKeyboardShortcutsSchemaContextType
 )
 
-/** @internal */
-export type KeyboardShortcutsSchemaProviderProps = {
+/** @public */
+export type TLUiKeyboardShortcutsSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
 		schema: TLUiKeyboardShortcutsSchemaContextType,
@@ -28,7 +28,7 @@ export type KeyboardShortcutsSchemaProviderProps = {
 export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsSchemaProvider({
 	overrides,
 	children,
-}: KeyboardShortcutsSchemaProviderProps) {
+}: TLUiKeyboardShortcutsSchemaProviderProps) {
 	const editor = useEditor()
 	const tools = useTools()
 	const actions = useActions()
