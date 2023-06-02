@@ -286,6 +286,7 @@ export const DEFAULT_TRANSLATION = {
 	'shortcuts-dialog.tools': 'Tools',
 	'shortcuts-dialog.transform': 'Transform',
 	'shortcuts-dialog.view': 'View',
+	'shortcuts-dialog.collaboration': 'Collaboration',
 	'home-project-dialog.title': 'Home project',
 	'home-project-dialog.description': "This is your local home project. It's just for you!",
 	'rename-project-dialog.title': 'Rename project',

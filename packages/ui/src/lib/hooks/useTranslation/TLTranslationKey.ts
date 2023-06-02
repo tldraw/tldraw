@@ -283,6 +283,7 @@ export type TLTranslationKey =
 	| 'shortcuts-dialog.tools'
 	| 'shortcuts-dialog.transform'
 	| 'shortcuts-dialog.view'
+	| 'shortcuts-dialog.collaboration'
 	| 'home-project-dialog.title'
 	| 'home-project-dialog.description'
 	| 'rename-project-dialog.title'
