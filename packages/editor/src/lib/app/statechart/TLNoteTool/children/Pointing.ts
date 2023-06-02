@@ -15,16 +15,16 @@ export class Pointing extends StateNode {
 	markPointId = 'creating'
 
 	onEnter = () => {
-		this.wasFocusedOnEnter = !this.app.isMenuOpen
+		this.wasFocusedOnEnter = !this.editor.isMenuOpen
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
-			this.app.mark(this.markPointId)
+		if (this.editor.inputs.isDragging) {
+			this.editor.mark(this.markPointId)
 			const shape = this.createShape()
 			if (!shape) return
 
-			this.app.setSelectedTool('select.translating', {
+			this.editor.setSelectedTool('select.translating', {
 				...info,
 				target: 'shape',
 				shape,
@@ -56,16 +56,16 @@ export class Pointing extends StateNode {
 			return
 		}
 
-		this.app.mark(this.markPointId)
+		this.editor.mark(this.markPointId)
 		const shape = this.createShape()
 
-		if (this.app.instanceState.isToolLocked) {
+		if (this.editor.instanceState.isToolLocked) {
 			this.parent.transition('idle', {})
 		} else {
 			if (!shape) return
 
-			this.app.setEditingId(shape.id)
-			this.app.setSelectedTool('select.editing_shape', {
+			this.editor.setEditingId(shape.id)
+			this.editor.setSelectedTool('select.editing_shape', {
 				...this.info,
 				target: 'shape',
 				shape,
@@ -74,18 +74,18 @@ export class Pointing extends StateNode {
 	}
 
 	private cancel() {
-		this.app.bailToMark(this.markPointId)
+		this.editor.bailToMark(this.markPointId)
 		this.parent.transition('idle', this.info)
 	}
 
 	private createShape() {
 		const {
 			inputs: { originPagePoint },
-		} = this.app
+		} = this.editor
 
-		const id = this.app.createShapeId()
+		const id = this.editor.createShapeId()
 
-		this.app.createShapes(
+		this.editor.createShapes(
 			[
 				{
 					id,
@@ -97,12 +97,12 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		const util = this.app.getShapeUtil(TLNoteUtil)
-		const shape = this.app.getShapeById<TLNoteShape>(id)!
+		const util = this.editor.getShapeUtil(TLNoteUtil)
+		const shape = this.editor.getShapeById<TLNoteShape>(id)!
 		const bounds = util.bounds(shape)
 
 		// Center the text around the created point
-		this.app.updateShapes([
+		this.editor.updateShapes([
 			{
 				id,
 				type: 'note',
@@ -111,6 +111,6 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		return this.app.getShapeById(id)
+		return this.editor.getShapeById(id)
 	}
 }

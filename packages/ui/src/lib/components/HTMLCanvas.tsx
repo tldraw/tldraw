@@ -1,14 +1,14 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 
 /** @public */
 export const HTMLCanvas = track(function HTMLCanvas() {
-	const app = useApp()
+	const editor = useEditor()
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
-	const camera = app.camera
-	const shapes = app.shapesArray
+	const camera = editor.camera
+	const shapes = editor.shapesArray
 	if (rCanvas.current) {
 		const cvs = rCanvas.current
 		const ctx = cvs.getContext('2d')!
@@ -20,7 +20,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 		ctx.translate(camera.x, camera.y)
 
 		for (const shape of shapes) {
-			const bounds = app.getPageBounds(shape)!
+			const bounds = editor.getPageBounds(shape)!
 			path.rect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 		}
 
@@ -29,7 +29,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 
 		for (const shape of shapes) {
 			ctx.save()
-			const corners = app.getPageCorners(shape)
+			const corners = editor.getPageCorners(shape)
 			corners.forEach((corner) => dot(ctx, corner.x, corner.y, 'red'))
 			ctx.restore()
 		}
@@ -38,8 +38,8 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	return (
 		<canvas
 			ref={rCanvas}
-			width={app.viewportScreenBounds.width}
-			height={app.viewportScreenBounds.height}
+			width={editor.viewportScreenBounds.width}
+			height={editor.viewportScreenBounds.height}
 			style={{ width: '100%', height: '100%' }}
 		/>
 	)

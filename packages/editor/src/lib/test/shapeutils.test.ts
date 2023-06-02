@@ -1,12 +1,12 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TestApp } from './TestApp'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 const ids = {
@@ -16,9 +16,9 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id: ids.frame1,
 			type: 'frame',
@@ -56,7 +56,7 @@ beforeEach(() => {
 describe('When interacting with a shape...', () => {
 	it('fires rotate events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = app.getShapeUtil(TLFrameUtil)
+		const util = editor.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onRotateStart = fnStart
@@ -67,10 +67,10 @@ describe('When interacting with a shape...', () => {
 		const fnEnd = jest.fn()
 		util.onRotateEnd = fnEnd
 
-		app.selectAll()
-		expect(app.selectedIds).toMatchObject([ids.frame1, ids.box1])
+		editor.selectAll()
+		expect(editor.selectedIds).toMatchObject([ids.frame1, ids.box1])
 
-		app
+		editor
 			.pointerDown(300, 300, {
 				target: 'selection',
 				handle: 'bottom_right_rotate',
@@ -89,23 +89,23 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('cleans up events', () => {
-		const util = app.getShapeUtil(TLGeoUtil)
+		const util = editor.getShapeUtil(TLGeoUtil)
 		expect(util.onRotateStart).toBeUndefined()
 	})
 
 	it('fires double click handler event', () => {
-		const util = app.getShapeUtil(TLGeoUtil)
+		const util = editor.getShapeUtil(TLGeoUtil)
 
 		const fnStart = jest.fn()
 		util.onDoubleClick = fnStart
 
-		app.doubleClick(50, 50, ids.box2)
+		editor.doubleClick(50, 50, ids.box2)
 
 		expect(fnStart).toHaveBeenCalledTimes(1)
 	})
 
 	it('Fires resisizing events', () => {
-		const util = app.getShapeUtil(TLFrameUtil)
+		const util = editor.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onResizeStart = fnStart
@@ -116,20 +116,20 @@ describe('When interacting with a shape...', () => {
 		const fnEnd = jest.fn()
 		util.onResizeEnd = fnEnd
 
-		app.selectAll()
-		expect(app.selectedIds).toMatchObject([ids.frame1, ids.box1])
+		editor.selectAll()
+		expect(editor.selectedIds).toMatchObject([ids.frame1, ids.box1])
 
-		app.pointerDown(300, 300, {
+		editor.pointerDown(300, 300, {
 			target: 'selection',
 			handle: 'bottom_right',
 		})
 
-		app.expectPathToBe('root.select.pointing_resize_handle')
-		app.pointerMove(200, 200)
-		app.expectPathToBe('root.select.resizing')
-		app.pointerMove(200, 210)
-		app.pointerUp(200, 210)
-		app.expectPathToBe('root.select.idle')
+		editor.expectPathToBe('root.select.pointing_resize_handle')
+		editor.pointerMove(200, 200)
+		editor.expectPathToBe('root.select.resizing')
+		editor.pointerMove(200, 210)
+		editor.pointerUp(200, 210)
+		editor.expectPathToBe('root.select.idle')
 
 		// Once on start (for frame only)
 		expect(fnStart).toHaveBeenCalledTimes(1)
@@ -142,7 +142,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires translating events', () => {
-		const util = app.getShapeUtil(TLFrameUtil)
+		const util = editor.getShapeUtil(TLFrameUtil)
 
 		const fnStart = jest.fn()
 		util.onTranslateStart = fnStart
@@ -153,11 +153,11 @@ describe('When interacting with a shape...', () => {
 		const fnEnd = jest.fn()
 		util.onTranslateEnd = fnEnd
 
-		app.selectAll()
-		expect(app.selectedIds).toMatchObject([ids.frame1, ids.box1])
+		editor.selectAll()
+		expect(editor.selectedIds).toMatchObject([ids.frame1, ids.box1])
 
 		// Translate the shapes...
-		app.pointerDown(50, 50, ids.box1).pointerMove(50, 40).pointerUp(50, 40)
+		editor.pointerDown(50, 50, ids.box1).pointerMove(50, 40).pointerUp(50, 40)
 
 		// Once on start for frame
 		expect(fnStart).toHaveBeenCalledTimes(1)
@@ -170,21 +170,21 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = app.getShapeUtil(TLFrameUtil)
+		const util = editor.getShapeUtil(TLFrameUtil)
 
 		const fnClick = jest.fn()
 		util.onClick = fnClick
 
-		app.pointerDown(50, 50, ids.frame1)
-		app.pointerUp(50, 50, ids.frame1)
+		editor.pointerDown(50, 50, ids.frame1)
+		editor.pointerUp(50, 50, ids.frame1)
 
 		// If a shape has an onClick handler, and if the handler returns nothing,
 		// then normal selection rules should apply.
-		expect(app.selectedIds.length).toBe(1)
+		expect(editor.selectedIds.length).toBe(1)
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = app.getShapeUtil(TLFrameUtil)
+		const util = editor.getShapeUtil(TLFrameUtil)
 
 		const fnClick = jest.fn((shape: any) => {
 			return {
@@ -196,11 +196,11 @@ describe('When interacting with a shape...', () => {
 
 		util.onClick = fnClick
 
-		app.pointerDown(50, 50, ids.frame1)
-		app.pointerUp(50, 50, ids.frame1)
+		editor.pointerDown(50, 50, ids.frame1)
+		editor.pointerUp(50, 50, ids.frame1)
 
 		// If a shape has an onClick handler, and it returns something, then
 		// it should not be selected.
-		expect(app.selectedIds.length).toBe(0)
+		expect(editor.selectedIds.length).toBe(0)
 	})
 })

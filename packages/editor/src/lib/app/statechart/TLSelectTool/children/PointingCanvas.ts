@@ -6,32 +6,32 @@ export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
 
 	onEnter = () => {
-		const { inputs } = this.app
+		const { inputs } = this.editor
 
 		if (!inputs.shiftKey) {
-			if (this.app.selectedIds.length > 0) {
-				this.app.mark('selecting none')
-				this.app.selectNone()
+			if (this.editor.selectedIds.length > 0) {
+				this.editor.mark('selecting none')
+				this.editor.selectNone()
 			}
 		}
 	}
 
 	_clickWasInsideFocusedGroup() {
-		const { focusLayerId, inputs } = this.app
+		const { focusLayerId, inputs } = this.editor
 		if (!isShapeId(focusLayerId)) {
 			return false
 		}
-		const groupShape = this.app.getShapeById(focusLayerId)
+		const groupShape = this.editor.getShapeById(focusLayerId)
 		if (!groupShape) {
 			return false
 		}
-		const clickPoint = this.app.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
-		const util = this.app.getShapeUtil(groupShape)
+		const clickPoint = this.editor.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
+		const util = this.editor.getShapeUtil(groupShape)
 		return util.hitTestPoint(groupShape, clickPoint)
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			this.parent.transition('brushing', info)
 		}
 	}
@@ -49,11 +49,11 @@ export class PointingCanvas extends StateNode {
 	}
 
 	private complete() {
-		const { shiftKey } = this.app.inputs
+		const { shiftKey } = this.editor.inputs
 		if (!shiftKey) {
-			this.app.selectNone()
+			this.editor.selectNone()
 			if (!this._clickWasInsideFocusedGroup()) {
-				this.app.setFocusLayer(null)
+				this.editor.setFocusLayer(null)
 			}
 		}
 		this.parent.transition('idle', {})

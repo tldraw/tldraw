@@ -1,8 +1,8 @@
-import { preventDefault, useApp } from '@tldraw/editor'
+import { preventDefault, useEditor } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
-import { useAppIsFocused } from './useAppIsFocused'
+import { useEditorIsFocused } from './useEditorIsFocused'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -18,9 +18,9 @@ const SKIP_KBDS = [
 
 /** @public */
 export function useKeyboardShortcuts() {
-	const app = useApp()
+	const editor = useEditor()
 
-	const appIsFocused = useAppIsFocused()
+	const appIsFocused = useEditorIsFocused()
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
@@ -28,15 +28,16 @@ export function useKeyboardShortcuts() {
 	useEffect(() => {
 		if (!appIsFocused) return
 
-		const container = app.getContainer()
+		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: app.instanceId }, callback)
+			hotkeys(keys, { element: container, scope: editor.instanceId }, callback)
 		}
 
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
-		const areShortcutsDisabled = () => app.isMenuOpen || app.editingId !== null || app.crashingError
+		const areShortcutsDisabled = () =>
+			editor.isMenuOpen || editor.editingId !== null || editor.crashingError
 
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
@@ -51,7 +52,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && app.isReadOnly)) continue
+			if (!tool.kbd || (!tool.readonlyOk && editor.isReadOnly)) continue
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
@@ -66,8 +67,8 @@ export function useKeyboardShortcuts() {
 		// todo: move these into the actions themselves and make the UI only display the first one
 
 		hot('g', () => {
-			if (areShortcutsDisabled() || app.isReadOnly) return
-			app.setSelectedTool('geo')
+			if (areShortcutsDisabled() || editor.isReadOnly) return
+			editor.setSelectedTool('geo')
 		})
 
 		hot('del,backspace', () => {
@@ -85,12 +86,12 @@ export function useKeyboardShortcuts() {
 			actions['zoom-out'].onSelect('kbd')
 		})
 
-		hotkeys.setScope(app.instanceId)
+		hotkeys.setScope(editor.instanceId)
 
 		return () => {
-			hotkeys.deleteScope(app.instanceId)
+			hotkeys.deleteScope(editor.instanceId)
 		}
-	}, [actions, tools, isReadonly, app, appIsFocused])
+	}, [actions, tools, isReadonly, editor, appIsFocused])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {

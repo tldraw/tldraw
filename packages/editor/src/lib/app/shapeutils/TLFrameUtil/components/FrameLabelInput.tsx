@@ -1,13 +1,13 @@
 import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { forwardRef, useCallback } from 'react'
-import { useApp } from '../../../../hooks/useApp'
+import { useEditor } from '../../../../hooks/useEditor'
 import { defaultEmptyAs } from '../../../../utils/string'
 
 export const FrameLabelInput = forwardRef<
 	HTMLInputElement,
 	{ id: TLShapeId; name: string; isEditing: boolean }
 >(({ id, name, isEditing }, ref) => {
-	const app = useApp()
+	const editor = useEditor()
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -16,22 +16,22 @@ export const FrameLabelInput = forwardRef<
 				// and sending us back into edit mode
 				e.stopPropagation()
 				e.currentTarget.blur()
-				app.setEditingId(null)
+				editor.setEditingId(null)
 			}
 		},
-		[app]
+		[editor]
 	)
 
 	const handleBlur = useCallback(
 		(e: React.FocusEvent<HTMLInputElement>) => {
-			const shape = app.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShapeById<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
 			const value = e.currentTarget.value.trim()
 			if (name === value) return
 
-			app.updateShapes(
+			editor.updateShapes(
 				[
 					{
 						id,
@@ -42,19 +42,19 @@ export const FrameLabelInput = forwardRef<
 				true
 			)
 		},
-		[id, app]
+		[id, editor]
 	)
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const shape = app.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShapeById<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
 			const value = e.currentTarget.value
 			if (name === value) return
 
-			app.updateShapes(
+			editor.updateShapes(
 				[
 					{
 						id,
@@ -65,7 +65,7 @@ export const FrameLabelInput = forwardRef<
 				true
 			)
 		},
-		[id, app]
+		[id, editor]
 	)
 
 	return (

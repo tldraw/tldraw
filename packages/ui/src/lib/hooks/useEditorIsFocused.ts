@@ -1,8 +1,7 @@
 import { useEditor } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
-/** @public */
-export function useCanRedo() {
+export function useEditorIsFocused() {
 	const editor = useEditor()
-	return useValue('useCanRedo', () => editor.canRedo, [editor])
+	return useValue('editor.isFocused', () => editor.isFocused, [editor])
 }

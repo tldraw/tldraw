@@ -1,4 +1,4 @@
-import { App, TL_GEO_TYPES, featureFlags, useApp } from '@tldraw/editor'
+import { Editor, TL_GEO_TYPES, featureFlags, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -31,7 +31,7 @@ export const ToolsContext = React.createContext({} as ToolsContextType)
 /** @public */
 export type ToolsProviderProps = {
 	overrides?: (
-		app: App,
+		editor: Editor,
 		tools: ToolsContextType,
 		helpers: { insertMedia: () => void }
 	) => ToolsContextType
@@ -40,7 +40,7 @@ export type ToolsProviderProps = {
 
 /** @public */
 export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const trackEvent = useEvents()
 
 	const { addDialog } = useDialogs()
@@ -57,7 +57,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'v',
 				readonlyOk: true,
 				onSelect(source) {
-					app.setSelectedTool('select')
+					editor.setSelectedTool('select')
 					trackEvent('select-tool', { source, id: 'select' })
 				},
 			},
@@ -68,7 +68,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'h',
 				readonlyOk: true,
 				onSelect(source) {
-					app.setSelectedTool('hand')
+					editor.setSelectedTool('hand')
 					trackEvent('select-tool', { source, id: 'hand' })
 				},
 			},
@@ -79,7 +79,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: 'e',
 				readonlyOk: false,
 				onSelect(source) {
-					app.setSelectedTool('eraser')
+					editor.setSelectedTool('eraser')
 					trackEvent('select-tool', { source, id: 'eraser' })
 				},
 			},
@@ -90,7 +90,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
 				onSelect(source) {
-					app.setSelectedTool('draw')
+					editor.setSelectedTool('draw')
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
@@ -104,12 +104,12 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				kbd: id === 'rectangle' ? 'r' : id === 'ellipse' ? 'o' : undefined,
 				icon: ('geo-' + id) as TLUiIconType,
 				onSelect(source: TLUiEventSource) {
-					app.batch(() => {
-						app.updateInstanceState(
-							{ propsForNextShape: { ...app.instanceState.propsForNextShape, geo: id } },
+					editor.batch(() => {
+						editor.updateInstanceState(
+							{ propsForNextShape: { ...editor.instanceState.propsForNextShape, geo: id } },
 							true
 						)
-						app.setSelectedTool('geo')
+						editor.setSelectedTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })
 					})
 				},
@@ -121,7 +121,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-arrow',
 				kbd: 'a',
 				onSelect(source) {
-					app.setSelectedTool('arrow')
+					editor.setSelectedTool('arrow')
 					trackEvent('select-tool', { source, id: 'arrow' })
 				},
 			},
@@ -132,7 +132,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-line',
 				kbd: 'l',
 				onSelect(source) {
-					app.setSelectedTool('line')
+					editor.setSelectedTool('line')
 					trackEvent('select-tool', { source, id: 'line' })
 				},
 			},
@@ -143,7 +143,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-frame',
 				kbd: 'f',
 				onSelect(source) {
-					app.setSelectedTool('frame')
+					editor.setSelectedTool('frame')
 					trackEvent('select-tool', { source, id: 'frame' })
 				},
 			},
@@ -154,7 +154,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-text',
 				kbd: 't',
 				onSelect(source) {
-					app.setSelectedTool('text')
+					editor.setSelectedTool('text')
 					trackEvent('select-tool', { source, id: 'text' })
 				},
 			},
@@ -176,7 +176,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-note',
 				kbd: 'n',
 				onSelect(source) {
-					app.setSelectedTool('note')
+					editor.setSelectedTool('note')
 					trackEvent('select-tool', { source, id: 'note' })
 				},
 			},
@@ -187,7 +187,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				icon: 'tool-laser',
 				kbd: 'k',
 				onSelect(source) {
-					app.setSelectedTool('laser')
+					editor.setSelectedTool('laser')
 					trackEvent('select-tool', { source, id: 'laser' })
 				},
 			},
@@ -212,7 +212,7 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 				// TODO: pick a better shortcut
 				kbd: '!d',
 				onSelect(source) {
-					app.setSelectedTool('highlight')
+					editor.setSelectedTool('highlight')
 					trackEvent('select-tool', { source, id: 'highlight' })
 				},
 			})
@@ -221,11 +221,11 @@ export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
 		const tools = makeTools(toolsArray)
 
 		if (overrides) {
-			return overrides(app, tools, { insertMedia })
+			return overrides(editor, tools, { insertMedia })
 		}
 
 		return tools
-	}, [highlighterEnabled, overrides, app, trackEvent, insertMedia, addDialog])
+	}, [highlighterEnabled, overrides, editor, trackEvent, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

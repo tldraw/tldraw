@@ -1,6 +1,6 @@
 import {
-	App,
 	createTLStore,
+	Editor,
 	fileToBase64,
 	TLAsset,
 	TLInstanceId,
@@ -202,7 +202,7 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 
 /** @internal */
 export async function parseAndLoadDocument(
-	app: App,
+	editor: Editor,
 	document: string,
 	msg: (id: TLTranslationKey) => string,
 	addToast: ToastsContextType['addToast'],
@@ -212,13 +212,13 @@ export async function parseAndLoadDocument(
 	const parseFileResult = parseTldrawJsonFile({
 		store: createTLStore(),
 		json: document,
-		instanceId: app.instanceId,
+		instanceId: editor.instanceId,
 	})
 	if (!parseFileResult.ok) {
 		let description
 		switch (parseFileResult.error.type) {
 			case 'notATldrawFile':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -237,7 +237,7 @@ export async function parseAndLoadDocument(
 				}
 				break
 			case 'invalidRecords':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -246,7 +246,7 @@ export async function parseAndLoadDocument(
 				description = msg('file-system.file-open-error.generic-corrupted-file')
 				break
 			case 'v1File': {
-				buildFromV1Document(app, parseFileResult.error.data.document)
+				buildFromV1Document(editor, parseFileResult.error.data.document)
 				onV1FileLoad?.()
 				return
 			}
@@ -267,7 +267,7 @@ export async function parseAndLoadDocument(
 	// just restore everything, so if the user has opened
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
-	app.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
+	editor.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
 
-	if (forceDarkMode) app.setDarkMode(true)
+	if (forceDarkMode) editor.setDarkMode(true)
 }

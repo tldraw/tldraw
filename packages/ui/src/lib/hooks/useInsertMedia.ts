@@ -1,8 +1,8 @@
-import { ACCEPTED_ASSET_TYPE, createShapesFromFiles, useApp } from '@tldraw/editor'
+import { ACCEPTED_ASSET_TYPE, createShapesFromFiles, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 
 export function useInsertMedia() {
-	const app = useApp()
+	const editor = useEditor()
 	const inputRef = useRef<HTMLInputElement>()
 
 	useEffect(() => {
@@ -14,7 +14,12 @@ export function useInsertMedia() {
 		async function onchange(e: Event) {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) return
-			await createShapesFromFiles(app, Array.from(fileList), app.viewportPageBounds.center, false)
+			await createShapesFromFiles(
+				editor,
+				Array.from(fileList),
+				editor.viewportPageBounds.center,
+				false
+			)
 			input.value = ''
 		}
 		input.addEventListener('change', onchange)
@@ -22,7 +27,7 @@ export function useInsertMedia() {
 			inputRef.current = undefined
 			input.removeEventListener('change', onchange)
 		}
-	}, [app])
+	}, [editor])
 
 	return useCallback(() => {
 		inputRef.current?.click()

@@ -1,6 +1,6 @@
 import { runtime } from './runtime'
 
 /** @public */
-export function hardResetApp() {
+export function hardResetEditor() {
 	runtime.hardReset()
 }

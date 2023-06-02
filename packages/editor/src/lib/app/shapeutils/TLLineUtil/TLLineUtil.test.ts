@@ -1,20 +1,20 @@
 import { createCustomShapeId, TLGeoShape, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
-import { TestApp } from '../../../test/TestApp'
+import { TestEditor } from '../../../test/TestEditor'
 
 jest.mock('nanoid', () => {
 	let i = 0
 	return { nanoid: () => 'id' + i++ }
 })
 
-let app: TestApp
+let editor: TestEditor
 const id = createCustomShapeId('line1')
 
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestApp()
-	app
+	editor = new TestEditor()
+	editor
 		.selectAll()
 		.deleteShapes()
 		.createShapes([
@@ -49,10 +49,10 @@ beforeEach(() => {
 
 describe('Translating', () => {
 	it('updates the line', () => {
-		app.select(id)
-		app.pointerDown(25, 25, { target: 'shape', shape: app.getShapeById<TLLineShape>(id) })
-		app.pointerMove(50, 50) // Move shape by 25, 25
-		app.expectShapeToMatch({
+		editor.select(id)
+		editor.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+		editor.pointerMove(50, 50) // Move shape by 25, 25
+		editor.expectShapeToMatch({
 			id: id,
 			x: 175,
 			y: 175,
@@ -60,15 +60,15 @@ describe('Translating', () => {
 	})
 
 	it('updates the line when rotated', () => {
-		app.select(id)
+		editor.select(id)
 
-		const shape = app.getShapeById<TLLineShape>(id)!
+		const shape = editor.getShapeById<TLLineShape>(id)!
 		shape.rotation = Math.PI / 2
 
-		app.pointerDown(250, 250, { target: 'shape', shape: shape })
-		app.pointerMove(300, 400) // Move shape by 50, 150
+		editor.pointerDown(250, 250, { target: 'shape', shape: shape })
+		editor.pointerMove(300, 400) // Move shape by 50, 150
 
-		app.expectShapeToMatch({
+		editor.expectShapeToMatch({
 			id: id,
 			x: 200,
 			y: 300,
@@ -77,10 +77,10 @@ describe('Translating', () => {
 })
 
 it('create new handle', () => {
-	app.select(id)
+	editor.select(id)
 
-	const shape = app.getShapeById<TLLineShape>(id)!
-	app.pointerDown(200, 200, {
+	const shape = editor.getShapeById<TLLineShape>(id)!
+	editor.pointerDown(200, 200, {
 		target: 'handle',
 		shape,
 		handle: {
@@ -91,10 +91,10 @@ it('create new handle', () => {
 			y: 50,
 		},
 	})
-	app.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
-	app.pointerUp()
+	editor.pointerMove(349, 349).pointerMove(350, 350) // Move handle by 150, 150
+	editor.pointerUp()
 
-	app.expectShapeToMatch({
+	editor.expectShapeToMatch({
 		id: id,
 		props: {
 			handles: {
@@ -114,11 +114,11 @@ it('create new handle', () => {
 
 describe('Misc', () => {
 	it('preserves handle positions on spline type change', () => {
-		app.select(id)
-		const shape = app.getShapeById<TLLineShape>(id)!
+		editor.select(id)
+		const shape = editor.getShapeById<TLLineShape>(id)!
 		const prevHandles = deepCopy(shape.props.handles)
 
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				...shape,
 				props: {
@@ -127,7 +127,7 @@ describe('Misc', () => {
 			},
 		])
 
-		app.expectShapeToMatch({
+		editor.expectShapeToMatch({
 			id,
 			props: {
 				spline: 'cubic',
@@ -137,30 +137,30 @@ describe('Misc', () => {
 	})
 
 	it('resizes', () => {
-		app.select(id)
-		app.getShapeById<TLLineShape>(id)!
+		editor.select(id)
+		editor.getShapeById<TLLineShape>(id)!
 
-		app
+		editor
 			.pointerDown(150, 0, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600) // Resize shape by 0, 600
 			.expectPathToBe('root.select.resizing')
 
-		expect(app.getShapeById(id)!).toMatchSnapshot('line shape after resize')
+		expect(editor.getShapeById(id)!).toMatchSnapshot('line shape after resize')
 	})
 
 	it('nudges', () => {
-		app.select(id)
-		app.nudgeShapes(app.selectedIds, { x: 1, y: 0 })
+		editor.select(id)
+		editor.nudgeShapes(editor.selectedIds, { x: 1, y: 0 })
 
-		app.expectShapeToMatch({
+		editor.expectShapeToMatch({
 			id: id,
 			x: 151,
 			y: 150,
 		})
 
-		app.nudgeShapes(app.selectedIds, { x: 0, y: 1 }, true)
+		editor.nudgeShapes(editor.selectedIds, { x: 0, y: 1 }, true)
 
-		app.expectShapeToMatch({
+		editor.expectShapeToMatch({
 			id: id,
 			x: 151,
 			y: 160,
@@ -169,54 +169,54 @@ describe('Misc', () => {
 
 	it('align', () => {
 		const boxID = createCustomShapeId('box1')
-		app.createShapes([{ id: boxID, type: 'geo', x: 500, y: 150, props: { w: 100, h: 50 } }])
+		editor.createShapes([{ id: boxID, type: 'geo', x: 500, y: 150, props: { w: 100, h: 50 } }])
 
-		const box = app.getShapeById<TLGeoShape>(boxID)!
-		const line = app.getShapeById<TLLineShape>(id)!
+		const box = editor.getShapeById<TLGeoShape>(boxID)!
+		const line = editor.getShapeById<TLLineShape>(id)!
 
-		app.select(boxID, id)
+		editor.select(boxID, id)
 
-		expect(app.getPageBounds(box)!.maxX).not.toEqual(app.getPageBounds(line)!.maxX)
-		app.alignShapes('right', app.selectedIds)
+		expect(editor.getPageBounds(box)!.maxX).not.toEqual(editor.getPageBounds(line)!.maxX)
+		editor.alignShapes('right', editor.selectedIds)
 		jest.advanceTimersByTime(1000)
-		expect(app.getPageBounds(box)!.maxX).toEqual(app.getPageBounds(line)!.maxX)
+		expect(editor.getPageBounds(box)!.maxX).toEqual(editor.getPageBounds(line)!.maxX)
 
-		expect(app.getPageBounds(box)!.maxY).not.toEqual(app.getPageBounds(line)!.maxY)
-		app.alignShapes('bottom', app.selectedIds)
+		expect(editor.getPageBounds(box)!.maxY).not.toEqual(editor.getPageBounds(line)!.maxY)
+		editor.alignShapes('bottom', editor.selectedIds)
 		jest.advanceTimersByTime(1000)
-		expect(app.getPageBounds(box)!.maxY).toEqual(app.getPageBounds(line)!.maxY)
+		expect(editor.getPageBounds(box)!.maxY).toEqual(editor.getPageBounds(line)!.maxY)
 	})
 
 	it('duplicates', () => {
-		app.select(id)
+		editor.select(id)
 
-		app
+		editor
 			.keyDown('Alt')
-			.pointerDown(25, 25, { target: 'shape', shape: app.getShapeById<TLLineShape>(id) })
-		app.pointerMove(50, 50) // Move shape by 25, 25
-		app.pointerUp().keyUp('Alt')
+			.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+		editor.pointerMove(50, 50) // Move shape by 25, 25
+		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(app.shapeIds.values()).length).toEqual(2)
+		expect(Array.from(editor.shapeIds.values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
-		app.select(id)
+		editor.select(id)
 
-		app
+		editor
 			.keyDown('Alt')
-			.pointerDown(25, 25, { target: 'shape', shape: app.getShapeById<TLLineShape>(id) })
-		app.pointerMove(50, 50) // Move shape by 25, 25
-		app.pointerUp().keyUp('Alt')
+			.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+		editor.pointerMove(50, 50) // Move shape by 25, 25
+		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(app.shapeIds.values())
+		let ids = Array.from(editor.shapeIds.values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
-		app.select(duplicate)
+		editor.select(duplicate)
 
-		app.deleteShapes()
+		editor.deleteShapes()
 
-		ids = Array.from(app.shapeIds.values())
+		ids = Array.from(editor.shapeIds.values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

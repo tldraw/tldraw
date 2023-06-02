@@ -1,4 +1,4 @@
-import { App } from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { objectMapEntries } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
@@ -49,7 +49,11 @@ export function useDefaultHelpers() {
 
 type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
-export type TldrawUiOverride<Type, Helpers> = (app: App, schema: Type, helpers: Helpers) => Type
+export type TldrawUiOverride<Type, Helpers> = (
+	editor: Editor,
+	schema: Type,
+	helpers: Helpers
+) => Type
 
 type WithDefaultHelpers<T extends TldrawUiOverride<any, any>> = T extends TldrawUiOverride<
 	infer Type,
@@ -102,66 +106,66 @@ export function mergeOverrides(
 		}
 	}
 	return {
-		actionsMenu: (app, schema, helpers) => {
+		actionsMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.actionsMenu) {
-					schema = override.actionsMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.actionsMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		actions: (app, schema) => {
+		actions: (editor, schema) => {
 			for (const override of overrides) {
 				if (override.actions) {
-					schema = override.actions(app, schema, defaultHelpers)
+					schema = override.actions(editor, schema, defaultHelpers)
 				}
 			}
 			return schema
 		},
-		contextMenu: (app, schema, helpers) => {
+		contextMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.contextMenu) {
-					schema = override.contextMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.contextMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		helpMenu: (app, schema, helpers) => {
+		helpMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.helpMenu) {
-					schema = override.helpMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.helpMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		menu: (app, schema, helpers) => {
+		menu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.menu) {
-					schema = override.menu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.menu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		toolbar: (app, schema, helpers) => {
+		toolbar: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.toolbar) {
-					schema = override.toolbar(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.toolbar(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		keyboardShortcutsMenu: (app, schema, helpers) => {
+		keyboardShortcutsMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.keyboardShortcutsMenu) {
-					schema = override.keyboardShortcutsMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.keyboardShortcutsMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		tools: (app, schema, helpers) => {
+		tools: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.tools) {
-					schema = override.tools(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.tools(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema

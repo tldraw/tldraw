@@ -49,11 +49,11 @@ export class Resizing extends StateNode {
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
-			this.app.setCursor({ type: 'cross', rotation: 0 })
+			this.editor.setCursor({ type: 'cross', rotation: 0 })
 		}
 
 		this.snapshot = this._createSnapshot()
-		this.markId = isCreating ? 'creating' : this.app.mark('starting resizing')
+		this.markId = isCreating ? 'creating' : this.editor.mark('starting resizing')
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -84,9 +84,9 @@ export class Resizing extends StateNode {
 
 	private cancel() {
 		// Restore initial models
-		this.app.bailToMark(this.markId)
+		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -95,15 +95,15 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		if (this.editAfterComplete && this.app.onlySelectedShape) {
-			this.app.setEditingId(this.app.onlySelectedShape.id)
-			this.app.setSelectedTool('select')
-			this.app.root.current.value!.transition('editing_shape', {})
+		if (this.editAfterComplete && this.editor.onlySelectedShape) {
+			this.editor.setEditingId(this.editor.onlySelectedShape.id)
+			this.editor.setSelectedTool('select')
+			this.editor.root.current.value!.transition('editing_shape', {})
 			return
 		}
 
-		if (this.app.instanceState.isToolLocked && this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, {})
+		if (this.editor.instanceState.isToolLocked && this.info.onInteractionEnd) {
+			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
 			return
 		}
 
@@ -116,7 +116,7 @@ export class Resizing extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
-			const util = this.app.getShapeUtil(shape)
+			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeStart?.(shape)
 			if (change) {
 				changes.push(change)
@@ -124,7 +124,7 @@ export class Resizing extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.app.updateShapes(changes)
+			this.editor.updateShapes(changes)
 		}
 	}
 
@@ -134,8 +134,8 @@ export class Resizing extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.app.getShapeById(shape.id)!
-			const util = this.app.getShapeUtil(shape)
+			const current = this.editor.getShapeById(shape.id)!
+			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
 				changes.push(change)
@@ -143,12 +143,12 @@ export class Resizing extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.app.updateShapes(changes)
+			this.editor.updateShapes(changes)
 		}
 	}
 
 	private updateShapes() {
-		const { altKey, shiftKey } = this.app.inputs
+		const { altKey, shiftKey } = this.editor.inputs
 		const {
 			shapeSnapshots,
 			selectionBounds,
@@ -193,27 +193,27 @@ export class Resizing extends StateNode {
 		//                            │
 		//                   cursorHandleOffset.x
 
-		const { ctrlKey } = this.app.inputs
+		const { ctrlKey } = this.editor.inputs
 
-		const currentPagePoint = this.app.inputs.currentPagePoint
+		const currentPagePoint = this.editor.inputs.currentPagePoint
 			.clone()
 			.sub(cursorHandleOffset)
 			.sub(this.creationCursorOffset)
-		const originPagePoint = this.app.inputs.originPagePoint.clone().sub(cursorHandleOffset)
+		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.app.isGridMode && !ctrlKey) {
-			currentPagePoint.snapToGrid(this.app.gridSize)
+		if (this.editor.isGridMode && !ctrlKey) {
+			currentPagePoint.snapToGrid(this.editor.gridSize)
 		}
 
 		const dragHandle = this.info.handle as SelectionCorner | SelectionEdge
 		const scaleOriginHandle = rotateSelectionHandle(dragHandle, Math.PI)
 
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 
-		const shouldSnap = this.app.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && selectionRotation % TAU === 0) {
-			const { nudge } = this.app.snaps.snapResize({
+			const { nudge } = this.editor.snaps.snapResize({
 				dragDelta: Vec2d.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds: this.snapshot.initialSelectionPageBounds,
 				handle: rotateSelectionHandle(dragHandle, selectionRotation),
@@ -287,7 +287,7 @@ export class Resizing extends StateNode {
 
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
-			this.app.resizeShape(id, scale, {
+			this.editor.resizeShape(id, scale, {
 				initialBounds: snapshot.bounds,
 				dragHandle,
 				initialPageTransform: snapshot.pageTransform,
@@ -312,7 +312,7 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.app.cursor }
+		const nextCursor = { ...this.editor.cursor }
 
 		switch (dragHandle) {
 			case 'top_left':
@@ -335,11 +335,11 @@ export class Resizing extends StateNode {
 
 		nextCursor.rotation = rotation
 
-		this.app.setCursor(nextCursor)
+		this.editor.setCursor(nextCursor)
 	}
 
 	onExit = () => {
-		this.app.snaps.clear()
+		this.editor.snaps.clear()
 	}
 
 	_createSnapshot = () => {
@@ -347,9 +347,9 @@ export class Resizing extends StateNode {
 			selectedIds,
 			selectionRotation,
 			inputs: { originPagePoint },
-		} = this.app
+		} = this.editor
 
-		const selectionBounds = this.app.selectionBounds!
+		const selectionBounds = this.editor.selectionBounds!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
@@ -362,12 +362,12 @@ export class Resizing extends StateNode {
 		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
 
 		selectedIds.forEach((id) => {
-			const shape = this.app.getShapeById(id)
+			const shape = this.editor.getShapeById(id)
 			if (shape) {
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
 				if (shape.type === 'frame' && selectedIds.length === 1) return
-				this.app.visitDescendants(shape.id, (descendantId) => {
-					const descendent = this.app.getShapeById(descendantId)
+				this.editor.visitDescendants(shape.id, (descendantId) => {
+					const descendent = this.editor.getShapeById(descendantId)
 					if (descendent) {
 						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
 						if (descendent.type === 'frame') {
@@ -390,13 +390,13 @@ export class Resizing extends StateNode {
 			selectionRotation,
 			selectedIds,
 			canShapesDeform,
-			initialSelectionPageBounds: this.app.selectedPageBounds!,
+			initialSelectionPageBounds: this.editor.selectedPageBounds!,
 		}
 	}
 
 	_createShapeSnapshot = (shape: TLShape) => {
-		const pageTransform = this.app.getPageTransform(shape)!
-		const util = this.app.getShapeUtil(shape)
+		const pageTransform = this.editor.getPageTransform(shape)!
+		const util = this.editor.getShapeUtil(shape)
 
 		return {
 			shape,

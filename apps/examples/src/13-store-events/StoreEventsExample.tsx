@@ -1,19 +1,19 @@
-import { App, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
+import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useCallback, useEffect, useState } from 'react'
 
 export default function StoreEventsExample() {
-	const [app, setApp] = useState<App>()
+	const [editor, setEditor] = useState<Editor>()
 
-	const setAppToState = useCallback((app: App) => {
-		setApp(app)
+	const setAppToState = useCallback((editor: Editor) => {
+		setEditor(editor)
 	}, [])
 
 	const [storeEvents, setStoreEvents] = useState<string[]>([])
 
 	useEffect(() => {
-		if (!app) return
+		if (!editor) return
 
 		function logChangeEvent(eventName: string) {
 			setStoreEvents((events) => [eventName, ...events])
@@ -49,12 +49,12 @@ export default function StoreEventsExample() {
 			}
 		}
 
-		app.on('change', handleChangeEvent)
+		editor.on('change', handleChangeEvent)
 
 		return () => {
-			app.off('change', handleChangeEvent)
+			editor.off('change', handleChangeEvent)
 		}
-	}, [app])
+	}, [editor])
 
 	return (
 		<div style={{ display: 'flex' }}>

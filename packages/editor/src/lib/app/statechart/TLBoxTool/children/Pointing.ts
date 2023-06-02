@@ -12,21 +12,21 @@ export class Pointing extends StateNode {
 	wasFocusedOnEnter = false
 
 	onEnter = () => {
-		const { isMenuOpen } = this.app
+		const { isMenuOpen } = this.editor
 		this.wasFocusedOnEnter = !isMenuOpen
 	}
 
 	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		if (this.app.inputs.isDragging) {
-			const { originPagePoint } = this.app.inputs
+		if (this.editor.inputs.isDragging) {
+			const { originPagePoint } = this.editor.inputs
 
 			const shapeType = (this.parent as TLBoxTool)!.shapeType as TLBoxLike['type']
 
 			const id = createShapeId()
 
-			this.app.mark(this.markId)
+			this.editor.mark(this.markId)
 
-			this.app.createShapes([
+			this.editor.createShapes([
 				{
 					id,
 					type: shapeType,
@@ -39,8 +39,8 @@ export class Pointing extends StateNode {
 				},
 			])
 
-			this.app.setSelectedIds([id])
-			this.app.setSelectedTool('select.resizing', {
+			this.editor.setSelectedIds([id])
+			this.editor.setSelectedTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'bottom_right',
@@ -68,21 +68,21 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { originPagePoint } = this.app.inputs
+		const { originPagePoint } = this.editor.inputs
 
 		if (!this.wasFocusedOnEnter) {
 			return
 		}
 
-		this.app.mark(this.markId)
+		this.editor.mark(this.markId)
 
 		const shapeType = (this.parent as TLBoxTool)!.shapeType as TLBoxLike['type']
 
 		const id = createShapeId()
 
-		this.app.mark(this.markId)
+		this.editor.mark(this.markId)
 
-		this.app.createShapes([
+		this.editor.createShapes([
 			{
 				id,
 				type: shapeType,
@@ -91,11 +91,11 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.app.getShapeById<TLBoxLike>(id)!
-		const { w, h } = this.app.getShapeUtil(shape).defaultProps() as TLBoxLike['props']
-		const delta = this.app.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
+		const shape = this.editor.getShapeById<TLBoxLike>(id)!
+		const { w, h } = this.editor.getShapeUtil(shape).defaultProps() as TLBoxLike['props']
+		const delta = this.editor.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
 
-		this.app.updateShapes([
+		this.editor.updateShapes([
 			{
 				id,
 				type: shapeType,
@@ -104,12 +104,12 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		this.app.setSelectedIds([id])
+		this.editor.setSelectedIds([id])
 
-		if (this.app.instanceState.isToolLocked) {
+		if (this.editor.instanceState.isToolLocked) {
 			this.parent.transition('idle', {})
 		} else {
-			this.app.setSelectedTool('select.idle')
+			this.editor.setSelectedTool('select.idle')
 		}
 	}
 

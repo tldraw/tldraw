@@ -1,5 +1,5 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { App, preventDefault, useApp, useContainer } from '@tldraw/editor'
+import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useValue } from 'signia-react'
@@ -21,13 +21,13 @@ export interface ContextMenuProps {
 
 /** @public */
 export const ContextMenu = function ContextMenu({ children }: { children: any }) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const contextMenuSchema = useContextMenuSchema()
 	const cb = (isOpen: boolean) => {
 		if (isOpen) return
-		if (shouldDeselect(app)) {
-			app.setSelectedIds([])
+		if (shouldDeselect(editor)) {
+			editor.setSelectedIds([])
 		}
 	}
 
@@ -40,8 +40,8 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		contextMenuSchema.length === 0 ||
 		(isReadonly && contextMenuSchema.every((item) => !item.readonlyOk))
 
-	const selectToolActive = useValue('isSelectToolActive', () => app.currentToolId === 'select', [
-		app,
+	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
+		editor,
 	])
 
 	const disabled = !selectToolActive || noItemsToShow
@@ -60,14 +60,14 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	)
 }
 
-function shouldDeselect(app: App) {
-	const { onlySelectedShape } = app
+function shouldDeselect(editor: Editor) {
+	const { onlySelectedShape } = editor
 	if (!onlySelectedShape) return false
-	return app.isShapeOrAncestorLocked(onlySelectedShape)
+	return editor.isShapeOrAncestorLocked(onlySelectedShape)
 }
 
 function ContextMenuContent() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
@@ -78,7 +78,12 @@ function ContextMenuContent() {
 
 	const [disableClicks, setDisableClicks] = React.useState(false)
 
-	function getContextMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
+	function getContextMenuItem(
+		editor: Editor,
+		item: MenuChild,
+		parent: MenuChild | null,
+		depth: number
+	) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -100,7 +105,7 @@ function ContextMenuContent() {
 						data-testid={`menu-item.${item.id}`}
 						key={item.id}
 					>
-						{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
+						{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 					</_ContextMenu.Group>
 				)
 			}
@@ -117,7 +122,7 @@ function ContextMenuContent() {
 						</_ContextMenu.SubTrigger>
 						<_ContextMenu.Portal container={container} dir="ltr">
 							<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
-								{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
+								{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 							</_ContextMenu.SubContent>
 						</_ContextMenu.Portal>
 					</_ContextMenu.Sub>
@@ -192,7 +197,7 @@ function ContextMenuContent() {
 				collisionPadding={4}
 				onContextMenu={preventDefault}
 			>
-				{menuSchema.map((item) => getContextMenuItem(app, item, null, 0))}
+				{menuSchema.map((item) => getContextMenuItem(editor, item, null, 0))}
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)

@@ -13,7 +13,7 @@ keywords:
 
 The `App` class is the main control class for tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the `App`'s surface area is [very large](/gen/editor/App-class). While that makes it difficult to fully document here, the general rule is that everything is available via the `App`. Need to create some shapes? Use `app.createShapes()`. Need to delete them? Use `app.deleteShapes()`. Need a sorted array of every shape on the current page? Use `app.sortedShapesArray`.
+By design, the `App`'s surface area is [very large](/gen/editor/App-class). While that makes it difficult to fully document here, the general rule is that everything is available via the `App`. Need to create some shapes? Use `editor.createShapes()`. Need to delete them? Use `editor.deleteShapes()`. Need a sorted array of every shape on the current page? Use `editor.sortedShapesArray`.
 
 Rather than document everything, this page is intended to give a broad idea of how the `App` class is organized and some of the architectural concepts involved.
 
@@ -23,100 +23,100 @@ The app holds the raw state of the document in its `store` property. Data is kep
 
 For example, the store contains a `page` record for each page in the current document, as well as an `instancePageState` record for each page that stores information about the editor's state for that page, and a single `instanceState` for each editor instance which stores the id of the user's current page.
 
-The app also exposes many _computed_ values which are derived from other records in the store. For example, `app.selectedIds` is a computed property that will return the editor's current selected shape ids for its current page.
+The app also exposes many _computed_ values which are derived from other records in the store. For example, `editor.selectedIds` is a computed property that will return the editor's current selected shape ids for its current page.
 
 You can use these properties directly or you can use them in [signia](https://github.com/tldraw/signia) signals.
 
 ```tsx
 import { track } from "@tldraw/signia"
-import { useApp } from "@tldraw/tldraw"
+import { useEditor } from "@tldraw/tldraw"
 
 export const SelectedIdsCount = track(() => {
-  const app = useApp()
+  const editor = useEditor()
   
   return (
-    <div>{app.selectedIds.length}</div>
+    <div>{editor.selectedIds.length}</div>
   )
 })
 ```
 
 ### Changing the state
 
-The `App` class has many methods for updating its state. For example, you can change the current page's selection using `app.setSelectedIds`. You can also use other convenience methods, such as `app.select`, `app.deselect`, `app.selectAll`, or `app.selectNone`.
+The `App` class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
 
 ```ts
-app.selectNone()
-app.select(myShapeId, myOtherShapeId)
-app.selectedIds // [myShapeId, myOtherShapeId]
+editor.selectNone()
+editor.select(myShapeId, myOtherShapeId)
+editor.selectedIds // [myShapeId, myOtherShapeId]
 ```
 
-Each change to the state happens within a transaction. You can batch changes into a single transaction using the `app.batch` method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
+Each change to the state happens within a transaction. You can batch changes into a single transaction using the `editor.batch` method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
 
 ### Listening for changes
 
-You can subscribe to changes using `app.store.listen`. Each time a transaction completes, the app will call the callback with a history entry. This entry contains information about the records that were added, changed, or deleted, as well as whether the change was caused by the user or from a remote change.
+You can subscribe to changes using `editor.store.listen`. Each time a transaction completes, the app will call the callback with a history entry. This entry contains information about the records that were added, changed, or deleted, as well as whether the change was caused by the user or from a remote change.
 
 ```ts
-app.store.listen(entry => {
+editor.store.listen(entry => {
   entry // { changes, source }
 })
 ```
 
 ### Remote changes
 
-By default, changes to the editor's store are assumed to have come from the editor itself. You can use `app.store.mergeRemoteChanges` to make changes in the store that will be emitted via `store.listen` with the `source` property as `'remote'`. 
+By default, changes to the editor's store are assumed to have come from the editor itself. You can use `editor.store.mergeRemoteChanges` to make changes in the store that will be emitted via `store.listen` with the `source` property as `'remote'`. 
 
-If you're setting up some kind of multiplayer backend, you would want to send only the `'user'` changes to the server and merge the changes from the server using `app.store.mergeRemoteChanges`. (We'll have more information about this soon.)
+If you're setting up some kind of multiplayer backend, you would want to send only the `'user'` changes to the server and merge the changes from the server using `editor.store.mergeRemoteChanges`. (We'll have more information about this soon.)
 
 ### Undo and redo
 
 The history stack in tldraw contains two types of data: "marks" and "commands". Commands have their own `undo` and `redo` methods that describe how the state should change when the command is undone or redone. 
 
-You can call `app.mark(id)` to add a mark to the history stack with the given `id`. 
+You can call `editor.mark(id)` to add a mark to the history stack with the given `id`. 
 
-When you call `app.undo()`, the app will undo each command until it finds either a mark or the start of the stack. When you call `app.redo()`, the app will redo each command until it finds either a mark or the end of the stack. 
+When you call `editor.undo()`, the app will undo each command until it finds either a mark or the start of the stack. When you call `editor.redo()`, the app will redo each command until it finds either a mark or the end of the stack. 
 
 ```ts
 // A
-app.mark("duplicate everything")
-app.selectAll()
-app.duplicateShapes(app.selectedIds)
+editor.mark("duplicate everything")
+editor.selectAll()
+editor.duplicateShapes(editor.selectedIds)
 // B
 
-app.undo() // will return to A
-app.redo() // will return to B
+editor.undo() // will return to A
+editor.redo() // will return to B
 ```
 
-You can call `app.bail()` to undo and delete all commands in the stack until the first mark. 
+You can call `editor.bail()` to undo and delete all commands in the stack until the first mark. 
 
 ```ts
 // A
-app.mark("duplicate everything")
-app.selectAll()
-app.duplicateShapes(app.selectedIds)
+editor.mark("duplicate everything")
+editor.selectAll()
+editor.duplicateShapes(editor.selectedIds)
 // B
 
-app.bail() // will return to A
-app.redo() // will do nothing 
+editor.bail() // will return to A
+editor.redo() // will do nothing 
 ```
 
-You can use `app.bailToMark(id)` to undo and delete all commands and marks until you reach a mark with the given `id`.
+You can use `editor.bailToMark(id)` to undo and delete all commands and marks until you reach a mark with the given `id`.
 
 ```ts
 // A
-app.mark("first")
-app.selectAll()
+editor.mark("first")
+editor.selectAll()
 // B
-app.mark("second")
-app.duplicateShapes(app.selectedIds)
+editor.mark("second")
+editor.duplicateShapes(editor.selectedIds)
 // C
 
-app.bailToMark("first") // will to A
+editor.bailToMark("first") // will to A
 ```
 
 ## Events and Tools
 
-The `App` class receives events from the user interface via its `dispatch` method. When the `App` receives an event, it is first handled internally to update `app.inputs` and other state before, and then sent into to the app's state chart.
+The `App` class receives events from the user interface via its `dispatch` method. When the `App` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the app's state chart.
 
 You shouldn't need to use the `dispatch` method directly, however you may write code in the state chart that responds to these events.
 
@@ -126,39 +126,39 @@ The `App` class has a "state chart", or a tree of `StateNode` instances, that co
 
 Each node be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
 
-When a user interaction is sent to the app via its `dispatch` method, this event is sent to the app's root state node (`app.root`) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
+When a user interaction is sent to the app via its `dispatch` method, this event is sent to the app's root state node (`editor.root`) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
 
 <Image title="Events" src="/images/api/events.png" alt="A diagram showing an event being sent to the app and handled in the state chart." title="The app passes an event into the state start where it is handled by each active state in order."/>
 
 ### Path
 
-You can get the app's current "path" of active states via `app.root.path`. In the above example, the value would be `"root.select.idle"`.
+You can get the app's current "path" of active states via `editor.root.path`. In the above example, the value would be `"root.select.idle"`.
 
-You can check whether a path is active via `app.isIn`, or else check whether multiple paths are active via `app.isInAny`. 
+You can check whether a path is active via `editor.isIn`, or else check whether multiple paths are active via `editor.isInAny`. 
 
 ```ts
-app.store.path // 'root.select.idle'
+editor.store.path // 'root.select.idle'
 
-app.isIn('root.select') // true
-app.isIn('root.select.idle') // true
-app.isIn('root.select.pointing_shape') // false
-app.isInAny('app.select.idle', 'app.select.pointing_shape') // true
+editor.isIn('root.select') // true
+editor.isIn('root.select.idle') // true
+editor.isIn('root.select.pointing_shape') // false
+editor.isInAny('editor.select.idle', 'editor.select.pointing_shape') // true
 ```
 
 Note that the paths you pass to `isIn` or `isInAny` can be the full path or a partial of the start of the path. For example, if the full path is `root.select.idle`, then `isIn` would return true for the paths `root`, `root.select`, or `root.select.idle`.
 
-> If all you're interested in is the state below `root`, there is a convenience property, `app.currentToolId`, that can help with the app's currently selected tool.
+> If all you're interested in is the state below `root`, there is a convenience property, `editor.currentToolId`, that can help with the app's currently selected tool.
 
 ```tsx
 import { track } from "@tldraw/signia"
-import { useApp } from "@tldraw/tldraw"
+import { useEditor } from "@tldraw/tldraw"
 
 export const CreatingBubbleToolUi = track(() => {
-  const app = useApp()
+  const editor = useEditor()
 
-  const isSelected = app.isIn('root.bubble.creating')
+  const isSelected = editor.isIn('root.bubble.creating')
 
-  if (!app.currentToolId === 'bubble') return
+  if (!editor.currentToolId === 'bubble') return
   
   return (
     <div data-isSelected={isSelected}>Creating Bubble</div>
@@ -170,7 +170,7 @@ export const CreatingBubbleToolUi = track(() => {
 
 The app's `inputs` object holds information about the user's current input state, including their cursor position (in page space _and_ screen space), which keys are pressed, what their multi-click state is, and whether they are dragging, pointing, pinching, and so on.
 
-Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `app.inputs.shiftKey` will remain `true` for another 100 milliseconds or so.
+Note that the modifier keys include a short delay after being released in order to prevent certain errors when modeling interactions. For example, when a user releases the "Shift" key, `editor.inputs.shiftKey` will remain `true` for another 100 milliseconds or so.
 
 This property is stored as regular data. It is not reactive. 
 
@@ -179,7 +179,7 @@ This property is stored as regular data. It is not reactive.
 ### Create shapes
 
 ```ts
-app.createShapes([
+editor.createShapes([
   {
     id,
     type: 'geo',
@@ -200,9 +200,9 @@ app.createShapes([
 ### Update shapes
 
 ```ts
-const shape = app.selectedShapes[0]
+const shape = editor.selectedShapes[0]
 
-app.updateShapes([
+editor.updateShapes([
   {
     id: shape.id, // required
     type: shape.type, // required
@@ -218,21 +218,21 @@ app.updateShapes([
 ### Delete shapes
 
 ```ts
-const shape = app.selectedShapes[0]
+const shape = editor.selectedShapes[0]
 
-app.deleteShapes([shape.id])
+editor.deleteShapes([shape.id])
 ```
 
 ### Get a shape by its id
 
 ```ts
-app.getShapeById(myShapeId)
+editor.getShapeById(myShapeId)
 ```
 
 ### Move the camera
 
 ```ts
-app.setCamera(0, 0, 1)
+editor.setCamera(0, 0, 1)
 ```
 
 ---

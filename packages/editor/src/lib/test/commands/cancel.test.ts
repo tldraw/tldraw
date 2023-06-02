@@ -1,3 +1,3 @@
 export {}
 
-it.todo('App.cancel')
+it.todo('Editor.cancel')

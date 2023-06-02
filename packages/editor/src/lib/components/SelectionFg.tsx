@@ -2,8 +2,8 @@ import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { track } from 'signia-react'
-import { useApp } from '../hooks/useApp'
 import { getCursor } from '../hooks/useCursor'
+import { useEditor } from '../hooks/useEditor'
 import { useSelectionEvents } from '../hooks/useSelectionEvents'
 import { useTransform } from '../hooks/useTransform'
 import { CropHandles } from './CropHandles'
@@ -14,10 +14,10 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const SelectionFg = track(function SelectionFg() {
-	const app = useApp()
+	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 
-	const isReadonlyMode = app.isReadOnly
+	const isReadonlyMode = editor.isReadOnly
 	const topEvents = useSelectionEvents('top')
 	const rightEvents = useSelectionEvents('right')
 	const bottomEvents = useSelectionEvents('bottom')
@@ -27,20 +27,20 @@ export const SelectionFg = track(function SelectionFg() {
 	const bottomRightEvents = useSelectionEvents('bottom_right')
 	const bottomLeftEvents = useSelectionEvents('bottom_left')
 
-	const isDefaultCursor = !app.isMenuOpen && app.cursor.type === 'default'
-	const isCoarsePointer = app.isCoarsePointer
+	const isDefaultCursor = !editor.isMenuOpen && editor.cursor.type === 'default'
+	const isCoarsePointer = editor.isCoarsePointer
 
-	let bounds = app.selectionBounds
-	const shapes = app.selectedShapes
+	let bounds = editor.selectionBounds
+	const shapes = editor.selectedShapes
 	const onlyShape = shapes.length === 1 ? shapes[0] : null
-	const isLockedShape = onlyShape && app.isShapeOrAncestorLocked(onlyShape)
+	const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
 	const expandOutlineBy = onlyShape
-		? app.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
+		? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 		: 0
 
-	useTransform(rSvg, bounds?.x, bounds?.y, 1, app.selectionRotation, {
+	useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.selectionRotation, {
 		x: -expandOutlineBy,
 		y: -expandOutlineBy,
 	})
@@ -48,9 +48,9 @@ export const SelectionFg = track(function SelectionFg() {
 	if (!bounds) return null
 	bounds = bounds.clone().expandBy(expandOutlineBy)
 
-	const zoom = app.zoomLevel
-	const rotation = app.selectionRotation
-	const isChangingStyles = app.isChangingStyle
+	const zoom = editor.zoomLevel
+	const rotation = editor.selectionRotation
+	const isChangingStyles = editor.isChangingStyle
 
 	const width = Math.max(1, bounds.width)
 	const height = Math.max(1, bounds.height)
@@ -71,12 +71,12 @@ export const SelectionFg = track(function SelectionFg() {
 	const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
 
 	const showSelectionBounds =
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
+		(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
 		!isChangingStyles
 
 	let shouldDisplayBox =
 		(showSelectionBounds &&
-			app.isInAny(
+			editor.isInAny(
 				'select.idle',
 				'select.brushing',
 				'select.scribble_brushing',
@@ -89,21 +89,28 @@ export const SelectionFg = track(function SelectionFg() {
 				'select.pointing_crop_handle',
 				'select.editing_shape'
 			)) ||
-		(showSelectionBounds && app.isIn('select.resizing') && onlyShape && shapes[0].type === 'text')
+		(showSelectionBounds &&
+			editor.isIn('select.resizing') &&
+			onlyShape &&
+			shapes[0].type === 'text')
 
 	if (IS_FIREFOX && shouldDisplayBox) {
-		if (app.onlySelectedShape?.type === 'embed') {
+		if (editor.onlySelectedShape?.type === 'embed') {
 			shouldDisplayBox = false
 		}
 	}
 
 	const showCropHandles =
-		app.isInAny('select.pointing_crop_handle', 'select.crop.idle', 'select.crop.pointing_crop') &&
+		editor.isInAny(
+			'select.pointing_crop_handle',
+			'select.crop.idle',
+			'select.crop.pointing_crop'
+		) &&
 		!isChangingStyles &&
 		!isReadonlyMode
 
 	const shouldDisplayControls =
-		app.isInAny(
+		editor.isInAny(
 			'select.idle',
 			'select.pointing_selection',
 			'select.pointing_shape',
@@ -116,21 +123,21 @@ export const SelectionFg = track(function SelectionFg() {
 		!isCoarsePointer &&
 		!(isTinyX || isTinyY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
+		(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
 		!isLockedShape
 
 	const showMobileRotateHandle =
 		isCoarsePointer &&
 		(!isSmallX || !isSmallY) &&
 		(shouldDisplayControls || showCropHandles) &&
-		(onlyShape ? !app.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
+		(onlyShape ? !editor.getShapeUtil(onlyShape).hideRotateHandle(onlyShape) : true) &&
 		!isLockedShape
 
 	const showResizeHandles =
 		shouldDisplayControls &&
 		(onlyShape
-			? app.getShapeUtil(onlyShape).canResize(onlyShape) &&
-			  !app.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
+			? editor.getShapeUtil(onlyShape).canResize(onlyShape) &&
+			  !editor.getShapeUtil(onlyShape).hideResizeHandles(onlyShape)
 			: true) &&
 		!showCropHandles &&
 		!isLockedShape
@@ -152,7 +159,7 @@ export const SelectionFg = track(function SelectionFg() {
 
 	if (
 		hideEdgeTargetsDueToCoarsePointer &&
-		shapes.every((shape) => app.getShapeUtil(shape).isAspectRatioLocked(shape))
+		shapes.every((shape) => editor.getShapeUtil(shape).isAspectRatioLocked(shape))
 	) {
 		hideEdgeTargetsDueToCoarsePointer = false
 	}

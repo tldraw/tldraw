@@ -1,7 +1,7 @@
 import { PI, radiansToDegrees } from '@tldraw/primitives'
 import { TLCursorType } from '@tldraw/tlschema'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useEditor } from './useEditor'
 import { useQuickReactor } from './useQuickReactor'
 
 const DEFAULT_SVG = `<path d="m12 24.4219v-16.015l11.591 11.619h-6.781l-.411.124z" fill="white"/><path d="m21.0845 25.0962-3.605 1.535-4.682-11.089 3.686-1.553z" fill="white"/><path d="m19.751 24.4155-1.844.774-3.1-7.374 1.841-.775z" fill="black"/><path d="m13 10.814v11.188l2.969-2.866.428-.139h4.768z" fill="black"/>`
@@ -72,16 +72,16 @@ export function getCursor(cursor: TLCursorType, rotation = 0, color = 'black') {
 }
 
 export function useCursor() {
-	const app = useApp()
+	const editor = useEditor()
 	const container = useContainer()
 
 	useQuickReactor(
 		'useCursor',
 		() => {
-			const { type, rotation, color } = app.cursor
+			const { type, rotation, color } = editor.cursor
 			container.style.setProperty('--tl-cursor', getCursor(type, rotation, color))
 		},
-		[app, container]
+		[editor, container]
 	)
 
 	useQuickReactor(
@@ -91,6 +91,6 @@ export function useCursor() {
 				container.style.setProperty(`--tl-cursor-${key}`, getCursor(key))
 			}
 		},
-		[app, container]
+		[editor, container]
 	)
 }

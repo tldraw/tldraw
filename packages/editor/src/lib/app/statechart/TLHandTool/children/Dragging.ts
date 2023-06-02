@@ -27,19 +27,19 @@ export class Dragging extends StateNode {
 	}
 
 	private update() {
-		const { currentScreenPoint, previousScreenPoint } = this.app.inputs
+		const { currentScreenPoint, previousScreenPoint } = this.editor.inputs
 
 		const delta = Vec2d.Sub(currentScreenPoint, previousScreenPoint)
 
 		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
-			this.app.pan(delta.x, delta.y)
+			this.editor.pan(delta.x, delta.y)
 		}
 	}
 
 	private complete() {
-		this.app.slideCamera({
-			speed: Math.min(2, this.app.inputs.pointerVelocity.len()),
-			direction: this.app.inputs.pointerVelocity,
+		this.editor.slideCamera({
+			speed: Math.min(2, this.editor.inputs.pointerVelocity.len()),
+			direction: this.editor.inputs.pointerVelocity,
 			friction: HAND_TOOL_FRICTION,
 		})
 

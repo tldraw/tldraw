@@ -4,7 +4,7 @@
 
 ```ts
 
-import { App } from '@tldraw/editor';
+import { Editor } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/tlstore';
 import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/tlstore';
@@ -15,7 +15,7 @@ import { ToastsContextType } from '@tldraw/ui';
 import { UnknownRecord } from '@tldraw/tlstore';
 
 // @internal (undocumented)
-export function buildFromV1Document(app: App, document: LegacyTldrawDocument): void;
+export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
 export function isV1File(data: any): boolean;
@@ -37,7 +37,7 @@ export interface LegacyTldrawDocument {
 }
 
 // @internal (undocumented)
-export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, instanceId, store, }: {

@@ -1,7 +1,7 @@
 import { createCustomShapeId, TLArrowShape, TLShapePartial } from '@tldraw/tlschema'
-import { TestApp } from './TestApp'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -12,12 +12,12 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 
-	app.selectAll().deleteShapes()
+	editor.selectAll().deleteShapes()
 })
 it('creates new bindings for arrows when pasting', async () => {
-	app
+	editor
 		.selectAll()
 		.deleteShapes()
 		.createShapes([
@@ -45,11 +45,11 @@ it('creates new bindings for arrows when pasting', async () => {
 			},
 		])
 
-	const shapesBefore = app.shapesArray
+	const shapesBefore = editor.shapesArray
 
-	app.selectAll().duplicateShapes()
+	editor.selectAll().duplicateShapes()
 
-	const shapesAfter = app.shapesArray
+	const shapesAfter = editor.shapesArray
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -84,9 +84,9 @@ describe('When duplicating shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
 
 	beforeEach(() => {
-		const box1 = app.createShapeId()
-		const box2 = app.createShapeId()
-		const box3 = app.createShapeId()
+		const box1 = editor.createShapeId()
+		const box2 = editor.createShapeId()
+		const box3 = editor.createShapeId()
 
 		shapes = [
 			{
@@ -108,7 +108,7 @@ describe('When duplicating shapes that include arrows', () => {
 				y: 0,
 			},
 			{
-				id: app.createShapeId(),
+				id: editor.createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -129,7 +129,7 @@ describe('When duplicating shapes that include arrows', () => {
 				},
 			},
 			{
-				id: app.createShapeId(),
+				id: editor.createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -150,7 +150,7 @@ describe('When duplicating shapes that include arrows', () => {
 				},
 			},
 			{
-				id: app.createShapeId(),
+				id: editor.createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -174,23 +174,23 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		app.selectAll().deleteShapes().createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes().createShapes(shapes).selectAll()
 
-		const boundsBefore = app.selectionBounds!
-		app.duplicateShapes()
-		expect(app.selectionBounds).toCloselyMatchObject(boundsBefore)
+		const boundsBefore = editor.selectionBounds!
+		editor.duplicateShapes()
+		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
-		app
+		editor
 			.selectAll()
 			.deleteShapes()
 			.createShapes(shapes)
-			.select(...app.shapesArray.filter((s) => s.type === 'arrow').map((s) => s.id))
+			.select(...editor.shapesArray.filter((s) => s.type === 'arrow').map((s) => s.id))
 
-		const boundsBefore = app.selectionBounds!
-		app.duplicateShapes()
-		const boundsAfter = app.selectionBounds!
+		const boundsBefore = editor.selectionBounds!
+		editor.duplicateShapes()
+		const boundsAfter = editor.selectionBounds!
 
 		// It's not exactly exact, but close enough is plenty close
 		expect(Math.abs(boundsAfter.x - boundsBefore.x)).toBeLessThan(1)
@@ -199,6 +199,6 @@ describe('When duplicating shapes that include arrows', () => {
 		expect(Math.abs(boundsAfter.h - boundsBefore.h)).toBeLessThan(1)
 
 		// If you're feeling up to it:
-		// expect(app.selectionBounds).toCloselyMatchObject(boundsBefore)
+		// expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
 	})
 })

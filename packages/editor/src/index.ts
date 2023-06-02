@@ -21,12 +21,12 @@ export {
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {
-	App,
+	Editor,
 	isShapeWithHandles,
 	type AnimationOptions,
 	type AppOptions,
 	type TLChange,
-} from './lib/app/App'
+} from './lib/app/Editor'
 export { TLArrowUtil } from './lib/app/shapeutils/TLArrowUtil/TLArrowUtil'
 export { TLBookmarkUtil } from './lib/app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 export { TLBoxUtil } from './lib/app/shapeutils/TLBoxUtil'
@@ -174,8 +174,8 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { normalizeWheel } from './lib/hooks/shared'
-export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
+export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
@@ -241,7 +241,7 @@ export {
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
-export { hardResetApp } from './lib/utils/hard-reset'
+export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'

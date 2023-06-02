@@ -11,8 +11,8 @@ export default function EndToEnd() {
 				onUiEvent={(name, data) => {
 					;(window as any).__tldraw_ui_event = { name, data }
 				}}
-				onMount={(app) => {
-					app.on('event', (info) => {
+				onMount={(editor) => {
+					editor.on('event', (info) => {
 						;(window as any).__tldraw_editor_events.push(info)
 					})
 				}}

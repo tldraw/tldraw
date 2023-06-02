@@ -1,11 +1,11 @@
 import { getIndexAbove, getIndexBetween } from '@tldraw/indices'
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestApp'
+import { TestEditor } from '../../test/TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 const ids = {
@@ -20,78 +20,78 @@ const ids = {
 
 describe('parentsToChildrenWithIndexes', () => {
 	it('keeps the children and parents up to date', () => {
-		app.createShapes([{ type: 'geo', id: ids.box1 }])
-		app.createShapes([{ type: 'geo', id: ids.box2 }])
+		editor.createShapes([{ type: 'geo', id: ids.box1 }])
+		editor.createShapes([{ type: 'geo', id: ids.box2 }])
 
-		expect(app.getSortedChildIds(ids.box1)).toEqual([])
-		expect(app.getSortedChildIds(ids.box2)).toEqual([])
+		expect(editor.getSortedChildIds(ids.box1)).toEqual([])
+		expect(editor.getSortedChildIds(ids.box2)).toEqual([])
 
-		app.createShapes([{ type: 'geo', id: ids.box3, parentId: ids.box1 }])
+		editor.createShapes([{ type: 'geo', id: ids.box3, parentId: ids.box1 }])
 
-		expect(app.getSortedChildIds(ids.box1)).toEqual([ids.box3])
-		expect(app.getSortedChildIds(ids.box2)).toEqual([])
+		expect(editor.getSortedChildIds(ids.box1)).toEqual([ids.box3])
+		expect(editor.getSortedChildIds(ids.box2)).toEqual([])
 
-		app.updateShapes([{ id: ids.box3, type: 'geo', parentId: ids.box2 }])
+		editor.updateShapes([{ id: ids.box3, type: 'geo', parentId: ids.box2 }])
 
-		expect(app.getSortedChildIds(ids.box1)).toEqual([])
-		expect(app.getSortedChildIds(ids.box2)).toEqual([ids.box3])
+		expect(editor.getSortedChildIds(ids.box1)).toEqual([])
+		expect(editor.getSortedChildIds(ids.box2)).toEqual([ids.box3])
 
-		app.updateShapes([{ id: ids.box1, type: 'geo', parentId: ids.box2 }])
+		editor.updateShapes([{ id: ids.box1, type: 'geo', parentId: ids.box2 }])
 
-		expect(app.getSortedChildIds(ids.box2)).toEqual([ids.box3, ids.box1])
+		expect(editor.getSortedChildIds(ids.box2)).toEqual([ids.box3, ids.box1])
 	})
 
 	it('keeps the children of pages too', () => {
-		app.createShapes([
+		editor.createShapes([
 			{ type: 'geo', id: ids.box1 },
 			{ type: 'geo', id: ids.box2 },
 			{ type: 'geo', id: ids.box3 },
 		])
 
-		expect(app.getSortedChildIds(app.currentPageId)).toEqual([ids.box1, ids.box2, ids.box3])
+		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box1, ids.box2, ids.box3])
 	})
 
 	it('keeps children sorted', () => {
-		app.createShapes([
+		editor.createShapes([
 			{ type: 'geo', id: ids.box1 },
 			{ type: 'geo', id: ids.box2 },
 			{ type: 'geo', id: ids.box3 },
 		])
 
-		expect(app.getSortedChildIds(app.currentPageId)).toEqual([ids.box1, ids.box2, ids.box3])
+		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box1, ids.box2, ids.box3])
 
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				id: ids.box1,
 				type: 'geo',
 				index: getIndexBetween(
-					app.getShapeById(ids.box2)!.index,
-					app.getShapeById(ids.box3)!.index
+					editor.getShapeById(ids.box2)!.index,
+					editor.getShapeById(ids.box3)!.index
 				),
 			},
 		])
-		expect(app.getSortedChildIds(app.currentPageId)).toEqual([ids.box2, ids.box1, ids.box3])
+		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box2, ids.box1, ids.box3])
 
-		app.updateShapes([
-			{ id: ids.box2, type: 'geo', index: getIndexAbove(app.getShapeById(ids.box3)!.index) },
+		editor.updateShapes([
+			{ id: ids.box2, type: 'geo', index: getIndexAbove(editor.getShapeById(ids.box3)!.index) },
 		])
 
-		expect(app.getSortedChildIds(app.currentPageId)).toEqual([ids.box1, ids.box3, ids.box2])
+		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box1, ids.box3, ids.box2])
 	})
 
 	it('sorts children of next parent when a shape is reparented', () => {
-		app.createShapes([
+		editor.createShapes([
 			{ type: 'geo', id: ids.box1 },
 			{ type: 'geo', id: ids.box2, parentId: ids.box1 },
 			{ type: 'geo', id: ids.box3, parentId: ids.box1 },
 			{ type: 'geo', id: ids.box4 },
 		])
 
-		const box2Index = app.getShapeById(ids.box2)!.index
-		const box3Index = app.getShapeById(ids.box3)!.index
+		const box2Index = editor.getShapeById(ids.box2)!.index
+		const box3Index = editor.getShapeById(ids.box3)!.index
 		const box4Index = getIndexBetween(box2Index, box3Index)
 
-		app.updateShapes([
+		editor.updateShapes([
 			{
 				id: ids.box4,
 				type: 'geo',
@@ -100,6 +100,6 @@ describe('parentsToChildrenWithIndexes', () => {
 			},
 		])
 
-		expect(app.getSortedChildIds(ids.box1)).toEqual([ids.box2, ids.box4, ids.box3])
+		expect(editor.getSortedChildIds(ids.box1)).toEqual([ids.box2, ids.box4, ids.box3])
 	})
 })

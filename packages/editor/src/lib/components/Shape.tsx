@@ -6,7 +6,7 @@ import {
 	// @ts-expect-error 'private' export
 	useStateTracking,
 } from 'signia-react'
-import { useApp } from '../..'
+import { useEditor } from '../..'
 import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
@@ -37,7 +37,7 @@ export const Shape = track(function Shape({
 	opacity: number
 	isCulled: boolean
 }) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
 
@@ -54,44 +54,44 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape container transform position',
 		() => {
-			const shape = app.getShapeById(id)
-			const pageTransform = app.getPageTransformById(id)
+			const shape = editor.getShapeById(id)
+			const pageTransform = editor.getPageTransformById(id)
 
 			if (!shape || !pageTransform) return null
 
 			const transform = Matrix2d.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},
-		[app, setProperty]
+		[editor, setProperty]
 	)
 
 	useQuickReactor(
 		'set shape container clip path / color',
 		() => {
-			const shape = app.getShapeById(id)
+			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const clipPath = app.getClipPathById(id)
+			const clipPath = editor.getClipPathById(id)
 			setProperty('clip-path', clipPath ?? 'none')
 			if ('color' in shape.props) {
-				setProperty('color', app.getCssColor(shape.props.color))
+				setProperty('color', editor.getCssColor(shape.props.color))
 			}
 		},
-		[app, setProperty]
+		[editor, setProperty]
 	)
 
 	useQuickReactor(
 		'set shape height and width',
 		() => {
-			const shape = app.getShapeById(id)
+			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const util = app.getShapeUtil(shape)
+			const util = editor.getShapeUtil(shape)
 			const bounds = util.bounds(shape)
 			setProperty('width', Math.ceil(bounds.width) + 'px')
 			setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
-		[app]
+		[editor]
 	)
 
 	// Set the opacity of the container when the opacity changes
@@ -101,11 +101,11 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
 	}, [opacity, index, backgroundIndex, setProperty])
 
-	const shape = app.getShapeById(id)
+	const shape = editor.getShapeById(id)
 
 	if (!shape) return null
 
-	const util = app.getShapeUtil(shape)
+	const util = editor.getShapeUtil(shape)
 
 	return (
 		<>
@@ -120,7 +120,7 @@ export const Shape = track(function Shape({
 						<OptionalErrorBoundary
 							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
 							onError={(error) =>
-								app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+								editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
 							}
 						>
 							<InnerShapeBackground shape={shape} util={util} />
@@ -145,7 +145,7 @@ export const Shape = track(function Shape({
 					<OptionalErrorBoundary
 						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
 						onError={(error) =>
-							app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+							editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
 						}
 					>
 						<InnerShape shape={shape} util={util} />

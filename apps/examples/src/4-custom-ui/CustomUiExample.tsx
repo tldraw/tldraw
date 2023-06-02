@@ -1,4 +1,4 @@
-import { Canvas, TldrawEditor, useApp } from '@tldraw/tldraw'
+import { Canvas, TldrawEditor, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import { useEffect } from 'react'
 import { track } from 'signia-react'
@@ -16,14 +16,14 @@ export default function CustomUiExample() {
 }
 
 const CustomUi = track(() => {
-	const app = useApp()
+	const editor = useEditor()
 
 	useEffect(() => {
 		const handleKeyUp = (e: KeyboardEvent) => {
 			switch (e.key) {
 				case 'Delete':
 				case 'Backspace': {
-					app.deleteShapes()
+					editor.deleteShapes()
 				}
 			}
 		}
@@ -39,22 +39,22 @@ const CustomUi = track(() => {
 			<div className="custom-toolbar">
 				<button
 					className="custom-button"
-					data-isactive={app.currentToolId === 'select'}
-					onClick={() => app.setSelectedTool('select')}
+					data-isactive={editor.currentToolId === 'select'}
+					onClick={() => editor.setSelectedTool('select')}
 				>
 					Select
 				</button>
 				<button
 					className="custom-button"
-					data-isactive={app.currentToolId === 'draw'}
-					onClick={() => app.setSelectedTool('draw')}
+					data-isactive={editor.currentToolId === 'draw'}
+					onClick={() => editor.setSelectedTool('draw')}
 				>
 					Pencil
 				</button>
 				<button
 					className="custom-button"
-					data-isactive={app.currentToolId === 'eraser'}
-					onClick={() => app.setSelectedTool('eraser')}
+					data-isactive={editor.currentToolId === 'eraser'}
+					onClick={() => editor.setSelectedTool('eraser')}
 				>
 					Eraser
 				</button>

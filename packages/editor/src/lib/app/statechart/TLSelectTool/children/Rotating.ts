@@ -23,16 +23,16 @@ export class Rotating extends StateNode {
 		// Store the event information
 		this.info = info
 
-		this.markId = this.app.mark('rotate start')
+		this.markId = this.editor.mark('rotate start')
 
-		this.snapshot = getRotationSnapshot({ app: this.app })
+		this.snapshot = getRotationSnapshot({ editor: this.editor })
 
 		// Trigger a pointer move
 		this.handleStart()
 	}
 
 	override onExit = () => {
-		this.app.setCursor({ type: 'none' })
+		this.editor.setCursor({ type: 'none' })
 
 		this.snapshot = {} as RotationSnapshot
 	}
@@ -69,23 +69,23 @@ export class Rotating extends StateNode {
 		})
 
 		applyRotationToSnapshotShapes({
-			app: this.app,
+			editor: this.editor,
 			delta: newSelectionRotation,
 			snapshot: this.snapshot,
 			stage: 'update',
 		})
 
 		// Update cursor
-		this.app.setCursor({
+		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
 	}
 
 	private cancel = () => {
-		this.app.bailToMark(this.markId)
+		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
@@ -93,13 +93,13 @@ export class Rotating extends StateNode {
 
 	private complete = () => {
 		applyRotationToSnapshotShapes({
-			app: this.app,
+			editor: this.editor,
 			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: true }),
 			snapshot: this.snapshot,
 			stage: 'end',
 		})
 		if (this.info.onInteractionEnd) {
-			this.app.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
@@ -111,14 +111,14 @@ export class Rotating extends StateNode {
 		})
 
 		applyRotationToSnapshotShapes({
-			app: this.app,
+			editor: this.editor,
 			delta: this._getRotationFromPointerPosition({ snapToNearestDegree: false }),
 			snapshot: this.snapshot,
 			stage: 'start',
 		})
 
 		// Update cursor
-		this.app.setCursor({
+		this.editor.setCursor({
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
 		})
@@ -128,7 +128,7 @@ export class Rotating extends StateNode {
 		const {
 			selectionPageCenter,
 			inputs: { shiftKey, currentPagePoint },
-		} = this.app
+		} = this.editor
 		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
@@ -140,7 +140,7 @@ export class Rotating extends StateNode {
 		} else if (snapToNearestDegree) {
 			newSelectionRotation = Math.round(newSelectionRotation / EPSILON) * EPSILON
 
-			if (this.app.isCoarsePointer) {
+			if (this.editor.isCoarsePointer) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
 				const angleToRightAngle = angleDelta(newSelectionRotation, snappedToRightAngle)
 				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {

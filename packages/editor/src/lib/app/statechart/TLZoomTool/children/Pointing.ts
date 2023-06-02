@@ -15,7 +15,7 @@ export class Pointing extends StateNode {
 	}
 
 	onPointerMove: TLEventHandlers['onPointerUp'] = () => {
-		if (this.app.inputs.isDragging) {
+		if (this.editor.inputs.isDragging) {
 			this.parent.transition('zoom_brushing', this.info)
 		}
 	}
@@ -25,11 +25,11 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		const { currentScreenPoint } = this.app.inputs
-		if (this.app.inputs.altKey) {
-			this.app.zoomOut(currentScreenPoint, { duration: 220 })
+		const { currentScreenPoint } = this.editor.inputs
+		if (this.editor.inputs.altKey) {
+			this.editor.zoomOut(currentScreenPoint, { duration: 220 })
 		} else {
-			this.app.zoomIn(currentScreenPoint, { duration: 220 })
+			this.editor.zoomIn(currentScreenPoint, { duration: 220 })
 		}
 		this.parent.transition('idle', this.info)
 	}

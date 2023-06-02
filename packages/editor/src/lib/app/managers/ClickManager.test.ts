@@ -1,13 +1,13 @@
-import { TestApp } from '../../test/TestApp'
+import { TestEditor } from '../../test/TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 	// we want to do this in order to avoid creating text shapes. weird
-	app.setSelectedTool('eraser')
-	app._transformPointerDownSpy.mockRestore()
-	app._transformPointerUpSpy.mockRestore()
+	editor.setSelectedTool('eraser')
+	editor._transformPointerDownSpy.mockRestore()
+	editor._transformPointerUpSpy.mockRestore()
 })
 
 jest.useFakeTimers()
@@ -15,10 +15,10 @@ jest.useFakeTimers()
 describe('Handles events', () => {
 	it('Emits single click events', () => {
 		const events: any[] = []
-		app.addListener('event', (info) => events.push(info))
+		editor.addListener('event', (info) => events.push(info))
 
-		app.pointerDown()
-		app.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
 
 		const eventsBeforeSettle = [{ name: 'pointer_down' }, { name: 'pointer_up' }]
 
@@ -31,7 +31,7 @@ describe('Handles events', () => {
 		// clear events and click again
 		// the interaction should have reset
 		events.length = 0
-		app.pointerDown().pointerUp().pointerDown()
+		editor.pointerDown().pointerUp().pointerDown()
 		expect(events).toMatchObject([
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
@@ -42,12 +42,12 @@ describe('Handles events', () => {
 
 	it('Emits double click events', () => {
 		const events: any[] = []
-		app.addListener('event', (info) => events.push(info))
+		editor.addListener('event', (info) => events.push(info))
 
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
 
 		const eventsBeforeSettle = [
 			{ name: 'pointer_down' },
@@ -74,7 +74,7 @@ describe('Handles events', () => {
 		// clear events and click again
 		// the interaction should have reset
 		events.length = 0
-		app.pointerDown().pointerUp().pointerDown()
+		editor.pointerDown().pointerUp().pointerDown()
 		expect(events).toMatchObject([
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
@@ -85,14 +85,14 @@ describe('Handles events', () => {
 
 	it('Emits triple click events', () => {
 		const events: any[] = []
-		app.addListener('event', (info) => events.push(info))
+		editor.addListener('event', (info) => events.push(info))
 
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
 
 		const eventsBeforeSettle = [
 			{ name: 'pointer_down' },
@@ -120,7 +120,7 @@ describe('Handles events', () => {
 		// clear events and click again
 		// the interaction should have reset
 		events.length = 0
-		app.pointerDown().pointerUp().pointerDown()
+		editor.pointerDown().pointerUp().pointerDown()
 		expect(events).toMatchObject([
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
@@ -131,16 +131,16 @@ describe('Handles events', () => {
 
 	it('Emits quadruple click events', () => {
 		const events: any[] = []
-		app.addListener('event', (info) => events.push(info))
+		editor.addListener('event', (info) => events.push(info))
 
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
 
 		const eventsBeforeSettle = [
 			{ name: 'pointer_down' },
@@ -172,7 +172,7 @@ describe('Handles events', () => {
 		// clear events and click again
 		// the interaction should have reset
 		events.length = 0
-		app.pointerDown().pointerUp().pointerDown()
+		editor.pointerDown().pointerUp().pointerDown()
 		expect(events).toMatchObject([
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
@@ -183,18 +183,18 @@ describe('Handles events', () => {
 
 	it('Emits overflow click events', () => {
 		const events: any[] = []
-		app.addListener('event', (info) => events.push(info))
+		editor.addListener('event', (info) => events.push(info))
 
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
-		app.pointerDown()
-		app.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
+		editor.pointerDown()
+		editor.pointerUp()
 
 		const eventsBeforeSettle = [
 			{ name: 'pointer_down' },
@@ -225,7 +225,7 @@ describe('Handles events', () => {
 		// clear events and click again
 		// the interaction should have reset
 		events.length = 0
-		app.pointerDown().pointerUp().pointerDown()
+		editor.pointerDown().pointerUp().pointerDown()
 		expect(events).toMatchObject([
 			{ name: 'pointer_down' },
 			{ name: 'pointer_up' },
@@ -237,22 +237,22 @@ describe('Handles events', () => {
 
 it('Cancels when click moves', () => {
 	let event: any
-	app.addListener('event', (info) => (event = info))
-	app.pointerDown(0, 0)
+	editor.addListener('event', (info) => (event = info))
+	editor.pointerDown(0, 0)
 	expect(event.name).toBe('pointer_down')
-	app.pointerUp(0, 0)
+	editor.pointerUp(0, 0)
 	expect(event.name).toBe('pointer_up')
-	app.pointerDown(0, 20)
+	editor.pointerDown(0, 20)
 	expect(event.name).toBe('double_click')
-	app.pointerUp(0, 20)
+	editor.pointerUp(0, 20)
 	expect(event.name).toBe('double_click')
-	app.pointerDown(0, 45)
+	editor.pointerDown(0, 45)
 	expect(event.name).toBe('triple_click')
-	app.pointerUp(0, 45)
+	editor.pointerUp(0, 45)
 	expect(event.name).toBe('triple_click')
 	// has to be 40 away from previous click location
-	app.pointerDown(0, 86)
+	editor.pointerDown(0, 86)
 	expect(event.name).toBe('pointer_down')
-	app.pointerUp(0, 86)
+	editor.pointerUp(0, 86)
 	expect(event.name).toBe('pointer_up')
 })

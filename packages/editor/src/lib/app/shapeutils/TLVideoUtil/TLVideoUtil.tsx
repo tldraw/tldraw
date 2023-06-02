@@ -66,8 +66,8 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 	videoUtil: TLVideoUtil
 }) {
 	const { shape, videoUtil } = props
-	const showControls = videoUtil.app.getBounds(shape).w * videoUtil.app.zoomLevel >= 110
-	const asset = shape.props.assetId ? videoUtil.app.getAssetById(shape.props.assetId) : null
+	const showControls = videoUtil.editor.getBounds(shape).w * videoUtil.editor.zoomLevel >= 110
+	const asset = shape.props.assetId ? videoUtil.editor.getAssetById(shape.props.assetId) : null
 	const { w, h, time, playing } = shape.props
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
@@ -78,7 +78,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 		(e) => {
 			const video = e.currentTarget
 
-			videoUtil.app.updateShapes([
+			videoUtil.editor.updateShapes([
 				{
 					type: 'video',
 					id: shape.id,
@@ -89,14 +89,14 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				},
 			])
 		},
-		[shape.id, videoUtil.app]
+		[shape.id, videoUtil.editor]
 	)
 
 	const handlePause = React.useCallback<React.ReactEventHandler<HTMLVideoElement>>(
 		(e) => {
 			const video = e.currentTarget
 
-			videoUtil.app.updateShapes([
+			videoUtil.editor.updateShapes([
 				{
 					type: 'video',
 					id: shape.id,
@@ -107,7 +107,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				},
 			])
 		},
-		[shape.id, videoUtil.app]
+		[shape.id, videoUtil.editor]
 	)
 
 	const handleSetCurrentTime = React.useCallback<React.ReactEventHandler<HTMLVideoElement>>(
@@ -115,7 +115,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 			const video = e.currentTarget
 
 			if (isEditing) {
-				videoUtil.app.updateShapes([
+				videoUtil.editor.updateShapes([
 					{
 						type: 'video',
 						id: shape.id,
@@ -126,7 +126,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				])
 			}
 		},
-		[isEditing, shape.id, videoUtil.app]
+		[isEditing, shape.id, videoUtil.editor]
 	)
 
 	const [isLoaded, setIsLoaded] = React.useState(false)
@@ -200,7 +200,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && (
-				<HyperlinkButton url={shape.props.url} zoomLevel={videoUtil.app.zoomLevel} />
+				<HyperlinkButton url={shape.props.url} zoomLevel={videoUtil.editor.zoomLevel} />
 			)}
 		</>
 	)

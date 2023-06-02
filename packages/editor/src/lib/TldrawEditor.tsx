@@ -2,16 +2,16 @@ import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
 import { Store, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { App } from './app/App'
+import { Editor } from './app/Editor'
 import { StateNodeConstructor } from './app/statechart/StateNode'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { ShapeInfo } from './config/createTLStore'
-import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
+import { EditorContext } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
@@ -56,13 +56,13 @@ export type TldrawEditorProps = {
 	 *
 	 * ```ts
 	 * function TldrawEditor() {
-	 * 	return <Editor onMount={(app) => app.selectAll()} />
+	 * 	return <Editor onMount={(editor) => editor.selectAll()} />
 	 * }
 	 * ```
 	 *
-	 * @param app - The app instance.
+	 * @param editor - The editor instance.
 	 */
-	onMount?: (app: App) => void
+	onMount?: (editor: Editor) => void
 	/**
 	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
@@ -70,7 +70,7 @@ export type TldrawEditorProps = {
 	 * @example
 	 *
 	 * ```ts
-	 * const app = new App({
+	 * const editor = new App({
 	 * 	onCreateAssetFromFile: (file) => uploadFileAndCreateAsset(file),
 	 * })
 	 * ```
@@ -87,7 +87,7 @@ export type TldrawEditorProps = {
 	 * @example
 	 *
 	 * ```ts
-	 * app.onCreateBookmarkFromUrl(url, id)
+	 * editor.onCreateBookmarkFromUrl(url, id)
 	 * ```
 	 *
 	 * @param url - The url that was created.
@@ -241,66 +241,67 @@ function TldrawEditorWithReadyStore({
 }) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const [app, setApp] = useState<App | null>(null)
+	const [editor, setEditor] = useState<Editor | null>(null)
 
 	useLayoutEffect(() => {
-		const app = new App({
+		const editor = new Editor({
 			store,
 			shapes,
 			tools,
 			getContainer: () => container,
 		})
-		;(window as any).app = app
-		setApp(app)
+		;(window as any).app = editor
+		;(window as any).editor = editor
+		setEditor(editor)
 		return () => {
-			app.dispose()
+			editor.dispose()
 		}
 	}, [container, shapes, tools, store])
 
 	React.useEffect(() => {
-		if (!app) return
+		if (!editor) return
 
 		// Overwrite the default onCreateAssetFromFile handler.
 		if (onCreateAssetFromFile) {
-			app.onCreateAssetFromFile = onCreateAssetFromFile
+			editor.onCreateAssetFromFile = onCreateAssetFromFile
 		}
 
 		if (onCreateBookmarkFromUrl) {
-			app.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
+			editor.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
 		}
-	}, [app, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+	}, [editor, onCreateAssetFromFile, onCreateBookmarkFromUrl])
 
 	React.useLayoutEffect(() => {
-		if (app && autoFocus) app.focus()
-	}, [app, autoFocus])
+		if (editor && autoFocus) editor.focus()
+	}, [editor, autoFocus])
 
-	const onMountEvent = useEvent((app: App) => {
-		onMount?.(app)
-		app.emit('mount')
+	const onMountEvent = useEvent((editor: Editor) => {
+		onMount?.(editor)
+		editor.emit('mount')
 		window.tldrawReady = true
 	})
 
 	React.useEffect(() => {
-		if (app) onMountEvent(app)
-	}, [app, onMountEvent])
+		if (editor) onMountEvent(editor)
+	}, [editor, onMountEvent])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
 			(onStoreChange) => {
-				if (app) {
-					app.on('crash', onStoreChange)
-					return () => app.off('crash', onStoreChange)
+				if (editor) {
+					editor.on('crash', onStoreChange)
+					return () => editor.off('crash', onStoreChange)
 				}
 				return () => {
 					// noop
 				}
 			},
-			[app]
+			[editor]
 		),
-		() => app?.crashingError ?? null
+		() => editor?.crashingError ?? null
 	)
 
-	if (!app) {
+	if (!editor) {
 		return null
 	}
 
@@ -312,15 +313,17 @@ function TldrawEditorWithReadyStore({
 		// document in the event of an error to reassure them that their work is
 		// not lost.
 		<OptionalErrorBoundary
-			fallback={ErrorFallback ? (error) => <ErrorFallback error={error} app={app} /> : null}
-			onError={(error) => app.annotateError(error, { origin: 'react.tldraw', willCrashApp: true })}
+			fallback={ErrorFallback ? (error) => <ErrorFallback error={error} editor={editor} /> : null}
+			onError={(error) =>
+				editor.annotateError(error, { origin: 'react.tldraw', willCrashApp: true })
+			}
 		>
 			{crashingError ? (
 				<Crash crashingError={crashingError} />
 			) : (
-				<AppContext.Provider value={app}>
+				<EditorContext.Provider value={editor}>
 					<Layout>{children}</Layout>
-				</AppContext.Provider>
+				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)

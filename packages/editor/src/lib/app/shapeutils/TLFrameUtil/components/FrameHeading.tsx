@@ -1,7 +1,7 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
 import { useEffect, useRef } from 'react'
-import { useApp } from '../../../../hooks/useApp'
+import { useEditor } from '../../../../hooks/useEditor'
 import { useIsEditing } from '../../../../hooks/useIsEditing'
 import { FrameLabelInput } from './FrameLabelInput'
 
@@ -16,9 +16,9 @@ export const FrameHeading = function FrameHeading({
 	width: number
 	height: number
 }) {
-	const app = useApp()
+	const editor = useEditor()
 
-	const pageRotation = canolicalizeRotation(app.getPageRotationById(id))
+	const pageRotation = canolicalizeRotation(editor.getPageRotationById(id))
 	const isEditing = useIsEditing(id)
 
 	const rInput = useRef<HTMLInputElement>(null)

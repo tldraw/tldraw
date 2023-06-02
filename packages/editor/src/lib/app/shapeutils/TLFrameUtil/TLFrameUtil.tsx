@@ -64,7 +64,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		g.appendChild(rect)
 
 		// Text label
-		const pageRotation = canolicalizeRotation(this.app.getPageRotationById(shape.id))
+		const pageRotation = canolicalizeRotation(this.editor.getPageRotationById(shape.id))
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
@@ -107,7 +107,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 			verticalTextAlign: 'middle' as const,
 		}
 
-		const spans = this.app.textMeasure.measureTextSpans(
+		const spans = this.editor.textMeasure.measureTextSpans(
 			defaultEmptyAs(shape.props.name, 'Frame') + String.fromCharCode(8203),
 			opts
 		)
@@ -115,7 +115,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 		const firstSpan = spans[0]
 		const lastSpan = last(spans)!
 		const labelTextWidth = lastSpan.box.w + lastSpan.box.x - firstSpan.box.x
-		const text = createTextSvgElementFromSpans(this.app, spans, {
+		const text = createTextSvgElementFromSpans(this.editor, spans, {
 			offsetY: -opts.height - 2,
 			...opts,
 		})
@@ -162,7 +162,7 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 
 	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.app.reparentShapesById(
+			this.editor.reparentShapesById(
 				shapes.map((shape) => shape.id),
 				frame.id
 			)
@@ -172,39 +172,39 @@ export class TLFrameUtil extends TLBoxUtil<TLFrameShape> {
 	}
 
 	onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
-		const parentId = this.app.getShapeById(_shape.parentId)
+		const parentId = this.editor.getShapeById(_shape.parentId)
 		const isInGroup = parentId?.type === 'group'
 
 		// If frame is in a group, keep the shape
 		// moved out in that group
 		if (isInGroup) {
-			this.app.reparentShapesById(
+			this.editor.reparentShapesById(
 				shapes.map((shape) => shape.id),
 				parentId.id
 			)
 		} else {
-			this.app.reparentShapesById(
+			this.editor.reparentShapesById(
 				shapes.map((shape) => shape.id),
-				this.app.currentPageId
+				this.editor.currentPageId
 			)
 		}
 	}
 
 	override onResizeEnd: OnResizeEndHandler<TLFrameShape> = (shape) => {
-		const bounds = this.app.getPageBounds(shape)!
-		const children = this.app.getSortedChildIds(shape.id)
+		const bounds = this.editor.getPageBounds(shape)!
+		const children = this.editor.getSortedChildIds(shape.id)
 
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
-			const childBounds = this.app.getPageBoundsById(childId)!
+			const childBounds = this.editor.getPageBoundsById(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
 			}
 		}
 
 		if (shapesToReparent.length > 0) {
-			this.app.reparentShapesById(shapesToReparent, this.app.currentPageId)
+			this.editor.reparentShapesById(shapesToReparent, this.editor.currentPageId)
 		}
 	}
 }

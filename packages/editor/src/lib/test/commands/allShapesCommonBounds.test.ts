@@ -1,17 +1,17 @@
-import { createDefaultShapes, defaultShapesIds, TestApp } from '../TestApp'
+import { createDefaultShapes, defaultShapesIds, TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
-	app.createShapes(createDefaultShapes())
+	editor = new TestEditor()
+	editor.createShapes(createDefaultShapes())
 })
 
 it('gets common bounds', () => {
 	// Put the ellipse back on the page to avoid a weird bounding box width
-	app.reparentShapesById([defaultShapesIds.ellipse1], app.currentPageId)
+	editor.reparentShapesById([defaultShapesIds.ellipse1], editor.currentPageId)
 
-	app.updateShapes([
+	editor.updateShapes([
 		{
 			id: defaultShapesIds.box1,
 			type: 'geo',
@@ -38,7 +38,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(app.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 600,
@@ -46,9 +46,9 @@ it('gets common bounds', () => {
 	})
 
 	// Now create a frame and put a box inside it.
-	const frame1Id = app.createShapeId()
+	const frame1Id = editor.createShapeId()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id: frame1Id,
 			type: 'frame',
@@ -61,7 +61,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(app.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,
@@ -70,8 +70,8 @@ it('gets common bounds', () => {
 
 	// Reparent a box into the frame. We want it to be clipped by the frame;
 	// so that we can check whether the common bounds has changed. (It should be the same)
-	app.reparentShapesById([defaultShapesIds.box2], frame1Id)
-	app.updateShapes([
+	editor.reparentShapesById([defaultShapesIds.box2], frame1Id)
+	editor.updateShapes([
 		{
 			id: defaultShapesIds.box2,
 			type: 'geo',
@@ -81,7 +81,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(app.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,

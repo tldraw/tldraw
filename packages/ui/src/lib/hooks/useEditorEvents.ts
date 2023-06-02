@@ -1,10 +1,10 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useToasts } from './useToastsProvider'
 
 /** @public */
-export function useAppEvents() {
-	const app = useApp()
+export function useEditorEvents() {
+	const editor = useEditor()
 	const { addToast } = useToasts()
 
 	useEffect(() => {
@@ -15,9 +15,9 @@ export function useAppEvents() {
 			})
 		}
 
-		app.addListener('max-shapes', handleMaxShapes)
+		editor.addListener('max-shapes', handleMaxShapes)
 		return () => {
-			app.removeListener('max-shapes', handleMaxShapes)
+			editor.removeListener('max-shapes', handleMaxShapes)
 		}
-	}, [app, addToast])
+	}, [editor, addToast])
 }

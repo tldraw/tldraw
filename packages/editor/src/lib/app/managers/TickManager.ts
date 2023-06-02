@@ -1,9 +1,9 @@
 import { Vec2d } from '@tldraw/primitives'
-import { App } from '../App'
+import { Editor } from '../Editor'
 
 export class TickManager {
-	constructor(public app: App) {
-		this.app.disposables.add(this.dispose)
+	constructor(public editor: Editor) {
+		this.editor.disposables.add(this.dispose)
 		this.start()
 	}
 
@@ -29,7 +29,7 @@ export class TickManager {
 		this.last = now
 		this.t += elapsed
 
-		this.app.emit('frame', elapsed)
+		this.editor.emit('frame', elapsed)
 
 		if (this.t < 16) {
 			this.raf = requestAnimationFrame(this.tick)
@@ -38,7 +38,7 @@ export class TickManager {
 
 		this.t -= 16
 		this.updatePointerVelocity(elapsed)
-		this.app.emit('tick', elapsed)
+		this.editor.emit('tick', elapsed)
 		this.raf = requestAnimationFrame(this.tick)
 	}
 
@@ -53,7 +53,7 @@ export class TickManager {
 	private updatePointerVelocity = (elapsed: number) => {
 		const {
 			prevPoint,
-			app: {
+			editor: {
 				inputs: { currentScreenPoint, pointerVelocity },
 			},
 		} = this
@@ -74,7 +74,7 @@ export class TickManager {
 		if (Math.abs(next.y) < 0.01) next.y = 0
 
 		if (!pointerVelocity.equals(next)) {
-			this.app.inputs.pointerVelocity = next
+			this.editor.inputs.pointerVelocity = next
 		}
 	}
 }

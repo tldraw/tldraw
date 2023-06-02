@@ -167,8 +167,8 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	}
 
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
-		const zoomLevel = this.app.zoomLevel
-		const offsetDist = this.app.getStrokeWidth(shape.props.size) / zoomLevel
+		const zoomLevel = this.editor.zoomLevel
+		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
 		return pointNearToPolyline(point, this.outline(shape), offsetDist)
 	}
 
@@ -179,7 +179,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	render(shape: TLLineShape) {
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 
 		const { dash, color } = shape.props
 
@@ -305,7 +305,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = this.app.getStrokeWidth(shape.props.size)
+		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
 		const spline = getSplineForLineShape(shape)
 		const { dash } = shape.props
 
@@ -330,7 +330,7 @@ export class TLLineUtil extends TLShapeUtil<TLLineShape> {
 		const { color: _color, size } = shape.props
 		const color = colors.fill[_color]
 		const spline = getSplineForLineShape(shape)
-		return getLineSvg(shape, spline, color, this.app.getStrokeWidth(size))
+		return getLineSvg(shape, spline, color, this.editor.getStrokeWidth(size))
 	}
 }
 

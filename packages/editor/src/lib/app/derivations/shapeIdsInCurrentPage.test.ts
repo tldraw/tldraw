@@ -1,10 +1,10 @@
 import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestApp'
+import { TestEditor } from '../../test/TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 const ids = {
@@ -19,51 +19,51 @@ const ids = {
 
 describe('shapeIdsInCurrentPage', () => {
 	it('keeps the shape ids in the current page', () => {
-		expect(new Set(app.shapeIds)).toEqual(new Set([]))
-		app.createShapes([{ type: 'geo', id: ids.box1 }])
+		expect(new Set(editor.shapeIds)).toEqual(new Set([]))
+		editor.createShapes([{ type: 'geo', id: ids.box1 }])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box1]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box1]))
 
-		app.createShapes([{ type: 'geo', id: ids.box2 }])
+		editor.createShapes([{ type: 'geo', id: ids.box2 }])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box1, ids.box2]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box1, ids.box2]))
 
-		app.createShapes([{ type: 'geo', id: ids.box3 }])
+		editor.createShapes([{ type: 'geo', id: ids.box3 }])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 
-		app.deleteShapes([ids.box2])
+		editor.deleteShapes([ids.box2])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box1, ids.box3]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box1, ids.box3]))
 
-		app.deleteShapes([ids.box1])
+		editor.deleteShapes([ids.box1])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box3]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box3]))
 
-		app.deleteShapes([ids.box3])
+		editor.deleteShapes([ids.box3])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([]))
 	})
 
 	it('changes when the current page changes', () => {
-		app.createShapes([
+		editor.createShapes([
 			{ type: 'geo', id: ids.box1 },
 			{ type: 'geo', id: ids.box2 },
 			{ type: 'geo', id: ids.box3 },
 		])
 		const id = PageRecordType.createCustomId('page2')
-		app.createPage('New Page 2', id)
-		app.setCurrentPageId(id)
-		app.createShapes([
+		editor.createPage('New Page 2', id)
+		editor.setCurrentPageId(id)
+		editor.createShapes([
 			{ type: 'geo', id: ids.box4 },
 			{ type: 'geo', id: ids.box5 },
 			{ type: 'geo', id: ids.box6 },
 		])
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
 
-		app.setCurrentPageId(app.pages[0].id)
+		editor.setCurrentPageId(editor.pages[0].id)
 
-		expect(new Set(app.shapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
+		expect(new Set(editor.shapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 	})
 })

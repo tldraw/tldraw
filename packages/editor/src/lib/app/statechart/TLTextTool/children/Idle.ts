@@ -11,14 +11,14 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedIds, focusLayerId } = this.app
-				const hoveringShape = this.app.getOutermostSelectableShape(
+				const { selectedIds, focusLayerId } = this.editor
+				const hoveringShape = this.editor.getOutermostSelectableShape(
 					info.shape,
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
 					if (hoveringShape.type === 'text') {
-						this.app.setHoveredId(hoveringShape.id)
+						this.editor.setHoveredId(hoveringShape.id)
 					}
 				}
 				break
@@ -29,21 +29,21 @@ export class Idle extends StateNode {
 	onPointerLeave: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.app.setHoveredId(null)
+				this.editor.setHoveredId(null)
 				break
 			}
 		}
 	}
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		const { hoveredId } = this.app
+		const { hoveredId } = this.editor
 		if (hoveredId) {
-			const shape = this.app.getShapeById(hoveredId)!
+			const shape = this.editor.getShapeById(hoveredId)!
 			if (shape.type === 'text') {
 				requestAnimationFrame(() => {
-					this.app.setSelectedIds([shape.id])
-					this.app.setEditingId(shape.id)
-					this.app.setSelectedTool('select.editing_shape', {
+					this.editor.setSelectedIds([shape.id])
+					this.editor.setEditingId(shape.id)
+					this.editor.setSelectedTool('select.editing_shape', {
 						...info,
 						target: 'shape',
 						shape,
@@ -57,16 +57,16 @@ export class Idle extends StateNode {
 	}
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'cross' })
+		this.editor.setCursor({ type: 'cross' })
 	}
 
 	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
-			const shape = this.app.selectedShapes[0]
+			const shape = this.editor.selectedShapes[0]
 			if (shape && shape.type === 'geo') {
-				this.app.setSelectedTool('select')
-				this.app.setEditingId(shape.id)
-				this.app.root.current.value!.transition('editing_shape', {
+				this.editor.setSelectedTool('select')
+				this.editor.setEditingId(shape.id)
+				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
 					target: 'shape',
 					shape,
@@ -76,6 +76,6 @@ export class Idle extends StateNode {
 	}
 
 	onCancel = () => {
-		this.app.setSelectedTool('select')
+		this.editor.setSelectedTool('select')
 	}
 }

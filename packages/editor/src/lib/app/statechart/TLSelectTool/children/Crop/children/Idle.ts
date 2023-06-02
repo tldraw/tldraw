@@ -7,39 +7,39 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	onEnter = () => {
-		this.app.setCursor({ type: 'default' })
+		this.editor.setCursor({ type: 'default' })
 
-		const { onlySelectedShape } = this.app
+		const { onlySelectedShape } = this.editor
 
 		// well this fucking sucks. what the fuck.
 		// it's possible for a user to enter cropping, then undo
 		// (which clears the cropping id) but still remain in this state.
-		this.app.on('change-history', this.cleanupCroppingState)
+		this.editor.on('change-history', this.cleanupCroppingState)
 
-		this.app.mark('crop')
+		this.editor.mark('crop')
 
 		if (onlySelectedShape) {
-			this.app.setCroppingId(onlySelectedShape.id)
+			this.editor.setCroppingId(onlySelectedShape.id)
 		}
 	}
 
 	onExit: UiExitHandler = () => {
-		this.app.setCursor({ type: 'default' })
+		this.editor.setCursor({ type: 'default' })
 
-		this.app.off('change-history', this.cleanupCroppingState)
+		this.editor.off('change-history', this.cleanupCroppingState)
 	}
 
 	onCancel: TLEventHandlers['onCancel'] = () => {
-		this.app.setCroppingId(null)
-		this.app.setSelectedTool('select.idle', {})
+		this.editor.setCroppingId(null)
+		this.editor.setSelectedTool('select.idle', {})
 	}
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.app.isMenuOpen) return
+		if (this.editor.isMenuOpen) return
 
 		if (info.ctrlKey) {
-			this.app.setCroppingId(null)
-			this.app.setSelectedTool('select.brushing', info)
+			this.editor.setCroppingId(null)
+			this.editor.setSelectedTool('select.brushing', info)
 			return
 		}
 
@@ -49,14 +49,14 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (info.shape.id === this.app.croppingId) {
-					this.app.setSelectedTool('select.crop.pointing_crop', info)
+				if (info.shape.id === this.editor.croppingId) {
+					this.editor.setSelectedTool('select.crop.pointing_crop', info)
 					return
 				} else {
-					if (this.app.getShapeUtil(info.shape)?.canCrop(info.shape)) {
-						this.app.setCroppingId(info.shape.id)
-						this.app.setSelectedIds([info.shape.id])
-						this.app.setSelectedTool('select.crop.pointing_crop', info)
+					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
+						this.editor.setCroppingId(info.shape.id)
+						this.editor.setSelectedIds([info.shape.id])
+						this.editor.setSelectedTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
 					}
@@ -70,7 +70,7 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						this.app.setSelectedTool('select.pointing_rotate_handle', {
+						this.editor.setSelectedTool('select.pointing_rotate_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -80,7 +80,7 @@ export class Idle extends StateNode {
 					case 'right':
 					case 'bottom':
 					case 'left': {
-						this.app.setSelectedTool('select.pointing_crop_handle', {
+						this.editor.setSelectedTool('select.pointing_crop_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -90,7 +90,7 @@ export class Idle extends StateNode {
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						this.app.setSelectedTool('select.pointing_crop_handle', {
+						this.editor.setSelectedTool('select.pointing_crop_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -110,11 +110,11 @@ export class Idle extends StateNode {
 		// after the user double clicked the edge to begin cropping
 		if (info.phase !== 'up') return
 
-		if (!this.app.croppingId) return
-		const shape = this.app.getShapeById(this.app.croppingId)
+		if (!this.editor.croppingId) return
+		const shape = this.editor.getShapeById(this.editor.croppingId)
 		if (!shape) return
 
-		const util = this.app.getShapeUtil(shape)
+		const util = this.editor.getShapeUtil(shape)
 		if (!util) return
 
 		if (info.target === 'selection') {
@@ -133,33 +133,33 @@ export class Idle extends StateNode {
 	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		switch (info.code) {
 			case 'Enter': {
-				this.app.setCroppingId(null)
-				this.app.setSelectedTool('select.idle', {})
+				this.editor.setCroppingId(null)
+				this.editor.setSelectedTool('select.idle', {})
 				break
 			}
 		}
 	}
 
 	private cancel() {
-		this.app.setCroppingId(null)
-		this.app.setSelectedTool('select.idle', {})
+		this.editor.setCroppingId(null)
+		this.editor.setSelectedTool('select.idle', {})
 	}
 
 	private cleanupCroppingState = () => {
-		if (!this.app.croppingId) {
-			this.app.setSelectedTool('select.idle', {})
+		if (!this.editor.croppingId) {
+			this.editor.setSelectedTool('select.idle', {})
 		}
 	}
 
 	private nudgeCroppingImage(ephemeral = false) {
 		const {
-			app: {
+			editor: {
 				inputs: { keys },
 			},
 		} = this
 
 		// We want to use the "actual" shift key state,
-		// not the one that's in the app.inputs.shiftKey,
+		// not the one that's in the editor.inputs.shiftKey,
 		// because that one uses a short timeout on release
 		const shiftKey = keys.has('Shift')
 
@@ -174,18 +174,18 @@ export class Idle extends StateNode {
 
 		if (shiftKey) delta.mul(10)
 
-		const shape = this.app.getShapeById(this.app.croppingId!) as ShapeWithCrop
+		const shape = this.editor.getShapeById(this.editor.croppingId!) as ShapeWithCrop
 		if (!shape) return
-		const partial = getTranslateCroppedImageChange(this.app, shape, delta)
+		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
 		if (partial) {
 			if (!ephemeral) {
 				// We don't want to create new marks if the user
 				// is just holding down the arrow keys
-				this.app.mark('translate crop')
+				this.editor.mark('translate crop')
 			}
 
-			this.app.updateShapes([partial])
+			this.editor.updateShapes([partial])
 		}
 	}
 }

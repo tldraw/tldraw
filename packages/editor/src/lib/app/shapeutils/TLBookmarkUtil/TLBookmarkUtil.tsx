@@ -37,10 +37,10 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 
 	override render(shape: TLBookmarkShape) {
 		const asset = (
-			shape.props.assetId ? this.app.getAssetById(shape.props.assetId) : null
+			shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
 		) as TLBookmarkAsset
 
-		const pageRotation = this.app.getPageRotation(shape)
+		const pageRotation = this.editor.getPageRotation(shape)
 
 		const address = this.getHumanReadableAddress(shape)
 
@@ -63,7 +63,7 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 						) : (
 							<div className="tl-bookmark__placeholder" />
 						)}
-						<HyperlinkButton url={shape.props.url} zoomLevel={this.app.zoomLevel} />
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
 					</div>
 					<div className="tl-bookmark__copy_container">
 						{asset?.props.title && (
@@ -127,13 +127,13 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 	protected updateBookmarkAsset = debounce((shape: TLBookmarkShape) => {
 		const { url } = shape.props
 		const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
-		const existing = this.app.getAssetById(assetId)
+		const existing = this.editor.getAssetById(assetId)
 
 		if (existing) {
 			// If there's an existing asset with the same URL, use
 			// its asset id instead.
 			if (shape.props.assetId !== existing.id) {
-				this.app.updateShapes([
+				this.editor.updateShapes([
 					{
 						id: shape.id,
 						type: shape.type,
@@ -141,12 +141,12 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 					},
 				])
 			}
-		} else if (this.app.onCreateBookmarkFromUrl) {
+		} else if (this.editor.onCreateBookmarkFromUrl) {
 			// Create a bookmark asset for the URL. First get its meta
 			// data, then create the asset and update the shape.
-			this.app.onCreateBookmarkFromUrl(url).then((meta) => {
+			this.editor.onCreateBookmarkFromUrl(url).then((meta) => {
 				if (!meta) {
-					this.app.updateShapes([
+					this.editor.updateShapes([
 						{
 							id: shape.id,
 							type: shape.type,
@@ -156,8 +156,8 @@ export class TLBookmarkUtil extends TLBoxUtil<TLBookmarkShape> {
 					return
 				}
 
-				this.app.batch(() => {
-					this.app
+				this.editor.batch(() => {
+					this.editor
 						.createAssets([
 							{
 								id: assetId,

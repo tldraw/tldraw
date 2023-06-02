@@ -1,13 +1,13 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { Editor } from '../Editor'
 
 export class DprManager {
 	private _currentMM: MediaQueryList | undefined
 
-	constructor(public app: App) {
+	constructor(public editor: Editor) {
 		this.rebind()
 		// Add this class's dispose method (cancel the listener) to the app's disposables
-		this.app.disposables.add(this.dispose)
+		this.editor.disposables.add(this.dispose)
 	}
 
 	// Set a listener to update the dpr when the device pixel ratio changes

@@ -1,14 +1,15 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import React from 'react'
-import { App } from '../app/App'
+import { Editor } from '../app/Editor'
 import { TLPointerEventName } from '../app/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
-const pointerEventHandler = (app: App, shapeId: TLShapeId, name: TLPointerEventName) => {
+const pointerEventHandler = (editor: Editor, shapeId: TLShapeId, name: TLPointerEventName) => {
 	return (e: React.PointerEvent) => {
-		if (name !== 'pointer_move' && app.pageState.editingId === shapeId) (e as any).isKilled = true
+		if (name !== 'pointer_move' && editor.pageState.editingId === shapeId)
+			(e as any).isKilled = true
 		if ((e as any).isKilled) return
 
 		switch (name) {
@@ -23,25 +24,25 @@ const pointerEventHandler = (app: App, shapeId: TLShapeId, name: TLPointerEventN
 			}
 		}
 
-		const shape = app.getShapeById(shapeId)
+		const shape = editor.getShapeById(shapeId)
 
 		if (!shape) {
 			console.error('Shape not found', shapeId)
 			return
 		}
 
-		app.dispatch({
+		editor.dispatch({
 			type: 'pointer',
 			target: 'shape',
 			shape,
 			name,
-			...getPointerInfo(e, app.getContainer()),
+			...getPointerInfo(e, editor.getContainer()),
 		})
 	}
 }
 
 export function useShapeEvents(id: TLShapeId) {
-	const app = useApp()
+	const editor = useEditor()
 
 	return React.useMemo(() => {
 		function onTouchStart(e: React.TouchEvent) {
@@ -54,7 +55,7 @@ export function useShapeEvents(id: TLShapeId) {
 			preventDefault(e)
 		}
 
-		const handlePointerMove = pointerEventHandler(app, id, 'pointer_move')
+		const handlePointerMove = pointerEventHandler(editor, id, 'pointer_move')
 
 		// Track the last screen point
 		let lastX: number, lastY: number
@@ -69,13 +70,13 @@ export function useShapeEvents(id: TLShapeId) {
 		}
 
 		return {
-			onPointerDown: pointerEventHandler(app, id, 'pointer_down'),
-			onPointerUp: pointerEventHandler(app, id, 'pointer_up'),
-			onPointerEnter: pointerEventHandler(app, id, 'pointer_enter'),
-			onPointerLeave: pointerEventHandler(app, id, 'pointer_leave'),
+			onPointerDown: pointerEventHandler(editor, id, 'pointer_down'),
+			onPointerUp: pointerEventHandler(editor, id, 'pointer_up'),
+			onPointerEnter: pointerEventHandler(editor, id, 'pointer_enter'),
+			onPointerLeave: pointerEventHandler(editor, id, 'pointer_leave'),
 			onPointerMove,
 			onTouchStart,
 			onTouchEnd,
 		}
-	}, [app, id])
+	}, [editor, id])
 }
