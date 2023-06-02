@@ -52,7 +52,6 @@ export {
 	type ActionsMenuSchemaContextType,
 	type ActionsMenuSchemaProviderProps,
 } from './lib/hooks/useActionsMenuSchema'
-export { useAppEvents } from './lib/hooks/useAppEvents'
 export { AssetUrlsProvider, useAssetUrls } from './lib/hooks/useAssetUrls'
 export { BreakPointProvider, useBreakpoint } from './lib/hooks/useBreakpoint'
 export { useCanRedo } from './lib/hooks/useCanRedo'
@@ -75,6 +74,7 @@ export {
 	type DialogsProviderProps,
 	type TLDialog,
 } from './lib/hooks/useDialogsProvider'
+export { useAppEvents } from './lib/hooks/useEditorEvents'
 export {
 	useEvents,
 	type EventsProviderProps,
