@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
 import { App } from '../app/Editor'
-import { AppContext } from '../hooks/useEditor'
+import { EditorContext } from '../hooks/useEditor'
 import { hardResetApp } from '../utils/hard-reset'
 import { refreshPage } from '../utils/refresh-page'
 import { Canvas } from './Canvas'
@@ -132,11 +132,11 @@ My browser: ${navigator.userAgent}`
 				// not a big deal if it doesn't work - in that case we just have
 				// a plain grey background.
 				<ErrorBoundary onError={noop} fallback={() => null}>
-					<AppContext.Provider value={app}>
+					<EditorContext.Provider value={app}>
 						<div className="tl-overlay tl-error-boundary__canvas">
 							<Canvas />
 						</div>
-					</AppContext.Provider>
+					</EditorContext.Provider>
 				</ErrorBoundary>
 			)}
 			<div

@@ -11,7 +11,7 @@ import { ShapeInfo } from './config/createTLStore'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
-import { AppContext } from './hooks/useEditor'
+import { EditorContext } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
@@ -318,9 +318,9 @@ function TldrawEditorWithReadyStore({
 			{crashingError ? (
 				<Crash crashingError={crashingError} />
 			) : (
-				<AppContext.Provider value={app}>
+				<EditorContext.Provider value={app}>
 					<Layout>{children}</Layout>
-				</AppContext.Provider>
+				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)

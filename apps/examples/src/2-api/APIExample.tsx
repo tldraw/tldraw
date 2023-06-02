@@ -66,7 +66,7 @@ export default function APIExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw persistenceKey="api-example" onMount={handleMount} autoFocus={false}>
-				<InsideOfAppContext />
+				<InsideOfEditorContext />
 			</Tldraw>
 		</div>
 	)
@@ -76,7 +76,7 @@ export default function APIExample() {
 // The Tldraw component provides the context, so you can add children to
 // the component and access the app through the useEditor hook.
 
-const InsideOfAppContext = () => {
+const InsideOfEditorContext = () => {
 	const app = useEditor()
 
 	useEffect(() => {
