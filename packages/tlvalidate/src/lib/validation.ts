@@ -510,7 +510,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
 }
 
 /**
- * A named object with an ID. Errors will be reported as being part of the object with the given
+ * A named object with an Id. Errors will be reported as being part of the object with the given
  * name.
  *
  * @public

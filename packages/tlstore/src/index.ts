@@ -1,9 +1,9 @@
-export type { BaseRecord, ID, IdOf, UnknownRecord } from './lib/BaseRecord'
+export { type RecordId } from './lib/BaseRecord'
+export type { BaseRecord, IdOf, UnknownRecord } from './lib/BaseRecord'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
-export { RecordType, assertIdType, createRecordType } from './lib/RecordType'
-export { Store, reverseRecordsDiff, squashRecordDiffs } from './lib/Store'
+export { RecordType, createRecordType } from './lib/RecordType'
+export { Store, reverseRecordsDiff, squashRecordDiffs, type CollectionDiff } from './lib/Store'
 export type {
-	CollectionDiff,
 	ComputedCache,
 	HistoryEntry,
 	RecordsDiff,
@@ -11,7 +11,6 @@ export type {
 	StoreListener,
 	StoreSnapshot,
 	StoreValidator,
-	StoreValidators,
 } from './lib/Store'
 export { StoreSchema } from './lib/StoreSchema'
 export type { SerializedSchema, StoreSchemaOptions } from './lib/StoreSchema'
@@ -29,4 +28,3 @@ export {
 	type Migrations,
 	type RecordVersion,
 } from './lib/migrate'
-export type { AllRecords } from './lib/type-utils'

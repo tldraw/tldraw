@@ -86,7 +86,7 @@ export class RecordType<
 	}
 
 	/**
-	 * Create a new ID for this record type.
+	 * Create a new id for this record type.
 	 *
 	 * @example
 	 *
@@ -94,7 +94,7 @@ export class RecordType<
 	 * const id = recordType.createId()
 	 * ```
 	 *
-	 * @returns The new ID.
+	 * @returns The new Id.
 	 * @public
 	 */
 	createId(): IdOf<R> {
@@ -102,7 +102,7 @@ export class RecordType<
 	}
 
 	/**
-	 * Create a new ID for this record type based on the given ID.
+	 * Create a new id for this record type based on the given Id.
 	 *
 	 * @example
 	 *
@@ -110,8 +110,8 @@ export class RecordType<
 	 * const id = recordType.createCustomId('myId')
 	 * ```
 	 *
-	 * @param id - The ID to base the new ID on.
-	 * @returns The new ID.
+	 * @param id - The id to base the new id on.
+	 * @returns The new Id.
 	 */
 	createCustomId(id: string): IdOf<R> {
 		return (this.typeName + ':' + id) as IdOf<R>
@@ -125,7 +125,7 @@ export class RecordType<
 	 */
 	parseId(id: string): IdOf<R> {
 		if (!this.isId(id)) {
-			throw new Error(`ID "${id}" is not a valid ID for type "${this.typeName}"`)
+			throw new Error(`Id "${id}" is not a valid id for type "${this.typeName}"`)
 		}
 
 		return id.slice(this.typeName.length + 1) as IdOf<R>
@@ -228,26 +228,4 @@ export function createRecordType<R extends UnknownRecord>(
 		validator: config.validator,
 		scope: config.scope,
 	})
-}
-
-/**
- * Assert whether an id correspond to a record type.
- *
- * @example
- *
- * ```ts
- * assertIdType(myId, ID<MyRecord>)
- * ```
- *
- * @param id - The id to check.
- * @param type - The type of the record.
- * @public
- */
-export function assertIdType<R extends UnknownRecord>(
-	id: string | undefined,
-	type: RecordType<R, any>
-): asserts id is IdOf<R> {
-	if (!id || !type.isId(id)) {
-		throw new Error(`string ${JSON.stringify(id)} is not a valid ${type.typeName} id`)
-	}
 }

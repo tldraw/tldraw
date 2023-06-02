@@ -1,14 +1,14 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, RecordId, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
-import { cursorTypeValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
+import { TLCursor, TLScribble, cursorTypeValidator, scribbleTypeValidator } from '../ui-types'
 import { idValidator } from '../validation'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /** @public */
-export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceId> {
 	instanceId: TLInstanceId
 	userId: string
 	userName: string
@@ -30,7 +30,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 /** @public */
-export type TLInstancePresenceID = ID<TLInstancePresence>
+export type TLInstancePresenceId = RecordId<TLInstancePresence>
 
 // --- VALIDATION ---
 /** @public */
@@ -39,7 +39,7 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 	T.object({
 		instanceId: idValidator<TLInstanceId>('instance'),
 		typeName: T.literal('instance_presence'),
-		id: idValidator<TLInstancePresenceID>('instance_presence'),
+		id: idValidator<TLInstancePresenceId>('instance_presence'),
 		userId: T.string,
 		userName: T.string,
 		lastActivityTimestamp: T.number,

@@ -59,6 +59,5 @@ async function main() {
 
 	await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
 	await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
-
 	await exec('rm', ['-rf', tempDir])
 }

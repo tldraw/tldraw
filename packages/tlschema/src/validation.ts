@@ -1,4 +1,4 @@
-import type { ID, UnknownRecord } from '@tldraw/tlstore'
+import type { RecordId, UnknownRecord } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'
@@ -21,12 +21,12 @@ import {
 } from './style-types'
 
 /** @internal */
-export function idValidator<Id extends ID<UnknownRecord>>(
+export function idValidator<Id extends RecordId<UnknownRecord>>(
 	prefix: Id['__type__']['typeName']
 ): T.Validator<Id> {
 	return T.string.refine((id) => {
 		if (!id.startsWith(`${prefix}:`)) {
-			throw new Error(`${prefix} ID must start with "${prefix}:"`)
+			throw new Error(`${prefix} id must start with "${prefix}:"`)
 		}
 		return id as Id
 	})
@@ -43,7 +43,7 @@ export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 /** @internal */
 export const parentIdValidator = T.string.refine((id) => {
 	if (!id.startsWith('page:') && !id.startsWith('shape:')) {
-		throw new Error('Parent ID must start with "page:" or "shape:"')
+		throw new Error('Parent id must start with "page:" or "shape:"')
 	}
 	return id as TLParentId
 })

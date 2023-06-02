@@ -63,6 +63,7 @@ export type TldrawEditorProps = {
 	 * @param editor - The editor instance.
 	 */
 	onMount?: (editor: Editor) => void
+
 	/**
 	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
@@ -76,7 +77,6 @@ export type TldrawEditorProps = {
 	 * ```
 	 *
 	 * @param file - The file to generate an asset from.
-	 * @param id - The id to be assigned to the resulting asset.
 	 */
 	onCreateAssetFromFile?: (file: File) => Promise<TLAsset>
 
@@ -125,12 +125,6 @@ export type TldrawEditorProps = {
 			defaultName?: string
 	  }
 )
-
-declare global {
-	interface Window {
-		tldrawReady: boolean
-	}
-}
 
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps) {
@@ -278,7 +272,6 @@ function TldrawEditorWithReadyStore({
 	const onMountEvent = useEvent((editor: Editor) => {
 		onMount?.(editor)
 		editor.emit('mount')
-		window.tldrawReady = true
 	})
 
 	React.useEffect(() => {

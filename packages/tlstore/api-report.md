@@ -8,13 +8,7 @@ import { Atom } from 'signia';
 import { Computed } from 'signia';
 
 // @public
-export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
-
-// @public
-export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
-
-// @public
-export interface BaseRecord<TypeName extends string, Id extends ID<UnknownRecord>> {
+export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
     // (undocumented)
     readonly id: Id;
     // (undocumented)
@@ -70,11 +64,6 @@ export function getRecordVersion(record: UnknownRecord, serializedSchema: Serial
 export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
     changes: RecordsDiff<R>;
     source: 'remote' | 'user';
-};
-
-// @public (undocumented)
-export type ID<R extends UnknownRecord> = string & {
-    __type__: R;
 };
 
 // @public (undocumented)
@@ -149,6 +138,11 @@ export interface Migrations extends BaseMigrationsInfo {
     // (undocumented)
     subTypeMigrations?: Record<string, BaseMigrationsInfo>;
 }
+
+// @public (undocumented)
+export type RecordId<R extends UnknownRecord> = string & {
+    __type__: R;
+};
 
 // @public
 export type RecordsDiff<R extends UnknownRecord> = {
@@ -333,14 +327,7 @@ export type StoreValidator<R extends UnknownRecord> = {
 };
 
 // @public (undocumented)
-export type StoreValidators<R extends UnknownRecord> = {
-    [K in R['typeName']]: StoreValidator<Extract<R, {
-        typeName: K;
-    }>>;
-};
-
-// @public (undocumented)
-export type UnknownRecord = BaseRecord<string, ID<UnknownRecord>>;
+export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;
 
 // (No @packageDocumentation comment for this package)
 

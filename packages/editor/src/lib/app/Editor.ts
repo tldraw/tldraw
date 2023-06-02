@@ -1744,7 +1744,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current page id.
+	 * The current page Id.
 	 *
 	 * @public
 	 */
@@ -1753,7 +1753,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get a page by its ID.
+	 * Get a page by its Id.
 	 *
 	 * @example
 	 *

@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, RecordId, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 
 /**
@@ -6,7 +6,7 @@ import { T } from '@tldraw/tlvalidate'
  *
  * @public
  */
-export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
+export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
 	gridSize: number
 	name: string
 }
@@ -16,7 +16,7 @@ export const documentTypeValidator: T.Validator<TLDocument> = T.model(
 	'document',
 	T.object({
 		typeName: T.literal('document'),
-		id: T.literal('document:document' as ID<TLDocument>),
+		id: T.literal('document:document' as RecordId<TLDocument>),
 		gridSize: T.number,
 		name: T.string,
 	})
@@ -60,4 +60,4 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: ID<TLDocument> = DocumentRecordType.createCustomId('document')
+export const TLDOCUMENT_ID: RecordId<TLDocument> = DocumentRecordType.createCustomId('document')

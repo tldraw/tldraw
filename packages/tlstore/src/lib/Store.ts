@@ -6,14 +6,14 @@ import {
 	throttledRaf,
 } from '@tldraw/utils'
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from 'signia'
-import { ID, IdOf, UnknownRecord } from './BaseRecord'
+import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordType } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
 
-type RecFromId<K extends ID<UnknownRecord>> = K extends ID<infer R> ? R : never
+type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
 
 /**
  * A diff describing the changes to a record.
@@ -69,11 +69,6 @@ export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>
 /** @public */
 export type StoreValidator<R extends UnknownRecord> = {
 	validate: (record: unknown) => R
-}
-
-/** @public */
-export type StoreValidators<R extends UnknownRecord> = {
-	[K in R['typeName']]: StoreValidator<Extract<R, { typeName: K }>>
 }
 
 /** @public */

@@ -1,13 +1,13 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { RecordId, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { TLBaseAsset } from '../assets/asset-validation'
 import {
+	TLBookmarkAsset,
 	bookmarkAssetMigrations,
 	bookmarkAssetTypeValidator,
-	TLBookmarkAsset,
 } from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
+import { TLImageAsset, imageAssetMigrations, imageAssetTypeValidator } from '../assets/TLImageAsset'
 import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
+import { TLBaseAsset } from '../assets/asset-validation'
 import { TLShape } from './TLShape'
 
 // --- DEFINITION ---
@@ -51,7 +51,7 @@ export const AssetRecordType = createRecordType<TLAsset>('asset', {
 })
 
 /** @public */
-export type TLAssetId = ID<TLBaseAsset<any, any>>
+export type TLAssetId = RecordId<TLBaseAsset<any, any>>
 
 /** @public */
 export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>

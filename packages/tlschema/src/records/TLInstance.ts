@@ -1,8 +1,8 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, RecordId, createRecordType, defineMigrations } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
 import { Box2dModel } from '../geometry-types'
-import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
+import { TLStyleType, TL_STYLE_TYPES } from '../style-types'
+import { TLCursor, TLScribble, cursorValidator, scribbleTypeValidator } from '../ui-types'
 import {
 	alignValidator,
 	arrowheadValidator,
@@ -48,7 +48,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 }
 
 /** @public */
-export type TLInstanceId = ID<TLInstance>
+export type TLInstanceId = RecordId<TLInstance>
 
 /** @public */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(

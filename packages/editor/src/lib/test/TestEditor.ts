@@ -181,16 +181,18 @@ export class TestEditor extends Editor {
 		.mockImplementation((info) => {
 			return info
 		})
+
 	_transformPointerUpSpy = jest
 		.spyOn(this._clickManager, 'transformPointerDownEvent')
 		.mockImplementation((info) => {
 			return info
 		})
 
-	testShapeID(id: string) {
+	testShapeId(id: string) {
 		return createCustomShapeId(id)
 	}
-	testPageID(id: string) {
+
+	testPageId(id: string) {
 		return PageRecordType.createCustomId(id)
 	}
 

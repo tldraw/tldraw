@@ -1,11 +1,11 @@
-import { BaseRecord, ID, IdOf } from '../BaseRecord'
+import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { Store, StoreSnapshot } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Book extends BaseRecord<'book', ID<Book>> {
+interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: string
-	author: IdOf<Author>
+	author: Author['id']
 	numPages: number
 }
 
@@ -24,7 +24,7 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document',
 })
 
-interface Author extends BaseRecord<'author', ID<Author>> {
+interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: string
 	isPseudonym: boolean
 }

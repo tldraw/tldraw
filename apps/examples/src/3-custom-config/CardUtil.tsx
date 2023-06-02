@@ -2,7 +2,7 @@ import { HTMLContainer, TLBoxUtil } from '@tldraw/tldraw'
 import { CardShape } from './CardShape'
 
 export class CardUtil extends TLBoxUtil<CardShape> {
-	// Id — the shape util's id
+	// id — the shape util's id
 	static override type = 'card' as const
 
 	// Flags — there are a LOT of other flags!
