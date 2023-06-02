@@ -1,6 +1,3 @@
-import { Dialog } from '@radix-ui/react-dialog'
-import { DropdownMenu } from '@radix-ui/react-dropdown-menu'
-
 export { TldrawUi, type TldrawUiProps } from './lib/TldrawUi'
 export {
 	TldrawUiContextProvider as TldrawUiContextProvider,
@@ -93,3 +90,5 @@ export {
 export { type TLUiIconType } from './lib/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/overrides'
 export { Dialog, DropdownMenu }
+import * as Dialog from './lib/components/primitives/Dialog'
+import * as DropdownMenu from './lib/components/primitives/DropdownMenu'

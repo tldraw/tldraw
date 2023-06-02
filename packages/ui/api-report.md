@@ -6,12 +6,11 @@
 
 /// <reference types="react" />
 
-import { Dialog } from '@radix-ui/react-dialog';
-import { DropdownMenu } from '@radix-ui/react-dropdown-menu';
 import { Editor } from '@tldraw/editor';
 import { EditorAssetUrls } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { default as React_2 } from 'react';
+import * as React_3 from 'react';
 import { ReactNode } from 'react';
 import { TLCopyType } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
@@ -25,24 +24,116 @@ export function AssetUrlsProvider({ assetUrls, children, }: {
 }): JSX.Element;
 
 // @public (undocumented)
+function Body_2({ className, children, style, }: {
+    className?: string;
+    children: any;
+    style?: React.CSSProperties;
+}): JSX.Element;
+
+// @public (undocumented)
 export function BreakPointProvider({ children }: {
     children: any;
 }): JSX.Element;
 
 // @public (undocumented)
+function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
+
+// @public (undocumented)
+function CloseButton(): JSX.Element;
+
+// @public (undocumented)
 export function compactMenuItems<T>(arr: T[]): Exclude<T, false | null | undefined>[];
+
+// @public (undocumented)
+function Content({ side, align, sideOffset, alignOffset, children, }: {
+    children: any;
+    alignOffset?: number;
+    sideOffset?: number;
+    align?: 'center' | 'end' | 'start';
+    side?: 'bottom' | 'left' | 'right' | 'top';
+}): JSX.Element;
 
 // @public (undocumented)
 export const ContextMenu: ({ children }: {
     children: any;
 }) => JSX.Element;
 
+declare namespace Dialog {
+    export {
+        Header,
+        Title,
+        CloseButton,
+        Body_2 as Body,
+        Footer
+    }
+}
 export { Dialog }
 
+declare namespace DropdownMenu {
+    export {
+        Root,
+        Trigger,
+        Content,
+        Sub,
+        SubTrigger,
+        SubContent,
+        Group,
+        Indicator,
+        Item,
+        CheckboxItem,
+        RadioItem,
+        DropdownMenuItemProps,
+        DropdownMenuCheckboxItemProps
+    }
+}
 export { DropdownMenu }
 
 // @public (undocumented)
+interface DropdownMenuCheckboxItemProps {
+    // (undocumented)
+    checked?: boolean;
+    // (undocumented)
+    children: any;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    onSelect?: (e: Event) => void;
+    // (undocumented)
+    title: string;
+}
+
+// @public (undocumented)
+interface DropdownMenuItemProps extends ButtonProps {
+    // (undocumented)
+    noClose?: boolean;
+}
+
+// @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;
+
+// @public (undocumented)
+function Footer({ className, children }: {
+    className?: string;
+    children: any;
+}): JSX.Element;
+
+// @public (undocumented)
+function Group({ children, size, }: {
+    children: any;
+    size?: 'medium' | 'small' | 'tiny' | 'wide';
+}): JSX.Element;
+
+// @public (undocumented)
+function Header({ className, children }: {
+    className?: string;
+    children: any;
+}): JSX.Element;
+
+// @public (undocumented)
+function Indicator(): JSX.Element;
+
+// @public (undocumented)
+function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
 
 // @public (undocumented)
 export function menuCustom(id: string, opts?: Partial<{
@@ -67,8 +158,44 @@ export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Parti
 // @public (undocumented)
 export function menuSubmenu(id: string, label: TLUiTranslationKey, ...children: (false | null | TLUiMenuChild)[]): null | TLUiSubMenu;
 
+// @public (undocumented)
+function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
+
+// @public (undocumented)
+function Root({ id, children, modal, }: {
+    id: string;
+    children: any;
+    modal?: boolean;
+}): JSX.Element;
+
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
+
+// @public (undocumented)
+function Sub({ id, children }: {
+    id: string;
+    children: any;
+}): JSX.Element;
+
+// @public (undocumented)
+function SubContent({ alignOffset, sideOffset, children, }: {
+    alignOffset?: number;
+    sideOffset?: number;
+    children: any;
+}): JSX.Element;
+
+// @public (undocumented)
+function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirection, }: {
+    label: TLUiTranslationKey;
+    'data-testid'?: string;
+    'data-direction'?: 'left' | 'right';
+}): JSX.Element;
+
+// @public (undocumented)
+function Title({ className, children }: {
+    className?: string;
+    children: any;
+}): JSX.Element;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<{
@@ -355,6 +482,12 @@ export type TLUiTranslationKey = 'action.align-bottom' | 'action.align-center-ho
 
 // @public (undocumented)
 export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem;
+
+// @public (undocumented)
+function Trigger({ children, 'data-testid': testId, }: {
+    children: any;
+    'data-testid'?: string;
+}): JSX.Element;
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;

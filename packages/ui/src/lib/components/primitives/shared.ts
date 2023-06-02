@@ -38,27 +38,3 @@ export function kbdStr(str: string) {
 			.join(' ')
 	)
 }
-
-/** @internal */
-export const getBaseUrl = () => {
-	if (typeof process === 'undefined') {
-		return 'http://localhost:5420'
-	}
-
-	if (process.env.NODE_ENV === 'development') {
-		return 'http://localhost:3000'
-	}
-
-	if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
-		return 'https://www.tldraw.com'
-	}
-
-	if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview') {
-		return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-	}
-
-	return 'http://localhost:3000'
-}
-
-/** @internal */
-export const BASE_URL = getBaseUrl()
