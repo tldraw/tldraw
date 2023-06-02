@@ -1,6 +1,6 @@
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
-import { App } from '../App'
+import { App } from '../Editor'
 import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
 const textAlignmentsForLtr = {

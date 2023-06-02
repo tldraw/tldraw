@@ -1,5 +1,5 @@
 import { TLPageId, TLRecord } from '@tldraw/tlschema'
-import { TLChange } from '../App'
+import { TLChange } from '../Editor'
 import { TLEventInfo } from './event-types'
 
 /** @public */

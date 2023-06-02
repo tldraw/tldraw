@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { App } from '../App'
+import { App } from '../Editor'
 
 export class TickManager {
 	constructor(public app: App) {

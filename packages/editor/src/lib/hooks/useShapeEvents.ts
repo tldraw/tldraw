@@ -1,6 +1,6 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import React from 'react'
-import { App } from '../app/App'
+import { App } from '../app/Editor'
 import { TLPointerEventName } from '../app/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'

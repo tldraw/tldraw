@@ -1,6 +1,6 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { atom, Atom, computed, Computed } from 'signia'
-import type { App } from '../App'
+import type { App } from '../Editor'
 import {
 	EVENT_NAME_MAP,
 	TLEventHandlers,

@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
-import { App } from '../app/App'
+import { App } from '../app/Editor'
 import { AppContext } from '../hooks/useEditor'
 import { hardResetApp } from '../utils/hard-reset'
 import { refreshPage } from '../utils/refresh-page'

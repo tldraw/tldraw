@@ -16,7 +16,7 @@ import {
 	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { App, AppOptions } from '../app/App'
+import { App, AppOptions } from '../app/Editor'
 import { TLClipboardModel } from '../app/types/clipboard-types'
 import {
 	TLEventInfo,

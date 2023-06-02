@@ -26,7 +26,7 @@ export {
 	type AnimationOptions,
 	type AppOptions,
 	type TLChange,
-} from './lib/app/App'
+} from './lib/app/Editor'
 export { TLArrowUtil } from './lib/app/shapeutils/TLArrowUtil/TLArrowUtil'
 export { TLBookmarkUtil } from './lib/app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 export { TLBoxUtil } from './lib/app/shapeutils/TLBoxUtil'

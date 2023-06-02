@@ -1,7 +1,7 @@
 import { Box2d } from '@tldraw/primitives'
 import { Box2dModel, TLAlignType, TLVerticalAlignType } from '@tldraw/tlschema'
 import { correctSpacesToNbsp } from '../../../utils/string'
-import { App } from '../../App'
+import { App } from '../../Editor'
 
 /** Get an SVG element for a text shape. */
 export function createTextSvgElementFromSpans(

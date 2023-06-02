@@ -1,5 +1,5 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { App } from '../Editor'
 
 export class DprManager {
 	private _currentMM: MediaQueryList | undefined

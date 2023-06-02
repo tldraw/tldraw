@@ -12,7 +12,7 @@ import {
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
-import { App } from '../app/App'
+import { App } from '../app/Editor'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
 import { isAnimated } from './is-gif-animated'
 import { findChunk, isPng, parsePhys } from './png'

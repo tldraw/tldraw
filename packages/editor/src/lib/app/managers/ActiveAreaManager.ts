@@ -1,5 +1,5 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { App } from '../Editor'
 
 type Offsets = {
 	top: number

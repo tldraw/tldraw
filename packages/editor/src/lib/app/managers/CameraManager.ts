@@ -1,5 +1,5 @@
 import { atom } from 'signia'
-import { App } from '../App'
+import { App } from '../Editor'
 
 const CAMERA_SETTLE_TIMEOUT = 12
 

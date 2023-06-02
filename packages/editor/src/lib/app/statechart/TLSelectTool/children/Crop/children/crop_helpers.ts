@@ -1,7 +1,7 @@
 import { Vec2d } from '@tldraw/primitives'
 import { TLBaseShape, TLImageCrop, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
-import { App } from '../../../../../App'
+import { App } from '../../../../../Editor'
 
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>
 

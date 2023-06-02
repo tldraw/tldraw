@@ -1,5 +1,5 @@
 import React from 'react'
-import { App } from '../app/App'
+import { App } from '../app/Editor'
 
 export const AppContext = React.createContext({} as App)
 

@@ -16,7 +16,7 @@ import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
-import type { App } from '../App'
+import type { App } from '../Editor'
 import { getSplineForLineShape, TLLineUtil } from '../shapeutils/TLLineUtil/TLLineUtil'
 
 export type PointsSnapLine = {

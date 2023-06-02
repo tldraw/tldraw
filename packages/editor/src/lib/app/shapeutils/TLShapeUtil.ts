@@ -11,7 +11,7 @@ import {
 import { ComputedCache } from '@tldraw/tlstore'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
-import type { App } from '../App'
+import type { App } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
 

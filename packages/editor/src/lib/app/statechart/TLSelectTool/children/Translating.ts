@@ -1,7 +1,7 @@
 import { Box2d, Matrix2d, Matrix2dModel, Vec2d } from '@tldraw/primitives'
 import { PageRecordType, TLShape, TLShapePartial, isPageId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
-import type { App } from '../../../App'
+import type { App } from '../../../Editor'
 import { DragAndDropManager } from '../../../managers/DragAndDropManager'
 import { SnapPoint } from '../../../managers/SnapManager'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'

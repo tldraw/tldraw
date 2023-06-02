@@ -18,7 +18,7 @@ import {
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 } from '../../../../constants'
-import type { App } from '../../../App'
+import type { App } from '../../../Editor'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'

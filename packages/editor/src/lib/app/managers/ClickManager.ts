@@ -6,7 +6,7 @@ import {
 	MULTI_CLICK_DURATION,
 } from '../../constants'
 import { uniqueId } from '../../utils/data'
-import type { App } from '../App'
+import type { App } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 
 type TLClickState =
