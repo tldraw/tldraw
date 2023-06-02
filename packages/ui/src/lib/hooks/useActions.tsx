@@ -921,6 +921,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '/,Enter',
 				onSelect(source) {
 					trackEvent('open-cursor-chat', { source })
+					if (app.isIn('select') && app.selectedIds.length === 1) {
+						return
+					}
 					app.updateInstanceState({
 						isChatting: true,
 					})
