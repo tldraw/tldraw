@@ -1,7 +1,7 @@
 import { TAU } from '@tldraw/primitives'
 import { createCustomShapeId, TLArrowShape, TLArrowTerminal, TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
-import { TestApp } from '../../../test/TestApp'
+import { TestApp } from '../../../test/TestEditor'
 import { TLArrowUtil } from './TLArrowUtil'
 
 let app: TestApp

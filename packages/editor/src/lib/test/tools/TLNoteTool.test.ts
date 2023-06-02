@@ -1,5 +1,5 @@
 import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

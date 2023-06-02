@@ -1,5 +1,5 @@
 import { TLTextTool } from '../../app/statechart/TLTextTool/TLTextTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

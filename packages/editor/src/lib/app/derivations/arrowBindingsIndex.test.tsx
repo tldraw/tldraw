@@ -1,5 +1,5 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestApp'
+import { TestApp } from '../../test/TestEditor'
 import { TL } from '../../test/jsx'
 
 let app: TestApp

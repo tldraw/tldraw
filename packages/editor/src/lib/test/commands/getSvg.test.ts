@@ -1,6 +1,6 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

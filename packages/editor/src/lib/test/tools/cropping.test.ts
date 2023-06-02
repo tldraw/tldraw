@@ -1,6 +1,6 @@
 import { TLImageShape, createCustomShapeId } from '@tldraw/tlschema'
 import { MIN_CROP_SIZE } from '../../constants'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 jest.useFakeTimers()
 

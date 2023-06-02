@@ -2,7 +2,7 @@ import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createCustomShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
 import { getSnapLines } from '../testutils/getSnapLines'

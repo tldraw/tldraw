@@ -1,6 +1,6 @@
 import { assert } from '@tldraw/utils'
 import { TLLineUtil } from '../../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

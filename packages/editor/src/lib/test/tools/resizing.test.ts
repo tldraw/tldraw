@@ -10,7 +10,7 @@ import {
 import { createCustomShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine } from '../../app/managers/SnapManager'
 import { TLSelectionHandle } from '../../app/types/selection-types'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'
 

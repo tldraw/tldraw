@@ -1,6 +1,6 @@
 import { PI } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 import { TL } from '../jsx'
 
 let app: TestApp

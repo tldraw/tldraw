@@ -1,4 +1,4 @@
-import { createDefaultShapes, defaultShapesIds, TestApp } from './TestApp'
+import { createDefaultShapes, defaultShapesIds, TestApp } from './TestEditor'
 
 let app: TestApp
 

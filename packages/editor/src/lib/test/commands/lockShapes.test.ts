@@ -1,5 +1,5 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 let app: TestApp
 
 const ids = {

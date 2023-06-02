@@ -1,7 +1,7 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TestApp } from './TestApp'
+import { TestApp } from './TestEditor'
 
 let app: TestApp
 

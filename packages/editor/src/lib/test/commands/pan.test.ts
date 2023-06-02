@@ -1,5 +1,5 @@
 import { Box2d, Vec2d } from '@tldraw/primitives'
-import { TestApp, createDefaultShapes } from '../TestApp'
+import { TestApp, createDefaultShapes } from '../TestEditor'
 
 let app: TestApp
 

@@ -1,4 +1,4 @@
-import { TestApp } from './TestApp'
+import { TestApp } from './TestEditor'
 
 it('loads the test app', () => {
 	expect(() => {

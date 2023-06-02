@@ -1,6 +1,6 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { MAX_PAGES } from '../../constants'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

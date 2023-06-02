@@ -1,5 +1,5 @@
 import { TLGeoTool } from '../../app/statechart/TLGeoTool/TLGeoTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

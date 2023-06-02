@@ -1,6 +1,6 @@
 import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { TestApp } from './TestApp'
+import { TestApp } from './TestEditor'
 
 let app: TestApp
 

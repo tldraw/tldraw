@@ -1,5 +1,5 @@
 import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestApp'
+import { TestApp } from '../../test/TestEditor'
 
 let app: TestApp
 

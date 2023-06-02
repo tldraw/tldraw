@@ -1,5 +1,5 @@
 import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

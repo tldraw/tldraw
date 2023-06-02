@@ -1,5 +1,5 @@
 import { TLSelectTool } from '../../app/statechart/TLSelectTool/TLSelectTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 import { TL } from '../jsx'
 
 let app: TestApp

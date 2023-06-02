@@ -1,6 +1,6 @@
 import { PI } from '@tldraw/primitives'
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 jest.useFakeTimers()
 

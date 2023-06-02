@@ -1,4 +1,4 @@
-import { TestApp } from '../../test/TestApp'
+import { TestApp } from '../../test/TestEditor'
 
 let app: TestApp
 

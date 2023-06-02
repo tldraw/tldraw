@@ -1,6 +1,6 @@
 import { structuredClone } from '@tldraw/utils'
 import { TLClipboardModel } from '../../app/types/clipboard-types'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

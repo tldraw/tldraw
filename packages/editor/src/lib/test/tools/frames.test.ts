@@ -1,6 +1,6 @@
 import { createCustomShapeId, TLArrowShape } from '@tldraw/tlschema'
 import { TLFrameUtil } from '../../app/shapeutils/TLFrameUtil/TLFrameUtil'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

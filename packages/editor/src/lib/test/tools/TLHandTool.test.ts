@@ -1,5 +1,5 @@
 import { TLHandTool } from '../../app/statechart/TLHandTool/TLHandTool'
-import { createDefaultShapes, TestApp } from '../TestApp'
+import { createDefaultShapes, TestApp } from '../TestEditor'
 
 let app: TestApp
 

@@ -1,5 +1,5 @@
 import { TLBoxTool } from '../../app/statechart/TLBoxTool/TLBoxTool'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 

@@ -1,6 +1,6 @@
 import { TLBookmarkShape } from '@tldraw/tlschema'
 import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TestApp } from '../TestApp'
+import { TestApp } from '../TestEditor'
 
 let app: TestApp
 
