@@ -13,9 +13,9 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	const { isChatting, chatMessage } = app.instanceState
 
-	// --- Managing the timeout for chat messages ---------------
+	// --- Fading the chat bubble ---------------
 	const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null)
-	const stopTimeout = useCallback(() => {
+	const stopFade = useCallback(() => {
 		if (timeoutId === null) {
 			return
 		}
@@ -24,18 +24,18 @@ export const CursorChatInput = track(function CursorChatInput() {
 		ref.current?.classList.remove('tl-cursor-chat-fade')
 	}, [timeoutId])
 
-	const startTimeout = useCallback(() => {
+	const startFade = useCallback(() => {
 		if (timeoutId !== null) {
-			stopTimeout()
+			stopFade()
 		}
 		const id = setTimeout(() => {
 			app.updateInstanceState({ chatMessage: '' })
 		}, CHAT_MESSAGE_TIMEOUT)
 		setTimeoutId(id)
 		ref.current?.classList.add('tl-cursor-chat-fade')
-	}, [app, timeoutId, stopTimeout])
+	}, [app, timeoutId, stopFade])
 
-	// --- Auto-focus the chat input ----------------------------
+	// --- Auto-focussing the chat input ----------------------------
 	useLayoutEffect(() => {
 		if (isChatting) {
 			// If the context menu is closing, then we need to wait a bit before focusing
@@ -43,9 +43,9 @@ export const CursorChatInput = track(function CursorChatInput() {
 			requestAnimationFrame(() => {
 				requestAnimationFrame(() => ref.current?.focus())
 			})
-			stopTimeout()
+			stopFade()
 		}
-	}, [isChatting, stopTimeout])
+	}, [isChatting, stopFade])
 
 	// --- Setting the placeholder text --------------------------
 	useLayoutEffect(() => {
@@ -68,23 +68,27 @@ export const CursorChatInput = track(function CursorChatInput() {
 		return () => window.removeEventListener('pointermove', handlePointerMove)
 	}, [handlePointerMove])
 
-	// --- Handling user interactions below this line ------------------------
+	// --- Helpers for handling the chat message -------------------
+	const stopChatting = useCallback(() => {
+		app.updateInstanceState({ isChatting: false, chatMessageTimestamp: Date.now() })
+		startFade()
+		container.focus()
+	}, [app, startFade, container])
 
-	// Stop chatting when the user clicks away
-	const handleBlur = useCallback(() => {
-		app.updateInstanceState({ isChatting: false })
-		startTimeout()
-		if (!ref.current) return
-		ref.current.textContent = ''
-	}, [app, startTimeout])
+	const updateChatMessage = useCallback(
+		(chatMessage: string) => {
+			app.updateInstanceState({ chatMessage, chatMessageTimestamp: null })
+			stopFade()
+		},
+		[app, stopFade]
+	)
+
+	// --- Handling user interactions below this line ---------------
 
 	// Update the chat message as the user types
 	const handleInput = useCallback(
-		(e) => {
-			app.updateInstanceState({ chatMessage: e.currentTarget.textContent })
-			stopTimeout()
-		},
-		[app, stopTimeout]
+		(e) => updateChatMessage(e.currentTarget.textContent),
+		[updateChatMessage]
 	)
 
 	// Handle some keyboard shortcuts
@@ -99,12 +103,11 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 					// If the user hasn't typed anything, stop chatting
 					if (ref.current.textContent === '') {
-						app.updateInstanceState({ isChatting: false })
-						startTimeout()
-						container.focus()
+						stopChatting()
 						return
 					}
 
+					// Otherwise, 'send' the message
 					ref.current.textContent = ''
 					break
 				}
@@ -115,17 +118,16 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 					// If the user has typed something, cancel it!
 					if (ref.current.textContent !== '') {
-						app.updateInstanceState({ chatMessage: '' })
+						updateChatMessage('')
 					}
 
 					// Either way, stop chatting
-					app.updateInstanceState({ isChatting: false })
-					container.focus()
+					stopChatting()
 					break
 				}
 			}
 		},
-		[app, isChatting, container, startTimeout]
+		[isChatting, stopChatting, updateChatMessage]
 	)
 
 	// Convert all pasted content to plain text
@@ -143,7 +145,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			}}
 			contentEditable={isChatting}
 			suppressContentEditableWarning
-			onBlur={handleBlur}
+			onBlur={stopChatting}
 			onInput={handleInput}
 			onKeyDown={handleKeyDown}
 			spellCheck={false}

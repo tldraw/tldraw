@@ -33,7 +33,16 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== app.currentPageId) return null
 
-	const { brush, scribble, selectedIds, userName, cursor, color, chatMessage } = latestPresence
+	const {
+		brush,
+		scribble,
+		selectedIds,
+		userName,
+		cursor,
+		color,
+		chatMessage,
+		chatMessageTimestamp,
+	} = latestPresence
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
@@ -64,6 +73,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
 					chatMessage={chatMessage}
+					chatMessageTimestamp={chatMessageTimestamp}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint

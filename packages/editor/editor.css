@@ -755,8 +755,8 @@ input,
 }
 
 .tl-cursor-chat-placeholder-fade:empty::before {
-	opacity: 0;
-	transition: opacity 5s ease-in-out;
+	opacity: 0.2;
+	transition: opacity 5s;
 }
 
 /* -------------------------------------------------- */

@@ -993,7 +993,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     chatMessage: string;
     // (undocumented)
-    chatMessageTimestamp: number;
+    chatMessageTimestamp: null | number;
     // (undocumented)
     currentPageId: TLPageId;
     // (undocumented)
@@ -1063,7 +1063,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     chatMessage: string;
     // (undocumented)
-    chatMessageTimestamp: number;
+    chatMessageTimestamp: null | number;
     // (undocumented)
     color: string;
     // (undocumented)

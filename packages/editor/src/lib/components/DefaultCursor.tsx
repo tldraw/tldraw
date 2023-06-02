@@ -10,10 +10,21 @@ export type TLCursorComponent = (props: {
 	zoom: number
 	color?: string
 	name: string | null
-	chatMessage: string | null
+	chatMessage: string
+	chatMessageTimestamp: number | null
 }) => any | null
 
-const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatMessage }) => {
+const DEFAULT_CHAT_MESSAGE_TIMEOUT = 4500
+
+const _Cursor: TLCursorComponent = ({
+	className,
+	zoom,
+	point,
+	color,
+	name,
+	chatMessage,
+	chatMessageTimestamp,
+}) => {
 	const rCursor = useRef<HTMLDivElement>(null)
 	const rChat = useRef<HTMLDivElement>(null)
 	useTransform(rCursor, point?.x, point?.y, 1 / zoom)
@@ -21,6 +32,8 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 	useLayoutEffect(() => {
 		const chatBubble = rChat.current
 		if (!chatBubble) return
+		if (chatMessageTimestamp === null) return
+
 		chatBubble.classList.remove('tl-cursor-chat-fade')
 		requestAnimationFrame(() => {
 			chatBubble.classList.add('tl-cursor-chat-fade')
@@ -29,7 +42,11 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 		return () => {
 			chatBubble.classList.remove('tl-cursor-chat-fade')
 		}
-	}, [chatMessage, rChat])
+	}, [chatMessageTimestamp, rChat])
+
+	const isChatMessageVisible =
+		chatMessage &&
+		(!chatMessageTimestamp || Date.now() - chatMessageTimestamp < DEFAULT_CHAT_MESSAGE_TIMEOUT)
 
 	if (!point) return null
 
@@ -38,7 +55,7 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 			<svg className="tl-cursor">
 				<use href="#cursor" color={color} />
 			</svg>
-			{chatMessage ? (
+			{isChatMessageVisible ? (
 				<>
 					{name && (
 						<div className="tl-nametag-title" style={{ color }}>

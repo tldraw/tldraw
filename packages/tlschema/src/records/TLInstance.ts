@@ -46,7 +46,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
 	chatMessage: string
-	chatMessageTimestamp: number
+	chatMessageTimestamp: number | null
 	isChatting: boolean
 }
 
@@ -87,7 +87,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		screenBounds: T.boxModel,
 		zoomBrush: T.boxModel.nullable(),
 		chatMessage: T.string,
-		chatMessageTimestamp: T.number,
+		chatMessageTimestamp: T.number.nullable(),
 		isChatting: T.boolean,
 	})
 )
@@ -251,7 +251,7 @@ export const instanceTypeMigrations = defineMigrations({
 		},
 		[Versions.AddChat]: {
 			up: (instance: TLInstance) => {
-				return { ...instance, chatMessage: '', isChatting: false, chatMessageTimestamp: 0 }
+				return { ...instance, chatMessage: '', isChatting: false, chatMessageTimestamp: null }
 			},
 			down: ({
 				chatMessage: _,
@@ -303,7 +303,7 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
 		chatMessage: '',
-		chatMessageTimestamp: 0,
+		chatMessageTimestamp: null,
 		isChatting: false,
 	})
 )

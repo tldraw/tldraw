@@ -1008,11 +1008,11 @@ describe('Adds chat message to presence', () => {
 	const { up, down } = instancePresenceTypeMigrations.migrators[2]
 
 	test('up adds the chatMessage property', () => {
-		expect(up({})).toEqual({ chatMessage: '', chatMessageTimestamp: 0 })
+		expect(up({})).toEqual({ chatMessage: '', chatMessageTimestamp: null })
 	})
 
 	test('down removes the chatMessage property', () => {
-		expect(down({ chatMessage: '', chatMessageTimestamp: 0 })).toEqual({})
+		expect(down({ chatMessage: '', chatMessageTimestamp: null })).toEqual({})
 	})
 })
 
@@ -1020,11 +1020,11 @@ describe('Adds chat properties to instance', () => {
 	const { up, down } = instanceTypeMigrations.migrators[12]
 
 	test('up adds the chatMessage property', () => {
-		expect(up({})).toEqual({ chatMessage: '', isChatting: false, chatMessageTimestamp: 0 })
+		expect(up({})).toEqual({ chatMessage: '', isChatting: false, chatMessageTimestamp: null })
 	})
 
 	test('down removes the chatMessage property', () => {
-		expect(down({ chatMessage: '', isChatting: true, chatMessageTimestamp: 0 })).toEqual({})
+		expect(down({ chatMessage: '', isChatting: true, chatMessageTimestamp: null })).toEqual({})
 	})
 })
 
