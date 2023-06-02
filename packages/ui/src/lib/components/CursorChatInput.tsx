@@ -3,7 +3,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 
-const CHAT_MESSAGE_TIMEOUT = 1000
+const CHAT_MESSAGE_TIMEOUT = 5000
 
 export const CursorChatInput = track(function CursorChatInput() {
 	const editor = useEditor()
