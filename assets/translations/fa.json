@@ -331,5 +331,13 @@
     "file-system.confirm-open.description": "بازکردن یک پرونده جدید، آن را با پروژه کنونی شما جایگزین می‌کند و تغییرات ذخیره‌نشده از بین خواهد رفت. آیا مطمئن هستید که می‌خواهید ادامه دهید؟",
     "file-system.shared-document-file-open-error.description": "بازکردن پیونده‌ها از پروژه‌های هم‌رسانی‌شده پشتیبانی نمی‌شود.",
     "sharing.confirm-leave.description": "آیا مطمئن هستید که می‌خواهید این پروژه هم‌رسانی‌شده را ترک کنید؟ شما می‌توانید با رفتن به نشانی اینترنتی آن، به آن بازگردید.",
-    "vscode.file-open.desc": "ما این سند را برای کار با نسخه کنونی tldraw به‌روز کرده‌ایم. اگر می‌خواهید نسخه اصلی را نگه دارید (که روی old.tldraw.com کار می‌کند)، برای ایجاد یک نسخه پشتیبان این پایین کلیک کنید."
+    "vscode.file-open.desc": "ما این سند را برای کار با نسخه کنونی tldraw به‌روز کرده‌ایم. اگر می‌خواهید نسخه اصلی را نگه دارید (که روی old.tldraw.com کار می‌کند)، برای ایجاد یک نسخه پشتیبان این پایین کلیک کنید.",
+    "home-project-dialog.title": "پروژه خانه",
+    "home-project-dialog.description": "این پروژه خانه محلی شماست. فقط برای شما!",
+    "rename-project-dialog.title": "تغییر نام پروژه",
+    "rename-project-dialog.cancel": "لغو",
+    "rename-project-dialog.rename": "تغییر نام",
+    "home-project-dialog.ok": "باشه",
+    "action.toggle-lock": "قفل‌کردن / بازکردن قفل",
+    "share-menu.default-project-name": "پروژه هم‌رسانی‌شده"
 }
