@@ -133,7 +133,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 		[isChatting, stopChatting, updateChatMessage]
 	)
 
-	// Convert all pasted content to plain text
+	// Disable paste
 	const handlePaste = useCallback((e) => {
 		preventDefault(e)
 		e.stopPropagation()
