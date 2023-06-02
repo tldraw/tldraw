@@ -63,14 +63,6 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 		prepack: () => undefined,
 		postpack: () => undefined,
 	},
-	'tldraw-vscode': {
-		lint: () =>
-			'yarn run -T eslint --report-unused-disable-directives --ignore-path ../../../.eslintignore',
-	},
-	'@tldraw/vscode-editor': {
-		lint: () =>
-			'yarn run -T eslint --report-unused-disable-directives --ignore-path ../../../.eslintignore',
-	},
 }
 
 async function main({ fix }: { fix?: boolean }) {
