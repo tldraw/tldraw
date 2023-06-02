@@ -16,11 +16,10 @@ export const CursorChatInput = track(function CursorChatInput() {
 		() => {
 			if (isChatting) {
 				// If the context menu is closing, then we need to wait a bit before focusing
-				// Not sure how to deal with this as I think it's handled in Radix land?
-				// TODO: Do this properly somehow
-				setTimeout(() => {
-					ref.current?.focus()
-				}, 1)
+				// TODO: Do this in a better way
+				requestAnimationFrame(() => {
+					requestAnimationFrame(() => ref.current?.focus())
+				})
 			}
 		},
 		[isChatting]

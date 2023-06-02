@@ -165,7 +165,6 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 				oneSelected && menuItem(actions['copy']),
 				showMenuPaste && menuItem(actions['paste'])
 			),
-			!oneSelected && menuGroup('cursor-chat', menuItem(actions['open-cursor-chat'])),
 			atLeastOneShapeOnPage &&
 				menuGroup(
 					'conversions',

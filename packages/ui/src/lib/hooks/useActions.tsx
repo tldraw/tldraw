@@ -914,21 +914,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					app.zoomToContent()
 				},
 			},
-			{
-				id: 'open-cursor-chat',
-				label: 'action.open-cursor-chat',
-				readonlyOk: true,
-				kbd: '/,Enter',
-				onSelect(source) {
-					trackEvent('open-cursor-chat', { source })
-					if (app.isIn('select') && app.selectedIds.length === 1) {
-						return
-					}
-					app.updateInstanceState({
-						isChatting: true,
-					})
-				},
-			},
 		])
 
 		if (overrides) {
