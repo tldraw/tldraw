@@ -364,7 +364,7 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape>;
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
-export function getDefaultTranslationLocale(): TLTranslationLocale;
+export function getDefaultTranslationLocale(): TLUiTranslationLocale;
 
 // @public (undocumented)
 export const groupShapeTypeMigrations: Migrations;

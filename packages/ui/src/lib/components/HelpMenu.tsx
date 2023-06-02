@@ -1,11 +1,11 @@
 import { Content, Portal, Root, Trigger } from '@radix-ui/react-dropdown-menu'
 import { useContainer } from '@tldraw/editor'
 import * as React from 'react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useHelpMenuSchema } from '../hooks/useHelpMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { useReadonly } from '../hooks/useReadonly'
-import { TLTranslationKey } from '../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { LanguageMenu } from './LanguageMenu'
@@ -13,17 +13,17 @@ import * as M from './primitives/DropdownMenu'
 import { Icon } from './primitives/Icon'
 
 interface HelpMenuLink {
-	label: TLTranslationKey
+	label: TLUiTranslationKey
 	icon: TLUiIconType
 	url: string
 }
 
-/** @public */
+/** @internal */
 export interface HelpMenuProps {
 	links?: HelpMenuLink[]
 }
 
-/** @public */
+/** @internal */
 export const HelpMenu = React.memo(function HelpMenu() {
 	const container = useContainer()
 	const msg = useTranslation()
@@ -61,7 +61,7 @@ function HelpMenuContent() {
 
 	const isReadonly = useReadonly()
 
-	function getHelpMenuItem(item: MenuChild) {
+	function getHelpMenuItem(item: TLUiMenuChild) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {

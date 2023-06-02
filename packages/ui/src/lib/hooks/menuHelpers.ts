@@ -1,15 +1,15 @@
 import { Editor, TLArrowUtil, useEditor } from '@tldraw/editor'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { useValue } from 'signia-react'
-import { ActionItem } from './useActions'
-import { ToolItem } from './useTools'
-import { TLTranslationKey } from './useTranslation/TLTranslationKey'
+import { TLUiActionItem } from './useActions'
+import { TLUiToolItem } from './useTools'
+import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export type MenuChild = MenuItem | SubMenu | MenuGroup | CustomMenuItem
+export type TLUiMenuChild = TLUiMenuItem | TLUiSubMenu | TLUiMenuGroup | TLUiCustomMenuItem
 
 /** @public */
-export type CustomMenuItem = {
+export type TLUiCustomMenuItem = {
 	id: string
 	type: 'custom'
 	disabled: boolean
@@ -17,37 +17,37 @@ export type CustomMenuItem = {
 }
 
 /** @public */
-export type MenuItem = {
+export type TLUiMenuItem = {
 	id: string
 	type: 'item'
 	readonlyOk: boolean
-	actionItem: ActionItem
+	actionItem: TLUiActionItem
 	disabled: boolean
 	checked: boolean
 }
 
 /** @public */
-export type MenuGroup = {
+export type TLUiMenuGroup = {
 	id: string
 	type: 'group'
 	checkbox: boolean
 	disabled: boolean
 	readonlyOk: boolean
-	children: MenuChild[]
+	children: TLUiMenuChild[]
 }
 
 /** @public */
-export type SubMenu = {
+export type TLUiSubMenu = {
 	id: string
 	type: 'submenu'
-	label: TLTranslationKey
+	label: TLUiTranslationKey
 	disabled: boolean
 	readonlyOk: boolean
-	children: MenuChild[]
+	children: TLUiMenuChild[]
 }
 
 /** @public */
-export type MenuSchema = (MenuGroup | MenuItem | CustomMenuItem)[]
+export type TLUiMenuSchema = (TLUiMenuGroup | TLUiMenuItem | TLUiCustomMenuItem)[]
 
 /** @public */
 export function compactMenuItems<T>(arr: T[]): Exclude<T, null | false | undefined>[] {
@@ -55,7 +55,10 @@ export function compactMenuItems<T>(arr: T[]): Exclude<T, null | false | undefin
 }
 
 /** @public */
-export function menuGroup(id: string, ...children: (MenuChild | null | false)[]): MenuGroup | null {
+export function menuGroup(
+	id: string,
+	...children: (TLUiMenuChild | null | false)[]
+): TLUiMenuGroup | null {
 	const childItems = compactMenuItems(children)
 
 	if (childItems.length === 0) return null
@@ -73,9 +76,9 @@ export function menuGroup(id: string, ...children: (MenuChild | null | false)[])
 /** @public */
 export function menuSubmenu(
 	id: string,
-	label: TLTranslationKey,
-	...children: (MenuChild | null | false)[]
-): SubMenu | null {
+	label: TLUiTranslationKey,
+	...children: (TLUiMenuChild | null | false)[]
+): TLUiSubMenu | null {
 	const childItems = compactMenuItems(children)
 	if (childItems.length === 0) return null
 
@@ -105,9 +108,9 @@ export function menuCustom(
 
 /** @public */
 export function menuItem(
-	actionItem: ActionItem | ToolItem,
+	actionItem: TLUiActionItem | TLUiToolItem,
 	opts = {} as Partial<{ checked: boolean; disabled: boolean }>
-): MenuItem {
+): TLUiMenuItem {
 	if (!actionItem) {
 		throw Error('No action item provided to menuItem')
 	}
@@ -146,19 +149,19 @@ function shapesWithUnboundArrows(editor: Editor) {
 	})
 }
 
-/** @public */
+/** @internal */
 export const useThreeStackableItems = () => {
 	const editor = useEditor()
 	return useValue('threeStackableItems', () => shapesWithUnboundArrows(editor).length > 2, [editor])
 }
 
-/** @public */
+/** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
 	return useValue('allowGroup', () => shapesWithUnboundArrows(editor).length > 1, [editor])
 }
 
-/** @public */
+/** @internal */
 export const useAllowUngroup = () => {
 	const editor = useEditor()
 	return useValue(
@@ -169,13 +172,16 @@ export const useAllowUngroup = () => {
 }
 
 /** @public */
-export function findMenuItem(menu: MenuSchema, path: string[]) {
+export function findMenuItem(menu: TLUiMenuSchema, path: string[]) {
 	const item = _findMenuItem(menu, path)
 	assert(item, `Menu item ${path.join(' > ')} not found`)
 	return item
 }
 
-function _findMenuItem(menu: MenuSchema | MenuChild[], path: string[]): MenuChild | null {
+function _findMenuItem(
+	menu: TLUiMenuSchema | TLUiMenuChild[],
+	path: string[]
+): TLUiMenuChild | null {
 	const [next, ...rest] = path
 	if (!next) return null
 

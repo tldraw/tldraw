@@ -4,7 +4,7 @@ import { useAssetUrls } from '../../hooks/useAssetUrls'
 import { TLUiIconType } from '../../icon-types'
 
 /** @public */
-export interface IconProps extends React.HTMLProps<HTMLDivElement> {
+export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
 	icon: TLUiIconType
 	small?: boolean
 	color?: string
@@ -21,7 +21,7 @@ export const Icon = memo(function Icon({
 	color,
 	className,
 	...props
-}: IconProps) {
+}: TLUiIconProps) {
 	const assetUrls = useAssetUrls()
 	const asset = assetUrls.icons[icon]
 	const ref = useRef<HTMLDivElement>(null)

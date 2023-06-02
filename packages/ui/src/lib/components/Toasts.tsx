@@ -1,12 +1,12 @@
 import * as T from '@radix-ui/react-toast'
 import * as React from 'react'
-import { TLToast, useToasts } from '../hooks/useToastsProvider'
+import { TLUiToast, useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
 import { Button } from './primitives/Button'
 import { Icon } from './primitives/Icon'
 
-function Toast({ toast }: { toast: TLToast }) {
+function Toast({ toast }: { toast: TLUiToast }) {
 	const { removeToast } = useToasts()
 	const msg = useTranslation()
 

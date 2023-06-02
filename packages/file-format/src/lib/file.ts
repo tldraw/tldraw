@@ -16,7 +16,7 @@ import {
 	UnknownRecord,
 } from '@tldraw/tlstore'
 import { T } from '@tldraw/tlvalidate'
-import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
+import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
 import { buildFromV1Document } from './buildFromV1Document'
 
@@ -204,8 +204,8 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 export async function parseAndLoadDocument(
 	editor: Editor,
 	document: string,
-	msg: (id: TLTranslationKey) => string,
-	addToast: ToastsContextType['addToast'],
+	msg: (id: TLUiTranslationKey) => string,
+	addToast: TLUiToastsContextType['addToast'],
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean
 ) {

@@ -3,7 +3,7 @@ import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useValue } from 'signia-react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
@@ -15,7 +15,7 @@ import { Icon } from './primitives/Icon'
 import { Kbd } from './primitives/Kbd'
 
 /** @public */
-export interface ContextMenuProps {
+export interface TLUiContextMenuProps {
 	children: any
 }
 
@@ -23,7 +23,7 @@ export interface ContextMenuProps {
 export const ContextMenu = function ContextMenu({ children }: { children: any }) {
 	const editor = useEditor()
 
-	const contextMenuSchema = useContextMenuSchema()
+	const contextTLUiMenuSchema = useContextMenuSchema()
 	const cb = (isOpen: boolean) => {
 		if (isOpen) return
 		if (shouldDeselect(editor)) {
@@ -37,8 +37,8 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const isReadonly = useReadonly()
 
 	const noItemsToShow =
-		contextMenuSchema.length === 0 ||
-		(isReadonly && contextMenuSchema.every((item) => !item.readonlyOk))
+		contextTLUiMenuSchema.length === 0 ||
+		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
 	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
 		editor,
@@ -80,8 +80,8 @@ function ContextMenuContent() {
 
 	function getContextMenuItem(
 		editor: Editor,
-		item: MenuChild,
-		parent: MenuChild | null,
+		item: TLUiMenuChild,
+		parent: TLUiMenuChild | null,
 		depth: number
 	) {
 		if (isReadonly && !item.readonlyOk) return null

@@ -3,7 +3,7 @@ import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { useValue } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	menuCustom,
 	menuGroup,
 	menuItem,
@@ -20,16 +20,16 @@ import { useHasLinkShapeSelected } from './useHasLinkShapeSelected'
 import { useShowAutoSizeToggle } from './useShowAutoSizeToggle'
 
 /** @public */
-export type MenuSchemaContextType = MenuSchema
+export type TLUiMenuSchemaContextType = TLUiMenuSchema
+
+/** @internal */
+export const TLUiMenuSchemaContext = React.createContext({} as TLUiMenuSchemaContextType)
 
 /** @public */
-export const MenuSchemaContext = React.createContext({} as MenuSchemaContextType)
-
-/** @public */
-export type MenuSchemaProviderProps = {
+export type TLUiMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
-		schema: MenuSchemaContextType,
+		schema: TLUiMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			noneSelected: boolean
@@ -37,12 +37,12 @@ export type MenuSchemaProviderProps = {
 			twoSelected: boolean
 			threeSelected: boolean
 		}
-	) => MenuSchemaContextType
+	) => TLUiMenuSchemaContextType
 	children: any
 }
 
-/** @public */
-export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderProps) {
+/** @internal */
+export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaProviderProps) {
 	const editor = useEditor()
 	const actions = useActions()
 
@@ -79,7 +79,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const canRedo = useCanRedo()
 	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
 
-	const menuSchema = useMemo<MenuSchema>(() => {
+	const menuSchema = useMemo<TLUiMenuSchema>(() => {
 		const menuSchema = compact([
 			menuGroup(
 				'menu',
@@ -221,15 +221,17 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		isZoomedTo100,
 	])
 
-	return <MenuSchemaContext.Provider value={menuSchema}>{children}</MenuSchemaContext.Provider>
+	return (
+		<TLUiMenuSchemaContext.Provider value={menuSchema}>{children}</TLUiMenuSchemaContext.Provider>
+	)
 }
 
 /** @public */
-export function useMenuSchema(): MenuSchema {
-	const ctx = React.useContext(MenuSchemaContext)
+export function useMenuSchema(): TLUiMenuSchema {
+	const ctx = React.useContext(TLUiMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useMenuSchema must be used inside of a MenuSchemaProvider.')
+		throw new Error('useMenuSchema must be used inside of a TLUiMenuSchemaProvider.')
 	}
 
 	return ctx

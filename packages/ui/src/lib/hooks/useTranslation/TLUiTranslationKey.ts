@@ -2,7 +2,7 @@
 // Do not edit manually.
 
 /** @public */
-export type TLTranslationKey =
+export type TLUiTranslationKey =
 	| 'action.convert-to-bookmark'
 	| 'action.convert-to-embed'
 	| 'action.open-embed-link'

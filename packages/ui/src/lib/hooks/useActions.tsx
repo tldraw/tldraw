@@ -27,44 +27,44 @@ import { useExportAs } from './useExportAs'
 import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
 import { useToasts } from './useToastsProvider'
-import { TLTranslationKey } from './useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface ActionItem {
+export interface TLUiActionItem {
 	icon?: TLUiIconType
 	id: string
 	kbd?: string
 	title?: string
-	label?: TLTranslationKey
-	menuLabel?: TLTranslationKey
-	shortcutsLabel?: TLTranslationKey
-	contextMenuLabel?: TLTranslationKey
+	label?: TLUiTranslationKey
+	menuLabel?: TLUiTranslationKey
+	shortcutsLabel?: TLUiTranslationKey
+	contextMenuLabel?: TLUiTranslationKey
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
 }
 
 /** @public */
-export type ActionsContextType = Record<string, ActionItem>
+export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
-/** @public */
-export const ActionsContext = React.createContext<ActionsContextType>({})
+/** @internal */
+export const ActionsContext = React.createContext<TLUiActionsContextType>({})
 
 /** @public */
 export type ActionsProviderProps = {
 	overrides?: (
 		editor: Editor,
-		actions: ActionsContextType,
+		actions: TLUiActionsContextType,
 		helpers: undefined
-	) => ActionsContextType
+	) => TLUiActionsContextType
 	children: any
 }
 
-function makeActions(actions: ActionItem[]) {
-	return Object.fromEntries(actions.map((action) => [action.id, action])) as ActionsContextType
+function makeActions(actions: TLUiActionItem[]) {
+	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
-/** @public */
+/** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const editor = useEditor()
 
@@ -80,7 +80,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const trackEvent = useEvents()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
-	const actions = React.useMemo<ActionsContextType>(() => {
+	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const actions = makeActions([
 			{
 				id: 'edit-link',
@@ -976,6 +976,6 @@ export function useActions() {
 	return ctx
 }
 
-function asActions<T extends Record<string, ActionItem>>(actions: T) {
-	return actions as Record<keyof typeof actions, ActionItem>
+function asActions<T extends Record<string, TLUiActionItem>>(actions: T) {
+	return actions as Record<keyof typeof actions, TLUiActionItem>
 }

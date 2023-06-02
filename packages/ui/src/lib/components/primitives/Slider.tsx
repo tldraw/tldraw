@@ -1,10 +1,10 @@
 import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
 import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
-/** @public */
+/** @internal */
 export interface SliderProps {
 	steps: number
 	value: number | null
@@ -14,7 +14,7 @@ export interface SliderProps {
 	'data-testid'?: string
 }
 
-/** @public */
+/** @internal */
 export function Slider(props: SliderProps) {
 	const { title, steps, value, label, onValueChange } = props
 	const editor = useEditor()
@@ -50,7 +50,7 @@ export function Slider(props: SliderProps) {
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
 				onPointerUp={handlePointerUp}
-				title={title + ' — ' + msg(label as TLTranslationKey)}
+				title={title + ' — ' + msg(label as TLUiTranslationKey)}
 			>
 				<Track className="tlui-slider__track" dir="ltr">
 					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}

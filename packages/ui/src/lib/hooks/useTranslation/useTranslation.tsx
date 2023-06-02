@@ -2,12 +2,12 @@ import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../useAssetUrls'
-import { TLTranslationKey } from './TLTranslationKey'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
-import { TLTranslation, getTranslation } from './translations'
+import { TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
-export interface TranslationProviderProps {
+export interface TLUiTranslationProviderProps {
 	children: any
 	/**
 	 * (optional) A collection of overrides different locales.
@@ -21,24 +21,29 @@ export interface TranslationProviderProps {
 	overrides?: Record<string, Record<string, string>>
 }
 
-const TranslationsContext = React.createContext<TLTranslation>({} as TLTranslation)
+/** @public */
+export type TLUiTranslationContextType = TLUiTranslation
+
+const TranslationsContext = React.createContext<TLUiTranslationContextType>(
+	{} as TLUiTranslationContextType
+)
 
 const useCurrentTranslation = () => React.useContext(TranslationsContext)
 
 /**
  * Provides a translation context to the editor.
  *
- * @public
+ * @internal
  */
 export const TranslationProvider = track(function TranslationProvider({
 	overrides,
 	children,
-}: TranslationProviderProps) {
+}: TLUiTranslationProviderProps) {
 	const editor = useEditor()
 	const locale = editor.locale
 	const getAssetUrl = useAssetUrls()
 
-	const [currentTranslation, setCurrentTranslation] = React.useState<TLTranslation>(() => {
+	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {
 		if (overrides && overrides['en']) {
 			return {
 				locale: 'en',
@@ -58,7 +63,7 @@ export const TranslationProvider = track(function TranslationProvider({
 		let isCancelled = false
 
 		async function loadTranslation() {
-			const translation = await getTranslation(locale, getAssetUrl)
+			const translation = await fetchTranslation(locale, getAssetUrl)
 
 			if (translation && !isCancelled) {
 				if (overrides && overrides[locale]) {
@@ -101,7 +106,7 @@ export const TranslationProvider = track(function TranslationProvider({
 export function useTranslation() {
 	const translation = useCurrentTranslation()
 	return React.useCallback(
-		function msg(id: TLTranslationKey) {
+		function msg(id: TLUiTranslationKey) {
 			return translation.messages[id] ?? id
 		},
 		[translation]

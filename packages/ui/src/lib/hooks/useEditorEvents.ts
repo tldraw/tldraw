@@ -2,7 +2,7 @@ import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { useToasts } from './useToastsProvider'
 
-/** @public */
+/** @internal */
 export function useEditorEvents() {
 	const editor = useEditor()
 	const { addToast } = useToasts()

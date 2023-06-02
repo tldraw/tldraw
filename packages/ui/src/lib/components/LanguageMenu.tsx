@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { TLTranslationLocale } from '../hooks/useTranslation/translations'
+import { TLUiTranslation } from '../hooks/useTranslation/translations'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
 import * as D from './primitives/DropdownMenu'
 
@@ -9,7 +9,7 @@ export function LanguageMenu() {
 	const { languages, currentLanguage } = useLanguages()
 
 	const handleLanguageSelect = useCallback(
-		(locale: TLTranslationLocale) => editor.setLocale(locale),
+		(locale: TLUiTranslation['locale']) => editor.setLocale(locale),
 		[editor]
 	)
 

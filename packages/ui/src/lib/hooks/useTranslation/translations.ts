@@ -1,7 +1,7 @@
-import { UiAssetUrls } from '../../assetUrls'
+import { TLUiAssetUrls } from '../../assetUrls'
+import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { LANGUAGES } from './languages'
-import { TLTranslationKey } from './TLTranslationKey'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -11,42 +11,29 @@ import { TLTranslationKey } from './TLTranslationKey'
 /* ----------------- (do not change) ---------------- */
 
 /** @public */
-export type TLListedTranslation = {
+export type TLUiLanguage = {
 	readonly locale: string
 	readonly label: string
 }
 
 /** @public */
-export type TLListedTranslations = readonly TLListedTranslation[]
-
-/** @public */
-export type TLTranslationMessages = Record<TLTranslationKey, string>
-
-/** @public */
-export type TLTranslation = {
+export type TLUiTranslation = {
 	readonly locale: string
 	readonly label: string
-	readonly messages: TLTranslationMessages
+	readonly messages: Record<TLUiTranslationKey, string>
 }
 
-/** @public */
-export type TLTranslations = TLTranslation[]
-
-/** @public */
-export type TLTranslationLocale = TLTranslations[number]['locale']
-
-/** @public */
-export const EN_TRANSLATION: TLTranslation = {
+const EN_TRANSLATION: TLUiTranslation = {
 	locale: 'en',
 	label: 'English',
-	messages: DEFAULT_TRANSLATION as TLTranslationMessages,
+	messages: DEFAULT_TRANSLATION as TLUiTranslation['messages'],
 }
 
-/** @public */
+/** @internal */
 export async function fetchTranslation(
-	locale: TLTranslationLocale,
-	assetUrls: UiAssetUrls
-): Promise<TLTranslation> {
+	locale: TLUiTranslation['locale'],
+	assetUrls: TLUiAssetUrls
+): Promise<TLUiTranslation> {
 	const mainRes = await fetch(assetUrls.translations.en)
 
 	if (!mainRes.ok) {
@@ -66,7 +53,7 @@ export async function fetchTranslation(
 	}
 
 	const res = await fetch(assetUrls.translations[language.locale])
-	const messages: TLTranslationMessages = await res.json()
+	const messages: TLUiTranslation['messages'] = await res.json()
 
 	if (!messages) {
 		console.warn(`No messages found for locale ${locale}`)
@@ -76,7 +63,7 @@ export async function fetchTranslation(
 	const missing: string[] = []
 
 	for (const key in EN_TRANSLATION) {
-		if (!messages[key as TLTranslationKey]) {
+		if (!messages[key as TLUiTranslationKey]) {
 			missing.push(key)
 		}
 	}
@@ -90,12 +77,4 @@ export async function fetchTranslation(
 		label: language.label,
 		messages: { ...EN_TRANSLATION.messages, ...messages },
 	}
-}
-
-/** @public */
-export async function getTranslation(
-	locale: TLTranslationLocale,
-	assetUrls: UiAssetUrls
-): Promise<TLTranslation> {
-	return await fetchTranslation(locale, assetUrls)
 }
