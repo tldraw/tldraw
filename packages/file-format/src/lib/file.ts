@@ -196,7 +196,7 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 				break
 		}
 	}
-	const recordsToSave = records.concat(assets.filter((r) => usedAssets.has(r.id)))
+	const recordsToSave = records.concat(assets.filter((a) => usedAssets.has(a.id)))
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
