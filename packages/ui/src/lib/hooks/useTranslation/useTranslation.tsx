@@ -6,8 +6,8 @@ import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslation, fetchTranslation } from './translations'
 
-/** @internal */
-export interface TranslationProviderProps {
+/** @public */
+export interface TLUiTranslationProviderProps {
 	children: any
 	/**
 	 * (optional) A collection of overrides different locales.
@@ -38,7 +38,7 @@ const useCurrentTranslation = () => React.useContext(TranslationsContext)
 export const TranslationProvider = track(function TranslationProvider({
 	overrides,
 	children,
-}: TranslationProviderProps) {
+}: TLUiTranslationProviderProps) {
 	const editor = useEditor()
 	const locale = editor.locale
 	const getAssetUrl = useAssetUrls()

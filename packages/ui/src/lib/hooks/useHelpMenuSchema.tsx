@@ -15,8 +15,8 @@ export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema
 /** @internal */
 export const HelpMenuSchemaContext = React.createContext({} as TLUiHelpMenuSchemaContextType)
 
-/** @internal */
-export type HelpMenuSchemaProviderProps = {
+/** @public */
+export type TLUiHelpMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
 		schema: TLUiHelpMenuSchemaContextType,
@@ -36,7 +36,7 @@ export type HelpMenuSchemaProviderProps = {
 export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	overrides,
 	children,
-}: HelpMenuSchemaProviderProps) {
+}: TLUiHelpMenuSchemaProviderProps) {
 	const editor = useEditor()
 	const actions = useActions()
 

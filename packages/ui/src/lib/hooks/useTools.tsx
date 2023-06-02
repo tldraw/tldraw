@@ -29,7 +29,7 @@ export type TLUiToolsContextType = Record<string, TLUiToolItem>
 export const ToolsContext = React.createContext({} as TLUiToolsContextType)
 
 /** @internal */
-export type ToolsProviderProps = {
+export type TLUiToolsProviderProps = {
 	overrides?: (
 		editor: Editor,
 		tools: TLUiToolsContextType,
@@ -39,7 +39,7 @@ export type ToolsProviderProps = {
 }
 
 /** @internal */
-export function ToolsProvider({ overrides, children }: ToolsProviderProps) {
+export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const editor = useEditor()
 	const trackEvent = useEvents()
 

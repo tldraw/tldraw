@@ -368,19 +368,19 @@ export interface TLUiOverrides {
     // (undocumented)
     actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
-    contextMenu?: WithDefaultHelpers<NonNullable<ContextTLUiMenuSchemaProviderProps['overrides']>>;
+    contextMenu?: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
-    helpMenu?: WithDefaultHelpers<NonNullable<HelpMenuSchemaProviderProps['overrides']>>;
+    helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
     keyboardShortcutsMenu?: WithDefaultHelpers<NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>>;
     // (undocumented)
     menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>;
     // (undocumented)
-    toolbar?: WithDefaultHelpers<NonNullable<ToolbarSchemaProviderProps['overrides']>>;
+    toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>;
     // (undocumented)
-    tools?: WithDefaultHelpers<NonNullable<ToolsProviderProps['overrides']>>;
+    tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>;
     // (undocumented)
-    translations?: TranslationProviderProps['overrides'];
+    translations?: TLUiTranslationProviderProps['overrides'];
 }
 
 // @public (undocumented)

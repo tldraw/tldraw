@@ -18,7 +18,7 @@ export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema
 /** @internal */
 export const ActionsMenuSchemaContext = React.createContext({} as TLUiActionsMenuSchemaContextType)
 
-/** @internal */
+/** @public */
 export type ActionsMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,

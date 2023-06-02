@@ -4,15 +4,15 @@ import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
-import { ContextTLUiMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
+import { TLUiContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
 import { useDialogs } from './hooks/useDialogsProvider'
-import { HelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
+import { TLUiHelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
 import { TLUiMenuSchemaProviderProps } from './hooks/useMenuSchema'
 import { useToasts } from './hooks/useToastsProvider'
-import { ToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
-import { ToolsProviderProps } from './hooks/useTools'
-import { TranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
+import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
+import { TLUiToolsProviderProps } from './hooks/useTools'
+import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export function useDefaultHelpers() {
@@ -62,34 +62,34 @@ type WithDefaultHelpers<T extends TLUiOverride<any, any>> = T extends TLUiOverri
 export interface TLUiOverrides {
 	actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	contextMenu?: WithDefaultHelpers<NonNullable<ContextTLUiMenuSchemaProviderProps['overrides']>>
-	helpMenu?: WithDefaultHelpers<NonNullable<HelpMenuSchemaProviderProps['overrides']>>
+	contextMenu?: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>
+	helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
 	menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
-	toolbar?: WithDefaultHelpers<NonNullable<ToolbarSchemaProviderProps['overrides']>>
+	toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu?: WithDefaultHelpers<
 		NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>
 	>
-	tools?: WithDefaultHelpers<NonNullable<ToolsProviderProps['overrides']>>
-	translations?: TranslationProviderProps['overrides']
+	tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
+	translations?: TLUiTranslationProviderProps['overrides']
 }
 
 export interface TLUiOverridesWithoutDefaults {
 	actionsMenu?: ActionsMenuSchemaProviderProps['overrides']
 	actions?: ActionsProviderProps['overrides']
-	contextMenu?: ContextTLUiMenuSchemaProviderProps['overrides']
-	helpMenu?: HelpMenuSchemaProviderProps['overrides']
+	contextMenu?: TLUiContextMenuSchemaProviderProps['overrides']
+	helpMenu?: TLUiHelpMenuSchemaProviderProps['overrides']
 	menu?: TLUiMenuSchemaProviderProps['overrides']
-	toolbar?: ToolbarSchemaProviderProps['overrides']
+	toolbar?: TLUiToolbarSchemaProviderProps['overrides']
 	keyboardShortcutsMenu?: KeyboardShortcutsSchemaProviderProps['overrides']
-	tools?: ToolsProviderProps['overrides']
-	translations?: TranslationProviderProps['overrides']
+	tools?: TLUiToolsProviderProps['overrides']
+	translations?: TLUiTranslationProviderProps['overrides']
 }
 
 export function mergeOverrides(
 	overrides: TLUiOverrides[],
 	defaultHelpers: DefaultHelpers
 ): TLUiOverridesWithoutDefaults {
-	const mergedTranslations: TranslationProviderProps['overrides'] = {}
+	const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
 	for (const override of overrides) {
 		if (override.translations) {
 			for (const [key, value] of objectMapEntries(override.translations)) {
@@ -177,12 +177,12 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 
 export function useMergedTranslationOverrides(
 	overrides?: TLUiOverrides[] | TLUiOverrides
-): NonNullable<TranslationProviderProps['overrides']> {
+): NonNullable<TLUiTranslationProviderProps['overrides']> {
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
 	)
 	return useMemo(() => {
-		const mergedTranslations: TranslationProviderProps['overrides'] = {}
+		const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
 		for (const override of overridesArray) {
 			if (override.translations) {
 				for (const [key, value] of objectMapEntries(override.translations)) {

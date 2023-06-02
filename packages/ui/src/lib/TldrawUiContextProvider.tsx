@@ -3,7 +3,7 @@ import { ActionsProvider } from './hooks/useActions'
 import { ActionsMenuSchemaProvider } from './hooks/useActionsMenuSchema'
 import { AssetUrlsProvider } from './hooks/useAssetUrls'
 import { BreakPointProvider } from './hooks/useBreakpoint'
-import { ContextTLUiMenuSchemaProvider } from './hooks/useContextMenuSchema'
+import { TLUiContextMenuSchemaProvider } from './hooks/useContextMenuSchema'
 import { DialogsProvider } from './hooks/useDialogsProvider'
 import { EventsProvider, TLUiEventHandler } from './hooks/useEventsProvider'
 import { HelpMenuSchemaProvider } from './hooks/useHelpMenuSchema'
@@ -57,13 +57,13 @@ function InternalProviders({
 				<ToolbarSchemaProvider overrides={mergedOverrides.toolbar}>
 					<ActionsMenuSchemaProvider overrides={mergedOverrides.actionsMenu}>
 						<KeyboardShortcutsSchemaProvider overrides={mergedOverrides.keyboardShortcutsMenu}>
-							<ContextTLUiMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
+							<TLUiContextMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
 								<HelpMenuSchemaProvider overrides={mergedOverrides.helpMenu}>
 									<TLUiMenuSchemaProvider overrides={mergedOverrides.menu}>
 										{children}
 									</TLUiMenuSchemaProvider>
 								</HelpMenuSchemaProvider>
-							</ContextTLUiMenuSchemaProvider>
+							</TLUiContextMenuSchemaProvider>
 						</KeyboardShortcutsSchemaProvider>
 					</ActionsMenuSchemaProvider>
 				</ToolbarSchemaProvider>

@@ -22,12 +22,12 @@ import { useShowAutoSizeToggle } from './useShowAutoSizeToggle'
 export type TLUiContextTTLUiMenuSchemaContextType = TLUiMenuSchema
 
 /** @internal */
-export const ContextTLUiMenuSchemaContext = React.createContext(
+export const TLUiContextMenuSchemaContext = React.createContext(
 	{} as TLUiContextTTLUiMenuSchemaContextType
 )
 
-/** @internal */
-export type ContextTLUiMenuSchemaProviderProps = {
+/** @public */
+export type TLUiContextMenuSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
 		schema: TLUiContextTTLUiMenuSchemaContextType,
@@ -45,10 +45,10 @@ export type ContextTLUiMenuSchemaProviderProps = {
 }
 
 /** @internal */
-export const ContextTLUiMenuSchemaProvider = track(function ContextTLUiMenuSchemaProvider({
+export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchemaProvider({
 	overrides,
 	children,
-}: ContextTLUiMenuSchemaProviderProps) {
+}: TLUiContextMenuSchemaProviderProps) {
 	const editor = useEditor()
 	const actions = useActions()
 
@@ -256,18 +256,18 @@ export const ContextTLUiMenuSchemaProvider = track(function ContextTLUiMenuSchem
 	])
 
 	return (
-		<ContextTLUiMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
+		<TLUiContextMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
 			{children}
-		</ContextTLUiMenuSchemaContext.Provider>
+		</TLUiContextMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
 export function useContextMenuSchema(): TLUiMenuSchema {
-	const ctx = React.useContext(ContextTLUiMenuSchemaContext)
+	const ctx = React.useContext(TLUiContextMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useContextMenuSchema must be used inside of a ContextTLUiMenuSchemaProvider.')
+		throw new Error('useContextMenuSchema must be used inside of a TLUiContextMenuSchemaProvider.')
 	}
 
 	return ctx

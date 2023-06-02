@@ -28,8 +28,8 @@ export type TLUiToolbarSchemaContextType = TLUiToolbarItem[]
 /** @internal */
 export const ToolbarSchemaContext = React.createContext([] as TLUiToolbarSchemaContextType)
 
-/** @internal */
-export type ToolbarSchemaProviderProps = {
+/** @public */
+export type TLUiToolbarSchemaProviderProps = {
 	overrides?: (
 		editor: Editor,
 		schema: TLUiToolbarSchemaContextType,
@@ -39,7 +39,7 @@ export type ToolbarSchemaProviderProps = {
 }
 
 /** @internal */
-export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProviderProps) {
+export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchemaProviderProps) {
 	const editor = useEditor()
 
 	const tools = useTools()
