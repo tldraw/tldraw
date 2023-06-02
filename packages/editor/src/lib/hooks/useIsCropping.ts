@@ -1,6 +1,6 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { useValue } from 'signia-react'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 export function useIsCropping(shapeId: TLShapeId) {
 	const app = useApp()

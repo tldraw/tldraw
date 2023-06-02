@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { HASH_PATERN_ZOOM_NAMES, MAX_ZOOM } from '../constants'
 import { debugFlags } from '../utils/debug-flags'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 const TILE_PATTERN_SIZE = 8
 

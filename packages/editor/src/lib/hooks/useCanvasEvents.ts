@@ -2,7 +2,7 @@ import React, { useMemo } from 'react'
 import { createShapesFromFiles } from '../utils/assets'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 export function useCanvasEvents() {
 	const app = useApp()

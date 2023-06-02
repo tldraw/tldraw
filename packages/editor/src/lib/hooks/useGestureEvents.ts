@@ -6,7 +6,7 @@ import * as React from 'react'
 import { TLWheelEventInfo } from '../app/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from './shared'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]
 	? EventTypes[Key]

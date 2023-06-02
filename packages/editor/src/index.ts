@@ -174,8 +174,8 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { normalizeWheel } from './lib/hooks/shared'
-export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
+export { useApp } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'

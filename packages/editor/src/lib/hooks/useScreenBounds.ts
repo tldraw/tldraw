@@ -1,7 +1,7 @@
 import throttle from 'lodash.throttle'
 import { useLayoutEffect } from 'react'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useApp } from './useEditor'
 
 export function useScreenBounds() {
 	const app = useApp()

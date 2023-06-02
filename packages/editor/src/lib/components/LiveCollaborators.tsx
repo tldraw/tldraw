@@ -1,5 +1,5 @@
 import { track } from 'signia-react'
-import { useApp } from '../hooks/useApp'
+import { useApp } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
 import { usePresence } from '../hooks/usePresence'

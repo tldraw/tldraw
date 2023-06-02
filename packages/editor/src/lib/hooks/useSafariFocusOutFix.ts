@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 let isMobileSafari = false
 

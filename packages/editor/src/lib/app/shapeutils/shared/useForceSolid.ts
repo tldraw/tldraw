@@ -1,5 +1,5 @@
 import { useValue } from 'signia-react'
-import { useApp } from '../../../hooks/useApp'
+import { useApp } from '../../../hooks/useEditor'
 
 export function useForceSolid() {
 	const app = useApp()

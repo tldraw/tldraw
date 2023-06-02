@@ -1,6 +1,6 @@
 import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { forwardRef, useCallback } from 'react'
-import { useApp } from '../../../../hooks/useApp'
+import { useApp } from '../../../../hooks/useEditor'
 import { defaultEmptyAs } from '../../../../utils/string'
 
 export const FrameLabelInput = forwardRef<

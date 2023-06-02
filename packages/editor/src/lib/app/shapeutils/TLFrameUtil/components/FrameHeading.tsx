@@ -1,7 +1,7 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
 import { useEffect, useRef } from 'react'
-import { useApp } from '../../../../hooks/useApp'
+import { useApp } from '../../../../hooks/useEditor'
 import { useIsEditing } from '../../../../hooks/useIsEditing'
 import { FrameLabelInput } from './FrameLabelInput'
 

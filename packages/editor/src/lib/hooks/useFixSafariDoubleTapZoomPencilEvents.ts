@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { preventDefault } from '../utils/dom'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 const IGNORED_TAGS = ['textarea', 'input']
 

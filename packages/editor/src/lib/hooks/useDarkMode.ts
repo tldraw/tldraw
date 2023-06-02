@@ -1,8 +1,8 @@
 import React from 'react'
 import { useValue } from 'signia-react'
 import { debugFlags } from '../utils/debug-flags'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useApp } from './useEditor'
 
 export function useDarkMode() {
 	const app = useApp()

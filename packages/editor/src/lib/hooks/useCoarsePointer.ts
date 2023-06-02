@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 export function useCoarsePointer() {
 	const app = useApp()

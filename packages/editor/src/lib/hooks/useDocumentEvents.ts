@@ -2,8 +2,8 @@ import { useEffect } from 'react'
 import { useValue } from 'signia-react'
 import { TLKeyboardEventInfo, TLPointerEventInfo } from '../app/types/event-types'
 import { preventDefault } from '../utils/dom'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useApp } from './useEditor'
 
 export function useDocumentEvents() {
 	const app = useApp()

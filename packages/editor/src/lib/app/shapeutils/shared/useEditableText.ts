@@ -2,7 +2,7 @@
 import { TLShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
-import { useApp } from '../../../hooks/useApp'
+import { useApp } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
 import { INDENT, TextHelpers } from '../TLTextUtil/TextHelpers'
 

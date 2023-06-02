@@ -3,7 +3,7 @@ import * as React from 'react'
 import { App } from '../app/App'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
-import { useApp } from './useApp'
+import { useApp } from './useEditor'
 
 function getHandle(app: App, id: TLShapeId, handleId: string) {
 	const shape = app.getShapeById<TLArrowShape | TLLineShape>(id)!

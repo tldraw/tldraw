@@ -2,7 +2,7 @@ import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { TLPointerEventInfo } from '../app/types/event-types'
-import { useApp } from '../hooks/useApp'
+import { useApp } from '../hooks/useEditor'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 

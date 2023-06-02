@@ -8,10 +8,10 @@ import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { ShapeInfo } from './config/createTLStore'
-import { AppContext } from './hooks/useApp'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
+import { AppContext } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
