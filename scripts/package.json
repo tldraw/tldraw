@@ -47,5 +47,8 @@
 	},
 	"scripts": {
 		"lint": "yarn run -T tsx lint.ts"
+	},
+	"dependencies": {
+		"ignore": "^5.2.4"
 	}
 }

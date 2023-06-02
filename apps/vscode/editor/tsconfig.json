@@ -21,8 +21,7 @@
 		"composite": true,
 		"importHelpers": false,
 		"skipDefaultLibCheck": true,
-		"experimentalDecorators": true,
-		"rootDir": ".."
+		"experimentalDecorators": true
 	},
 	"include": ["src", "../messages", "scripts", "../vscode-script-utils"],
 	"references": [
