@@ -1,4 +1,4 @@
-import { preventDefault, useApp, useContainer } from '@tldraw/editor'
+import { preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -6,12 +6,12 @@ import { useTranslation } from '../hooks/useTranslation/useTranslation'
 const CHAT_MESSAGE_TIMEOUT = 1000
 
 export const CursorChatInput = track(function CursorChatInput() {
-	const app = useApp()
+	const editor = useEditor()
 	const container = useContainer()
 	const ref = useRef<HTMLDivElement>(null)
 	const msg = useTranslation()
 
-	const { isChatting, chatMessage } = app.instanceState
+	const { isChatting, chatMessage } = editor.instanceState
 
 	// --- Fading the chat bubble ---------------
 	const timeout = useRef<NodeJS.Timeout | null>(null)
@@ -27,13 +27,13 @@ export const CursorChatInput = track(function CursorChatInput() {
 		stopFade()
 
 		timeout.current = setTimeout(() => {
-			app.updateInstanceState({ chatMessage: '' })
+			editor.updateInstanceState({ chatMessage: '' })
 		}, CHAT_MESSAGE_TIMEOUT)
 
 		if (!ref.current?.classList.contains('tl-cursor-chat-fade')) {
 			ref.current?.classList.add('tl-cursor-chat-fade')
 		}
-	}, [stopFade, app])
+	}, [stopFade, editor])
 
 	// --- Auto-focussing the chat input ----------------------------
 	useLayoutEffect(() => {
@@ -73,17 +73,17 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	// --- Helpers for handling the chat message -------------------
 	const stopChatting = useCallback(() => {
-		app.updateInstanceState({ isChatting: false })
+		editor.updateInstanceState({ isChatting: false })
 		startFade()
 		container.focus()
-	}, [app, startFade, container])
+	}, [editor, startFade, container])
 
 	const updateChatMessage = useCallback(
 		(chatMessage: string) => {
-			app.updateInstanceState({ chatMessage })
+			editor.updateInstanceState({ chatMessage })
 			stopFade()
 		},
-		[app, stopFade]
+		[editor, stopFade]
 	)
 
 	// --- Handling user interactions below this line ---------------
@@ -145,7 +145,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			className="tl-cursor-chat"
 			style={{
 				visibility: isChatting || chatMessage ? 'visible' : 'hidden',
-				backgroundColor: app.user.color,
+				backgroundColor: editor.user.color,
 			}}
 			contentEditable={isChatting}
 			suppressContentEditableWarning
