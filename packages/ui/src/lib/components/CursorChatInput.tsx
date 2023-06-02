@@ -52,16 +52,21 @@ export const CursorChatInput = track(function CursorChatInput() {
 			switch (e.key) {
 				case 'Enter': {
 					preventDefault(e)
+					e.stopPropagation()
 					if (!ref.current) return
+
 					if (ref.current.textContent === '') {
 						app.updateInstanceState({ isChatting: false })
+						container.focus()
 						return
 					}
+
 					ref.current.textContent = ''
 					break
 				}
 				case 'Escape': {
 					preventDefault(e)
+					e.stopPropagation()
 					if (!ref.current) return
 
 					// If the user has typed something, cancel it!
@@ -69,13 +74,18 @@ export const CursorChatInput = track(function CursorChatInput() {
 						app.updateInstanceState({ chatMessage: '' })
 					}
 
-					ref.current.textContent = ''
+					app.updateInstanceState({ isChatting: false })
+					container.focus()
 					break
 				}
 			}
 		},
-		[app, isChatting]
+		[app, isChatting, container]
 	)
+
+	const handlePaste = useCallback(() => {
+		// TODO
+	}, [])
 
 	useEffect(() => {
 		window.addEventListener('pointermove', handlePointerMove)
@@ -101,6 +111,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			onInput={handleInput}
 			onKeyDown={handleKeyDown}
 			spellCheck={false}
+			onPaste={handlePaste}
 		></div>
 	)
 })
