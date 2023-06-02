@@ -3,6 +3,7 @@ import {
 	createTLStore,
 	fileToBase64,
 	TLAsset,
+	TLAssetId,
 	TLInstanceId,
 	TLRecord,
 	TLStore,
@@ -153,7 +154,9 @@ export function parseTldrawJsonFile({
 
 /** @public */
 export async function serializeTldrawJson(store: TLStore): Promise<string> {
-	const recordsToSave: TLRecord[] = []
+	const records: TLRecord[] = []
+	const usedAssets = new Set<TLAssetId | null>()
+	const assets: TLAsset[] = []
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
@@ -171,22 +174,29 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						assetSrcToSave = record.props.src
 					}
 
-					recordsToSave.push({
+					assets.push({
 						...record,
 						props: {
 							...record.props,
 							src: assetSrcToSave,
 						},
-					} as TLAsset)
+					})
 				} else {
-					recordsToSave.push(record)
+					assets.push(record)
 				}
 				break
+			case 'shape':
+				if ('assetId' in record.props) {
+					usedAssets.add(record.props.assetId)
+				}
+				records.push(record)
+				break
 			default:
-				recordsToSave.push(record)
+				records.push(record)
 				break
 		}
 	}
+	const recordsToSave = records.concat(assets.filter((r) => usedAssets.has(r.id)))
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
