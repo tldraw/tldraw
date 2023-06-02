@@ -98,12 +98,7 @@ export const CursorChatInput = track(function CursorChatInput() {
 			className="tl-cursor-chat"
 			style={{
 				visibility: isChatting || chatMessage ? 'visible' : 'hidden',
-				position: 'absolute',
-				pointerEvents: 'all',
 				backgroundColor: app.user.color,
-				zIndex: 'var(--layer-cursor)',
-				marginTop: 16,
-				marginLeft: 13,
 			}}
 			contentEditable={isChatting}
 			suppressContentEditableWarning

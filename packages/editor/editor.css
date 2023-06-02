@@ -721,8 +721,6 @@ input,
 
 .tl-cursor-chat {
 	position: absolute;
-	top: 16px;
-	left: 13px;
 	width: fit-content;
 	height: fit-content;
 	color: var(--color-selected-contrast);
@@ -732,6 +730,10 @@ input,
 	padding: 2px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
+	pointerevents: none;
+	z-index: var(--layer-cursor);
+	margin-top: 16px;
+	margin-left: 13px;
 }
 
 .tl-cursor-chat::selection {
