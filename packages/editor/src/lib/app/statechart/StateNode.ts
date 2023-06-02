@@ -1,6 +1,6 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { atom, Atom, computed, Computed } from 'signia'
-import type { App } from '../Editor'
+import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
 	TLEventHandlers,
@@ -14,7 +14,7 @@ type StateNodeType = 'branch' | 'leaf' | 'root'
 
 /** @public */
 export interface StateNodeConstructor {
-	new (app: App, parent?: StateNode): StateNode
+	new (app: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
 	children?: () => StateNodeConstructor[]
@@ -23,7 +23,7 @@ export interface StateNodeConstructor {
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
-	constructor(public app: App, parent?: StateNode) {
+	constructor(public app: Editor, parent?: StateNode) {
 		const { id, children, initial } = this.constructor as StateNodeConstructor
 
 		this.id = id

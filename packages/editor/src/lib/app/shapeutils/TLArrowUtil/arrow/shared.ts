@@ -1,6 +1,6 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
 import { TLArrowShape, TLArrowTerminal, TLShape } from '@tldraw/tlschema'
-import { App } from '../../../Editor'
+import { Editor } from '../../../Editor'
 import { TLShapeUtil } from '../../TLShapeUtil'
 
 export function getIsArrowStraight(shape: TLArrowShape) {
@@ -18,7 +18,7 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 }
 
 export function getBoundShapeInfoForTerminal(
-	app: App,
+	app: Editor,
 	terminal: TLArrowTerminal
 ): BoundShapeInfo | undefined {
 	if (terminal.type === 'point') {
@@ -39,7 +39,7 @@ export function getBoundShapeInfoForTerminal(
 }
 
 export function getArrowTerminalInArrowSpace(
-	app: App,
+	app: Editor,
 	arrowPageTransform: Matrix2d,
 	terminal: TLArrowTerminal
 ) {
@@ -64,7 +64,7 @@ export function getArrowTerminalInArrowSpace(
 	}
 }
 
-export function getArrowTerminalsInArrowSpace(app: App, shape: TLArrowShape) {
+export function getArrowTerminalsInArrowSpace(app: Editor, shape: TLArrowShape) {
 	const arrowPageTransform = app.getPageTransform(shape)!
 
 	const start = getArrowTerminalInArrowSpace(app, arrowPageTransform, shape.props.start)

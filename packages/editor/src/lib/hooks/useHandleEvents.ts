@@ -1,11 +1,11 @@
 import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { App } from '../app/Editor'
+import { Editor } from '../app/Editor'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'
 
-function getHandle(app: App, id: TLShapeId, handleId: string) {
+function getHandle(app: Editor, id: TLShapeId, handleId: string) {
 	const shape = app.getShapeById<TLArrowShape | TLLineShape>(id)!
 	const util = app.getShapeUtil(shape)
 	const handles = util.handles(shape)

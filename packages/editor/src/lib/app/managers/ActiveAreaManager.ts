@@ -1,5 +1,5 @@
 import { atom } from 'signia'
-import { App } from '../Editor'
+import { Editor } from '../Editor'
 
 type Offsets = {
 	top: number
@@ -14,7 +14,7 @@ const DEFAULT_OFFSETS = {
 	right: 10,
 }
 
-export function getActiveAreaScreenSpace(app: App) {
+export function getActiveAreaScreenSpace(app: Editor) {
 	const containerEl = app.getContainer()
 	const el = containerEl.querySelector('*[data-tldraw-area="active-drawing"]')
 	const out = {
@@ -36,7 +36,7 @@ export function getActiveAreaScreenSpace(app: App) {
 	return out
 }
 
-export function getActiveAreaPageSpace(app: App) {
+export function getActiveAreaPageSpace(app: Editor) {
 	const out = getActiveAreaScreenSpace(app)
 	const z = app.zoomLevel
 	out.left /= z
@@ -49,7 +49,7 @@ export function getActiveAreaPageSpace(app: App) {
 }
 
 export class ActiveAreaManager {
-	constructor(public app: App) {
+	constructor(public app: Editor) {
 		window.addEventListener('resize', this.updateOffsets)
 		this.app.disposables.add(this.dispose)
 	}

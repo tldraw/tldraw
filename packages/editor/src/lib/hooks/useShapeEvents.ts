@@ -1,12 +1,12 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import React from 'react'
-import { App } from '../app/Editor'
+import { Editor } from '../app/Editor'
 import { TLPointerEventName } from '../app/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'
 
-const pointerEventHandler = (app: App, shapeId: TLShapeId, name: TLPointerEventName) => {
+const pointerEventHandler = (app: Editor, shapeId: TLShapeId, name: TLPointerEventName) => {
 	return (e: React.PointerEvent) => {
 		if (name !== 'pointer_move' && app.pageState.editingId === shapeId) (e as any).isKilled = true
 		if ((e as any).isKilled) return

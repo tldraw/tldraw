@@ -1,7 +1,7 @@
 import { Box2d, Matrix2d, Matrix2dModel, Vec2d } from '@tldraw/primitives'
 import { PageRecordType, TLShape, TLShapePartial, isPageId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
-import type { App } from '../../../Editor'
+import type { Editor } from '../../../Editor'
 import { DragAndDropManager } from '../../../managers/DragAndDropManager'
 import { SnapPoint } from '../../../managers/SnapManager'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
@@ -266,7 +266,7 @@ export class Translating extends StateNode {
 	}
 }
 
-function getTranslatingSnapshot(app: App) {
+function getTranslatingSnapshot(app: Editor) {
 	const movingShapes: TLShape[] = []
 	const pagePoints: Vec2d[] = []
 
@@ -325,7 +325,7 @@ export function moveShapesToPoint({
 	initialSelectionPageBounds,
 	initialSelectionSnapPoints,
 }: {
-	app: App
+	app: Editor
 	shapeSnapshots: MovingShapeSnapshot[]
 	averagePagePoint: Vec2d
 	initialSelectionPageBounds: Box2d

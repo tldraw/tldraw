@@ -1,8 +1,8 @@
 import { Vec2d } from '@tldraw/primitives'
-import { App } from '../Editor'
+import { Editor } from '../Editor'
 
 export class TickManager {
-	constructor(public app: App) {
+	constructor(public app: Editor) {
 		this.app.disposables.add(this.dispose)
 		this.start()
 	}

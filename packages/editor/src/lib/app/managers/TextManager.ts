@@ -1,6 +1,6 @@
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
-import { App } from '../Editor'
+import { Editor } from '../Editor'
 import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
 
 const textAlignmentsForLtr = {
@@ -29,7 +29,7 @@ type MeasureTextSpanOpts = {
 const spaceCharacterRegex = /\s/
 
 export class TextManager {
-	constructor(public app: App) {}
+	constructor(public app: Editor) {}
 
 	getTextElement() {
 		const oldElm = document.querySelector('.tl-text-measure')

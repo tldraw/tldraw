@@ -190,7 +190,7 @@ export function isShapeWithHandles(shape: TLShape) {
 }
 
 /** @public */
-export class App extends EventEmitter<TLEventMap> {
+export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
 		user,
@@ -250,7 +250,7 @@ export class App extends EventEmitter<TLEventMap> {
 		}
 
 		// Set styles
-		this.colors = new Map(App.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
+		this.colors = new Map(Editor.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
@@ -9075,7 +9075,7 @@ export class App extends EventEmitter<TLEventMap> {
 	}
 }
 
-function alertMaxShapes(app: App, pageId = app.currentPageId) {
+function alertMaxShapes(app: Editor, pageId = app.currentPageId) {
 	const name = app.getPageById(pageId)!.name
 	app.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }

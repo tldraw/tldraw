@@ -1,10 +1,10 @@
 import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
 import { isShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { App } from '../app/Editor'
+import { Editor } from '../app/Editor'
 
 /** @internal */
-export function getRotationSnapshot({ app }: { app: App }) {
+export function getRotationSnapshot({ app }: { app: Editor }) {
 	const {
 		selectionRotation,
 		selectionPageCenter,
@@ -40,7 +40,7 @@ export function applyRotationToSnapshotShapes({
 }: {
 	delta: number
 	snapshot: RotationSnapshot
-	app: App
+	app: Editor
 	stage: 'start' | 'update' | 'end' | 'one-off'
 }) {
 	const { selectionPageCenter, shapeSnapshots } = snapshot

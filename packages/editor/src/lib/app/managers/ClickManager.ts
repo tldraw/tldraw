@@ -6,7 +6,7 @@ import {
 	MULTI_CLICK_DURATION,
 } from '../../constants'
 import { uniqueId } from '../../utils/data'
-import type { App } from '../Editor'
+import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 
 type TLClickState =
@@ -20,7 +20,7 @@ type TLClickState =
 const MAX_CLICK_DISTANCE = 40
 
 export class ClickManager {
-	constructor(public app: App) {}
+	constructor(public app: Editor) {}
 
 	private _clickId = ''
 

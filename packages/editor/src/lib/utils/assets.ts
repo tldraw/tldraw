@@ -12,7 +12,7 @@ import {
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
-import { App } from '../app/Editor'
+import { Editor } from '../app/Editor'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
 import { isAnimated } from './is-gif-animated'
 import { findChunk, isPng, parsePhys } from './png'
@@ -253,7 +253,7 @@ export function containBoxSize(
 
 /** @public */
 export async function createShapesFromFiles(
-	app: App,
+	app: Editor,
 	files: File[],
 	position: VecLike,
 	_ignoreParent = false
@@ -382,7 +382,7 @@ export async function createShapesFromFiles(
 
 /** @public */
 export function createEmbedShapeAtPoint(
-	app: App,
+	app: Editor,
 	url: string,
 	point: Vec2dModel,
 	props: {
@@ -419,7 +419,7 @@ export function createEmbedShapeAtPoint(
  * @param point - The point to insert the bookmark shape.
  * @public
  */
-export async function createBookmarkShapeAtPoint(app: App, url: string, point: Vec2dModel) {
+export async function createBookmarkShapeAtPoint(app: Editor, url: string, point: Vec2dModel) {
 	const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
 	const existing = app.getAssetById(assetId) as TLBookmarkAsset
 
@@ -491,7 +491,7 @@ export async function createBookmarkShapeAtPoint(app: App, url: string, point: V
 }
 
 /** @public */
-export async function createAssetShapeAtPoint(app: App, svgString: string, point: Vec2dModel) {
+export async function createAssetShapeAtPoint(app: Editor, svgString: string, point: Vec2dModel) {
 	const svg = new DOMParser().parseFromString(svgString, 'image/svg+xml').querySelector('svg')
 	if (!svg) {
 		throw new Error('No <svg/> element present')

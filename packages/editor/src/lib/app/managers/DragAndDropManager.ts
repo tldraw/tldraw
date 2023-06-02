@@ -1,11 +1,11 @@
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
-import type { App } from '../Editor'
+import type { Editor } from '../Editor'
 
 const LAG_DURATION = 100
 
 export class DragAndDropManager {
-	constructor(public app: App) {
+	constructor(public app: Editor) {
 		app.disposables.add(this.dispose)
 	}
 

@@ -16,7 +16,7 @@ import {
 	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { App, AppOptions } from '../app/Editor'
+import { AppOptions, Editor } from '../app/Editor'
 import { TLClipboardModel } from '../app/types/clipboard-types'
 import {
 	TLEventInfo,
@@ -55,7 +55,7 @@ declare global {
 }
 export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
 
-export class TestEditor extends App {
+export class TestEditor extends Editor {
 	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
 		const elm = document.createElement('div')
 		const { shapes = {}, tools = [] } = options

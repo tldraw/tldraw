@@ -11,7 +11,7 @@ import {
 import { ComputedCache } from '@tldraw/tlstore'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
-import type { App } from '../Editor'
+import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
 
@@ -23,7 +23,7 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>
 > {
-	new (app: App, type: T['type']): ShapeUtil
+	new (app: Editor, type: T['type']): ShapeUtil
 	type: T['type']
 }
 
@@ -32,7 +32,7 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
 export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-	constructor(public app: App, public readonly type: T['type']) {}
+	constructor(public app: Editor, public readonly type: T['type']) {}
 
 	static type: string
 

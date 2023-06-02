@@ -5,7 +5,7 @@ import { HTMLContainer } from '../../../components/HTMLContainer'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { App } from '../../Editor'
+import { Editor } from '../../Editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { resizeScaled } from '../shared/resizeScaled'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -368,7 +368,7 @@ export class TLTextUtil extends TLShapeUtil<TLTextShape> {
 	}
 }
 
-function getTextSize(app: App, props: TLTextShape['props']) {
+function getTextSize(app: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props
 
 	const minWidth = 16

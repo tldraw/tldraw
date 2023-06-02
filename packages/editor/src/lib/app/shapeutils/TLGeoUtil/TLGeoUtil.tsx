@@ -16,7 +16,7 @@ import { TLDashType, TLGeoShape, TLGeoShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
-import { App } from '../../Editor'
+import { Editor } from '../../Editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
@@ -914,7 +914,7 @@ export class TLGeoUtil extends TLBoxUtil<TLGeoShape> {
 	}
 }
 
-function getLabelSize(app: App, shape: TLGeoShape) {
+function getLabelSize(app: Editor, shape: TLGeoShape) {
 	const text = shape.props.text.trimEnd()
 
 	if (!text) {

@@ -1,10 +1,10 @@
 import { atom } from 'signia'
-import { App } from '../Editor'
+import { Editor } from '../Editor'
 
 const CAMERA_SETTLE_TIMEOUT = 12
 
 export class CameraManager {
-	constructor(public app: App) {}
+	constructor(public app: Editor) {}
 
 	state = atom('camera state', 'idle' as 'idle' | 'moving')
 

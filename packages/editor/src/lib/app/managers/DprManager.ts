@@ -1,10 +1,10 @@
 import { atom } from 'signia'
-import { App } from '../Editor'
+import { Editor } from '../Editor'
 
 export class DprManager {
 	private _currentMM: MediaQueryList | undefined
 
-	constructor(public app: App) {
+	constructor(public app: Editor) {
 		this.rebind()
 		// Add this class's dispose method (cancel the listener) to the app's disposables
 		this.app.disposables.add(this.dispose)

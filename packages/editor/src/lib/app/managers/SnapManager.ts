@@ -16,7 +16,7 @@ import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
-import type { App } from '../Editor'
+import type { Editor } from '../Editor'
 import { getSplineForLineShape, TLLineUtil } from '../shapeutils/TLLineUtil/TLLineUtil'
 
 export type PointsSnapLine = {
@@ -221,7 +221,7 @@ export class SnapManager {
 		this._snapLines.set(lines)
 	}
 
-	constructor(public readonly app: App) {}
+	constructor(public readonly app: Editor) {}
 
 	@computed get snapPointsCache() {
 		return this.app.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {

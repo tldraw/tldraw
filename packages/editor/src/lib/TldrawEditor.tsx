@@ -2,7 +2,7 @@ import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
 import { Store, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { App } from './app/Editor'
+import { Editor } from './app/Editor'
 import { StateNodeConstructor } from './app/statechart/StateNode'
 import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
@@ -62,7 +62,7 @@ export type TldrawEditorProps = {
 	 *
 	 * @param app - The app instance.
 	 */
-	onMount?: (app: App) => void
+	onMount?: (app: Editor) => void
 	/**
 	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
@@ -241,10 +241,10 @@ function TldrawEditorWithReadyStore({
 }) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
-	const [app, setApp] = useState<App | null>(null)
+	const [app, setApp] = useState<Editor | null>(null)
 
 	useLayoutEffect(() => {
-		const app = new App({
+		const app = new Editor({
 			store,
 			shapes,
 			tools,
@@ -274,7 +274,7 @@ function TldrawEditorWithReadyStore({
 		if (app && autoFocus) app.focus()
 	}, [app, autoFocus])
 
-	const onMountEvent = useEvent((app: App) => {
+	const onMountEvent = useEvent((app: Editor) => {
 		onMount?.(app)
 		app.emit('mount')
 		window.tldrawReady = true

@@ -18,12 +18,12 @@ import {
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 } from '../../../../constants'
-import type { App } from '../../../Editor'
+import type { Editor } from '../../../Editor'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
-export function getCurvedArrowInfo(app: App, shape: TLArrowShape, extraBend = 0): ArrowInfo {
+export function getCurvedArrowInfo(app: Editor, shape: TLArrowShape, extraBend = 0): ArrowInfo {
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend + extraBend
 

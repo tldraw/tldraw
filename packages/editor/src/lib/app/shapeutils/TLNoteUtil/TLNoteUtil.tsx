@@ -2,7 +2,7 @@ import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
-import { App } from '../../Editor'
+import { Editor } from '../../Editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
@@ -202,7 +202,7 @@ export class TLNoteUtil extends TLShapeUtil<TLNoteShape> {
 	}
 }
 
-function getGrowY(app: App, shape: TLNoteShape, prevGrowY = 0) {
+function getGrowY(app: Editor, shape: TLNoteShape, prevGrowY = 0) {
 	const PADDING = 17
 
 	const nextTextSize = app.textMeasure.measureText(shape.props.text, {

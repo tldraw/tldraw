@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react'
 import { InstanceRecordType, TLBaseShape, TLOpacityType } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { App } from '../app/Editor'
+import { Editor } from '../app/Editor'
 import { TLBoxUtil } from '../app/shapeutils/TLBoxUtil'
 import { TLBoxTool } from '../app/statechart/TLBoxTool/TLBoxTool'
 import { Canvas } from '../components/Canvas'
@@ -102,7 +102,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders the canvas and shapes', async () => {
-		let app = {} as App
+		let app = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
@@ -223,7 +223,7 @@ describe('Custom shapes', () => {
 	const shapes = { card: { util: CardUtil } }
 
 	it('Uses custom shapes', async () => {
-		let app = {} as App
+		let app = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor

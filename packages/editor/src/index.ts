@@ -21,7 +21,7 @@ export {
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {
-	App,
+	Editor as App,
 	isShapeWithHandles,
 	type AnimationOptions,
 	type AppOptions,

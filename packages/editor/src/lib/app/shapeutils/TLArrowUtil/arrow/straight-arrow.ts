@@ -9,7 +9,7 @@ import {
 } from '@tldraw/primitives'
 import { TLArrowShape } from '@tldraw/tlschema'
 import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../../../constants'
-import { App } from '../../../Editor'
+import { Editor } from '../../../Editor'
 import { ArrowInfo } from './arrow-types'
 import {
 	BoundShapeInfo,
@@ -17,7 +17,7 @@ import {
 	getBoundShapeInfoForTerminal,
 } from './shared'
 
-export function getStraightArrowInfo(app: App, shape: TLArrowShape): ArrowInfo {
+export function getStraightArrowInfo(app: Editor, shape: TLArrowShape): ArrowInfo {
 	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(app, shape)

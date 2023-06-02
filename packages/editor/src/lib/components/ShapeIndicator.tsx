@@ -7,7 +7,7 @@ import {
 	useValue,
 } from 'signia-react'
 import { useEditor } from '../..'
-import type { App } from '../app/Editor'
+import type { Editor } from '../app/Editor'
 import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
@@ -24,7 +24,7 @@ const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: TLShapeUt
 	return useStateTracking('Indicator:' + shape.type, () => util.indicator(shape))
 }
 
-export const InnerIndicator = ({ app, id }: { app: App; id: TLShapeId }) => {
+export const InnerIndicator = ({ app, id }: { app: Editor; id: TLShapeId }) => {
 	const shape = useValue('shape', () => new ShapeWithPropsEquality(app.store.get(id)), [app, id])
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
