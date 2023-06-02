@@ -5,8 +5,8 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Icon } from './Icon'
 
-/** @internal */
-export interface InputProps {
+/** @public */
+export interface TLUiInputProps {
 	disabled?: boolean
 	label?: TLUiTranslationKey
 	icon?: TLUiIconType
@@ -33,8 +33,8 @@ export interface InputProps {
 	value?: string
 }
 
-/** @internal */
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+/** @public */
+export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function Input(
 	{
 		className,
 		label,
