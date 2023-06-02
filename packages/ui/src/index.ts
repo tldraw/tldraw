@@ -5,6 +5,9 @@ export {
 } from './lib/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/components/ContextMenu'
+export { Button, type TLUiButtonProps } from './lib/components/primitives/Button'
+export { Icon, type TLUiIconProps } from './lib/components/primitives/Icon'
+export { Input, type TLUiInputProps } from './lib/components/primitives/Input'
 export {
 	compactMenuItems,
 	findMenuItem,

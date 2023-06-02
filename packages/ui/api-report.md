@@ -9,6 +9,7 @@
 import { Editor } from '@tldraw/editor';
 import { EditorAssetUrls } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
+import { NamedExoticComponent } from 'react';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
@@ -34,6 +35,9 @@ function Body_2({ className, children, style, }: {
 export function BreakPointProvider({ children }: {
     children: any;
 }): JSX.Element;
+
+// @public (undocumented)
+export const Button: React_3.ForwardRefExoticComponent<TLUiButtonProps & React_3.RefAttributes<HTMLButtonElement>>;
 
 // @public (undocumented)
 function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
@@ -103,7 +107,7 @@ interface DropdownMenuCheckboxItemProps {
 }
 
 // @public (undocumented)
-interface DropdownMenuItemProps extends ButtonProps {
+interface DropdownMenuItemProps extends TLUiButtonProps {
     // (undocumented)
     noClose?: boolean;
 }
@@ -130,7 +134,13 @@ function Header({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
+export const Icon: NamedExoticComponent<TLUiIconProps>;
+
+// @public (undocumented)
 function Indicator(): JSX.Element;
+
+// @public (undocumented)
+export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
@@ -263,6 +273,32 @@ export type TLUiActionsContextType = Record<string, TLUiActionItem>;
 export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
+export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElement> {
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    icon?: TLUiIconType;
+    // (undocumented)
+    iconLeft?: TLUiIconType;
+    // (undocumented)
+    invertIcon?: boolean;
+    // (undocumented)
+    isChecked?: boolean;
+    // (undocumented)
+    kbd?: string;
+    // (undocumented)
+    label?: TLUiTranslationKey;
+    // (undocumented)
+    loading?: boolean;
+    // (undocumented)
+    smallIcon?: boolean;
+    // (undocumented)
+    spinner?: boolean;
+    // (undocumented)
+    type?: 'danger' | 'normal' | 'primary';
+}
+
+// @public (undocumented)
 export interface TLUiContextMenuProps {
     // (undocumented)
     children: any;
@@ -321,7 +357,58 @@ export type TLUiEventSource = 'actions-menu' | 'context-menu' | 'debug-panel' | 
 export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema;
 
 // @public (undocumented)
+export interface TLUiIconProps extends React.HTMLProps<HTMLDivElement> {
+    // (undocumented)
+    children?: undefined;
+    // (undocumented)
+    color?: string;
+    // (undocumented)
+    crossOrigin?: 'anonymous' | 'use-credentials';
+    // (undocumented)
+    icon: TLUiIconType;
+    // (undocumented)
+    invertIcon?: boolean;
+    // (undocumented)
+    small?: boolean;
+}
+
+// @public (undocumented)
 export type TLUiIconType = 'align-bottom-center' | 'align-bottom-left' | 'align-bottom-right' | 'align-bottom' | 'align-center-center' | 'align-center-horizontal' | 'align-center-left' | 'align-center-right' | 'align-center-vertical' | 'align-left' | 'align-right' | 'align-top-center' | 'align-top-left' | 'align-top-right' | 'align-top' | 'arrow-left' | 'arrowhead-arrow' | 'arrowhead-bar' | 'arrowhead-diamond' | 'arrowhead-dot' | 'arrowhead-none' | 'arrowhead-square' | 'arrowhead-triangle-inverted' | 'arrowhead-triangle' | 'aspect-ratio' | 'avatar' | 'blob' | 'bring-forward' | 'bring-to-front' | 'check' | 'checkbox-checked' | 'checkbox-empty' | 'chevron-down' | 'chevron-left' | 'chevron-right' | 'chevron-up' | 'chevrons-ne' | 'chevrons-sw' | 'clipboard-copied' | 'clipboard-copy' | 'code' | 'collab' | 'color' | 'comment' | 'cross-2' | 'cross' | 'dash-dashed' | 'dash-dotted' | 'dash-draw' | 'dash-solid' | 'discord' | 'distribute-horizontal' | 'distribute-vertical' | 'dot' | 'dots-horizontal' | 'dots-vertical' | 'drag-handle-dots' | 'duplicate' | 'edit' | 'external-link' | 'file' | 'fill-none' | 'fill-pattern' | 'fill-semi' | 'fill-solid' | 'follow' | 'following' | 'font-draw' | 'font-mono' | 'font-sans' | 'font-serif' | 'geo-arrow-down' | 'geo-arrow-left' | 'geo-arrow-right' | 'geo-arrow-up' | 'geo-check-box' | 'geo-diamond' | 'geo-ellipse' | 'geo-hexagon' | 'geo-octagon' | 'geo-oval' | 'geo-pentagon' | 'geo-rectangle' | 'geo-rhombus-2' | 'geo-rhombus' | 'geo-star' | 'geo-trapezoid' | 'geo-triangle' | 'geo-x-box' | 'github' | 'group' | 'hidden' | 'image' | 'info-circle' | 'leading' | 'link' | 'lock-small' | 'lock' | 'menu' | 'minus' | 'mixed' | 'pack' | 'page' | 'plus' | 'question-mark-circle' | 'question-mark' | 'redo' | 'reset-zoom' | 'rotate-ccw' | 'rotate-cw' | 'ruler' | 'search' | 'send-backward' | 'send-to-back' | 'settings-horizontal' | 'settings-vertical-1' | 'settings-vertical' | 'share-1' | 'share-2' | 'size-extra-large' | 'size-large' | 'size-medium' | 'size-small' | 'spline-cubic' | 'spline-line' | 'stack-horizontal' | 'stack-vertical' | 'stretch-horizontal' | 'stretch-vertical' | 'text-align-center' | 'text-align-justify' | 'text-align-left' | 'text-align-right' | 'tool-arrow' | 'tool-embed' | 'tool-eraser' | 'tool-frame' | 'tool-hand' | 'tool-highlight' | 'tool-laser' | 'tool-line' | 'tool-media' | 'tool-note' | 'tool-pencil' | 'tool-pointer' | 'tool-text' | 'trash' | 'triangle-down' | 'triangle-up' | 'twitter' | 'undo' | 'ungroup' | 'unlock-small' | 'unlock' | 'vertical-align-center' | 'vertical-align-end' | 'vertical-align-start' | 'visible' | 'warning-triangle' | 'zoom-in' | 'zoom-out';
+
+// @public (undocumented)
+export interface TLUiInputProps {
+    // (undocumented)
+    autofocus?: boolean;
+    // (undocumented)
+    autoselect?: boolean;
+    // (undocumented)
+    children?: any;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    defaultValue?: string;
+    // (undocumented)
+    disabled?: boolean;
+    // (undocumented)
+    icon?: TLUiIconType;
+    // (undocumented)
+    iconLeft?: TLUiIconType;
+    // (undocumented)
+    label?: TLUiTranslationKey;
+    // (undocumented)
+    onBlur?: (value: string) => void;
+    // (undocumented)
+    onCancel?: (value: string) => void;
+    // (undocumented)
+    onComplete?: (value: string) => void;
+    // (undocumented)
+    onValueChange?: (value: string) => void;
+    // (undocumented)
+    placeholder?: string;
+    shouldManuallyMaintainScrollPositionWhenFocused?: boolean;
+    // (undocumented)
+    value?: string;
+}
 
 // @public (undocumented)
 export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema;

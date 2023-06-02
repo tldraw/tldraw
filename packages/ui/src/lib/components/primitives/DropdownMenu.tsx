@@ -2,7 +2,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
-import { Button, ButtonProps } from './Button'
+import { Button, TLUiButtonProps } from './Button'
 import { Icon } from './Icon'
 
 /** @public */
@@ -153,7 +153,7 @@ export function Indicator() {
 }
 
 /** @public */
-export interface DropdownMenuItemProps extends ButtonProps {
+export interface DropdownMenuItemProps extends TLUiButtonProps {
 	noClose?: boolean
 }
 

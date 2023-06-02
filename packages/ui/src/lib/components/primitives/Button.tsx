@@ -7,8 +7,8 @@ import { Spinner } from '../Spinner'
 import { Icon } from './Icon'
 import { Kbd } from './Kbd'
 
-/** @internal */
-export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+/** @public */
+export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	loading?: boolean // TODO: loading spinner
 	disabled?: boolean
 	label?: TLUiTranslationKey
@@ -22,8 +22,8 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	type?: 'primary' | 'danger' | 'normal'
 }
 
-/** @internal */
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+/** @public */
+export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(function Button(
 	{
 		label,
 		icon,
