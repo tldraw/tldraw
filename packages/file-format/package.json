@@ -44,6 +44,7 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/tlstore": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
+		"@tldraw/tlprimitives": "workspace:*",
 		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*"
 	},

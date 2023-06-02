@@ -200,7 +200,6 @@ export {
 	isSvgText,
 	isValidHttpURL,
 } from './lib/utils/assets'
-export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export {
 	checkFlag,
 	fileToBase64,
