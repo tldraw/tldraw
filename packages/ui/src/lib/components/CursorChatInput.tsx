@@ -1,4 +1,4 @@
-import { preventDefault, useApp, useContainer, useQuickReactor } from '@tldraw/editor'
+import { preventDefault, useApp, useContainer, useReactor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -11,10 +11,17 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	const { isChatting, chatMessage } = app.instanceState
 
-	useQuickReactor(
+	useReactor(
 		'focus cursor chat input',
 		() => {
-			if (isChatting) ref.current?.focus()
+			if (isChatting) {
+				// If the context menu is closing, then we need to wait a bit before focusing
+				// Not sure how to deal with this as I think it's handled in Radix land?
+				// TODO: Do this properly somehow
+				setTimeout(() => {
+					ref.current?.focus()
+				}, 1)
+			}
 		},
 		[isChatting]
 	)

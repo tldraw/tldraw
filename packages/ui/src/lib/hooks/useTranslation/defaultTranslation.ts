@@ -50,7 +50,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.leave-shared-project': 'Leave shared project',
 	'action.new-project': 'New project',
 	'action.new-shared-project': 'New shared project',
-	'action.open-cursor-chat': 'Open cursor chat',
+	'action.open-cursor-chat': 'Cursor chat',
 	'action.open-file': 'Open file',
 	'action.pack': 'Pack',
 	'action.paste': 'Paste',
