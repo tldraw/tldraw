@@ -1,7 +1,7 @@
 import { createCustomShapeId, PageRecordType, TLShape } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -13,7 +13,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.createPage(ids.page1, ids.page1)
 	app.createShapes([
 		{ id: ids.ellipse1, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
@@ -100,7 +100,7 @@ describe('App.moveShapesToPage', () => {
 	})
 
 	it('Sets the correct indices', () => {
-		app = new TestApp()
+		app = new TestEditor()
 		const page2Id = PageRecordType.createCustomId('newPage2')
 
 		app.createPage('New Page 2', page2Id)

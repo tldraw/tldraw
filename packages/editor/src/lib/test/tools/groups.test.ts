@@ -17,7 +17,7 @@ import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
 import { TLEraserTool } from '../../app/statechart/TLEraserTool/TLEraserTool'
 import { TLLineTool } from '../../app/statechart/TLLineTool/TLLineTool'
 import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {
 	let i = 0
@@ -70,10 +70,10 @@ const randomRotation = () => Math.random() * Math.PI * 2
 const randomCoord = () => Math.random() * 100 - 50
 const randomSize = () => Math.random() * 99 + 1
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 afterEach(() => {
 	app?.dispose()

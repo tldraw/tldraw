@@ -1,13 +1,13 @@
 import { Box2d } from '@tldraw/primitives'
 import { TLGeoShape } from '@tldraw/tlschema'
 import { resizeBox } from '../app/shapeutils/shared/resizeBox'
-import { TestApp } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let app: TestEditor
 let shape: TLGeoShape
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	const id = app.createShapeId() as TLGeoShape['id']
 	app.createShapes([
 		{

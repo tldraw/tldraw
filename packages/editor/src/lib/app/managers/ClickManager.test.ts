@@ -1,9 +1,9 @@
-import { TestApp } from '../../test/TestEditor'
+import { TestEditor } from '../../test/TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	// we want to do this in order to avoid creating text shapes. weird
 	app.setSelectedTool('eraser')
 	app._transformPointerDownSpy.mockRestore()

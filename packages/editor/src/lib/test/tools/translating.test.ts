@@ -2,7 +2,7 @@ import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createCustomShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
 import { getSnapLines } from '../testutils/getSnapLines'
@@ -40,7 +40,7 @@ class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
 	}
 }
 
-let app: TestApp
+let app: TestEditor
 
 afterEach(() => {
 	app?.dispose()
@@ -66,7 +66,7 @@ const ids = {
 
 beforeEach(() => {
 	console.error = jest.fn()
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 const getNumSnapPoints = (snap: SnapLine): number => {
@@ -750,7 +750,7 @@ describe('snapping with multiple shapes', () => {
 describe('custom snapping points', () => {
 	beforeEach(() => {
 		app?.dispose()
-		app = new TestApp({
+		app = new TestEditor({
 			shapes: {
 				...defaultShapes,
 				__test_top_left_snap_only: {

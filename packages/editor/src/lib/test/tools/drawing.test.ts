@@ -1,17 +1,17 @@
 import { TLDrawShape, TLHighlightShape } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
 jest.useFakeTimers()
 
-let app: TestApp
+let app: TestEditor
 
 afterEach(() => {
 	app?.dispose()
 })
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app.createShapes([])
 })

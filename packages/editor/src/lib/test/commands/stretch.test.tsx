@@ -1,9 +1,9 @@
 import { PI } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let app: TestEditor
 let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
@@ -13,7 +13,7 @@ function createVideoShape() {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.selectAll()
 	app.deleteShapes()
 	ids = app.createShapesFromJsx([
@@ -128,7 +128,7 @@ describe('When shapes are the child of another shape.', () => {
 
 describe('When shapes are the child of a rotated shape.', () => {
 	beforeEach(() => {
-		app = new TestApp()
+		app = new TestEditor()
 		app.selectAll()
 		app.deleteShapes()
 		ids = app.createShapesFromJsx([

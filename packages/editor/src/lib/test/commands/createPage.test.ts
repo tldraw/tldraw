@@ -1,11 +1,11 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { MAX_PAGES } from '../../constants'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 it('Creates a page', () => {

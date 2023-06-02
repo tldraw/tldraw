@@ -1,10 +1,10 @@
 import { InstanceRecordType, PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
-import { TEST_INSTANCE_ID, TestApp } from '../TestEditor'
+import { TEST_INSTANCE_ID, TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 describe('running any commands', () => {

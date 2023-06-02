@@ -1,7 +1,7 @@
 import { createCustomShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -12,7 +12,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app.selectAll().deleteShapes()
 })

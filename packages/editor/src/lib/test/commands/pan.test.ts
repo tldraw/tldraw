@@ -1,10 +1,10 @@
 import { Box2d, Vec2d } from '@tldraw/primitives'
-import { TestApp, createDefaultShapes } from '../TestEditor'
+import { TestEditor, createDefaultShapes } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.createShapes(createDefaultShapes())
 })
 

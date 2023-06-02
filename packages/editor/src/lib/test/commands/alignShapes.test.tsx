@@ -1,15 +1,15 @@
 import { Box2d, PI } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let app: TestEditor
 let ids: Record<string, TLShapeId>
 
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	ids = app.createShapesFromJsx([
 		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
 		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
@@ -222,7 +222,7 @@ describe('when multiple shapes are selected', () => {
 
 describe('When shapes are parented to other shapes...', () => {
 	beforeEach(() => {
-		app = new TestApp()
+		app = new TestEditor()
 		app.selectAll()
 		app.deleteShapes()
 		ids = app.createShapesFromJsx([
@@ -282,7 +282,7 @@ describe('When shapes are parented to other shapes...', () => {
 
 describe('When shapes are parented to a rotated shape...', () => {
 	beforeEach(() => {
-		app = new TestApp()
+		app = new TestEditor()
 		app.selectAll()
 		app.deleteShapes()
 		app.createShapes([

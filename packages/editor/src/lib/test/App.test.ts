@@ -1,8 +1,8 @@
 import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { TestApp } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -15,7 +15,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app.createShapes([
 		// on it's own
@@ -141,7 +141,7 @@ it('Begins dragging from wheel', () => {
 })
 
 it('Does not create an undo stack item when first clicking on an empty canvas', () => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.pointerMove(50, 50)
 	app.click(0, 0)
 	expect(app.canUndo).toBe(false)
@@ -197,11 +197,11 @@ describe('App.TickManager', () => {
 
 describe("App's default tool", () => {
 	it('Is select for regular app', () => {
-		app = new TestApp()
+		app = new TestEditor()
 		expect(app.currentToolId).toBe('select')
 	})
 	it('Is hand for readonly mode', () => {
-		app = new TestApp()
+		app = new TestEditor()
 		app.setReadOnly(true)
 		expect(app.currentToolId).toBe('hand')
 	})

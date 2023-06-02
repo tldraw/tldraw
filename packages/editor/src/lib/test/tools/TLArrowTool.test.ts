@@ -1,8 +1,8 @@
 import { Vec2d } from '@tldraw/primitives'
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 global.requestAnimationFrame = function requestAnimationFrame(cb) {
 	return setTimeout(cb, 1000 / 60)
@@ -21,7 +21,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app
 		.selectAll()
 		.deleteShapes()

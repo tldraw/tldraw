@@ -1,9 +1,9 @@
-import { TestApp } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 jest.useFakeTimers()

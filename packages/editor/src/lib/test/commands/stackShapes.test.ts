@@ -1,9 +1,9 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
 jest.useFakeTimers()
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -13,7 +13,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 describe('distributeShapes command', () => {

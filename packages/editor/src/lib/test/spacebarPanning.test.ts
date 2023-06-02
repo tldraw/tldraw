@@ -1,14 +1,14 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 

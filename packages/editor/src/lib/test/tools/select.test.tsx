@@ -1,11 +1,11 @@
 import { TLSelectTool } from '../../app/statechart/TLSelectTool/TLSelectTool'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 afterEach(() => {
 	app?.dispose()

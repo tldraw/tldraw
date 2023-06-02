@@ -1,10 +1,10 @@
 import { TAU } from '@tldraw/primitives'
 import { createCustomShapeId, TLArrowShape, TLArrowTerminal, TLShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
-import { TestApp } from '../../../test/TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
 import { TLArrowUtil } from './TLArrowUtil'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -25,7 +25,7 @@ window.cancelAnimationFrame = function cancelAnimationFrame(id) {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app
 		.selectAll()
 		.deleteShapes()

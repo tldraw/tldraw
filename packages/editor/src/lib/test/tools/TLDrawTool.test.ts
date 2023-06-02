@@ -1,10 +1,10 @@
 import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 afterEach(() => {
 	app?.dispose()

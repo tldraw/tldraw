@@ -1,11 +1,11 @@
 import { assert } from '@tldraw/utils'
 import { TLLineUtil } from '../../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 it('enters the line state', () => {

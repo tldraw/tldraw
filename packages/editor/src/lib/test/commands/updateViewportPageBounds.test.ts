@@ -1,6 +1,6 @@
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 // Heads up! App no longer has a `setScreenBounds` method, but the test app does.
 // This is a good way for us to test changes to the `updateViewportPageBounds`
@@ -8,7 +8,7 @@ let app: TestApp
 // eventually push to e2e tests.
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	// Trigger the initial bounds so that later bounds
 	// can force a resize.
 	app.setScreenBounds({ x: 0, y: 0, w: 1080, h: 720 })

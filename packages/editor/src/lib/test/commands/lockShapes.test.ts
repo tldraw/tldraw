@@ -1,6 +1,6 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
-let app: TestApp
+import { TestEditor } from '../TestEditor'
+let app: TestEditor
 
 const ids = {
 	lockedShapeA: createCustomShapeId('boxA'),
@@ -14,7 +14,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.selectAll()
 	app.deleteShapes()
 	app.createShapes([

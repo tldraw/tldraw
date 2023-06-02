@@ -1,7 +1,7 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { createDefaultShapes, defaultShapesIds, TestApp } from '../TestEditor'
+import { createDefaultShapes, defaultShapesIds, TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	...defaultShapesIds,
@@ -11,7 +11,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.createShapes(createDefaultShapes())
 	app.createShapes([
 		{

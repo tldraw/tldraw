@@ -1,8 +1,8 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { TLGeoUtil } from '../../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 afterEach(() => {
 	app?.dispose()
@@ -14,7 +14,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app.createShapes([
 		{

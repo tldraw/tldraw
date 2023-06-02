@@ -1,8 +1,8 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -11,7 +11,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.setProp('dash', 'solid')
 	app.createShapes([
 		{

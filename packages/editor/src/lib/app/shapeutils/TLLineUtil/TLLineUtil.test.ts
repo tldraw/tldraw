@@ -1,19 +1,19 @@
 import { createCustomShapeId, TLGeoShape, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
-import { TestApp } from '../../../test/TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
 
 jest.mock('nanoid', () => {
 	let i = 0
 	return { nanoid: () => 'id' + i++ }
 })
 
-let app: TestApp
+let app: TestEditor
 const id = createCustomShapeId('line1')
 
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app
 		.selectAll()
 		.deleteShapes()

@@ -10,7 +10,7 @@ import {
 import { createCustomShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine } from '../../app/managers/SnapManager'
 import { TLSelectionHandle } from '../../app/types/selection-types'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'
 
@@ -53,7 +53,7 @@ const roundedPageBounds = (shapeId: TLShapeId, accuracy = 0.01) => {
 //   return { gapLines, pointLines }
 // }
 
-let app: TestApp
+let app: TestEditor
 
 afterEach(() => {
 	app?.dispose()
@@ -73,7 +73,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app.createShapes([
 		{
@@ -3457,7 +3457,7 @@ describe('resizing a selection of mixed rotations', () => {
 
 // describe('Icons', () => {
 // 	beforeEach(() => {
-// 		app = new TestApp()
+// 		app = new TestEditor()
 
 // 		app.createShapes([
 // 			{

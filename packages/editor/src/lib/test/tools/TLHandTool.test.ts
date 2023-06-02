@@ -1,10 +1,10 @@
 import { TLHandTool } from '../../app/statechart/TLHandTool/TLHandTool'
-import { createDefaultShapes, TestApp } from '../TestEditor'
+import { createDefaultShapes, TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 
 	app._transformPointerDownSpy.mockRestore()
 	app._transformPointerUpSpy.mockRestore()

@@ -1,7 +1,7 @@
-import { TestApp } from './TestEditor'
+import { TestEditor } from './TestEditor'
 
 it('loads the test app', () => {
 	expect(() => {
-		new TestApp()
+		new TestEditor()
 	}).not.toThrow()
 })

@@ -1,11 +1,11 @@
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestEditor'
+import { TestEditor } from '../../test/TestEditor'
 import { TL } from '../../test/jsx'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 describe('arrowBindingsIndex', () => {

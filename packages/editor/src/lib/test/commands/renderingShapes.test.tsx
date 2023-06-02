@@ -1,9 +1,9 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { assert, assertExists } from '@tldraw/utils'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let app: TestEditor
 
 /**
  * When we're comparing shape indexes, we don't actually care about the specific
@@ -33,7 +33,7 @@ function normalizeIndexes(
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
 })
 

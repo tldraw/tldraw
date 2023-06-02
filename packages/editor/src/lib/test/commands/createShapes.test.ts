@@ -1,7 +1,7 @@
 import { createCustomShapeId, TLGeoShape } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	box1: createCustomShapeId('box1'),
@@ -13,7 +13,7 @@ const ids = {
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 it('Parents shapes to the current page if the parent is not found', () => {

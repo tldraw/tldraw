@@ -1,7 +1,7 @@
 import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../TestEditor'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 const ids = {
 	boxA: createCustomShapeId('boxA'),
@@ -13,7 +13,7 @@ const ids = {
 jest.useFakeTimers()
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 	app.selectAll()
 	app.deleteShapes()
 	app.createShapes([

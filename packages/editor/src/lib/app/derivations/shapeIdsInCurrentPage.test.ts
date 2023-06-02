@@ -1,10 +1,10 @@
 import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from '../../test/TestEditor'
+import { TestEditor } from '../../test/TestEditor'
 
-let app: TestApp
+let app: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	app = new TestEditor()
 })
 
 const ids = {
