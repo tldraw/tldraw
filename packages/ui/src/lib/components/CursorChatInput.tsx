@@ -112,6 +112,8 @@ export const CursorChatInput = track(function CursorChatInput() {
 			onKeyDown={handleKeyDown}
 			spellCheck={false}
 			onPaste={handlePaste}
-		></div>
+		>
+			{isChatting ? null : chatMessage}
+		</div>
 	)
 })
