@@ -61,8 +61,6 @@ async function main() {
 			'-T',
 			'eslint',
 			'--report-unused-disable-directives',
-			'--ignore-path',
-			path.join(REPO_ROOT, '.eslintignore'),
 			shouldFix ? '--fix' : null,
 			...eslintFiles,
 		])
