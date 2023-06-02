@@ -134,8 +134,9 @@ export const CursorChatInput = track(function CursorChatInput() {
 	)
 
 	// Convert all pasted content to plain text
-	const handlePaste = useCallback(() => {
-		// TODO
+	const handlePaste = useCallback((e) => {
+		preventDefault(e)
+		e.stopPropagation()
 	}, [])
 
 	return (
