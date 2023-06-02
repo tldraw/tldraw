@@ -79,8 +79,11 @@ export const CursorChatInput = track(function CursorChatInput() {
 
 	// Update the chat message as the user types
 	const handleInput = useCallback(
-		(e) => app.updateInstanceState({ chatMessage: e.currentTarget.textContent }),
-		[app]
+		(e) => {
+			app.updateInstanceState({ chatMessage: e.currentTarget.textContent })
+			startTimeout()
+		},
+		[app, startTimeout]
 	)
 
 	// Handle some keyboard shortcuts
