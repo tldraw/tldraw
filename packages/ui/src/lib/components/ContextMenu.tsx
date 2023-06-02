@@ -24,7 +24,14 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const app = useApp()
 
 	const contextMenuSchema = useContextMenuSchema()
-	const [_, handleOpenChange] = useMenuIsOpen('context menu')
+	const cb = (isOpen: boolean) => {
+		if (isOpen) return
+		if (shouldDeselect(app)) {
+			app.setSelectedIds([])
+		}
+	}
+
+	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
 	const isReadonly = useReadonly()
@@ -51,6 +58,12 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			<ContextMenuContent />
 		</_ContextMenu.Root>
 	)
+}
+
+function shouldDeselect(app: App) {
+	const { onlySelectedShape } = app
+	if (!onlySelectedShape) return false
+	return app.isShapeOrAncestorLocked(onlySelectedShape)
 }
 
 function ContextMenuContent() {

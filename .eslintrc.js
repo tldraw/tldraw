@@ -59,12 +59,6 @@ module.exports = {
 			},
 		},
 		{
-			files: ['apps/fixup/**/*', 'scripts/**/*'],
-			rules: {
-				'no-console': 'off',
-			},
-		},
-		{
 			files: ['e2e/**/*'],
 			rules: {
 				'@typescript-eslint/no-empty-function': 'off',

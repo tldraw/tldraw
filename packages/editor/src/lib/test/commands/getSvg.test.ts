@@ -85,7 +85,7 @@ it('Matches a snapshot', async () => {
 	const elm = document.createElement('wrapper')
 	elm.appendChild(svg)
 
-	expect(elm.innerHTML).toMatchSnapshot('Basic SVG')
+	expect(elm).toMatchSnapshot('Basic SVG')
 })
 
 it('Accepts a scale option', async () => {

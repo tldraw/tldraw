@@ -1,7 +1,7 @@
 import { TldrawFile } from '@tldraw/file-format'
 import * as vscode from 'vscode'
 import { defaultFileContents, fileExists, loadFile } from './file'
-import { log } from './utils'
+import { nicelog } from './utils'
 
 export type DocumentChangeEventArgs =
 	| { reason: 'undo' | 'redo' }
@@ -55,20 +55,20 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	makeEdit(nextFile: TldrawFile) {
-		log('makeEdit')
+		nicelog('makeEdit')
 		const prevData = this.documentData
 		this.documentData = nextFile
 		this._onDidChange.fire({
 			label: 'edit',
 			undo: async () => {
-				log('undo')
+				nicelog('undo')
 				this.documentData = prevData
 				this._onDidChangeDocument.fire({
 					reason: 'undo',
 				})
 			},
 			redo: async () => {
-				log('redo')
+				nicelog('redo')
 				this.documentData = nextFile
 				this._onDidChangeDocument.fire({
 					reason: 'redo',
@@ -82,7 +82,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 	}
 
 	private static async readFile(uri: vscode.Uri): Promise<TldrawFile> {
-		log('readFile')
+		nicelog('readFile')
 
 		if (uri.scheme === 'untitled') {
 			return defaultFileContents
@@ -101,13 +101,13 @@ export class TLDrawDocument implements vscode.CustomDocument {
 
 	/** Called by VS Code when the user saves the document. */
 	async save(cancellation: vscode.CancellationToken): Promise<void> {
-		log('save')
+		nicelog('save')
 		await this.saveAs(this.uri, cancellation)
 	}
 
 	/** Called by VS Code when the user saves the document to a new location. */
 	async saveAs(targetResource: vscode.Uri, cancellation: vscode.CancellationToken): Promise<void> {
-		log('saveAs')
+		nicelog('saveAs')
 		if (cancellation.isCancellationRequested) {
 			return
 		}
@@ -121,7 +121,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 
 	/** Called by VS Code when the user calls `revert` on a document. */
 	async revert(_cancellation: vscode.CancellationToken): Promise<void> {
-		log('revert')
+		nicelog('revert')
 
 		const diskContent = await TLDrawDocument.readFile(this.uri)
 		this.documentData = diskContent
@@ -140,7 +140,7 @@ export class TLDrawDocument implements vscode.CustomDocument {
 		destination: vscode.Uri,
 		cancellation: vscode.CancellationToken
 	): Promise<vscode.CustomDocumentBackup> {
-		log('backup')
+		nicelog('backup')
 		this.lastBackupDestination = destination
 
 		await this.saveAs(destination, cancellation)

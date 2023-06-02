@@ -925,6 +925,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					app.zoomToContent()
 				},
 			},
+			{
+				id: 'toggle-lock',
+				label: 'action.toggle-lock',
+				readonlyOk: false,
+				kbd: '!$l',
+				onSelect(source) {
+					trackEvent('toggle-lock', { source })
+					app.toggleLock()
+				},
+			},
 		])
 
 		if (overrides) {

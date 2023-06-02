@@ -64,13 +64,13 @@ export class Idle extends StateNode {
 			this.parent.transition('brushing', info)
 			return
 		}
-
 		switch (info.target) {
 			case 'canvas': {
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
 			case 'shape': {
+				if (this.app.isShapeOrAncestorLocked(info.shape)) break
 				this.parent.transition('pointing_shape', info)
 				break
 			}
@@ -157,12 +157,15 @@ export class Idle extends StateNode {
 					}
 
 					// For corners OR edges
-					if (util.canCrop(onlySelectedShape)) {
+					if (
+						util.canCrop(onlySelectedShape) &&
+						!this.app.isShapeOrAncestorLocked(onlySelectedShape)
+					) {
 						this.parent.transition('crop', info)
 						return
 					}
 
-					if (util.canEdit(onlySelectedShape)) {
+					if (this.shouldStartEditingShape(onlySelectedShape)) {
 						this.startEditingShape(onlySelectedShape, info)
 					}
 				}
@@ -181,7 +184,7 @@ export class Idle extends StateNode {
 					if (change) {
 						this.app.updateShapes([change])
 						return
-					} else if (util.canCrop(shape)) {
+					} else if (util.canCrop(shape) && !this.app.isShapeOrAncestorLocked(shape)) {
 						// crop on double click
 						this.app.mark('select and crop')
 						this.app.select(info.shape?.id)
@@ -190,7 +193,7 @@ export class Idle extends StateNode {
 					}
 				}
 				// If the shape can edit, then begin editing
-				if (util.canEdit(shape)) {
+				if (this.shouldStartEditingShape(shape)) {
 					this.startEditingShape(shape, info)
 				} else {
 					// If the shape's double click handler has not created a change,
@@ -212,7 +215,7 @@ export class Idle extends StateNode {
 				} else {
 					// If the shape's double click handler has not created a change,
 					// and if the shape can edit, then begin editing the shape.
-					if (util.canEdit(shape)) {
+					if (this.shouldStartEditingShape(shape)) {
 						this.startEditingShape(shape, info)
 					}
 				}
@@ -327,12 +330,12 @@ export class Idle extends StateNode {
 		}
 	}
 
-	private shouldStartEditingShape(): boolean {
-		const { onlySelectedShape } = this.app
-		if (!onlySelectedShape) return false
+	private shouldStartEditingShape(shape: TLShape | null = this.app.onlySelectedShape): boolean {
+		if (!shape) return false
+		if (this.app.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
 
-		const util = this.app.getShapeUtil(onlySelectedShape)
-		return util.canEdit(onlySelectedShape)
+		const util = this.app.getShapeUtil(shape)
+		return util.canEdit(shape)
 	}
 
 	private shouldEnterCropMode(
@@ -341,6 +344,7 @@ export class Idle extends StateNode {
 	): boolean {
 		const singleShape = this.app.onlySelectedShape
 		if (!singleShape) return false
+		if (this.app.isShapeOrAncestorLocked(singleShape)) return false
 
 		const shapeUtil = this.app.getShapeUtil(singleShape)
 		// Should the Ctrl key be pressed to enter crop mode
@@ -352,6 +356,7 @@ export class Idle extends StateNode {
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
+		if (this.app.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.app.mark('editing shape')
 		this.app.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)

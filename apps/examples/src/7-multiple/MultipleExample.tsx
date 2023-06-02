@@ -2,7 +2,7 @@ import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 
-export default function Example() {
+export default function MultipleExample() {
 	return (
 		<div
 			style={{

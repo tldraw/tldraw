@@ -1,4 +1,4 @@
-import { TLInstanceId, useApp } from '@tldraw/editor'
+import { useApp } from '@tldraw/editor'
 import { parseAndLoadDocument } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import React from 'react'
@@ -6,10 +6,8 @@ import { vscode } from './utils/vscode'
 
 export function FileOpen({
 	fileContents,
-	instanceId,
 	forceDarkMode,
 }: {
-	instanceId: TLInstanceId
 	fileContents: string
 	forceDarkMode: boolean
 }) {
@@ -42,7 +40,7 @@ export function FileOpen({
 		return () => {
 			clearToasts()
 		}
-	}, [fileContents, app, instanceId, addToast, msg, clearToasts, forceDarkMode, isFileLoaded])
+	}, [fileContents, app, addToast, msg, clearToasts, forceDarkMode, isFileLoaded])
 
 	return null
 }

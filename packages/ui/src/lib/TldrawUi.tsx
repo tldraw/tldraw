@@ -24,27 +24,35 @@ import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
+/** @public */
+export type TldrawUiProps = {
+	children?: ReactNode
+	/** Whether to hide the interface and only display the canvas. */
+	hideUi?: boolean
+	/** A component to use for the share zone (will be deprecated) */
+	shareZone?: ReactNode
+	topZone?: ReactNode
+	/** Additional items to add to the debug menu  (will be deprecated)*/
+	renderDebugMenuItems?: () => React.ReactNode
+} & TldrawUiContextProviderProps
+
 /**
  * @public
  */
 export const TldrawUi = React.memo(function TldrawUi({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 	children,
 	hideUi,
 	...rest
-}: {
-	shareZone?: ReactNode
-	renderDebugMenuItems?: () => React.ReactNode
-	children?: ReactNode
-	/** Whether to hide the interface and only display the canvas. */
-	hideUi?: boolean
-} & TldrawUiContextProviderProps) {
+}: TldrawUiProps) {
 	return (
 		<TldrawUiContextProvider {...rest}>
 			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
+				topZone={topZone}
 				renderDebugMenuItems={renderDebugMenuItems}
 			>
 				{children}
@@ -56,6 +64,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 type TldrawUiContentProps = {
 	hideUi?: boolean
 	shareZone?: ReactNode
+	topZone?: ReactNode
 	renderDebugMenuItems?: () => React.ReactNode
 }
 
@@ -64,12 +73,6 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	hideUi,
 	...rest
 }: TldrawUiContentProps & { children: ReactNode }) {
-	// const isLoaded = usePreloadIcons()
-
-	// if (!isLoaded) {
-	// 	return <LoadingScreen>Loading assets...</LoadingScreen>
-	// }
-
 	// The hideUi prop should prevent the UI from mounting.
 	// If we ever need want the UI to mount and preserve state, then
 	// we should change this behavior and hide the UI via CSS instead.
@@ -85,6 +88,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 /** @public */
 export const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
 	const app = useApp()
@@ -128,12 +132,9 @@ export const TldrawUiContent = React.memo(function TldrawUI({
 									<StopFollowing />
 								</div>
 							</div>
+							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
-								{shareZone && (
-									<div className="tlui-share-zone" draggable={false}>
-										{shareZone}
-									</div>
-								)}
+								{shareZone}
 								{breakpoint >= 5 && !isReadonlyMode && (
 									<div className="tlui-style-panel__wrapper">
 										<StylePanel />

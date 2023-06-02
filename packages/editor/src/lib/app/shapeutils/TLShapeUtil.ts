@@ -24,6 +24,7 @@ export interface TLShapeUtilConstructor<
 	ShapeUtil extends TLShapeUtil<T> = TLShapeUtil<T>
 > {
 	new (app: App, type: T['type']): ShapeUtil
+	type: T['type']
 }
 
 /** @public */
@@ -164,6 +165,14 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	abstract indicator(shape: T): any
+
+	/**
+	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
+	 *
+	 * @param shape - The shape.
+	 * @internal
+	 */
+	renderBackground?(shape: T): any
 
 	/**
 	 * Get an array of handle models for the shape. This is an optional method.
@@ -307,7 +316,7 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: T, type: TLShape['type']) {
 		return false
 	}
 
@@ -336,6 +345,21 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 		font: string | undefined,
 		colors: TLExportColors
 	): SVGElement | Promise<SVGElement>
+
+	/**
+	 * Get the shape's background layer as an SVG object.
+	 *
+	 * @param shape - The shape.
+	 * @param color - The shape's CSS color (actual).
+	 * @param font - The shape's CSS font (actual).
+	 * @returns An SVG element.
+	 * @public
+	 */
+	toBackgroundSvg?(
+		shape: T,
+		font: string | undefined,
+		colors: TLExportColors
+	): SVGElement | Promise<SVGElement> | null
 
 	/**
 	 * Get whether a point intersects the shape.
@@ -373,6 +397,19 @@ export abstract class TLShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	/** @internal */
 	expandSelectionOutlinePx(shape: T): number {
 		return 0
+	}
+
+	/**
+	 * Does this shape provide a background for its children? If this is true,
+	 * then any children with a `renderBackground` method will have their
+	 * backgrounds rendered _above_ this shape. Otherwise, the children's
+	 * backgrounds will be rendered above either the next ancestor that provides
+	 * a background, or the canvas background.
+	 *
+	 * @internal
+	 */
+	providesBackgroundForChildren(shape: T): boolean {
+		return false
 	}
 
 	//  Events

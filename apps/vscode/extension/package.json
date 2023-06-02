@@ -1,7 +1,7 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.6",
+	"version": "2.0.7",
 	"private": true,
 	"packageManager": "yarn@3.5.0",
 	"author": {
@@ -124,7 +124,6 @@
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
-		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "vsce publish",
 		"lint": "yarn run -T tsx ../../../scripts/lint.ts",

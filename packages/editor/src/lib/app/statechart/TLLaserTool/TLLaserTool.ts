@@ -5,6 +5,7 @@ import { Lasering } from './children/Lasering'
 
 export class TLLaserTool extends StateNode {
 	static override id = 'laser'
+
 	static initial = 'idle'
 	static children = () => [Idle, Lasering]
 

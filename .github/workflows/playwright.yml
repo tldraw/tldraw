@@ -1,4 +1,4 @@
-name: Checks
+name: End to end tests
 
 on:
   pull_request:
