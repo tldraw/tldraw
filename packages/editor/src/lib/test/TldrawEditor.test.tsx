@@ -74,9 +74,9 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
-		const initialApp = onMount.mock.lastCall[0]
-		jest.spyOn(initialApp, 'dispose')
-		expect(initialApp.store).toBe(initialStore)
+		const initialEditor = onMount.mock.lastCall[0]
+		jest.spyOn(initialEditor, 'dispose')
+		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -96,7 +96,7 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-3')
-		expect(initialApp.dispose).toHaveBeenCalledTimes(1)
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
 	})

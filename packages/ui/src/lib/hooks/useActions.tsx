@@ -1,8 +1,8 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	App,
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
+	Editor,
 	getEmbedInfo,
 	openWindow,
 	TLBookmarkUtil,
@@ -52,7 +52,7 @@ export const ActionsContext = React.createContext<ActionsContextType>({})
 
 /** @public */
 export type ActionsProviderProps = {
-	overrides?: (app: App, actions: ActionsContextType, helpers: undefined) => ActionsContextType
+	overrides?: (app: Editor, actions: ActionsContextType, helpers: undefined) => ActionsContextType
 	children: any
 }
 

@@ -1,5 +1,5 @@
 import {
-	App,
+	Editor,
 	getSvgAsImage,
 	getSvgAsString,
 	TLCopyType,
@@ -125,7 +125,7 @@ export function useCopyAs() {
 	)
 }
 
-async function getExportSvgElement(app: App, ids: TLShapeId[]) {
+async function getExportSvgElement(app: Editor, ids: TLShapeId[]) {
 	const svg = await app.getSvg(ids, {
 		scale: 1,
 		background: app.instanceState.exportBackground,
@@ -136,13 +136,13 @@ async function getExportSvgElement(app: App, ids: TLShapeId[]) {
 	return svg
 }
 
-async function getExportedSvgBlob(app: App, ids: TLShapeId[]) {
+async function getExportedSvgBlob(app: Editor, ids: TLShapeId[]) {
 	return new Blob([getSvgAsString(await getExportSvgElement(app, ids))], {
 		type: 'text/plain',
 	})
 }
 
-async function getExportedImageBlob(app: App, ids: TLShapeId[], format: 'png' | 'jpeg') {
+async function getExportedImageBlob(app: Editor, ids: TLShapeId[], format: 'png' | 'jpeg') {
 	return await getSvgAsImage(await getExportSvgElement(app, ids), {
 		type: format,
 		quality: 1,

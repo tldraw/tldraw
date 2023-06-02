@@ -1,5 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { App, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { Editor, TLStyleItem, TLStyleType } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
@@ -8,7 +8,7 @@ import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
 
-type AllStyles = typeof App.styles
+type AllStyles = typeof Editor.styles
 
 interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
 	label: TLTranslationKey

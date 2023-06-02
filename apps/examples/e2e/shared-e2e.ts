@@ -1,5 +1,5 @@
 import { PlaywrightTestArgs, PlaywrightWorkerArgs } from '@playwright/test'
-import { App } from '@tldraw/tldraw'
+import { Editor } from '@tldraw/tldraw'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
@@ -17,7 +17,7 @@ export function sleep(ms: number) {
 // 	expect(await page.evaluate(() => app.selectedIds.length)).toBe(numberOfSelectedShapes)
 // }
 
-declare const app: App
+declare const app: Editor
 
 export async function setup({ page }: PlaywrightTestArgs & PlaywrightWorkerArgs) {
 	await setupPage(page)

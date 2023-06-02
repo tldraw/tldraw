@@ -46,7 +46,7 @@ beforeEach(() => {
 		])
 })
 
-describe('App.deleteShapes', () => {
+describe('Editor.deleteShapes', () => {
 	it('Deletes a shape', () => {
 		app.select(ids.box3, ids.box4)
 		app.mark()

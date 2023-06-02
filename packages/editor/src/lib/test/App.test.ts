@@ -147,7 +147,7 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	expect(app.canUndo).toBe(false)
 })
 
-describe('App.setProp', () => {
+describe('Editor.setProp', () => {
 	it('Does not set non-style props on propsForNextShape', () => {
 		const initialPropsForNextShape = structuredClone(app.instanceState.propsForNextShape)
 		app.setProp('w', 100)
@@ -156,7 +156,7 @@ describe('App.setProp', () => {
 	})
 })
 
-describe('App.TickManager', () => {
+describe('Editor.TickManager', () => {
 	it('Does not produce NaN values when elapsed is 0', () => {
 		// a helper that calls update pointer velocity with a given elapsed time.
 		// usually this is called by the app's tick manager, using the elapsed time

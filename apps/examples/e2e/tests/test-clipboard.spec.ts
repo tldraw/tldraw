@@ -1,12 +1,12 @@
 import test, { expect } from '@playwright/test'
-import { App } from '@tldraw/tldraw'
+import { Editor } from '@tldraw/tldraw'
 import { setup } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-declare const app: App
+declare const app: Editor
 
 /**
  * These tests are skipped. They are here to show how to use the clipboard

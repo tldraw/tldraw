@@ -1,4 +1,4 @@
-import { App, useEditor } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
@@ -18,7 +18,7 @@ export const HelpMenuSchemaContext = React.createContext({} as HelpMenuSchemaPro
 /** @public */
 export type HelpMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		app: Editor,
 		schema: HelpMenuSchemaProviderType,
 		helpers: {
 			actions: ReturnType<typeof useActions>

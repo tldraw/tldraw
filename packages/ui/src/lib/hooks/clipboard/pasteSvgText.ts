@@ -1,4 +1,4 @@
-import { App, createAssetShapeAtPoint } from '@tldraw/editor'
+import { Editor, createAssetShapeAtPoint } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 
 /**
@@ -9,7 +9,7 @@ import { VecLike } from '@tldraw/primitives'
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export async function pasteSvgText(app: App, text: string, point?: VecLike) {
+export async function pasteSvgText(app: Editor, text: string, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 
 	app.mark('paste')

@@ -1,4 +1,4 @@
-import { App, TL_GEO_TYPES, featureFlags, useEditor } from '@tldraw/editor'
+import { Editor, TL_GEO_TYPES, featureFlags, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -31,7 +31,7 @@ export const ToolsContext = React.createContext({} as ToolsContextType)
 /** @public */
 export type ToolsProviderProps = {
 	overrides?: (
-		app: App,
+		app: Editor,
 		tools: ToolsContextType,
 		helpers: { insertMedia: () => void }
 	) => ToolsContextType

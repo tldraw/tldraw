@@ -1,12 +1,12 @@
 import test, { expect } from '@playwright/test'
-import { App, TLGeoShape } from '@tldraw/tldraw'
+import { Editor, TLGeoShape } from '@tldraw/tldraw'
 import { getAllShapeTypes, setup } from '../shared-e2e'
 
 export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-declare const app: App
+declare const app: Editor
 
 test.describe('smoke tests', () => {
 	test.beforeEach(setup)

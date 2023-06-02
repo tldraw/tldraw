@@ -1,4 +1,4 @@
-import { App, TLArrowUtil, useEditor } from '@tldraw/editor'
+import { Editor, TLArrowUtil, useEditor } from '@tldraw/editor'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
 import { useValue } from 'signia-react'
 import { ActionItem } from './useActions'
@@ -128,7 +128,7 @@ export function menuItem(
 	}
 }
 
-function shapesWithUnboundArrows(app: App) {
+function shapesWithUnboundArrows(app: Editor) {
 	const { selectedIds } = app
 	const selectedShapes = selectedIds.map((id) => {
 		return app.getShapeById(id)

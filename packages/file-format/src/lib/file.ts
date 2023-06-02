@@ -1,6 +1,6 @@
 import {
-	App,
 	createTLStore,
+	Editor,
 	fileToBase64,
 	TLAsset,
 	TLInstanceId,
@@ -202,7 +202,7 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 
 /** @internal */
 export async function parseAndLoadDocument(
-	app: App,
+	app: Editor,
 	document: string,
 	msg: (id: TLTranslationKey) => string,
 	addToast: ToastsContextType['addToast'],

@@ -1,4 +1,4 @@
-import { App, createShapesFromFiles } from '@tldraw/editor'
+import { Editor, createShapesFromFiles } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 
 /**
@@ -9,7 +9,7 @@ import { VecLike } from '@tldraw/primitives'
  * @param point - The point at which to paste the file.
  * @internal
  */
-export async function pasteFiles(app: App, urls: string[], point?: VecLike) {
+export async function pasteFiles(app: Editor, urls: string[], point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 
 	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))

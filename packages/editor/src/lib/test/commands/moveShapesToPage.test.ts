@@ -27,7 +27,7 @@ beforeEach(() => {
 	expect(app.getShapeById(ids.box2)!.parentId).toEqual(ids.box1)
 })
 
-describe('App.moveShapesToPage', () => {
+describe('Editor.moveShapesToPage', () => {
 	it('Moves shapes to page', () => {
 		app.moveShapesToPage([ids.box2, ids.ellipse1], ids.page2)
 		expect(app.currentPageId).toBe(ids.page2)

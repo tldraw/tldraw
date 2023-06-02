@@ -1,4 +1,4 @@
-import { App, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
+import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 
 import { useValue } from 'signia-react'
@@ -49,7 +49,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	)
 }
 
-const { styles } = App
+const { styles } = Editor
 
 function useStyleChangeCallback() {
 	const app = useEditor()

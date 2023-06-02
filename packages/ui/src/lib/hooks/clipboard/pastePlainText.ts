@@ -1,5 +1,5 @@
 import {
-	App,
+	Editor,
 	FONT_FAMILIES,
 	FONT_SIZES,
 	INDENT,
@@ -62,7 +62,7 @@ function stripTrailingWhitespace(text: string): string {
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export async function pastePlainText(app: App, text: string, point?: VecLike) {
+export async function pastePlainText(app: Editor, text: string, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 	const defaultProps = app.getShapeUtil(TLTextUtil).defaultProps()
 

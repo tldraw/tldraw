@@ -1,4 +1,4 @@
-import { App, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { Editor, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
@@ -27,7 +27,7 @@ export const ContextMenuSchemaContext = React.createContext({} as ContextMenuSch
 /** @public */
 export type ContextMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		app: Editor,
 		schema: ContextMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>

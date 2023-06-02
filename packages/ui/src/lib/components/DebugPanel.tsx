@@ -1,7 +1,7 @@
 import {
-	App,
 	DebugFlag,
 	debugFlags,
+	Editor,
 	featureFlags,
 	hardResetApp,
 	TLShapePartial,
@@ -19,7 +19,7 @@ import * as DropdownMenu from './primitives/DropdownMenu'
 
 let t = 0
 
-function createNShapes(app: App, n: number) {
+function createNShapes(app: Editor, n: number) {
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 

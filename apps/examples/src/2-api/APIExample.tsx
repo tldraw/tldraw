@@ -1,4 +1,4 @@
-import { App, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
+import { Editor, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useEffect } from 'react'
@@ -11,7 +11,7 @@ import { useEffect } from 'react'
 // send events, observe changes, and perform actions.
 
 export default function APIExample() {
-	const handleMount = (app: App) => {
+	const handleMount = (app: Editor) => {
 		// Create a shape id
 		const id = app.createShapeId('hello')
 

@@ -1,5 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { App, Box2dModel } from '@tldraw/tldraw'
+import { Box2dModel, Editor } from '@tldraw/tldraw'
 import { setupPage } from '../shared-e2e'
 
 export function sleep(ms: number) {
@@ -53,7 +53,7 @@ function formatLines(spans: { box: Box2dModel; text: string }[]) {
 	return lines
 }
 
-declare const app: App
+declare const app: Editor
 let page: Page
 
 test.describe('text measurement', () => {

@@ -1,5 +1,5 @@
 import {
-	App,
+	Editor,
 	getValidHttpURLList,
 	isSvgText,
 	isValidHttpURL,
@@ -32,7 +32,7 @@ const INPUTS = ['input', 'select', 'textarea']
  * @param app - The app instance.
  * @internal
  */
-function disallowClipboardEvents(app: App) {
+function disallowClipboardEvents(app: Editor) {
 	const { activeElement } = document
 	return (
 		app.isMenuOpen ||
@@ -90,7 +90,7 @@ const isFile = (item: ClipboardItem) => {
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-const handleText = (app: App, data: string, point?: VecLike) => {
+const handleText = (app: Editor, data: string, point?: VecLike) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		for (const url of validUrlList) {
@@ -170,7 +170,7 @@ type ClipboardResult =
  * @internal
  */
 const handlePasteFromEventClipboardData = async (
-	app: App,
+	app: Editor,
 	clipboardData: DataTransfer,
 	point?: VecLike
 ) => {
@@ -226,7 +226,7 @@ const handlePasteFromEventClipboardData = async (
  * @internal
  */
 const handlePasteFromClipboardApi = async (
-	app: App,
+	app: Editor,
 	clipboardItems: ClipboardItem[],
 	point?: VecLike
 ) => {
@@ -277,7 +277,7 @@ const handlePasteFromClipboardApi = async (
 	return await handleClipboardThings(app, things, point)
 }
 
-async function handleClipboardThings(app: App, things: ClipboardThing[], point?: VecLike) {
+async function handleClipboardThings(app: Editor, things: ClipboardThing[], point?: VecLike) {
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to
@@ -476,7 +476,7 @@ async function handleClipboardThings(app: App, things: ClipboardThing[], point?:
  * @param app - App
  * @public
  */
-const handleNativeOrMenuCopy = (app: App) => {
+const handleNativeOrMenuCopy = (app: Editor) => {
 	const content = app.getContent()
 	if (!content) {
 		if (navigator && navigator.clipboard) {

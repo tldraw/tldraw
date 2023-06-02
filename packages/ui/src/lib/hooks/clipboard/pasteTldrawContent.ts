@@ -1,4 +1,4 @@
-import { App, TLClipboardModel } from '@tldraw/editor'
+import { Editor, TLClipboardModel } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 
 /**
@@ -9,7 +9,7 @@ import { VecLike } from '@tldraw/primitives'
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export function pasteTldrawContent(app: App, clipboard: TLClipboardModel, point?: VecLike) {
+export function pasteTldrawContent(app: Editor, clipboard: TLClipboardModel, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : undefined)
 
 	app.mark('paste')

@@ -1,6 +1,6 @@
 import {
-	App,
 	AssetRecordType,
+	Editor,
 	TLAlignType,
 	TLArrowheadType,
 	TLAssetId,
@@ -28,7 +28,7 @@ import { compact } from '@tldraw/utils'
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export async function pasteExcalidrawContent(app: App, clipboard: any, point?: VecLike) {
+export async function pasteExcalidrawContent(app: Editor, clipboard: any, point?: VecLike) {
 	const { elements, files } = clipboard
 
 	const tldrawContent: TLClipboardModel = {

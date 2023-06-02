@@ -15,7 +15,7 @@ beforeEach(() => {
 })
 
 describe('When resizing', () => {
-	it('sets the viewport bounds with App.resize', () => {
+	it('sets the viewport bounds with Editor.resize', () => {
 		app.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
 		expect(app.viewportScreenBounds).toMatchObject({
 			x: 0,

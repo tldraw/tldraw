@@ -8,7 +8,7 @@ beforeEach(() => {
 	app.reparentShapesById([defaultShapesIds.ellipse1], app.currentPageId)
 })
 
-describe('App.props', () => {
+describe('Editor.props', () => {
 	it('should return props', () => {
 		app.selectNone()
 		expect(app.props).toEqual({

@@ -1,5 +1,5 @@
 import {
-	App,
+	Editor,
 	createBookmarkShapeAtPoint,
 	createEmbedShapeAtPoint,
 	getEmbedInfo,
@@ -16,7 +16,7 @@ import { pasteFiles } from './pasteFiles'
  * @param point - (optional) The point at which to paste the file.
  * @internal
  */
-export async function pasteUrl(app: App, url: string, point?: VecLike) {
+export async function pasteUrl(app: Editor, url: string, point?: VecLike) {
 	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
 
 	// Lets see if its an image and we have CORs

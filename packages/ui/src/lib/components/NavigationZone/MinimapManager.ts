@@ -1,8 +1,8 @@
-import { App, TLInstancePresence, TLShapeId, uniqueId } from '@tldraw/editor'
+import { Editor, TLInstancePresence, TLShapeId, uniqueId } from '@tldraw/editor'
 import { Box2d, PI2, Vec2d, clamp } from '@tldraw/primitives'
 
 export class MinimapManager {
-	constructor(public app: App, private dpr: number) {}
+	constructor(public app: Editor, private dpr: number) {}
 
 	colors = {
 		shapeFill: 'rgba(144, 144, 144, .1)',

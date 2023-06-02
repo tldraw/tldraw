@@ -1,6 +1,6 @@
 import {
-	App,
 	AssetRecordType,
+	Editor,
 	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLAlignType,
@@ -30,7 +30,7 @@ import { Vec2d, clamp } from '@tldraw/primitives'
 const TLDRAW_V1_VERSION = 15.5
 
 /** @internal */
-export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
+export function buildFromV1Document(app: Editor, document: LegacyTldrawDocument) {
 	app.batch(() => {
 		document = migrate(document, TLDRAW_V1_VERSION)
 		// Cancel any interactions / states
@@ -617,7 +617,7 @@ function coerceDimension(d: unknown): number {
  * to try and download the real assets, extract the metadata, and upload them to our new bucket.
  * It's not a big deal if this fails though.
  */
-async function tryMigrateAsset(app: App, placeholderAsset: TLAsset) {
+async function tryMigrateAsset(app: Editor, placeholderAsset: TLAsset) {
 	try {
 		if (placeholderAsset.type === 'bookmark' || !placeholderAsset.props.src) return
 

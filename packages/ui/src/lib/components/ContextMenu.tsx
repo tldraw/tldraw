@@ -1,5 +1,5 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { App, preventDefault, useContainer, useEditor } from '@tldraw/editor'
+import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useValue } from 'signia-react'
@@ -60,7 +60,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	)
 }
 
-function shouldDeselect(app: App) {
+function shouldDeselect(app: Editor) {
 	const { onlySelectedShape } = app
 	if (!onlySelectedShape) return false
 	return app.isShapeOrAncestorLocked(onlySelectedShape)
@@ -78,7 +78,12 @@ function ContextMenuContent() {
 
 	const [disableClicks, setDisableClicks] = React.useState(false)
 
-	function getContextMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
+	function getContextMenuItem(
+		app: Editor,
+		item: MenuChild,
+		parent: MenuChild | null,
+		depth: number
+	) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {

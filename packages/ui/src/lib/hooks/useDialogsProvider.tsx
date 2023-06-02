@@ -1,4 +1,4 @@
-import { App, uniqueId, useEditor } from '@tldraw/editor'
+import { Editor, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 import { useEvents } from './useEventsProvider'
 
@@ -28,7 +28,7 @@ export const DialogsContext = createContext({} as DialogsContextType)
 
 /** @public */
 export type DialogsProviderProps = {
-	overrides?: (app: App) => DialogsContextType
+	overrides?: (app: Editor) => DialogsContextType
 	children: any
 }
 

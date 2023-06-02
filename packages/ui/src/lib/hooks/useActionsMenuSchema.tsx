@@ -1,4 +1,4 @@
-import { App, useEditor } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
 import {
@@ -21,7 +21,7 @@ export const ActionsMenuSchemaContext = React.createContext({} as ActionsMenuSch
 /** @public */
 export type ActionsMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		app: Editor,
 		schema: ActionsMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>

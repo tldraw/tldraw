@@ -1,4 +1,4 @@
-import { App, useEditor } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { MenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
@@ -37,7 +37,7 @@ function MenuContent() {
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	function getMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
+	function getMenuItem(app: Editor, item: MenuChild, parent: MenuChild | null, depth: number) {
 		switch (item.type) {
 			case 'custom': {
 				if (isReadonly && !item.readonlyOk) return null

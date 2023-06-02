@@ -1,5 +1,5 @@
 import test, { expect, Page } from '@playwright/test'
-import { App } from '@tldraw/tldraw'
+import { Editor } from '@tldraw/tldraw'
 import { setupPage } from '../shared-e2e'
 
 declare const __tldraw_editor_events: any[]
@@ -8,7 +8,7 @@ declare const __tldraw_editor_events: any[]
 
 let page: Page
 
-declare const app: App
+declare const app: Editor
 
 test.describe('Canvas events', () => {
 	test.beforeAll(async ({ browser }) => {

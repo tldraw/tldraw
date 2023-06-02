@@ -1,4 +1,4 @@
-import { App, featureFlags, useEditor } from '@tldraw/editor'
+import { Editor, featureFlags, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React from 'react'
 import { useValue } from 'signia-react'
@@ -31,7 +31,7 @@ export const ToolbarSchemaContext = React.createContext([] as ToolbarSchemaConte
 /** @public */
 export type ToolbarSchemaProviderProps = {
 	overrides?: (
-		app: App,
+		app: Editor,
 		schema: ToolbarSchemaContextType,
 		more: { tools: ToolsContextType }
 	) => ToolbarSchemaContextType

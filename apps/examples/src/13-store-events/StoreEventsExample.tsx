@@ -1,12 +1,12 @@
-import { App, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
+import { Editor, TLEventMapHandler, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useCallback, useEffect, useState } from 'react'
 
 export default function StoreEventsExample() {
-	const [app, setApp] = useState<App>()
+	const [app, setApp] = useState<Editor>()
 
-	const setAppToState = useCallback((app: App) => {
+	const setAppToState = useCallback((app: Editor) => {
 		setApp(app)
 	}, [])
 

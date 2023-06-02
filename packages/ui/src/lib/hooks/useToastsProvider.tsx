@@ -1,4 +1,4 @@
-import { App, uniqueId } from '@tldraw/editor'
+import { Editor, uniqueId } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 
 /** @public */
@@ -32,7 +32,7 @@ export const ToastsContext = createContext({} as ToastsContextType)
 
 /** @public */
 export type ToastsProviderProps = {
-	overrides?: (app: App) => ToastsContextType
+	overrides?: (app: Editor) => ToastsContextType
 	children: any
 }
 

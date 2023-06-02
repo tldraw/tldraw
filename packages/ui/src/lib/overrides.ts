@@ -1,4 +1,4 @@
-import { App } from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { objectMapEntries } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
@@ -49,7 +49,7 @@ export function useDefaultHelpers() {
 
 type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
-export type TldrawUiOverride<Type, Helpers> = (app: App, schema: Type, helpers: Helpers) => Type
+export type TldrawUiOverride<Type, Helpers> = (app: Editor, schema: Type, helpers: Helpers) => Type
 
 type WithDefaultHelpers<T extends TldrawUiOverride<any, any>> = T extends TldrawUiOverride<
 	infer Type,
