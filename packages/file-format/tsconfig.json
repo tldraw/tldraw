@@ -9,7 +9,7 @@
 	"references": [
 		{ "path": "../editor" },
 		{ "path": "../store" },
-		{ "path": "../tlvalidate" },
+		{ "path": "../validate" },
 		{ "path": "../primitives" },
 		{ "path": "../utils" },
 		{ "path": "../ui" }

@@ -13,7 +13,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSchemaOptions } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
-import { T } from '@tldraw/tlvalidate';
+import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
