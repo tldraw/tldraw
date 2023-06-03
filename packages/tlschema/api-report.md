@@ -595,7 +595,7 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     y: number;
 }
 
-// @public (undocumented)
+// @public
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
     title: string;
     description: string;
@@ -772,7 +772,7 @@ export interface TLIconStyle extends TLBaseStyle {
 // @public (undocumented)
 export type TLIconType = SetValue<typeof TL_ICON_TYPES>;
 
-// @public (undocumented)
+// @public
 export type TLImageAsset = TLBaseAsset<'image', {
     w: number;
     h: number;
@@ -1086,7 +1086,7 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 // @public (undocumented)
 export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
 
-// @public (undocumented)
+// @public
 export type TLVideoAsset = TLBaseAsset<'video', {
     w: number;
     h: number;

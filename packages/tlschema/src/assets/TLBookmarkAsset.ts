@@ -2,7 +2,10 @@ import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
-/** @public */
+/**
+ * An asset used for URL bookmarks, used by the TLBookmarkShape.
+ *
+ *  @public */
 export type TLBookmarkAsset = TLBaseAsset<
 	'bookmark',
 	{

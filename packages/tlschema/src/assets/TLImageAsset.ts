@@ -2,8 +2,10 @@ import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
-// --- DEFINITION ---
-/** @public */
+/**
+ * An asset for images such as PNGs and JPEGs, used by the TLImageShape.
+ *
+ * @public */
 export type TLImageAsset = TLBaseAsset<
 	'image',
 	{
