@@ -47,8 +47,8 @@
 	"dependencies": {
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
-		"@tldraw/tlstore": "workspace:*",
 		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@use-gesture/react": "^10.2.27",

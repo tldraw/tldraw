@@ -1,5 +1,5 @@
+import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
-import { Store, StoreSnapshot } from '@tldraw/tlstore'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Editor } from './app/Editor'

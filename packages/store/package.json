@@ -1,5 +1,5 @@
 {
-	"name": "@tldraw/tlstore",
+	"name": "@tldraw/store",
 	"description": "A tiny little drawing app (store).",
 	"version": "2.0.0-alpha.12",
 	"packageManager": "yarn@3.5.0",

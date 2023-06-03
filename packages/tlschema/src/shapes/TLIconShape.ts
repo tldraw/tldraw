@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/tlvalidate'
 import { TLColorType, TLDashType, TLIconType, TLOpacityType, TLSizeType } from '../style-types'
 import {

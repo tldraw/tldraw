@@ -1,4 +1,4 @@
-import { StoreSnapshot } from '@tldraw/tlstore'
+import { StoreSnapshot } from '@tldraw/store'
 import { TLRecord } from './TLRecord'
 import { Vec2dModel } from './geometry-types'
 

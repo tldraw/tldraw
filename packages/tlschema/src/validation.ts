@@ -1,4 +1,4 @@
-import type { ID, UnknownRecord } from '@tldraw/tlstore'
+import type { ID, UnknownRecord } from '@tldraw/store'
 import { T } from '@tldraw/tlvalidate'
 import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'

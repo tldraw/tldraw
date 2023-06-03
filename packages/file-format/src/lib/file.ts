@@ -15,7 +15,7 @@ import {
 	SerializedSchema,
 	StoreSnapshot,
 	UnknownRecord,
-} from '@tldraw/tlstore'
+} from '@tldraw/store'
 import { T } from '@tldraw/tlvalidate'
 import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'

@@ -1,3 +1,4 @@
+import { IncrementalSetConstructor } from '@tldraw/store'
 import {
 	isPageId,
 	isShape,
@@ -7,7 +8,6 @@ import {
 	TLShapeId,
 	TLStore,
 } from '@tldraw/tlschema'
-import { IncrementalSetConstructor } from '@tldraw/tlstore'
 import { computed, isUninitialized, RESET_VALUE, withDiff } from 'signia'
 
 /**

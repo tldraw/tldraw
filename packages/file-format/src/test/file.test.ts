@@ -1,5 +1,5 @@
 import { createCustomShapeId, createTLStore, InstanceRecordType, TLStore } from '@tldraw/editor'
-import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
+import { MigrationFailureReason, UnknownRecord } from '@tldraw/store'
 import { assert } from '@tldraw/utils'
 import { parseTldrawJsonFile as _parseTldrawJsonFile, TldrawFile } from '../lib/file'
 

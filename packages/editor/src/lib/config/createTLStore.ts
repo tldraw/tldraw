@@ -1,3 +1,4 @@
+import { Migrations, Store, StoreSnapshot } from '@tldraw/store'
 import {
 	InstanceRecordType,
 	TLDOCUMENT_ID,
@@ -6,7 +7,6 @@ import {
 	TLStore,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { Migrations, Store, StoreSnapshot } from '@tldraw/tlstore'
 import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
 
 /** @public */

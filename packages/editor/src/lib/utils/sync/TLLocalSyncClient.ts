@@ -1,5 +1,5 @@
+import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/store'
 import { TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
-import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/tlstore'
 import { assert, hasOwnProperty } from '@tldraw/utils'
 import { transact } from 'signia'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'

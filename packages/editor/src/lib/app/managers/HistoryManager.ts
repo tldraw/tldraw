@@ -1,4 +1,4 @@
-import { devFreeze } from '@tldraw/tlstore'
+import { devFreeze } from '@tldraw/store'
 import { atom, transact } from 'signia'
 import { uniqueId } from '../../utils/data'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'

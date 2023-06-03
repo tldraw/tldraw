@@ -21,6 +21,7 @@ import {
 	intersectPolygonPolygon,
 	pointInPolygon,
 } from '@tldraw/primitives'
+import { ComputedCache, HistoryEntry, RecordType, UnknownRecord } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
@@ -65,7 +66,6 @@ import {
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
-import { ComputedCache, HistoryEntry, RecordType, UnknownRecord } from '@tldraw/tlstore'
 import {
 	annotateError,
 	compact,
