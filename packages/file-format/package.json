@@ -44,9 +44,9 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/tlstore": "workspace:*",
-		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/ui": "workspace:*",
-		"@tldraw/utils": "workspace:*"
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*"
 	},
 	"jest": {
 		"preset": "config/jest/node",

@@ -4297,9 +4297,9 @@ __metadata:
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
-    "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/node": 18.15.0
     "@types/react": ^18.0.24
     "@types/react-dom": ^18.0.6
@@ -4335,8 +4335,8 @@ __metadata:
     "@tldraw/primitives": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
-    "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/benchmark": ^2.1.2
     "@types/crc": ^3.8.0
     "@types/lodash.throttle": ^4.1.7
@@ -4375,9 +4375,9 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@tldraw/tlstore": "workspace:*"
-    "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
@@ -4496,8 +4496,8 @@ __metadata:
   resolution: "@tldraw/tlschema@workspace:packages/tlschema"
   dependencies:
     "@tldraw/tlstore": "workspace:*"
-    "@tldraw/tlvalidate": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     kleur: ^4.1.5
     lazyrepo: 0.0.0-alpha.26
     nanoid: 4.0.2
@@ -4519,15 +4519,6 @@ __metadata:
     raf: ^3.4.1
   peerDependencies:
     signia: "*"
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/tlvalidate@workspace:*, @tldraw/tlvalidate@workspace:packages/tlvalidate":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/tlvalidate@workspace:packages/tlvalidate"
-  dependencies:
-    "@tldraw/utils": "workspace:*"
-    lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft
 
@@ -4572,6 +4563,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/utils@workspace:packages/utils"
   dependencies:
+    lazyrepo: 0.0.0-alpha.26
+  languageName: unknown
+  linkType: soft
+
+"@tldraw/validate@workspace:*, @tldraw/validate@workspace:packages/validate":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/validate@workspace:packages/validate"
+  dependencies:
+    "@tldraw/utils": "workspace:*"
     lazyrepo: 0.0.0-alpha.26
   languageName: unknown
   linkType: soft

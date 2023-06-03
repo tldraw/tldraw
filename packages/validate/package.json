@@ -1,6 +1,6 @@
 {
-	"name": "@tldraw/tlvalidate",
-	"description": "A tiny little drawing app (validation).",
+	"name": "@tldraw/validate",
+	"description": "A runtime validation library by tldraw.",
 	"version": "2.0.0-alpha.12",
 	"packageManager": "yarn@3.5.0",
 	"author": {

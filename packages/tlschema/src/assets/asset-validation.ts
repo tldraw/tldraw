@@ -1,5 +1,5 @@
 import { BaseRecord } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { TLAssetId } from '../records/TLAsset'
 import { assetIdValidator } from '../validation'
 

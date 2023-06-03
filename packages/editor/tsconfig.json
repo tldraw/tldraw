@@ -14,7 +14,7 @@
 		{ "path": "../primitives" },
 		{ "path": "../tlschema" },
 		{ "path": "../tlstore" },
-		{ "path": "../tlvalidate" },
+		{ "path": "../validate" },
 		{ "path": "../utils" },
 		{ "path": "../indices" }
 	]

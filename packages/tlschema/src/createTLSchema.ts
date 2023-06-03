@@ -1,5 +1,5 @@
 import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { TLRecord } from './TLRecord'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType } from './records/TLAsset'

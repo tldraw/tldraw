@@ -1,4 +1,4 @@
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { Vec2dModel } from './geometry-types'
 import { SetValue } from './util-types'
 
