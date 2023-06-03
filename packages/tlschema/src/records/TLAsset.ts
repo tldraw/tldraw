@@ -3,11 +3,11 @@ import { T } from '@tldraw/validate'
 import { TLBaseAsset } from '../assets/TLBaseAsset'
 import {
 	bookmarkAssetMigrations,
-	bookmarkAssetTypeValidator,
+	bookmarkAssetValidator,
 	TLBookmarkAsset,
 } from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
+import { imageAssetMigrations, imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset, videoAssetMigrations, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
 // --- DEFINITION ---
@@ -18,9 +18,9 @@ export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 export const assetValidator: T.Validator<TLAsset> = T.model(
 	'asset',
 	T.union('type', {
-		image: imageAssetTypeValidator,
-		video: videoAssetTypeValidator,
-		bookmark: bookmarkAssetTypeValidator,
+		image: imageAssetValidator,
+		video: videoAssetValidator,
+		bookmark: bookmarkAssetValidator,
 	})
 )
 

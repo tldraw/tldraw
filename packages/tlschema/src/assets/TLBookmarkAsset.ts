@@ -2,7 +2,6 @@ import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
-// --- DEFINITION ---
 /** @public */
 export type TLBookmarkAsset = TLBaseAsset<
 	'bookmark',
@@ -14,8 +13,8 @@ export type TLBookmarkAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
-export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
+/** @internal */
+export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
 	'bookmark',
 	T.object({
 		title: T.string,
@@ -25,5 +24,5 @@ export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAs
 	})
 )
 
-/** @public */
+/** @internal */
 export const bookmarkAssetMigrations = defineMigrations({})

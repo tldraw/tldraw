@@ -16,8 +16,8 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
-export const imageAssetTypeValidator: T.Validator<TLImageAsset> = createAssetValidator(
+/** @internal */
+export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
 	T.object({
 		w: T.number,
@@ -34,7 +34,7 @@ const Versions = {
 	RenameWidthHeight: 2,
 } as const
 
-/** @public */
+/** @internal */
 export const imageAssetMigrations = defineMigrations({
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {

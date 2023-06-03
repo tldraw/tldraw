@@ -54,7 +54,7 @@ export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "mut
 // @internal (undocumented)
 export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
-// @public (undocumented)
+// @public
 export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
     typeName: 'asset';
