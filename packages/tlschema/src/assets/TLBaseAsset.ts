@@ -1,7 +1,6 @@
 import { BaseRecord } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAssetId } from '../records/TLAsset'
-import { assetIdValidator } from '../validation'
+import { TLAssetId, assetIdValidator } from '../records/TLAsset'
 
 /** @public */
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {

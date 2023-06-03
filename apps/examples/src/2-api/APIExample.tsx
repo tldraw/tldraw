@@ -1,4 +1,4 @@
-import { Editor, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
+import { createShapeId, Editor, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useEffect } from 'react'
@@ -13,7 +13,7 @@ import { useEffect } from 'react'
 export default function APIExample() {
 	const handleMount = (editor: Editor) => {
 		// Create a shape id
-		const id = editor.createShapeId('hello')
+		const id = createShapeId('hello')
 
 		editor.focus()
 

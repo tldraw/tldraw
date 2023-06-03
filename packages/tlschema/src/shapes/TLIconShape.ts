@@ -1,14 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLColorType, TLDashType, TLIconType, TLOpacityType, TLSizeType } from '../style-types'
-import {
-	colorValidator,
-	dashValidator,
-	iconValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLDashType, dashValidator } from '../styles/dash'
+import { TLIconType, iconValidator } from '../styles/icon'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLIconShapeProps = {

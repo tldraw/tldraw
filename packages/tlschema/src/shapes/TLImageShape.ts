@@ -1,10 +1,9 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../geometry-types'
-import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType } from '../style-types'
-import { assetIdValidator, opacityValidator } from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { Vec2dModel } from '../misc/geometry-types'
+import { TLAssetId, assetIdValidator } from '../records/TLAsset'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLImageCrop = {

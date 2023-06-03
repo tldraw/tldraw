@@ -1,9 +1,10 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { idValidator, instanceIdValidator, pageIdValidator, shapeIdValidator } from '../validation'
+import { idValidator } from '../misc/id-validator'
+import { shapeIdValidator } from '../shapes/TLBaseShape'
 import { TLCamera, TLCameraId } from './TLCamera'
-import { TLInstance } from './TLInstance'
-import { TLPage } from './TLPage'
+import { instanceIdValidator, TLInstance } from './TLInstance'
+import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /**

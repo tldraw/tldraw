@@ -1,14 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
-import {
-	alignValidator,
-	colorValidator,
-	fontValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLAlignType, alignValidator } from '../styles/align'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLFontType, fontValidator } from '../styles/font'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLTextShapeProps = {

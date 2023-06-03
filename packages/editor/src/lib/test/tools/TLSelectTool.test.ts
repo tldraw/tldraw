@@ -1,11 +1,11 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	embed1: createCustomShapeId('embed1'),
+	box1: createShapeId('box1'),
+	embed1: createShapeId('embed1'),
 }
 
 jest.useFakeTimers()
@@ -169,7 +169,7 @@ describe('When double clicking a shape', () => {
 			.selectAll()
 			.deleteShapes()
 			.selectNone()
-			.createShapes([{ id: editor.createShapeId(), type: 'geo' }])
+			.createShapes([{ id: createShapeId(), type: 'geo' }])
 			.doubleClick(50, 50, { target: 'shape', shape: editor.shapesArray[0] })
 			.expectToBeIn('select.editing_shape')
 	})
@@ -177,7 +177,7 @@ describe('When double clicking a shape', () => {
 
 describe('When pressing enter on a selected shape', () => {
 	it('begins editing a geo shapes label', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor
 			.selectAll()
 			.deleteShapes()
@@ -190,8 +190,8 @@ describe('When pressing enter on a selected shape', () => {
 })
 
 // it('selects the child of a group', () => {
-//   const id1 = editor.createShapeId()
-//   const id2 = editor.createShapeId()
+//   const id1 = createShapeId()
+//   const id2 = createShapeId()
 //   app
 //     .selectAll()
 //     .deleteShapes()
@@ -208,7 +208,7 @@ describe('When pressing enter on a selected shape', () => {
 
 describe('When double clicking the selection edge', () => {
 	it('Resets text scale when double clicking the edge of the text', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor
 			.selectAll()
 			.deleteShapes()
@@ -221,7 +221,7 @@ describe('When double clicking the selection edge', () => {
 	})
 
 	it('Resets text autosize first when double clicking the edge of the text', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor
 			.selectAll()
 			.deleteShapes()
@@ -244,7 +244,7 @@ describe('When double clicking the selection edge', () => {
 	})
 
 	it('Begins editing the text if handler returns no change', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor
 			.selectAll()
 			.deleteShapes()
@@ -269,7 +269,7 @@ describe('When double clicking the selection edge', () => {
 	})
 
 	it('Selects a geo shape when double clicking on its edge', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor
 			.selectAll()
 			.deleteShapes()
@@ -294,10 +294,10 @@ describe('When editing shapes', () => {
 
 	beforeEach(() => {
 		ids = {
-			geo1: editor.createShapeId(),
-			geo2: editor.createShapeId(),
-			text1: editor.createShapeId(),
-			text2: editor.createShapeId(),
+			geo1: createShapeId(),
+			geo2: createShapeId(),
+			text1: createShapeId(),
+			text2: createShapeId(),
 		}
 
 		editor.createShapes([

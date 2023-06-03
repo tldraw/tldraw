@@ -1,4 +1,4 @@
-import { TLNoteShape } from '@tldraw/tlschema'
+import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
 import { TLNoteUtil } from '../../../shapeutils/TLNoteUtil/TLNoteUtil'
 import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -83,7 +83,7 @@ export class Pointing extends StateNode {
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const id = this.editor.createShapeId()
+		const id = createShapeId()
 
 		this.editor.createShapes(
 			[

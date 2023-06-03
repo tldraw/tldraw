@@ -1,25 +1,23 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Box2dModel } from '../geometry-types'
-import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import {
-	alignValidator,
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	opacityValidator,
-	pageIdValidator,
-	sizeValidator,
-	splineValidator,
-	verticalAlignValidator,
-} from '../validation'
-import { TLPageId } from './TLPage'
+import { Box2dModel } from '../misc/geometry-types'
+import { idValidator } from '../misc/id-validator'
+import { cursorValidator, TLCursor } from '../misc/TLCursor'
+import { scribbleTypeValidator, TLScribble } from '../misc/TLScribble'
+import { alignValidator } from '../styles/align'
+import { arrowheadValidator } from '../styles/arrowhead'
+import { TL_STYLE_TYPES, TLStyleType } from '../styles/base-style'
+import { colorValidator } from '../styles/color'
+import { dashValidator } from '../styles/dash'
+import { fillValidator } from '../styles/fill'
+import { fontValidator } from '../styles/font'
+import { geoValidator } from '../styles/geo'
+import { iconValidator } from '../styles/icon'
+import { opacityValidator } from '../styles/opacity'
+import { sizeValidator } from '../styles/size'
+import { splineValidator } from '../styles/spline'
+import { verticalAlignValidator } from '../styles/vertical-align'
+import { pageIdValidator, TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 
 /** @public */
@@ -49,6 +47,9 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 
 /** @public */
 export type TLInstanceId = ID<TLInstance>
+
+/** @internal */
+export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
 /** @public */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(

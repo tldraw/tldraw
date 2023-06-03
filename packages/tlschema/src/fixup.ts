@@ -1,6 +1,6 @@
 import { StoreSnapshot } from '@tldraw/store'
 import { TLRecord } from './TLRecord'
-import { Vec2dModel } from './geometry-types'
+import { Vec2dModel } from './misc/geometry-types'
 
 /** @internal */
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>) {

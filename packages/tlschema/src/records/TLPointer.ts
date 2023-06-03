@@ -1,6 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { idValidator } from '../validation'
+import { idValidator } from '../misc/id-validator'
 
 /**
  * TLPointer

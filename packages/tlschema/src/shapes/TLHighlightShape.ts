@@ -1,9 +1,10 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLColorType, TLOpacityType, TLSizeType } from '../style-types'
-import { colorValidator, opacityValidator, sizeValidator } from '../validation'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 import { TLDrawShapeSegment, drawShapeSegmentValidator } from './TLDrawShape'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
 
 /** @public */
 export type TLHighlightShapeProps = {

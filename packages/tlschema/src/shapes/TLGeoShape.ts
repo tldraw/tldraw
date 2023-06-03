@@ -1,28 +1,15 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import {
-	TLAlignType,
-	TLColorType,
-	TLDashType,
-	TLFillType,
-	TLFontType,
-	TLGeoType,
-	TLOpacityType,
-	TLSizeType,
-	TLVerticalAlignType,
-} from '../style-types'
-import {
-	alignValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	opacityValidator,
-	sizeValidator,
-	verticalAlignValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLAlignType, alignValidator } from '../styles/align'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLDashType, dashValidator } from '../styles/dash'
+import { TLFillType, fillValidator } from '../styles/fill'
+import { TLFontType, fontValidator } from '../styles/font'
+import { TLGeoType, geoValidator } from '../styles/geo'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLVerticalAlignType, verticalAlignValidator } from '../styles/vertical-align'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLGeoShapeProps = {

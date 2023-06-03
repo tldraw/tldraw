@@ -1,16 +1,13 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../geometry-types'
-import { TLColorType, TLDashType, TLFillType, TLOpacityType, TLSizeType } from '../style-types'
+import { Vec2dModel } from '../misc/geometry-types'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLDashType, dashValidator } from '../styles/dash'
+import { TLFillType, fillValidator } from '../styles/fill'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
 import { SetValue } from '../util-types'
-import {
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)

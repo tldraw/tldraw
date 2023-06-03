@@ -1,5 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
+	createShapeId,
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
@@ -275,7 +276,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						newPos.rot(shape.rotation)
 
 						createList.push({
-							id: editor.createShapeId(),
+							id: createShapeId(),
 							type: 'bookmark',
 							rotation: shape.rotation,
 							x: newPos.x,
@@ -322,7 +323,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						newPos.rot(shape.rotation)
 
 						createList.push({
-							id: editor.createShapeId(),
+							id: createShapeId(),
 							type: 'embed',
 							x: newPos.x,
 							y: newPos.y,

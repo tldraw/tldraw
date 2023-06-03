@@ -60,7 +60,6 @@ import {
 	TLUserDocument,
 	TLVideoAsset,
 	Vec2dModel,
-	createCustomShapeId,
 	createShapeId,
 	isPageId,
 	isShape,
@@ -4592,23 +4591,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Shapes --------------------- */
 
-	/**
-	 * Get a unique id for a shape.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.createShapeId()
-	 * editor.createShapeId('box1')
-	 * ```
-	 *
-	 * @param id - The id to use.
-	 * @public
-	 */
-	createShapeId(id?: string) {
-		return id ? createCustomShapeId(id) : createShapeId()
-	}
-
 	getHighestIndexForParent(parentId: TLShapeId | TLPageId) {
 		const children = this._parentIdsToChildIds.value[parentId]
 
@@ -7703,7 +7685,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		idsToCreate.reverse()
 
-		const idsMap = new Map<any, TLShapeId>(idsToCreate.map((id) => [id, this.createShapeId()]))
+		const idsMap = new Map<any, TLShapeId>(idsToCreate.map((id) => [id, createShapeId()]))
 
 		const shapesToCreate = compact(
 			idsToCreate.map((id) => {

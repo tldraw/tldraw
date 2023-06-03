@@ -1,4 +1,4 @@
-import { InstanceRecordType, PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
+import { InstanceRecordType, PageRecordType, createShapeId } from '@tldraw/tlschema'
 import { TEST_INSTANCE_ID, TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -12,9 +12,7 @@ describe('running any commands', () => {
 		expect(editor.userDocumentSettings.lastUsedTabId).toBe(null)
 		expect(editor.userDocumentSettings.lastUpdatedPageId).toBe(null)
 
-		editor.createShapes([
-			{ type: 'geo', id: createCustomShapeId('geo'), parentId: editor.currentPageId },
-		])
+		editor.createShapes([{ type: 'geo', id: createShapeId('geo'), parentId: editor.currentPageId }])
 
 		expect(editor.userDocumentSettings.lastUsedTabId).toBe(TEST_INSTANCE_ID)
 		expect(editor.userDocumentSettings.lastUpdatedPageId).toBe(editor.currentPageId)
@@ -34,9 +32,7 @@ describe('running any commands', () => {
 			PageRecordType.createCustomId('nope')
 		)
 
-		editor.createShapes([
-			{ type: 'geo', id: createCustomShapeId('geo'), parentId: editor.currentPageId },
-		])
+		editor.createShapes([{ type: 'geo', id: createShapeId('geo'), parentId: editor.currentPageId }])
 
 		expect(editor.userDocumentSettings.lastUsedTabId).toBe(TEST_INSTANCE_ID)
 		expect(editor.userDocumentSettings.lastUpdatedPageId).toBe(editor.currentPageId)

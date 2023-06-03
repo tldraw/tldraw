@@ -1,15 +1,12 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLColorType, TLDashType, TLOpacityType, TLSizeType, TLSplineType } from '../style-types'
-import { TLHandle, handleTypeValidator } from '../ui-types'
-import {
-	colorValidator,
-	dashValidator,
-	opacityValidator,
-	sizeValidator,
-	splineValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLHandle, handleTypeValidator } from '../misc/TLHandle'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLDashType, dashValidator } from '../styles/dash'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLSplineType, splineValidator } from '../styles/spline'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLLineShapeProps = {

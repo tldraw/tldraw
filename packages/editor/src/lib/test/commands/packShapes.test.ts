@@ -1,13 +1,13 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-	boxD: createCustomShapeId('boxD'),
+	boxA: createShapeId('boxA'),
+	boxB: createShapeId('boxB'),
+	boxC: createShapeId('boxC'),
+	boxD: createShapeId('boxD'),
 }
 
 jest.useFakeTimers()

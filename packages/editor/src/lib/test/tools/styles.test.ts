@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +12,7 @@ afterEach(() => {
 })
 
 it("When changing the style of a geo shape, if the text label is empty, don't measure it", () => {
-	const id = editor.createShapeId()
+	const id = createShapeId()
 
 	editor.createShapes([
 		{
@@ -40,7 +41,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 })
 
 it('When changing the style of a geo shape, if the text label has text, measure it and possibly update the size', () => {
-	const id = editor.createShapeId()
+	const id = createShapeId()
 
 	editor.createShapes([
 		{

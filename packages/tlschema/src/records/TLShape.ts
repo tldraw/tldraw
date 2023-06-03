@@ -1,7 +1,7 @@
 import { defineMigrations, ID, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
-import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
+import { TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -14,7 +14,7 @@ import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
-import { TLVideoShape } from '../shapes/TLVideoShape'
+import { TLVideoShape } from '../shapes/video'
 import { SmooshedUnionObject } from '../util-types'
 import { TLPageId } from './TLPage'
 
@@ -114,11 +114,6 @@ export function isShapeId(id?: string): id is TLShapeId {
 }
 
 /** @public */
-export function createShapeId(): TLShapeId {
-	return `shape:${nanoid()}` as TLShapeId
-}
-
-/** @public */
-export function createCustomShapeId(id: string): TLShapeId {
-	return `shape:${id}` as TLShapeId
+export function createShapeId(id?: string): TLShapeId {
+	return `shape:${id ?? nanoid()}` as TLShapeId
 }

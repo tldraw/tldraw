@@ -1,8 +1,8 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { idValidator, instanceIdValidator, pageIdValidator } from '../validation'
-import { TLInstance } from './TLInstance'
-import { TLPage } from './TLPage'
+import { idValidator } from '../misc/id-validator'
+import { instanceIdValidator, TLInstance } from './TLInstance'
+import { pageIdValidator, TLPage } from './TLPage'
 
 /**
  * TLUserDocument

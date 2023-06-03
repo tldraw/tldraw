@@ -7,6 +7,7 @@ export {
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
+export { createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export {
 	bookmarkAssetMigrations,
 	bookmarkAssetTypeValidator,
@@ -22,13 +23,30 @@ export {
 	videoAssetTypeValidator,
 	type TLVideoAsset,
 } from './assets/TLVideoAsset'
-export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema, type SchemaShapeInfo } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
-export { type Box2dModel, type Vec2dModel } from './geometry-types'
+export { TL_COLOR_TYPES, uiColorTypeValidator, type TLColor } from './misc/TLColor'
+export {
+	TL_CURSOR_TYPES,
+	cursorTypeValidator,
+	cursorValidator,
+	type TLCursor,
+	type TLCursorType,
+} from './misc/TLCursor'
+export {
+	TL_HANDLE_TYPES,
+	handleTypeValidator,
+	type TLHandle,
+	type TLHandlePartial,
+	type TLHandleType,
+} from './misc/TLHandle'
+export { TL_SCRIBBLE_STATES, scribbleTypeValidator, type TLScribble } from './misc/TLScribble'
+export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
+export { idValidator } from './misc/id-validator'
 export {
 	AssetRecordType,
+	assetIdValidator,
 	assetTypeMigrations,
 	assetTypeValidator,
 	type TLAsset,
@@ -50,6 +68,7 @@ export {
 } from './records/TLDocument'
 export {
 	InstanceRecordType,
+	instanceIdValidator,
 	instanceTypeMigrations,
 	instanceTypeValidator,
 	type TLInstance,
@@ -57,20 +76,20 @@ export {
 	type TLInstancePropsForNextShape,
 } from './records/TLInstance'
 export {
+	PageRecordType,
+	isPageId,
+	pageIdValidator,
+	pageTypeValidator,
+	type TLPage,
+	type TLPageId,
+} from './records/TLPage'
+export {
 	InstancePageStateRecordType,
 	instancePageStateMigrations,
 	instancePageStateTypeValidator,
 	type TLInstancePageState,
 	type TLInstancePageStateId,
-} from './records/TLInstancePageState'
-export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
-export {
-	PageRecordType,
-	isPageId,
-	pageTypeValidator,
-	type TLPage,
-	type TLPageId,
-} from './records/TLPage'
+} from './records/TLPageState'
 export {
 	PointerRecordType,
 	TLPOINTER_ID,
@@ -78,8 +97,8 @@ export {
 	type TLPointer,
 	type TLPointerId,
 } from './records/TLPointer'
+export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLPresence'
 export {
-	createCustomShapeId,
 	createShapeId,
 	isShape,
 	isShapeId,
@@ -101,7 +120,6 @@ export {
 	type TLUserDocument,
 	type TLUserDocumentId,
 } from './records/TLUserDocument'
-export { storeMigrations } from './schema'
 export {
 	TL_ARROW_TERMINAL_TYPE,
 	arrowShapeTypeMigrations,
@@ -113,6 +131,12 @@ export {
 	type TLArrowTerminal,
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
+export {
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './shapes/TLBaseShape'
 export {
 	bookmarkShapeTypeMigrations,
 	bookmarkShapeTypeValidator,
@@ -198,87 +222,54 @@ export {
 	videoShapeTypeValidator,
 	type TLVideoShape,
 	type TLVideoShapeProps,
-} from './shapes/TLVideoShape'
-export { createShapeValidator, type TLBaseShape } from './shapes/shape-validation'
+} from './shapes/video'
+export { storeMigrations } from './store-migrations'
+export { TL_ALIGN_TYPES, alignValidator, type TLAlignStyle, type TLAlignType } from './styles/align'
 export {
-	TL_ALIGN_TYPES,
 	TL_ARROWHEAD_TYPES,
-	TL_COLOR_TYPES,
-	TL_DASH_TYPES,
-	TL_FILL_TYPES,
-	TL_FONT_TYPES,
-	TL_GEO_TYPES,
-	TL_ICON_TYPES,
-	TL_OPACITY_TYPES,
-	TL_SIZE_TYPES,
-	TL_SPLINE_TYPES,
-	TL_STYLE_TYPES,
-	type TLAlignStyle,
-	type TLAlignType,
+	arrowheadValidator,
 	type TLArrowheadEndStyle,
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,
-	type TLBaseStyle,
-	type TLColorStyle,
-	type TLColorType,
-	type TLDashStyle,
-	type TLDashType,
-	type TLFillStyle,
-	type TLFillType,
-	type TLFontStyle,
-	type TLFontType,
-	type TLGeoStyle,
-	type TLGeoType,
-	type TLIconStyle,
-	type TLIconType,
+} from './styles/arrowhead'
+export { TL_STYLE_TYPES, type TLBaseStyle, type TLStyleType } from './styles/base-style'
+export { colorValidator, type TLColorStyle, type TLColorType } from './styles/color'
+export { TL_DASH_TYPES, dashValidator, type TLDashStyle, type TLDashType } from './styles/dash'
+export { TL_FILL_TYPES, fillValidator, type TLFillStyle, type TLFillType } from './styles/fill'
+export { TL_FONT_TYPES, fontValidator, type TLFontStyle, type TLFontType } from './styles/font'
+export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/geo'
+export { TL_ICON_TYPES, iconValidator, type TLIconStyle, type TLIconType } from './styles/icon'
+export {
+	TL_OPACITY_TYPES,
+	opacityValidator,
 	type TLOpacityStyle,
 	type TLOpacityType,
-	type TLSizeStyle,
-	type TLSizeType,
+} from './styles/opacity'
+export { TL_SIZE_TYPES, sizeValidator, type TLSizeStyle, type TLSizeType } from './styles/size'
+export {
+	TL_SPLINE_TYPES,
+	splineValidator,
 	type TLSplineType,
 	type TLSplineTypeStyle,
-	type TLStyleCollections,
-	type TLStyleItem,
-	type TLStyleProps,
-	type TLStyleType,
-	type TLVerticalAlignType,
-} from './style-types'
-export { getDefaultTranslationLocale } from './translations'
-export {
-	TL_CURSOR_TYPES,
-	TL_HANDLE_TYPES,
-	TL_SCRIBBLE_STATES,
-	TL_UI_COLOR_TYPES,
-	cursorTypeValidator,
-	cursorValidator,
-	handleTypeValidator,
-	scribbleTypeValidator,
-	uiColorTypeValidator,
-	type TLCursor,
-	type TLCursorType,
-	type TLHandle,
-	type TLHandlePartial,
-	type TLHandleType,
-	type TLScribble,
-	type TLUiColorType,
-} from './ui-types'
+} from './styles/spline'
+export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
+export { type TLVerticalAlignType } from './styles/vertical-align'
+export { getDefaultTranslationLocale } from './translations/translations'
 export { type SetValue, type SmooshedUnionObject } from './util-types'
-export {
-	alignValidator,
-	arrowheadValidator,
-	assetIdValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	instanceIdValidator,
-	opacityValidator,
-	pageIdValidator,
-	parentIdValidator,
-	shapeIdValidator,
-	sizeValidator,
-	splineValidator,
-} from './validation'
+
+// TL_ALIGN_TYPES
+// TL_COLOR_TYPES
+// TL_DASH_TYPES
+// TL_FILL_TYPES
+// TL_FONT_TYPES
+// TL_OPACITY_TYPES
+// TL_SIZE_TYPES
+// TL_STYLE_TYPES
+// alignValidator
+// colorValidator
+// dashValidator
+// fillValidator
+// fontValidator
+// geoValidator
+// opacityValidator
+// sizeValidator

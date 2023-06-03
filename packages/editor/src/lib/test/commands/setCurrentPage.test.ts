@@ -1,4 +1,4 @@
-import { createCustomShapeId, PageRecordType, TLPageId } from '@tldraw/tlschema'
+import { PageRecordType, TLPageId, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -60,7 +60,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('preserves the undo stack', () => {
-		const boxId = createCustomShapeId('geo')
+		const boxId = createShapeId('geo')
 		const page2Id = PageRecordType.createCustomId('page2')
 		editor.createPage('New Page 2', page2Id)
 

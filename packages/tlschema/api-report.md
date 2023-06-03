@@ -87,9 +87,6 @@ export function createAssetValidator<Type extends string, Props extends object>(
     props: Props;
 }>;
 
-// @public (undocumented)
-export function createCustomShapeId(id: string): TLShapeId;
-
 // @internal (undocumented)
 export function createIntegrityChecker(store: TLStore): () => void;
 
@@ -101,7 +98,7 @@ export const createPresenceStateDerivation: ($user: Signal<{
 }>) => (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
-export function createShapeId(): TLShapeId;
+export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
 export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
@@ -524,7 +521,7 @@ export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public (undocumented)
-export const TL_COLOR_TYPES: Set<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export const TL_CURSOR_TYPES: Set<string>;
@@ -564,17 +561,6 @@ export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
 export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
-
-// @public (undocumented)
-export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
-
-// @public (undocumented)
-export interface TLAlignStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLAlignType;
-    // (undocumented)
-    type: 'align';
-}
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -739,6 +725,9 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = ID<TLCamera>;
 
 // @public (undocumented)
+export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
+
+// @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
     // (undocumented)
     id: TLColorType;
@@ -747,12 +736,12 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
 
 // @public (undocumented)
 export interface TLCursor {
     // (undocumented)
-    color: TLUiColorType;
+    color: TLColor;
     // (undocumented)
     rotation: number;
     // (undocumented)
@@ -1198,7 +1187,7 @@ export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstance
 export type TLScribble = {
     points: Vec2dModel[];
     size: number;
-    color: TLUiColorType;
+    color: TLColor;
     opacity: number;
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
     delay: number;
@@ -1290,7 +1279,7 @@ export interface TLStyleCollections {
 }
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLOpacityStyle | TLSizeStyle;
+export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLOpacityStyle | TLSizeStyle | TLSplineTypeStyle | TLVerticalAlignStyle;
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
@@ -1313,9 +1302,6 @@ export type TLTextShapeProps = {
     scale: number;
     autoSize: boolean;
 };
-
-// @public (undocumented)
-export type TLUiColorType = SetValue<typeof TL_UI_COLOR_TYPES>;
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;

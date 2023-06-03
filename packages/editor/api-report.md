@@ -316,7 +316,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
-    createShapeId(id?: string): TLShapeId;
     createShapes(partials: TLShapePartial[], select?: boolean): this;
     get croppingId(): null | TLShapeId;
     get cullingBounds(): Box2d;

@@ -1,28 +1,16 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../geometry-types'
+import { Vec2dModel } from '../misc/geometry-types'
 import { TLShapeId } from '../records/TLShape'
-import {
-	TLArrowheadType,
-	TLColorType,
-	TLDashType,
-	TLFillType,
-	TLFontType,
-	TLOpacityType,
-	TLSizeType,
-} from '../style-types'
+import { TLArrowheadType, arrowheadValidator } from '../styles/arrowhead'
+import { TLColorType, colorValidator } from '../styles/color'
+import { TLDashType, dashValidator } from '../styles/dash'
+import { TLFillType, fillValidator } from '../styles/fill'
+import { TLFontType, fontValidator } from '../styles/font'
+import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLSizeType, sizeValidator } from '../styles/size'
 import { SetValue } from '../util-types'
-import {
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	opacityValidator,
-	shapeIdValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator, shapeIdValidator } from './TLBaseShape'
 
 /** @public */
 export type TLArrowShapeProps = {

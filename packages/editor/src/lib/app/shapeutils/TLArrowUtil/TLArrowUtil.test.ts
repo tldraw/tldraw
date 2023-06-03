@@ -1,5 +1,5 @@
 import { TAU } from '@tldraw/primitives'
-import { createCustomShapeId, TLArrowShape, TLArrowTerminal, TLShapeId } from '@tldraw/tlschema'
+import { TLArrowShape, TLArrowTerminal, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { TestEditor } from '../../../test/TestEditor'
 import { TLArrowUtil } from './TLArrowUtil'
@@ -7,11 +7,11 @@ import { TLArrowUtil } from './TLArrowUtil'
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
-	box4: createCustomShapeId('box4'),
-	arrow1: createCustomShapeId('arrow1'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	box4: createShapeId('box4'),
+	arrow1: createShapeId('arrow1'),
 }
 
 jest.useFakeTimers()
