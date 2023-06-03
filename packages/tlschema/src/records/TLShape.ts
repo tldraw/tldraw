@@ -1,7 +1,7 @@
 import { defineMigrations, ID, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
+import { TLBaseShape } from '../shapes/base-shape'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'

@@ -1,7 +1,7 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /**
  * Permissions with note inline from

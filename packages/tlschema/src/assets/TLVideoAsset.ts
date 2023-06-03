@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
+import { createAssetValidator, TLBaseAsset } from './base-asset'
 
 // --- DEFINITION ---
 // TODO: figure out what is actually being used

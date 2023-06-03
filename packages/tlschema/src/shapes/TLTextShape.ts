@@ -5,7 +5,7 @@ import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /** @internal */
 export type TLTextShapeProps = {

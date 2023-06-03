@@ -1,6 +1,6 @@
 import { createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLBaseAsset } from '../assets/TLBaseAsset'
+import { TLBaseAsset } from '../assets/base-asset'
 import {
 	bookmarkAssetMigrations,
 	bookmarkAssetTypeValidator,
@@ -8,15 +8,11 @@ import {
 } from '../assets/TLBookmarkAsset'
 import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
 import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
-import { idValidator } from '../misc/id-validator'
 import { TLShape } from './TLShape'
 
 // --- DEFINITION ---
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
-
-/** @internal */
-export const assetIdValidator = idValidator<TLAssetId>('asset')
 
 /** @public */
 export const assetValidator: T.Validator<TLAsset> = T.model(

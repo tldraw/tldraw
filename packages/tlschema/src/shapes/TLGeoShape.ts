@@ -9,7 +9,7 @@ import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /** @public */
 export type TLGeoShapeProps = {

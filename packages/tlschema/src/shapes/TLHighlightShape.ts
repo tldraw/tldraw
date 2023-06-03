@@ -3,8 +3,8 @@ import { T } from '@tldraw/validate'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 import { TLDrawShapeSegment, drawShapeSegmentValidator } from './TLDrawShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /** @public */
 export type TLHighlightShapeProps = {

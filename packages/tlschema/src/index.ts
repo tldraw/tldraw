@@ -5,10 +5,10 @@ export {
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
-export { createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
+export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/base-asset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
@@ -20,7 +20,6 @@ export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
 export {
 	AssetRecordType,
-	assetIdValidator,
 	assetMigrations,
 	assetValidator,
 	type TLAsset,
@@ -65,12 +64,6 @@ export {
 	type TLArrowTerminal,
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
-export {
-	createShapeValidator,
-	parentIdValidator,
-	shapeIdValidator,
-	type TLBaseShape,
-} from './shapes/TLBaseShape'
 export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
 export { type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
 export {
@@ -90,6 +83,12 @@ export { type TLLineShape } from './shapes/TLLineShape'
 export { type TLNoteShape } from './shapes/TLNoteShape'
 export { type TLTextShape } from './shapes/TLTextShape'
 export { type TLVideoShape } from './shapes/TLVideoShape'
+export {
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './shapes/base-shape'
 export { alignValidator, type TLAlignStyle, type TLAlignType } from './styles/TLAlignStyle'
 export {
 	type TLArrowheadEndStyle,

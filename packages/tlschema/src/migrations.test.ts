@@ -37,7 +37,7 @@ const allModules = [
 	...assetModules,
 	...shapeModules,
 	...recordModules,
-	['schema.ts', require('./schema')],
+	['store-migrations.ts', require('./store-migrations')],
 ]
 
 const allMigrators: Array<{

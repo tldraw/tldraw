@@ -1,8 +1,9 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAssetId, assetIdValidator } from '../records/TLAsset'
+import { assetIdValidator } from '../assets/base-asset'
+import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /** @public */
 export type TLBookmarkShapeProps = {

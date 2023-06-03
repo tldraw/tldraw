@@ -6,7 +6,7 @@ import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLSplineType, splineValidator } from '../styles/TLSplineStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape, createShapeValidator } from './base-shape'
 
 /** @public */
 export type TLLineShapeProps = {
