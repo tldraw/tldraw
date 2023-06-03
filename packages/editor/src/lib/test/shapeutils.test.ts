@@ -1,4 +1,4 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
 import { TestEditor } from './TestEditor'
@@ -10,9 +10,9 @@ afterEach(() => {
 })
 
 const ids = {
-	frame1: createCustomShapeId('frame1'),
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
+	frame1: createShapeId('frame1'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
 }
 
 beforeEach(() => {

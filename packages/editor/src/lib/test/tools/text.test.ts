@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +12,7 @@ afterEach(() => {
 
 describe('When editing text', () => {
 	it('preserves the top center when center aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -45,7 +46,7 @@ describe('When editing text', () => {
 	})
 
 	it('preserved the right center when center aligned and rotated 90deg', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -71,7 +72,7 @@ describe('When editing text', () => {
 	})
 
 	it('preserves the top left corner when start aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -105,7 +106,7 @@ describe('When editing text', () => {
 	})
 
 	it('preserves the top right edge when end aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -141,7 +142,7 @@ describe('When editing text', () => {
 
 describe('When changing text size', () => {
 	it('preserves the center when center aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -176,7 +177,7 @@ describe('When changing text size', () => {
 	})
 
 	it('preserves the center left point when start aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -211,7 +212,7 @@ describe('When changing text size', () => {
 	})
 
 	it('preserves the top right edge when end aligned', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([
 			{
 				id,
@@ -249,7 +250,7 @@ describe('When changing text size', () => {
 it('preserves the top left when the text has text', () => {
 	const x = 0
 	const y = 0
-	const id = editor.createShapeId()
+	const id = createShapeId()
 	editor.createShapes([
 		{
 			id,

@@ -1,6 +1,6 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { pageIdValidator } from '../validation'
+import { idValidator } from '../misc/id-validator'
 
 /**
  * TLPage
@@ -13,10 +13,13 @@ export interface TLPage extends BaseRecord<'page', TLPageId> {
 }
 
 /** @public */
-export type TLPageId = ID<TLPage>
+export type TLPageId = RecordId<TLPage>
 
-/** @public */
-export const pageTypeValidator: T.Validator<TLPage> = T.model(
+/** @internal */
+export const pageIdValidator = idValidator<TLPageId>('page')
+
+/** @internal */
+export const pageValidator: T.Validator<TLPage> = T.model(
 	'page',
 	T.object({
 		typeName: T.literal('page'),
@@ -25,15 +28,15 @@ export const pageTypeValidator: T.Validator<TLPage> = T.model(
 		index: T.string,
 	})
 )
+/** @internal */
+export const pageMigrations = defineMigrations({})
 
 /** @public */
 export const PageRecordType = createRecordType<TLPage>('page', {
-	validator: pageTypeValidator,
+	validator: pageValidator,
+	migrations: pageMigrations,
 	scope: 'document',
 })
-
-/** @public */
-export const pageTypeMigrations = defineMigrations({})
 
 /** @public */
 export function isPageId(id: string): id is TLPageId {

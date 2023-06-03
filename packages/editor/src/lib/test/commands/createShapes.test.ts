@@ -1,15 +1,15 @@
-import { createCustomShapeId, TLGeoShape } from '@tldraw/tlschema'
+import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
-	box4: createCustomShapeId('box4'),
-	box5: createCustomShapeId('box5'),
-	missing: createCustomShapeId('missing'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	box4: createShapeId('box4'),
+	box5: createShapeId('box5'),
+	missing: createShapeId('missing'),
 }
 
 beforeEach(() => {

@@ -601,7 +601,7 @@ export class Drawing extends StateNode {
 
 					const { currentPagePoint } = this.editor.inputs
 
-					const newShapeId = this.editor.createShapeId()
+					const newShapeId = createShapeId()
 
 					this.editor.createShapes([
 						{

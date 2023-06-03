@@ -1,9 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { createAssetValidator, TLBaseAsset } from './asset-validation'
+import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
-// --- DEFINITION ---
-/** @public */
+/**
+ * An asset for images such as PNGs and JPEGs, used by the TLImageShape.
+ *
+ * @public */
 export type TLImageAsset = TLBaseAsset<
 	'image',
 	{
@@ -16,8 +18,8 @@ export type TLImageAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
-export const imageAssetTypeValidator: T.Validator<TLImageAsset> = createAssetValidator(
+/** @internal */
+export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
 	'image',
 	T.object({
 		w: T.number,
@@ -34,7 +36,7 @@ const Versions = {
 	RenameWidthHeight: 2,
 } as const
 
-/** @public */
+/** @internal */
 export const imageAssetMigrations = defineMigrations({
 	currentVersion: Versions.RenameWidthHeight,
 	migrators: {

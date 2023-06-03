@@ -1,16 +1,16 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 let editor: TestEditor
 
 const ids = {
-	lockedShapeA: createCustomShapeId('boxA'),
-	unlockedShapeA: createCustomShapeId('boxB'),
-	unlockedShapeB: createCustomShapeId('boxC'),
-	lockedShapeB: createCustomShapeId('boxD'),
-	lockedGroup: createCustomShapeId('lockedGroup'),
-	groupedBoxA: createCustomShapeId('grouppedBoxA'),
-	groupedBoxB: createCustomShapeId('grouppedBoxB'),
-	lockedFrame: createCustomShapeId('lockedFrame'),
+	lockedShapeA: createShapeId('boxA'),
+	unlockedShapeA: createShapeId('boxB'),
+	unlockedShapeB: createShapeId('boxC'),
+	lockedShapeB: createShapeId('boxD'),
+	lockedGroup: createShapeId('lockedGroup'),
+	groupedBoxA: createShapeId('grouppedBoxA'),
+	groupedBoxB: createShapeId('grouppedBoxB'),
+	lockedFrame: createShapeId('lockedFrame'),
 }
 
 beforeEach(() => {

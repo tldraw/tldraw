@@ -1,9 +1,10 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { idValidator, instanceIdValidator, pageIdValidator, shapeIdValidator } from '../validation'
+import { idValidator } from '../misc/id-validator'
+import { shapeIdValidator } from '../shapes/TLBaseShape'
 import { TLCamera, TLCameraId } from './TLCamera'
-import { TLInstance } from './TLInstance'
-import { TLPage } from './TLPage'
+import { instanceIdValidator, TLInstance } from './TLInstance'
+import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /**
@@ -15,9 +16,9 @@ import { TLShapeId } from './TLShape'
  */
 export interface TLInstancePageState
 	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
-	instanceId: ID<TLInstance>
-	pageId: ID<TLPage>
-	cameraId: ID<TLCamera>
+	instanceId: RecordId<TLInstance>
+	pageId: RecordId<TLPage>
+	cameraId: RecordId<TLCamera>
 	selectedIds: TLShapeId[]
 	hintingIds: TLShapeId[]
 	erasingIds: TLShapeId[]
@@ -27,8 +28,8 @@ export interface TLInstancePageState
 	focusLayerId: TLShapeId | null
 }
 
-/** @public */
-export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = T.model(
+/** @internal */
+export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
 		typeName: T.literal('instance_page_state'),
@@ -50,7 +51,7 @@ const Versions = {
 	AddCroppingId: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const instancePageStateMigrations = defineMigrations({
 	currentVersion: Versions.AddCroppingId,
 	migrators: {
@@ -70,7 +71,7 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	'instance_page_state',
 	{
 		migrations: instancePageStateMigrations,
-		validator: instancePageStateTypeValidator,
+		validator: instancePageStateValidator,
 		scope: 'instance',
 	}
 ).withDefaultProperties(
@@ -89,4 +90,4 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 )
 
 /** @public */
-export type TLInstancePageStateId = ID<TLInstancePageState>
+export type TLInstancePageStateId = RecordId<TLInstancePageState>

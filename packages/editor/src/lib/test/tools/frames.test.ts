@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLArrowShape } from '@tldraw/tlschema'
+import { TLArrowShape, createShapeId } from '@tldraw/tlschema'
 import { TLFrameUtil } from '../../app/shapeutils/TLFrameUtil/TLFrameUtil'
 import { TestEditor } from '../TestEditor'
 
@@ -14,7 +14,7 @@ afterEach(() => {
 })
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
+	boxA: createShapeId('boxA'),
 }
 
 describe('creating frames', () => {
@@ -149,7 +149,7 @@ describe('frame shapes', () => {
 		// We should be starting from an empty canvas
 		expect(editor.shapesArray).toHaveLength(0)
 
-		const frameId = editor.createShapeId('frame')
+		const frameId = createShapeId('frame')
 
 		editor
 			// Create a frame

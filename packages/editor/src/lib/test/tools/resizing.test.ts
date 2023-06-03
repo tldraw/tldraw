@@ -7,7 +7,7 @@ import {
 	rotateSelectionHandle,
 	Vec2d,
 } from '@tldraw/primitives'
-import { createCustomShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine } from '../../app/managers/SnapManager'
 import { TLSelectionHandle } from '../../app/types/selection-types'
 import { TestEditor } from '../TestEditor'
@@ -60,16 +60,16 @@ afterEach(() => {
 })
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-	boxD: createCustomShapeId('boxD'),
+	boxA: createShapeId('boxA'),
+	boxB: createShapeId('boxB'),
+	boxC: createShapeId('boxC'),
+	boxD: createShapeId('boxD'),
 
-	boxX: createCustomShapeId('boxX'),
+	boxX: createShapeId('boxX'),
 
-	lineA: createCustomShapeId('lineA'),
+	lineA: createShapeId('lineA'),
 
-	iconA: createCustomShapeId('iconA'),
+	iconA: createShapeId('iconA'),
 }
 
 beforeEach(() => {
@@ -3534,7 +3534,7 @@ describe('resizing a selection of mixed rotations', () => {
 
 describe('nodes that have do not resize', () => {
 	it('are still translated if part of a selection', () => {
-		const noteBId = createCustomShapeId('noteB')
+		const noteBId = createShapeId('noteB')
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])
 
 		// the default width and height of a note is 200
@@ -3550,8 +3550,8 @@ describe('nodes that have do not resize', () => {
 		expect(editor.getPageBoundsById(noteBId)).toMatchObject({ x: 100, y: 100, w: 200, h: 200 })
 	})
 	it('can flip', () => {
-		const noteBId = createCustomShapeId('noteB')
-		const noteCId = createCustomShapeId('noteC')
+		const noteBId = createShapeId('noteB')
+		const noteCId = createShapeId('noteC')
 		editor.createShapes([
 			box(ids.boxA, 0, 0, 200, 200),
 			{ id: noteBId, type: 'note', x: 300, y: 0 },
@@ -3784,7 +3784,7 @@ describe('nodes that have do not resize', () => {
 describe('bugs', () => {
 	// it('resizing a zero width shape', () => {
 	//	// Draw shapes can no longer have zero width / height
-	// 	const shapeId = editor.createShapeId()
+	// 	const shapeId = createShapeId()
 	// 	app
 	// 		.createShapes([
 	// 			{
@@ -3831,7 +3831,7 @@ it('uses the cross cursor when create resizing', () => {
 
 describe('Resizing text from the right edge', () => {
 	it('Resizes text from the right edge', () => {
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
 		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
 
@@ -3860,7 +3860,7 @@ describe('Resizing text from the right edge', () => {
 		// @ts-expect-error
 		editor._isCoarsePointer.set(true)
 
-		const id = editor.createShapeId()
+		const id = createShapeId()
 		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
 		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello World' } }]) // auto size
 

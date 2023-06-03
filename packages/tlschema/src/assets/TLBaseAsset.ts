@@ -1,7 +1,7 @@
 import { BaseRecord } from '@tldraw/store'
 import { T } from '@tldraw/validate'
+import { idValidator } from '../misc/id-validator'
 import { TLAssetId } from '../records/TLAsset'
-import { assetIdValidator } from '../validation'
 
 /** @public */
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
@@ -9,7 +9,19 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 	props: Props
 }
 
-/** @public */
+/**
+ * A validator for asset record type Ids.
+ *
+ * @public */
+export const assetIdValidator = idValidator<TLAssetId>('asset')
+
+/**
+ * Create a validator for an asset record type.
+ *
+ * @param type - The type of the asset
+ * @param props - The validator for the asset's props
+ *
+ * @public */
 export function createAssetValidator<Type extends string, Props extends object>(
 	type: Type,
 	props: T.Validator<Props>

@@ -44,7 +44,7 @@ const Versions = {
 	AddAnimationSpeed: 1,
 } as const
 
-const userTypeMigrations = defineMigrations({
+const userMigrations = defineMigrations({
 	currentVersion: 1,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
@@ -105,8 +105,8 @@ function migrateUserPreferences(userData: unknown) {
 	const migrationResult = migrate<TLUserPreferences>({
 		value: userData.user,
 		fromVersion: userData.version,
-		toVersion: userTypeMigrations.currentVersion ?? 0,
-		migrations: userTypeMigrations,
+		toVersion: userMigrations.currentVersion ?? 0,
+		migrations: userMigrations,
 	})
 
 	if (migrationResult.type === 'error') {
@@ -139,7 +139,7 @@ function storeUserPreferences() {
 		window.localStorage.setItem(
 			USER_DATA_KEY,
 			JSON.stringify({
-				version: userTypeMigrations.currentVersion,
+				version: userMigrations.currentVersion,
 				user: globalUserPreferences.value,
 			})
 		)
@@ -177,7 +177,7 @@ function broadcastUserPreferencesChange() {
 		origin: broadcastOrigin,
 		data: {
 			user: globalUserPreferences.value,
-			version: userTypeMigrations.currentVersion,
+			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }

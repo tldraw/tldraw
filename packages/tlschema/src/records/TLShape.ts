@@ -1,7 +1,7 @@
-import { defineMigrations, ID, UnknownRecord } from '@tldraw/store'
+import { defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
-import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'
+import { TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -62,7 +62,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
-export type TLShapeId = ID<TLUnknownShape>
+export type TLShapeId = RecordId<TLUnknownShape>
 
 /** @public */
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>
@@ -81,7 +81,7 @@ const Versions = {
 } as const
 
 /** @internal */
-export const rootShapeTypeMigrations = defineMigrations({
+export const rootShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddIsLocked,
 	migrators: {
 		[Versions.AddIsLocked]: {
@@ -114,11 +114,6 @@ export function isShapeId(id?: string): id is TLShapeId {
 }
 
 /** @public */
-export function createShapeId(): TLShapeId {
-	return `shape:${nanoid()}` as TLShapeId
-}
-
-/** @public */
-export function createCustomShapeId(id: string): TLShapeId {
-	return `shape:${id}` as TLShapeId
+export function createShapeId(id?: string): TLShapeId {
+	return `shape:${id ?? nanoid()}` as TLShapeId
 }

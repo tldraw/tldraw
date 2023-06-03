@@ -2,8 +2,8 @@
 import { toDomPrecision } from '@tldraw/primitives'
 import {
 	TLEmbedShape,
-	tlEmbedShapePermissionDefaults,
 	TLEmbedShapePermissions,
+	embedShapePermissionDefaults,
 } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useMemo } from 'react'
@@ -14,9 +14,9 @@ import { ROTATING_SHADOWS } from '../../../constants'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { rotateBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
-import { resizeBox } from '../shared/resizeBox'
 import { TLBoxUtil } from '../TLBoxUtil'
 import { OnResizeHandler, TLShapeUtilFlag } from '../TLShapeUtil'
+import { resizeBox } from '../shared/resizeBox'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)
@@ -119,7 +119,7 @@ export class TLEmbedUtil extends TLBoxUtil<TLEmbedShape> {
 		}
 
 		const sandbox = getSandboxPermissions({
-			...tlEmbedShapePermissionDefaults,
+			...embedShapePermissionDefaults,
 			...(embedInfo?.definition.overridePermissions ?? {}),
 		})
 

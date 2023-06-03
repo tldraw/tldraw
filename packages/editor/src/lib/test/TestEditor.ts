@@ -13,7 +13,6 @@ import {
 	PageRecordType,
 	TLShapeId,
 	TLShapePartial,
-	createCustomShapeId,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { AppOptions, Editor } from '../app/Editor'
@@ -188,7 +187,7 @@ export class TestEditor extends Editor {
 		})
 
 	testShapeID(id: string) {
-		return createCustomShapeId(id)
+		return createShapeId(id)
 	}
 	testPageID(id: string) {
 		return PageRecordType.createCustomId(id)
@@ -588,14 +587,14 @@ export class TestEditor extends Editor {
 	}
 
 	static CreateShapeId(id?: string) {
-		return id ? createCustomShapeId(id) : createShapeId()
+		return id ? createShapeId(id) : createShapeId()
 	}
 }
 
 export const defaultShapesIds = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	ellipse1: createCustomShapeId('ellipse1'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	ellipse1: createShapeId('ellipse1'),
 }
 
 export const createDefaultShapes = (): TLShapePartial[] => [

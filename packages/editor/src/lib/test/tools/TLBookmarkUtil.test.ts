@@ -1,4 +1,4 @@
-import { TLBookmarkShape } from '@tldraw/tlschema'
+import { TLBookmarkShape, createShapeId } from '@tldraw/tlschema'
 import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TestEditor } from '../TestEditor'
 
@@ -18,12 +18,12 @@ describe(TLBookmarkUtil, () => {
 describe('The URL formatter', () => {
 	it('Formats URLs as human-readable', () => {
 		const ids = {
-			a: editor.createShapeId(),
-			b: editor.createShapeId(),
-			c: editor.createShapeId(),
-			d: editor.createShapeId(),
-			e: editor.createShapeId(),
-			f: editor.createShapeId(),
+			a: createShapeId(),
+			b: createShapeId(),
+			c: createShapeId(),
+			d: createShapeId(),
+			e: createShapeId(),
+			f: createShapeId(),
 		}
 
 		editor.createShapes([
@@ -89,9 +89,9 @@ describe('The URL formatter', () => {
 
 	it("Doesn't resize bookmarks", () => {
 		const ids = {
-			bookmark: editor.createShapeId(),
-			boxA: editor.createShapeId(),
-			boxB: editor.createShapeId(),
+			bookmark: createShapeId(),
+			boxA: createShapeId(),
+			boxB: createShapeId(),
 		}
 
 		editor.createShapes([

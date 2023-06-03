@@ -1,19 +1,16 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../geometry-types'
-import { TLColorType, TLDashType, TLFillType, TLOpacityType, TLSizeType } from '../style-types'
+import { Vec2dModel } from '../misc/geometry-types'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLDashType, dashValidator } from '../styles/TLDashStyle'
+import { TLFillType, fillValidator } from '../styles/TLFillStyle'
+import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
-import {
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
-export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
+const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
 
 /** @public */
 export type TLDrawShapeSegment = {
@@ -21,6 +18,7 @@ export type TLDrawShapeSegment = {
 	points: Vec2dModel[]
 }
 
+/** @internal */
 export const drawShapeSegmentValidator: T.Validator<TLDrawShapeSegment> = T.object({
 	type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
 	points: T.arrayOf(T.point),
@@ -42,8 +40,8 @@ export type TLDrawShapeProps = {
 /** @public */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-/** @public */
-export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValidator(
+/** @internal */
+export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator(
 	'draw',
 	T.object({
 		color: colorValidator,
@@ -62,8 +60,8 @@ const Versions = {
 	AddInPen: 1,
 } as const
 
-/** @public */
-export const drawShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const drawShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddInPen,
 	migrators: {
 		[Versions.AddInPen]: {

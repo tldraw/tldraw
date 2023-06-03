@@ -426,7 +426,7 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 	if (existing) {
 		editor.createShapes([
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'bookmark',
 				x: point.x - 150,
 				y: point.y - 160,

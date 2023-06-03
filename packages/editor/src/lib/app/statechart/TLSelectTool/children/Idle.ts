@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createShapeId, TLGeoShapeProps, TLShape } from '@tldraw/tlschema'
+import { TLGeoShape, TLShape, createShapeId } from '@tldraw/tlschema'
 import { debugFlags } from '../../../../utils/debug-flags'
 import {
 	TLClickEventInfo,
@@ -32,7 +32,7 @@ export class Idle extends StateNode {
 				// Change the cursor to the type specified by the shape's text label
 				if (debugFlags.debugCursors.value) {
 					if (hoveringShape.type !== 'geo') break
-					const cursorType = (hoveringShape.props as TLGeoShapeProps).text
+					const cursorType = (hoveringShape as TLGeoShape).props.text
 					try {
 						this.editor.setCursor({ type: cursorType })
 					} catch (e) {

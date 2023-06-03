@@ -1,4 +1,4 @@
-import { TLImageShape, createCustomShapeId } from '@tldraw/tlschema'
+import { TLImageShape, createShapeId } from '@tldraw/tlschema'
 import { MIN_CROP_SIZE } from '../../constants'
 import { TestEditor } from '../TestEditor'
 
@@ -11,9 +11,9 @@ afterEach(() => {
 })
 
 const ids = {
-	imageA: createCustomShapeId('imageA'),
-	imageB: createCustomShapeId('imageB'),
-	boxA: createCustomShapeId('boxA'),
+	imageA: createShapeId('imageA'),
+	imageB: createShapeId('imageB'),
+	boxA: createShapeId('boxA'),
 }
 
 const imageWidth = 1200

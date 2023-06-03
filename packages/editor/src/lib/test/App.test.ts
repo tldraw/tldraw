@@ -1,15 +1,15 @@
-import { PageRecordType, createCustomShapeId } from '@tldraw/tlschema'
+import { PageRecordType, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
-	frame1: createCustomShapeId('frame1'),
-	group1: createCustomShapeId('group1'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	frame1: createShapeId('frame1'),
+	group1: createShapeId('group1'),
 
 	page2: PageRecordType.createCustomId('page2'),
 }

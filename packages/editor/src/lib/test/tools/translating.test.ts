@@ -1,5 +1,5 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLShapeId, TLShapePartial, Vec2dModel, createCustomShapeId } from '@tldraw/tlschema'
+import { TLShapeId, TLShapePartial, Vec2dModel, createShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
 import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
 import { TestEditor } from '../TestEditor'
@@ -47,21 +47,21 @@ afterEach(() => {
 })
 
 const ids = {
-	frame1: createCustomShapeId('frame1'),
-	frame2: createCustomShapeId('frame2'),
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	line1: createCustomShapeId('line1'),
-	boxD: createCustomShapeId('boxD'),
-	boxE: createCustomShapeId('boxE'),
-	boxF: createCustomShapeId('boxF'),
-	boxG: createCustomShapeId('boxG'),
-	boxH: createCustomShapeId('boxH'),
-	boxX: createCustomShapeId('boxX'),
+	frame1: createShapeId('frame1'),
+	frame2: createShapeId('frame2'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	line1: createShapeId('line1'),
+	boxD: createShapeId('boxD'),
+	boxE: createShapeId('boxE'),
+	boxF: createShapeId('boxF'),
+	boxG: createShapeId('boxG'),
+	boxH: createShapeId('boxH'),
+	boxX: createShapeId('boxX'),
 
-	boxT: createCustomShapeId('boxT'),
+	boxT: createShapeId('boxT'),
 
-	lineA: createCustomShapeId('lineA'),
+	lineA: createShapeId('lineA'),
 }
 
 beforeEach(() => {
@@ -307,7 +307,7 @@ describe('When cloning...', () => {
 	})
 
 	it('Clones twice', () => {
-		const groupId = editor.createShapeId('g')
+		const groupId = createShapeId('g')
 		editor.groupShapes([ids.box1, ids.box2], groupId)
 		const count1 = editor.shapesArray.length
 
@@ -1878,7 +1878,7 @@ describe('translating a shape with a bound shape', () => {
 	})
 
 	it('should preserve arrow bindings', () => {
-		const arrow1 = editor.createShapeId('arrow1')
+		const arrow1 = createShapeId('arrow1')
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -1914,7 +1914,7 @@ describe('translating a shape with a bound shape', () => {
 	})
 
 	it('breaks arrow bindings when cloning', () => {
-		const arrow1 = editor.createShapeId('arrow1')
+		const arrow1 = createShapeId('arrow1')
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },

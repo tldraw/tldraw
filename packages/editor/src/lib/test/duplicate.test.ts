@@ -1,14 +1,14 @@
-import { createCustomShapeId, TLArrowShape, TLShapePartial } from '@tldraw/tlschema'
+import { TLArrowShape, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
-	box4: createCustomShapeId('box4'),
-	arrow1: createCustomShapeId('arrow1'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	box4: createShapeId('box4'),
+	arrow1: createShapeId('arrow1'),
 }
 
 beforeEach(() => {
@@ -84,9 +84,9 @@ describe('When duplicating shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
 
 	beforeEach(() => {
-		const box1 = editor.createShapeId()
-		const box2 = editor.createShapeId()
-		const box3 = editor.createShapeId()
+		const box1 = createShapeId()
+		const box2 = createShapeId()
+		const box3 = createShapeId()
 
 		shapes = [
 			{
@@ -108,7 +108,7 @@ describe('When duplicating shapes that include arrows', () => {
 				y: 0,
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -129,7 +129,7 @@ describe('When duplicating shapes that include arrows', () => {
 				},
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -150,7 +150,7 @@ describe('When duplicating shapes that include arrows', () => {
 				},
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,

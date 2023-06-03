@@ -204,15 +204,13 @@ async function copyTranslations() {
 	const uiPath = join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'hooks', 'useTranslation')
 
 	// languages.ts
+
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
-	const languagesFilePath = join(uiPath, 'languages.ts')
 	const languagesFile = `
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', languagesFilePath, languagesFile)
-
-	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src')
+	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',

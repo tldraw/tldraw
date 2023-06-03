@@ -12,7 +12,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape, TLGeoShapeProps } from '@tldraw/tlschema'
+import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
@@ -960,7 +960,7 @@ function getLabelSize(editor: Editor, shape: TLGeoShape) {
 	}
 }
 
-function getLines(props: TLGeoShapeProps, sw: number) {
+function getLines(props: TLGeoShape['props'], sw: number) {
 	switch (props.geo) {
 		case 'x-box': {
 			return getXBoxLines(props.w, props.h, sw, props.dash)

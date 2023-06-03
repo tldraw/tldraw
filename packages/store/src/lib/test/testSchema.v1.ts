@@ -1,5 +1,5 @@
 import { assert } from '@tldraw/utils'
-import { BaseRecord, ID } from '../BaseRecord'
+import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { StoreSnapshot } from '../Store'
 import { StoreSchema } from '../StoreSchema'
@@ -11,7 +11,7 @@ const UserVersion = {
 } as const
 
 /** A user of tldraw */
-interface User extends BaseRecord<'user', ID<User>> {
+interface User extends BaseRecord<'user', RecordId<User>> {
 	name: string
 	locale: string
 	phoneNumber: string | null
@@ -79,7 +79,7 @@ const OvalVersion = {
 	AddBorderStyle: 1,
 } as const
 
-type ShapeId = ID<Shape<object>>
+type ShapeId = RecordId<Shape<object>>
 
 interface Shape<Props> extends BaseRecord<'shape', ShapeId> {
 	type: string

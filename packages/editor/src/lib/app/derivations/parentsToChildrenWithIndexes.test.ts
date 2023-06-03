@@ -1,5 +1,5 @@
 import { getIndexAbove, getIndexBetween } from '@tldraw/indices'
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../../test/TestEditor'
 
 let editor: TestEditor
@@ -9,13 +9,13 @@ beforeEach(() => {
 })
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
 
-	box4: createCustomShapeId('box4'),
-	box5: createCustomShapeId('box5'),
-	box6: createCustomShapeId('box6'),
+	box4: createShapeId('box4'),
+	box5: createShapeId('box5'),
+	box6: createShapeId('box6'),
 }
 
 describe('parentsToChildrenWithIndexes', () => {

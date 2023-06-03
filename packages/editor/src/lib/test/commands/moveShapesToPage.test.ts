@@ -1,13 +1,13 @@
-import { createCustomShapeId, PageRecordType, TLShape } from '@tldraw/tlschema'
+import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	ellipse1: createCustomShapeId('ellipse1'),
-	ellipse2: createCustomShapeId('ellipse2'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	ellipse1: createShapeId('ellipse1'),
+	ellipse2: createShapeId('ellipse2'),
 	page1: PageRecordType.createCustomId('page1'),
 	page2: PageRecordType.createCustomId('page2'),
 }

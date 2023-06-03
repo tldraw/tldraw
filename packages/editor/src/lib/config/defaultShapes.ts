@@ -1,31 +1,3 @@
-import {
-	arrowShapeTypeMigrations,
-	arrowShapeTypeValidator,
-	bookmarkShapeTypeMigrations,
-	bookmarkShapeTypeValidator,
-	drawShapeTypeMigrations,
-	drawShapeTypeValidator,
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
-	frameShapeTypeMigrations,
-	frameShapeTypeValidator,
-	geoShapeTypeMigrations,
-	geoShapeTypeValidator,
-	groupShapeTypeMigrations,
-	groupShapeTypeValidator,
-	highlightShapeTypeMigrations,
-	highlightShapeTypeValidator,
-	imageShapeTypeMigrations,
-	imageShapeTypeValidator,
-	lineShapeTypeMigrations,
-	lineShapeTypeValidator,
-	noteShapeTypeMigrations,
-	noteShapeTypeValidator,
-	textShapeTypeMigrations,
-	textShapeTypeValidator,
-	videoShapeTypeMigrations,
-	videoShapeTypeValidator,
-} from '@tldraw/tlschema'
 import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
 import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
 import { TLDrawUtil } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
@@ -46,38 +18,26 @@ export const coreShapes: Record<string, ShapeInfo> = {
 	// created by grouping interactions, probably the corest core shape that we have
 	group: {
 		util: TLGroupUtil,
-		validator: groupShapeTypeValidator,
-		migrations: groupShapeTypeMigrations,
 	},
 	// created by embed menu / url drop
 	embed: {
 		util: TLEmbedUtil,
-		validator: embedShapeTypeValidator,
-		migrations: embedShapeTypeMigrations,
 	},
 	// created by copy and paste / url drop
 	bookmark: {
 		util: TLBookmarkUtil,
-		validator: bookmarkShapeTypeValidator,
-		migrations: bookmarkShapeTypeMigrations,
 	},
 	// created by copy and paste / file drop
 	image: {
 		util: TLImageUtil,
-		validator: imageShapeTypeValidator,
-		migrations: imageShapeTypeMigrations,
 	},
 	// created by copy and paste / file drop
 	video: {
 		util: TLVideoUtil,
-		validator: videoShapeTypeValidator,
-		migrations: videoShapeTypeMigrations,
 	},
 	// created by copy and paste
 	text: {
 		util: TLTextUtil,
-		validator: textShapeTypeValidator,
-		migrations: textShapeTypeMigrations,
 	},
 }
 
@@ -85,37 +45,23 @@ export const coreShapes: Record<string, ShapeInfo> = {
 export const defaultShapes: Record<string, ShapeInfo> = {
 	draw: {
 		util: TLDrawUtil,
-		validator: drawShapeTypeValidator,
-		migrations: drawShapeTypeMigrations,
 	},
 	geo: {
 		util: TLGeoUtil,
-		validator: geoShapeTypeValidator,
-		migrations: geoShapeTypeMigrations,
 	},
 	line: {
 		util: TLLineUtil,
-		validator: lineShapeTypeValidator,
-		migrations: lineShapeTypeMigrations,
 	},
 	note: {
 		util: TLNoteUtil,
-		validator: noteShapeTypeValidator,
-		migrations: noteShapeTypeMigrations,
 	},
 	frame: {
 		util: TLFrameUtil,
-		validator: frameShapeTypeValidator,
-		migrations: frameShapeTypeMigrations,
 	},
 	arrow: {
 		util: TLArrowUtil,
-		validator: arrowShapeTypeValidator,
-		migrations: arrowShapeTypeMigrations,
 	},
 	highlight: {
 		util: TLHighlightUtil,
-		validator: highlightShapeTypeValidator,
-		migrations: highlightShapeTypeMigrations,
 	},
 }

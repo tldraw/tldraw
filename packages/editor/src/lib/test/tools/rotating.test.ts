@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -9,8 +9,8 @@ afterEach(() => {
 })
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
 }
 
 beforeEach(() => {
