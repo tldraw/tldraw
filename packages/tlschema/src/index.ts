@@ -222,7 +222,7 @@ export {
 	videoShapeTypeValidator,
 	type TLVideoShape,
 	type TLVideoShapeProps,
-} from './shapes/video'
+} from './shapes/TLVideoShape'
 export { storeMigrations } from './store-migrations'
 export { TL_ALIGN_TYPES, alignValidator, type TLAlignStyle, type TLAlignType } from './styles/align'
 export {

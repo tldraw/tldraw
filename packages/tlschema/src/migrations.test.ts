@@ -17,7 +17,7 @@ import { geoShapeTypeMigrations } from './shapes/TLGeoShape'
 import { imageShapeTypeMigrations } from './shapes/TLImageShape'
 import { noteShapeTypeMigrations } from './shapes/TLNoteShape'
 import { textShapeTypeMigrations } from './shapes/TLTextShape'
-import { videoShapeTypeMigrations } from './shapes/video'
+import { videoShapeTypeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
 
 const assetModules = fs

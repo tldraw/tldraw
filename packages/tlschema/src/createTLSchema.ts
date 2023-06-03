@@ -27,7 +27,7 @@ import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLIm
 import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
 import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
 import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
-import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/video'
+import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 
 /** @public */
