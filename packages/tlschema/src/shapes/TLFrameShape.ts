@@ -3,8 +3,7 @@ import { T } from '@tldraw/validate'
 import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
 import { createShapeValidator, TLBaseShape } from './TLBaseShape'
 
-/** @public */
-export type TLFrameShapeProps = {
+type TLFrameShapeProps = {
 	opacity: TLOpacityType
 	w: number
 	h: number
@@ -14,7 +13,7 @@ export type TLFrameShapeProps = {
 /** @public */
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
-/** @public */
+/** @internal */
 export const frameShapeValidator: T.Validator<TLFrameShape> = createShapeValidator(
 	'frame',
 	T.object({
@@ -25,5 +24,5 @@ export const frameShapeValidator: T.Validator<TLFrameShape> = createShapeValidat
 	})
 )
 
-/** @public */
+/** @internal */
 export const frameShapeMigrations = defineMigrations({})

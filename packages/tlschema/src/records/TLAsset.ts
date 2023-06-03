@@ -14,7 +14,7 @@ import { TLShape } from './TLShape'
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
-/** @public */
+/** @internal */
 export const assetValidator: T.Validator<TLAsset> = T.model(
 	'asset',
 	T.union('type', {
@@ -24,7 +24,7 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 	})
 )
 
-/** @public */
+/** @internal */
 export const assetMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {

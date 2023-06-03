@@ -28,7 +28,7 @@ export interface TLInstancePageState
 	focusLayerId: TLShapeId | null
 }
 
-/** @public */
+/** @internal */
 export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
@@ -51,7 +51,7 @@ const Versions = {
 	AddCroppingId: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const instancePageStateMigrations = defineMigrations({
 	currentVersion: Versions.AddCroppingId,
 	migrators: {

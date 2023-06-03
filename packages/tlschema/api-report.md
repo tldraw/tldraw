@@ -21,13 +21,13 @@ export const alignValidator: T.Validator<"end" | "middle" | "start">;
 // @internal (undocumented)
 export const assetIdValidator: T.Validator<TLAssetId>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const assetMigrations: Migrations;
 
 // @public (undocumented)
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
 
 // @public (undocumented)
@@ -335,7 +335,7 @@ export const InstancePresenceRecordType: RecordType<TLInstancePresence, "current
 // @public (undocumented)
 export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const instanceTypeValidator: T.Validator<TLInstance>;
 
 // @public (undocumented)
@@ -455,7 +455,7 @@ export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1"
 // @public (undocumented)
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const parentIdValidator: T.Validator<TLParentId>;
 
 // @public (undocumented)
@@ -467,7 +467,7 @@ export const rootShapeMigrations: Migrations;
 // @public (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @internal (undocumented)
@@ -475,9 +475,6 @@ export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
 
 // @internal (undocumented)
 export const splineValidator: T.Validator<"cubic" | "line">;
-
-// @public (undocumented)
-export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
 
 // @public (undocumented)
 export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
@@ -502,14 +499,6 @@ export interface TLArrowheadEndStyle extends TLBaseStyle {
     id: TLArrowheadType;
     // (undocumented)
     type: 'arrowheadEnd';
-}
-
-// @public
-export interface TLArrowHeadModel {
-    // (undocumented)
-    id: string;
-    // (undocumented)
-    type: TLArrowheadType;
 }
 
 // @public (undocumented)
@@ -1110,7 +1099,7 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 // @public (undocumented)
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 
 // @public (undocumented)

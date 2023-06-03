@@ -17,7 +17,7 @@ export type TLBookmarkShapeProps = {
 /** @public */
 export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
-/** @public */
+/** @internal */
 export const bookmarkShapeValidator: T.Validator<TLBookmarkShape> = createShapeValidator(
 	'bookmark',
 	T.object({
@@ -33,7 +33,7 @@ const Versions = {
 	NullAssetId: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const bookmarkShapeMigrations = defineMigrations({
 	currentVersion: Versions.NullAssetId,
 	migrators: {

@@ -22,7 +22,7 @@ export type TLNoteShapeProps = {
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-/** @public */
+/** @internal */
 export const noteShapeValidator: T.Validator<TLNoteShape> = createShapeValidator(
 	'note',
 	T.object({
@@ -43,7 +43,7 @@ const Versions = {
 	MigrateLegacyAlign: 3,
 } as const
 
-/** @public */
+/** @internal */
 export const noteShapeMigrations = defineMigrations({
 	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {

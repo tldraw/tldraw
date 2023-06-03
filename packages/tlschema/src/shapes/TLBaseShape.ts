@@ -16,7 +16,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	props: Props
 }
 
-/** @internal */
+/** @public */
 export const parentIdValidator = T.string.refine((id) => {
 	if (!id.startsWith('page:') && !id.startsWith('shape:')) {
 		throw new Error('Parent ID must start with "page:" or "shape:"')
@@ -24,7 +24,7 @@ export const parentIdValidator = T.string.refine((id) => {
 	return id as TLParentId
 })
 
-/** @internal */
+/** @public */
 export const shapeIdValidator = idValidator<TLShapeId>('shape')
 
 /** @public */

@@ -19,7 +19,7 @@ export type TLHighlightShapeProps = {
 /** @public */
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
-/** @public */
+/** @internal */
 export const highlightShapeValidator: T.Validator<TLHighlightShape> = createShapeValidator(
 	'highlight',
 	T.object({
@@ -32,5 +32,5 @@ export const highlightShapeValidator: T.Validator<TLHighlightShape> = createShap
 	})
 )
 
-/** @public */
+/** @internal */
 export const highlightShapeMigrations = defineMigrations({})

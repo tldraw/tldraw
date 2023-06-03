@@ -20,7 +20,7 @@ export type TLIconShapeProps = {
 /** @public */
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>
 
-/** @public */
+/** @internal */
 export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator(
 	'icon',
 	T.object({
@@ -33,5 +33,5 @@ export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator
 	})
 )
 
-/** @public */
+/** @internal */
 export const iconShapeMigrations = defineMigrations({})

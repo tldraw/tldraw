@@ -10,7 +10,7 @@ import { SetValue } from '../util-types'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
-export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
+const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
 
 /** @public */
 export type TLDrawShapeSegment = {
@@ -18,6 +18,7 @@ export type TLDrawShapeSegment = {
 	points: Vec2dModel[]
 }
 
+/** @internal */
 export const drawShapeSegmentValidator: T.Validator<TLDrawShapeSegment> = T.object({
 	type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
 	points: T.arrayOf(T.point),
@@ -39,7 +40,7 @@ export type TLDrawShapeProps = {
 /** @public */
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
-/** @public */
+/** @internal */
 export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator(
 	'draw',
 	T.object({
@@ -59,7 +60,7 @@ const Versions = {
 	AddInPen: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const drawShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddInPen,
 	migrators: {

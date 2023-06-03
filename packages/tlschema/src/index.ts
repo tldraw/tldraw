@@ -57,8 +57,6 @@ export {
 } from './records/TLShape'
 export { UserDocumentRecordType, type TLUserDocument } from './records/TLUserDocument'
 export {
-	TL_ARROW_TERMINAL_TYPE,
-	type TLArrowHeadModel,
 	type TLArrowShape,
 	type TLArrowShapeProps,
 	type TLArrowTerminal,

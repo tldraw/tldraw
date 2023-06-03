@@ -16,7 +16,7 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 /** @public */
 export type TLPointerId = ID<TLPointer>
 
-/** @public */
+/** @internal */
 export const pointerValidator: T.Validator<TLPointer> = T.model(
 	'pointer',
 	T.object({
@@ -28,9 +28,13 @@ export const pointerValidator: T.Validator<TLPointer> = T.model(
 	})
 )
 
+/** @internal */
+export const pointerMigrations = defineMigrations({})
+
 /** @public */
 export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	validator: pointerValidator,
+	migrations: pointerMigrations,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
@@ -42,6 +46,3 @@ export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 
 /** @public */
 export const TLPOINTER_ID = PointerRecordType.createCustomId('pointer')
-
-/** @public */
-export const pointerMigrations = defineMigrations({})

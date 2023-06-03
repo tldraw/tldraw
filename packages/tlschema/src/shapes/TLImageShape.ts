@@ -22,17 +22,16 @@ export type TLImageShapeProps = {
 	assetId: TLAssetId | null
 	crop: TLImageCrop | null
 }
-
 /** @public */
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+
+/** @internal */
 export const cropValidator = T.object({
 	topLeft: T.point,
 	bottomRight: T.point,
 })
 
-/** @public */
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
-
-/** @public */
+/** @internal */
 export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
 	T.object({
@@ -51,7 +50,7 @@ const Versions = {
 	AddCropProp: 2,
 } as const
 
-/** @public */
+/** @internal */
 export const imageShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddCropProp,
 	migrators: {

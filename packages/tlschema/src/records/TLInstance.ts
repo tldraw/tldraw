@@ -51,7 +51,7 @@ export type TLInstanceId = ID<TLInstance>
 /** @internal */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
-/** @public */
+/** @internal */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
 	T.object({
@@ -103,7 +103,7 @@ const Versions = {
 
 export { Versions as instanceTypeVersions }
 
-/** @public */
+/** @internal */
 export const instanceMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserId,
 	migrators: {

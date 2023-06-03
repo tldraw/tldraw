@@ -23,7 +23,7 @@ export type TLLineShapeProps = {
 /** @public */
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
-/** @public */
+/** @internal */
 export const lineShapeValidator: T.Validator<TLLineShape> = createShapeValidator(
 	'line',
 	T.object({
@@ -36,5 +36,5 @@ export const lineShapeValidator: T.Validator<TLLineShape> = createShapeValidator
 	})
 )
 
-/** @public */
+/** @internal */
 export const lineShapeMigrations = defineMigrations({})

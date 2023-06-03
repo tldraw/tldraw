@@ -23,7 +23,7 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 /** @public */
 export type TLUserDocumentId = ID<TLUserDocument>
 
-/** @public */
+/** @internal */
 export const userDocumentValidator: T.Validator<TLUserDocument> = T.model(
 	'user_document',
 	T.object({
@@ -45,9 +45,10 @@ export const Versions = {
 	RemoveUserIdAndIsDarkMode: 4,
 } as const
 
+/** @internal */
 export { Versions as userDocumentVersions }
 
-/** @public */
+/** @internal */
 export const userDocumentMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserIdAndIsDarkMode,
 	migrators: {
@@ -89,17 +90,14 @@ export const userDocumentMigrations = defineMigrations({
 		},
 	},
 })
-/* STEP 4: Add your changes to the record type */
 
-/* STEP 5: Add up + down migrations for your new version */
-/** @public */
+/** @internal */
 export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_document', {
 	migrations: userDocumentMigrations,
 	validator: userDocumentValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLUserDocument, 'id' | 'typeName' | 'userId'> => ({
-		/* STEP 6: Add any new default values for properties here */
 		isPenMode: false,
 		isGridMode: false,
 		isMobileMode: false,

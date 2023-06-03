@@ -11,7 +11,7 @@ export type TLGroupShapeProps = {
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
-/** @public */
+/** @internal */
 export const groupShapeValidator: T.Validator<TLGroupShape> = createShapeValidator(
 	'group',
 	T.object({
@@ -19,5 +19,5 @@ export const groupShapeValidator: T.Validator<TLGroupShape> = createShapeValidat
 	})
 )
 
-/** @public */
+/** @internal */
 export const groupShapeMigrations = defineMigrations({})

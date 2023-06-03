@@ -11,7 +11,7 @@ export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
 	name: string
 }
 
-/** @public */
+/** @internal */
 export const documentValidator: T.Validator<TLDocument> = T.model(
 	'document',
 	T.object({
@@ -22,18 +22,13 @@ export const documentValidator: T.Validator<TLDocument> = T.model(
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	AddName: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const documentMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.AddName,
-	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddName]: {
 			up: (document: TLDocument) => {

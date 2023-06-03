@@ -23,7 +23,7 @@ export type TLTextShapeProps = {
 /** @public */
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
-/** @public */
+/** @internal */
 export const textShapeValidator: T.Validator<TLTextShape> = createShapeValidator(
 	'text',
 	T.object({
@@ -43,7 +43,7 @@ const Versions = {
 	RemoveJustify: 1,
 } as const
 
-/** @public */
+/** @internal */
 export const textShapeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {

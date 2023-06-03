@@ -33,8 +33,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 /** @public */
 export type TLInstancePresenceID = ID<TLInstancePresence>
 
-// --- VALIDATION ---
-/** @public */
+/** @internal */
 export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(
 	'instance_presence',
 	T.object({
@@ -69,6 +68,7 @@ const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
+/** @internal */
 export const instancePresenceMigrations = defineMigrations({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
