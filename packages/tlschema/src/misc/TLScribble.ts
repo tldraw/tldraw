@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLColor, uiColorTypeValidator } from './TLColor'
+import { TLColor, colorTypeValidator } from './TLColor'
 import { Vec2dModel } from './geometry-types'
 
 /** @public */
@@ -20,7 +20,7 @@ export type TLScribble = {
 export const scribbleTypeValidator: T.Validator<TLScribble> = T.object({
 	points: T.arrayOf(T.point),
 	size: T.positiveNumber,
-	color: uiColorTypeValidator,
+	color: colorTypeValidator,
 	opacity: T.number,
 	state: T.setEnum(TL_SCRIBBLE_STATES),
 	delay: T.number,

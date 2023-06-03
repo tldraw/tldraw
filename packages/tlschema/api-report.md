@@ -76,6 +76,9 @@ export const cameraTypeValidator: T.Validator<TLCamera>;
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
 
+// @public (undocumented)
+export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
 // @internal (undocumented)
 export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
@@ -606,52 +609,7 @@ export const textShapeTypeMigrations: Migrations;
 export const textShapeTypeValidator: T.Validator<TLTextShape>;
 
 // @public (undocumented)
-export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
-
-// @public (undocumented)
 export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
-
-// @public (undocumented)
-export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-
-// @public (undocumented)
-export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
-
-// @public (undocumented)
-export const TL_CURSOR_TYPES: Set<string>;
-
-// @public (undocumented)
-export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
-
-// @public (undocumented)
-export const TL_DRAW_SHAPE_SEGMENT_TYPE: Set<"free" | "straight">;
-
-// @public (undocumented)
-export const TL_FILL_TYPES: Set<"none" | "pattern" | "semi" | "solid">;
-
-// @public (undocumented)
-export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
-
-// @public (undocumented)
-export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-
-// @public (undocumented)
-export const TL_HANDLE_TYPES: Set<"create" | "vertex" | "virtual">;
-
-// @public (undocumented)
-export const TL_ICON_TYPES: Set<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
-
-// @public (undocumented)
-export const TL_OPACITY_TYPES: Set<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
-
-// @public (undocumented)
-export const TL_SCRIBBLE_STATES: Set<"active" | "paused" | "starting" | "stopping">;
-
-// @public (undocumented)
-export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
-
-// @public (undocumented)
-export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
 export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
@@ -778,14 +736,6 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
 }
 
 // @public (undocumented)
-export interface TLBaseStyle {
-    // (undocumented)
-    icon: string;
-    // (undocumented)
-    type: TLStyleType;
-}
-
-// @public (undocumented)
 export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
     title: string;
     description: string;
@@ -819,7 +769,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = ID<TLCamera>;
 
 // @public (undocumented)
-export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
+export type TLColor = SetValue<typeof TL_COLOR_TYPES_2>;
 
 // @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
@@ -830,7 +780,7 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public (undocumented)
 export interface TLCursor {
@@ -1448,9 +1398,6 @@ export type TLVideoShapeProps = {
     url: string;
     assetId: null | TLAssetId;
 };
-
-// @public (undocumented)
-export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export const UserDocumentRecordType: RecordType<TLUserDocument, never>;

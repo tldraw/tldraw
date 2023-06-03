@@ -26,22 +26,20 @@ export {
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema, type SchemaShapeInfo } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
-export { TL_COLOR_TYPES, uiColorTypeValidator, type TLColor } from './misc/TLColor'
+export { colorTypeValidator, type TLColor } from './misc/TLColor'
 export {
-	TL_CURSOR_TYPES,
 	cursorTypeValidator,
 	cursorValidator,
 	type TLCursor,
 	type TLCursorType,
 } from './misc/TLCursor'
 export {
-	TL_HANDLE_TYPES,
 	handleTypeValidator,
 	type TLHandle,
 	type TLHandlePartial,
 	type TLHandleType,
 } from './misc/TLHandle'
-export { TL_SCRIBBLE_STATES, scribbleTypeValidator, type TLScribble } from './misc/TLScribble'
+export { scribbleTypeValidator, type TLScribble } from './misc/TLScribble'
 export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
 export {
@@ -144,7 +142,6 @@ export {
 	type TLBookmarkShapeProps,
 } from './shapes/TLBookmarkShape'
 export {
-	TL_DRAW_SHAPE_SEGMENT_TYPE,
 	drawShapeTypeMigrations,
 	drawShapeTypeValidator,
 	type TLDrawShape,
@@ -224,64 +221,23 @@ export {
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
 export { storeMigrations } from './store-migrations'
+export { alignValidator, type TLAlignStyle, type TLAlignType } from './styles/TLAlignStyle'
 export {
-	TL_ALIGN_TYPES,
-	alignValidator,
-	type TLAlignStyle,
-	type TLAlignType,
-} from './styles/TLAlignStyle'
-export {
-	TL_ARROWHEAD_TYPES,
 	arrowheadValidator,
 	type TLArrowheadEndStyle,
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,
 } from './styles/TLArrowheadStyle'
-export { TL_STYLE_TYPES, type TLBaseStyle, type TLStyleType } from './styles/TLBaseStyle'
+export { TL_STYLE_TYPES, type TLStyleType } from './styles/TLBaseStyle'
 export { colorValidator, type TLColorStyle, type TLColorType } from './styles/TLColorStyle'
-export {
-	TL_DASH_TYPES,
-	dashValidator,
-	type TLDashStyle,
-	type TLDashType,
-} from './styles/TLDashStyle'
-export {
-	TL_FILL_TYPES,
-	fillValidator,
-	type TLFillStyle,
-	type TLFillType,
-} from './styles/TLFillStyle'
-export {
-	TL_FONT_TYPES,
-	fontValidator,
-	type TLFontStyle,
-	type TLFontType,
-} from './styles/TLFontStyle'
-export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
-export {
-	TL_ICON_TYPES,
-	iconValidator,
-	type TLIconStyle,
-	type TLIconType,
-} from './styles/TLIconStyle'
-export {
-	TL_OPACITY_TYPES,
-	opacityValidator,
-	type TLOpacityStyle,
-	type TLOpacityType,
-} from './styles/TLOpacityStyle'
-export {
-	TL_SIZE_TYPES,
-	sizeValidator,
-	type TLSizeStyle,
-	type TLSizeType,
-} from './styles/TLSizeStyle'
-export {
-	TL_SPLINE_TYPES,
-	splineValidator,
-	type TLSplineStyle,
-	type TLSplineType,
-} from './styles/TLSplineStyle'
+export { dashValidator, type TLDashStyle, type TLDashType } from './styles/TLDashStyle'
+export { fillValidator, type TLFillStyle, type TLFillType } from './styles/TLFillStyle'
+export { fontValidator, type TLFontStyle, type TLFontType } from './styles/TLFontStyle'
+export { geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
+export { iconValidator, type TLIconStyle, type TLIconType } from './styles/TLIconStyle'
+export { opacityValidator, type TLOpacityStyle, type TLOpacityType } from './styles/TLOpacityStyle'
+export { sizeValidator, type TLSizeStyle, type TLSizeType } from './styles/TLSizeStyle'
+export { splineValidator, type TLSplineStyle, type TLSplineType } from './styles/TLSplineStyle'
 export { type TLVerticalAlignType } from './styles/TLVerticalAlignStyle'
 export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
 export {

@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLColor, uiColorTypeValidator } from './TLColor'
+import { TLColor, colorTypeValidator } from './TLColor'
 
 /** @public */
 export const TL_CURSOR_TYPES = new Set([
@@ -41,7 +41,7 @@ export interface TLCursor {
 
 /** @public */
 export const cursorValidator: T.Validator<TLCursor> = T.object({
-	color: uiColorTypeValidator,
+	color: colorTypeValidator,
 	type: cursorTypeValidator,
 	rotation: T.number,
 })
