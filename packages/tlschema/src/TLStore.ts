@@ -1,12 +1,12 @@
 import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/store'
 import { annotateError, structuredClone } from '@tldraw/utils'
-import { TLRecord } from './TLRecord'
 import { CameraRecordType } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
 import { InstanceRecordType, TLInstanceId } from './records/TLInstance'
 import { PageRecordType } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
+import { TLRecord } from './records/TLRecord'
 import { UserDocumentRecordType } from './records/TLUserDocument'
 
 function sortByIndex<T extends { index: string }>(a: T, b: T) {

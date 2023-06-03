@@ -94,6 +94,7 @@ test('all modules export migrations', () => {
 			return !Object.keys(module).find((k) => k.endsWith('igrations'))
 		})
 		.map(([fileName]) => fileName)
+		.filter((n) => !(n === 'TLBaseAsset.ts' || n === 'TLBaseShape.ts' || n === 'TLRecord.ts'))
 
 	// IF THIS LINE IS FAILING YOU NEED TO MAKE SURE THE MIGRATIONS ARE EXPORTED
 	expect(modulesWithoutMigrations).toHaveLength(0)

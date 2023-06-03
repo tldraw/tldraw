@@ -5,7 +5,7 @@ import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLIconType, iconValidator } from '../styles/TLIconStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLBaseShape, createShapeValidator } from './base-shape'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLIconShapeProps = {

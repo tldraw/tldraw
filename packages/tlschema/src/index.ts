@@ -1,14 +1,13 @@
-export { type TLRecord } from './TLRecord'
 export {
 	type TLStore,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
+export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
-export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/base-asset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
@@ -40,6 +39,7 @@ export { PageRecordType, isPageId, type TLPage, type TLPageId } from './records/
 export { InstancePageStateRecordType, type TLInstancePageState } from './records/TLPageState'
 export { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLPresence'
+export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,
 	isShape,
@@ -64,6 +64,12 @@ export {
 	type TLArrowTerminal,
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
+export {
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './shapes/TLBaseShape'
 export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
 export { type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
 export {
@@ -83,12 +89,6 @@ export { type TLLineShape } from './shapes/TLLineShape'
 export { type TLNoteShape } from './shapes/TLNoteShape'
 export { type TLTextShape } from './shapes/TLTextShape'
 export { type TLVideoShape } from './shapes/TLVideoShape'
-export {
-	createShapeValidator,
-	parentIdValidator,
-	shapeIdValidator,
-	type TLBaseShape,
-} from './shapes/base-shape'
 export { alignValidator, type TLAlignStyle, type TLAlignType } from './styles/TLAlignStyle'
 export {
 	type TLArrowheadEndStyle,

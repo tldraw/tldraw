@@ -7,7 +7,7 @@ import { TLFillType, fillValidator } from '../styles/TLFillStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
-import { TLBaseShape, createShapeValidator } from './base-shape'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)

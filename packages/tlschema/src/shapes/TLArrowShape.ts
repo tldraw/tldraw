@@ -10,7 +10,7 @@ import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
-import { TLBaseShape, createShapeValidator, shapeIdValidator } from './base-shape'
+import { TLBaseShape, createShapeValidator, shapeIdValidator } from './TLBaseShape'
 
 /** @public */
 export type TLArrowShapeProps = {

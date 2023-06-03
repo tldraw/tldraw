@@ -1,6 +1,6 @@
 import { createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLBaseAsset } from '../assets/base-asset'
+import { TLBaseAsset } from '../assets/TLBaseAsset'
 import {
 	bookmarkAssetMigrations,
 	bookmarkAssetTypeValidator,

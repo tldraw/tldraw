@@ -1,5 +1,5 @@
 import { defineMigrations, StoreSnapshot } from '@tldraw/store'
-import { TLRecord } from './TLRecord'
+import { TLRecord } from './records/TLRecord'
 
 const Versions = {
 	RemoveCodeAndIconShapeTypes: 1,
