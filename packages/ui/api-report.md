@@ -241,6 +241,12 @@ export type TldrawUiProps = {
 } & TldrawUiContextProviderProps;
 
 // @public (undocumented)
+export type TLLanguage = {
+    readonly locale: string;
+    readonly label: string;
+};
+
+// @public (undocumented)
 export interface TLUiActionItem {
     // (undocumented)
     checkbox?: boolean;
@@ -420,12 +426,6 @@ export type TLUiKeyboardShortcutsSchemaProviderProps = {
         actions: TLUiActionsContextType;
     }) => TLUiKeyboardShortcutsSchemaContextType;
     children: any;
-};
-
-// @public (undocumented)
-export type TLUiLanguage = {
-    readonly locale: string;
-    readonly label: string;
 };
 
 // @public (undocumented)

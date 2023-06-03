@@ -1,21 +1,21 @@
 import { LANGUAGES } from './languages'
 
 /** @public */
-export type TLUiLanguage = {
+export type TLLanguage = {
 	readonly locale: string
 	readonly label: string
 }
 
-type TLUiTranslationLocale = TLUiLanguage['locale']
+type TLTranslationLocale = TLLanguage['locale']
 
 /** @public */
-export function getDefaultTranslationLocale(): TLUiTranslationLocale {
+export function getDefaultTranslationLocale(): TLTranslationLocale {
 	const locales = typeof window !== 'undefined' ? window.navigator.languages ?? ['en'] : ['en']
 	return _getDefaultTranslationLocale(locales)
 }
 
 /** @internal */
-export function _getDefaultTranslationLocale(locales: readonly string[]): TLUiTranslationLocale {
+export function _getDefaultTranslationLocale(locales: readonly string[]): TLTranslationLocale {
 	for (const locale of locales) {
 		const supportedLocale = getSupportedLocale(locale)
 		if (supportedLocale) {
@@ -26,7 +26,7 @@ export function _getDefaultTranslationLocale(locales: readonly string[]): TLUiTr
 }
 
 /** @public */
-const DEFAULT_LOCALE_REGIONS: { [locale: string]: TLUiTranslationLocale } = {
+const DEFAULT_LOCALE_REGIONS: { [locale: string]: TLTranslationLocale } = {
 	zh: 'zh-cn',
 	pt: 'pt-br',
 	ko: 'ko-kr',
@@ -34,7 +34,7 @@ const DEFAULT_LOCALE_REGIONS: { [locale: string]: TLUiTranslationLocale } = {
 }
 
 /** @public */
-function getSupportedLocale(locale: string): TLUiTranslationLocale | null {
+function getSupportedLocale(locale: string): TLTranslationLocale | null {
 	// If we have an exact match, return it!
 	// (e.g. if the user has 'fr' and we have 'fr')
 	// (or if the user has 'pt-BR' and we have 'pt-br')
