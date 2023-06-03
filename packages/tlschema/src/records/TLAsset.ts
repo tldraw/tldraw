@@ -1,4 +1,4 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLBaseAsset } from '../assets/TLBaseAsset'
 import {
@@ -50,7 +50,7 @@ export const AssetRecordType = createRecordType<TLAsset>('asset', {
 })
 
 /** @public */
-export type TLAssetId = ID<TLBaseAsset<any, any>>
+export type TLAssetId = RecordId<TLBaseAsset<any, any>>
 
 /** @public */
 export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>

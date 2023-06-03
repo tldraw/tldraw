@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
@@ -31,7 +31,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 /** @public */
-export type TLInstancePresenceID = ID<TLInstancePresence>
+export type TLInstancePresenceID = RecordId<TLInstancePresence>
 
 /** @internal */
 export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(

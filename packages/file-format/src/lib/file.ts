@@ -9,9 +9,9 @@ import {
 	TLStore,
 } from '@tldraw/editor'
 import {
-	ID,
 	MigrationFailureReason,
 	MigrationResult,
+	RecordId,
 	SerializedSchema,
 	StoreSnapshot,
 	UnknownRecord,
@@ -54,7 +54,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	}),
 	records: T.arrayOf(
 		T.object({
-			id: T.string as T.Validator<ID<any>>,
+			id: T.string as T.Validator<RecordId<any>>,
 			typeName: T.string,
 		}).allowUnknownProperties()
 	),

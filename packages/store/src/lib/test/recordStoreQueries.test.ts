@@ -1,10 +1,10 @@
 import { atom, RESET_VALUE } from 'signia'
-import { BaseRecord, ID } from '../BaseRecord'
+import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Author extends BaseRecord<'author', ID<Author>> {
+interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: string
 	age: number
 }
@@ -22,9 +22,9 @@ const Author = createRecordType<Author>('author', {
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
-interface Book extends BaseRecord<'book', ID<Book>> {
+interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: string
-	authorId: ID<Author>
+	authorId: RecordId<Author>
 }
 const Book = createRecordType<Book>('book', {
 	validator: {

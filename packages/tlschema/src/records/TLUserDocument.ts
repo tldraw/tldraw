@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { instanceIdValidator, TLInstance } from './TLInstance'
@@ -16,12 +16,12 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 	isGridMode: boolean
 	isMobileMode: boolean
 	isSnapMode: boolean
-	lastUpdatedPageId: ID<TLPage> | null
-	lastUsedTabId: ID<TLInstance> | null
+	lastUpdatedPageId: RecordId<TLPage> | null
+	lastUsedTabId: RecordId<TLInstance> | null
 }
 
 /** @public */
-export type TLUserDocumentId = ID<TLUserDocument>
+export type TLUserDocumentId = RecordId<TLUserDocument>
 
 /** @internal */
 export const userDocumentValidator: T.Validator<TLUserDocument> = T.model(

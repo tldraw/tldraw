@@ -236,7 +236,7 @@ export function createRecordType<R extends UnknownRecord>(
  * @example
  *
  * ```ts
- * assertIdType(myId, ID<MyRecord>)
+ * assertIdType(myId, "shape")
  * ```
  *
  * @param id - The id to check.

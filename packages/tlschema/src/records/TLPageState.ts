@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
@@ -16,9 +16,9 @@ import { TLShapeId } from './TLShape'
  */
 export interface TLInstancePageState
 	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
-	instanceId: ID<TLInstance>
-	pageId: ID<TLPage>
-	cameraId: ID<TLCamera>
+	instanceId: RecordId<TLInstance>
+	pageId: RecordId<TLPage>
+	cameraId: RecordId<TLCamera>
 	selectedIds: TLShapeId[]
 	hintingIds: TLShapeId[]
 	erasingIds: TLShapeId[]
@@ -90,4 +90,4 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 )
 
 /** @public */
-export type TLInstancePageStateId = ID<TLInstancePageState>
+export type TLInstancePageStateId = RecordId<TLInstancePageState>

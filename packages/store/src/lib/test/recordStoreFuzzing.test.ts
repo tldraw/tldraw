@@ -1,12 +1,12 @@
 import { atom, EffectScheduler, RESET_VALUE } from 'signia'
-import { BaseRecord, ID, IdOf, UnknownRecord } from '../BaseRecord'
+import { BaseRecord, IdOf, RecordId, UnknownRecord } from '../BaseRecord'
 import { executeQuery } from '../executeQuery'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, Store } from '../Store'
 import { RSIndexDiff } from '../StoreQueries'
 import { StoreSchema } from '../StoreSchema'
 
-interface Author extends BaseRecord<'author', ID<Author>> {
+interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: AuthorName
 	age: number
 }
@@ -24,9 +24,9 @@ const Author = createRecordType<Author>('author', {
 	scope: 'document',
 }).withDefaultProperties(() => ({ age: 23 }))
 
-interface Book extends BaseRecord<'book', ID<Book>> {
+interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: BookName
-	authorId: ID<Author>
+	authorId: RecordId<Author>
 }
 const Book = createRecordType<Book>('book', {
 	validator: {
@@ -378,8 +378,8 @@ function runTest(seed: number) {
 	try {
 		let latestBooksByAuthorQueryResult: Book[] = []
 		let latestBooksByTitleQueryResult: Book[] = []
-		let latestAuthorIdsByNameQueryResult: Set<ID<Author>> = new Set()
-		const authorIdsByNameDiffs: CollectionDiff<ID<Author>>[] = []
+		let latestAuthorIdsByNameQueryResult: Set<RecordId<Author>> = new Set()
+		const authorIdsByNameDiffs: CollectionDiff<RecordId<Author>>[] = []
 		const effect = new EffectScheduler('', (lastReactedEpoch: number) => {
 			const authorNameIndexDiff = authorNameIndex.getDiffSince(lastReactedEpoch)
 			const authorIdIndexDiff = authorIdIndex.getDiffSince(lastReactedEpoch)

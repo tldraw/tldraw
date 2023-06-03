@@ -1,4 +1,4 @@
-import { defineMigrations, ID, UnknownRecord } from '@tldraw/store'
+import { defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
 import { TLArrowShape } from '../shapes/TLArrowShape'
 import { TLBaseShape } from '../shapes/TLBaseShape'
@@ -62,7 +62,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 	: never
 
 /** @public */
-export type TLShapeId = ID<TLUnknownShape>
+export type TLShapeId = RecordId<TLUnknownShape>
 
 /** @public */
 export type TLShapeProps = SmooshedUnionObject<TLShape['props']>

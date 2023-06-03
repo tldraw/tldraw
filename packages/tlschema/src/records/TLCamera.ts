@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
@@ -17,7 +17,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
  * The id of a camera record.
  *
  * @public */
-export type TLCameraId = ID<TLCamera>
+export type TLCameraId = RecordId<TLCamera>
 
 /** @internal */
 export const cameraValidator: T.Validator<TLCamera> = T.model(

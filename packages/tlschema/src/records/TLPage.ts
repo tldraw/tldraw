@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
@@ -13,7 +13,7 @@ export interface TLPage extends BaseRecord<'page', TLPageId> {
 }
 
 /** @public */
-export type TLPageId = ID<TLPage>
+export type TLPageId = RecordId<TLPage>
 
 /** @internal */
 export const pageIdValidator = idValidator<TLPageId>('page')

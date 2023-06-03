@@ -1,12 +1,12 @@
 import { Computed, react, RESET_VALUE, transact } from 'signia'
-import { BaseRecord, ID } from '../BaseRecord'
+import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
-interface Book extends BaseRecord<'book', ID<Book>> {
+interface Book extends BaseRecord<'book', RecordId<Book>> {
 	title: string
-	author: ID<Author>
+	author: RecordId<Author>
 	numPages: number
 }
 
@@ -15,7 +15,7 @@ const Book = createRecordType<Book>('book', {
 	scope: 'document',
 })
 
-interface Author extends BaseRecord<'author', ID<Author>> {
+interface Author extends BaseRecord<'author', RecordId<Author>> {
 	name: string
 	isPseudonym: boolean
 }
@@ -249,7 +249,7 @@ describe('Store', () => {
 	})
 
 	it('allows keeping track of the ids of a particular type', () => {
-		let lastIdDiff: CollectionDiff<ID<Author>>[] | RESET_VALUE = []
+		let lastIdDiff: CollectionDiff<RecordId<Author>>[] | RESET_VALUE = []
 
 		const authorIds = store.query.ids('author')
 
