@@ -16,9 +16,9 @@ import {
 	StoreSnapshot,
 	UnknownRecord,
 } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
 import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */

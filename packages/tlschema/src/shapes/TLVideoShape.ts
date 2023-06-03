@@ -1,5 +1,5 @@
 import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'
 import { assetIdValidator, opacityValidator } from '../validation'

@@ -1,6 +1,6 @@
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { defineMigrations, migrate } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
 

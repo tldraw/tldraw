@@ -1,5 +1,5 @@
 import type { ID, UnknownRecord } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import type { TLAssetId } from './records/TLAsset'
 import type { TLInstanceId } from './records/TLInstance'
 import type { TLPageId } from './records/TLPage'
