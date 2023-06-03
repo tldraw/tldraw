@@ -1,7 +1,7 @@
+import { LANGUAGES } from '@tldraw/tlschema'
 import { TLUiAssetUrls } from '../../assetUrls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'
-import { LANGUAGES } from './languages'
 
 // The default language (english) must have a value for every message.
 // Other languages may have missing messages. If the application finds
@@ -9,12 +9,6 @@ import { LANGUAGES } from './languages'
 // translation instead.
 
 /* ----------------- (do not change) ---------------- */
-
-/** @public */
-export type TLLanguage = {
-	readonly locale: string
-	readonly label: string
-}
 
 /** @public */
 export type TLUiTranslation = {

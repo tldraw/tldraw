@@ -94,7 +94,7 @@ export {
 	type TLUiToolsProviderProps,
 } from './lib/hooks/useTools'
 export { type TLUiTranslationKey } from './lib/hooks/useTranslation/TLUiTranslationKey'
-export { type TLLanguage, type TLUiTranslation } from './lib/hooks/useTranslation/translations'
+export { type TLUiTranslation } from './lib/hooks/useTranslation/translations'
 export {
 	useTranslation as useTranslation,
 	type TLUiTranslationContextType,

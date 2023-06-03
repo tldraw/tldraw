@@ -9,12 +9,14 @@
 import { Editor } from '@tldraw/editor';
 import { EditorAssetUrls } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
+import { LANGUAGES } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
 import { TLCopyType } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
+import { TLLanguage } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { VecLike } from '@tldraw/primitives';
 
@@ -239,12 +241,6 @@ export type TldrawUiProps = {
     topZone?: ReactNode;
     renderDebugMenuItems?: () => React_2.ReactNode;
 } & TldrawUiContextProviderProps;
-
-// @public (undocumented)
-export type TLLanguage = {
-    readonly locale: string;
-    readonly label: string;
-};
 
 // @public (undocumented)
 export interface TLUiActionItem {

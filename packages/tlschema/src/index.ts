@@ -284,7 +284,11 @@ export {
 } from './styles/TLSplineStyle'
 export { type TLVerticalAlignType } from './styles/TLVerticalAlignStyle'
 export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
-export { getDefaultTranslationLocale } from './translations/translations'
+export {
+	LANGUAGES,
+	getDefaultTranslationLocale,
+	type TLLanguage,
+} from './translations/translations'
 export { type SetValue, type SmooshedUnionObject } from './util-types'
 
 // TL_ALIGN_TYPES

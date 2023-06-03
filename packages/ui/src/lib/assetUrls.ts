@@ -1,5 +1,9 @@
-import { defaultEditorAssetUrls, EditorAssetUrls, EMBED_DEFINITIONS } from '@tldraw/editor'
-import { LANGUAGES } from './hooks/useTranslation/languages'
+import {
+	defaultEditorAssetUrls,
+	EditorAssetUrls,
+	EMBED_DEFINITIONS,
+	LANGUAGES,
+} from '@tldraw/editor'
 import { iconTypes, TLUiIconType } from './icon-types'
 
 export type TLUiAssetUrls = EditorAssetUrls & {

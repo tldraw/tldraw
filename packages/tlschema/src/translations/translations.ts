@@ -1,6 +1,9 @@
 import { LANGUAGES } from './languages'
 
 /** @public */
+export { LANGUAGES }
+
+/** @public */
 export type TLLanguage = (typeof LANGUAGES)[number]
 // {
 // 	readonly locale: string
