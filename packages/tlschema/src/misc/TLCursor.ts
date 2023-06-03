@@ -49,10 +49,7 @@ export interface TLCursor {
 	rotation: number
 }
 
-/**
- * A validator for a cursor used by tldraw.
- *
- * @public */
+/** @internal */
 export const cursorValidator: T.Validator<TLCursor> = T.object({
 	color: colorTypeValidator,
 	type: cursorTypeValidator,
