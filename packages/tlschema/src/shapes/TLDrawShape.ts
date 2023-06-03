@@ -40,7 +40,7 @@ export type TLDrawShapeProps = {
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 /** @public */
-export const drawShapeTypeValidator: T.Validator<TLDrawShape> = createShapeValidator(
+export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator(
 	'draw',
 	T.object({
 		color: colorValidator,
@@ -60,7 +60,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const drawShapeTypeMigrations = defineMigrations({
+export const drawShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddInPen,
 	migrators: {
 		[Versions.AddInPen]: {

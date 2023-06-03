@@ -29,7 +29,7 @@ export interface TLInstancePageState
 }
 
 /** @public */
-export const instancePageStateTypeValidator: T.Validator<TLInstancePageState> = T.model(
+export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
 	'instance_page_state',
 	T.object({
 		typeName: T.literal('instance_page_state'),
@@ -71,7 +71,7 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	'instance_page_state',
 	{
 		migrations: instancePageStateMigrations,
-		validator: instancePageStateTypeValidator,
+		validator: instancePageStateValidator,
 		scope: 'instance',
 	}
 ).withDefaultProperties(

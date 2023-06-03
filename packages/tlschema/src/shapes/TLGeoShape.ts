@@ -34,7 +34,7 @@ export type TLGeoShapeProps = {
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 /** @public */
-export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidator(
+export const geoShapeValidator: T.Validator<TLGeoShape> = createShapeValidator(
 	'geo',
 	T.object({
 		geo: geoValidator,
@@ -65,7 +65,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const geoShapeTypeMigrations = defineMigrations({
+export const geoShapeMigrations = defineMigrations({
 	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

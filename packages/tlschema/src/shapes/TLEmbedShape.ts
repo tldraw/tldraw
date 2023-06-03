@@ -9,7 +9,7 @@ import { TLBaseShape, createShapeValidator } from './TLBaseShape'
  *
  * @public
  */
-export const tlEmbedShapePermissionDefaults = {
+export const embedShapePermissionDefaults = {
 	// ========================================================================================
 	// Disabled permissions
 	// ========================================================================================
@@ -58,9 +58,7 @@ export const tlEmbedShapePermissionDefaults = {
 } as const
 
 /** @public */
-export type TLEmbedShapePermissionName = keyof typeof tlEmbedShapePermissionDefaults
-/** @public */
-export type TLEmbedShapePermissions = { [K in TLEmbedShapePermissionName]?: boolean }
+export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionDefaults]?: boolean }
 
 /** @public */
 export type TLEmbedShapeProps = {
@@ -89,7 +87,7 @@ export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeVal
 		doesResize: T.boolean,
 		overridePermissions: T.dict(
 			T.setEnum(
-				new Set(Object.keys(tlEmbedShapePermissionDefaults) as TLEmbedShapePermissionName[])
+				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
 			),
 			T.boolean.optional()
 		).optional(),
@@ -608,7 +606,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const embedShapeTypeMigrations = defineMigrations({
+export const embedShapeMigrations = defineMigrations({
 	currentVersion: Versions.GenOriginalUrlInEmbed,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {

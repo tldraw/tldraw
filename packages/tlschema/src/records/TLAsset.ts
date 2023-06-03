@@ -19,7 +19,7 @@ export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 export const assetIdValidator = idValidator<TLAssetId>('asset')
 
 /** @public */
-export const assetTypeValidator: T.Validator<TLAsset> = T.model(
+export const assetValidator: T.Validator<TLAsset> = T.model(
 	'asset',
 	T.union('type', {
 		image: imageAssetTypeValidator,
@@ -29,7 +29,7 @@ export const assetTypeValidator: T.Validator<TLAsset> = T.model(
 )
 
 /** @public */
-export const assetTypeMigrations = defineMigrations({
+export const assetMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {
 		image: imageAssetMigrations,
@@ -49,8 +49,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 
 /** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
-	migrations: assetTypeMigrations,
-	validator: assetTypeValidator,
+	migrations: assetMigrations,
+	validator: assetValidator,
 	scope: 'document',
 })
 

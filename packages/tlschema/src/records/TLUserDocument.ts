@@ -24,7 +24,7 @@ export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocume
 export type TLUserDocumentId = ID<TLUserDocument>
 
 /** @public */
-export const userDocumentTypeValidator: T.Validator<TLUserDocument> = T.model(
+export const userDocumentValidator: T.Validator<TLUserDocument> = T.model(
 	'user_document',
 	T.object({
 		typeName: T.literal('user_document'),
@@ -48,7 +48,7 @@ export const Versions = {
 export { Versions as userDocumentVersions }
 
 /** @public */
-export const userDocumentTypeMigrations = defineMigrations({
+export const userDocumentMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserIdAndIsDarkMode,
 	migrators: {
 		[Versions.AddSnapMode]: {
@@ -94,8 +94,8 @@ export const userDocumentTypeMigrations = defineMigrations({
 /* STEP 5: Add up + down migrations for your new version */
 /** @public */
 export const UserDocumentRecordType = createRecordType<TLUserDocument>('user_document', {
-	migrations: userDocumentTypeMigrations,
-	validator: userDocumentTypeValidator,
+	migrations: userDocumentMigrations,
+	validator: userDocumentValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLUserDocument, 'id' | 'typeName' | 'userId'> => ({

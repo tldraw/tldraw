@@ -15,7 +15,7 @@ export type TLFrameShapeProps = {
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @public */
-export const frameShapeTypeValidator: T.Validator<TLFrameShape> = createShapeValidator(
+export const frameShapeValidator: T.Validator<TLFrameShape> = createShapeValidator(
 	'frame',
 	T.object({
 		opacity: opacityValidator,
@@ -26,4 +26,4 @@ export const frameShapeTypeValidator: T.Validator<TLFrameShape> = createShapeVal
 )
 
 /** @public */
-export const frameShapeTypeMigrations = defineMigrations({})
+export const frameShapeMigrations = defineMigrations({})

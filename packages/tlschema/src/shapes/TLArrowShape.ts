@@ -59,7 +59,7 @@ export interface TLArrowHeadModel {
 }
 
 /** @public */
-export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal> = T.union('type', {
+export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('type', {
 	binding: T.object({
 		type: T.literal('binding'),
 		boundShapeId: shapeIdValidator,
@@ -74,7 +74,7 @@ export const arrowTerminalTypeValidator: T.Validator<TLArrowTerminal> = T.union(
 })
 
 /** @public */
-export const arrowShapeTypeValidator: T.Validator<TLArrowShape> = createShapeValidator(
+export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidator(
 	'arrow',
 	T.object({
 		labelColor: colorValidator,
@@ -86,8 +86,8 @@ export const arrowShapeTypeValidator: T.Validator<TLArrowShape> = createShapeVal
 		arrowheadStart: arrowheadValidator,
 		arrowheadEnd: arrowheadValidator,
 		font: fontValidator,
-		start: arrowTerminalTypeValidator,
-		end: arrowTerminalTypeValidator,
+		start: arrowTerminalValidator,
+		end: arrowTerminalValidator,
 		bend: T.number,
 		text: T.string,
 	})
@@ -98,7 +98,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const arrowShapeTypeMigrations = defineMigrations({
+export const arrowShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddLabelColor,
 	migrators: {
 		[Versions.AddLabelColor]: {

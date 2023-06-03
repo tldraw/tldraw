@@ -12,7 +12,7 @@ export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
 }
 
 /** @public */
-export const documentTypeValidator: T.Validator<TLDocument> = T.model(
+export const documentValidator: T.Validator<TLDocument> = T.model(
 	'document',
 	T.object({
 		typeName: T.literal('document'),
@@ -30,7 +30,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const documentTypeMigrations = defineMigrations({
+export const documentMigrations = defineMigrations({
 	// STEP 2: Update the current version to point to your latest version
 	currentVersion: Versions.AddName,
 	// STEP 3: Add an up+down migration for the new version here
@@ -48,8 +48,8 @@ export const documentTypeMigrations = defineMigrations({
 
 /** @public */
 export const DocumentRecordType = createRecordType<TLDocument>('document', {
-	migrations: documentTypeMigrations,
-	validator: documentTypeValidator,
+	migrations: documentMigrations,
+	validator: documentValidator,
 	scope: 'document',
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({

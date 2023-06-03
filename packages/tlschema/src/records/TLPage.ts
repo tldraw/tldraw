@@ -19,7 +19,7 @@ export type TLPageId = ID<TLPage>
 export const pageIdValidator = idValidator<TLPageId>('page')
 
 /** @public */
-export const pageTypeValidator: T.Validator<TLPage> = T.model(
+export const pageValidator: T.Validator<TLPage> = T.model(
 	'page',
 	T.object({
 		typeName: T.literal('page'),
@@ -31,12 +31,12 @@ export const pageTypeValidator: T.Validator<TLPage> = T.model(
 
 /** @public */
 export const PageRecordType = createRecordType<TLPage>('page', {
-	validator: pageTypeValidator,
+	validator: pageValidator,
 	scope: 'document',
 })
 
 /** @public */
-export const pageTypeMigrations = defineMigrations({})
+export const pageMigrations = defineMigrations({})
 
 /** @public */
 export function isPageId(id: string): id is TLPageId {

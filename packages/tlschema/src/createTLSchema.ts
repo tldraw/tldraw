@@ -10,24 +10,21 @@ import { PageRecordType } from './records/TLPage'
 import { InstancePageStateRecordType } from './records/TLPageState'
 import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
-import { TLShape, rootShapeTypeMigrations } from './records/TLShape'
+import { TLShape, rootShapeMigrations } from './records/TLShape'
 import { UserDocumentRecordType } from './records/TLUserDocument'
-import { arrowShapeTypeMigrations, arrowShapeTypeValidator } from './shapes/TLArrowShape'
-import { bookmarkShapeTypeMigrations, bookmarkShapeTypeValidator } from './shapes/TLBookmarkShape'
-import { drawShapeTypeMigrations, drawShapeTypeValidator } from './shapes/TLDrawShape'
-import { embedShapeTypeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
-import { frameShapeTypeMigrations, frameShapeTypeValidator } from './shapes/TLFrameShape'
-import { geoShapeTypeMigrations, geoShapeTypeValidator } from './shapes/TLGeoShape'
-import { groupShapeTypeMigrations, groupShapeTypeValidator } from './shapes/TLGroupShape'
-import {
-	highlightShapeTypeMigrations,
-	highlightShapeTypeValidator,
-} from './shapes/TLHighlightShape'
-import { imageShapeTypeMigrations, imageShapeTypeValidator } from './shapes/TLImageShape'
-import { lineShapeTypeMigrations, lineShapeTypeValidator } from './shapes/TLLineShape'
-import { noteShapeTypeMigrations, noteShapeTypeValidator } from './shapes/TLNoteShape'
-import { textShapeTypeMigrations, textShapeTypeValidator } from './shapes/TLTextShape'
-import { videoShapeTypeMigrations, videoShapeTypeValidator } from './shapes/TLVideoShape'
+import { arrowShapeMigrations, arrowShapeValidator } from './shapes/TLArrowShape'
+import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
+import { drawShapeMigrations, drawShapeValidator } from './shapes/TLDrawShape'
+import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
+import { frameShapeMigrations, frameShapeValidator } from './shapes/TLFrameShape'
+import { geoShapeMigrations, geoShapeValidator } from './shapes/TLGeoShape'
+import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
+import { highlightShapeMigrations, highlightShapeValidator } from './shapes/TLHighlightShape'
+import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
+import { lineShapeMigrations, lineShapeValidator } from './shapes/TLLineShape'
+import { noteShapeMigrations, noteShapeValidator } from './shapes/TLNoteShape'
+import { textShapeMigrations, textShapeValidator } from './shapes/TLTextShape'
+import { videoShapeMigrations, videoShapeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 
 /** @public */
@@ -38,59 +35,59 @@ export type SchemaShapeInfo = {
 
 const coreShapes: Record<string, SchemaShapeInfo> = {
 	group: {
-		migrations: groupShapeTypeMigrations,
-		validator: groupShapeTypeValidator,
+		migrations: groupShapeMigrations,
+		validator: groupShapeValidator,
 	},
 	bookmark: {
-		migrations: bookmarkShapeTypeMigrations,
-		validator: bookmarkShapeTypeValidator,
+		migrations: bookmarkShapeMigrations,
+		validator: bookmarkShapeValidator,
 	},
 	embed: {
-		migrations: embedShapeTypeMigrations,
+		migrations: embedShapeMigrations,
 		validator: embedShapeTypeValidator,
 	},
 	image: {
-		migrations: imageShapeTypeMigrations,
-		validator: imageShapeTypeValidator,
+		migrations: imageShapeMigrations,
+		validator: imageShapeValidator,
 	},
 	text: {
-		migrations: textShapeTypeMigrations,
-		validator: textShapeTypeValidator,
+		migrations: textShapeMigrations,
+		validator: textShapeValidator,
 	},
 	video: {
-		migrations: videoShapeTypeMigrations,
-		validator: videoShapeTypeValidator,
+		migrations: videoShapeMigrations,
+		validator: videoShapeValidator,
 	},
 }
 
 const defaultShapes: Record<string, SchemaShapeInfo> = {
 	arrow: {
-		migrations: arrowShapeTypeMigrations,
-		validator: arrowShapeTypeValidator,
+		migrations: arrowShapeMigrations,
+		validator: arrowShapeValidator,
 	},
 	draw: {
-		migrations: drawShapeTypeMigrations,
-		validator: drawShapeTypeValidator,
+		migrations: drawShapeMigrations,
+		validator: drawShapeValidator,
 	},
 	frame: {
-		migrations: frameShapeTypeMigrations,
-		validator: frameShapeTypeValidator,
+		migrations: frameShapeMigrations,
+		validator: frameShapeValidator,
 	},
 	geo: {
-		migrations: geoShapeTypeMigrations,
-		validator: geoShapeTypeValidator,
+		migrations: geoShapeMigrations,
+		validator: geoShapeValidator,
 	},
 	line: {
-		migrations: lineShapeTypeMigrations,
-		validator: lineShapeTypeValidator,
+		migrations: lineShapeMigrations,
+		validator: lineShapeValidator,
 	},
 	note: {
-		migrations: noteShapeTypeMigrations,
-		validator: noteShapeTypeValidator,
+		migrations: noteShapeMigrations,
+		validator: noteShapeValidator,
 	},
 	highlight: {
-		migrations: highlightShapeTypeMigrations,
-		validator: highlightShapeTypeValidator,
+		migrations: highlightShapeMigrations,
+		validator: highlightShapeValidator,
 	},
 }
 
@@ -117,9 +114,9 @@ export function createTLSchema(
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
-			currentVersion: rootShapeTypeMigrations.currentVersion,
-			firstVersion: rootShapeTypeMigrations.firstVersion,
-			migrators: rootShapeTypeMigrations.migrators,
+			currentVersion: rootShapeMigrations.currentVersion,
+			firstVersion: rootShapeMigrations.firstVersion,
+			migrators: rootShapeMigrations.migrators,
 			subTypeKey: 'type',
 			subTypeMigrations: {
 				...Object.fromEntries(

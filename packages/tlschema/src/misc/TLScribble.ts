@@ -17,7 +17,7 @@ export type TLScribble = {
 }
 
 /** @public */
-export const scribbleTypeValidator: T.Validator<TLScribble> = T.object({
+export const scribbleValidator: T.Validator<TLScribble> = T.object({
 	points: T.arrayOf(T.point),
 	size: T.positiveNumber,
 	color: colorTypeValidator,

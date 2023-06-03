@@ -24,7 +24,7 @@ export type TLTextShapeProps = {
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 /** @public */
-export const textShapeTypeValidator: T.Validator<TLTextShape> = createShapeValidator(
+export const textShapeValidator: T.Validator<TLTextShape> = createShapeValidator(
 	'text',
 	T.object({
 		color: colorValidator,
@@ -44,7 +44,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const textShapeTypeMigrations = defineMigrations({
+export const textShapeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveJustify,
 	migrators: {
 		[Versions.RemoveJustify]: {

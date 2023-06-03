@@ -14,5 +14,6 @@ export const TL_COLOR_TYPES = new Set([
 
 /** @public */
 export type TLColor = SetValue<typeof TL_COLOR_TYPES>
+
 /** @public */
 export const colorTypeValidator = T.setEnum(TL_COLOR_TYPES)

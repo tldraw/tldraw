@@ -12,7 +12,7 @@ export type TLGroupShapeProps = {
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
 /** @public */
-export const groupShapeTypeValidator: T.Validator<TLGroupShape> = createShapeValidator(
+export const groupShapeValidator: T.Validator<TLGroupShape> = createShapeValidator(
 	'group',
 	T.object({
 		opacity: opacityValidator,
@@ -20,4 +20,4 @@ export const groupShapeTypeValidator: T.Validator<TLGroupShape> = createShapeVal
 )
 
 /** @public */
-export const groupShapeTypeMigrations = defineMigrations({})
+export const groupShapeMigrations = defineMigrations({})

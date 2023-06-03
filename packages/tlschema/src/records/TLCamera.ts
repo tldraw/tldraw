@@ -17,7 +17,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = ID<TLCamera>
 
 /** @public */
-export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
+export const cameraValidator: T.Validator<TLCamera> = T.model(
 	'camera',
 	T.object({
 		typeName: T.literal('camera'),
@@ -30,7 +30,7 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 
 /** @public */
 export const CameraRecordType = createRecordType<TLCamera>('camera', {
-	validator: cameraTypeValidator,
+	validator: cameraValidator,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLCamera, 'id' | 'typeName'> => ({

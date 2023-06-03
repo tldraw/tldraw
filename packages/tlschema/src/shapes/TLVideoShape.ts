@@ -19,7 +19,7 @@ export type TLVideoShapeProps = {
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
 /** @public */
-export const videoShapeTypeValidator: T.Validator<TLVideoShape> = createShapeValidator(
+export const videoShapeValidator: T.Validator<TLVideoShape> = createShapeValidator(
 	'video',
 	T.object({
 		opacity: opacityValidator,
@@ -37,7 +37,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const videoShapeTypeMigrations = defineMigrations({
+export const videoShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddUrlProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

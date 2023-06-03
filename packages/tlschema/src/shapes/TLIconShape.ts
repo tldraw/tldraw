@@ -21,7 +21,7 @@ export type TLIconShapeProps = {
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>
 
 /** @public */
-export const iconShapeTypeValidator: T.Validator<TLIconShape> = createShapeValidator(
+export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator(
 	'icon',
 	T.object({
 		size: sizeValidator,
@@ -34,4 +34,4 @@ export const iconShapeTypeValidator: T.Validator<TLIconShape> = createShapeValid
 )
 
 /** @public */
-export const iconShapeTypeMigrations = defineMigrations({})
+export const iconShapeMigrations = defineMigrations({})

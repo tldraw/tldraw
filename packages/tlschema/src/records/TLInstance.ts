@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
-import { scribbleTypeValidator, TLScribble } from '../misc/TLScribble'
+import { scribbleValidator, TLScribble } from '../misc/TLScribble'
 import { alignValidator } from '../styles/TLAlignStyle'
 import { arrowheadValidator } from '../styles/TLArrowheadStyle'
 import { TL_STYLE_TYPES, TLStyleType } from '../styles/TLBaseStyle'
@@ -77,7 +77,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 			spline: splineValidator,
 		}),
 		cursor: cursorValidator,
-		scribble: scribbleTypeValidator.nullable(),
+		scribble: scribbleValidator.nullable(),
 		isFocusMode: T.boolean,
 		isDebugMode: T.boolean,
 		isToolLocked: T.boolean,
@@ -104,7 +104,7 @@ const Versions = {
 export { Versions as instanceTypeVersions }
 
 /** @public */
-export const instanceTypeMigrations = defineMigrations({
+export const instanceMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserId,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -248,7 +248,7 @@ export const instanceTypeMigrations = defineMigrations({
 
 /** @public */
 export const InstanceRecordType = createRecordType<TLInstance>('instance', {
-	migrations: instanceTypeMigrations,
+	migrations: instanceMigrations,
 	validator: instanceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

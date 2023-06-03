@@ -32,7 +32,7 @@ export const cropValidator = T.object({
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
 /** @public */
-export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeValidator(
+export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
 	T.object({
 		opacity: opacityValidator,
@@ -51,7 +51,7 @@ const Versions = {
 } as const
 
 /** @public */
-export const imageShapeTypeMigrations = defineMigrations({
+export const imageShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

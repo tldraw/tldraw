@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
-import { scribbleTypeValidator, TLScribble } from '../misc/TLScribble'
+import { scribbleValidator, TLScribble } from '../misc/TLScribble'
 import { TLInstanceId } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
@@ -35,7 +35,7 @@ export type TLInstancePresenceID = ID<TLInstancePresence>
 
 // --- VALIDATION ---
 /** @public */
-export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.model(
+export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(
 	'instance_presence',
 	T.object({
 		instanceId: idValidator<TLInstanceId>('instance'),
@@ -61,7 +61,7 @@ export const instancePresenceTypeValidator: T.Validator<TLInstancePresence> = T.
 		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
 		brush: T.boxModel.nullable(),
-		scribble: scribbleTypeValidator.nullable(),
+		scribble: scribbleValidator.nullable(),
 	})
 )
 
@@ -69,7 +69,7 @@ const Versions = {
 	AddScribbleDelay: 1,
 } as const
 
-export const instancePresenceTypeMigrations = defineMigrations({
+export const instancePresenceMigrations = defineMigrations({
 	currentVersion: Versions.AddScribbleDelay,
 	migrators: {
 		[Versions.AddScribbleDelay]: {
@@ -94,8 +94,8 @@ export const instancePresenceTypeMigrations = defineMigrations({
 export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	'instance_presence',
 	{
-		migrations: instancePresenceTypeMigrations,
-		validator: instancePresenceTypeValidator,
+		migrations: instancePresenceMigrations,
+		validator: instancePresenceValidator,
 		scope: 'presence',
 	}
 ).withDefaultProperties(() => ({

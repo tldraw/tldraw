@@ -23,7 +23,7 @@ export interface TLHandle {
 }
 
 /** @public */
-export const handleTypeValidator: T.Validator<TLHandle> = T.object({
+export const handleValidator: T.Validator<TLHandle> = T.object({
 	id: T.string,
 	type: T.setEnum(TL_HANDLE_TYPES),
 	canBind: T.boolean.optional(),

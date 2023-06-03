@@ -81,7 +81,7 @@ const Versions = {
 } as const
 
 /** @internal */
-export const rootShapeTypeMigrations = defineMigrations({
+export const rootShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddIsLocked,
 	migrators: {
 		[Versions.AddIsLocked]: {
