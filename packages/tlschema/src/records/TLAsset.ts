@@ -10,7 +10,6 @@ import { imageAssetMigrations, imageAssetValidator, TLImageAsset } from '../asse
 import { TLVideoAsset, videoAssetMigrations, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
-// --- DEFINITION ---
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 

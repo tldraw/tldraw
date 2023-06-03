@@ -9,7 +9,10 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 	props: Props
 }
 
-/** @internal */
+/**
+ * A validator for asset record type Ids.
+ *
+ * @public */
 export const assetIdValidator = idValidator<TLAssetId>('asset')
 
 /**

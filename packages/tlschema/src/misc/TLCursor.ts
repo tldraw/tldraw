@@ -2,7 +2,10 @@ import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLColor, colorTypeValidator } from './TLColor'
 
-/** @public */
+/**
+ * The cursor types used by tldraw's default shapes.
+ *
+ * @public */
 export const TL_CURSOR_TYPES = new Set([
 	'none',
 	'default',
@@ -27,19 +30,29 @@ export const TL_CURSOR_TYPES = new Set([
 	'zoom-out',
 ])
 
-/** @public */
+/**
+ * A type for the cursor types used by tldraw's default shapes.
+ *
+ *  @public */
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>
-/** @public */
+
+/** @internal */
 export const cursorTypeValidator = T.setEnum(TL_CURSOR_TYPES)
 
-/** @public */
+/**
+ * A cursor used by tldraw.
+ *
+ *  @public */
 export interface TLCursor {
 	color: TLColor
 	type: TLCursorType
 	rotation: number
 }
 
-/** @public */
+/**
+ * A validator for a cursor used by tldraw.
+ *
+ * @public */
 export const cursorValidator: T.Validator<TLCursor> = T.object({
 	color: colorTypeValidator,
 	type: cursorTypeValidator,

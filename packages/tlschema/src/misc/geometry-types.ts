@@ -1,4 +1,7 @@
-/** @public */
+/**
+ * A serializable model for 2D boxes.
+ *
+ * @public */
 export interface Box2dModel {
 	x: number
 	y: number
@@ -6,7 +9,10 @@ export interface Box2dModel {
 	h: number
 }
 
-/** @public */
+/**
+ * A serializable model for 2D vectors.
+ *
+ * @public */
 export interface Vec2dModel {
 	x: number
 	y: number

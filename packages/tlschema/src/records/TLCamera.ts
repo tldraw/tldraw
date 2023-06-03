@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
 /**
- * TLCamera
+ * A camera record.
  *
  * @public
  */
@@ -13,7 +13,10 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 	z: number
 }
 
-/** @public */
+/**
+ * The id of a camera record.
+ *
+ * @public */
 export type TLCameraId = ID<TLCamera>
 
 /** @internal */

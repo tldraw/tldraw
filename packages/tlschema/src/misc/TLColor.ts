@@ -1,7 +1,10 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 
-/** @public */
+/**
+ * The colors used by tldraw's default shapes.
+ *
+ *  @public */
 export const TL_COLOR_TYPES = new Set([
 	'accent',
 	'white',
@@ -12,8 +15,14 @@ export const TL_COLOR_TYPES = new Set([
 	'muted-1',
 ] as const)
 
-/** @public */
+/**
+ * A type for the colors used by tldraw's default shapes.
+ *
+ *  @public */
 export type TLColor = SetValue<typeof TL_COLOR_TYPES>
 
-/** @public */
+/**
+ * A validator for the colors used by tldraw's default shapes.
+ *
+ * @public */
 export const colorTypeValidator = T.setEnum(TL_COLOR_TYPES)

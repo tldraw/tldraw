@@ -18,7 +18,7 @@ import { UnknownRecord } from '@tldraw/store';
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;
 
-// @internal (undocumented)
+// @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
 // @internal (undocumented)
@@ -30,7 +30,7 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 // @internal (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
 
-// @public (undocumented)
+// @public
 export interface Box2dModel {
     // (undocumented)
     h: number;
@@ -48,7 +48,7 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
 
-// @public (undocumented)
+// @public
 export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
@@ -464,7 +464,7 @@ export const PointerRecordType: RecordType<TLPointer, never>;
 // @internal (undocumented)
 export const rootShapeMigrations: Migrations;
 
-// @public (undocumented)
+// @internal (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
@@ -616,10 +616,10 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
     z: number;
 }
 
-// @public (undocumented)
+// @public
 export type TLCameraId = ID<TLCamera>;
 
-// @public (undocumented)
+// @public
 export type TLColor = SetValue<typeof TL_COLOR_TYPES_2>;
 
 // @public (undocumented)
@@ -633,7 +633,7 @@ export interface TLColorStyle extends TLBaseStyle {
 // @public (undocumented)
 export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
-// @public (undocumented)
+// @public
 export interface TLCursor {
     // (undocumented)
     color: TLColor;
@@ -643,7 +643,7 @@ export interface TLCursor {
     type: TLCursorType;
 }
 
-// @public (undocumented)
+// @public
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public (undocumented)
@@ -746,13 +746,6 @@ export interface TLHandle {
 }
 
 // @public
-export interface TLHandlePartial {
-    x: number;
-    // (undocumented)
-    y: number;
-}
-
-// @public (undocumented)
 export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
 
 // @public (undocumented)
@@ -944,7 +937,7 @@ export const TLPOINTER_ID: TLPointerId;
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUserDocument;
 
-// @public (undocumented)
+// @public
 export type TLScribble = {
     points: Vec2dModel[];
     size: number;
@@ -1102,7 +1095,7 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 // @internal (undocumented)
 export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 
-// @public (undocumented)
+// @public
 export interface Vec2dModel {
     // (undocumented)
     x: number;
