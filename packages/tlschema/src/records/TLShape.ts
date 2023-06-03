@@ -1,4 +1,4 @@
-import { defineMigrations, ID, UnknownRecord } from '@tldraw/tlstore'
+import { defineMigrations, ID, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/shape-validation'
 import { TLArrowShape } from '../shapes/TLArrowShape'

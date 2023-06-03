@@ -4,17 +4,17 @@
 
 ```ts
 
-import { BaseRecord } from '@tldraw/tlstore';
-import { ID } from '@tldraw/tlstore';
-import { Migrations } from '@tldraw/tlstore';
-import { RecordType } from '@tldraw/tlstore';
+import { BaseRecord } from '@tldraw/store';
+import { ID } from '@tldraw/store';
+import { Migrations } from '@tldraw/store';
+import { RecordType } from '@tldraw/store';
 import { Signal } from 'signia';
-import { Store } from '@tldraw/tlstore';
-import { StoreSchema } from '@tldraw/tlstore';
-import { StoreSchemaOptions } from '@tldraw/tlstore';
-import { StoreSnapshot } from '@tldraw/tlstore';
+import { Store } from '@tldraw/store';
+import { StoreSchema } from '@tldraw/store';
+import { StoreSchemaOptions } from '@tldraw/store';
+import { StoreSnapshot } from '@tldraw/store';
 import { T } from '@tldraw/validate';
-import { UnknownRecord } from '@tldraw/tlstore';
+import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;

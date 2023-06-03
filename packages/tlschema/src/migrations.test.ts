@@ -1,4 +1,4 @@
-import { createRecordType, Migrations, Store } from '@tldraw/tlstore'
+import { createRecordType, Migrations, Store } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
 import fs from 'fs'
 import { imageAssetMigrations } from './assets/TLImageAsset'

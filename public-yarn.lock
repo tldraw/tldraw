@@ -4294,9 +4294,9 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@tldraw/file-format": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlstore": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -4333,8 +4333,8 @@ __metadata:
     "@testing-library/react": ^14.0.0
     "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
-    "@tldraw/tlstore": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": ^2.1.2
@@ -4374,7 +4374,7 @@ __metadata:
   dependencies:
     "@tldraw/editor": "workspace:*"
     "@tldraw/primitives": "workspace:*"
-    "@tldraw/tlstore": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -4470,6 +4470,22 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/store@workspace:*, @tldraw/store@workspace:packages/store":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/store@workspace:packages/store"
+  dependencies:
+    "@peculiar/webcrypto": ^1.4.0
+    "@tldraw/utils": "workspace:*"
+    "@types/lodash.isequal": ^4.5.6
+    lazyrepo: 0.0.0-alpha.26
+    lodash.isequal: ^4.5.0
+    nanoid: 4.0.2
+    raf: ^3.4.1
+  peerDependencies:
+    signia: "*"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/tldraw@workspace:*, @tldraw/tldraw@workspace:packages/tldraw":
   version: 0.0.0-use.local
   resolution: "@tldraw/tldraw@workspace:packages/tldraw"
@@ -4495,28 +4511,12 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/tlschema@workspace:packages/tlschema"
   dependencies:
-    "@tldraw/tlstore": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     kleur: ^4.1.5
     lazyrepo: 0.0.0-alpha.26
     nanoid: 4.0.2
-  peerDependencies:
-    signia: "*"
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/tlstore@workspace:*, @tldraw/tlstore@workspace:packages/tlstore":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/tlstore@workspace:packages/tlstore"
-  dependencies:
-    "@peculiar/webcrypto": ^1.4.0
-    "@tldraw/utils": "workspace:*"
-    "@types/lodash.isequal": ^4.5.6
-    lazyrepo: 0.0.0-alpha.26
-    lodash.isequal: ^4.5.0
-    nanoid: 4.0.2
-    raf: ^3.4.1
   peerDependencies:
     signia: "*"
   languageName: unknown
@@ -17033,7 +17033,7 @@ __metadata:
   dependencies:
     "@tldraw/editor": "workspace:*"
     "@tldraw/file-format": "workspace:*"
-    "@tldraw/tlstore": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node-fetch": ^2.6.2
     "@types/vscode": ^1.75.1

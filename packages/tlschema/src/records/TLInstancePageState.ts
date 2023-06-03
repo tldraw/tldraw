@@ -1,4 +1,4 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator, instanceIdValidator, pageIdValidator, shapeIdValidator } from '../validation'
 import { TLCamera, TLCameraId } from './TLCamera'

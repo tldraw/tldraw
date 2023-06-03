@@ -1,4 +1,4 @@
-import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/tlstore'
+import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLRecord } from './TLRecord'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'

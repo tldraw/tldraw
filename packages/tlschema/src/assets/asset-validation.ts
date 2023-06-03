@@ -1,4 +1,4 @@
-import { BaseRecord } from '@tldraw/tlstore'
+import { BaseRecord } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAssetId } from '../records/TLAsset'
 import { assetIdValidator } from '../validation'

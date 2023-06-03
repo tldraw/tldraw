@@ -1,4 +1,4 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
+import { createRecordType, defineMigrations, ID } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLBaseAsset } from '../assets/asset-validation'
 import {

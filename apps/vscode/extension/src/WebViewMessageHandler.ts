@@ -1,4 +1,4 @@
-import { UnknownRecord } from '@tldraw/tlstore'
+import { UnknownRecord } from '@tldraw/store'
 import { isEqual } from 'lodash'
 import fetch from 'node-fetch'
 import * as vscode from 'vscode'

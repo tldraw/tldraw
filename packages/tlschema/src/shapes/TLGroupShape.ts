@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLOpacityType } from '../style-types'
 import { opacityValidator } from '../validation'

@@ -13,7 +13,7 @@
 	"references": [
 		{ "path": "../primitives" },
 		{ "path": "../tlschema" },
-		{ "path": "../tlstore" },
+		{ "path": "../store" },
 		{ "path": "../validate" },
 		{ "path": "../utils" },
 		{ "path": "../indices" }

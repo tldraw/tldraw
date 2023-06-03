@@ -1,4 +1,4 @@
-import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/tlstore'
+import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/store'
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { TLRecord } from './TLRecord'
 import { CameraRecordType } from './records/TLCamera'

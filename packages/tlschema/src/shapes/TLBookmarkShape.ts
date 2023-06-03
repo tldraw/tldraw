@@ -1,4 +1,4 @@
-import { defineMigrations } from '@tldraw/tlstore'
+import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType } from '../style-types'

@@ -5,14 +5,14 @@
 ```ts
 
 import { Editor } from '@tldraw/editor';
-import { MigrationFailureReason } from '@tldraw/tlstore';
+import { MigrationFailureReason } from '@tldraw/store';
 import { Result } from '@tldraw/utils';
-import { SerializedSchema } from '@tldraw/tlstore';
+import { SerializedSchema } from '@tldraw/store';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLUiToastsContextType } from '@tldraw/ui';
 import { TLUiTranslationKey } from '@tldraw/ui';
-import { UnknownRecord } from '@tldraw/tlstore';
+import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;

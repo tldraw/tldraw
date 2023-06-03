@@ -1,5 +1,5 @@
+import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
-import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { IDBPDatabase, openDB } from 'idb'
 import { STORE_PREFIX, addDbName, getAllIndexDbNames } from './persistence-constants'
 

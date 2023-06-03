@@ -10,6 +10,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { ComputedCache } from '@tldraw/store'
 import {
 	TLArrowheadType,
 	TLArrowShape,
@@ -20,7 +21,6 @@ import {
 	TLShapePartial,
 	Vec2dModel,
 } from '@tldraw/tlschema'
-import { ComputedCache } from '@tldraw/tlstore'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'

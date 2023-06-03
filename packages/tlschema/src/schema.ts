@@ -1,4 +1,4 @@
-import { defineMigrations, StoreSnapshot } from '@tldraw/tlstore'
+import { defineMigrations, StoreSnapshot } from '@tldraw/store'
 import { TLRecord } from './TLRecord'
 
 const Versions = {
