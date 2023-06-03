@@ -477,7 +477,34 @@ export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
 export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @public (undocumented)
+export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+
+// @public
+export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const TL_FILL_TYPES: Set<"none" | "pattern" | "semi" | "solid">;
+
+// @public (undocumented)
+export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
+
+// @public (undocumented)
 export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+
+// @public (undocumented)
+export const TL_OPACITY_TYPES: Set<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+
+// @public (undocumented)
+export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
+
+// @public (undocumented)
+export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
 export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
@@ -620,7 +647,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = RecordId<TLCamera>;
 
 // @public
-export type TLColor = SetValue<typeof TL_COLOR_TYPES_2>;
+export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
@@ -631,7 +658,7 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
 
 // @public
 export interface TLCursor {
