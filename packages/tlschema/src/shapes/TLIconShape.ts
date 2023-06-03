@@ -1,5 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { TLColorType, TLDashType, TLIconType, TLOpacityType, TLSizeType } from '../style-types'
 import {
 	colorValidator,

@@ -1,5 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { Box2dModel } from '../geometry-types'
 import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
 import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'

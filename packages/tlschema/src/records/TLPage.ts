@@ -1,5 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/store'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { pageIdValidator } from '../validation'
 
 /**

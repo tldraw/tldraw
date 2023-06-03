@@ -1,5 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { Vec2dModel } from '../geometry-types'
 import { TLColorType, TLDashType, TLFillType, TLOpacityType, TLSizeType } from '../style-types'
 import { SetValue } from '../util-types'

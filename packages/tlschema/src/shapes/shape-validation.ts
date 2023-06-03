@@ -1,5 +1,5 @@
 import { BaseRecord } from '@tldraw/store'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 import { parentIdValidator, shapeIdValidator } from '../validation'
 
