@@ -88,7 +88,7 @@ import { TLStore } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
-import { TLTextShapeProps } from '@tldraw/tlschema/.tsbuild/shapes/TLTextShape';
+import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUserDocument } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';

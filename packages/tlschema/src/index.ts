@@ -87,7 +87,7 @@ export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
 export { type TLLineShape } from './shapes/TLLineShape'
 export { type TLNoteShape } from './shapes/TLNoteShape'
-export { type TLTextShape } from './shapes/TLTextShape'
+export { type TLTextShape, type TLTextShapeProps } from './shapes/TLTextShape'
 export { type TLVideoShape } from './shapes/TLVideoShape'
 export { alignValidator, type TLAlignStyle, type TLAlignType } from './styles/TLAlignStyle'
 export {
