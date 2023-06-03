@@ -210,7 +210,7 @@ async function copyTranslations() {
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src')
+	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',

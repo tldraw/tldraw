@@ -587,19 +587,11 @@ export type SchemaShapeInfo = {
 // @public (undocumented)
 export const scribbleTypeValidator: T.Validator<TLScribble>;
 
-// @public (undocumented)
-export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
-
 // @internal (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @internal (undocumented)
 export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
-
-// @public (undocumented)
-export type SmooshedUnionObject<T> = {
-    [K in T extends infer P ? keyof P : never]: T extends infer P ? K extends keyof P ? P[K] : never : never;
-};
 
 // @internal (undocumented)
 export const splineValidator: T.Validator<"cubic" | "line">;

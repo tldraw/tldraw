@@ -289,21 +289,3 @@ export {
 	getDefaultTranslationLocale,
 	type TLLanguage,
 } from './translations/translations'
-export { type SetValue, type SmooshedUnionObject } from './util-types'
-
-// TL_ALIGN_TYPES
-// TL_COLOR_TYPES
-// TL_DASH_TYPES
-// TL_FILL_TYPES
-// TL_FONT_TYPES
-// TL_OPACITY_TYPES
-// TL_SIZE_TYPES
-// TL_STYLE_TYPES
-// alignValidator
-// colorValidator
-// dashValidator
-// fillValidator
-// fontValidator
-// geoValidator
-// opacityValidator
-// sizeValidator
