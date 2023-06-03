@@ -1,6 +1,6 @@
 # @tldraw/tlschema
 
-This package houses type definitions, schema migrations, and other type metadata for tldraw's default persisted data.
+This package houses type definitions, schema migrations, and other type metadata for the tldraw editor's default persisted data.
 
 There are three main kinds of types:
 
