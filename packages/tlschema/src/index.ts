@@ -224,36 +224,66 @@ export {
 	type TLVideoShapeProps,
 } from './shapes/TLVideoShape'
 export { storeMigrations } from './store-migrations'
-export { TL_ALIGN_TYPES, alignValidator, type TLAlignStyle, type TLAlignType } from './styles/align'
+export {
+	TL_ALIGN_TYPES,
+	alignValidator,
+	type TLAlignStyle,
+	type TLAlignType,
+} from './styles/TLAlignStyle'
 export {
 	TL_ARROWHEAD_TYPES,
 	arrowheadValidator,
 	type TLArrowheadEndStyle,
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,
-} from './styles/arrowhead'
-export { TL_STYLE_TYPES, type TLBaseStyle, type TLStyleType } from './styles/base-style'
-export { colorValidator, type TLColorStyle, type TLColorType } from './styles/color'
-export { TL_DASH_TYPES, dashValidator, type TLDashStyle, type TLDashType } from './styles/dash'
-export { TL_FILL_TYPES, fillValidator, type TLFillStyle, type TLFillType } from './styles/fill'
-export { TL_FONT_TYPES, fontValidator, type TLFontStyle, type TLFontType } from './styles/font'
-export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/geo'
-export { TL_ICON_TYPES, iconValidator, type TLIconStyle, type TLIconType } from './styles/icon'
+} from './styles/TLArrowheadStyle'
+export { TL_STYLE_TYPES, type TLBaseStyle, type TLStyleType } from './styles/TLBaseStyle'
+export { colorValidator, type TLColorStyle, type TLColorType } from './styles/TLColorStyle'
+export {
+	TL_DASH_TYPES,
+	dashValidator,
+	type TLDashStyle,
+	type TLDashType,
+} from './styles/TLDashStyle'
+export {
+	TL_FILL_TYPES,
+	fillValidator,
+	type TLFillStyle,
+	type TLFillType,
+} from './styles/TLFillStyle'
+export {
+	TL_FONT_TYPES,
+	fontValidator,
+	type TLFontStyle,
+	type TLFontType,
+} from './styles/TLFontStyle'
+export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
+export {
+	TL_ICON_TYPES,
+	iconValidator,
+	type TLIconStyle,
+	type TLIconType,
+} from './styles/TLIconStyle'
 export {
 	TL_OPACITY_TYPES,
 	opacityValidator,
 	type TLOpacityStyle,
 	type TLOpacityType,
-} from './styles/opacity'
-export { TL_SIZE_TYPES, sizeValidator, type TLSizeStyle, type TLSizeType } from './styles/size'
+} from './styles/TLOpacityStyle'
+export {
+	TL_SIZE_TYPES,
+	sizeValidator,
+	type TLSizeStyle,
+	type TLSizeType,
+} from './styles/TLSizeStyle'
 export {
 	TL_SPLINE_TYPES,
 	splineValidator,
+	type TLSplineStyle,
 	type TLSplineType,
-	type TLSplineTypeStyle,
-} from './styles/spline'
+} from './styles/TLSplineStyle'
+export { type TLVerticalAlignType } from './styles/TLVerticalAlignStyle'
 export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
-export { type TLVerticalAlignType } from './styles/vertical-align'
 export { getDefaultTranslationLocale } from './translations/translations'
 export { type SetValue, type SmooshedUnionObject } from './util-types'
 

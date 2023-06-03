@@ -1224,15 +1224,15 @@ export interface TLSizeStyle extends TLBaseStyle {
 export type TLSizeType = SetValue<typeof TL_SIZE_TYPES>;
 
 // @public (undocumented)
-export type TLSplineType = SetValue<typeof TL_SPLINE_TYPES>;
-
-// @public (undocumented)
-export interface TLSplineTypeStyle extends TLBaseStyle {
+export interface TLSplineStyle extends TLBaseStyle {
     // (undocumented)
     id: TLSplineType;
     // (undocumented)
     type: 'spline';
 }
+
+// @public (undocumented)
+export type TLSplineType = SetValue<typeof TL_SPLINE_TYPES>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;
@@ -1273,13 +1273,13 @@ export interface TLStyleCollections {
     // (undocumented)
     size: TLSizeStyle[];
     // (undocumented)
-    spline: TLSplineTypeStyle[];
+    spline: TLSplineStyle[];
     // (undocumented)
     verticalAlign: TLVerticalAlignStyle[];
 }
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLOpacityStyle | TLSizeStyle | TLSplineTypeStyle | TLVerticalAlignStyle;
+export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLOpacityStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;

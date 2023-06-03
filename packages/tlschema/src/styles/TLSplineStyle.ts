@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLBaseStyle } from './base-style'
+import { TLBaseStyle } from './TLBaseStyle'
 
 /** @public */
 export const TL_SPLINE_TYPES = new Set(['cubic', 'line'] as const)
@@ -9,7 +9,7 @@ export const TL_SPLINE_TYPES = new Set(['cubic', 'line'] as const)
 export type TLSplineType = SetValue<typeof TL_SPLINE_TYPES>
 
 /** @public */
-export interface TLSplineTypeStyle extends TLBaseStyle {
+export interface TLSplineStyle extends TLBaseStyle {
 	id: TLSplineType
 	type: 'spline'
 }

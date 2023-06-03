@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLBaseStyle } from './base-style'
+import { TLBaseStyle } from './TLBaseStyle'
 
 /** @public */
 export const TL_DASH_TYPES = new Set(['draw', 'solid', 'dashed', 'dotted'] as const)

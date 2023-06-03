@@ -1,11 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLHandle, handleTypeValidator } from '../misc/TLHandle'
-import { TLColorType, colorValidator } from '../styles/color'
-import { TLDashType, dashValidator } from '../styles/dash'
-import { TLOpacityType, opacityValidator } from '../styles/opacity'
-import { TLSizeType, sizeValidator } from '../styles/size'
-import { TLSplineType, splineValidator } from '../styles/spline'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLDashType, dashValidator } from '../styles/TLDashStyle'
+import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLSplineType, splineValidator } from '../styles/TLSplineStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */

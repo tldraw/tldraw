@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLBaseStyle } from './base-style'
+import { TLBaseStyle } from './TLBaseStyle'
 
 /** @public */
 export const TL_OPACITY_TYPES = new Set(['0.1', '0.25', '0.5', '0.75', '1'] as const)

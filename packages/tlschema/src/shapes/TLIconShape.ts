@@ -1,10 +1,10 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLColorType, colorValidator } from '../styles/color'
-import { TLDashType, dashValidator } from '../styles/dash'
-import { TLIconType, iconValidator } from '../styles/icon'
-import { TLOpacityType, opacityValidator } from '../styles/opacity'
-import { TLSizeType, sizeValidator } from '../styles/size'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLDashType, dashValidator } from '../styles/TLDashStyle'
+import { TLIconType, iconValidator } from '../styles/TLIconStyle'
+import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */

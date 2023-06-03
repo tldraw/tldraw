@@ -1,7 +1,7 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { TLAssetId, assetIdValidator } from '../records/TLAsset'
-import { TLOpacityType, opacityValidator } from '../styles/opacity'
+import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */

@@ -9,10 +9,10 @@ import {
 	TLStyleType,
 } from '..'
 import { TLShapeProps } from '../records/TLShape'
-import { TLArrowheadEndStyle, TLArrowheadStartStyle } from './arrowhead'
-import { TLGeoStyle } from './geo'
-import { TLSplineTypeStyle } from './spline'
-import { TLVerticalAlignStyle } from './vertical-align'
+import { TLArrowheadEndStyle, TLArrowheadStartStyle } from './TLArrowheadStyle'
+import { TLGeoStyle } from './TLGeoStyle'
+import { TLSplineStyle } from './TLSplineStyle'
+import { TLVerticalAlignStyle } from './TLVerticalAlignStyle'
 
 /** @public */
 export type TLStyleItem =
@@ -27,7 +27,7 @@ export type TLStyleItem =
 	| TLGeoStyle
 	| TLArrowheadStartStyle
 	| TLArrowheadEndStyle
-	| TLSplineTypeStyle
+	| TLSplineStyle
 //	| TLIconStyle
 
 /** @public */
@@ -43,7 +43,7 @@ export interface TLStyleCollections {
 	geo: TLGeoStyle[]
 	arrowheadStart: TLArrowheadStartStyle[]
 	arrowheadEnd: TLArrowheadEndStyle[]
-	spline: TLSplineTypeStyle[]
+	spline: TLSplineStyle[]
 	// icon: TLIconStyle[]
 }
 

@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLBaseStyle } from './base-style'
+import { TLBaseStyle } from './TLBaseStyle'
 
 /** @public */
 export const TL_FONT_TYPES = new Set(['draw', 'sans', 'serif', 'mono'] as const)
