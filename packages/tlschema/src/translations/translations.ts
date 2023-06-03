@@ -1,10 +1,11 @@
 import { LANGUAGES } from './languages'
 
 /** @public */
-export type TLLanguage = {
-	readonly locale: string
-	readonly label: string
-}
+export type TLLanguage = (typeof LANGUAGES)[number]
+// {
+// 	readonly locale: string
+// 	readonly label: string
+// }
 
 /** @public */
 export function getDefaultTranslationLocale(): TLLanguage['locale'] {
