@@ -1019,7 +1019,7 @@ describe('user config refactor', () => {
 })
 
 describe('Adds chat message to presence', () => {
-	const { up, down } = instancePresenceTypeMigrations.migrators[2]
+	const { up, down } = instancePresenceMigrations.migrators[2]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '' })
@@ -1031,7 +1031,7 @@ describe('Adds chat message to presence', () => {
 })
 
 describe('Adds chat properties to instance', () => {
-	const { up, down } = instanceTypeMigrations.migrators[12]
+	const { up, down } = instanceMigrations.migrators[12]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '', isChatting: false })
