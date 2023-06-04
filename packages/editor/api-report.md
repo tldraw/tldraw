@@ -170,7 +170,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 }
 
 // @public (undocumented)
-export abstract class BaseBoxTool extends StateNode {
+export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle_4 | typeof Pointing_2)[];
     // (undocumented)
