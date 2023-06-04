@@ -2,7 +2,7 @@ import { Vec2d } from '@tldraw/primitives'
 import { createShapeId } from '@tldraw/tlschema'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
-import { BaseBoxTool, TLBoxLike } from '../BaseBoxTool'
+import { BaseBoxShapeTool, TLBoxLike } from '../BaseBoxShapeTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -20,7 +20,7 @@ export class Pointing extends StateNode {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
-			const shapeType = (this.parent as BaseBoxTool)!.shapeType as TLBoxLike['type']
+			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBoxLike['type']
 
 			const id = createShapeId()
 
@@ -76,7 +76,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		const shapeType = (this.parent as BaseBoxTool)!.shapeType as TLBoxLike['type']
+		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBoxLike['type']
 
 		const id = createShapeId()
 

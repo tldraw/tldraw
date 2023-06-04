@@ -4,7 +4,7 @@ import { TLHandle, TLLineShape, TLShapeId, createShapeId } from '@tldraw/tlschem
 import { last, structuredClone } from '@tldraw/utils'
 import { TLEventHandlers, TLInterruptEvent } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
-import { LineTool } from '../LineTool'
+import { LineShapeTool } from '../LineShapeTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -82,7 +82,7 @@ export class Pointing extends StateNode {
 			this.editor.createShapes([
 				{
 					id,
-					type: (this.parent as LineTool).shapeType,
+					type: (this.parent as LineShapeTool).shapeType,
 					x: currentPagePoint.x,
 					y: currentPagePoint.y,
 				},

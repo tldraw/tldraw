@@ -3,11 +3,21 @@ import { StateNode } from '../StateNode'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 
-export class TextTool extends StateNode {
-	static override id = 'text'
+export class ArrowShapeTool extends StateNode {
+	static override id = 'arrow'
 	static initial = 'idle'
-
 	static children = () => [Idle, Pointing]
 
-	styles = ['color', 'opacity', 'font', 'align', 'size'] as TLStyleType[]
+	shapeType = 'arrow'
+
+	styles = [
+		'color',
+		'opacity',
+		'dash',
+		'size',
+		'arrowheadStart',
+		'arrowheadEnd',
+		'font',
+		'fill',
+	] as TLStyleType[]
 }

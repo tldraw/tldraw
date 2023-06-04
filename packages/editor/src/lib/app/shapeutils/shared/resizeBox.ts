@@ -1,6 +1,6 @@
 import { Box2d, Vec2d } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
-import { TLBoxLike } from '../../statechart/BaseBoxTool/BaseBoxTool'
+import { TLBoxLike } from '../../tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { TLResizeHandle } from '../../types/selection-types'
 import { TLResizeMode } from '../ShapeUtil'
 

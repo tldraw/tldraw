@@ -1,15 +1,16 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
 
-import { Drawing } from './children/Drawing'
-import { Idle } from './children/Idle'
+// shared custody
+import { Drawing } from '../DrawShapeTool/children/Drawing'
+import { Idle } from '../DrawShapeTool/children/Idle'
 
-export class DrawTool extends StateNode {
-	static override id = 'draw'
+export class HighlightShapeTool extends StateNode {
+	static override id = 'highlight'
 	static initial = 'idle'
 	static children = () => [Idle, Drawing]
 
-	styles = ['color', 'opacity', 'dash', 'fill', 'size'] as TLStyleType[]
+	styles = ['color', 'opacity', 'size'] as TLStyleType[]
 
 	onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing

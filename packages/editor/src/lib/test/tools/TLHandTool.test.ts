@@ -1,4 +1,4 @@
-import { HandTool } from '../../app/statechart/HandTool/HandTool'
+import { HandTool } from '../../app/tools/HandTool/HandTool'
 import { createDefaultShapes, TestEditor } from '../TestEditor'
 
 let editor: TestEditor

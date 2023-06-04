@@ -1,4 +1,4 @@
-import { BaseBoxTool } from '../../app/statechart/BaseBoxTool/BaseBoxTool'
+import { BaseBoxShapeTool } from '../../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(BaseBoxTool, () => {
+describe(BaseBoxShapeTool, () => {
 	it('Creates frame shapes on click-and-drag, supports undo and redo', () => {
 		expect(editor.shapesArray.length).toBe(0)
 

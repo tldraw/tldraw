@@ -56,8 +56,11 @@ export {
 } from './lib/app/shapeutils/ShapeUtil'
 export { INDENT, TextShapeUtil } from './lib/app/shapeutils/TextShapeUtil/TextShapeUtil'
 export { VideoShapeUtil } from './lib/app/shapeutils/VideoShapeUtil/VideoShapeUtil'
-export { BaseBoxTool, type TLBoxLike } from './lib/app/statechart/BaseBoxTool/BaseBoxTool'
-export { StateNode, type TLStateNodeConstructor } from './lib/app/statechart/StateNode'
+export {
+	BaseBoxShapeTool as BaseBoxTool,
+	type TLBoxLike,
+} from './lib/app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+export { StateNode, type TLStateNodeConstructor } from './lib/app/tools/StateNode'
 export { type TLContent } from './lib/app/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/app/types/emit-types'
 export {

@@ -1,5 +1,5 @@
 import { Box2d, linesIntersect, pointInPolygon, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLBoxLike } from '../statechart/BaseBoxTool/BaseBoxTool'
+import { TLBoxLike } from '../tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 

@@ -1,27 +1,27 @@
-import { ArrowTool } from '../app/statechart/ArrowTool/ArrowTool'
-import { DrawTool } from '../app/statechart/DrawTool/DrawTool'
-import { EraserTool } from '../app/statechart/EraserTool/EraserTool'
-import { FrameTool } from '../app/statechart/FrameTool/FrameTool'
-import { GeoTool } from '../app/statechart/GeoTool/GeoTool'
-import { HandTool } from '../app/statechart/HandTool/HandTool'
-import { HighlightTool } from '../app/statechart/HighlightTool/HighlightTool'
-import { LaserTool } from '../app/statechart/LaserTool/LaserTool'
-import { LineTool } from '../app/statechart/LineTool/LineTool'
-import { NoteTool } from '../app/statechart/NoteTool/NoteTool'
-import { TLStateNodeConstructor } from '../app/statechart/StateNode'
-import { TextTool } from '../app/statechart/TextTool/TextTool'
+import { ArrowShapeTool } from '../app/tools/ArrowShapeTool/ArrowShapeTool'
+import { DrawShapeTool } from '../app/tools/DrawShapeTool/DrawShapeTool'
+import { EraserShapeTool } from '../app/tools/EraserShapeTool/EraserShapeTool'
+import { FrameShapeTool } from '../app/tools/FrameShapeTool/FrameShapeTool'
+import { GeoShapeTool } from '../app/tools/GeoShapeTool/GeoShapeTool'
+import { HandTool } from '../app/tools/HandTool/HandTool'
+import { HighlightShapeTool } from '../app/tools/HighlightShapeTool/HighlightShapeTool'
+import { LaserTool } from '../app/tools/LaserTool/LaserTool'
+import { LineShapeTool } from '../app/tools/LineShapeTool/LineShapeTool'
+import { NoteShapeTool } from '../app/tools/NoteShapeTool/NoteShapeTool'
+import { TLStateNodeConstructor } from '../app/tools/StateNode'
+import { TextShapeTool } from '../app/tools/TextShapeTool/TextShapeTool'
 
 /** @public */
 export const defaultTools: TLStateNodeConstructor[] = [
 	HandTool,
-	EraserTool,
+	EraserShapeTool,
 	LaserTool,
-	DrawTool,
-	TextTool,
-	LineTool,
-	ArrowTool,
-	GeoTool,
-	NoteTool,
-	FrameTool,
-	HighlightTool,
+	DrawShapeTool,
+	TextShapeTool,
+	LineShapeTool,
+	ArrowShapeTool,
+	GeoShapeTool,
+	NoteShapeTool,
+	FrameShapeTool,
+	HighlightShapeTool,
 ]

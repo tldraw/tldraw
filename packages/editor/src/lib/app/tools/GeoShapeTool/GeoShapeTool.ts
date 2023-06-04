@@ -4,7 +4,7 @@ import { TLStyleType } from '@tldraw/tlschema'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 
-export class GeoTool extends StateNode {
+export class GeoShapeTool extends StateNode {
 	static override id = 'geo'
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]

@@ -1,4 +1,4 @@
-import { SelectTool } from '../../app/statechart/SelectTool/SelectTool'
+import { SelectTool } from '../../app/tools/SelectTool/SelectTool'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 

@@ -3,7 +3,7 @@ import { InstanceRecordType, TLBaseShape, TLOpacityType, createShapeId } from '@
 import { TldrawEditor } from '../TldrawEditor'
 import { Editor } from '../app/Editor'
 import { BoxShapeUtil } from '../app/shapeutils/BoxShapeUtil'
-import { BaseBoxTool } from '../app/statechart/BaseBoxTool/BaseBoxTool'
+import { BaseBoxShapeTool } from '../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
@@ -213,7 +213,7 @@ describe('Custom shapes', () => {
 		}
 	}
 
-	class CardTool extends BaseBoxTool {
+	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
 		override shapeType = 'card'

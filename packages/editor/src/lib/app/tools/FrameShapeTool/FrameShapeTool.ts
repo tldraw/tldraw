@@ -1,7 +1,7 @@
 import { TLStyleType } from '@tldraw/tlschema'
-import { BaseBoxTool } from '../BaseBoxTool/BaseBoxTool'
+import { BaseBoxShapeTool } from '../BaseBoxShapeTool/BaseBoxShapeTool'
 
-export class FrameTool extends BaseBoxTool {
+export class FrameShapeTool extends BaseBoxShapeTool {
 	static override id = 'frame'
 	static initial = 'idle'
 

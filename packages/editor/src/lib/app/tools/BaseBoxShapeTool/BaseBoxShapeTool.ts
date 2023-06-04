@@ -8,7 +8,7 @@ import { Pointing } from './children/Pointing'
 export type TLBoxLike = TLBaseShape<string, { w: number; h: number }>
 
 /** @public */
-export abstract class BaseBoxTool extends StateNode {
+export abstract class BaseBoxShapeTool extends StateNode {
 	static override id = 'box'
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]

@@ -1,15 +1,12 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
-
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 
-export class LineTool extends StateNode {
-	static override id = 'line'
+export class NoteShapeTool extends StateNode {
+	static override id = 'note'
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	shapeType = 'line'
-
-	styles = ['color', 'opacity', 'dash', 'size', 'spline'] as TLStyleType[]
+	styles = ['color', 'opacity', 'size', 'align', 'font'] as TLStyleType[]
 }

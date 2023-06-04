@@ -1,4 +1,4 @@
-import { DrawTool } from '../../app/statechart/DrawTool/DrawTool'
+import { DrawShapeTool } from '../../app/tools/DrawShapeTool/DrawShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(DrawTool, () => {
+describe(DrawShapeTool, () => {
 	return
 })
 
