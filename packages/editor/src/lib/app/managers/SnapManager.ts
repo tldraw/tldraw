@@ -17,7 +17,7 @@ import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
-import { getSplineForLineShape, TLLineUtil } from '../shapeutils/TLLineUtil/TLLineUtil'
+import { getSplineForLineShape, LineShapeUtil } from '../shapeutils/LineShapeUtil/LineShapeUtil'
 
 export type PointsSnapLine = {
 	id: string
@@ -495,7 +495,7 @@ export class SnapManager {
 		// and then pass them to the snap function as 'additionalOutlines'
 
 		// First, let's find which handle we're dragging
-		const util = this.editor.getShapeUtil(TLLineUtil)
+		const util = this.editor.getShapeUtil(LineShapeUtil)
 		const handles = util.handles(line).sort(sortByIndex)
 		if (handles.length < 3) return { nudge: new Vec2d(0, 0) }
 

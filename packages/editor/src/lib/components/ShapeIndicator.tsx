@@ -8,7 +8,7 @@ import {
 } from 'signia-react'
 import { useEditor } from '../..'
 import type { Editor } from '../app/Editor'
-import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
+import { ShapeUtil } from '../app/shapeutils/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -20,7 +20,7 @@ class ShapeWithPropsEquality {
 }
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
-const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: TLShapeUtil<any> }) => {
+const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
 	return useStateTracking('Indicator:' + shape.type, () => util.indicator(shape))
 }
 

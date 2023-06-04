@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
 import { useEditor } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
-import { INDENT, TextHelpers } from '../TLTextUtil/TextHelpers'
+import { INDENT, TextHelpers } from '../TextShapeUtil/TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
 	id: T['id'],

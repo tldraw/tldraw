@@ -29,7 +29,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }) {
 }
 
 /** @internal */
-export type RotationSnapshot = ReturnType<typeof getRotationSnapshot>
+export type TLRotationSnapshot = ReturnType<typeof getRotationSnapshot>
 
 /** @internal */
 export function applyRotationToSnapshotShapes({
@@ -39,7 +39,7 @@ export function applyRotationToSnapshotShapes({
 	stage,
 }: {
 	delta: number
-	snapshot: RotationSnapshot
+	snapshot: TLRotationSnapshot
 	editor: Editor
 	stage: 'start' | 'update' | 'end' | 'one-off'
 }) {

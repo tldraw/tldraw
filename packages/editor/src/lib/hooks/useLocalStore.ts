@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
-import { StoreOptions } from '../config/createTLStore'
+import { TLStoreOptions } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
-import { StoreWithStatus } from '../utils/sync/StoreWithStatus'
+import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { useTLStore } from './useTLStore'
 
 /** @internal */
 export function useLocalStore(
-	opts = {} as { persistenceKey?: string } & StoreOptions
-): StoreWithStatus {
+	opts = {} as { persistenceKey?: string } & TLStoreOptions
+): TLStoreWithStatus {
 	const { persistenceKey, ...rest } = opts
 
-	const [state, setState] = useState<{ id: string; storeWithStatus: StoreWithStatus } | null>(null)
+	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
+		null
+	)
 	const store = useTLStore(rest)
 
 	useEffect(() => {
@@ -30,7 +32,7 @@ export function useLocalStore(
 			storeWithStatus: { status: 'loading' },
 		})
 
-		const setStoreWithStatus = (storeWithStatus: StoreWithStatus) => {
+		const setStoreWithStatus = (storeWithStatus: TLStoreWithStatus) => {
 			setState((prev) => {
 				if (prev?.id === id) {
 					return { id, storeWithStatus }

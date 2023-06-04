@@ -3,28 +3,28 @@ import { atom, Atom, computed, Computed } from 'signia'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,
+	TLEnterEventHandler,
 	TLEventHandlers,
 	TLEventInfo,
+	TLExitEventHandler,
 	TLPinchEventInfo,
-	UiEnterHandler,
-	UiExitHandler,
 } from '../types/event-types'
 
-type StateNodeType = 'branch' | 'leaf' | 'root'
+type TLStateNodeType = 'branch' | 'leaf' | 'root'
 
 /** @public */
-export interface StateNodeConstructor {
+export interface TLStateNodeConstructor {
 	new (editor: Editor, parent?: StateNode): StateNode
 	id: string
 	initial?: string
-	children?: () => StateNodeConstructor[]
+	children?: () => TLStateNodeConstructor[]
 	styles?: TLStyleType[]
 }
 
 /** @public */
 export abstract class StateNode implements Partial<TLEventHandlers> {
 	constructor(public editor: Editor, parent?: StateNode) {
-		const { id, children, initial } = this.constructor as StateNodeConstructor
+		const { id, children, initial } = this.constructor as TLStateNodeConstructor
 
 		this.id = id
 		this.current = atom<StateNode | undefined>('toolState' + this.id, undefined)
@@ -64,11 +64,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	static id: string
 	static initial?: string
-	static children?: () => StateNodeConstructor[]
+	static children?: () => TLStateNodeConstructor[]
 
 	id: string
 	current: Atom<StateNode | undefined>
-	type: StateNodeType
+	type: TLStateNodeType
 	readonly styles: TLStyleType[] = []
 	initial?: string
 	children?: Record<string, StateNode>
@@ -148,6 +148,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	onComplete?: TLEventHandlers['onComplete']
 	onInterrupt?: TLEventHandlers['onInterrupt']
 
-	onEnter?: UiEnterHandler
-	onExit?: UiExitHandler
+	onEnter?: TLEnterEventHandler
+	onExit?: TLExitEventHandler
 }

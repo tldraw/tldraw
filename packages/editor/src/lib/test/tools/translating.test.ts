@@ -1,7 +1,7 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
-import { TLShapeUtil } from '../../app/shapeutils/TLShapeUtil'
+import { ShapeUtil } from '../../app/shapeutils/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
@@ -9,7 +9,7 @@ import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
 
-class __TopLeftSnapOnlyShapeUtil extends TLShapeUtil<__TopLeftSnapOnlyShape> {
+class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	static override type = '__test_top_left_snap_only' as const
 
 	defaultProps(): __TopLeftSnapOnlyShape['props'] {

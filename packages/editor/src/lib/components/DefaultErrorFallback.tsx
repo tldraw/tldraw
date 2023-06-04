@@ -13,6 +13,7 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
+/** @public */
 export type TLErrorFallback = (props: { error: unknown; editor?: Editor }) => any | null
 
 /** @internal */

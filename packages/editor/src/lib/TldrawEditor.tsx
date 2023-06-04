@@ -3,11 +3,11 @@ import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Editor } from './app/Editor'
-import { StateNodeConstructor } from './app/statechart/StateNode'
-import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
+import { TLStateNodeConstructor } from './app/statechart/StateNode'
+import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { ShapeInfo } from './config/createTLStore'
+import { TLShapeInfo } from './config/createTLStore'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -23,7 +23,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
-import { StoreWithStatus } from './utils/sync/StoreWithStatus'
+import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 import { TAB_ID } from './utils/sync/persistence-constants'
 
 /** @public */
@@ -32,15 +32,15 @@ export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes?: Record<string, ShapeInfo>
+	shapes?: Record<string, TLShapeInfo>
 	/**
 	 * An array of tools to use in the editor.
 	 */
-	tools?: StateNodeConstructor[]
+	tools?: TLStateNodeConstructor[]
 	/**
 	 * Urls for where to find fonts and other assets.
 	 */
-	assetUrls?: EditorAssetUrls
+	assetUrls?: TLEditorAssetUrls
 	/**
 	 * Whether to automatically focus the editor when it mounts.
 	 */
@@ -102,7 +102,7 @@ export type TldrawEditorProps = {
 			 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 			 * from a server or database.
 			 */
-			store: TLStore | StoreWithStatus
+			store: TLStore | TLStoreWithStatus
 	  }
 	| {
 			store?: undefined
@@ -190,7 +190,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	assetUrls,
 	...rest
-}: TldrawEditorProps & { store: StoreWithStatus }) {
+}: TldrawEditorProps & { store: TLStoreWithStatus }) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)

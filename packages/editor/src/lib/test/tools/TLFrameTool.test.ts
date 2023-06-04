@@ -1,4 +1,4 @@
-import { TLBoxTool } from '../../app/statechart/TLBoxTool/TLBoxTool'
+import { BaseBoxTool } from '../../app/statechart/BaseBoxTool/BaseBoxTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLBoxTool, () => {
+describe(BaseBoxTool, () => {
 	it('Creates frame shapes on click-and-drag, supports undo and redo', () => {
 		expect(editor.shapesArray.length).toBe(0)
 

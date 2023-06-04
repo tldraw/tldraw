@@ -21,7 +21,7 @@ import {
 	intersectPolygonPolygon,
 	pointInPolygon,
 } from '@tldraw/primitives'
-import { ComputedCache, HistoryEntry, RecordType, UnknownRecord } from '@tldraw/store'
+import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
@@ -77,7 +77,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { ShapeInfo } from '../config/createTLStore'
+import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
@@ -122,43 +122,40 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { TLArrowUtil } from './shapeutils/TLArrowUtil/TLArrowUtil'
-import { getCurvedArrowInfo } from './shapeutils/TLArrowUtil/arrow/curved-arrow'
+import { ArrowShapeUtil } from './shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { getCurvedArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/curved-arrow'
 import {
 	getArrowTerminalsInArrowSpace,
 	getIsArrowStraight,
-} from './shapeutils/TLArrowUtil/arrow/shared'
-import { getStraightArrowInfo } from './shapeutils/TLArrowUtil/arrow/straight-arrow'
-import { TLFrameUtil } from './shapeutils/TLFrameUtil/TLFrameUtil'
-import { TLGroupUtil } from './shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLResizeMode, TLShapeUtil } from './shapeutils/TLShapeUtil'
-import { TLTextUtil } from './shapeutils/TLTextUtil/TLTextUtil'
+} from './shapeutils/ArrowShapeUtil/arrow/shared'
+import { getStraightArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/straight-arrow'
+import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
+import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
+import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
+import { TextShapeUtil } from './shapeutils/TextShapeUtil/TextShapeUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './statechart/RootState'
-import { StateNode, StateNodeConstructor } from './statechart/StateNode'
-import { TLClipboardModel } from './types/clipboard-types'
+import { StateNode, TLStateNodeConstructor } from './statechart/StateNode'
+import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
-export type TLChange<T extends UnknownRecord = any> = HistoryEntry<T>
-
-/** @public */
-export type AnimationOptions = Partial<{
+export type TLAnimationOptions = Partial<{
 	duration: number
 	easing: typeof EASINGS.easeInOutCubic
 }>
 
 /** @public */
-export type ViewportOptions = Partial<{
+export type TLViewportOptions = Partial<{
 	/** Whether to animate the viewport change or not. Defaults to true. */
 	stopFollowing: boolean
 }>
 
 /** @public */
-export interface AppOptions {
+export interface TLEditorOptions {
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
 	 * from a server or database.
@@ -167,11 +164,11 @@ export interface AppOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, ShapeInfo>
+	shapes?: Record<string, TLShapeInfo>
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools?: StateNodeConstructor[]
+	tools?: TLStateNodeConstructor[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -184,11 +181,6 @@ export interface AppOptions {
 }
 
 /** @public */
-export function isShapeWithHandles(shape: TLShape) {
-	return shape.type === 'arrow' || shape.type === 'line' || shape.type === 'draw'
-}
-
-/** @public */
 export class Editor extends EventEmitter<TLEventMap> {
 	constructor({
 		store,
@@ -196,7 +188,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		tools = defaultTools,
 		shapes = defaultShapes,
 		getContainer,
-	}: AppOptions) {
+	}: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -276,7 +268,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
-			if (record.typeName === 'shape' && this.isShapeOfType(record, TLArrowUtil)) {
+			if (record.typeName === 'shape' && this.isShapeOfType(record, ArrowShapeUtil)) {
 				this._arrowDidUpdate(record)
 			}
 		}
@@ -286,7 +278,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.disposables.add(
 			this.store.listen((changes) => {
-				this.emit('change', changes as TLChange)
+				this.emit('change', changes)
 			})
 		)
 
@@ -948,7 +940,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	shapeUtils: { readonly [K in string]?: TLShapeUtil<TLUnknownShape> }
+	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
 	/**
 	 * Get a shape util by its definition.
@@ -956,13 +948,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * editor.getShapeUtil(TLArrowUtil)
+	 * editor.getShapeUtil(ArrowShapeUtil)
 	 * ```
 	 *
 	 * @param util - The shape util.
 	 * @public
 	 */
-	getShapeUtil<C extends { new (...args: any[]): TLShapeUtil<any>; type: string }>(
+	getShapeUtil<C extends { new (...args: any[]): ShapeUtil<any>; type: string }>(
 		util: C
 	): InstanceType<C>
 	/**
@@ -972,18 +964,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * ```ts
 	 * const util = editor.getShapeUtil(myShape)
-	 * const util = editor.getShapeUtil<TLArrowUtil>(myShape)
-	 * const util = editor.getShapeUtil(TLArrowUtil)
+	 * const util = editor.getShapeUtil<ArrowShapeUtil>(myShape)
+	 * const util = editor.getShapeUtil(ArrowShapeUtil)
 	 * ```
 	 *
 	 * @param shape - A shape or shape partial.
 	 * @public
 	 */
-	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): TLShapeUtil<S>
-	getShapeUtil<T extends TLShapeUtil>({
+	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
+	getShapeUtil<T extends ShapeUtil>({
 		type,
 	}: {
-		type: T extends TLShapeUtil<infer R> ? R['type'] : string
+		type: T extends ShapeUtil<infer R> ? R['type'] : string
 	}): T {
 		return this.shapeUtils[type] as T
 	}
@@ -1422,7 +1414,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _shapeDidChange(prev: TLShape, next: TLShape) {
-		if (this.isShapeOfType(next, TLArrowUtil)) {
+		if (this.isShapeOfType(next, ArrowShapeUtil)) {
 			this._arrowDidUpdate(next)
 		}
 
@@ -3204,7 +3196,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * const isArrowShape = isShapeOfType(someShape, TLArrowUtil)
+	 * const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
 	 * ```
 	 *
 	 * @param util - the TLShapeUtil constructor to test against
@@ -3214,7 +3206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isShapeOfType<T extends TLUnknownShape>(
 		shape: TLUnknownShape,
-		util: { new (...args: any): TLShapeUtil<T>; type: string }
+		util: { new (...args: any): ShapeUtil<T>; type: string }
 	): shape is T {
 		return shape.type === util.type
 	}
@@ -4145,7 +4137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 	}
 
-	getContent(ids: TLShapeId[] = this.selectedIds): TLClipboardModel | undefined {
+	getContent(ids: TLShapeId[] = this.selectedIds): TLContent | undefined {
 		if (!ids) return
 		if (ids.length === 0) return
 
@@ -4169,14 +4161,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			shape = structuredClone(shape) as typeof shape
 
-			if (this.isShapeOfType(shape, TLArrowUtil)) {
+			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
 				const startBindingId =
 					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
 
 				const endBindingId =
 					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
 
-				const info = this.getShapeUtil(TLArrowUtil).getArrowInfo(shape)
+				const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
 
 				if (shape.props.start.type === 'binding') {
 					if (!shapes.some((s) => s.id === startBindingId)) {
@@ -4281,7 +4273,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Commands --------------------- */
 
 	putContent(
-		content: TLClipboardModel,
+		content: TLContent,
 		options: {
 			point?: VecLike
 			select?: boolean
@@ -4352,8 +4344,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
 						if (
-							this.isShapeOfType(parent, TLFrameUtil) &&
-							this.isShapeOfType(rootShape, TLFrameUtil) &&
+							this.isShapeOfType(parent, FrameShapeUtil) &&
+							this.isShapeOfType(rootShape, FrameShapeUtil) &&
 							rootShape.props.w === parent?.props.w &&
 							rootShape.props.h === parent?.props.h
 						) {
@@ -4409,7 +4401,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index = getIndexAbove(index)
 			}
 
-			if (this.isShapeOfType(newShape, TLArrowUtil)) {
+			if (this.isShapeOfType(newShape, ArrowShapeUtil)) {
 				if (newShape.props.start.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.start.boundShapeId)
 					newShape.props.start = mappedId
@@ -4564,7 +4556,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType(shape, TLFrameUtil) &&
+								this.isShapeOfType(shape, FrameShapeUtil) &&
 								shape.props.w === onlyRoot.props.w &&
 								shape.props.h === onlyRoot.props.h
 						)
@@ -6382,7 +6374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapes = compact(ids.map((id) => this.getShapeById(id))).filter((shape) => {
 			if (!shape) return false
 
-			if (this.isShapeOfType(shape, TLArrowUtil)) {
+			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
 				if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 					return false
 				}
@@ -6514,7 +6506,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType(shape, TLArrowUtil)) {
+					if (this.isShapeOfType(shape, ArrowShapeUtil)) {
 						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 							return false
 						}
@@ -7340,7 +7332,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param options - Options for setting the current page.
 	 * @public
 	 */
-	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}): this {
+	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: TLViewportOptions = {}): this {
 		this._setCurrentPageId(pageId, { stopFollowing })
 		return this
 	}
@@ -7348,7 +7340,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _setCurrentPageId = this.history.createCommand(
 		'setCurrentPage',
-		(pageId: TLPageId, { stopFollowing = true }: ViewportOptions = {}) => {
+		(pageId: TLPageId, { stopFollowing = true }: TLViewportOptions = {}) => {
 			if (!this.store.has(pageId)) {
 				console.error("Tried to set the current page id to a page that doesn't exist.")
 				return
@@ -7721,8 +7713,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				let newShape: TLShape = deepCopy(shape)
 
-				if (this.isShapeOfType(shape, TLArrowUtil) && this.isShapeOfType(newShape, TLArrowUtil)) {
-					const info = this.getShapeUtil(TLArrowUtil).getArrowInfo(shape)
+				if (
+					this.isShapeOfType(shape, ArrowShapeUtil) &&
+					this.isShapeOfType(newShape, ArrowShapeUtil)
+				) {
+					const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
 					let newStartShapeId: TLShapeId | undefined = undefined
 					let newEndShapeId: TLShapeId | undefined = undefined
 
@@ -7944,7 +7939,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							if (boundsA.width !== boundsB.width) {
 								didChange = true
 
-								if (this.isShapeOfType(shape, TLTextUtil)) {
+								if (this.isShapeOfType(shape, TextShapeUtil)) {
 									switch (shape.props.align) {
 										case 'middle': {
 											change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
@@ -8044,7 +8039,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		x: number,
 		y: number,
 		z = this.camera.z,
-		{ stopFollowing = true }: ViewportOptions = {}
+		{ stopFollowing = true }: TLViewportOptions = {}
 	) {
 		this.stopCameraAnimation()
 		if (stopFollowing && this.instanceState.followingUserId) {
@@ -8080,7 +8075,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		x: number,
 		y: number,
 		z = this.camera.z,
-		opts: AnimationOptions = DEFAULT_ANIMATION_OPTIONS
+		opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS
 	) {
 		x = Number.isNaN(x) ? 0 : x
 		y = Number.isNaN(y) ? 0 : y
@@ -8112,7 +8107,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	centerOnPoint(x: number, y: number, opts?: AnimationOptions): this {
+	centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const {
@@ -8161,7 +8156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomToFit(opts?: AnimationOptions): this {
+	zoomToFit(opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const ids = [...this.shapeIds]
@@ -8191,7 +8186,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	resetZoom(point = this.viewportScreenCenter, opts?: AnimationOptions): this {
+	resetZoom(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
@@ -8219,7 +8214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	zoomIn(point = this.viewportScreenCenter, opts?: AnimationOptions): this {
+	zoomIn(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
@@ -8263,7 +8258,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	zoomOut(point = this.viewportScreenCenter, opts?: AnimationOptions): this {
+	zoomOut(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
@@ -8306,7 +8301,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	zoomToSelection(opts?: AnimationOptions): this {
+	zoomToSelection(opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const ids = this.selectedIds
@@ -8334,7 +8329,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The options for an animation.
 	 * @public
 	 */
-	panZoomIntoView(ids: TLShapeId[], opts?: AnimationOptions): this {
+	panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		if (ids.length <= 0) return this
@@ -8423,7 +8418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		width: number,
 		height: number,
 		targetZoom?: number,
-		opts?: AnimationOptions
+		opts?: TLAnimationOptions
 	): this {
 		if (!this.canMoveCamera) return this
 
@@ -8476,7 +8471,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param dy - The amount to pan on the y axis.
 	 * @param opts - The animation options
 	 */
-	pan(dx: number, dy: number, opts?: AnimationOptions): this {
+	pan(dx: number, dy: number, opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
 		const { camera } = this
@@ -8556,7 +8551,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _animateToViewport(targetViewportPage: Box2d, opts = {} as AnimationOptions) {
+	private _animateToViewport(targetViewportPage: Box2d, opts = {} as TLAnimationOptions) {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
 		const { animationSpeed, viewportPageBounds } = this
 
@@ -8776,7 +8771,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	animateToShape(shapeId: TLShapeId, opts: AnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
+	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.canMoveCamera) return this
 
 		const activeArea = getActiveAreaScreenSpace(this)
@@ -9026,7 +9021,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapes.forEach((shape) => {
-			if (this.isShapeOfType(shape, TLGroupUtil)) {
+			if (this.isShapeOfType(shape, GroupShapeUtil)) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)

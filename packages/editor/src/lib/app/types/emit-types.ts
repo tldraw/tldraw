@@ -1,5 +1,5 @@
+import { HistoryEntry } from '@tldraw/store'
 import { TLPageId, TLRecord } from '@tldraw/tlschema'
-import { TLChange } from '../Editor'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -7,7 +7,7 @@ export interface TLEventMap {
 	// Lifecycle / Internal
 	mount: []
 	'max-shapes': [{ name: string; pageId: TLPageId; count: number }]
-	change: [TLChange<TLRecord>]
+	change: [HistoryEntry<TLRecord>]
 	update: []
 	crash: [{ error: unknown }]
 	'stop-camera-animation': []

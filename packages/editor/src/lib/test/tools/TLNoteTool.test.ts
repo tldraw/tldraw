@@ -1,4 +1,4 @@
-import { TLNoteTool } from '../../app/statechart/TLNoteTool/TLNoteTool'
+import { NoteTool } from '../../app/statechart/NoteTool/NoteTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLNoteTool, () => {
+describe(NoteTool, () => {
 	it('Creates note shapes on click-and-drag, supports undo and redo', () => {
 		expect(editor.shapesArray.length).toBe(0)
 

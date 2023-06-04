@@ -1,14 +1,14 @@
 import {
+	ArrowShapeUtil,
+	BookmarkShapeUtil,
 	Editor,
+	EmbedShapeUtil,
+	GeoShapeUtil,
+	TLContent,
+	TextShapeUtil,
 	getValidHttpURLList,
 	isSvgText,
 	isValidHttpURL,
-	TLArrowUtil,
-	TLBookmarkUtil,
-	TLClipboardModel,
-	TLEmbedUtil,
-	TLGeoUtil,
-	TLTextUtil,
 	useEditor,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
@@ -142,7 +142,7 @@ type ClipboardThing =
 type ClipboardResult =
 	| {
 			type: 'tldraw'
-			data: TLClipboardModel
+			data: TLContent
 	  }
 	| {
 			type: 'excalidraw'
@@ -500,15 +500,15 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		const textItems = content.shapes
 			.map((shape) => {
 				if (
-					editor.isShapeOfType(shape, TLTextUtil) ||
-					editor.isShapeOfType(shape, TLGeoUtil) ||
-					editor.isShapeOfType(shape, TLArrowUtil)
+					editor.isShapeOfType(shape, TextShapeUtil) ||
+					editor.isShapeOfType(shape, GeoShapeUtil) ||
+					editor.isShapeOfType(shape, ArrowShapeUtil)
 				) {
 					return shape.props.text
 				}
 				if (
-					editor.isShapeOfType(shape, TLBookmarkUtil) ||
-					editor.isShapeOfType(shape, TLEmbedUtil)
+					editor.isShapeOfType(shape, BookmarkShapeUtil) ||
+					editor.isShapeOfType(shape, EmbedShapeUtil)
 				) {
 					return shape.props.url
 				}

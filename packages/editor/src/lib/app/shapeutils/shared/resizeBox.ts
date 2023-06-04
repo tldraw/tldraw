@@ -1,8 +1,8 @@
 import { Box2d, Vec2d } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
-import { TLBoxLike } from '../../statechart/TLBoxTool/TLBoxTool'
+import { TLBoxLike } from '../../statechart/BaseBoxTool/BaseBoxTool'
 import { TLResizeHandle } from '../../types/selection-types'
-import { TLResizeMode } from '../TLShapeUtil'
+import { TLResizeMode } from '../ShapeUtil'
 
 export type ResizeBoxOptions = Partial<{
 	minWidth: number

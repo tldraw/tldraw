@@ -1,4 +1,5 @@
 import {
+	ArrowShapeUtil,
 	AssetRecordType,
 	Editor,
 	MAX_SHAPES_PER_PAGE,
@@ -6,7 +7,6 @@ import {
 	TLAlignType,
 	TLArrowShape,
 	TLArrowTerminal,
-	TLArrowUtil,
 	TLArrowheadType,
 	TLAsset,
 	TLAssetId,
@@ -517,7 +517,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const util = editor.getShapeUtil(TLArrowUtil)
+					const util = editor.getShapeUtil(ArrowShapeUtil)
 
 					// dumb but necessary
 					editor.inputs.ctrlKey = false

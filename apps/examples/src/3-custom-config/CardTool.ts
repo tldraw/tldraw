@@ -2,10 +2,10 @@
 // ----
 // Because the card tool can be just a rectangle, we can extend the
 
-import { TLBoxTool } from '@tldraw/tldraw'
+import { BaseBoxTool } from '@tldraw/tldraw'
 
-// TLBoxTool class. This gives us a lot of functionality for free.
-export class CardTool extends TLBoxTool {
+// BoxTool class. This gives us a lot of functionality for free.
+export class CardTool extends BaseBoxTool {
 	static override id = 'card'
 	static override initial = 'idle'
 

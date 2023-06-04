@@ -138,9 +138,9 @@ export type UiEvent =
 	| TLCompleteEvent
 
 /** @public */
-export type UiEnterHandler = (info: any, from: string) => void
+export type TLEnterEventHandler = (info: any, from: string) => void
 /** @public */
-export type UiExitHandler = (info: any, to: string) => void
+export type TLExitEventHandler = (info: any, to: string) => void
 
 /** @public */
 export interface TLEventHandlers {

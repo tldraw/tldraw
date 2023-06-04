@@ -7,7 +7,6 @@
 /// <reference types="react" />
 
 import { Editor } from '@tldraw/editor';
-import { EditorAssetUrls } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { LANGUAGES } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
@@ -15,6 +14,7 @@ import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
 import { TLCopyType } from '@tldraw/editor';
+import { TLEditorAssetUrls } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLLanguage } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';

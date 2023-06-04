@@ -4,7 +4,7 @@ import {
 	FONT_SIZES,
 	INDENT,
 	TEXT_PROPS,
-	TLTextUtil,
+	TextShapeUtil,
 	createShapeId,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
@@ -65,7 +65,7 @@ function stripTrailingWhitespace(text: string): string {
 export async function pastePlainText(editor: Editor, text: string, point?: VecLike) {
 	const p =
 		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
-	const defaultProps = editor.getShapeUtil(TLTextUtil).defaultProps()
+	const defaultProps = editor.getShapeUtil(TextShapeUtil).defaultProps()
 
 	const textToPaste = stripTrailingWhitespace(
 		stripCommonMinimumIndentation(replaceTabsWithSpaces(text))

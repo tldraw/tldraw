@@ -1,5 +1,5 @@
 /** @public */
-export type TLMark = {
+export type TLHistoryMark = {
 	type: 'STOP'
 	id: string
 	onUndo: boolean
@@ -20,7 +20,7 @@ export type TLCommand<Name extends string = any, Data = any> = {
 }
 
 /** @public */
-export type TLHistoryEntry = TLMark | TLCommand
+export type TLHistoryEntry = TLHistoryMark | TLCommand
 
 /** @public */
 export type TLCommandHandler<Data> = {
