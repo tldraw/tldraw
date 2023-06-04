@@ -1,7 +1,7 @@
-import { BoxShapeUtil, HTMLContainer } from '@tldraw/tldraw'
+import { BaseBoxShapeUtil, HTMLContainer } from '@tldraw/tldraw'
 import { CardShape } from './CardShape'
 
-export class CardUtil extends BoxShapeUtil<CardShape> {
+export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	// Id — the shape util's id
 	static override type = 'card' as const
 

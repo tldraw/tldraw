@@ -1,11 +1,11 @@
 import { createShapeId, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
-import { ErrorUtil } from './ErrorUtil'
+import { ErrorShapeUtil } from './ErrorShapeUtil'
 
 const shapes = {
 	error: {
-		util: ErrorUtil, // a custom shape that will always error
+		util: ErrorShapeUtil, // a custom shape that will always error
 	},
 }
 

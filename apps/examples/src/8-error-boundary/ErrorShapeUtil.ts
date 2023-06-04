@@ -1,7 +1,7 @@
-import { BoxShapeUtil } from '@tldraw/tldraw'
+import { BaseBoxShapeUtil } from '@tldraw/tldraw'
 import { ErrorShape } from './ErrorShape'
 
-export class ErrorUtil extends BoxShapeUtil<ErrorShape> {
+export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	static override type = 'error'
 	override type = 'error' as const
 
