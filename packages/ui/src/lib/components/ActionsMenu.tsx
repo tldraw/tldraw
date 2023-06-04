@@ -1,7 +1,7 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -15,7 +15,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const menuSchema = useActionsMenuSchema()
 	const isReadonly = useReadonly()
 
-	function getActionMenuItem(item: MenuChild) {
+	function getActionMenuItem(item: TLUiMenuChild) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {

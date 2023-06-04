@@ -1,4 +1,5 @@
 import {
+	createShapeId,
 	DebugFlag,
 	debugFlags,
 	Editor,
@@ -26,7 +27,7 @@ function createNShapes(editor: Editor, n: number) {
 	for (let i = 0; i < n; i++) {
 		t++
 		shapesToCreate[i] = {
-			id: editor.createShapeId('box' + t),
+			id: createShapeId('box' + t),
 			type: 'geo',
 			x: (i % cols) * 132,
 			y: Math.floor(i / cols) * 132,
@@ -38,7 +39,7 @@ function createNShapes(editor: Editor, n: number) {
 	})
 }
 
-/** @public */
+/** @internal */
 export const DebugPanel = React.memo(function DebugPanel({
 	renderDebugMenuItems,
 }: {
@@ -96,7 +97,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							// icon?: string
 							// title?: string
 							// description?: string
-							// actions?: TLToastAction[]
+							// actions?: TLUiToastAction[]
 						})
 					}}
 				>
@@ -193,7 +194,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							const MAX_COLUMNS = 5
 							const partials = CURSOR_NAMES.map((name, i) => {
 								return {
-									id: editor.createShapeId(),
+									id: createShapeId(),
 									type: 'geo',
 									x: (i % MAX_COLUMNS) * 175,
 									y: Math.floor(i / MAX_COLUMNS) * 175,

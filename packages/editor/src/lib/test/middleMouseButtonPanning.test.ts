@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -15,7 +16,7 @@ it('When clicking the middle mouse button and dragging, it pans the camera', () 
 it('When clicking the middle mouse button and dragging on a shape, it pans the camera', () => {
 	editor.createShapes([
 		{
-			id: editor.createShapeId(),
+			id: createShapeId(),
 			type: 'geo',
 			props: {
 				geo: 'rectangle',

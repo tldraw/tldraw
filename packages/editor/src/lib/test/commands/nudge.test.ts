@@ -1,11 +1,11 @@
-import { createCustomShapeId, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
+	boxA: createShapeId('boxA'),
+	boxB: createShapeId('boxB'),
 }
 
 beforeEach(() => {

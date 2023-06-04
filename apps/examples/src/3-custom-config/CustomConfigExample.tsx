@@ -1,4 +1,4 @@
-import { MenuGroup, Tldraw, menuItem, toolbarItem } from '@tldraw/tldraw'
+import { TLUiMenuGroup, Tldraw, menuItem, toolbarItem } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { CardTool } from './CardTool'
@@ -44,7 +44,7 @@ export default function CustomConfigExample() {
 						// add it to that before returning the array.
 						const toolsGroup = keyboardShortcutsMenu.find(
 							(group) => group.id === 'shortcuts-dialog.tools'
-						) as MenuGroup
+						) as TLUiMenuGroup
 						toolsGroup.children.push(menuItem(tools.card))
 						return keyboardShortcutsMenu
 					},

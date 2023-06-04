@@ -1,89 +1,50 @@
-export { type TLRecord } from './TLRecord'
 export {
-	createIntegrityChecker,
-	onValidationFailure,
 	type TLStore,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 } from './TLStore'
-export {
-	bookmarkAssetMigrations,
-	bookmarkAssetTypeValidator,
-	type TLBookmarkAsset,
-} from './assets/TLBookmarkAsset'
-export {
-	imageAssetMigrations,
-	imageAssetTypeValidator,
-	type TLImageAsset,
-} from './assets/TLImageAsset'
-export {
-	videoAssetMigrations,
-	videoAssetTypeValidator,
-	type TLVideoAsset,
-} from './assets/TLVideoAsset'
-export { createAssetValidator, type TLBaseAsset } from './assets/asset-validation'
+export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
+export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
+export { type TLImageAsset } from './assets/TLImageAsset'
+export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema, type SchemaShapeInfo } from './createTLSchema'
+export { createTLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
-export { type Box2dModel, type Vec2dModel } from './geometry-types'
+export { TL_COLOR_TYPES, colorTypeValidator, type TLColor } from './misc/TLColor'
+export { type TLCursor, type TLCursorType } from './misc/TLCursor'
+export { type TLHandle, type TLHandleType } from './misc/TLHandle'
+export { scribbleValidator, type TLScribble } from './misc/TLScribble'
+export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
+export { idValidator } from './misc/id-validator'
 export {
 	AssetRecordType,
-	assetTypeMigrations,
-	assetTypeValidator,
+	assetMigrations,
+	assetValidator,
 	type TLAsset,
 	type TLAssetId,
 	type TLAssetPartial,
 	type TLAssetShape,
 } from './records/TLAsset'
-export {
-	CameraRecordType,
-	cameraTypeValidator,
-	type TLCamera,
-	type TLCameraId,
-} from './records/TLCamera'
-export {
-	DocumentRecordType,
-	TLDOCUMENT_ID,
-	documentTypeValidator,
-	type TLDocument,
-} from './records/TLDocument'
+export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
+export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
 export {
 	InstanceRecordType,
-	instanceTypeMigrations,
 	instanceTypeValidator,
 	type TLInstance,
 	type TLInstanceId,
 	type TLInstancePropsForNextShape,
 } from './records/TLInstance'
+export { PageRecordType, isPageId, type TLPage, type TLPageId } from './records/TLPage'
+export { InstancePageStateRecordType, type TLInstancePageState } from './records/TLPageState'
+export { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
+export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLPresence'
+export { type TLRecord } from './records/TLRecord'
 export {
-	InstancePageStateRecordType,
-	instancePageStateMigrations,
-	instancePageStateTypeValidator,
-	type TLInstancePageState,
-	type TLInstancePageStateId,
-} from './records/TLInstancePageState'
-export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
-export {
-	PageRecordType,
-	isPageId,
-	pageTypeValidator,
-	type TLPage,
-	type TLPageId,
-} from './records/TLPage'
-export {
-	PointerRecordType,
-	TLPOINTER_ID,
-	pointerTypeValidator,
-	type TLPointer,
-	type TLPointerId,
-} from './records/TLPointer'
-export {
-	createCustomShapeId,
 	createShapeId,
 	isShape,
 	isShapeId,
-	rootShapeTypeMigrations,
+	rootShapeMigrations,
 	type TLDefaultShape,
 	type TLNullableShapeProps,
 	type TLParentId,
@@ -94,191 +55,94 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
+export { UserDocumentRecordType, type TLUserDocument } from './records/TLUserDocument'
 export {
-	UserDocumentRecordType,
-	userDocumentTypeMigrations,
-	userDocumentTypeValidator,
-	type TLUserDocument,
-	type TLUserDocumentId,
-} from './records/TLUserDocument'
-export { storeMigrations } from './schema'
-export {
-	TL_ARROW_TERMINAL_TYPE,
-	arrowShapeTypeMigrations,
-	arrowShapeTypeValidator,
-	arrowTerminalTypeValidator,
-	type TLArrowHeadModel,
 	type TLArrowShape,
 	type TLArrowShapeProps,
 	type TLArrowTerminal,
 	type TLArrowTerminalType,
 } from './shapes/TLArrowShape'
 export {
-	bookmarkShapeTypeMigrations,
-	bookmarkShapeTypeValidator,
-	type TLBookmarkShape,
-	type TLBookmarkShapeProps,
-} from './shapes/TLBookmarkShape'
-export {
-	TL_DRAW_SHAPE_SEGMENT_TYPE,
-	drawShapeTypeMigrations,
-	drawShapeTypeValidator,
-	type TLDrawShape,
-	type TLDrawShapeProps,
-	type TLDrawShapeSegment,
-} from './shapes/TLDrawShape'
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './shapes/TLBaseShape'
+export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
+export { type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
-	tlEmbedShapePermissionDefaults,
+	embedShapePermissionDefaults,
 	type EmbedDefinition,
 	type TLEmbedShape,
-	type TLEmbedShapePermissionName,
 	type TLEmbedShapePermissions,
-	type TLEmbedShapeProps,
 } from './shapes/TLEmbedShape'
-export {
-	frameShapeTypeMigrations,
-	frameShapeTypeValidator,
-	type TLFrameShape,
-	type TLFrameShapeProps,
-} from './shapes/TLFrameShape'
-export {
-	geoShapeTypeMigrations,
-	geoShapeTypeValidator,
-	type TLGeoShape,
-	type TLGeoShapeProps,
-} from './shapes/TLGeoShape'
-export {
-	groupShapeTypeMigrations,
-	groupShapeTypeValidator,
-	type TLGroupShape,
-	type TLGroupShapeProps,
-} from './shapes/TLGroupShape'
-export {
-	highlightShapeTypeMigrations,
-	highlightShapeTypeValidator,
-	type TLHighlightShape,
-	type TLHighlightShapeProps,
-} from './shapes/TLHighlightShape'
-export {
-	iconShapeTypeMigrations,
-	iconShapeTypeValidator,
-	type TLIconShape,
-	type TLIconShapeProps,
-} from './shapes/TLIconShape'
-export {
-	imageShapeTypeMigrations,
-	imageShapeTypeValidator,
-	type TLImageCrop,
-	type TLImageShape,
-	type TLImageShapeProps,
-} from './shapes/TLImageShape'
-export {
-	lineShapeTypeMigrations,
-	lineShapeTypeValidator,
-	type TLLineShape,
-	type TLLineShapeProps,
-} from './shapes/TLLineShape'
-export {
-	noteShapeTypeMigrations,
-	noteShapeTypeValidator,
-	type TLNoteShape,
-	type TLNoteShapeProps,
-} from './shapes/TLNoteShape'
-export {
-	textShapeTypeMigrations,
-	textShapeTypeValidator,
-	type TLTextShape,
-	type TLTextShapeProps,
-} from './shapes/TLTextShape'
-export {
-	videoShapeTypeMigrations,
-	videoShapeTypeValidator,
-	type TLVideoShape,
-	type TLVideoShapeProps,
-} from './shapes/TLVideoShape'
-export { createShapeValidator, type TLBaseShape } from './shapes/shape-validation'
+export { type TLFrameShape } from './shapes/TLFrameShape'
+export { type TLGeoShape } from './shapes/TLGeoShape'
+export { type TLGroupShape } from './shapes/TLGroupShape'
+export { type TLHighlightShape } from './shapes/TLHighlightShape'
+export { type TLIconShape } from './shapes/TLIconShape'
+export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
+export { type TLLineShape } from './shapes/TLLineShape'
+export { type TLNoteShape } from './shapes/TLNoteShape'
+export { type TLTextShape, type TLTextShapeProps } from './shapes/TLTextShape'
+export { type TLVideoShape } from './shapes/TLVideoShape'
 export {
 	TL_ALIGN_TYPES,
-	TL_ARROWHEAD_TYPES,
-	TL_COLOR_TYPES,
-	TL_DASH_TYPES,
-	TL_FILL_TYPES,
-	TL_FONT_TYPES,
-	TL_GEO_TYPES,
-	TL_ICON_TYPES,
-	TL_OPACITY_TYPES,
-	TL_SIZE_TYPES,
-	TL_SPLINE_TYPES,
-	TL_STYLE_TYPES,
+	alignValidator,
 	type TLAlignStyle,
 	type TLAlignType,
+} from './styles/TLAlignStyle'
+export {
+	TL_ARROWHEAD_TYPES,
 	type TLArrowheadEndStyle,
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,
-	type TLBaseStyle,
-	type TLColorStyle,
-	type TLColorType,
+} from './styles/TLArrowheadStyle'
+export { TL_STYLE_TYPES, type TLStyleType } from './styles/TLBaseStyle'
+export { colorValidator, type TLColorStyle, type TLColorType } from './styles/TLColorStyle'
+export {
+	TL_DASH_TYPES,
+	dashValidator,
 	type TLDashStyle,
 	type TLDashType,
+} from './styles/TLDashStyle'
+export {
+	TL_FILL_TYPES,
+	fillValidator,
 	type TLFillStyle,
 	type TLFillType,
+} from './styles/TLFillStyle'
+export {
+	TL_FONT_TYPES,
+	fontValidator,
 	type TLFontStyle,
 	type TLFontType,
-	type TLGeoStyle,
-	type TLGeoType,
-	type TLIconStyle,
-	type TLIconType,
+} from './styles/TLFontStyle'
+export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
+export { iconValidator, type TLIconStyle, type TLIconType } from './styles/TLIconStyle'
+export {
+	TL_OPACITY_TYPES,
+	opacityValidator,
 	type TLOpacityStyle,
 	type TLOpacityType,
+} from './styles/TLOpacityStyle'
+export {
+	TL_SIZE_TYPES,
+	sizeValidator,
 	type TLSizeStyle,
 	type TLSizeType,
-	type TLSplineType,
-	type TLSplineTypeStyle,
-	type TLStyleCollections,
-	type TLStyleItem,
-	type TLStyleProps,
-	type TLStyleType,
-	type TLVerticalAlignType,
-} from './style-types'
-export { getDefaultTranslationLocale } from './translations'
+} from './styles/TLSizeStyle'
 export {
-	TL_CURSOR_TYPES,
-	TL_HANDLE_TYPES,
-	TL_SCRIBBLE_STATES,
-	TL_UI_COLOR_TYPES,
-	cursorTypeValidator,
-	cursorValidator,
-	handleTypeValidator,
-	scribbleTypeValidator,
-	uiColorTypeValidator,
-	type TLCursor,
-	type TLCursorType,
-	type TLHandle,
-	type TLHandlePartial,
-	type TLHandleType,
-	type TLScribble,
-	type TLUiColorType,
-} from './ui-types'
-export { type SetValue, type SmooshedUnionObject } from './util-types'
-export {
-	alignValidator,
-	arrowheadValidator,
-	assetIdValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	instanceIdValidator,
-	opacityValidator,
-	pageIdValidator,
-	parentIdValidator,
-	shapeIdValidator,
-	sizeValidator,
+	TL_SPLINE_TYPES,
 	splineValidator,
-} from './validation'
+	type TLSplineStyle,
+	type TLSplineType,
+} from './styles/TLSplineStyle'
+export { verticalAlignValidator, type TLVerticalAlignType } from './styles/TLVerticalAlignStyle'
+export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
+export {
+	LANGUAGES,
+	getDefaultTranslationLocale,
+	type TLLanguage,
+} from './translations/translations'

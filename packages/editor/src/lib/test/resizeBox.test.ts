@@ -1,5 +1,5 @@
 import { Box2d } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { resizeBox } from '../app/shapeutils/shared/resizeBox'
 import { TestEditor } from './TestEditor'
 
@@ -8,7 +8,7 @@ let shape: TLGeoShape
 
 beforeEach(() => {
 	editor = new TestEditor()
-	const id = editor.createShapeId() as TLGeoShape['id']
+	const id = createShapeId() as TLGeoShape['id']
 	editor.createShapes([
 		{
 			id,

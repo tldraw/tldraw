@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createCustomShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -15,9 +15,9 @@ global.cancelAnimationFrame = function cancelAnimationFrame(id) {
 jest.useFakeTimers()
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
-	box3: createCustomShapeId('box3'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
 }
 
 beforeEach(() => {
@@ -449,8 +449,8 @@ describe('reparenting issue', () => {
 		])
 
 		// create some arrows:
-		const arrow1Id = createCustomShapeId('arrow1')
-		const arrow2Id = createCustomShapeId('arrow2')
+		const arrow1Id = createShapeId('arrow1')
+		const arrow2Id = createShapeId('arrow2')
 
 		editor.createShapes([
 			{

@@ -1,6 +1,6 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { idValidator } from '../validation'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { idValidator } from '../misc/id-validator'
 
 /**
  * TLPointer
@@ -14,10 +14,10 @@ export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
 }
 
 /** @public */
-export type TLPointerId = ID<TLPointer>
+export type TLPointerId = RecordId<TLPointer>
 
-/** @public */
-export const pointerTypeValidator: T.Validator<TLPointer> = T.model(
+/** @internal */
+export const pointerValidator: T.Validator<TLPointer> = T.model(
 	'pointer',
 	T.object({
 		typeName: T.literal('pointer'),
@@ -28,9 +28,13 @@ export const pointerTypeValidator: T.Validator<TLPointer> = T.model(
 	})
 )
 
+/** @internal */
+export const pointerMigrations = defineMigrations({})
+
 /** @public */
 export const PointerRecordType = createRecordType<TLPointer>('pointer', {
-	validator: pointerTypeValidator,
+	validator: pointerValidator,
+	migrations: pointerMigrations,
 	scope: 'instance',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
@@ -42,6 +46,3 @@ export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 
 /** @public */
 export const TLPOINTER_ID = PointerRecordType.createCustomId('pointer')
-
-/** @public */
-export const pointerTypeMigrations = defineMigrations({})

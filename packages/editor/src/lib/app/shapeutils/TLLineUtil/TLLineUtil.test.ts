@@ -1,4 +1,4 @@
-import { createCustomShapeId, TLGeoShape, TLLineShape } from '@tldraw/tlschema'
+import { TLGeoShape, TLLineShape, createShapeId } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { TestEditor } from '../../../test/TestEditor'
 
@@ -8,7 +8,7 @@ jest.mock('nanoid', () => {
 })
 
 let editor: TestEditor
-const id = createCustomShapeId('line1')
+const id = createShapeId('line1')
 
 jest.useFakeTimers()
 
@@ -168,7 +168,7 @@ describe('Misc', () => {
 	})
 
 	it('align', () => {
-		const boxID = createCustomShapeId('box1')
+		const boxID = createShapeId('box1')
 		editor.createShapes([{ id: boxID, type: 'geo', x: 500, y: 150, props: { w: 100, h: 50 } }])
 
 		const box = editor.getShapeById<TLGeoShape>(boxID)!

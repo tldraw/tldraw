@@ -1,6 +1,6 @@
 import { Signal, computed } from 'signia'
 import { TLStore } from './TLStore'
-import { InstancePresenceRecordType, TLInstancePresence } from './records/TLInstancePresence'
+import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 
 /** @internal */
 export const createPresenceStateDerivation =

@@ -4,7 +4,7 @@ import {
 	TLArrowShapeProps,
 	TLShapeId,
 	TLShapePartial,
-	createCustomShapeId,
+	createShapeId,
 } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
@@ -13,10 +13,10 @@ let editor: TestEditor
 jest.useFakeTimers()
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-	boxD: createCustomShapeId('boxD'),
+	boxA: createShapeId('boxA'),
+	boxB: createShapeId('boxB'),
+	boxC: createShapeId('boxC'),
+	boxD: createShapeId('boxD'),
 }
 
 beforeEach(() => {
@@ -345,10 +345,10 @@ describe('flipping rotated shapes', () => {
 	const leftPoint = { x: -diamondRadius, y: diamondRadius }
 
 	const ids = {
-		arrowA: createCustomShapeId('arrowA'),
-		arrowB: createCustomShapeId('arrowB'),
-		arrowC: createCustomShapeId('arrowC'),
-		arrowD: createCustomShapeId('arrowD'),
+		arrowA: createShapeId('arrowA'),
+		arrowB: createShapeId('arrowB'),
+		arrowC: createShapeId('arrowC'),
+		arrowD: createShapeId('arrowD'),
 	}
 	beforeEach(() => {
 		editor.selectAll().deleteShapes()
@@ -467,9 +467,9 @@ describe('When flipping shapes that include arrows', () => {
 	let shapes: TLShapePartial[]
 
 	beforeEach(() => {
-		const box1 = editor.createShapeId()
-		const box2 = editor.createShapeId()
-		const box3 = editor.createShapeId()
+		const box1 = createShapeId()
+		const box2 = createShapeId()
+		const box3 = createShapeId()
 
 		shapes = [
 			{
@@ -491,7 +491,7 @@ describe('When flipping shapes that include arrows', () => {
 				y: 0,
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -512,7 +512,7 @@ describe('When flipping shapes that include arrows', () => {
 				},
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,
@@ -533,7 +533,7 @@ describe('When flipping shapes that include arrows', () => {
 				},
 			},
 			{
-				id: editor.createShapeId(),
+				id: createShapeId(),
 				type: 'arrow',
 				x: 50,
 				y: 50,

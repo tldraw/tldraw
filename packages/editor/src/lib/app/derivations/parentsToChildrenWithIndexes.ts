@@ -1,5 +1,5 @@
+import { RecordsDiff } from '@tldraw/store'
 import { isShape, TLParentId, TLRecord, TLShapeId, TLStore } from '@tldraw/tlschema'
-import { RecordsDiff } from '@tldraw/tlstore'
 import { computed, isUninitialized, RESET_VALUE } from 'signia'
 
 type Parents2Children = Record<TLParentId, [id: TLShapeId, index: string][]>

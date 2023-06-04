@@ -2,7 +2,7 @@ import { useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { track } from 'signia-react'
 
-/** @public */
+/** @internal */
 export const HTMLCanvas = track(function HTMLCanvas() {
 	const editor = useEditor()
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)

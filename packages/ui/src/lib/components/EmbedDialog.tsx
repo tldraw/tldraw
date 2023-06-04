@@ -3,14 +3,14 @@ import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../hooks/useAssetUrls'
-import { DialogProps } from '../hooks/useDialogsProvider'
+import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'
 import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
 
-export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) {
+export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const assetUrls = useAssetUrls()

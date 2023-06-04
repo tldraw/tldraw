@@ -1,7 +1,7 @@
 import { sortByIndex } from '@tldraw/indices'
 import { approximately, Box2d, VecLike } from '@tldraw/primitives'
 import {
-	createCustomShapeId,
+	createShapeId,
 	TLArrowShape,
 	TLGroupShape,
 	TLLineShape,
@@ -25,16 +25,16 @@ jest.mock('nanoid', () => {
 })
 
 const ids = {
-	boxA: createCustomShapeId('boxA'),
-	boxB: createCustomShapeId('boxB'),
-	boxC: createCustomShapeId('boxC'),
-	boxD: createCustomShapeId('boxD'),
-	boxE: createCustomShapeId('boxE'),
-	boxF: createCustomShapeId('boxF'),
+	boxA: createShapeId('boxA'),
+	boxB: createShapeId('boxB'),
+	boxC: createShapeId('boxC'),
+	boxD: createShapeId('boxD'),
+	boxE: createShapeId('boxE'),
+	boxF: createShapeId('boxF'),
 
-	boxX: createCustomShapeId('boxX'),
+	boxX: createShapeId('boxX'),
 
-	lineA: createCustomShapeId('lineA'),
+	lineA: createShapeId('lineA'),
 }
 
 const box = (id: TLShapeId, x: number, y: number, w = 10, h = 10): TLShapePartial => ({
@@ -1590,8 +1590,8 @@ describe('bindings', () => {
 describe('grouping arrows', () => {
 	// Fix for <https://linear.app/tldraw/issue/TLD-887/cant-duplicate-arrows-in-group>
 	it('grouping 2 arrows should not change indexes', () => {
-		const arrowAId = createCustomShapeId('arrowA')
-		const arrowBId = createCustomShapeId('arrowB')
+		const arrowAId = createShapeId('arrowA')
+		const arrowBId = createShapeId('arrowB')
 
 		editor.createShapes([
 			arrow(arrowAId, { x: 0, y: 0 }, { x: 0, y: 10 }),

@@ -1,14 +1,11 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
-import {
-	alignValidator,
-	colorValidator,
-	fontValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLFontType, fontValidator } from '../styles/TLFontStyle'
+import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLNoteShapeProps = {
@@ -25,8 +22,8 @@ export type TLNoteShapeProps = {
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-/** @public */
-export const noteShapeTypeValidator: T.Validator<TLNoteShape> = createShapeValidator(
+/** @internal */
+export const noteShapeValidator: T.Validator<TLNoteShape> = createShapeValidator(
 	'note',
 	T.object({
 		color: colorValidator,
@@ -46,8 +43,8 @@ const Versions = {
 	MigrateLegacyAlign: 3,
 } as const
 
-/** @public */
-export const noteShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const noteShapeMigrations = defineMigrations({
 	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

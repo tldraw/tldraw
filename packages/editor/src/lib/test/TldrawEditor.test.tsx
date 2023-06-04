@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
-import { InstanceRecordType, TLBaseShape, TLOpacityType } from '@tldraw/tlschema'
+import { InstanceRecordType, TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Editor } from '../app/Editor'
 import { TLBoxUtil } from '../app/shapeutils/TLBoxUtil'
@@ -123,7 +123,7 @@ describe('<TldrawEditor />', () => {
 			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
 		})
 
-		const id = editor.createShapeId()
+		const id = createShapeId()
 
 		await act(async () => {
 			editor.createShapes([
@@ -248,7 +248,7 @@ describe('Custom shapes', () => {
 
 		expect(editor.shapeUtils.card).toBeTruthy()
 
-		const id = editor.createShapeId()
+		const id = createShapeId()
 
 		await act(async () => {
 			editor.createShapes([

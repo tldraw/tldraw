@@ -24,6 +24,7 @@ import {
 	TLTextShape,
 	TLVideoShape,
 	Vec2dModel,
+	createShapeId,
 } from '@tldraw/editor'
 import { Vec2d, clamp } from '@tldraw/primitives'
 
@@ -132,7 +133,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 				v1Shapes.forEach((v1Shape) => {
 					if (v1Shape.type !== TDShapeType.Group) return
 
-					const shapeId = editor.createShapeId()
+					const shapeId = createShapeId()
 					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
 					v1GroupShapeIdsToV1ChildIds.set(v1Shape.id, [])
 				})
@@ -155,7 +156,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 						return
 					}
 
-					const shapeId = editor.createShapeId()
+					const shapeId = createShapeId()
 					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
 
 					if (v1Shape.parentId !== v1Page.id) {

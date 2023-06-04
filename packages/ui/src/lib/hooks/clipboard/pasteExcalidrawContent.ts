@@ -12,6 +12,7 @@ import {
 	TLOpacityType,
 	TLShapeId,
 	TLSizeType,
+	createShapeId,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
@@ -49,7 +50,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	const skipIds = new Set<string>()
 
 	elements.forEach((element: any) => {
-		excElementIdsToTldrawShapeIds.set(element.id, editor.createShapeId())
+		excElementIdsToTldrawShapeIds.set(element.id, createShapeId())
 
 		if (element.boundElements !== null) {
 			for (const boundElement of element.boundElements) {

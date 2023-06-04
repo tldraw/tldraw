@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/tlschema'
 import { createDefaultShapes, defaultShapesIds, TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -46,7 +47,7 @@ it('gets common bounds', () => {
 	})
 
 	// Now create a frame and put a box inside it.
-	const frame1Id = editor.createShapeId()
+	const frame1Id = createShapeId()
 
 	editor.createShapes([
 		{

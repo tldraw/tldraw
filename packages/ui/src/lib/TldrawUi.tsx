@@ -85,8 +85,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	)
 })
 
-/** @public */
-export const TldrawUiContent = React.memo(function TldrawUI({
+const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
 	topZone,
 	renderDebugMenuItems,

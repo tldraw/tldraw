@@ -1,11 +1,5 @@
 import { getIndexAbove } from '@tldraw/indices'
-import {
-	TLDefaultShape,
-	TLShapeId,
-	TLShapePartial,
-	createCustomShapeId,
-	createShapeId,
-} from '@tldraw/tlschema'
+import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { assert, assertExists, omitFromStackTrace } from '@tldraw/utils'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
@@ -65,7 +59,7 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 			if (ref) {
 				assert(!ids[ref], `Duplicate shape ref: ${ref}`)
 				assert(!el.props.id, `Cannot use both ref and id on shape: ${ref}`)
-				id = createCustomShapeId(ref)
+				id = createShapeId(ref)
 				ids[ref] = id
 			} else if (el.props.id) {
 				id = el.props.id

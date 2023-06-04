@@ -5,14 +5,14 @@
 ```ts
 
 import { Editor } from '@tldraw/editor';
-import { MigrationFailureReason } from '@tldraw/tlstore';
+import { MigrationFailureReason } from '@tldraw/store';
 import { Result } from '@tldraw/utils';
-import { SerializedSchema } from '@tldraw/tlstore';
+import { SerializedSchema } from '@tldraw/store';
 import { TLInstanceId } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
-import { TLTranslationKey } from '@tldraw/ui';
-import { ToastsContextType } from '@tldraw/ui';
-import { UnknownRecord } from '@tldraw/tlstore';
+import { TLUiToastsContextType } from '@tldraw/ui';
+import { TLUiTranslationKey } from '@tldraw/ui';
+import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
 export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
@@ -37,7 +37,7 @@ export interface LegacyTldrawDocument {
 }
 
 // @internal (undocumented)
-export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
 export function parseTldrawJsonFile({ json, instanceId, store, }: {

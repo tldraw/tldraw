@@ -1,25 +1,23 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { Box2dModel } from '../geometry-types'
-import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import {
-	alignValidator,
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	opacityValidator,
-	pageIdValidator,
-	sizeValidator,
-	splineValidator,
-	verticalAlignValidator,
-} from '../validation'
-import { TLPageId } from './TLPage'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { Box2dModel } from '../misc/geometry-types'
+import { idValidator } from '../misc/id-validator'
+import { cursorValidator, TLCursor } from '../misc/TLCursor'
+import { scribbleValidator, TLScribble } from '../misc/TLScribble'
+import { alignValidator } from '../styles/TLAlignStyle'
+import { arrowheadValidator } from '../styles/TLArrowheadStyle'
+import { TL_STYLE_TYPES, TLStyleType } from '../styles/TLBaseStyle'
+import { colorValidator } from '../styles/TLColorStyle'
+import { dashValidator } from '../styles/TLDashStyle'
+import { fillValidator } from '../styles/TLFillStyle'
+import { fontValidator } from '../styles/TLFontStyle'
+import { geoValidator } from '../styles/TLGeoStyle'
+import { iconValidator } from '../styles/TLIconStyle'
+import { opacityValidator } from '../styles/TLOpacityStyle'
+import { sizeValidator } from '../styles/TLSizeStyle'
+import { splineValidator } from '../styles/TLSplineStyle'
+import { verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
+import { pageIdValidator, TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 
 /** @public */
@@ -50,9 +48,12 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 }
 
 /** @public */
-export type TLInstanceId = ID<TLInstance>
+export type TLInstanceId = RecordId<TLInstance>
 
-/** @public */
+/** @internal */
+export const instanceIdValidator = idValidator<TLInstanceId>('instance')
+
+/** @internal */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
 	T.object({
@@ -78,7 +79,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 			spline: splineValidator,
 		}),
 		cursor: cursorValidator,
-		scribble: scribbleTypeValidator.nullable(),
+		scribble: scribbleValidator.nullable(),
 		isFocusMode: T.boolean,
 		isDebugMode: T.boolean,
 		isToolLocked: T.boolean,
@@ -107,8 +108,8 @@ const Versions = {
 
 export { Versions as instanceTypeVersions }
 
-/** @public */
-export const instanceTypeMigrations = defineMigrations({
+/** @internal */
+export const instanceMigrations = defineMigrations({
 	currentVersion: Versions.AddChat,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
@@ -260,7 +261,7 @@ export const instanceTypeMigrations = defineMigrations({
 
 /** @public */
 export const InstanceRecordType = createRecordType<TLInstance>('instance', {
-	migrations: instanceTypeMigrations,
+	migrations: instanceMigrations,
 	validator: instanceTypeValidator,
 	scope: 'instance',
 }).withDefaultProperties(

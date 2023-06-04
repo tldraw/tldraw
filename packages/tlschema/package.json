@@ -56,9 +56,9 @@
 		]
 	},
 	"dependencies": {
-		"@tldraw/tlstore": "workspace:*",
-		"@tldraw/tlvalidate": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
 		"nanoid": "4.0.2"
 	},
 	"peerDependencies": {

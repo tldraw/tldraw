@@ -1,5 +1,5 @@
-import { createCustomShapeId, createTLStore, InstanceRecordType, TLStore } from '@tldraw/editor'
-import { MigrationFailureReason, UnknownRecord } from '@tldraw/tlstore'
+import { createShapeId, createTLStore, InstanceRecordType, TLStore } from '@tldraw/editor'
+import { MigrationFailureReason, UnknownRecord } from '@tldraw/store'
 import { assert } from '@tldraw/utils'
 import { parseTldrawJsonFile as _parseTldrawJsonFile, TldrawFile } from '../lib/file'
 
@@ -81,7 +81,7 @@ describe('parseTldrawJsonFile', () => {
 			serialize({
 				tldrawFileFormatVersion: 1,
 				schema: serializedSchema2,
-				records: [{ typeName: 'shape', id: createCustomShapeId('shape') }],
+				records: [{ typeName: 'shape', id: createShapeId('shape') }],
 			})
 		)
 
@@ -100,7 +100,7 @@ describe('parseTldrawJsonFile', () => {
 				records: [
 					{
 						typeName: 'shape',
-						id: createCustomShapeId('shape'),
+						id: createShapeId('shape'),
 						type: 'geo',
 						props: {},
 					} as UnknownRecord,

@@ -3,44 +3,44 @@ import { createContext, useCallback, useContext, useState } from 'react'
 import { useEvents } from './useEventsProvider'
 
 /** @public */
-export interface DialogProps {
+export interface TLUiDialogProps {
 	onClose: () => void
 }
 
 /** @public */
-export interface TLDialog {
+export interface TLUiDialog {
 	id: string
 	onClose?: () => void
-	component: (props: DialogProps) => any
+	component: (props: TLUiDialogProps) => any
 }
 
 /** @public */
-export type DialogsContextType = {
-	addDialog: (dialog: Omit<TLDialog, 'id'> & { id?: string }) => string
+export type TLUiDialogsContextType = {
+	addDialog: (dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => string
 	removeDialog: (id: string) => string
-	updateDialog: (id: string, newDialogData: Partial<TLDialog>) => string
+	updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string
 	clearDialogs: () => void
-	dialogs: TLDialog[]
+	dialogs: TLUiDialog[]
 }
 
-/** @public */
-export const DialogsContext = createContext({} as DialogsContextType)
+/** @internal */
+export const DialogsContext = createContext({} as TLUiDialogsContextType)
 
-/** @public */
+/** @internal */
 export type DialogsProviderProps = {
-	overrides?: (editor: Editor) => DialogsContextType
+	overrides?: (editor: Editor) => TLUiDialogsContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export function DialogsProvider({ children }: DialogsProviderProps) {
 	const editor = useEditor()
 	const trackEvent = useEvents()
 
-	const [dialogs, setDialogs] = useState<TLDialog[]>([])
+	const [dialogs, setDialogs] = useState<TLUiDialog[]>([])
 
 	const addDialog = useCallback(
-		(dialog: Omit<TLDialog, 'id'> & { id?: string }) => {
+		(dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => {
 			const id = dialog.id ?? uniqueId()
 			setDialogs((d) => {
 				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
@@ -55,7 +55,7 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 	)
 
 	const updateDialog = useCallback(
-		(id: string, newDialogData: Partial<TLDialog>) => {
+		(id: string, newDialogData: Partial<TLUiDialog>) => {
 			setDialogs((d) =>
 				d.map((m) => {
 					if (m.id === id) {

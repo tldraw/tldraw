@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
+import { ComputedCache } from '@tldraw/store'
 import {
 	TLBaseShape,
 	TLHandle,
@@ -8,7 +9,6 @@ import {
 	TLUnknownShape,
 	Vec2dModel,
 } from '@tldraw/tlschema'
-import { ComputedCache } from '@tldraw/tlstore'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'

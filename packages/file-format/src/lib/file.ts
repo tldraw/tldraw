@@ -3,21 +3,22 @@ import {
 	Editor,
 	fileToBase64,
 	TLAsset,
+	TLAssetId,
 	TLInstanceId,
 	TLRecord,
 	TLStore,
 } from '@tldraw/editor'
 import {
-	ID,
 	MigrationFailureReason,
 	MigrationResult,
+	RecordId,
 	SerializedSchema,
 	StoreSnapshot,
 	UnknownRecord,
-} from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
+} from '@tldraw/store'
+import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */
@@ -53,7 +54,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	}),
 	records: T.arrayOf(
 		T.object({
-			id: T.string as T.Validator<ID<any>>,
+			id: T.string as T.Validator<RecordId<any>>,
 			typeName: T.string,
 		}).allowUnknownProperties()
 	),
@@ -153,7 +154,9 @@ export function parseTldrawJsonFile({
 
 /** @public */
 export async function serializeTldrawJson(store: TLStore): Promise<string> {
-	const recordsToSave: TLRecord[] = []
+	const records: TLRecord[] = []
+	const usedAssets = new Set<TLAssetId | null>()
+	const assets: TLAsset[] = []
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
@@ -171,22 +174,29 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						assetSrcToSave = record.props.src
 					}
 
-					recordsToSave.push({
+					assets.push({
 						...record,
 						props: {
 							...record.props,
 							src: assetSrcToSave,
 						},
-					} as TLAsset)
+					})
 				} else {
-					recordsToSave.push(record)
+					assets.push(record)
 				}
 				break
+			case 'shape':
+				if ('assetId' in record.props) {
+					usedAssets.add(record.props.assetId)
+				}
+				records.push(record)
+				break
 			default:
-				recordsToSave.push(record)
+				records.push(record)
 				break
 		}
 	}
+	const recordsToSave = records.concat(assets.filter((a) => usedAssets.has(a.id)))
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
@@ -204,8 +214,8 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 export async function parseAndLoadDocument(
 	editor: Editor,
 	document: string,
-	msg: (id: TLTranslationKey) => string,
-	addToast: ToastsContextType['addToast'],
+	msg: (id: TLUiTranslationKey) => string,
+	addToast: TLUiToastsContextType['addToast'],
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean
 ) {
