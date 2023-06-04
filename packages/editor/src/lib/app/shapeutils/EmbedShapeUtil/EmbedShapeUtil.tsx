@@ -14,7 +14,7 @@ import { ROTATING_SHADOWS } from '../../../constants'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { rotateBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { resizeBox } from '../shared/resizeBox'
 
@@ -26,7 +26,7 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 }
 
 /** @public */
-export class EmbedShapeUtil extends BoxShapeUtil<TLEmbedShape> {
+export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed'
 
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = () => false

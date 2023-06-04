@@ -12,12 +12,12 @@ import {
 	stopEventPropagation,
 	truncateStringWithEllipsis,
 } from '../../../utils/dom'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../ShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
-export class BookmarkShapeUtil extends BoxShapeUtil<TLBookmarkShape> {
+export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark'
 
 	override canResize = () => false

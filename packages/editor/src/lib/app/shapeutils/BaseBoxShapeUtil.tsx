@@ -1,10 +1,13 @@
 import { Box2d, linesIntersect, pointInPolygon, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLBoxLike } from '../tools/BaseBoxShapeTool/BaseBoxShapeTool'
+import { TLBaseShape } from '@tldraw/tlschema'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 
 /** @public */
-export abstract class BoxShapeUtil<Shape extends TLBoxLike> extends ShapeUtil<Shape> {
+export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>
+
+/** @public */
+export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {
 	override getBounds(shape: Shape) {
 		return new Box2d(0, 0, shape.props.w, shape.props.h)
 	}

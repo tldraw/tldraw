@@ -3,14 +3,14 @@ import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnResizeEndHandler } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { TLExportColors } from '../shared/TLExportColors'
 import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
-export class FrameShapeUtil extends BoxShapeUtil<TLFrameShape> {
+export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame'
 
 	override canBind = () => true

@@ -184,10 +184,26 @@ export abstract class BaseBoxShapeTool extends StateNode {
 }
 
 // @public (undocumented)
+export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {
+    // (undocumented)
+    getBounds(shape: Shape): Box2d;
+    // (undocumented)
+    getCenter(shape: Shape): Vec2d;
+    // (undocumented)
+    getOutline(shape: Shape): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean;
+    // (undocumented)
+    hitTestPoint(shape: Shape, point: VecLike): boolean;
+    // (undocumented)
+    onResize: TLOnResizeHandler<any>;
+}
+
+// @public (undocumented)
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
-export class BookmarkShapeUtil extends BoxShapeUtil<TLBookmarkShape> {
+export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
@@ -217,22 +233,6 @@ export class BookmarkShapeUtil extends BoxShapeUtil<TLBookmarkShape> {
 
 // @internal (undocumented)
 export const BOUND_ARROW_OFFSET = 10;
-
-// @public (undocumented)
-export abstract class BoxShapeUtil<Shape extends TLBoxLike> extends ShapeUtil<Shape> {
-    // (undocumented)
-    getBounds(shape: Shape): Box2d;
-    // (undocumented)
-    getCenter(shape: Shape): Vec2d;
-    // (undocumented)
-    getOutline(shape: Shape): Vec2d[];
-    // (undocumented)
-    hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: Shape, point: VecLike): boolean;
-    // (undocumented)
-    onResize: TLOnResizeHandler<any>;
-}
 
 // @public (undocumented)
 export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
@@ -789,7 +789,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
-export class EmbedShapeUtil extends BoxShapeUtil<TLEmbedShape> {
+export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
@@ -855,7 +855,7 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export class FrameShapeUtil extends BoxShapeUtil<TLFrameShape> {
+export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
@@ -887,7 +887,7 @@ export class FrameShapeUtil extends BoxShapeUtil<TLFrameShape> {
 }
 
 // @public (undocumented)
-export class GeoShapeUtil extends BoxShapeUtil<TLGeoShape> {
+export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
@@ -1187,7 +1187,7 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export class ImageShapeUtil extends BoxShapeUtil<TLImageShape> {
+export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
@@ -2079,6 +2079,12 @@ export type TLAnimationOptions = Partial<{
 }>;
 
 // @public (undocumented)
+export type TLBaseBoxShape = TLBaseShape<string, {
+    w: number;
+    h: number;
+}>;
+
+// @public (undocumented)
 export interface TLBaseEventInfo {
     // (undocumented)
     altKey: boolean;
@@ -2089,12 +2095,6 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
-
-// @public (undocumented)
-export type TLBoxLike = TLBaseShape<string, {
-    w: number;
-    h: number;
-}>;
 
 // @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
@@ -2647,7 +2647,7 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
-export class VideoShapeUtil extends BoxShapeUtil<TLVideoShape> {
+export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)

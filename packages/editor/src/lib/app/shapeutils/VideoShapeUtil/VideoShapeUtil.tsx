@@ -6,11 +6,11 @@ import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { useIsEditing } from '../../../hooks/useIsEditing'
 import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
-export class VideoShapeUtil extends BoxShapeUtil<TLVideoShape> {
+export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video'
 
 	override canEdit = () => true

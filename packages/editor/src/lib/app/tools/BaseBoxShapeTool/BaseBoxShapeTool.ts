@@ -1,11 +1,7 @@
+import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
-
-import { TLBaseShape, TLStyleType } from '@tldraw/tlschema'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
-
-/** @public */
-export type TLBoxLike = TLBaseShape<string, { w: number; h: number }>
 
 /** @public */
 export abstract class BaseBoxShapeTool extends StateNode {

@@ -8,7 +8,7 @@ import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { useIsCropping } from '../../../hooks/useIsCropping'
 import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnDoubleClickHandler } from '../ShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
@@ -48,7 +48,7 @@ async function getDataURIFromURL(url: string): Promise<string> {
 }
 
 /** @public */
-export class ImageShapeUtil extends BoxShapeUtil<TLImageShape> {
+export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image'
 
 	override isAspectRatioLocked = () => true

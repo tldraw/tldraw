@@ -17,7 +17,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
-import { BoxShapeUtil } from '../BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -41,7 +41,7 @@ const LABEL_PADDING = 16
 const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
-export class GeoShapeUtil extends BoxShapeUtil<TLGeoShape> {
+export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo'
 
 	canEdit = () => true

@@ -2,7 +2,7 @@ import { act, render, screen } from '@testing-library/react'
 import { InstanceRecordType, TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Editor } from '../app/Editor'
-import { BoxShapeUtil } from '../app/shapeutils/BoxShapeUtil'
+import { BaseBoxShapeUtil } from '../app/shapeutils/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
@@ -173,7 +173,7 @@ describe('Custom shapes', () => {
 		}
 	>
 
-	class CardUtil extends BoxShapeUtil<CardShape> {
+	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = 'card' as const
 
 		override isAspectRatioLocked = (_shape: CardShape) => false
