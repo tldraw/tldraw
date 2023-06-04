@@ -99,6 +99,7 @@ export {
 	type TLHistoryEntry,
 	type TLHistoryMark,
 } from './lib/app/types/history-types'
+export { type RequiredKeys } from './lib/app/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/app/types/selection-types'
 export {
 	defaultEditorAssetUrls,

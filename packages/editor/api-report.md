@@ -1763,6 +1763,9 @@ export function releasePointerCapture(element: Element, event: PointerEvent | Re
 // @internal (undocumented)
 export const REMOVE_SYMBOL: unique symbol;
 
+// @public (undocumented)
+export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
+
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
 
