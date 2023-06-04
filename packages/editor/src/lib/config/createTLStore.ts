@@ -7,18 +7,18 @@ import {
 	TLStore,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { TLShapeUtilConstructor } from '../app/shapeutils/TLShapeUtil'
+import { TLShapeUtilConstructor } from '../app/shapeutils/ShapeUtil'
 
 /** @public */
-export type ShapeInfo = {
+export type TLShapeInfo = {
 	util: TLShapeUtilConstructor<any>
 	migrations?: Migrations
 	validator?: { validate: (record: any) => any }
 }
 
 /** @public */
-export type StoreOptions = {
-	customShapes?: Record<string, ShapeInfo>
+export type TLStoreOptions = {
+	customShapes?: Record<string, TLShapeInfo>
 	instanceId?: TLInstanceId
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
@@ -30,7 +30,7 @@ export type StoreOptions = {
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTLStore(opts = {} as StoreOptions): TLStore {
+export function createTLStore(opts = {} as TLStoreOptions): TLStore {
 	const {
 		customShapes = {},
 		instanceId = InstanceRecordType.createId(),

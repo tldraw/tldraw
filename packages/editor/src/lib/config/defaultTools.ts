@@ -1,27 +1,27 @@
-import { StateNodeConstructor } from '../app/statechart/StateNode'
-import { TLArrowTool } from '../app/statechart/TLArrowTool/TLArrowTool'
-import { TLDrawTool } from '../app/statechart/TLDrawTool/TLDrawTool'
-import { TLEraserTool } from '../app/statechart/TLEraserTool/TLEraserTool'
-import { TLFrameTool } from '../app/statechart/TLFrameTool/TLFrameTool'
-import { TLGeoTool } from '../app/statechart/TLGeoTool/TLGeoTool'
-import { TLHandTool } from '../app/statechart/TLHandTool/TLHandTool'
-import { TLHighlightTool } from '../app/statechart/TLHighlightTool/TLHighlightTool'
-import { TLLaserTool } from '../app/statechart/TLLaserTool/TLLaserTool'
-import { TLLineTool } from '../app/statechart/TLLineTool/TLLineTool'
-import { TLNoteTool } from '../app/statechart/TLNoteTool/TLNoteTool'
-import { TLTextTool } from '../app/statechart/TLTextTool/TLTextTool'
+import { ArrowShapeTool } from '../app/tools/ArrowShapeTool/ArrowShapeTool'
+import { DrawShapeTool } from '../app/tools/DrawShapeTool/DrawShapeTool'
+import { EraserShapeTool } from '../app/tools/EraserShapeTool/EraserShapeTool'
+import { FrameShapeTool } from '../app/tools/FrameShapeTool/FrameShapeTool'
+import { GeoShapeTool } from '../app/tools/GeoShapeTool/GeoShapeTool'
+import { HandTool } from '../app/tools/HandTool/HandTool'
+import { HighlightShapeTool } from '../app/tools/HighlightShapeTool/HighlightShapeTool'
+import { LaserTool } from '../app/tools/LaserTool/LaserTool'
+import { LineShapeTool } from '../app/tools/LineShapeTool/LineShapeTool'
+import { NoteShapeTool } from '../app/tools/NoteShapeTool/NoteShapeTool'
+import { TLStateNodeConstructor } from '../app/tools/StateNode'
+import { TextShapeTool } from '../app/tools/TextShapeTool/TextShapeTool'
 
 /** @public */
-export const defaultTools: StateNodeConstructor[] = [
-	TLHandTool,
-	TLEraserTool,
-	TLLaserTool,
-	TLDrawTool,
-	TLTextTool,
-	TLLineTool,
-	TLArrowTool,
-	TLGeoTool,
-	TLNoteTool,
-	TLFrameTool,
-	TLHighlightTool,
+export const defaultTools: TLStateNodeConstructor[] = [
+	HandTool,
+	EraserShapeTool,
+	LaserTool,
+	DrawShapeTool,
+	TextShapeTool,
+	LineShapeTool,
+	ArrowShapeTool,
+	GeoShapeTool,
+	NoteShapeTool,
+	FrameShapeTool,
+	HighlightShapeTool,
 ]

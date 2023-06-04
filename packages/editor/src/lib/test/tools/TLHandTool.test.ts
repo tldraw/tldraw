@@ -1,4 +1,4 @@
-import { TLHandTool } from '../../app/statechart/TLHandTool/TLHandTool'
+import { HandTool } from '../../app/tools/HandTool/HandTool'
 import { createDefaultShapes, TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -16,7 +16,7 @@ afterEach(() => {
 
 jest.useFakeTimers()
 
-describe(TLHandTool, () => {
+describe(HandTool, () => {
 	it('Double taps to zoom in', () => {
 		editor.setSelectedTool('hand')
 		expect(editor.zoomLevel).toBe(1)

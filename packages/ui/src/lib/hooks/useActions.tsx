@@ -1,20 +1,20 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	createShapeId,
+	BookmarkShapeUtil,
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
-	getEmbedInfo,
-	openWindow,
-	TLBookmarkUtil,
-	TLEmbedUtil,
+	EmbedShapeUtil,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
-	TLTextUtil,
+	TextShapeUtil,
+	createShapeId,
+	getEmbedInfo,
+	openWindow,
 	useEditor,
 } from '@tldraw/editor'
-import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
+import { Box2d, TAU, Vec2d, approximately } from '@tldraw/primitives'
 import { compact } from '@tldraw/utils'
 import * as React from 'react'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -214,7 +214,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.selectedShapes
 							.filter(
 								(shape): shape is TLTextShape =>
-									editor.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+									editor.isShapeOfType(shape, TextShapeUtil) && shape.props.autoSize === false
 							)
 							.map((shape) => {
 								return {
@@ -243,7 +243,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = editor.getShapeById(ids[0])
-					if (!shape || !editor.isShapeOfType(shape, TLEmbedUtil)) {
+					if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -263,7 +263,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType(shape, TLEmbedUtil) || !shape.props.url) continue
+						if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -306,7 +306,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!editor.isShapeOfType(shape, TLBookmarkUtil)) continue
+						if (!editor.isShapeOfType(shape, BookmarkShapeUtil)) continue
 
 						const { url } = shape.props
 

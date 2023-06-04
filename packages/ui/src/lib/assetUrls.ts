@@ -1,12 +1,12 @@
 import {
-	defaultEditorAssetUrls,
-	EditorAssetUrls,
 	EMBED_DEFINITIONS,
 	LANGUAGES,
+	TLEditorAssetUrls,
+	defaultEditorAssetUrls,
 } from '@tldraw/editor'
-import { iconTypes, TLUiIconType } from './icon-types'
+import { TLUiIconType, iconTypes } from './icon-types'
 
-export type TLUiAssetUrls = EditorAssetUrls & {
+export type TLUiAssetUrls = TLEditorAssetUrls & {
 	icons: Record<TLUiIconType, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>

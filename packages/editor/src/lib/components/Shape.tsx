@@ -7,7 +7,7 @@ import {
 	useStateTracking,
 } from 'signia-react'
 import { useEditor } from '../..'
-import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
+import { ShapeUtil } from '../app/shapeutils/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'
@@ -157,7 +157,7 @@ export const Shape = track(function Shape({
 })
 
 const InnerShape = React.memo(
-	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: TLShapeUtil<T> }) {
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + util.type, () => util.render(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props
@@ -169,7 +169,7 @@ const InnerShapeBackground = React.memo(
 		util,
 	}: {
 		shape: T
-		util: TLShapeUtil<T>
+		util: ShapeUtil<T>
 	}) {
 		return useStateTracking('InnerShape:' + util.type, () => util.renderBackground?.(shape))
 	},
@@ -177,7 +177,7 @@ const InnerShapeBackground = React.memo(
 )
 
 const CulledShape = React.memo(
-	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: TLShapeUtil<T> }) {
+	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		const bounds = util.bounds(shape)
 		return (
 			<div

@@ -4,8 +4,8 @@ import {
 	TLAlignType,
 	TLArrowheadType,
 	TLAssetId,
-	TLClipboardModel,
 	TLColorType,
+	TLContent,
 	TLDashType,
 	TLFillType,
 	TLFontType,
@@ -32,7 +32,7 @@ import { compact } from '@tldraw/utils'
 export async function pasteExcalidrawContent(editor: Editor, clipboard: any, point?: VecLike) {
 	const { elements, files } = clipboard
 
-	const tldrawContent: TLClipboardModel = {
+	const tldrawContent: TLContent = {
 		shapes: [],
 		rootShapeIds: [],
 		assets: [],

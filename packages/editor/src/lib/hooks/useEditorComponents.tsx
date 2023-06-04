@@ -6,17 +6,17 @@ import {
 	TLCollaboratorHintComponent,
 } from '../components/DefaultCollaboratorHint'
 import { DefaultCursor, TLCursorComponent } from '../components/DefaultCursor'
-import { DefaultErrorFallback, TLErrorFallback } from '../components/DefaultErrorFallback'
+import { DefaultErrorFallback, TLErrorFallbackComponent } from '../components/DefaultErrorFallback'
 import { DefaultGrid, TLGridComponent } from '../components/DefaultGrid'
 import { DefaultHandle, TLHandleComponent } from '../components/DefaultHandle'
 import { DefaultScribble, TLScribbleComponent } from '../components/DefaultScribble'
 import {
 	DefaultShapeErrorFallback,
-	TLShapeErrorFallback,
+	TLShapeErrorFallbackComponent,
 } from '../components/DefaultShapeErrorFallback'
 import {
 	DefaultShapeIndicatorErrorFallback,
-	TLShapeIndicatorErrorFallback,
+	TLShapeIndicatorErrorFallback as TLShapeIndicatorErrorFallbackComponent,
 } from '../components/DefaultShapeIndicatorErrorFallback'
 import { DefaultSnapLine, TLSnapLineComponent } from '../components/DefaultSnapLine'
 import { DefaultSpinner, TLSpinnerComponent } from '../components/DefaultSpinner'
@@ -39,9 +39,9 @@ export interface TLEditorComponents {
 	CollaboratorScribble: TLScribbleComponent | null
 	SnapLine: TLSnapLineComponent | null
 	Handle: TLHandleComponent | null
-	ErrorFallback: TLErrorFallback | null
-	ShapeErrorFallback: TLShapeErrorFallback | null
-	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallback | null
+	ErrorFallback: TLErrorFallbackComponent | null
+	ShapeErrorFallback: TLShapeErrorFallbackComponent | null
+	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent | null
 	Spinner: TLSpinnerComponent | null
 }
 

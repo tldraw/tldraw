@@ -1,5 +1,5 @@
 /** @public */
-export type EditorAssetUrls = {
+export type TLEditorAssetUrls = {
 	fonts: {
 		monospace: string
 		serif: string
@@ -9,7 +9,7 @@ export type EditorAssetUrls = {
 }
 
 /** @public */
-export let defaultEditorAssetUrls: EditorAssetUrls = {
+export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 	fonts: {
 		draw: '/fonts/Shantell_Sans-Normal-SemiBold.woff2',
 		serif: '/fonts/IBMPlexSerif-Medium.woff2',
@@ -19,6 +19,6 @@ export let defaultEditorAssetUrls: EditorAssetUrls = {
 }
 
 /** @internal */
-export function setDefaultEditorAssetUrls(assetUrls: EditorAssetUrls) {
+export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls) {
 	defaultEditorAssetUrls = assetUrls
 }

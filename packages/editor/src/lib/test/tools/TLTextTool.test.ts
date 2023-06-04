@@ -1,4 +1,4 @@
-import { TLTextTool } from '../../app/statechart/TLTextTool/TLTextTool'
+import { TextShapeTool } from '../../app/tools/TextShapeTool/TextShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLTextTool, () => {
+describe(TextShapeTool, () => {
 	it('Creates text, edits it, undoes and redoes', () => {
 		expect(editor.shapesArray.length).toBe(0)
 		editor.setSelectedTool('text')

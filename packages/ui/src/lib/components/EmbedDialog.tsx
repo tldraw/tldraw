@@ -1,4 +1,4 @@
-import { createEmbedShapeAtPoint, EmbedResult, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { TLEmbedResult, createEmbedShapeAtPoint, getEmbedInfo, useEditor } from '@tldraw/editor'
 import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
@@ -22,7 +22,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	const [url, setUrl] = useState<string>('')
 
 	// The embed info for the user's selected embed (based on the URL they've entered in stage 2)
-	const [embedInfoForUrl, setEmbedInfoForUrl] = useState<null | EmbedResult>(null)
+	const [embedInfoForUrl, setEmbedInfoForUrl] = useState<null | TLEmbedResult>(null)
 
 	// Should we show the "invalid URL" error message?
 	const [showError, setShowError] = useState(false)

@@ -15,8 +15,8 @@ import {
 	TLShapePartial,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { AppOptions, Editor } from '../app/Editor'
-import { TLClipboardModel } from '../app/types/clipboard-types'
+import { Editor, TLEditorOptions } from '../app/Editor'
+import { TLContent } from '../app/types/clipboard-types'
 import {
 	TLEventInfo,
 	TLKeyboardEventInfo,
@@ -55,7 +55,7 @@ declare global {
 export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
 
 export class TestEditor extends Editor {
-	constructor(options = {} as Partial<Omit<AppOptions, 'store'>>) {
+	constructor(options = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
 		const elm = document.createElement('div')
 		const { shapes = {}, tools = [] } = options
 		elm.tabIndex = 0
@@ -134,7 +134,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	clipboard = null as TLClipboardModel | null
+	clipboard = null as TLContent | null
 
 	copy = (ids = this.selectedIds) => {
 		if (ids.length > 0) {

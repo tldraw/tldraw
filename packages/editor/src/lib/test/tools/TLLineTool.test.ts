@@ -1,5 +1,5 @@
 import { assert } from '@tldraw/utils'
-import { TLLineUtil } from '../../app/shapeutils/TLLineUtil/TLLineUtil'
+import { LineShapeUtil } from '../../app/shapeutils/LineShapeUtil/LineShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -128,7 +128,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(20, 10)
 
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType(line, TLLineUtil))
+		assert(editor.isShapeOfType(line, LineShapeUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -145,7 +145,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType(line, TLLineUtil))
+		assert(editor.isShapeOfType(line, LineShapeUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -163,7 +163,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType(line, TLLineUtil))
+		assert(editor.isShapeOfType(line, LineShapeUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -183,7 +183,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(30, 10)
 
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType(line, TLLineUtil))
+		assert(editor.isShapeOfType(line, LineShapeUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})
@@ -205,7 +205,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerUp(40, 10)
 
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType(line, TLLineUtil))
+		assert(editor.isShapeOfType(line, LineShapeUtil))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
 	})

@@ -1,7 +1,7 @@
 /** @public */
-export type TLShapeErrorFallback = (props: { error: unknown }) => any | null
+export type TLShapeErrorFallbackComponent = (props: { error: unknown }) => any | null
 
 /** @internal */
-export const DefaultShapeErrorFallback: TLShapeErrorFallback = () => {
+export const DefaultShapeErrorFallback: TLShapeErrorFallbackComponent = () => {
 	return <div className="tl-shape-error-boundary" />
 }

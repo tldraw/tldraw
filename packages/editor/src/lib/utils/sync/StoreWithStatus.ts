@@ -1,7 +1,7 @@
 import { TLStore } from '@tldraw/tlschema'
 
 /** @public */
-export type StoreWithStatus =
+export type TLStoreWithStatus =
 	| {
 			readonly status: 'not-synced'
 			readonly store: TLStore

@@ -1,4 +1,4 @@
-import { TLDrawTool } from '../../app/statechart/TLDrawTool/TLDrawTool'
+import { DrawShapeTool } from '../../app/tools/DrawShapeTool/DrawShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLDrawTool, () => {
+describe(DrawShapeTool, () => {
 	return
 })
 

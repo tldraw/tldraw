@@ -1,7 +1,7 @@
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
 import { Editor } from '../Editor'
-import { TextHelpers } from '../shapeutils/TLTextUtil/TextHelpers'
+import { TextHelpers } from '../shapeutils/TextShapeUtil/TextHelpers'
 
 const textAlignmentsForLtr = {
 	start: 'left',
@@ -12,9 +12,9 @@ const textAlignmentsForLtr = {
 	'end-legacy': 'right',
 }
 
-type OverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
-type MeasureTextSpanOpts = {
-	overflow: OverflowMode
+type TLOverflowMode = 'wrap' | 'truncate-ellipsis' | 'truncate-clip'
+type TLMeasureTextSpanOpts = {
+	overflow: TLOverflowMode
 	width: number
 	height: number
 	padding: number
@@ -183,7 +183,7 @@ export class TextManager {
 	 */
 	measureTextSpans(
 		textToMeasure: string,
-		opts: MeasureTextSpanOpts
+		opts: TLMeasureTextSpanOpts
 	): { text: string; box: Box2dModel }[] {
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'

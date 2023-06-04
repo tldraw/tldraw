@@ -1,4 +1,4 @@
-import { TLBaseShape, TLBookmarkUtil, useEditor } from '@tldraw/editor'
+import { BookmarkShapeUtil, TLBaseShape, useEditor } from '@tldraw/editor'
 import { useCallback, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
@@ -87,7 +87,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 					? validState === 'needs protocol'
 						? 'https://' + value
 						: value
-					: editor.isShapeOfType(shape, TLBookmarkUtil)
+					: editor.isShapeOfType(shape, BookmarkShapeUtil)
 					? rInitialValue.current
 					: ''
 

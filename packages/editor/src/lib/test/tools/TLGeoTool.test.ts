@@ -1,4 +1,4 @@
-import { TLGeoTool } from '../../app/statechart/TLGeoTool/TLGeoTool'
+import { GeoShapeTool } from '../../app/tools/GeoShapeTool/GeoShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -10,7 +10,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLGeoTool, () => {
+describe(GeoShapeTool, () => {
 	it('Creates geo shapes on click-and-drag, supports undo and redo', () => {
 		expect(editor.shapesArray.length).toBe(0)
 

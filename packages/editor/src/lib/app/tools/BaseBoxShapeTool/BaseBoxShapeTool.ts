@@ -1,0 +1,15 @@
+import { TLStyleType } from '@tldraw/tlschema'
+import { StateNode } from '../StateNode'
+import { Idle } from './children/Idle'
+import { Pointing } from './children/Pointing'
+
+/** @public */
+export abstract class BaseBoxShapeTool extends StateNode {
+	static override id = 'box'
+	static initial = 'idle'
+	static children = () => [Idle, Pointing]
+
+	abstract shapeType: string
+
+	styles = ['opacity'] as TLStyleType[]
+}

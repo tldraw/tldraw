@@ -1,5 +1,5 @@
 import { TLBookmarkShape, createShapeId } from '@tldraw/tlschema'
-import { TLBookmarkUtil } from '../../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
+import { BookmarkShapeUtil } from '../../app/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,7 +11,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLBookmarkUtil, () => {
+describe(BookmarkShapeUtil, () => {
 	return
 })
 
@@ -78,7 +78,7 @@ describe('The URL formatter', () => {
 		const e = editor.getShapeById<TLBookmarkShape>(ids.e)!
 		const f = editor.getShapeById<TLBookmarkShape>(ids.f)!
 
-		const util = editor.getShapeUtil(TLBookmarkUtil)
+		const util = editor.getShapeUtil(BookmarkShapeUtil)
 		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
 		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')
