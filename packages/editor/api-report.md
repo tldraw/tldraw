@@ -310,7 +310,7 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls;
 export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
-export const DefaultErrorFallback: TLErrorFallback;
+export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
 export const defaultShapes: Record<string, TLShapeInfo>;
@@ -2219,7 +2219,7 @@ export interface TLEditorComponents {
     // (undocumented)
     Cursor: null | TLCursorComponent;
     // (undocumented)
-    ErrorFallback: null | TLErrorFallback;
+    ErrorFallback: null | TLErrorFallbackComponent;
     // (undocumented)
     Grid: null | TLGridComponent;
     // (undocumented)
@@ -2227,7 +2227,7 @@ export interface TLEditorComponents {
     // (undocumented)
     Scribble: null | TLScribbleComponent;
     // (undocumented)
-    ShapeErrorFallback: null | TLShapeErrorFallback;
+    ShapeErrorFallback: null | TLShapeErrorFallbackComponent;
     // (undocumented)
     ShapeIndicatorErrorFallback: null | TLShapeIndicatorErrorFallback;
     // (undocumented)

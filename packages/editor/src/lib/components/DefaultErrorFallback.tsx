@@ -14,10 +14,10 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 function noop() {}
 
 /** @public */
-export type TLErrorFallback = (props: { error: unknown; editor?: Editor }) => any | null
+export type TLErrorFallbackComponent = (props: { error: unknown; editor?: Editor }) => any | null
 
 /** @internal */
-export const DefaultErrorFallback: TLErrorFallback = ({ error, editor }) => {
+export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
 	const [didCopy, setDidCopy] = useState(false)
