@@ -1,5 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { boolean, number, object, string, TypeValidator } from '@tldraw/validate'
 import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
 /**
@@ -19,15 +20,15 @@ export type TLImageAsset = TLBaseAsset<
 >
 
 /** @internal */
-export const imageAssetValidator: T.Validator<TLImageAsset> = createAssetValidator(
+export const imageAssetValidator: TypeValidator<TLImageAsset> = createAssetValidator(
 	'image',
-	T.object({
-		w: T.number,
-		h: T.number,
-		name: T.string,
-		isAnimated: T.boolean,
-		mimeType: T.string.nullable(),
-		src: T.string.nullable(),
+	object({
+		w: number,
+		h: number,
+		name: string,
+		isAnimated: boolean,
+		mimeType: string.nullable(),
+		src: string.nullable(),
 	})
 )
 

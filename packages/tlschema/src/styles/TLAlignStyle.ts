@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { setEnum } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -23,6 +23,6 @@ export interface TLAlignStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const alignValidator = T.setEnum<TLAlignType>(
+export const alignValidator = setEnum<TLAlignType>(
 	TL_ALIGN_TYPES_WITH_LEGACY_STUFF as Set<TLAlignType>
 )

@@ -1,5 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { nonZeroNumber, object, string, TypeValidator } from '@tldraw/validate'
 import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
 import { createShapeValidator, TLBaseShape } from './TLBaseShape'
 
@@ -14,13 +15,13 @@ type TLFrameShapeProps = {
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @internal */
-export const frameShapeValidator: T.Validator<TLFrameShape> = createShapeValidator(
+export const frameShapeValidator: TypeValidator<TLFrameShape> = createShapeValidator(
 	'frame',
-	T.object({
+	object({
 		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		name: T.string,
+		w: nonZeroNumber,
+		h: nonZeroNumber,
+		name: string,
 	})
 )
 

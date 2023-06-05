@@ -77,10 +77,10 @@ function typeToString(value: unknown): string {
 }
 
 /** @public */
-export type TypeOf<V extends Validator<unknown>> = V extends Validator<infer T> ? T : never
+export type TypeOf<V extends TypeValidator<unknown>> = V extends TypeValidator<infer T> ? T : never
 
 /** @public */
-export class Validator<T> {
+export class TypeValidator<T> {
 	constructor(readonly validationFn: ValidatorFn<T>) {}
 
 	/**
@@ -99,8 +99,8 @@ export class Validator<T> {
 	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
 	 * null.
 	 */
-	nullable(): Validator<T | null> {
-		return new Validator((value) => {
+	nullable(): TypeValidator<T | null> {
+		return new TypeValidator((value) => {
 			if (value === null) return null
 			return this.validate(value)
 		})
@@ -110,8 +110,8 @@ export class Validator<T> {
 	 * Returns a new validator that also accepts null or undefined. The resulting value will always be
 	 * null.
 	 */
-	optional(): Validator<T | undefined> {
-		return new Validator((value) => {
+	optional(): TypeValidator<T | undefined> {
+		return new TypeValidator((value) => {
 			if (value === undefined) return undefined
 			return this.validate(value)
 		})
@@ -121,8 +121,8 @@ export class Validator<T> {
 	 * Refine this validation to a new type. The passed-in validation function should throw an error
 	 * if the value can't be converted to the new type, or return the new type otherwise.
 	 */
-	refine<U>(otherValidationFn: (value: T) => U): Validator<U> {
-		return new Validator((value) => {
+	refine<U>(otherValidationFn: (value: T) => U): TypeValidator<U> {
+		return new TypeValidator((value) => {
 			return otherValidationFn(this.validate(value))
 		})
 	}
@@ -133,16 +133,19 @@ export class Validator<T> {
 	 * @example
 	 *
 	 * ```ts
-	 * const numberLessThan10Validator = T.number.check((value) => {
+	 * const numberLessThan10Validator = number.check((value) => {
 	 * 	if (value >= 10) {
 	 * 		throw new ValidationError(`Expected number less than 10, got ${value}`)
 	 * 	}
 	 * })
 	 * ```
 	 */
-	check(name: string, checkFn: (value: T) => void): Validator<T>
-	check(checkFn: (value: T) => void): Validator<T>
-	check(nameOrCheckFn: string | ((value: T) => void), checkFn?: (value: T) => void): Validator<T> {
+	check(name: string, checkFn: (value: T) => void): TypeValidator<T>
+	check(checkFn: (value: T) => void): TypeValidator<T>
+	check(
+		nameOrCheckFn: string | ((value: T) => void),
+		checkFn?: (value: T) => void
+	): TypeValidator<T> {
 		if (typeof nameOrCheckFn === 'string') {
 			return this.refine((value) => {
 				prefixError(`(check ${nameOrCheckFn})`, () => checkFn!(value))
@@ -158,8 +161,8 @@ export class Validator<T> {
 }
 
 /** @public */
-export class ArrayOfValidator<T> extends Validator<T[]> {
-	constructor(readonly itemValidator: Validator<T>) {
+export class ArrayOfValidator<T> extends TypeValidator<T[]> {
+	constructor(readonly itemValidator: TypeValidator<T>) {
 		super((value) => {
 			const arr = array.validate(value)
 			for (let i = 0; i < arr.length; i++) {
@@ -187,10 +190,10 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 }
 
 /** @public */
-export class ObjectValidator<Shape extends object> extends Validator<Shape> {
+export class ObjectValidator<Shape extends object> extends TypeValidator<Shape> {
 	constructor(
 		public readonly config: {
-			readonly [K in keyof Shape]: Validator<Shape[K]>
+			readonly [K in keyof Shape]: TypeValidator<Shape[K]>
 		},
 		private readonly shouldAllowUnknownProperties = false
 	) {
@@ -201,7 +204,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 			for (const [key, validator] of Object.entries(config)) {
 				prefixError(key, () => {
-					;(validator as Validator<unknown>).validate(getOwnProperty(object, key))
+					;(validator as TypeValidator<unknown>).validate(getOwnProperty(object, key))
 				})
 			}
 
@@ -227,16 +230,16 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	 * @example
 	 *
 	 * ```ts
-	 * const animalValidator = T.object({
-	 * 	name: T.string,
+	 * const animalValidator = object({
+	 * 	name: string,
 	 * })
 	 * const catValidator = animalValidator.extend({
-	 * 	meowVolume: T.number,
+	 * 	meowVolume: number,
 	 * })
 	 * ```
 	 */
 	extend<Extension extends Record<string, unknown>>(extension: {
-		readonly [K in keyof Extension]: Validator<Extension[K]>
+		readonly [K in keyof Extension]: TypeValidator<Extension[K]>
 	}): ObjectValidator<Shape & Extension> {
 		return new ObjectValidator({ ...this.config, ...extension }) as ObjectValidator<
 			Shape & Extension
@@ -246,7 +249,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
 type UnionValidatorConfig<Key extends string, Config> = {
-	readonly [Variant in keyof Config]: Validator<any> & {
+	readonly [Variant in keyof Config]: TypeValidator<any> & {
 		validate: (input: any) => { readonly [K in Key]: Variant }
 	}
 }
@@ -255,7 +258,7 @@ export class UnionValidator<
 	Key extends string,
 	Config extends UnionValidatorConfig<Key, Config>,
 	UnknownValue = never
-> extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
+> extends TypeValidator<TypeOf<Config[keyof Config]> | UnknownValue> {
 	constructor(
 		private readonly key: Key,
 		private readonly config: Config,
@@ -290,10 +293,10 @@ export class UnionValidator<
 }
 
 /** @public */
-export class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
+export class DictValidator<Key extends string, Value> extends TypeValidator<Record<Key, Value>> {
 	constructor(
-		public readonly keyValidator: Validator<Key>,
-		public readonly valueValidator: Validator<Value>
+		public readonly keyValidator: TypeValidator<Key>,
+		public readonly valueValidator: TypeValidator<Value>
 	) {
 		super((object) => {
 			if (typeof object !== 'object' || object === null) {
@@ -312,8 +315,8 @@ export class DictValidator<Key extends string, Value> extends Validator<Record<K
 	}
 }
 
-function typeofValidator<T>(type: string): Validator<T> {
-	return new Validator((value) => {
+function typeofValidator<T>(type: string): TypeValidator<T> {
+	return new TypeValidator((value) => {
 		if (typeof value !== type) {
 			throw new ValidationError(`Expected ${type}, got ${typeToString(value)}`)
 		}
@@ -327,14 +330,14 @@ function typeofValidator<T>(type: string): Validator<T> {
  *
  * @public
  */
-export const unknown = new Validator((value) => value)
+export const unknown = new TypeValidator((value) => value)
 /**
  * Validation that accepts any value. Generally this should be avoided, but you can use it as an
  * escape hatch if you want to work without validations for e.g. a prototype.
  *
  * @public
  */
-export const any = new Validator((value): any => value)
+export const any = new TypeValidator((value): any => value)
 
 /**
  * Validates that a value is a string.
@@ -415,13 +418,13 @@ export const bigint = typeofValidator<bigint>('bigint')
  * @example
  *
  * ```ts
- * const trueValidator = T.literal(true)
+ * const trueValidator = literal(true)
  * ```
  *
  * @public
  */
-export function literal<T extends string | number | boolean>(expectedValue: T): Validator<T> {
-	return new Validator((actualValue) => {
+export function literal<T extends string | number | boolean>(expectedValue: T): TypeValidator<T> {
+	return new TypeValidator((actualValue) => {
 		if (actualValue !== expectedValue) {
 			throw new ValidationError(`Expected ${expectedValue}, got ${JSON.stringify(actualValue)}`)
 		}
@@ -430,11 +433,11 @@ export function literal<T extends string | number | boolean>(expectedValue: T): 
 }
 
 /**
- * Validates that a value is an array. To check the contents of the array, use T.arrayOf.
+ * Validates that a value is an array. To check the contents of the array, use arrayOf.
  *
  * @public
  */
-export const array = new Validator<unknown[]>((value) => {
+export const array = new TypeValidator<unknown[]>((value) => {
 	if (!Array.isArray(value)) {
 		throw new ValidationError(`Expected an array, got ${typeToString(value)}`)
 	}
@@ -446,12 +449,12 @@ export const array = new Validator<unknown[]>((value) => {
  *
  * @public
  */
-export function arrayOf<T>(itemValidator: Validator<T>): ArrayOfValidator<T> {
+export function arrayOf<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
 /** @public */
-export const unknownObject = new Validator<Record<string, unknown>>((value) => {
+export const unknownObject = new TypeValidator<Record<string, unknown>>((value) => {
 	if (typeof value !== 'object' || value === null) {
 		throw new ValidationError(`Expected object, got ${typeToString(value)}`)
 	}
@@ -464,7 +467,7 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  * @public
  */
 export function object<Shape extends object>(config: {
-	readonly [K in keyof Shape]: Validator<Shape[K]>
+	readonly [K in keyof Shape]: TypeValidator<Shape[K]>
 }): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
 }
@@ -475,8 +478,8 @@ export function object<Shape extends object>(config: {
  * @public
  */
 export function dict<Key extends string, Value>(
-	keyValidator: Validator<Key>,
-	valueValidator: Validator<Value>
+	keyValidator: TypeValidator<Key>,
+	valueValidator: TypeValidator<Value>
 ): DictValidator<Key, Value> {
 	return new DictValidator(keyValidator, valueValidator)
 }
@@ -488,9 +491,9 @@ export function dict<Key extends string, Value>(
  * @example
  *
  * ```ts
- * const catValidator = T.object({ kind: T.value('cat'), meow: T.boolean })
- * const dogValidator = T.object({ kind: T.value('dog'), bark: T.boolean })
- * const animalValidator = T.union('kind', { cat: catValidator, dog: dogValidator })
+ * const catValidator = object({ kind: value('cat'), meow: boolean })
+ * const dogValidator = object({ kind: value('dog'), bark: boolean })
+ * const animalValidator = union('kind', { cat: catValidator, dog: dogValidator })
  * ```
  *
  * @public
@@ -517,9 +520,9 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
  */
 export function model<T extends { readonly id: string }>(
 	name: string,
-	validator: Validator<T>
-): Validator<T> {
-	return new Validator((value) => {
+	validator: TypeValidator<T>
+): TypeValidator<T> {
+	return new TypeValidator((value) => {
 		const prefix =
 			value && typeof value === 'object' && 'id' in value && typeof value.id === 'string'
 				? `${name}(id = ${value.id})`
@@ -530,8 +533,8 @@ export function model<T extends { readonly id: string }>(
 }
 
 /** @public */
-export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
-	return new Validator((value) => {
+export function setEnum<T>(values: ReadonlySet<T>): TypeValidator<T> {
+	return new TypeValidator((value) => {
 		if (!values.has(value as T)) {
 			const valuesString = Array.from(values, (value) => JSON.stringify(value)).join(' or ')
 			throw new ValidationError(`Expected ${valuesString}, got ${value}`)

@@ -1,5 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { TypeValidator, dict, object, string } from '@tldraw/validate'
 import { TLHandle, handleValidator } from '../misc/TLHandle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
@@ -24,15 +25,15 @@ export type TLLineShapeProps = {
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @internal */
-export const lineShapeValidator: T.Validator<TLLineShape> = createShapeValidator(
+export const lineShapeValidator: TypeValidator<TLLineShape> = createShapeValidator(
 	'line',
-	T.object({
+	object({
 		color: colorValidator,
 		dash: dashValidator,
 		size: sizeValidator,
 		opacity: opacityValidator,
 		spline: splineValidator,
-		handles: T.dict(T.string, handleValidator),
+		handles: dict(string, handleValidator),
 	})
 )
 

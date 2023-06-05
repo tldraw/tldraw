@@ -1,5 +1,6 @@
 import { Migrations, StoreSchema, createRecordType, defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { TypeValidator, any, model, union } from '@tldraw/validate'
 import { TLStoreProps, createIntegrityChecker, onValidationFailure } from './TLStore'
 import { AssetRecordType } from './records/TLAsset'
 import { CameraRecordType } from './records/TLCamera'
@@ -124,11 +125,11 @@ export function createTLSchema(
 			},
 		}),
 		scope: 'document',
-		validator: T.model(
+		validator: model(
 			'shape',
-			T.union('type', {
+			union('type', {
 				...Object.fromEntries(
-					allShapeEntries.map(([k, v]) => [k, (v.validator as T.Validator<any>) ?? T.any])
+					allShapeEntries.map(([k, v]) => [k, (v.validator as TypeValidator<any>) ?? any])
 				),
 			})
 		),

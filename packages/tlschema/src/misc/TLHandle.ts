@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { TypeValidator, boolean, number, object, setEnum, string } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 
 /**
@@ -29,11 +29,11 @@ export interface TLHandle {
 }
 
 /** @internal */
-export const handleValidator: T.Validator<TLHandle> = T.object({
-	id: T.string,
-	type: T.setEnum(TL_HANDLE_TYPES),
-	canBind: T.boolean.optional(),
-	index: T.string,
-	x: T.number,
-	y: T.number,
+export const handleValidator: TypeValidator<TLHandle> = object({
+	id: string,
+	type: setEnum(TL_HANDLE_TYPES),
+	canBind: boolean.optional(),
+	index: string,
+	x: number,
+	y: number,
 })

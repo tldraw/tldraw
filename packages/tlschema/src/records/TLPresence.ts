@@ -1,5 +1,15 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import {
+	arrayOf,
+	boxModel,
+	literal,
+	model,
+	number,
+	object,
+	string,
+	TypeValidator,
+} from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
@@ -33,31 +43,31 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 export type TLInstancePresenceID = RecordId<TLInstancePresence>
 
 /** @internal */
-export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(
+export const instancePresenceValidator: TypeValidator<TLInstancePresence> = model(
 	'instance_presence',
-	T.object({
-		typeName: T.literal('instance_presence'),
+	object({
+		typeName: literal('instance_presence'),
 		id: idValidator<TLInstancePresenceID>('instance_presence'),
-		userId: T.string,
-		userName: T.string,
-		lastActivityTimestamp: T.number,
-		followingUserId: T.string.nullable(),
-		cursor: T.object({
-			x: T.number,
-			y: T.number,
+		userId: string,
+		userName: string,
+		lastActivityTimestamp: number,
+		followingUserId: string.nullable(),
+		cursor: object({
+			x: number,
+			y: number,
 			type: cursorTypeValidator,
-			rotation: T.number,
+			rotation: number,
 		}),
-		color: T.string,
-		camera: T.object({
-			x: T.number,
-			y: T.number,
-			z: T.number,
+		color: string,
+		camera: object({
+			x: number,
+			y: number,
+			z: number,
 		}),
-		screenBounds: T.boxModel,
-		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
+		screenBounds: boxModel,
+		selectedIds: arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
-		brush: T.boxModel.nullable(),
+		brush: boxModel.nullable(),
 		scribble: scribbleValidator.nullable(),
 	})
 )

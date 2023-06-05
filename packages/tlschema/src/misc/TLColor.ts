@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { setEnum } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 
 /**
@@ -25,4 +25,4 @@ export type TLColor = SetValue<typeof TL_COLOR_TYPES>
  * A validator for the colors used by tldraw's default shapes.
  *
  * @public */
-export const colorTypeValidator = T.setEnum(TL_COLOR_TYPES)
+export const colorTypeValidator = setEnum(TL_COLOR_TYPES)

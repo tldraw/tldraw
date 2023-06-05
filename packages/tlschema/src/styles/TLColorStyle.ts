@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { setEnum } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -28,4 +28,4 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const colorValidator = T.setEnum(TL_COLOR_TYPES)
+export const colorValidator = setEnum(TL_COLOR_TYPES)

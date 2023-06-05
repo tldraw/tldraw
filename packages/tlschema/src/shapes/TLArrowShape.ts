@@ -1,5 +1,15 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import {
+	TypeValidator,
+	boolean,
+	literal,
+	number,
+	object,
+	point,
+	string,
+	union,
+} from '@tldraw/validate'
 import { Vec2dModel } from '../misc/geometry-types'
 import { TLShapeId } from '../records/TLShape'
 import { TLArrowheadType, arrowheadValidator } from '../styles/TLArrowheadStyle'
@@ -49,24 +59,24 @@ export type TLArrowShapeProps = {
 export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 /** @internal */
-export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('type', {
-	binding: T.object({
-		type: T.literal('binding'),
+export const arrowTerminalValidator: TypeValidator<TLArrowTerminal> = union('type', {
+	binding: object({
+		type: literal('binding'),
 		boundShapeId: shapeIdValidator,
-		normalizedAnchor: T.point,
-		isExact: T.boolean,
+		normalizedAnchor: point,
+		isExact: boolean,
 	}),
-	point: T.object({
-		type: T.literal('point'),
-		x: T.number,
-		y: T.number,
+	point: object({
+		type: literal('point'),
+		x: number,
+		y: number,
 	}),
 })
 
 /** @internal */
-export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidator(
+export const arrowShapeValidator: TypeValidator<TLArrowShape> = createShapeValidator(
 	'arrow',
-	T.object({
+	object({
 		labelColor: colorValidator,
 		color: colorValidator,
 		fill: fillValidator,
@@ -78,8 +88,8 @@ export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidat
 		font: fontValidator,
 		start: arrowTerminalValidator,
 		end: arrowTerminalValidator,
-		bend: T.number,
-		text: T.string,
+		bend: number,
+		text: string,
 	})
 )
 

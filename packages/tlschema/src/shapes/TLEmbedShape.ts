@@ -1,5 +1,14 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import {
+	TypeValidator,
+	boolean,
+	dict,
+	nonZeroNumber,
+	object,
+	setEnum,
+	string,
+} from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
@@ -563,20 +572,20 @@ export type TLEmbedShapeProps = {
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @internal */
-export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
+export const embedShapeTypeValidator: TypeValidator<TLEmbedShape> = createShapeValidator(
 	'embed',
-	T.object({
+	object({
 		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		doesResize: T.boolean,
-		overridePermissions: T.dict(
-			T.setEnum(
+		w: nonZeroNumber,
+		h: nonZeroNumber,
+		url: string,
+		tmpOldUrl: string.optional(),
+		doesResize: boolean,
+		overridePermissions: dict(
+			setEnum(
 				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
 			),
-			T.boolean.optional()
+			boolean.optional()
 		).optional(),
 	})
 )

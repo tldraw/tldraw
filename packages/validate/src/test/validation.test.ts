@@ -1,10 +1,20 @@
-import * as T from '../lib/validation'
+import {
+	arrayOf,
+	boolean,
+	literal,
+	model,
+	number,
+	object,
+	setEnum,
+	string,
+	union,
+} from '../lib/validation'
 
 describe('validations', () => {
 	it('Returns referentially identical objects', () => {
-		const validator = T.object({
-			name: T.string,
-			items: T.arrayOf(T.string.nullable()),
+		const validator = object({
+			name: string,
+			items: arrayOf(string.nullable()),
 		})
 
 		const value = {
@@ -16,17 +26,17 @@ describe('validations', () => {
 	})
 	it('Rejects unknown object keys', () => {
 		expect(() =>
-			T.object({ moo: T.literal('cow') }).validate({ moo: 'cow', cow: 'moo' })
+			object({ moo: literal('cow') }).validate({ moo: 'cow', cow: 'moo' })
 		).toThrowErrorMatchingInlineSnapshot(`"At cow: Unexpected property"`)
 	})
 	it('Produces nice error messages', () => {
 		expect(() =>
-			T.object({
-				toad: T.object({
-					name: T.number,
-					friends: T.arrayOf(
-						T.object({
-							name: T.string,
+			object({
+				toad: object({
+					name: number,
+					friends: arrayOf(
+						object({
+							name: string,
 						})
 					),
 				}),
@@ -47,12 +57,12 @@ describe('validations', () => {
 		).toThrowErrorMatchingInlineSnapshot(`"At toad.name: Expected number, got a string"`)
 
 		expect(() =>
-			T.model(
+			model(
 				'shape',
-				T.object({
-					id: T.string,
-					x: T.number,
-					y: T.number,
+				object({
+					id: string,
+					x: number,
+					y: number,
 				})
 			).validate({
 				id: 'abc123',
@@ -62,11 +72,11 @@ describe('validations', () => {
 		).toThrowErrorMatchingInlineSnapshot(`"At shape(id = abc123).y: Expected a number, got NaN"`)
 
 		expect(() =>
-			T.model(
+			model(
 				'shape',
-				T.object({
-					id: T.string,
-					color: T.setEnum(new Set(['red', 'green', 'blue'])),
+				object({
+					id: string,
+					color: setEnum(new Set(['red', 'green', 'blue'])),
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
@@ -75,22 +85,22 @@ describe('validations', () => {
 	})
 
 	it('Understands unions & produces nice error messages', () => {
-		const catSchema = T.object({
-			type: T.literal('cat'),
-			id: T.string,
-			meow: T.boolean,
+		const catSchema = object({
+			type: literal('cat'),
+			id: string,
+			meow: boolean,
 		})
-		const dogSchema = T.object({
-			type: T.literal('dog'),
-			id: T.string,
-			bark: T.boolean,
+		const dogSchema = object({
+			type: literal('dog'),
+			id: string,
+			bark: boolean,
 		})
-		const animalSchema = T.union('type', {
+		const animalSchema = union('type', {
 			cat: catSchema,
 			dog: dogSchema,
 		})
 
-		const nested = T.object({
+		const nested = object({
 			animal: animalSchema,
 		})
 
@@ -107,18 +117,18 @@ describe('validations', () => {
 		)
 
 		expect(() =>
-			T.model('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
+			model('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
 		).toThrowErrorMatchingInlineSnapshot(
 			`"At animal(id = abc123, type = cat).meow: Expected boolean, got undefined"`
 		)
 	})
 })
 
-describe('T.refine', () => {
+describe('refine', () => {
 	it.todo('Refines a validator.')
 	it.todo('Produces a type error if the refinement is not of the correct type.')
 })
 
-describe('T.check', () => {
+describe('check', () => {
 	it.todo('Adds a check to a validator.')
 })

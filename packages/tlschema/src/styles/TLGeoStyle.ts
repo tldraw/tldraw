@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { setEnum } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -34,4 +34,4 @@ export interface TLGeoStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const geoValidator = T.setEnum(TL_GEO_TYPES)
+export const geoValidator = setEnum(TL_GEO_TYPES)

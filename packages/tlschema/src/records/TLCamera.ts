@@ -1,5 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { literal, model, number, object, TypeValidator } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
 /**
@@ -20,14 +21,14 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = RecordId<TLCamera>
 
 /** @internal */
-export const cameraValidator: T.Validator<TLCamera> = T.model(
+export const cameraValidator: TypeValidator<TLCamera> = model(
 	'camera',
-	T.object({
-		typeName: T.literal('camera'),
+	object({
+		typeName: literal('camera'),
 		id: idValidator<TLCameraId>('camera'),
-		x: T.number,
-		y: T.number,
-		z: T.number,
+		x: number,
+		y: number,
+		z: number,
 	})
 )
 

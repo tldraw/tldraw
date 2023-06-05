@@ -1,5 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { arrayOf, literal, model, object, TypeValidator } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
 import { CameraRecordType } from './TLCamera'
@@ -27,15 +28,15 @@ export interface TLInstancePageState
 }
 
 /** @internal */
-export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.model(
+export const instancePageStateValidator: TypeValidator<TLInstancePageState> = model(
 	'instance_page_state',
-	T.object({
-		typeName: T.literal('instance_page_state'),
+	object({
+		typeName: literal('instance_page_state'),
 		id: idValidator<TLInstancePageStateId>('instance_page_state'),
 		pageId: pageIdValidator,
-		selectedIds: T.arrayOf(shapeIdValidator),
-		hintingIds: T.arrayOf(shapeIdValidator),
-		erasingIds: T.arrayOf(shapeIdValidator),
+		selectedIds: arrayOf(shapeIdValidator),
+		hintingIds: arrayOf(shapeIdValidator),
+		erasingIds: arrayOf(shapeIdValidator),
 		hoveredId: shapeIdValidator.nullable(),
 		editingId: shapeIdValidator.nullable(),
 		croppingId: shapeIdValidator.nullable(),

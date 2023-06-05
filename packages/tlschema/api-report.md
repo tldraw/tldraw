@@ -6,20 +6,21 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Migrations } from '@tldraw/store';
+import { ObjectValidator } from '@tldraw/validate';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { Signal } from 'signia';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
-import { T } from '@tldraw/validate';
+import { TypeValidator } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
-export const alignValidator: T.Validator<"end" | "middle" | "start">;
+export const alignValidator: TypeValidator<"end" | "middle" | "start">;
 
 // @public
-export const assetIdValidator: T.Validator<TLAssetId>;
+export const assetIdValidator: TypeValidator<TLAssetId>;
 
 // @internal (undocumented)
 export const assetMigrations: Migrations;
@@ -28,7 +29,7 @@ export const assetMigrations: Migrations;
 export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @internal (undocumented)
-export const assetValidator: T.Validator<TLAsset>;
+export const assetValidator: TypeValidator<TLAsset>;
 
 // @public
 export interface Box2dModel {
@@ -49,13 +50,13 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
 
 // @public
-export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const colorTypeValidator: TypeValidator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
-export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export const colorValidator: TypeValidator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: TypeValidator<Props>): ObjectValidator<{
     id: TLAssetId;
     typeName: 'asset';
     type: Type;
@@ -73,17 +74,17 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
-    id: TLShapeId;
-    typeName: "shape";
-    x: number;
-    y: number;
-    rotation: number;
-    index: string;
-    parentId: TLParentId;
-    type: Type;
-    isLocked: boolean;
-    props: Props;
+export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: TypeValidator<Props>): ObjectValidator<    {
+id: TLShapeId;
+typeName: "shape";
+x: number;
+y: number;
+rotation: number;
+index: string;
+parentId: TLParentId;
+type: Type;
+isLocked: boolean;
+props: Props;
 }>;
 
 // @public
@@ -92,7 +93,7 @@ export function createTLSchema(opts?: {
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @internal (undocumented)
-export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+export const dashValidator: TypeValidator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
@@ -303,7 +304,7 @@ export const embedShapePermissionDefaults: {
 };
 
 // @internal (undocumented)
-export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;
+export const fillValidator: TypeValidator<"none" | "pattern" | "semi" | "solid">;
 
 // @internal (undocumented)
 export function fixupRecord(oldRecord: TLRecord): {
@@ -312,19 +313,19 @@ export function fixupRecord(oldRecord: TLRecord): {
 };
 
 // @internal (undocumented)
-export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
+export const fontValidator: TypeValidator<"draw" | "mono" | "sans" | "serif">;
 
 // @internal (undocumented)
-export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const geoValidator: TypeValidator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @internal (undocumented)
-export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
+export const iconValidator: TypeValidator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
 
 // @internal (undocumented)
-export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): TypeValidator<Id>;
 
 // @public (undocumented)
 export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
@@ -336,7 +337,7 @@ export const InstancePresenceRecordType: RecordType<TLInstancePresence, "current
 export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
 
 // @internal (undocumented)
-export const instanceTypeValidator: T.Validator<TLInstance>;
+export const instanceTypeValidator: TypeValidator<TLInstance>;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
@@ -450,16 +451,16 @@ export const LANGUAGES: readonly [{
 }];
 
 // @internal (undocumented)
-export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+export const opacityValidator: TypeValidator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
 
 // @internal (undocumented)
-export const pageIdValidator: T.Validator<TLPageId>;
+export const pageIdValidator: TypeValidator<TLPageId>;
 
 // @public (undocumented)
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
 
 // @public (undocumented)
-export const parentIdValidator: T.Validator<TLParentId>;
+export const parentIdValidator: TypeValidator<TLParentId>;
 
 // @public (undocumented)
 export const PointerRecordType: RecordType<TLPointer, never>;
@@ -468,16 +469,16 @@ export const PointerRecordType: RecordType<TLPointer, never>;
 export const rootShapeMigrations: Migrations;
 
 // @internal (undocumented)
-export const scribbleValidator: T.Validator<TLScribble>;
+export const scribbleValidator: TypeValidator<TLScribble>;
 
 // @public (undocumented)
-export const shapeIdValidator: T.Validator<TLShapeId>;
+export const shapeIdValidator: TypeValidator<TLShapeId>;
 
 // @internal (undocumented)
-export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
+export const sizeValidator: TypeValidator<"l" | "m" | "s" | "xl">;
 
 // @internal (undocumented)
-export const splineValidator: T.Validator<"cubic" | "line">;
+export const splineValidator: TypeValidator<"cubic" | "line">;
 
 // @public (undocumented)
 export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
@@ -1116,7 +1117,7 @@ export interface Vec2dModel {
 }
 
 // @internal (undocumented)
-export const verticalAlignValidator: T.Validator<"end" | "middle" | "start">;
+export const verticalAlignValidator: TypeValidator<"end" | "middle" | "start">;
 
 // (No @packageDocumentation comment for this package)
 

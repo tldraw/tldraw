@@ -1,6 +1,7 @@
 import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { T } from '@tldraw/validate'
+
+import { TypeValidator, boolean, number, object, string } from '@tldraw/validate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
 
@@ -32,14 +33,14 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
-	id: T.string,
-	name: T.string,
-	locale: T.string,
-	color: T.string,
-	isDarkMode: T.boolean,
-	animationSpeed: T.number,
-	isSnapMode: T.boolean,
+const userTypeValidator: TypeValidator<TLUserPreferences> = object<TLUserPreferences>({
+	id: string,
+	name: string,
+	locale: string,
+	color: string,
+	isDarkMode: boolean,
+	animationSpeed: number,
+	isSnapMode: boolean,
 })
 
 const Versions = {

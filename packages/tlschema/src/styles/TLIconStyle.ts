@@ -1,4 +1,4 @@
-import { T } from '@tldraw/validate'
+import { setEnum } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -302,4 +302,4 @@ export interface TLIconStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const iconValidator = T.setEnum(TL_ICON_TYPES)
+export const iconValidator = setEnum(TL_ICON_TYPES)

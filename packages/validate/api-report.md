@@ -5,33 +5,33 @@
 ```ts
 
 // @public
-const any: Validator<any>;
+export const any: TypeValidator<any>;
 
 // @public
-const array: Validator<unknown[]>;
+export const array: TypeValidator<unknown[]>;
 
 // @public
-function arrayOf<T>(itemValidator: Validator<T>): ArrayOfValidator<T>;
+export function arrayOf<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T>;
 
 // @public (undocumented)
-class ArrayOfValidator<T> extends Validator<T[]> {
-    constructor(itemValidator: Validator<T>);
+export class ArrayOfValidator<T> extends TypeValidator<T[]> {
+    constructor(itemValidator: TypeValidator<T>);
     // (undocumented)
-    readonly itemValidator: Validator<T>;
+    readonly itemValidator: TypeValidator<T>;
     // (undocumented)
-    lengthGreaterThan1(): Validator<T[]>;
+    lengthGreaterThan1(): TypeValidator<T[]>;
     // (undocumented)
-    nonEmpty(): Validator<T[]>;
+    nonEmpty(): TypeValidator<T[]>;
 }
 
 // @public
-const bigint: Validator<bigint>;
+export const bigint: TypeValidator<bigint>;
 
 // @public
-const boolean: Validator<boolean>;
+export const boolean: TypeValidator<boolean>;
 
 // @public (undocumented)
-const boxModel: ObjectValidator<{
+export const boxModel: ObjectValidator<{
     x: number;
     y: number;
     w: number;
@@ -39,134 +39,112 @@ const boxModel: ObjectValidator<{
 }>;
 
 // @public
-function dict<Key extends string, Value>(keyValidator: Validator<Key>, valueValidator: Validator<Value>): DictValidator<Key, Value>;
+export function dict<Key extends string, Value>(keyValidator: TypeValidator<Key>, valueValidator: TypeValidator<Value>): DictValidator<Key, Value>;
 
 // @public (undocumented)
-class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
-    constructor(keyValidator: Validator<Key>, valueValidator: Validator<Value>);
+export class DictValidator<Key extends string, Value> extends TypeValidator<Record<Key, Value>> {
+    constructor(keyValidator: TypeValidator<Key>, valueValidator: TypeValidator<Value>);
     // (undocumented)
-    readonly keyValidator: Validator<Key>;
+    readonly keyValidator: TypeValidator<Key>;
     // (undocumented)
-    readonly valueValidator: Validator<Value>;
+    readonly valueValidator: TypeValidator<Value>;
 }
 
 // @public
-const integer: Validator<number>;
+export const integer: TypeValidator<number>;
 
 // @public
-function literal<T extends boolean | number | string>(expectedValue: T): Validator<T>;
+export function literal<T extends boolean | number | string>(expectedValue: T): TypeValidator<T>;
 
 // @public
-function model<T extends {
+export function model<T extends {
     readonly id: string;
-}>(name: string, validator: Validator<T>): Validator<T>;
+}>(name: string, validator: TypeValidator<T>): TypeValidator<T>;
 
 // @public
-const nonZeroInteger: Validator<number>;
+export const nonZeroInteger: TypeValidator<number>;
 
 // @public
-const nonZeroNumber: Validator<number>;
+export const nonZeroNumber: TypeValidator<number>;
 
 // @public
-const number: Validator<number>;
+export const number: TypeValidator<number>;
 
 // @public
-function object<Shape extends object>(config: {
-    readonly [K in keyof Shape]: Validator<Shape[K]>;
+export function object<Shape extends object>(config: {
+    readonly [K in keyof Shape]: TypeValidator<Shape[K]>;
 }): ObjectValidator<Shape>;
 
 // @public (undocumented)
-class ObjectValidator<Shape extends object> extends Validator<Shape> {
+export class ObjectValidator<Shape extends object> extends TypeValidator<Shape> {
     constructor(config: {
-        readonly [K in keyof Shape]: Validator<Shape[K]>;
+        readonly [K in keyof Shape]: TypeValidator<Shape[K]>;
     }, shouldAllowUnknownProperties?: boolean);
     // (undocumented)
     allowUnknownProperties(): ObjectValidator<Shape>;
     // (undocumented)
     readonly config: {
-        readonly [K in keyof Shape]: Validator<Shape[K]>;
+        readonly [K in keyof Shape]: TypeValidator<Shape[K]>;
     };
     extend<Extension extends Record<string, unknown>>(extension: {
-        readonly [K in keyof Extension]: Validator<Extension[K]>;
+        readonly [K in keyof Extension]: TypeValidator<Extension[K]>;
     }): ObjectValidator<Shape & Extension>;
 }
 
 // @public (undocumented)
-const point: ObjectValidator<{
+export const point: ObjectValidator<{
     x: number;
     y: number;
     z: number | undefined;
 }>;
 
 // @public
-const positiveInteger: Validator<number>;
+export const positiveInteger: TypeValidator<number>;
 
 // @public
-const positiveNumber: Validator<number>;
+export const positiveNumber: TypeValidator<number>;
 
 // @public (undocumented)
-function setEnum<T>(values: ReadonlySet<T>): Validator<T>;
+export function setEnum<T>(values: ReadonlySet<T>): TypeValidator<T>;
 
 // @public
-const string: Validator<string>;
+export const string: TypeValidator<string>;
 
-declare namespace T {
-    export {
-        literal,
-        arrayOf,
-        object,
-        dict,
-        union,
-        model,
-        setEnum,
-        ValidatorFn,
-        ValidationError,
-        TypeOf,
-        Validator,
-        ArrayOfValidator,
-        ObjectValidator,
-        UnionValidator,
-        DictValidator,
-        unknown,
-        any,
-        string,
-        number,
-        positiveNumber,
-        nonZeroNumber,
-        integer,
-        positiveInteger,
-        nonZeroInteger,
-        boolean,
-        bigint,
-        array,
-        unknownObject,
-        point,
-        boxModel
-    }
+// @public (undocumented)
+export type TypeOf<V extends TypeValidator<unknown>> = V extends TypeValidator<infer T> ? T : never;
+
+// @public (undocumented)
+export class TypeValidator<T> {
+    constructor(validationFn: ValidatorFn<T>);
+    check(name: string, checkFn: (value: T) => void): TypeValidator<T>;
+    // (undocumented)
+    check(checkFn: (value: T) => void): TypeValidator<T>;
+    nullable(): TypeValidator<null | T>;
+    optional(): TypeValidator<T | undefined>;
+    refine<U>(otherValidationFn: (value: T) => U): TypeValidator<U>;
+    validate(value: unknown): T;
+    // (undocumented)
+    readonly validationFn: ValidatorFn<T>;
 }
-export { T }
-
-// @public (undocumented)
-type TypeOf<V extends Validator<unknown>> = V extends Validator<infer T> ? T : never;
 
 // @public
-function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
+export function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
 
 // @public (undocumented)
-class UnionValidator<Key extends string, Config extends UnionValidatorConfig<Key, Config>, UnknownValue = never> extends Validator<TypeOf<Config[keyof Config]> | UnknownValue> {
+export class UnionValidator<Key extends string, Config extends UnionValidatorConfig<Key, Config>, UnknownValue = never> extends TypeValidator<TypeOf<Config[keyof Config]> | UnknownValue> {
     constructor(key: Key, config: Config, unknownValueValidation: (value: object, variant: string) => UnknownValue);
     // (undocumented)
     validateUnknownVariants<Unknown>(unknownValueValidation: (value: object, variant: string) => Unknown): UnionValidator<Key, Config, Unknown>;
 }
 
 // @public
-const unknown: Validator<unknown>;
+export const unknown: TypeValidator<unknown>;
 
 // @public (undocumented)
-const unknownObject: Validator<Record<string, unknown>>;
+export const unknownObject: TypeValidator<Record<string, unknown>>;
 
 // @public (undocumented)
-class ValidationError extends Error {
+export class ValidationError extends Error {
     constructor(rawMessage: string, path?: ReadonlyArray<number | string>);
     // (undocumented)
     name: string;
@@ -177,21 +155,7 @@ class ValidationError extends Error {
 }
 
 // @public (undocumented)
-class Validator<T> {
-    constructor(validationFn: ValidatorFn<T>);
-    check(name: string, checkFn: (value: T) => void): Validator<T>;
-    // (undocumented)
-    check(checkFn: (value: T) => void): Validator<T>;
-    nullable(): Validator<null | T>;
-    optional(): Validator<T | undefined>;
-    refine<U>(otherValidationFn: (value: T) => U): Validator<U>;
-    validate(value: unknown): T;
-    // (undocumented)
-    readonly validationFn: ValidatorFn<T>;
-}
-
-// @public (undocumented)
-type ValidatorFn<T> = (value: unknown) => T;
+export type ValidatorFn<T> = (value: unknown) => T;
 
 // (No @packageDocumentation comment for this package)
 

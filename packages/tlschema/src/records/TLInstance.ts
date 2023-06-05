@@ -1,5 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { T } from '@tldraw/validate'
+
+import { boolean, boxModel, literal, model, object, string, TypeValidator } from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
@@ -54,15 +55,15 @@ export type TLInstanceId = RecordId<TLInstance>
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
 /** @internal */
-export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
+export const instanceTypeValidator: TypeValidator<TLInstance> = model(
 	'instance',
-	T.object({
-		typeName: T.literal('instance'),
+	object({
+		typeName: literal('instance'),
 		id: idValidator<TLInstanceId>('instance'),
 		currentPageId: pageIdValidator,
-		followingUserId: T.string.nullable(),
-		brush: T.boxModel.nullable(),
-		propsForNextShape: T.object({
+		followingUserId: string.nullable(),
+		brush: boxModel.nullable(),
+		propsForNextShape: object({
 			color: colorValidator,
 			labelColor: colorValidator,
 			dash: dashValidator,
@@ -80,14 +81,14 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		}),
 		cursor: cursorValidator,
 		scribble: scribbleValidator.nullable(),
-		isFocusMode: T.boolean,
-		isDebugMode: T.boolean,
-		isToolLocked: T.boolean,
-		exportBackground: T.boolean,
-		screenBounds: T.boxModel,
-		zoomBrush: T.boxModel.nullable(),
-		isPenMode: T.boolean,
-		isGridMode: T.boolean,
+		isFocusMode: boolean,
+		isDebugMode: boolean,
+		isToolLocked: boolean,
+		exportBackground: boolean,
+		screenBounds: boxModel,
+		zoomBrush: boxModel.nullable(),
+		isPenMode: boolean,
+		isGridMode: boolean,
 	})
 )
 
