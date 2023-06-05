@@ -1,7 +1,6 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { memo, useRef } from 'react'
-import { track } from 'signia-react'
 import { useTransform } from '../hooks/useTransform'
 
 /** @public */
@@ -13,7 +12,7 @@ export type TLCursorComponent = (props: {
 	name: string | null
 }) => any | null
 
-const _Cursor: TLCursorComponent = track(({ className, zoom, point, color, name }) => {
+const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name }) => {
 	const rDiv = useRef<HTMLDivElement>(null)
 	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
 
@@ -31,6 +30,6 @@ const _Cursor: TLCursorComponent = track(({ className, zoom, point, color, name 
 			)}
 		</div>
 	)
-})
+}
 
 export const DefaultCursor = memo(_Cursor)
