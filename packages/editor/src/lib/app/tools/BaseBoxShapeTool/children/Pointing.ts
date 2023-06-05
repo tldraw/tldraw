@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/primitives'
+import { Vec2d, toFixed } from '@tldraw/primitives'
 import { createShapeId } from '@tldraw/tlschema'
 import { TLBaseBoxShape } from '../../../shapeutils/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
@@ -31,8 +31,8 @@ export class Pointing extends StateNode {
 				{
 					id,
 					type: shapeType,
-					x: originPagePoint.x,
-					y: originPagePoint.y,
+					x: toFixed(originPagePoint.x),
+					y: toFixed(originPagePoint.y),
 					props: {
 						w: 1,
 						h: 1,
@@ -100,8 +100,8 @@ export class Pointing extends StateNode {
 			{
 				id,
 				type: shapeType,
-				x: shape.x - delta.x,
-				y: shape.y - delta.y,
+				x: toFixed(shape.x - delta.x),
+				y: toFixed(shape.y - delta.y),
 			},
 		])
 

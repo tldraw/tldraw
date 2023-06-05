@@ -1,4 +1,4 @@
-import { PI } from '@tldraw/primitives'
+import { PI, toFixed } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
@@ -59,7 +59,7 @@ describe('when multiple shapes are selected', () => {
 			{ id: ids.boxA, x: 0, y: 0, props: { w: 500 } },
 			{ id: ids.boxB, x: 0, y: 100, props: { w: 500 } },
 			{ id: ids.boxC, x: 0, y: 400, props: { w: 500 } },
-			{ id: videoA, x: 0, y: -95.625, props: { w: 500, h: newHeight } }
+			{ id: videoA, x: 0, y: -95.63, props: { w: 500, h: newHeight } }
 		)
 	})
 
@@ -85,7 +85,7 @@ describe('when multiple shapes are selected', () => {
 			{ id: ids.boxA, x: 0, y: 0, props: { h: 500 } },
 			{ id: ids.boxB, x: 100, y: 0, props: { h: 500 } },
 			{ id: ids.boxC, x: 400, y: 0, props: { h: 500 } },
-			{ id: videoA, x: -364.44444444444446, y: 0, props: { w: newWidth, h: 500 } }
+			{ id: videoA, x: -364.44, y: 0, props: { w: toFixed(newWidth), h: 500 } }
 		)
 	})
 

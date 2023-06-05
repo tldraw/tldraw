@@ -1,4 +1,4 @@
-import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
+import { Matrix2d, snapAngle, toDomPrecision, toFixed, Vec2d } from '@tldraw/primitives'
 import {
 	createShapeId,
 	TLDrawShape,
@@ -196,14 +196,14 @@ export class Drawing extends StateNode {
 					type: this.segmentMode,
 					points: [
 						{
-							x: prevPoint.x,
-							y: prevPoint.y,
-							z: +pressure.toFixed(2),
+							x: toFixed(prevPoint.x),
+							y: toFixed(prevPoint.y),
+							z: toFixed(+pressure),
 						},
 						{
-							x,
-							y,
-							z: +pressure.toFixed(2),
+							x: toFixed(x),
+							y: toFixed(y),
+							z: toFixed(+pressure),
 						},
 					],
 				}
@@ -242,8 +242,8 @@ export class Drawing extends StateNode {
 			{
 				id,
 				type: this.shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
+				x: toDomPrecision(originPagePoint.x),
+				y: toDomPrecision(originPagePoint.y),
 				props: {
 					isPen: this.isPen,
 					segments: [
@@ -253,7 +253,7 @@ export class Drawing extends StateNode {
 								{
 									x: 0,
 									y: 0,
-									z: +pressure.toFixed(2),
+									z: toDomPrecision(+pressure),
 								},
 							],
 						},

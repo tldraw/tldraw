@@ -92,5 +92,6 @@ export {
 	simplify2,
 	snapAngle,
 	toDomPrecision,
+	toFixed,
 	toPrecision,
 } from './lib/utils'

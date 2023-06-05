@@ -1,15 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
+import { Box2d, Vec2d, toDomPrecision, toFixed } from '@tldraw/primitives'
 import { TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
+import { stopEventPropagation } from '../../../utils/dom'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
+import { TLExportColors } from '../shared/TLExportColors'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { resizeScaled } from '../shared/resizeScaled'
-import { TLExportColors } from '../shared/TLExportColors'
 import { useEditableText } from '../shared/useEditableText'
 
 export { INDENT } from './TextHelpers'
@@ -228,10 +228,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const { x, y } = offset.rot(shape.rotation).add(initialShape)
 
 			return {
-				x,
-				y,
+				x: toFixed(x),
+				y: toFixed(y),
 				props: {
-					w: nextWidth / initialShape.props.scale,
+					w: toFixed(nextWidth / initialShape.props.scale),
 					autoSize: false,
 				},
 			}

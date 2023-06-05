@@ -1,4 +1,4 @@
-import { Matrix2d, PI } from '@tldraw/primitives'
+import { Matrix2d, PI, toFixed } from '@tldraw/primitives'
 import {
 	TLArrowShape,
 	TLArrowShapeProps,
@@ -337,7 +337,7 @@ describe('When one shape is selected', () => {
 
 describe('flipping rotated shapes', () => {
 	const arrowLength = 100
-	const diamondRadius = Math.cos(Math.PI / 4) * arrowLength
+	const diamondRadius = toFixed(Math.cos(Math.PI / 4) * arrowLength)
 
 	const topPoint = { x: 0, y: 0 }
 	const rightPoint = { x: diamondRadius, y: diamondRadius }

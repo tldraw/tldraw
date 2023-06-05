@@ -1,4 +1,4 @@
-import { Box2d, Vec2d } from '@tldraw/primitives'
+import { Box2d, Vec2d, toFixed } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
 import { TLResizeHandle } from '../../types/selection-types'
 import { TLBaseBoxShape } from '../BaseBoxShapeUtil'
@@ -115,11 +115,11 @@ export const resizeBox = (
 	const { x, y } = offset.rot(shape.rotation).add(newPoint)
 
 	return {
-		x,
-		y,
+		x: toFixed(x),
+		y: toFixed(y),
 		props: {
-			w: Math.min(maxWidth, w),
-			h: Math.min(maxHeight, h),
+			w: toFixed(Math.min(maxWidth, w)),
+			h: toFixed(Math.min(maxHeight, h)),
 		},
 	}
 }

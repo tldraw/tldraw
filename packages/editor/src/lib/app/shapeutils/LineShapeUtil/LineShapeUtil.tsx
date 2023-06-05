@@ -8,6 +8,7 @@ import {
 	getDrawLinePathData,
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
+	toFixed,
 } from '@tldraw/primitives'
 import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
@@ -93,8 +94,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					id: `mid-${i}`,
 					type: 'create',
 					index,
-					x: point.x,
-					y: point.y,
+					x: toFixed(point.x),
+					y: toFixed(point.y),
 				})
 			}
 			return results.sort(sortByIndex)
@@ -113,8 +114,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		const handles = deepCopy(shape.props.handles)
 
 		Object.values(shape.props.handles).forEach(({ id, x, y }) => {
-			handles[id].x = x * scaleX
-			handles[id].y = y * scaleY
+			handles[id].x = toFixed(x * scaleX)
+			handles[id].y = toFixed(y * scaleY)
 		})
 
 		return {
@@ -145,8 +146,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				if (existing) {
 					next.props.handles[id] = {
 						...existing,
-						x: handle.x,
-						y: handle.y,
+						x: toFixed(handle.x),
+						y: toFixed(handle.y),
 					}
 				} else {
 					next.props.handles[id] = {
@@ -154,8 +155,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						type: 'vertex',
 						canBind: false,
 						index: handle.index,
-						x: handle.x,
-						y: handle.y,
+						x: toFixed(handle.x),
+						y: toFixed(handle.y),
 					}
 				}
 
