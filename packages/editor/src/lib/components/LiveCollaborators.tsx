@@ -67,6 +67,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
 					lastActivityTimestamp={lastActivityTimestamp}
+					userId={userId}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
