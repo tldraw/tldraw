@@ -1,13 +1,13 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 
 import {
-	arrayOf,
-	boxModel,
-	literal,
-	model,
-	number,
-	object,
-	string,
+	arrayOfValidator,
+	boxModelValidator,
+	literalValidator,
+	modelValidator,
+	numberValidator,
+	objectValidator,
+	stringValidator,
 	TypeValidator,
 } from '@tldraw/validate'
 import { Box2dModel } from '../misc/geometry-types'
@@ -43,31 +43,31 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 export type TLInstancePresenceID = RecordId<TLInstancePresence>
 
 /** @internal */
-export const instancePresenceValidator: TypeValidator<TLInstancePresence> = model(
+export const instancePresenceValidator: TypeValidator<TLInstancePresence> = modelValidator(
 	'instance_presence',
-	object({
-		typeName: literal('instance_presence'),
+	objectValidator({
+		typeName: literalValidator('instance_presence'),
 		id: idValidator<TLInstancePresenceID>('instance_presence'),
-		userId: string,
-		userName: string,
-		lastActivityTimestamp: number,
-		followingUserId: string.nullable(),
-		cursor: object({
-			x: number,
-			y: number,
+		userId: stringValidator,
+		userName: stringValidator,
+		lastActivityTimestamp: numberValidator,
+		followingUserId: stringValidator.nullable(),
+		cursor: objectValidator({
+			x: numberValidator,
+			y: numberValidator,
 			type: cursorTypeValidator,
-			rotation: number,
+			rotation: numberValidator,
 		}),
-		color: string,
-		camera: object({
-			x: number,
-			y: number,
-			z: number,
+		color: stringValidator,
+		camera: objectValidator({
+			x: numberValidator,
+			y: numberValidator,
+			z: numberValidator,
 		}),
-		screenBounds: boxModel,
-		selectedIds: arrayOf(idValidator<TLShapeId>('shape')),
+		screenBounds: boxModelValidator,
+		selectedIds: arrayOfValidator(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
-		brush: boxModel.nullable(),
+		brush: boxModelValidator.nullable(),
 		scribble: scribbleValidator.nullable(),
 	})
 )

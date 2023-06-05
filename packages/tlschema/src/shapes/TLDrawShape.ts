@@ -1,5 +1,12 @@
 import { defineMigrations } from '@tldraw/store'
-import { TypeValidator, arrayOf, boolean, object, point, setEnum } from '@tldraw/validate'
+import {
+	TypeValidator,
+	arrayOfValidator,
+	booleanValidator,
+	objectValidator,
+	pointValidator,
+	setEnumValidator,
+} from '@tldraw/validate'
 import { Vec2dModel } from '../misc/geometry-types'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
@@ -19,9 +26,9 @@ export type TLDrawShapeSegment = {
 }
 
 /** @internal */
-export const drawShapeSegmentValidator: TypeValidator<TLDrawShapeSegment> = object({
-	type: setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
-	points: arrayOf(point),
+export const drawShapeSegmentValidator: TypeValidator<TLDrawShapeSegment> = objectValidator({
+	type: setEnumValidator(TL_DRAW_SHAPE_SEGMENT_TYPE),
+	points: arrayOfValidator(pointValidator),
 })
 
 /** @public */
@@ -43,16 +50,16 @@ export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 /** @internal */
 export const drawShapeValidator: TypeValidator<TLDrawShape> = createShapeValidator(
 	'draw',
-	object({
+	objectValidator({
 		color: colorValidator,
 		fill: fillValidator,
 		dash: dashValidator,
 		size: sizeValidator,
 		opacity: opacityValidator,
-		segments: arrayOf(drawShapeSegmentValidator),
-		isComplete: boolean,
-		isClosed: boolean,
-		isPen: boolean,
+		segments: arrayOfValidator(drawShapeSegmentValidator),
+		isComplete: booleanValidator,
+		isClosed: booleanValidator,
+		isPen: booleanValidator,
 	})
 )
 

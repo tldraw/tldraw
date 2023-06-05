@@ -1,6 +1,6 @@
 import { createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 
-import { model, TypeValidator, union } from '@tldraw/validate'
+import { modelValidator, TypeValidator, unionValidator } from '@tldraw/validate'
 import { TLBaseAsset } from '../assets/TLBaseAsset'
 import {
 	bookmarkAssetMigrations,
@@ -15,9 +15,9 @@ import { TLShape } from './TLShape'
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
 /** @internal */
-export const assetValidator: TypeValidator<TLAsset> = model(
+export const assetValidator: TypeValidator<TLAsset> = modelValidator(
 	'asset',
-	union('type', {
+	unionValidator('type', {
 		image: imageAssetValidator,
 		video: videoAssetValidator,
 		bookmark: bookmarkAssetValidator,

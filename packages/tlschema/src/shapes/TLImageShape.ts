@@ -1,6 +1,13 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, boolean, nonZeroNumber, object, point, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	booleanValidator,
+	nonZeroNumberValidator,
+	objectValidator,
+	pointValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { Vec2dModel } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
@@ -27,20 +34,20 @@ export type TLImageShapeProps = {
 export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
 /** @internal */
-export const cropValidator = object({
-	topLeft: point,
-	bottomRight: point,
+export const cropValidator = objectValidator({
+	topLeft: pointValidator,
+	bottomRight: pointValidator,
 })
 
 /** @internal */
 export const imageShapeValidator: TypeValidator<TLImageShape> = createShapeValidator(
 	'image',
-	object({
+	objectValidator({
 		opacity: opacityValidator,
-		w: nonZeroNumber,
-		h: nonZeroNumber,
-		playing: boolean,
-		url: string,
+		w: nonZeroNumberValidator,
+		h: nonZeroNumberValidator,
+		playing: booleanValidator,
+		url: stringValidator,
 		assetId: assetIdValidator.nullable(),
 		crop: cropValidator.nullable(),
 	})

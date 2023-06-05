@@ -1,6 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, nonZeroNumber, object, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	nonZeroNumberValidator,
+	objectValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { TLAssetId } from '../records/TLAsset'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
@@ -21,12 +26,12 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 /** @internal */
 export const bookmarkShapeValidator: TypeValidator<TLBookmarkShape> = createShapeValidator(
 	'bookmark',
-	object({
+	objectValidator({
 		opacity: opacityValidator,
-		w: nonZeroNumber,
-		h: nonZeroNumber,
+		w: nonZeroNumberValidator,
+		h: nonZeroNumberValidator,
 		assetId: assetIdValidator.nullable(),
-		url: string,
+		url: stringValidator,
 	})
 )
 

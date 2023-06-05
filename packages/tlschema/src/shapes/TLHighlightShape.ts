@@ -1,6 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, arrayOf, boolean, object } from '@tldraw/validate'
+import {
+	TypeValidator,
+	arrayOfValidator,
+	booleanValidator,
+	objectValidator,
+} from '@tldraw/validate'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
@@ -23,13 +28,13 @@ export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 /** @internal */
 export const highlightShapeValidator: TypeValidator<TLHighlightShape> = createShapeValidator(
 	'highlight',
-	object({
+	objectValidator({
 		color: colorValidator,
 		size: sizeValidator,
 		opacity: opacityValidator,
-		segments: arrayOf(drawShapeSegmentValidator),
-		isComplete: boolean,
-		isPen: boolean,
+		segments: arrayOfValidator(drawShapeSegmentValidator),
+		isComplete: booleanValidator,
+		isPen: booleanValidator,
 	})
 )
 

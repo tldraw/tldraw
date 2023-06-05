@@ -1,5 +1,12 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
-import { literal, model, number, object, string, TypeValidator } from '@tldraw/validate'
+import {
+	literalValidator,
+	modelValidator,
+	numberValidator,
+	objectValidator,
+	stringValidator,
+	TypeValidator,
+} from '@tldraw/validate'
 
 /**
  * TLDocument
@@ -12,13 +19,13 @@ export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>>
 }
 
 /** @internal */
-export const documentValidator: TypeValidator<TLDocument> = model(
+export const documentValidator: TypeValidator<TLDocument> = modelValidator(
 	'document',
-	object({
-		typeName: literal('document'),
-		id: literal('document:document' as RecordId<TLDocument>),
-		gridSize: number,
-		name: string,
+	objectValidator({
+		typeName: literalValidator('document'),
+		id: literalValidator('document:document' as RecordId<TLDocument>),
+		gridSize: numberValidator,
+		name: stringValidator,
 	})
 )
 

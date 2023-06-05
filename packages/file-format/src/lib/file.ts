@@ -19,12 +19,12 @@ import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
 
 import {
-	arrayOf,
-	dict,
-	nonZeroInteger,
-	object,
-	positiveInteger,
-	string,
+	arrayOfValidator,
+	dictValidator,
+	nonZeroIntegerValidator,
+	objectValidator,
+	positiveIntegerValidator,
+	stringValidator,
 	TypeValidator,
 } from '@tldraw/validate'
 import { buildFromV1Document } from './buildFromV1Document'
@@ -46,24 +46,24 @@ export interface TldrawFile {
 	records: UnknownRecord[]
 }
 
-const tldrawFileValidator: TypeValidator<TldrawFile> = object({
-	tldrawFileFormatVersion: nonZeroInteger,
-	schema: object({
-		schemaVersion: positiveInteger,
-		storeVersion: positiveInteger,
-		recordVersions: dict(
-			string,
-			object({
-				version: positiveInteger,
-				subTypeVersions: dict(string, positiveInteger).optional(),
-				subTypeKey: string.optional(),
+const tldrawFileValidator: TypeValidator<TldrawFile> = objectValidator({
+	tldrawFileFormatVersion: nonZeroIntegerValidator,
+	schema: objectValidator({
+		schemaVersion: positiveIntegerValidator,
+		storeVersion: positiveIntegerValidator,
+		recordVersions: dictValidator(
+			stringValidator,
+			objectValidator({
+				version: positiveIntegerValidator,
+				subTypeVersions: dictValidator(stringValidator, positiveIntegerValidator).optional(),
+				subTypeKey: stringValidator.optional(),
 			})
 		),
 	}),
-	records: arrayOf(
-		object({
-			id: string as TypeValidator<RecordId<any>>,
-			typeName: string,
+	records: arrayOfValidator(
+		objectValidator({
+			id: stringValidator as TypeValidator<RecordId<any>>,
+			typeName: stringValidator,
 		}).allowUnknownProperties()
 	),
 })

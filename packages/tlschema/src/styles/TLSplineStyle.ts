@@ -1,4 +1,4 @@
-import { setEnum } from '@tldraw/validate'
+import { setEnumValidator } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -15,4 +15,4 @@ export interface TLSplineStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const splineValidator = setEnum(TL_SPLINE_TYPES)
+export const splineValidator = setEnumValidator(TL_SPLINE_TYPES)

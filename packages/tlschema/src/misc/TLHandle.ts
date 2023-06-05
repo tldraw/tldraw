@@ -1,4 +1,11 @@
-import { TypeValidator, boolean, number, object, setEnum, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	booleanValidator,
+	numberValidator,
+	objectValidator,
+	setEnumValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { SetValue } from '../util-types'
 
 /**
@@ -29,11 +36,11 @@ export interface TLHandle {
 }
 
 /** @internal */
-export const handleValidator: TypeValidator<TLHandle> = object({
-	id: string,
-	type: setEnum(TL_HANDLE_TYPES),
-	canBind: boolean.optional(),
-	index: string,
-	x: number,
-	y: number,
+export const handleValidator: TypeValidator<TLHandle> = objectValidator({
+	id: stringValidator,
+	type: setEnumValidator(TL_HANDLE_TYPES),
+	canBind: booleanValidator.optional(),
+	index: stringValidator,
+	x: numberValidator,
+	y: numberValidator,
 })

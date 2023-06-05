@@ -164,7 +164,7 @@ export class TypeValidator<T> {
 export class ArrayOfValidator<T> extends TypeValidator<T[]> {
 	constructor(readonly itemValidator: TypeValidator<T>) {
 		super((value) => {
-			const arr = array.validate(value)
+			const arr = arrayValidator.validate(value)
 			for (let i = 0; i < arr.length; i++) {
 				prefixError(i, () => itemValidator.validate(arr[i]))
 			}
@@ -330,28 +330,28 @@ function typeofValidator<T>(type: string): TypeValidator<T> {
  *
  * @public
  */
-export const unknown = new TypeValidator((value) => value)
+export const unknownValidator = new TypeValidator((value) => value)
 /**
  * Validation that accepts any value. Generally this should be avoided, but you can use it as an
  * escape hatch if you want to work without validations for e.g. a prototype.
  *
  * @public
  */
-export const any = new TypeValidator((value): any => value)
+export const anyValidator = new TypeValidator((value): any => value)
 
 /**
  * Validates that a value is a string.
  *
  * @public
  */
-export const string = typeofValidator<string>('string')
+export const stringValidator = typeofValidator<string>('string')
 
 /**
  * Validates that a value is a finite non-NaN number.
  *
  * @public
  */
-export const number = typeofValidator<number>('number').check((number) => {
+export const numberValidator = typeofValidator<number>('number').check((number) => {
 	if (Number.isNaN(number)) {
 		throw new ValidationError('Expected a number, got NaN')
 	}
@@ -364,7 +364,7 @@ export const number = typeofValidator<number>('number').check((number) => {
  *
  * @public
  */
-export const positiveNumber = number.check((value) => {
+export const positiveNumberValidator = numberValidator.check((value) => {
 	if (value < 0) throw new ValidationError(`Expected a positive number, got ${value}`)
 })
 /**
@@ -372,7 +372,7 @@ export const positiveNumber = number.check((value) => {
  *
  * @public
  */
-export const nonZeroNumber = number.check((value) => {
+export const nonZeroNumberValidator = numberValidator.check((value) => {
 	if (value <= 0) throw new ValidationError(`Expected a non-zero positive number, got ${value}`)
 })
 /**
@@ -380,7 +380,7 @@ export const nonZeroNumber = number.check((value) => {
  *
  * @public
  */
-export const integer = number.check((value) => {
+export const integerValidator = numberValidator.check((value) => {
 	if (!Number.isInteger(value)) throw new ValidationError(`Expected an integer, got ${value}`)
 })
 /**
@@ -388,7 +388,7 @@ export const integer = number.check((value) => {
  *
  * @public
  */
-export const positiveInteger = integer.check((value) => {
+export const positiveIntegerValidator = integerValidator.check((value) => {
 	if (value < 0) throw new ValidationError(`Expected a positive integer, got ${value}`)
 })
 /**
@@ -396,7 +396,7 @@ export const positiveInteger = integer.check((value) => {
  *
  * @public
  */
-export const nonZeroInteger = integer.check((value) => {
+export const nonZeroIntegerValidator = integerValidator.check((value) => {
 	if (value <= 0) throw new ValidationError(`Expected a non-zero positive integer, got ${value}`)
 })
 
@@ -405,13 +405,13 @@ export const nonZeroInteger = integer.check((value) => {
  *
  * @public
  */
-export const boolean = typeofValidator<boolean>('boolean')
+export const booleanValidator = typeofValidator<boolean>('boolean')
 /**
  * Validates that a value is a bigint.
  *
  * @public
  */
-export const bigint = typeofValidator<bigint>('bigint')
+export const bigintValidator = typeofValidator<bigint>('bigint')
 /**
  * Validates that a value matches another that was passed in.
  *
@@ -423,7 +423,9 @@ export const bigint = typeofValidator<bigint>('bigint')
  *
  * @public
  */
-export function literal<T extends string | number | boolean>(expectedValue: T): TypeValidator<T> {
+export function literalValidator<T extends string | number | boolean>(
+	expectedValue: T
+): TypeValidator<T> {
 	return new TypeValidator((actualValue) => {
 		if (actualValue !== expectedValue) {
 			throw new ValidationError(`Expected ${expectedValue}, got ${JSON.stringify(actualValue)}`)
@@ -437,7 +439,7 @@ export function literal<T extends string | number | boolean>(expectedValue: T): 
  *
  * @public
  */
-export const array = new TypeValidator<unknown[]>((value) => {
+export const arrayValidator = new TypeValidator<unknown[]>((value) => {
 	if (!Array.isArray(value)) {
 		throw new ValidationError(`Expected an array, got ${typeToString(value)}`)
 	}
@@ -449,12 +451,12 @@ export const array = new TypeValidator<unknown[]>((value) => {
  *
  * @public
  */
-export function arrayOf<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T> {
+export function arrayOfValidator<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
 /** @public */
-export const unknownObject = new TypeValidator<Record<string, unknown>>((value) => {
+export const unknownObjectValidator = new TypeValidator<Record<string, unknown>>((value) => {
 	if (typeof value !== 'object' || value === null) {
 		throw new ValidationError(`Expected object, got ${typeToString(value)}`)
 	}
@@ -466,7 +468,7 @@ export const unknownObject = new TypeValidator<Record<string, unknown>>((value) 
  *
  * @public
  */
-export function object<Shape extends object>(config: {
+export function objectValidator<Shape extends object>(config: {
 	readonly [K in keyof Shape]: TypeValidator<Shape[K]>
 }): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
@@ -477,7 +479,7 @@ export function object<Shape extends object>(config: {
  *
  * @public
  */
-export function dict<Key extends string, Value>(
+export function dictValidator<Key extends string, Value>(
 	keyValidator: TypeValidator<Key>,
 	valueValidator: TypeValidator<Value>
 ): DictValidator<Key, Value> {
@@ -498,10 +500,10 @@ export function dict<Key extends string, Value>(
  *
  * @public
  */
-export function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(
-	key: Key,
-	config: Config
-): UnionValidator<Key, Config> {
+export function unionValidator<
+	Key extends string,
+	Config extends UnionValidatorConfig<Key, Config>
+>(key: Key, config: Config): UnionValidator<Key, Config> {
 	return new UnionValidator(key, config, (unknownValue, unknownVariant) => {
 		throw new ValidationError(
 			`Expected one of ${Object.keys(config)
@@ -518,7 +520,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
  *
  * @public
  */
-export function model<T extends { readonly id: string }>(
+export function modelValidator<T extends { readonly id: string }>(
 	name: string,
 	validator: TypeValidator<T>
 ): TypeValidator<T> {
@@ -533,7 +535,7 @@ export function model<T extends { readonly id: string }>(
 }
 
 /** @public */
-export function setEnum<T>(values: ReadonlySet<T>): TypeValidator<T> {
+export function setEnumValidator<T>(values: ReadonlySet<T>): TypeValidator<T> {
 	return new TypeValidator((value) => {
 		if (!values.has(value as T)) {
 			const valuesString = Array.from(values, (value) => JSON.stringify(value)).join(' or ')
@@ -544,16 +546,16 @@ export function setEnum<T>(values: ReadonlySet<T>): TypeValidator<T> {
 }
 
 /** @public */
-export const point = object({
-	x: number,
-	y: number,
-	z: number.optional(),
+export const pointValidator = objectValidator({
+	x: numberValidator,
+	y: numberValidator,
+	z: numberValidator.optional(),
 })
 
 /** @public */
-export const boxModel = object({
-	x: number,
-	y: number,
-	w: number,
-	h: number,
+export const boxModelValidator = objectValidator({
+	x: numberValidator,
+	y: numberValidator,
+	w: numberValidator,
+	h: numberValidator,
 })

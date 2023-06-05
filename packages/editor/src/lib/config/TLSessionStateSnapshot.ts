@@ -19,7 +19,13 @@ import {
 } from '@tldraw/tlschema'
 import { objectMapFromEntries } from '@tldraw/utils'
 
-import { TypeValidator, arrayOf, boolean, number, object } from '@tldraw/validate'
+import {
+	TypeValidator,
+	arrayOfValidator,
+	booleanValidator,
+	numberValidator,
+	objectValidator,
+} from '@tldraw/validate'
 import { Signal, computed, transact } from 'signia'
 import { uniqueId } from '../utils/data'
 
@@ -99,23 +105,23 @@ export interface TLSessionStateSnapshot {
 	}>
 }
 
-const sessionStateSnapshotValidator: TypeValidator<TLSessionStateSnapshot> = object({
-	version: number,
+const sessionStateSnapshotValidator: TypeValidator<TLSessionStateSnapshot> = objectValidator({
+	version: numberValidator,
 	currentPageId: pageIdValidator,
-	isFocusMode: boolean,
-	exportBackground: boolean,
-	isDebugMode: boolean,
-	isToolLocked: boolean,
-	isGridMode: boolean,
-	pageStates: arrayOf(
-		object({
+	isFocusMode: booleanValidator,
+	exportBackground: booleanValidator,
+	isDebugMode: booleanValidator,
+	isToolLocked: booleanValidator,
+	isGridMode: booleanValidator,
+	pageStates: arrayOfValidator(
+		objectValidator({
 			pageId: pageIdValidator,
-			camera: object({
-				x: number,
-				y: number,
-				z: number,
+			camera: objectValidator({
+				x: numberValidator,
+				y: numberValidator,
+				z: numberValidator,
 			}),
-			selectedIds: arrayOf(shapeIdValidator),
+			selectedIds: arrayOfValidator(shapeIdValidator),
 			focusLayerId: shapeIdValidator.nullable(),
 		})
 	),

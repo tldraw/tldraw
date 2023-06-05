@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { object, TypeValidator } from '@tldraw/validate'
+import { objectValidator, TypeValidator } from '@tldraw/validate'
 import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
 import { createShapeValidator, TLBaseShape } from './TLBaseShape'
 
@@ -15,7 +15,7 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 /** @internal */
 export const groupShapeValidator: TypeValidator<TLGroupShape> = createShapeValidator(
 	'group',
-	object({
+	objectValidator({
 		opacity: opacityValidator,
 	})
 )

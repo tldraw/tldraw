@@ -1,4 +1,4 @@
-import { setEnum } from '@tldraw/validate'
+import { setEnumValidator } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -15,4 +15,4 @@ export interface TLDashStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const dashValidator = setEnum(TL_DASH_TYPES)
+export const dashValidator = setEnumValidator(TL_DASH_TYPES)

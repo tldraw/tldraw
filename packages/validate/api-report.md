@@ -5,13 +5,7 @@
 ```ts
 
 // @public
-export const any: TypeValidator<any>;
-
-// @public
-export const array: TypeValidator<unknown[]>;
-
-// @public
-export function arrayOf<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T>;
+export const anyValidator: TypeValidator<any>;
 
 // @public (undocumented)
 export class ArrayOfValidator<T> extends TypeValidator<T[]> {
@@ -25,21 +19,24 @@ export class ArrayOfValidator<T> extends TypeValidator<T[]> {
 }
 
 // @public
-export const bigint: TypeValidator<bigint>;
+export function arrayOfValidator<T>(itemValidator: TypeValidator<T>): ArrayOfValidator<T>;
 
 // @public
-export const boolean: TypeValidator<boolean>;
+export const arrayValidator: TypeValidator<unknown[]>;
+
+// @public
+export const bigintValidator: TypeValidator<bigint>;
+
+// @public
+export const booleanValidator: TypeValidator<boolean>;
 
 // @public (undocumented)
-export const boxModel: ObjectValidator<{
+export const boxModelValidator: ObjectValidator<{
     x: number;
     y: number;
     w: number;
     h: number;
 }>;
-
-// @public
-export function dict<Key extends string, Value>(keyValidator: TypeValidator<Key>, valueValidator: TypeValidator<Value>): DictValidator<Key, Value>;
 
 // @public (undocumented)
 export class DictValidator<Key extends string, Value> extends TypeValidator<Record<Key, Value>> {
@@ -51,29 +48,27 @@ export class DictValidator<Key extends string, Value> extends TypeValidator<Reco
 }
 
 // @public
-export const integer: TypeValidator<number>;
+export function dictValidator<Key extends string, Value>(keyValidator: TypeValidator<Key>, valueValidator: TypeValidator<Value>): DictValidator<Key, Value>;
 
 // @public
-export function literal<T extends boolean | number | string>(expectedValue: T): TypeValidator<T>;
+export const integerValidator: TypeValidator<number>;
 
 // @public
-export function model<T extends {
+export function literalValidator<T extends boolean | number | string>(expectedValue: T): TypeValidator<T>;
+
+// @public
+export function modelValidator<T extends {
     readonly id: string;
 }>(name: string, validator: TypeValidator<T>): TypeValidator<T>;
 
 // @public
-export const nonZeroInteger: TypeValidator<number>;
+export const nonZeroIntegerValidator: TypeValidator<number>;
 
 // @public
-export const nonZeroNumber: TypeValidator<number>;
+export const nonZeroNumberValidator: TypeValidator<number>;
 
 // @public
-export const number: TypeValidator<number>;
-
-// @public
-export function object<Shape extends object>(config: {
-    readonly [K in keyof Shape]: TypeValidator<Shape[K]>;
-}): ObjectValidator<Shape>;
+export const numberValidator: TypeValidator<number>;
 
 // @public (undocumented)
 export class ObjectValidator<Shape extends object> extends TypeValidator<Shape> {
@@ -91,24 +86,29 @@ export class ObjectValidator<Shape extends object> extends TypeValidator<Shape> 
     }): ObjectValidator<Shape & Extension>;
 }
 
+// @public
+export function objectValidator<Shape extends object>(config: {
+    readonly [K in keyof Shape]: TypeValidator<Shape[K]>;
+}): ObjectValidator<Shape>;
+
 // @public (undocumented)
-export const point: ObjectValidator<{
+export const pointValidator: ObjectValidator<{
     x: number;
     y: number;
     z: number | undefined;
 }>;
 
 // @public
-export const positiveInteger: TypeValidator<number>;
+export const positiveIntegerValidator: TypeValidator<number>;
 
 // @public
-export const positiveNumber: TypeValidator<number>;
+export const positiveNumberValidator: TypeValidator<number>;
 
 // @public (undocumented)
-export function setEnum<T>(values: ReadonlySet<T>): TypeValidator<T>;
+export function setEnumValidator<T>(values: ReadonlySet<T>): TypeValidator<T>;
 
 // @public
-export const string: TypeValidator<string>;
+export const stringValidator: TypeValidator<string>;
 
 // @public (undocumented)
 export type TypeOf<V extends TypeValidator<unknown>> = V extends TypeValidator<infer T> ? T : never;
@@ -127,9 +127,6 @@ export class TypeValidator<T> {
     readonly validationFn: ValidatorFn<T>;
 }
 
-// @public
-export function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
-
 // @public (undocumented)
 export class UnionValidator<Key extends string, Config extends UnionValidatorConfig<Key, Config>, UnknownValue = never> extends TypeValidator<TypeOf<Config[keyof Config]> | UnknownValue> {
     constructor(key: Key, config: Config, unknownValueValidation: (value: object, variant: string) => UnknownValue);
@@ -138,10 +135,13 @@ export class UnionValidator<Key extends string, Config extends UnionValidatorCon
 }
 
 // @public
-export const unknown: TypeValidator<unknown>;
+export function unionValidator<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
 
 // @public (undocumented)
-export const unknownObject: TypeValidator<Record<string, unknown>>;
+export const unknownObjectValidator: TypeValidator<Record<string, unknown>>;
+
+// @public
+export const unknownValidator: TypeValidator<unknown>;
 
 // @public (undocumented)
 export class ValidationError extends Error {

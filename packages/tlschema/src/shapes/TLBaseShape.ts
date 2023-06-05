@@ -1,6 +1,13 @@
 import { BaseRecord } from '@tldraw/store'
 
-import { TypeValidator, boolean, literal, number, object, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	booleanValidator,
+	literalValidator,
+	numberValidator,
+	objectValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
@@ -18,7 +25,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 }
 
 /** @public */
-export const parentIdValidator = string.refine((id) => {
+export const parentIdValidator = stringValidator.refine((id) => {
 	if (!id.startsWith('page:') && !id.startsWith('shape:')) {
 		throw new Error('Parent ID must start with "page:" or "shape:"')
 	}
@@ -33,16 +40,16 @@ export function createShapeValidator<Type extends string, Props extends object>(
 	type: Type,
 	props: TypeValidator<Props>
 ) {
-	return object({
+	return objectValidator({
 		id: shapeIdValidator,
-		typeName: literal('shape'),
-		x: number,
-		y: number,
-		rotation: number,
-		index: string,
+		typeName: literalValidator('shape'),
+		x: numberValidator,
+		y: numberValidator,
+		rotation: numberValidator,
+		index: stringValidator,
 		parentId: parentIdValidator,
-		type: literal(type),
-		isLocked: boolean,
+		type: literalValidator(type),
+		isLocked: booleanValidator,
 		props,
 	})
 }

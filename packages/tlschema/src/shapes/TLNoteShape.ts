@@ -1,6 +1,11 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, object, positiveNumber, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	objectValidator,
+	positiveNumberValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
@@ -26,15 +31,15 @@ export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 /** @internal */
 export const noteShapeValidator: TypeValidator<TLNoteShape> = createShapeValidator(
 	'note',
-	object({
+	objectValidator({
 		color: colorValidator,
 		size: sizeValidator,
 		font: fontValidator,
 		align: alignValidator,
 		opacity: opacityValidator,
-		growY: positiveNumber,
-		url: string,
-		text: string,
+		growY: positiveNumberValidator,
+		url: stringValidator,
+		text: stringValidator,
 	})
 )
 

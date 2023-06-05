@@ -1,6 +1,6 @@
 import { BaseRecord } from '@tldraw/store'
 
-import { ObjectValidator, TypeValidator, literal, object } from '@tldraw/validate'
+import { ObjectValidator, TypeValidator, literalValidator, objectValidator } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { TLAssetId } from '../records/TLAsset'
 
@@ -32,10 +32,10 @@ export function createAssetValidator<Type extends string, Props extends object>(
 	type: Type
 	props: Props
 }> {
-	return object({
+	return objectValidator({
 		id: assetIdValidator,
-		typeName: literal('asset'),
-		type: literal(type),
+		typeName: literalValidator('asset'),
+		type: literalValidator(type),
 		props,
 	})
 }

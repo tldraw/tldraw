@@ -1,6 +1,12 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, nonZeroNumber, object, positiveNumber, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	nonZeroNumberValidator,
+	objectValidator,
+	positiveNumberValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
@@ -37,7 +43,7 @@ export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 /** @internal */
 export const geoShapeValidator: TypeValidator<TLGeoShape> = createShapeValidator(
 	'geo',
-	object({
+	objectValidator({
 		geo: geoValidator,
 		labelColor: colorValidator,
 		color: colorValidator,
@@ -48,11 +54,11 @@ export const geoShapeValidator: TypeValidator<TLGeoShape> = createShapeValidator
 		font: fontValidator,
 		align: alignValidator,
 		verticalAlign: verticalAlignValidator,
-		url: string,
-		w: nonZeroNumber,
-		h: nonZeroNumber,
-		growY: positiveNumber,
-		text: string,
+		url: stringValidator,
+		w: nonZeroNumberValidator,
+		h: nonZeroNumberValidator,
+		growY: positiveNumberValidator,
+		text: stringValidator,
 	})
 )
 

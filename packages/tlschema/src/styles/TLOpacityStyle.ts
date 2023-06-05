@@ -1,4 +1,4 @@
-import { setEnum } from '@tldraw/validate'
+import { setEnumValidator } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -15,4 +15,4 @@ export interface TLOpacityStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const opacityValidator = setEnum(TL_OPACITY_TYPES)
+export const opacityValidator = setEnumValidator(TL_OPACITY_TYPES)

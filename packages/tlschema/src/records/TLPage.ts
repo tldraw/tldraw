@@ -1,6 +1,12 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 
-import { literal, model, object, string, TypeValidator } from '@tldraw/validate'
+import {
+	literalValidator,
+	modelValidator,
+	objectValidator,
+	stringValidator,
+	TypeValidator,
+} from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 
 /**
@@ -20,13 +26,13 @@ export type TLPageId = RecordId<TLPage>
 export const pageIdValidator = idValidator<TLPageId>('page')
 
 /** @internal */
-export const pageValidator: TypeValidator<TLPage> = model(
+export const pageValidator: TypeValidator<TLPage> = modelValidator(
 	'page',
-	object({
-		typeName: literal('page'),
+	objectValidator({
+		typeName: literalValidator('page'),
 		id: pageIdValidator,
-		name: string,
-		index: string,
+		name: stringValidator,
+		index: stringValidator,
 	})
 )
 /** @internal */

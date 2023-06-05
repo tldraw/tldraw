@@ -1,4 +1,4 @@
-import { setEnum } from '@tldraw/validate'
+import { setEnumValidator } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -15,4 +15,4 @@ export interface TLSizeStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const sizeValidator = setEnum(TL_SIZE_TYPES)
+export const sizeValidator = setEnumValidator(TL_SIZE_TYPES)

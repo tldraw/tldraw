@@ -1,20 +1,20 @@
 import {
-	arrayOf,
-	boolean,
-	literal,
-	model,
-	number,
-	object,
-	setEnum,
-	string,
-	union,
+	arrayOfValidator,
+	booleanValidator,
+	literalValidator,
+	modelValidator,
+	numberValidator,
+	objectValidator,
+	setEnumValidator,
+	stringValidator,
+	unionValidator,
 } from '../lib/validation'
 
 describe('validations', () => {
 	it('Returns referentially identical objects', () => {
-		const validator = object({
-			name: string,
-			items: arrayOf(string.nullable()),
+		const validator = objectValidator({
+			name: stringValidator,
+			items: arrayOfValidator(stringValidator.nullable()),
 		})
 
 		const value = {
@@ -26,17 +26,17 @@ describe('validations', () => {
 	})
 	it('Rejects unknown object keys', () => {
 		expect(() =>
-			object({ moo: literal('cow') }).validate({ moo: 'cow', cow: 'moo' })
+			objectValidator({ moo: literalValidator('cow') }).validate({ moo: 'cow', cow: 'moo' })
 		).toThrowErrorMatchingInlineSnapshot(`"At cow: Unexpected property"`)
 	})
 	it('Produces nice error messages', () => {
 		expect(() =>
-			object({
-				toad: object({
-					name: number,
-					friends: arrayOf(
-						object({
-							name: string,
+			objectValidator({
+				toad: objectValidator({
+					name: numberValidator,
+					friends: arrayOfValidator(
+						objectValidator({
+							name: stringValidator,
 						})
 					),
 				}),
@@ -57,12 +57,12 @@ describe('validations', () => {
 		).toThrowErrorMatchingInlineSnapshot(`"At toad.name: Expected number, got a string"`)
 
 		expect(() =>
-			model(
+			modelValidator(
 				'shape',
-				object({
-					id: string,
-					x: number,
-					y: number,
+				objectValidator({
+					id: stringValidator,
+					x: numberValidator,
+					y: numberValidator,
 				})
 			).validate({
 				id: 'abc123',
@@ -72,11 +72,11 @@ describe('validations', () => {
 		).toThrowErrorMatchingInlineSnapshot(`"At shape(id = abc123).y: Expected a number, got NaN"`)
 
 		expect(() =>
-			model(
+			modelValidator(
 				'shape',
-				object({
-					id: string,
-					color: setEnum(new Set(['red', 'green', 'blue'])),
+				objectValidator({
+					id: stringValidator,
+					color: setEnumValidator(new Set(['red', 'green', 'blue'])),
 				})
 			).validate({ id: 'abc13', color: 'rubbish' })
 		).toThrowErrorMatchingInlineSnapshot(
@@ -85,22 +85,22 @@ describe('validations', () => {
 	})
 
 	it('Understands unions & produces nice error messages', () => {
-		const catSchema = object({
-			type: literal('cat'),
-			id: string,
-			meow: boolean,
+		const catSchema = objectValidator({
+			type: literalValidator('cat'),
+			id: stringValidator,
+			meow: booleanValidator,
 		})
-		const dogSchema = object({
-			type: literal('dog'),
-			id: string,
-			bark: boolean,
+		const dogSchema = objectValidator({
+			type: literalValidator('dog'),
+			id: stringValidator,
+			bark: booleanValidator,
 		})
-		const animalSchema = union('type', {
+		const animalSchema = unionValidator('type', {
 			cat: catSchema,
 			dog: dogSchema,
 		})
 
-		const nested = object({
+		const nested = objectValidator({
 			animal: animalSchema,
 		})
 
@@ -117,7 +117,7 @@ describe('validations', () => {
 		)
 
 		expect(() =>
-			model('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
+			modelValidator('animal', animalSchema).validate({ type: 'cat', moo: true, id: 'abc123' })
 		).toThrowErrorMatchingInlineSnapshot(
 			`"At animal(id = abc123, type = cat).meow: Expected boolean, got undefined"`
 		)

@@ -1,6 +1,12 @@
 import { defineMigrations } from '@tldraw/store'
 
-import { TypeValidator, boolean, nonZeroNumber, object, string } from '@tldraw/validate'
+import {
+	TypeValidator,
+	booleanValidator,
+	nonZeroNumberValidator,
+	objectValidator,
+	stringValidator,
+} from '@tldraw/validate'
 import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
@@ -27,16 +33,16 @@ export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 /** @internal */
 export const textShapeValidator: TypeValidator<TLTextShape> = createShapeValidator(
 	'text',
-	object({
+	objectValidator({
 		color: colorValidator,
 		size: sizeValidator,
 		font: fontValidator,
 		align: alignValidator,
 		opacity: opacityValidator,
-		w: nonZeroNumber,
-		text: string,
-		scale: nonZeroNumber,
-		autoSize: boolean,
+		w: nonZeroNumberValidator,
+		text: stringValidator,
+		scale: nonZeroNumberValidator,
+		autoSize: booleanValidator,
 	})
 )
 

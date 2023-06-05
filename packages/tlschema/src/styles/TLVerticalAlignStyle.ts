@@ -1,4 +1,4 @@
-import { setEnum } from '@tldraw/validate'
+import { setEnumValidator } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLBaseStyle } from './TLBaseStyle'
 
@@ -15,4 +15,4 @@ export interface TLVerticalAlignStyle extends TLBaseStyle {
 }
 
 /** @internal */
-export const verticalAlignValidator = setEnum(TL_VERTICAL_ALIGN_TYPES)
+export const verticalAlignValidator = setEnumValidator(TL_VERTICAL_ALIGN_TYPES)

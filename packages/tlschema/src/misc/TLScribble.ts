@@ -1,11 +1,11 @@
 import {
 	TypeValidator,
-	arrayOf,
-	number,
-	object,
-	point,
-	positiveNumber,
-	setEnum,
+	arrayOfValidator,
+	numberValidator,
+	objectValidator,
+	pointValidator,
+	positiveNumberValidator,
+	setEnumValidator,
 } from '@tldraw/validate'
 import { SetValue } from '../util-types'
 import { TLColor, colorTypeValidator } from './TLColor'
@@ -31,11 +31,11 @@ export type TLScribble = {
 }
 
 /** @internal */
-export const scribbleValidator: TypeValidator<TLScribble> = object({
-	points: arrayOf(point),
-	size: positiveNumber,
+export const scribbleValidator: TypeValidator<TLScribble> = objectValidator({
+	points: arrayOfValidator(pointValidator),
+	size: positiveNumberValidator,
 	color: colorTypeValidator,
-	opacity: number,
-	state: setEnum(TL_SCRIBBLE_STATES),
-	delay: number,
+	opacity: numberValidator,
+	state: setEnumValidator(TL_SCRIBBLE_STATES),
+	delay: numberValidator,
 })
