@@ -10,7 +10,8 @@ export class HighlightShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Drawing]
 
-	styles = ['color', 'opacity', 'size'] as TLStyleType[]
+	styles = ['color', 'size'] as TLStyleType[]
+	shapeType = 'highlight'
 
 	onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing

@@ -79,6 +79,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 			y: element.y,
 			rotation: 0,
 			isLocked: element.locked,
+			opacity: getOpacity(element.opacity),
 		} as const
 
 		if (element.angle !== 0) {
@@ -121,7 +122,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					type: 'geo',
 					props: {
 						geo: element.type,
-						opacity: getOpacity(element.opacity),
 						url: element.link ?? '',
 						w: element.width,
 						h: element.height,
@@ -142,7 +142,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						segments: [
 							{
@@ -169,7 +168,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						spline: element.roundness ? 'cubic' : 'line',
 						handles: {
@@ -234,7 +232,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						text,
 						bend: getBend(element, start, end),
 						dash: getDash(element),
-						opacity: getOpacity(element.opacity),
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						start: startTargetId
@@ -277,7 +274,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						size,
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						text: element.text,
 						align: textAlignToAlignTypes[element.textAlign],
@@ -308,7 +304,6 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 					...base,
 					type: 'image',
 					props: {
-						opacity: getOpacity(element.opacity),
 						w: element.width,
 						h: element.height,
 						assetId,
@@ -370,16 +365,16 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 const getOpacity = (opacity: number): TLOpacityType => {
 	const t = opacity / 100
 	if (t < 0.2) {
-		return '0.1'
+		return 0.1
 	} else if (t < 0.4) {
-		return '0.25'
+		return 0.25
 	} else if (t < 0.6) {
-		return '0.5'
+		return 0.5
 	} else if (t < 0.8) {
-		return '0.75'
+		return 0.75
 	}
 
-	return '1'
+	return 1
 }
 
 const strokeWidthsToSizes: Record<number, TLSizeType> = {

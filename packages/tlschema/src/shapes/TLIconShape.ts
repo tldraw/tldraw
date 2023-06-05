@@ -3,7 +3,6 @@ import { T } from '@tldraw/validate'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLIconType, iconValidator } from '../styles/TLIconStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
@@ -13,7 +12,6 @@ export type TLIconShapeProps = {
 	icon: TLIconType
 	dash: TLDashType
 	color: TLColorType
-	opacity: TLOpacityType
 	scale: number
 }
 
@@ -28,7 +26,6 @@ export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator
 		icon: iconValidator,
 		dash: dashValidator,
 		color: colorValidator,
-		opacity: opacityValidator,
 		scale: T.number,
 	})
 )

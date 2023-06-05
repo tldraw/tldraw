@@ -4,7 +4,6 @@ import {
 	TLDashStyle,
 	TLFillStyle,
 	TLFontStyle,
-	TLOpacityStyle,
 	TLSizeStyle,
 	TLStyleType,
 } from '..'
@@ -20,7 +19,6 @@ export type TLStyleItem =
 	| TLFillStyle
 	| TLDashStyle
 	| TLSizeStyle
-	| TLOpacityStyle
 	| TLFontStyle
 	| TLAlignStyle
 	| TLVerticalAlignStyle
@@ -36,7 +34,6 @@ export interface TLStyleCollections {
 	fill: TLFillStyle[]
 	dash: TLDashStyle[]
 	size: TLSizeStyle[]
-	opacity: TLOpacityStyle[]
 	font: TLFontStyle[]
 	align: TLAlignStyle[]
 	verticalAlign: TLVerticalAlignStyle[]
@@ -44,7 +41,6 @@ export interface TLStyleCollections {
 	arrowheadStart: TLArrowheadStartStyle[]
 	arrowheadEnd: TLArrowheadEndStyle[]
 	spline: TLSplineStyle[]
-	// icon: TLIconStyle[]
 }
 
 /** @public */

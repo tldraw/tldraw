@@ -9,7 +9,8 @@ export class DrawShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Drawing]
 
-	styles = ['color', 'opacity', 'dash', 'fill', 'size'] as TLStyleType[]
+	styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
+	shapeType = 'draw'
 
 	onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing

@@ -42,7 +42,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	override defaultProps(): TLEmbedShape['props'] {
 		return {
-			opacity: '1',
 			w: 300,
 			h: 300,
 			url: '',

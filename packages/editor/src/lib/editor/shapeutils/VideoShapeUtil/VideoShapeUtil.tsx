@@ -18,7 +18,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 	override defaultProps(): TLVideoShape['props'] {
 		return {
-			opacity: '1',
 			w: 100,
 			h: 100,
 			assetId: null,

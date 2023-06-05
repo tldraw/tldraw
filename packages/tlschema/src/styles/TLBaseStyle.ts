@@ -7,7 +7,6 @@ export const TL_STYLE_TYPES = new Set([
 	'dash',
 	'fill',
 	'size',
-	'opacity',
 	'font',
 	'align',
 	'verticalAlign',

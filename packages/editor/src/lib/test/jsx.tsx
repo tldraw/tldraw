@@ -20,6 +20,7 @@ type CommonProps = {
 	isLocked?: number
 	ref?: string
 	children?: JSX.Element | JSX.Element[]
+	opacity?: number
 }
 
 type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
@@ -89,7 +90,7 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 				if (key === 'x' || key === 'y' || key === 'ref' || key === 'id' || key === 'children') {
 					continue
 				}
-				if (key === 'rotation' || key === 'isLocked') {
+				if (key === 'rotation' || key === 'isLocked' || key === 'opacity') {
 					shapePartial[key] = value as any
 					continue
 				}

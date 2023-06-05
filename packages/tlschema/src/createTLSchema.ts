@@ -132,7 +132,7 @@ export function createTLSchema(
 				),
 			})
 		),
-	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
+	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false, opacity: 1 }))
 
 	return StoreSchema.create<TLRecord, TLStoreProps>(
 		{

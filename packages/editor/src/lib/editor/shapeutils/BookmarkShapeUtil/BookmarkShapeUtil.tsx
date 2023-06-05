@@ -27,7 +27,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override defaultProps(): TLBookmarkShape['props'] {
 		return {
-			opacity: '1',
 			url: '',
 			w: DEFAULT_BOOKMARK_WIDTH,
 			h: DEFAULT_BOOKMARK_HEIGHT,
